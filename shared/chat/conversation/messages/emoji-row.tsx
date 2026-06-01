@@ -82,7 +82,7 @@ function EmojiRowContainer(p: OwnProps) {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
-        <Kb.ClickableBox3
+        <Kb.ClickableBox
           direction="vertical"
           className="hover_container"
           onClick={hasMessageID ? _showPicker : undefined}
@@ -90,9 +90,9 @@ function EmojiRowContainer(p: OwnProps) {
           tooltip="React"
         >
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.ClickableBox3
+          <Kb.ClickableBox
             direction="vertical"
             className="hover_container"
             onClick={onReply}
@@ -100,10 +100,10 @@ function EmojiRowContainer(p: OwnProps) {
             tooltip="Reply"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
         )}
         {!!onForward && (
-          <Kb.ClickableBox3
+          <Kb.ClickableBox
             direction="vertical"
             className="hover_container"
             onClick={onForward}
@@ -111,7 +111,7 @@ function EmojiRowContainer(p: OwnProps) {
             tooltip="Forward"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
         )}
       </Kb.Box2>
       {showingPicker && message && hasMessageID && (
@@ -138,7 +138,7 @@ const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) =>
   const _setHovering = () => setHovering(true)
   const _setNotHovering = () => setHovering(false)
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="horizontal"
       centerChildren={true}
       onClick={props.onClick}
@@ -154,7 +154,7 @@ const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) =>
         style={styles.hoverEmoji}
         virtualText={true}
       />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

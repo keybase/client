@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import Popup from './popup'
@@ -14,7 +14,7 @@ import {useSafeAreaInsets} from './safe-area-view'
 
 const Kb = {
   Box2,
-  ClickableBox3,
+  ClickableBox,
   Icon,
   Popup,
   ProgressIndicator,
@@ -37,7 +37,7 @@ type DropdownButtonProps = {
 export const DropdownButton = (props: DropdownButtonProps) => {
   const {disabled, toggleOpen, style, popupAnchor, selectedBoxStyle, inline, loading, selected} = props
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={!disabled ? toggleOpen : undefined}
       direction="vertical"
       ref={popupAnchor}
@@ -68,7 +68,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
         sizeType="Tiny"
         style={{marginTop: isMobile ? 2 : -8}}
       />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 
@@ -102,7 +102,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
       >
         <Kb.ScrollView style={styles.scrollView} contentInset={{bottom}}>
           {items.map((i: N, idx) => (
-            <Kb.ClickableBox3
+            <Kb.ClickableBox
               key={idx}
               onClick={evt => {
                 evt?.stopPropagation()
@@ -117,7 +117,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
               style={Styles.collapseStyles([styles.itemClickBox, styles.itemBox, itemBoxStyle])}
             >
               {i}
-            </Kb.ClickableBox3>
+            </Kb.ClickableBox>
           ))}
         </Kb.ScrollView>
       </Kb.Popup>

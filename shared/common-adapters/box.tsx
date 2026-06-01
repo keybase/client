@@ -184,7 +184,7 @@ export const box2SharedProps = (p: Box2Props) => {
   }
 }
 
-// Shared className generator used by Box2 and ClickableBox3.
+// Shared className generator used by Box2 and ClickableBox.
 export const box2ClassNames = (p: Box2Props, extra?: string): string => {
   const {direction, alignItems, alignSelf, gap, gapStart, gapEnd, justifyContent, overflow} = p
   const {padding, centerChildren, flex, fullHeight, fullWidth, noShrink, pointerEvents, relative, tooltip, className} = p
@@ -309,13 +309,13 @@ const nativeStyles = {
   },
 } as const
 
-export type ClickableBox3Props = Box2Props & {
+export type ClickableBoxProps = Box2Props & {
   onClick?: (e?: React.SyntheticEvent) => void
   onLongPress?: () => void
   hitSlop?: number
 }
 
-export const ClickableBox3 = (p: ClickableBox3Props & {ref?: React.Ref<MeasureRef | null>}) => {
+export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef | null>}) => {
   const {onClick, onLongPress, hitSlop, ref, ...box2p} = p
 
   if (!isMobile) {

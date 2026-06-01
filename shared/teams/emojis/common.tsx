@@ -35,9 +35,9 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
           onEnterKeyDown={onEnterKeyDown}
         />
         {onRemove && (
-          <Kb.ClickableBox3 direction="horizontal" centerChildren={true} onClick={onRemove} style={styles.removeBox}>
+          <Kb.ClickableBox direction="horizontal" centerChildren={true} onClick={onRemove} style={styles.removeBox}>
             <Kb.Icon type="iconfont-remove" />
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
         )}
       </Kb.Box2>
       {!!error && (

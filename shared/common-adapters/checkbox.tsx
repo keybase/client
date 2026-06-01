@@ -1,4 +1,4 @@
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import Icon from './icon'
 import Switch from '@/common-adapters/switch'
 import Text from './text'
@@ -23,12 +23,12 @@ type Props = {
 const CHECKBOX_SIZE = 13
 const CHECKBOX_MARGIN = 8
 
-const Kb = {Box2, ClickableBox3, Icon, Styles, Switch, Text}
+const Kb = {Box2, ClickableBox, Icon, Styles, Switch, Text}
 
 const Checkbox = (props: Props) => {
   if (!isMobile) {
     return (
-      <Kb.ClickableBox3
+      <Kb.ClickableBox
         direction="horizontal"
         alignItems="flex-start"
         alignSelf="flex-start"
@@ -69,7 +69,7 @@ const Checkbox = (props: Props) => {
             ))}
           {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
         </Kb.Box2>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     )
   }
 

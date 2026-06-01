@@ -91,7 +91,7 @@ const CommonResult = (props: CommonResultProps) => {
   const onClick = getRowAction(props)
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={onClick}
       className="hover_background_color_blueLighter2 hover_container"
       direction="horizontal"
@@ -144,7 +144,7 @@ const CommonResult = (props: CommonResultProps) => {
         {/* Renders checkbox for new-chat and team-building, and chat buttons + dropdown for people search */}
         {props.rightButtons ?? null}
       </Kb.Box2>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

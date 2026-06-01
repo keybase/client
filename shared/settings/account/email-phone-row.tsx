@@ -147,7 +147,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
       </Kb.Box2>
       {!!menuItems.length && (
         <>
-          <Kb.ClickableBox3
+          <Kb.ClickableBox
             className="hover_container"
             onClick={showPopup}
             ref={popupAnchor}
@@ -156,7 +156,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
           >
             <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" style={styles.gearIcon} />
             {gearIconBadge}
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
           {popup}
         </>
       )}

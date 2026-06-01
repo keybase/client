@@ -1,5 +1,5 @@
 import {View} from 'react-native'
-import {ClickableBox3} from './box'
+import {ClickableBox} from './box'
 import Text from './text'
 import * as Styles from '@/styles'
 import './radio-button.css'
@@ -14,7 +14,7 @@ type Props = {
 }
 
 const Kb = {
-  ClickableBox3,
+  ClickableBox,
   Text,
 }
 
@@ -38,7 +38,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
     )
   }
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="horizontal"
       alignItems="center"
       style={Styles.collapseStyles([nativeStyles.container, style])}
@@ -67,7 +67,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
       ) : (
         label
       )}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

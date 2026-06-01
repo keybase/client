@@ -123,7 +123,7 @@ const LogoutContainer = () => {
               {loggingOut ? (
                 <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
               ) : (
-                <Kb.ClickableBox3
+                <Kb.ClickableBox
                   onClick={logOut}
                   direction="horizontal"
                   justifyContent="center"
@@ -134,7 +134,7 @@ const LogoutContainer = () => {
                   <Kb.Text className="underline" style={styles.logout} type="BodySmallSecondaryLink">
                     Just sign out
                   </Kb.Text>
-                </Kb.ClickableBox3>
+                </Kb.ClickableBox>
               )}
             </Kb.Box2>
           </Kb.ButtonBar>

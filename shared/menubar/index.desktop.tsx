@@ -118,7 +118,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
   const timestamp = conv.timestamp ? TimestampUtil.formatTimeForConversationList(conv.timestamp) : ''
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: conv.conversationIDKey}))}
       direction="horizontal"
       fullWidth={true}
@@ -166,7 +166,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
           </Kb.Text>
         )}
       </Kb.Box2>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 
@@ -193,7 +193,7 @@ const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convL
 
 // Inline file updates (replaces FilesContainer + files.desktop.tsx with store-connected components)
 const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void}) => (
-  <Kb.ClickableBox3
+  <Kb.ClickableBox
     className="hover-underline-container"
     onClick={p.onClick}
     direction="horizontal"
@@ -208,7 +208,7 @@ const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void
       </Kb.Box2>
     )}
     <Filename type="Body" path={p.path} />
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const defaultNumFileOptionsShown = 3

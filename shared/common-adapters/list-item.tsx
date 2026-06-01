@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import BoxGrow from './box-grow'
 import Divider from './divider'
 import './list-item.css'
@@ -8,7 +8,7 @@ import './list-item.css'
 const Kb = {
   Box2,
   BoxGrow,
-  ClickableBox3,
+  ClickableBox,
   Divider,
 }
 
@@ -40,7 +40,7 @@ type Props = {
 const ListItem = (props: Props) => {
   if (props.type === 'Card') return <CardListItem {...props} />
   return (
-  <Kb.ClickableBox3
+  <Kb.ClickableBox
     onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // make sure clickable box applies click styles if just onMouseDown is given.
     onMouseDown={props.onMouseDown}
     direction="horizontal"
@@ -106,7 +106,7 @@ const ListItem = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
   )
 }
 
@@ -335,7 +335,7 @@ const getActionStyle = (props: Props) =>
   ])
 
 const CardListItem = (props: Props) => (
-  <Kb.ClickableBox3
+  <Kb.ClickableBox
     onClick={props.onClick}
     direction="horizontal"
     alignItems="center"
@@ -344,7 +344,7 @@ const CardListItem = (props: Props) => (
   >
     {props.icon && <Kb.Box2 direction="vertical" style={cardStyles.icon}>{props.icon}</Kb.Box2>}
     <Kb.Box2 direction="vertical" flex={1} fullWidth={true}>{props.body}</Kb.Box2>
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const cardStyles = Styles.styleSheetCreate(() => ({

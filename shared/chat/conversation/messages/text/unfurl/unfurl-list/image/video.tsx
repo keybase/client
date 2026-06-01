@@ -167,7 +167,7 @@ const NativeVideo = (props: Props) => {
   }
 
   return (
-    <Kb.ClickableBox3 direction="vertical" relative={true} onClick={_onClick} style={Kb.Styles.collapseStyles([style, nativeStyles.container])}>
+    <Kb.ClickableBox direction="vertical" relative={true} onClick={_onClick} style={Kb.Styles.collapseStyles([style, nativeStyles.container])}>
       {active && (
         <NativeActiveVideo
           sourceUri={sourceUri}
@@ -179,7 +179,7 @@ const NativeVideo = (props: Props) => {
       <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([sharedStyles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} />}
       </Kb.Box2>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

@@ -80,11 +80,11 @@ const FinderIntegration = () => {
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
             {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError && (
-              <Kb.ClickableBox3 direction="vertical" style={styles.actionNeededBox} onClick={onShowKextPermissionPopup}>
+              <Kb.ClickableBox direction="vertical" style={styles.actionNeededBox} onClick={onShowKextPermissionPopup}>
                 <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
                   Action needed!
                 </Kb.Text>
-              </Kb.ClickableBox3>
+              </Kb.ClickableBox>
             )}
           </Kb.Box2>
           {driverStatus.type === T.FS.DriverStatusType.Enabled ? (

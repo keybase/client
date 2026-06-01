@@ -86,7 +86,7 @@ const Header = () => {
 
     const menuHeader = (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox3 onClick={onClickWrapper} style={styles.headerBox} direction="vertical">
+        <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox} direction="vertical">
           <Kb.NameWithIcon
             username={username}
             onClick={onClickWrapper}
@@ -96,7 +96,7 @@ const Header = () => {
               </Kb.Text>
             }
           />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
         <Kb.Button
           label="View/Edit profile"
           mode="Secondary"
@@ -125,7 +125,7 @@ const Header = () => {
 
   return (
     <>
-      <Kb.ClickableBox3
+      <Kb.ClickableBox
         onClick={togglePopup}
         direction="horizontal"
         gap="tiny"
@@ -151,7 +151,7 @@ const Header = () => {
             style={styles.caret}
           />
         </>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {popup}
     </>
   )
@@ -278,7 +278,7 @@ function Tab(props: TabProps) {
   }
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       key={tab}
       onClick={onClick}
       onMouseDown={onMouseDown}
@@ -305,7 +305,7 @@ function Tab(props: TabProps) {
         {label}
       </Kb.Text>
       <TabBadge name={tab} />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

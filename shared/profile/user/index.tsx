@@ -228,7 +228,7 @@ const Tabs = (p: TabsProps) => {
   const onClickFollowing = () => p.onSelectTab('following')
   const onClickFollowers = () => p.onSelectTab('followers')
   const tab = (tab: Tab) => (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="horizontal"
       gap="xtiny"
       onClick={tab === 'following' ? onClickFollowing : onClickFollowers}
@@ -245,7 +245,7 @@ const Tabs = (p: TabsProps) => {
       {((tab === 'following' && p.loadingFollowing) || p.loadingFollowers) && (
         <Kb.ProgressIndicator style={styles.progress} />
       )}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 
   return (

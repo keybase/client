@@ -194,7 +194,7 @@ const GitRoot = (ownProps: OwnProps) => {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} testID={TestIDs.GIT_REPO_LIST}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {isMobile && (
-          <Kb.ClickableBox3 ref={popupAnchor} direction="horizontal" centerChildren={true} noShrink={true} style={styles.header} onClick={showPopup}>
+          <Kb.ClickableBox ref={popupAnchor} direction="horizontal" centerChildren={true} noShrink={true} style={styles.header} onClick={showPopup}>
             <Kb.Icon
               type="iconfont-new"
               style={styles.newIcon}
@@ -202,7 +202,7 @@ const GitRoot = (ownProps: OwnProps) => {
               fontSize={20}
             />
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
         )}
         <NewContext value={badged}>
           <Kb.SectionList

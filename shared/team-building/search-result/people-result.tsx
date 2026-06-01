@@ -135,7 +135,7 @@ const DropdownButton = (p: DropdownProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={e => {
         e?.stopPropagation()
         showPopup()
@@ -147,7 +147,7 @@ const DropdownButton = (p: DropdownProps) => {
         <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
       </Kb.Button>
       {popup}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

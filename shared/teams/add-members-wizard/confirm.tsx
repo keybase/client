@@ -358,11 +358,11 @@ const AddingMembers = ({
         />
       ))}
       {showDivider && (
-        <Kb.ClickableBox3 onClick={toggleExpanded} direction="horizontal" alignSelf="stretch" style={styles.addingMemberDivider} centerChildren={true}>
+        <Kb.ClickableBox onClick={toggleExpanded} direction="horizontal" alignSelf="stretch" style={styles.addingMemberDivider} centerChildren={true}>
           <Kb.Text type="BodySemibold" negative={true}>
             {expanded ? 'Show less' : `+${addingMembers.length - 4} more`}
           </Kb.Text>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )}
       {expanded &&
         belowDivider.map(toAdd => (

@@ -21,7 +21,7 @@ function SettingsItem(props: SettingsItemProps) {
     _onClick(type)
   }
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={onClick}
       direction="horizontal"
       alignItems="center"
@@ -57,7 +57,7 @@ function SettingsItem(props: SettingsItemProps) {
       {!!props.badgeNumber && props.badgeNumber > 0 && (
         <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />
       )}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 export default SettingsItem

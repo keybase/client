@@ -45,14 +45,14 @@ const ActionButton = (props: {
   const Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={props.inTeam ? props.onRemove : props.onAdd}
       direction="vertical"
       centerChildren={true}
       style={Kb.Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: undefined}])}
     >
       <Icon />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

@@ -31,7 +31,7 @@ type ArrowProps = {
 const Arrow = (props: ArrowProps) => {
   const {left, onClick} = props
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="vertical"
       centerChildren={true}
       className="hover_background_color_black background_color_black_50 fade-background-color"
@@ -50,7 +50,7 @@ const Arrow = (props: ArrowProps) => {
         color={Kb.Styles.globalColors.white}
         style={Kb.Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

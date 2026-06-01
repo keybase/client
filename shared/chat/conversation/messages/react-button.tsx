@@ -37,7 +37,7 @@ function ReactionButton({
   text: string
 }) {
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="horizontal"
       centerChildren={true}
       fullHeight={true}
@@ -72,7 +72,7 @@ function ReactionButton({
       >
         {count}
       </Kb.Text>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 
@@ -122,7 +122,7 @@ export function NewReactionButton(p: NewReactionButtonProps) {
   }
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="horizontal"
       centerChildren={true}
       fullHeight={true}
@@ -142,7 +142,7 @@ export function NewReactionButton(p: NewReactionButtonProps) {
         fontSize={18}
         style={styles.emojiIconWrapper}
       />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

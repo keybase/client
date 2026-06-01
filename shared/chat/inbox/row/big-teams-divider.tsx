@@ -18,7 +18,7 @@ const BigTeamsDivider = (props: Props) => {
     inlineLayout ? styles.inlineContainer : undefined,
   ])
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="vertical"
       onClick={() => {
         T.RPCChat.localRequestInboxSmallResetRpcPromise().catch(() => {})
@@ -61,7 +61,7 @@ const BigTeamsDivider = (props: Props) => {
           ) : null}
         </Kb.Box2>
       )}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

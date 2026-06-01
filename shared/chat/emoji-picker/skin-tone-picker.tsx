@@ -41,7 +41,7 @@ function SkinTonePicker(props: Props) {
     props.onExpandChange?.(toSet)
   }
   const optionSkinTones = reorderedSkinTones(props.currentSkinTone).map((skinTone, index) => (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="vertical"
       key={index.toString()}
       style={styles.dotContainerExpanded}
@@ -51,7 +51,7 @@ function SkinTonePicker(props: Props) {
       }}
     >
       {circle(skinTone, true, isMobile && skinTone === props.currentSkinTone)}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   ))
 
   return isMobile ? (
@@ -65,10 +65,10 @@ function SkinTonePicker(props: Props) {
         {optionSkinTones}
       </Kb.Box2>
     ) : (
-      <Kb.ClickableBox3 direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
         {circle(props.currentSkinTone, false, false)}
         <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     )
   ) : (
     <Kb.Box2 direction="vertical" relative={true}>
@@ -78,9 +78,9 @@ function SkinTonePicker(props: Props) {
         </Kb.Box2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
-          <Kb.ClickableBox3 direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
+          <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
             {circle(props.currentSkinTone, false, false)}
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
       <Kb.Box2 direction="vertical" style={styles.dotPlaceholder} />

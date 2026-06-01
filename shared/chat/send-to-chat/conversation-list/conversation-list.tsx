@@ -23,7 +23,7 @@ type Row = {
 const _itemRenderer = (index: number, row: Row) => {
   const item = row.item
   return (
-    <Kb.ClickableBox3 key={index} onClick={row.onSelect} direction="horizontal" fullWidth={true} gap="tiny" style={Kb.Styles.collapseStyles([styles.results, {backgroundColor: !isMobile && row.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}])}>
+    <Kb.ClickableBox key={index} onClick={row.onSelect} direction="horizontal" fullWidth={true} gap="tiny" style={Kb.Styles.collapseStyles([styles.results, {backgroundColor: !isMobile && row.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}])}>
       {item.isTeam ? (
         <TeamAvatar isHovered={false} isMuted={false} isSelected={row.isSelected} teamname={item.tlfName} />
       ) : (
@@ -36,7 +36,7 @@ const _itemRenderer = (index: number, row: Row) => {
       <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
         {item.name}
       </Kb.Text>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

@@ -165,7 +165,7 @@ const RetentionPicker = (p: Props) => {
       <Kb.Box2 direction="horizontal" alignItems="center" style={styles.heading} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
       </Kb.Box2>
-      <Kb.ClickableBox3
+      <Kb.ClickableBox
         onClick={showPopup}
         ref={popupAnchor}
         direction="horizontal"
@@ -176,7 +176,7 @@ const RetentionPicker = (p: Props) => {
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {policyIsExploding && (
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>

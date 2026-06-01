@@ -126,7 +126,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       <Kb.Divider key="dheader" />
       <FsCommon.Errs />
       {!!onBackUp && (
-        <Kb.ClickableBox3 key="up" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onBackUp}>
+        <Kb.ClickableBox key="up" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onBackUp}>
           <Kb.Icon
             type="iconfont-folder-up"
             color={Kb.Styles.globalColors.black_50}
@@ -134,10 +134,10 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
             style={RowCommon.rowStyles.pathItemIcon}
           />
           <Kb.Text type="BodySemibold">..</Kb.Text>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )}
       {!!onCopyHere && (
-        <Kb.ClickableBox3 key="copy" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onCopyHere}>
+        <Kb.ClickableBox key="copy" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onCopyHere}>
           <Kb.ImageIcon
             type="icon-folder-copy-32"
             style={RowCommon.rowStyles.pathItemIcon}
@@ -145,10 +145,10 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           <Kb.Text type="BodySemibold" style={styles.actionText}>
             {isShare ? 'Save here' : 'Copy here'}
           </Kb.Text>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )}
       {!!onMoveHere && (
-        <Kb.ClickableBox3 key="move" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onMoveHere}>
+        <Kb.ClickableBox key="move" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onMoveHere}>
           <Kb.ImageIcon
             type="icon-folder-move-32"
             style={RowCommon.rowStyles.pathItemIcon}
@@ -156,7 +156,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           <Kb.Text type="BodySemibold" style={styles.actionText}>
             Move here
           </Kb.Text>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )}
       {parentPath === FS.defaultPath ? (
         <Root destinationPickerSource={source} />
@@ -198,12 +198,12 @@ const Screen = (props: OwnProps) => (
 const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p
   return (
-    <Kb.ClickableBox3 direction="horizontal" alignItems="center" fullWidth={true} style={styles.newFolderBox} onClick={onNewFolder}>
+    <Kb.ClickableBox direction="horizontal" alignItems="center" fullWidth={true} style={styles.newFolderBox} onClick={onNewFolder}>
       <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
       <Kb.Text type="BodyBig" style={styles.newFolderText}>
         Create new folder
       </Kb.Text>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

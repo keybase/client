@@ -85,14 +85,14 @@ const Feedback = (props: Props) => {
             </Kb.Banner>
           )}
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.ClickableBox3 onClick={_onLabelClick} direction="vertical" fullWidth={true}>
+            <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>
               <Kb.Checkbox
                 label="Include your logs"
                 labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
                 checked={sendLogs}
                 onCheck={setSendLogs}
               />
-            </Kb.ClickableBox3>
+            </Kb.ClickableBox>
           </Kb.Box2>
           {props.loggedOut && (
             <Kb.Box2 direction="horizontal" fullWidth={true}>

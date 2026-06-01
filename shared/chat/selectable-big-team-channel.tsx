@@ -89,7 +89,7 @@ const SelectableBigTeamChannel = (props: Props) => {
     </>
   )
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="horizontal"
       fullWidth={true}
       centerChildren={true}
@@ -105,7 +105,7 @@ const SelectableBigTeamChannel = (props: Props) => {
       onMouseOver={_onMouseOver}
     >
       {props.teamname ? rowLoadedContent : <Kb.ProgressIndicator type="Small" />}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

@@ -82,7 +82,7 @@ function ReplyStructure(p: RS) {
   const {showImage, showEdited, isDeleted, onClick} = p
 
   return (
-    <Kb.ClickableBox3 direction="horizontal" gap="tiny" fullWidth={true} style={styles.replyContainer} className={Kb.Styles.classNames('ReplyBox')} onClick={onClick}>
+    <Kb.ClickableBox direction="horizontal" gap="tiny" fullWidth={true} style={styles.replyContainer} className={Kb.Styles.classNames('ReplyBox')} onClick={onClick}>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.quoteContainer} />
       <Kb.Box2 direction="vertical" gap="xtiny" flex={1}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -106,7 +106,7 @@ function ReplyStructure(p: RS) {
           </Kb.Text>
         )}
       </Kb.Box2>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

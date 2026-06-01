@@ -8,7 +8,7 @@ type Props = {
 }
 
 const UnreadShortcut = (props: Props) => (
-  <Kb.ClickableBox3
+  <Kb.ClickableBox
     direction="horizontal"
     gap="tiny"
     centerChildren={!props.inlineLayout}
@@ -27,7 +27,7 @@ const UnreadShortcut = (props: Props) => (
         ? `${props.unreadCount} unread`
         : `${props.unreadCount} unread ${pluralize('message', props.unreadCount)}`}
     </Kb.Text>
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const styles = Kb.Styles.styleSheetCreate(

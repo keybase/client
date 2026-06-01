@@ -630,7 +630,7 @@ const ProviderPicker = ({
               renderItem={(_: unknown, provider: Provider) => (
                 <React.Fragment key={provider.name}>
                   <Kb.Divider />
-                  <Kb.ClickableBox3
+                  <Kb.ClickableBox
                     direction="horizontal"
                     alignItems="center"
                     justifyContent="flex-start"
@@ -661,7 +661,7 @@ const ProviderPicker = ({
                       style={styles.iconArrow}
                       type="iconfont-arrow-right"
                     />
-                  </Kb.ClickableBox3>
+                  </Kb.ClickableBox>
                 </React.Fragment>
               )}
             />

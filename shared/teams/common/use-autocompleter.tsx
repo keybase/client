@@ -35,7 +35,7 @@ function useAutocompleter<U>(
           positionFallbacks={positionFallbacks}
         >
           {itemsFiltered.map((item, idx) => (
-            <Kb.ClickableBox3
+            <Kb.ClickableBox
               key={item.label}
               onMouseDown={() => onSelect(item.value)}
               onMouseOver={() => setSelected(idx)}
@@ -46,7 +46,7 @@ function useAutocompleter<U>(
               <Kb.Text type="BodySemibold" lineClamp={1}>
                 {item.label}
               </Kb.Text>
-            </Kb.ClickableBox3>
+            </Kb.ClickableBox>
           ))}
         </Kb.Popup>
       )

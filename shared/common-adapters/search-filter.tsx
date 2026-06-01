@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import Input3 from './input3'
 import type {Input3Ref} from './input3.shared'
 import Text from './text'
@@ -17,7 +17,7 @@ import type {MeasureRef} from './measure-ref'
 const Kb = {
   Animation,
   Box2,
-  ClickableBox3,
+  ClickableBox,
   Icon,
   IconAuto,
   Input3,
@@ -221,18 +221,18 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
     if (isMobile) {
       return (
-        <Kb.ClickableBox3 onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
+        <Kb.ClickableBox onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
           <Kb.Icon
             type="iconfont-remove"
             sizeType={iconSizeType()}
             color={iconColor()}
             style={styles.removeIconNonFullWidth}
           />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )
     } else {
       return (
-        <Kb.ClickableBox3
+        <Kb.ClickableBox
           onClick={() => {}}
           onMouseDown={cancel}
           direction="vertical"
@@ -243,7 +243,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
             sizeType={iconSizeType()}
             color={iconColor()}
           />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )
     }
   }
@@ -263,7 +263,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   )
 
   const content = isMobile ? (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       data-search-filter={true}
       direction="horizontal"
       style={Styles.collapseStyles([
@@ -275,9 +275,9 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       onClick={props.onClick || focus}
     >
       {inside}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   ) : (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       data-search-filter={true}
       direction="horizontal"
       alignSelf={props.size === 'full-width' ? 'stretch' : undefined}
@@ -294,7 +294,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       onClick={props.onClick || (!focused ? focus : undefined)}
     >
       {inside}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 
   return isMobile ? (

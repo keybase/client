@@ -83,7 +83,7 @@ const Header = (props: HeaderProps) => (
     )}
     <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (
-        <Kb.ClickableBox3 onClick={props.onBack} direction="horizontal" alignItems="center" gap="xtiny" style={styles.backButton}>
+        <Kb.ClickableBox onClick={props.onBack} direction="horizontal" alignItems="center" gap="xtiny" style={styles.backButton}>
             <Kb.Icon
               type="iconfont-arrow-left"
               color={props.negative ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}
@@ -97,7 +97,7 @@ const Header = (props: HeaderProps) => (
             >
               Back
             </Kb.Text>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )}
       {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
       {props.onRightAction && !!props.rightActionLabel && (

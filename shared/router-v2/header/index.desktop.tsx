@@ -79,15 +79,15 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
   }
   return (
     <Kb.Box2 direction="horizontal">
-      <Kb.ClickableBox3
+      <Kb.ClickableBox
         className="hover_background_color_black_05  color_black_50 hover_color_black"
         onClick={onMinimize}
         style={styles.appIconBox}
         direction="vertical"
       >
         <Kb.Icon color="inherit" onClick={onMinimize} style={styles.appIcon} type="iconfont-app-minimize" />
-      </Kb.ClickableBox3>
-      <Kb.ClickableBox3
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
         className="hover_background_color_black_05 color_black_50 hover_color_black"
         onClick={onToggleMaximizeWindow}
         style={styles.appIconBox}
@@ -99,15 +99,15 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
           style={styles.appIcon}
           type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
         />
-      </Kb.ClickableBox3>
-      <Kb.ClickableBox3
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
         className="hover_background_color_red hover_color_white color_black_50"
         onClick={onCloseWindow}
         style={styles.appIconBox}
         direction="vertical"
       >
         <Kb.Icon color="inherit" onClick={onCloseWindow} style={styles.appIcon} type="iconfont-app-close" />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     </Kb.Box2>
   )
 }
@@ -195,7 +195,7 @@ function DesktopHeader(p: Props) {
         >
           {/* TODO have headerLeft be the back button */}
           {headerLeft !== null && (
-            <Kb.ClickableBox3
+            <Kb.ClickableBox
               className={Kb.Styles.classNames('hover_container', {
                 hover_background_color_black_10: !!back,
               })}
@@ -208,7 +208,7 @@ function DesktopHeader(p: Props) {
                 color={iconColor}
                 className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
               />
-            </Kb.ClickableBox3>
+            </Kb.ClickableBox>
           )}
           <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders

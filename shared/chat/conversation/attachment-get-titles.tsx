@@ -198,7 +198,7 @@ const ContainerInner = (ownProps: OwnProps) => {
   return (
     <>
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.ClickableBox3 direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
+        <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
           {pathAndInfos.length > 0 && !isMobile && (
             <Kb.Box2 direction="vertical" style={styles.filename}>
@@ -227,7 +227,7 @@ const ContainerInner = (ownProps: OwnProps) => {
               inputStyle={styles.input}
             />
           </Kb.Box2>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (

@@ -5,13 +5,13 @@ import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import capitalize from 'lodash/capitalize'
 
 const Kb = {
   Badge,
   Box2,
-  ClickableBox3,
+  ClickableBox,
   Divider,
   IconAuto,
   ProgressIndicator,
@@ -54,7 +54,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
     {props.tabs.map((tab: Tab<TitleT>) => {
       const selected = props.selectedTab === tab.title
       return (
-        <Kb.ClickableBox3
+        <Kb.ClickableBox
           onClick={() => props.onSelect(tab.title)}
           key={tab.title}
           direction="vertical"
@@ -70,7 +70,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
             {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
           </Kb.Box2>
           <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )
     })}
     {props.showProgressIndicator && <Kb.ProgressIndicator style={styles.progressIndicator} />}

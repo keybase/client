@@ -21,7 +21,7 @@ export type Props = {
 
 const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny" justifyContent="flex-start">
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       style={styles.bigButton}
       onClick={props.onCreateTeam}
       className="background_color_white hover_background_color_blueLighter2"
@@ -34,8 +34,8 @@ const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void
         <Kb.Avatar isTeam={true} size={96} />
         <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
       </Kb.Box2>
-    </Kb.ClickableBox3>
-    <Kb.ClickableBox3
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
       style={styles.bigButton}
       onClick={props.onJoinTeam}
       className="background_color_white hover_background_color_blueLighter2"
@@ -45,7 +45,7 @@ const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void
     >
       <Kb.Text type="BodyBig">Join a team</Kb.Text>
       <Kb.ImageIcon type="icon-illustration-teams-96" />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
     {props.empty && !isMobile && (
       <Kb.Text type="BodySmall" style={styles.emptyNote}>
         Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
@@ -90,10 +90,10 @@ const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSor
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
-      <Kb.ClickableBox3 onClick={showPopup} ref={popupAnchor} direction="horizontal" gap="tiny" alignItems="center">
+      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor} direction="horizontal" gap="tiny" alignItems="center">
         <Kb.Icon type="iconfont-arrow-full-down" />
         <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {popup}
     </Kb.Box2>
   )

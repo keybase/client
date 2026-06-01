@@ -19,7 +19,7 @@ const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
   const clearModals = C.Router2.clearModals
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={() => {
         rejectPermissions()
         clearModals()
@@ -29,7 +29,7 @@ const PushPromptSkipButton = () => {
       <Kb.Text type="BodyBig" negative={true}>
         Skip
       </Kb.Text>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

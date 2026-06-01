@@ -120,7 +120,7 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
   })
 
   return (
-    <Kb.ClickableBox3 onClick={() => onClick(service)} direction="vertical" relative={true}>
+    <Kb.ClickableBox onClick={() => onClick(service)} direction="vertical" relative={true}>
       <AnimatedBox2 direction="vertical" style={[nativeStyles.serviceIconContainer, animatedWidth]}>
         <Kb.Box2 direction="vertical" relative={true}>
           {serviceIdToBadge(service) && (
@@ -156,7 +156,7 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
           Kb.Styles.platformStyles({isMobile: animatedTransform}),
         ])}
       />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 
@@ -282,7 +282,7 @@ const MoreNetworksButton = (props: {
           ref={popupAnchor}
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={desktopStyles.moreNetworks2}>
-            <Kb.ClickableBox3
+            <Kb.ClickableBox
               onClick={showPopup}
               direction="horizontal"
               alignItems="center"
@@ -294,7 +294,7 @@ const MoreNetworksButton = (props: {
               <Kb.Text type="BodyBigExtrabold" style={desktopStyles.moreText}>
                 •••
               </Kb.Text>
-            </Kb.ClickableBox3>
+            </Kb.ClickableBox>
           </Kb.WithTooltip>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={desktopStyles.inactiveTabBar} />
@@ -310,7 +310,7 @@ const ServiceIconDesktop = (props: IconProps) => {
   const color =
     props.isActive || hover ? serviceIdToAccentColor(props.service, isDarkMode) : Kb.Styles.globalColors.black
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={() => props.onClick(props.service)}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -353,7 +353,7 @@ const ServiceIconDesktop = (props: IconProps) => {
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service, isDarkMode)},
         ])}
       />
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

@@ -109,7 +109,7 @@ const deviceOptionTypeMap = {
   phone: 'mobile',
 } as const
 const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => (
-  <Kb.ClickableBox3
+  <Kb.ClickableBox
     onClick={onClick}
     className="hover_background_color_blueLighter2"
     style={Kb.Styles.collapseStyles([
@@ -125,7 +125,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
     <Kb.Text type="BodySemibold">
       {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
     </Kb.Text>
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

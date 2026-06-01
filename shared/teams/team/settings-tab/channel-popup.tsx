@@ -81,7 +81,7 @@ const ChannelPopup = (props: Props) => {
             const disabled = disabledChannels?.some(c => c.conversationIDKey === channel.conversationIDKey)
             const onClick = disabled ? undefined : () => onSelect(channel)
             return (
-              <Kb.ClickableBox3 key={channel.conversationIDKey} onClick={onClick} direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true} justifyContent="space-between">
+              <Kb.ClickableBox key={channel.conversationIDKey} onClick={onClick} direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true} justifyContent="space-between">
                 <Kb.Text type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
                   #{channel.channelname}
                 </Kb.Text>
@@ -92,7 +92,7 @@ const ChannelPopup = (props: Props) => {
                   }
                   disabled={disabled}
                 />
-              </Kb.ClickableBox3>
+              </Kb.ClickableBox>
             )
           }}
         />
