@@ -96,7 +96,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
                 <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
                   <Kb.ImageIcon type="icon-illustration-teams-zen-460-96" />
                 </Kb.Box2>
-                <Kb.Box2 direction="vertical" style={styles.container}>
+                <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
                   <Kb.Text center={true} type="Body">
                     Your request was sent to the admins of{' '}
                     {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
@@ -107,7 +107,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
             )}
           </Kb.Box2>
         ) : (
-          <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
             <Kb.RoundedBox>
               <Kb.Input3
                 autoFocus={true}
@@ -138,7 +138,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
 }
 
 export const Success = (props: {teamname: string}) => (
-  <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
+  <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" fullWidth={true} style={styles.container}>
     <Kb.ImageIcon type="icon-illustration-welcome-96" />
     {!!props.teamname && (
       <Kb.Text center={true} type="Header">
@@ -158,7 +158,6 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBar: {minHeight: undefined},
       container: {
         padding: Kb.Styles.globalMargins.small,
-        width: '100%',
       },
       modalFooter: Kb.Styles.platformStyles({
         common: {

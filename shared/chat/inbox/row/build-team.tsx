@@ -15,7 +15,7 @@ function BuildTeam() {
   }
 
   return (
-    <Kb.Box2 direction="vertical" gap={isMobile ? 'tiny' : 'xtiny'} style={styles.container}>
+    <Kb.Box2 direction="vertical" gap={isMobile ? 'tiny' : 'xtiny'} noShrink={true} fullWidth={true} style={styles.container}>
       <Kb.Button fullWidth={true} label="Create a team" mode="Secondary" onClick={onCreateTeam} />
       <Kb.Button fullWidth={true} label="Join a team" mode="Secondary" onClick={onJoinTeam} />
     </Kb.Box2>
@@ -26,15 +26,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blueGrey,
-      flexShrink: 0,
       padding: Kb.Styles.globalMargins.xsmall,
-      width: '100%',
     },
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-      flexShrink: 0,
       height: 120,
-      width: '100%',
     },
     isTablet: {backgroundColor: Kb.Styles.globalColors.transparent},
   }),

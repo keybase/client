@@ -16,7 +16,7 @@ const promptIcon = isMobile
 const UnfurlPrompt = (p: Props) => {
   const {onAlways, onAccept, onOnetime, domain, onNotnow, onNever} = p
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.container} fullWidth={true}>
       {!isMobile && <Kb.ImageIcon type={promptIcon} style={styles.icon} />}
       <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -39,7 +39,7 @@ const UnfurlPrompt = (p: Props) => {
           Never, for any site
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
+      <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.closeContainer}>
         <Kb.Icon type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onNotnow} fontSize={16} padding="xtiny" />
       </Kb.Box2>
     </Kb.Box2>
@@ -53,7 +53,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {width: 370},
       }),
       closeContainer: Kb.Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
         isElectron: {
           marginLeft: 'auto',
           width: 30,
@@ -62,7 +61,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
-          alignSelf: 'flex-start',
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
           borderRadius: Kb.Styles.borderRadius,
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),

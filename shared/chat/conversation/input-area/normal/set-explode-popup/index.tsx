@@ -46,14 +46,11 @@ const PromptNative = () => (
     direction="horizontal"
     fullWidth={true}
     gap="xtiny"
-    style={promptContainerStyle}
-    justifyContent="center"
+    centerChildren={true}
   >
     <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>
   </Kb.Box2>
 )
-
-const promptContainerStyle = {alignItems: 'center'} as const
 
 const SetExplodePopup = (p: Props) => {
   const props = useHooks(p)

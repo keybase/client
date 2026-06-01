@@ -352,7 +352,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
             <Kb.Text type="Body">{error}</Kb.Text>
           </Kb.Banner>
         ) : null}
-        <Kb.Box2 direction="vertical" style={styles.wizardContainer} gap="small">
+        <Kb.Box2 direction="vertical" flex={1} style={styles.wizardContainer} gap="small">
           {renderImageZoomer()}
           <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
           <Kb.Button
@@ -380,7 +380,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
           <Kb.Text type="Body">{error}</Kb.Text>
         </Kb.Banner>
       ) : null}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
         {renderImageZoomer()}
         <Kb.ButtonBar direction="column">
           <Kb.WaitingButton
@@ -488,7 +488,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
       flexGrow: 1,
     },
     isMobile: {
@@ -506,7 +505,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginBottom: Kb.Styles.globalMargins.large,
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
     textAlign: 'center',
-    width: '100%',
   },
   flexReallyGrow: {
     flexGrow: 1000,
@@ -542,7 +540,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   wizardContainer: {
     ...Kb.Styles.padding(64, Kb.Styles.globalMargins.large),
     backgroundColor: Kb.Styles.globalColors.blueGrey,
-    flex: 1,
   },
 }))
 

@@ -96,6 +96,7 @@ function PopupCentered(props: PopupProps) {
       >
         <Box2
           direction="vertical"
+          relative={true}
           style={desktopStyles.centeredContainer}
           onMouseDown={(e: React.BaseSyntheticEvent) => {
             setMouseDownOnCover(false)
@@ -171,7 +172,6 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxRow,
     maxHeight: '100%',
     maxWidth: '100%',
-    position: 'relative' as const,
   },
   clipContainer: Styles.platformStyles({
     isElectron: {

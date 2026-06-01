@@ -22,7 +22,7 @@ const ShowcaseTeamOffer = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Box2 direction="vertical" flex={1} overflow="hidden">
       {!isMobile && <ShowcaseTeamOfferHeader />}
       <Kb.ScrollView>
         {isMobile && <ShowcaseTeamOfferHeader />}
@@ -64,7 +64,7 @@ const TeamRow = (p: RowProps) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowShowcaseTeamOffer}>
         <Kb.Avatar isTeam={true} size={isMobile ? 48 : 32} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameShowcaseTeamOffer}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="flex-start">
             <Kb.Text type="BodySemibold" lineClamp={1}>
               {name}
             </Kb.Text>
@@ -72,7 +72,7 @@ const TeamRow = (p: RowProps) => {
               <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
             )}
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" style={styles.teamText}>
+          <Kb.Box2 direction="horizontal" alignSelf="flex-start">
             <Kb.Text type="BodySmall">{String(membercount) + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
@@ -114,7 +114,6 @@ const ShowcaseTeamOfferHeader = () => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {flex: 1, overflow: 'hidden'},
       headerShowcaseTeamOffer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
@@ -148,7 +147,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {minHeight: isMobile ? 64 : 48},
       }),
-      teamText: {alignSelf: 'flex-start'},
     }) as const
 )
 

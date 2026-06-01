@@ -74,7 +74,7 @@ const DesktopVideo = (p: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" relative={true} style={desktopStyles.container}>
+    <Kb.Box2 direction="horizontal" relative={true} alignSelf="flex-start">
       <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([sharedStyles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} />}
       </Kb.Box2>
@@ -164,7 +164,7 @@ const NativeVideo = (props: Props) => {
   }
 
   return (
-    <Kb.ClickableBox direction="vertical" relative={true} onClick={_onClick} style={Kb.Styles.collapseStyles([style, nativeStyles.container])}>
+    <Kb.ClickableBox direction="vertical" relative={true} alignSelf="flex-start" onClick={_onClick} style={style}>
       {active && (
         <NativeActiveVideo
           sourceUri={sourceUri}
@@ -180,21 +180,10 @@ const NativeVideo = (props: Props) => {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      container: {
-        alignSelf: 'flex-start',
-      },
-    }) as const
-)
 
 const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        alignSelf: 'flex-start',
-      },
       player: {
         position: 'relative',
       },

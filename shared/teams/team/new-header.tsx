@@ -386,7 +386,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
       },
       header: {flexShrink: 1},
-      illustration: {borderRadius: Kb.Styles.borderRadius, width: '100%'},
+      illustration: {borderRadius: Kb.Styles.borderRadius},
       marginBottomRightTiny: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

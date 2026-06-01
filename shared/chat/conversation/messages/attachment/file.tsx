@@ -158,7 +158,7 @@ function FileContainer(p: OwnProps) {
           </Kb.Box2>
         </Kb.Box2>
         {!isMobile && isSaltpackFile && cryptoRoute && (
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.saltpackOperationContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.saltpackOperationContainer}>
             <Kb.Button
               mode="Secondary"
               small={true}
@@ -251,7 +251,6 @@ const styles = Kb.Styles.styleSheetCreate(
       saltpackFileName: {color: Kb.Styles.globalColors.greenDark},
       saltpackOperation: Kb.Styles.platformStyles({isTablet: {alignSelf: 'flex-start'}}),
       saltpackOperationContainer: {
-        alignItems: 'flex-start',
         marginTop: Kb.Styles.globalMargins.xtiny,
       },
     }) as const

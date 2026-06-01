@@ -260,9 +260,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       countdownContainer: {
         ...Kb.Styles.centered(),
+        ...Kb.Styles.size(20),
         borderRadius: 10,
-        height: 20,
-        width: 20,
       },
       countdownContainerHighlighted: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
       countdownHighlighted: {color: Kb.Styles.globalColors.whiteOrWhite},

@@ -25,10 +25,10 @@ function UnfurlGiphy(p: {
   const {height, isVideo, url, width} = video || image || {height: 0, isVideo: false, url: '', width: 0}
 
   return (
-    <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
-      {!isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
-      <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
-        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between">
+    <Kb.Box2 alignSelf="flex-start" gap="tiny" direction="horizontal" style={styles.container}>
+      {!isMobile && <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.quoteContainer} />}
+      <Kb.Box2 alignSelf="flex-start" gap="xtiny" direction="vertical" style={styles.innerContainer}>
+        <Kb.Box2 alignSelf="flex-start" gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between" style={styles.siteNameContainer}>
           <Kb.Box2 direction="horizontal" gap="tiny">
             {favicon?.url ? <Kb.Image src={favicon.url} style={styles.favicon} /> : null}
             <Kb.Text type="BodySmall">
@@ -77,19 +77,16 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'center',
       },
       container: Kb.Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
         isElectron: {maxWidth: 500},
         isTablet: {maxWidth: 500},
       }),
 
       favicon: {
         borderRadius: Kb.Styles.borderRadius,
-        height: 16,
-        width: 16,
+        ...Kb.Styles.size(16),
       },
       innerContainer: Kb.Styles.platformStyles({
         common: {
-          alignSelf: 'flex-start',
           minWidth: 150,
         },
         isMobile: {
@@ -100,14 +97,10 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       quoteContainer: {
-        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.grey,
         paddingLeft: Kb.Styles.globalMargins.xtiny,
       },
       siteNameContainer: Kb.Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-        },
         isMobile: {
           paddingBottom: Kb.Styles.globalMargins.xxtiny,
           paddingLeft: Kb.Styles.globalMargins.tiny,

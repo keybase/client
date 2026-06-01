@@ -203,7 +203,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
         gap="tiny"
         fullWidth={true}
         alignItems="center"
-        style={styles.topContainerDesktop}
+        padding="tiny"
       >
         <Kb.SearchFilter
           focusOnMount={true}
@@ -318,9 +318,6 @@ const styles = Kb.Styles.styleSheetCreate(
           flexShrink: 1,
         },
       }),
-      topContainerDesktop: {
-        padding: Kb.Styles.globalMargins.tiny,
-      },
     }) as const
 )
 

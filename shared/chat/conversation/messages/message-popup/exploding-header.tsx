@@ -46,9 +46,9 @@ const ExplodingPopupHeader = (props: Props) => {
   const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = props
   const icon = <Kb.ImageIcon style={styles.headerIcon} type={headerIconType} />
   const info = (
-    <Kb.Box2 direction="vertical" style={styles.messageInfoContainer} fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="xsmall">
       <Kb.Box2 direction="horizontal">
-        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
           <Kb.Avatar username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
             onUsernameClicked={onUsernameClicked}
@@ -66,7 +66,7 @@ const ExplodingPopupHeader = (props: Props) => {
       {botUsername ? (
         <Kb.Box2 direction="horizontal">
           <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
-          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
             <Kb.Avatar username={botUsername} size={16} onClick="profile" />
             <Kb.ConnectedUsernames
               onUsernameClicked="profile"
@@ -146,9 +146,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: headerIconHeight,
         ...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny),
       },
-      messageInfoContainer: {
-        padding: Kb.Styles.globalMargins.xsmall,
-      },
       popupContainer: Kb.Styles.platformStyles({
         isElectron: {
           maxWidth: 240,
@@ -173,7 +170,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       fullWidth: {width: '100%'},
       timerText: {alignSelf: 'center', color: Kb.Styles.globalColors.white},
-      user: {alignItems: 'center'},
       whiteText: {color: Kb.Styles.globalColors.white},
     }) as const
 )

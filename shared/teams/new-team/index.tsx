@@ -55,7 +55,7 @@ export const CreateNewTeam = (props: Props) => {
       ) : null}
       {errorText ? <Kb.Banner color="red">{errorText}</Kb.Banner> : null}
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
           <Kb.Input3
             placeholder="Name your team"
             value={name}
@@ -92,9 +92,6 @@ export const CreateNewTeam = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),

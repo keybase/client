@@ -18,13 +18,13 @@ export type Props = {
 }
 
 export const WrapRow = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
+  <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.rowContainer}>
     {children}
     <Kb.Divider key="divider" style={styles.divider} />
   </Kb.Box2>
 )
 
-const EmptyRow = () => <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer} />
+const EmptyRow = () => <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.rowContainer} />
 
 function Rows(props: Props & {listKey: string}) {
   const {destinationPickerSource, items, emptyMode, listKey} = props
@@ -168,7 +168,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       rowContainer: {
-        flexShrink: 0,
         height: normalRowHeight,
       },
     }) as const

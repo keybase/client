@@ -66,9 +66,9 @@ function Image(p: Props) {
           <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
           <Kb.ClickableBox
             direction="vertical"
+            alignSelf="center"
             onClick={openFullscreen}
             onLongPress={hasMessageID ? showPopup : undefined}
-            style={styles.imageContainer}
             ref={toastTargetRef}
           >
             <ImageImpl message={message} />
@@ -86,7 +86,7 @@ function Image(p: Props) {
   )
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} alignItems="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="center" alignItems="flex-start">
       {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}
     </Kb.Box2>
   )
@@ -94,14 +94,12 @@ function Image(p: Props) {
 
 const styles = Kb.Styles.styleSheetCreate(() => {
   return {
-    container: {alignSelf: 'center'},
     contentContainer: {
       backgroundColor: Kb.Styles.globalColors.black_05_on_white,
       borderRadius: Kb.Styles.borderRadius,
       maxWidth: isMobile ? '100%' : 330,
       padding: 3,
     },
-    imageContainer: {alignSelf: 'center'},
     transferIcon: {left: -32, position: 'absolute'},
   } as const
 })

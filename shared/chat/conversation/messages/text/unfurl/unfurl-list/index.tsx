@@ -20,8 +20,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: Kb.Styles.platformStyles({
         common: {
-          alignSelf: 'flex-start',
-          flex: 1,
           ...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny),
         },
       }),
@@ -50,7 +48,7 @@ function UnfurlListContainer({
   const youAreAuthor = author === you
   const items = [...(unfurls?.values() ?? [])]
   return (
-    <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
+    <Kb.Box2 direction="vertical" gap="tiny" alignSelf="flex-start" flex={1} style={styles.container}>
       {items.map((unfurlInfo, idx) => {
         const ut = unfurlInfo.unfurl.unfurlType
         let renderType: UnfurlRenderType | 'none'

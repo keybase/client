@@ -194,7 +194,7 @@ function TabBar(props: Props) {
       direction="vertical"
       fullHeight={true}
     >
-      <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
+      <Kb.Box2 direction="vertical" noShrink={true} style={styles.header} fullWidth={true}>
         <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
         <Header />
         <Kb.Divider style={styles.divider} />
@@ -316,10 +316,9 @@ const styles = Kb.Styles.styleSheetCreate(
       avatarBorder: {borderRadius: '50%', boxShadow: `0px 0px 0px 2px ${Kb.Styles.globalColors.blue}`},
       badgeIconUpload: {
         bottom: -Kb.Styles.globalMargins.xxtiny,
-        height: Kb.Styles.globalMargins.xsmall,
+        ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall),
         position: 'absolute',
         right: Kb.Styles.globalMargins.xsmall,
-        width: Kb.Styles.globalMargins.xsmall,
       },
       button: {
         margin: Kb.Styles.globalMargins.xsmall,
@@ -327,7 +326,7 @@ const styles = Kb.Styles.styleSheetCreate(
       caret: {marginRight: 12},
       divider: {marginTop: Kb.Styles.globalMargins.tiny},
       fullname: {maxWidth: 180},
-      header: {flexShrink: 0, height: 80, marginBottom: 20},
+      header: {height: 80, marginBottom: 20},
       headerBox: {
         paddingTop: Kb.Styles.globalMargins.small,
       },

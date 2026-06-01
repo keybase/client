@@ -220,7 +220,7 @@ const AddToTeam = (ownProps: OwnProps) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" style={styles.container} gap="xsmall" gapStart={true}>
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true} style={styles.container} gap="xsmall" gapStart={true}>
         {addUserToTeamsState === 'failed' && (
           <Kb.Box2
             direction="horizontal"
@@ -323,7 +323,7 @@ type RowProps = {
 const TeamRow = (props: RowProps) => {
   return (
     <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
-      <Kb.Box2 direction="horizontal" style={styles.teamRow}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
         <Kb.Avatar
           isTeam={true}
@@ -390,11 +390,9 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           flexGrow: 1,
           flexShrink: 1,
-          ...Kb.Styles.size('100%'),
         },
         isElectron: {maxHeight: '100%'},
       }),
@@ -422,9 +420,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       teamRow: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
-          width: '100%',
         },
         isElectron: {
           minHeight: 48,

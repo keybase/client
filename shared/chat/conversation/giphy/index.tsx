@@ -67,7 +67,7 @@ const DesktopGiphySearch = () => {
                 const margin = -margins[index]! / 2 - 1
                 return p.targetUrl ? (
                   <Kb.Box2 key={String(index)} direction="horizontal" overflow="hidden" style={styles.imageContainer}>
-                    <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                    <Kb.Box2 direction="vertical" style={Kb.Styles.marginH(margin)}>
                       <UnfurlImage
                         autoplayVideo={true}
                         height={gridHeight}

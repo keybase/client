@@ -26,6 +26,8 @@ const HeaderNewChatButton = () => {
       className="tooltip-right"
       alignItems="center"
       justifyContent="center"
+      overflow="hidden"
+      relative={true}
     >
       <Kb.Box2 direction="vertical" style={styles.gradientRed} />
       <Kb.Box2 direction="vertical" style={styles.gradientOrange} />
@@ -98,8 +100,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           borderRadius: Kb.Styles.borderRadius,
           height: rainbowHeight,
-          overflow: 'hidden',
-          position: 'relative',
           width: rainbowWidth,
         },
         isElectron: {

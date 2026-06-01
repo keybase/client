@@ -88,7 +88,7 @@ const SbsTitle = (p: SbsTitleProps) => (
   </Kb.Box2>
 )
 const BioLayout = (p: BioTeamProofsProps) => (
-  <Kb.Box2 direction="vertical" style={styles.bio}>
+  <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.bio}>
     <Kb.NameWithIcon
       onClick={p.title === p.username ? 'profile' : noopOnClick}
       title={
@@ -323,7 +323,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
     </Kb.ButtonBar>
   ) : null
   return isMobile ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="space-around" style={styles.bioAndProofs}>
+    <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="space-around" relative={true} style={styles.bioAndProofs}>
       {!!props.reason && (
         <Kb.Text
           type="BodySmallSemibold"
@@ -371,6 +371,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
         direction="horizontal"
         fullWidth={true}
         justifyContent="space-around"
+        relative={true}
         style={styles.bioAndProofs}
       >
         <BioLayout {...props} />
@@ -625,14 +626,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     height: avatarSize / 2 + Kb.Styles.globalMargins.tiny,
   },
   bio: Kb.Styles.platformStyles({
-    common: {alignSelf: 'flex-start'},
     isElectron: {marginBottom: Kb.Styles.globalMargins.small, width: 350},
     isMobile: {marginBottom: Kb.Styles.globalMargins.medium, width: '100%'},
   }),
   bioAndProofs: Kb.Styles.platformStyles({
     common: {
       paddingBottom: Kb.Styles.globalMargins.medium,
-      position: 'relative',
     },
     isElectron: {paddingTop: Kb.Styles.globalMargins.tiny},
     isMobile: {paddingBottom: Kb.Styles.globalMargins.small},

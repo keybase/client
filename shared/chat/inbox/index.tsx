@@ -229,6 +229,7 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
       gapStart={true}
       gap="small"
       justifyContent="flex-end"
+      alignItems="center"
       style={nativeStyles.noChatsContainer}
     >
       <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
@@ -241,7 +242,7 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" gapStart={true} gap="medium" style={nativeStyles.newChat}>
+    <Kb.Box2 direction="vertical" gapStart={true} gap="medium" fullWidth={true} noShrink={true} style={nativeStyles.newChat}>
       <Kb.Button
         fullWidth={true}
         onClick={props.onNewChat}
@@ -384,8 +385,8 @@ function DesktopInboxBody(props: ControlledInboxProps) {
 
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box2 direction="vertical" className="inbox-hover-container" style={desktopStyles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.body}>
+      <Kb.Box2 direction="vertical" className="inbox-hover-container" fullHeight={true} relative={true} style={desktopStyles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={desktopStyles.body}>
           {search.isSearching ? (
             <InboxSearch search={search} />
           ) : (
@@ -524,7 +525,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
   return (
     <Kb.ErrorBoundary>
       <PerfProfiler id="Inbox">
-        <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
+        <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
           <NativeLoadingLine />
           {isSearching ? (
             <InboxSearch header={headComponent} search={search} />
@@ -586,17 +587,14 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       body: {
-        flex: 1,
         minHeight: 0,
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
           contain: 'strict',
-          height: '100%',
           maxWidth: inboxWidth,
           minWidth: inboxWidth,
-          position: 'relative',
         },
       }),
       dragLineWrapper: {
@@ -699,7 +697,6 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
-          position: 'relative',
         },
         isTablet: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
@@ -715,11 +712,8 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       },
       newChat: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-        flexShrink: 0,
-        width: '100%',
       },
       noChatsContainer: {
-        alignItems: 'center',
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
       },

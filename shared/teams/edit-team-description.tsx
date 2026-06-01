@@ -58,7 +58,7 @@ const EditTeamDescription = (props: Props) => {
         </Kb.Banner>
       ) : null}
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.Input3
             placeholder="Team description"
             onChangeText={value => {
@@ -93,7 +93,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {alignItems: 'center'},
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-    width: '100%',
   },
   modalFooter: Kb.Styles.platformStyles({
     common: {

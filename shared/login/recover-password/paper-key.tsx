@@ -67,7 +67,6 @@ const PaperKey = ({route}: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contents: {
     maxWidth: isMobile ? '100%' : 460,
-    width: '100%',
   },
   inputContainer2: {
     marginTop: 10,

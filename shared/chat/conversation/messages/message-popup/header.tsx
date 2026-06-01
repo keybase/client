@@ -59,7 +59,7 @@ const MessagePopupHeader = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.headerContainer}>
       {isMobile ? null : <Kb.ImageIcon type={iconName} style={styles.headerIcon} />}
       {isMobile ? null : (
         <Kb.Text
@@ -124,7 +124,6 @@ const styles = Kb.Styles.styleSheetCreate(
       headerContainer: Kb.Styles.platformStyles({
         common: {
           paddingTop: Kb.Styles.globalMargins.tiny,
-          width: '100%',
         },
         isElectron: {
           maxWidth: 240,

@@ -123,17 +123,18 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
       direction="horizontal"
       gap="tiny"
       fullWidth={true}
+      alignItems="flex-start"
       style={Kb.Styles.collapseStyles([
         Common.styles.suggestionBase,
         {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
-        {alignItems: 'flex-start'},
       ])}
     >
       {!!command.username && <Kb.Avatar size={32} username={command.username} />}
       <Kb.Box2
         fullWidth={true}
         direction="vertical"
-        style={Kb.Styles.collapseStyles([Common.styles.fixSuggestionHeight, {alignItems: 'flex-start'}])}
+        alignItems="flex-start"
+        style={Common.styles.fixSuggestionHeight}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySemibold">

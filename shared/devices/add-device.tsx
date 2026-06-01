@@ -120,6 +120,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
     centerChildren={true}
     gap="xtiny"
     gapEnd={!isMobile}
+    padding="tiny"
   >
     <Kb.ImageIcon type={getDeviceIconType(deviceOptionTypeMap[type], iconNumber ?? (1 as T.Devices.IconNumber), bigIcon ? 96 : 64)} />
     <Kb.Text type="BodySemibold">
@@ -132,7 +133,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   deviceOption: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
-      padding: Kb.Styles.globalMargins.tiny,
       width: isMobile ? 192 : 168,
     },
     isElectron: {

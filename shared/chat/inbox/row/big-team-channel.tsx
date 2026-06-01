@@ -96,6 +96,7 @@ const BigTeamChannel = (props: Props) => {
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
           fullWidth={!isMobile}
+          alignItems="center"
           style={Kb.Styles.collapseStyles([
             styles.channelBackground,
             selected && styles.selectedChannelBackground,
@@ -126,7 +127,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       channelBackground: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           marginLeft: Kb.Styles.globalMargins.large,
           paddingRight: Kb.Styles.globalMargins.xsmall,
         },

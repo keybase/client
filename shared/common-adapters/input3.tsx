@@ -148,6 +148,8 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
   return (
     <Box2
       direction="horizontal"
+      alignItems="center"
+      padding="xtiny"
       style={Styles.collapseStyles([
         styles.container,
         focused && styles.focused,
@@ -220,6 +222,8 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
   return (
     <Box2
       direction="horizontal"
+      alignItems="center"
+      padding="xtiny"
       style={Styles.collapseStyles([
         styles.container,
         focused && styles.focused,
@@ -281,10 +285,8 @@ const styles = Styles.styleSheetCreate(
     ({
       container: Styles.platformStyles({
         common: {
-          alignItems: 'center',
           backgroundColor: Styles.globalColors.white,
           ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
-          padding: Styles.globalMargins.xtiny,
         },
         isElectron: {
           width: '100%',

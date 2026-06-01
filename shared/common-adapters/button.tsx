@@ -96,14 +96,12 @@ const smallStyle = {
   borderRadius: Styles.borderRadius,
   height: smallHeight,
   minWidth: undefined,
-  paddingLeft: isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
-  paddingRight: isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
+  ...Styles.paddingH(isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall),
 } satisfies Styles._StylesCrossPlatform
 
 const childrenOnlyStyle = {
   minWidth: undefined,
-  paddingLeft: isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
-  paddingRight: isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
+  ...Styles.paddingH(isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny),
   width: regularHeight,
 } satisfies Styles._StylesCrossPlatform
 

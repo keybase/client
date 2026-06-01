@@ -42,6 +42,7 @@ const TeamInfo = (props: Props) => {
           gap="tiny"
           gapStart={true}
           gapEnd={true}
+          padding="small"
           style={styles.infoPopup}
         >
           <Kb.NameWithIcon
@@ -115,7 +116,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       infoPopup: {
         maxWidth: 225,
-        padding: Kb.Styles.globalMargins.small,
       },
       publicAdmins: Kb.Styles.platformStyles({
         isElectron: {display: 'unset'},

@@ -99,6 +99,8 @@ function ConversationFilterInput(ownProps: OwnProps) {
       direction="horizontal"
       centerChildren={!Kb.Styles.isTablet}
       gap={isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
+      fullWidth={true}
+      relative={true}
       style={Kb.Styles.collapseStyles([
         styles.containerNotFiltering,
         !Kb.Styles.isPhone && styles.whiteBg,
@@ -118,8 +120,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
           height: undefined,
-          position: 'relative',
-          width: '100%',
         },
         isElectron: {
           alignSelf: 'stretch',

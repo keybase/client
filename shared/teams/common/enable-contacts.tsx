@@ -28,7 +28,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
 
   return showingPopup ? (
     <Kb.Popup onHidden={onClosePopup}>
-      <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="vertical" gap="small" padding="small" fullWidth={true}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header" style={styles.header}>
             Enable contact sync
@@ -48,7 +48,6 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {padding: Kb.Styles.globalMargins.small},
   header: {marginBottom: 6},
 }))
 

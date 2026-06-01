@@ -14,7 +14,7 @@ type ModalHeaderProps = {
 const ModalHeader = (props: ModalHeaderProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
     <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
-      <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
+      <Kb.Box2 direction="horizontal" flex={1} style={styles.headerLeft}>
         {!!props.leftButton && props.leftButton}
       </Kb.Box2>
       <Kb.Box2 direction="vertical">
@@ -26,7 +26,7 @@ const ModalHeader = (props: ModalHeaderProps) => (
           props.title
         )}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" style={styles.headerRight}>
+      <Kb.Box2 direction="horizontal" flex={1} style={styles.headerRight}>
         {!!props.rightButton && props.rightButton}
       </Kb.Box2>
     </Kb.Box2>
@@ -180,12 +180,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.bottomDivider(48),
   },
   headerLeft: {
-    flex: 1,
     justifyContent: 'flex-start',
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   headerRight: {
-    flex: 1,
     justifyContent: 'flex-end',
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },

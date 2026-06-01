@@ -70,6 +70,8 @@ const ConfirmReset = ({route}: Props) => {
         fullWidth={true}
         gap="medium"
         alignItems="center"
+        alignSelf="center"
+        padding="medium"
         style={styles.container}
       >
         <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
@@ -143,10 +145,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignItems: 'center',
   },
   container: Kb.Styles.platformStyles({
-    common: {
-      alignSelf: 'center',
-      padding: Kb.Styles.globalMargins.medium,
-    },
     isElectron: {
       width: 368 + Kb.Styles.globalMargins.medium * 2,
     },

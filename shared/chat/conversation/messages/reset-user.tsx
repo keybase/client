@@ -34,7 +34,7 @@ const ResetUser = () => {
   const viewProfile = () => _viewProfile(username)
 
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} padding="small" style={styles.container}>
       <Kb.ImageIcon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.textContainer}>
         <Kb.Text center={true} type="BodySemibold" negative={true}>
@@ -101,7 +101,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.red,
         marginBottom: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
-        padding: Kb.Styles.globalMargins.small,
       },
       lastSentence: {
         marginTop: Kb.Styles.globalMargins.medium,

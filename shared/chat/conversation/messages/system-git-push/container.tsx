@@ -129,7 +129,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
               style={styles.marker}
             />
             <Kb.Box2 direction="horizontal" alignItems="flex-start" style={styles.hashAndMessage}>
-              <Kb.Box2 direction="vertical" style={styles.dot}>
+              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.dot}>
                 <Kb.Text
                   type="Terminal"
                   style={styles.commitHash}
@@ -138,7 +138,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
                   {commit.commitHash.substring(0, 8)}
                 </Kb.Text>
               </Kb.Box2>
-              <Kb.Box2 direction="vertical">
+              <Kb.Box2 direction="vertical" fullHeight={true}>
                 <Kb.Text type="BodySmall" selectable={true} style={styles.commitMessage} lineClamp={1}>
                   {commit.message}
                 </Kb.Text>
@@ -168,13 +168,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       commitMessage: {
-        height: '100%',
         textAlign: 'left',
       },
       dot: {
         backgroundColor: Kb.Styles.globalColors.blueLighter_20,
         borderRadius: 3,
-        height: '100%',
         marginBottom: 1,
         marginRight: Kb.Styles.globalMargins.xtiny,
         padding: 2,

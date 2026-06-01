@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 const HelloBot = () => (
   <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
     <Kb.ImageIcon type="icon-fancy-hellobot-hi-96" style={styles.image} />
-    <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} padding="medium">
       <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
         {"Hi, I'm Hello Bot. You can play puzzles with me or ask for help."}
       </Kb.Text>
@@ -49,7 +49,6 @@ const styles = Kb.Styles.styleSheetCreate(
           marginTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      textContainer: {padding: Kb.Styles.globalMargins.medium},
     }) as const
 )
 

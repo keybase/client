@@ -6,7 +6,7 @@ export type Props = {
 }
 
 const Banner = ({onReadMore, onHideChatBanner}: Props) => (
-  <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} alignItems="center" fullWidth={true} style={styles.containerBanner}>
+  <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} alignItems="center" fullWidth={true} relative={true} style={styles.containerBanner}>
     <Kb.ImageIcon
       style={styles.illustration}
       type={isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'}
@@ -53,7 +53,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       backgroundColor: Kb.Styles.globalColors.blue,
       flexShrink: 0,
-      position: 'relative',
     },
     isElectron: {
       height: 212,

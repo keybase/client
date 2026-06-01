@@ -12,7 +12,7 @@ const PushPrompt = () => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" padding="small" style={styles.container}>
         <Kb.ImageIcon type="illustration-turn-on-notifications" style={styles.image} />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           Notifications are very important.
@@ -50,7 +50,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.blue,
-        padding: Kb.Styles.globalMargins.small,
       },
       footer: {
         backgroundColor: Kb.Styles.globalColors.blue,

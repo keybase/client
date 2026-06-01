@@ -39,7 +39,7 @@ function NewCard(outerProps: Props) {
       style={Kb.Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])}
       alignItems="flex-start"
     >
-      <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
+      <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} padding="medium">
         <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
           {props.text}
         </Kb.Text>
@@ -112,7 +112,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: isMobile ? -20 : 39,
       },
       link: {color: isMobile ? Kb.Styles.globalColors.blueLighter : undefined},
-      textContainer: {padding: Kb.Styles.globalMargins.medium},
     }) as const
 )
 

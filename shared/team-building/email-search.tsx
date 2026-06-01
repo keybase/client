@@ -45,7 +45,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.background}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
         <Kb.Input3
           autoFocus={true}
@@ -103,7 +103,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
           flex: 1,
-          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
           zIndex: -1,

@@ -13,7 +13,7 @@ const CELL_SIZE = 80
 const IconCell = ({type}: {type: IconType}) => {
   const name = type.replace(/^iconfont-/, '')
   return (
-    <Kb.Box2 direction="vertical" style={styles.cell} alignItems="center">
+    <Kb.Box2 direction="vertical" padding="xtiny" style={styles.cell} alignItems="center">
       <Kb.Icon type={type} sizeType="Big" />
       <Kb.Text type="BodyTiny" style={styles.cellLabel} lineClamp={2}>
         {name}
@@ -30,7 +30,7 @@ const Icons = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchRow} alignItems="center">
+      <Kb.Box2 direction="horizontal" fullWidth={true} padding="small" style={styles.searchRow} alignItems="center">
         <Kb.SearchFilter
           onChange={setQuery}
           placeholderText="Filter icons…"
@@ -43,7 +43,7 @@ const Icons = () => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.ScrollView style={styles.scroll}>
-        <Kb.Box2 direction="horizontal" style={styles.grid}>
+        <Kb.Box2 direction="horizontal" padding="tiny" style={styles.grid}>
           {filtered.map(t => (
             <IconCell key={t} type={t} />
           ))}
@@ -54,10 +54,7 @@ const Icons = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  cell: {
-    ...Kb.Styles.size(CELL_SIZE),
-    padding: Kb.Styles.globalMargins.xtiny,
-  },
+  cell: Kb.Styles.size(CELL_SIZE),
   cellLabel: {
     color: Kb.Styles.globalColors.black_50,
     marginTop: 2,
@@ -69,13 +66,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   grid: {
     flexWrap: 'wrap',
-    padding: Kb.Styles.globalMargins.tiny,
   },
   scroll: {flex: 1},
   searchRow: {
     borderBottomColor: Kb.Styles.globalColors.black_10,
     borderBottomWidth: 1,
-    padding: Kb.Styles.globalMargins.small,
   },
 }))
 

@@ -146,6 +146,9 @@ const CopyText = (props: Props) => {
     <Kb.Box2
       ref={popupAnchor}
       direction="horizontal"
+      alignItems="center"
+      fullWidth={true}
+      relative={true}
       style={Styles.collapseStyles([
         styles.container,
         props.disabled && styles.containerDisabled,
@@ -215,12 +218,9 @@ const styles = Styles.styleSheetCreate(
       }),
       container: Styles.platformStyles({
         common: {
-          alignItems: 'center',
           backgroundColor: Styles.globalColors.blueGrey,
           borderRadius: Styles.borderRadius,
           flexGrow: 1,
-          position: 'relative',
-          width: '100%',
         },
         isElectron: {
           maxWidth: 460,

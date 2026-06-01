@@ -480,6 +480,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
       {popup}
       <Kb.Box2
         direction="vertical"
+        alignItems="center"
         style={desktopStyles.explodingInsideWrapper}
         tooltip={explodingModeSeconds ? undefined : 'Timer'}
         justifyContent="center"
@@ -866,7 +867,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
           borderRight: `1px solid ${Kb.Styles.globalColors.black_20}`,
         },
       }),
-      explodingInsideWrapper: {alignItems: 'center', height: 32},
+      explodingInsideWrapper: {height: 32},
       footer: {
         alignSelf: 'flex-end',
         color: Kb.Styles.globalColors.black_20,
@@ -996,7 +997,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   )
 
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={nativeStyles.actionContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" noShrink={true} style={nativeStyles.actionContainer}>
       {isEditing && (
         <Kb.Button
           style={nativeStyles.editingButton}
@@ -1381,6 +1382,7 @@ const NativePlatformInput = (p: Props) => {
         {!suggestorPopup && <Typing />}
         <Kb.Box2
           direction="vertical"
+          alignItems="center"
           style={Kb.Styles.collapseStyles([
             nativeStyles.container,
             isExploding && nativeStyles.explodingContainer,
@@ -1438,11 +1440,9 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionContainer: {
-        flexShrink: 0,
         minHeight: 32,
       },
       container: {
-        alignItems: 'center',
         borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
         minHeight: 1,

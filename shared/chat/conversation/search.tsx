@@ -383,6 +383,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
       <Kb.Box2
         direction="horizontal"
         justifyContent="space-between"
+        padding="tiny"
         style={styles.outerContainer}
         fullWidth={true}
         gap="tiny"
@@ -460,7 +461,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
 
   return (
     <Kb.Box2 direction="horizontal" style={style}>
-      <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.outerContainer} gap="tiny">
+      <Kb.Box2 direction="horizontal" justifyContent="space-between" padding="tiny" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} noShrink={true}>
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
             Cancel
@@ -546,7 +547,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       outerContainer: {
         backgroundColor: Kb.Styles.globalColors.blueLighter3,
-        padding: Kb.Styles.globalMargins.tiny,
       },
       progress: {height: 16},
       results: {color: Kb.Styles.globalColors.black_50},

@@ -660,7 +660,7 @@ const InstallBotPopup = (props: Props) => {
     )
   return (
     <>
-      <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
+      <Kb.Box2 direction="vertical" flex={1} style={styles.outerContainer} fullWidth={true}>
         {bodyContent}
       </Kb.Box2>
       {enabled && (!readOnly || showReviewButton) ? (
@@ -824,7 +824,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   outerContainer: Kb.Styles.platformStyles({
     common: {
-      flex: 1,
       minHeight: 0,
     },
   }),

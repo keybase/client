@@ -169,9 +169,7 @@ const styles = Styles.styleSheetCreate(
       }),
       header: Styles.platformStyles({
         common: {
-          borderBottomColor: Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid' as const,
+          ...Styles.bottomDivider(),
         },
         isAndroid: {height: 56},
         isIOS: {height: 44},

@@ -146,6 +146,7 @@ const Card = (props: CardType) => (
   <Kb.Box2
     direction="vertical"
     centerChildren={true}
+    noShrink={true}
     style={styles.card}
     title={cardToTitle(cards[props.card])}
   >
@@ -319,7 +320,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
           ...Kb.Styles.border(Kb.Styles.globalColors.black_10OrBlack, 1, Kb.Styles.borderRadius),
-          flexShrink: 0,
           height: 44,
           marginRight: -4,
           marginTop: Kb.Styles.globalMargins.tiny,
@@ -350,8 +350,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       coin: {
-        height: 48,
-        width: 48,
+        ...Kb.Styles.size(48),
       },
       commonContainer: {
         marginTop: Kb.Styles.globalMargins.tiny,

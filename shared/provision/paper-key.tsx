@@ -51,6 +51,7 @@ export const PaperKey = (props: Props) => {
     >
       <Kb.Box2
         direction="vertical"
+        fullWidth={true}
         style={styles.contents}
         centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
         gap={isMobile ? 'tiny' : 'medium'}
@@ -87,7 +88,6 @@ const styles = Kb.Styles.styleSheetCreate(
       contents: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
-          width: '100%',
         },
         isElectron: {maxWidth: 460},
         isMobile: {maxWidth: 300},

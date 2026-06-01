@@ -7,6 +7,7 @@ type Props = {style?: StylesCrossPlatform; vertical?: boolean}
 const Divider = (props: Props) => (
   <Box2
     direction="vertical"
+    flex={1}
     style={Styles.collapseStyles([
       styles.divider,
       props.vertical ? styles.vertical : styles.horizontal,
@@ -18,7 +19,6 @@ const Divider = (props: Props) => (
 const styles = Styles.styleSheetCreate(() => ({
   divider: {
     backgroundColor: Styles.globalColors.black_10,
-    flex: 1,
   },
   horizontal: {
     maxHeight: Styles.hairlineWidth,

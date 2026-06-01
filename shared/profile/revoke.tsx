@@ -59,6 +59,7 @@ const RevokeProof = (ownProps: OwnProps) => {
           alignItems="center"
           fullWidth={true}
           justifyContent="center"
+          padding="tiny"
           style={styles.errorBanner}
         >
           <Kb.Text center={!isMobile} style={styles.errorBannerText} type="BodySemibold">
@@ -111,8 +112,6 @@ const styles = Kb.Styles.styleSheetCreate(
       errorBanner: {
         backgroundColor: Kb.Styles.globalColors.red,
         minHeight: Kb.Styles.globalMargins.large,
-        padding: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
       errorBannerText: {
         color: Kb.Styles.globalColors.white,

@@ -194,7 +194,7 @@ const Upload = (props: UploadProps) => {
       {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
       {nativeShowing && (
         <NativeAnimated.View style={{position: 'relative', top: uploadTop}}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.backgroundBox}>
+          <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.backgroundBox}>
             <NativeAnimated.Image
               resizeMode="repeat"
               source={isDarkMode
@@ -227,7 +227,6 @@ const styles = Kb.Styles.styleSheetCreate(
       backgroundBox: Kb.Styles.platformStyles({
         common: {
           height: 48,
-          overflow: 'hidden',
         },
       }),
       backgroundImage: {

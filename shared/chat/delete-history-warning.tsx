@@ -34,6 +34,7 @@ const DeleteHistoryWarning = (props: Props) => {
   return (
     <Kb.Box2
       direction="vertical"
+      centerChildren={true}
       style={Kb.Styles.collapseStyles([styles.padding, styles.box])}
     >
       <Kb.ImageIcon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
@@ -68,7 +69,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       box: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.centered(),
           backgroundColor: Kb.Styles.globalColors.white,
           padding: Kb.Styles.globalMargins.small,
         },

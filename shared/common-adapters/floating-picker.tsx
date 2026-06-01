@@ -73,11 +73,12 @@ const FloatingPicker = <T extends string | number>(props: Props<T>): React.React
       key={isAndroid ? props.selectedValue || 0 : undefined}
       onHidden={props.onHidden}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" style={styles.menu}>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="stretch" justifyContent="flex-end" style={styles.menu}>
         {props.header}
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
+          alignItems="stretch"
           justifyContent="flex-end"
           style={styles.actionButtons}
         >
@@ -106,7 +107,6 @@ const FloatingPicker = <T extends string | number>(props: Props<T>): React.React
 
 const styles = Styles.styleSheetCreate(() => ({
   actionButtons: {
-    alignItems: 'stretch',
     height: 56,
   },
   item: {
@@ -119,7 +119,6 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.small,
   },
   menu: {
-    alignItems: 'stretch',
     backgroundColor: Styles.globalColors.white,
   },
   picker: Styles.platformStyles({

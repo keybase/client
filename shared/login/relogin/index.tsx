@@ -29,7 +29,7 @@ type Props = {
 const other = 'Someone else...'
 
 const UserRow = ({user, hasStoredSecret}: {user: string; hasStoredSecret: boolean}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={desktopStyles.userRow} gap="xtiny">
+  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={desktopStyles.userRow} gap="xtiny">
     <Kb.Text type="Header" style={user === other ? desktopStyles.other : desktopStyles.provisioned}>
       {user}
     </Kb.Text>
@@ -65,7 +65,7 @@ const DesktopLogin = (props: Props) => {
       rightActionLabel="Create account"
       title="Log in"
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} style={desktopStyles.contentBox}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} alignSelf="center" padding="small" style={desktopStyles.contentBox}>
         <UserCard username={props.selectedUser} outerStyle={desktopStyles.container} style={desktopStyles.userContainer}>
           <Kb.Dropdown
             onChangedIdx={_onClickUserIdx}
@@ -128,9 +128,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         flex: 1,
       },
       contentBox: {
-        alignSelf: 'center',
         maxWidth: 460,
-        padding: Kb.Styles.globalMargins.small,
       },
       forgotPassword: {
         marginTop: Kb.Styles.globalMargins.tiny,
@@ -161,7 +159,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         width: 348,
       },
       userRow: {
-        alignItems: 'center',
         marginLeft: Kb.Styles.globalMargins.xsmall,
         minHeight: 40,
       },

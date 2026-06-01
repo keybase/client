@@ -88,8 +88,9 @@ function Video(p: Props) {
       direction="vertical"
       fullWidth={true}
       relative={true}
-      style={styles.container}
+      alignSelf="center"
       alignItems="flex-start"
+      style={styles.container}
     >
       {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}
     </Kb.Box2>
@@ -100,7 +101,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        alignSelf: 'center',
         paddingRight: isMobile ? 0 : Kb.Styles.globalMargins.tiny,
       },
       contentContainer: {

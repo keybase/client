@@ -53,7 +53,7 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
     type="Small"
     firstItem={false}
     body={
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([{flex: 1}, disabled && {opacity: 0.4}])}>
+      <Kb.Box2 direction="vertical" flex={1} style={disabled ? {opacity: 0.4} : undefined}>
         <Kb.Box2 direction="horizontal" alignSelf="flex-start">
           <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
             #

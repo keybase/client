@@ -57,6 +57,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
         key={index}
         direction="vertical"
         fullWidth={true}
+        relative={true}
         className={hoverClassName}
         style={Styles.collapseStyles([desktopStyles.itemContainer, styleClickable])}
         onClick={() => {
@@ -138,6 +139,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
         <Box2
           direction="vertical"
           fullWidth={true}
+          noShrink={true}
           style={Styles.collapseStyles([desktopStyles.menuItemList, props.listStyle])}
         >
           {items.map(
@@ -388,7 +390,6 @@ const desktopStyles = Styles.styleSheetCreate(
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,
         ...Styles.padding(7, Styles.globalMargins.small),
-        position: 'relative',
       },
       menuContainer: Styles.platformStyles({
         isElectron: {
@@ -402,9 +403,7 @@ const desktopStyles = Styles.styleSheetCreate(
         },
       }),
       menuItemList: {
-        flexShrink: 0,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        ...Styles.paddingV(Styles.globalMargins.tiny),
       },
       progressIndicator: {
         left: 0,

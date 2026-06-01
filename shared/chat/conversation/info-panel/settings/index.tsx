@@ -78,7 +78,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         direction="vertical"
         fullWidth={true}
         alignItems="flex-start"
-        style={styles.container}
+        padding="small"
         gap="tiny"
       >
         {isPreview ? (
@@ -184,7 +184,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      container: {padding: Kb.Styles.globalMargins.small},
       retentionDropdownStyle: Kb.Styles.platformStyles({
         isElectron: {
           marginRight: 45 - 16,

@@ -74,7 +74,7 @@ const FinderIntegration = () => {
 
   return Platform.isDarwin || Platform.isWindows ? (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
@@ -291,9 +291,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       divider: {
         marginTop: Kb.Styles.globalMargins.medium,
-      },
-      finderIntegrationContent: {
-        padding: Kb.Styles.globalMargins.small,
       },
       selectedText: {
         paddingLeft: Kb.Styles.globalMargins.xsmall,

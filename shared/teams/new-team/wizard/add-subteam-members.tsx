@@ -117,7 +117,7 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
           />
         </Kb.Box2>
         {/* TODO: once it's easier to make a single different-height header, make this part of the list2 */}
-        <Kb.Box2 direction="horizontal" style={styles.header} fullWidth={true} justifyContent="space-between">
+        <Kb.Box2 direction="horizontal" style={styles.header} fullWidth={true} alignItems="center" justifyContent="space-between">
           <Kb.Text type="BodySmallSemibold" lineClamp={1} style={styles.flexShrink}>
             Members of {parentTeamName}
           </Kb.Text>
@@ -142,7 +142,6 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   flexShrink: {flexShrink: 1},
   header: {
-    alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.blueGrey,
     height: Kb.Styles.globalMargins.mediumLarge,
     paddingLeft: Kb.Styles.globalMargins.tiny,

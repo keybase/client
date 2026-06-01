@@ -113,6 +113,9 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
                 hidePopup()
               }}
               direction="vertical"
+              fullWidth={true}
+              justifyContent="center"
+              noShrink={true}
               className="hover_background_color_blueLighter2"
               style={Styles.collapseStyles([styles.itemClickBox, styles.itemBox, itemBoxStyle])}
             >
@@ -166,6 +169,8 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
     <Kb.Box2
       direction="horizontal"
+      alignItems="center"
+      noShrink={true}
       style={Styles.collapseStyles([styles.inlineSelected, props.selectedStyle])}
     >
       {props.textWrapperType ? <Kb.Text type={props.textWrapperType}>{props.label}</Kb.Text> : props.label}
@@ -203,8 +208,6 @@ const styles = Styles.styleSheetCreate(
       }),
       inlineSelected: Styles.platformStyles({
         common: {
-          alignItems: 'center',
-          flexShrink: 0,
           ...Styles.paddingH(Styles.globalMargins.tiny),
         },
       }),
@@ -212,15 +215,9 @@ const styles = Styles.styleSheetCreate(
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
         borderStyle: 'solid',
-        justifyContent: 'center',
         minHeight: isMobile ? 40 : 32,
-        width: '100%',
       },
       itemClickBox: Styles.platformStyles({
-        common: {
-          flexShrink: 0,
-          width: '100%',
-        },
         isMobile: {
           minHeight: 40,
         },

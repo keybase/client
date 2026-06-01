@@ -82,7 +82,7 @@ const WaveButton = (props: Props) => {
 
   const hideButton = waved && !waving
   return (
-    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([props.style, styles.outer])}>
+    <Kb.Box2 direction="vertical" noShrink={true} style={props.style}>
       {hideButton && (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
           <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
@@ -114,7 +114,6 @@ const styles = Styles.styleSheetCreate(
       blueText: {color: Styles.globalColors.blueDark, paddingRight: Styles.globalMargins.xtiny},
       button: Styles.platformStyles({isElectron: {width: 'auto'}}),
       hiddenButton: {opacity: 0},
-      outer: {flexShrink: 0},
       waved: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, Styles.globalMargins.xtiny),
         position: 'absolute',

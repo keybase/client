@@ -46,6 +46,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       direction="vertical"
       fullWidth={true}
       centerChildren={true}
+      padding="medium"
       style={Kb.Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
     >
       <Kb.IconAuto
@@ -163,7 +164,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       banner: {
         backgroundColor: Kb.Styles.globalColors.red,
-        padding: Kb.Styles.globalMargins.medium,
       },
       button: Kb.Styles.platformStyles({
         isElectron: {width: Kb.Styles.globalMargins.xlarge * 4},

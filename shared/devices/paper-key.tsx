@@ -44,7 +44,7 @@ const PaperKey = () => {
         Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
         This is the only time you&apos;ll see this so be sure to write it down.
       </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
+      <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true} padding="medium">
         {paperkey ? (
           <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
             {paperkey}
@@ -85,7 +85,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderStyle: 'solid',
         borderWidth,
         minHeight: 100,
-        padding: Kb.Styles.globalMargins.medium,
       },
       text: {
         ...Kb.Styles.globalStyles.fontTerminal,

@@ -33,6 +33,8 @@ const BigTeamsDivider = (props: Props) => {
           alignItems="center"
           justifyContent="flex-start"
           gap="xtiny"
+          flex={1}
+          fullHeight={true}
           style={styles.dividerBoxInline}
           className="color_black_20 hover_color_black_50"
         >
@@ -44,6 +46,10 @@ const BigTeamsDivider = (props: Props) => {
         <Kb.Box2
           direction="horizontal"
           justifyContent="flex-start"
+          alignItems="center"
+          relative={true}
+          fullWidth={true}
+          fullHeight={true}
           style={styles.dividerBox}
           className="color_black_20 hover_color_black_50"
         >
@@ -104,18 +110,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       dividerBoxInline: {
-        flex: 1,
-        height: '100%',
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       dividerBox: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           borderStyle: 'solid',
           borderTopColor: Kb.Styles.globalColors.black_10,
           borderTopWidth: 1,
-          ...Kb.Styles.size('100%'),
-          position: 'relative',
         },
         isElectron: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),

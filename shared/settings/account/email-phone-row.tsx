@@ -169,8 +169,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       badge: {
         borderRadius: isMobile ? 5 : 4,
-        height: isMobile ? 10 : 8,
-        width: isMobile ? 10 : 8,
+        ...Kb.Styles.size(isMobile ? 10 : 8),
       },
       badgeGearIcon: {
         position: 'absolute',

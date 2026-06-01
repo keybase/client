@@ -145,7 +145,7 @@ const Toast = (props: Props) => {
   return shouldRender ? (
     <Kb.Popup>
       <Kb.KeyboardAvoidingView2>
-        <Kb.Box2 direction="vertical" pointerEvents="none" justifyContent="center" style={nativeStyles.wrapper}>
+        <Kb.Box2 direction="vertical" pointerEvents="none" alignItems="center" justifyContent="center" style={nativeStyles.wrapper}>
           <NativeAnimated.View
             style={[
               Styles.collapseStyles([
@@ -201,6 +201,5 @@ const nativeStyles = Styles.styleSheetCreate(() => ({
   },
   wrapper: {
     ...Styles.globalStyles.fillAbsolute,
-    alignItems: 'center',
   },
 }))

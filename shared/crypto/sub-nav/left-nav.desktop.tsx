@@ -34,7 +34,7 @@ const LeftNav = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer} testID={TestIDs.CRYPTO_INPUT}>
+    <Kb.Box2 direction="vertical" fullHeight={true} noShrink={true} style={styles.listContainer} testID={TestIDs.CRYPTO_INPUT}>
       <Kb.BoxGrow>
         <Kb.List
           items={rows}
@@ -56,7 +56,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   listContainer: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
     flexGrow: 0,
-    flexShrink: 0,
     width: 180,
   },
 }))

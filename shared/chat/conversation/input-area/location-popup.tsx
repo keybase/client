@@ -136,7 +136,7 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
   return (
     <>
       {locationDenied ? (
-        <Kb.Box2 direction="vertical" style={styles.denied} gap="small" justifyContent="center">
+        <Kb.Box2 direction="vertical" padding="small" style={styles.denied} gap="small" justifyContent="center">
           <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Location permission denied.
           </Kb.Text>
@@ -197,7 +197,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       denied: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        padding: Kb.Styles.globalMargins.small,
       },
       deniedText: {
         color: Kb.Styles.globalColors.redDark,

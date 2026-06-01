@@ -211,7 +211,7 @@ function EmojiRow(p: {
 }) {
   const {row, emojisPerLine, mapper} = p
   return (
-    <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
+    <Kb.Box2 key={row.key} fullWidth={true} centerChildren={true} style={styles.emojiRowContainer} direction="horizontal">
       {row.emojis.map(mapper)}
       {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
     </Kb.Box2>
@@ -361,6 +361,7 @@ function EmojiPicker(props: Props) {
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
+          centerChildren={true}
           style={Kb.Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
         >
           {getSectionHeader('Search results')}
@@ -442,7 +443,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: emojiWidthWithPadding,
       },
       emojiRowContainer: {
-        ...Kb.Styles.centered(),
         height: emojiWidthWithPadding,
       },
       flexWrap: {

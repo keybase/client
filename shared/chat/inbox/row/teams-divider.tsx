@@ -29,6 +29,9 @@ function TeamsDivider(props: Props) {
   return (
     <Kb.Box2
       direction="vertical"
+      fullWidth={true}
+      noShrink={true}
+      justifyContent="center"
       style={Kb.Styles.collapseStyles([
         reallyShow ? styles.containerButton : styles.containerNoButton,
         style,
@@ -68,10 +71,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       containerButton: Kb.Styles.platformStyles({
         common: {
-          flexShrink: 0,
           height: RowSizes.dividerHeight(true),
-          justifyContent: 'center',
-          width: '100%',
         },
         isElectron: {backgroundColor: Kb.Styles.globalColors.blueGrey},
         isMobile: {
@@ -79,10 +79,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerNoButton: {
-        flexShrink: 0,
         height: RowSizes.dividerHeight(false),
-        justifyContent: 'center',
-        width: '100%',
       },
       dividerText: {
         alignSelf: 'flex-start',

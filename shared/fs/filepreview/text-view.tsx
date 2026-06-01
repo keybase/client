@@ -32,7 +32,7 @@ const TextView = (props: Props) => {
 
   if (!isMobile) {
     return (
-      <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
+      <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" padding="small" style={styles.container}>
         <Kb.Box2 style={styles.innerContainer} direction="horizontal" alignItems="flex-start">
           <Kb.Text type="Terminal" selectable={true} style={styles.text}>
             {content}
@@ -62,7 +62,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
-          padding: Kb.Styles.globalMargins.small,
         },
         isElectron: {overflow: 'auto', scrollbarGutter: 'stable'} as const,
       }),

@@ -113,7 +113,7 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
 
   return (
     <Kb.BoxGrow>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.listContainer}>
         <Kb.SectionList
           ref={sectionListRef}
           contentContainerStyle={{minHeight: '133%'}}
@@ -180,11 +180,9 @@ const styles = Kb.Styles.styleSheetCreate(
         top: Kb.Styles.globalMargins.large,
       },
       listContainer: Kb.Styles.platformStyles({
-        common: {position: 'relative'},
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
           flexGrow: 1,
-          width: '100%',
         },
       }),
       searchHint: Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.xlarge, 0),

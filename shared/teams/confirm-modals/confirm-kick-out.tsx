@@ -98,6 +98,7 @@ const ConfirmKickOut = (props: Props) => {
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
+        overflow="hidden"
         style={Kb.Styles.collapseStyles([
           styles.iconContainer,
           members.length > 5 && styles.iconContainerMany,
@@ -159,7 +160,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.border(Kb.Styles.globalColors.white, 3, 12),
     bottom: -3,
     ...Kb.Styles.size(24),
-    overflow: 'hidden',
     position: 'absolute',
     right: isMobile ? -24 : 0,
   },
