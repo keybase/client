@@ -7,7 +7,7 @@
     "outDir": "./.tsOuts/.tsOut-desktop/emit",
     "tsBuildInfoFile": "./.tsOuts/.tsOut-desktop/cache"
   },
-  "include": ["./**/*.mts", "./**/*.mjs", "./**/*.ts", "./**/*.tsx"],
+  "include": ["./**/*.mts", "./**/*.mjs", "./**/*.ts", "./**/*.tsx", "./.storybook/**/*.ts", "./.storybook/**/*.tsx"],
   "exclude": [
     "**/node_modules",
     "./desktop/dist",
