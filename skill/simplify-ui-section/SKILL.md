@@ -83,6 +83,8 @@ A long chain of `<Box2><Box2><Box2>` almost always means something went wrong at
 - Platform-conditional logic repeated in multiple components instead of being handled once
 - Styles inlined at call sites instead of in the stylesheet
 - Style properties that can be replaced with Box2 props (see **Box2 Props** section below)
+- Inline style objects that duplicate a `Kb.Styles` utility function (see **Style Utility Functions** section below)
+- `{...Styles.globalStyles.flexBoxRow}` / `{...Styles.globalStyles.flexBoxColumn}` spreads inside a `styleSheetCreate` — these are candidates for Box2 `direction` prop instead
 
 ### Shared Helpers and Components
 - Patterns used 2+ times that have no shared abstraction
@@ -159,6 +161,86 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 - Children that individually need different margins from each other
 - Raw pixel values that don't map to any globalMargins token
 - Margins used to push a single element away from something unrelated to sibling spacing
+
+## Style Utility Functions: Replace Inline Style Objects
+
+`Kb.Styles` exports a set of utility functions and constants. When style objects duplicate one of these, replace with the utility. The result is shorter and self-documenting.
+
+### Dimension/spacing utilities
+
+| Inline style | Replace with |
+|---|---|
+| `{width: n, height: n}` | `Styles.size(n)` |
+| `{paddingLeft: n, paddingRight: n}` | `Styles.paddingH(n)` |
+| `{paddingTop: n, paddingBottom: n}` | `Styles.paddingV(n)` |
+| `{marginLeft: n, marginRight: n}` | `Styles.marginH(n)` |
+| `{marginTop: n, marginBottom: n}` | `Styles.marginV(n)` |
+| `{paddingTop: a, paddingRight: b, paddingBottom: c, paddingLeft: d}` | `Styles.padding(a, b, c, d)` |
+| `{paddingTop: n, paddingRight: n, paddingBottom: n, paddingLeft: n}` | `Styles.padding(n)` |
+
+`Styles.padding` follows CSS shorthand rules: `padding(top)`, `padding(v, h)`, `padding(top, h, bottom)`, `padding(top, right, bottom, left)`.
+
+### Alignment utilities
+
+| Inline style | Replace with |
+|---|---|
+| `{alignItems: 'center', justifyContent: 'center'}` | `Styles.centered()` (in non-Box2 contexts) |
+
+Prefer `centerChildren` on `Box2` when the container is already a Box2. Use `Styles.centered()` only for non-Box2 containers (e.g., `View`, native wrappers).
+
+### Border utilities
+
+| Inline style | Replace with |
+|---|---|
+| `{borderBottomColor: globalColors.black_10, borderBottomWidth: 1, borderStyle: 'solid'}` | `Styles.bottomDivider()` |
+| `{borderBottomColor: ..., borderBottomWidth: 1, borderStyle: 'solid', minHeight: n}` | `Styles.bottomDivider(n)` |
+| `{borderStyle: 'solid', borderTopColor: globalColors.black_10, borderTopWidth: 1, minHeight: 56}` | `Styles.topDivider()` |
+| `{borderColor: c, borderStyle: 'solid', borderWidth: n}` | `Styles.border(c, n)` |
+| `{borderColor: c, borderStyle: 'solid', borderWidth: n, borderRadius: r}` | `Styles.border(c, n, r)` |
+
+### Text overflow
+
+| Inline style | Replace with |
+|---|---|
+| `{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}` | `Styles.textEllipsis` |
+
+`Styles.textEllipsis` is already platform-aware: on mobile it resolves to `{}`.
+
+### globalStyles spreads: layout constants
+
+`Styles.globalStyles` contains pre-built layout constants. Replace manual inline equivalents with the spread:
+
+| Inline style | Replace with |
+|---|---|
+| `{position: 'absolute', inset: 0}` | `...Styles.globalStyles.fillAbsolute` |
+| `{flexGrow: 1}` | `...Styles.globalStyles.flexGrow` |
+| `{flex: 1}` | `...Styles.globalStyles.flexOne` |
+| `{flexWrap: 'wrap'}` | `...Styles.globalStyles.flexWrap` |
+| `{opacity: 0}` | `...Styles.globalStyles.opacity0` |
+| `{borderRadius: 3}` | `...Styles.globalStyles.rounded` |
+
+**When to use globalStyles.flexBox\* spreads vs Box2:**
+- Non-Box2 containers (raw `View`, `ScrollView`, `Animated.View`, platform-specific wrappers) → use the `globalStyles.flexBox*` spread
+- Inline style fragments inside `platformStyles` or `collapseStyles` → spread is fine
+- A `Box2` is already present → use `direction` prop instead; don't spread `flexBoxColumn/Row` into a Box2's style
+
+### Transition utilities
+
+| Inline style | Replace with |
+|---|---|
+| `{transition: 'opacity 0.1s ease-out'}` | `Styles.transition('opacity')` |
+| `{transition: 'background 0.2s linear'}` | `Styles.transitionColor()` |
+
+Both are no-ops on mobile, so using them removes a `isMobile ?` branch from the site.
+
+### Identifying missed utilities (patterns to scan for)
+
+When analyzing files in scope, grep mentally for these patterns — each one is a missed utility:
+- Two adjacent padding/margin props with the same axis (both left+right or both top+bottom)
+- `{width: x, height: x}` where both values are identical
+- `borderBottomColor` + `borderBottomWidth` + `borderStyle` together without `Styles.bottomDivider`
+- `overflow: 'hidden', textOverflow: 'ellipsis'` without `Styles.textEllipsis`
+- Hardcoded `transition:` strings without `Styles.transition`
 
 ## Step 3: Ask Before Acting
 
