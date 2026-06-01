@@ -97,7 +97,7 @@ const ZoneRow = ({type, fs, lh}: {type: TextType; fs: number; lh: number}) => {
 }
 
 const ZoneSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="xtiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
     <Kb.Text type="BodySmallSemibold">Metric zone overlay</Kb.Text>
     <Kb.Text type="BodyTiny" style={styles.hint}>
       Blue=ascender  Green=cap zone  Yellow=x zone  Red=descender{'\n'}
@@ -113,7 +113,7 @@ const ZoneSection = () => (
 // Strikethrough & underline position
 // ─────────────────────────────────────────────
 const DecorationSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="xtiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
     <Kb.Text type="BodySmallSemibold">Strikethrough (yStrikeoutPosition) — should bisect caps optically</Kb.Text>
     {TYPE_METRICS.map(({type}) => (
       <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
@@ -151,7 +151,7 @@ const iconSizePairs = [
 ] as const
 
 const InlineIconSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="xtiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
     <Kb.Text type="BodySmallSemibold">Inline icon + text (sxHeight → vertical-align: middle)</Kb.Text>
     <Kb.Text type="BodyTiny" style={styles.hint}>Icons should sit at the optical mid-cap of adjacent text</Kb.Text>
     {iconSizePairs.map(({iconSize, textType}) => (
@@ -182,7 +182,7 @@ const InlineIconSection = () => (
 const containerHeights = [16, 20, 24, 28, 32, 40, 48] as const
 
 const CenteringSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="small">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="small">
     <Kb.Text type="BodySmallSemibold">Fixed-height container centering (hhea.ascender)</Kb.Text>
     <Kb.Text type="BodyTiny" style={styles.hint}>Text must be visually centered in each box. Red line = exact center.</Kb.Text>
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
@@ -230,7 +230,7 @@ const CenteringSection = () => (
 // Baseline alignment across mixed sizes
 // ─────────────────────────────────────────────
 const BaselineSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="xtiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
     <Kb.Text type="BodySmallSemibold">Baseline alignment — mixed sizes on one line</Kb.Text>
     <Kb.Text type="BodyTiny" style={styles.hint}>All text should share a single baseline regardless of size</Kb.Text>
     {/* On desktop these render as inline spans so baseline aligns naturally */}
@@ -261,7 +261,7 @@ const BaselineSection = () => (
 const PARA = 'The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. gjpqy ÁÉÍÓÚ ÅÄÖ 0123456789.'
 
 const LineHeightSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="small">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="small">
     <Kb.Text type="BodySmallSemibold">Multi-line paragraph — line-height / leading (hhea.ascender)</Kb.Text>
     <Kb.Text type="BodyTiny" style={styles.hint}>Lines should be evenly spaced with no clipping or overlap</Kb.Text>
     {TYPE_METRICS.map(({type}) => (
@@ -277,7 +277,7 @@ const LineHeightSection = () => (
 // Cap-height & x-height visual ruler
 // ─────────────────────────────────────────────
 const RulerSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="xtiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
     <Kb.Text type="BodySmallSemibold">Cap-height & x-height uniformity (sCapHeight, sxHeight)</Kb.Text>
     <Kb.Text type="BodyTiny" style={styles.hint}>All caps must reach the same height; x-height glyphs (a e o x) must be consistent</Kb.Text>
     {TYPE_METRICS.map(({type}) => (
@@ -308,7 +308,7 @@ const RulerSection = () => (
 // Markdown — exercises all decoration + weight paths
 // ─────────────────────────────────────────────
 const MarkdownSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples} gap="small">
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="small">
     <Kb.Text type="BodySmallSemibold">Markdown rendering</Kb.Text>
     {[
       '~~strikethrough~~ and **bold** and _italic_ together',
@@ -403,12 +403,12 @@ const Typography = () => {
   return (
     <Kb.ScrollView style={Kb.Styles.collapseStyles([styles.container, darkBg ? styles.darkBg : styles.lightBg])}>
       {/* Controls */}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.controls} gap="tiny">
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.controlRow}>
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Sample</Kb.Text>
           <Kb.Button small={true} label="Next" onClick={() => setSampleIdx(i => i + 1)} />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.controlRow}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Type</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.wrap}>
             <Kb.Button small={true} label="all" mode={selectedType === 'all' ? 'Primary' : 'Secondary'} onClick={() => setSelectedType('all')} />
@@ -417,7 +417,7 @@ const Typography = () => {
             ))}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.controlRow}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Decoration</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.wrap}>
             {decorationOptions.map(d => (
@@ -425,14 +425,14 @@ const Typography = () => {
             ))}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.controlRow}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Background</Kb.Text>
           <Kb.Switch on={darkBg} onClick={() => setDarkBg(v => !v)} label="Dark" />
         </Kb.Box2>
       </Kb.Box2>
 
       <Kb.Divider />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.samples}>
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
         {types.map(t => <SampleRow key={t} textType={t} decoration={decoration} sample={sample} />)}
       </Kb.Box2>
 
@@ -472,8 +472,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: {flex: 1},
   controlLabel: {minWidth: 80},
-  controlRow: {alignItems: 'center', flexWrap: 'wrap'},
-  controls: {padding: Kb.Styles.globalMargins.small},
+  controlRow: {flexWrap: 'wrap'},
   darkBg: {backgroundColor: Kb.Styles.globalColors.blueDarker2},
   hint: {color: Kb.Styles.globalColors.black_50, marginBottom: 4},
   innerDivider: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},
@@ -494,7 +493,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.bottomDivider(),
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
-  samples: {padding: Kb.Styles.globalMargins.small},
   strikethrough: Kb.Styles.platformStyles({
     isElectron: {textDecoration: 'line-through'} as object,
     isMobile: {textDecorationLine: 'line-through'},

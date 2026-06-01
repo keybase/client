@@ -32,7 +32,8 @@ const Container = () => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        style={Kb.Styles.collapseStyles([bkgColor(props.displayType), styles.container])}
+        padding="tiny"
+        style={bkgColor(props.displayType)}
         gap="xsmall"
       >
         <Kb.Icon
@@ -96,9 +97,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       close: {
         alignSelf: 'center',
-      },
-      container: {
-        padding: Kb.Styles.globalMargins.tiny,
       },
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {

@@ -12,7 +12,7 @@ const PaperKeyInput = (props: Props) => {
   const [paperkey, setPaperkey] = React.useState('')
 
   return (
-    <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+    <Kb.Box2 alignItems="center" direction="vertical" padding="small">
       <Kb.BackButton onClick={props.onBack} style={styles.back} />
       <Kb.ImageIcon style={styles.icon} type="icon-paper-key-48" />
       <Kb.Input3
@@ -40,7 +40,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: 30,
   },
   button: {marginTop: Kb.Styles.globalMargins.small},
-  container: {padding: Kb.Styles.globalMargins.small},
   icon: {marginBottom: Kb.Styles.globalMargins.tiny},
 }))
 

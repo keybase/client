@@ -367,7 +367,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   ]
 
   return (
-    <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
+    <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
       <Rover />
       <Kb.SectionList
         ListHeaderComponent={header}
@@ -503,13 +503,8 @@ const styles = Kb.Styles.styleSheetCreate(
           borderRightWidth: 1,
           borderStyle: 'solid',
           contain: 'strict',
-          height: '100%',
           maxWidth: inboxWidth,
           minWidth: inboxWidth,
-          position: 'relative',
-        },
-        isMobile: {
-          ...Kb.Styles.size('100%'),
         },
       }),
       emptyUnreadPlaceholder: Kb.Styles.platformStyles({

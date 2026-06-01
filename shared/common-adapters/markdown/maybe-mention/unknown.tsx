@@ -21,7 +21,7 @@ const items: MenuItems = []
 
 const UnknownMentionPopup = (props: PopupProps) => {
   const header = (
-    <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer} gapStart={true}>
+    <Kb.Box2 direction="vertical" gap="tiny" padding="tiny" style={styles.popupContainer} gapStart={true}>
       <Kb.Text type="BodySemibold">User or team?</Kb.Text>
       <Kb.Text type="BodySmall">
         {props.text} could be either a user or team. You can find out with a quick request to Keybase.
@@ -118,7 +118,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       popupContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Kb.Styles.globalMargins.tiny,
           textAlign: 'center',
         },
         isElectron: {

@@ -73,7 +73,7 @@ const detailContainerStyle = {
 
 const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, style}: FallbackProps) => {
   return (
-    <Box2 direction="vertical" style={Styles.collapseStyles([styles.container, style])}>
+    <Box2 direction="vertical" fullHeight={true} fullWidth={true} padding="medium" relative={true} style={style}>
       <ScrollView style={styles.scroll}>
         <Box2 direction="vertical" gap="small" fullWidth={true}>
           <Text type="Header">Something went wrong...</Text>
@@ -161,12 +161,6 @@ const EB = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        height: '100%',
-        padding: Styles.globalMargins.medium,
-        position: 'relative',
-        width: '100%',
-      },
       detailStyle: Styles.platformStyles({isElectron: {whiteSpace: 'pre'}}),
       scroll: {bottom: 24, left: 24, position: 'absolute', right: 24, top: 24},
     }) as const

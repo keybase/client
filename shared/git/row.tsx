@@ -343,8 +343,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.medium,
       },
       rowClick: {
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
       rowClickExpanded: {
         paddingBottom: 0,

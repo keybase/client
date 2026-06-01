@@ -726,7 +726,7 @@ const EnterUsername = ({
   return (
     <Modal onCancel={onCancel} skipButton={true}>
       {!!errorText && (
-        <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="small" padding="medium" style={styles.error} fullWidth={true}>
           <Kb.Text center={true} negative={true} type="BodySemibold">
             {errorText}
           </Kb.Text>
@@ -818,7 +818,7 @@ const GenericEnterUsername = ({
         gap="xtiny"
         justifyContent="center"
         flex={1}
-        style={styles.inputContainerWrap}
+        padding="medium"
       >
         {unreachable ? (
           <Unreachable
@@ -951,7 +951,7 @@ const PostProof = ({
           }}
         >
           {!!step.error && (
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
+            <Kb.Box2 direction="vertical" fullWidth={true} padding="medium" style={styles.error}>
               <Kb.Text center={true} negative={true} type="BodySemibold">
                 {step.error}
               </Kb.Text>
@@ -1085,7 +1085,7 @@ const GenericResult = ({
         fullWidth={true}
         style={styles.topContainer}
       >
-        <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
+        <Kb.Box2 direction="vertical" relative={true} style={styles.serviceIconContainer}>
           <SiteIcon set={step.genericParams.logoFull} full={true} />
           <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
             <Kb.ImageIcon type={iconType} />
@@ -1329,7 +1329,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.red,
         borderRadius: Kb.Styles.borderRadius,
         marginBottom: Kb.Styles.globalMargins.small,
-        padding: Kb.Styles.globalMargins.medium,
       },
       grey: {color: Kb.Styles.globalColors.black_20},
       icon: {
@@ -1360,9 +1359,6 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.tiny,
         width: 'auto',
       },
-      inputContainerWrap: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.medium),
-      },
       listContainer: {flex: 1},
       marginLeftAuto: {marginLeft: 'auto'},
       mobileFlex: {flex: 1},
@@ -1384,7 +1380,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       serviceIconContainer: {
         marginBottom: Kb.Styles.globalMargins.tiny,
-        position: 'relative',
       },
       serviceIconFull: Kb.Styles.size(64),
       serviceIconHeaderContainer: {

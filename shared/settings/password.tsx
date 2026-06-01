@@ -76,6 +76,7 @@ export const UpdatePassword = (props: Props) => {
           direction="vertical"
           fullHeight={true}
           flex={1}
+          padding="small"
           style={styles.container}
         >
           <Kb.Text type="Body" style={styles.bodyText} center={true}>
@@ -153,7 +154,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        padding: Kb.Styles.globalMargins.small,
       },
       modalFooter: Kb.Styles.platformStyles({
         common: {

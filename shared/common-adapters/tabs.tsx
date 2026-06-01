@@ -47,6 +47,7 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
   <Kb.Box2
     direction="horizontal"
+    flex={1}
     style={Styles.collapseStyles([styles.container, props.style])}
     alignItems="flex-start"
     fullWidth={true}
@@ -88,10 +89,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   container: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    flex: 1,
+    ...Styles.bottomDivider(),
     maxHeight: isMobile ? 48 : 40,
   },
   divider: {

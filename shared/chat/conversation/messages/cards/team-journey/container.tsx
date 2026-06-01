@@ -143,7 +143,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
           <Kb.Box2
             direction="horizontal"
             fullWidth={true}
-            alignItems={'flex-start'}
+            alignItems="flex-start"
             gap="tiny"
             style={Kb.Styles.collapseStyles([styles.actionsBox, contentHorizontalPadStyle] as const)}
           >
@@ -187,7 +187,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
   const {teamname, onAuthorClick, deactivateButtons, onDismiss} = props
   const avatarStyle = styles.avatarChat
   return (
-    <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
+    <Kb.Box2 key="author" direction="horizontal" fullWidth={true} alignItems="flex-start" alignSelf="flex-start" style={styles.authorContainer} gap="tiny">
       <Kb.Avatar
         size={32}
         isTeam={true}
@@ -230,8 +230,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       authorContainer: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'flex-start',
-          alignSelf: 'flex-start',
           height: Kb.Styles.globalMargins.mediumLarge,
         },
         isMobile: {marginTop: 8},
@@ -249,7 +247,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       buttonSpace: {marginTop: buttonSpace},
       content: Kb.Styles.platformStyles({
-        isElectron: {},
         isMobile: {paddingBottom: 3},
       }),
       contentHorizontalPadChat: Kb.Styles.platformStyles({

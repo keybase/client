@@ -175,11 +175,11 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
     <Kb.Box2
       direction="horizontal"
       overflow="hidden"
-      style={styles.transferring}
       alignItems="center"
       gap="xtiny"
       gapEnd={true}
       gapStart={true}
+      style={styles.transferring}
     >
       {isTransferring ? (
         <Kb.Text type="BodySmall" negative={true}>
@@ -228,7 +228,7 @@ export const Title = ({message}: {message: T.Chat.MessageAttachment}) => {
     : undefined
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={styles.titleContainer}>
       <Kb.Markdown
         messageType="attachment"
         selectable={true}
@@ -255,7 +255,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
   collapseLabelWhite: {color: Kb.Styles.globalColors.white_75},
   titleContainer: {
-    alignSelf: 'flex-start',
     paddingTop: Kb.Styles.globalMargins.xxtiny,
   },
   transferring: {

@@ -50,7 +50,7 @@ const SmallTeam = (p: Props) => {
     ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])
     : styles.container
   const rowContents = (
-    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.rowContainer}>
+    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} fullHeight={true} style={styles.rowContainer}>
       {teamDisplayName ? (
         <TeamAvatar teamname={teamDisplayName} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
       ) : (
@@ -63,7 +63,7 @@ const SmallTeam = (p: Props) => {
           participantTwo={participantTwo}
         />
       )}
-      <Kb.Box2 direction="vertical" style={styles.conversationRow}>
+      <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="center" style={styles.conversationRow}>
         <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
           <TopLine
             conversationIDKey={conversationIDKey}
@@ -479,8 +479,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       conversationRow: {
         flexGrow: 1,
-        height: '100%',
-        justifyContent: 'center',
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       draftLabel: {color: Kb.Styles.globalColors.orange},
@@ -503,7 +501,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       rowContainer: Kb.Styles.platformStyles({
         common: {
-          height: '100%',
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
         },
         isElectron: Kb.Styles.desktopStyles.clickable,

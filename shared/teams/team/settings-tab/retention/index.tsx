@@ -233,9 +233,8 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },
       progressIndicator: {
-        height: 30,
+        ...Kb.Styles.size(30),
         marginTop: Kb.Styles.globalMargins.small,
-        width: 30,
       },
       retentionDropdown: Kb.Styles.platformStyles({
         common: {

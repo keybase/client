@@ -41,7 +41,7 @@ const ReplyPreview = () => {
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" style={styles.replyContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" padding="tiny">
           <Kb.Box2 direction="vertical" alignSelf="stretch" flex={1} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={username} size={32} />
@@ -87,9 +87,6 @@ const styles = Kb.Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      replyContainer: {
-        padding: Kb.Styles.globalMargins.tiny,
-      },
       text: Kb.Styles.platformStyles({
         isElectron: {
           contain: 'strict',

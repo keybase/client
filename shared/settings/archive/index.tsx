@@ -140,7 +140,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
   let actions: React.ReactNode
   if (done) {
     actions = (
-      <Kb.Box2 direction="vertical" style={styles.action}>
+      <Kb.Box2 direction="vertical" noShrink={true}>
         <Kb.Text type="BodySmall">{started}</Kb.Text>
         {isMobile ? (
           <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
@@ -175,7 +175,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
     }
 
     actions = (
-      <Kb.Box2 direction="horizontal" style={styles.action} gap="tiny">
+      <Kb.Box2 direction="horizontal" noShrink={true} gap="tiny">
         {pauseOrResume}
         {isMobile ? (
           <Kb.Icon color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
@@ -337,7 +337,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
               <Kb.Text type={job.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{job.phase}</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.kbfsJobRight}>
+          <Kb.Box2 direction="vertical" alignItems="flex-end" noShrink={true}>
             {isMobile ? (
               <Kb.Box2 direction="horizontal" alignItems="center" style={{padding: 8}}>
                 {job.phase === 'Done' ? (
@@ -351,7 +351,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
                 )}
               </Kb.Box2>
             ) : (
-              <Kb.Box2 direction="vertical" alignItems="center" justifyContent="flex-end" style={styles.kbfsActions}>
+              <Kb.Box2 direction="vertical" alignItems="center" justifyContent="flex-end" alignSelf="center" noShrink={true} style={styles.kbfsActions}>
                 {job.phase === 'Done' ? (
                   <Kb.Text type="BodySmallPrimaryLink" onClick={onShowFinder}>
                     Show in {C.fileUIName}
@@ -500,7 +500,6 @@ const Archive = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  action: {flexShrink: 0},
   clear: {alignSelf: 'flex-start', marginTop: 16},
   container: {padding: isMobile ? 8 : 16},
   errorTip: {justifyContent: 'center'},
@@ -509,19 +508,16 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flexShrink: 1,
   },
   kbfsActions: {
-    alignSelf: 'center',
-    flexShrink: 0,
     paddingLeft: 8,
   },
   kbfsCancel: {color: Kb.Styles.globalColors.red},
   kbfsJobLeft: {
     flexShrink: 1,
   },
-  kbfsJobRight: {flexShrink: 0},
   kbfsProgress: {
     height: Kb.Styles.globalMargins.small,
   },
-  scroll: {...Kb.Styles.size('100%')},
+  scroll: Kb.Styles.size('100%'),
 }))
 
 export default Archive

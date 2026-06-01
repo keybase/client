@@ -78,7 +78,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
           <Kb.BannerParagraph bannerColor="red" content={error} />
         </Kb.Banner>
       ) : null}
-      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.body}>
+      <Kb.Box2 fullWidth={true} direction="vertical" flex={1} style={styles.body}>
         <Kb.Box2
           gap="small"
           direction="vertical"
@@ -132,7 +132,6 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   body: Kb.Styles.platformStyles({
-    common: {flex: 1},
     isElectron: {minHeight: 220},
   }),
   desktopCover: {backgroundColor: Kb.Styles.globalColors.black_20},

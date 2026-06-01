@@ -68,7 +68,7 @@ const NavMobileHeaderInner = (props: Props) => {
         {expanded ? (
           <Kbfs.FolderViewFilter filter={folderViewFilter} onCancel={filterDone} onChangeFilter={setFolderViewFilter} path={props.path} />
         ) : (
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.expandedTopContainer}>
             {pop ? (
               <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={pop} style={styles.backButton} />
             ) : null}
@@ -117,7 +117,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       expandedTopContainer: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           paddingRight: Kb.Styles.globalMargins.tiny,
         },

@@ -33,6 +33,7 @@ const CustomEmoji = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       alignItems="center"
+      justifyContent="center"
       style={Kb.Styles.collapseStyles([
         styles.emoji,
         {
@@ -57,7 +58,6 @@ const styles = Kb.Styles.styleSheetCreate(
       emoji: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-flex',
-          justifyContent: 'center',
           verticalAlign: 'middle',
         },
       }),

@@ -162,6 +162,7 @@ const BannerBox = (props: {
     style={Kb.Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
     gap={props.gap}
     alignItems="center"
+    justifyContent="center"
   >
     {props.children}
   </Kb.Box2>
@@ -174,7 +175,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           backgroundColor: Kb.Styles.globalColors.red,
           flexWrap: 'wrap',
-          justifyContent: 'center',
           ...Kb.Styles.padding(8, 24),
         },
         isElectron: {

@@ -15,6 +15,8 @@ type Props = {
 const RoundedBox = (props: Props) => (
   <Kb.Box2
     direction="vertical"
+    alignSelf="stretch"
+    padding="small"
     style={Styles.collapseStyles([
       styles.default,
       props.side === 'bottom' && styles.bottom,
@@ -29,7 +31,6 @@ const RoundedBox = (props: Props) => (
 
 const styles = Styles.styleSheetCreate(() => {
   const roundedBox: Styles.StylesCrossPlatform = {
-    alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.white,
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.greyDark,
@@ -38,7 +39,6 @@ const styles = Styles.styleSheetCreate(() => {
     borderRightWidth: 1,
     borderStyle: 'solid',
     borderTopWidth: 1,
-    padding: Styles.globalMargins.small,
   }
 
   return {

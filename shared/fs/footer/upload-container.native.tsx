@@ -24,7 +24,7 @@ const UploadAccessory = () => {
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.accessoryBg}>
+      <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.accessoryBg}>
         <Image
           resizeMode="repeat"
           source={isDarkMode ? darkPatternImage : lightPatternImage}
@@ -69,7 +69,6 @@ const UploadContainer = () => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   accessoryBg: {
     height: 48,
-    overflow: 'hidden',
   },
   accessoryBgImage: {
     height: 160,

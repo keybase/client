@@ -57,7 +57,7 @@ const Notifications = (props: Props) => {
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.main} testID={TestIDs.SETTINGS_NOTIFICATIONS}>
+    <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.main} testID={TestIDs.SETTINGS_NOTIFICATIONS}>
       {emailGroup ? (
         <EmailSection {...props} />
       ) : !props.showEmailSection ? (
@@ -91,7 +91,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.small,
       },
       main: Kb.Styles.platformStyles({
-        common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0},
+        common: {padding: Kb.Styles.globalMargins.small, paddingRight: 0},
         isElectron: Kb.Styles.desktopStyles.scrollable,
       }),
     }) as const

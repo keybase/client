@@ -170,7 +170,7 @@ const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.Conversat
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
-          style={styles.paddedItem}
+          padding="tiny"
         >
           {item.type === 'dummy' && item.value === userEmptyPlaceholder ? (
             <Kb.Text type="BodySmall">Enter a bot username above</Kb.Text>

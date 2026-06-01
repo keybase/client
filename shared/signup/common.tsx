@@ -177,8 +177,8 @@ export const SignupScreen = (props: SignupScreenProps) => {
         alignItems="center"
         direction="vertical"
         relative={true}
+        flex={1}
         style={Kb.Styles.collapseStyles([
-          styles.background,
           props.noBackground ? styles.whiteBackground : styles.blueBackground,
           props.containerStyle,
         ])}
@@ -241,9 +241,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       backText: {
         color: Kb.Styles.globalColors.black_50,
-      },
-      background: {
-        flex: 1,
       },
       banners: {
         left: 0,

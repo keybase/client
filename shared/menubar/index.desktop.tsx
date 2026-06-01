@@ -426,7 +426,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         {backgroundColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
       ])}
     >
-      <Kb.Box2 direction="horizontal" alignItems="center" flex={1} style={styles.headerBadgesContainer} justifyContent="center">
+      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
         {showBadges
           ? badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={navBadges} openApp={openApp} />

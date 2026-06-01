@@ -253,7 +253,7 @@ const UsernameHeader = (props: HeaderConversationProps) => {
           {theirFullname}
         </Kb.Text>
       )}
-      <Kb.Box2 direction="horizontal" alignItems="center" justifyContent="center">
+      <Kb.Box2 direction="horizontal" centerChildren={true}>
         <Kb.ConnectedUsernames
           colorFollowing={true}
           inline={false}

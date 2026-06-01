@@ -8,7 +8,7 @@ const MakeTeam = () => {
     C.Router2.navigateAppend({name: 'chatShowNewTeamDialog', params: {conversationIDKey}})
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
-      <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
+      <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} padding="medium">
         <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
           {"Make it a team? You'll be able to add and delete members as you wish."}
         </Kb.Text>
@@ -68,7 +68,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.small,
       },
       link: {color: isMobile ? Kb.Styles.globalColors.greenLight : undefined},
-      textContainer: {padding: Kb.Styles.globalMargins.medium},
     }) as const
 )
 

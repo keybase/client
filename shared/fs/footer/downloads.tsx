@@ -12,6 +12,7 @@ const Mobile = () => {
       <Kb.ScrollView horizontal={true} snapToInterval={160 + Kb.Styles.globalMargins.xtiny}>
         <Kb.Box2
           direction="horizontal"
+          overflow="hidden"
           style={styles.box}
           centerChildren={true}
           gap="xtiny"
@@ -36,6 +37,7 @@ const Desktop = () => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
+        overflow="hidden"
         style={styles.box}
         gap="xtiny"
         gapStart={true}
@@ -78,7 +80,6 @@ const styles = Kb.Styles.styleSheetCreate(
       box: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
-          overflow: 'hidden',
         },
         isElectron: {height: 40},
         isMobile: {height: 48},

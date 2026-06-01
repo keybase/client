@@ -175,6 +175,8 @@ function AuthorSection(p: AuthorProps) {
         pointerEvents="box-none"
         key="author"
         direction="horizontal"
+        alignItems="flex-start"
+        alignSelf="flex-start"
         style={styles.authorContainer}
         gap="tiny"
       >
@@ -541,7 +543,7 @@ const NormalWrapper = ({
   style: Kb.Styles.StylesCrossPlatform
 }) => {
   return (
-    <Kb.Box2 direction="vertical" flex={1} relative={true} style={style} fullWidth={!isMobile}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true} alignSelf="stretch" style={style} fullWidth={!isMobile}>
       {children}
     </Kb.Box2>
   )
@@ -997,8 +999,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       authorContainer: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'flex-start',
-          alignSelf: 'flex-start',
           marginLeft: isMobile ? 48 : 56,
         },
         isElectron: {
@@ -1019,7 +1019,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       background: {
-        alignSelf: 'stretch',
         flexShrink: 1,
       },
       botAlias: Kb.Styles.platformStyles({

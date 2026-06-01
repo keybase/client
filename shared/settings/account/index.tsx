@@ -337,9 +337,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   primaryOnYellow: {backgroundColor: Kb.Styles.globalColors.white},
   primaryOnYellowLabel: {color: Kb.Styles.globalColors.brown_75OrYellow},
-  progress: {
-    ...Kb.Styles.size(16),
-  },
+  progress: Kb.Styles.size(16),
   section: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(

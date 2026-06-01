@@ -374,6 +374,7 @@ const Links = () => {
                     fullWidth={true}
                     direction="horizontal"
                     justifyContent="space-between"
+                    noShrink={true}
                     style={Kb.Styles.collapseStyles([
                       styles.whitelistRowContainer,
                       wlremoved ? {backgroundColor: Kb.Styles.globalColors.red_20} : undefined,
@@ -589,7 +590,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   whitelistRowContainer: Kb.Styles.platformStyles({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
-      flexShrink: 0,
       height: 40,
       marginLeft: Kb.Styles.globalMargins.tiny,
       padding: Kb.Styles.globalMargins.tiny,

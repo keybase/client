@@ -181,11 +181,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       buttonBox: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           borderWidth: 1,
           height: isMobile ? 30 : 26,
-          justifyContent: 'center',
           minWidth: 40,
           ...Kb.Styles.paddingH(6),
         },

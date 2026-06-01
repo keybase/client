@@ -54,10 +54,10 @@ const Container = (ownProps: OwnProps) => {
 
 const ConfirmHeader = (props: {action: 'save-media' | 'send-to-other-app'; size: number}) => (
   <Kb.Box2
-    style={styles.confirmTextBox}
     direction="vertical"
     fullWidth={true}
     centerChildren={true}
+    padding="medium"
     gap="small"
   >
     <Kb.Text type="Header" style={styles.confirmText}>
@@ -76,9 +76,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       confirmText: {
         textAlign: 'center',
-      },
-      confirmTextBox: {
-        padding: Kb.Styles.globalMargins.medium,
       },
     }) as const
 )

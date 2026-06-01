@@ -63,7 +63,7 @@ const Feedback = (props: Props) => {
             <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
           </Kb.Banner>
         )}
-        <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
+        <Kb.Box2 direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
           <Kb.Input3
             autoCapitalize="sentences"
             autoCorrect={true}
@@ -134,9 +134,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputResize: Kb.Styles.platformStyles({isElectron: {resize: 'vertical'}}),
       mainBox: Kb.Styles.platformStyles({
-        common: {
-          padding: Kb.Styles.globalMargins.small,
-        },
         isElectron: {
           maxWidth: 550,
           width: '100%',

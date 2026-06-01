@@ -67,9 +67,9 @@ const Troubleshooting = (props: Props) => {
           direction="horizontal"
           alignItems="center"
           fullHeight={true}
-          style={Kb.Styles.globalStyles.flexOne}
+          flex={1}
         >
-          <Kb.Box2 direction="horizontal" style={styles.headerSide}>
+          <Kb.Box2 direction="horizontal" flex={1} style={styles.headerSide}>
             {isMobile ? (
               <Kb.Text type="BodySemiboldLink" onClick={onBack}>
                 Back
@@ -79,7 +79,7 @@ const Troubleshooting = (props: Props) => {
           <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
             Troubleshooting
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={styles.headerSide} />
+          <Kb.Box2 direction="horizontal" flex={1} style={styles.headerSide} />
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
@@ -175,7 +175,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.bottomDivider(48),
   },
   headerSide: {
-    flex: 1,
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   modalFooterNoBorder: Kb.Styles.platformStyles({

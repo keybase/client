@@ -57,12 +57,13 @@ const ListItem = (props: Props) => {
   >
     <Kb.Box2
       direction="horizontal"
+      fullWidth={true}
+      relative={true}
       style={Styles.collapseStyles([
         props.type === 'Small' ? styles.rowSmall : styles.rowLarge,
         !!props.height && {minHeight: props.height},
         props.innerStyle,
       ])}
-      fullWidth={true}
     >
       {!props.firstItem && !!props.fullDivider && <Divider style={styles.divider} />}
       {props.statusIcon && (
@@ -86,7 +87,7 @@ const ListItem = (props: Props) => {
           {props.icon}
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="horizontal" style={getContainerStyles(props)}>
+      <Kb.Box2 direction="horizontal" relative={true} style={getContainerStyles(props)}>
         {!props.firstItem && !props.fullDivider && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
           <Kb.Box2 fullHeight={true} direction="horizontal" justifyContent="flex-start" flex={1} relative={true} style={styles.bodyContainer}>
@@ -144,7 +145,6 @@ const styles = Styles.styleSheetCreate(() => {
     } as const,
     contentContainer: {
       flexGrow: 1,
-      position: 'relative',
     } as const,
     divider: {
       left: 0,
@@ -168,12 +168,10 @@ const styles = Styles.styleSheetCreate(() => {
     rowLarge: {
       alignItems: 'center',
       minHeight: largeHeight,
-      position: 'relative',
     } as const,
     rowSmall: {
       alignItems: 'center',
       minHeight: smallHeight,
-      position: 'relative',
     } as const,
     statusIcon: {
       position: 'absolute',
@@ -340,6 +338,8 @@ const CardListItem = (props: Props) => (
     direction="horizontal"
     alignItems="center"
     fullWidth={true}
+    overflow="hidden"
+    padding="small"
     style={Styles.collapseStyles([cardStyles.card, props.style])}
   >
     {props.icon && <Kb.Box2 direction="vertical" style={cardStyles.icon}>{props.icon}</Kb.Box2>}
@@ -351,8 +351,6 @@ const cardStyles = Styles.styleSheetCreate(() => ({
   card: {
     ...Styles.border(Styles.globalColors.grey, 1, Styles.borderRadius),
     backgroundColor: Styles.globalColors.white,
-    overflow: 'hidden',
-    padding: Styles.globalMargins.small,
   },
   icon: {
     marginRight: Styles.globalMargins.small,

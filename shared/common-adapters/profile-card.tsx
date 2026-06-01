@@ -186,8 +186,9 @@ const ProfileCard = ({
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([styles.container, containerStyle])}
       alignItems="center"
+      relative={true}
+      style={Styles.collapseStyles([styles.container, containerStyle])}
     >
       {!!showClose && (
         <Kb.Icon type="iconfont-close" color={Styles.globalColors.black_20} onClick={() => {}} style={styles.close} padding="tiny" />
@@ -352,7 +353,6 @@ const styles = Styles.styleSheetCreate(
             Styles.globalMargins.small,
             Styles.globalMargins.tiny
           ),
-          position: 'relative',
         },
         isElectron: {
           width: 170,

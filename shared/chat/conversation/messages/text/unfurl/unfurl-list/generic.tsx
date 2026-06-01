@@ -30,7 +30,7 @@ function UnfurlGeneric(p: {
   const imageLocation = isCollapsed ? 'collapsed' : showImageOnSide ? 'side' : width > 0 && height > 0 ? 'bottom' : 'none'
 
   const publisher = (
-    <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
+    <Kb.Box2 alignSelf="flex-start" gap="tiny" fullWidth={true} direction="horizontal" style={styles.siteNameContainer}>
       {favicon?.url ? <Kb.Image src={favicon.url} style={styles.favicon} /> : null}
       <Kb.BoxGrow>
         <Kb.Text type="BodySmall" lineClamp={1}>
@@ -95,9 +95,9 @@ function UnfurlGeneric(p: {
     ) : null
 
   return (
-    <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
-      {!isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
-      <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical" fullWidth={true}>
+    <Kb.Box2 alignSelf="flex-start" gap="tiny" direction="horizontal" style={styles.container}>
+      {!isMobile && <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.quoteContainer} />}
+      <Kb.Box2 alignSelf="flex-start" gap="xxtiny" direction="vertical" fullWidth={true} style={styles.innerContainer}>
         {publisher}
         <Kb.Text type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>
           {title}
@@ -127,7 +127,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {display: 'inline'},
       }),
       container: Kb.Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
         isElectron: {maxWidth: 500},
         isTablet: {maxWidth: 500},
       }),
@@ -140,7 +139,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       innerContainer: Kb.Styles.platformStyles({
         common: {
-          alignSelf: 'flex-start',
           minWidth: 150,
         },
         isMobile: {
@@ -152,7 +150,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       quoteContainer: Kb.Styles.platformStyles({
         common: {
-          alignSelf: 'stretch',
           backgroundColor: Kb.Styles.globalColors.grey,
           paddingLeft: Kb.Styles.globalMargins.xtiny,
         },
@@ -163,7 +160,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       siteNameContainer: Kb.Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
         isElectron: {minHeight: 16},
         isMobile: {minHeight: 21},
       }),

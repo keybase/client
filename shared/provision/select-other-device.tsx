@@ -123,7 +123,7 @@ const SelectOtherDevice = (props: Props) => {
       }
       contentContainerStyle={Kb.Styles.padding(0)}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox} gap="medium">
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} alignSelf="center" style={styles.contentBox} gap="medium">
         <Kb.List
           style={styles.list}
           items={items}
@@ -138,7 +138,7 @@ const SelectOtherDevice = (props: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contentBox: Kb.Styles.platformStyles({
-    common: {alignSelf: 'center', flexGrow: 1},
+    common: {flexGrow: 1},
     isElectron: {
       maxWidth: 460,
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),

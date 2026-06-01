@@ -236,7 +236,7 @@ const ProxySettingsComponent = (props: Props) => {
 
 const ProxySettingsPopup = (props: Props) => {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.popupBox}>
       {!isMobile && <Kb.BackButton onClick={props.onBack} />}
       <Kb.Box2 direction="vertical" fullWidth={true} padding="xlarge">
         <ProxySettingsComponent {...props} />
@@ -248,7 +248,6 @@ const ProxySettingsPopup = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   popupBox: {
     minHeight: '40%',
-    padding: Kb.Styles.globalMargins.small,
   },
   proxySetting: {marginBottom: Kb.Styles.globalMargins.small},
   radioButton: {marginRight: Kb.Styles.globalMargins.medium},

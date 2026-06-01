@@ -191,7 +191,7 @@ const MediaThumb = (props: MediaThumbProps) => {
       <Kb.ClickableBox direction="vertical" onClick={thumb.onClick} style={{...sizing.margins}}>
         {thumb.typ === ThumbTyp.AUDIO ? (
           <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
-            <Kb.Box2 direction="vertical" centerChildren={true} style={styles.audioBackground}>
+            <Kb.Box2 direction="vertical" centerChildren={true} padding="tiny" style={styles.audioBackground}>
               <Kb.Icon
                 type="iconfont-mic"
                 style={{marginLeft: 2}}
@@ -242,13 +242,13 @@ const DocViewRow = (props: DocViewRowProps) => {
         </Kb.Box2>
       </Kb.ClickableBox>
       {item.downloading && (
-        <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="horizontal" padding="tiny" fullWidth={true} gap="tiny">
           <Kb.Text type="BodySmall">Downloading...</Kb.Text>
           <Kb.ProgressBar ratio={item.progress} style={styles.docProgress} />
         </Kb.Box2>
       )}
       {item.onShowInFinder && (
-        <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" padding="tiny" fullWidth={true}>
           <Kb.Text type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
             Show in {Kb.Styles.fileUIName}
           </Kb.Text>
@@ -270,7 +270,7 @@ const getColor = (selected: boolean) =>
   selected ? {color: Kb.Styles.globalColors.white} : {color: Kb.Styles.globalColors.blueDark}
 
 const AttachmentTypeSelector = (props: SelectorProps) => (
-  <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
+  <Kb.Box2 alignSelf="center" direction="horizontal" padding="small" style={styles.selectorContainer} fullWidth={true}>
     <Kb.ClickableBox
       direction="vertical"
       centerChildren={true}
@@ -338,7 +338,6 @@ const styles = Kb.Styles.styleSheetCreate(
       audioBackground: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blue,
-          padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
           borderRadius: '50%',
@@ -348,7 +347,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       avatar: {marginRight: Kb.Styles.globalMargins.tiny},
-      docBottom: {padding: Kb.Styles.globalMargins.tiny},
       docIcon: {height: 32},
       docProgress: {alignSelf: 'center'},
       docRowContainer: {padding: Kb.Styles.globalMargins.tiny},
@@ -385,7 +383,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       selectorContainer: {
         maxWidth: 460,
-        padding: Kb.Styles.globalMargins.small,
       },
       selectorDocContainer: {
         borderColor: Kb.Styles.globalColors.blue,

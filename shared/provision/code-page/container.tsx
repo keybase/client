@@ -110,13 +110,15 @@ const CodePageContainer = () => {
         fullWidth={true}
         overflow="hidden"
         relative={true}
-        style={Kb.Styles.collapseStyles([styles.codePageContainer, {backgroundColor: tabBackground}])}
+        flex={1}
+        style={{backgroundColor: tabBackground}}
       >
         <Kb.Box2
           direction="vertical"
           fullHeight={true}
           justifyContent="center"
-          style={currentDeviceAlreadyProvisioned ? styles.imageContainerOnLeft : styles.imageContainerOnRight}
+          alignItems={currentDeviceAlreadyProvisioned ? 'flex-start' : 'flex-end'}
+          style={styles.imageContainer}
         >
           <Kb.ImageIcon
             type={tab === 'QR' ? 'illustration-bg-provisioning-blue' : 'illustration-bg-provisioning-green'}
@@ -340,7 +342,7 @@ const EnterText = (props: {
     }
   }
   return (
-    <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
+    <Kb.Box2 direction="vertical" alignItems={isMobile ? 'stretch' : 'center'} alignSelf="stretch" gap="small">
       <Kb.Input3
         autoFocus={true}
         multiline={true}
@@ -359,7 +361,7 @@ const EnterText = (props: {
 }
 
 const ViewText = (props: {textCode: string}) => (
-  <Kb.Box2 direction="vertical" style={styles.viewTextContainer}>
+  <Kb.Box2 direction="vertical" alignItems="center" style={styles.viewTextContainer}>
     <Kb.Text center={true} type="Terminal" style={styles.viewTextCode}>
       {props.textCode}
     </Kb.Text>
@@ -491,7 +493,6 @@ const styles = Kb.Styles.styleSheetCreate(
       backgroundOnLeft: {marginLeft: -230},
       backgroundOnRight: {marginRight: -230},
       closeButton: Kb.Styles.marginH(Kb.Styles.globalMargins.small),
-      codePageContainer: {flex: 1},
       container: Kb.Styles.platformStyles({
         isElectron: {
           height: '100%',
@@ -517,10 +518,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '90%',
       },
       enterTextColor: {color: Kb.Styles.globalColors.greenDark},
-      enterTextContainer: {
-        alignItems: isMobile ? 'stretch' : 'center',
-        alignSelf: 'stretch',
-      },
       enterTextContainer2: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.white,
@@ -539,13 +536,8 @@ const styles = Kb.Styles.styleSheetCreate(
           right: 1,
         },
       }),
-      imageContainerOnLeft: {
+      imageContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        alignItems: 'flex-start',
-      },
-      imageContainerOnRight: {
-        ...Kb.Styles.globalStyles.fillAbsolute,
-        alignItems: 'flex-end',
       },
       instructions: {color: Kb.Styles.globalColors.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
@@ -607,12 +599,10 @@ const styles = Kb.Styles.styleSheetCreate(
           borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
-          alignItems: 'center',
           maxWidth: 460,
           ...Kb.Styles.padding(20, 64),
         },
         isMobile: {
-          alignItems: 'center',
           alignSelf: 'stretch',
           ...Kb.Styles.padding(20),
         },

@@ -9,7 +9,7 @@ type Props = {
 }
 
 const Prompt = () => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny" style={styles.promptContainer} justifyContent="center">
+  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny" style={styles.promptContainer}>
     <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
   </Kb.Box2>
 )

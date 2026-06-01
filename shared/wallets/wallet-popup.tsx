@@ -77,7 +77,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.medium),
       textAlign: 'center',
     },
-    isMobile: {},
   }),
   outerContainer: Kb.Styles.platformStyles({
     isElectron: {

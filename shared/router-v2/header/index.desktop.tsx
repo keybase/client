@@ -269,9 +269,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       headerBorder: {
-        borderBottomColor: Kb.Styles.globalColors.black_10,
-        borderBottomWidth: 1,
-        borderStyle: 'solid',
+        ...Kb.Styles.bottomDivider(),
       },
       headerContainer: Kb.Styles.platformStyles({
         isElectron: {

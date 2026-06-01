@@ -69,7 +69,7 @@ function SeparatorConnector(p: Props) {
       pointerEvents="box-none"
       className="WrapperMessage-hoverColor"
     >
-      <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
+      <Kb.Box2 key="orangeLine" direction="vertical" noShrink={true} style={styles.orangeLine}>
         {orangeTime ? (
           <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
             {orangeTime}
@@ -103,7 +103,6 @@ const styles = Kb.Styles.styleSheetCreate(
       orangeLine: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.orange,
-          flexShrink: 0,
           height: 1,
           left: 0,
           position: 'absolute',

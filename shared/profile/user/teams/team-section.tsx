@@ -11,7 +11,7 @@ type Props = {
 }
 
 const TeamSection = ({children, right, title}: Props) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} style={styles.container}>
+  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} flex={1} alignItems="flex-start" style={styles.container}>
     <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
       <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
       {right}
@@ -27,8 +27,6 @@ const TeamSection = ({children, right, title}: Props) => (
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     common: {
-      alignItems: 'flex-start',
-      flex: 1,
       minWidth: 0,
       paddingBottom: Kb.Styles.globalMargins.small,
       paddingLeft: Kb.Styles.globalMargins.tiny,

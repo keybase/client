@@ -31,7 +31,7 @@ const BigTeamHeader = (props: Props) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.teamRowContainer}>
+    <Kb.Box2 fullWidth={true} direction="horizontal" noShrink={true} style={styles.teamRowContainer}>
       {popup}
       <Kb.Avatar onClick={onClick} teamname={teamname} size={32} />
       <Kb.BoxGrow2>
@@ -101,7 +101,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       teamRowContainer: Kb.Styles.platformStyles({
         common: {
-          flexShrink: 0,
           height: RowSizes.bigHeaderHeight,
         },
         isElectron: {

@@ -103,6 +103,7 @@ const MobileHeader = (props: Props) => (
       gapStart={true}
       centerChildren={true}
       gapEnd={true}
+      fullWidth={true}
       style={styles.userBox}
     >
       <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
@@ -205,7 +206,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   text2: {flexShrink: 0},
   userBox: {
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-    width: '100%',
   },
   waiting: {opacity: 0.5},
 }))

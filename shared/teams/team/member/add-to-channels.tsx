@@ -321,7 +321,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
   reloadChannels: () => Promise<void>
   selfMode: boolean
 }) {
-  const {canDeleteChannel, canEditChannelDescription, meta, reloadChannels, selfMode} = p
+  const {canDeleteChannel, canEditChannelDescription, meta, reloadChannels} = p
   const nav = useSafeNavigation()
   const inChannel = meta.membershipType === 'active'
 
@@ -418,7 +418,6 @@ const SelfChannelActions = function SelfChannelActions(p: {
       gap="xtiny"
       fullHeight={true}
       centerChildren={true}
-      style={Kb.Styles.collapseStyles([selfMode && !isMobile && styles.channelRowSelfMode])}
     >
       {popup}
       <Kb.Box2
@@ -598,25 +597,19 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
           )}
         </Kb.Box2>
       }
-      containerStyleOverride={Kb.Styles.collapseStyles([
-        styles.channelRowContainer,
-        selfMode && styles.channelRowSelfMode,
-      ])}
+      containerStyleOverride={styles.channelRowContainer}
     />
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
-  channelRowSelfMode: {},
   channelText: {flexGrow: 1, flexShrink: 1},
   description: Kb.Styles.platformStyles({
-    common: {},
-    electron: {
+    isElectron: {
       wordBreak: 'break-all',
     },
   }),
-  disabled: {opacity: 0.4},
   headerItem: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {height: 40},

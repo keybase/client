@@ -62,6 +62,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
         fullWidth={true}
         alignItems="center"
         justifyContent="center"
+        noShrink={true}
         style={Kb.Styles.collapseStyles([
           styles.signedContainer,
           isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
@@ -306,7 +307,8 @@ export const CryptoOutput = ({
         direction="vertical"
         fullHeight={true}
         fullWidth={true}
-        style={Kb.Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
+        centerChildren={true}
+        style={styles.outputPlaceholder}
       >
         {state.inProgress ? (
           <OutputProgress state={state} />
@@ -384,7 +386,6 @@ const styles = Kb.Styles.styleSheetCreate(
           flexShrink: 1,
         },
       }),
-      coverOutput: {...Kb.Styles.globalStyles.flexBoxCenter},
       fileOutputContainer: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
       fileOutputText: {...Kb.Styles.globalStyles.fontSemibold},
       output: Kb.Styles.platformStyles({
@@ -420,7 +421,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       signedContainer: Kb.Styles.platformStyles({
         common: {
-          flexShrink: 0,
           minHeight: Kb.Styles.globalMargins.mediumLarge,
         },
         isMobile: {

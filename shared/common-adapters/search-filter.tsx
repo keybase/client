@@ -253,7 +253,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       ref={measureRef}
       direction="horizontal"
       alignItems="center"
-      style={!isMobile ? styles.insideFull : undefined}
+      fullWidth={!isMobile}
       pointerEvents={isMobile && props.onClick ? 'none' : undefined}
     >
       {leftIcon()}
@@ -355,7 +355,6 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {marginTop: 2},
   }),
   input: {backgroundColor: Styles.globalColors.transparent},
-  insideFull: {width: '100%'},
   inputContainer: {
     ...Styles.globalStyles.flexGrow,
     backgroundColor: Styles.globalColors.transparent,
