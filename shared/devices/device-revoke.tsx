@@ -204,7 +204,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       endangeredTLFContainer: Kb.Styles.platformStyles({
         isElectron: {alignSelf: 'center'},
-        isMobile: {flexGrow: 1},
+        isMobile: {...Kb.Styles.globalStyles.flexGrow},
       }),
       headerName: {
         color: Kb.Styles.globalColors.redDark,
@@ -221,9 +221,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {height: 162, width: 440},
       }),
       row: {
-        paddingBottom: Kb.Styles.globalMargins.xxtiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xxtiny),
         paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingTop: Kb.Styles.globalMargins.xxtiny,
       },
       tlf: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,

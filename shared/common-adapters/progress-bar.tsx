@@ -37,13 +37,13 @@ const styles = Styles.styleSheetCreate(() => ({
   flatRight: {borderBottomRightRadius: 0, borderTopRightRadius: 0},
   inner: {
     backgroundColor: Styles.globalColors.blue,
-    borderRadius: 3,
+    ...Styles.globalStyles.rounded,
     height: 4,
   },
   outer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.greyLight,
-      borderRadius: 3,
+      ...Styles.globalStyles.rounded,
       height: 4,
       width: 64,
     },

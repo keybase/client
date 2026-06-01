@@ -245,7 +245,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box2>
       ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
             <Kb.SearchFilter
               placeholderText={`Search ${channelMetasAll.length} ${pluralize(

@@ -142,11 +142,9 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
           paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
         isMobile: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           flexWrap: 'wrap',
           height: 32,
           overflow: 'hidden',

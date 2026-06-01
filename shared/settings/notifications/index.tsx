@@ -75,7 +75,7 @@ const Notifications = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  scrollView: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
+  scrollView: {...Kb.Styles.globalStyles.flexBoxColumn, ...Kb.Styles.globalStyles.flexOne},
   turnOnIllustration: {
     height: 270,
     left: Kb.Styles.globalMargins.medium,

@@ -108,6 +108,8 @@ const CodePageContainer = () => {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
+        overflow="hidden"
+        relative={true}
         style={Kb.Styles.collapseStyles([styles.codePageContainer, {backgroundColor: tabBackground}])}
       >
         <Kb.Box2
@@ -488,17 +490,8 @@ const styles = Kb.Styles.styleSheetCreate(
       backButtonText: {color: Kb.Styles.globalColors.white},
       backgroundOnLeft: {marginLeft: -230},
       backgroundOnRight: {marginRight: -230},
-      closeButton: {
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
-      },
-      codePageContainer: Kb.Styles.platformStyles({
-        common: {
-          flex: 1,
-          overflow: 'hidden',
-          position: 'relative',
-        },
-      }),
+      closeButton: Kb.Styles.marginH(Kb.Styles.globalMargins.small),
+      codePageContainer: {flex: 1},
       container: Kb.Styles.platformStyles({
         isElectron: {
           height: '100%',
@@ -509,10 +502,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
         },
       }),
-      deviceIcon: {
-        height: 32,
-        width: 32,
-      },
+      deviceIcon: Kb.Styles.size(32),
       deviceIconDesktop: {
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginRight: Kb.Styles.globalMargins.xxtiny,
@@ -522,8 +512,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: 0,
       },
       enterTextButton: {
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         maxWidth: isMobile ? undefined : 460,
         width: '90%',
       },
@@ -552,12 +541,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       imageContainerOnLeft: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
       },
       imageContainerOnRight: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
       },
       instructions: {color: Kb.Styles.globalColors.white},
@@ -596,10 +583,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {width: 160},
       }),
       qrContainerFlip: {flexDirection: 'column-reverse'},
-      qrImageContainer: {
-        paddingBottom: 10,
-        paddingTop: 10,
-      },
+      qrImageContainer: Kb.Styles.paddingV(10),
       qrOnlyContainer: {
         backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
         borderRadius: 8,

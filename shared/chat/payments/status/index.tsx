@@ -120,15 +120,13 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.purpleDarkOrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       completed: {
         backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.purpleDarkOrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -139,15 +137,13 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.red_10OrRed,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.redDarkOrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       pending: {
         backgroundColor: Kb.Styles.globalColors.greyLight,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.black_50OrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
     }) as const
 )

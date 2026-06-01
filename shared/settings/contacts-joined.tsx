@@ -103,15 +103,10 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginTop: Kb.Styles.globalMargins.xtiny,
       },
-      divider: {
-        marginBottom: Kb.Styles.globalMargins.tiny,
-        marginTop: Kb.Styles.globalMargins.tiny,
-      },
+      divider: {...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny)},
       woot: {
-        marginBottom: Kb.Styles.globalMargins.small,
-        marginLeft: Kb.Styles.globalMargins.medium,
-        marginRight: Kb.Styles.globalMargins.medium,
-        marginTop: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.medium),
       },
     }) as const
 )

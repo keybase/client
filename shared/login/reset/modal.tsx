@@ -64,13 +64,13 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
           direction="horizontal"
           alignItems="center"
           fullHeight={true}
-          style={Kb.Styles.globalStyles.flexOne}
+          flex={1}
         >
-          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+          <Kb.Box2 direction="horizontal" flex={1} />
           <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
             Account reset initiated
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+          <Kb.Box2 direction="horizontal" flex={1} />
         </Kb.Box2>
       </Kb.Box2>
       {error ? (
@@ -132,9 +132,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexOne,
-    },
+    common: {flex: 1},
     isElectron: {minHeight: 220},
   }),
   desktopCover: {backgroundColor: Kb.Styles.globalColors.black_20},
@@ -168,7 +166,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
-      ...Kb.Styles.globalStyles.flexOne,
+      flex: 1,
       ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xlarge),
     },
   }),

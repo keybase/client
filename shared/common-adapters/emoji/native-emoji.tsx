@@ -54,8 +54,7 @@ function EmojiWrapper(props: Props) {
               isElectron: {
                 display: 'inline-block',
                 fontSize: size,
-                height: size,
-                width: size,
+                ...Styles.size(size),
               } as const,
             })
           )}

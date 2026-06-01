@@ -132,16 +132,15 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
         borderWidth: 1,
+        flexDirection: 'row',
         height: 48,
         maxWidth: '100%',
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         width: '100%',
       },
       icon: {width: 10},

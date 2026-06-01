@@ -34,9 +34,9 @@ const ResetUser = () => {
   const viewProfile = () => _viewProfile(username)
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.ImageIcon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
-      <Kb.Box2 direction="vertical" style={styles.textContainer}>
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.textContainer}>
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
             {username}
@@ -95,18 +95,13 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: 320,
       },
       buttonContainer: {
-        alignItems: 'center',
-        marginBottom: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.small,
-        width: '100%',
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
       },
       container: {
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.red,
         marginBottom: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
         padding: Kb.Styles.globalMargins.small,
-        width: '100%',
       },
       lastSentence: {
         marginTop: Kb.Styles.globalMargins.medium,
@@ -125,10 +120,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {...Kb.Styles.size(64)},
       }),
       textContainer: Kb.Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          width: '100%',
-        },
         isElectron: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         },

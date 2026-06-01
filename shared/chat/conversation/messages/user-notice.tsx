@@ -2,7 +2,6 @@ import * as Kb from '@/common-adapters'
 
 export type Props = {
   children?: React.ReactNode
-  showAvatar?: boolean
 }
 
 const UserNotice = ({children}: Props) => (

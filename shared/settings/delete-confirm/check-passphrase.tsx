@@ -90,12 +90,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBar: {minHeight: undefined},
       checkbox: {paddingTop: Kb.Styles.globalMargins.tiny},
       container: {
-        ...Kb.Styles.padding(
-          Kb.Styles.globalMargins.medium,
-          Kb.Styles.globalMargins.small,
-          Kb.Styles.globalMargins.medium,
-          Kb.Styles.globalMargins.small
-        ),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
       deleteButton: {marginTop: Kb.Styles.globalMargins.large},

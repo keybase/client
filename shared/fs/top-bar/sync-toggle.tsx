@@ -166,8 +166,7 @@ const styles = Kb.Styles.styleSheetCreate(
       popupContainer: Kb.Styles.platformStyles({
         common: {
           paddingBottom: Kb.Styles.globalMargins.small,
-          paddingLeft: Kb.Styles.globalMargins.medium,
-          paddingRight: Kb.Styles.globalMargins.medium,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
         },
         isElectron: {
           paddingTop: Kb.Styles.globalMargins.small,

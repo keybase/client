@@ -667,7 +667,7 @@ const ProviderPicker = ({
             />
           </Kb.BoxGrow2>
           <Kb.Divider />
-          <Kb.Box2 direction="horizontal" justifyContent="center" fullWidth={true} style={styles.providerButtonBar}>
+          <Kb.Box2 direction="horizontal" justifyContent="center" fullWidth={true} padding="medium">
             <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
           </Kb.Box2>
         </Kb.Box2>
@@ -1147,7 +1147,7 @@ const Unreachable = ({
 
 const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
   platform === 'hackernews' ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tips}>
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
       <Kb.Text type="BodySmallSemibold">&bull; You must have karma &ge; 2</Kb.Text>
       <Kb.Text type="BodySmallSemibold">&bull; You must enter your uSeRName with exact case</Kb.Text>
     </Kb.Box2>
@@ -1320,9 +1320,6 @@ const styles = Kb.Styles.styleSheetCreate(
           borderRadius: Kb.Styles.borderRadius,
           overflow: 'hidden',
         },
-        isMobile: {
-          width: '100%',
-        },
       }),
       containerBox: {
         height: isMobile ? 56 : 48,
@@ -1336,10 +1333,8 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       grey: {color: Kb.Styles.globalColors.black_20},
       icon: {
-        height: 32,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
-        width: 32,
+        ...Kb.Styles.size(32),
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
       },
       iconArrow: {marginRight: Kb.Styles.globalMargins.small},
       iconBadgeContainer: {
@@ -1353,20 +1348,15 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       inputBox: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderRadius: Kb.Styles.borderRadius,
-        borderStyle: 'solid' as const,
-        borderWidth: 1,
+        ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
         minHeight: 40,
       },
       inputContainer: {
         alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
-        marginBottom: Kb.Styles.globalMargins.xsmall,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.xsmall,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.xsmall),
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         padding: Kb.Styles.globalMargins.tiny,
         width: 'auto',
       },
@@ -1388,9 +1378,6 @@ const styles = Kb.Styles.styleSheetCreate(
       proof: {
         maxWidth: '100%',
       },
-      providerButtonBar: {
-        padding: Kb.Styles.globalMargins.medium,
-      },
       scroll: {maxWidth: '100%'},
       scrollContent: {
         paddingBottom: Kb.Styles.globalMargins.small,
@@ -1399,10 +1386,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         position: 'relative',
       },
-      serviceIconFull: {
-        height: 64,
-        width: 64,
-      },
+      serviceIconFull: Kb.Styles.size(64),
       serviceIconHeaderContainer: {
         marginTop: Kb.Styles.globalMargins.medium,
       },
@@ -1419,7 +1403,6 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
-      tips: {padding: Kb.Styles.globalMargins.small},
       title: {
         ...rightColumnStyle,
         color: Kb.Styles.globalColors.black,

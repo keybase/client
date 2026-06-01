@@ -82,8 +82,7 @@ const styles = Kb.Styles.styleSheetCreate(
       infoText: {
         marginBottom: 8,
         marginTop: 5,
-        paddingLeft: 55,
-        paddingRight: 55,
+        ...Kb.Styles.paddingH(55),
       },
     }) as const
 )

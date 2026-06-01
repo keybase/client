@@ -17,7 +17,7 @@ const TeamSection = ({children, right, title}: Props) => (
       {right}
     </Kb.Box2>
     <Kb.ScrollView style={styles.scroll}>
-      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.scrollContent}>
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
         {children}
       </Kb.Box2>
     </Kb.ScrollView>
@@ -40,7 +40,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       maxHeight: maxVisibleRows * teamRowHeight,
     },
   }),
-  scrollContent: Kb.Styles.globalStyles.fullWidth,
 }))
 
 export default TeamSection

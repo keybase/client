@@ -44,6 +44,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonBar: {maxWidth: 460, padding: 0, paddingTop: Kb.Styles.globalMargins.medium},
-      wrapper: {paddingLeft: Kb.Styles.globalMargins.medium, paddingRight: Kb.Styles.globalMargins.medium},
+      wrapper: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium)},
     }) as const
 )

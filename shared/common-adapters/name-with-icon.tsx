@@ -133,7 +133,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
               ? size === 'big'
                 ? styles.hbIconStyle
                 : styles.hIconStyle
-              : {height: adapterProps.iconSize, width: adapterProps.iconSize}
+              : Styles.size(adapterProps.iconSize)
           }
           fontSize={props.horizontal ? (isMobile ? 48 : 32) : adapterProps.iconSize}
         />

@@ -214,8 +214,7 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.blueLighter3,
         flexShrink: 0,
         height: RowCommon.normalRowHeight,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       actionText: {
         color: Kb.Styles.globalColors.blueDark,

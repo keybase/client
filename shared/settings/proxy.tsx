@@ -175,7 +175,7 @@ const ProxySettingsComponent = (props: Props) => {
         fullWidth={true}
         flex={1}
         gap="small"
-        style={styles.warningContainer}
+        padding="medium"
       >
         <Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Kb.Styles.globalColors.red} />
         <Kb.Text center={true} type="Header" style={styles.warningHeader}>
@@ -238,7 +238,7 @@ const ProxySettingsPopup = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
       {!isMobile && <Kb.BackButton onClick={props.onBack} />}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="xlarge">
         <ProxySettingsComponent {...props} />
       </Kb.Box2>
     </Kb.Box2>
@@ -251,7 +251,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     padding: Kb.Styles.globalMargins.small,
   },
   proxySetting: {marginBottom: Kb.Styles.globalMargins.small},
-  proxySettingPopupBox: {padding: Kb.Styles.globalMargins.xlarge},
   radioButton: {marginRight: Kb.Styles.globalMargins.medium},
   text: Kb.Styles.platformStyles({
     isElectron: {
@@ -259,7 +258,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   warningBody: {maxWidth: 420},
-  warningContainer: {padding: Kb.Styles.globalMargins.medium},
   warningHeader: {maxWidth: 420},
 }))
 

@@ -162,12 +162,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBar: {minHeight: undefined},
       checkbox: {paddingTop: Kb.Styles.globalMargins.tiny},
       container: {
-        ...Kb.Styles.padding(
-          Kb.Styles.globalMargins.medium,
-          Kb.Styles.globalMargins.small,
-          Kb.Styles.globalMargins.medium,
-          Kb.Styles.globalMargins.small
-        ),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
       headerText: {
@@ -191,8 +186,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       progress: {
         alignSelf: 'center',
-        marginBottom: Kb.Styles.globalMargins.xlarge,
-        marginTop: Kb.Styles.globalMargins.xlarge,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.xlarge),
       },
       smallProgress: {alignSelf: 'center'},
     }) as const

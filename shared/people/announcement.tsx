@@ -101,7 +101,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {alignSelf: 'flex-start'},
-      icon: {flexShrink: 0, height: 32, width: 32},
+      icon: {flexShrink: 0, ...Kb.Styles.size(32)},
     }) as const
 )
 

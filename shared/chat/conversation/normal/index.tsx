@@ -88,7 +88,7 @@ const DesktopConversation = function DesktopConversation() {
         {threadLoadedOffline && <Offline />}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
           <ListArea />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.overlayTop}>
             <ThreadLoadStatus />
             {!showThreadSearch && <PinnedMessage />}
           </Kb.Box2>
@@ -174,6 +174,11 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       offline: {
         padding: Kb.Styles.globalMargins.xxtiny,
+      },
+      overlayTop: {
+        left: 0,
+        position: 'absolute' as const,
+        top: 0,
       },
       threadSearchStyle: {
         position: 'absolute' as const,

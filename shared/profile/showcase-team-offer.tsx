@@ -117,8 +117,7 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {flex: 1, overflow: 'hidden'},
       headerShowcaseTeamOffer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
           paddingTop: Kb.Styles.globalMargins.mediumLarge,
         },
       }),
@@ -137,15 +136,11 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {paddingTop: Kb.Styles.globalMargins.small},
       }),
       noteText: {
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingLeft: Kb.Styles.globalMargins.large,
-        paddingRight: Kb.Styles.globalMargins.large,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.large, Kb.Styles.globalMargins.small),
       },
       teamNameShowcaseTeamOffer: {
         flexShrink: 1,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
       },
       teamRowShowcaseTeamOffer: Kb.Styles.platformStyles({
         common: {

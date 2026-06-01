@@ -92,8 +92,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       rainbowButton: {
         margin: 2,
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-        paddingRight: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
       },
       rainbowButtonContainer: Kb.Styles.platformStyles({
         common: {

@@ -99,7 +99,7 @@ const NewRepo = (ownProps: OwnProps) => {
   }
   return (
     <Kb.ScrollView>
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} alignItems="center" style={styles.container}>
         {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
         <Kb.Text type="Header" style={styles.marginBottom27}>
           New {isTeam ? 'team' : 'personal'} git repository
@@ -171,8 +171,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: Kb.Styles.platformStyles({
         common: {
-          flex: 1,
-          height: '100%',
           padding: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
         },
         isElectron: {maxWidth: 400},

@@ -182,17 +182,13 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addBot: {
-        alignSelf: undefined,
         marginBottom: Kb.Styles.globalMargins.xtiny,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         marginTop: Kb.Styles.globalMargins.small,
       },
       botHeaders: {
-        marginBottom: Kb.Styles.globalMargins.tiny,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
       },
       container: Kb.Styles.platformStyles({
         isElectron: {

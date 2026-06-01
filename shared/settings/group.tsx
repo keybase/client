@@ -61,7 +61,7 @@ const Group = (props: GroupProps) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      label: {marginBottom: Kb.Styles.globalMargins.xtiny, marginTop: Kb.Styles.globalMargins.xtiny},
+      label: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},
     }) as const
 )
 

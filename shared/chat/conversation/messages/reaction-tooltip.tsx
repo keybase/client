@@ -115,6 +115,8 @@ const ReactionTooltip = (p: OwnProps) => {
       gapStart={true}
       gapEnd={true}
       fullWidth={true}
+      centerChildren={true}
+      noShrink={true}
       style={styles.buttonContainer}
     >
       <ReactButton
@@ -195,20 +197,18 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addReactionButtonBar: {
-        paddingBottom: Kb.Styles.globalMargins.medium,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.padding(
+          Kb.Styles.globalMargins.small,
+          Kb.Styles.globalMargins.small,
+          Kb.Styles.globalMargins.medium
+        ),
       },
       addReactionButtonIcon: {marginRight: Kb.Styles.globalMargins.tiny},
       buttonContainer: {
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
-        flexShrink: 0,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
       closeButton: {padding: Kb.Styles.globalMargins.small},
       emojiText: {
@@ -241,10 +241,8 @@ const styles = Kb.Styles.styleSheetCreate(
       userContainer: {
         alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,
-        paddingBottom: Kb.Styles.globalMargins.xtiny,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
         width: '100%',
       },
     }) as const

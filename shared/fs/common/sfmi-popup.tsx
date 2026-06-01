@@ -98,8 +98,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginTop: Kb.Styles.globalMargins.small,
   },
   fancyFinderIcon: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     paddingTop: Kb.Styles.globalMargins.medium,
   },
   popup: {
@@ -110,8 +109,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: 260,
   },
   text: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
 }))

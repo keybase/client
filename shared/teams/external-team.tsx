@@ -55,7 +55,7 @@ const ExternalTeam = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="small" padding="small" fullWidth={true}>
       {waiting ? (
         <Kb.Box2
           direction="horizontal"
@@ -224,9 +224,6 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   contentContainer: Kb.Styles.platformStyles({
     common: {
       paddingBottom: Kb.Styles.globalMargins.small,
@@ -235,9 +232,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       paddingTop: Kb.Styles.globalMargins.tiny,
     },
   }),
-  crownIcon: Kb.Styles.platformStyles({
-    common: {marginRight: Kb.Styles.globalMargins.xtiny},
-  }),
+  crownIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
   error: {color: Kb.Styles.globalColors.redDark},
   headerContainer: {
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),

@@ -97,8 +97,7 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'center',
         color: Kb.Styles.globalColors.black_50,
         letterSpacing: 0.2,
-        marginLeft: Kb.Styles.globalMargins.tiny,
-        marginRight: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
       },
       teamRowContainer: Kb.Styles.platformStyles({
         common: {

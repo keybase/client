@@ -220,8 +220,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       badgeContainer: {
         // Make width/height explicit 0 so they don't affect nearby stuff.
-        height: 0,
-        width: 0,
+        ...Kb.Styles.size(0),
       },
     }) as const
 )
@@ -286,11 +285,10 @@ const badgeStyles = {
           top: -(Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny),
         },
         rightBottomBadge: {
-          height: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.size(Kb.Styles.globalMargins.small),
           left: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
           position: 'absolute',
           top: -Kb.Styles.globalMargins.small - Kb.Styles.globalMargins.xtiny,
-          width: Kb.Styles.globalMargins.small,
         },
       }) as const
   ),
@@ -305,11 +303,10 @@ const badgeStyles = {
         rightBottomBadge: {
           // this doesn't work for the folder icon, but it's fine as we don't
           // have such badge on folder icon of 96 size.
-          height: Kb.Styles.globalMargins.medium,
+          ...Kb.Styles.size(Kb.Styles.globalMargins.medium),
           left: Kb.Styles.globalMargins.xlarge,
           position: 'absolute',
           top: -(Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xtiny),
-          width: Kb.Styles.globalMargins.medium,
         },
       }) as const
   ),

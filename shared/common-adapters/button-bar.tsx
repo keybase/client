@@ -59,17 +59,9 @@ const ButtonBar = (props: Props) => {
 }
 
 // Note explicitly not using globalMargins here. We don't necessarily want this spacing to change ever
-const BigSpacer = () => <Kb.Box2 direction="vertical" style={bigSpacerStyle} />
-const bigSpacerStyle = {
-  flexShrink: 0,
-  height: 8,
-  width: 8,
-}
-const SmallSpacer = () => <Kb.Box2 direction="vertical" style={smallSpacerStyle} />
-const smallSpacerStyle = {
-  flexShrink: 0,
-  height: isMobile ? 8 : 4,
-  width: isMobile ? 8 : 4,
-}
+const BigSpacer = () => <Kb.Box2 direction="vertical" noShrink={true} style={bigSpacerStyle} />
+const bigSpacerStyle = Styles.size(8)
+const SmallSpacer = () => <Kb.Box2 direction="vertical" noShrink={true} style={smallSpacerStyle} />
+const smallSpacerStyle = Styles.size(isMobile ? 8 : 4)
 
 export default ButtonBar

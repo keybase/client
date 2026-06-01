@@ -236,12 +236,10 @@ const styles = Styles.styleSheetCreate(
       text: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.fontTerminal,
+          ...Styles.marginH(Styles.globalMargins.tiny),
+          ...Styles.marginV(Styles.globalMargins.xtiny),
           color: Styles.globalColors.blueDark,
           flexShrink: 1,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginLeft: Styles.globalMargins.tiny,
-          marginRight: Styles.globalMargins.tiny,
-          marginTop: Styles.globalMargins.xtiny,
           minWidth: 0,
           textAlign: 'left',
         },
@@ -262,8 +260,7 @@ const styles = Styles.styleSheetCreate(
           textAlign: 'center',
         },
         isMobile: {
-          paddingLeft: 10,
-          paddingRight: 10,
+          ...Styles.paddingH(10),
           paddingTop: 5,
         },
       }),

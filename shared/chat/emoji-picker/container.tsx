@@ -150,7 +150,7 @@ const WrapperMobile = (props: Props) => {
           onExpandChange={setSkinTonePickerExpanded}
           setSkinTone={setSkinTone}
         />
-        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
+        <Kb.Box2 direction="vertical" flex={1} />
         {!props.small && !skinTonePickerExpanded && canManageEmoji && (
           <Kb.Button
             mode="Secondary"
@@ -242,7 +242,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
             size={36}
           />
           {hoveredEmoji.teamname ? (
-            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="vertical" flex={1}>
               <Kb.Text type="BodyBig" lineClamp={1}>
                 {':' + hoveredEmoji.short_name + ':'}
               </Kb.Text>
@@ -251,7 +251,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
               </Kb.Text>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="vertical" flex={1}>
               <Kb.Text type="BodyBig" lineClamp={1}>
                 {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name)}
               </Kb.Text>
@@ -280,9 +280,8 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       cancelContainerMobile: {
-        paddingBottom: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         paddingLeft: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       contain: Kb.Styles.platformStyles({
         isElectron: {

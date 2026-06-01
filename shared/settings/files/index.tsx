@@ -299,17 +299,13 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
-      spinner: {
-        height: 16,
-        width: 16,
-      },
+      spinner: Kb.Styles.size(16),
       switch: {
         marginTop: Kb.Styles.globalMargins.small,
       },
       syncContent: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
           paddingTop: Kb.Styles.globalMargins.medium,
         },
         isTablet: {

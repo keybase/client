@@ -49,11 +49,10 @@ function Badge(p: Badge2Props) {
           style={Styles.collapseStyles([
             styles.badge,
             {
+              ...Styles.paddingH(leftRightPadding),
               borderRadius: innerSize,
               height: innerSize,
               minWidth: innerSize,
-              paddingLeft: leftRightPadding,
-              paddingRight: leftRightPadding,
             },
             badgeStyle,
           ])}
@@ -83,11 +82,10 @@ function Badge(p: Badge2Props) {
         style={Styles.collapseStyles([
           styles.badge,
           {
+            ...Styles.paddingH(leftRightPadding),
             borderRadius: height,
             height: height,
             minWidth: height,
-            paddingLeft: leftRightPadding,
-            paddingRight: leftRightPadding,
           },
           badgeStyle,
         ])}

@@ -47,8 +47,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         backgroundColor: Kb.Styles.globalColors.blue,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
     }) as const
 )

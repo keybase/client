@@ -73,10 +73,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addButtonContainer: {
-        alignSelf: undefined,
         marginBottom: Kb.Styles.globalMargins.small,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
       },
     }) as const
 )

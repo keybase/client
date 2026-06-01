@@ -30,7 +30,7 @@ const Display = () => {
   }
   return (
     <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth} testID={TestIDs.SETTINGS_DISPLAY}>
-      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} padding="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium">
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="Header">Appearance</Kb.Text>
@@ -75,11 +75,5 @@ const Display = () => {
     </Kb.ScrollView>
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-}))
 
 export default Display

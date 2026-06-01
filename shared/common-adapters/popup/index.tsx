@@ -194,7 +194,7 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   positioned: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
-      borderRadius: 3,
+      ...Styles.globalStyles.rounded,
       overflowX: 'hidden',
       overflowY: 'auto',
     },

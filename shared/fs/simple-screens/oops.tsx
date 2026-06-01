@@ -124,11 +124,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {marginTop: Kb.Styles.globalMargins.small},
         isMobile: {marginTop: Kb.Styles.globalMargins.medium},
       }),
-      explainTextTeam: {
-        marginLeft: Kb.Styles.globalMargins.xtiny,
-        marginRight: Kb.Styles.globalMargins.xtiny,
-      },
-      main: {...Kb.Styles.globalStyles.flexGrow},
+      explainTextTeam: Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
+      main: Kb.Styles.globalStyles.flexGrow,
       textYouDontHave: Kb.Styles.platformStyles({
         isElectron: {marginTop: Kb.Styles.globalMargins.medium},
         isMobile: {

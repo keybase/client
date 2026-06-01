@@ -42,6 +42,7 @@ const HeaderAreaRightImpl = (props: HeaderConversationProps) => {
     <Kb.Box2
       direction="horizontal"
       gap="small"
+      noShrink={true}
       style={Kb.Styles.collapseStyles([styles.headerRight, {opacity: pendingWaiting ? 0 : 1}])}
     >
       <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
@@ -196,7 +197,7 @@ const ChannelHeader = (props: HeaderConversationProps) => {
 
   return (
     <Kb.Box2 direction="vertical" style={maxWidthStyle}>
-      <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+      <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="center" style={styles.channelHeaderContainer}>
         <Kb.Avatar
           teamname={teamname || undefined}
           size={16}
@@ -214,7 +215,7 @@ const ChannelHeader = (props: HeaderConversationProps) => {
         {smallTeam && <ShhIcon conversationIDKey={conversationIDKey} />}
       </Kb.Box2>
       {!smallTeam && (
-        <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+        <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="center" style={styles.channelHeaderContainer}>
           <Kb.Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
             #{channelname}
           </Kb.Text>
@@ -252,7 +253,7 @@ const UsernameHeader = (props: HeaderConversationProps) => {
           {theirFullname}
         </Kb.Text>
       )}
-      <Kb.Box2 direction="horizontal" style={styles.nameMutedContainer} justifyContent="center">
+      <Kb.Box2 direction="horizontal" alignItems="center" justifyContent="center">
         <Kb.ConnectedUsernames
           colorFollowing={true}
           inline={false}
@@ -302,22 +303,15 @@ const styles = Kb.Styles.styleSheetCreate(
         textAlign: 'center',
       },
       channelHeaderContainer: {
-        alignItems: 'center',
-        alignSelf: 'center',
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-        paddingRight: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
       },
       channelName: {color: Kb.Styles.globalColors.black},
       channelNameLight: {color: Kb.Styles.globalColors.black_50},
       headerRight: {
-        flexShrink: 0,
         height: 22,
         width: 56,
       },
       lessMargins: {marginBottom: -5},
-      nameMutedContainer: {
-        alignItems: 'center',
-      },
       shhIcon: {marginLeft: Kb.Styles.globalMargins.xtiny},
       usernameHeaderContainer: Kb.Styles.centered(),
     }) as const

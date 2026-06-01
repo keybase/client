@@ -145,7 +145,7 @@ export const ContactsImportButton = () => {
 
   return (
     <Kb.ClickableBox onClick={onImportContacts} direction="horizontal" fullWidth={true} alignItems="center" gap="small" style={styles.importContactsContainer}>
-      <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
+      <Kb.Box2 direction="vertical" alignItems="center" style={styles.iconContactBookContainer}>
         <Kb.Icon type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
       </Kb.Box2>
       <Kb.Text type="BodyBig" lineClamp={1}>
@@ -171,8 +171,7 @@ const styles = Kb.Styles.styleSheetCreate(
       bannerButtonContainer: {
         alignSelf: 'flex-start',
         flexWrap: 'wrap',
-        marginBottom: Kb.Styles.globalMargins.tiny,
-        marginTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
       },
       bannerIcon: {
         marginLeft: Kb.Styles.globalMargins.xtiny,
@@ -184,7 +183,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.tiny,
       },
       iconContactBookContainer: {
-        alignItems: 'center',
         marginLeft: Kb.Styles.globalMargins.xsmall,
         width: 48,
       },

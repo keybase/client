@@ -356,8 +356,7 @@ const styles = Kb.Styles.styleSheetCreate(
           overflowY: 'hidden',
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
           paddingTop: Kb.Styles.globalMargins.xsmall,
         },
       }),

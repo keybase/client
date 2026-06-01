@@ -162,8 +162,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       outerContainer: {
         marginBottom: Kb.Styles.globalMargins.xtiny,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
       },
       poweredBy: {
         bottom: 0,
@@ -176,9 +175,7 @@ const styles = Kb.Styles.styleSheetCreate(
           border: `1px solid ${Kb.Styles.globalColors.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           maxHeight: 300,
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny),
         },
       }),
     }) as const

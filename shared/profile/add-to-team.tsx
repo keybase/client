@@ -240,7 +240,7 @@ const AddToTeam = (ownProps: OwnProps) => {
         </Kb.Box2>
         <Kb.BoxGrow style={styles.boxGrow}>
           <Kb.ScrollView style={Kb.Styles.size('100%')}>
-            <Kb.Box2 direction="vertical" style={styles.teamListInner}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamListInner}>
               {!waiting ? (
                 teamProfileAddList.length > 0 ? (
                   teamProfileAddList.map(team => (
@@ -359,13 +359,12 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       boxGrow: {width: '100%'},
       progress: {width: 64},
-      teamListInner: {flexShrink: 1, width: '100%'},
+      teamListInner: {flexShrink: 1},
       addToTeam: Kb.Styles.platformStyles({
         common: {
           flexWrap: 'wrap',
           marginBottom: Kb.Styles.globalMargins.small,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
         isElectron: {marginTop: Kb.Styles.globalMargins.small},
       }),
@@ -401,7 +400,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       divider: {marginLeft: 69},
       headerAvatar: Kb.Styles.platformStyles({
-        isElectron: {marginLeft: Kb.Styles.globalMargins.tiny, marginRight: Kb.Styles.globalMargins.tiny},
+        isElectron: {...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny)},
         isMobile: {marginLeft: Kb.Styles.globalMargins.xxtiny, marginRight: Kb.Styles.globalMargins.tiny},
       }),
       meta: {

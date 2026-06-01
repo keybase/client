@@ -147,7 +147,7 @@ const Dropdown = (p: DropdownProps) => {
         ref={isMobile ? null : popupAnchor}
         onClick={showPopup}
       >
-        <Kb.Box2 direction="horizontal" style={styles.label}>
+        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.label}>
           <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
@@ -181,10 +181,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       hidden: {display: 'none'},
       label: {
-        alignItems: 'center',
         minHeight: isMobile ? 40 : 32,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
-        width: '100%',
       },
       saveIndicator: Kb.Styles.platformStyles({
         common: {

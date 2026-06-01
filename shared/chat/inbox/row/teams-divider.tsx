@@ -68,7 +68,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       containerButton: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           flexShrink: 0,
           height: RowSizes.dividerHeight(true),
           justifyContent: 'center',
@@ -80,7 +79,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerNoButton: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexShrink: 0,
         height: RowSizes.dividerHeight(false),
         justifyContent: 'center',
@@ -88,8 +86,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       dividerText: {
         alignSelf: 'flex-start',
-        marginLeft: Kb.Styles.globalMargins.tiny,
-        marginRight: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
       },
     }) as const
 )

@@ -63,5 +63,5 @@ const SharedTeams = ({sharedTeams, username}: Props) => {
 export default SharedTeams
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  loadingRow: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0),
+  loadingRow: Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
 }))

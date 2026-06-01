@@ -328,9 +328,7 @@ const ArchiveModal = (p: Props) => {
 
   const output = isMobile ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-        <Kb.Text type="Body">Save To</Kb.Text>
-      </Kb.Box2>
+      <Kb.Text type="Body">Save To</Kb.Text>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Text type="BodyItalic" lineClamp={1} title={outpath} style={styles.outPath}>
           {outpath}

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Styles from '@/styles'
 import {View} from 'react-native'
 import {useNavigation} from '@react-navigation/native'
 import {useIsFocused} from '@react-navigation/core'
@@ -8,6 +9,14 @@ import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liqu
 import type {RootParamList} from '@/router-v2/route-params'
 
 const isLiquidGlassActive = (isIOS && C.isPhone && _isLiquidGlassSupported) as boolean
+
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.fillAbsolute,
+    alignItems: 'stretch',
+    flexDirection: 'row',
+  },
+}))
 
 const BottomAccessoryMobile = ({children}: {children: React.ReactNode}) => {
   const navigation = useNavigation()
@@ -18,7 +27,7 @@ const BottomAccessoryMobile = ({children}: {children: React.ReactNode}) => {
     const parent = navigation.getParent() as BottomTabNavigationProp<RootParamList> | undefined
     parent?.setOptions({
       bottomAccessory: (): React.ReactNode => (
-        <View style={{alignItems: 'stretch', bottom: 0, flexDirection: 'row', left: 0, position: 'absolute', right: 0, top: 0}}>
+        <View style={Styles.castStyleNative(styles.container)}>
           {children}
         </View>
       ),

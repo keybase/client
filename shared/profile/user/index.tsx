@@ -207,7 +207,7 @@ const TeamSections = (props: {
       direction="horizontal"
       fullWidth={true}
       gap="small"
-      style={styles.teamSections}
+      alignItems="flex-start"
     >
       <Teams username={props.username} teamShowcase={props.teamShowcase} />
       {!props.notAUser && <SharedTeams sharedTeams={props.sharedTeams} username={props.username} />}
@@ -590,7 +590,7 @@ const User = (props: {username: string}) => {
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
         testID={TestIDs.PROFILE_PAGE}
       >
-        <Kb.Box2 direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={wrapperRef}>
           <Kb.SectionList
             key={p.username}
             stickySectionHeadersEnabled={true}
@@ -687,9 +687,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {justifyContent: 'flex-start'},
     isMobile: {justifyContent: 'center'},
   }),
-  innerContainer: {
-    ...Kb.Styles.size('100%'),
-  },
   progress: {position: 'absolute'},
   proofs: Kb.Styles.platformStyles({
     isElectron: {
@@ -721,9 +718,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {backgroundColor: Kb.Styles.globalColors.white, paddingBottom: Kb.Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
-  teamSections: {
-    alignItems: 'flex-start',
-  },
   textEmpty: {
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
   },

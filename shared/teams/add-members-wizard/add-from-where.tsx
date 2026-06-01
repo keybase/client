@@ -49,14 +49,24 @@ const AddFromWhere = ({wizard}: Props) => {
           type="Card"
           firstItem={true}
           icon={<Kb.IconAuto type="icon-teams-add-search-64" />}
-          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">From Keybase</Kb.Text><Kb.Text type="BodySmall">Search users by username.</Kb.Text></Kb.Box2>}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">From Keybase</Kb.Text>
+              <Kb.Text type="BodySmall">Search users by username.</Kb.Text>
+            </Kb.Box2>
+          }
           onClick={onContinueKeybase}
         />
         <Kb.ListItem
           type="Card"
           firstItem={true}
           icon={<Kb.IconAuto type="icon-teams-add-email-list-64" />}
-          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A list of email addresses</Kb.Text><Kb.Text type="BodySmall">Enter one or multiple email addresses.</Kb.Text></Kb.Box2>}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">A list of email addresses</Kb.Text>
+              <Kb.Text type="BodySmall">Enter one or multiple email addresses.</Kb.Text>
+            </Kb.Box2>
+          }
           onClick={onContinueEmail}
         />
         {isMobile && (
@@ -64,7 +74,12 @@ const AddFromWhere = ({wizard}: Props) => {
             type="Card"
             firstItem={true}
             icon={<Kb.IconAuto type="icon-teams-add-phone-contacts-64" />}
-            body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">From your contacts</Kb.Text><Kb.Text type="BodySmall">Add your friends, family, or colleagues.</Kb.Text></Kb.Box2>}
+            body={
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Text type="BodySemibold">From your contacts</Kb.Text>
+                <Kb.Text type="BodySmall">Add your friends, family, or colleagues.</Kb.Text>
+              </Kb.Box2>
+            }
             onClick={onContinueContacts}
           />
         )}
@@ -72,7 +87,12 @@ const AddFromWhere = ({wizard}: Props) => {
           type="Card"
           firstItem={true}
           icon={<Kb.IconAuto type="icon-teams-add-number-list-64" />}
-          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A list of phone numbers</Kb.Text><Kb.Text type="BodySmall">Enter one or multiple phone numbers</Kb.Text></Kb.Box2>}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">A list of phone numbers</Kb.Text>
+              <Kb.Text type="BodySmall">Enter one or multiple phone numbers</Kb.Text>
+            </Kb.Box2>
+          }
           onClick={onContinuePhone}
         />
       </Kb.Box2>

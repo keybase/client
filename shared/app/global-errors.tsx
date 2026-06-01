@@ -132,12 +132,12 @@ const GlobalError = () => {
     const message = daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <Kb.Box2 direction="vertical" style={styles.containerOverlay}>
-        <Kb.Box2 direction="horizontal" style={styles.overlayRow}>
+        <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.overlayRow}>
           <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
             {message}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" flex={1} style={styles.overlayFill}>
+        <Kb.Box2 direction="vertical" flex={1} centerChildren={true} style={styles.overlayFill}>
           <Kb.Animation animationType="disconnected" height={175} width={600} />
         </Kb.Box2>
       </Kb.Box2>
@@ -214,7 +214,7 @@ const GlobalError = () => {
 
   return (
     <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick} direction="vertical">
-      <Kb.Box2 direction="horizontal" flex={1} style={styles.innerContainer}>
+      <Kb.Box2 direction="horizontal" flex={1} centerChildren={true} gap="small" style={styles.innerContainer}>
         <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}
         </Kb.Text>
@@ -271,9 +271,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       ...Kb.Styles.padding(8, Kb.Styles.globalMargins.xlarge),
     },
     innerContainer: {
-      ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.black,
-      gap: Kb.Styles.globalMargins.small,
       minHeight: maxHeightForSize('Small'),
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small),
     },
@@ -309,11 +307,9 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
     },
     overlayFill: {
-      ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.white,
     },
     overlayRow: {
-      ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.blue,
       padding: 8,
     },

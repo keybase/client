@@ -901,12 +901,8 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       inputWrapper: {
         alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,
-        borderColor: Kb.Styles.globalColors.black_20,
-        borderRadius: Kb.Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.borderRadius),
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         paddingRight: Kb.Styles.globalMargins.xtiny,
       },
       inputWrapperEditing: {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt},
@@ -1454,15 +1450,13 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
       editingButton: {
-        marginLeft: Kb.Styles.globalMargins.tiny,
-        marginRight: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
       },
       exploding: {
         backgroundColor: Kb.Styles.globalColors.black,
         borderRadius: Kb.Styles.globalMargins.mediumLarge / 2,
-        height: 28,
+        ...Kb.Styles.size(28),
         margin: Kb.Styles.globalMargins.xtiny,
-        width: 28,
       },
       explodingContainer: {borderTopColor: Kb.Styles.globalColors.black},
       explodingSendBtn: {
@@ -1483,10 +1477,9 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
       },
       iconContainer: {
-        height: 28,
+        ...Kb.Styles.size(28),
         marginRight: -Kb.Styles.globalMargins.xtiny,
         marginTop: Kb.Styles.globalMargins.tiny,
-        width: 28,
       },
       iconTop: {
         position: 'absolute',

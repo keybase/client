@@ -172,10 +172,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   filterInput: Kb.Styles.platformStyles({
     isElectron: {
-      marginBottom: Kb.Styles.globalMargins.tiny,
-      marginLeft: Kb.Styles.globalMargins.small,
-      marginRight: Kb.Styles.globalMargins.small,
-      marginTop: Kb.Styles.globalMargins.tiny,
+      ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
+      ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
     },
   }),
   list: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),

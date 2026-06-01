@@ -50,7 +50,7 @@ export default function InboxSearchRow(ownProps: OwnProps) {
 
   if (showNewChatButton) {
     return (
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.row}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} fullHeight={true} style={styles.row}>
         <Kb.BoxGrow2>{filter}</Kb.BoxGrow2>
         <NewChatButton />
       </Kb.Box2>
@@ -69,7 +69,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       row: {
-        height: '100%',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const

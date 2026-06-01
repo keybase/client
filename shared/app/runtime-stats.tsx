@@ -224,9 +224,8 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
   const [moreLogs, setMoreLogs] = React.useState(false)
 
   return (
-    <>
-      <Kb.BoxGrow style={styles.boxGrow}>
-        <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)} direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
+    <Kb.BoxGrow style={styles.boxGrow}>
+      <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)} direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
             {!moreLogs &&
               stats.processStats?.map((stat, i) => {
                 return (
@@ -303,8 +302,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
             )*/}
             <LogStats num={moreLogs ? 25 : 5} />
         </Kb.ClickableBox>
-      </Kb.BoxGrow>
-    </>
+    </Kb.BoxGrow>
   )
 }
 

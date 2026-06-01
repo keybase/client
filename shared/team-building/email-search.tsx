@@ -124,7 +124,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       input: Kb.Styles.platformStyles({
-        common: {},
         isElectron: {
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
           height: 38,

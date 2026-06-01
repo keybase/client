@@ -33,7 +33,7 @@ const Container = (ownProps: OwnProps) => {
   const offlineUnsynced = FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path)
   const writable = _pathItem.writable
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}} testID={TestIDs.FILES_BROWSER}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexGrow} testID={TestIDs.FILES_BROWSER}>
       <Kb.KeyboardAvoidingView2>
         <Kbfs.Errs />
         <BrowserContent

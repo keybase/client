@@ -1,4 +1,3 @@
-import * as Kb from '@/common-adapters'
 import Menubar from './index.desktop'
 import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
 import {RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
@@ -12,10 +11,11 @@ const RemoteMenubar = (p: Props) => (
 
 // This is to keep that arrow and gap on top w/ transparency
 const style = {
-  ...Kb.Styles.globalStyles.flexBoxColumn,
   borderTopLeftRadius: 4,
   borderTopRightRadius: 4,
+  display: 'flex',
   flex: 1,
+  flexDirection: 'column',
   marginTop: 0,
   position: 'relative',
 } as const

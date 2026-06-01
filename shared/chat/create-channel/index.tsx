@@ -120,12 +120,10 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       backIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
       box: {
-        paddingLeft: Kb.Styles.globalMargins.large,
-        paddingRight: Kb.Styles.globalMargins.large,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
       },
       boxTop: {
-        paddingLeft: Kb.Styles.globalMargins.large,
-        paddingRight: Kb.Styles.globalMargins.large,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         paddingTop: Kb.Styles.globalMargins.medium,
       },
     }) as const

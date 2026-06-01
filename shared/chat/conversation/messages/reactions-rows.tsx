@@ -26,7 +26,7 @@ function ReactionsRowContainer(p: OwnProps) {
   )
 
   return emojis.length === 0 ? null : (
-    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} alignItems="flex-start" style={styles.container}>
       {emojis.map((emoji, idx) => {
         const reaction = reactions?.get(emoji)
         return reaction ? (
@@ -104,7 +104,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       button: {marginBottom: Kb.Styles.globalMargins.tiny},
       container: {
-        alignItems: 'flex-start',
         flexWrap: 'wrap',
         paddingRight: 66,
         paddingTop: Kb.Styles.globalMargins.tiny,

@@ -106,8 +106,7 @@ const styles = Kb.Styles.styleSheetCreate(
           border: `1px solid ${Kb.Styles.globalColors.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
           overflow: 'hidden',
         },
         isMobile: {

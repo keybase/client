@@ -72,7 +72,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       backButton: {
         color: Kb.Styles.globalColors.white,
-        flex: 1,
+        ...Kb.Styles.globalStyles.flexOne,
       },
       container: {backgroundColor: Kb.Styles.globalColors.blue},
       headerContainer: {

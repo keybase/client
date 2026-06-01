@@ -147,7 +147,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     </Kb.Box2>
   )
   const contents = loading ? (
-    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
+    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} alignItems="center">
       <Kb.ProgressIndicator style={styles.progressIndicator} />
       <Kb.Text type="BodySmall">loading...</Kb.Text>
     </Kb.Box2>
@@ -156,13 +156,13 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
+        alignItems="center"
         style={Kb.Styles.collapseStyles([
-          styles.alignItemsCenter,
           styles.flexWrap,
           {marginBottom: Kb.Styles.globalMargins.xtiny},
         ])}
       >
-        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} alignItems="center">
           {!!icon && (
             <Kb.Icon
               type={icon}
@@ -224,7 +224,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {alignItems: 'center'},
       amountContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',

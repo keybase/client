@@ -476,7 +476,6 @@ const styles = Kb.Styles.styleSheetCreate(
       contentBox: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         alignItems: 'center',
-        width: '100%',
       },
       conversationRow: {
         flexGrow: 1,

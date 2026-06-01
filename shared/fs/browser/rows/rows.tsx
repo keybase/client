@@ -114,7 +114,7 @@ function Rows(props: Props & {listKey: string}) {
         // The folder is empty so these should all be header rows.
         items.map(item => item.rowType === RowTypes.RowType.Header && item.node)
       }
-      <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true} gap="small">
+      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} centerChildren={true} gap="small">
         <Kb.Text type="BodySmall">
           {emptyMode === 'empty' ? 'This folder is empty.' : 'Sorry, no folder or file was found.'}
         </Kb.Text>
@@ -167,9 +167,6 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: 102,
         },
       }),
-      emptyContainer: {
-        ...Kb.Styles.globalStyles.flexGrow,
-      },
       rowContainer: {
         flexShrink: 0,
         height: normalRowHeight,

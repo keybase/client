@@ -381,7 +381,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
         </Kb.Banner>
       ) : null}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="vertical">{renderImageZoomer()}</Kb.Box2>
+        {renderImageZoomer()}
         <Kb.ButtonBar direction="column">
           <Kb.WaitingButton
             fullWidth={true}
@@ -484,7 +484,6 @@ const hoverStyles = Kb.Styles.styleSheetCreate(
 const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     marginTop: Kb.Styles.globalMargins.tiny,
-    width: '100%',
   },
   container: Kb.Styles.platformStyles({
     common: {

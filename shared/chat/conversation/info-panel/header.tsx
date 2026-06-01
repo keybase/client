@@ -45,7 +45,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-      <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.smallContainer} fullWidth={true}>
         {popup}
         {isSmallTeam ? (
           <>
@@ -172,16 +172,13 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addMembers: {
-        alignSelf: undefined,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
       },
       channelName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
       description: {
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       flexOne: {flex: 1},
       floatingMenuContainerStyle: Kb.Styles.platformStyles({
@@ -198,7 +195,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       meta: {alignSelf: 'center'},
       smallContainer: {
-        alignItems: 'center',
         paddingLeft: Kb.Styles.globalMargins.small,
       },
     }) as const

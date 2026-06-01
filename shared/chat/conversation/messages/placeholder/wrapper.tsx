@@ -14,7 +14,7 @@ function WrapperPlaceholder(p: Props) {
 
   return (
     <WrapperMessage {...p} {...wrapper}>
-      <Kb.Box2 direction="horizontal" gap="tiny" style={styles.container}>
+      <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" fullWidth={true} style={styles.container}>
         <Kb.Placeholder width={width} />
       </Kb.Box2>
     </WrapperMessage>
@@ -25,9 +25,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        alignItems: 'center',
         height: isMobile ? 22 : 17, // to match a line of text
-        width: '100%',
       },
     }) as const
 )

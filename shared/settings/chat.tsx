@@ -276,7 +276,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
               )}
             </>
           )}
-          <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} style={styles.btnContainer}>
+          <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} alignSelf="flex-start">
             <Kb.WaitingButton
               onClick={() =>
                 contactSettingsSaved(
@@ -412,7 +412,8 @@ const Links = () => {
       <Kb.Box2
         direction="vertical"
         gap="tiny"
-        style={Kb.Styles.collapseStyles([styles.innerContainer, styles.btnContainer])}
+        alignSelf="flex-start"
+        style={styles.innerContainer}
       >
         <Kb.WaitingButton
           onClick={onSave}
@@ -447,20 +448,18 @@ const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
       <Kb.Divider style={styles.divider} />
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.innerContainer}>
         <Kb.Text type="Header">Sounds</Kb.Text>
-        <>
-          {showDesktopSound && (
-            <Kb.Checkbox onCheck={onToggleSound} checked={sound} label="Play a sound for new messages" />
-          )}
-          {showMobileSound && (
-            <Group
-              allowEdit={allowEdit}
-              groupName="sound"
-              onToggle={toggle}
-              settings={groups.get('sound')!.settings}
-              unsubscribedFromAll={false}
-            />
-          )}
-        </>
+        {showDesktopSound && (
+          <Kb.Checkbox onCheck={onToggleSound} checked={sound} label="Play a sound for new messages" />
+        )}
+        {showMobileSound && (
+          <Group
+            allowEdit={allowEdit}
+            groupName="sound"
+            onToggle={toggle}
+            settings={groups.get('sound')!.settings}
+            unsubscribedFromAll={false}
+          />
+        )}
       </Kb.Box2>
     </>
   )
@@ -474,17 +473,15 @@ const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
       <Kb.Divider style={styles.divider} />
       <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.innerContainer}>
         <Kb.Text type="Header">Misc</Kb.Text>
-        <>
-          {!!groups.get('misc')?.settings && (
-            <Group
-              allowEdit={allowEdit}
-              groupName="misc"
-              onToggle={toggle}
-              settings={groups.get('misc')!.settings}
-              unsubscribedFromAll={false}
-            />
-          )}
-        </>
+        {!!groups.get('misc')?.settings && (
+          <Group
+            allowEdit={allowEdit}
+            groupName="misc"
+            onToggle={toggle}
+            settings={groups.get('misc')!.settings}
+            unsubscribedFromAll={false}
+          />
+        )}
       </Kb.Box2>
     </>
   )
@@ -524,7 +521,6 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  btnContainer: {alignSelf: 'flex-start'},
   checkboxIndented: Kb.Styles.platformStyles({
     isElectron: {paddingLeft: Kb.Styles.globalMargins.medium},
     isMobile: {paddingBottom: Kb.Styles.globalMargins.medium, paddingLeft: Kb.Styles.globalMargins.small},

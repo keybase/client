@@ -333,7 +333,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   password: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
-    flexGrow: 1,
+    ...Kb.Styles.globalStyles.flexGrow,
   },
   primaryOnYellow: {backgroundColor: Kb.Styles.globalColors.white},
   primaryOnYellowLabel: {color: Kb.Styles.globalColors.brown_75OrYellow},

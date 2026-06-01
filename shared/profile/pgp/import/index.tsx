@@ -38,8 +38,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       body: {
-        marginBottom: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
       },
       header: {
         marginTop: Kb.Styles.globalMargins.medium,
@@ -50,8 +49,7 @@ const styles = Kb.Styles.styleSheetCreate(
           borderRadius: Kb.Styles.borderRadius,
           boxSizing: 'content-box',
           color: Kb.Styles.globalColors.white,
-          marginLeft: -Kb.Styles.globalMargins.medium,
-          marginRight: -Kb.Styles.globalMargins.medium,
+          ...Kb.Styles.marginH(-Kb.Styles.globalMargins.medium),
           padding: Kb.Styles.globalMargins.medium,
           textAlign: 'left',
         } as const,

@@ -106,8 +106,7 @@ const styles = Kb.Styles.styleSheetCreate(
       dividerBoxInline: {
         flex: 1,
         height: '100%',
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       dividerBox: Kb.Styles.platformStyles({
         common: {

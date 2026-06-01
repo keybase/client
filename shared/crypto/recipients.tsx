@@ -56,14 +56,15 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       recipientsContainer: {
         minHeight: recipientsRowHeight,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(
+          Kb.Styles.globalMargins.tiny,
+          Kb.Styles.globalMargins.tiny,
+          Kb.Styles.globalMargins.tiny,
+          Kb.Styles.globalMargins.xsmall
+        ),
       },
       removeRecipients: {
         ...Kb.Styles.globalStyles.flexGrow,
-        ...Kb.Styles.globalStyles.flexBoxRow,
         justifyContent: 'flex-end',
         marginRight: Kb.Styles.globalMargins.tiny,
         textAlign: 'right',

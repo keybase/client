@@ -263,7 +263,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           flexGrow: 1,
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
           width: '100%',

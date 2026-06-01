@@ -297,9 +297,9 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 240,
       },
       list: {
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         marginBottom: 10,
         marginLeft: Kb.Styles.globalMargins.tiny,
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         maxWidth: 460,
       },
     }) as const
