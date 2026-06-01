@@ -44,7 +44,7 @@ const UnlockFolders = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Box2 direction="vertical" relative={true} style={styles.container}>
       <Kb.Box2 direction="vertical" style={styles.header}>
         <DragHeader icon={true} type="Default" title="" onClose={props.onClose} />
       </Kb.Box2>
@@ -58,7 +58,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         height: 300,
-        position: 'relative',
         width: 500,
       },
 

@@ -87,7 +87,7 @@ const RoleRow = (p: RoleRowProps) => {
       direction="vertical"
       fullWidth={true}
       alignItems="flex-start"
-          relative={true}
+      relative={true}
       style={p.selected ? undefined : styles.row}
     >
       {p.disabledReason ? (
@@ -233,12 +233,12 @@ const roleAbilities = (
       direction="horizontal"
       alignItems="flex-start"
       fullWidth={true}
-      style={{
-        flexShrink: 0,
-        ...(addFinalPadding && i === abilities.length - 1
+      noShrink={true}
+      style={
+        addFinalPadding && i === abilities.length - 1
           ? {paddingBottom: Kb.Styles.globalMargins.tiny}
-          : undefined),
-      }}
+          : undefined
+      }
     >
       <Kb.Icon
         type={canDo ? 'iconfont-check' : 'iconfont-block'}
@@ -361,9 +361,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       popupHeader: Kb.Styles.platformStyles({
         common: {
-          borderBottomColor: Kb.Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid' as const,
+          ...Kb.Styles.bottomDivider(),
           justifyContent: 'space-between',
         },
         isAndroid: {height: 56},

@@ -315,10 +315,6 @@ const styles = Kb.Styles.styleSheetCreate(
       whiteBackground: {
         backgroundColor: Kb.Styles.globalColors.white,
       },
-      whiteHeaderContainer: {
-        borderBottomColor: Kb.Styles.globalColors.black_10,
-        borderBottomWidth: 1,
-        borderStyle: 'solid',
-      },
+      whiteHeaderContainer: Kb.Styles.bottomDivider(),
     }) as const
 )

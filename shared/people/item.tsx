@@ -86,9 +86,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
-      borderBottomColor: Kb.Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
+      ...Kb.Styles.bottomDivider(),
       ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
       position: 'relative',
     },

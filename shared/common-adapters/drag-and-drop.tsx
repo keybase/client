@@ -109,8 +109,9 @@ const DragAndDrop = (props: Props): React.ReactNode => {
       direction="vertical"
       fullHeight={props.fullHeight}
       fullWidth={props.fullWidth}
+      relative={true}
       onDragOver={_onDragOver as never}
-      style={Styles.collapseStyles([styles.containerStyle, props.containerStyle])}
+      style={props.containerStyle}
     >
       {props.children}
       {showDropOverlay && _dropOverlay()}
@@ -119,9 +120,6 @@ const DragAndDrop = (props: Props): React.ReactNode => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  containerStyle: {
-    position: 'relative',
-  },
   dropOverlay: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,

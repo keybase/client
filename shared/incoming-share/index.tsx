@@ -247,10 +247,8 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-          <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
-        </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
+        <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
       </Kb.Box2>
       {footer ? (
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>

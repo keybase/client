@@ -81,10 +81,10 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         backgroundColor: Kb.Styles.globalColors.blueLighter3,
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingLeft: Kb.Styles.globalMargins.medium,
-        paddingRight: Kb.Styles.globalMargins.medium,
-        paddingTop: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.padding(
+          Kb.Styles.globalMargins.small,
+          Kb.Styles.globalMargins.medium
+        ),
       },
       iconBox: {marginBottom: Kb.Styles.globalMargins.xtiny},
     }) as const

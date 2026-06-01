@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Styles from '@/styles'
 import {Animated, PanResponder, View, type GestureResponderEvent, type PanResponderGestureState, type ViewStyle} from 'react-native'
 
 export type SwipeableMethods = {
@@ -123,11 +124,9 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
   const animStyle = React.useMemo(() => ({transform: [{translateX: translationX}]}), [translationX])
 
   return (
-    <View style={[{overflow: 'hidden'}, containerStyle]}>
+    <View style={[styles.outerOverflow as ViewStyle, containerStyle]}>
       {renderRightActions && (
-        <View
-          style={{bottom: 0, flexDirection: 'row-reverse', left: 0, overflow: 'hidden', position: 'absolute', right: 0, top: 0}}
-        >
+        <View style={styles.actionsContainer as ViewStyle}>
           <View
             style={{flexDirection: 'row'}}
             onLayout={e => {
@@ -148,3 +147,12 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
 })
 
 export default SwipeableRow
+
+const styles = Styles.styleSheetCreate(() => ({
+  actionsContainer: {
+    ...Styles.globalStyles.fillAbsolute,
+    flexDirection: 'row-reverse',
+    overflow: 'hidden',
+  },
+  outerOverflow: {overflow: 'hidden'},
+}))

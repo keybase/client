@@ -133,7 +133,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       reminderText: {marginTop: Kb.Styles.globalMargins.tiny},
       revokeIcon: {bottom: -8, position: 'absolute', right: -10},
-      siteIcon: isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
+      siteIcon: isMobile ? Kb.Styles.size(64) : Kb.Styles.size(48),
     }) as const
 )
 

@@ -198,7 +198,6 @@ const nativeStyles = Styles.styleSheetCreate(() => ({
     margin: Styles.globalMargins.xtiny,
     overflow: 'hidden',
     ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-    width: 140,
   },
   wrapper: {
     ...Styles.globalStyles.fillAbsolute,

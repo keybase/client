@@ -23,14 +23,14 @@ const PushPrompt = () => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooterNoBorder, styles.footer])}>
-          <Kb.WaitingButton
-            fullWidth={true}
-            onClick={onRequestPermissions}
-            label="Allow notifications"
-            waitingKey={C.waitingKeyPushPermissionsRequesting}
-            style={styles.button}
-            type="Success"
-          />
+        <Kb.WaitingButton
+          fullWidth={true}
+          onClick={onRequestPermissions}
+          label="Allow notifications"
+          waitingKey={C.waitingKeyPushPermissionsRequesting}
+          style={styles.button}
+          type="Success"
+        />
       </Kb.Box2>
     </>
   )

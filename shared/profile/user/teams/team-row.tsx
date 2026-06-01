@@ -26,10 +26,7 @@ const TeamRow = ({isOpen, loading = false, name, onClick, popup, popupAnchor}: P
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  loading: {
-    height: 16,
-    width: 16,
-  },
+  loading: Kb.Styles.size(16),
   row: {
     alignItems: 'center',
   },

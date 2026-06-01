@@ -21,7 +21,7 @@ const ReactionItem = (props: Props) => {
     }, 100)
   }
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={styles.container} justifyContent="space-between">
+    <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} alignItems="center" style={styles.container} justifyContent="space-between">
       {topReacjis.map((r, idx) => (
         <Kb.ClickableBox direction="vertical" centerChildren={true} key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
           <Kb.Emoji userReacji={r} noAnim={true} showTooltip={false} size={28} />
@@ -41,9 +41,7 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 40,
       },
       container: {
-        alignItems: 'center',
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
     }) as const
 )

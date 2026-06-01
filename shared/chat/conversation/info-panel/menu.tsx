@@ -463,7 +463,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
       <Kb.BoxGrow2 />
       {teamHumanCount ? (
         <Kb.Meta
-          style={{alignSelf: 'center'}}
+          style={styles.meta}
           backgroundColor={Kb.Styles.globalColors.blueGrey}
           color={Kb.Styles.globalColors.black_50}
           icon="iconfont-people-solid"
@@ -498,9 +498,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       headerContainer: Kb.Styles.platformStyles({
         common: {
-          borderBottomColor: Kb.Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid',
+          ...Kb.Styles.bottomDivider(),
         },
         isElectron: {
           ...Kb.Styles.padding(
@@ -520,6 +518,7 @@ const styles = Kb.Styles.styleSheetCreate(
           wordBreak: 'break-word',
         } as const,
       }),
+      meta: {alignSelf: 'center'},
       teamHeader: {
         borderStyle: 'solid',
         borderTopColor: Kb.Styles.globalColors.black_10,

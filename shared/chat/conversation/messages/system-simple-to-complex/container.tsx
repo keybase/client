@@ -24,7 +24,7 @@ function SystemSimpleToComplexContainer(p: OwnProps) {
         direction="vertical"
         alignSelf="flex-start"
         gap="tiny"
-        style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xtiny}}
+        style={styles.bulletList}
       >
         <Kb.Text type="BodySmall">
           <Kb.Text type="BodySmall" style={styles.bullet}>
@@ -41,7 +41,7 @@ function SystemSimpleToComplexContainer(p: OwnProps) {
           <Kb.Text
             onClick={onManageChannels}
             type="BodySmallSemiboldSecondaryLink"
-            style={{color: Kb.Styles.globalColors.blueDark}}
+            style={styles.link}
           >
             Browse other channels
           </Kb.Text>
@@ -55,6 +55,11 @@ const bullet = '\u2022 '
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   bullet: {marginRight: Kb.Styles.globalMargins.small},
+  bulletList: {
+    marginLeft: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.xtiny,
+  },
+  link: {color: Kb.Styles.globalColors.blueDark},
 }))
 
 export default SystemSimpleToComplexContainer

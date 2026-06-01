@@ -38,6 +38,7 @@ const Row = (p: {account: Account}) => {
       direction="vertical"
       alignSelf="flex-start"
       alignItems="flex-start"
+      noShrink={true}
       style={styles.row}
       fullWidth={isMobile}
     >
@@ -195,7 +196,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGreyLight,
           borderRadius: Kb.Styles.borderRadius,
-          flexShrink: 0,
         },
         isElectron: {
           padding: 8,

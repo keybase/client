@@ -37,6 +37,7 @@ const PaperKey = () => {
       centerChildren={true}
       style={styles.container}
       gap="medium"
+      padding="medium"
     >
       <Kb.Text type="Header">Paper key generated!</Kb.Text>
       <Kb.Text type="Body" center={true}>
@@ -76,7 +77,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         alignSelf: 'center',
         maxWidth: isMobile ? undefined : 560,
-        padding: Kb.Styles.globalMargins.medium,
       },
       keyBox: {
         backgroundColor: Kb.Styles.globalColors.white,

@@ -153,25 +153,15 @@ const TeamSelectionPopup = (props: TeamProps) => {
 }
 
 const ChannelSelectionPopup = (props: ChannelProps) => {
-  const {conversationIDKey, selectedTab, teamID} = props
+  const {conversationIDKey, teamID} = props
   const {clearSelectedMembers, selectedMembers} = useChannelSelectionState()
   const selectedCount = selectedMembers.size
-  const onCancel = () => {
-    switch (selectedTab) {
-      // eslint-disable-next-line
-      case 'channelMembers':
-        clearSelectedMembers()
-        return
-    }
-  }
-
-  const selectableTabName = channelSelectableTabNames[selectedTab]
 
   return (
     <JointSelectionPopup
-      selectableTabName={selectableTabName}
+      selectableTabName={channelSelectableTabNames.channelMembers}
       selectedCount={selectedCount}
-      onCancel={onCancel}
+      onCancel={clearSelectedMembers}
     >
       <ChannelMembersActions conversationIDKey={conversationIDKey} teamID={teamID} />
     </JointSelectionPopup>

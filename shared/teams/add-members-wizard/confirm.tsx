@@ -186,13 +186,13 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Button
-            fullWidth={true}
-            label={`Invite ${addingMembers.length} ${noun} & finish`}
-            waiting={waiting}
-            onClick={onComplete}
-            disabled={addingMembers.length === 0}
-          />
+        <Kb.Button
+          fullWidth={true}
+          label={`Invite ${addingMembers.length} ${noun} & finish`}
+          waiting={waiting}
+          onClick={onComplete}
+          disabled={addingMembers.length === 0}
+        />
       </Kb.Box2>
     </>
   )
@@ -244,37 +244,37 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
 const AddMoreMembers = ({wizard}: {wizard: AddMembersWizard}) => {
   const nav = useSafeNavigation()
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onAddKeybase = () =>
-        nav.safeNavigateAppend({
-          name: 'teamsTeamBuilder',
-          params: {
-            addMembersWizard: wizard,
-            filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
-            goButtonLabel: 'Add',
-            namespace: 'teams',
-            teamID: wizard.teamID,
-            title: '',
-          },
-        })
-      const onAddContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {wizard}})
-      const onAddPhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {wizard}})
-      const onAddEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          onHidden={hidePopup}
-          visible={true}
-          items={[
-            {onClick: onAddKeybase, title: 'From Keybase'},
-            ...(isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
-            {onClick: onAddEmail, title: 'By email address'},
-            {onClick: onAddPhone, title: 'By phone number'},
-          ]}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    const onAddKeybase = () =>
+      nav.safeNavigateAppend({
+        name: 'teamsTeamBuilder',
+        params: {
+          addMembersWizard: wizard,
+          filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+          goButtonLabel: 'Add',
+          namespace: 'teams',
+          teamID: wizard.teamID,
+          title: '',
+        },
+      })
+    const onAddContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {wizard}})
+    const onAddPhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {wizard}})
+    const onAddEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        onHidden={hidePopup}
+        visible={true}
+        items={[
+          {onClick: onAddKeybase, title: 'From Keybase'},
+          ...(isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
+          {onClick: onAddEmail, title: 'By email address'},
+          {onClick: onAddPhone, title: 'By phone number'},
+        ]}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
@@ -476,11 +476,11 @@ const DefaultChannels = ({
   const allKeybaseUsers = !wizard.addingMembers.some(member => member.assertion.includes('@'))
   const onChangeFromDefault = () => updateWizard(setWizardDefaultChannels(wizard, []))
   const onAdd = (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => {
-      updateWizard(setWizardDefaultChannels(wizard, toAdd))
-    }
+    updateWizard(setWizardDefaultChannels(wizard, toAdd))
+  }
   const onRemove = (toRemove: T.Teams.ChannelNameID) => {
-      updateWizard(setWizardDefaultChannels(wizard, undefined, toRemove))
-    }
+    updateWizard(setWizardDefaultChannels(wizard, undefined, toRemove))
+  }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>

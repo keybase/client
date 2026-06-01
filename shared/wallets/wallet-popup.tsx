@@ -91,10 +91,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   scrollView: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
-    flexGrow: 1,
+    ...Kb.Styles.globalStyles.flexGrow,
     ...Kb.Styles.size('100%'),
   },
-  scrollViewContentContainer: {...Kb.Styles.globalStyles.flexBoxColumn, flexGrow: 1},
+  scrollViewContentContainer: {...Kb.Styles.globalStyles.flexBoxColumn, ...Kb.Styles.globalStyles.flexGrow},
 }))
 
 export const walletModalIconStyle = Kb.Styles.platformStyles({

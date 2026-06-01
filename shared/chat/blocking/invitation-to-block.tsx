@@ -171,8 +171,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       dismissContainer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        paddingBottom: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.xsmall,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
       },
       dismissIcon: {
         position: 'absolute',

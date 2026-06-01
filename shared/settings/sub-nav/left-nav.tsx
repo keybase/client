@@ -14,140 +14,139 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
-const {navigate} = props
+  const {navigate} = props
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   return (
     <Kb.ScrollView style={styles.container} testID={TestIDs.SETTINGS_ACCOUNT}>
-        {Kb.Styles.isTablet && (
-          <>
-            <SettingsItem
-              icon="iconfont-nav-2-crypto"
-              text="Crypto"
-              type={Settings.settingsCryptoTab}
-              selected={props.selected === Settings.settingsCryptoTab}
-              onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(C.Tabs.cryptoTab)}
-            />
-            <SettingsItem
-              icon="iconfont-nav-2-git"
-              text="Git"
-              type={Settings.settingsGitTab}
-              selected={props.selected === Settings.settingsGitTab}
-              onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(C.Tabs.gitTab)}
-            />
-            <SettingsItem
-              text="Devices"
-              icon="iconfont-nav-2-devices"
-              type={Settings.settingsDevicesTab}
-              selected={props.selected === Settings.settingsDevicesTab}
-              onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(C.Tabs.devicesTab)}
-            />
-            <Kb.SectionDivider label="Settings" />
-          </>
-        )}
-        <SettingsItem
-          text="Account"
-          selected={props.selected === Settings.settingsAccountTab}
-          type={Settings.settingsAccountTab}
-          onClick={props.onClick}
-          badgeNumber={badgeNumbers.get(C.Tabs.settingsTab)}
-        />
-        <SettingsItem
-          text="Advanced"
-          type={Settings.settingsAdvancedTab}
-          selected={props.selected === Settings.settingsAdvancedTab}
-          onClick={props.onClick}
-        />
-        <SettingsItem
-          text="Backup"
-          type={Settings.settingsArchiveTab}
-          selected={props.selected === Settings.settingsArchiveTab}
-          onClick={props.onClick}
-        />
-        <SettingsItem
-          text="Chat"
-          type={Settings.settingsChatTab}
-          selected={props.selected === Settings.settingsChatTab}
-          onClick={props.onClick}
-        />
-        {Kb.Styles.isTablet && props.contactsLabel && (
+      {Kb.Styles.isTablet && (
+        <>
           <SettingsItem
-            text={props.contactsLabel}
-            type={Settings.settingsContactsTab}
-            selected={props.selected === Settings.settingsContactsTab}
+            icon="iconfont-nav-2-crypto"
+            text="Crypto"
+            type={Settings.settingsCryptoTab}
+            selected={props.selected === Settings.settingsCryptoTab}
             onClick={props.onClick}
+            badgeNumber={badgeNumbers.get(C.Tabs.cryptoTab)}
           />
-        )}
-        <SettingsItem
-          text="Display"
-          type={Settings.settingsDisplayTab}
-          selected={props.selected === Settings.settingsDisplayTab}
-          onClick={props.onClick}
-        />
-        <SettingsItem
-          text="Feedback"
-          type={Settings.settingsFeedbackTab}
-          selected={props.selected === Settings.settingsFeedbackTab}
-          onClick={props.onClick}
-        />
-        <SettingsItem
-          text="Files"
-          type={Settings.settingsFsTab}
-          selected={props.selected === Settings.settingsFsTab}
-          onClick={props.onClick}
-        />
-        <SettingsItem
-          badgeNumber={badgeNotifications}
-          text="Notifications"
-          type={Settings.settingsNotificationsTab}
-          selected={props.selected === Settings.settingsNotificationsTab}
-          onClick={props.onClick}
-        />
-
-        {!Kb.Styles.isTablet && (
           <SettingsItem
-            text="Screen protector"
-            type={Settings.settingsScreenprotectorTab}
-            selected={props.selected === Settings.settingsScreenprotectorTab}
+            icon="iconfont-nav-2-git"
+            text="Git"
+            type={Settings.settingsGitTab}
+            selected={props.selected === Settings.settingsGitTab}
             onClick={props.onClick}
+            badgeNumber={badgeNumbers.get(C.Tabs.gitTab)}
           />
-        )}
+          <SettingsItem
+            text="Devices"
+            icon="iconfont-nav-2-devices"
+            type={Settings.settingsDevicesTab}
+            selected={props.selected === Settings.settingsDevicesTab}
+            onClick={props.onClick}
+            badgeNumber={badgeNumbers.get(C.Tabs.devicesTab)}
+          />
+          <Kb.SectionDivider label="Settings" />
+        </>
+      )}
+      <SettingsItem
+        text="Account"
+        selected={props.selected === Settings.settingsAccountTab}
+        type={Settings.settingsAccountTab}
+        onClick={props.onClick}
+        badgeNumber={badgeNumbers.get(C.Tabs.settingsTab)}
+      />
+      <SettingsItem
+        text="Advanced"
+        type={Settings.settingsAdvancedTab}
+        selected={props.selected === Settings.settingsAdvancedTab}
+        onClick={props.onClick}
+      />
+      <SettingsItem
+        text="Backup"
+        type={Settings.settingsArchiveTab}
+        selected={props.selected === Settings.settingsArchiveTab}
+        onClick={props.onClick}
+      />
+      <SettingsItem
+        text="Chat"
+        type={Settings.settingsChatTab}
+        selected={props.selected === Settings.settingsChatTab}
+        onClick={props.onClick}
+      />
+      {Kb.Styles.isTablet && props.contactsLabel && (
         <SettingsItem
-          text="Wallet"
-          type={Settings.settingsWalletsTab}
-          selected={props.selected === Settings.settingsWalletsTab}
+          text={props.contactsLabel}
+          type={Settings.settingsContactsTab}
+          selected={props.selected === Settings.settingsContactsTab}
           onClick={props.onClick}
         />
-        {__DEV__ && (
-          <SettingsItem
-            text="Typography"
-            type={Settings.settingsTypographyTab}
-            selected={props.selected === Settings.settingsTypographyTab}
-            onClick={props.onClick}
-          />
-        )}
-        {__DEV__ && (
-          <SettingsItem
-            text="Icons"
-            type={Settings.settingsIconsTab}
-            selected={props.selected === Settings.settingsIconsTab}
-            onClick={props.onClick}
-          />
-        )}
-        <Kb.Divider />
+      )}
+      <SettingsItem
+        text="Display"
+        type={Settings.settingsDisplayTab}
+        selected={props.selected === Settings.settingsDisplayTab}
+        onClick={props.onClick}
+      />
+      <SettingsItem
+        text="Feedback"
+        type={Settings.settingsFeedbackTab}
+        selected={props.selected === Settings.settingsFeedbackTab}
+        onClick={props.onClick}
+      />
+      <SettingsItem
+        text="Files"
+        type={Settings.settingsFsTab}
+        selected={props.selected === Settings.settingsFsTab}
+        onClick={props.onClick}
+      />
+      <SettingsItem
+        badgeNumber={badgeNotifications}
+        text="Notifications"
+        type={Settings.settingsNotificationsTab}
+        selected={props.selected === Settings.settingsNotificationsTab}
+        onClick={props.onClick}
+      />
+      {!Kb.Styles.isTablet && (
         <SettingsItem
-          text="About"
-          type={Settings.settingsAboutTab}
-          selected={props.selected === Settings.settingsAboutTab}
+          text="Screen protector"
+          type={Settings.settingsScreenprotectorTab}
+          selected={props.selected === Settings.settingsScreenprotectorTab}
           onClick={props.onClick}
         />
-        {/* TODO: Do something with logoutInProgress once Offline is
-        removed from the settings page. */}
-        <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={() => navigate(Settings.settingsLogOutTab)} />
+      )}
+      <SettingsItem
+        text="Wallet"
+        type={Settings.settingsWalletsTab}
+        selected={props.selected === Settings.settingsWalletsTab}
+        onClick={props.onClick}
+      />
+      {__DEV__ && (
+        <SettingsItem
+          text="Typography"
+          type={Settings.settingsTypographyTab}
+          selected={props.selected === Settings.settingsTypographyTab}
+          onClick={props.onClick}
+        />
+      )}
+      {__DEV__ && (
+        <SettingsItem
+          text="Icons"
+          type={Settings.settingsIconsTab}
+          selected={props.selected === Settings.settingsIconsTab}
+          onClick={props.onClick}
+        />
+      )}
+      <Kb.Divider />
+      <SettingsItem
+        text="About"
+        type={Settings.settingsAboutTab}
+        selected={props.selected === Settings.settingsAboutTab}
+        onClick={props.onClick}
+      />
+      {/* TODO: Do something with logoutInProgress once Offline is
+      removed from the settings page. */}
+      <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={() => navigate(Settings.settingsLogOutTab)} />
     </Kb.ScrollView>
   )
 }
@@ -155,8 +154,8 @@ const {navigate} = props
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
       backgroundColor: Kb.Styles.globalColors.blueGrey,
+      flexDirection: 'column',
     },
     isElectron: {
       height: '100%',

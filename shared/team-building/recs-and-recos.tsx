@@ -187,10 +187,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      searchHint: {
-        paddingLeft: Kb.Styles.globalMargins.xlarge,
-        paddingRight: Kb.Styles.globalMargins.xlarge,
-        paddingTop: Kb.Styles.globalMargins.xlarge,
-      },
+      searchHint: Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.xlarge, 0),
     }) as const
 )

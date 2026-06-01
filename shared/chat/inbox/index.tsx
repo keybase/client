@@ -588,7 +588,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       body: {
         flex: 1,
         minHeight: 0,
-        width: '100%',
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -721,10 +720,8 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       },
       noChatsContainer: {
         alignItems: 'center',
-        paddingBottom: Kb.Styles.globalMargins.large,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.large,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
       },
     }) as const
 )

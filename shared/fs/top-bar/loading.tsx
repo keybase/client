@@ -12,10 +12,7 @@ type OwnProps = {path: T.FS.Path}
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      progressIndicator: {
-        height: 18,
-        width: 18,
-      },
+      progressIndicator: Kb.Styles.size(18),
     }) as const
 )
 

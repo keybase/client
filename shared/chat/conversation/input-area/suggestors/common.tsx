@@ -123,10 +123,7 @@ export const styles = Kb.Styles.styleSheetCreate(
       }),
       suggestionBase: {
         alignItems: 'center',
-        paddingBottom: Kb.Styles.globalMargins.xtiny,
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-        paddingRight: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
       },
     }) as const
 )

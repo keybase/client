@@ -199,28 +199,23 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isPhone: {minHeight: 72},
   }),
-  avatarRelative: {
-    height: 32,
-    width: 32,
-  },
+  avatarRelative: Kb.Styles.size(32),
   badge: {
     position: 'absolute',
     right: -5,
     top: -5,
   },
   bodyDesktop: {
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
     flexGrow: 1,
     minHeight: smallHeight,
-    paddingBottom: Kb.Styles.globalMargins.tiny,
-    paddingTop: Kb.Styles.globalMargins.tiny,
   },
   bodyLeft: {
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   bodyMobile: {
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
     minHeight: 72,
-    paddingBottom: Kb.Styles.globalMargins.tiny,
-    paddingTop: Kb.Styles.globalMargins.tiny,
   },
   bodyRight: {
     flex: 0.7,

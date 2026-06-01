@@ -122,15 +122,15 @@ export const UpdatePassword = (props: Props) => {
         </Kb.Box2>
       </Kb.ScrollView>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button
-              fullWidth={true}
-              label={props.saveLabel || 'Save'}
-              disabled={!canSubmit()}
-              onClick={() => props.onSave(password)}
-              waiting={props.waitingForResponse}
-            />
-          </Kb.ButtonBar>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.Button
+            fullWidth={true}
+            label={props.saveLabel || 'Save'}
+            disabled={!canSubmit()}
+            onClick={() => props.onSave(password)}
+            waiting={props.waitingForResponse}
+          />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </>
   )

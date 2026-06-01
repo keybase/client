@@ -267,7 +267,7 @@ const Tracker = (props: Props) => {
           </Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} relative={true} noShrink={true}>
             <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
-            <Kb.Box2 direction="vertical" centerChildren={true} gap="tiny" style={styles.nameWithIconContainer}>
+            <Kb.Box2 direction="vertical" centerChildren={true} gap="tiny" alignSelf="center">
               <img
                 src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, isDarkMode)}
                 width={96}
@@ -322,17 +322,14 @@ const reason = {
   alignSelf: 'center' as const,
   color: Kb.Styles.globalColors.white,
   flexShrink: 0,
-  paddingBottom: Kb.Styles.globalMargins.small,
-  paddingLeft: Kb.Styles.globalMargins.medium,
-  paddingRight: Kb.Styles.globalMargins.medium,
-  paddingTop: Kb.Styles.globalMargins.small,
+  ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.medium),
   textAlign: 'center' as const,
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      assertionRow: {paddingBottom: 4, paddingTop: 4},
+      assertionRow: {...Kb.Styles.paddingV(4)},
       assertionSite: {color: Kb.Styles.globalColors.black_20},
       assertionTextContainer: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
@@ -344,8 +341,7 @@ const styles = Kb.Styles.styleSheetCreate(
       assertions: {
         backgroundColor: Kb.Styles.globalColors.white,
         flexShrink: 0,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         paddingTop: Kb.Styles.globalMargins.small,
       },
       avatar: {borderRadius: '50%'} as const,
@@ -368,10 +364,7 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.red_20,
         borderRadius: Kb.Styles.borderRadius,
         margin: Kb.Styles.globalMargins.small,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       },
       bold: {...Kb.Styles.globalStyles.fontBold},
       buttons: Kb.Styles.platformStyles({
@@ -380,7 +373,6 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.white_90,
           flexShrink: 0,
           height: barHeight,
-          position: 'absolute',
           top: undefined,
         },
         isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
@@ -396,17 +388,14 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
       },
       fullNameContainer: {
-        paddingLeft: Kb.Styles.globalMargins.mediumLarge,
-        paddingRight: Kb.Styles.globalMargins.mediumLarge,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
       },
       header: {
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         position: 'absolute',
         zIndex: 9,
       },
       metaContainer: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4},
-      nameWithIconContainer: {alignSelf: 'center' as const},
       reason: Kb.Styles.platformStyles({
         common: {
           ...reason,

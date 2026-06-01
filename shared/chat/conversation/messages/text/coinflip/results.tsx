@@ -282,7 +282,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
 
 const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
   <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
-    <Kb.Box2 direction="vertical" centerChildren={true} alignItems="center" style={styles.listOrderContainer}>
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.listOrderContainer}>
       <Kb.Text
         selectable={true}
         center={true}
@@ -389,8 +389,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       listOrderContainer: {
-        marginLeft: Kb.Styles.globalMargins.xtiny,
-        marginRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
         width: 20,
       },
       listOrderFirst: Kb.Styles.platformStyles({

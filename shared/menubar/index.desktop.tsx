@@ -250,8 +250,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
           Recent files
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        {remoteTlfUpdates.map(update => {
+      {remoteTlfUpdates.map(update => {
           const tlf = T.FS.pathToString(update.tlf)
           const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
           const tlfType = T.FS.getPathVisibility(update.tlf) || T.FS.TlfType.Private
@@ -301,7 +300,6 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
             </Kb.Box2>
           )
         })}
-      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -516,7 +514,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
         fullWidth={true}
         fullHeight={true}
         centerChildren={true}
-        style={styles.loggedOutContainer}
+        padding="small"
       >
         <Kb.Box2 direction="vertical">
           <Kb.ImageIcon
@@ -680,7 +678,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.mediumLarge,
   },
   loadingContainer: {height: 200},
-  loggedOutContainer: {padding: Kb.Styles.globalMargins.small},
   loggedOutText: {alignSelf: 'center', marginTop: 6},
   logo: {
     alignSelf: 'center',
@@ -695,16 +692,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   tlfParticipants: {fontSize: 12},
   tlfRowContainer: {
-    paddingBottom: Kb.Styles.globalMargins.tiny,
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny),
   },
   tlfSectionHeader: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
     color: Kb.Styles.globalColors.black_50,
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, 0, Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
   },
   tlfSectionHeaderContainer: {backgroundColor: Kb.Styles.globalColors.white},
   tlfTime: {marginRight: Kb.Styles.globalMargins.tiny},

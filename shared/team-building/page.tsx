@@ -130,8 +130,7 @@ const getOptions = ({route}: OwnProps) => {
       overlayAvoidTabs: true,
       overlayStyle: {
         alignSelf: 'flex-start',
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
         paddingTop: Kb.Styles.globalMargins.mediumLarge,
       } as const,
       overlayTransparent: true,

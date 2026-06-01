@@ -151,8 +151,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       belly: {
         ...Kb.Styles.globalStyles.flexGrow,
         marginBottom: Kb.Styles.globalMargins.small,
-        paddingLeft: Kb.Styles.globalMargins.large,
-        paddingRight: Kb.Styles.globalMargins.large,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
       },
       buttonBar: {alignItems: 'center'},
       container: Kb.Styles.platformStyles({

@@ -63,6 +63,7 @@ function SeparatorConnector(p: Props) {
   return (
     <Kb.Box2
       direction="horizontal"
+      relative={true}
       style={styles.container}
       fullWidth={true}
       pointerEvents="box-none"
@@ -83,9 +84,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: Kb.Styles.platformStyles({
-        common: {
-          position: 'relative',
-        },
         isElectron: {
           marginBottom: 0,
           paddingTop: 5,

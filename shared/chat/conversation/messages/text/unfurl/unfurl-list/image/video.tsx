@@ -34,10 +34,7 @@ const sharedStyles = Kb.Styles.styleSheetCreate(
       playButton: {
         bottom: '50%',
         left: '50%',
-        marginBottom: -32,
-        marginLeft: -32,
-        marginRight: -32,
-        marginTop: -32,
+        margin: -32,
         position: 'absolute',
         right: '50%',
         top: '50%',

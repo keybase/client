@@ -11,13 +11,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.globalStyles.fillAbsolute,
     backgroundColor: Kb.Styles.globalColors.red,
     bottom: undefined,
-    padding: Kb.Styles.globalMargins.small,
     zIndex: 9999,
   },
   messageContainer: {
     backgroundColor: Kb.Styles.globalColors.white_90,
     borderRadius: Kb.Styles.borderRadius,
-    padding: Kb.Styles.globalMargins.medium,
   },
 }))
 
@@ -62,11 +60,11 @@ const OutOfDate = () => {
   const message = isMobile ? mobileMessage : outOfDate.message
 
   return !critical ? null : (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" padding="small" style={styles.container}>
       <Kb.Text center={true} type="Header" negative={true}>
         Your version of Keybase is critically out of date!
       </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
+      <Kb.Box2 direction="vertical" padding="medium" fullWidth={true} style={styles.messageContainer}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>
       {isMobile && <Kb.Button label="Update" onClick={openAppStore} />}

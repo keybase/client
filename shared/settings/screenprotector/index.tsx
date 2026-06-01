@@ -62,15 +62,13 @@ const Screenprotector = () => {
     }
 
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-          <Kb.Checkbox
-            label="Disable App switcher preview and screenshots"
-            onCheck={changeSecureFlagOption}
-            checked={!!secureFlag}
-            disabled={secureFlag === undefined}
-          />
-        </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
+        <Kb.Checkbox
+          label="Disable App switcher preview and screenshots"
+          onCheck={changeSecureFlagOption}
+          checked={!!secureFlag}
+          disabled={secureFlag === undefined}
+        />
       </Kb.Box2>
     )
   }
@@ -94,29 +92,21 @@ const Screenprotector = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Checkbox
-          label={
-            'Disable screenshots' +
-            (disableScreenshotInitialValue !== undefined &&
-            disableScreenshotInitialValue !== disableScreenshot
-              ? ' (restart required)'
-              : '')
-          }
-          disabled={disableScreenshot === undefined}
-          checked={!!disableScreenshot}
-          onCheck={onToggleDisableScreenshot}
-        />
-      </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
+      <Kb.Checkbox
+        label={
+          'Disable screenshots' +
+          (disableScreenshotInitialValue !== undefined &&
+          disableScreenshotInitialValue !== disableScreenshot
+            ? ' (restart required)'
+            : '')
+        }
+        disabled={disableScreenshot === undefined}
+        checked={!!disableScreenshot}
+        onCheck={onToggleDisableScreenshot}
+      />
     </Kb.Box2>
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-  },
-}))
 
 export default Screenprotector

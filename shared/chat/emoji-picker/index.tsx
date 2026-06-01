@@ -424,9 +424,8 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       bookmarkContainer: {
         height: 44,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       bookmarkScrollView: {
         flexGrow: 0,
@@ -434,7 +433,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 44,
       },
       emoji: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         ...Kb.Styles.centered(),
         borderRadius: 2,
         height: emojiWidthWithPadding,

@@ -252,7 +252,8 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     <Kb.Box2
       ref={measureRef}
       direction="horizontal"
-      style={Styles.collapseStyles([{alignItems: 'center'}, !isMobile && {width: '100%'}])}
+      alignItems="center"
+      style={!isMobile ? styles.insideFull : undefined}
       pointerEvents={isMobile && props.onClick ? 'none' : undefined}
     >
       {leftIcon()}
@@ -354,6 +355,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {marginTop: 2},
   }),
   input: {backgroundColor: Styles.globalColors.transparent},
+  insideFull: {width: '100%'},
   inputContainer: {
     ...Styles.globalStyles.flexGrow,
     backgroundColor: Styles.globalColors.transparent,

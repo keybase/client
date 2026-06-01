@@ -200,7 +200,7 @@ const Header = () => {
           {fullName}
         </Kb.Text>
       ) : withoutSelf ? (
-        <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="horizontal" flex={1}>
           <Kb.Text type="Header" lineClamp={1}>
             {withoutSelf.map((part, i) => (
               <Kb.Text type="Header" key={part}>

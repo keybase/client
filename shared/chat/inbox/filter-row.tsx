@@ -140,8 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: Kb.Styles.borderRadius,
         flexShrink: 1,
         height: 32,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
       },
       searchPlaceholderIcon: Kb.Styles.platformStyles({
         isElectron: {marginRight: Kb.Styles.globalMargins.tiny, marginTop: 2},

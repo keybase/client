@@ -16,7 +16,6 @@ const ChannelPopup = (props: Props) => {
   const {disabledChannels, onCancel, onComplete, teamID} = props
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
-  const onChangeFilter = (value: string) => setFilter(value)
 
   const {channelMetas} = useAllChannelMetas(teamID)
   const channels = [...channelMetas.values()].map(ci => ({
@@ -65,7 +64,7 @@ const ChannelPopup = (props: Props) => {
             channelsFiltered.length
           )}`}
           size="full-width"
-          onChange={onChangeFilter}
+          onChange={setFilter}
           style={styles.searchFilter}
           placeholderCentered={true}
           icon="iconfont-search"

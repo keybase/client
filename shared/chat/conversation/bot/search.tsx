@@ -140,7 +140,7 @@ const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.Conversat
     renderItem: ({index, item}: {index: number; item: Item}) => {
       return item.type === 'dummy' && item.value === resultEmptyPlaceholder ? (
         <Kb.Text
-          style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
+          style={styles.paddedItem}
           type="BodySmall"
         >
           No results were found
@@ -170,7 +170,7 @@ const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.Conversat
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
-          style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
+          style={styles.paddedItem}
         >
           {item.type === 'dummy' && item.value === userEmptyPlaceholder ? (
             <Kb.Text type="BodySmall">Enter a bot username above</Kb.Text>
@@ -220,6 +220,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   modal: Kb.Styles.platformStyles({
     isElectron: {height: 500},
   }),
+  paddedItem: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 
 export default SearchBotPopup

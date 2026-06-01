@@ -71,10 +71,7 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
         color: Kb.Styles.globalColors.black,
         maxWidth: '100%',
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
         width: 800,
       },
       text: Kb.Styles.platformStyles({

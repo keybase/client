@@ -181,8 +181,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       hashAndMessage: {
         height: 18,
-        marginBottom: Kb.Styles.globalMargins.xtiny,
-        marginTop: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny),
       },
       marker: {
         flexShrink: 0,

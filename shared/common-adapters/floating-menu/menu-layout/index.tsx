@@ -360,6 +360,15 @@ const styleRowText = (props: {
   return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
+const sharedIconBadgeStyle = {
+  ...Styles.paddingH(0),
+  ...Styles.size(Styles.globalMargins.tiny),
+  backgroundColor: Styles.globalColors.blue,
+  minWidth: 0,
+  position: 'relative',
+  right: Styles.globalMargins.xtiny,
+} as const
+
 const desktopStyles = Styles.styleSheetCreate(
   () =>
     ({
@@ -368,23 +377,13 @@ const desktopStyles = Styles.styleSheetCreate(
         marginLeft: 'auto',
       },
       divider: {
-        marginBottom: 8,
-        marginTop: 8,
+        ...Styles.marginV(8),
       },
       dividerFirst: {
         marginBottom: 8,
       },
       icon: {marginLeft: Styles.globalMargins.xtiny},
-      iconBadge: {
-        backgroundColor: Styles.globalColors.blue,
-        height: Styles.globalMargins.tiny,
-        minWidth: 0,
-        paddingLeft: 0,
-        paddingRight: 0,
-        position: 'relative',
-        right: Styles.globalMargins.xtiny,
-        width: Styles.globalMargins.tiny,
-      },
+      iconBadge: sharedIconBadgeStyle,
       itemBodyText: {color: undefined},
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -433,20 +432,10 @@ const nativeStyles = Styles.styleSheetCreate(
       },
       divider: {marginBottom: Styles.globalMargins.tiny},
       dividerInScrolleView: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
+        ...Styles.marginV(Styles.globalMargins.tiny),
       },
       firstIsUnWrapped: {paddingTop: 0},
-      iconBadge: {
-        backgroundColor: Styles.globalColors.blue,
-        height: Styles.globalMargins.tiny,
-        minWidth: 0,
-        paddingLeft: 0,
-        paddingRight: 0,
-        position: 'relative',
-        right: Styles.globalMargins.xtiny,
-        width: Styles.globalMargins.tiny,
-      },
+      iconBadge: sharedIconBadgeStyle,
       iconContainer: {
         width: 20,
       },
@@ -458,8 +447,7 @@ const nativeStyles = Styles.styleSheetCreate(
       },
       itemContainerWithSubTitle: {height: itemContainerHeight},
       itemContainerWrapped: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        ...Styles.paddingH(Styles.globalMargins.small),
       },
       menuBox: {
         backgroundColor: Styles.globalColors.white,
@@ -470,9 +458,7 @@ const nativeStyles = Styles.styleSheetCreate(
       menuGroup: {
         justifyContent: 'flex-end',
       },
-      progressIndicator: {
-        ...Styles.globalStyles.fillAbsolute,
-      },
+      progressIndicator: Styles.globalStyles.fillAbsolute,
       safeArea: {backgroundColor: Styles.globalColors.white},
       safeProvider: {
         flex: 0,
@@ -480,8 +466,7 @@ const nativeStyles = Styles.styleSheetCreate(
       },
       scrollView: {
         flexGrow: 1,
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
+        ...Styles.marginV(Styles.globalMargins.tiny),
       },
     }) as const
 )

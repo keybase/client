@@ -208,7 +208,7 @@ const MediaThumb = (props: MediaThumbProps) => {
         )}
       </Kb.ClickableBox>
       {thumb.typ === ThumbTyp.VIDEO && (
-        <Kb.Box2 direction="vertical" style={styles.durationContainer}>
+        <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.durationContainer}>
           <Kb.ImageIcon type="icon-film-64" style={styles.filmIcon} />
         </Kb.Box2>
       )}
@@ -360,15 +360,11 @@ const styles = Kb.Styles.styleSheetCreate(
         } as const,
       }),
       durationContainer: {
-        alignSelf: 'flex-start',
         bottom: Kb.Styles.globalMargins.xtiny,
         position: 'absolute',
         right: Kb.Styles.globalMargins.xtiny,
       },
-      filmIcon: {
-        height: 16,
-        width: 16,
-      },
+      filmIcon: Kb.Styles.size(16),
       flexWrap: {flexWrap: 'wrap'},
       linkContainer: {padding: Kb.Styles.globalMargins.tiny},
       linkStyle: Kb.Styles.platformStyles({

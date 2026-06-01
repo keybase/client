@@ -81,10 +81,7 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         maxWidth: 700,
         minWidth: 700,
-        paddingBottom: Kb.Styles.globalMargins.mediumLarge,
-        paddingLeft: Kb.Styles.globalMargins.large,
-        paddingRight: Kb.Styles.globalMargins.large,
-        paddingTop: Kb.Styles.globalMargins.mediumLarge,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.mediumLarge, Kb.Styles.globalMargins.large),
         width: 700,
       },
       enablingContainer: {

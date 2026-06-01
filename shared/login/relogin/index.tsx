@@ -141,12 +141,10 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       inputRow: {
         marginBottom: 0,
         marginTop: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
       loginSubmitButton: {
         marginTop: 0,
         maxHeight: 32,
-        width: '100%',
       },
       other: {color: Kb.Styles.globalColors.black},
       provisioned: {color: Kb.Styles.globalColors.orange},
@@ -166,7 +164,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         alignItems: 'center',
         marginLeft: Kb.Styles.globalMargins.xsmall,
         minHeight: 40,
-        width: '100%',
       },
     }) as const
 )
@@ -189,8 +186,8 @@ const NativeLoginRender = (props: Props) => {
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
+      flex={1}
       onLayout={evt => setScrollViewHeight(evt.nativeEvent.layout.height)}
-      style={Kb.Styles.globalStyles.flexOne}
     >
       <Kb.ScrollView style={nativeStyles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={nativeStyles.container}>
@@ -224,10 +221,7 @@ const NativeLoginRender = (props: Props) => {
             <Kb.WaitingButton
               disabled={props.needPassword && !props.password}
               waitingKey={C.waitingKeyConfigLogin}
-              style={{
-                marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small,
-                width: '100%',
-              }}
+              style={{marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small}}
               fullWidth={true}
               label="Log in"
               onClick={props.onSubmit}
@@ -247,7 +241,7 @@ const NativeLoginRender = (props: Props) => {
               Problems logging in?
             </Kb.Text>
           </UserCard>
-          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
+          <Kb.Box2 direction="vertical" flex={1} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.createAccountContainer}>
             <Kb.Button
               fullWidth={true}
@@ -283,8 +277,7 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       deviceNotSecureContainer: {
         alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.yellow,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
       deviceNotSecureText: {
         color: Kb.Styles.globalColors.brown_75,

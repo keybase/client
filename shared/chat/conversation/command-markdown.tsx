@@ -25,10 +25,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -36,8 +33,7 @@ const styles = Kb.Styles.styleSheetCreate(
           border: `1px solid ${Kb.Styles.globalColors.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
         isMobile: {
           backgroundColor: Kb.Styles.globalColors.white,
@@ -51,13 +47,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       title: {
         backgroundColor: Kb.Styles.globalColors.black_05,
-        borderBottomWidth: 1,
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderStyle: 'solid',
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.bottomDivider(),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
     }) as const
 )

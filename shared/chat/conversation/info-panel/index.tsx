@@ -105,7 +105,7 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     return (
       <Kb.Box2
         direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
+        style={styles.container}
         fullWidth={true}
         centerChildren={true}
       >

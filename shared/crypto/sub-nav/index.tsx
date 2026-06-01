@@ -140,8 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(
       box: {backgroundColor: Kb.Styles.globalColors.white},
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         paddingTop: Kb.Styles.globalMargins.xsmall,
       },
       nav: {width: 180},

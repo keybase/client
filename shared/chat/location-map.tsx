@@ -68,10 +68,8 @@ const styles = Kb.Styles.styleSheetCreate(
       loading: {
         bottom: '50%',
         left: '50%',
-        marginBottom: -12,
-        marginLeft: -12,
-        marginRight: -12,
-        marginTop: -12,
+        ...Kb.Styles.marginH(-12),
+        ...Kb.Styles.marginV(-12),
         position: 'absolute',
         right: '50%',
         top: '50%',

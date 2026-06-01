@@ -40,8 +40,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ? undefined
           : Kb.Styles.globalColors.blueGrey,
         minHeight: 48,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       iconCompose: Kb.Styles.platformStyles({
         common: {

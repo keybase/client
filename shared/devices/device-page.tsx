@@ -156,16 +156,14 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: circleSize / 2,
         borderStyle: 'solid',
         borderWidth: 2,
-        height: circleSize,
-        width: circleSize,
+        ...Kb.Styles.size(circleSize),
       },
       circleOpen: {
         borderColor: Kb.Styles.globalColors.grey,
         borderRadius: circleSize / 2,
         borderStyle: 'solid',
         borderWidth: 2,
-        height: circleSize,
-        width: circleSize,
+        ...Kb.Styles.size(circleSize),
       },
       invisible: {opacity: 0},
       meta: {

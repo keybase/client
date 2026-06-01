@@ -54,9 +54,8 @@ const styles = Kb.Styles.styleSheetCreate(
       unreadShortcutInline: {
         backgroundColor: Kb.Styles.globalColors.orange_90,
         flex: 1,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         paddingLeft: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

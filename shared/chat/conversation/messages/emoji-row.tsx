@@ -170,15 +170,13 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       disabled: {opacity: 0.3},
       divider: {
-        marginBottom: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
         marginLeft: Kb.Styles.globalMargins.xsmall,
         marginRight: Kb.Styles.globalMargins.xtiny,
-        marginTop: Kb.Styles.globalMargins.tiny,
       },
       emojiBox: {
-        height: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.size(Kb.Styles.globalMargins.small),
         marginRight: Kb.Styles.globalMargins.xxtiny,
-        width: Kb.Styles.globalMargins.small,
       },
       hoverEmoji: {position: 'absolute'},
       icon: {

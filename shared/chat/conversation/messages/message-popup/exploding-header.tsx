@@ -66,7 +66,7 @@ const ExplodingPopupHeader = (props: Props) => {
       {botUsername ? (
         <Kb.Box2 direction="horizontal">
           <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
-          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
             <Kb.Avatar username={botUsername} size={16} onClick="profile" />
             <Kb.ConnectedUsernames
               onUsernameClicked="profile"
@@ -105,7 +105,7 @@ const ExplodingPopupHeader = (props: Props) => {
       ])}
     >
       <Kb.Box2 direction="vertical">
-        <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.white}}>
+        <Kb.Text type="BodySmall" style={styles.whiteText}>
           {props.explodesAt === 0 ? 'EXPLODED MESSAGE' : 'EXPLODING MESSAGE'}
         </Kb.Text>
       </Kb.Box2>
@@ -118,31 +118,25 @@ const ExplodingPopupHeader = (props: Props) => {
             fontSize={isMobile ? 20 : 16}
             color={Kb.Styles.globalColors.white}
           />
-          <Kb.Text style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
+          <Kb.Text style={styles.timerText} type="BodySemibold">
             {msToDHMS(props.explodesAt - now)}
           </Kb.Text>
         </Kb.Box2>
       )}
     </Kb.Box2>
   )
-  return isMobile ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.popupContainer}>
+      {isMobile ? null : icon}
       {banner}
       {info}
-      <Kb.Divider style={{width: '100%'}} />
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
-      {icon}
-      {banner}
-      {info}
-      <Kb.Divider style={{width: '100%'}} />
+      <Kb.Divider style={styles.fullWidth} />
     </Kb.Box2>
   )
 }
 
 const headerIconType = isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
-const headerIconHeight = isMobile ? 48 : 48
+const headerIconHeight = 48
 const oneMinuteInS = 60
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -150,14 +144,12 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       headerIcon: {
         height: headerIconHeight,
-        marginBottom: Kb.Styles.globalMargins.xtiny,
-        marginTop: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny),
       },
       messageInfoContainer: {
         padding: Kb.Styles.globalMargins.xsmall,
       },
       popupContainer: Kb.Styles.platformStyles({
-        common: {alignItems: 'center'},
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
@@ -166,10 +158,7 @@ const styles = Kb.Styles.styleSheetCreate(
       popupHeaderText: {
         backgroundColor: Kb.Styles.globalColors.blue,
         color: Kb.Styles.globalColors.white,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       },
       revokedAt: {
         borderBottomLeftRadius: 3,
@@ -182,7 +171,10 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {height: 46},
       }),
+      fullWidth: {width: '100%'},
+      timerText: {alignSelf: 'center', color: Kb.Styles.globalColors.white},
       user: {alignItems: 'center'},
+      whiteText: {color: Kb.Styles.globalColors.white},
     }) as const
 )
 

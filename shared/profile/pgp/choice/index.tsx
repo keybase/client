@@ -329,7 +329,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.globalStyles.fontTerminal,
           backgroundColor: Kb.Styles.globalColors.greyLight,
           border: `solid 1px ${Kb.Styles.globalColors.black_10}`,
-          borderRadius: 3,
+          ...Kb.Styles.globalStyles.rounded,
           color: Kb.Styles.globalColors.black,
           flexGrow: 1,
           fontSize: 12,

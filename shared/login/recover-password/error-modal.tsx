@@ -12,9 +12,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.roundedBottom(),
     },
   }),
-  padding: {
-    padding: Kb.Styles.globalMargins.small,
-  },
 }))
 
 type Props = {route: {params: {error: string}}}
@@ -32,7 +29,7 @@ const ConnectedErrorModal = ({route}: Props) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} padding="small">
         <Kb.Text type="Body" center={true}>
           {error}
         </Kb.Text>

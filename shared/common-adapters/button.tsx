@@ -126,8 +126,8 @@ const progressContainerStyle = {
   ...Styles.centered(),
 } satisfies Styles._StylesCrossPlatform
 
-const progressNormal = {height: isMobile ? 32 : 24, width: isMobile ? 32 : 24}
-const progressSmall = {height: isMobile ? 28 : 20, width: isMobile ? 28 : 20}
+const progressNormal = Styles.size(isMobile ? 32 : 24)
+const progressSmall = Styles.size(isMobile ? 28 : 20)
 
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const {default: Animation} = require('./animation') as {default: typeof AnimationType}

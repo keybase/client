@@ -406,7 +406,7 @@ const BlockModal = (ownProps: OwnProps) => {
 
   if (loadingWaiting) {
     return (
-      <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
+      <Kb.Box2 direction="vertical" alignSelf="center" style={styles.loadingAnimationBox}>
         <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
       </Kb.Box2>
     )
@@ -520,7 +520,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   greyBox: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
     color: Kb.Styles.globalColors.black_50,
-    width: '100%',
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
   },
   grow: {flexGrow: 1},
@@ -534,7 +533,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   loadingAnimationBox: {
-    alignSelf: 'center',
     padding: Kb.Styles.globalMargins.medium,
   },
   modalFooter: Kb.Styles.platformStyles({

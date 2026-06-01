@@ -125,16 +125,10 @@ const styles = Kb.Styles.styleSheetCreate(
         isIOS: {height: 44},
       }),
       filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
-      filesTabStatusIcon: {
-        height: Kb.Styles.globalMargins.small,
-        width: Kb.Styles.globalMargins.small,
-      },
+      filesTabStatusIcon: Kb.Styles.size(Kb.Styles.globalMargins.small),
       headerContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
-        borderBottomColor: Kb.Styles.globalColors.black_10,
-        borderBottomWidth: 1,
-        borderStyle: 'solid',
-        minHeight: 44,
+        ...Kb.Styles.bottomDivider(44),
       },
     }) as const
 )

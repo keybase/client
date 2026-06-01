@@ -442,16 +442,13 @@ const AssertionSiteIcon = (p: SIProps) => {
 
 const popupHeaderTextBase = {
   color: Kb.Styles.globalColors.white,
-  paddingBottom: Kb.Styles.globalMargins.tiny,
-  paddingLeft: Kb.Styles.globalMargins.small,
-  paddingRight: Kb.Styles.globalMargins.small,
-  paddingTop: Kb.Styles.globalMargins.tiny,
+  ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
 } as const
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {paddingBottom: 4, paddingTop: 4},
+      container: {...Kb.Styles.paddingV(4)},
       crypto: Kb.Styles.platformStyles({
         isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
       }),
@@ -462,9 +459,7 @@ const styles = Kb.Styles.styleSheetCreate(
       // desktop is handled by css
       halfOpacity: Kb.Styles.platformStyles({isMobile: {opacity: 0.5}}),
       menuHeader: {
-        borderBottomColor: Kb.Styles.globalColors.black_10,
-        borderBottomWidth: 1,
-        borderStyle: 'solid',
+        ...Kb.Styles.bottomDivider(),
         padding: Kb.Styles.globalMargins.small,
       },
       metaAssertion: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason

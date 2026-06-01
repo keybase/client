@@ -86,10 +86,7 @@ export const rowStyles = Kb.Styles.styleSheetCreate(
         width: 0,
       },
       opacity30: {opacity: 0.3},
-      pathItemIcon: {
-        marginLeft: Kb.Styles.globalMargins.medium,
-        marginRight: Kb.Styles.globalMargins.medium,
-      },
+      pathItemIcon: Kb.Styles.marginH(Kb.Styles.globalMargins.medium),
       rowText: Kb.Styles.platformStyles({
         isMobile: {flexShrink: 1},
       }),

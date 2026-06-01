@@ -73,7 +73,7 @@ const SelectableSmallTeam = (props: Props) => {
             participantTwo={props.participants[1]}
           />
         )}
-        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" flex={1}>
           <FilteredTopLine
             isSelected={props.isSelected}
             numSearchHits={props.numSearchHits}

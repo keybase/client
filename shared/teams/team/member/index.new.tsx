@@ -325,7 +325,7 @@ const TeamMember = (props: Props) => {
 
   const sections: Array<Section> = nodesNotIn.length > 0 ? [nodesInSection, nodesNotInSection] : [nodesInSection]
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container} relative={true} testID={TestIDs.TEAMS_MEMBER_PAGE}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} relative={true} testID={TestIDs.TEAMS_MEMBER_PAGE}>
       {errors.length > 0 && (
         <Kb.Banner color="red">
           {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
@@ -866,10 +866,6 @@ const BlockDropdown = (props: {username: string}) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    width: '100%',
-  },
   contentCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 48},
     isPhone: {height: 64},
@@ -926,10 +922,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {paddingBottom: Kb.Styles.globalMargins.tiny},
     isTablet: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
-  membershipIcon: {
-    flexShrink: 0,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
   membershipTeamText: {justifyContent: 'center'},
   membershipTeamTextExpanded: Kb.Styles.platformStyles({
     isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},

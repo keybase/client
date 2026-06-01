@@ -40,6 +40,7 @@ const Container = (ownProps: OwnProps) => {
         fullWidth={true}
         fullHeight={true}
         centerChildren={true}
+        flex={1}
         style={styles.innerContainer}
       >
         <ItemIcon path={path} size={96} />
@@ -111,11 +112,8 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       innerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          ...Kb.Styles.globalStyles.flexGrow,
-          alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
-          flex: 1,
+          ...Kb.Styles.globalStyles.flexGrow,
         },
         isMobile: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),

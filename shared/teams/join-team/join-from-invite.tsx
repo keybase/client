@@ -166,7 +166,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
         {!!(error || missingInviteKeyError) && <Kb.Text type="BodySmallError">{error || missingInviteKeyError}</Kb.Text>}
-        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
+        <Kb.Box2 direction="vertical" flex={1} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar size={16} username={details.inviterUsername} />
           <Kb.ConnectedUsernames

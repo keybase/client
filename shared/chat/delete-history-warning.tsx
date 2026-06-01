@@ -90,10 +90,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       padding: Kb.Styles.platformStyles({
         isElectron: {
-          marginBottom: 40,
-          marginLeft: 80,
-          marginRight: 80,
-          marginTop: 40,
+          ...Kb.Styles.marginH(80),
+          ...Kb.Styles.marginV(40),
         },
         isMobile: {paddingTop: Kb.Styles.globalMargins.xlarge},
       }),

@@ -70,8 +70,8 @@ export const TeamBotRow = (props: Props) => {
 
   // TODO: switch this to a ListItem so that we get dividers, free styling, etc
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.innerContainerTop}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true} alignItems="center" style={styles.innerContainerTop}>
         <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
           <Kb.Avatar
             username={props.username}
@@ -83,7 +83,7 @@ export const TeamBotRow = (props: Props) => {
             {descriptionLabel}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.menuIconContainer} ref={popupAnchor}>
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.menuIconContainer} ref={popupAnchor}>
           {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
@@ -115,9 +115,6 @@ export const TeamBotRow = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Kb.Styles.globalColors.white,
-    flex: 1,
-    height: '100%',
-    position: 'relative',
   },
   containerReset: {
     backgroundColor: Kb.Styles.globalColors.blueLighter2,
@@ -125,7 +122,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   fullNameLabel: {marginRight: Kb.Styles.globalMargins.xtiny},
   innerContainerTop: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-    flexShrink: 0,
     height: isMobile ? 56 : 48,
   },
   menuButtonDesktop: {
@@ -143,7 +139,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   menuIconContainer: {
     flexShrink: 1,
-    height: '100%',
   },
   nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
 }))

@@ -25,16 +25,12 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: Kb.Styles.platformStyles({
-        isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        common: {
           flexShrink: 1,
           width: '100%',
         },
-        isMobile: {
-          backgroundColor: Kb.Styles.globalColors.black,
-          flexShrink: 1,
-          width: '100%',
-        },
+        isElectron: {backgroundColor: Kb.Styles.globalColors.blueLighter3},
+        isMobile: {backgroundColor: Kb.Styles.globalColors.black},
       }),
     }) as const
 )

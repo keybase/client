@@ -119,8 +119,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   toastText: Kb.Styles.platformStyles({
     common: {color: Kb.Styles.globalColors.white},
     isMobile: {
-      paddingLeft: 10,
-      paddingRight: 10,
+      ...Kb.Styles.paddingH(10),
       paddingTop: 5,
     },
   }),

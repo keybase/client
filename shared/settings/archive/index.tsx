@@ -300,7 +300,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
               <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
                 {job.gitRepo ?? job.kbfsPath}
               </Kb.Text>
-              {isMobile ? null : <Kb.Box2 direction="horizontal" style={{flex: 1}} />}
+              {isMobile ? null : <Kb.Box2 direction="horizontal" flex={1} />}
               {isMobile ? null : job.bytesTotal ? (
                 <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
               ) : null}
@@ -319,7 +319,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
             >
               <Kb.ProgressBar ratio={progress} />
               <Kb.Text type="Body">{String(Math.round(progress * 100)) + '%'}</Kb.Text>
-              <Kb.Box2 direction="horizontal" style={{flex: 1}} />
+              <Kb.Box2 direction="horizontal" flex={1} />
               {errorStr && (
                 <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={14} />
@@ -445,7 +445,7 @@ const Archive = () => {
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           {isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
           <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true} alignItems="center">
-            <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+            <Kb.Text type="BodySmall">
               {
                 "Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup all."
               }

@@ -83,8 +83,7 @@ const styles = Kb.Styles.styleSheetCreate(
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
           position: 'relative',
         },
       }),
@@ -103,10 +102,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       title: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
       username: {alignSelf: 'center'},
     }) as const

@@ -150,10 +150,7 @@ const styles = Styles.styleSheetCreate(
       }),
       inlineText: {textAlign: 'left'},
       inlineTextContainer: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       },
       narrowTextContainer: Styles.platformStyles({
         common: {

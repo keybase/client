@@ -38,7 +38,7 @@ const SetMemberShowcase = (props: {
   newPublicityMember: boolean
   setNewPublicityMember: (s: boolean) => void
 }) => (
-  <Kb.Box2 direction="vertical" style={styles.memberShowcase} alignSelf="flex-start">
+  <Kb.Box2 direction="vertical" alignItems="flex-start" alignSelf="flex-start" style={styles.memberShowcase}>
     <Kb.Checkbox
       checked={props.newPublicityMember}
       disabled={!props.canShowcase}
@@ -309,7 +309,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     maxWidth: 600,
     padding: Kb.Styles.globalMargins.small,
   },
-  memberShowcase: {alignItems: 'flex-start', paddingRight: Kb.Styles.globalMargins.small},
+  memberShowcase: {paddingRight: Kb.Styles.globalMargins.small},
   openDropdown: {width: 70},
   openTeam: {
     flexShrink: 1,

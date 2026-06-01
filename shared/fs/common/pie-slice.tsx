@@ -54,9 +54,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        height: pieSize,
+        ...Kb.Styles.size(pieSize),
         position: 'relative' as const,
-        width: pieSize,
       },
       filledNegative: {
         backgroundColor: Kb.Styles.globalColors.greyLight,

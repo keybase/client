@@ -128,9 +128,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingRight: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          borderBottomColor: Kb.Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid',
+          ...Kb.Styles.bottomDivider(),
           minHeight: 90,
         },
       }),

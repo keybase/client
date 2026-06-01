@@ -166,18 +166,18 @@ export const Phone = () => {
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
-          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!isMobile && (
-              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
-            )}
-            <Kb.Button
-              label="Continue"
-              fullWidth={true}
-              onClick={onContinue}
-              disabled={disabled}
-              waiting={waiting}
-            />
-          </Kb.ButtonBar>
+        <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+          {!isMobile && (
+            <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+          )}
+          <Kb.Button
+            label="Continue"
+            fullWidth={true}
+            onClick={onContinue}
+            disabled={disabled}
+            waiting={waiting}
+          />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </>
   )
@@ -238,16 +238,16 @@ export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooterNoBorder, styles.blueBackground])}>
-          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            <Kb.Button
-              disabled={disabled}
-              type="Success"
-              label="Continue"
-              onClick={onContinue}
-              waiting={verifyWaiting}
-              fullWidth={true}
-            />
-          </Kb.ButtonBar>
+        <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+          <Kb.Button
+            disabled={disabled}
+            type="Success"
+            label="Continue"
+            onClick={onContinue}
+            waiting={verifyWaiting}
+            fullWidth={true}
+          />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </>
   )
@@ -277,7 +277,7 @@ const styles = Kb.Styles.styleSheetCreate(
         minHeight: undefined,
       },
       footer: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+        padding: Kb.Styles.globalMargins.small,
       },
       modalFooter: Kb.Styles.platformStyles({
         common: {

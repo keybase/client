@@ -69,12 +69,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       partContainer: {
         maxHeight: 200,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       participants: {
-        marginBottom: Kb.Styles.globalMargins.tiny,
-        marginTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
       },
     }) as const
 )

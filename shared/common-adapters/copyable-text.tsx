@@ -46,12 +46,12 @@ const CopyableText = (props: Props) => {
       style={props.style}
     >
       <Box2 direction="vertical" fullWidth={true} alignItems="flex-start" relative={true} style={styles.base}>
-        <Text style={{...styleText, ...props.textStyle}} type="BodySmall">
+        <Text style={Styles.collapseStyles([styles.text, props.textStyle])} type="BodySmall">
           {props.value}
         </Text>
         <Box2 direction="vertical" alignItems="center" style={styles.copyToastContainer}>
           <Box2 direction="horizontal" alignItems="center" style={styles.copyToast}>
-            <Text style={styleCopyToastText} type="Body">
+            <Text style={styles.copyToastText} type="Body">
               {hasCopied ? 'Copied!' : 'Tap to copy'}
             </Text>
           </Box2>
@@ -69,7 +69,7 @@ const styles = Styles.styleSheetCreate(
           ...Styles.globalStyles.fontTerminal,
           alignItems: 'flex-start',
           backgroundColor: Styles.globalColors.greyLight,
-          borderRadius: 3,
+          ...Styles.globalStyles.rounded,
           color: Styles.globalColors.black,
           fontSize: 13,
           padding: 10,
@@ -94,11 +94,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       copyToast: {
+        ...Styles.paddingH(Styles.globalMargins.medium),
         backgroundColor: Styles.globalColors.black_50,
         borderRadius: Styles.globalMargins.large,
         height: Styles.globalMargins.medium + Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.medium,
       },
       copyToastContainer: {
         bottom: Styles.globalMargins.small,
@@ -106,16 +105,14 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
+      copyToastText: {
+        color: Styles.globalColors.white,
+      },
+      text: {
+        ...Styles.globalStyles.fontTerminal,
+        color: Styles.globalColors.black,
+      },
     }) as const
 )
-
-const styleText = {
-  ...Styles.globalStyles.fontTerminal,
-  color: Styles.globalColors.black,
-}
-
-const styleCopyToastText = {
-  color: Styles.globalColors.white,
-}
 
 export default CopyableText

@@ -438,8 +438,7 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.redDark,
       },
       proxyDivider: {
-        marginBottom: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.small,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
         width: '100%',
       },
       section: Kb.Styles.platformStyles({

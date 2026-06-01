@@ -22,9 +22,8 @@ const CustomEmoji = (props: Props) => {
 
   if (isMobile) {
     const dimensions = {
-      height: size,
+      ...Kb.Styles.size(size),
       transform: [{translateY: isAndroid ? 4 : 2}],
-      width: size,
       ...style,
     }
     return <Image key={size} src={src} style={dimensions} />
@@ -37,8 +36,7 @@ const CustomEmoji = (props: Props) => {
       style={Kb.Styles.collapseStyles([
         styles.emoji,
         {
-          height: size,
-          width: size,
+          ...Kb.Styles.size(size),
           ...style,
         },
       ])}

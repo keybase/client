@@ -57,7 +57,7 @@ const DeleteRepo = (ownProps: OwnProps) => {
   }
   return (
     <Kb.ScrollView>
-      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true} flex={1} style={styles.container}>
         {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
         <Kb.Text center={true} type="Header" style={styles.headerText}>
           Are you sure you want to delete this {teamname ? 'team ' : ''}
@@ -137,10 +137,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginBottom: Kb.Styles.globalMargins.tiny,
   },
   container: Kb.Styles.platformStyles({
-    common: {
-      flex: 1,
-      height: '100%',
-    },
     isElectron: {
       maxHeight: 560,
       padding: Kb.Styles.globalMargins.large,

@@ -149,8 +149,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
     },
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       paddingTop: Kb.Styles.globalMargins.small,
     },
   }),

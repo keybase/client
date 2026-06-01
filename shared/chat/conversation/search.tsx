@@ -401,7 +401,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
               containerStyle={styles.bareInput}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
+          <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
               <Kb.Box2 direction="horizontal" gap="tiny">
@@ -461,7 +461,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
   return (
     <Kb.Box2 direction="horizontal" style={style}>
       <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.outerContainer} gap="tiny">
-        <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
+        <Kb.Box2 direction="horizontal" centerChildren={true} noShrink={true}>
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
             Cancel
           </Kb.Text>
@@ -480,7 +480,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
               containerStyle={styles.bareInput}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
+          <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
               <Kb.Box2 direction="horizontal" gap="tiny">
@@ -513,7 +513,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       bareInput: {backgroundColor: Kb.Styles.globalColors.transparent, flex: 1, padding: 0, width: 'auto'},
       done: {color: Kb.Styles.globalColors.blueDark},
-      doneContainer: {flexShrink: 0},
       hitList: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
@@ -551,7 +550,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       progress: {height: 16},
       results: {color: Kb.Styles.globalColors.black_50},
-      resultsContainer: {flexShrink: 0},
       time: {flexShrink: 0},
     }) as const
 )

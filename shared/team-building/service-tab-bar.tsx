@@ -375,7 +375,7 @@ const ServiceTabBarDesktop = (props: Props) => {
     lastSelectedUnlockedService
   )
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={desktopStyles.tabBarContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true} style={desktopStyles.tabBarContainer}>
       {frontServices.map(service => (
         <ServiceIconDesktop
           key={service}
@@ -428,12 +428,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       inactiveTabBar: {height: 2},
       label: {marginTop: Kb.Styles.globalMargins.xtiny, minWidth: 64},
       moreNetworkItemIcon: {marginRight: Kb.Styles.globalMargins.tiny},
-      moreNetworks1: {
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.tiny,
-      },
+      moreNetworks1: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       moreNetworks2: {
         alignItems: 'center',
         display: 'flex',
@@ -445,10 +440,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       moreNetworks3: {
-        borderColor: Kb.Styles.globalColors.black_20,
-        borderRadius: Kb.Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
+        ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.borderRadius),
         maxHeight: '100%',
         maxWidth: '100%',
       },
@@ -463,10 +455,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       serviceIconFlex: {maxWidth: 90},
       tabBarContainer: {
-        borderBottomColor: Kb.Styles.globalColors.black_10,
-        borderBottomWidth: 1,
-        borderStyle: 'solid',
-        flexShrink: 0,
+        ...Kb.Styles.bottomDivider(),
         minHeight: 30,
       },
     }) as const

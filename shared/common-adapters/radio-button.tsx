@@ -94,8 +94,7 @@ const nativeStyles = Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingTop: Styles.globalMargins.xtiny,
+        ...Styles.paddingV(Styles.globalMargins.xtiny),
       },
       inner: {
         borderColor: Styles.globalColors.white,

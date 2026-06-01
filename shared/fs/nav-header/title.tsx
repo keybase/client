@@ -150,9 +150,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xsmall,
       },
-      slash: {
-        paddingLeft: Kb.Styles.globalMargins.xxtiny,
-        paddingRight: Kb.Styles.globalMargins.xxtiny,
-      },
+      slash: Kb.Styles.paddingH(Kb.Styles.globalMargins.xxtiny),
     }) as const
 )

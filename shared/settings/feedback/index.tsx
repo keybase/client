@@ -64,21 +64,19 @@ const Feedback = (props: Props) => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.Input3
-              autoCapitalize="sentences"
-              autoCorrect={true}
-              autoFocus={true}
-              containerStyle={styles.input}
-              inputStyle={styles.inputResize}
-              multiline={true}
-              onChangeText={setFeedback}
-              placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
-              rowsMin={4}
-              rowsMax={isMobile ? 4 : 10}
-              value={feedback}
-            />
-          </Kb.Box2>
+          <Kb.Input3
+            autoCapitalize="sentences"
+            autoCorrect={true}
+            autoFocus={true}
+            containerStyle={styles.input}
+            inputStyle={styles.inputResize}
+            multiline={true}
+            onChangeText={setFeedback}
+            placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
+            rowsMin={4}
+            rowsMax={isMobile ? 4 : 10}
+            value={feedback}
+          />
           {_sendMaxBytes() && (
             <Kb.Banner color="green">
               <Kb.BannerParagraph bannerColor="green" content="next send will include full logs" />
@@ -95,13 +93,11 @@ const Feedback = (props: Props) => {
             </Kb.ClickableBox>
           </Kb.Box2>
           {props.loggedOut && (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Input3
-                containerStyle={styles.input}
-                placeholder="Your email address"
-                onChangeText={setEmail}
-              />
-            </Kb.Box2>
+            <Kb.Input3
+              containerStyle={styles.input}
+              placeholder="Your email address"
+              onChangeText={setEmail}
+            />
           )}
           <Kb.Box2 alignSelf={props.loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
             <Kb.ButtonBar>

@@ -60,7 +60,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
         direction="vertical"
         gap="medium"
         alignItems="center"
-        style={styles.container}
+        padding="small"
         gapStart={true}
         gapEnd={true}
       >
@@ -129,7 +129,6 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {padding: Kb.Styles.globalMargins.small},
   deviceOption: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),

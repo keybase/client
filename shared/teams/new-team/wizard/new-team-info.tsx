@@ -169,7 +169,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
 
         <Kb.Checkbox
           labelComponent={
-            <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1}>
               <Kb.Text type="Body">Make it an open team</Kb.Text>
               <Kb.Text type="BodySmall">Anyone can join without admin approval.</Kb.Text>
               {(!isMobile || openTeam) && (

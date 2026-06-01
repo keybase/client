@@ -83,10 +83,6 @@ const DeleteChannel = (props: Props) => {
     C.ignorePromise(f())
   }, [channelIDs, deleteChannel, navigation])
 
-  const onCancel = () => {
-    C.Router2.navigateUp()
-  }
-
   return (
     <Kb.ConfirmModal
       confirmText={`Delete ${pluralize('channel', channelnames.length)}`}
@@ -94,7 +90,7 @@ const DeleteChannel = (props: Props) => {
       error={waitingError?.message ?? ''}
       header={<Header />}
       onConfirm={onDelete}
-      onCancel={onCancel}
+      onCancel={C.Router2.navigateUp}
       prompt={
         <Kb.Text type="Header" center={true} style={styles.prompt}>
           Delete {deleteMsg}?

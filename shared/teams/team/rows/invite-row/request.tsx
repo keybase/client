@@ -88,34 +88,32 @@ export const TeamRequestRow = (props: Props) => {
       type="Small"
       icon={<Kb.Avatar username={username} size={32} />}
       body={
-        <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
-            <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-              <Kb.Meta
-                title={reset ? 'locked out' : 'please decide'}
-                style={styleCharm}
-                backgroundColor={reset ? Kb.Styles.globalColors.red : Kb.Styles.globalColors.orange}
-              />
-              {isMobile ? (
-                C.isLargeScreen && (
-                  <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
-                    {fullName !== '' && `${fullName}`}
-                  </Kb.Text>
-                )
-              ) : (
-                <Kb.Text type="BodySmall" lineClamp={1}>
-                  {fullName !== '' && `${fullName}  • `}
-                  {reset
-                    ? fullName
-                      ? 'Reset their account'
-                      : 'reset their account'
-                    : formatTimeRelativeToNow(ctime * 1000)}
+        <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
+          <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
+          <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+            <Kb.Meta
+              title={reset ? 'locked out' : 'please decide'}
+              style={styleCharm}
+              backgroundColor={reset ? Kb.Styles.globalColors.red : Kb.Styles.globalColors.orange}
+            />
+            {isMobile ? (
+              C.isLargeScreen && (
+                <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
+                  {fullName !== '' && `${fullName}`}
                 </Kb.Text>
-              )}
-            </Kb.Box2>
-            {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
+              )
+            ) : (
+              <Kb.Text type="BodySmall" lineClamp={1}>
+                {fullName !== '' && `${fullName}  • `}
+                {reset
+                  ? fullName
+                    ? 'Reset their account'
+                    : 'reset their account'
+                  : formatTimeRelativeToNow(ctime * 1000)}
+              </Kb.Text>
+            )}
           </Kb.Box2>
+          {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
         </Kb.Box2>
       }
       action={

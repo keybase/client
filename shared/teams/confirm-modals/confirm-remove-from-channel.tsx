@@ -26,8 +26,6 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const nav = useSafeNavigation()
   const navigation = useNavigation()
-  const onCancel = () => nav.safeNavigateUp()
-
   const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
@@ -62,7 +60,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
     <Kb.ConfirmModal
       header={header}
       prompt={prompt}
-      onCancel={onCancel}
+      onCancel={nav.safeNavigateUp}
       onConfirm={onRemove}
       confirmText="Remove from channel"
       waiting={waiting}

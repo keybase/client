@@ -17,7 +17,6 @@ const AddSubteam = ({setSubteamFilter, subteamFilter, teamID}: Props) => {
       name: 'teamWizard2TeamInfo',
       params: {wizard: makeNewTeamWizard({parentTeamID: teamID, teamType: 'subteam'})},
     })
-  const onChangeFilter = (filter: string) => setSubteamFilter(filter)
   // clear filter on unmount
   React.useEffect(
     () => () => {
@@ -32,7 +31,7 @@ const AddSubteam = ({setSubteamFilter, subteamFilter, teamID}: Props) => {
         <Kb.SearchFilter
           size="small"
           placeholderText="Filter"
-          onChange={onChangeFilter}
+          onChange={setSubteamFilter}
           hotkey="k"
           value={subteamFilter}
           valueControlled={true}

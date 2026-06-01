@@ -16,8 +16,7 @@ const desktopEnabledOffset = 10
 const desktopInnerStyle: React.CSSProperties = {
   backgroundColor: Styles.globalColors.white,
   borderRadius: 6,
-  height: 12,
-  width: 12,
+  ...Styles.size(12),
 }
 
 const SwitchToggle = (props: Props) => {

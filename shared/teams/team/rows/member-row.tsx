@@ -8,7 +8,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../use-loaded-team'
-import {reAddToTeam, removeMember} from '@/teams/actions'
+import {removeMember} from '@/teams/actions'
 import {getRolePickerDisabledReasons} from '@/teams/role-picker-utils'
 
 export type Props = {
@@ -19,14 +19,11 @@ export type Props = {
   onChat: () => void
   onClick: () => void
   onOpenProfile: () => void
-  onReAddToTeam: () => void
   onRemoveFromTeam: () => void
   roleType: T.Teams.TeamRoleType
   status: T.Teams.MemberStatus
   teamID: T.Teams.TeamID
   username: string
-  waitingForAdd: boolean
-  waitingForRemove: boolean
   you: string
   youCanEditRole: boolean
   youCanManageMembers: boolean
@@ -78,7 +75,6 @@ export const TeamMemberRow = (props: Props) => {
     resetLabel = ' • Needs to update Keybase'
   }
 
-  const roleLabel = !!active && Teams.typeToLabel[roleType]
   const isYou = props.you === props.username
   const teamID = props.teamID
 
@@ -92,8 +88,7 @@ export const TeamMemberRow = (props: Props) => {
   }
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
-  const pOnClick = props.onClick
-  const onClick = anySelected ? () => onSelect(!selected) : canEnterMemberPage ? pOnClick : undefined
+  const onClick = anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined
 
   const checkCircle = (
     <Kb.CheckCircle
@@ -108,15 +103,12 @@ export const TeamMemberRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={props.username} size={32} />
       <Kb.Box2 direction="vertical" flex={1} style={styles.nameContainer} justifyContent="center">
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.ConnectedUsernames
-            type="BodyBold"
-            usernames={props.username}
-            colorFollowing={true}
-            onUsernameClicked={onClick}
-          />
-        </Kb.Box2>
-
+        <Kb.ConnectedUsernames
+          type="BodyBold"
+          usernames={props.username}
+          colorFollowing={true}
+          onUsernameClicked={onClick}
+        />
         <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
           {fullNameLabel}
           {crown}
@@ -145,7 +137,7 @@ export const TeamMemberRow = (props: Props) => {
         label={
           <Kb.Box2 direction="horizontal">
             <Kb.Text type="BodySmall">{crown}</Kb.Text>
-            <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+            <Kb.Text type="BodySmall">{!!active && Teams.typeToLabel[roleType]}</Kb.Text>
           </Kb.Box2>
         }
       />
@@ -165,7 +157,7 @@ export const TeamMemberRow = (props: Props) => {
               title: 'Add to channels...',
             },
             ...(youCanEditRole
-              ? [{icon: 'iconfont-crown-admin', onClick: pOnClick, title: 'Edit role...'}]
+              ? [{icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'}]
               : []),
           ] as Kb.MenuItems)
         : []),
@@ -306,8 +298,6 @@ const Container = (ownProps: OwnProps) => {
     role => role !== roleType && disabledReasons[role] === undefined
   )
   const youCanEditRole = youCanManageMembers && status === 'active' && !needsPUK && hasEditableRoleChoice
-  const waitingForAdd = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
-  const waitingForRemove = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRemoveMember(teamID, username))
   const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const onBlock = () => {
     if (username) {
@@ -340,14 +330,11 @@ const Container = (ownProps: OwnProps) => {
       onChat={onChat}
       onClick={onClick}
       onOpenProfile={onOpenProfile}
-      onReAddToTeam={() => reAddToTeam(teamID, username)}
       onRemoveFromTeam={() => removeMember(teamID, username)}
       roleType={roleType}
       status={status}
       teamID={teamID}
       username={username}
-      waitingForAdd={waitingForAdd}
-      waitingForRemove={waitingForRemove}
       you={you}
       youCanEditRole={youCanEditRole}
       youCanManageMembers={youCanManageMembers}
