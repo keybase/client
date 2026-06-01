@@ -12,7 +12,7 @@ type Props = {
 }
 
 const TeamRow = ({isOpen, loading = false, name, onClick, popup, popupAnchor}: Props) => (
-  <Kb.ClickableBox3 direction="horizontal" fullWidth={true} gap="tiny" style={styles.row} ref={popupAnchor} onClick={onClick}>
+  <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" style={styles.row} ref={popupAnchor} onClick={onClick}>
     <>
       {popup}
       <Kb.Avatar size={32} teamname={name} isTeam={true} />
@@ -22,7 +22,7 @@ const TeamRow = ({isOpen, loading = false, name, onClick, popup, popupAnchor}: P
     </Kb.Text>
     {typeof isOpen === 'boolean' && <OpenMeta isOpen={isOpen} />}
     {loading && <Kb.ProgressIndicator style={styles.loading} />}
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

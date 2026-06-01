@@ -109,7 +109,7 @@ function FileContainer(p: OwnProps) {
     : undefined
 
   return (
-    <Kb.ClickableBox3 direction="vertical" fullWidth={true} onLongPress={showMessageMenu} onClick={hasMessageID ? onDownload : undefined}>
+    <Kb.ClickableBox direction="vertical" fullWidth={true} onLongPress={showMessageMenu} onClick={hasMessageID ? onDownload : undefined}>
       <ShowToastAfterSaving transferState={transferState} />
       <Kb.Box2
         direction="vertical"
@@ -197,7 +197,7 @@ function FileContainer(p: OwnProps) {
           </Kb.Text>
         )}
       </Kb.Box2>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

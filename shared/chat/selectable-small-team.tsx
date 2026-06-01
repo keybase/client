@@ -30,13 +30,13 @@ const SelectableSmallTeam = (props: Props) => {
 
   if (!props.teamname && props.participants.length === 0) {
     return (
-      <Kb.ClickableBox3 direction="vertical" style={styles.container} centerChildren={true} onClick={props.onSelectConversation}>
+      <Kb.ClickableBox direction="vertical" style={styles.container} centerChildren={true} onClick={props.onSelectConversation}>
         <Kb.ProgressIndicator style={styles.spinner} type="Small" />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     )
   }
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="horizontal"
       alignItems="center"
       fullWidth={true}
@@ -93,7 +93,7 @@ const SelectableSmallTeam = (props: Props) => {
           )}
         </Kb.Box2>
         {props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

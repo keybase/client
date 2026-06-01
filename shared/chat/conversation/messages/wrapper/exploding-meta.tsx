@@ -195,9 +195,9 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   }
 
   return (
-    <Kb.ClickableBox3 direction="horizontal" relative={true} onClick={onClick} style={styles.container}>
+    <Kb.ClickableBox direction="horizontal" relative={true} onClick={onClick} style={styles.container}>
       {children}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

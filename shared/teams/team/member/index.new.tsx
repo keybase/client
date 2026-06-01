@@ -627,7 +627,7 @@ const NodeInRow = (props: NodeInRowProps) => {
         open={open}
         disabledRoles={disabledRoles}
       />
-      <Kb.ClickableBox3 onClick={() => setExpanded(!expanded)} direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
+      <Kb.ClickableBox onClick={() => setExpanded(!expanded)} direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
@@ -750,7 +750,7 @@ const NodeInRow = (props: NodeInRowProps) => {
               </Kb.Box2>
             )}
           </Kb.Box2>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     </>
   )
 }

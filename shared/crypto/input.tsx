@@ -115,7 +115,7 @@ const TextInput = (props: TextProps) => {
   ) : null
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="vertical"
       fullWidth={true}
       fullHeight={true}
@@ -149,7 +149,7 @@ const TextInput = (props: TextProps) => {
         {!isMobile && browseButton}
       </Kb.Box2>
       {!isMobile && clearButton}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

@@ -45,7 +45,7 @@ const BigTeamHeader = (props: Props) => {
           {teamname}
         </Kb.Text>
       </Kb.BoxGrow2>
-      <Kb.ClickableBox3
+      <Kb.ClickableBox
         direction="vertical"
         className="hover_container"
         onClick={showPopup}
@@ -61,7 +61,7 @@ const BigTeamHeader = (props: Props) => {
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.badge, showBadge && styles.badgeVisible])}
         />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     </Kb.Box2>
   )
 }

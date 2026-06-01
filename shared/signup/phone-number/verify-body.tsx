@@ -36,7 +36,7 @@ const VerifyBody = (props: BodyProps) => {
         containerStyle={styles.inputContainer2}
         inputStyle={styles.inputText2}
       />
-      <Kb.ClickableBox3
+      <Kb.ClickableBox
         onClick={props.resendWaiting || resendDisabled ? undefined : onResend}
         direction="vertical"
         relative={true}
@@ -64,7 +64,7 @@ const VerifyBody = (props: BodyProps) => {
             <Kb.ProgressIndicator type="Small" white={true} />
           </Kb.Box2>
         )}
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     </Kb.Box2>
   )
 }

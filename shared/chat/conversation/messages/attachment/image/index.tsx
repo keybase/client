@@ -64,7 +64,7 @@ function Image(p: Props) {
           gap="xxtiny"
         >
           <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
-          <Kb.ClickableBox3
+          <Kb.ClickableBox
             direction="vertical"
             onClick={openFullscreen}
             onLongPress={hasMessageID ? showPopup : undefined}
@@ -72,7 +72,7 @@ function Image(p: Props) {
             ref={toastTargetRef}
           >
             <ImageImpl message={message} />
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
           {showTitle ? <Title message={message} /> : null}
           <Transferring transferState={transferState} ratio={transferProgress} />
         </Kb.Box2>

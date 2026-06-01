@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import SwitchToggle from './switch-toggle'
@@ -10,7 +10,7 @@ import type {TextType} from './text.shared'
 
 const Kb = {
   Box2,
-  ClickableBox3,
+  ClickableBox,
   ProgressIndicator,
   Text,
   WithTooltip,
@@ -45,9 +45,9 @@ const LabelContainer = (props: Props) =>
     </Kb.WithTooltip>
   ) : (
     <Kb.Box2 direction="vertical" style={styles.labelContainer}>
-      <Kb.ClickableBox3 onClick={props.allowLabelClick ? props.onClick : undefined} direction="vertical">
+      <Kb.ClickableBox onClick={props.allowLabelClick ? props.onClick : undefined} direction="vertical">
         {props.children}
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     </Kb.Box2>
   )
 
@@ -62,7 +62,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
   const {ref} = props
   const content = (
     <>
-      <Kb.ClickableBox3 onClick={props.disabled ? undefined : props.onClick} ref={ref} direction="vertical">
+      <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref} direction="vertical">
         <SwitchToggle
           on={props.on}
           color={props.color || 'blue'}
@@ -73,7 +73,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
             !!props.labelSubtitle && styles.switch,
           ] as const)}
         />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {!!props.gapInBetween && <Kb.Box2 direction="vertical" flex={1} />}
       {!!props.gapSize && <Kb.Box2 direction="vertical" style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (

@@ -120,14 +120,14 @@ function ReloadableDevices() {
       <BadgedDeviceIDsContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
-            <Kb.ClickableBox3 onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
+            <Kb.ClickableBox onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
               {waiting ? (
                 <Kb.Box2 direction="vertical" centerChildren={true} style={styles.progressContainer}>
                   <Kb.ProgressIndicator />
                 </Kb.Box2>
               ) : null}
-            </Kb.ClickableBox3>
+            </Kb.ClickableBox>
           ) : null}
           {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
           <Kb.BoxGrow2>
@@ -179,7 +179,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
-  <Kb.ClickableBox3
+  <Kb.ClickableBox
     onClick={onAddDevice}
     direction="horizontal"
     gap="xsmall"
@@ -198,6 +198,6 @@ const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
       </Kb.Text>
     </Kb.Box2>
     {!isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 export default ReloadableDevices

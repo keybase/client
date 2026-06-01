@@ -120,7 +120,7 @@ function ConnectedRow(ownProps: OwnProps) {
             expanded && {backgroundColor: Kb.Styles.globalColors.white},
           ])}
         >
-          <Kb.ClickableBox3
+          <Kb.ClickableBox
             onClick={onToggleExpand}
             direction="horizontal"
             fullWidth={true}
@@ -148,7 +148,7 @@ function ConnectedRow(ownProps: OwnProps) {
             {isNew && (
               <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
             )}
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
           {expanded && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowBottom}>
               <Kb.Box2

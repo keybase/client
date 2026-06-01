@@ -2,7 +2,7 @@ import type * as React from 'react'
 import type {MenuLayoutProps, MenuItem} from './index.shared'
 export type {MenuItem, MenuItems, MenuLayoutProps, _InnerMenuItem} from './index.shared'
 import {Box2} from '@/common-adapters/box'
-import {ClickableBox3} from '@/common-adapters/box'
+import {ClickableBox} from '@/common-adapters/box'
 import Divider from '@/common-adapters/divider'
 import Icon from '@/common-adapters/icon'
 import IconAuto from '@/common-adapters/icon-auto'
@@ -53,7 +53,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
     return item.unWrapped ? (
       item.view
     ) : (
-      <ClickableBox3
+      <ClickableBox
         key={index}
         direction="vertical"
         fullWidth={true}
@@ -109,7 +109,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
           </Text>
         )}
         {!!item.progressIndicator && <ProgressIndicator type="Large" style={desktopStyles.progressIndicator} />}
-      </ClickableBox3>
+      </ClickableBox>
     )
   }
 
@@ -124,7 +124,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
   }, [])
 
   return (
-    <ClickableBox3
+    <ClickableBox
       onClick={event => {
         event?.stopPropagation()
       }}
@@ -146,7 +146,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
           )}
         </Box2>
       )}
-    </ClickableBox3>
+    </ClickableBox>
   )
 }
 

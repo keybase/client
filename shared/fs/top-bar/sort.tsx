@@ -55,12 +55,12 @@ const Sort = (ownProps: OwnProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return shownSortSetting ? (
     <>
-      <Kb.ClickableBox3 onClick={showPopup} ref={popupAnchor} direction="horizontal" gap="xxtiny" centerChildren={isMobile}>
+      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor} direction="horizontal" gap="xxtiny" centerChildren={isMobile}>
         <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
         <Kb.Text type="BodySmallSemibold" style={styles.sortText}>
           {getTextFromSortSetting(shownSortSetting)}
         </Kb.Text>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {popup}
     </>
   ) : null

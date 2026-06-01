@@ -17,7 +17,7 @@ type BigButtonProps = {
 }
 
 const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
-  <Kb.ClickableBox3
+  <Kb.ClickableBox
     onClick={waiting ? undefined : onClick}
     direction={isMobile ? 'horizontal' : 'vertical'}
     style={styles.bigButton}
@@ -43,7 +43,7 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
           <Kb.ProgressIndicator />
         </Kb.Box2>
       )}
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const Troubleshooting = (props: Props) => {

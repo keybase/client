@@ -155,7 +155,7 @@ const DesktopEditAvatar = (_p: Props) => {
           </Kb.Text>{' '}
           for one.
         </Kb.Text>
-        <Kb.ClickableBox3
+        <Kb.ClickableBox
           direction="vertical"
           className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
           onClick={!loading ? filePickerOpen : undefined}
@@ -188,7 +188,7 @@ const DesktopEditAvatar = (_p: Props) => {
               type="iconfont-camera"
             />
           )}
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
@@ -308,14 +308,14 @@ const NativeAvatarUploadWrapper = (p: Props) => {
   const renderImageZoomer = () => {
     if (type === 'team' && !selectedImage) {
       return (
-        <Kb.ClickableBox3
+        <Kb.ClickableBox
           direction="vertical"
           centerChildren={true}
           style={Kb.Styles.collapseStyles([styles.placeholder, getImageStyle()])}
           onClick={onChooseNewAvatar}
         >
           <Kb.Icon type="iconfont-camera" sizeType="Huge" color={Kb.Styles.globalColors.black_10} />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )
     }
     return selectedImage ? (

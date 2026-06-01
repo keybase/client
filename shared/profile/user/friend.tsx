@@ -25,7 +25,7 @@ const Friend = (ownProps: OwnProps) => {
     : followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="vertical"
       centerChildren={true}
       noShrink={true}
@@ -46,7 +46,7 @@ const Friend = (ownProps: OwnProps) => {
         <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
           {fullname}
         </Kb.Text>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

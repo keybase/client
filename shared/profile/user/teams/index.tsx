@@ -72,12 +72,12 @@ const TeamShowcase = (props: TeamShowcaseProps) => {
 }
 
 const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
-  <Kb.ClickableBox3 direction="horizontal" gap="tiny" fullWidth={true} onClick={p.onEdit}>
+  <Kb.ClickableBox direction="horizontal" gap="tiny" fullWidth={true} onClick={p.onEdit}>
     <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
     <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
       {"Feature the teams you're in"}
     </Kb.Text>
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const styles = Kb.Styles.styleSheetCreate(

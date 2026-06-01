@@ -159,7 +159,7 @@ const TeamPickerInner = (props: Props) => {
 
   const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
-      <Kb.ClickableBox3 key={index} onClick={() => onSelect(item.convID)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
+      <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
         {item.isTeam ? (
           <TeamAvatar
             isHovered={false}
@@ -173,7 +173,7 @@ const TeamPickerInner = (props: Props) => {
         <Kb.Text type="Body" style={{alignSelf: 'center'}}>
           {item.name}
         </Kb.Text>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     )
   }
 

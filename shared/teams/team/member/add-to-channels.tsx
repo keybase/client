@@ -495,7 +495,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   }
 
   return isMobile ? (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       onClick={selfMode ? onPreviewChannel : onSelect}
       direction="horizontal"
       alignItems="center"
@@ -531,7 +531,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
             }
           />
         )}
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
   ) : (
     <Kb.ListItem
       fullDivider={true}

@@ -81,7 +81,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     />
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
-      <Kb.ClickableBox3 direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder}>
         <Kb.Icon
           type="iconfont-search"
           sizeType={isMobile ? 'Small' : 'Default'}
@@ -91,7 +91,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
         <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
           {isMobile ? 'Search' : 'Search (\u2318K)'}
         </Kb.Text>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     </Kb.Box2>
   )
   return (

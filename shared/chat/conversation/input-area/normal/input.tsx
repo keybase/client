@@ -463,7 +463,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
   const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="vertical"
       alignItems="center"
       justifyContent="flex-end"
@@ -497,7 +497,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
           />
         )}
       </Kb.Box2>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 
@@ -986,7 +986,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   }
 
   const explodingIcon = !isEditing && !cannotWrite && (
-    <Kb.ClickableBox3 direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
+    <Kb.ClickableBox direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
       {isExploding ? (
         <Kb.Box2 direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
           <Kb.Text type="BodyTinyBold" negative={true} style={nativeStyles.explodingText}>
@@ -996,7 +996,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
       ) : (
         <Kb.Icon color={undefined} type="iconfont-timer" />
       )}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 
   return (
@@ -1065,14 +1065,14 @@ const NativeAnimatedExpand = (() => {
       }, [expanded, offset])
 
       return (
-        <Kb.ClickableBox3 direction="vertical" relative={true} onClick={expandInput} style={nativeStyles.iconContainer}>
+        <Kb.ClickableBox direction="vertical" relative={true} onClick={expandInput} style={nativeStyles.iconContainer}>
           <Animated.View style={[nativeStyles.iconTop, topStyle]} pointerEvents="none">
             <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
           <Animated.View style={[nativeStyles.iconBottom, bottomStyle]} pointerEvents="none">
             <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       )
     }
   }

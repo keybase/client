@@ -155,10 +155,10 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
     ? undefined
     : {
         content: (
-          <Kb.ClickableBox3 direction="horizontal" centerChildren={true} fullWidth={true} onClick={saveInFiles}>
+          <Kb.ClickableBox direction="horizontal" centerChildren={true} fullWidth={true} onClick={saveInFiles}>
             <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
             <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
-          </Kb.ClickableBox3>
+          </Kb.ClickableBox>
         ),
       }
 }

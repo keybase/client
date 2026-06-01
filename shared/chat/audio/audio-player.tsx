@@ -98,13 +98,13 @@ const AudioPlayer = (props: Props) => {
       style={Kb.Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
       gap="tiny"
     >
-      <Kb.ClickableBox3 direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
+      <Kb.ClickableBox direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
           fontSize={32}
           color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
         />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.visContainer} gap="xxtiny" fullHeight={true} justifyContent="flex-end">
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>

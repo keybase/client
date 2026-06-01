@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked: (s: string) => void}) => (
-  <Kb.ClickableBox3 direction="horizontal" alignItems={isMobile ? 'center' : undefined} style={styles.row} onClick={() => onUsernameClicked(username)}>
+  <Kb.ClickableBox direction="horizontal" alignItems={isMobile ? 'center' : undefined} style={styles.row} onClick={() => onUsernameClicked(username)}>
     <Kb.Avatar
       username={username}
       size={48}
@@ -31,7 +31,7 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
         Can rekey this chat by opening the Keybase app.
       </Kb.Text>
     </Kb.Box2>
-  </Kb.ClickableBox3>
+  </Kb.ClickableBox>
 )
 
 const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => (

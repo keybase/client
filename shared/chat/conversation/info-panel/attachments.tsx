@@ -188,7 +188,7 @@ const MediaThumb = (props: MediaThumbProps) => {
   const {sizing, thumb} = props
   return (
     <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
-      <Kb.ClickableBox3 direction="vertical" onClick={thumb.onClick} style={{...sizing.margins}}>
+      <Kb.ClickableBox direction="vertical" onClick={thumb.onClick} style={{...sizing.margins}}>
         {thumb.typ === ThumbTyp.AUDIO ? (
           <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
             <Kb.Box2 direction="vertical" centerChildren={true} style={styles.audioBackground}>
@@ -206,7 +206,7 @@ const MediaThumb = (props: MediaThumbProps) => {
         ) : (
           <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} />
         )}
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {thumb.typ === ThumbTyp.VIDEO && (
         <Kb.Box2 direction="vertical" style={styles.durationContainer}>
           <Kb.ImageIcon type="icon-film-64" style={styles.filmIcon} />
@@ -231,7 +231,7 @@ const DocViewRow = (props: DocViewRowProps) => {
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox3 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny" onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
+      <Kb.ClickableBox direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny" onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
         <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
           <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
@@ -240,7 +240,7 @@ const DocViewRow = (props: DocViewRowProps) => {
             Sent by {item.author} • {formatTimeForMessages(item.ctime)}
           </Kb.Text>
         </Kb.Box2>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {item.downloading && (
         <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true} gap="tiny">
           <Kb.Text type="BodySmall">Downloading...</Kb.Text>
@@ -271,7 +271,7 @@ const getColor = (selected: boolean) =>
 
 const AttachmentTypeSelector = (props: SelectorProps) => (
   <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
-    <Kb.ClickableBox3
+    <Kb.ClickableBox
       direction="vertical"
       centerChildren={true}
       flex={1}
@@ -285,8 +285,8 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
       <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
         Media
       </Kb.Text>
-    </Kb.ClickableBox3>
-    <Kb.ClickableBox3
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
       direction="vertical"
       centerChildren={true}
       flex={1}
@@ -300,8 +300,8 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
       <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
         Docs
       </Kb.Text>
-    </Kb.ClickableBox3>
-    <Kb.ClickableBox3
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
       direction="vertical"
       centerChildren={true}
       flex={1}
@@ -315,7 +315,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
       <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
         Links
       </Kb.Text>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   </Kb.Box2>
 )
 
@@ -916,7 +916,7 @@ export const useAttachmentSections = (
             key: month.key,
             renderItem: ({item}: {item: Item}) => {
               return item.type === 'link' ? (
-                <Kb.ClickableBox3
+                <Kb.ClickableBox
                   direction="vertical"
                   fullWidth={true}
                   style={styles.linkContainer}
@@ -950,7 +950,7 @@ export const useAttachmentSections = (
                   </Kb.Box2>
                   {!!item.title && <LinkTitle title={item.title} url={item.url} />}
                   <Kb.Divider />
-                </Kb.ClickableBox3>
+                </Kb.ClickableBox>
               ) : null
             },
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,

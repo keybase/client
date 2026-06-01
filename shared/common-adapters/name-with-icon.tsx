@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
 import Avatar from './avatar'
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
 import Icon from './icon'
@@ -230,14 +230,14 @@ export const NameWithIcon = (props: NameWithIconProps) => {
   )
 
   return _onClickWrapper ? (
-    <ClickableBox3
+    <ClickableBox
       onClick={e => e && _onClickWrapper(e)}
       direction={props.horizontal ? 'horizontal' : 'vertical'}
       alignItems="center"
       style={containerStyle}
     >
       {children}
-    </ClickableBox3>
+    </ClickableBox>
   ) : (
     <Box2
       direction={props.horizontal ? 'horizontal' : 'vertical'}

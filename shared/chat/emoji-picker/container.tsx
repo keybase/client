@@ -121,9 +121,9 @@ const WrapperMobile = (props: Props) => {
       style={styles.contain}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-        <Kb.ClickableBox3 direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
+        <Kb.ClickableBox direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
         <Kb.SearchFilter
           focusOnMount={true}
           size="small"

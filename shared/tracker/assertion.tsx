@@ -224,7 +224,7 @@ const Assertion = (ownProps: OwnProps) => {
             </Kb.Text>
           )}
         </Kb.Text>
-        <Kb.ClickableBox3
+        <Kb.ClickableBox
           onClick={items ? showPopup : onShowProof}
           style={styles.statusAssertion}
           direction="horizontal"
@@ -246,7 +246,7 @@ const Assertion = (ownProps: OwnProps) => {
           ) : (
             <Kb.Box2 direction="vertical" />
           )}
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       </Kb.Box2>
       {!!metas.length && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaAssertion}>
@@ -434,9 +434,9 @@ const AssertionSiteIcon = (p: SIProps) => {
     child = <HoverOpacity>{child}</HoverOpacity>
   }
   return (
-    <Kb.ClickableBox3 onClick={onCreateProof || onShowProof} style={isSuggestion ? styles.halfOpacity : null} direction="vertical">
+    <Kb.ClickableBox onClick={onCreateProof || onShowProof} style={isSuggestion ? styles.halfOpacity : null} direction="vertical">
       {child}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

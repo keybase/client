@@ -213,7 +213,7 @@ const GlobalError = () => {
   }
 
   return (
-    <Kb.ClickableBox3 style={stylesContainer} onClick={onExpandClick} direction="vertical">
+    <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick} direction="vertical">
       <Kb.Box2 direction="horizontal" flex={1} style={styles.innerContainer}>
         <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}
@@ -239,7 +239,7 @@ const GlobalError = () => {
           {details}
         </Kb.Text>
       </Kb.ScrollView>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 }
 

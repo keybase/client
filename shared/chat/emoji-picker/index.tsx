@@ -223,7 +223,7 @@ function EmojiPicker(props: Props) {
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     return (
-      <Kb.ClickableBox3
+      <Kb.ClickableBox
         direction="vertical"
         className="emoji-picker-emoji-box"
         onClick={() => {
@@ -243,7 +243,7 @@ function EmojiPicker(props: Props) {
           showTooltip={false}
           size={singleEmojiWidth}
         />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     )
   }
 

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import NativeEmoji from './emoji/native-emoji'
 import Text from './text'
-import {Box2, ClickableBox3} from './box'
+import {Box2, ClickableBox} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
 import Input3 from './input3'
@@ -23,7 +23,7 @@ import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
-  ClickableBox3,
+  ClickableBox,
   FloatingMenu,
   FloatingPicker,
   Icon,
@@ -550,7 +550,7 @@ const PhoneInput = (p: Props) => {
           isSmall ? undefined : Styles.collapseStyles([styles.countrySelectorRowBig, styles.fakeInputBig])
         }
       >
-        <Kb.ClickableBox3
+        <Kb.ClickableBox
           onClick={toggleShowingMenu}
           direction="horizontal"
           style={Styles.collapseStyles([
@@ -563,7 +563,7 @@ const PhoneInput = (p: Props) => {
         >
           {renderCountrySelector()}
           <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       </Kb.Box2>
       <Kb.Box2
         direction="horizontal"

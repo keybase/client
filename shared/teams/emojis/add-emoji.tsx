@@ -323,9 +323,9 @@ type EmojiToAddOrAddRow =
 const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
   item.type === 'add' ? (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.emojiToAddRow}>
-      <Kb.ClickableBox3 direction="vertical" centerChildren={true} onClick={item.add} style={styles.addEmojiIconContainer}>
+      <Kb.ClickableBox direction="vertical" centerChildren={true} onClick={item.add} style={styles.addEmojiIconContainer}>
         <Kb.Icon type="iconfont-new" color={Kb.Styles.globalColors.blue} />
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
     </Kb.Box2>
   ) : (
     <Kb.Box2

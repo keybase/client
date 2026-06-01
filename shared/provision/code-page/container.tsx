@@ -214,7 +214,7 @@ const CodePageContainer = () => {
   }
 
   const heyWaitBanner = () => (
-    <Kb.ClickableBox3 onClick={() => setTroubleshooting(true)} direction="vertical" fullWidth={true}>
+    <Kb.ClickableBox onClick={() => setTroubleshooting(true)} direction="vertical" fullWidth={true}>
       <Kb.Banner color="yellow">
         <Kb.BannerParagraph
           bannerColor="yellow"
@@ -224,7 +224,7 @@ const CodePageContainer = () => {
           ]}
         />
       </Kb.Banner>
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
 
   const troubleshootingContent = () => (

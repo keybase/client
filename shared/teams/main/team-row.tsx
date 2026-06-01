@@ -61,7 +61,7 @@ const TeamRow = function TeamRow(props: Props) {
   if (isMobile) {
     return (
       <>
-        <Kb.ClickableBox3 onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
+        <Kb.ClickableBox onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
           <Kb.Divider style={styles.divider} />
           <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
             <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
@@ -109,7 +109,7 @@ const TeamRow = function TeamRow(props: Props) {
               ref={popupAnchor}
             />
           </Kb.Box2>
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
         {popup}
       </>
     )
@@ -117,7 +117,7 @@ const TeamRow = function TeamRow(props: Props) {
 
   return (
     <>
-      <Kb.ClickableBox3 onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
+      <Kb.ClickableBox onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
         <Kb.Divider style={styles.divider} />
         <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
           <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
@@ -170,7 +170,7 @@ const TeamRow = function TeamRow(props: Props) {
             ref={popupAnchor}
           />
         </Kb.Box2>
-      </Kb.ClickableBox3>
+      </Kb.ClickableBox>
       {popup}
     </>
   )

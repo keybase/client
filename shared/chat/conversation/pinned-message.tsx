@@ -87,7 +87,7 @@ const PinnedMessage = function PinnedMessage() {
   }
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
-    <Kb.ClickableBox3 direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container}>
+    <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container}>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
       {!!imageURL && (
         <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
@@ -123,7 +123,7 @@ const PinnedMessage = function PinnedMessage() {
           />
         </Kb.Box2>
       )}
-    </Kb.ClickableBox3>
+    </Kb.ClickableBox>
   )
   const popup = (
     <UnpinPrompt

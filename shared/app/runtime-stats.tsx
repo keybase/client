@@ -226,7 +226,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
   return (
     <>
       <Kb.BoxGrow style={styles.boxGrow}>
-        <Kb.ClickableBox3 onClick={() => setMoreLogs(m => !m)} direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
+        <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)} direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
             {!moreLogs &&
               stats.processStats?.map((stat, i) => {
                 return (
@@ -302,7 +302,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
               <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
             )*/}
             <LogStats num={moreLogs ? 25 : 5} />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       </Kb.BoxGrow>
     </>
   )
@@ -331,9 +331,9 @@ const RuntimeStatsMobile = ({stats}: Props) => {
         style={showLogs ? styles.modalLogStats : styles.modalLogStatsHidden}
         gap="xtiny"
       >
-        <Kb.ClickableBox3 onClick={() => setShowLogs(s => !s)} direction="vertical">
+        <Kb.ClickableBox onClick={() => setShowLogs(s => !s)} direction="vertical">
           <LogStats />
-        </Kb.ClickableBox3>
+        </Kb.ClickableBox>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
         {processStat && (
