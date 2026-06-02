@@ -180,14 +180,14 @@ function buildHtml(cases: TestCase[], storybookCases: StorybookCase[], timestamp
     let visual: string
     if (c.screenshotPath && c.prevScreenshotPath) {
       visual = `<div class="compare" id="cmp${i}">
-  <img class="img-after" src="${rel(c.screenshotPath)}" alt="current">
-  <img class="img-before" src="${rel(c.prevScreenshotPath)}" alt="baseline">
+  <img class="img-after" src="${rel(c.screenshotPath)}" alt="current" loading="lazy">
+  <img class="img-before" src="${rel(c.prevScreenshotPath)}" alt="baseline" loading="lazy">
   <div class="handle"><div class="grip">⇔</div></div>
   <div class="lbl lbl-l">BASELINE</div>
   <div class="lbl lbl-r">NOW</div>
 </div>`
     } else if (c.screenshotPath) {
-      visual = `<div class="solo-wrap"><img class="solo" src="${rel(c.screenshotPath)}" alt="${c.label}"></div>`
+      visual = `<div class="solo-wrap"><img class="solo" src="${rel(c.screenshotPath)}" alt="${c.label}" loading="lazy"></div>`
     } else {
       visual = `<div class="empty">No screenshot</div>`
     }
@@ -207,14 +207,14 @@ function buildHtml(cases: TestCase[], storybookCases: StorybookCase[], timestamp
     let visual: string
     if (c.prevScreenshotPath) {
       visual = `<div class="compare" id="cmp${sbOffset + i}">
-  <img class="img-after" src="${rel(c.screenshotPath)}" alt="current">
-  <img class="img-before" src="${rel(c.prevScreenshotPath)}" alt="baseline">
+  <img class="img-after" src="${rel(c.screenshotPath)}" alt="current" loading="lazy">
+  <img class="img-before" src="${rel(c.prevScreenshotPath)}" alt="baseline" loading="lazy">
   <div class="handle"><div class="grip">⇔</div></div>
   <div class="lbl lbl-l">BASELINE</div>
   <div class="lbl lbl-r">NOW</div>
 </div>`
     } else {
-      visual = `<div class="solo-wrap"><img class="solo" src="${rel(c.screenshotPath)}" alt="${escapeHtml(c.label)}"></div>`
+      visual = `<div class="solo-wrap"><img class="solo" src="${rel(c.screenshotPath)}" alt="${escapeHtml(c.label)}" loading="lazy"></div>`
     }
 
     return `<div class="card ok">
