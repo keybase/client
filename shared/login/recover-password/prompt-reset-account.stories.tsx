@@ -11,7 +11,7 @@ type Story = StoryObj<typeof PromptReset>
 export const AccountReset: Story = {
   args: {
     skipPassword: true,
-    username: 'chrisnojima',
+    username: 'testuser',
   },
 }
 
@@ -19,13 +19,13 @@ export const ResetPassword: Story = {
   args: {
     resetPassword: true,
     skipPassword: false,
-    username: 'chrisnojima',
+    username: 'testuser',
   },
 }
 
 export const KnowPassword: Story = {
   args: {
     skipPassword: false,
-    username: 'chrisnojima',
+    username: 'testuser',
   },
 }

@@ -13,7 +13,7 @@ const futureTime = Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days from now
 export const CheckEmailOrPhone: Story = {
   args: {
     pipelineStarted: false,
-    username: 'chrisnojima',
+    username: 'testuser',
   },
 }
 
@@ -21,6 +21,6 @@ export const PipelineStarted: Story = {
   args: {
     endTime: futureTime,
     pipelineStarted: true,
-    username: 'chrisnojima',
+    username: 'testuser',
   },
 }

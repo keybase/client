@@ -6,9 +6,9 @@ const meta: Meta<typeof UserBubble> = {
   component: UserBubble,
   title: 'TeamBuilding/UserBubble',
   args: {
-    username: 'chrisnojima',
+    username: 'testuser',
     service: 'keybase' as T.TB.ServiceIdWithContact,
-    tooltip: 'chrisnojima',
+    tooltip: 'testuser',
     onRemove: () => {},
   },
 }
@@ -17,9 +17,9 @@ type Story = StoryObj<typeof UserBubble>
 
 export const KeybaseUser: Story = {
   args: {
-    username: 'chrisnojima',
+    username: 'testuser',
     service: 'keybase',
-    tooltip: 'chrisnojima',
+    tooltip: 'testuser',
   },
 }
 

@@ -15,7 +15,7 @@ const makeDevice = (overrides: Partial<T.Devices.Device> = {}): T.Devices.Device
   lastUsed: weekAgo,
   name: 'My Device',
   type: 'desktop',
-  provisionerName: 'chrisnojima-mac',
+  provisionerName: 'testuser-mac',
   ...overrides,
 })
 
@@ -36,7 +36,7 @@ export const DesktopActive: Story = {
 
 export const CurrentDevice: Story = {
   args: {
-    device: makeDevice({name: 'chrisnojima-mac', currentDevice: true, lastUsed: now}),
+    device: makeDevice({name: 'testuser-mac', currentDevice: true, lastUsed: now}),
     canRevoke: false,
   },
 }
@@ -67,7 +67,7 @@ export const RevokedDevice: Story = {
     device: makeDevice({
       name: 'old-laptop',
       revokedAt: monthAgo,
-      revokedByName: 'chrisnojima-mac',
+      revokedByName: 'testuser-mac',
       lastUsed: monthAgo,
     }),
     canRevoke: false,

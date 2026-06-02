@@ -11,7 +11,7 @@ type Story = StoryObj<typeof UserCard>
 
 export const WithUsername: Story = {
   args: {
-    username: 'chrisnojima',
+    username: 'testuser',
     children: (
       <Kb.Text type="Body" center={true}>
         Card content here
@@ -32,7 +32,7 @@ export const WithoutUsername: Story = {
 
 export const LargeAvatar: Story = {
   args: {
-    username: 'chrisnojima',
+    username: 'testuser',
     avatarSize: 128,
     children: (
       <Kb.Text type="Body" center={true}>
@@ -44,7 +44,7 @@ export const LargeAvatar: Story = {
 
 export const SmallAvatar: Story = {
   args: {
-    username: 'chrisnojima',
+    username: 'testuser',
     avatarSize: 48,
     children: (
       <Kb.Text type="Body" center={true}>

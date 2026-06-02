@@ -15,7 +15,7 @@ export const Desktop: Story = {
       params: {
         deviceName: 'work-laptop',
         deviceType: T.RPCGen.DeviceType.desktop,
-        username: 'chrisnojima',
+        username: 'testuser',
       },
     },
   },
@@ -27,7 +27,7 @@ export const Mobile: Story = {
       params: {
         deviceName: 'iPhone 15',
         deviceType: T.RPCGen.DeviceType.mobile,
-        username: 'chrisnojima',
+        username: 'testuser',
       },
     },
   },

@@ -35,14 +35,14 @@ export const Empty: Story = {}
 
 export const OneKeybaseUser: Story = {
   args: {
-    teamSoFar: [makeUser('chrisnojima')],
+    teamSoFar: [makeUser('testuser')],
   },
 }
 
 export const MixedServices: Story = {
   args: {
     teamSoFar: [
-      makeUser('chrisnojima'),
+      makeUser('testuser'),
       makeUser('twitterfriend', 'twitter'),
       makeUser('15551234567', 'phone'),
       makeUser('user@example.com', 'email'),
@@ -65,7 +65,7 @@ export const ManyUsers: Story = {
 
 export const WithGoButtonLabel: Story = {
   args: {
-    teamSoFar: [makeUser('chrisnojima')],
+    teamSoFar: [makeUser('testuser')],
     goButtonLabel: 'Add',
   },
 }

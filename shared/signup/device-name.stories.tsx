@@ -21,6 +21,6 @@ export const Empty: Story = {
 
 export const WithUsername: Story = {
   args: {
-    route: {params: {username: 'chrisnojima', inviteCode: 'abc123'}},
+    route: {params: {username: 'testuser', inviteCode: 'abc123'}},
   },
 }

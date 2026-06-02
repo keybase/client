@@ -29,7 +29,7 @@ type Story = StoryObj<typeof DeviceRow>
 
 export const DesktopCurrent: Story = {
   args: {
-    device: makeDevice({name: 'chrisnojima-mac', currentDevice: true}),
+    device: makeDevice({name: 'testuser-mac', currentDevice: true}),
   },
 }
 
@@ -59,7 +59,7 @@ export const Revoked: Story = {
     device: makeDevice({
       name: 'old-laptop',
       revokedAt: weekAgo,
-      revokedByName: 'chrisnojima-mac',
+      revokedByName: 'testuser-mac',
     }),
     firstItem: false,
   },

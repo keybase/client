@@ -5,7 +5,7 @@ const meta: Meta<typeof PaperKey> = {
   component: PaperKey,
   title: 'Provision/PaperKey',
   args: {
-    hint: 'chrisnojima-mac...',
+    hint: 'testuser-mac...',
     error: '',
     waiting: false,
     onSubmit: () => {},

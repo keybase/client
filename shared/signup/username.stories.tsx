@@ -21,6 +21,6 @@ export const Empty: Story = {
 
 export const Prefilled: Story = {
   args: {
-    route: {params: {username: 'chrisnojima'}},
+    route: {params: {username: 'testuser'}},
   },
 }
