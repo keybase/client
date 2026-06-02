@@ -58,8 +58,11 @@ const preview: Preview = {
   decorators: [
     (Story, context) => {
       const dark = !!context.globals['darkMode']
+      const target = dark ? 'alwaysDark' : 'alwaysLight'
       // false = don't write to config (no RPC available in storybook)
-      useDarkModeState.getState().dispatch.setDarkModePreference(dark ? 'alwaysDark' : 'alwaysLight', false)
+      if (useDarkModeState.getState().darkModePreference !== target) {
+        useDarkModeState.getState().dispatch.setDarkModePreference(target, false)
+      }
       // Required for light-dark() CSS vars to resolve correctly
       document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
       return React.createElement('div', {style: {background: 'var(--color-white)', padding: 16}}, React.createElement(Story))

@@ -62,9 +62,8 @@ console.log(`Found ${stories.length} stories — concurrency ${CONCURRENCY}`)
 
 fs.mkdirSync(outputDir, {recursive: true})
 
-const executablePath =
-  process.env['CHROME_PATH'] ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const browser = await chromium.launch({executablePath})
+const executablePath = process.env['CHROME_PATH']
+const browser = await chromium.launch(executablePath ? {executablePath} : {})
 
 const queue = [...stories]
 let done = 0

@@ -9,7 +9,7 @@ const meta: Meta<typeof Announcement> = {
     dismissable: false,
     dismissAnnouncement: () => {},
     getData: () => {},
-    id: 1 as any,
+    id: 1,
     text: 'Keybase has a new feature available.',
   },
 }
