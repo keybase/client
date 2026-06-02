@@ -88,7 +88,9 @@ func (h *DeviceHandler) backgroundSyncDevices() {
 		h.syncMu.Unlock()
 		return
 	}
-	h.G().KeyfamilyChanged(context.Background(), h.G().Env.GetUID())
+	if nr := h.G().NotifyRouter; nr != nil {
+		nr.HandleKeyfamilyChanged(h.G().Env.GetUID())
+	}
 }
 
 // DeviceAdd starts the kex2 device provisioning on the

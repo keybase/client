@@ -64,7 +64,9 @@ const Timeline = (p: {device: T.Devices.Device}) => {
             type: 'LastUsed' as const,
           },
         ]
-      : []),
+      : !device.revokedAt
+        ? [{desc: 'Last used unknown', subDesc: '', type: 'LastUsed' as const}]
+        : []),
     {
       desc: `Added ${formatTimeForDeviceTimeline(device.created)}`,
       subDesc: device.provisionerName || '',
