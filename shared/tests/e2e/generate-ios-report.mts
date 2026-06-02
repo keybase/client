@@ -168,7 +168,7 @@ function buildHtml(results: ScreenshotResult[], timestamp: string, title: string
         <div class="lbl lbl-r">NOW</div>
       </div>`
     } else if (r.screenshotPath) {
-      visual = `<div class="solo-wrap"><img class="solo" src="${rel(r.screenshotPath)}" alt="${r.name}" loading="lazy"></div>`
+      visual = `<div class="solo-wrap"><img class="solo" src="${rel(r.screenshotPath)}" alt="${escapeHtml(r.name)}" loading="lazy"></div>`
     } else if (r.failureScreenshotPath) {
       visual = `<div class="solo-wrap"><img class="solo dim" src="${rel(r.failureScreenshotPath)}" alt="failure" loading="lazy"></div>`
     } else {

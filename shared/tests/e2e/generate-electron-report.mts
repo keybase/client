@@ -79,7 +79,7 @@ function parseReport(report: Report): TestCase[] {
       // Group by project so light and dark produce separate TestCase entries
       const byProject = new Map<string, PlaywrightTest[]>()
       for (const t of spec.tests) {
-        const proj = t.projectName ?? ''
+        const proj = t.projectName
         if (!byProject.has(proj)) byProject.set(proj, [])
         byProject.get(proj)!.push(t)
       }
@@ -94,7 +94,7 @@ function parseReport(report: Report): TestCase[] {
         const result = allResults.filter(r => r.status !== 'skipped').at(-1) ?? allResults.at(-1)
         if (!result) continue
 
-        const passed = tests.every(t => t.status === 'expected')
+        const passed = tests.every(t => t.status === 'expected' || t.status === 'flaky')
         const durationMs = result.duration
         const errorMessage = !passed
           ? (result.errors?.[0]?.message?.split('\n')[0] ?? 'test failed')
@@ -192,7 +192,7 @@ function buildHtml(cases: TestCase[], storybookCases: StorybookCase[], timestamp
   <div class="lbl lbl-r">NOW</div>
 </div>`
     } else if (c.screenshotPath) {
-      visual = `<div class="solo-wrap"><img class="solo" src="${rel(c.screenshotPath)}" alt="${c.label}" loading="lazy"></div>`
+      visual = `<div class="solo-wrap"><img class="solo" src="${rel(c.screenshotPath)}" alt="${escapeHtml(c.label)}" loading="lazy"></div>`
     } else {
       visual = `<div class="empty">No screenshot</div>`
     }
