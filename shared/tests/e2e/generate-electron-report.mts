@@ -74,46 +74,51 @@ function parseReport(report: Report): TestCase[] {
   const cases: TestCase[] = []
   for (const suite of report.suites) {
     for (const {suiteName, spec} of flattenSpecs(suite)) {
-      const key = `${slugify(suiteName)}-${slugify(spec.title)}`
-      // take the last non-skipped result (handles retries)
-      const allResults = spec.tests.flatMap(t => t.results)
-      const result = allResults.filter(r => r.status !== 'skipped').at(-1) ?? allResults.at(-1)
-      if (!result) continue
+      const baseKey = `${slugify(suiteName)}-${slugify(spec.title)}`
 
-      const passed = spec.ok
-      const durationMs = result.duration
-      const errorMessage = !passed
-        ? (result.errors?.[0]?.message?.split('\n')[0] ?? 'test failed')
-        : null
-
-      const screenshotAtt = result.attachments.find(a => a.name === 'screenshot' && a.contentType === 'image/png')
-      let screenshotPath: string | null = null
-      if (screenshotAtt) {
-        const buf = screenshotAtt.body
-          ? Buffer.from(screenshotAtt.body, 'base64')
-          : screenshotAtt.path ? fs.readFileSync(screenshotAtt.path) : null
-        if (buf) {
-          fs.mkdirSync(debugDir, {recursive: true})
-          screenshotPath = path.join(debugDir, `${key}.png`)
-          fs.writeFileSync(screenshotPath, buf)
-        }
+      // Group by project so light and dark produce separate TestCase entries
+      const byProject = new Map<string, PlaywrightTest[]>()
+      for (const t of spec.tests) {
+        const proj = t.projectName ?? ''
+        if (!byProject.has(proj)) byProject.set(proj, [])
+        byProject.get(proj)!.push(t)
       }
 
-      const prevPath = path.join(prevDir, `${key}.png`)
-      const prevScreenshotPath = fs.existsSync(prevPath) ? prevPath : null
+      for (const [projectName, tests] of byProject) {
+        const isDark = projectName.endsWith('-dark')
+        const key = isDark ? `${baseKey}-dark` : baseKey
+        const label = isDark ? `${suiteName} · ${spec.title} (dark)` : `${suiteName} · ${spec.title}`
 
-      const diff = screenshotPath && prevScreenshotPath ? computeDiff(screenshotPath, prevScreenshotPath) : null
+        // take the last non-skipped result (handles retries)
+        const allResults = tests.flatMap(t => t.results)
+        const result = allResults.filter(r => r.status !== 'skipped').at(-1) ?? allResults.at(-1)
+        if (!result) continue
 
-      cases.push({
-        key,
-        label: `${suiteName} · ${spec.title}`,
-        passed,
-        durationMs,
-        screenshotPath,
-        prevScreenshotPath,
-        diff,
-        errorMessage,
-      })
+        const passed = tests.every(t => t.status === 'expected')
+        const durationMs = result.duration
+        const errorMessage = !passed
+          ? (result.errors?.[0]?.message?.split('\n')[0] ?? 'test failed')
+          : null
+
+        const screenshotAtt = result.attachments.find(a => a.name === 'screenshot' && a.contentType === 'image/png')
+        let screenshotPath: string | null = null
+        if (screenshotAtt) {
+          const buf = screenshotAtt.body
+            ? Buffer.from(screenshotAtt.body, 'base64')
+            : screenshotAtt.path ? fs.readFileSync(screenshotAtt.path) : null
+          if (buf) {
+            fs.mkdirSync(debugDir, {recursive: true})
+            screenshotPath = path.join(debugDir, `${key}.png`)
+            fs.writeFileSync(screenshotPath, buf)
+          }
+        }
+
+        const prevPath = path.join(prevDir, `${key}.png`)
+        const prevScreenshotPath = fs.existsSync(prevPath) ? prevPath : null
+        const diff = screenshotPath && prevScreenshotPath ? computeDiff(screenshotPath, prevScreenshotPath) : null
+
+        cases.push({key, label, passed, durationMs, screenshotPath, prevScreenshotPath, diff, errorMessage})
+      }
     }
   }
   return cases

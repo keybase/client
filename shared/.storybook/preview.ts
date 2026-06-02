@@ -2,6 +2,7 @@ import React from 'react'
 import type {Preview} from '@storybook/react'
 import type {KB2} from '../util/electron'
 import {initDesktopStyles} from '@/styles'
+import {useDarkModeState} from '@/stores/darkmode'
 
 // Inject a minimal KB2 stub so util/electron.tsx's getStashed() doesn't throw.
 // The real app sets this from the Electron preload script; storybook sets it here.
@@ -47,10 +48,22 @@ const kb2Stub: KB2 = {
 
 initDesktopStyles()
 
+export const globalTypes = {
+  darkMode: {
+    defaultValue: false,
+  },
+}
+
 const preview: Preview = {
   decorators: [
-    Story =>
-      React.createElement('div', {style: {background: '#ffffff', padding: 16}}, React.createElement(Story)),
+    (Story, context) => {
+      const dark = !!context.globals['darkMode']
+      // false = don't write to config (no RPC available in storybook)
+      useDarkModeState.getState().dispatch.setDarkModePreference(dark ? 'alwaysDark' : 'alwaysLight', false)
+      // Required for light-dark() CSS vars to resolve correctly
+      document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+      return React.createElement('div', {style: {background: 'var(--color-white)', padding: 16}}, React.createElement(Story))
+    },
   ],
   parameters: {
     layout: 'fullscreen',

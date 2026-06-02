@@ -68,6 +68,7 @@ const browser = await chromium.launch({executablePath})
 
 const queue = [...stories]
 let done = 0
+const total = stories.length * 2
 
 await Promise.all(
   Array.from({length: CONCURRENCY}, async () => {
@@ -78,17 +79,27 @@ await Promise.all(
       if (!item) break
       const [id, {title, name}] = item
       try {
+        const storyDir = path.join(outputDir, title.replaceAll('/', '-'))
+        fs.mkdirSync(storyDir, {recursive: true})
+        const slug = name.replaceAll(/\s+/g, '-')
+
+        await page.emulateMedia({colorScheme: 'light'})
         await page.goto(`${storybookUrl}/iframe.html?id=${id}&viewMode=story`, {
           waitUntil: 'load',
           timeout: 10000,
         })
-
-        const storyDir = path.join(outputDir, title.replaceAll('/', '-'))
-        fs.mkdirSync(storyDir, {recursive: true})
-        const file = path.join(storyDir, `${name.replaceAll(/\s+/g, '-')}.png`)
-        await page.screenshot({path: file, fullPage: true})
+        await page.screenshot({path: path.join(storyDir, `${slug}.png`), fullPage: true})
         done++
-        console.log(`  [${done}/${stories.length}] ${title}/${name}`)
+        console.log(`  [${done}/${total}] ${title}/${name} (light)`)
+
+        await page.emulateMedia({colorScheme: 'dark'})
+        await page.goto(`${storybookUrl}/iframe.html?id=${id}&viewMode=story&globals=darkMode:true`, {
+          waitUntil: 'load',
+          timeout: 10000,
+        })
+        await page.screenshot({path: path.join(storyDir, `${slug}-dark.png`), fullPage: true})
+        done++
+        console.log(`  [${done}/${total}] ${title}/${name} (dark)`)
       } catch (err) {
         console.warn(`  SKIP ${title}/${name}: ${(err as Error).message.split('\n')[0]}`)
       }
@@ -99,4 +110,4 @@ await Promise.all(
 
 await browser.close()
 server.close()
-console.log(`\nDone — ${stories.length} screenshots in ${outputDir}`)
+console.log(`\nDone — ${total} screenshots in ${outputDir}`)

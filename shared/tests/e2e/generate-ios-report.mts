@@ -209,6 +209,7 @@ ${sharedCss(allPassed)}
 <header>
   <div class="hdr-top"><h1>${title}</h1><button id="slideshow-btn" title="Slideshow">▶</button></div>
   <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ' <span>· vs baseline</span>' : ''}<span class="ts">${timestamp}</span></div>
+  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"></div>
 </header>
 <div class="grid">${cards}</div>
 ${sliderScript()}
@@ -268,7 +269,13 @@ h1{font-size:20px;font-weight:600}
 .ov-controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1002;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.55);border-radius:24px;padding:6px 14px}
 .ov-controls button{background:none;border:none;color:#fff;font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.85}
 .ov-controls button:hover{opacity:1;background:rgba(255,255,255,.15)}
-.ov-counter{color:rgba(255,255,255,.8);font-size:12px;font-weight:600;letter-spacing:.04em;min-width:52px;text-align:center}`
+.ov-counter{color:rgba(255,255,255,.8);font-size:12px;font-weight:600;letter-spacing:.04em;min-width:52px;text-align:center}
+.filter-wrap{padding:10px 28px 14px}
+#filter-input{width:100%;max-width:480px;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:13px;outline:none}
+#filter-input::placeholder{color:rgba(255,255,255,.6)}
+#filter-input:focus{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.6)}
+.card.hidden{display:none}
+.section-hdr.hidden{display:none}`
 }
 
 export function sliderScript(): string {
@@ -362,7 +369,7 @@ let slideshowImgs = []
 const slideshowBtn = document.getElementById('slideshow-btn')
 
 function slideshowImages() {
-  return Array.from(document.querySelectorAll('.grid .card')).flatMap(card => {
+  return Array.from(document.querySelectorAll('.grid .card:not(.hidden)')).flatMap(card => {
     const img = card.querySelector('.img-after') ?? card.querySelector('img.solo')
     return img ? [img.src] : []
   })
@@ -416,6 +423,41 @@ slideshowBtn.addEventListener('click', () => {
     setSlideshowPlaying(true)
   }
 })
+
+// ── filter ───────────────────────────────────────────────────────────────────
+const filterInput = document.getElementById('filter-input')
+
+function applyFilter(q) {
+  const lq = q.toLowerCase()
+  document.querySelectorAll('.grid .card').forEach(card => {
+    const name = card.querySelector('.name')?.textContent?.toLowerCase() ?? ''
+    card.classList.toggle('hidden', lq.length > 0 && !name.includes(lq))
+  })
+  document.querySelectorAll('.section-hdr').forEach(hdr => {
+    let el = hdr.nextElementSibling
+    let anyVisible = false
+    while (el && !el.classList.contains('section-hdr')) {
+      if (el.classList.contains('card') && !el.classList.contains('hidden')) { anyVisible = true; break }
+      el = el.nextElementSibling
+    }
+    hdr.classList.toggle('hidden', lq.length > 0 && !anyVisible)
+  })
+}
+
+function syncUrl(q) {
+  const url = new URL(location.href)
+  if (q) url.searchParams.set('q', q)
+  else url.searchParams.delete('q')
+  history.replaceState(null, '', url)
+}
+
+filterInput.addEventListener('input', () => {
+  applyFilter(filterInput.value)
+  syncUrl(filterInput.value)
+})
+
+const initQ = new URL(location.href).searchParams.get('q') ?? ''
+if (initQ) { filterInput.value = initQ; applyFilter(initQ) }
 </script>`
 }
 

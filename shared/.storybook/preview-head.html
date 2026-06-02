@@ -33,11 +33,12 @@
     --size-xxtiny: 2px; --size-xtiny: 4px; --size-tiny: 8px; --size-xsmall: 12px;
     --size-small: 16px; --size-medium: 24px; --size-mediumLarge: 32px;
     --size-large: 40px; --size-xlarge: 64px; --size-border-radius: 4px;
+    color-scheme: light dark;
   }
 
   html { box-sizing: border-box; cursor: default; user-select: none; height: 100%; width: 100%; }
   *, *:before, *:after { box-sizing: inherit; }
-  body { height: 100%; width: 100%; background-color: #ffffff; }
+  body { height: 100%; width: 100%; background-color: light-dark(#ffffff, #191919); }
 
   .clickable { cursor: pointer; }
   .clickable-box2 { cursor: pointer; }
