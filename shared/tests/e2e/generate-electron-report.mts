@@ -94,7 +94,7 @@ function parseReport(report: Report): TestCase[] {
         const result = allResults.filter(r => r.status !== 'skipped').at(-1) ?? allResults.at(-1)
         if (!result) continue
 
-        const passed = tests.every(t => t.status === 'expected' || t.status === 'flaky')
+        const passed = tests.every(t => t.status === 'expected' || t.status === 'flaky' || t.status === 'skipped')
         const durationMs = result.duration
         const errorMessage = !passed
           ? (result.errors?.[0]?.message?.split('\n')[0] ?? 'test failed')
@@ -134,7 +134,7 @@ function parseStorybookScreenshots(): StorybookCase[] {
       if (entry.isDirectory()) {
         walk(fullPath, relPath)
       } else if (entry.name.endsWith('.png')) {
-        const label = relPath.replace('.png', '').replace('/', ' / ').replace(/-/g, ' ')
+        const label = relPath.replace(/\.png$/, '').replaceAll('/', ' / ').replace(/-/g, ' ')
         const prevPath = path.join(storybookPrevDir, relPath)
         const prevScreenshotPath = fs.existsSync(prevPath) ? prevPath : null
         const diff = prevScreenshotPath ? computeDiff(fullPath, prevScreenshotPath) : null

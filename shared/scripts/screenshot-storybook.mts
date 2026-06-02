@@ -65,6 +65,7 @@ const {entries} = (await (await fetch(`${storybookUrl}/index.json`)).json()) as 
 const stories = Object.entries(entries).filter(([, e]) => e.type === 'story')
 console.log(`Found ${stories.length} stories — concurrency ${CONCURRENCY}`)
 
+fs.rmSync(outputDir, {recursive: true, force: true})
 fs.mkdirSync(outputDir, {recursive: true})
 
 const executablePath = process.env['CHROME_PATH']
