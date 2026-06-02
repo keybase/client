@@ -32,11 +32,15 @@ const makeAliases = (): Record<string, string | false> => {
 }
 
 const config: StorybookConfig = {
-  stories: ['../devices/**/*.stories.tsx'],
+  stories: ['../**/*.stories.tsx'],
   addons: [],
   framework: {
     name: '@storybook/react-webpack5',
-    options: {},
+    options: {
+      builder: {
+        lazyCompilation: false,
+      },
+    },
   },
   staticDirs: [
     {from: '../fonts/electron', to: '/fonts/electron'},

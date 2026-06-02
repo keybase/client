@@ -1,6 +1,7 @@
 import React from 'react'
 import type {Preview} from '@storybook/react'
 import type {KB2} from '../util/electron'
+import {initDesktopStyles} from '@/styles'
 
 // Inject a minimal KB2 stub so util/electron.tsx's getStashed() doesn't throw.
 // The real app sets this from the Electron preload script; storybook sets it here.
@@ -43,6 +44,8 @@ const kb2Stub: KB2 = {
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
 ;(globalThis as any)._fromPreload = kb2Stub
+
+initDesktopStyles()
 
 const preview: Preview = {
   decorators: [
