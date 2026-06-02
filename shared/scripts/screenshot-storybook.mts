@@ -114,4 +114,4 @@ await Promise.all(
 
 await browser.close()
 server.close()
-console.log(`\nDone — ${total} screenshots in ${outputDir}`)
+console.log(`\nDone — ${done}/${total} screenshots in ${outputDir}`)
