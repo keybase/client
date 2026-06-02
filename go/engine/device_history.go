@@ -183,7 +183,7 @@ func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (ret map[keybase1.
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer
 	// Use local cache to avoid a blocking network call on every page load.
-	// Falls back to a forced network sync if the cache is empty or expired.
+	// Falls back to a forced network sync if the cache is empty or out-of-date.
 	ss, err = m.ActiveDevice().SyncSecretsFromCache(m)
 	if err != nil {
 		return nil, err

@@ -82,6 +82,10 @@ func (h *DeviceHandler) backgroundSyncDevices() {
 	mctx := libkb.NewMetaContext(context.Background(), h.G())
 	if _, err := mctx.ActiveDevice().SyncSecretsForce(mctx); err != nil {
 		mctx.Debug("DeviceHandler#backgroundSyncDevices error: %v", err)
+		// Reset so the next UI refresh can retry instead of waiting out the TTL.
+		h.syncMu.Lock()
+		h.lastDeviceSync = time.Time{}
+		h.syncMu.Unlock()
 		return
 	}
 	h.G().KeyfamilyChanged(context.Background(), h.G().Env.GetUID())
