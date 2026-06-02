@@ -40,6 +40,11 @@ const server = http.createServer((req, res) => {
   let urlPath = new NodeURL(req.url ?? '/', `http://localhost`).pathname
   if (urlPath === '/') urlPath = '/index.html'
   const filePath = path.join(buildDir, urlPath)
+  if (!filePath.startsWith(buildDir + path.sep)) {
+    res.writeHead(403)
+    res.end('Forbidden')
+    return
+  }
   try {
     const data = fs.readFileSync(filePath)
     const ext = path.extname(filePath)
@@ -50,7 +55,7 @@ const server = http.createServer((req, res) => {
     res.end('Not found')
   }
 })
-await new Promise<void>(resolve => server.listen(PORT, resolve))
+await new Promise<void>(resolve => server.listen(PORT, '127.0.0.1', resolve))
 const storybookUrl = `http://localhost:${PORT}`
 console.log(`Serving static build at ${storybookUrl}`)
 

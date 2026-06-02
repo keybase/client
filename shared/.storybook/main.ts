@@ -57,7 +57,7 @@ const config: StorybookConfig = {
       ...(webpackConfig.resolve.alias ?? {}),
       ...makeAliases(),
     }
-    webpackConfig.resolve.extensions = ['.tsx', '.ts', '.desktop.tsx', '.desktop.ts', '.js', '.jsx', '.json']
+    webpackConfig.resolve.extensions = ['.desktop.tsx', '.desktop.ts', '.tsx', '.ts', '.js', '.jsx', '.json']
 
     // Storybook 10 does not include a JS/TS transpiler by default — add babel-loader
     // so that TypeScript and JSX in story files and preview config are compiled.

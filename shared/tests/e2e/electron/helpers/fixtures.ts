@@ -17,8 +17,11 @@ export const test = base.extend<{page: Page}, WorkerFixtures>({
       // Reload to clear in-memory state and apply the new color scheme
       await page.reload()
       await page.getByTestId(NAV_TAB_CHAT).waitFor({timeout: 30_000})
-      await setup(page)
-      await page.emulateMedia({colorScheme: null})
+      try {
+        await setup(page)
+      } finally {
+        await page.emulateMedia({colorScheme: null})
+      }
       // Do NOT close — that kills the Electron process
     },
     {scope: 'worker'},
