@@ -1,0 +1,46 @@
+<style>
+  /* Reset */
+  html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, em, img, b, u, i,
+  ol, ul, li, table, caption, tbody, tfoot, thead, tr, th, td, article,
+  aside, details, figure, figcaption, footer, header, menu, nav, section, summary {
+    margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline;
+  }
+  body { line-height: 1; }
+
+  /* KB icon font */
+  @font-face {
+    font-family: 'kb';
+    src: url('/fonts/electron/kb.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+  }
+
+  /* Keybase text font */
+  @font-face { font-family: 'Keybase'; font-weight: 500; src: url('/fonts/electron/keybase-medium.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Keybase'; font-weight: 500; font-style: italic; src: url('/fonts/electron/keybase-medium-italic.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Keybase'; font-weight: 600; src: url('/fonts/electron/keybase-semibold.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Keybase'; font-weight: 600; font-style: italic; src: url('/fonts/electron/keybase-semibold-italic.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Keybase'; font-weight: 700; src: url('/fonts/electron/keybase-bold.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Keybase'; font-weight: 700; font-style: italic; src: url('/fonts/electron/keybase-bold-italic.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Keybase'; font-weight: 800; src: url('/fonts/electron/keybase-extrabold.ttf') format('truetype'); font-display: block; }
+
+  /* Source Code Pro */
+  @font-face { font-family: 'Source Code Pro'; font-weight: 500; src: url('/fonts/electron/SourceCodePro-Medium.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Source Code Pro'; font-weight: 600; src: url('/fonts/electron/SourceCodePro-Semibold.ttf') format('truetype'); font-display: block; }
+
+  :root {
+    --size-xxtiny: 2px; --size-xtiny: 4px; --size-tiny: 8px; --size-xsmall: 12px;
+    --size-small: 16px; --size-medium: 24px; --size-mediumLarge: 32px;
+    --size-large: 40px; --size-xlarge: 64px; --size-border-radius: 4px;
+    color-scheme: light dark;
+  }
+
+  html { box-sizing: border-box; cursor: default; user-select: none; height: 100%; width: 100%; }
+  *, *:before, *:after { box-sizing: inherit; }
+  body { height: 100%; width: 100%; background-color: light-dark(#ffffff, #191919); }
+
+  .clickable { cursor: pointer; }
+  .clickable-box2 { cursor: pointer; }
+  .selectable { cursor: text; user-select: text; }
+</style>

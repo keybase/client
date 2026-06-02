@@ -3,6 +3,7 @@
 - "Was working before" = base branch, not previous commit. Base branch is almost always `nojima/HOTPOT-next-670-clean-2` (not `master`). Always run `gh pr view --json baseRefName` to confirm before any `git diff` or `git log` comparison.
 - Never use `npm`. Always `yarn`.
 - Never silently drop features/behavior — ask first, present options.
+- In tests/stories, use `testuser` / `testuser-mac` as placeholder usernames — never real usernames like `chrisnojima`.
 - No DOM elements (`<div>`, `<span>`, etc.) in plain `.tsx` files — use `Kb.*`. Guard desktop-only DOM with `Styles.isMobile`.
 - Temp files go in `/tmp/`.
 - Remove unused code when editing: styles, imports, vars, params, dead helpers.

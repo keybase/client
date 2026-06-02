@@ -18,5 +18,6 @@ export default defineConfig({
   },
   projects: [
     {name: 'electron-flows', testMatch: 'flows/**/*.test.ts'},
+    {name: 'electron-flows-dark', testMatch: 'flows/**/*.test.ts'},
   ],
 })
