@@ -600,6 +600,24 @@ func (a *ActiveDevice) SyncSecretsForce(m MetaContext) (ret *SecretSyncer, err e
 	return a.SyncSecretsForUID(m, zed, true /* force */)
 }
 
+func (a *ActiveDevice) SyncSecretsFromCache(m MetaContext) (ret *SecretSyncer, err error) {
+	defer m.Trace("ActiveDevice#SyncSecretsFromCache", &err)()
+	a.RLock()
+	s := a.secretSyncer
+	uid := a.uv.Uid
+	a.RUnlock()
+	if s == nil {
+		return nil, fmt.Errorf("Can't sync secrets: nil secret syncer")
+	}
+	if uid.IsNil() {
+		return nil, fmt.Errorf("can't run secret syncer without a UID")
+	}
+	if err = RunSyncerCached(m, s, uid); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
 func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername, suppressNetworkErrors bool) (err error) {
 	a.RLock()
 	uid := a.uv.Uid

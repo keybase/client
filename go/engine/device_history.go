@@ -145,11 +145,10 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 			detail := &e.devices[i]
 			lastUsedTime, ok := lastUsedTimes[detail.Device.DeviceID]
 			if !ok {
-				if detail.RevokedAt != nil {
-					// The server only provides last used times for active devices.
-					continue
-				}
-				return fmt.Errorf("Failed to load last used time for device %s", detail.Device.DeviceID)
+				// The server only provides last used times for active devices.
+				// Cache may also be missing recently-provisioned devices; leave
+				// LastUsedTime as zero and let the background sync fill it in.
+				continue
 			}
 			detail.Device.LastUsedTime = keybase1.TimeFromSeconds(lastUsedTime.Unix())
 		}
@@ -183,9 +182,17 @@ func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (ret map[keybase1.
 	defer m.Trace("DeviceHistory#getLastUsedTimes", &err)()
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer
-	ss, err = m.ActiveDevice().SyncSecretsForce(m)
+	// Use local cache to avoid a blocking network call on every page load.
+	// Falls back to a forced network sync if the cache is empty or expired.
+	ss, err = m.ActiveDevice().SyncSecretsFromCache(m)
 	if err != nil {
 		return nil, err
+	}
+	if !ss.HasDevices() {
+		ss, err = m.ActiveDevice().SyncSecretsForce(m)
+		if err != nil {
+			return nil, err
+		}
 	}
 	devs, err = ss.ActiveDevices(libkb.AllDeviceTypes)
 	if err != nil {
