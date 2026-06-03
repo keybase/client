@@ -10,7 +10,7 @@ export type {LegendListRef, Props} from './list.shared'
 const DesktopList = function List<T>({ref, ...p}: Props<T>) {
   const {empty, ...listProps} = useListProps(p as Props<T>)
   const {style} = p
-  if (empty) return null
+  if (empty && !p.ListHeaderComponent && !p.ListFooterComponent) return null
 
   return (
     <LegendListWeb
@@ -32,7 +32,7 @@ const DesktopList = function List<T>({ref, ...p}: Props<T>) {
 
 const NativeList = function List<T>({ref, ...p}: Props<T>) {
   const {empty, ...listProps} = useListProps(p as Props<T>)
-  if (empty) return null
+  if (empty && !p.ListHeaderComponent && !p.ListFooterComponent) return null
 
   return (
     <View style={styles.outerView}>
