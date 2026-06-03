@@ -154,8 +154,8 @@ func (n *NoopNotifyListener) SimpleFSArchiveStatusChanged(status keybase1.Simple
 
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
-func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID)   {}
-func (n *NoopNotifyListener) DeviceHistoryChanged()               {}
+func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID) {}
+func (n *NoopNotifyListener) DeviceHistoryChanged()             {}
 func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
 	source chat1.ChatActivitySource) {
 }
