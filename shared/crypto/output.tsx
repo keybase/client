@@ -61,7 +61,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
-        justifyContent="center"
+        justifyContent="flex-start"
         noShrink={true}
         style={Kb.Styles.collapseStyles([
           styles.signedContainer,
