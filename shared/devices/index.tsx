@@ -11,6 +11,7 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import {useTypedNavigation} from '@/util/typed-navigation'
 import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
@@ -48,8 +49,11 @@ function ReloadableDevices() {
     )
   })
 
-  useEngineActionListener('keybase.1.NotifyKeyfamily.keyfamilyChanged', () => {
-    loadDevices()
+  const currentUID = useCurrentUserState(s => s.uid)
+  useEngineActionListener('keybase.1.NotifyKeyfamily.keyfamilyChanged', action => {
+    if (action.payload.params.uid === currentUID) {
+      loadDevices()
+    }
   })
 
   const navigateAppend = C.Router2.navigateAppend

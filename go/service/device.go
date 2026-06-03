@@ -89,7 +89,7 @@ func (h *DeviceHandler) backgroundSyncDevices() {
 		return
 	}
 	if nr := h.G().NotifyRouter; nr != nil {
-		nr.HandleKeyfamilyChanged(h.G().Env.GetUID())
+		nr.HandleKeyfamilyChanged(mctx.ActiveDevice().UID())
 	}
 }
 
