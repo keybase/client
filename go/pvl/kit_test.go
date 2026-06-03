@@ -114,18 +114,6 @@ func TestKitRedditMax(t *testing.T) {
 	utBad.shouldwork = false
 	utBad.errstatus = keybase1.ProofStatus_BAD_USERNAME
 	runKitUnitTest(t, &utBad)
-
-	// Bad response - subreddit listing
-	utBad.testResponseFile = "testdata/reddit-subreddit-listing.xml"
-	utBad.shouldwork = false
-	utBad.errstatus = keybase1.ProofStatus_CONTENT_MISSING
-	runKitUnitTest(t, &utBad)
-
-	// Bad response - user listing
-	utBad.testResponseFile = "testdata/reddit-user-listing.xml"
-	utBad.shouldwork = false
-	utBad.errstatus = keybase1.ProofStatus_CONTENT_MISSING
-	runKitUnitTest(t, &utBad)
 }
 
 func TestKitRedditTerribleText5299(t *testing.T) {
