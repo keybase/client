@@ -7,7 +7,7 @@ const useRequestAutoInvite = () => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const {navigateAppend, navigateUp} = C.Router2
 
-  return (username?: string) => {
+  return (username: string) => {
     if (waiting) {
       return
     }
