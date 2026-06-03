@@ -3587,6 +3587,7 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.NotifyFSRequest.FSEditListRequest'
 // 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'
 // 'keybase.1.NotifyInviteFriends.updateInviteCounts'
+// 'keybase.1.NotifyKeyfamily.keyfamilyChanged'
 // 'keybase.1.NotifyPaperKey.paperKeyCached'
 // 'keybase.1.NotifySaltpack.saltpackOperationStart'
 // 'keybase.1.NotifySaltpack.saltpackOperationProgress'
