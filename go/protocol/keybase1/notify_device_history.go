@@ -27,11 +27,6 @@ func NotifyDeviceHistoryProtocol(i NotifyDeviceHistoryInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args any) (ret any, err error) {
-					_, ok := args.(*[1]DeviceHistoryChangedArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]DeviceHistoryChangedArg)(nil), args)
-						return
-					}
 					err = i.DeviceHistoryChanged(ctx)
 					return
 				},
@@ -45,7 +40,6 @@ type NotifyDeviceHistoryClient struct {
 }
 
 func (c NotifyDeviceHistoryClient) DeviceHistoryChanged(ctx context.Context) (err error) {
-	__arg := DeviceHistoryChangedArg{}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyDeviceHistory.deviceHistoryChanged", []any{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyDeviceHistory.deviceHistoryChanged", []any{DeviceHistoryChangedArg{}}, 0*time.Millisecond)
 	return
 }
