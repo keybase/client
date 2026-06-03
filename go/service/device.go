@@ -83,11 +83,9 @@ func (h *DeviceHandler) backgroundSyncDevices() {
 	if _, err := mctx.ActiveDevice().SyncSecretsForce(mctx); err != nil {
 		mctx.Debug("DeviceHandler#backgroundSyncDevices error: %v", err)
 		// Reset so the next UI refresh can retry instead of waiting out the TTL.
-		func() {
-			h.syncMu.Lock()
-			defer h.syncMu.Unlock()
-			h.lastDeviceSync = time.Time{}
-		}()
+		h.syncMu.Lock()
+		defer h.syncMu.Unlock()
+		h.lastDeviceSync = time.Time{}
 		return
 	}
 	if nr := h.G().NotifyRouter; nr != nil {
