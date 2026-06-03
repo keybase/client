@@ -67,11 +67,11 @@ func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) (
 	// so the next fetch (or the keyfamilyChanged notification below) gets
 	// up-to-date lastUsedTime values. Debounced to avoid redundant syncs.
 	h.syncMu.Lock()
+	defer h.syncMu.Unlock()
 	shouldSync := time.Since(h.lastDeviceSync) > deviceSyncTTL
 	if shouldSync {
 		h.lastDeviceSync = time.Now()
 	}
-	h.syncMu.Unlock()
 	if shouldSync {
 		go h.backgroundSyncDevices()
 	}
@@ -83,9 +83,11 @@ func (h *DeviceHandler) backgroundSyncDevices() {
 	if _, err := mctx.ActiveDevice().SyncSecretsForce(mctx); err != nil {
 		mctx.Debug("DeviceHandler#backgroundSyncDevices error: %v", err)
 		// Reset so the next UI refresh can retry instead of waiting out the TTL.
-		h.syncMu.Lock()
-		h.lastDeviceSync = time.Time{}
-		h.syncMu.Unlock()
+		func() {
+			h.syncMu.Lock()
+			defer h.syncMu.Unlock()
+			h.lastDeviceSync = time.Time{}
+		}()
 		return
 	}
 	if nr := h.G().NotifyRouter; nr != nil {
