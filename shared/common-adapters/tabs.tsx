@@ -62,7 +62,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
           style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle, props.clickableTabStyle])}
           fullWidth={true}
         >
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
             {tab.icon ? (
               <Kb.IconAuto type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
             ) : (
