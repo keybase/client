@@ -1,4 +1,3 @@
-• Improve git default branch handling
-• Fix widget opening into chat search mode
-• Fix copy/move menu in KBFS
-
+• Push notification handling for multiple accounts, account switching
+• Support audio attachments
+• Various bug fixes
