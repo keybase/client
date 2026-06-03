@@ -38,7 +38,7 @@ var (
 	service    = flag.String("service", "", "service to run, e.g. twitter, github, reddit, facebook, hackernews, generic_web_site (required)")
 	version    = flag.String("version", "1", "pvl version chunk to use from the kit's tab")
 	apiURL     = flag.String("api-url", "", "value of the hint_url register (the proof's API url)")
-	sig        = flag.String("sig", "", "armored signature for the proof; defaults to a public test sig")
+	sig        = flag.String("sig", "", "armored signature for the proof")
 	username   = flag.String("username", "kronk", "keybase username")
 	remoteUser = flag.String("remote-username", "kronkinator", "remote (service) username")
 	hostname   = flag.String("hostname", "", "hostname (for dns / generic_web_site proofs)")
