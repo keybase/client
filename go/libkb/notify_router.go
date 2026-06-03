@@ -40,6 +40,7 @@ type NotifyListener interface {
 	SimpleFSArchiveStatusChanged(status keybase1.SimpleFSArchiveStatus)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
+	DeviceHistoryChanged()
 	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity, source chat1.ChatActivitySource)
 	NewChatKBFSFileEditActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
@@ -153,7 +154,8 @@ func (n *NoopNotifyListener) SimpleFSArchiveStatusChanged(status keybase1.Simple
 
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
-func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID) {}
+func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID)   {}
+func (n *NoopNotifyListener) DeviceHistoryChanged()               {}
 func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
 	source chat1.ChatActivitySource) {
 }
@@ -2047,6 +2049,30 @@ func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
 		listener.KeyfamilyChanged(uid)
 	})
 	n.G().Log.Debug("- Sent keyfamily changed notification")
+}
+
+// HandleDeviceHistoryChanged is called whenever the device history list is refreshed.
+func (n *NotifyRouter) HandleDeviceHistoryChanged() {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending device history changed notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Devicehistory {
+			go func() {
+				_ = (keybase1.NotifyDeviceHistoryClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).DeviceHistoryChanged(context.Background())
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.DeviceHistoryChanged()
+	})
+	n.G().Log.Debug("- Sent device history changed notification")
 }
 
 // HandleServiceShutdown is called whenever the service shuts down.
