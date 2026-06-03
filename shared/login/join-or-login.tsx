@@ -20,7 +20,7 @@ const Intro = () => {
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const requestAutoInvite = useRequestAutoInvite()
   const onLogin = () => startProvision()
-  const onSignup = () => requestAutoInvite()
+  const onSignup = () => requestAutoInvite('')
   const showProxySettings = () => {
     C.Router2.navigateAppend({name: 'proxySettingsModal', params: {}})
   }

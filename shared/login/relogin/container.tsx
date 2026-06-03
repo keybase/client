@@ -17,7 +17,8 @@ const ReloginContainer = () => {
     C.Router2.navigateAppend({name: 'signupSendFeedbackLoggedOut', params: {}})
   }
   const onLogin = useConfigState(s => s.dispatch.login)
-  const onSignup = useRequestAutoInvite()
+  const requestAutoInvite = useRequestAutoInvite()
+  const onSignup = () => requestAutoInvite('')
   const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
   const error = perror?.desc || ''
   const loggedInMap = new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret]))
