@@ -76,7 +76,6 @@ type Keybase1IncomingAction =
   'keybase.1.NotifyBadges.badgeState' |
   'keybase.1.NotifyFS.FSActivity' |
   'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' |
-  'keybase.1.NotifyKeyfamily.keyfamilyChanged' |
   'keybase.1.NotifySession.loggedOut' |
   'keybase.1.NotifyTracking.trackingChanged' |
   'keybase.1.NotifyUsers.userChanged' |
