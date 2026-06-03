@@ -64,8 +64,8 @@ func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) (
 		return nil, err
 	}
 	// After returning cached data quickly, refresh secrets in the background
-	// so the next fetch (or the keyfamilyChanged notification below) gets
-	// up-to-date lastUsedTime values. Debounced to avoid redundant syncs.
+	// so lastUsedTime values stay current. Fires deviceHistoryChanged when done
+	// so the UI reloads. Debounced to avoid redundant syncs.
 	h.syncMu.Lock()
 	defer h.syncMu.Unlock()
 	if time.Since(h.lastDeviceSync) > deviceSyncTTL {
