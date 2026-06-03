@@ -68,11 +68,8 @@ func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) (
 	// up-to-date lastUsedTime values. Debounced to avoid redundant syncs.
 	h.syncMu.Lock()
 	defer h.syncMu.Unlock()
-	shouldSync := time.Since(h.lastDeviceSync) > deviceSyncTTL
-	if shouldSync {
+	if time.Since(h.lastDeviceSync) > deviceSyncTTL {
 		h.lastDeviceSync = time.Now()
-	}
-	if shouldSync {
 		go h.backgroundSyncDevices()
 	}
 	return eng.Devices(), nil
