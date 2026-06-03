@@ -53,7 +53,9 @@ function DeviceRow(ownProps: OwnProps) {
             <Kb.Text type="BodySmall">
               {isRevoked
                 ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
-                : `Last used ${formatTimeRelativeToNow(lastUsed)}`}
+                : lastUsed
+                  ? `Last used ${formatTimeRelativeToNow(lastUsed)}`
+                  : 'Last used unknown'}
             </Kb.Text>
           </Kb.Box2>
         }

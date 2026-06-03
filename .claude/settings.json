@@ -1,4 +1,11 @@
 {
+  "pluginConfigs": {
+    "typescript-lsp@claude-plugins-official": {
+      "options": {
+        "tsserver.path": "shared/node_modules/typescript/bin/tsserver"
+      }
+    }
+  },
   "permissions": {
     "allow": [
       "Bash(yarn lint)",

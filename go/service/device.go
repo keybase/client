@@ -7,6 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -15,11 +17,15 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+const deviceSyncTTL = 30 * time.Second
+
 // DeviceHandler is the RPC handler for the device interface.
 type DeviceHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gregor *gregorHandler
+	gregor         *gregorHandler
+	syncMu         sync.Mutex
+	lastDeviceSync time.Time
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
@@ -57,7 +63,31 @@ func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) (
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
+	// After returning cached data quickly, refresh secrets in the background
+	// so lastUsedTime values stay current. Fires deviceHistoryChanged when done
+	// so the UI reloads. Debounced to avoid redundant syncs.
+	h.syncMu.Lock()
+	defer h.syncMu.Unlock()
+	if time.Since(h.lastDeviceSync) > deviceSyncTTL {
+		h.lastDeviceSync = time.Now()
+		go h.backgroundSyncDevices()
+	}
 	return eng.Devices(), nil
+}
+
+func (h *DeviceHandler) backgroundSyncDevices() {
+	mctx := libkb.NewMetaContext(context.Background(), h.G())
+	if _, err := mctx.ActiveDevice().SyncSecretsForce(mctx); err != nil {
+		mctx.Debug("DeviceHandler#backgroundSyncDevices error: %v", err)
+		// Reset so the next UI refresh can retry instead of waiting out the TTL.
+		h.syncMu.Lock()
+		defer h.syncMu.Unlock()
+		h.lastDeviceSync = time.Time{}
+		return
+	}
+	if nr := h.G().NotifyRouter; nr != nil {
+		nr.HandleDeviceHistoryChanged()
+	}
 }
 
 // DeviceAdd starts the kex2 device provisioning on the

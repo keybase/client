@@ -141,15 +141,26 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 		if err != nil {
 			return err
 		}
+		// If any active device is absent from the cache (e.g. a paper key
+		// provisioned after the last secrets sync), force a network sync so
+		// every device gets a real LastUsedTime on this first load.
+		for _, detail := range e.devices {
+			if detail.RevokedAt != nil {
+				continue
+			}
+			if _, ok := lastUsedTimes[detail.Device.DeviceID]; !ok {
+				lastUsedTimes, err = e.getLastUsedTimesForce(m)
+				if err != nil {
+					return err
+				}
+				break
+			}
+		}
 		for i := range e.devices {
 			detail := &e.devices[i]
 			lastUsedTime, ok := lastUsedTimes[detail.Device.DeviceID]
 			if !ok {
-				if detail.RevokedAt != nil {
-					// The server only provides last used times for active devices.
-					continue
-				}
-				return fmt.Errorf("Failed to load last used time for device %s", detail.Device.DeviceID)
+				continue
 			}
 			detail.Device.LastUsedTime = keybase1.TimeFromSeconds(lastUsedTime.Unix())
 		}
@@ -183,11 +194,36 @@ func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (ret map[keybase1.
 	defer m.Trace("DeviceHistory#getLastUsedTimes", &err)()
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer
-	ss, err = m.ActiveDevice().SyncSecretsForce(m)
+	// Use local cache to avoid a blocking network call on every page load.
+	// Falls back to a forced network sync when the cache is empty.
+	ss, err = m.ActiveDevice().SyncSecretsFromCache(m)
 	if err != nil {
 		return nil, err
 	}
+	if !ss.HasDevices() {
+		ss, err = m.ActiveDevice().SyncSecretsForce(m)
+		if err != nil {
+			return nil, err
+		}
+	}
 	devs, err = ss.ActiveDevices(libkb.AllDeviceTypes)
+	if err != nil {
+		return nil, err
+	}
+	ret = map[keybase1.DeviceID]time.Time{}
+	for deviceID, dev := range devs {
+		ret[deviceID] = time.Unix(dev.LastUsedTime, 0)
+	}
+	return ret, nil
+}
+
+func (e *DeviceHistory) getLastUsedTimesForce(m libkb.MetaContext) (ret map[keybase1.DeviceID]time.Time, err error) {
+	defer m.Trace("DeviceHistory#getLastUsedTimesForce", &err)()
+	ss, err := m.ActiveDevice().SyncSecretsForce(m)
+	if err != nil {
+		return nil, err
+	}
+	devs, err := ss.ActiveDevices(libkb.AllDeviceTypes)
 	if err != nil {
 		return nil, err
 	}

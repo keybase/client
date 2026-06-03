@@ -154,6 +154,7 @@
   "keybase.1.NotifyAudit.boxAuditError": {"incoming":true},
   "keybase.1.NotifyAudit.rootAuditError": {"incoming":true},
   "keybase.1.NotifyBadges.badgeState": {"incoming":true},
+  "keybase.1.NotifyDeviceHistory.deviceHistoryChanged": {"incoming":true},
   "keybase.1.NotifyEmailAddress.emailAddressVerified": {"custom":true},
   "keybase.1.NotifyEmailAddress.emailsChanged": {"custom":true},
   "keybase.1.NotifyFS.FSActivity": {"incoming":true},

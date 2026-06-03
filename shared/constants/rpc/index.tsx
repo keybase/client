@@ -74,6 +74,7 @@ type Keybase1IncomingAction =
   'keybase.1.NotifyAudit.boxAuditError' |
   'keybase.1.NotifyAudit.rootAuditError' |
   'keybase.1.NotifyBadges.badgeState' |
+  'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' |
   'keybase.1.NotifyFS.FSActivity' |
   'keybase.1.NotifySession.loggedOut' |
   'keybase.1.NotifyTracking.trackingChanged' |

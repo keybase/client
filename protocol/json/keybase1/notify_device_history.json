@@ -1,0 +1,13 @@
+{
+  "protocol": "NotifyDeviceHistory",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "deviceHistoryChanged": {
+      "request": [],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -10,6 +10,7 @@ import {useLocalBadging} from '@/util/use-local-badging'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useTypedNavigation} from '@/util/typed-navigation'
 import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
+import {useEngineActionListener} from '@/engine/action-listener'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
@@ -45,6 +46,10 @@ function ReloadableDevices() {
       },
       _ => {}
     )
+  })
+
+  useEngineActionListener('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', () => {
+    loadDevices()
   })
 
   const navigateAppend = C.Router2.navigateAppend
