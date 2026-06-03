@@ -196,8 +196,12 @@ services:
     { fetch: {
       , from: "our_url"
       , kind: "html" } },
+    # Index to the first entry: reddit's .rss for a comments page returns the
+    # submission as entry 0 followed by comment entries. The t3_ check below
+    # confirms entry 0 is the post (comments are t1_), so we fail closed if the
+    # ordering ever changes.
     { selector_css: {
-      , selectors: ["feed", "entry", "id", { contents: true }]
+      , selectors: ["feed", "entry", 0, "id", { contents: true }]
       , into: "entry_id"
       , error: ["CONTENT_MISSING", "Could not find entry ID"] } },
     { assert_regex_match: {
@@ -206,7 +210,7 @@ services:
       , error: ["CONTENT_FAILURE", "Wanted an entry ID with 't3' prefix but got '%{entry_id}'"] } },
     # check the subreddit
     { selector_css: {
-      , selectors: ["feed", "entry", "category"]
+      , selectors: ["feed", "entry", 0, "category"]
       , attr: "label"
       , into: "subreddit_from_xml"
       , error: ["CONTENT_MISSING", "Could not find category (subreddit)"] } },
@@ -217,7 +221,7 @@ services:
       , error: ["CONTENT_FAILURE", "Wrong subreddit %{subreddit_from_xml}"] } },
     # check the author
     { selector_css: {
-      , selectors: ["feed", "entry", "author", "name", { contents: true }]
+      , selectors: ["feed", "entry", 0, "author", "name", { contents: true }]
       , into: "author_from_xml"
       , error: ["CONTENT_MISSING", "Could not find author"] } },
     { fill: {
@@ -230,7 +234,7 @@ services:
       , error: ["BAD_USERNAME", "Bad post author; wanted '%{our_author}' but got '%{author_from_xml}'"] } },
     # check the title
     { selector_css: {
-      , selectors: ["feed", "entry", "title", { contents: true }]
+      , selectors: ["feed", "entry", 0, "title", { contents: true }]
       , into: "title"
       , error: ["CONTENT_MISSING", "Could not find title in XML"] } },
     { assert_regex_match: {
@@ -239,7 +243,7 @@ services:
       , error: ["TITLE_NOT_FOUND", "Missing signature ID (%{sig_id_medium})) in post title '%{title}'"] } },
     # check the content
     { selector_css: {
-      , selectors: ["feed", "entry", "content", { contents: true }]
+      , selectors: ["feed", "entry", 0, "content", { contents: true }]
       , into: "content_raw"
       , error: ["CONTENT_MISSING", "Could not find content in XML"] } },
     { parse_html: {
