@@ -175,7 +175,7 @@ services:
   reddit: [[
     # validate the url
     { regex_capture: {
-      , pattern: "^https://www.reddit.com/r/([^/]+)/(.*)/(\.json)$"
+      , pattern: "^https://www\\.reddit\\.com/r/([^/]+)/(.*)/(\\.json)$"
       , from: "hint_url"
       , into: ["subreddit_from_url", "path_remainder", "json_trailer"]
       , error: ["BAD_API_URL", "URL should start with 'https://www.reddit.com/r/keybaseproofs'"] } },
