@@ -183,7 +183,8 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./conversation/attachment-fullscreen/screen')),
     {
       getOptions: {
-        ...(isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
+        orientation: 'all',
+        ...(isIOS ? {presentation: 'transparentModal'} : {}),
         headerShown: false,
         modalStyle: {flex: 1, maxHeight: 9999, width: '100%'},
         overlayStyle: {

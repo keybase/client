@@ -76,7 +76,7 @@ export const newRoutes = defineRouteMap({
         ? {
             header: () => <MobileHeader path={path} />,
             // Full-screen attachment preview is allowed to rotate.
-            ...(isIOS ? {orientation: 'all' as const} : {}),
+            orientation: 'all' as const,
           }
         : {
             headerTitle: () => <Title path={path} />,
