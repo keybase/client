@@ -1,7 +1,66 @@
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationThreadSelector} from '../../thread-context'
 import {makeMessageWrapper} from '../wrapper/wrapper'
-import type SystemSimpleToComplexType from './container'
 
-export default makeMessageWrapper('systemSimpleToComplex', message => {
-  const {default: SystemSimpleToComplex} = require('./container') as {default: typeof SystemSimpleToComplexType}
-  return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
-})
+type OwnProps = {message: T.Chat.MessageSystemSimpleToComplex}
+
+function SystemSimpleToComplexContainer(p: OwnProps) {
+  const {message} = p
+  const teamID = useConversationThreadSelector(s => s.meta.teamID)
+  const you = useCurrentUserState(s => s.username)
+  const navigateAppend = C.Router2.navigateAppend
+  const onManageChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
+  const {team, author} = message
+  return (
+    <UserNotice>
+      <Kb.Text type="BodySmall">
+        {author === you ? 'You ' : ''}made <Kb.Text type="BodySmallBold">{team}</Kb.Text> a big team! Note
+        that:
+      </Kb.Text>
+      <Kb.Box2
+        direction="vertical"
+        alignSelf="flex-start"
+        gap="tiny"
+        style={styles.bulletList}
+      >
+        <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" style={styles.bullet}>
+            {bullet}
+          </Kb.Text>
+          {'Your team channels will now appear in the "Big teams" section of the inbox.'}
+        </Kb.Text>
+
+        <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" style={styles.bullet}>
+            {bullet}
+          </Kb.Text>
+          Everyone can now create and join channels.{' '}
+          <Kb.Text
+            onClick={onManageChannels}
+            type="BodySmallSemiboldSecondaryLink"
+            style={styles.link}
+          >
+            Browse other channels
+          </Kb.Text>
+        </Kb.Text>
+      </Kb.Box2>
+    </UserNotice>
+  )
+}
+
+const bullet = '• '
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bullet: {marginRight: Kb.Styles.globalMargins.small},
+  bulletList: {
+    marginLeft: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.xtiny,
+  },
+  link: {color: Kb.Styles.globalColors.blueDark},
+}))
+
+export default makeMessageWrapper('systemSimpleToComplex', message => <SystemSimpleToComplexContainer key="systemSimpleToComplex" message={message} />)

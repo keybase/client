@@ -1,7 +1,18 @@
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import {useConversationThreadSelector} from '../../thread-context'
 import {makeMessageWrapper} from '../wrapper/wrapper'
-import type SystemLeftType from './container'
 
-export default makeMessageWrapper('systemLeft', () => {
-  const {default: SystemLeft} = require('./container') as {default: typeof SystemLeftType}
-  return <SystemLeft />
-})
+function SystemLeft() {
+  const meta = useConversationThreadSelector(s => s.meta)
+  const {channelname, teamType, teamname} = meta
+  const isBigTeam = teamType === 'big'
+
+  return (
+    <UserNotice>
+      <Kb.Text type="BodySmall">{`left ${isBigTeam ? `#${channelname}` : teamname}.`}</Kb.Text>
+    </UserNotice>
+  )
+}
+
+export default makeMessageWrapper('systemLeft', () => <SystemLeft />)
