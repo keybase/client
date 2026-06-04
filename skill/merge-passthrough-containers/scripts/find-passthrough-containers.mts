@@ -3,8 +3,9 @@
 // view component. These are redux-era ceremony that can usually be folded into
 // the view. See SKILL.md.
 //
-// Run from `shared/` (so the `typescript` package resolves):
-//   node .claude/skills/merge-passthrough-containers/scripts/find-passthrough-containers.mts <dir>
+// Run from `shared/` (so the `typescript` package resolves). `.claude` lives at
+// the repo root, so the path is relative to shared/ with a leading `../`:
+//   node ../.claude/skills/merge-passthrough-containers/scripts/find-passthrough-containers.mts <dir>
 // <dir> is relative to shared/, e.g. `chat/inbox` or `.` for everything.
 
 import {readFileSync, readdirSync, statSync, existsSync} from 'fs'

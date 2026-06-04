@@ -334,6 +334,7 @@ const ReloginContainer = () => {
     if (error.length && !prevErrorRef.current.length) {
       setPassword('')
     }
+    prevErrorRef.current = error
   }, [error, setPassword])
 
   const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)

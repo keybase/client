@@ -49,18 +49,16 @@ const SelectableSmallTeam = (props: Props) => {
   const filter = props.filter ?? ''
   let participants =
     props.participants ?? (row.participants.length > 0 ? [...row.participants] : name.split(','))
-  participants = participants.sort((a, b) => {
-    const ai = a.indexOf(filter)
-    const bi = b.indexOf(filter)
-
-    if (ai === -1) {
-      return bi === -1 ? -1 : 1
-    } else if (bi === -1) {
-      return -1
-    } else {
-      return bi === 0 ? 1 : -1
-    }
-  })
+  if (filter) {
+    // clone so we never mutate the caller's props.participants array in place
+    participants = [...participants].sort((a, b) => {
+      const ai = a.indexOf(filter)
+      const bi = b.indexOf(filter)
+      const av = ai === -1 ? Infinity : ai
+      const bv = bi === -1 ? Infinity : bi
+      return av - bv
+    })
+  }
 
   const [isHovered, setIsHovered] = React.useState(false)
   const _onMouseLeave = () => setIsHovered(false)
