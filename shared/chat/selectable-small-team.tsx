@@ -125,7 +125,7 @@ const SelectableSmallTeam = (props: Props) => {
             />
           )}
         </Kb.Box2>
-        {showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
+        {showBadge && <Kb.Box2 direction="horizontal" noShrink={true} style={styles.badge} />}
     </Kb.ClickableBox>
   )
 }
@@ -136,7 +136,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   badge: {
     backgroundColor: Kb.Styles.globalColors.orange,
     borderRadius: 6,
-    flexShrink: 0,
     ...Kb.Styles.size(Kb.Styles.globalMargins.tiny),
   },
   container: {
