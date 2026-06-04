@@ -3,6 +3,9 @@
   inset: 0;
   pointer-events: none;
   transition: background-color 0.3s ease;
+  /* React Navigation gives each screen header zIndex:1; sit above it so the
+     backdrop dims the inbox search/new-chat header, not just the tab bar. */
+  z-index: 2;
 }
 .modal-backdrop.has-modals {
   background-color: var(--color-black_50OrBlack_60);
