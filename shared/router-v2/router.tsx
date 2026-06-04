@@ -540,6 +540,9 @@ if (isMobile) {
   const rootStackScreenOptions = {
     headerBackButtonDisplayMode: 'minimal',
     headerTitleAlign: isAndroid ? 'center' : undefined,
+    // Lock to portrait by default. Only full-screen attachment views (chat/files)
+    // opt back into rotation via orientation: 'all'.
+    orientation: 'portrait',
   } satisfies NativeStackNavigationOptions
 
   const modalScreenOptions = ({

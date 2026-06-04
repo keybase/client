@@ -73,7 +73,11 @@ export const newRoutes = defineRouteMap({
     getOptions: (ownProps?) => {
       const path = ownProps?.route.params.path ?? FS.defaultPath
       return isMobile
-        ? {header: () => <MobileHeader path={path} />}
+        ? {
+            header: () => <MobileHeader path={path} />,
+            // Full-screen attachment preview is allowed to rotate.
+            ...(isIOS ? {orientation: 'all' as const} : {}),
+          }
         : {
             headerTitle: () => <Title path={path} />,
             title: T.FS.getPathName(path),
