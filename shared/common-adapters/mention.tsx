@@ -2,31 +2,38 @@ import * as Chat from '@/constants/chat'
 import * as Styles from '@/styles'
 import {WithProfileCardPopup} from './profile-card'
 import Text from './text'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 export type OwnProps = {
   username: string
-  theme?: 'follow' | 'nonFollow' | 'highlight' | 'none'
   style?: Styles.StylesCrossPlatform
   allowFontScaling?: boolean
 }
 
-export type Props = {
-  onClick?: () => void
-} & OwnProps
-const Mention = ({username, theme, style, allowFontScaling, onClick}: Props) => {
+const Mention = (ownProps: OwnProps) => {
+  const {style, allowFontScaling} = ownProps
+  const username = ownProps.username.toLowerCase()
+  const following = useFollowerState(s => s.following.has(username))
+  const myUsername = useCurrentUserState(s => s.username)
+  const isSpecial = Chat.isSpecialMention(username)
+  const theme = isSpecial || myUsername === username ? 'highlight' : following ? 'follow' : 'nonFollow'
+  const onClick = isSpecial ? undefined : () => navToProfile(username)
+
   const renderText = (onLongPress?: () => void) => (
     <Text
       type="BodyBold"
       onClick={onClick || undefined}
       className={Styles.classNames({'hover-underline': !isMobile})}
-      style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}
+      style={Styles.collapseStyles([style, styles[theme], styles.text])}
       allowFontScaling={allowFontScaling}
       onLongPress={onLongPress}
     >
       @{username}
     </Text>
   )
-  return Chat.isSpecialMention(username) ? (
+  return isSpecial ? (
     renderText()
   ) : (
     <WithProfileCardPopup username={username}>{renderText}</WithProfileCardPopup>
@@ -49,9 +56,6 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blueLighter2,
     borderRadius: 2,
     color: Styles.globalColors.blueDark,
-  },
-  none: {
-    borderRadius: 2,
   },
   text: Styles.platformStyles({
     common: {

@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import LastModifiedLine from './last-modified-line'
-import TlfInfoLine from './tlf-info-line-container'
+import TlfInfoLine from './tlf-info-line'
 import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '@/util/string'
