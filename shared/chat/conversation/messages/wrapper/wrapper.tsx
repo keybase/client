@@ -465,12 +465,6 @@ export const useWrapperMessageWithMessage = (ordinal: T.Chat.Ordinal, isCentered
   return {...useWrapperPopup(ordinal, messageData), messageData}
 }
 
-// Most message-row wrappers share the same shape: pull the message via
-// useWrapperMessageWithMessage, guard on its type, then render a (lazily
-// required) child inside WrapperMessage. makeMessageWrapper captures that
-// boilerplate. The render callback receives the type-narrowed message and
-// should do its own require('./container') so the child stays code-split.
-// Wrappers that need extra hooks (e.g. system-sbs-resolve) stay hand-written.
 export function makeMessageWrapper<Type extends T.Chat.Message['type']>(
   type: Type,
   render: (message: Extract<T.Chat.Message, {type: Type}>) => React.ReactNode
