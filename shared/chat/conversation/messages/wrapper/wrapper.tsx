@@ -481,7 +481,7 @@ export function makeMessageWrapper<Type extends T.Chat.Message['type']>(
     const {message} = wrapper.messageData
     if (message.type !== type) return null
     const child = render(message as Extract<T.Chat.Message, {type: Type}>)
-    if (!child) return null
+    if (child === null || child === undefined || child === false) return null
     return (
       <WrapperMessage {...p} {...wrapper}>
         {child}

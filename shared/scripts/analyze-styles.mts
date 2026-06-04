@@ -892,20 +892,23 @@ type ReportInput = {
 }
 
 function buildHtml(d: ReportInput): string {
-  const gJ = JSON.stringify(d.gaps)
-  const rcJ = JSON.stringify(d.rawClusters)
-  const ccJ = JSON.stringify(d.computedClusters)
-  const rpJ = JSON.stringify(d.rawTopProps)
-  const cpJ = JSON.stringify(d.computedTopProps)
-  const pcJ = JSON.stringify(PCAT)
-  const rcsJ = JSON.stringify(d.rawCatStats)
-  const ccsJ = JSON.stringify(d.computedCatStats)
-  const rcxJ = JSON.stringify(d.rawComplexity)
-  const ccxJ = JSON.stringify(d.computedComplexity)
-  const rcmJ = JSON.stringify(d.rawCoMatrix)
-  const ccmJ = JSON.stringify(d.computedCoMatrix)
-  const fsJ = JSON.stringify(d.fileStats)
-  const huJ = JSON.stringify(d.helperUsage)
+  // Escape `<` so scanned source text containing `</script>` can't break out of
+  // the inline <script> tag in the generated report.
+  const j = (x: unknown) => JSON.stringify(x).replace(/</g, '\\u003c')
+  const gJ = j(d.gaps)
+  const rcJ = j(d.rawClusters)
+  const ccJ = j(d.computedClusters)
+  const rpJ = j(d.rawTopProps)
+  const cpJ = j(d.computedTopProps)
+  const pcJ = j(PCAT)
+  const rcsJ = j(d.rawCatStats)
+  const ccsJ = j(d.computedCatStats)
+  const rcxJ = j(d.rawComplexity)
+  const ccxJ = j(d.computedComplexity)
+  const rcmJ = j(d.rawCoMatrix)
+  const ccmJ = j(d.computedCoMatrix)
+  const fsJ = j(d.fileStats)
+  const huJ = j(d.helperUsage)
   const ts = d.extractedAt.slice(0, 16).replace('T', ' ')
 
   return `<!DOCTYPE html>
