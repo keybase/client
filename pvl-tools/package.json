@@ -4,7 +4,7 @@
   "description": "Tools for converting pvl from cson into a useable form",
   "main": "reader.iced",
   "scripts": {
-    "build": "iced tool.iced",
+    "build": "./tool.iced",
     "test": "echo \"Error: no test specified\" && exit 1",
     "modules": "yarn install --pure-lockfile --ignore-optional"
   },
@@ -12,7 +12,6 @@
   "dependencies": {
     "cson": "^3.0.2",
     "docopt": "^0.6.2",
-    "iced-coffee-script": "^108.0.14",
     "json-stable-stringify": "^1.0.1"
   }
 }
