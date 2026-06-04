@@ -49,19 +49,6 @@ graceful-fs@^4.1.4:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
-iced-coffee-script@^108.0.14:
-  version "108.0.14"
-  resolved "https://artifacts.corp.zoom.us:443/artifactory/api/npm/zoom-npm-virtual/iced-coffee-script/-/iced-coffee-script-108.0.14.tgz#9ca5b258decf4a5eafb16f5663ff7683227c4f1a"
-  integrity sha512-e0CNmz51UGWRa2glPnUMnJM7oKQE81cxeC0WAgCjJDRImv3FDHldZr/Ngkbrgdbf1drGGzYWp+PWeJwXIfHwDw==
-  dependencies:
-    iced-runtime ">=0.0.1"
-    uglify-js "^3.5.9"
-
-iced-runtime@>=0.0.1:
-  version "1.0.4"
-  resolved "https://artifacts.corp.zoom.us:443/artifactory/api/npm/zoom-npm-virtual/iced-runtime/-/iced-runtime-1.0.4.tgz#e9de26dfe98cd8621201f7f3dfb9f7f09c550990"
-  integrity sha512-rgiJXNF6ZgF2Clh/TKUlBDW3q51YPDJUXmxGQXx1b8tbZpVpTn+1RX9q1sjNkujXIIaVxZByQzPHHORg7KV51g==
-
 json-stable-stringify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/json-stable-stringify/-/json-stable-stringify-1.0.1.tgz#9a759d39c5f2ff503fd5300646ed445f88c4f9af"
@@ -90,8 +77,3 @@ typechecker@^4.3.0:
   resolved "https://registry.yarnpkg.com/typechecker/-/typechecker-4.4.1.tgz#f97b95f51b038417212d677d45a373ee7bced7e6"
   dependencies:
     editions "^1.3.3"
-
-uglify-js@^3.5.9:
-  version "3.19.3"
-  resolved "https://artifacts.corp.zoom.us:443/artifactory/api/npm/zoom-npm-virtual/uglify-js/-/uglify-js-3.19.3.tgz#82315e9bbc6f2b25888858acd1fff8441035b77f"
-  integrity sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==
