@@ -191,15 +191,15 @@ const Header = () => {
 
   const topRow = (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      {channel ? (
+      {showActions && channel ? (
         <Kb.Text selectable={true} type="Header" lineClamp={1}>
           {channel}
         </Kb.Text>
-      ) : fullName ? (
+      ) : showActions && fullName ? (
         <Kb.Text type="Header" lineClamp={1}>
           {fullName}
         </Kb.Text>
-      ) : withoutSelf ? (
+      ) : showActions && withoutSelf ? (
         <Kb.Box2 direction="horizontal" flex={1}>
           <Kb.Text type="Header" lineClamp={1}>
             {withoutSelf.map((part, i) => (

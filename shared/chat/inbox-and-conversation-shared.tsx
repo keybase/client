@@ -36,8 +36,7 @@ export function InboxAndConversationShell(props: Props) {
     if (validConvoID) {
       return null
     }
-    const first = s.layout?.smallTeams?.[0]
-    return first?.convID
+    return s.layout?.smallTeams?.[0]?.convID
   })
 
   React.useEffect(() => {
