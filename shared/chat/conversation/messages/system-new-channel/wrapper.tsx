@@ -1,19 +1,7 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 import type SystemNewChannelType from './container'
 
-function SystemNewChannel(p: Props) {
-  const {ordinal, isCenteredHighlight} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
-  const {message} = wrapper.messageData
-
-  if (message.type !== 'systemNewChannel') return null
-
+export default makeMessageWrapper('systemNewChannel', message => {
   const {default: SystemNewChannel} = require('./container') as {default: typeof SystemNewChannelType}
-  return (
-    <WrapperMessage {...p} {...wrapper}>
-      <SystemNewChannel message={message} />
-    </WrapperMessage>
-  )
-}
-
-export default SystemNewChannel
+  return <SystemNewChannel message={message} />
+})
