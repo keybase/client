@@ -1,19 +1,27 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemTextType from './container'
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 
-function SystemText(p: Props) {
-  const {ordinal, isCenteredHighlight} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
-  const {message} = wrapper.messageData
+type OwnProps = {text: string}
 
-  if (message.type !== 'systemText') return null
-
-  const {default: SystemText} = require('./container') as {default: typeof SystemTextType}
+function SystemText(p: OwnProps) {
+  const {text} = p
   return (
-    <WrapperMessage {...p} {...wrapper}>
-      <SystemText text={message.text.stringValue()} />
-    </WrapperMessage>
+    <UserNotice>
+      <Kb.Text type="BodySmall" style={styles.text}>
+        {text}
+      </Kb.Text>
+    </UserNotice>
   )
 }
 
-export default SystemText
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      text: Kb.Styles.platformStyles({
+        isElectron: {wordBreak: 'break-word'} as const,
+      }),
+    }) as const
+)
+
+export default makeMessageWrapper('systemText', message => <SystemText text={message.text.stringValue()} />)

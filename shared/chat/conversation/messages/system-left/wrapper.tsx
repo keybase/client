@@ -1,19 +1,18 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemLeftType from './container'
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import {useConversationThreadSelector} from '../../thread-context'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 
-function SystemLeft(p: Props) {
-  const {ordinal, isCenteredHighlight} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
-  const {message} = wrapper.messageData
+function SystemLeft() {
+  const meta = useConversationThreadSelector(s => s.meta)
+  const {channelname, teamType, teamname} = meta
+  const isBigTeam = teamType === 'big'
 
-  if (message.type !== 'systemLeft') return null
-
-  const {default: SystemLeft} = require('./container') as {default: typeof SystemLeftType}
   return (
-    <WrapperMessage {...p} {...wrapper}>
-      <SystemLeft />
-    </WrapperMessage>
+    <UserNotice>
+      <Kb.Text type="BodySmall">{`left ${isBigTeam ? `#${channelname}` : teamname}.`}</Kb.Text>
+    </UserNotice>
   )
 }
 
-export default SystemLeft
+export default makeMessageWrapper('systemLeft', () => <SystemLeft />)

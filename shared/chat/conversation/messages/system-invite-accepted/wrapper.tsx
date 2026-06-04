@@ -1,19 +1,63 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemInviteAcceptedType from './container'
+import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationThreadSelector} from '../../thread-context'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 
-function WrapperSystemInvite(p: Props) {
-  const {ordinal, isCenteredHighlight} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
-  const {message} = wrapper.messageData
+type OwnProps = {message: T.Chat.MessageSystemInviteAccepted}
 
-  if (message.type !== 'systemInviteAccepted') return null
+function SystemInviteAcceptedContainer(p: OwnProps) {
+  const {message} = p
+  const {role} = message
+  const teamID = useConversationThreadSelector(s => s.meta.teamID)
+  const you = useCurrentUserState(s => s.username)
+  const navigateAppend = C.Router2.navigateAppend
+  const onViewTeam = () => {
+    navigateAppend({name: 'team', params: {teamID}})
+  }
 
-  const {default: SystemInviteAccepted} = require('./container') as {default: typeof SystemInviteAcceptedType}
+  if (you === message.invitee) {
+    return <YouInviteAddedToTeamNotice onViewTeam={onViewTeam} />
+  }
+  const {inviter} = message
+  const roleLabel = role === 'none' ? null : Teams.typeToLabel[role]
+  // There's not a lot of space to explain the adder / inviter situation,
+  // just pretend they were added by the inviter for now.
   return (
-    <WrapperMessage {...p} {...wrapper}>
-      <SystemInviteAccepted key="systemInviteAccepted" message={message} />
-    </WrapperMessage>
+    <UserNotice>
+      <Kb.Text type="BodySmall">
+        was added by{' '}
+        {you === inviter ? (
+          'you'
+        ) : (
+          <Kb.ConnectedUsernames
+            colorFollowing={true}
+            inline={true}
+            onUsernameClicked={'profile'}
+            type={'BodySmallBold'}
+            underline={true}
+            usernames={inviter}
+          />
+        )}
+        {roleLabel && ` as a "${roleLabel.toLowerCase()}"`}.{' '}
+      </Kb.Text>
+    </UserNotice>
   )
 }
 
-export default WrapperSystemInvite
+const YouInviteAddedToTeamNotice = (props: {onViewTeam: () => void}) => {
+  const {onViewTeam} = props
+  return (
+    <UserNotice>
+      <Kb.Text type="BodySmall">You joined the team.</Kb.Text>
+      <Kb.Text type="BodySmallPrimaryLink" onClick={onViewTeam}>
+        View all members
+      </Kb.Text>
+    </UserNotice>
+  )
+}
+
+export default makeMessageWrapper('systemInviteAccepted', message => <SystemInviteAcceptedContainer key="systemInviteAccepted" message={message} />)

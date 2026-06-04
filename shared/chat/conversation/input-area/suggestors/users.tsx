@@ -33,7 +33,6 @@ export const transformer = (
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconPeople: {
-    alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.white,
     ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 16),
     ...Kb.Styles.size(32),
@@ -231,7 +230,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
       gap="tiny"
     >
       {Chat.isSpecialMention(username ?? '') ? (
-        <Kb.Box2 direction="horizontal" style={styles.iconPeople} justifyContent="center">
+        <Kb.Box2 direction="horizontal" style={styles.iconPeople} centerChildren={true}>
           <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (

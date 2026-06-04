@@ -1,8 +1,17 @@
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import * as FS from '@/constants/fs'
 import {formatTimeForFS} from '@/util/timestamp'
+import {useFsTlfs} from './hooks'
+import {useCurrentUserState} from '@/stores/current-user'
 
-export type Props = {
+export type OwnProps = {
+  path: T.FS.Path
+  mixedMode?: boolean
+  mode: 'row' | 'default'
+}
+
+type Props = {
   isNew: boolean
   mixedMode?: boolean
   mode: 'row' | 'default'
@@ -92,7 +101,21 @@ const getText = (props: Props) => {
   return props.reset ? resetText(props) : null
 }
 
-const TlfInfoLine = (props: Props) => {
+const TlfInfoLine = (ownProps: OwnProps) => {
+  const _tlf = FS.getTlfFromPath(useFsTlfs(), ownProps.path)
+  const _username = useCurrentUserState(s => s.username)
+  const resetParticipants = _tlf === FS.unknownTlf ? undefined : _tlf.resetParticipants
+  const props: Props = {
+    isNew: _tlf.isNew,
+    mixedMode: ownProps.mixedMode,
+    mode: ownProps.mode,
+    reset:
+      !!resetParticipants &&
+      !!resetParticipants.length &&
+      (resetParticipants.includes(_username) || resetParticipants),
+    tlfMtime: _tlf.tlfMtime,
+    tlfType: T.FS.getPathVisibility(ownProps.path),
+  }
   const prefix = getPrefixText(props)
   const dot = (
     <Kb.Text

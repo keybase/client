@@ -3,7 +3,7 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 
 const Loading = React.lazy(async () => import('./loading'))
-const Relogin = React.lazy(async () => import('./relogin/container'))
+const Relogin = React.lazy(async () => import('./relogin'))
 const JoinOrLogin = React.lazy(async () => import('./join-or-login'))
 
 const RootLogin = () => {

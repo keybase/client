@@ -1,19 +1,54 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemNewChannelType from './container'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import UserNotice from '../user-notice'
+import {useConversationThreadSelector} from '../../thread-context'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 
-function SystemNewChannel(p: Props) {
-  const {ordinal, isCenteredHighlight} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
-  const {message} = wrapper.messageData
+type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
-  if (message.type !== 'systemNewChannel') return null
+function SystemNewChannelContainer(p: OwnProps) {
+  const {message} = p
+  const teamID = useConversationThreadSelector(s => s.meta.teamID)
+  const navigateAppend = C.Router2.navigateAppend
+  const onManageChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
 
-  const {default: SystemNewChannel} = require('./container') as {default: typeof SystemNewChannelType}
+  const descStyleOverride = {
+    link: {fontSize: isMobile ? 15 : 13, fontWeight: '600'},
+    paragraph: {
+      color: isMobile ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.black_50OrWhite_40,
+      fontSize: isMobile ? 15 : 13,
+    },
+  } as const
   return (
-    <WrapperMessage {...p} {...wrapper}>
-      <SystemNewChannel message={message} />
-    </WrapperMessage>
+    <UserNotice>
+      <Kb.Markdown
+        smallStandaloneEmoji={true}
+        styleOverride={descStyleOverride}
+        selectable={true}
+        style={styles.text}
+      >
+        {message.text.stringValue()}
+      </Kb.Markdown>
+      <Kb.Text
+        onClick={onManageChannels}
+        type="BodySmallSemiboldSecondaryLink"
+        style={{color: Kb.Styles.globalColors.blueDark}}
+      >
+        Browse other channels
+      </Kb.Text>
+    </UserNotice>
   )
 }
 
-export default SystemNewChannel
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      text: Kb.Styles.platformStyles({
+        isElectron: {color: Kb.Styles.globalColors.black_50OrWhite_40},
+        isMobile: {color: Kb.Styles.globalColors.black_50},
+      }),
+    }) as const
+)
+
+export default makeMessageWrapper('systemNewChannel', message => <SystemNewChannelContainer message={message} />)

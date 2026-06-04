@@ -77,7 +77,7 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
     visual = `<div class="empty">No screenshot</div>`
   }
 
-  return `<div class="card ${card.passed ? 'ok' : 'fail'}"${card.diff !== null ? ' data-has-diff="1"' : ''}>
+  return `<div class="card ${card.passed ? 'ok' : 'fail'}"${card.diff !== null && card.diff.changed > 0 ? ' data-has-diff="1"' : ''}>
   <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(card.label)}</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}${error}</div>
   ${visual}
 </div>`

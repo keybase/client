@@ -1,21 +1,90 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemChangeRetentionType from './container'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import * as T from '@/constants/types'
+import * as dateFns from 'date-fns'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam} from '../../team-hooks'
+import {useConversationShowInfoPanel, useConversationThreadSelector} from '../../thread-context'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 
-function SystemChangeRetention(p: Props) {
-  const {ordinal, isCenteredHighlight} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
-  const {message} = wrapper.messageData
+type OwnProps = {message: T.Chat.MessageSystemChangeRetention}
 
-  if (message.type !== 'systemChangeRetention') return null
-
-  const {default: SystemChangeRetention} = require('./container') as {
-    default: typeof SystemChangeRetentionType
+function SystemChangeRetentionContainer(p: OwnProps) {
+  const {message} = p
+  const {isInherit, isTeam, membersType, policy, user} = message
+  const you = useCurrentUserState(s => s.username)
+  const {teamID, teamType, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      teamID: s.meta.teamID,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
+  )
+  const showInfoPanel = useConversationShowInfoPanel()
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const canManage = teamType === 'adhoc' ? true : yourOperations.setRetentionPolicy
+  const onManageRetention = () => {
+    showInfoPanel(true, 'settings')
   }
+
+  const changedBy = you === user ? 'You ' : ''
+  let convType = 'conversation'
+  switch (membersType) {
+    case T.RPCChat.ConversationMembersType.team:
+      convType = isTeam ? 'team' : 'channel'
+      break
+    default:
+  }
+  const inheritDescription = isInherit ? ' to inherit from the team policy' : ''
+  const policySummary = getPolicySummary(policy)
+  const manageText = canManage ? 'Retention settings' : ''
   return (
-    <WrapperMessage {...p} {...wrapper}>
-      <SystemChangeRetention message={message} />
-    </WrapperMessage>
+    <UserNotice>
+      <Kb.Text type="BodySmall" selectable={true}>
+        {changedBy}changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}.
+        {` `}
+      </Kb.Text>
+      {manageText ? (
+        <Kb.Text onClick={onManageRetention} type="BodySmallSemiboldPrimaryLink">
+          {manageText}
+        </Kb.Text>
+      ) : null}
+    </UserNotice>
   )
 }
 
-export default SystemChangeRetention
+const getPolicySummary = (policy: T.RPCChat.RetentionPolicy | undefined) => {
+  if (!policy) {
+    return 'be retained indefinitely'
+  }
+  switch (policy.typ) {
+    case T.RPCChat.RetentionPolicyType.none:
+    case T.RPCChat.RetentionPolicyType.retain:
+      return 'be retained indefinitely'
+    case T.RPCChat.RetentionPolicyType.expire:
+      {
+        const expireDuration = dateFns.formatDistanceStrict(0, policy.expire.age * 1000)
+        if (expireDuration !== '') {
+          return `expire after ${expireDuration}`
+        }
+      }
+      break
+    case T.RPCChat.RetentionPolicyType.ephemeral:
+      {
+        const ephemeralDuration =
+          // date-fns writes 30 seconds as 1 minute
+          policy.ephemeral.age === 30
+            ? '30 seconds'
+            : dateFns.formatDistanceStrict(0, policy.ephemeral.age * 1000)
+        if (ephemeralDuration !== '') {
+          return `explode after ${ephemeralDuration} by default`
+        }
+      }
+      break
+    default:
+  }
+  return ''
+}
+
+export default makeMessageWrapper('systemChangeRetention', message => <SystemChangeRetentionContainer message={message} />)
