@@ -175,9 +175,9 @@ services:
   reddit: [[
     # validate the url
     { regex_capture: {
-      , pattern: "^https://www.reddit.com/r/([^/]+)/(.*)$"
+      , pattern: "^https://www\\.reddit\\.com/r/([^/]+)/(.*)/(\\.json)$"
       , from: "hint_url"
-      , into: ["subreddit_from_url", "path_remainder"]
+      , into: ["subreddit_from_url", "path_remainder", "json_trailer"]
       , error: ["BAD_API_URL", "URL should start with 'https://www.reddit.com/r/keybaseproofs'"] } },
     # this assertion is just here to test the pvl updater
     { assert_regex_match: {
@@ -191,66 +191,87 @@ services:
       , error: ["BAD_API_URL", "URL contained wrong subreddit '%{subreddit_from_url}' !+ 'keybaseproofs'"] } },
     # Create the old.reddit.com url to fetch from
     { fill: {
-      , with: "https://old.reddit.com/r/%{subreddit_from_url}/%{path_remainder}"
+      , with: "https://old.reddit.com/r/%{subreddit_from_url}/%{path_remainder}/.rss"
       , into: "our_url" } },
     { fetch: {
       , from: "our_url"
-      , kind: "json" } },
-    # check that the first thing is a Listing
-    { selector_json: {
-      , selectors: [0, "kind"]
-      , into: "kind"
-      , error: ["CONTENT_MISSING", "Could not find 'kind' in json"] } },
+      , kind: "html" } },
+    # Index to the first entry: reddit's .rss for a comments page returns the
+    # submission as entry 0 followed by comment entries. The t3_ check below
+    # confirms entry 0 is the post (comments are t1_), so we fail closed if the
+    # ordering ever changes.
+    { selector_css: {
+      , selectors: ["feed", "entry", 0, "id", { contents: true }]
+      , into: "entry_id"
+      , error: ["CONTENT_MISSING", "Could not find entry ID"] } },
     { assert_regex_match: {
-      , pattern: "^Listing$"
-      , from: "kind"
-      , error: ["CONTENT_FAILURE", "Wanted a post of type 'Listing', but got '%{kind}'"] } },
-    # check that the inner thing is a t3
-    { selector_json: {
-      , selectors: [0, "data", "children", 0, "kind"]
-      , into: "inner_kind"
-      , error: ["CONTENT_MISSING", "Could not find inner 'kind' in json"] } },
-    { assert_regex_match: {
-      , pattern: "^t3$"
-      , from: "inner_kind"
-      , error: ["CONTENT_FAILURE", "Wanted a child of type 't3' but got '%{inner_kind}'"] } },
+      , pattern: "^t3_.+$"
+      , from: "entry_id"
+      , error: ["CONTENT_FAILURE", "Wanted an entry ID with 't3' prefix but got '%{entry_id}'"] } },
     # check the subreddit
-    { selector_json: {
-      , selectors: [0, "data", "children", 0, "data", "subreddit"]
-      , into: "subreddit_from_json"
-      , error: ["CONTENT_MISSING", "Could not find 'subreddit' in json"] } },
+    { selector_css: {
+      , selectors: ["feed", "entry", 0, "category"]
+      , attr: "label"
+      , into: "subreddit_from_xml"
+      , error: ["CONTENT_MISSING", "Could not find category (subreddit)"] } },
     { assert_regex_match: {
-      , pattern: "^keybaseproofs$"
+      , pattern: "^r/keybaseproofs$"
       , case_insensitive: true
-      , from: "subreddit_from_json"
-      , error: ["CONTENT_FAILURE", "Wrong subreddit %{subreddit_from_json}"] } },
+      , from: "subreddit_from_xml"
+      , error: ["CONTENT_FAILURE", "Wrong subreddit %{subreddit_from_xml}"] } },
     # check the author
-    { selector_json: {
-      , selectors: [0, "data", "children", 0, "data", "author"]
-      , into: "author"
-      , error: ["CONTENT_MISSING", "Could not find author in json"] } },
+    { selector_css: {
+      , selectors: ["feed", "entry", 0, "author", "name", { contents: true }]
+      , into: "author_from_xml"
+      , error: ["CONTENT_MISSING", "Could not find author"] } },
+    { fill: {
+      , with: "/u/%{username_service}"
+      , into: "our_author" } },
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "author"
-      , b: "username_service"
-      , error: ["BAD_USERNAME", "Bad post author; wanted '%{username_service}' but got '%{author}'"] } },
+      , a: "author_from_xml"
+      , b: "our_author"
+      , error: ["BAD_USERNAME", "Bad post author; wanted '%{our_author}' but got '%{author_from_xml}'"] } },
     # check the title
-    { selector_json: {
-      , selectors: [0, "data", "children", 0, "data", "title"]
+    { selector_css: {
+      , selectors: ["feed", "entry", 0, "title", { contents: true }]
       , into: "title"
-      , error: ["CONTENT_MISSING", "Could not find title in json"] } },
+      , error: ["CONTENT_MISSING", "Could not find title in XML"] } },
     { assert_regex_match: {
       , pattern: "^.*%{sig_id_medium}.*$"
       , from: "title"
       , error: ["TITLE_NOT_FOUND", "Missing signature ID (%{sig_id_medium})) in post title '%{title}'"] } },
-    # check the selftext
-    { selector_json: {
-      , selectors: [0, "data", "children", 0, "data", "selftext"]
-      , into: "selftext"
-      , error: ["CONTENT_MISSING", "Could not find selftext in json"] } },
+    # check the content
+    { selector_css: {
+      , selectors: ["feed", "entry", 0, "content", { contents: true }]
+      , into: "content_raw"
+      , error: ["CONTENT_MISSING", "Could not find content in XML"] } },
+    { parse_html: {
+      , from: "content_raw" } },
+    # Proof signatures are always in <code> blocks. There may be more than one
+    # code block in the post, though (see max's proof), extract and concatenate
+    # them all into one register.
+    { selector_css: {
+      , selectors: ["code", { contents: true }]
+      , into: "code_raw"
+      , multi: true
+      , error: ["CONTENT_MISSING", "Could not find content in XML"] } },
+    # The content in .rss endpoint is stripped out of newlines. We are going to
+    # normalize whitespace and replace all spaces with newlines to recover the
+    # matching multiline PGP signature so it matches the `sig` register. This has
+    # no effect on NaCl signatures.
+    { whitespace_normalize: {
+      , from: "code_raw"
+      , into: "code_nw" } },
+    { replace_all: {
+      , old: " "
+      , new: "\n"
+      , from: "code_nw"
+      , into: "code" } },
+    # Finally, find the signature in the normalized text.
     { assert_find_base64: {
       , needle: "sig"
-      , haystack: "selftext"
+      , haystack: "code"
       , error: ["TEXT_NOT_FOUND", "Signature not found in body"] } },
   ]]
   rooter: [[
