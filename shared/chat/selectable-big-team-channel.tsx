@@ -3,23 +3,49 @@ import * as Kb from '@/common-adapters'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '@/util/string'
 import {BottomLine} from './inbox/row/small-team'
+import {useInboxRowBig} from '@/stores/inbox-rows'
 import type * as T from '@/constants/types'
 
-type Props = {
+type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   isSelected: boolean
-  numSearchHits?: number
   maxSearchHits?: number
-  teamname: string
-  channelname: string
+  name: string
+  numSearchHits?: number
   onSelectConversation: () => void
-  showBadge: boolean
-  showBold: boolean
-  snippet?: string
-  snippetDecoration: T.RPCChat.SnippetDecoration
 }
 
-const SelectableBigTeamChannel = (props: Props) => {
+const SelectableBigTeamChannel = (ownProps: OwnProps) => {
+  const {conversationIDKey, isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
+  const row = useInboxRowBig(conversationIDKey)
+  const showBadge = row.hasBadge
+  let teamname = row.teamname
+  let channelname = row.channelname
+  if (!teamname) {
+    const parts = name.split('#')
+    if (parts.length >= 2) {
+      teamname = parts[0]!
+      channelname = parts[1]!
+    }
+  }
+  const showBold = row.hasUnread && !isSelected
+  const snippet = row.snippet
+  const snippetDecoration = row.snippetDecoration
+
+  const props = {
+    channelname,
+    conversationIDKey,
+    isSelected,
+    maxSearchHits,
+    numSearchHits,
+    onSelectConversation,
+    showBadge,
+    showBold,
+    snippet,
+    snippetDecoration,
+    teamname,
+  }
+
   const [isHovered, setIsHovered] = React.useState(false)
 
   const _onMouseLeave = () => setIsHovered(false)
