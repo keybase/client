@@ -21,10 +21,10 @@ Example use (current working dir has to be `client/go`):
 
 go run ./tools/pvlcheck \
 	-kit ../pvl-tools/kit.json \
-	-service reddit
-	-api-url "https://www.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/.json"
-	-response ~/Downloads/reddit-max.json \
-	-kind json \
+	-service reddit \
+	-api-url "https://www.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/.json" \
+	-response ~/Downloads/reddit-max.xml \
+	-kind html \
 	-username max \
 	-remote-username maxtaco \
 	-sig "$(cat ~/Downloads/reddit-max-sig.pgp)"
@@ -33,7 +33,7 @@ go run ./tools/pvlcheck \
 
 var (
 	kitPath    = flag.String("kit", "", "path to a pvl kit.json (required)")
-	respPath   = flag.String("response", "", "path to a saved service response file (required, unless service has no fetch e.g. coinbase)")
+	respPath   = flag.String("response", "", "path to a saved service response file")
 	kind       = flag.String("kind", "", "kind of the saved response: json | html | string (required when -response is set)")
 	service    = flag.String("service", "", "service to run, e.g. twitter, github, reddit, facebook, hackernews, generic_web_site (required)")
 	version    = flag.String("version", "1", "pvl version chunk to use from the kit's tab")
@@ -117,10 +117,6 @@ func extractChunk(path, version string) string {
 }
 
 func buildFakeXAPI() *fakeXAPI {
-	if *respPath == "" {
-		// No fetch needed (e.g. coinbase, which fails before fetching).
-		return &fakeXAPI{}
-	}
 	data, err := os.ReadFile(*respPath)
 	if err != nil {
 		die("could not read response %q: %v", *respPath, err)
