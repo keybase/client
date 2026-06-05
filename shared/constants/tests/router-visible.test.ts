@@ -7,6 +7,11 @@ beforeEach(() => {
   setModalRouteNames(['chatInfoPanel'])
 })
 
+// Module-level state — clear it so it can't leak into other tests in this worker.
+afterEach(() => {
+  setModalRouteNames([])
+})
+
 // On phones, chatConversation lives in the root stack as a sibling of the tab
 // navigator (above the tab bar), not inside a tab. getSelectedConversation calls
 // getVisibleScreen with includeModals=false, so the visible path must still surface

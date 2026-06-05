@@ -1351,8 +1351,16 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	// is empty until the conv has been localized once, so fall back to the TLF name.
 	if !res.IsTeam && rc.LocalMetadata != nil && len(rc.LocalMetadata.WriterNames) > 0 {
 		writers := make(map[string]bool)
-		for _, w := range strings.Split(GetRemoteConvTLFName(rc), ",") {
-			writers[w] = true
+		// TLF names look like "writer1,writer2#reader1,reader2 (conflicted...)"; only the
+		// portion before the first "#" or extension-suffix space lists writers.
+		tlfWriters := GetRemoteConvTLFName(rc)
+		if idx := strings.IndexAny(tlfWriters, " #"); idx >= 0 {
+			tlfWriters = tlfWriters[:idx]
+		}
+		for _, w := range strings.Split(tlfWriters, ",") {
+			if w = strings.TrimSpace(w); w != "" {
+				writers[w] = true
+			}
 		}
 		names := make([]string, 0, len(rc.LocalMetadata.WriterNames))
 		for _, w := range rc.LocalMetadata.WriterNames {
