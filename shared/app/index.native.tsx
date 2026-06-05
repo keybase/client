@@ -7,7 +7,7 @@ import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Keyboard} from 'react-native'
+import {AppRegistry, AppState, Appearance, Keyboard, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
@@ -31,7 +31,10 @@ setServiceDecoration(ServiceDecoration)
 // SDWebImage (used by expo-image) flushes its memory cache on iOS memory warnings, but
 // the simulator never sends memory warnings. Cap the cache so loading hundreds of chat
 // images doesn't exhaust VM in the simulator. On a real device this is a safety net only.
-ExpoImage.configureCache({maxMemoryCost: 100 * 1024 * 1024})
+// configureCache is iOS-only native (no Android impl) so calling it on Android throws.
+if (Platform.OS === 'ios') {
+  ExpoImage.configureCache({maxMemoryCost: 100 * 1024 * 1024})
+}
 
 module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
