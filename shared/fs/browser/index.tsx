@@ -33,7 +33,15 @@ const Container = (ownProps: OwnProps) => {
   const offlineUnsynced = FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path)
   const writable = _pathItem.writable
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexGrow} testID={TestIDs.FILES_BROWSER}>
+    // collapsable={false}: keeps this wrapper from being view-flattened, which would hoist the
+    // list's scroll view into a sibling and break iOS 26 tabBarMinimizeBehavior detection.
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      collapsable={false}
+      style={Kb.Styles.globalStyles.flexGrow}
+      testID={TestIDs.FILES_BROWSER}
+    >
       <Kb.KeyboardAvoidingView2>
         <Kbfs.Errs />
         <BrowserContent

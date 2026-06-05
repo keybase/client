@@ -478,6 +478,7 @@ const appTabsScreenOptions = (
     ...(isIOS
       ? {
           tabBarActiveIndicatorEnabled: false,
+          tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
           ...(isLiquidGlassSupported
             ? {
                 tabBarBlurEffect: Common.tabBarBlurEffect,
@@ -485,7 +486,6 @@ const appTabsScreenOptions = (
             : {
                 tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
                 tabBarInactiveTintColor: isDarkMode ? colors.black : colors.blueDarker,
-                tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
               }),
         }
       : {
@@ -498,9 +498,7 @@ const appTabsScreenOptions = (
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
     tabBarTestID: tabToTestID.get(routeName),
     tabBarLabelVisibilityMode: 'labeled' as const,
-    tabBarMinimizeBehavior: 'none' as const, // until this actually works on all screens, not sure why it only
     tabBarStyle: {backgroundColor: isDarkMode ? colors.greyDarkest : colors.blueDark},
-    // works on chat inbox now
     title: tabToLabel.get(routeName) ?? routeName,
   }
 }

@@ -132,7 +132,9 @@ const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} =
 
   return (
     <PerfProfiler id="TeamsList">
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} testID={TestIDs.TEAMS_LIST}>
+      {/* collapsable={false}: the backgroundColor on this wrapper makes RN view-flatten the
+          list's scroll view into a sibling, which breaks iOS 26 tabBarMinimizeBehavior detection. */}
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} collapsable={false} style={styles.container} testID={TestIDs.TEAMS_LIST}>
         <Kb.BoxGrow>
           <Kb.List
             items={teams}

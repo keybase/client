@@ -9,6 +9,11 @@ const ErrsContainer = () => {
     dismiss: () => dismissRedbar(i),
     msg: err,
   }))
+  // Render nothing when there are no errors. An empty wrapper sits as the first child of the
+  // tab screen and breaks iOS 26 tabBarMinimizeBehavior scroll-view detection.
+  if (errs.length === 0) {
+    return null
+  }
   return (
     <>
       <Kb.Box2 fullWidth={true} direction="vertical">

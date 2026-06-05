@@ -525,7 +525,9 @@ function NativeInboxBody(p: ControlledInboxProps) {
   return (
     <Kb.ErrorBoundary>
       <PerfProfiler id="Inbox">
-        <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
+        {/* collapsable={false}: the backgroundColor on this wrapper makes RN view-flatten the
+            list's scroll view into a sibling, which breaks iOS 26 tabBarMinimizeBehavior detection. */}
+        <Kb.Box2 direction="vertical" fullWidth={true} relative={true} collapsable={false} style={nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
           <NativeLoadingLine />
           {isSearching ? (
             <InboxSearch header={headComponent} search={search} />
