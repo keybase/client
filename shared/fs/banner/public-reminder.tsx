@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {navigateAppend} from '@/constants/router'
+import {getVisibleScreen, navigateAppend} from '@/constants/router'
 import {useFsPathItem} from '@/fs/common'
 import * as FS from '@/constants/fs'
 
@@ -22,8 +22,13 @@ const PublicBanner = (props: Props) => {
   const isWritable = useFsPathItem(path).writable
   const lastPublicBannerClosedTlf = props.lastClosedTlf ?? ''
   const setLastPublicBannerClosedTlf = React.useCallback(
-    (tlf: string) =>
-      navigateAppend({name: 'fsRoot', params: {lastClosedPublicBannerTlf: tlf, path}}, true),
+    (tlf: string) => {
+      // Dismiss = update the param on the screen we're on. The public folder may
+      // be the Files tab root (fsRoot) or a pushed folder (fsBrowse); replace
+      // only collapses to setParams when the name matches the current route.
+      const name = getVisibleScreen()?.name === 'fsBrowse' ? 'fsBrowse' : 'fsRoot'
+      navigateAppend({name, params: {lastClosedPublicBannerTlf: tlf, path}}, true)
+    },
     [path]
   )
 

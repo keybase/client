@@ -68,6 +68,25 @@ const destPickerDesktopHeaderStyle = Kb.Styles.padding(
 )
 const noShrinkStyle = {flexShrink: 0} as const
 
+// Options shared by fsRoot (the Files tab root) and fsBrowse (a folder pushed on
+// top). They render the same screen; the only difference is where each lives in
+// the navigator tree (see fsBrowse below).
+const fsFolderGetOptions = (ownProps?: {route: {params?: {path?: T.FS.Path}}}) => {
+  // strange edge case where the root can actually have no params
+  const params = ownProps?.route.params
+  const path = params?.path ?? FS.defaultPath
+  return isMobile
+    ? {
+        header: () => <MobileHeader path={path} />,
+      }
+    : {
+        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
+        headerTitle: () => <Title path={path} />,
+        subHeader: MainBanner,
+        title: path === FS.defaultPath ? 'Files' : T.FS.getPathName(path),
+      }
+}
+
 export const newRoutes = defineRouteMap({
   fsFilePreview: C.makeScreen(FsFilePreview, {
     getOptions: (ownProps?) => {
@@ -84,23 +103,13 @@ export const newRoutes = defineRouteMap({
           }
     },
   }),
-  fsRoot: C.makeScreen(FsRoot, {
-    getOptions: (ownProps?) => {
-      // strange edge case where the root can actually have no params
-      const params = ownProps?.route.params
-      const path = params?.path ?? FS.defaultPath
-      return isMobile
-        ? {
-            header: () => <MobileHeader path={path} />,
-          }
-        : {
-            headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
-            headerTitle: () => <Title path={path} />,
-            subHeader: MainBanner,
-            title: path === FS.defaultPath ? 'Files' : T.FS.getPathName(path),
-          }
-    },
-  }),
+  fsRoot: C.makeScreen(FsRoot, {getOptions: fsFolderGetOptions}),
+  // Same screen as fsRoot, but used when drilling into a folder. fsRoot is the
+  // Files tab root (lives inside the tab stack); fsBrowse is not a tab root, so
+  // on phones it lands in the app root stack and renders above the bottom tab
+  // bar — hiding it on push, matching every other tab. Open a folder via
+  // fsBrowse; jump into the Files tab from elsewhere via fsRoot.
+  fsBrowse: C.makeScreen(FsRoot, {getOptions: fsFolderGetOptions}),
 })
 
 export const newModalRoutes = defineRouteMap({

@@ -22,7 +22,7 @@ export const useOpen = (props: Props) => {
         })
       } else {
         nav.safeNavigateAppend({
-          name: 'fsRoot',
+          name: 'fsBrowse',
           params: {initialLastModifiedTimestamp: knownTimestamp, initialPathType: knownType, path: props.path},
         })
       }

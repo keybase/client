@@ -4,7 +4,6 @@ import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
 import {useFsErrorActionOrThrow, useFsTlf} from '@/fs/common'
-import * as FS from '@/constants/fs'
 import {navToProfile} from '@/constants/router'
 
 type OwnProps = {path: T.FS.Path}
@@ -25,7 +24,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     }, {})
     const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
     const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-    FS.navToPath(filteredPath)
+    C.Router2.navigateAppend({name: 'fsBrowse', params: {path: filteredPath}})
   }
   const onReAddToTeam = (username: string) => () => {
     if (!tlf.teamId) return
