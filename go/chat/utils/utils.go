@@ -1341,6 +1341,39 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	res.ConvID = rc.ConvIDStr
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
+	// For ad-hoc convs, prefer the locally-cached participant order. WriterNames is
+	// stored in activity order (ConversationLocal.AllNames, from ReorderParticipants),
+	// which is the same order the participant fetch will later push to the inbox row.
+	// Seeding the row name from it keeps the row from reshuffling once participants load.
+	// WriterNames includes restricted bots, but the canonical TLF name does not (bots
+	// aren't in the implied-team name) and the frontend hides them, so intersect with the
+	// TLF-name writers to avoid flashing a bot in before it gets filtered out. WriterNames
+	// is empty until the conv has been localized once, so fall back to the TLF name.
+	if !res.IsTeam && rc.LocalMetadata != nil && len(rc.LocalMetadata.WriterNames) > 0 {
+		writers := make(map[string]bool)
+		for _, w := range strings.Split(GetRemoteConvTLFName(rc), ",") {
+			writers[w] = true
+		}
+		names := make([]string, 0, len(rc.LocalMetadata.WriterNames))
+		for _, w := range rc.LocalMetadata.WriterNames {
+			if writers[w] {
+				names = append(names, w)
+			}
+		}
+		// Drop self, except in a conversation with only ourselves. Mirrors the frontend.
+		if len(names) > 1 {
+			others := make([]string, 0, len(names))
+			for _, w := range names {
+				if w != username {
+					others = append(others, w)
+				}
+			}
+			names = others
+		}
+		if len(names) > 0 {
+			res.Name = strings.Join(names, ",")
+		}
+	}
 	res.Time = GetConvMtime(rc)
 	res.LastSendTime = GetConvLastSendTime(rc)
 	if rc.LocalMetadata != nil {
