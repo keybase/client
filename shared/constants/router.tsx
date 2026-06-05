@@ -65,7 +65,17 @@ export type NavState = Partial<Route['state']>
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
-const rootNonModalRouteNames = new Set<string>(['chatConversation'])
+// Modal route names, registered at startup from the router config (the single source
+// of truth — see modalRoutes in router-v2/routes). A serialized NavigationState route
+// does not carry its `presentation`, so we cannot detect modals structurally: a route
+// living in the root stack (alongside the tab navigator) is a modal iff its name is in
+// this set. Everything else there (e.g. chatConversation, and any other non-modal screen
+// pushed above the tab bar on phones) is a genuinely-visible screen.
+let modalRouteNames: ReadonlySet<string> = new Set<string>()
+export const setModalRouteNames = (names: Iterable<string>) => {
+  modalRouteNames = new Set<string>(names)
+}
+const isRootModalRoute = (name: string) => modalRouteNames.has(name)
 
 const uiParticipantsToParticipantInfo = (
   uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
@@ -121,7 +131,7 @@ const getActiveStackState = (navState?: T.Immutable<NavState>): T.Immutable<NavS
     }
     if (depth === 0) {
       const topModal = (state.routes.slice(1) as Array<Route>)
-        .filter(route => !rootNonModalRouteNames.has(route.name))
+        .filter(route => isRootModalRoute(route.name))
         .at(-1)
       if (topModal) {
         return findActiveStackState(topModal.state, depth + 1) ?? state
@@ -160,9 +170,11 @@ export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?:
     if (depth === 0) {
       childRoute = s.routes[0] as Route
       toAdd = [childRoute]
-      if (inludeModals) {
-        toAddModals = s.routes.slice(1) as Array<Route>
-      }
+      // routes[1+] holds both real modals and root non-modal screens (e.g.
+      // chatConversation on phones, stacked above the tab bar). The latter are
+      // genuinely visible, so always include them; only gate real modals on includeModals.
+      const rest = s.routes.slice(1) as Array<Route>
+      toAddModals = inludeModals ? rest : rest.filter(r => !isRootModalRoute(r.name))
     } else {
       // include items in the stack
       if (s.type === 'stack') {
@@ -190,7 +202,7 @@ export const getModalStack = (navState?: T.Immutable<NavState>) => {
   if (!_isLoggedIn(rs)) {
     return []
   }
-  return (rs.routes?.slice(1) ?? []).filter(r => !rootNonModalRouteNames.has(r.name))
+  return (rs.routes?.slice(1) ?? []).filter(r => isRootModalRoute(r.name))
 }
 
 export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
@@ -267,7 +279,7 @@ export const clearModals = () => {
   }
   const rootRoutes = ns?.routes ?? []
   const keepRoutes = rootRoutes.filter(
-    (route, index) => index === 0 || rootNonModalRouteNames.has(route.name)
+    (route, index) => index === 0 || !isRootModalRoute(route.name)
   )
   if (keepRoutes.length !== rootRoutes.length) {
     n.dispatch({

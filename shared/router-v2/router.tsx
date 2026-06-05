@@ -33,6 +33,10 @@ import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liqu
 import {StatusBar, View, useColorScheme} from 'react-native'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 
+// Tell the router constants which root-stack routes are modals (vs genuinely-visible
+// pushed screens like chatConversation). modalRoutes is the single source of truth.
+Constants.setModalRouteNames(Object.keys(modalRoutes))
+
 function SimpleLoading() {
   return (
     <Kb.Box2
