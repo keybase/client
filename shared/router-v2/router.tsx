@@ -33,6 +33,10 @@ import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liqu
 import {StatusBar, View, useColorScheme} from 'react-native'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 
+// Tell the router constants which root-stack routes are modals (vs genuinely-visible
+// pushed screens like chatConversation). modalRoutes is the single source of truth.
+Constants.setModalRouteNames(Object.keys(modalRoutes))
+
 function SimpleLoading() {
   return (
     <Kb.Box2
@@ -474,6 +478,7 @@ const appTabsScreenOptions = (
     ...(isIOS
       ? {
           tabBarActiveIndicatorEnabled: false,
+          tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
           ...(isLiquidGlassSupported
             ? {
                 tabBarBlurEffect: Common.tabBarBlurEffect,
@@ -481,7 +486,6 @@ const appTabsScreenOptions = (
             : {
                 tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
                 tabBarInactiveTintColor: isDarkMode ? colors.black : colors.blueDarker,
-                tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
               }),
         }
       : {
@@ -494,9 +498,7 @@ const appTabsScreenOptions = (
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
     tabBarTestID: tabToTestID.get(routeName),
     tabBarLabelVisibilityMode: 'labeled' as const,
-    tabBarMinimizeBehavior: 'none' as const, // until this actually works on all screens, not sure why it only
     tabBarStyle: {backgroundColor: isDarkMode ? colors.greyDarkest : colors.blueDark},
-    // works on chat inbox now
     title: tabToLabel.get(routeName) ?? routeName,
   }
 }

@@ -111,29 +111,38 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
           },
         }
       : {}),
-    // iOS 26: two separate native buttons (each gets its own glass pill).
+    // iOS 26: single overflow menu (one glass pill) housing search + info actions.
     ...(isIOS
       ? {
           unstable_headerRightItems: () => [
             {
-              icon: sfIcon('magnifyingglass'),
-              label: 'Search',
-              onPress: () => {
-                Keyboard.dismiss()
-                setTimeout(() => toggleConversationThreadSearch(conversationIDKey), 100)
+              icon: sfIcon('ellipsis'),
+              label: 'More',
+              menu: {
+                items: [
+                  {
+                    icon: sfIcon('magnifyingglass'),
+                    label: 'Search',
+                    onPress: () => {
+                      Keyboard.dismiss()
+                      setTimeout(() => toggleConversationThreadSearch(conversationIDKey), 100)
+                    },
+                    type: 'action' as const,
+                  },
+                  {
+                    icon: sfIcon('info.circle'),
+                    label: 'Info',
+                    onPress: () => {
+                      Keyboard.dismiss()
+                      setTimeout(() => {
+                        showConversationInfoPanel(conversationIDKey, true, undefined)
+                      }, 100)
+                    },
+                    type: 'action' as const,
+                  },
+                ],
               },
-              type: 'button' as const,
-            },
-            {
-              icon: sfIcon('info.circle'),
-              label: 'Info',
-              onPress: () => {
-                Keyboard.dismiss()
-                setTimeout(() => {
-                  showConversationInfoPanel(conversationIDKey, true, undefined)
-                }, 100)
-              },
-              type: 'button' as const,
+              type: 'menu' as const,
             },
           ],
         }
