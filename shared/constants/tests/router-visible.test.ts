@@ -18,7 +18,7 @@ afterEach(() => {
 // chatConversation even though it sits at routes[1+] alongside real modals.
 const makePhoneNavState = (extraRootRoutes: ReadonlyArray<{name: string; params?: object}> = []) =>
   ({
-    index: extraRootRoutes.length ? 1 : 0,
+    index: extraRootRoutes.length,
     key: 'root',
     type: 'stack',
     routes: [

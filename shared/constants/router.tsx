@@ -71,11 +71,16 @@ const DEBUG_NAV = __DEV__ && (false as boolean)
 // living in the root stack (alongside the tab navigator) is a modal iff its name is in
 // this set. Everything else there (e.g. chatConversation, and any other non-modal screen
 // pushed above the tab bar on phones) is a genuinely-visible screen.
-let modalRouteNames: ReadonlySet<string> = new Set<string>()
+let modalRouteNames: ReadonlySet<string> | undefined
 export const setModalRouteNames = (names: Iterable<string>) => {
   modalRouteNames = new Set<string>(names)
 }
-const isRootModalRoute = (name: string) => modalRouteNames.has(name)
+const isRootModalRoute = (name: string) => {
+  if (!modalRouteNames) {
+    throw new Error('modalRouteNames not registered; call setModalRouteNames at startup')
+  }
+  return modalRouteNames.has(name)
+}
 
 const uiParticipantsToParticipantInfo = (
   uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
