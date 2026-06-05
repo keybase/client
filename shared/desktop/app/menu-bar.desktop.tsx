@@ -123,11 +123,14 @@ const MenuBar = () => {
         // to be used as an overlay in the bottom right of the taskbar icon.
         if (isWindows) {
           const mw = getMainWindow()
-          const overlay =
-            action.payload.desktopAppBadgeCount > 0
-              ? getAssetPath('images', 'icons', 'icon-windows-badge.png')
-              : null
-          overlay && mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
+          if (action.payload.desktopAppBadgeCount > 0) {
+            mw?.setOverlayIcon(
+              Electron.nativeImage.createFromPath(getAssetPath('images', 'icons', 'icon-windows-badge.png')),
+              'new activity'
+            )
+          } else {
+            mw?.setOverlayIcon(null, '')
+          }
         }
 
         break
