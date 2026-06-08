@@ -1588,6 +1588,7 @@ export type UserBotCommandOutput = {readonly name: string,readonly description: 
 export type UserBotExtendedDescription = {readonly title: string,readonly desktopBody: string,readonly mobileBody: string,}
 export type UserEmojiRes = {readonly emojis: UserEmojis,readonly rateLimit?: RateLimit | null,}
 export type UserEmojis = {readonly emojis?: ReadonlyArray<EmojiGroup> | null,}
+export type ValidateTeamGitChatConvRes = {readonly isActive: boolean,readonly topicType: TopicType,readonly membersType: ConversationMembersType,readonly teamID?: Keybase1.TeamID | null,}
 export type VersionKind = string
 export type WelcomeMessage = {readonly set: boolean,readonly raw: string,}
 export type WelcomeMessageDisplay = {readonly set: boolean,readonly display: string,readonly raw: string,}
@@ -1774,6 +1775,7 @@ export const localUserEmojisRpcPromise = createRpc('chat.1.local.userEmojis')
 // 'chat.1.remote.failSharePost'
 // 'chat.1.remote.broadcastGregorMessageToConv'
 // 'chat.1.remote.teamIDOfConv'
+// 'chat.1.remote.validateTeamGitChatConv'
 // 'chat.1.remote.serverNow'
 // 'chat.1.remote.getExternalAPIKeys'
 // 'chat.1.remote.advertiseBotCommands'

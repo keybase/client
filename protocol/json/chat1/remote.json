@@ -637,6 +637,31 @@
     },
     {
       "type": "record",
+      "name": "ValidateTeamGitChatConvRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isActive"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": [
+            null,
+            "keybase1.TeamID"
+          ],
+          "name": "teamID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ServerNowRes",
       "fields": [
         {
@@ -1770,6 +1795,19 @@
         null,
         "keybase1.TeamID"
       ]
+    },
+    "validateTeamGitChatConv": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "ValidateTeamGitChatConvRes"
     },
     "serverNow": {
       "request": [],

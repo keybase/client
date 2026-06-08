@@ -1089,6 +1089,10 @@ func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.Conversa
 	return res, errors.New("TeamIDOfConv not mocked")
 }
 
+func (m *ChatRemoteMock) ValidateTeamGitChatConv(ctx context.Context, arg chat1.ValidateTeamGitChatConvArg) (res chat1.ValidateTeamGitChatConvRes, err error) {
+	return res, errors.New("ValidateTeamGitChatConv not mocked")
+}
+
 func (m *ChatRemoteMock) RefreshParticipantsRemote(ctx context.Context,
 	arg chat1.RefreshParticipantsRemoteArg,
 ) (res chat1.RefreshParticipantsRemoteRes, err error) {
