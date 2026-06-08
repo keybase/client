@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build darwin || freebsd || netbsd || openbsd
-// +build darwin freebsd netbsd openbsd
 
 package logger
 

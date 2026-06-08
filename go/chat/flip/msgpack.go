@@ -10,12 +10,12 @@ func codecHandle() *codec.MsgpackHandle {
 	return &mh
 }
 
-func msgpackDecode(dst interface{}, src []byte) error {
+func msgpackDecode(dst any, src []byte) error {
 	h := codecHandle()
 	return codec.NewDecoderBytes(src, h).Decode(dst)
 }
 
-func msgpackEncode(src interface{}) ([]byte, error) {
+func msgpackEncode(src any) ([]byte, error) {
 	h := codecHandle()
 	var ret []byte
 	err := codec.NewEncoderBytes(&ret, h).Encode(src)

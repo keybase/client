@@ -107,7 +107,7 @@ func DoAuthRequest(method, url, bodyType, token string, headers map[string]strin
 }
 
 // Get does a GET request to the Github API
-func Get(token string, url string, v interface{}) error {
+func Get(token string, url string, v any) error {
 	resp, err := DoAuthRequest("GET", url, "", token, nil, nil)
 	if resp != nil {
 		defer func() { _ = resp.Body.Close() }()
@@ -118,7 +118,7 @@ func Get(token string, url string, v interface{}) error {
 	return get(resp, url, v)
 }
 
-func get(resp *http.Response, url, v interface{}) error {
+func get(resp *http.Response, url, v any) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("%s responded with %v", url, resp.Status)
 	}

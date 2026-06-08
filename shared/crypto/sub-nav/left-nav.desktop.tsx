@@ -1,7 +1,7 @@
-import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
 import NavRow from './nav-row'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Row = (typeof Crypto.Tabs)[number] & {
   isSelected: boolean
@@ -11,20 +11,14 @@ type Row = (typeof Crypto.Tabs)[number] & {
 type Props = {
   onClick: (a: string) => void
   selected: string
-  children?: React.ReactNode
 }
 
-const SubNav = (props: Props) => {
-  const getRows = () =>
-    Crypto.Tabs.map(t => ({
-      ...t,
-      isSelected: props.selected === t.tab,
-      key: t.tab,
-    }))
-
-  const _onClick = (tab: string) => {
-    props.onClick(tab)
-  }
+const LeftNav = (props: Props) => {
+  const rows = Crypto.Tabs.map(t => ({
+    ...t,
+    isSelected: props.selected === t.tab,
+    key: t.tab,
+  }))
 
   const renderItem = (_: number, row: Row) => {
     return (
@@ -34,19 +28,23 @@ const SubNav = (props: Props) => {
         title={row.title}
         tab={row.tab}
         icon={row.icon}
-        onClick={() => _onClick(row.tab)}
+        onClick={() => props.onClick(row.tab)}
       />
     )
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
-        <Kb.BoxGrow>
-          <Kb.List items={getRows()} renderItem={renderItem} keyProperty="key" style={styles.list} />
-        </Kb.BoxGrow>
-      </Kb.Box2>
-      {props.children}
+    <Kb.Box2 direction="vertical" fullHeight={true} noShrink={true} style={styles.listContainer} testID={TestIDs.CRYPTO_INPUT}>
+      <Kb.BoxGrow>
+        <Kb.List
+          items={rows}
+          renderItem={renderItem}
+          keyProperty="key"
+          extraData={props.selected}
+          style={styles.list}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
+        />
+      </Kb.BoxGrow>
     </Kb.Box2>
   )
 }
@@ -57,11 +55,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   listContainer: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
-    borderStyle: 'solid',
     flexGrow: 0,
-    flexShrink: 0,
     width: 180,
   },
 }))
 
-export default SubNav
+export default LeftNav

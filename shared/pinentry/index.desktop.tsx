@@ -26,25 +26,21 @@ const Pinentry = (props: Props) => {
     }
   }, [_showTyping])
 
-  const handleCheck = React.useCallback((showTyping: boolean) => {
-    setShowTyping(showTyping)
-  }, [])
-
-  const handleSubmit = React.useCallback(() => {
+  const handleSubmit = () => {
     onSubmit(password)
     setPassword('')
-  }, [password, onSubmit])
+  }
 
   const isPaperKey = props.type === T.RPCGen.PassphraseType.paperKey
 
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inner}>
         <Kb.Text type="Body" center={true}>
           {props.prompt}
         </Kb.Text>
-        {isPaperKey && <Kb.Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
+        {isPaperKey && <Kb.ImageIcon type="icon-paper-key-48" style={styles.paperKeyIcon} />}
         <Kb.Box2
           alignSelf="center"
           direction="vertical"
@@ -54,13 +50,13 @@ const Pinentry = (props: Props) => {
           gapStart={true}
           style={styles.inputContainer}
         >
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             error={!!props.retryLabel}
             onChangeText={setPassword}
             onEnterKeyDown={handleSubmit}
             placeholder="Password"
-            type={showTyping ? 'passwordVisible' : 'password'}
+            secureTextEntry={!showTyping}
             value={password}
           />
           {props.retryLabel ? (
@@ -72,30 +68,32 @@ const Pinentry = (props: Props) => {
             <Kb.Checkbox
               checked={showTyping}
               label={props.showTyping.label}
-              onCheck={handleCheck}
+              onCheck={setShowTyping}
               style={styles.alignment}
             />
           )}
         </Kb.Box2>
         <Kb.Button
-          style={{alignSelf: 'center'}}
+          style={styles.button}
           label={props.submitLabel ?? 'Continue'}
           onClick={handleSubmit}
           disabled={!password}
         />
-      </Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   alignment: {marginLeft: Kb.Styles.globalMargins.xsmall},
+  button: {alignSelf: 'center' as const},
   container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
     backgroundColor: Kb.Styles.globalColors.white,
     paddingBottom: Kb.Styles.globalMargins.medium,
   },
+  inner: {...Kb.Styles.paddingH(30)},
   inputContainer: {maxWidth: 428},
+  paperKeyIcon: {alignSelf: 'center' as const},
 }))
 
 export default Pinentry

@@ -1,5 +1,6 @@
 import fs from 'fs'
-import {serverConfigFileName, jsonDebugFileName} from '@/constants/platform.desktop'
+import {serverConfigFileName, jsonDebugFileName} from '@/constants/platform'
+import KB2 from '@/util/electron'
 const getConfigOverload = () => {
   let config: {[key: string]: unknown} = {}
   // Load overrides from server config
@@ -39,3 +40,4 @@ const getConfigOverload = () => {
 }
 
 export const configOverload = getConfigOverload()
+KB2.constants.configOverload = configOverload

@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build dragonfly || freebsd || linux || netbsd || openbsd || solaris
-// +build dragonfly freebsd linux netbsd openbsd solaris
 
 package status
 

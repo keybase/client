@@ -1,3 +1,4 @@
+import {fixupConfigRules} from '@eslint/compat'
 import eslint from '@eslint/js'
 import pluginPromise from 'eslint-plugin-promise'
 import reactPlugin from 'eslint-plugin-react'
@@ -5,6 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
 const ignores = [
+  '**/*.d.ts',
   'babel.config.js',
   'common-adapters/icon.constants-gen.desktop.tsx',
   'common-adapters/icon.constants-gen.native.tsx',
@@ -14,7 +16,7 @@ const ignores = [
   'desktop/dist/**',
   'desktop/release/**',
   'desktop/renderer/renderer-load.desktop.js',
-  'desktop/webpack.config.babel.js',
+  'desktop/webpack.config.mts',
   'lodash.4.17.5.strict/**',
   'markdown/parser.js',
   'metro.config.js',
@@ -24,11 +26,21 @@ const ignores = [
   'react-native/wipe-cache.js',
   'rn-cli.config.js',
   'rn-transformer.js',
+  'tests/results/**',
 ]
 
 const rules = {
   '@typescript-eslint/await-thenable': 'error',
-  '@typescript-eslint/ban-ts-comment': 'off',
+  '@typescript-eslint/ban-ts-comment': [
+    'error',
+    {
+      minimumDescriptionLength: 3,
+      'ts-check': false,
+      'ts-expect-error': 'allow-with-description',
+      'ts-ignore': true,
+      'ts-nocheck': true,
+    },
+  ],
   '@typescript-eslint/class-literal-property-style': 'error',
   '@typescript-eslint/consistent-type-assertions': 'error',
   '@typescript-eslint/consistent-type-exports': 'error',
@@ -46,7 +58,7 @@ const rules = {
   '@typescript-eslint/no-floating-promises': 'error',
   '@typescript-eslint/no-for-in-array': 'error',
   '@typescript-eslint/no-implied-eval': 'error',
-  '@typescript-eslint/no-invalid-void-type': 'error',
+  '@typescript-eslint/no-invalid-void-type': ['error', {allowInGenericTypeArguments: true}],
   '@typescript-eslint/no-loop-func': 'error',
   '@typescript-eslint/no-meaningless-void-operator': 'error',
   '@typescript-eslint/no-misused-new': 'error',
@@ -55,7 +67,7 @@ const rules = {
   '@typescript-eslint/no-non-null-asserted-nullish-coalescing': 'error',
   '@typescript-eslint/no-non-null-asserted-optional-chain': 'error',
   '@typescript-eslint/no-redeclare': 'error',
-  '@typescript-eslint/no-redundant-type-constituents': 'off',
+  '@typescript-eslint/no-redundant-type-constituents': 'error',
   '@typescript-eslint/no-require-imports': 'off',
   '@typescript-eslint/no-restricted-imports': 'error',
   '@typescript-eslint/no-this-alias': 'error',
@@ -71,13 +83,13 @@ const rules = {
   '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
   '@typescript-eslint/no-unsafe-member-access': 'warn',
   '@typescript-eslint/no-unsafe-return': 'warn',
-  '@typescript-eslint/no-unused-expressions': 'off',
+  '@typescript-eslint/no-unused-expressions': 'error',
   '@typescript-eslint/no-unused-vars': [
     'error',
     {argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true},
   ],
   '@typescript-eslint/no-useless-constructor': 'error',
-  '@typescript-eslint/only-throw-error': 'off',
+  '@typescript-eslint/only-throw-error': 'error',
   '@typescript-eslint/prefer-as-const': 'error',
   '@typescript-eslint/prefer-for-of': 'error',
   '@typescript-eslint/prefer-function-type': 'error',
@@ -85,13 +97,22 @@ const rules = {
   '@typescript-eslint/prefer-literal-enum-member': 'error',
   '@typescript-eslint/prefer-namespace-keyword': 'error',
   '@typescript-eslint/prefer-optional-chain': 'error',
-  '@typescript-eslint/prefer-promise-reject-errors': 'off',
+  '@typescript-eslint/prefer-promise-reject-errors': 'error',
   '@typescript-eslint/prefer-reduce-type-parameter': 'warn',
   '@typescript-eslint/prefer-return-this-type': 'error',
   '@typescript-eslint/prefer-string-starts-ends-with': 'error',
   '@typescript-eslint/promise-function-async': 'error',
   '@typescript-eslint/require-await': 'error',
-  '@typescript-eslint/restrict-plus-operands': 'off',
+  '@typescript-eslint/restrict-plus-operands': [
+    'error',
+    {
+      allowAny: false,
+      allowBoolean: false,
+      allowNullish: false,
+      allowNumberAndString: false,
+      allowRegExp: false,
+    },
+  ],
   '@typescript-eslint/restrict-template-expressions': 'error',
   '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
   '@typescript-eslint/triple-slash-reference': 'error',
@@ -99,7 +120,7 @@ const rules = {
   '@typescript-eslint/unified-signatures': 'error',
   'array-callback-return': 'error',
   'no-constant-condition': ['warn', {checkLoops: false}],
-  'no-empty': 'off',
+  'no-empty': ['error', {allowEmptyCatch: true}],
   'no-implied-eval': 'error',
   'no-script-url': 'error',
   'no-self-compare': 'error',
@@ -108,13 +129,12 @@ const rules = {
   'promise/catch-or-return': 'error',
   'promise/no-new-statics': 'error',
   'promise/no-return-in-finally': 'error',
-  'promise/always-return': 'off',
+  'promise/always-return': ['error', {ignoreLastCallback: true}],
   'promise/no-return-wrap': 'error',
   'promise/param-names': 'error',
   'promise/valid-params': 'error',
   'promise/no-nesting': 'error',
   'react-hooks/exhaustive-deps': 'error',
-  'react-hooks/preserve-manual-memoization': 'warn',
   'react-hooks/rules-of-hooks': 'error',
   'react/boolean-prop-naming': 'error',
   'react/jsx-boolean-value': ['error', 'always'],
@@ -149,7 +169,7 @@ const rules = {
   'react/react-in-jsx-scope': 'off',
   'react/style-prop-object': 'error',
   'react/void-dom-elements-no-children': 'error',
-  'sort-keys': ['error', 'asc', {caseSensitive: true, natural: false}],
+  'sort-keys': 'off',
   strict: ['error', 'global'],
   'react-hooks/refs': 'error',
 }
@@ -163,16 +183,15 @@ export default [
   },
   ...tseslint.configs.recommended.map(config => ({
     ...config,
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
   })),
   ...tseslint.configs.recommendedTypeChecked.map(config => ({
     ...config,
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.native.tsx', '**/*.desktop.tsx'],
     languageOptions: {
       ...config.languageOptions,
       parserOptions: {
-        project: ['./tsconfig.json'],
-        //tsconfigRootDir: __dirname,
+        project: ['./tsconfig.native.json', './tsconfig.desktop.json'],
       },
     },
   })),
@@ -181,21 +200,21 @@ export default [
     ...reactHooks.configs.flat.recommended,
   },
   pluginPromise.configs['flat/recommended'],
-  {
+  ...fixupConfigRules({
     name: 'react',
     ...reactPlugin.configs.flat.recommended,
     settings: {
       ...reactPlugin.configs.flat.recommended.settings,
       react: {version: 'detect'},
     },
-  },
-  {
+  }),
+  ...fixupConfigRules({
     name: 'react-jsx',
     ...reactPlugin.configs.flat['jsx-runtime'],
-  },
+  }),
   {
     ignores: [...ignores, '**/*.js'],
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -205,7 +224,6 @@ export default [
         __FILE_SUFFIX__: false,
         cancelAnimationFrame: 'readonly',
         requestAnimationFrame: 'readonly',
-        require: 'readonly',
       },
     },
     linterOptions: {
@@ -224,11 +242,13 @@ export default [
     rules: {
       'array-callback-return': 'error',
       'no-constant-condition': ['warn', {checkLoops: false}],
+      'no-empty': ['error', {allowEmptyCatch: true}],
       'no-implied-eval': 'error',
       'no-script-url': 'error',
-      'no-undeff': 'off',
       'no-self-compare': 'error',
       'no-sequences': 'error',
+      'no-undef': 'error',
+      'no-unused-expressions': 'error',
       'prefer-const': 'error',
       'sort-keys': ['error', 'asc', {caseSensitive: true, natural: false}],
       strict: ['error', 'global'],

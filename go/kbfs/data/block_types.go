@@ -6,6 +6,7 @@ package data
 
 import (
 	"fmt"
+	"maps"
 	"strconv"
 	"sync"
 
@@ -286,9 +287,7 @@ func (db *DirBlock) Set(other Block) {
 // DeepCopy makes a complete copy of a DirBlock
 func (db *DirBlock) DeepCopy() *DirBlock {
 	childrenCopy := make(map[string]DirEntry, len(db.Children))
-	for k, v := range db.Children {
-		childrenCopy[k] = v
-	}
+	maps.Copy(childrenCopy, db.Children)
 	var iptrsCopy []IndirectDirPtr
 	if db.IsInd {
 		iptrsCopy = make([]IndirectDirPtr, len(db.IPtrs))

@@ -944,7 +944,7 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		}
 
 		summary.Specs = make([]libkb.MiniChatPaymentSpec, len(payments))
-		for i := 0; i < len(payments); i++ {
+		for range payments {
 			ispec := <-ch
 			summary.Specs[ispec.index] = ispec.spec
 			xlmTotal += ispec.xlmAmountNumeric
@@ -1029,7 +1029,7 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 	resultList := make([]libkb.MiniChatPaymentResult, len(payments))
 
 	// need to submit tx one at a time, in order
-	for i := 0; i < len(prepared); i++ {
+	for i := range prepared {
 		if prepared[i] == nil {
 			// this should never happen
 			return nil, errors.New("mini chat prepare failed")
@@ -1099,7 +1099,7 @@ func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, send
 
 	// prepared chan could be out of order, so sort by seqno
 	preparedList := make([]*MiniPrepared, len(payments))
-	for i := 0; i < len(payments); i++ {
+	for i := range payments {
 		preparedList[i] = <-prepared
 	}
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })

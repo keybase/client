@@ -18,13 +18,14 @@ type SiteIconProps = {
 
 export const SiteIcon = (props: SiteIconProps) => {
   const style = props.full ? siteIconStyles.siteIconFull : siteIconStyles.siteIcon
-  return Kb.Styles.isMobile ? (
-    <Kb.Image2
+  return isMobile ? (
+    <Kb.Image
       src={siteIconToNativeSrcSet(props.set)}
       style={Kb.Styles.collapseStyles([style, props.style])}
     />
   ) : (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       style={Kb.Styles.collapseStyles([
         style,
         props.style,
@@ -41,12 +42,10 @@ const siteIconStyles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       backgroundSize: 'contain',
-      height: 16,
-      width: 16,
+      ...Kb.Styles.size(16),
     },
     isMobile: {
-      height: 18,
-      width: 18,
+      ...Kb.Styles.size(18),
     },
   }),
   siteIconFull: Kb.Styles.platformStyles({
@@ -55,12 +54,10 @@ const siteIconStyles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       backgroundSize: 'contain',
-      height: 48,
-      width: 48,
+      ...Kb.Styles.size(48),
     },
     isMobile: {
-      height: 64,
-      width: 64,
+      ...Kb.Styles.size(64),
     },
   }),
 }))

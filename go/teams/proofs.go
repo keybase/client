@@ -323,7 +323,7 @@ func (p *proofSetT) checkParallel(ctx context.Context, world LoaderContext) (err
 
 	group, ctx := errgroup.WithContext(libkb.CopyTagsToBackground(ctx))
 	const pipeline = 20
-	for i := 0; i < pipeline; i++ {
+	for range pipeline {
 		group.Go(func() error {
 			for {
 				select {

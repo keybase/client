@@ -123,7 +123,7 @@ func loadReleases(objects []types.Object, bucketName string, prefix string, suff
 // WriteHTML creates an html file for releases
 func WriteHTML(bucketName string, prefixes string, suffix string, outPath string, uploadDest string) error {
 	var sections []Section
-	for _, prefix := range strings.Split(prefixes, ",") {
+	for prefix := range strings.SplitSeq(prefixes, ",") {
 
 		objs, listErr := listAllObjects(bucketName, prefix)
 		if listErr != nil {
@@ -207,7 +207,7 @@ var htmlTemplate = `
 
 // WriteHTMLForLinks writes a summary document for a set of releases
 func WriteHTMLForLinks(title string, sections []Section, writer io.Writer) error {
-	vars := map[string]interface{}{
+	vars := map[string]any{
 		"Title":    title,
 		"Sections": sections,
 	}

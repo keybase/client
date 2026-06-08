@@ -1,20 +1,19 @@
 import * as Styles from '@/styles'
 import Badge from './badge'
-import ClickableBox from './clickable-box'
 import Divider from './divider'
-import Icon, {type IconType} from './icon'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
-import {Box, Box2} from './box'
+import {Box2, ClickableBox} from './box'
 import capitalize from 'lodash/capitalize'
 
 const Kb = {
   Badge,
-  Box,
   Box2,
   ClickableBox,
   Divider,
-  Icon,
+  IconAuto,
   ProgressIndicator,
   Text,
 }
@@ -38,7 +37,7 @@ type Props<TitleT extends string> = {
 }
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
-  <Kb.Box2 style={styles.tabTextContainer} direction="horizontal">
+  <Kb.Box2 direction="horizontal" justifyContent="center">
     <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
       {text}
     </Kb.Text>
@@ -48,6 +47,7 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
   <Kb.Box2
     direction="horizontal"
+    flex={1}
     style={Styles.collapseStyles([styles.container, props.style])}
     alignItems="flex-start"
     fullWidth={true}
@@ -58,19 +58,19 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
         <Kb.ClickableBox
           onClick={() => props.onSelect(tab.title)}
           key={tab.title}
-          style={props.clickableBoxStyle}
+          direction="vertical"
+          style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle, props.clickableTabStyle])}
+          fullWidth={true}
         >
-          <Kb.Box2 direction="vertical" style={styles.tabContainer} fullWidth={true}>
-            <Kb.Box style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
-              {tab.icon ? (
-                <Kb.Icon type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
-              ) : (
-                <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
-              )}
-              {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
-            </Kb.Box>
-            <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
+            {tab.icon ? (
+              <Kb.IconAuto type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
+            ) : (
+              <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
+            )}
+            {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
           </Kb.Box2>
+          <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
         </Kb.ClickableBox>
       )
     })}
@@ -89,21 +89,20 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   container: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    flex: 1,
-    maxHeight: Styles.isMobile ? 48 : 40,
+    ...Styles.bottomDivider(),
+    maxHeight: isMobile ? 48 : 40,
   },
   divider: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.transparent,
     minHeight: 2,
+    width: '100%',
   },
   dividerSelected: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue,
     minHeight: 2,
+    width: '100%',
   },
   icon: {
     alignSelf: 'center',
@@ -113,18 +112,14 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.black,
   },
   progressIndicator: {
-    height: 17,
-    width: 17,
+    ...Styles.size(17),
   },
   selected: {
     color: Styles.globalColors.black,
   },
   tab: {
     flex: 1,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.xtiny),
   },
   tabContainer: Styles.platformStyles({
     isElectron: {
@@ -134,7 +129,6 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 48,
     },
   }),
-  tabTextContainer: {justifyContent: 'center'},
 }))
 
 export default Tabs

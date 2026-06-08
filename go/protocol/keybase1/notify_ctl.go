@@ -5,8 +5,9 @@ package keybase1
 
 import (
 	"context"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type NotificationChannels struct {
@@ -44,6 +45,7 @@ type NotificationChannels struct {
 	Saltpack             bool `codec:"saltpack" json:"saltpack"`
 	AllowChatNotifySkips bool `codec:"allowChatNotifySkips" json:"allowChatNotifySkips"`
 	Chatarchive          bool `codec:"chatarchive" json:"chatarchive"`
+	Devicehistory        bool `codec:"devicehistory" json:"devicehistory"`
 }
 
 func (o NotificationChannels) DeepCopy() NotificationChannels {
@@ -82,6 +84,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Saltpack:             o.Saltpack,
 		AllowChatNotifySkips: o.AllowChatNotifySkips,
 		Chatarchive:          o.Chatarchive,
+		Devicehistory:        o.Devicehistory,
 	}
 }
 

@@ -4,33 +4,27 @@ import {useSafeSubmit} from '@/util/safe-submit'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
-import {useTeamDetailsSubscribe} from './subscriber'
 import noop from 'lodash/noop'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import {deleteTeam} from './actions'
+import {useLoadedTeam} from './team/use-loaded-team'
+import {useTeamsList} from './use-teams-list'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 
 const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
-  const {teamname} = useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
+  const {loading, teamDetails, teamMeta} = useLoadedTeam(teamID)
+  const {teams} = useTeamsList()
+  const teamname = teamMeta.teamname
   const deleteWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsDeleteTeam(teamID))
-  const teamMetas = useTeamsState(s => s.teamMeta)
-  const subteamNames = teamDetails?.subteams.size
+  const subteamNames = teamDetails.subteams.size
     ? [...teamDetails.subteams]
-        .map(subteamID => teamMetas.get(subteamID)?.teamname ?? '')
+        .map(subteamID => teams.find(team => team.id === subteamID)?.teamname ?? '')
         .filter(name => !!name)
     : undefined
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const _onBack = navigateUp
-  const onBack = deleteWaiting ? noop : _onBack
-  const deleteTeam = useTeamsState(s => s.dispatch.deleteTeam)
-  const _onDelete = React.useCallback(() => {
-    deleteTeam(teamID)
-  }, [deleteTeam, teamID])
-  const onDelete = useSafeSubmit(_onDelete, !deleteWaiting)
+  const onBack = deleteWaiting ? noop : C.Router2.navigateUp
+  const onDelete = useSafeSubmit(() => deleteTeam(teamID), !deleteWaiting)
 
   const [checks, setChecks] = React.useState({
     checkChats: false,
@@ -59,13 +53,23 @@ const DeleteTeamContainer = (op: OwnProps) => {
       dispatchClearWaiting(C.waitingKeyTeamsDeleteTeam(teamID))
     }
   }, [dispatchClearWaiting, teamID])
-  useTeamDetailsSubscribe(teamID)
+
+  if (loading) {
+    return (
+      <Kb.ConfirmModal
+        header={<Header teamname={teamname} />}
+        prompt="Loading team info..."
+        content={<Kb.ProgressIndicator type="Large" />}
+        onCancel={onBack}
+      />
+    )
+  }
 
   if (subteamNames) {
     return (
       <Kb.ConfirmModal
         content={
-          <Kb.Text type="Body" center={true} style={{marginTop: Kb.Styles.globalMargins.medium}}>
+          <Kb.Text type="Body" center={true} style={styles.subteamText}>
             Before you can delete <Kb.Text type="BodySemibold">{teamname}</Kb.Text>, delete its{' '}
             {subteamNames.length} {pluralize('subteam', subteamNames.length)}:{' '}
             <Kb.Text type="BodySemibold">{subteamNames.join(', ')}</Kb.Text>.
@@ -109,7 +113,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
 const Header = (props: {teamname: string}) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.ImageIcon type="icon-team-delete-28" style={styles.deleteIcon} />
   </>
 )
 
@@ -141,5 +145,10 @@ const Checkboxes = (props: CheckboxesProps) => (
     />
   </Kb.Box2>
 )
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  deleteIcon: {marginRight: -60, marginTop: -20, zIndex: 1},
+  subteamText: {marginTop: Kb.Styles.globalMargins.medium},
+}))
 
 export default DeleteTeamContainer

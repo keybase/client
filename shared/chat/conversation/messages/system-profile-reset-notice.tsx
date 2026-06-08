@@ -1,27 +1,30 @@
-import * as Chat from '@/constants/chat2'
+import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from './user-notice'
+import {useConversationThreadSelector} from '../thread-context'
 
 const SystemProfileResetNotice = () => {
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = useConversationThreadSelector(s => s.meta)
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
   const _onOpenOlderConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
-    Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpToReset')
+    C.Router2.navigateToThread(conversationIDKey, 'jumpToReset')
   }
   const onOpenOlderConversation = () => {
-    prevConversationIDKey && _onOpenOlderConversation(prevConversationIDKey)
+    if (prevConversationIDKey) {
+      _onOpenOlderConversation(prevConversationIDKey)
+    }
   }
   return (
     <UserNotice>
-      <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Kb.Styles.globalColors.black_50}}>
+      <Kb.Text type="BodySmallSemibold" negative={true} style={styles.text}>
         {username} reset their profile
       </Kb.Text>
       <Kb.Text
         type="BodySmallPrimaryLink"
         negative={true}
-        style={{color: Kb.Styles.globalColors.black_50}}
+        style={styles.text}
         onClick={onOpenOlderConversation}
       >
         View older conversation
@@ -29,5 +32,9 @@ const SystemProfileResetNotice = () => {
     </UserNotice>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  text: {color: Kb.Styles.globalColors.black_50},
+}))
 
 export default SystemProfileResetNotice

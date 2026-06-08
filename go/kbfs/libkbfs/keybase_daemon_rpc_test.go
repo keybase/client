@@ -69,19 +69,19 @@ type fakeKeybaseClient struct {
 
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
 
-func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{},
-	res interface{}, _ time.Duration,
+func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args any,
+	res any, _ time.Duration,
 ) error {
 	return c.call(ctx, s, args, res)
 }
 
-func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args interface{},
-	res interface{}, _ rpc.CompressionType, _ time.Duration,
+func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args any,
+	res any, _ rpc.CompressionType, _ time.Duration,
 ) error {
 	return c.call(ctx, s, args, res)
 }
 
-func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}, res interface{}) error {
+func (c *fakeKeybaseClient) call(ctx context.Context, s string, args any, res any) error {
 	switch s {
 	case "keybase.1.session.currentSession":
 		*res.(*keybase1.Session) = keybase1.Session{
@@ -95,7 +95,7 @@ func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}
 		return nil
 
 	case "keybase.1.identify.identifyLite":
-		arg := args.([]interface{})[0].(keybase1.IdentifyLiteArg)
+		arg := args.([]any)[0].(keybase1.IdentifyLiteArg)
 		uidStr := strings.TrimPrefix(arg.Assertion, "uid:")
 		if len(uidStr) == len(arg.Assertion) {
 			return fmt.Errorf("Non-uid assertion %s", arg.Assertion)
@@ -118,7 +118,7 @@ func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}
 		return nil
 
 	case "keybase.1.user.loadUserPlusKeysV2":
-		arg := args.([]interface{})[0].(keybase1.LoadUserPlusKeysV2Arg)
+		arg := args.([]any)[0].(keybase1.LoadUserPlusKeysV2Arg)
 
 		userInfo, ok := c.users[arg.Uid]
 		if !ok {
@@ -145,7 +145,7 @@ func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}
 		return nil
 
 	case "keybase.1.kbfs.FSEditList":
-		c.editResponse = args.([]interface{})[0].(keybase1.FSEditListArg)
+		c.editResponse = args.([]any)[0].(keybase1.FSEditListArg)
 		return nil
 
 	default:
@@ -153,7 +153,7 @@ func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}
 	}
 }
 
-func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args interface{}, timeout time.Duration) error {
+func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args any, timeout time.Duration) error {
 	return fmt.Errorf("Unknown notify: %s %v", s, args)
 }
 

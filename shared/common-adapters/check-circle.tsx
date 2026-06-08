@@ -24,7 +24,9 @@ type Props = {
 const CheckCircle = (props: Props) => {
   const onClick = () => {
     if (props.onCheck) {
-      !props.disabled && props.onCheck(!props.checked)
+      if (!props.disabled) {
+        props.onCheck(!props.checked)
+      }
     }
   }
 

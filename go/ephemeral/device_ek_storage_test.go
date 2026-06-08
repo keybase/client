@@ -337,7 +337,7 @@ func TestDeviceEKStorageDeleteExpiredKeys(t *testing.T) {
 	// Test multiple gaps, only the last key is valid though.
 	keyMap = make(keyExpiryMap)
 	numKeys := 5
-	for i := 0; i < numKeys; i++ {
+	for i := range numKeys {
 		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = keybase1.ToTime(now.Add(-(libkb.MaxEphemeralKeyStaleness*time.Duration(i) + libkb.MinEphemeralKeyLifetime)))
 	}
 	expired = s.getExpiredGenerations(mctx, keyMap, now)

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import {
   SectionList as NativeSectionList,
   type SectionListProps,
@@ -11,7 +11,7 @@ export type SectionType<Item> = {
   title?: string | React.ReactElement
   data: ReadonlyArray<Item>
   keyExtractor?: (item: Item, index: number) => string
-  renderItem: ({
+  renderItem?: ({
     index,
     item,
     section,
@@ -29,39 +29,49 @@ type Props<ItemT, SectionT> = SectionListProps<ItemT, SectionT> & {
   onSectionChange?: (section: SectionT) => void
 }
 
+function defaultRenderSectionHeader<ItemT, SectionT>({section}: {section: SectionListData<ItemT, SectionT>}) {
+  const s = section as unknown as SectionType<ItemT>
+  // callers relying on this default use SectionType<ItemT> as their section shape
+  return s.renderSectionHeader?.({section: s}) ?? null
+}
+
 function SectionListImpl<ItemT, SectionT>(
-  props: Props<ItemT, SectionT>,
-  ref: React.Ref<NativeSectionList<ItemT, SectionT>>
+  props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}
 ) {
-  const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
-  const getItemLayout = React.useMemo(() => {
-    return getItemHeight
-      ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
-      : undefined
-  }, [getItemHeight, getSectionHeaderHeight])
+  const {ref} = props
+  const {getItemHeight, getSectionHeaderHeight, onSectionChange, renderSectionHeader, ...rest} = props
+  const getItemLayout = getItemHeight
+    ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
+    : undefined
   const onViewableItemsChanged = onSectionChange
     ? (e: {viewableItems: ViewToken<ItemT>[]}) => {
         const section = e.viewableItems[0]?.section as SectionT | undefined
-        section && onSectionChange(section)
+        if (section) {
+          onSectionChange(section)
+        }
       }
     : undefined
+
+  const resolvedRenderSectionHeader = renderSectionHeader ?? defaultRenderSectionHeader<ItemT, SectionT>
 
   return (
     <NativeSectionList
       overScrollMode="never"
+      contentInsetAdjustmentBehavior="automatic"
       getItemLayout={getItemLayout}
       onViewableItemsChanged={onViewableItemsChanged}
       onScrollToIndexFailed={noop}
       keyboardDismissMode="on-drag"
       ref={ref}
       {...rest}
+      renderSectionHeader={resolvedRenderSectionHeader}
     />
   )
 }
 
 export type SectionListRef<ItemT, SectionT> = NativeSectionList<ItemT, SectionT>
 
-const SectionList = React.forwardRef(SectionListImpl) as <ItemT, SectionT>(
+const SectionList = SectionListImpl as <ItemT, SectionT>(
   props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}
 ) => React.ReactElement
 

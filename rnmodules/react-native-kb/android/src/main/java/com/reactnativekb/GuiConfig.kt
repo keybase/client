@@ -1,27 +1,19 @@
 package com.reactnativekb
 
-import androidx.annotation.Nullable
-
 import org.json.JSONException
 import org.json.JSONObject
 
 import java.io.File
 
-class GuiConfig private constructor(filesDir: File?) {
-    private val filesDir: File?
-
-    init {
-        this.filesDir = filesDir
-    }
-
+class GuiConfig private constructor(private val filesDir: File?) {
     fun asString(): String? {
         val filePath = File(filesDir, "/.config/keybase/gui_config.json")
-        return ReadFileAsString.read(filePath.getAbsolutePath())
+        return ReadFileAsString.read(filePath.absolutePath)
     }
 
     fun getDarkMode(): DarkModePreference {
         return try {
-            val jsonObject = JSONObject(asString())
+            val jsonObject = JSONObject(asString() ?: return DarkModePreference.System)
             val jsonObjectUI: JSONObject = jsonObject.getJSONObject("ui")
             val darkModeString: String = jsonObjectUI.getString("darkMode")
             DarkModePrefHelper.fromString(darkModeString)

@@ -1,9 +1,9 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
 import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import {removePendingInvite} from '@/teams/actions'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -18,17 +18,15 @@ export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
   const text2 = subLabel ? `${subLabel} · ${Teams.typeToLabel[role]}` : Teams.typeToLabel[role]
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       icon={<Kb.Avatar username={isKeybaseUser ? label : '+'} size={32} />}
       body={
-        <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-          <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySemibold" lineClamp={1}>
-              {label}
-            </Kb.Text>
-            {!!text2 && <Kb.Text type="BodySmall">{text2}</Kb.Text>}
-          </Kb.Box2>
+        <Kb.Box2 direction="vertical" justifyContent="center">
+          <Kb.Text type="BodySemibold" lineClamp={1}>
+            {label}
+          </Kb.Text>
+          {!!text2 && <Kb.Text type="BodySmall">{text2}</Kb.Text>}
         </Kb.Box2>
       }
       action={<TeamInviteMenu onCancelInvite={onCancelInvite} />}
@@ -40,25 +38,22 @@ export const TeamInviteRow = (props: Props) => {
 
 const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
   const {onCancelInvite} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          items={[{danger: true, icon: 'iconfont-remove', onClick: onCancelInvite, title: 'Cancel invite'}]}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          attachTo={attachTo}
-        />
-      )
-    },
-    [onCancelInvite]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        items={[{danger: true, icon: 'iconfont-remove', onClick: onCancelInvite, title: 'Cancel invite'}]}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        attachTo={attachTo}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button
+      <Kb.IconButton
         ref={popupAnchor}
         mode="Secondary"
         type="Dim"
@@ -86,26 +81,16 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
-  const _invites = teamDetails?.invites
+  const {teamDetails} = useLoadedTeam(teamID)
+  const invites = teamDetails.invites
 
-  const removePendingInvite = useTeamsState(s => s.dispatch.removePendingInvite)
-  const _onCancelInvite = (inviteID: string) => {
-    removePendingInvite(teamID, inviteID)
-  }
+  const user = [...invites].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
 
-  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
-
-  let label: string = ''
-  let subLabel: undefined | string
-  let role: T.Teams.TeamRoleType = 'reader'
-  let isKeybaseUser = false
-
-  const onCancelInvite = () => _onCancelInvite(ownProps.id)
-  label = user.username || user.name || user.email || user.phone
-  subLabel = user.name ? user.phone || user.email : undefined
-  role = user.role
-  isKeybaseUser = !!user.username
+  let label = user.username || user.name || user.email || user.phone
+  let subLabel: undefined | string = user.name ? user.phone || user.email : undefined
+  const role = user.role
+  const isKeybaseUser = !!user.username
+  const onCancelInvite = () => removePendingInvite(teamID, ownProps.id)
   if (!subLabel && labelledInviteRegex.test(label)) {
     const match = labelledInviteRegex.exec(label)!
     label = match[1] ?? ''
@@ -115,15 +100,7 @@ const Container = (ownProps: OwnProps) => {
     label = label === user.phone ? formatPhoneNumber('+' + label) : label
     subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
   } catch {}
-  const props = {
-    firstItem: ownProps.firstItem,
-    isKeybaseUser,
-    label,
-    onCancelInvite,
-    role,
-    subLabel,
-  }
-  return <TeamInviteRow {...props} />
+  return <TeamInviteRow firstItem={ownProps.firstItem} isKeybaseUser={isKeybaseUser} label={label} onCancelInvite={onCancelInvite} role={role} subLabel={subLabel} />
 }
 
 export default Container

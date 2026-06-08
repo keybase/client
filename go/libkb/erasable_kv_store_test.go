@@ -33,7 +33,7 @@ func TestErasableKVStore(t *testing.T) {
 	// `AllKeys`
 	tmp, err := os.CreateTemp(s.storageDir, key)
 	require.NoError(t, err)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		keys, err := s.AllKeys(mctx, ".key")
 		require.NoError(t, err)
 		require.Equal(t, []string{key}, keys)

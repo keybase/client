@@ -6,6 +6,52 @@ import Icon from './icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'
 
+type BareFallbackRenderProps = {
+  error: Error
+  resetErrorBoundary: () => void
+}
+
+type BareProps = {
+  children: React.ReactNode
+  fallback?: React.ReactNode
+  fallbackRender?: (props: BareFallbackRenderProps) => React.ReactNode
+  onError?: (error: Error, info: React.ErrorInfo) => void
+}
+
+type BareState = {
+  error?: Error
+}
+
+export class BareErrorBoundary extends React.Component<BareProps, BareState> {
+  override state: BareState = {}
+
+  static getDerivedStateFromError(error: Error): BareState {
+    return {error}
+  }
+
+  override componentDidCatch(error: Error, info: React.ErrorInfo) {
+    this.props.onError?.(error, info)
+  }
+
+  resetErrorBoundary = () => {
+    this.setState({error: undefined})
+  }
+
+  override render(): React.ReactNode {
+    const {children, fallback, fallbackRender} = this.props
+    const {error} = this.state
+
+    if (error) {
+      if (fallbackRender) {
+        return fallbackRender({error, resetErrorBoundary: this.resetErrorBoundary})
+      }
+      return fallback ?? null
+    }
+
+    return children
+  }
+}
+
 type AllErrorInfo = {
   name: string
   message: string
@@ -27,20 +73,20 @@ const detailContainerStyle = {
 
 const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, style}: FallbackProps) => {
   return (
-    <Box2 direction="vertical" style={Styles.collapseStyles([styles.container, style])}>
+    <Box2 direction="vertical" fullHeight={true} fullWidth={true} padding="medium" relative={true} style={style}>
       <ScrollView style={styles.scroll}>
         <Box2 direction="vertical" gap="small" fullWidth={true}>
           <Text type="Header">Something went wrong...</Text>
           <Text type="Body">
             Please submit a bug report by
-            {Styles.isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
+            {isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
           </Text>
-          {!Styles.isMobile && (
+          {!isMobile && (
             <Box2
               direction="vertical"
               style={{
                 backgroundColor: Styles.globalColors.blueDarker2,
-                borderRadius: 4,
+                borderRadius: Styles.borderRadius,
                 minWidth: 100,
                 padding: 10,
               }}
@@ -70,6 +116,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
         {closeOnClick && (
           <Icon
             type="iconfont-close"
+            color={Styles.globalColors.black_20}
             style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
             onClick={closeOnClick}
           />
@@ -85,46 +132,35 @@ type Props = {
   fallbackStyle?: Styles.StylesCrossPlatform
 }
 
-import {ErrorBoundary} from 'react-error-boundary'
-
 const EB = (p: Props) => {
   const {children, fallbackStyle, closeOnClick} = p
   const [componentStack, setComponentStack] = React.useState('')
 
-  const onError = React.useCallback((_error: Error, info: React.ErrorInfo) => {
+  const onError = (_error: Error, info: React.ErrorInfo) => {
     setComponentStack(info.componentStack ?? '')
-  }, [])
+  }
 
-  const fallbackRender = React.useCallback(
-    (fp: {error: Error; resetErrorBoundary: (...args: unknown[]) => void}) => {
-      const allInfo: AllErrorInfo = {
-        componentStack,
-        message: fp.error.message,
-        name: fp.error.name,
-        stack: fp.error.stack || '',
-      }
-      logger.error('Got boundary error:', allInfo)
-      return <Fallback info={allInfo} closeOnClick={closeOnClick} style={fallbackStyle} />
-    },
-    [componentStack, fallbackStyle, closeOnClick]
-  )
+  const fallbackRender = (fp: {error: Error; resetErrorBoundary: (...args: unknown[]) => void}) => {
+    const allInfo: AllErrorInfo = {
+      componentStack,
+      message: fp.error.message,
+      name: fp.error.name,
+      stack: fp.error.stack || '',
+    }
+    logger.error('Got boundary error:', allInfo)
+    return <Fallback info={allInfo} closeOnClick={closeOnClick} style={fallbackStyle} />
+  }
 
   return (
-    <ErrorBoundary fallbackRender={fallbackRender} onError={onError}>
+    <BareErrorBoundary fallbackRender={fallbackRender} onError={onError}>
       {children}
-    </ErrorBoundary>
+    </BareErrorBoundary>
   )
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        height: '100%',
-        padding: Styles.globalMargins.medium,
-        position: 'relative',
-        width: '100%',
-      },
       detailStyle: Styles.platformStyles({isElectron: {whiteSpace: 'pre'}}),
       scroll: {bottom: 24, left: 24, position: 'absolute', right: 24, top: 24},
     }) as const

@@ -225,7 +225,7 @@ func TestAttachmentGalleryPagination(t *testing.T) {
 		}))
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener, chat1.MessageType_ATTACHMENT)
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		_, err = postLocalForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "MIKE",

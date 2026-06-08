@@ -141,7 +141,7 @@ func (p *provisionee) run() (err error) {
 	return <-p.done
 }
 
-func (p *provisionee) debug(fmtString string, args ...interface{}) {
+func (p *provisionee) debug(fmtString string, args ...any) {
 	if p.arg.LogCtx != nil {
 		p.arg.LogCtx.Debug(fmtString, args...)
 	}

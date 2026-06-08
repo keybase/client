@@ -1,10 +1,9 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
-import {useProfileState} from '@/constants/profile'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
+import {navToProfile} from '@/constants/router'
 
-const iconNameForDeviceType = Kb.Styles.isMobile
+const iconNameForDeviceType = isMobile
   ? (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
@@ -34,7 +33,7 @@ const iconNameForDeviceType = Kb.Styles.isMobile
       }
     }
 
-const headerIconHeight = Kb.Styles.isMobile ? 96 : 48
+const headerIconHeight = isMobile ? 96 : 48
 
 type Props = {
   author: string
@@ -54,58 +53,48 @@ const MessagePopupHeader = (props: Props) => {
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onUsernameClicked = React.useCallback(
-    (user: string) => {
-      showUserProfile(user)
-      onHidden()
-    },
-    [showUserProfile, onHidden]
-  )
+  const onUsernameClicked = (user: string) => {
+    navToProfile(user)
+    onHidden()
+  }
 
   return (
-    <Kb.Box style={styles.headerContainer}>
-      {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
-      {Kb.Styles.isMobile ? null : (
-        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
-          <Kb.Text
-            type="BodySmall"
-            style={{
-              color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
-            }}
-          >
-            ENCRYPTED & SIGNED
-          </Kb.Text>
-        </Kb.Box>
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.headerContainer}>
+      {isMobile ? null : <Kb.ImageIcon type={iconName} style={styles.headerIcon} />}
+      {isMobile ? null : (
+        <Kb.Text
+          type="BodySmall"
+          style={{
+            color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
+          }}
+        >
+          ENCRYPTED & SIGNED
+        </Kb.Text>
       )}
-      <Kb.Box2 direction="horizontal">
-        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
-          <Kb.Avatar username={author} size={16} onClick="profile" />
+      <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
+        <Kb.Avatar username={author} size={16} onClick="profile" />
+        <Kb.ConnectedUsernames
+          onUsernameClicked={onUsernameClicked}
+          colorFollowing={true}
+          colorYou={true}
+          usernames={author}
+          underline={true}
+          type="BodySmallBold"
+        />
+        <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
+      </Kb.Box2>
+      {botUsername && (
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
+          <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
+          <Kb.Avatar username={botUsername} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
-            onUsernameClicked={onUsernameClicked}
+            onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
-            usernames={author}
+            usernames={botUsername}
             underline={true}
             type="BodySmallBold"
           />
-          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
-        </Kb.Box2>
-      </Kb.Box2>
-      {botUsername && (
-        <Kb.Box2 direction="horizontal">
-          <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
-          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
-            <Kb.Avatar username={botUsername} size={16} onClick="profile" />
-            <Kb.ConnectedUsernames
-              onUsernameClicked="profile"
-              colorFollowing={true}
-              colorYou={true}
-              usernames={botUsername}
-              underline={true}
-              type="BodySmallBold"
-            />
-          </Kb.Box2>
         </Kb.Box2>
       )}
       <Kb.Text center={true} type="BodySmall">
@@ -119,56 +108,46 @@ const MessagePopupHeader = (props: Props) => {
           direction="vertical"
           style={Kb.Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
         >
-          <Kb.PopupHeaderText
-            color={Kb.Styles.globalColors.white}
-            backgroundColor={Kb.Styles.globalColors.blue}
-          >
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderText}>
             {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-          </Kb.PopupHeaderText>
+          </Kb.Text>
         </Kb.Box2>
       )}
-      <Kb.Divider
-        style={{
-          marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : 0,
-          marginTop: Kb.Styles.globalMargins.tiny,
-          width: '100%',
-        }}
-      />
-    </Kb.Box>
+      <Kb.Divider style={styles.divider} />
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {alignItems: 'center'},
-      colorBlack40: {color: Kb.Styles.globalColors.black_50},
       headerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
           paddingTop: Kb.Styles.globalMargins.tiny,
-          width: '100%',
         },
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
         },
       }),
-      headerDetailsContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-      },
       headerIcon: Kb.Styles.platformStyles({
         common: {
           height: headerIconHeight,
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          marginTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {marginTop: 0},
         isMobile: {marginTop: Kb.Styles.globalMargins.small},
       }),
+      popupHeaderText: {
+        backgroundColor: Kb.Styles.globalColors.blue,
+        color: Kb.Styles.globalColors.white,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+      },
+      divider: {
+        marginBottom: isMobile ? Kb.Styles.globalMargins.tiny : 0,
+        marginTop: Kb.Styles.globalMargins.tiny,
+        width: '100%',
+      },
       revokedAtContainerLast: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,

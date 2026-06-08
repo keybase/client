@@ -127,10 +127,7 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache data.BlockCache,
 
 	blocks := make(chan data.BlockPointer, blockCount)
 
-	numWorkers := blockCount
-	if numWorkers > maxParallelBlockPuts {
-		numWorkers = maxParallelBlockPuts
-	}
+	numWorkers := min(blockCount, maxParallelBlockPuts)
 	// A channel to list any blocks that have been archived or
 	// deleted.  Any of these will result in an error, so the maximum
 	// we'll get is the same as the number of workers.

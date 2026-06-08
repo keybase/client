@@ -1,5 +1,5 @@
 import * as Electron from 'electron'
-import {showDevTools} from '@/local-debug.desktop'
+import {showDevTools} from '@/local-debug'
 import flags from '@/util/feature-flags'
 
 function setupOpenDevtools() {

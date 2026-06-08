@@ -1,14 +1,14 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
 import {RPCToEmojiData} from '@/common-adapters/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '@/teams/emojis/use-emoji'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {ensureError} from '@/util/errors'
 
 type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -21,113 +21,106 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const nav = useSafeNavigation()
   const username = useCurrentUserState(s => s.username)
-  const canManageEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
-  const deleteOtherEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
+  const {yourOperations} = useLoadedTeam(teamID)
+  const canManageEmoji = yourOperations.manageEmojis
+  const deleteOtherEmoji = yourOperations.deleteOtherEmojis
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = C.useEvent(() => {
+  const onAddAlias = () => {
     nav.safeNavigateAppend({
-      props: {conversationIDKey, defaultSelected: emojiData},
-      selected: 'teamAddEmojiAlias',
+      name: 'teamAddEmojiAlias',
+      params: {conversationIDKey, defaultSelected: emojiData},
     })
-  })
+  }
   const isStockAlias = emoji.remoteSource.typ === T.RPCChat.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const removeRpc = C.useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
-  const doRemove = React.useMemo(
-    () =>
-      canRemove
-        ? () => {
-            removeRpc(
-              [
-                {
-                  alias: emojiData.short_name,
-                  convID: T.Chat.keyToConversationID(conversationIDKey),
-                },
-              ],
-              () => refreshEmoji(),
-              err => {
-                throw err
-              }
-            )
+  const doRemove = canRemove
+    ? () => {
+        removeRpc(
+          [
+            {
+              alias: emojiData.short_name,
+              convID: T.Chat.keyToConversationID(conversationIDKey),
+            },
+          ],
+          () => refreshEmoji(),
+          err => {
+            throw ensureError(err)
           }
-        : undefined,
-    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, refreshEmoji]
-  )
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <EmojiMenu
-          attachTo={attachTo}
-          visible={true}
-          onAddAlias={doAddAlias}
-          onRemove={doRemove}
-          onHidden={hidePopup}
-          isAlias={emoji.isAlias}
-        />
-      )
-    },
-    [doAddAlias, doRemove, emoji.isAlias]
-  )
+        )
+      }
+    : undefined
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <EmojiMenu
+        attachTo={attachTo}
+        visible={true}
+        onAddAlias={doAddAlias}
+        onRemove={doRemove}
+        onHidden={hidePopup}
+        isAlias={emoji.isAlias}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box style={styles.outerContainer}>
-      <Kb.ListItem2
-        type="Small"
-        body={
+    <Kb.ListItem
+      type="Small"
+      body={
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          justifyContent="flex-end"
+          gap="small"
+        >
+          <Kb.Emoji
+            emojiData={RPCToEmojiData(emoji, false)}
+            showTooltip={false}
+            size={isMobile ? 32 : 26}
+          />
+          <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
+          {!isMobile && emoji.creationInfo && (
+            <Kb.Text type="Body" style={styles.date}>
+              {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
+            </Kb.Text>
+          )}
+          {!isMobile && emoji.creationInfo && (
+            <Kb.NameWithIcon
+              colorFollowing={true}
+              colorBroken={true}
+              horizontal={true}
+              username={emoji.creationInfo.username}
+              size="small"
+              avatarSize={16}
+              containerStyle={styles.username}
+            />
+          )}
           <Kb.Box2
             direction="horizontal"
-            fullWidth={true}
-            alignItems="center"
-            style={styles.container}
-            gap="small"
+            style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
           >
-            <Kb.Emoji
-              emojiData={RPCToEmojiData(emoji, false)}
-              showTooltip={false}
-              size={Kb.Styles.isMobile ? 32 : 26}
+            {popup}
+            <Kb.IconButton
+              icon="iconfont-ellipsis"
+              mode="Secondary"
+              type="Dim"
+              onClick={showPopup}
+              ref={popupAnchor}
+              small={true}
             />
-            <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-            {!Kb.Styles.isMobile && emoji.creationInfo && (
-              <Kb.Text type="Body" style={styles.date}>
-                {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
-              </Kb.Text>
-            )}
-            {!Kb.Styles.isMobile && emoji.creationInfo && (
-              <Kb.NameWithIcon
-                colorFollowing={true}
-                colorBroken={true}
-                horizontal={true}
-                username={emoji.creationInfo.username}
-                size="small"
-                avatarSize={16}
-                containerStyle={styles.username}
-              />
-            )}
-            <Kb.Box2
-              direction="horizontal"
-              style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
-            >
-              {popup}
-              <Kb.Button
-                icon="iconfont-ellipsis"
-                mode="Secondary"
-                type="Dim"
-                onClick={showPopup}
-                ref={popupAnchor}
-                small={true}
-              />
-            </Kb.Box2>
           </Kb.Box2>
-        }
-        firstItem={firstItem}
-        fullDivider={true}
-        height={Kb.Styles.isMobile ? 48 : 42}
-      />
-    </Kb.Box>
+        </Kb.Box2>
+      }
+      firstItem={firstItem}
+      fullDivider={true}
+      height={isMobile ? 48 : 42}
+      style={styles.container}
+    />
   )
 }
 
@@ -145,14 +138,11 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: Kb.Styles.globalMargins.small,
         },
       }),
-      container: {
-        justifyContent: 'flex-end',
-      },
       date: {
         maxWidth: 130,
         width: 130,
       },
-      outerContainer: Kb.Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       }),

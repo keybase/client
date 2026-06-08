@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatTimeForFS} from '@/util/timestamp'
-import {useFSState} from '@/constants/fs'
+import {useFsPathItem} from './hooks'
 import * as FS from '@/constants/fs'
 
 export type OwnProps = {
@@ -10,7 +10,7 @@ export type OwnProps = {
 }
 
 const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: string}) =>
-  mode === 'row' && Kb.Styles.isMobile ? (
+  mode === 'row' && isMobile ? (
     <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
   ) : (
     <Kb.ConnectedUsernames
@@ -24,7 +24,8 @@ const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: strin
 
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
-  const _pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
+  const loadPathItem = mode !== 'row'
+  const _pathItem = useFsPathItem(path, {loadOnMount: loadPathItem, subscribe: loadPathItem})
   const lastModifiedTimestamp = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp
   const lastWriter = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastWriter
 
@@ -41,10 +42,10 @@ const Container = (ownProps: OwnProps) => {
     case 'menu':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text fixOverdraw={true} type="BodyTiny" center={true}>
+          <Kb.Text type="BodyTiny" center={true}>
             {time}
           </Kb.Text>
-          <Kb.Text fixOverdraw={true} type="BodyTiny" center={true}>
+          <Kb.Text type="BodyTiny" center={true}>
             {by}
           </Kb.Text>
         </Kb.Box2>
@@ -52,7 +53,7 @@ const Container = (ownProps: OwnProps) => {
     case 'row':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text fixOverdraw={true} type="BodySmall" lineClamp={1}>
+          <Kb.Text type="BodySmall" lineClamp={1}>
             {time}
             {by}
           </Kb.Text>
@@ -61,7 +62,7 @@ const Container = (ownProps: OwnProps) => {
     case 'default':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text fixOverdraw={true} type="BodySmall" center={true}>
+          <Kb.Text type="BodySmall" center={true}>
             {time}
             {by}
           </Kb.Text>

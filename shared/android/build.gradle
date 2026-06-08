@@ -18,7 +18,7 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
 
         classpath("com.github.triplet.gradle:play-publisher:3.7.0") // To publish from gradle
-        classpath("com.google.gms:google-services:4.4.0")
+        classpath("com.google.gms:google-services:4.4.4")
     }
 }
 
@@ -35,21 +35,21 @@ allprojects {
     repositories {
         maven {
             // expo-camera bundles a custom com.google.android:cameraview
-            url "$rootDir/../node_modules/expo-camera/android/maven"
+            url = "$rootDir/../node_modules/expo-camera/android/maven"
         }
 
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            url(reactNativeAndroidDir)
+            url = reactNativeAndroidDir
         }
         maven {
             // Android JSC is installed from npm
-            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
+            url = new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist')
         }
 
         google()
         mavenCentral()
-        maven { url 'https://www.jitpack.io' }
+        maven { url = 'https://www.jitpack.io' }
     }
 }
 

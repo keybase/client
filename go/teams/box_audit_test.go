@@ -133,12 +133,12 @@ func TestBoxAuditAttempt(t *testing.T) {
 	require.NoError(t, toErr(attempt), "attempt OK after rotate")
 }
 
-func requireFatalError(t *testing.T, err error, args ...interface{}) {
+func requireFatalError(t *testing.T, err error, args ...any) {
 	_, ok := err.(FatalBoxAuditError)
 	require.True(t, ok, args...)
 }
 
-func requireNonfatalError(t *testing.T, err error, args ...interface{}) {
+func requireNonfatalError(t *testing.T, err error, args ...any) {
 	_, ok := err.(NonfatalBoxAuditError)
 	require.True(t, ok, args...)
 }
@@ -316,7 +316,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("rotate until we hit max retry attempts; should result in fatal error")
-	for i := 0; i < MaxBoxAuditRetryAttempts-3; i++ {
+	for range MaxBoxAuditRetryAttempts - 3 {
 		err = auditTeam(aA, aM, teamID)
 		requireNonfatalError(t, err, "another audit failure on unrotated puk")
 	}
@@ -432,8 +432,8 @@ func TestBoxAuditRaces(t *testing.T) {
 	total := 9
 	errCh := make(chan error, total)
 	wg.Add(total)
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
+	for i := range 3 {
+		for j := range 3 {
 			go func(i, j int) {
 				_, auditErr := auditors[i].BoxAuditTeam(metacontexts[i], teamIDs[j])
 				errCh <- auditErr

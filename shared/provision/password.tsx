@@ -3,39 +3,25 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useProvisionState} from '@/constants/provision'
+import {startRecoverPassword} from '@/login/recover-password/flow'
+import {useProvisionState} from '@/stores/provision'
 
 const Password = () => {
   const error = useProvisionState(s => s.error)
-  const resetEmailSent = useRecoverState(s => s.resetEmailSent)
   const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
-  const _onForgotPassword = () => {
-    startRecoverPassword({abortProvisioning: true, username})
+  const [resetEmailSent, setResetEmailSent] = React.useState(false)
+  const onForgotPassword = () => {
+    startRecoverPassword({abortProvisioning: true, onResetEmailSent: () => setResetEmailSent(true), username})
   }
-  const onBack = () => {
-    navigateUp()
-  }
-  const _onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const onSubmit = React.useCallback(
-    (password: string) => !waiting && _onSubmit?.(password),
-    [_onSubmit, waiting]
-  )
+  const onBack = C.Router2.navigateUp
+  const setPassphrase = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const [password, setPassword] = React.useState('')
-  const _onSubmitClick = React.useCallback(() => onSubmit(password), [password, onSubmit])
-  const resetState = useRecoverState(s => s.dispatch.resetState)
-  React.useEffect(
-    () => () => {
-      resetState()
-    },
-    [resetState]
-  )
+  const onSubmit = () => !waiting && setPassphrase?.(password)
 
   return (
     <SignupScreen
+      hideDesktopHeader={!isMobile}
       banners={
         <>
           {resetEmailSent ? (
@@ -53,13 +39,13 @@ const Password = () => {
         {
           disabled: !password,
           label: 'Continue',
-          onClick: _onSubmitClick,
+          onClick: onSubmit,
           type: 'Default',
           waiting,
         },
       ]}
       onBack={onBack}
-      title={C.isMobile ? 'Enter password' : 'Enter your password'}
+      title={isMobile ? 'Enter password' : 'Enter your password'}
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView
@@ -72,20 +58,19 @@ const Password = () => {
           username={username}
           avatarBackgroundStyle={styles.outerCardAvatar}
           outerStyle={styles.outerCard}
-          lighterPlaceholders={true}
           avatarSize={96}
         >
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-            <Kb.LabeledInput
+            <Kb.Input3
               autoFocus={true}
               placeholder="Password"
-              onEnterKeyDown={_onSubmitClick}
+              onEnterKeyDown={onSubmit}
               onChangeText={setPassword}
               value={password}
               textType="BodySemibold"
-              type="password"
+              secureTextEntry={true}
             />
-            <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={_onForgotPassword}>
+            <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={onForgotPassword}>
               Forgot password?
             </Kb.Text>
           </Kb.Box2>
@@ -102,13 +87,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.transparent,
     },
     isMobile: {
-      paddingLeft: 0,
-      paddingRight: 0,
+      ...Kb.Styles.paddingH(0),
     },
   }),
   contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
   fill: Kb.Styles.platformStyles({
-    isMobile: {height: '100%', width: '100%'},
+    isMobile: {...Kb.Styles.size('100%')},
     isTablet: {width: 410},
   }),
   forgotPassword: {

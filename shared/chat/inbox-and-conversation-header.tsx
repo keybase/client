@@ -1,111 +1,129 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/constants/chat'
+import * as Config from '@/constants/config'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import SearchRow from './inbox/search-row'
-import NewChatButton from './inbox/new-chat-button'
-import {useRoute} from '@react-navigation/native'
-import type {RootRouteProps} from '@/router-v2/route-params'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
-import * as Teams from '@/constants/teams'
+import NewChatButton from '@/chat/inbox/new-chat-button'
+import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from '@/chat/inbox/header-portal-state'
+import type {ChatRootRouteParams} from '@/chat/inbox-and-conversation'
+import {useChatTeam} from '@/chat/conversation/team-hooks'
+import {useRoute, type RouteProp} from '@react-navigation/native'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
+import {useInboxRowsState} from '@/stores/inbox-rows'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToPath} from '@/constants/fs'
+import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-context'
+import {muteConversation} from '@/chat/conversation/status-actions'
+
+type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
+
+const emptyMeta = Chat.makeConversationMeta()
+const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
+const emptyParticipants: ReadonlyArray<string> = []
 
 const Header = () => {
-  const {params} = useRoute<RootRouteProps<'chatRoot'>>()
-  return (
-    <Chat.ChatProvider
-      canBeNull={true}
-      id={
-        // eslint-disable-next-line
-        params?.conversationIDKey ?? Chat.noConversationIDKey
-      }
-    >
-      <Header2 />
-    </Chat.ChatProvider>
-  )
-}
-
-const Header2 = () => {
+  const {params} = useRoute() as ChatRootRoute
   const username = useCurrentUserState(s => s.username)
-  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
-  const data = Chat.useChatContext(
+  const infoPanelShowing = !!params.infoPanel
+  const conversationIDKey = params.conversationIDKey ?? Chat.noConversationIDKey
+  const {meta, participantInfo} = useInboxMetadataState(
+    C.useShallow(s => ({
+      meta: s.metas.get(conversationIDKey) ?? emptyMeta,
+      participantInfo: s.participants.get(conversationIDKey) ?? emptyParticipantInfo,
+    }))
+  )
+  const inboxRow = useInboxRowsState(
     C.useShallow(s => {
-      const {meta, id, dispatch} = s
-      const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
-      const {openFolder, toggleThreadSearch, mute, showInfoPanel} = dispatch
-
-      const channel =
-        teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
-      const isTeam = ['small', 'big'].includes(teamType)
-      const participants = teamType === 'adhoc' ? s.participants.name : null
-
-      const otherParticipants = Chat.getRowParticipants(s.participants, username)
-
-      const first = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
+      const big = s.rowsBig.get(conversationIDKey)
+      const small = s.rowsSmall.get(conversationIDKey)
       return {
-        channel,
-        channelname,
-        descriptionDecorated,
-        first,
-        id,
-        isMuted,
-        isTeam,
-        mute,
-        openFolder,
-        participants,
-        showInfoPanel,
-        teamname,
-        toggleThreadSearch,
+        rowChannelname: big?.channelname ?? '',
+        rowParticipants: small?.participants ?? emptyParticipants,
+        rowTeamname: big?.teamname || small?.teamDisplayName || '',
       }
     })
   )
-  const {channel, descriptionDecorated, isMuted: muted, teamname, mute} = data
-  const {showInfoPanel, first, isTeam} = data
-  const {id: conversationIDKey, openFolder: onOpenFolder, toggleThreadSearch, participants} = data
+  const {
+    channelname: metaChannelname,
+    descriptionDecorated,
+    isMuted: muted,
+    teamID,
+    teamType: metaTeamType,
+    teamname: metaTeamname,
+    tlfname,
+  } = meta
+  const channelname = metaChannelname || inboxRow.rowChannelname
+  const teamname = metaTeamname || inboxRow.rowTeamname
+  const teamType =
+    metaTeamType !== 'adhoc' ? metaTeamType : inboxRow.rowChannelname ? 'big' : teamname ? 'small' : 'adhoc'
+  const channel = teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
+  const isTeam = teamType !== 'adhoc'
+  const rowParticipantsWithSelf = username
+    ? [...new Set([...inboxRow.rowParticipants, username])]
+    : emptyParticipants
+  const participants =
+    teamType === 'adhoc'
+      ? participantInfo.name.length
+        ? participantInfo.name
+        : rowParticipantsWithSelf
+      : null
+  const otherParticipants = participantInfo.name.length
+    ? Chat.getRowParticipants(participantInfo, username)
+    : inboxRow.rowParticipants
+  const first = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
 
   // length ===1 means just you so show yourself
-  const withoutSelf = React.useMemo(() => {
-    return participants && participants.length > 1
-      ? participants.filter(part => part !== username)
-      : participants
-  }, [participants, username])
+  const withoutSelf =
+    participants && participants.length > 1 ? participants.filter(part => part !== username) : participants
 
-  const canEditDesc = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname).editChannelDescription)
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const canEditDesc = yourOperations.editChannelDescription
   const otherInfo = useUsersState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated
   const fullName = otherInfo?.fullname
+  const headerPortalContent = useInboxHeaderPortalContent()
 
-  const onToggleThreadSearch = React.useCallback(() => {
-    toggleThreadSearch()
-  }, [toggleThreadSearch])
-  const unMuteConversation = React.useCallback(() => {
-    mute(false)
-  }, [mute])
+  const onToggleThreadSearch = () => {
+    toggleConversationThreadSearch(conversationIDKey)
+  }
+  const unMuteConversation = () => {
+    muteConversation(conversationIDKey, false)
+  }
+  const privateFolderPath = tlfname
+    ? `${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}${tlfname}`
+    : participants?.length
+      ? Config.privateFolderWithUsers(participants)
+      : ''
+  const folderPath = isTeam ? (teamname ? Config.teamFolder(teamname) : '') : privateFolderPath
+  const onOpenFolder = () => {
+    if (!folderPath) {
+      return
+    }
+    const path = T.FS.stringToPath(folderPath)
+    navToPath(path)
+  }
 
-  const onToggleInfoPanel = React.useCallback(() => {
-    showInfoPanel(!infoPanelShowing, undefined)
-  }, [showInfoPanel, infoPanelShowing])
+  const onToggleInfoPanel = () => {
+    showConversationInfoPanel(conversationIDKey, !infoPanelShowing, undefined)
+  }
 
   const showActions = Chat.isValidConversationIDKey(conversationIDKey)
 
-  const descStyleOverride = React.useMemo(
-    () =>
-      ({
-        del: styles.markdownOverride,
-        em: styles.markdownOverride,
-        fence: styles.markdownOverride,
-        inlineCode: styles.markdownOverride,
-        kbfsPath: styles.markdownOverride,
-        link: styles.markdownOverride,
-        mailto: styles.markdownOverride,
-        paragraph: styles.markdownOverride,
-        preview: styles.markdownOverride,
-        strong: styles.markdownOverride,
-      }) as StyleOverride,
-    []
-  )
+  const descStyleOverride = {
+    del: styles.markdownOverride,
+    em: styles.markdownOverride,
+    fence: styles.markdownOverride,
+    inlineCode: styles.markdownOverride,
+    kbfsPath: styles.markdownOverride,
+    link: styles.markdownOverride,
+    mailto: styles.markdownOverride,
+    paragraph: styles.markdownOverride,
+    preview: styles.markdownOverride,
+    strong: styles.markdownOverride,
+  } as StyleOverride
 
   let description = !!desc && (
     <Kb.Markdown
@@ -157,29 +175,32 @@ const Header2 = () => {
 
   const leftSide = (
     <Kb.Box2 direction="horizontal" style={styles.left}>
-      {Kb.Styles.isMobile ? null : (
+      {C.isTablet ? (
+        <Kb.BoxGrow2>{headerPortalContent}</Kb.BoxGrow2>
+      ) : !isMobile ? (
         <Kb.BoxGrow2>
-          <Kb.Box2 direction="vertical" style={{height: '100%', width: '100%'}}>
-            <SearchRow headerContext="chat-header" />
-          </Kb.Box2>
+          <div
+            style={Kb.Styles.castStyleDesktop(styles.searchPortal)}
+            ref={node => setInboxHeaderPortalNode(node)}
+          />
         </Kb.BoxGrow2>
-      )}
-      <NewChatButton />
+      ) : null}
+      {!isElectron && !C.isTablet && <NewChatButton />}
     </Kb.Box2>
   )
 
   const topRow = (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      {channel ? (
+      {showActions && channel ? (
         <Kb.Text selectable={true} type="Header" lineClamp={1}>
           {channel}
         </Kb.Text>
-      ) : fullName ? (
+      ) : showActions && fullName ? (
         <Kb.Text type="Header" lineClamp={1}>
           {fullName}
         </Kb.Text>
-      ) : withoutSelf ? (
-        <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne}>
+      ) : showActions && withoutSelf ? (
+        <Kb.Box2 direction="horizontal" flex={1}>
           <Kb.Text type="Header" lineClamp={1}>
             {withoutSelf.map((part, i) => (
               <Kb.Text type="Header" key={part}>
@@ -225,8 +246,17 @@ const Header2 = () => {
       >
         <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
       </Kb.Box2>
-      <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Open folder">
-        <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
+      <Kb.Box2
+        className="tooltip-left"
+        direction="vertical"
+        tooltip={folderPath ? 'Open folder' : 'Folder unavailable'}
+      >
+        <Kb.Icon
+          color={folderPath ? undefined : Kb.Styles.globalColors.black_20}
+          style={folderPath ? styles.clickable : undefined}
+          type="iconfont-folder-private"
+          onClick={folderPath ? onOpenFolder : undefined}
+        />
       </Kb.Box2>
       <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Chat info & settings">
         <Kb.Icon
@@ -240,7 +270,7 @@ const Header2 = () => {
   )
 
   const bottomRow = renderDescription ? (
-    <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
+    <Kb.Box2 direction="vertical" overflow="hidden" style={styles.descriptionContainer} fullWidth={true}>
       {!!fullName && !!withoutSelf && withoutSelf.length === 1 ? (
         <Kb.BoxGrow>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
@@ -270,7 +300,7 @@ const Header2 = () => {
   ) : null
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
+    <Kb.Box2 direction="horizontal" flex={1} style={styles.container}>
       {leftSide}
       <Kb.Box2
         direction="horizontal"
@@ -298,7 +328,6 @@ const styles = Kb.Styles.styleSheetCreate(
       actionIcons: {paddingBottom: Kb.Styles.globalMargins.tiny},
       clickable: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       container: {
-        flexGrow: 1,
         flexShrink: 0,
         height: 40 - 1,
         width: '100%',
@@ -317,7 +346,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       descriptionContainer: {
         height: 17,
-        overflow: 'hidden',
       },
       descriptionTextContainer: Kb.Styles.platformStyles({
         isElectron: {alignItems: 'baseline'},
@@ -361,11 +389,14 @@ const styles = Kb.Styles.styleSheetCreate(
       right: Kb.Styles.platformStyles({
         common: {
           flex: 1,
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
         },
         isMobile: {paddingLeft: Kb.Styles.globalMargins.tiny},
       }),
+      searchPortal: {
+        height: '100%',
+        width: '100%',
+      },
       shhIconStyle: {marginLeft: Kb.Styles.globalMargins.xtiny},
     }) as const
 )

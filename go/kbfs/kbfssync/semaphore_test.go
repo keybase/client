@@ -169,7 +169,7 @@ func TestSerialRelease(t *testing.T) {
 	s := NewSemaphore()
 	acquireCount := 0
 	callCh := make(chan acquireCall, acquirerCount)
-	for i := 0; i < acquirerCount; i++ {
+	for range acquirerCount {
 		go func() {
 			call := callAcquire(ctx, s, 1)
 			acquireCount++
@@ -177,7 +177,7 @@ func TestSerialRelease(t *testing.T) {
 		}()
 	}
 
-	for i := 0; i < acquirerCount; i++ {
+	for range acquirerCount {
 		requireNoCall(t, callCh)
 
 		count := s.Release(1)
@@ -211,7 +211,7 @@ func TestAcquireDifferentSizes(t *testing.T) {
 	s := NewSemaphore()
 	acquireCount := 0
 	callCh := make(chan acquireCall, acquirerCount)
-	for i := 0; i < acquirerCount; i++ {
+	for i := range acquirerCount {
 		go func(i int) {
 			call := callAcquire(ctx, s, int64(i+1))
 			acquireCount++
@@ -219,7 +219,7 @@ func TestAcquireDifferentSizes(t *testing.T) {
 		}(i)
 	}
 
-	for i := 0; i < acquirerCount; i++ {
+	for i := range acquirerCount {
 		requireNoCall(t, callCh)
 
 		if i == 0 {

@@ -1,0 +1,23 @@
+appId: keybase.ios
+
+---
+
+- runFlow: escape-to-tabs.yaml
+
+# Tab bar is now visible — navigate to chat inbox
+- tapOn:
+    text: "Chat"
+
+- extendedWaitUntil:
+    visible:
+      id: "chat-inbox-row"
+    timeout: 10000
+
+- tapOn:
+    id: "chat-inbox-row"
+    index: 0
+
+- extendedWaitUntil:
+    visible:
+      id: "chat-message-list"
+    timeout: 10000

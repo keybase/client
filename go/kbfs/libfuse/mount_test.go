@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 //
 //go:build !windows
-// +build !windows
 
 package libfuse
 
@@ -13,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"os/exec"
 	"path"
@@ -123,9 +123,7 @@ func checkDirNoTestError(
 	// make a copy of want, to be safe
 	{
 		tmp := make(map[string]fileInfoCheck, len(want))
-		for k, v := range want {
-			tmp[k] = v
-		}
+		maps.Copy(tmp, want)
 		want = tmp
 	}
 
@@ -1211,7 +1209,7 @@ func TestRemoveTLF(t *testing.T) {
 	}
 
 	var lastErr error
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		if err := syscall.Rmdir(p); err != nil {
 			t.Fatal(err)
 		}
@@ -4118,7 +4116,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 
 	t.Log("Make several revisions")
 	p := path.Join(mnt.Dir, PrivateName, "jdoe")
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		file := path.Join(p, fmt.Sprintf("foo-%d", i))
 		f, err := os.Create(file) //nolint:gosec // G304: Test file path
 		require.NoError(t, err)

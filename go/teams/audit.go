@@ -434,7 +434,7 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase
 		currentProbes[s] = true
 	}
 	currentProbesWanted := n - len(probesToRetry)
-	for i := 0; i < currentProbesWanted; i++ {
+	for range currentProbesWanted {
 		x, err := randSeqno(m, left, right)
 		if err != nil {
 			return nil, err

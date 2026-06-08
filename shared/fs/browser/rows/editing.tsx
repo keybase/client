@@ -1,37 +1,20 @@
-import * as C from '@/constants'
-import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import * as T from '@/constants/types'
+import type {BrowserEditSession} from '../edit-state'
 
 type Props = {
-  editID: T.FS.EditID
+  editSession: BrowserEditSession
 }
 
-const Editing = React.memo(function Editing({editID}: Props) {
-  const {discardEdit, commitEdit, edit, setEditName} = useFSState(
-    C.useShallow(s => ({
-      commitEdit: s.dispatch.commitEdit,
-      discardEdit: s.dispatch.discardEdit,
-      edit: s.edits.get(editID) || FS.emptyNewFolder,
-      setEditName: s.dispatch.setEditName,
-    }))
-  )
-  const [filename, setFilename] = React.useState(edit.name)
-  const onCancel = () => {
-    discardEdit(editID)
+function Editing({editSession}: Props) {
+  const {commitEdit, discardEdit, edit} = editSession
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') discardEdit()
   }
-  const onSubmit = () => {
-    commitEdit(editID)
-  }
-  React.useEffect(() => {
-    setEditName(editID, filename)
-  }, [editID, filename, setEditName])
-  const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       firstItem={true /* we add divider in Rows */}
       statusIcon={
@@ -42,51 +25,52 @@ const Editing = React.memo(function Editing({editID}: Props) {
         />
       }
       icon={
-        <Kb.Box style={rowStyles.pathItemIcon}>
-          <Kb.Icon type="icon-folder-32" />
-        </Kb.Box>
+        <Kb.Box2 direction="vertical" style={rowStyles.pathItemIcon}>
+          <Kb.ImageIcon type="icon-folder-32" />
+        </Kb.Box2>
       }
       body={
-        <Kb.Box key="main" style={rowStyles.itemBox}>
-          <Kb.PlainInput
-            value={filename}
+        <Kb.Box2 direction="vertical" key="main" style={rowStyles.itemBox}>
+          <Kb.Input3
+            value={edit.name}
             placeholder={edit.originalName}
             selectTextOnFocus={true}
-            style={styles.text}
-            onEnterKeyDown={onSubmit}
-            onChangeText={name => setFilename(name)}
+            inputStyle={styles.text}
+            onEnterKeyDown={commitEdit}
+            onChangeText={editSession.setEditName}
             autoFocus={true}
-            onKeyUp={onKeyUp}
+            onKeyDown={onKeyDown}
+            hideBorder={true}
           />
-        </Kb.Box>
+        </Kb.Box2>
       }
       action={
-        <Kb.Box key="right" style={styles.rightBox}>
+        <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
               <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
-          <Kb.WaitingButton
+          <Kb.Button
             key="create"
             style={styles.button}
             small={true}
             label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
-            waitingKey={C.waitingKeyFSCommitEdit}
-            onClick={onSubmit}
+            waiting={editSession.isSubmitting}
+            onClick={commitEdit}
           />
           <Kb.Icon
-            onClick={onCancel}
+            onClick={discardEdit}
             type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
             color={Kb.Styles.globalColors.black_50}
             hoverColor={Kb.Styles.globalColors.black}
             style={styles.iconCancel}
           />
-        </Kb.Box>
+        </Kb.Box2>
       }
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -104,10 +88,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       rightBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         flexShrink: 1,
-        justifyContent: 'flex-end',
       },
       text: Kb.Styles.platformStyles({
         common: {

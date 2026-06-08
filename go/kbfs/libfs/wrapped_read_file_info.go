@@ -39,6 +39,6 @@ func (cfi *wrappedReadFileInfo) IsDir() bool {
 	return cfi.dir
 }
 
-func (cfi *wrappedReadFileInfo) Sys() interface{} {
+func (cfi *wrappedReadFileInfo) Sys() any {
 	return nil
 }

@@ -162,7 +162,7 @@ type LKSec struct {
 
 func xorBytes(x *[LKSecLen]byte, y *[LKSecLen]byte) *[LKSecLen]byte {
 	var ret [LKSecLen]byte
-	for i := 0; i < LKSecLen; i++ {
+	for i := range LKSecLen {
 		ret[i] = x[i] ^ y[i]
 	}
 	return &ret

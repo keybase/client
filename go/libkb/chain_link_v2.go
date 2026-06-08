@@ -615,7 +615,7 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
-func mismatchError(format string, arg ...interface{}) error {
+func mismatchError(format string, arg ...any) error {
 	return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 }
 

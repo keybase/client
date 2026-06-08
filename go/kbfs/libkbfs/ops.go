@@ -295,18 +295,18 @@ func (oc *OpCommon) checkUpdatesValid() error {
 }
 
 func (oc *OpCommon) stringWithRefs(indent string) string {
-	res := ""
+	var res strings.Builder
 	for i, update := range oc.Updates {
-		res += indent + fmt.Sprintf(
-			"Update[%d]: %v -> %v\n", i, update.Unref, update.Ref)
+		res.WriteString(indent + fmt.Sprintf(
+			"Update[%d]: %v -> %v\n", i, update.Unref, update.Ref))
 	}
 	for i, ref := range oc.RefBlocks {
-		res += indent + fmt.Sprintf("Ref[%d]: %v\n", i, ref)
+		res.WriteString(indent + fmt.Sprintf("Ref[%d]: %v\n", i, ref))
 	}
 	for i, unref := range oc.UnrefBlocks {
-		res += indent + fmt.Sprintf("Unref[%d]: %v\n", i, unref)
+		res.WriteString(indent + fmt.Sprintf("Unref[%d]: %v\n", i, unref))
 	}
-	return res
+	return res.String()
 }
 
 // ToEditNotification implements the op interface for OpCommon.
@@ -1624,7 +1624,7 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 // we need them to be pointers so they correctly satisfy the op
 // interface.  So this function simply converts them into pointers as
 // needed.
-func opPointerizer(iface interface{}) reflect.Value {
+func opPointerizer(iface any) reflect.Value {
 	switch op := iface.(type) {
 	default:
 		return reflect.ValueOf(iface)
@@ -1649,15 +1649,15 @@ func opPointerizer(iface interface{}) reflect.Value {
 
 // RegisterOps registers all op types with the given codec.
 func RegisterOps(codec kbfscodec.Codec) {
-	codec.RegisterType(reflect.TypeOf(createOp{}), createOpCode)
-	codec.RegisterType(reflect.TypeOf(rmOp{}), rmOpCode)
-	codec.RegisterType(reflect.TypeOf(renameOp{}), renameOpCode)
-	codec.RegisterType(reflect.TypeOf(syncOp{}), syncOpCode)
-	codec.RegisterType(reflect.TypeOf(setAttrOp{}), setAttrOpCode)
-	codec.RegisterType(reflect.TypeOf(resolutionOp{}), resolutionOpCode)
-	codec.RegisterType(reflect.TypeOf(rekeyOp{}), rekeyOpCode)
-	codec.RegisterType(reflect.TypeOf(GCOp{}), gcOpCode)
-	codec.RegisterIfaceSliceType(reflect.TypeOf(opsList{}), opsListCode,
+	codec.RegisterType(reflect.TypeFor[createOp](), createOpCode)
+	codec.RegisterType(reflect.TypeFor[rmOp](), rmOpCode)
+	codec.RegisterType(reflect.TypeFor[renameOp](), renameOpCode)
+	codec.RegisterType(reflect.TypeFor[syncOp](), syncOpCode)
+	codec.RegisterType(reflect.TypeFor[setAttrOp](), setAttrOpCode)
+	codec.RegisterType(reflect.TypeFor[resolutionOp](), resolutionOpCode)
+	codec.RegisterType(reflect.TypeFor[rekeyOp](), rekeyOpCode)
+	codec.RegisterType(reflect.TypeFor[GCOp](), gcOpCode)
+	codec.RegisterIfaceSliceType(reflect.TypeFor[opsList](), opsListCode,
 		opPointerizer)
 }
 

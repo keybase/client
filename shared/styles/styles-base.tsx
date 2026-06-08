@@ -1,4 +1,5 @@
-import * as React from 'react'
+import type {CSSProperties} from 'react'
+import type {TextStyle, ViewStyle} from 'react-native'
 
 export const urlEscapeFilePath = (path: string) => {
   if (path.startsWith('file://')) {
@@ -9,9 +10,5 @@ export const urlEscapeFilePath = (path: string) => {
   return path
 }
 
-export const castStyleDesktop = (style: unknown) => style
-export const castStyleNative = (style: unknown) => style
-
-export const CanFixOverdrawContext = React.createContext(false)
-export const dontFixOverdraw = {canFixOverdraw: false}
-export const yesFixOverdraw = {canFixOverdraw: true}
+export const castStyleDesktop = (style: unknown): CSSProperties | undefined => style as CSSProperties | undefined
+export const castStyleNative = (style: unknown): (TextStyle & ViewStyle) | undefined => style as (TextStyle & ViewStyle) | undefined

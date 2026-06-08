@@ -39,7 +39,7 @@ func NewMemberKeyer(mctx libkb.MetaContext) *MemberKeyer {
 // out from under us while we're in the middle of posting a new key, causing
 // the post to fail. Detect these conditions and retry.
 func (k *MemberKeyer) retryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error) {
-	for tries := 0; tries < maxRetries; tries++ {
+	for tries := range maxRetries {
 		if err = retryFn(); err == nil {
 			return nil
 		}

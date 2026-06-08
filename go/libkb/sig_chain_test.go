@@ -24,70 +24,70 @@ import (
 func getErrorTypesMap() map[string]map[reflect.Type]bool {
 	return map[string]map[reflect.Type]bool{
 		"CTIME_MISMATCH": {
-			reflect.TypeOf(CtimeMismatchError{}): true,
+			reflect.TypeFor[CtimeMismatchError](): true,
 		},
 		"EXPIRED_SIBKEY": {
-			reflect.TypeOf(KeyExpiredError{}): true,
+			reflect.TypeFor[KeyExpiredError](): true,
 		},
 		"FINGERPRINT_MISMATCH": {
-			reflect.TypeOf(ChainLinkFingerprintMismatchError{}): true,
+			reflect.TypeFor[ChainLinkFingerprintMismatchError](): true,
 		},
 		"INVALID_SIBKEY": {
-			reflect.TypeOf(KeyRevokedError{}): true,
+			reflect.TypeFor[KeyRevokedError](): true,
 		},
 		"NO_KEY_WITH_THIS_HASH": {
-			reflect.TypeOf(NoKeyError{}): true,
+			reflect.TypeFor[NoKeyError](): true,
 		},
 		"KEY_OWNERSHIP": {
-			reflect.TypeOf(KeyFamilyError{}): true,
+			reflect.TypeFor[KeyFamilyError](): true,
 		},
 		"KID_MISMATCH": {
-			reflect.TypeOf(ChainLinkKIDMismatchError{}): true,
+			reflect.TypeFor[ChainLinkKIDMismatchError](): true,
 		},
 		"NONEXISTENT_KID": {
-			reflect.TypeOf(KeyFamilyError{}): true,
+			reflect.TypeFor[KeyFamilyError](): true,
 		},
 		"NOT_LATEST_SUBCHAIN": {
-			reflect.TypeOf(NotLatestSubchainError{}): true,
+			reflect.TypeFor[NotLatestSubchainError](): true,
 		},
 		"REVERSE_SIG_VERIFY_FAILED": {
-			reflect.TypeOf(ReverseSigError{}): true,
+			reflect.TypeFor[ReverseSigError](): true,
 		},
 		"VERIFY_FAILED": {
-			reflect.TypeOf(BadSigError{}): true,
+			reflect.TypeFor[BadSigError](): true,
 		},
 		"WRONG_UID": {
-			reflect.TypeOf(UIDMismatchError{}): true,
+			reflect.TypeFor[UIDMismatchError](): true,
 		},
 		"WRONG_USERNAME": {
-			reflect.TypeOf(BadUsernameError{}): true,
+			reflect.TypeFor[BadUsernameError](): true,
 		},
 		"WRONG_SEQNO": {
-			reflect.TypeOf(ChainLinkWrongSeqnoError{}): true,
+			reflect.TypeFor[ChainLinkWrongSeqnoError](): true,
 		},
 		"WRONG_PREV": {
-			reflect.TypeOf(ChainLinkPrevHashMismatchError{}): true,
+			reflect.TypeFor[ChainLinkPrevHashMismatchError](): true,
 		},
 		"BAD_CHAIN_LINK": {
-			reflect.TypeOf(ChainLinkError{}): true,
+			reflect.TypeFor[ChainLinkError](): true,
 		},
 		"CHAIN_LINK_STUBBED_UNSUPPORTED": {
-			reflect.TypeOf(ChainLinkStubbedUnsupportedError{}): true,
+			reflect.TypeFor[ChainLinkStubbedUnsupportedError](): true,
 		},
 		"SIGCHAIN_V2_STUBBED_SIGNATURE_NEEDED": {
-			reflect.TypeOf(SigchainV2StubbedSignatureNeededError{}): true,
+			reflect.TypeFor[SigchainV2StubbedSignatureNeededError](): true,
 		},
 		"SIGCHAIN_V2_STUBBED_FIRST_LINK": {
-			reflect.TypeOf(SigchainV2StubbedFirstLinkError{}): true,
+			reflect.TypeFor[SigchainV2StubbedFirstLinkError](): true,
 		},
 		"SIGCHAIN_V2_MISMATCHED_FIELD": {
-			reflect.TypeOf(SigchainV2MismatchedFieldError{}): true,
+			reflect.TypeFor[SigchainV2MismatchedFieldError](): true,
 		},
 		"SIGCHAIN_V2_MISMATCHED_HASH": {
-			reflect.TypeOf(SigchainV2MismatchedHashError{}): true,
+			reflect.TypeFor[SigchainV2MismatchedHashError](): true,
 		},
 		"WRONG_PER_USER_KEY_REVERSE_SIG": {
-			reflect.TypeOf(ReverseSigError{}): true,
+			reflect.TypeFor[ReverseSigError](): true,
 		},
 	}
 }
@@ -206,7 +206,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		loadedFromLinkOne: true,
 		Contextified:      NewContextified(tc.G),
 	}
-	for i := 0; i < chainLen; i++ {
+	for i := range chainLen {
 		linkBlob := inputBlob.AtKey("chain").AtIndex(i)
 		rawLinkBlob, err := linkBlob.Marshal()
 		if err != nil {

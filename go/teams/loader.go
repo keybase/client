@@ -226,7 +226,7 @@ func (l *TeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keyb
 		return resolveNameToIDUntrustedAPICall(ctx, l.G(), teamName, public)
 	}
 
-	var idVoidPointer interface{}
+	var idVoidPointer any
 	key := nameLookupBurstCacheKey{teamName, public}
 	idVoidPointer, err = l.nameLookupBurstCache.Load(ctx, key, l.makeNameLookupBurstCacheLoader(ctx, l.G(), key))
 	if err != nil {
@@ -262,7 +262,7 @@ func resolveNameToIDUntrustedAPICall(ctx context.Context, g *libkb.GlobalContext
 }
 
 func (l *TeamLoader) makeNameLookupBurstCacheLoader(ctx context.Context, g *libkb.GlobalContext, key nameLookupBurstCacheKey) libkb.BurstCacheLoader {
-	return func() (obj interface{}, err error) {
+	return func() (obj any, err error) {
 		id, err := resolveNameToIDUntrustedAPICall(ctx, g, key.teamName, key.public)
 		if err != nil {
 			return nil, err
@@ -494,7 +494,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 
 func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *load2ResT, err error) {
 	const nRetries = 3
-	for i := 0; i < nRetries; i++ {
+	for range nRetries {
 		res, err = l.load2InnerLockedRetry(ctx, arg)
 		switch pkgErrors.Cause(err).(type) {
 		case nil:

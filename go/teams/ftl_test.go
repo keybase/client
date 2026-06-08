@@ -105,7 +105,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 
@@ -267,7 +267,7 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
@@ -331,7 +331,7 @@ func TestLoadSubteamThenParent(t *testing.T) {
 
 	t.Logf("rotate the parent team a bunch of times")
 	// Rotate the key by removing and adding B from the team
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
@@ -386,7 +386,7 @@ func TestLoadSubteamThenAllowedInThenParent(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		rotateKey(teamName)
 	}
 
@@ -453,7 +453,7 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 	loadTeam(teamID, false)
 
 	// Rotate the key by removing and adding B from the team
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)

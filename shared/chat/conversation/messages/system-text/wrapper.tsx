@@ -1,21 +1,27 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
-import type SystemTextType from './container'
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 
-const SystemText = React.memo(function SystemText(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+type OwnProps = {text: string}
 
-  if (message?.type !== 'systemText') return null
-
-  const {default: SystemText} = require('./container') as {default: typeof SystemTextType}
+function SystemText(p: OwnProps) {
+  const {text} = p
   return (
-    <WrapperMessage {...p} {...common}>
-      <SystemText text={message.text.stringValue()} />
-    </WrapperMessage>
+    <UserNotice>
+      <Kb.Text type="BodySmall" style={styles.text}>
+        {text}
+      </Kb.Text>
+    </UserNotice>
   )
-})
+}
 
-export default SystemText
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      text: Kb.Styles.platformStyles({
+        isElectron: {wordBreak: 'break-word'} as const,
+      }),
+    }) as const
+)
+
+export default makeMessageWrapper('systemText', message => <SystemText text={message.text.stringValue()} />)

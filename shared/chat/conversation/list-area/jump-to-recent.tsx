@@ -7,12 +7,11 @@ type Props = {
 
 const JumpToRecent = (props: Props) => {
   return (
-    <Kb.Box2 direction="vertical" style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.outerContainer}>
       <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true}>
         <Kb.Icon
           color={Kb.Styles.globalColors.whiteOrWhite}
           type="iconfont-arrow-full-down"
-          boxStyle={styles.arrowBox}
           sizeType="Small"
           style={styles.arrowText}
         />
@@ -24,18 +23,12 @@ const JumpToRecent = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      arrowBox: Kb.Styles.platformStyles({
-        isElectron: {display: 'inline'},
-      }),
       arrowText: {paddingRight: Kb.Styles.globalMargins.tiny},
       outerContainer: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           bottom: 0,
-          paddingBottom: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
           position: 'absolute',
-          width: '100%',
         },
         isElectron: {backgroundImage: `linear-gradient(transparent, ${Kb.Styles.globalColors.white} 75%)`},
       }),

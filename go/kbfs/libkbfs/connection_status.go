@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"maps"
 	"sync"
 )
 
@@ -39,9 +40,7 @@ func (kcs *kbfsCurrentStatus) CurrentStatus() (map[string]error, chan StatusUpda
 	defer kcs.lock.Unlock()
 
 	res := map[string]error{}
-	for k, v := range kcs.failingServices {
-		res[k] = v
-	}
+	maps.Copy(res, kcs.failingServices)
 	return res, kcs.invalidateChan
 }
 

@@ -4,16 +4,14 @@ apply plugin: "com.facebook.react"
 apply plugin: 'com.github.triplet.play'
 
 // KB: app version
-def VERSION_NAME = "6.6.3"
+def VERSION_NAME = "6.7.0"
 
 // KB: Number of commits, like ios
 Integer getVersionCode() {
-    def stdout = new ByteArrayOutputStream()
-    exec {
+    def result = providers.exec {
         commandLine 'git', 'rev-list', 'HEAD', '--count'
-        standardOutput = stdout
     }
-    return Integer.parseInt(stdout.toString().trim()) + 10517785 // plus bump it so its above the old version code
+    return Integer.parseInt(result.standardOutput.asText.get().trim()) + 10517785 // plus bump it so its above the old version code
 }
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())
@@ -40,9 +38,9 @@ react {
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
-    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
+    //   skip the bundling of the JS bundle and the assets. Default is "debug", "debugOptimized".
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
+    // debuggableVariants = ["liteDebug", "liteDebugOptimized", "prodDebug", "prodDebugOptimized"]
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
@@ -94,11 +92,11 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
-    ndkVersion rootProject.ext.ndkVersion
+    ndkVersion = rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "io.keybase.ossifrage"
+    namespace = "io.keybase.ossifrage"
     defaultConfig {
         applicationId "io.keybase.ossifrage"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -107,7 +105,7 @@ android {
         versionName VERSION_NAME
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
         // KB added
-        multiDexEnabled true
+        multiDexEnabled = true
     }
 
     signingConfigs {
@@ -121,27 +119,24 @@ android {
 
     buildTypes {
         debug {
+            ndk {
+                abiFilters = (findProperty('reactNativeArchitectures') ?: 'arm64-v8a').split(',').collect { it.trim() }
+            }
         }
         release {
-            signingConfig signingConfigs.release
+            signingConfig = signingConfigs.release
             minifyEnabled enableMinifyInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
         releaseUnsigned.initWith(buildTypes.release)
         releaseUnsigned {
             applicationIdSuffix ".unsigned"
-            signingConfig buildTypes.debug.signingConfig
+            signingConfig = buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
             manifestPlaceholders["usesCleartextTraffic"] = "false"
         }
     }
 
-    // applicationVariants are e.g. debug, release
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.versionCodeOverride = getVersionCode()
-        }
-    }
     bundle {
         language {
             enableSplit = true
@@ -170,16 +165,15 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'androidx.work:work-runtime:2.10.5'
+    implementation 'androidx.work:work-runtime:2.11.2'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "com.google.firebase:firebase-messaging:25.0.1"
+    implementation "com.google.firebase:firebase-messaging:25.0.2"
     implementation "com.facebook.fresco:animated-gif:${expoLibs.versions.fresco.get()}"
-    implementation 'org.msgpack:msgpack-core:0.9.10'
+    implementation 'org.msgpack:msgpack-core:0.9.12'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
-    implementation "me.leolin:ShortcutBadger:1.1.22@aar"
-    implementation "androidx.lifecycle:lifecycle-common-java8:2.9.4"
-    implementation "androidx.lifecycle:lifecycle-process:2.9.4"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.10.0"
+    implementation "androidx.lifecycle:lifecycle-process:2.10.0"
 }
 
 // This requires a google-services.json file locally.  Drop it in

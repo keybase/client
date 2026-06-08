@@ -1,11 +1,5 @@
 import * as React from 'react'
-import * as Styles from '@/styles'
-import WaitingButton from '@/common-adapters/waiting-button'
-
-const Kb = {
-  Styles,
-  WaitingButton,
-}
+import * as Kb from '@/common-adapters'
 
 type Props = {
   disabled?: boolean
@@ -23,18 +17,27 @@ const FollowButton = (props: Props) => {
   const {following, followsYou, onFollow, onUnfollow, style, waitingKey, ...otherProps} = props
 
   if (following) {
-    return (
+    const button = (
       <Kb.WaitingButton
         type="Success"
         mode="Secondary"
         label={mouseOver ? 'Unfollow' : 'Following'}
         onClick={onUnfollow}
-        onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
-        onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
         waitingKey={waitingKey}
         style={props.small ? style : {...styleButton, ...style}}
         {...otherProps}
       />
+    )
+    if (isMobile) {
+      return button
+    }
+    return (
+      <div
+        onMouseEnter={() => setMouseover(true)}
+        onMouseLeave={() => setMouseover(false)}
+      >
+        {button}
+      </div>
     )
   } else {
     return (

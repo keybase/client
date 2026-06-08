@@ -957,7 +957,7 @@ func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []
 	if err != nil {
 		return nil, err
 	}
-	var externalURLs map[string]map[string][]interface{}
+	var externalURLs map[string]map[string][]any
 	if err := json.Unmarshal([]byte(entry.Entry), &externalURLs); err != nil {
 		return nil, err
 	}

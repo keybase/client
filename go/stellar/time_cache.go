@@ -18,7 +18,7 @@ type TimeCache struct {
 }
 
 type timeCacheEntry struct {
-	val  interface{}
+	val  any
 	time time.Time
 }
 
@@ -38,19 +38,19 @@ func NewTimeCache(name string, size int, maxAge time.Duration) *TimeCache {
 	}
 }
 
-type cacheFillFunc = func() (interface{}, error)
+type cacheFillFunc = func() (any, error)
 
-func (c *TimeCache) Get(mctx libkb.MetaContext, key string, into interface{}) (ok bool) {
+func (c *TimeCache) Get(mctx libkb.MetaContext, key string, into any) (ok bool) {
 	return c.getHelper(mctx, key, into, nil) == nil
 }
 
 // GetWithFill is prefereable to Get because it holds a locktab lock during the fill.
 // Which prevents concurrent accesses from doing the extra work of running fill at the same time.
-func (c *TimeCache) GetWithFill(mctx libkb.MetaContext, key string, into interface{}, fill cacheFillFunc) error {
+func (c *TimeCache) GetWithFill(mctx libkb.MetaContext, key string, into any, fill cacheFillFunc) error {
 	return c.getHelper(mctx, key, into, fill)
 }
 
-func (c *TimeCache) getHelper(mctx libkb.MetaContext, key string, into interface{}, fill cacheFillFunc) error {
+func (c *TimeCache) getHelper(mctx libkb.MetaContext, key string, into any, fill cacheFillFunc) error {
 	lock, err := c.lockTab.AcquireOnNameWithContextAndTimeout(mctx.Ctx(), mctx.G(), key, time.Minute)
 	if err != nil {
 		return fmt.Errorf("could not acquire cache lock for key %v", key)
@@ -87,7 +87,7 @@ func (c *TimeCache) getHelper(mctx libkb.MetaContext, key string, into interface
 	return fmt.Errorf("value not found for '%v'", key)
 }
 
-func (c *TimeCache) storeResult(val interface{}, into interface{}) (ok bool) {
+func (c *TimeCache) storeResult(val any, into any) (ok bool) {
 	target := reflect.Indirect(reflect.ValueOf(into))
 	if target.CanSet() && reflect.TypeOf(val).AssignableTo(reflect.TypeOf(target.Interface())) {
 		target.Set(reflect.ValueOf(val))
@@ -97,7 +97,7 @@ func (c *TimeCache) storeResult(val interface{}, into interface{}) (ok bool) {
 	return false
 }
 
-func (c *TimeCache) Put(mctx libkb.MetaContext, key string, val interface{}) {
+func (c *TimeCache) Put(mctx libkb.MetaContext, key string, val any) {
 	c.cache.Add(key, timeCacheEntry{
 		val:  val,
 		time: time.Now().Round(0),

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPeopleItem} from '@/util/timestamp'
-import type {Props as ButtonProps} from '@/common-adapters/button'
+import type {ButtonProps} from '@/common-adapters/button'
 
 type NonReactTaskButton = {
   label: string
@@ -25,34 +25,37 @@ export type Props = {
 }
 
 const PeopleItem = (props: Props) => (
-  <Kb.Box style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
     {!!props.icon && (
-      <Kb.Box key="icon" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
+      <Kb.Box2 key="icon" direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
         {props.icon}
-      </Kb.Box>
+      </Kb.Box2>
     )}
 
     <Kb.Box2
       direction="vertical"
+      flex={1}
       gap="xtiny"
       style={Kb.Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
     >
       {props.children}
-      <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true} justifyContent="flex-start">
         {props.buttons &&
           props.buttons.length > 0 &&
           props.buttons.map((b, idx) =>
             React.isValidElement(b) ? (
-              <Kb.Box key={idx} style={styles.button}>
+              <Kb.Box2 key={idx} direction="vertical" style={styles.button}>
                 {b}
-              </Kb.Box>
+              </Kb.Box2>
             ) : (
               <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
             )
           )}
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
       style={Kb.Styles.collapseStyles([
         styles.timestampContainer,
         props.format === 'multi' && styles.timestampContainerMulti,
@@ -62,37 +65,31 @@ const PeopleItem = (props: Props) => (
       {props.badged && (
         <Kb.Badge badgeStyle={styles.badge} height={Kb.Styles.globalMargins.tiny} leftRightPadding={0} />
       )}
-    </Kb.Box>
-  </Kb.Box>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 export default PeopleItem
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   actionContainer: {
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
   },
   badge: {
     marginLeft: Kb.Styles.globalMargins.xtiny,
   },
   button: {marginBottom: Kb.Styles.globalMargins.xtiny, marginRight: Kb.Styles.globalMargins.tiny},
   childrenContainer: {
-    flex: 1,
     overflow: 'hidden',
     position: 'relative',
     width: 'auto',
   },
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
       backgroundColor: Kb.Styles.globalColors.white,
-      borderBottomColor: Kb.Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      paddingBottom: Kb.Styles.globalMargins.xsmall,
-      paddingTop: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.bottomDivider(),
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
       position: 'relative',
     },
-    isElectron: {borderStyle: 'solid'},
   }),
   containerBadged: {
     backgroundColor: Kb.Styles.globalColors.blueLighter2,
@@ -105,8 +102,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   timestampContainer: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
       alignSelf: 'center',
       marginLeft: 'auto',
       marginRight: Kb.Styles.globalMargins.small,

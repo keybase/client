@@ -1,6 +1,3 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useOrdinal} from '../ids-context'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useColorScheme} from 'react-native'
@@ -48,72 +45,74 @@ const statusToIconDarkExploding = {
 
 const shownEncryptingSet = new Set()
 
-const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
-  const ordinal = useOrdinal()
+type OwnProps = {
+  failed: boolean
+  id: number
+  isExploding: boolean
+  sent: boolean
+}
 
-  const {isExploding, sent, failed, id} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      return {
-        failed:
-          (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed',
-        id: message?.timestamp,
-        isExploding: !!message?.exploding,
-        sent:
-          (message?.type !== 'text' && message?.type !== 'attachment') ||
-          !message.submitState ||
-          message.exploded,
-      }
-    })
-  )
+function SendIndicatorContainer(p: OwnProps) {
+  return <SendIndicator key={p.id} {...p} />
+}
 
-  const [status, setStatus] = React.useState<AnimationStatus>(
-    sent ? 'sent' : failed ? 'error' : !shownEncryptingSet.has(id) ? 'encrypting' : 'sending'
-  )
-  const [visible, setVisible] = React.useState(!sent)
-  const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+type IndicatorState = {
+  encrypting: boolean
+  failed: boolean
+  sent: boolean
+  sentHidden: boolean
+}
+
+function SendIndicator(p: OwnProps) {
+  const {failed, id, isExploding, sent} = p
+
+  const [indicatorState, setIndicatorState] = React.useState<IndicatorState>(() => ({
+    encrypting: !sent && !failed && !shownEncryptingSet.has(id),
+    failed,
+    sent,
+    sentHidden: sent,
+  }))
+
+  let currentIndicatorState = indicatorState
+  if (indicatorState.failed !== failed || indicatorState.sent !== sent) {
+    const hasTerminalState = indicatorState.failed || indicatorState.sent || failed || sent
+    currentIndicatorState = {
+      encrypting: hasTerminalState ? false : indicatorState.encrypting,
+      failed,
+      sent,
+      sentHidden: sent ? (indicatorState.sent === sent ? indicatorState.sentHidden : false) : false,
+    }
+    setIndicatorState(currentIndicatorState)
+  }
+  const {encrypting, sentHidden} = currentIndicatorState
 
   React.useEffect(() => {
-    if (status === 'encrypting' && !timeoutRef.current) {
-      timeoutRef.current = setTimeout(() => {
-        setStatus('sending')
-        timeoutRef.current = undefined
-      }, 600)
+    if (!encrypting || failed || sent) {
+      return undefined
     }
-
-    if (status === 'encrypting') {
-      shownEncryptingSet.add(id)
-    }
-
+    shownEncryptingSet.add(id)
+    const timeoutID = setTimeout(() => {
+      setIndicatorState(state => ({...state, encrypting: false}))
+    }, 600)
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = undefined
-      }
+      clearTimeout(timeoutID)
     }
-  }, [status, id])
+  }, [encrypting, failed, id, sent])
 
   React.useEffect(() => {
-    if (failed) {
-      setStatus('error')
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = undefined
-      }
-    } else if (sent) {
-      setStatus('sent')
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-      timeoutRef.current = setTimeout(() => {
-        setVisible(false)
-        timeoutRef.current = undefined
-      }, 400)
-    } else {
-      setVisible(true)
-      setStatus('sending')
+    if (!sent || failed || sentHidden) {
+      return undefined
     }
-  }, [failed, sent])
+    const timeoutID = setTimeout(() => {
+      setIndicatorState(state => (state.sent ? {...state, sentHidden: true} : state))
+    }, 400)
+    return () => {
+      clearTimeout(timeoutID)
+    }
+  }, [failed, sent, sentHidden])
+
+  const visible = failed || !sent || !sentHidden
+  const status: AnimationStatus = failed ? 'error' : sent ? 'sent' : encrypting ? 'encrypting' : 'sending'
 
   const isDarkMode = useColorScheme() === 'dark'
 
@@ -137,17 +136,13 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
       style={styles.animationVisible}
     />
   ) : null
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      animationInvisible: Kb.Styles.platformStyles({
-        common: {height: 20, opacity: 0, width: 20},
-        isMobile: {backgroundColor: Kb.Styles.globalColors.white},
-      }),
       animationVisible: Kb.Styles.platformStyles({
-        common: {height: 20, opacity: 1, width: 20},
+        common: {...Kb.Styles.size(20), opacity: 1},
         isMobile: {
           backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 10,

@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -100,12 +101,7 @@ func selectionData(selection *goquery.Selection) string {
 }
 
 func stringsContains(xs []string, x string) bool {
-	for _, y := range xs {
-		if x == y {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(xs, x)
 }
 
 var hasalpha = regexp.MustCompile(`\D`)

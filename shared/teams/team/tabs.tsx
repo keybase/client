@@ -1,18 +1,14 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {isBigTeam} from '@/constants/chat/helpers'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import type {Tab as TabType} from '@/common-adapters/tabs'
+import {useLoadedTeam} from './use-loaded-team'
 
 type TeamTabsProps = {
   admin: boolean
-  error?: string
   isBig: boolean
-  loading: boolean
-  newRequests: number
-  numInvites: number
-  numRequests: number
   numSubteams: number
   resetUserCount: number
   selectedTab?: T.Teams.TabKey
@@ -44,21 +40,18 @@ const TeamTabs = (props: TeamTabsProps) => {
     />
   )
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box style={styles.container}>
-        {Kb.Styles.isMobile ? (
-          <Kb.ScrollView
-            horizontal={true}
-            contentContainerStyle={{minWidth: '100%'}}
-            alwaysBounceHorizontal={false}
-          >
-            {tabContent}
-          </Kb.ScrollView>
-        ) : (
-          tabContent
-        )}
-      </Kb.Box>
-      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container} testID={TestIDs.TEAMS_TABS}>
+      {isMobile ? (
+        <Kb.ScrollView
+          horizontal={true}
+          contentContainerStyle={{minWidth: '100%'}}
+          alwaysBounceHorizontal={false}
+        >
+          {tabContent}
+        </Kb.ScrollView>
+      ) : (
+        tabContent
+      )}
     </Kb.Box2>
   )
 }
@@ -71,18 +64,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   container: {backgroundColor: Kb.Styles.globalColors.white},
-  inlineProgressIndicator: {
-    height: 17,
-    position: 'absolute',
-    right: Kb.Styles.globalMargins.small,
-    top: Kb.Styles.globalMargins.small,
-    width: 17,
-  },
   tab: Kb.Styles.platformStyles({
     isElectron: {flexGrow: 1},
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-      paddingRight: Kb.Styles.globalMargins.tiny,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
     },
   }),
   tabContainer: {
@@ -100,48 +85,20 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => {
-      const teamMeta = Teams.getTeamMeta(s, teamID)
-      const resetUserCount = Teams.getTeamResetUsers(s, teamMeta.teamname).size
-      return {
-        error: s.errorInAddToTeam,
-        newTeamRequests: s.newTeamRequests,
-        resetUserCount,
-        teamDetails: s.teamDetails.get(teamID),
-        teamMeta,
-        yourOperations: Teams.getCanPerformByID(s, teamID),
-      }
-    })
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const resetUserCount = [...teamDetails.members.values()].filter(member => member.status === 'reset').length
+  const isBig = useInboxLayoutState(s => isBigTeam(s.layout, teamID))
+  return (
+    <TeamTabs
+      admin={yourOperations.manageMembers}
+      isBig={isBig}
+      numSubteams={teamDetails.subteams.size}
+      resetUserCount={resetUserCount}
+      selectedTab={selectedTab}
+      setSelectedTab={setSelectedTab}
+      showSubteams={yourOperations.manageSubteams}
+    />
   )
-  const {error, newTeamRequests, resetUserCount, teamDetails} = teamsState
-  const {teamMeta, yourOperations} = teamsState
-
-  const admin = yourOperations.manageMembers
-  const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
-  const loading = C.Waiting.useAnyWaiting([
-    C.waitingKeyTeamsTeam(teamID),
-    C.waitingKeyTeamsTeamTars(teamMeta.teamname),
-  ])
-  const numInvites = teamDetails?.invites.size ?? 0
-  const numRequests = teamDetails?.requests.size ?? 0
-  const numSubteams = teamDetails?.subteams.size ?? 0
-  const showSubteams = yourOperations.manageSubteams
-  const props = {
-    admin: admin,
-    error: error,
-    isBig: isBig,
-    loading: loading,
-    newRequests: newTeamRequests.get(ownProps.teamID)?.size ?? 0,
-    numInvites: numInvites,
-    numRequests: numRequests,
-    numSubteams: numSubteams,
-    resetUserCount: resetUserCount,
-    selectedTab: selectedTab,
-    setSelectedTab: setSelectedTab,
-    showSubteams: showSubteams,
-  }
-  return <TeamTabs {...props} />
 }
 
 export default Container

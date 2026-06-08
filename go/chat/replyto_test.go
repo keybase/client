@@ -81,7 +81,7 @@ func TestChatReplyToBasic(t *testing.T) {
 		mustEditMsg(ctx, t, ctc, users[0], conv, origID)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_EDIT)
 		consumeNewMsgLocal(t, listener0, chat1.MessageType_EDIT)
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			select {
 			case update := <-listener0.messagesUpdated:
 				require.Equal(t, 1, len(update.Updates))

@@ -1,0 +1,85 @@
+import * as React from 'react'
+import * as Kb from '@/common-adapters'
+import {openURL} from '@/util/misc'
+
+type Props = {
+  height: number
+  mapSrc: string
+  onLoad?: () => void
+  width: number
+}
+
+const LocationMap = (props: Props) => {
+  const {height, mapSrc, width} = props
+  const [mapLoaded, setMapLoaded] = React.useState(false)
+  const onLoad = () => {
+    setMapLoaded(true)
+    props.onLoad?.()
+  }
+
+  const inner = (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      gap="small"
+      justifyContent="center"
+      style={styles.container}
+    >
+      {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
+      {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
+      <Kb.Banner color="white" style={styles.banner}>
+        <Kb.BannerParagraph
+          bannerColor="white"
+          content={[
+            'Your location is protected. ',
+            {onClick: () => { void openURL('https://book.keybase.io/docs/chat/location') }, text: 'Learn more'},
+          ]}
+        />
+      </Kb.Banner>
+    </Kb.Box2>
+  )
+
+  if (!isMobile) {
+    return <Kb.Box2 direction="vertical" style={styles.outer}>{inner}</Kb.Box2>
+  }
+  return inner
+}
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderBottomWidth: 1,
+        borderColor: Kb.Styles.globalColors.black_10,
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+      container: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.globalStyles.fillAbsolute,
+        },
+        isElectron: {
+          alignItems: 'center',
+        },
+      }),
+      loading: {
+        bottom: '50%',
+        left: '50%',
+        ...Kb.Styles.marginH(-12),
+        ...Kb.Styles.marginV(-12),
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+        width: 24,
+      },
+      outer: {
+        height: 300,
+        width: 300,
+      },
+    }) as const
+)
+
+export default LocationMap

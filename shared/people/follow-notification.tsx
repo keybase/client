@@ -1,8 +1,9 @@
-import * as React from 'react'
 import PeopleItem from './item'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FollowButton} from '@/settings/contacts-joined'
+
+const horizontalScrollProps = isMobile ? ({alwaysBounceHorizontal: false, horizontal: true} as const) : {}
 
 const connectedUsernamesProps = {
   colorFollowing: true,
@@ -45,12 +46,12 @@ const FollowNotification = (props: Props) => {
   )
   const desc = newFollows[0]?.contactDescription ?? ''
 
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     onClickUser(username)
-  }, [username, onClickUser])
+  }
 
   return (
-    <Kb.ClickableBox onClick={type === 'follow' ? onClick : undefined}>
+    <Kb.ClickableBox onClick={type === 'follow' ? onClick : undefined} direction="vertical" fullWidth={true}>
       <PeopleItem
         badged={props.badged}
         buttons={
@@ -61,7 +62,7 @@ const FollowNotification = (props: Props) => {
               ]
             : undefined
         }
-        icon={<Kb.Avatar username={username} onClick={onClick} size={Kb.Styles.isMobile ? 48 : 32} />}
+        icon={<Kb.Avatar username={username} onClick={onClick} size={isMobile ? 48 : 32} />}
         iconContainerStyle={styles.iconContainer}
         when={props.notificationTime}
         contentStyle={styles.peopleItem}
@@ -79,7 +80,7 @@ const FollowNotification = (props: Props) => {
   )
 }
 
-const MultiFollowNotification = React.memo(function MultiFollowNotification(props: Props) {
+function MultiFollowNotification(props: Props) {
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
@@ -110,7 +111,7 @@ const MultiFollowNotification = React.memo(function MultiFollowNotification(prop
         </Kb.Text>
       )}
       <Kb.ScrollView
-        {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+        {...horizontalScrollProps}
         contentContainerStyle={styles.scrollViewContainer}
       >
         {usernames.map(username => (
@@ -121,7 +122,7 @@ const MultiFollowNotification = React.memo(function MultiFollowNotification(prop
       </Kb.ScrollView>
     </PeopleItem>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -141,11 +142,9 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
           paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
         isMobile: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           flexWrap: 'wrap',
           height: 32,
           overflow: 'hidden',

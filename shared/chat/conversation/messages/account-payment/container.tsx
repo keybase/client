@@ -1,8 +1,9 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationThreadSelector} from '../../thread-context'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -44,8 +45,10 @@ type OwnProps = {
   message: T.Chat.MessageSendPayment | T.Chat.MessageRequestPayment
 }
 
+type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
+
 const getRequestMessageInfo = (
-  accountsInfoMap: Chat.ConvoState['accountsInfoMap'],
+  accountsInfoMap: AccountsInfoMap,
   message: T.Chat.MessageRequestPayment
 ) => {
   const maybeRequestInfo = accountsInfoMap.get(message.id)
@@ -62,7 +65,7 @@ const getRequestMessageInfo = (
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = useCurrentUserState(s => s.username)
-  const accountsInfoMap = Chat.useChatContext(s => s.accountsInfoMap)
+  const accountsInfoMap = useConversationThreadSelector(s => s.accountsInfoMap)
 
   const stateProps = (() => {
     const youAreSender = ownProps.message.author === you
@@ -131,20 +134,20 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const balanceChangeBox = (
     <Kb.Box2
       direction="horizontal"
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
       style={styles.amountContainer}
-      gap={Kb.Styles.isMobile ? 'tiny' : 'small'}
+      gap={isMobile ? 'tiny' : 'small'}
     >
       {!!balanceChange && (
         <Kb.Text type="BodyExtrabold" selectable={true} style={{color: balanceChangeColor}}>
           {balanceChange}
         </Kb.Text>
       )}
-      {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+      {showCoinsIcon && <Kb.ImageIcon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
   )
   const contents = loading ? (
-    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
+    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} alignItems="center">
       <Kb.ProgressIndicator style={styles.progressIndicator} />
       <Kb.Text type="BodySmall">loading...</Kb.Text>
     </Kb.Box2>
@@ -153,13 +156,13 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
+        alignItems="center"
         style={Kb.Styles.collapseStyles([
-          styles.alignItemsCenter,
           styles.flexWrap,
           {marginBottom: Kb.Styles.globalMargins.xtiny},
         ])}
       >
-        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} alignItems="center">
           {!!icon && (
             <Kb.Icon
               type={icon}
@@ -205,10 +208,10 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           </Kb.Text>
         </Kb.Box2>
         {canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
-        {!Kb.Styles.isMobile && balanceChangeBox}
+        {!isMobile && balanceChangeBox}
       </Kb.Box2>
       <MarkdownMemo memo={memo} style={styles.memo} />
-      {Kb.Styles.isMobile && balanceChangeBox}
+      {isMobile && balanceChangeBox}
     </>
   )
   return (
@@ -221,7 +224,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {alignItems: 'center'},
       amountContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
@@ -229,11 +231,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {justifyContent: 'space-between'},
       }),
-      button: {
-        alignSelf: 'flex-start',
-        marginTop: Kb.Styles.globalMargins.xtiny,
-      },
-      buttonText: {color: Kb.Styles.globalColors.white},
       flexWrap: {flexWrap: 'wrap'},
       lineThrough: {textDecorationLine: 'line-through'},
       memo: Kb.Styles.platformStyles({
@@ -242,19 +239,14 @@ const styles = Kb.Styles.styleSheetCreate(
       progressIndicator: Kb.Styles.platformStyles({
         // Match height of a line of text
         isElectron: {
-          height: 17,
-          width: 17,
+          ...Kb.Styles.size(17),
         },
         isMobile: {
-          height: 22,
-          width: 22,
+          ...Kb.Styles.size(22),
         },
       }),
       purple: {color: Kb.Styles.globalColors.purpleDark},
       purpleOrWhite: {color: Kb.Styles.globalColors.purpleDarkOrWhite},
-      tooltipText: Kb.Styles.platformStyles({
-        isElectron: {wordBreak: 'normal'},
-      }),
     }) as const
 )
 

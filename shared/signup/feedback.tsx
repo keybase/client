@@ -4,16 +4,12 @@ import * as React from 'react'
 import FeedbackForm from '../settings/feedback/index'
 import {SignupScreen, errorBanner} from './common'
 import {useSendFeedback} from '../settings/feedback/shared'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const SignupFeedback = () => {
   const {error: sendError, sendFeedback: onSendFeedback} = useSendFeedback()
   const loggedOut = useConfigState(s => !s.loggedIn)
   const sending = C.Waiting.useAnyWaiting(C.waitingKeySettingsSendFeedback)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-  }
   const [feedbackSent, setFeedbackSent] = React.useState(false)
 
   return (
@@ -29,9 +25,8 @@ const SignupFeedback = () => {
         </>
       }
       title="Send feedback"
-      onBack={onBack}
-      showHeaderInfoicon={false}
-      showHeaderInfoiconRow={!loggedOut}
+      onBack={C.Router2.navigateUp}
+      showHeaderInfoIconRow={!loggedOut}
     >
       <FeedbackForm
         sendError=""

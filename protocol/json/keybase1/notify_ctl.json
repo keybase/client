@@ -146,6 +146,10 @@
         {
           "type": "boolean",
           "name": "chatarchive"
+        },
+        {
+          "type": "boolean",
+          "name": "devicehistory"
         }
       ]
     }

@@ -20,12 +20,12 @@ type KBFSErrorUnwrapper struct{}
 var _ rpc.ErrorUnwrapper = KBFSErrorUnwrapper{}
 
 // MakeArg implements rpc.ErrorUnwrapper.
-func (eu KBFSErrorUnwrapper) MakeArg() interface{} {
+func (eu KBFSErrorUnwrapper) MakeArg() any {
 	return &keybase1.Status{}
 }
 
 // UnwrapError implements rpc.ErrorUnwrapper.
-func (eu KBFSErrorUnwrapper) UnwrapError(arg interface{}) (appError error,
+func (eu KBFSErrorUnwrapper) UnwrapError(arg any) (appError error,
 	dispatchError error,
 ) {
 	s, ok := arg.(*keybase1.Status)

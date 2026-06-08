@@ -1,6 +1,9 @@
 import Foundation
-import Keybasego
 import UserNotifications
+import Keybasego
+import os
+
+private let log = Logger(subsystem: "com.keybase.app", category: "push")
 
 class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
   func localNotification(
@@ -19,28 +22,27 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
       identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
     UNUserNotificationCenter.current().add(request) { error in
       if let error = error {
-        NSLog("local notification failed: %@", error.localizedDescription)
+        log.error("local notification failed: \(error.localizedDescription, privacy: .public)")
       }
     }
   }
 
   func display(_ n: KeybaseChatNotification?) {
-    guard let notification = n, let message = notification.message else { return }
+    guard let notification = n else { return }
+    guard let message = notification.message else { return }
 
     let ident = "\(notification.convID):\(message.id_)"
     let msg: String
     if notification.isPlaintext && !message.plaintext.isEmpty {
       let username = message.from?.keybaseUsername ?? ""
       let convName = notification.conversationName
-      msg =
-        (username == convName || convName.isEmpty)
+      msg = (username == convName || convName.isEmpty)
         ? "\(username): \(message.plaintext)"
         : "\(username) (\(convName)): \(message.plaintext)"
     } else {
       msg = message.serverMessage
     }
     let title = notification.title
-    NSLog("PushNotifier display: title=%@", title)
 
     let soundName: String? = notification.soundName.isEmpty ? nil : notification.soundName
     let uid: String? = notification.uid.isEmpty ? nil : notification.uid

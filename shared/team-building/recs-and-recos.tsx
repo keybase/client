@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import type * as T from '@/constants/types'
 import AlphabetIndex from './alphabet-index'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
@@ -7,23 +8,36 @@ import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
 
 type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection> | null>
+type TeamSoFar = ReadonlyArray<{userId: string}>
+
+type TeamAlphabetIndexProps = {
+  recommendations?: Array<Types.SearchRecSection>
+  teamSoFar: TeamSoFar
+  sectionListRef: RefType
+}
+
+type RecsAndRecosProps = {
+  highlightedIndex: number
+  recommendations?: Array<Types.SearchRecSection>
+  namespace: T.TB.AllowedNamespace
+  selectedService: T.TB.ServiceIdWithContact
+  onAdd: (userId: string) => void
+  onRemove: (userId: string) => void
+  teamSoFar: TeamSoFar
+  recommendedHideYourself: boolean
+}
 
 export const numSectionLabel = '0-9'
 
 const SearchHintText = () => (
   <Kb.Box2 direction="vertical" style={styles.searchHint}>
-    <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+    <Kb.Text type="BodySmall" center={true}>
       Search anyone on Keybase by typing a username or a full name.
     </Kb.Text>
   </Kb.Box2>
 )
 
-const TeamAlphabetIndex = (
-  props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & {
-    sectionListRef: RefType
-  }
-) => {
-  const {recommendations, teamSoFar, sectionListRef} = props
+const TeamAlphabetIndex = ({recommendations, teamSoFar, sectionListRef}: TeamAlphabetIndexProps) => {
   let showNumSection = false
   let labels: Array<string> = []
   if (recommendations && recommendations.length > 0) {
@@ -31,7 +45,7 @@ const TeamAlphabetIndex = (
     labels = recommendations.filter(r => r.shortcut && r.label !== numSectionLabel).map(r => r.label)
   }
 
-  const _onScrollToSection = (label: string) => {
+  const onScrollToSection = (label: string) => {
     if (sectionListRef.current) {
       const sectionIndex =
         (recommendations &&
@@ -39,7 +53,7 @@ const TeamAlphabetIndex = (
             ? recommendations.length - 1
             : recommendations.findIndex(section => section.label === label))) ||
         -1
-      if (sectionIndex >= 0 && Kb.Styles.isMobile) {
+      if (sectionIndex >= 0 && isMobile) {
         sectionListRef.current.scrollToLocation({
           animated: false,
           itemIndex: 0,
@@ -53,19 +67,17 @@ const TeamAlphabetIndex = (
     return null
   }
   return (
-    <>
-      <AlphabetIndex
-        labels={labels}
-        showNumSection={showNumSection}
-        onScroll={_onScrollToSection}
-        style={styles.alphabetIndex}
-        measureKey={!!teamSoFar.length}
-      />
-    </>
+    <AlphabetIndex
+      labels={labels}
+      showNumSection={showNumSection}
+      onScroll={onScrollToSection}
+      style={styles.alphabetIndex}
+      measureKey={!!teamSoFar.length}
+    />
   )
 }
 
-const _listIndexToSectionAndLocalIndex = (
+const listIndexToSectionAndLocalIndex = (
   highlightedIndex?: number,
   sections?: Types.SearchRecSection[]
 ): {index: number; section: Types.SearchRecSection} | undefined => {
@@ -81,40 +93,27 @@ const _listIndexToSectionAndLocalIndex = (
   }
   return
 }
-export const RecsAndRecos = (
-  props: Pick<
-    Types.Props,
-    | 'highlightedIndex'
-    | 'recommendations'
-    | 'namespace'
-    | 'selectedService'
-    | 'onAdd'
-    | 'onRemove'
-    | 'teamSoFar'
-  > & {recommendedHideYourself: boolean}
-) => {
+export const RecsAndRecos = (props: RecsAndRecosProps) => {
   const {highlightedIndex, recommendations, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
   const sectionListRef = React.useRef<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
-  const highlightDetails = React.useMemo(
-    () => _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations),
-    [highlightedIndex, recommendations]
-  )
+  const highlightDetails = listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
 
   React.useEffect(() => {
-    highlightedIndex >= 0 &&
+    if (highlightedIndex >= 0) {
       sectionListRef.current?.scrollToLocation({
         itemIndex: highlightedIndex,
         sectionIndex: 0,
         viewPosition: 0,
       })
+    }
   }, [highlightedIndex])
 
   return (
     <Kb.BoxGrow>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.listContainer}>
         <Kb.SectionList
           ref={sectionListRef}
           contentContainerStyle={{minHeight: '133%'}}
@@ -142,7 +141,7 @@ export const RecsAndRecos = (
                 isYou={result.isYou}
                 followingState={result.followingState}
                 highlight={
-                  !Kb.Styles.isMobile &&
+                  !isMobile &&
                   !!highlightDetails &&
                   highlightDetails.section === section &&
                   highlightDetails.index === index
@@ -154,12 +153,12 @@ export const RecsAndRecos = (
             )
           }
           renderSectionHeader={({section: {label}}) =>
-            label && (!Kb.Styles.isMobile || label !== 'Recommendations') ? (
+            label && (!isMobile || label !== 'Recommendations') ? (
               <Kb.SectionDivider label={label} />
             ) : null
           }
         />
-        {Kb.Styles.isMobile && (
+        {isMobile && (
           <TeamAlphabetIndex
             recommendations={recommendations}
             sectionListRef={sectionListRef}
@@ -181,17 +180,11 @@ const styles = Kb.Styles.styleSheetCreate(
         top: Kb.Styles.globalMargins.large,
       },
       listContainer: Kb.Styles.platformStyles({
-        common: {position: 'relative'},
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
           flexGrow: 1,
-          width: '100%',
         },
       }),
-      searchHint: {
-        paddingLeft: Kb.Styles.globalMargins.xlarge,
-        paddingRight: Kb.Styles.globalMargins.xlarge,
-        paddingTop: Kb.Styles.globalMargins.xlarge,
-      },
+      searchHint: Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.xlarge, 0),
     }) as const
 )

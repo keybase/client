@@ -1,0 +1,4 @@
+@namespace("keybase.1")
+protocol NotifyDeviceHistory {
+  void deviceHistoryChanged() oneway;
+}

@@ -16,10 +16,10 @@ import (
 
 // Log is the logging interface for the command package
 type Log interface {
-	Debugf(s string, args ...interface{})
-	Infof(s string, args ...interface{})
-	Warningf(s string, args ...interface{})
-	Errorf(s string, args ...interface{})
+	Debugf(s string, args ...any)
+	Infof(s string, args ...any)
+	Warningf(s string, args ...any)
+	Errorf(s string, args ...any)
 }
 
 // Program is a program at path with arguments
@@ -117,10 +117,7 @@ func execWithFunc(name string, args []string, env []string, execCmd execCmd, tim
 
 	// Signal the process to terminate gracefully
 	// Wait a second or timeout for termination, whichever less
-	termWait := time.Second
-	if timeout < termWait {
-		termWait = timeout
-	}
+	termWait := min(timeout, time.Second)
 	log.Warningf("Command timed out, terminating (will wait %s before killing)", termWait)
 	err = cmd.Process.Signal(syscall.SIGTERM)
 	if err != nil {
@@ -142,7 +139,7 @@ func execWithFunc(name string, args []string, env []string, execCmd execCmd, tim
 }
 
 // ExecForJSON runs a command (with timeout) expecting JSON output with obj interface
-func ExecForJSON(command string, args []string, obj interface{}, timeout time.Duration, log Log) error {
+func ExecForJSON(command string, args []string, obj any, timeout time.Duration, log Log) error {
 	result, err := execWithFunc(command, args, nil, exec.Command, timeout, log)
 	if err != nil {
 		return err

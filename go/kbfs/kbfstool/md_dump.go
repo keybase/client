@@ -93,10 +93,7 @@ func mdDumpInput(ctx context.Context, config libkbfs.Config,
 
 	if start <= stop {
 		for chunkStart := start; chunkStart <= stop; chunkStart += maxChunkSize {
-			chunkStop := chunkStart + maxChunkSize - 1
-			if chunkStop > stop {
-				chunkStop = stop
-			}
+			chunkStop := min(chunkStart+maxChunkSize-1, stop)
 			err = mdDumpChunk(ctx, config, replacements, tlfStr, branchStr, tlfID, branchID, chunkStart, chunkStop)
 			if err != nil {
 				return err
@@ -104,10 +101,7 @@ func mdDumpInput(ctx context.Context, config libkbfs.Config,
 		}
 	} else {
 		for chunkStart := start; chunkStart >= stop; chunkStart -= maxChunkSize {
-			chunkStop := chunkStart - maxChunkSize + 1
-			if chunkStop < stop {
-				chunkStop = stop
-			}
+			chunkStop := max(chunkStart-maxChunkSize+1, stop)
 
 			err = mdDumpChunk(ctx, config, replacements, tlfStr, branchStr, tlfID, branchID, chunkStart, chunkStop)
 			if err != nil {

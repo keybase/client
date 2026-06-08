@@ -58,14 +58,14 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	t.Logf("basic")
 	conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, users[1])
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		layout = recvLayout()
 		require.Equal(t, 1, len(layout.SmallTeams))
 		require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
 	}
 	conv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, users[2])
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		layout = recvLayout()
 		require.Equal(t, 2, len(layout.SmallTeams))
 		require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
@@ -130,7 +130,7 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		})
 	require.NoError(t, err)
 	// get two here
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		layout = recvLayout()
 		require.Equal(t, 1, len(layout.SmallTeams))
 		require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
@@ -226,7 +226,7 @@ func TestUIInboxLoaderReselect(t *testing.T) {
 	var layout chat1.UIInboxLayout
 	conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM, users[1])
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		layout = recvLayout()
 		require.Equal(t, 1, len(layout.SmallTeams))
 		require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)

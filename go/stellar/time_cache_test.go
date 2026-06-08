@@ -20,10 +20,10 @@ func TestTimeCache(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, 1, a)
 
-	fill2 := func() (interface{}, error) {
+	fill2 := func() (any, error) {
 		return 2, nil
 	}
-	fillErr := func() (interface{}, error) {
+	fillErr := func() (any, error) {
 		return 3, fmt.Errorf("eek")
 	}
 	err := c.GetWithFill(tc.MetaContext(), "l", &a, fill2)

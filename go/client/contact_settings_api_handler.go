@@ -143,7 +143,7 @@ func (t *contactSettingsAPIHandler) set(ctx context.Context, c Call, w io.Writer
 	return t.get(ctx, c, w)
 }
 
-func (t *contactSettingsAPIHandler) encodeResult(call Call, result interface{}, w io.Writer) error {
+func (t *contactSettingsAPIHandler) encodeResult(call Call, result any, w io.Writer) error {
 	return encodeResult(call, result, w, t.indent)
 }
 

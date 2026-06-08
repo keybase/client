@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -154,8 +155,6 @@ func (refs blockRefMap) deepCopy() blockRefMap {
 		return nil
 	}
 	refsCopy := make(blockRefMap)
-	for k, v := range refs {
-		refsCopy[k] = v
-	}
+	maps.Copy(refsCopy, refs)
 	return refsCopy
 }

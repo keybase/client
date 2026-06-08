@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   feedback?: string
@@ -45,18 +46,6 @@ const Feedback = (props: Props) => {
     lastSendErrorRef.current = sendError
   }, [sending, sendError, onFeedbackDone, feedback, showInternalSuccessBanner])
 
-  const _onChangeFeedback = (feedback: string) => {
-    setFeedback(feedback)
-  }
-
-  const _onChangeSendLogs = (sendLogs: boolean) => {
-    setSendLogs(sendLogs)
-  }
-
-  const _onChangeEmail = (email: string) => {
-    setEmail(email)
-  }
-
   const _sendMaxBytes = () => clickCount >= clickThreshold
 
   const _onSendFeedback = () => {
@@ -67,52 +56,48 @@ const Feedback = (props: Props) => {
   }
 
   return (
-    <Kb.ScrollView alwaysBounceVertical={false}>
+    <Kb.ScrollView alwaysBounceVertical={false} testID={TestIDs.SETTINGS_FEEDBACK}>
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
         {showSuccessBanner && (
           <Kb.Banner color="green">
             <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
           </Kb.Banner>
         )}
-        <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.NewInput
-              autoCapitalize="sentences"
-              autoCorrect={true}
-              autoFocus={true}
-              containerStyle={styles.input}
-              multiline={true}
-              onChangeText={_onChangeFeedback}
-              placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
-              resize={true}
-              rowsMin={4}
-              rowsMax={Kb.Styles.isMobile ? 4 : 10}
-              value={feedback}
-            />
-          </Kb.Box2>
+        <Kb.Box2 direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
+          <Kb.Input3
+            autoCapitalize="sentences"
+            autoCorrect={true}
+            autoFocus={true}
+            containerStyle={styles.input}
+            inputStyle={styles.inputResize}
+            multiline={true}
+            onChangeText={setFeedback}
+            placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
+            rowsMin={4}
+            rowsMax={isMobile ? 4 : 10}
+            value={feedback}
+          />
           {_sendMaxBytes() && (
             <Kb.Banner color="green">
               <Kb.BannerParagraph bannerColor="green" content="next send will include full logs" />
             </Kb.Banner>
           )}
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.ClickableBox onClick={_onLabelClick} style={styles.includeLogs}>
+            <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>
               <Kb.Checkbox
                 label="Include your logs"
                 labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
                 checked={sendLogs}
-                onCheck={_onChangeSendLogs}
+                onCheck={setSendLogs}
               />
             </Kb.ClickableBox>
           </Kb.Box2>
           {props.loggedOut && (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.NewInput
-                containerStyle={styles.input}
-                placeholder="Your email address"
-                onChangeText={_onChangeEmail}
-              />
-            </Kb.Box2>
+            <Kb.Input3
+              containerStyle={styles.input}
+              placeholder="Your email address"
+              onChangeText={setEmail}
+            />
           )}
           <Kb.Box2 alignSelf={props.loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
             <Kb.ButtonBar>
@@ -143,20 +128,12 @@ export default Feedback
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Kb.Styles.platformStyles({
-        common: {flex: 1},
-      }),
-      includeLogs: {
-        ...Kb.Styles.globalStyles.fullWidth,
-      },
       input: Kb.Styles.platformStyles({
         isElectron: {padding: Kb.Styles.globalMargins.tiny},
         isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},
       }),
+      inputResize: Kb.Styles.platformStyles({isElectron: {resize: 'vertical'}}),
       mainBox: Kb.Styles.platformStyles({
-        common: {
-          padding: Kb.Styles.globalMargins.small,
-        },
         isElectron: {
           maxWidth: 550,
           width: '100%',
@@ -166,7 +143,5 @@ const styles = Kb.Styles.styleSheetCreate(
           width: Kb.Styles.globalStyles.largeWidthPercent,
         },
       }),
-      outerStyle: {backgroundColor: Kb.Styles.globalColors.white},
-      smallLabel: {color: Kb.Styles.globalColors.black},
     }) as const
 )

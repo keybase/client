@@ -95,7 +95,7 @@ func (d *smuDeviceWrapper) KID() keybase1.KID {
 }
 
 func (d *smuDeviceWrapper) startService(numClones int) {
-	for i := 0; i < numClones; i++ {
+	for range numClones {
 		d.clones = append(d.clones, cloneContext(d.tctx))
 	}
 	d.stopCh = make(chan error)
@@ -125,8 +125,8 @@ func (t smuTerminalUI) Output(string) error                                     
 func (t smuTerminalUI) OutputDesc(libkb.OutputDescriptor, string) error               { return nil }
 func (t smuTerminalUI) OutputWriter() io.Writer                                       { return nil }
 func (t smuTerminalUI) UnescapedOutputWriter() io.Writer                              { return nil }
-func (t smuTerminalUI) Printf(fmt string, args ...interface{}) (int, error)           { return 0, nil }
-func (t smuTerminalUI) PrintfUnescaped(fmt string, args ...interface{}) (int, error)  { return 0, nil }
+func (t smuTerminalUI) Printf(fmt string, args ...any) (int, error)                   { return 0, nil }
+func (t smuTerminalUI) PrintfUnescaped(fmt string, args ...any) (int, error)          { return 0, nil }
 func (t smuTerminalUI) Prompt(libkb.PromptDescriptor, string) (string, error)         { return "", nil }
 func (t smuTerminalUI) PromptForConfirmation(prompt string) error                     { return nil }
 func (t smuTerminalUI) PromptPassword(libkb.PromptDescriptor, string) (string, error) { return "", nil }
@@ -408,7 +408,7 @@ func (u *smuUser) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
 	u.ctx.t.Logf("waiting for newly added to team %s", teamID)
 
 	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		select {
 		case tid := <-u.notifications.newlyAddedToTeam:
 			u.ctx.t.Logf("team newly added notification received: %v", tid)
@@ -427,7 +427,7 @@ func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
 	u.ctx.t.Logf("waiting for team abandoned %s", teamID)
 
 	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		select {
 		case abandonID := <-u.notifications.abandonCh:
 			u.ctx.t.Logf("team abandon notification received: %v", abandonID)
@@ -481,7 +481,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, keyGen keybase1.PerTeamK
 }
 
 func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		details, err := teams.Load(context.TODO(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
 			Name:        team.name,
 			ForceRepoll: true,

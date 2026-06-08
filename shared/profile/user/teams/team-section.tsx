@@ -1,0 +1,43 @@
+import * as Kb from '@/common-adapters'
+import type * as React from 'react'
+
+const maxVisibleRows = 3
+const teamRowHeight = 40
+
+type Props = {
+  children: React.ReactNode
+  right?: React.ReactNode
+  title: string
+}
+
+const TeamSection = ({children, right, title}: Props) => (
+  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} flex={1} alignItems="flex-start" style={styles.container}>
+    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+      <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
+      {right}
+    </Kb.Box2>
+    <Kb.ScrollView style={styles.scroll}>
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+        {children}
+      </Kb.Box2>
+    </Kb.ScrollView>
+  </Kb.Box2>
+)
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
+    common: {
+      minWidth: 0,
+      paddingBottom: Kb.Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+    },
+  }),
+  scroll: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.globalStyles.fullWidth,
+      maxHeight: maxVisibleRows * teamRowHeight,
+    },
+  }),
+}))
+
+export default TeamSection

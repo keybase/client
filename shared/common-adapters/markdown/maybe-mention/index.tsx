@@ -1,9 +1,11 @@
-import * as Chat from '@/constants/chat2'
+import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
-import Mention from '../../mention-container'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
+import Mention from '../../mention'
 import TeamMention from './team'
 import UnknownMention from './unknown'
+import {useMaybeMentionInfo} from './context'
 
 const Kb = {Mention, Text}
 
@@ -40,7 +42,7 @@ const MaybeMention = (props: Props) => {
         />
       )
     case T.RPCChat.UIMaybeMentionStatus.user:
-      return <Kb.Mention username={props.name} />
+      return <Kb.Mention allowFontScaling={props.allowFontScaling} username={props.name} />
     case T.RPCChat.UIMaybeMentionStatus.team:
       return (
         <TeamMention
@@ -48,6 +50,7 @@ const MaybeMention = (props: Props) => {
           style={props.style}
           name={props.name}
           channel={props.channel}
+          mentionInfo={props.info.team}
         />
       )
   }
@@ -60,22 +63,13 @@ type OwnProps = {
   style?: StylesTextCrossPlatform
 }
 
-const Container = (ownProps: OwnProps) => {
+const MaybeMentionContainer = (ownProps: OwnProps) => {
   const {name, channel} = ownProps
-  const info = Chat.useChatState(s => s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel)))
-  const resolveMaybeMention = Chat.useChatContext(s => s.dispatch.resolveMaybeMention)
+  const info = useMaybeMentionInfo(name, channel)
   const onResolve = () => {
-    resolveMaybeMention(channel, name)
+    ignorePromise(T.RPCChat.localResolveMaybeMentionRpcPromise({mention: {channel, name}}))
   }
-  const props = {
-    allowFontScaling: ownProps.allowFontScaling,
-    channel: ownProps.channel,
-    info,
-    name: ownProps.name,
-    onResolve,
-    style: ownProps.style,
-  }
-  return <MaybeMention {...props} />
+  return <MaybeMention {...ownProps} info={info} onResolve={onResolve} />
 }
 
-export default Container
+export default MaybeMentionContainer

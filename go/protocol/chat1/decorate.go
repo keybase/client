@@ -18,7 +18,7 @@ func (o DecorationPayment) DeepCopy() DecorationPayment {
 	}
 }
 
-type DecorateInterface interface{}
+type DecorateInterface any
 
 func DecorateProtocol(i DecorateInterface) rpc.Protocol {
 	return rpc.Protocol{

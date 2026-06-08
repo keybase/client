@@ -570,7 +570,7 @@ func (o GameMessageV1) DeepCopy() GameMessageV1 {
 	}
 }
 
-type FlipInterface interface{}
+type FlipInterface any
 
 func FlipProtocol(i FlipInterface) rpc.Protocol {
 	return rpc.Protocol{

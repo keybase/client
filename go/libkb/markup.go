@@ -26,7 +26,7 @@ func NewMarkup(s string) *Markup {
 	return &Markup{markupFrame(s)}
 }
 
-func FmtMarkup(f string, args ...interface{}) *Markup {
+func FmtMarkup(f string, args ...any) *Markup {
 	return &Markup{data: markupFrame(fmt.Sprintf(f, args...))}
 }
 

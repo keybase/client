@@ -98,7 +98,7 @@ func GetPaperKeyForCryptoPassphrase(m MetaContext, ui SecretUI, reason string, d
 func GetNewKeybasePassphrase(mctx MetaContext, ui SecretUI, arg keybase1.GUIEntryArg, confirm string) (keybase1.GetPassphraseRes, error) {
 	initialPrompt := arg.Prompt
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		res, err := GetPassphraseUntilCheckWithChecker(mctx, arg,
 			newUIPrompter(ui), &CheckPassphraseNew)
 		if err != nil {
@@ -153,7 +153,7 @@ func GetPassphraseUntilCheckWithChecker(m MetaContext, arg keybase1.GUIEntryArg,
 }
 
 func GetPassphraseUntilCheck(m MetaContext, arg keybase1.GUIEntryArg, prompter PassphrasePrompter, checker PassphraseChecker) (keybase1.GetPassphraseRes, error) {
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		res, err := prompter.Prompt(arg)
 		if err != nil {
 			return keybase1.GetPassphraseRes{}, err

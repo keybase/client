@@ -2,28 +2,54 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '@/util/string'
-import {BottomLine} from './inbox/row/small-team/bottom-line'
+import {BottomLine} from './inbox/row/small-team'
+import {useInboxRowBig} from '@/stores/inbox-rows'
 import type * as T from '@/constants/types'
-import {SnippetContext} from './inbox/row/small-team/contexts'
 
-type Props = {
+type OwnProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   isSelected: boolean
-  numSearchHits?: number
   maxSearchHits?: number
-  teamname: string
-  channelname: string
+  name: string
+  numSearchHits?: number
   onSelectConversation: () => void
-  showBadge: boolean
-  showBold: boolean
-  snippet?: string
-  snippetDecoration: T.RPCChat.SnippetDecoration
 }
 
-const SelectableBigTeamChannel = (props: Props) => {
+const SelectableBigTeamChannel = (ownProps: OwnProps) => {
+  const {conversationIDKey, isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
+  const row = useInboxRowBig(conversationIDKey)
+  const showBadge = row.hasBadge
+  let teamname = row.teamname
+  let channelname = row.channelname
+  if (!teamname) {
+    const parts = name.split('#')
+    if (parts.length >= 2) {
+      teamname = parts[0]!
+      channelname = parts[1]!
+    }
+  }
+  const showBold = row.hasUnread && !isSelected
+  const snippet = row.snippet
+  const snippetDecoration = row.snippetDecoration
+
+  const props = {
+    channelname,
+    conversationIDKey,
+    isSelected,
+    maxSearchHits,
+    numSearchHits,
+    onSelectConversation,
+    showBadge,
+    showBold,
+    snippet,
+    snippetDecoration,
+    teamname,
+  }
+
   const [isHovered, setIsHovered] = React.useState(false)
 
-  const _onMouseLeave = React.useCallback(() => setIsHovered(false), [])
-  const _onMouseOver = React.useCallback(() => setIsHovered(true), [])
+  const _onMouseLeave = () => setIsHovered(false)
+  const _onMouseOver = () => setIsHovered(true)
   const _getSearchHits = () => {
     if (!props.numSearchHits) {
       return ''
@@ -38,7 +64,7 @@ const SelectableBigTeamChannel = (props: Props) => {
   const rowLoadedContent = (
     <>
       <TeamAvatar teamname={props.teamname} isMuted={false} isSelected={false} isHovered={isHovered} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.textContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Text
             type="BodySemibold"
@@ -47,7 +73,7 @@ const SelectableBigTeamChannel = (props: Props) => {
               {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
             ])}
             title={props.teamname}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            lineClamp={isMobile ? 1 : undefined}
             ellipsizeMode="tail"
           >
             {props.teamname}
@@ -60,7 +86,7 @@ const SelectableBigTeamChannel = (props: Props) => {
               {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
             ])}
             title={`#${props.channelname}`}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            lineClamp={isMobile ? 1 : undefined}
             ellipsizeMode="tail"
           >
             &nbsp;#
@@ -68,9 +94,13 @@ const SelectableBigTeamChannel = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         {!props.numSearchHits && (
-          <SnippetContext.Provider value={props.snippet ?? ''}>
-            <BottomLine isSelected={props.isSelected} allowBold={false} />
-          </SnippetContext.Provider>
+          <BottomLine
+            conversationIDKey={props.conversationIDKey}
+            snippet={props.snippet}
+            snippetDecoration={props.snippetDecoration}
+            isSelected={props.isSelected}
+            allowBold={false}
+          />
         )}
         {!!props.numSearchHits && (
           <Kb.Text
@@ -85,28 +115,27 @@ const SelectableBigTeamChannel = (props: Props) => {
     </>
   )
   return (
-    <Kb.ClickableBox onClick={props.onSelectConversation}>
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        centerChildren={true}
-        className="hover_background_color_blueGreyDark"
-        style={Kb.Styles.collapseStyles([
-          styles.filteredRow,
-          {
-            backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
-          },
-        ])}
-        onMouseLeave={_onMouseLeave}
-        onMouseOver={_onMouseOver}
-      >
-        {props.teamname ? rowLoadedContent : <Kb.ProgressIndicator type="Small" />}
-      </Kb.Box2>
+    <Kb.ClickableBox
+      direction="horizontal"
+      fullWidth={true}
+      centerChildren={true}
+      className="hover_background_color_blueGreyDark"
+      onClick={props.onSelectConversation}
+      style={Kb.Styles.collapseStyles([
+        styles.filteredRow,
+        {
+          backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+        },
+      ])}
+      onMouseLeave={_onMouseLeave}
+      onMouseOver={_onMouseOver}
+    >
+      {props.teamname ? rowLoadedContent : <Kb.ProgressIndicator type="Small" />}
     </Kb.ClickableBox>
   )
 }
 
-const rowHeight = Kb.Styles.isMobile ? 64 : 56
+const rowHeight = isMobile ? 64 : 56
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -125,9 +154,7 @@ const styles = Kb.Styles.styleSheetCreate(
           maxWidth: '70%',
         },
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       filteredRow: Kb.Styles.platformStyles({
@@ -135,12 +162,10 @@ const styles = Kb.Styles.styleSheetCreate(
           height: rowHeight,
         },
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       selectedText: {
@@ -152,14 +177,11 @@ const styles = Kb.Styles.styleSheetCreate(
           flexShrink: 1,
         },
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       textContainer: {
         flexShrink: 1,
-        overflow: 'hidden',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const

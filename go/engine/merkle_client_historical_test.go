@@ -25,7 +25,7 @@ func TestMerkleClientHistorical(t *testing.T) {
 	require.NotNil(t, root)
 
 	var sigVersion libkb.SigVersion
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		// Cover both v1 and v2 case
 		if i%2 == 0 {
 			sigVersion = libkb.KeybaseSignatureV2
@@ -57,7 +57,7 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "merk")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUserPaper(tc, "merk")
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		v := libkb.KeybaseSignatureV2
 		trackAlice(tc, fu, v)
 		untrackAlice(tc, fu, v)
@@ -77,7 +77,7 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	require.NoError(t, err, "revoke worked")
 	assertNumDevicesAndKeys(tc, fu, 1, 2)
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		v := libkb.KeybaseSignatureV2
 		trackAlice(tc, fu, v)
 		untrackAlice(tc, fu, v)

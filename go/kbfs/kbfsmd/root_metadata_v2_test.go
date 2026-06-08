@@ -7,6 +7,7 @@ package kbfsmd
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sort"
 	"testing"
 
@@ -189,7 +190,7 @@ func TestWriterMetadataV2EncodedFields(t *testing.T) {
 	buf, err := c.Encode(wm)
 	require.NoError(t, err)
 
-	var m map[string]interface{}
+	var m map[string]any
 	err = c.Decode(buf, &m)
 	require.NoError(t, err)
 
@@ -841,9 +842,7 @@ func unionPublicKeyUsers(
 	pubKeys1, pubKeys2 UserDevicePublicKeys,
 ) UserDevicePublicKeys {
 	pubKeys := make(UserDevicePublicKeys)
-	for uid, keys := range pubKeys1 {
-		pubKeys[uid] = keys
-	}
+	maps.Copy(pubKeys, pubKeys1)
 	for uid, keys := range pubKeys2 {
 		if pubKeys[uid] != nil {
 			panic(fmt.Sprintf("uid=%s exists in both", uid))

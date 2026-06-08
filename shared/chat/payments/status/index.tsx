@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import * as Chat from '@/constants/chat2'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
@@ -9,7 +8,11 @@ import type * as T from '@/constants/types'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type * as WalletTypes from '@/constants/types/wallets'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
-import {useCurrentUserState} from '@/constants/current-user'
+import {
+  useConversationThreadMessage,
+  useConversationThreadSelector,
+} from '@/chat/conversation/thread-context'
+import {useCurrentUserState} from '@/stores/current-user'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 const Kb = {
@@ -63,12 +66,12 @@ const statusColor = (s: Status) => {
 const PaymentStatus = (props: Props) => {
   const statusRef = React.useRef<MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
-  const _showPopup = () => {
+  const showPopupIfAllowed = () => {
     if (props.allowPopup) {
       setShowPopup(true)
     }
   }
-  const _hidePopup = () => {
+  const hidePopup = () => {
     setShowPopup(false)
   }
   const text = (
@@ -76,17 +79,11 @@ const PaymentStatus = (props: Props) => {
       textRef={statusRef}
       type="BodyExtrabold"
       allowFontScaling={!!props.allowFontScaling}
-      onClick={_showPopup}
+      onClick={showPopupIfAllowed}
     >
       {' '}
       <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
-        {props.text}{' '}
-        <Kb.Icon
-          type={getIcon(props.status)}
-          fontSize={12}
-          boxStyle={styles.iconBoxStyle}
-          color={statusColor(props.status)}
-        />
+        {props.text} <Kb.Icon type={getIcon(props.status)} fontSize={12} color={statusColor(props.status)} />
       </Kb.Text>{' '}
     </Kb.Text>
   )
@@ -94,11 +91,11 @@ const PaymentStatus = (props: Props) => {
     <PaymentStatusError
       attachTo={statusRef}
       error={props.errorDetail || ''}
-      onHidden={_hidePopup}
+      onHidden={hidePopup}
       visible={showPopup}
     />
   ) : null
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <>
       {text}
       {popups}
@@ -107,8 +104,8 @@ const PaymentStatus = (props: Props) => {
     <Kb.Box2
       style={styles.container}
       direction="horizontal"
-      onMouseOver={_showPopup}
-      onMouseLeave={_hidePopup}
+      onMouseOver={showPopupIfAllowed}
+      onMouseLeave={hidePopup}
     >
       {text}
       {popups}
@@ -123,15 +120,13 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.purpleDarkOrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       completed: {
         backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.purpleDarkOrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -142,20 +137,13 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.red_10OrRed,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.redDarkOrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
-      iconBoxStyle: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline',
-        },
-      }),
       pending: {
         backgroundColor: Kb.Styles.globalColors.greyLight,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
         color: Kb.Styles.globalColors.black_50OrWhite,
-        paddingLeft: Kb.Styles.globalMargins.xtiny,
-        paddingRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
     }) as const
 )
@@ -185,15 +173,16 @@ const reduceStatus = (status: string): Status => {
   }
 }
 
-const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
+function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
-  const paymentInfo = Chat.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
+  const paymentInfo = useConversationThreadSelector(s =>
+    paymentID ? s.paymentStatusMap.get(paymentID) : undefined
+  )
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
   const you = useCurrentUserState(s => s.username)
-  // TODO remove
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const message = useConversationThreadMessage(ordinal)
   const author = message?.author
   const allowPopup =
     status === 'completed' || status === 'pending' || status === 'claimable' || author === you
@@ -210,6 +199,6 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
     text,
   }
   return <PaymentStatus {...props} />
-})
+}
 
 export default PaymentStatusContainer

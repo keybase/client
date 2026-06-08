@@ -5,6 +5,7 @@ package contacts
 
 import (
 	"errors"
+	"maps"
 	"strings"
 
 	"github.com/keybase/client/go/externals"
@@ -84,9 +85,7 @@ func fillResolvedUserInfo(mctx libkb.MetaContext, provider ContactsProvider, uid
 			}
 			if smap, found := serviceMaps[v.Uid]; found && len(smap) > 0 {
 				v.ServiceMap = make(map[string]string, len(smap))
-				for service, username := range smap {
-					v.ServiceMap[service] = username
-				}
+				maps.Copy(v.ServiceMap, smap)
 			}
 		}
 	}

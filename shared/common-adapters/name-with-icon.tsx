@@ -1,22 +1,27 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
-import {useTeamsState} from '@/constants/teams'
-import Avatar, {type AvatarSize} from './avatar'
-import {Box} from './box'
-import ClickableBox from './clickable-box'
-import Icon, {type IconType} from './icon'
-import Text, {
-  type TextType,
-  type StylesTextCrossPlatform,
-  type AllowedColors,
-  type TextTypeBold,
-} from './text'
+import Avatar from './avatar'
+import {Box2, ClickableBox} from './box'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
+import Icon from './icon'
+import ImageIcon from './image-icon'
+import Text from './text'
+import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
 import ConnectedUsernames from './usernames'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useFollowerState} from '@/stores/followers'
+import {navToProfile} from '@/constants/router'
+import {useTeamsListNameToIDMap} from '@/teams/use-teams-list'
+
+type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
+
+const followSizeToStyle128 = {bottom: 0, left: 88, position: 'absolute'} as const
+const followSizeToStyle96 = {bottom: 0, left: 65, position: 'absolute'} as const
+const followSizeToStyle64 = {bottom: 0, left: 44, position: 'absolute'} as const
+const followSizeToStyle48 = {bottom: 0, left: 30, position: 'absolute'} as const
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {
@@ -55,12 +60,14 @@ export type NameWithIconProps = {
 }
 
 // If lineclamping isn't working, try adding a static width in containerStyle
-const NameWithIcon = (props: NameWithIconProps) => {
+export const NameWithIcon = (props: NameWithIconProps) => {
   const {onClick, username = '', teamname, size} = props
   const _onClickWrapper = onClick
     ? (event: React.BaseSyntheticEvent) => {
         if (!event.defaultPrevented) {
-          username && onClick(username)
+          if (username) {
+            onClick(username)
+          }
         }
       }
     : undefined
@@ -70,45 +77,70 @@ const NameWithIcon = (props: NameWithIconProps) => {
   }
 
   const isAvatar = !!(username || teamname) && !props.icon
-  const commonHeight = size === 'big' ? 64 : Styles.isMobile ? 48 : 32
-  const BoxComponent = onClick ? ClickableBox : Box
+  const commonHeight = size === 'big' ? 64 : isMobile ? 48 : 32
   const adapterProps = getAdapterProps(size || 'default')
+
+  const showFollowing = !props.horizontal && !props.hideFollowingOverlay && !!username
+  const following = useFollowerState(s => (showFollowing && username ? s.following.has(username) : false))
+  const followsYou = useFollowerState(s => (showFollowing && username ? s.followers.has(username) : false))
+  const avatarSize: AvatarSize = props.avatarSize || (props.horizontal ? commonHeight : adapterProps.iconSize)
+  const followIconType = showFollowing
+    ? followsYou === following
+      ? (followsYou ? ('icon-mutual-follow-21' as const) : undefined)
+      : followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
+    : undefined
+  const followIconStyle = avatarSize === 128
+    ? followSizeToStyle128
+    : avatarSize === 96
+      ? followSizeToStyle96
+      : avatarSize === 64
+        ? followSizeToStyle64
+        : avatarSize === 48
+          ? followSizeToStyle48
+          : undefined
 
   let avatarOrIcon: React.ReactNode
   if (isAvatar) {
     avatarOrIcon = (
       <Avatar
         imageOverrideUrl={props.avatarImageOverride}
-        editable={props.editableIcon}
-        onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
-        size={props.avatarSize || (props.horizontal ? commonHeight : adapterProps.iconSize)}
-        showFollowingStatus={props.horizontal ? undefined : !props.hideFollowingOverlay}
+        size={avatarSize}
         username={username}
         teamname={teamname}
+        onClick={props.editableIcon ? props.onEditIcon : undefined}
         style={Styles.collapseStyles([
           props.horizontal ? styles.hAvatarStyle : {},
           props.horizontal && size === 'big' ? styles.hbAvatarStyle : {},
           props.avatarStyle,
         ])}
-      />
+      >
+        {!!followIconType && !!followIconStyle && <ImageIcon type={followIconType} style={followIconStyle} />}
+        {!!props.editableIcon && (
+          <Icon
+            type="iconfont-edit"
+            style={teamname ? styles.editTeam : styles.editUser}
+          />
+        )}
+      </Avatar>
     )
   } else if (props.icon) {
     avatarOrIcon = (
-      <Icon
-        boxStyle={props.iconBoxStyle}
-        type={props.icon}
-        style={
-          props.horizontal
-            ? size === 'big'
-              ? styles.hbIconStyle
-              : styles.hIconStyle
-            : {height: adapterProps.iconSize, width: adapterProps.iconSize}
-        }
-        fontSize={props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}
-      />
+      <Box2 direction="vertical" style={props.iconBoxStyle}>
+        <IconAuto
+          type={props.icon}
+          style={
+            props.horizontal
+              ? size === 'big'
+                ? styles.hbIconStyle
+                : styles.hIconStyle
+              : Styles.size(adapterProps.iconSize)
+          }
+          fontSize={props.horizontal ? (isMobile ? 48 : 32) : adapterProps.iconSize}
+        />
+      </Box2>
     )
   }
-  const usernames = React.useMemo(() => [username], [username])
+  const usernames = [username]
   const title = props.title || ''
   const usernameOrTitle = title ? (
     <TextOrComponent
@@ -121,7 +153,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
       onUsernameClicked={props.clickType === 'onClick' ? onClick : 'profile'}
       type={props.horizontal ? 'BodyBold' : adapterProps.titleType}
       containerStyle={Styles.collapseStyles([
-        !props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
+        !props.horizontal && !isMobile && styles.vUsernameContainerStyle,
         size === 'smaller' && styles.smallerWidthTextContainer,
       ] as const)}
       inline={!props.horizontal}
@@ -158,11 +190,11 @@ const NameWithIcon = (props: NameWithIconProps) => {
     />
   )
   const metas = props.horizontal ? (
-    <Box style={styles.metasBox}>
+    <Box2 direction="horizontal" fullWidth={true} style={styles.metasBox}>
       {metaOne}
       {!!(props.metaTwo && props.metaOne) && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
       {metaTwo}
-    </Box>
+    </Box2>
   ) : (
     <>
       {metaOne}
@@ -170,43 +202,50 @@ const NameWithIcon = (props: NameWithIconProps) => {
     </>
   )
 
-  return (
-    <BoxComponent
-      onClick={_onClickWrapper}
-      style={Styles.collapseStyles([
-        props.horizontal
-          ? size === 'big'
-            ? styles.hbContainerStyle
-            : styles.hContainerStyle
-          : styles.vContainerStyle,
-        props.containerStyle,
-      ])}
-    >
+  const containerStyle = Styles.collapseStyles([
+    props.horizontal && size === 'big' ? styles.hbContainerStyle : undefined,
+    props.containerStyle,
+  ])
+
+  const metaContainerStyle = props.horizontal
+    ? Styles.collapseStyles([size === 'big' && styles.textContainer, props.metaStyle])
+    : Styles.collapseStyles([
+        styles.metaStyle,
+        size === 'smaller' && styles.smallerWidthTextContainer,
+        size !== 'smaller' && styles.fullWidthTextContainer,
+        {marginTop: adapterProps.metaMargin},
+        props.metaStyle,
+        size === 'smaller' ? styles.smallerWidthTextContainer : {},
+      ] as const)
+
+  const children = (
+    <>
       {avatarOrIcon}
-      <Box
-        style={
-          props.horizontal
-            ? Styles.collapseStyles([
-                Styles.globalStyles.flexBoxColumn,
-                size === 'big' && styles.textContainer,
-                props.metaStyle,
-              ])
-            : Styles.collapseStyles([
-                Styles.globalStyles.flexBoxRow,
-                styles.metaStyle,
-                size === 'smaller' && styles.smallerWidthTextContainer,
-                size !== 'smaller' && styles.fullWidthTextContainer,
-                {marginTop: adapterProps.metaMargin},
-                props.metaStyle,
-                size === 'smaller' ? styles.smallerWidthTextContainer : {},
-              ] as const)
-        }
-      >
+      <Box2 direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
         {botAlias}
         {usernameOrTitle}
         {metas}
-      </Box>
-    </BoxComponent>
+      </Box2>
+    </>
+  )
+
+  return _onClickWrapper ? (
+    <ClickableBox
+      onClick={e => e && _onClickWrapper(e)}
+      direction={props.horizontal ? 'horizontal' : 'vertical'}
+      alignItems="center"
+      style={containerStyle}
+    >
+      {children}
+    </ClickableBox>
+  ) : (
+    <Box2
+      direction={props.horizontal ? 'horizontal' : 'vertical'}
+      alignItems="center"
+      style={containerStyle}
+    >
+      {children}
+    </Box2>
   )
 }
 
@@ -230,6 +269,22 @@ const styles = Styles.styleSheetCreate(() => ({
   botAlias: {
     paddingTop: Styles.globalMargins.xtiny,
   },
+  editTeam: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      ...Styles.border(Styles.globalColors.white, 2, 100),
+      bottom: -6,
+      color: Styles.globalColors.whiteOrWhite,
+      padding: 4,
+      position: 'absolute',
+      right: -6,
+    },
+  }),
+  editUser: {
+    bottom: 0,
+    position: 'absolute',
+    right: 0,
+  },
   fullWidthText: Styles.platformStyles({
     isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
   }),
@@ -240,52 +295,37 @@ const styles = Styles.styleSheetCreate(() => ({
       marginRight: Styles.globalMargins.small,
     },
   }),
-  hContainerStyle: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
   hIconStyle: Styles.platformStyles({
     isElectron: {
-      height: 32,
+      ...Styles.size(32),
       marginRight: Styles.globalMargins.tiny,
-      width: 32,
     },
     isMobile: {
-      height: 48,
+      ...Styles.size(48),
       marginRight: Styles.globalMargins.small,
-      width: 48,
     },
   }),
   hbAvatarStyle: {
-    height: 64,
+    ...Styles.size(64),
     marginRight: Styles.globalMargins.small,
-    width: 64,
   },
   hbContainerStyle: {
-    ...Styles.globalStyles.flexBoxRow,
     width: '100%',
   },
   hbIconStyle: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.small},
     isElectron: {
-      height: 48,
-      width: 48,
+      ...Styles.size(48),
     },
     isMobile: {
-      backgroundColor: Styles.globalColors.fastBlank,
-      height: 64,
-      width: 64,
+      ...Styles.size(64),
     },
   }),
   metaStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.flexBoxCenter,
     marginTop: Styles.globalMargins.tiny,
   },
   metasBox: {
-    ...Styles.globalStyles.flexBoxRow,
     maxWidth: '100%',
-    width: '100%',
   },
   smallerWidthTextContainer: Styles.platformStyles({
     isElectron: {
@@ -297,10 +337,6 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   textContainer: {
     flex: 1,
-  },
-  vContainerStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
   },
   vUsernameContainerStyle: Styles.platformStyles({
     isElectron: {
@@ -358,50 +394,57 @@ const getAdapterProps = (
 }
 
 export type ConnectedNameWithIconProps = {
-  onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
+  onClick?: 'profile' | NameWithIconProps['onClick']
 } & Omit<NameWithIconProps, 'onClick'>
 
 type OwnProps = ConnectedNameWithIconProps
 
-const ConnectedNameWithIcon = (p: OwnProps) => {
+const ConnectedUserNameWithIcon = (p: OwnProps & {username: string}) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onOpenTeamProfile = React.useCallback(() => {
-    if (teamID) {
-      clearModals()
-      navigateAppend({props: {teamID}, selected: 'team'})
-    }
-  }, [clearModals, navigateAppend, teamID])
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onOpenTracker = React.useCallback(() => {
-    username && showUser(username, true)
-  }, [showUser, username])
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onOpenUserProfile = React.useCallback(() => {
-    username && showUserProfile(username)
-  }, [username, showUserProfile])
+  const onOpenUserProfile = () => {
+    navToProfile(username)
+  }
 
   let functionOnClick: NameWithIconProps['onClick']
   let clickType: NameWithIconProps['clickType'] = 'onClick'
   switch (onClick) {
-    case 'tracker': {
-      if (!C.isMobile) {
-        if (username) {
-          functionOnClick = onOpenTracker
-        }
-      } else if (username) {
-        functionOnClick = onOpenUserProfile
-      } else if (teamID) {
-        functionOnClick = onOpenTeamProfile
-      }
+    case 'profile':
+      functionOnClick = onOpenUserProfile
+      clickType = 'profile'
       break
+    default:
+      functionOnClick = onClick
+  }
+
+  return (
+    <NameWithIcon
+      {...props}
+      clickType={clickType}
+      onClick={functionOnClick}
+      teamname={teamname}
+      username={username}
+    />
+  )
+}
+
+const ConnectedTeamNameWithIcon = (p: OwnProps & {teamname: string}) => {
+  const {onClick, username, teamname, ...props} = p
+  const teamNameToID = useTeamsListNameToIDMap()
+  const teamID = teamNameToID.get(teamname)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
+  const onOpenTeamProfile = () => {
+    if (teamID) {
+      clearModals()
+      navigateAppend({name: 'team', params: {teamID}})
     }
+  }
+
+  let functionOnClick: NameWithIconProps['onClick']
+  let clickType: NameWithIconProps['clickType'] = 'onClick'
+  switch (onClick) {
     case 'profile': {
-      if (username) {
-        functionOnClick = onOpenUserProfile
-      } else if (teamID) {
+      if (teamID) {
         functionOnClick = onOpenTeamProfile
       }
       clickType = 'profile'
@@ -421,5 +464,14 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
     />
   )
 }
+
+const ConnectedNameWithIcon = (p: OwnProps) =>
+  p.username ? (
+    <ConnectedUserNameWithIcon {...p} username={p.username} />
+  ) : p.teamname ? (
+    <ConnectedTeamNameWithIcon {...p} teamname={p.teamname} />
+  ) : (
+    <NameWithIcon {...p} onClick={typeof p.onClick === 'function' ? p.onClick : undefined} />
+  )
 
 export default ConnectedNameWithIcon

@@ -1,68 +1,75 @@
+/// <reference types="webpack-env" />
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useDeepLinksState} from '@/constants/deeplinks'
-import Main from './main.native'
+import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'
+import {AppRegistry, AppState, Appearance, Keyboard, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {enableFreeze} from 'react-native-screens'
+import {Image as ExpoImage} from 'expo-image'
 import {setKeyboardUp} from '@/styles/keyboard-state'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
-import {useEngineState} from '@/constants/engine'
-import * as DarkMode from '@/constants/darkmode'
-import {initPlatformListener} from '@/constants/platform-specific'
+import * as DarkMode from '@/stores/darkmode'
+import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import logger from '@/logger'
 
 logger.info('INIT App index module load')
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
+// SDWebImage (used by expo-image) flushes its memory cache on iOS memory warnings, but
+// the simulator never sends memory warnings. Cap the cache so loading hundreds of chat
+// images doesn't exhaust VM in the simulator. On a real device this is a safety net only.
+// configureCache is iOS-only native (no Android impl) so calling it on Android throws.
+if (Platform.OS === 'ios') {
+  ExpoImage.configureCache({maxMemoryCost: 100 * 1024 * 1024})
+}
 
 module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
 
+const initDarkMode = () => {
+  const {setDarkModePreference, setSystemDarkMode, setSystemSupported} =
+    DarkMode.useDarkModeState.getState().dispatch
+  setSystemDarkMode(Appearance.getColorScheme() === 'dark')
+  setSystemSupported(darkModeSupported)
+  try {
+    const obj = JSON.parse(guiConfig) as {ui?: {darkMode?: string}} | undefined
+    const dm = obj?.ui?.darkMode
+    switch (dm) {
+      case 'system': // fallthrough
+      case 'alwaysDark': // fallthrough
+      case 'alwaysLight':
+        setDarkModePreference(dm, false)
+        break
+      default:
+    }
+  } catch {}
+}
+
 const useDarkHookup = () => {
-  const initedRef = React.useRef(false)
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  const setMobileAppState = useConfigState(s => s.dispatch.setMobileAppState)
-  const setSystemSupported = DarkMode.useDarkModeState(s => s.dispatch.setSystemSupported)
-  const setDarkModePreference = DarkMode.useDarkModeState(s => s.dispatch.setDarkModePreference)
-
-  // once
-  if (!initedRef.current) {
-    initedRef.current = true
-    setSystemDarkMode(Appearance.getColorScheme() === 'dark')
-    setSystemSupported(darkModeSupported)
-    try {
-      const obj = JSON.parse(guiConfig) as {ui?: {darkMode?: string}} | undefined
-      const dm = obj?.ui?.darkMode
-      switch (dm) {
-        case 'system': // fallthrough
-        case 'alwaysDark': // fallthrough
-        case 'alwaysLight':
-          setDarkModePreference(dm, false)
-          break
-        default:
-      }
-    } catch {}
-  }
+  const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
 
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
-      nextAppState !== 'unknown' && nextAppState !== 'extension' && setMobileAppState(nextAppState)
+      if (nextAppState !== 'unknown' && nextAppState !== 'extension') {
+        setMobileAppState(nextAppState)
+      }
 
       if (nextAppState === 'active') {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')
@@ -110,16 +117,6 @@ const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
   useDarkHookup()
   useKeyboardHookup()
-  const handleAppLink = useDeepLinksState(s => s.dispatch.handleAppLink)
-
-  React.useEffect(() => {
-    const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
-      handleAppLink(url)
-    })
-    return () => {
-      linkingSub.remove()
-    }
-  }, [handleAppLink])
 
   return children
 }
@@ -132,23 +129,24 @@ if (__DEV__ && !globalThis.DEBUGmadeEngine) {
 // once per module
 let inited = false
 const useInit = () => {
-  if (inited) return
-  inited = true
-  Animated.addWhitelistedNativeProps({text: true})
-  install()
-  const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(batch, c => {
-    if (c) {
-      useEngineState.getState().dispatch.onEngineConnected()
-    } else {
-      useEngineState.getState().dispatch.onEngineDisconnected()
-    }
-  })
-  initPlatformListener()
-  eng.listenersAreReady()
-
-  // On mobile there is no installer
-  useConfigState.getState().dispatch.installerRan()
+  React.useEffect(() => {
+    if (inited) return
+    inited = true
+    initDarkMode()
+    Animated.addWhitelistedNativeProps({text: true})
+    install()
+    const {batch} = C.useWaitingState.getState().dispatch
+    const eng = makeEngine(batch, c => {
+      if (c) {
+        onEngineConnected()
+      } else {
+        onEngineDisconnected()
+      }
+    }, onEngineIncoming)
+    initPlatformListener()
+    eng.listenersAreReady()
+    useConfigState.getState().dispatch.installerRan()
+  }, [])
 }
 
 // reanimated has issues updating shared values with this on seemingly w/ zoom toolkit
@@ -171,10 +169,8 @@ const Keybase = () => {
           <PortalProvider>
             <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
               <StoreHelper>
-                <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
-                  <Main />
-                  {unmountAll}
-                </Kb.Styles.CanFixOverdrawContext.Provider>
+                <Main />
+                {unmountAll}
               </StoreHelper>
             </SafeAreaProvider>
           </PortalProvider>

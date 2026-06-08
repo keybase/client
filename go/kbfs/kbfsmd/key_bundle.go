@@ -6,6 +6,7 @@ package kbfsmd
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -89,9 +90,7 @@ func (serverHalves UserDeviceKeyServerHalves) MergeUsers(
 ) (UserDeviceKeyServerHalves, error) {
 	merged := make(UserDeviceKeyServerHalves,
 		len(serverHalves)+len(other))
-	for uid, deviceServerHalves := range serverHalves {
-		merged[uid] = deviceServerHalves
-	}
+	maps.Copy(merged, serverHalves)
 	for uid, deviceServerHalves := range other {
 		if _, ok := merged[uid]; ok {
 			return nil, fmt.Errorf(
@@ -240,9 +239,7 @@ func (info ServerHalfRemovalInfo) MergeUsers(
 	other ServerHalfRemovalInfo,
 ) (ServerHalfRemovalInfo, error) {
 	merged := make(ServerHalfRemovalInfo, len(info)+len(other))
-	for uid, removalInfo := range info {
-		merged[uid] = removalInfo
-	}
+	maps.Copy(merged, info)
 	for uid, removalInfo := range other {
 		if _, ok := merged[uid]; ok {
 			return nil, fmt.Errorf(

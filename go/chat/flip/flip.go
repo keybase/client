@@ -63,7 +63,7 @@ type Dealer struct {
 
 // ReplayHelper contains hooks needed to replay a flip.
 type ReplayHelper interface {
-	CLogf(ctx context.Context, fmt string, args ...interface{})
+	CLogf(ctx context.Context, fmt string, args ...any)
 }
 
 // DealersHelper is an interface that calling chat clients need to implement.

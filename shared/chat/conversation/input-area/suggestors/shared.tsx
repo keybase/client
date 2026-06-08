@@ -29,29 +29,10 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   botCommandContainer: Kb.Styles.platformStyles({
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isMobile: {
       paddingLeft: Kb.Styles.globalMargins.tiny,
-    },
-  }),
-  timeBadge: Kb.Styles.platformStyles({
-    common: {
-      borderColor: Kb.Styles.globalColors.white,
-      borderRadius: 3,
-      borderStyle: 'solid',
-    },
-    isElectron: {
-      borderWidth: 1,
-      cursor: 'pointer',
-      marginLeft: -11,
-      marginTop: -6,
-    },
-    isMobile: {
-      borderWidth: 2,
-      marginLeft: -5,
-      marginTop: -1,
     },
   }),
 }))

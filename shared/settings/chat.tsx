@@ -1,42 +1,138 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
-import {useSettingsChatState as useSettingsChatState} from '@/constants/settings-chat'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
-import {useSettingsState} from '@/constants/settings'
-import {useConfigState} from '@/constants/config'
+import {loadSettings} from './load-settings'
+import useNotificationSettings from './notifications/use-notification-settings'
+import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
+import {useTeamsList} from '@/teams/use-teams-list'
 
 const emptyList = new Array<string>()
 
-const Security = () => {
-  const {allowEdit, groups, notifRefresh} = useSettingsNotifState(
-    C.useShallow(s => ({
-      allowEdit: s.allowEdit,
-      groups: s.groups,
-      notifRefresh: s.dispatch.refresh,
-    }))
+type ContactSettingsTeamsList = {[k in T.RPCGen.TeamID]: boolean}
+type NotificationSettingsState = ReturnType<typeof useNotificationSettings>
+
+const useContactSettings = () => {
+  const loadContactSettingsRPC = C.useRPC(T.RPCGen.accountUserGetContactSettingsRpcPromise)
+  const saveContactSettingsRPC = C.useRPC(T.RPCGen.accountUserSetContactSettingsRpcPromise)
+  const [error, setError] = React.useState('')
+  const [settings, setSettings] = React.useState<T.RPCGen.ContactSettings>()
+
+  const contactSettingsRefresh = React.useCallback(() => {
+    if (!useConfigState.getState().loggedIn) {
+      return
+    }
+    loadContactSettingsRPC(
+      [undefined],
+      nextSettings => {
+        setError('')
+        setSettings(nextSettings)
+      },
+      () => {
+        setError('Unable to load contact settings, please try again.')
+      }
+    )
+  }, [loadContactSettingsRPC])
+
+  const contactSettingsSaved = React.useCallback(
+    (
+      enabled: boolean,
+      indirectFollowees: boolean,
+      teamsEnabled: boolean,
+      teamsList: ContactSettingsTeamsList
+    ) => {
+      if (!useConfigState.getState().loggedIn) {
+        return
+      }
+      const teams = Object.entries(teamsList).map(([teamID, teamEnabled]) => ({
+        enabled: teamEnabled,
+        teamID,
+      }))
+      saveContactSettingsRPC(
+        [
+          {
+            settings: {
+              allowFolloweeDegrees: indirectFollowees ? 2 : 1,
+              allowGoodTeams: teamsEnabled,
+              enabled,
+              teams,
+            },
+          },
+          C.waitingKeySettingsChatContactSettingsSave,
+        ],
+        () => {
+          contactSettingsRefresh()
+        },
+        () => {
+          setError('Unable to save contact settings, please try again.')
+        }
+      )
+    },
+    [contactSettingsRefresh, saveContactSettingsRPC]
   )
-  const chatState = useSettingsChatState(
-    C.useShallow(s => ({
-      _contactSettingsEnabled: s.contactSettings.settings?.enabled,
-      _contactSettingsIndirectFollowees: s.contactSettings.settings?.allowFolloweeDegrees === 2,
-      _contactSettingsTeams: s.contactSettings.settings?.teams,
-      _contactSettingsTeamsEnabled: s.contactSettings.settings?.allowGoodTeams,
-      contactSettingsError: s.contactSettings.error,
-      contactSettingsRefresh: s.dispatch.contactSettingsRefresh,
-      contactSettingsSaved: s.dispatch.contactSettingsSaved,
-    }))
+
+  return {contactSettingsRefresh, contactSettingsSaved, error, settings}
+}
+
+const useUnfurlSettings = () => {
+  const loadUnfurlSettingsRPC = C.useRPC(T.RPCChat.localGetUnfurlSettingsRpcPromise)
+  const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
+  const [error, setError] = React.useState('')
+  const [mode, setMode] = React.useState<T.RPCChat.UnfurlMode>()
+  const [whitelist, setWhitelist] = React.useState<ReadonlyArray<string>>(emptyList)
+
+  const unfurlSettingsRefresh = React.useCallback(() => {
+    if (!useConfigState.getState().loggedIn) {
+      return
+    }
+    loadUnfurlSettingsRPC(
+      [undefined, C.waitingKeySettingsChatUnfurl],
+      result => {
+        setError('')
+        setMode(result.mode)
+        setWhitelist(result.whitelist ?? emptyList)
+      },
+      () => {
+        setError('Unable to load link preview settings, please try again.')
+      }
+    )
+  }, [loadUnfurlSettingsRPC])
+
+  const unfurlSettingsSaved = React.useCallback(
+    (unfurlMode: T.RPCChat.UnfurlMode, unfurlWhitelist: ReadonlyArray<string>) => {
+      setError('')
+      setMode(unfurlMode)
+      setWhitelist(unfurlWhitelist)
+      if (!useConfigState.getState().loggedIn) {
+        return
+      }
+      saveUnfurlSettingsRPC(
+        [{mode: unfurlMode, whitelist: unfurlWhitelist}, C.waitingKeySettingsChatUnfurl],
+        () => {
+          unfurlSettingsRefresh()
+        },
+        () => {
+          setError('Unable to save link preview settings, please try again.')
+        }
+      )
+    },
+    [saveUnfurlSettingsRPC, unfurlSettingsRefresh]
   )
-  const {_contactSettingsEnabled, _contactSettingsIndirectFollowees, _contactSettingsTeams} = chatState
-  const {_contactSettingsTeamsEnabled, contactSettingsError, contactSettingsRefresh, contactSettingsSaved} =
-    chatState
-  const onContactSettingsSave = contactSettingsSaved
-  const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
-  const _teamMeta = Teams.useTeamsState(s => s.teamMeta)
-  const teamMeta = Teams.sortTeamsByName(_teamMeta)
+
+  return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
+}
+
+const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsState) => {
+  const {contactSettingsRefresh, contactSettingsSaved, error, settings} = useContactSettings()
+  const {teams} = useTeamsList()
+  const teamMeta = [...teams].sort((a, b) => a.teamname.localeCompare(b.teamname))
+  const _contactSettingsEnabled = settings?.enabled
+  const _contactSettingsIndirectFollowees = settings?.allowFolloweeDegrees === 2
+  const _contactSettingsTeams = settings?.teams
+  const _contactSettingsTeamsEnabled = settings?.allowGoodTeams
 
   const [contactSettingsEnabled, setContactSettingsEnabled] = React.useState(_contactSettingsEnabled)
   const [contactSettingsIndirectFollowees, setContactSettingsIndirectFollowees] = React.useState(
@@ -46,12 +142,9 @@ const Security = () => {
     _contactSettingsTeamsEnabled
   )
 
-  const serverSelectedTeams = React.useMemo(
-    () => new Map(_contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}])),
-    [_contactSettingsTeams]
-  )
+  const serverSelectedTeams = new Map(_contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}]))
 
-  const _contactSettingsSelectedTeams = React.useMemo(() => {
+  const _contactSettingsSelectedTeams = (() => {
     const s: {[K in T.Teams.TeamID]: boolean} = {}
     teamMeta.forEach(t => {
       if (serverSelectedTeams.has(t.id)) {
@@ -63,7 +156,7 @@ const Security = () => {
       }
     })
     return s
-  }, [teamMeta, serverSelectedTeams])
+  })()
 
   const [contactSettingsSelectedTeams, setContactSettingsSelectedTeams] = React.useState(
     _contactSettingsSelectedTeams
@@ -98,26 +191,17 @@ const Security = () => {
     lastContactSettingsTeamsEnabled.current = _contactSettingsTeamsEnabled
   }, [_contactSettingsTeamsEnabled, contactSettingsTeamsEnabled])
 
-  React.useEffect(() => {
-    // Create an initial copy of teams data into state, so it can be mutated there.
-    if (
-      Object.keys(_contactSettingsSelectedTeams).length > 0 &&
-      Object.keys(contactSettingsSelectedTeams).length === 0
-    ) {
-      setContactSettingsSelectedTeams(_contactSettingsSelectedTeams)
-    }
-  }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
+  const hasInitialSelectedTeams = Object.keys(_contactSettingsSelectedTeams).length > 0
+  const hasLocalSelectedTeams = Object.keys(contactSettingsSelectedTeams).length > 0
+  if (hasInitialSelectedTeams && !hasLocalSelectedTeams) {
+    setContactSettingsSelectedTeams(_contactSettingsSelectedTeams)
+  }
 
-  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
-  const onRefresh = React.useCallback(() => {
+  React.useEffect(() => {
     loadSettings()
-    notifRefresh()
+    refresh()
     contactSettingsRefresh()
-  }, [contactSettingsRefresh, loadSettings, notifRefresh])
-
-  React.useEffect(() => {
-    onRefresh()
-  }, [onRefresh])
+  }, [contactSettingsRefresh, refresh])
 
   return (
     <>
@@ -130,7 +214,7 @@ const Security = () => {
           <Group
             allowEdit={allowEdit}
             groupName="security"
-            onToggle={onToggle}
+            onToggle={toggle}
             settings={groups.get('security')!.settings}
             unsubscribedFromAll={false}
           />
@@ -148,8 +232,8 @@ const Security = () => {
               <Kb.Box2
                 direction="vertical"
                 fullWidth={true}
-                gap={Kb.Styles.isMobile ? 'small' : undefined}
-                gapStart={Kb.Styles.isMobile}
+                gap={isMobile ? 'small' : undefined}
+                gapStart={isMobile}
                 style={styles.checkboxIndented}
               >
                 <Kb.Checkbox label="You follow them, or..." checked={true} disabled={true} />
@@ -170,7 +254,7 @@ const Security = () => {
                 <Kb.Box2
                   direction="vertical"
                   fullWidth={true}
-                  gap={Kb.Styles.isMobile ? 'small' : undefined}
+                  gap={isMobile ? 'small' : undefined}
                   gapStart={false}
                   gapEnd={true}
                 >
@@ -192,10 +276,10 @@ const Security = () => {
               )}
             </>
           )}
-          <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} style={styles.btnContainer}>
+          <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} alignSelf="flex-start">
             <Kb.WaitingButton
               onClick={() =>
-                onContactSettingsSave(
+                contactSettingsSaved(
                   !!contactSettingsEnabled,
                   !!contactSettingsIndirectFollowees,
                   !!contactSettingsTeamsEnabled,
@@ -207,9 +291,9 @@ const Security = () => {
               style={styles.save}
               waitingKey={C.waitingKeySettingsChatContactSettingsSave}
             />
-            {!!contactSettingsError && (
+            {!!error && (
               <Kb.Text type="BodySmall" style={styles.error}>
-                {contactSettingsError}
+                {error}
               </Kb.Text>
             )}
           </Kb.Box2>
@@ -220,15 +304,7 @@ const Security = () => {
 }
 
 const Links = () => {
-  const {error, mode, onUnfurlSave, unfurlSettingsRefresh, whitelist} = useSettingsChatState(
-    C.useShallow(s => ({
-      error: s.unfurl.unfurlError,
-      mode: s.unfurl.unfurlMode,
-      onUnfurlSave: s.dispatch.unfurlSettingsSaved,
-      unfurlSettingsRefresh: s.dispatch.unfurlSettingsRefresh,
-      whitelist: s.unfurl.unfurlWhitelist ?? emptyList,
-    }))
-  )
+  const {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
   const getUnfurlWhitelist = (filtered: boolean) =>
@@ -238,7 +314,7 @@ const Links = () => {
     const next = whitelist.filter(w => {
       return !unfurlWhitelistRemoved[w]
     })
-    onUnfurlSave(selected || T.RPCChat.UnfurlMode.always, next)
+    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.always, next)
   }
 
   const toggleUnfurlWhitelist = (domain: string) => {
@@ -292,11 +368,13 @@ const Links = () => {
             {getUnfurlWhitelist(false).map((w, idx) => {
               const wlremoved = unfurlWhitelistRemoved[w]
               return (
-                <Kb.Box key={w} style={styles.whitelistInner}>
-                  {idx === 0 && <Kb.Box style={styles.whitelistOuter} />}
+                <Kb.Box2 direction="vertical" key={w} style={styles.whitelistInner}>
+                  {idx === 0 && <Kb.Box2 direction="vertical" style={styles.whitelistOuter} />}
                   <Kb.Box2
                     fullWidth={true}
                     direction="horizontal"
+                    justifyContent="space-between"
+                    noShrink={true}
                     style={Kb.Styles.collapseStyles([
                       styles.whitelistRowContainer,
                       wlremoved ? {backgroundColor: Kb.Styles.globalColors.red_20} : undefined,
@@ -312,18 +390,15 @@ const Links = () => {
                         Restore
                       </Kb.Text>
                     ) : (
-                      <Kb.Box style={{position: 'relative'}}>
-                        <Kb.WithTooltip tooltip="Remove">
-                          <Kb.Icon
-                            onClick={() => toggleUnfurlWhitelist(w)}
-                            style={styles.removeIcon}
-                            type="iconfont-trash"
-                          />
-                        </Kb.WithTooltip>
-                      </Kb.Box>
+                      <Kb.WithTooltip tooltip="Remove">
+                        <Kb.Icon
+                          onClick={() => toggleUnfurlWhitelist(w)}
+                          type="iconfont-trash"
+                        />
+                      </Kb.WithTooltip>
                     )}
                   </Kb.Box2>
-                </Kb.Box>
+                </Kb.Box2>
               )
             })}
           </Kb.ScrollView>
@@ -338,7 +413,8 @@ const Links = () => {
       <Kb.Box2
         direction="vertical"
         gap="tiny"
-        style={Kb.Styles.collapseStyles([styles.innerContainer, styles.btnContainer])}
+        alignSelf="flex-start"
+        style={styles.innerContainer}
       >
         <Kb.WaitingButton
           onClick={onSave}
@@ -358,21 +434,14 @@ const Links = () => {
   )
 }
 
-const Sound = () => {
-  const {onToggleSound, sound} = useConfigState(
+const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
+  const {onToggleSound, sound} = useShellState(
     C.useShallow(s => ({
       onToggleSound: s.dispatch.setNotifySound,
       sound: s.notifySound,
     }))
   )
-  const {allowEdit, groups, onToggle} = useSettingsNotifState(
-    C.useShallow(s => ({
-      allowEdit: s.allowEdit,
-      groups: s.groups,
-      onToggle: s.dispatch.toggle,
-    }))
-  )
-  const showDesktopSound = !C.isMobile && !C.isLinux
+  const showDesktopSound = !isMobile && !C.isLinux
   const showMobileSound = !!groups.get('sound')?.settings.length
   if (!showDesktopSound && !showMobileSound) return null
   return (
@@ -380,123 +449,96 @@ const Sound = () => {
       <Kb.Divider style={styles.divider} />
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.innerContainer}>
         <Kb.Text type="Header">Sounds</Kb.Text>
-        <>
-          {showDesktopSound && (
-            <Kb.Checkbox onCheck={onToggleSound} checked={sound} label="Play a sound for new messages" />
-          )}
-          {showMobileSound && (
-            <Group
-              allowEdit={allowEdit}
-              groupName="sound"
-              onToggle={onToggle}
-              settings={groups.get('sound')!.settings}
-              unsubscribedFromAll={false}
-            />
-          )}
-        </>
+        {showDesktopSound && (
+          <Kb.Checkbox onCheck={onToggleSound} checked={sound} label="Play a sound for new messages" />
+        )}
+        {showMobileSound && (
+          <Group
+            allowEdit={allowEdit}
+            groupName="sound"
+            onToggle={toggle}
+            settings={groups.get('sound')!.settings}
+            unsubscribedFromAll={false}
+          />
+        )}
       </Kb.Box2>
     </>
   )
 }
 
-const Misc = () => {
-  const {allowEdit, groups, onToggle} = useSettingsNotifState(
-    C.useShallow(s => ({
-      allowEdit: s.allowEdit,
-      groups: s.groups,
-      onToggle: s.dispatch.toggle,
-    }))
-  )
-  const showMisc = C.isMac || C.isIOS
+const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
+  const showMisc = C.isMac || isIOS
   if (!showMisc) return null
   return (
     <>
       <Kb.Divider style={styles.divider} />
       <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.innerContainer}>
         <Kb.Text type="Header">Misc</Kb.Text>
-        <>
-          {!!groups.get('misc')?.settings && (
-            <Group
-              allowEdit={allowEdit}
-              groupName="misc"
-              onToggle={onToggle}
-              settings={groups.get('misc')!.settings}
-              unsubscribedFromAll={false}
-            />
-          )}
-        </>
+        {!!groups.get('misc')?.settings && (
+          <Group
+            allowEdit={allowEdit}
+            groupName="misc"
+            onToggle={toggle}
+            settings={groups.get('misc')!.settings}
+            unsubscribedFromAll={false}
+          />
+        )}
       </Kb.Box2>
     </>
   )
 }
 
 const Chat = () => {
+  const notificationSettings = useNotificationSettings()
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ScrollView>
-        <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
-          <Security />
-          <Kb.Divider style={styles.divider} />
-          <Links />
-          <Sound />
-          <Misc />
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </Kb.Box2>
+    <Kb.ScrollView testID={TestIDs.SETTINGS_CHAT}>
+      <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
+        <Security {...notificationSettings} />
+        <Kb.Divider style={styles.divider} />
+        <Links />
+        <Sound {...notificationSettings} />
+        <Misc {...notificationSettings} />
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
 const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (c: boolean) => void}) => {
   const {checked, isOpen, name, onCheck} = p
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
-        <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
-        <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 32 : 24} teamname={name} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
-            <Kb.Text type="BodySemibold" lineClamp={1}>
-              {name}
-            </Kb.Text>
-            {isOpen && (
-              <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
-            )}
-          </Kb.Box2>
-        </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
+      <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
+      <Kb.Avatar isTeam={true} size={isMobile ? 32 : 24} teamname={name} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="center" style={styles.teamNameContainer}>
+        <Kb.Text type="BodySemibold" lineClamp={1}>
+          {name}
+        </Kb.Text>
+        {isOpen && (
+          <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  btnContainer: {alignSelf: 'flex-start'},
   checkboxIndented: Kb.Styles.platformStyles({
     isElectron: {paddingLeft: Kb.Styles.globalMargins.medium},
     isMobile: {paddingBottom: Kb.Styles.globalMargins.medium, paddingLeft: Kb.Styles.globalMargins.small},
   }),
   container: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
-      width: '100%',
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
     },
   }),
   divider: {marginBottom: Kb.Styles.globalMargins.small},
   error: {color: Kb.Styles.globalColors.redDark},
   innerContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       maxWidth: 600,
-    },
-  }),
-  removeIcon: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'absolute',
-      right: 0,
-      top: 4,
     },
   }),
   removeText: {color: Kb.Styles.globalColors.black},
@@ -514,19 +556,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginTop: 2,
   },
   teamNameContainer: {
-    alignSelf: 'center',
     flexShrink: 1,
     marginLeft: Kb.Styles.globalMargins.tiny,
     marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.large : 48,
-    paddingRight: Kb.Styles.globalMargins.small,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
-  teamText: {
-    alignSelf: 'flex-start',
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.xtiny, isMobile ? Kb.Styles.globalMargins.large : 48),
   },
   whitelist: Kb.Styles.platformStyles({
     common: {
@@ -550,15 +585,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   whitelistOuter: {
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   whitelistRowContainer: Kb.Styles.platformStyles({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
-      flexShrink: 0,
       height: 40,
-      justifyContent: 'space-between',
       marginLeft: Kb.Styles.globalMargins.tiny,
       padding: Kb.Styles.globalMargins.tiny,
       paddingRight: Kb.Styles.globalMargins.small,

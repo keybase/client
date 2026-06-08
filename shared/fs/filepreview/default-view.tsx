@@ -2,9 +2,15 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
+import {
+  useFsDownload,
+  useFsErrorActionOrThrow,
+  useFsFileContext,
+  useOpenPathInSystemFileManagerDesktop,
+  useSystemFileManagerIntegration,
+} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
 import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -15,20 +21,17 @@ const Share = (p: ClickableProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const {pathItem, sfmiEnabled, _download, openPathInSystemFileManagerDesktop, fileContext} = useFSState(
-    C.useShallow(s => ({
-      _download: s.dispatch.download,
-      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
-      openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
-      pathItem: FS.getPathItem(s.pathItems, path),
-      sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
-    }))
-  )
+  const {fileContext, pathItem} = useFsFileContext(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const _download = useFsDownload()
+  const {driverStatus} = useSystemFileManagerIntegration()
+  const openPathInSystemFileManagerDesktop = useOpenPathInSystemFileManagerDesktop()
+  const sfmiEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
   const download = () => {
     _download(path, 'download')
   }
   const showInSystemFileManager = () => {
-    openPathInSystemFileManagerDesktop?.(path)
+    openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -37,6 +40,7 @@ const Container = (ownProps: OwnProps) => {
         fullWidth={true}
         fullHeight={true}
         centerChildren={true}
+        flex={1}
         style={styles.innerContainer}
       >
         <ItemIcon path={path} size={96} />
@@ -44,13 +48,13 @@ const Container = (ownProps: OwnProps) => {
           {pathItem.name}
         </Kb.Text>
         <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
-        {C.isMobile && <LastModifiedLine path={path} mode="default" />}
+        {isMobile && <LastModifiedLine path={path} mode="default" />}
         {pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>
             {'This is a symlink' + (pathItem.linkTarget ? ` to: ${pathItem.linkTarget}.` : '.')}
           </Kb.Text>
         )}
-        {C.isMobile && (
+        {isMobile && (
           <Kb.Text center={true} type="BodySmall" style={styles.noOpenMobile}>
             This document can not be opened on mobile. You can still interact with it using the ••• menu.
           </Kb.Text>
@@ -72,7 +76,7 @@ const Container = (ownProps: OwnProps) => {
             </>
           )
         }
-        {!C.isIOS &&
+        {!isIOS &&
           (sfmiEnabled ? (
             <Kb.Button
               key="open"
@@ -108,16 +112,11 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       innerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          ...Kb.Styles.globalStyles.flexGrow,
-          alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
-          flex: 1,
-          justifyContent: 'center',
+          ...Kb.Styles.globalStyles.flexGrow,
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.large,
-          paddingRight: Kb.Styles.globalMargins.large,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         },
       }),
       noOpenMobile: {

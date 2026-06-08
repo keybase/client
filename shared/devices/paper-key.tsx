@@ -27,51 +27,44 @@ const PaperKey = () => {
       .catch(() => {})
   }, 500)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-        style={styles.container}
-        gap="medium"
-      >
-        <Kb.Text type="Header">Paper key generated!</Kb.Text>
-        <Kb.Text type="Body" style={styles.intro}>
-          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
-          This is the only time you&apos;ll see this so be sure to write it down.
-        </Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
-          {paperkey ? (
-            <Kb.Text
-              center={true}
-              type="Header"
-              selectable={true}
-              style={styles.text}
-              textBreakStrategy="simple"
-            >
-              {paperkey}
-            </Kb.Text>
-          ) : (
-            <Kb.ProgressIndicator type="Large" />
-          )}
-        </Kb.Box2>
-        <Kb.Checkbox
-          label="Yes, I wrote this down."
-          checked={wroteItDown}
-          disabled={!paperkey}
-          onCheck={setWroteItDown}
-        />
-        <Kb.WaitingButton
-          label="Done"
-          onClick={clearModals}
-          disabled={!wroteItDown}
-          waitingKey={C.waitingKeyDevices}
-        />
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      centerChildren={true}
+      style={styles.container}
+      gap="medium"
+      padding="medium"
+    >
+      <Kb.Text type="Header">Paper key generated!</Kb.Text>
+      <Kb.Text type="Body" center={true}>
+        Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
+        This is the only time you&apos;ll see this so be sure to write it down.
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true} padding="medium">
+        {paperkey ? (
+          <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
+            {paperkey}
+          </Kb.Text>
+        ) : (
+          <Kb.ProgressIndicator type="Large" />
+        )}
       </Kb.Box2>
+      <Kb.Checkbox
+        label="Yes, I wrote this down."
+        checked={wroteItDown}
+        disabled={!paperkey}
+        onCheck={setWroteItDown}
+      />
+      <Kb.WaitingButton
+        label="Done"
+        onClick={clearModals}
+        disabled={!wroteItDown}
+        waitingKey={C.waitingKeyDevices}
+      />
     </Kb.Box2>
   )
 }
@@ -83,11 +76,8 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         alignSelf: 'center',
-        maxWidth: Kb.Styles.isMobile ? undefined : 560,
-        padding: Kb.Styles.globalMargins.medium,
+        maxWidth: isMobile ? undefined : 560,
       },
-      header: {position: 'absolute'},
-      intro: {textAlign: 'center'},
       keyBox: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.blueDarker,
@@ -95,7 +85,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderStyle: 'solid',
         borderWidth,
         minHeight: 100,
-        padding: Kb.Styles.globalMargins.medium,
       },
       text: {
         ...Kb.Styles.globalStyles.fontTerminal,

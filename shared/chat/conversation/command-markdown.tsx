@@ -1,12 +1,12 @@
-import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
+import * as InputState from './input-area/input-state'
 
 const CommandMarkdown = () => {
-  const md = Chat.useChatContext(s => s.commandMarkdown)
+  const md = InputState.useConversationInput(s => s.commandMarkdown)
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       {!!title && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.title}>
           <Kb.Markdown>{title}</Kb.Markdown>
@@ -17,7 +17,7 @@ const CommandMarkdown = () => {
           <Kb.Markdown selectable={true}>{body}</Kb.Markdown>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -25,10 +25,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -36,8 +33,7 @@ const styles = Kb.Styles.styleSheetCreate(
           border: `1px solid ${Kb.Styles.globalColors.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
         isMobile: {
           backgroundColor: Kb.Styles.globalColors.white,
@@ -51,13 +47,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       title: {
         backgroundColor: Kb.Styles.globalColors.black_05,
-        borderBottomWidth: 1,
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderStyle: 'solid',
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.bottomDivider(),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
     }) as const
 )

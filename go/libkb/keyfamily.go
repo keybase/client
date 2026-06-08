@@ -9,6 +9,7 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"runtime/debug"
 	"sort"
 	"time"
@@ -250,25 +251,15 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
 		PerUserKeys:   make(map[keybase1.PerUserKeyGeneration]keybase1.PerUserKey),
 	}
-	for k, v := range cki.Infos {
-		ret.Infos[k] = v
-	}
+	maps.Copy(ret.Infos, cki.Infos)
 
-	for k, v := range cki.Sigs {
-		ret.Sigs[k] = v
-	}
+	maps.Copy(ret.Sigs, cki.Sigs)
 
-	for k, v := range cki.Devices {
-		ret.Devices[k] = v
-	}
+	maps.Copy(ret.Devices, cki.Devices)
 
-	for k, v := range cki.KIDToDeviceID {
-		ret.KIDToDeviceID[k] = v
-	}
+	maps.Copy(ret.KIDToDeviceID, cki.KIDToDeviceID)
 
-	for k, v := range cki.PerUserKeys {
-		ret.PerUserKeys[k] = v
-	}
+	maps.Copy(ret.PerUserKeys, cki.PerUserKeys)
 
 	return ret
 }
@@ -283,25 +274,15 @@ func (kf KeyFamily) ShallowCopy() *KeyFamily {
 		SingleKeys:   make(map[keybase1.KID]GenericKey),
 	}
 
-	for k, v := range kf.pgp2kid {
-		ret.pgp2kid[k] = v
-	}
+	maps.Copy(ret.pgp2kid, kf.pgp2kid)
 
-	for k, v := range kf.kid2pgp {
-		ret.kid2pgp[k] = v
-	}
+	maps.Copy(ret.kid2pgp, kf.kid2pgp)
 
-	for k, v := range kf.AllKIDs {
-		ret.AllKIDs[k] = v
-	}
+	maps.Copy(ret.AllKIDs, kf.AllKIDs)
 
-	for k, v := range kf.PGPKeySets {
-		ret.PGPKeySets[k] = v
-	}
+	maps.Copy(ret.PGPKeySets, kf.PGPKeySets)
 
-	for k, v := range kf.SingleKeys {
-		ret.SingleKeys[k] = v
-	}
+	maps.Copy(ret.SingleKeys, kf.SingleKeys)
 
 	return ret
 }

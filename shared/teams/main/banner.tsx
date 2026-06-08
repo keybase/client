@@ -6,37 +6,35 @@ export type Props = {
 }
 
 const Banner = ({onReadMore, onHideChatBanner}: Props) => (
-  <Kb.Box style={styles.containerBanner}>
-    <Kb.Icon
+  <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} alignItems="center" fullWidth={true} relative={true} style={styles.containerBanner}>
+    <Kb.ImageIcon
       style={styles.illustration}
-      type={Kb.Styles.isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'}
+      type={isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'}
     />
-    <Kb.Box style={styles.containerHeader}>
+    <Kb.Box2 direction="vertical" style={styles.containerHeader}>
       <Kb.Text negative={true} type="Header" style={styles.header}>
         Create a team on Keybase
       </Kb.Text>
-      <Kb.Text center={Kb.Styles.isMobile} negative={true} type="BodySmallSemibold" style={styles.text}>
+      <Kb.Text center={isMobile} negative={true} type="BodySmallSemibold" style={styles.text}>
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to
         large communities.
       </Kb.Text>
       <Kb.Text negative={true} type="BodySmallSemiboldPrimaryLink" className="underline" onClick={onReadMore}>
         Read more
       </Kb.Text>
-    </Kb.Box>
-    <Kb.Box style={styles.closeIconContainer}>
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.closeIconContainer}>
       <Kb.Icon
         type="iconfont-close"
+        color={Kb.Styles.globalColors.black_20}
         style={{padding: Kb.Styles.globalMargins.xtiny}}
         onClick={onHideChatBanner}
       />
-    </Kb.Box>
-  </Kb.Box>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  closeIcon: {
-    padding: Kb.Styles.globalMargins.xtiny,
-  },
   closeIconContainer: Kb.Styles.platformStyles({
     common: {
       position: 'absolute',
@@ -46,36 +44,27 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       top: Kb.Styles.globalMargins.tiny,
     },
     isMobile: {
-      height: 26,
+      ...Kb.Styles.size(26),
       right: Kb.Styles.globalMargins.small,
       top: Kb.Styles.globalMargins.small,
-      width: 26,
     },
   }),
   containerBanner: Kb.Styles.platformStyles({
     common: {
-      alignItems: 'center',
       backgroundColor: Kb.Styles.globalColors.blue,
       flexShrink: 0,
-      position: 'relative',
-      width: '100%',
     },
     isElectron: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
       height: 212,
       justifyContent: 'flex-start',
       paddingRight: Kb.Styles.globalMargins.large,
     },
     isMobile: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
       justifyContent: 'center',
       padding: 24,
     },
   }),
   containerHeader: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-    },
     isElectron: {
       maxWidth: 360,
     },
@@ -84,13 +73,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    marginBottom: 15,
-    marginTop: 15,
+    ...Kb.Styles.marginV(15),
   },
   illustration: Kb.Styles.platformStyles({
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.large,
-      paddingRight: Kb.Styles.globalMargins.large,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
     },
   }),
   text: Kb.Styles.platformStyles({

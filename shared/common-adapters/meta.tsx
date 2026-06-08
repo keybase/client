@@ -1,6 +1,6 @@
 import {Box2} from './box'
 import Text from './text'
-import Icon from './icon'
+import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
 import * as Styles from '@/styles'
 
@@ -28,7 +28,7 @@ const Meta = (props: Props) => (
       props.size === 'Small' && styles.containerSmall,
     ])}
   >
-    {!!props.icon && <Icon color={props.iconColor} sizeType="Small" style={styles.icon} type={props.icon} />}
+    {!!props.icon && <IconAuto color={props.iconColor} sizeType="Small" style={styles.icon} type={props.icon} />}
     <Text
       type={typeof props.title === 'number' ? 'BodySmallBold' : 'BodyTinyBold'}
       style={Styles.collapseStyles([
@@ -45,12 +45,10 @@ const Meta = (props: Props) => (
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     borderRadius: 2,
-    paddingLeft: 3,
-    paddingRight: 3,
+    ...Styles.paddingH(3),
   },
   containerSmall: {
-    paddingLeft: 2,
-    paddingRight: 2,
+    ...Styles.paddingH(2),
   },
   icon: {
     paddingRight: Styles.globalMargins.xtiny,
@@ -58,8 +56,7 @@ const styles = Styles.styleSheetCreate(() => ({
   text: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white,
-      marginBottom: -1,
-      marginTop: -1,
+      ...Styles.marginV(-1),
     },
     isMobile: {
       fontSize: 12,

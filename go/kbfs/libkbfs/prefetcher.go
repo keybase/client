@@ -1485,7 +1485,7 @@ func (p *blockPrefetcher) run(
 		p.inFlightFetches.Close()
 	}()
 	isShuttingDown := false
-	var shuttingDownCh <-chan interface{}
+	var shuttingDownCh <-chan any
 	first := true
 	appState := keybase1.MobileAppState_FOREGROUND
 	netState := keybase1.MobileNetworkState_NONE

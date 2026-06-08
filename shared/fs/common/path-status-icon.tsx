@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import PieSlice from './pie-slice'
@@ -46,7 +45,7 @@ function getColor(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyn
 
 function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string {
   if (typeof statusIcon === 'number') {
-    return 'Syncing ' + Math.floor(statusIcon * 100) + '%...'
+    return 'Syncing ' + String(Math.floor(statusIcon * 100)) + '%...'
   }
 
   switch (statusIcon) {
@@ -71,7 +70,7 @@ function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string 
   }
 }
 
-const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
+function PathStatusIcon(props: Props) {
   return props.statusIcon ? (
     <Kb.WithTooltip
       tooltip={getTooltip(props.statusIcon, props.isFolder)}
@@ -79,7 +78,7 @@ const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
     >
       {typeof props.statusIcon === 'number' ? (
         <Kb.Box2 direction="horizontal" style={{margin: Kb.Styles.globalMargins.xtiny}}>
-          <PieSlice degrees={360 * props.statusIcon} animated={true} />
+          <PieSlice degrees={360 * props.statusIcon} />
         </Kb.Box2>
       ) : props.statusIcon === T.FS.UploadIcon.AwaitingToUpload ||
         props.statusIcon === T.FS.UploadIcon.Uploading ||
@@ -87,7 +86,6 @@ const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
         <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
         <Kb.Icon
-          fixOverdraw={true}
           type={getIcon(props.statusIcon)}
           sizeType="Small"
           style={styles.iconFont}
@@ -96,40 +94,34 @@ const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon fixOverdraw={true} type="iconfont-root" sizeType="Small" style={styles.iconFont} />
+    <Kb.Icon type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
-    <Kb.Box style={styles.placeholder} />
+    <Kb.Box2 direction="vertical" style={styles.placeholder} />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconFont: {
     alignSelf: 'center',
-    paddingLeft: Kb.Styles.globalMargins.xtiny,
-    paddingRight: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
   },
   iconNonFont: Kb.Styles.platformStyles({
     common: {
-      marginLeft: Kb.Styles.globalMargins.xtiny,
-      marginRight: Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
-      height: Kb.Styles.globalMargins.xsmall,
-      width: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
-      height: Kb.Styles.globalMargins.small,
-      width: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.small),
     },
   }),
   placeholder: Kb.Styles.platformStyles({
     isElectron: {
-      height: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny,
-      width: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny),
     },
     isMobile: {
-      height: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
-      width: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny),
     },
   }),
 }))

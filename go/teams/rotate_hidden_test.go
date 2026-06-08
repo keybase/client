@@ -44,7 +44,7 @@ func TestRotateHiddenSelf(t *testing.T) {
 	require.Equal(t, keys2[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.Equal(t, keys1[0].Key, keys2[0].Key)
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		team, err = GetForTestByStringName(context.TODO(), tc.G, name)
 		require.NoError(t, err)
 		err = team.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
@@ -106,7 +106,7 @@ func TestRotateHiddenOther(t *testing.T) {
 		checkForUser(1)
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		rotate(i%2 == 0)
 		check()
 	}
@@ -163,7 +163,7 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 		checkForUser(1, true)
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		rotate(i%2 == 0)
 		check()
 	}
@@ -195,7 +195,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 	// Hopefully this is enough for slow CI but you never know.
 	wait := 10 * time.Millisecond * libkb.CITimeMultiplier(g)
 	found := false
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		if poller(i) {
 			found = true
 			break
@@ -358,7 +358,7 @@ func TestHiddenFTLHole(t *testing.T) {
 	}
 
 	t.Logf("U0 rotates the team 4x (via hidden)")
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		rot(keybase1.RotationType_HIDDEN)
 	}
 

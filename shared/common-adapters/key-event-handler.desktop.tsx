@@ -33,47 +33,35 @@ type KeyEventHandlerRef = {
 const KeyEventHandler = (props: Props & HandlerProps): React.ReactNode => {
   const {add, remove, onKeyDown, onKeyPress} = props
 
-  const keyEventHandlerRef = React.useMemo(() => {
-    return {onKeyDown, onKeyPress}
-  }, [onKeyDown, onKeyPress])
-
   React.useEffect(() => {
-    add(keyEventHandlerRef)
+    const ref = {onKeyDown, onKeyPress}
+    add(ref)
     return () => {
-      remove(keyEventHandlerRef)
+      remove(ref)
     }
-  }, [add, remove, keyEventHandlerRef])
+  }, [add, remove, onKeyDown, onKeyPress])
 
   return props.children
 }
 
 const GlobalKeyEventHandler = (props: GlobalProps) => {
   const [stack, setStack] = React.useState<KeyEventHandlerRef[]>([])
-
-  const topHandler = React.useCallback(() => {
-    if (stack.length === 0) {
-      return null
-    }
-    return stack[stack.length - 1]
+  const stackRef = React.useRef(stack)
+  React.useEffect(() => {
+    stackRef.current = stack
   }, [stack])
 
-  const handleKeyDown = React.useCallback(
-    (ev: KeyboardEvent) => {
-      const top = topHandler()
-      top?.onKeyDown?.(ev)
-    },
-    [topHandler]
-  )
-
-  const handleKeyPress = React.useCallback(
-    (ev: KeyboardEvent) => {
-      const top = topHandler()
-      top?.onKeyPress?.(ev)
-    },
-    [topHandler]
-  )
-
   React.useEffect(() => {
+    const handleKeyDown = (ev: KeyboardEvent) => {
+      const s = stackRef.current
+      s[s.length - 1]?.onKeyDown?.(ev)
+    }
+
+    const handleKeyPress = (ev: KeyboardEvent) => {
+      const s = stackRef.current
+      s[s.length - 1]?.onKeyPress?.(ev)
+    }
+
     const body = document.body
     body.addEventListener('keydown', handleKeyDown)
     body.addEventListener('keypress', handleKeyPress)
@@ -82,17 +70,17 @@ const GlobalKeyEventHandler = (props: GlobalProps) => {
       body.removeEventListener('keydown', handleKeyDown)
       body.removeEventListener('keypress', handleKeyPress)
     }
-  }, [handleKeyDown, handleKeyPress])
+  }, [])
 
-  const add = React.useCallback((receiver: KeyEventHandlerRef) => {
+  const add = (receiver: KeyEventHandlerRef) => {
     setStack(prevStack => [...prevStack, receiver])
-  }, [])
+  }
 
-  const remove = React.useCallback((receiver: KeyEventHandlerRef) => {
+  const remove = (receiver: KeyEventHandlerRef) => {
     setStack(prevStack => prevStack.filter(handler => handler !== receiver))
-  }, [])
+  }
 
-  return <KeyEventContext.Provider value={{add, remove}}>{props.children}</KeyEventContext.Provider>
+  return <KeyEventContext value={{add, remove}}>{props.children}</KeyEventContext>
 }
 
 type EscapeHandlerProps = {
@@ -109,12 +97,9 @@ const handleESC = (onESC: (() => void) | undefined, ev: KeyboardEvent) => {
 
 const EscapeHandler = (props: EscapeHandlerProps) => {
   const {onESC} = props
-  const onKeyDown = React.useCallback(
-    (ev: KeyboardEvent) => {
-      handleESC(onESC, ev)
-    },
-    [onESC]
-  )
+  const onKeyDown = (ev: KeyboardEvent) => {
+    handleESC(onESC, ev)
+  }
   return <KeyEventHandlerWrapper onKeyDown={onKeyDown} children={props.children} />
 }
 

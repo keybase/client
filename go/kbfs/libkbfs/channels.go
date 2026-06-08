@@ -18,7 +18,7 @@ const (
 // infinite channel without fearing a panic when we Close() it.
 type InfiniteChannelWrapper struct {
 	*channels.InfiniteChannel
-	input        chan interface{}
+	input        chan any
 	shutdownOnce sync.Once
 	shutdownCh   chan struct{}
 }
@@ -30,7 +30,7 @@ var _ channels.Channel = (*InfiniteChannelWrapper)(nil)
 func NewInfiniteChannelWrapper() *InfiniteChannelWrapper {
 	ch := &InfiniteChannelWrapper{
 		InfiniteChannel: channels.NewInfiniteChannel(),
-		input:           make(chan interface{}, defaultInfiniteBufferSize),
+		input:           make(chan any, defaultInfiniteBufferSize),
 		shutdownCh:      make(chan struct{}),
 	}
 	go ch.run()
@@ -50,7 +50,7 @@ func (ch *InfiniteChannelWrapper) run() {
 }
 
 // In returns the input channel for this infinite channel.
-func (ch *InfiniteChannelWrapper) In() chan<- interface{} {
+func (ch *InfiniteChannelWrapper) In() chan<- any {
 	return ch.input
 }
 

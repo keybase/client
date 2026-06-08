@@ -164,7 +164,7 @@ type kmdMatcher struct {
 	kmd libkey.KeyMetadata
 }
 
-func (m kmdMatcher) Matches(x interface{}) bool {
+func (m kmdMatcher) Matches(x any) bool {
 	kmd, ok := x.(libkey.KeyMetadata)
 	if !ok {
 		return false
@@ -594,7 +594,7 @@ func makeRMDSRange(t *testing.T, config Config,
 ) {
 	id := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
-	for i := 0; i < count; i++ {
+	for i := range count {
 		rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 		if err != nil {
 			t.Fatal(err)
@@ -748,7 +748,7 @@ func testMDOpsGetRangeSuccessHelper(
 	rmds, err := config.MDOps().GetRange(ctx, rmdses[0].MD.TlfID(), start, stop, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(rmdses), len(rmds))
-	for i := 0; i < len(rmdses); i++ {
+	for i := range rmdses {
 		require.Equal(t, expectedMDs[i], rmds[i].bareMd)
 	}
 }
@@ -911,7 +911,7 @@ type failEncodeCodec struct {
 	err error
 }
 
-func (c failEncodeCodec) Encode(obj interface{}) ([]byte, error) {
+func (c failEncodeCodec) Encode(obj any) ([]byte, error) {
 	return nil, c.err
 }
 
@@ -1144,7 +1144,7 @@ func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	var extraDevice int
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		extraDevice = AddDeviceForLocalUserOrBust(t, config, session.UID)
 	}
 

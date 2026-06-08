@@ -1199,7 +1199,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// once to allow the retry to get fresh data.
 	clearedCache := false
 	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		if n.topicID != nil {
 			triple.TopicID = *n.topicID
 		} else {

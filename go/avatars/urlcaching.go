@@ -2,6 +2,7 @@ package avatars
 
 import (
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -36,7 +37,7 @@ func (c *URLCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 	c.diskLRU.Flush(m.Ctx(), m.G())
 }
 
-func (c *URLCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
+func (c *URLCachingSource) debug(m libkb.MetaContext, msg string, args ...any) {
 	m.Debug("Avatars.URLCachingSource: %s", fmt.Sprintf(msg, args...))
 }
 
@@ -89,9 +90,7 @@ func (c *URLCachingSource) specLoad(m libkb.MetaContext, names []string, formats
 
 func (c *URLCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.LoadAvatarsRes) {
 	for username, rec := range m.Picmap {
-		for format, url := range rec {
-			res.Picmap[username][format] = url
-		}
+		maps.Copy(res.Picmap[username], rec)
 	}
 }
 

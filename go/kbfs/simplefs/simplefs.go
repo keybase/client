@@ -242,7 +242,7 @@ type inprogress struct {
 
 type handle struct {
 	file   billy.File
-	async  interface{}
+	async  any
 	path   keybase1.Path
 	cancel context.CancelFunc
 }
@@ -713,7 +713,7 @@ func (k *SimpleFS) setStat(
 	return nil
 }
 
-func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
+func (k *SimpleFS) setResult(opid keybase1.OpID, val any) {
 	k.lock.Lock()
 	k.handles[opid] = &handle{async: val}
 	k.lock.Unlock()
@@ -1256,7 +1256,7 @@ func (k *SimpleFS) SimpleFSListRecursive(
 func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keybase1.SimpleFSListResult, error) {
 	k.lock.Lock()
 	res := k.handles[opid]
-	var x interface{}
+	var x any
 	if res != nil {
 		x = res.async
 		res.async = nil
@@ -1752,7 +1752,7 @@ func (k *SimpleFS) SimpleFSMove(
 }
 
 func (k *SimpleFS) startSyncOp(
-	ctx context.Context, name string, logarg interface{},
+	ctx context.Context, name string, logarg any,
 	path1ForIdentifyBehavior *keybase1.Path,
 	path2ForIdentifyBehavior *keybase1.Path,
 ) (context.Context, error) {
@@ -2313,7 +2313,6 @@ func (k *SimpleFS) doGetRevisions(
 		return nil
 	}
 	for i := range revPaths {
-		i := i
 		eg.Go(func() error { return doStat(i) })
 	}
 	err = eg.Wait()
@@ -2363,7 +2362,7 @@ func (k *SimpleFS) SimpleFSReadRevisions(
 ) {
 	k.lock.Lock()
 	res := k.handles[opid]
-	var x interface{}
+	var x any
 	if res != nil {
 		x = res.async
 		res.async = nil

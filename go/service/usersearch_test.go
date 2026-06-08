@@ -479,7 +479,7 @@ func TestContactSearchMixing(t *testing.T) {
 	}
 
 	searchProv.addUser(testAddUserArg{username: "pierre"}) // the one we have in contacts
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaac%d", i), fmt.Sprintf("The Isaac %d", i)})
 		// Longer names score lower
 		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaac_____%d", i), fmt.Sprintf("The Isaac %d", i)})
@@ -871,16 +871,16 @@ func TestBulkEmailSearch(t *testing.T) {
 		",", "\n", ", ", "\r\n",
 	}
 
-	query := ""
+	var query strings.Builder
 	for i, v := range emails {
-		query += v
+		query.WriteString(v)
 		if i < len(emails)-1 {
-			query += separators[i%len(separators)]
+			query.WriteString(separators[i%len(separators)])
 		}
 	}
 
 	ret, err := searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
-		Emails: query,
+		Emails: query.String(),
 	})
 
 	require.NoError(t, err)

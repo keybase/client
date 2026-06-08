@@ -57,7 +57,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 	nu := NewNormalizedUsername("tusername")
 	secret := makeRandomSecretForTest(t)
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		t.Logf("Doing Store/Retrieve, attempt %d", i)
 		err := ss.StoreSecret(m, nu, secret)
 		require.NoError(t, err)
@@ -80,7 +80,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 
 	// Change fallback behavior, primary secret store can be used again.
 	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		// Not doing fallback anymore, store B should be cleared for NU and
 		// secret should be exclusively in store A.
 		t.Logf("shouldFallback = false, trying again, attempt %d", i)
@@ -233,7 +233,7 @@ func TestUSSFallback(t *testing.T) {
 	t.Logf("Changing behavior to SecretStoreFallbackBehaviorNever")
 	behavior = SecretStoreFallbackBehaviorNever
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		t.Logf("Attempt %d", i)
 
 		// We should still be able to retrieve our secret.

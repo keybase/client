@@ -2,17 +2,17 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Kbfs from '../common'
 import Download from './download'
-import {useFSState} from '@/constants/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const Mobile = () => {
-  Kbfs.useFsDownloadStatus()
-  const downloadIDs = useFSState(s => s.downloads.regularDownloads)
+  const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
       <Kb.ScrollView horizontal={true} snapToInterval={160 + Kb.Styles.globalMargins.xtiny}>
         <Kb.Box2
           direction="horizontal"
+          overflow="hidden"
           style={styles.box}
           centerChildren={true}
           gap="xtiny"
@@ -29,20 +29,15 @@ const Mobile = () => {
 }
 
 const Desktop = () => {
-  Kbfs.useFsDownloadStatus()
-  const {downloadIDs, openLocalPathInSystemFileManagerDesktop} = useFSState(
-    C.useShallow(s => ({
-      downloadIDs: s.downloads.regularDownloads,
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-    }))
-  )
-  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
+  const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
+  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
+        overflow="hidden"
         style={styles.box}
         gap="xtiny"
         gapStart={true}
@@ -64,7 +59,7 @@ const Desktop = () => {
             />
           </Kb.WithTooltip>
         )}
-        <Kb.Box style={styles.space} />
+        <Kb.Box2 direction="horizontal" flex={1} />
         <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
             type="iconfont-folder-downloads"
@@ -85,18 +80,16 @@ const styles = Kb.Styles.styleSheetCreate(
       box: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
-          overflow: 'hidden',
         },
         isElectron: {height: 40},
         isMobile: {height: 48},
       }),
       iconBoxEllipsis: {
         backgroundColor: Kb.Styles.globalColors.black_10,
-        borderRadius: 4,
+        borderRadius: Kb.Styles.borderRadius,
         marginLeft: Kb.Styles.globalMargins.xtiny,
       },
-      space: {flex: 1},
     }) as const
 )
 
-export default Kb.Styles.isMobile ? Mobile : Desktop
+export default isMobile ? Mobile : Desktop

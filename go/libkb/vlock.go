@@ -20,7 +20,7 @@ func NewVerboseLock(level VDebugLevel, name string) *VerboseLock {
 	}
 }
 
-func (l *VerboseLock) Acquire(mctx MetaContext, reasonFormat string, args ...interface{}) (release VerboseLockRelease) {
+func (l *VerboseLock) Acquire(mctx MetaContext, reasonFormat string, args ...any) (release VerboseLockRelease) {
 	reason := fmt.Sprintf(reasonFormat, args...)
 	log := func(symbol string, word string) {
 		mctx.VLogf(l.level, "%v VerboseLock [%v] %v: %v", symbol, l.name, word, reason)

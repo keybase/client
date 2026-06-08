@@ -1,48 +1,42 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import WalletPopup from './wallet-popup'
-import {useState as useWalletsState} from '@/constants/wallets'
+import WalletPopup, {walletModalIconStyle} from './wallet-popup'
+import {makeReallyRemoveAccountRouteParams} from './account-utils'
 
-type OwnProps = {accountID: string}
+type OwnProps = {
+  accountID: string
+  balanceDescription: string
+  name: string
+}
 
-const Container = (ownProps: OwnProps) => {
-  const {accountID} = ownProps
-  const account = useWalletsState(s => s.accountMap.get(accountID))
-  const balance = account?.balanceDescription ?? 'Error loading account'
-  const name = account?.name ?? ''
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onClose = () => {
-    navigateUp()
-  }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+const RemoveAccountPopup = (ownProps: OwnProps) => {
+  const {accountID, balanceDescription, name} = ownProps
   const onDelete = () => {
-    navigateAppend({props: {accountID}, selected: 'reallyRemoveAccount'}, true)
+    C.Router2.navigateAppend(
+      {name: 'reallyRemoveAccount', params: makeReallyRemoveAccountRouteParams({accountID, name})},
+      true
+    )
   }
 
   const buttons = [
-    <Kb.Button fullWidth={Kb.Styles.isMobile} key={0} label="Cancel" onClick={onClose} type="Dim" />,
+    <Kb.Button fullWidth={isMobile} key={0} label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />,
     <Kb.Button
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
       key={1}
       label="Yes, remove"
       onClick={onDelete}
       type="Danger"
-      disabled={!account}
     />,
   ]
 
   return (
     <WalletPopup
-      onExit={onClose}
-      backButtonType="cancel"
-      headerStyle={styles.header}
-      bottomButtons={Kb.Styles.isMobile ? buttons.reverse() : buttons}
-      safeAreaViewBottomStyle={styles.safeAreaBottom}
+      bottomButtons={isMobile ? buttons.reverse() : buttons}
     >
-      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
-        <Kb.Icon
-          type={Kb.Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
-          style={styles.icon}
+      <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
+        <Kb.IconAuto
+          type={isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
+          style={walletModalIconStyle}
         />
         <Kb.Text center={true} style={styles.warningText} type="Header">
           This removes{' '}
@@ -59,33 +53,20 @@ const Container = (ownProps: OwnProps) => {
           from Keybase, but you can still use it elsewhere if you save the private key.
         </Kb.Text>
         <Kb.Text type="BodySmall">Balance:</Kb.Text>
-        <Kb.Text type="BodySmallExtrabold">{balance}</Kb.Text>
+        <Kb.Text type="BodySmallExtrabold">{balanceDescription}</Kb.Text>
       </Kb.Box2>
     </WalletPopup>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  flexOne: {flex: 1},
-  header: {borderBottomWidth: 0},
-  icon: Kb.Styles.platformStyles({
-    common: {marginBottom: Kb.Styles.globalMargins.large},
-    isElectron: {marginTop: Kb.Styles.globalMargins.medium},
-    isMobile: {marginTop: Kb.Styles.globalMargins.xlarge},
-  }),
   marginBottomTiny: {marginBottom: Kb.Styles.globalMargins.tiny},
-  safeAreaBottom: {
-    backgroundColor: Kb.Styles.globalColors.fastBlank,
-  },
   warningText: Kb.Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'} as const,
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.medium,
-      paddingRight: Kb.Styles.globalMargins.medium,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
     },
   }),
 }))
 
-export default Container
-
-
+export default RemoveAccountPopup

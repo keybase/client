@@ -1,0 +1,16 @@
+appId: keybase.ios
+
+---
+
+- launchApp:
+    stopApp: true
+    arguments:
+      PERF_FPS_MONITOR: "true"
+
+- runFlow: ../subflows/navigate-to-chat.yaml
+
+# Scrolling is done by run-maestro.sh via idb to avoid Maestro's per-command
+# app-settle pause, which prevents rapid continuous scrolling.
+
+# Press Home to trigger app background → flushes profiler data
+- pressKey: Home

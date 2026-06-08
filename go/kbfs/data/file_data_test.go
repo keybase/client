@@ -148,15 +148,12 @@ func testFileDataLevelFromData(t *testing.T, maxBlockSize Int64Offset,
 
 		numAtLevel := int(math.Ceil(float64(len(prevChildren)) /
 			float64(maxPtrsPerBlock)))
-		for i := 0; i < numAtLevel; i++ {
+		for range numAtLevel {
 			// Split the previous children up (if any) into
 			// maxPtrsPerBlock chunks.
 			var children []testFileDataLevel
 			var off Int64Offset
-			newIndex := prevChildIndex + maxPtrsPerBlock
-			if newIndex > len(prevChildren) {
-				newIndex = len(prevChildren)
-			}
+			newIndex := min(prevChildIndex+maxPtrsPerBlock, len(prevChildren))
 			off = prevChildren[prevChildIndex].off
 			children = prevChildren[prevChildIndex:newIndex]
 			prevChildIndex = newIndex
@@ -327,8 +324,6 @@ func testFileDataWriteNewLevel(t *testing.T, levels float64) {
 
 func TestFileDataWriteNewLevel(t *testing.T) {
 	for _, level := range []float64{1, 2, 3, 10} {
-		// capture range variable.
-		level := level
 		t.Run(fmt.Sprintf("%dLevels", int(level)), func(t *testing.T) {
 			testFileDataWriteNewLevel(t, level)
 		})
@@ -386,14 +381,11 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 		var level []*FileBlock
 		numAtLevel := int(math.Ceil(float64(len(prevChildren)) /
 			float64(maxPtrsPerBlock)))
-		for i := 0; i < numAtLevel; i++ {
+		for range numAtLevel {
 			// Split the previous children up (if any) into maxPtrsPerBlock
 			// chunks.
 			var children []*FileBlock
-			newIndex := prevChildIndex + maxPtrsPerBlock
-			if newIndex > len(prevChildren) {
-				newIndex = len(prevChildren)
-			}
+			newIndex := min(prevChildIndex+maxPtrsPerBlock, len(prevChildren))
 			children = prevChildren[prevChildIndex:newIndex]
 			fblock := NewFileBlock().(*FileBlock)
 			fblock.IsInd = true
@@ -498,8 +490,6 @@ func testFileDataExtendExistingLevels(t *testing.T, levels float64) {
 
 func TestFileDataExtendExistingLevels(t *testing.T) {
 	for _, level := range []float64{1, 2, 3, 10} {
-		// capture range variable.
-		level := level
 		t.Run(fmt.Sprintf("%dLevels", int(level)), func(t *testing.T) {
 			testFileDataExtendExistingLevels(t, level)
 		})
@@ -614,8 +604,6 @@ func TestFileDataWriteHole(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataOverwriteExistingFile(t, 2, 2, 10,
 				[]testFileDataHole{{5, 10}}, test.start, test.end, test.final)
@@ -707,8 +695,6 @@ func TestFileDataTruncateExtendLevel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataTruncateExtendFile(
 				t, 2, 2, test.currLen, test.newSize, nil)
@@ -798,8 +784,6 @@ func TestFileDataTruncateShrink(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataShrinkExistingFile(t, 2, 2, test.currLen, test.newSize)
 		})
@@ -813,7 +797,7 @@ func testFileDataWriteExtendExistingFileWithGap(t *testing.T,
 	fd, cleanBcache, dirtyBcache, df := setupFileDataTest(
 		t, int64(maxBlockSize), maxPtrsPerBlock)
 	data := make([]byte, fullDataLen)
-	for i := Int64Offset(0); i < fullDataLen; i++ {
+	for i := range fullDataLen {
 		if i < existingLen || i >= startWrite {
 			data[i] = byte(i)
 		}
@@ -881,8 +865,6 @@ func TestFileDataWriteExtendExistingFileWithGap(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataWriteExtendExistingFileWithGap(
 				t, 2, 2, test.currLen, test.newSize, test.startWrite,

@@ -2,44 +2,45 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Wallets from '@/constants/wallets'
-import {useState as useWalletsState} from '@/constants/wallets'
+import {loadAccountsWaitingKey} from '@/constants/strings'
+import {makeRemoveAccountRouteParams, sortAccounts, toAccount, type Account} from './account-utils'
 
-const Row = (p: {account: Wallets.Account}) => {
+const Row = (p: {account: Account}) => {
   const {account} = p
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onRemove = React.useCallback(() => {
-    navigateAppend({props: {accountID}, selected: 'removeAccount'})
-  }, [navigateAppend, accountID])
-  const onCopied = React.useCallback(() => {
+  const onRemove = () => {
+    C.Router2.navigateAppend({name: 'removeAccount', params: makeRemoveAccountRouteParams(account)})
+  }
+  const onCopied = () => {
     setSK('')
     setErr('')
-  }, [])
-  const onReveal = React.useCallback(() => {
+  }
+  const onReveal = (onLoaded?: (text: string) => void) => {
     setErr('')
     setSK('')
     getSecretKey(
       [{accountID}],
       r => {
         setSK(r)
+        onLoaded?.(r)
       },
       e => {
         setErr(e.desc)
       }
     )
-  }, [getSecretKey, accountID])
+  }
 
   return (
     <Kb.Box2
       direction="vertical"
       alignSelf="flex-start"
       alignItems="flex-start"
+      noShrink={true}
       style={styles.row}
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
     >
       <Kb.Text type="BodyBold">
         {name}
@@ -55,7 +56,7 @@ const Row = (p: {account: Wallets.Account}) => {
         <Kb.Box2
           direction="horizontal"
           alignItems="center"
-          gap={Kb.Styles.isMobile ? undefined : 'tiny'}
+          gap={isMobile ? undefined : 'tiny'}
           style={styles.idContainer}
         >
           <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
@@ -110,17 +111,25 @@ const Row = (p: {account: Wallets.Account}) => {
   )
 }
 
-const Container = () => {
+const WalletsScreen = () => {
+  const [accounts, setAccounts] = React.useState<Array<Account>>([])
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = C.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
-
-  const load = useWalletsState(s => s.dispatch.load)
+  const loadAccounts = C.useRPC(T.RPCStellar.localGetWalletAccountsLocalRpcPromise)
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      load()
+    () => {
+      loadAccounts(
+        [undefined, loadAccountsWaitingKey],
+        res => {
+          setAccounts((res ?? []).map(toAccount))
+        },
+        () => {
+          setAccounts([])
+        }
+      )
       checkDisclaimer(
-        [undefined, Wallets.loadAccountsWaitingKey],
+        [undefined, loadAccountsWaitingKey],
         r => {
           setAcceptedDisclaimer(r)
         },
@@ -129,25 +138,14 @@ const Container = () => {
         }
       )
       return () => {}
-    }, [load, checkDisclaimer])
+    }
   )
 
-  const accountMap = useWalletsState(s => s.accountMap)
-  const accounts = React.useMemo(() => {
-    return [...accountMap.values()].sort((a, b) => {
-      if (a.isDefault) return -1
-      if (b.isDefault) return 1
-      return a.name < b.name ? -1 : 1
-    })
-  }, [accountMap])
-
-  const loading = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
-
-  const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
+  const loading = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
 
   return (
     <Kb.ScrollView style={styles.scroll}>
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} padding="small">
         {loading ? <Kb.ProgressIndicator /> : null}
         <Kb.Text type="BodyBig">Stellar Transactions Are No Longer Supported in the Keybase App</Kb.Text>
         {acceptedDisclaimer ? (
@@ -165,7 +163,7 @@ const Container = () => {
             It looks like you never setup your Stellar wallet, enjoy this empty space for a little while
           </Kb.Text>
         )}
-        {acceptedDisclaimer ? rows : null}
+        {acceptedDisclaimer ? sortAccounts(accounts).map(a => <Row account={a} key={a.accountID} />) : null}
       </Kb.Box2>
     </Kb.ScrollView>
   )
@@ -177,7 +175,6 @@ const styles = Kb.Styles.styleSheetCreate(
       accountID: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
-      container: {padding: Kb.Styles.globalMargins.small},
       copyText: Kb.Styles.platformStyles({
         isMobile: {
           flexShrink: 1,
@@ -187,21 +184,18 @@ const styles = Kb.Styles.styleSheetCreate(
       idContainer: {
         alignSelf: 'flex-start',
         flexGrow: 1,
-        maxWidth: Kb.Styles.isMobile ? undefined : 400,
-        width: '100%',
+        maxWidth: isMobile ? undefined : 400,
       },
       idCopy: {height: 40},
       label: {flexShrink: 0},
       remove: {alignSelf: 'flex-end'},
       reveal: {
-        maxWidth: Kb.Styles.isMobile ? undefined : 400,
-        width: Kb.Styles.isMobile ? undefined : '100%',
+        maxWidth: isMobile ? undefined : 400,
       },
       row: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGreyLight,
           borderRadius: Kb.Styles.borderRadius,
-          flexShrink: 0,
         },
         isElectron: {
           padding: 8,
@@ -218,4 +212,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default WalletsScreen

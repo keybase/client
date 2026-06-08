@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 
 type AliasInputProps = {
   error?: string
@@ -13,8 +12,9 @@ type AliasInputProps = {
 }
 
 export type AliasRef = {focus: () => void}
-export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function AliasInput(props, ref) {
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>}) {
+  const {ref, error, disabled, small, onChangeAlias, onEnterKeyDown, onRemove} = props
+  const inputRef = React.useRef<Kb.Input3Ref>(null)
 
   React.useImperativeHandle(ref, () => ({
     focus: () => {
@@ -23,37 +23,33 @@ export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function A
   }))
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
+    <Kb.Box2 direction="vertical" overflow="hidden" style={styles.aliasInputContainer} gap="xxtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
-        <Kb.NewInput
+        <Kb.Input3
           ref={inputRef}
-          error={!!props.error}
-          disabled={props.disabled}
-          textType={Kb.Styles.isMobile ? 'BodySemibold' : 'Body'}
-          containerStyle={Kb.Styles.collapseStyles([
-            styles.aliasInput,
-            !props.small && styles.aliasInputLarge,
-          ])}
-          onChangeText={props.onChangeAlias}
-          onEnterKeyDown={props.onEnterKeyDown}
+          error={!!error}
+          disabled={disabled}
+          textType={isMobile ? 'BodySemibold' : 'Body'}
+          containerStyle={Kb.Styles.collapseStyles([styles.aliasInput, !small && styles.aliasInputLarge])}
+          onChangeText={onChangeAlias}
+          onEnterKeyDown={onEnterKeyDown}
         />
-        {props.onRemove && (
-          <Kb.ClickableBox onClick={props.onRemove} style={styles.removeBox}>
+        {onRemove && (
+          <Kb.ClickableBox direction="horizontal" centerChildren={true} onClick={onRemove} style={styles.removeBox}>
             <Kb.Icon type="iconfont-remove" />
           </Kb.ClickableBox>
         )}
       </Kb.Box2>
-      {!!props.error && (
+      {!!error && (
         <Kb.Text type="BodySmallError" lineClamp={1}>
-          {props.error}
+          {error}
         </Kb.Text>
       )}
     </Kb.Box2>
   )
-})
+}
 
 type ModalProps = {
-  backButtonOnClick?: () => void
   bannerImage: Kb.IconType
   bannerError?: string
   children: React.ReactNode
@@ -61,64 +57,47 @@ type ModalProps = {
   footerButtonLabel?: string
   footerButtonOnClick?: () => void
   footerButtonWaiting?: boolean
-  title: string
 }
 
 export const Modal = (props: ModalProps) => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onCancel = () => clearModals()
   return (
-    <Kb.PopupWrapper onCancel={onCancel} title={props.title}>
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={Kb.Styles.isMobile}
-        fullWidth={Kb.Styles.isMobile}
-        style={Kb.Styles.collapseStyles([
-          styles.container,
-          !Kb.Styles.isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
-        ])}
-      >
-        {!Kb.Styles.isMobile && (
-          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
-            {props.backButtonOnClick && (
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                boxStyle={styles.backButton}
-                onClick={props.backButtonOnClick}
-              />
-            )}
-            <Kb.Text type="Header">{props.title}</Kb.Text>
-          </Kb.Box2>
-        )}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
-          <Kb.Icon type={props.bannerImage} noContainer={true} style={styles.bannerImage} />
-          {!!props.bannerError && (
-            <Kb.Banner color="red" style={styles.bannerError}>
-              {props.bannerError}
-            </Kb.Banner>
-          )}
-        </Kb.Box2>
-        {props.children}
-        {props.footerButtonLabel && (
-          <Kb.Box2
-            direction="vertical"
-            centerChildren={true}
-            style={styles.footerContainer}
-            gap="small"
-            fullWidth={true}
-          >
-            <Kb.Button
-              mode="Primary"
-              label={props.footerButtonLabel}
-              fullWidth={true}
-              onClick={props.footerButtonOnClick}
-              disabled={!props.footerButtonOnClick}
-              waiting={props.footerButtonWaiting}
-            />
-          </Kb.Box2>
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={isMobile}
+      fullWidth={isMobile}
+      style={Kb.Styles.collapseStyles([
+        styles.container,
+        !isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
+      ])}
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
+        <Kb.ImageIcon type={props.bannerImage} style={styles.bannerImage} />
+        {!!props.bannerError && (
+          <Kb.Banner color="red" style={styles.bannerError}>
+            {props.bannerError}
+          </Kb.Banner>
         )}
       </Kb.Box2>
-    </Kb.PopupWrapper>
+      {props.children}
+      {props.footerButtonLabel && (
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          style={styles.footerContainer}
+          gap="small"
+          fullWidth={true}
+        >
+          <Kb.Button
+            mode="Primary"
+            label={props.footerButtonLabel}
+            fullWidth={true}
+            onClick={props.footerButtonOnClick}
+            disabled={!props.footerButtonOnClick}
+            waiting={props.footerButtonWaiting}
+          />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
   )
 }
 
@@ -131,20 +110,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       height: Kb.Styles.globalMargins.mediumLarge,
-      paddingLeft: Kb.Styles.globalMargins.xsmall,
-      paddingRight: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
       height: Kb.Styles.globalMargins.large,
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
   }),
-  aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1, overflow: 'hidden'},
+  aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1},
   aliasInputLarge: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       height: Kb.Styles.globalMargins.large,
@@ -153,13 +129,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: Kb.Styles.globalMargins.large + 3 * Kb.Styles.globalMargins.xxtiny,
     },
   }),
-  backButton: {
-    left: Kb.Styles.globalMargins.xsmall,
-    position: 'absolute',
-  },
   bannerContainer: {
     height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.mediumLarge,
-    position: 'relative',
   },
   bannerError: Kb.Styles.platformStyles({
     common: {
@@ -168,8 +139,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   bannerImage: Kb.Styles.platformStyles({
     common: {
-      height: '100%',
-      width: '100%',
+      ...Kb.Styles.size('100%'),
     },
     isElectron: {
       objectFit: 'cover',
@@ -194,15 +164,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       padding: Kb.Styles.globalMargins.small,
     },
   }),
-  headerContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      height: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
-    },
-  }),
   removeBox: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
     padding: Kb.Styles.globalMargins.xtiny,
   },
 }))

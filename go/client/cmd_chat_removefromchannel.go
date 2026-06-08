@@ -88,8 +88,8 @@ func (c *CmdChatRemoveFromChannel) ParseArgv(ctx *cli.Context) (err error) {
 	if len(userString) == 0 {
 		return errors.New("remove-from-channel needs at least one user")
 	}
-	users := strings.Split(userString, ",")
-	for _, user := range users {
+	users := strings.SplitSeq(userString, ",")
+	for user := range users {
 		if len(user) == 0 {
 			return errors.New("cannot specify an empty user")
 		}

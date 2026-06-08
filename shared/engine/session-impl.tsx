@@ -2,14 +2,14 @@ import {
   StatusCode,
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
-} from '@/constants/types/rpc-gen'
+} from '@/constants/rpc/rpc-gen'
 import {rpcLog, type InvokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '@/util/errors'
 import {getEngine} from './require'
 import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
 
-type WaitingKey = string | Array<string>
+type WaitingKey = string | ReadonlyArray<string>
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -61,9 +61,6 @@ class Session {
     this._dangling = p.dangling || false
   }
 
-  setId(_: SessionID) {
-    throw new Error("Can't set sessionID")
-  }
   getId(): SessionID {
     return this._id
   }
@@ -121,7 +118,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: object, callback: (() => void) | undefined) {
+  start(method: MethodKey, param: object | undefined, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -132,9 +129,8 @@ class Session {
       this.end()
     }
 
-    // Add the sessionID
     const wrappedParam = {
-      ...param,
+      ...(param ?? {}),
       sessionID: this.getId(),
     }
 
@@ -157,7 +153,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: keyof IncomingCallMapType, param: object, response?: ResponseType): boolean {
+  incomingCall(method: MethodKey, param: object, response?: ResponseType): boolean {
     rpcLog({
       extra: {
         id: this.getId(),
@@ -169,7 +165,7 @@ class Session {
       type: 'engineInternal',
     })
 
-    let handler = this._incomingCallMap[method] as
+    let handler = (this._incomingCallMap as {[key: string]: unknown})[method] as
       | undefined
       | ((param: object | undefined, request: ResponseType) => void)
 
@@ -195,12 +191,9 @@ class Session {
 
   // Tell engine if we can handle the cancelled call
   hasSeqID(seqID: number) {
-    if (__DEV__) {
-      if (Object.hasOwn(this._seqIDResponded, String(seqID))) {
-        console.log('Cancelling seqid found, current session state', this)
-      }
-    }
-    return Object.hasOwn(this._seqIDResponded, String(seqID))
+    // The server can cancel callback seqids after we have already responded.
+    // Only unresponded callback seqids should cancel the parent session.
+    return this._seqIDResponded[String(seqID)] === false
   }
 }
 

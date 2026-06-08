@@ -44,7 +44,7 @@ func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
 	return b
 }
 
-func (b *BackgroundTLFUpdater) debug(ctx context.Context, msg string, args ...interface{}) {
+func (b *BackgroundTLFUpdater) debug(ctx context.Context, msg string, args ...any) {
 	b.G().Log.CDebugf(ctx, "BackgroundTLFUpdater: %s", fmt.Sprintf(msg, args...))
 }
 

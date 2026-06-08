@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -178,12 +179,7 @@ func (b AssertionURLBase) GetValue() string {
 
 func (b AssertionURLBase) matchSet(v AssertionURL, ps ProofSet) bool {
 	proofs := ps.Get(v.Keys())
-	for _, proof := range proofs {
-		if v.MatchProof(proof) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(proofs, v.MatchProof)
 }
 
 func (b AssertionURLBase) NeedsParens() bool { return false }
@@ -502,9 +498,9 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		}
 	}
 
-	if colIndex := strings.Index(s, ":"); colIndex != -1 {
-		service := s[:colIndex]
-		name := s[colIndex+1:]
+	if before, after, ok := strings.Cut(s, ":"); ok {
+		service := before
+		name := after
 
 		// "dns://keybase.io" syntax.
 		name = strings.TrimPrefix(name, "//")
@@ -892,7 +888,7 @@ func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTe
 }
 
 func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bool) (ret keybase1.ImplicitTeamUserSet, err error) {
-	for _, part := range strings.Split(s, ",") {
+	for part := range strings.SplitSeq(s, ",") {
 		typ, name, err := parseImplicitTeamPart(ctx, part)
 		if err != nil {
 			return keybase1.ImplicitTeamUserSet{}, err

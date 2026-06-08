@@ -1,34 +1,33 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import Separator from './separator'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
+import {useChatThreadRouteParams} from '../thread-search-route'
+import {
+  useConversationThreadID,
+  useConversationThreadSelector,
+} from '../thread-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
-  const createConversationError = Chat.useChatState(s => s.createConversationError)
-  const createConversation = Chat.useChatState(s => s.dispatch.createConversation)
+  const createConversationError = useChatThreadRouteParams()?.createConversationError
 
-  const _onCreateWithoutThem = React.useCallback(
-    (allowedUsers: ReadonlyArray<string>) => {
-      createConversation(allowedUsers)
-    },
-    [createConversation]
-  )
+  const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
+    C.Router2.createConversation(allowedUsers)
+  }
 
-  const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
-  const _onBack = React.useCallback(() => {
+  const navigateToInbox = C.Router2.navigateToInbox
+  const _onBack = () => {
     navigateToInbox()
-  }, [navigateToInbox])
-  const onBack = Kb.Styles.isMobile ? _onBack : undefined
+  }
+  const onBack = isMobile ? _onBack : undefined
 
   let createConversationDisallowedUsers: ReadonlyArray<string> = []
   let createConversationErrorDescription = ''
@@ -73,10 +72,10 @@ const ErrorMessage = () => {
       {createConversationDisallowedUsers.length > 0 && (
         <>
           {createConversationDisallowedUsers.map((username, idx) => (
-            <Kb.ListItem2
+            <Kb.ListItem
               key={username}
-              type={Kb.Styles.isMobile ? 'Large' : 'Small'}
-              icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
+              type={isMobile ? 'Large' : 'Small'}
+              icon={<Kb.Avatar size={isMobile ? 48 : 32} username={username} />}
               firstItem={idx === 0}
               body={
                 <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -91,7 +90,7 @@ const ErrorMessage = () => {
         {createConversationErrorDescription}
       </Kb.Text>
       <Kb.ButtonBar
-        direction={Kb.Styles.isMobile ? 'column' : 'row'}
+        direction={isMobile ? 'column' : 'row'}
         fullWidth={true}
         style={styles.buttonBar}
       >
@@ -110,128 +109,95 @@ const ErrorMessage = () => {
   )
 }
 
-const SpecialTopMessage = React.memo(function SpecialTopMessage() {
+function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const ordinals = s.messageOrdinals
-      const hasLoadedEver = ordinals !== undefined
-      const ordinal = ordinals?.[0] ?? T.Chat.numberToOrdinal(0)
-      const meta = s.meta
-      const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-      const loadMoreType = s.moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
-      const pendingState =
-        s.id === Chat.pendingWaitingConversationIDKey
-          ? 'waiting'
-          : s.id === Chat.pendingErrorConversationIDKey
-            ? 'error'
-            : 'done'
-
-      const partAll = s.participants.all
-      const partNum = partAll.length
-      const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
-      const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)
-      const showTeamOffer =
-        hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && partNum > 2
-      const hasOlderResetConversation = supersedes !== Chat.noConversationIDKey
-      // don't show default header in the case of the retention notice being visible
-      const showRetentionNotice =
-        retentionPolicy.type !== 'retain' &&
-        !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
-      return {
-        hasOlderResetConversation,
-        isHelloBotConversation,
-        isSelfConversation,
-        loadMoreType,
-        ordinal,
-        pendingState,
-        showRetentionNotice,
-        showTeamOffer,
-      }
-    })
+  const conversationIDKey = useConversationThreadID()
+  const {firstOrdinal, hasLoadedEver, meta, moreToLoadBack, participants} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      firstOrdinal: s.messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0),
+      hasLoadedEver: s.messageOrdinals !== undefined,
+      meta: s.meta,
+      moreToLoadBack: s.moreToLoadBack,
+      participants: s.participants,
+    }))
   )
-  const {ordinal, pendingState, isHelloBotConversation, hasOlderResetConversation} = data
-  const {loadMoreType, isSelfConversation, showTeamOffer, showRetentionNotice} = data
-  // we defer showing this so it doesn't flash so much
-  const [allowDigging, setAllowDigging] = React.useState(false)
-  const lastOrdinalRef = React.useRef(ordinal)
+  const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
+  const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
+  const pendingState =
+    conversationIDKey === T.Chat.pendingWaitingConversationIDKey
+      ? 'waiting'
+      : conversationIDKey === T.Chat.pendingErrorConversationIDKey
+        ? 'error'
+        : 'done'
 
-  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  React.useEffect(() => {
-    if (ordinal !== lastOrdinalRef.current) {
-      setAllowDigging(false)
-      lastOrdinalRef.current = ordinal
-      digTimerRef.current && clearTimeout(digTimerRef.current)
-      digTimerRef.current = setTimeout(() => {
-        setAllowDigging(true)
-      }, 3000)
-    }
-  }, [ordinal])
+  const partAll = participants.all
+  const partNum = partAll.length
+  const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
+  const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)
+  const showTeamOffer = hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && partNum > 2
+  const hasOlderResetConversation = supersedes !== T.Chat.noConversationIDKey
+  // don't show default header in the case of the retention notice being visible
+  const showRetentionNotice =
+    retentionPolicy.type !== 'retain' &&
+    !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
 
-  React.useEffect(() => {
-    return () => {
-      if (digTimerRef.current) {
-        clearTimeout(digTimerRef.current)
-        digTimerRef.current = undefined
-      }
-    }
-  }, [])
-
-  const openPrivateFolder = React.useCallback(() => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
-  }, [username])
+  const openPrivateFolder = () => {
+    FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
+  }
 
   return (
-    <Kb.Box>
-      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
-      <Kb.Box style={styles.spacer} />
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      {hasLoadedEver && loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
+      <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodySmall">Loading...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {pendingState === 'error' && <ErrorMessage />}
-      {loadMoreType === 'noMoreToLoad' && !showRetentionNotice && pendingState === 'done' && (
-        <Kb.Box style={styles.more}>
+      {hasLoadedEver && loadMoreType === 'noMoreToLoad' && !showRetentionNotice && pendingState === 'done' && (
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           {isHelloBotConversation ? (
             <HelloBotCard />
           ) : (
             <NewChatCard self={isSelfConversation} openPrivateFolder={openPrivateFolder} />
           )}
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {showTeamOffer && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <MakeTeamCard />
-        </Kb.Box>
+        </Kb.Box2>
       )}
-      {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
-        <Kb.Box style={styles.more}>
+      {hasLoadedEver && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
           </Kb.Text>
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
-      {!Kb.Styles.isMobile || usingFlashList ? null : (
+      {!isMobile || usingFlashList ? null : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
-        <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={ordinal} />
+        <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={firstOrdinal} />
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonBar: {padding: Kb.Styles.globalMargins.small},
+      container: Kb.Styles.platformStyles({
+        isElectron: {
+          minHeight: 100,
+        },
+      }),
       errorText: {padding: Kb.Styles.globalMargins.small},
       more: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         paddingBottom: Kb.Styles.globalMargins.medium,
-        width: '100%',
       },
       spacer: {height: Kb.Styles.globalMargins.small},
     }) as const

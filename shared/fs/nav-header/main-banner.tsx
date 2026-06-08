@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFsErrorActionOrThrow, useFsOverallSyncStatus, useKbfsDaemonStatus} from '../common'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
   onRetry: () => void
@@ -33,7 +33,7 @@ const Banner = (props: Props) => {
             bannerColor="red"
             content={[
               'Your ',
-              Kb.Styles.isMobile ? 'phone' : 'computer',
+              isMobile ? 'phone' : 'computer',
               ' is out of space and some folders could not be properly synced. Make some space and ',
               {onClick: props.onRetry, text: 'retry the sync'},
               '.',
@@ -54,25 +54,27 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedBanner = () => {
-  const {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata} = useFSState(
-    C.useShallow(s => {
-      const _kbfsDaemonStatus = s.kbfsDaemonStatus
-      const _overallSyncStatus = s.overallSyncStatus
-      const loadPathMetadata = s.dispatch.loadPathMetadata
-      return {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata}
-    })
-  )
-  const _name = useCurrentUserState(s => s.username)
-  // This LoadPathMetadata triggers a sync retry.
+  const kbfsDaemonStatus = useKbfsDaemonStatus()
+  const overallSyncStatus = useFsOverallSyncStatus()
+  const name = useCurrentUserState(s => s.username)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  // Stat'ing the path nudges the service to retry sync.
   const onRetry = () => {
-    loadPathMetadata(T.FS.stringToPath('/keybase/private' + _name))
+    const path = T.FS.stringToPath('/keybase/private/' + name)
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+          path: FS.pathToRPCPath(path),
+          refreshSubscription: false,
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
   }
 
-  const props = {
-    bannerType: FS.getMainBannerType(_kbfsDaemonStatus, _overallSyncStatus),
-    onRetry,
-  }
-  return <Banner {...props} />
+  return <Banner bannerType={FS.getMainBannerType(kbfsDaemonStatus, overallSyncStatus)} onRetry={onRetry} />
 }
 
 export default ConnectedBanner

@@ -25,7 +25,7 @@ func TestJsonTransaction(t *testing.T) {
 	defer tc.Cleanup()
 
 	var wg sync.WaitGroup
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		wg.Add(1)
 		go func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()
@@ -35,7 +35,7 @@ func TestJsonTransaction(t *testing.T) {
 			wg.Done()
 		}()
 	}
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		wg.Add(1)
 		go func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()

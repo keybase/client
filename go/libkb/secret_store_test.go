@@ -95,7 +95,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	}
 
 	expectedUsernames := make([]string, 10)
-	for i := 0; i < len(expectedUsernames); i++ {
+	for i := range expectedUsernames {
 		expectedUsernames[i] = fmt.Sprintf("account with unicode テスト %d", i)
 
 		if err := tc.G.SecretStore().StoreSecret(m, NewNormalizedUsername(expectedUsernames[i]), fs); err != nil {
@@ -121,7 +121,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		}
 	}
 
-	for i := 0; i < len(expectedUsernames); i++ {
+	for i := range expectedUsernames {
 		err = tc.G.SecretStore().ClearSecret(m, NewNormalizedUsername(expectedUsernames[i]))
 		if err != nil {
 			t.Error(err)

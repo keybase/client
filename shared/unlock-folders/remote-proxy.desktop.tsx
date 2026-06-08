@@ -1,14 +1,15 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import {useEngineActionListener} from '@/engine/action-listener'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {serialize, type ProxyProps} from './remote-serializer.desktop'
 import {useColorScheme} from 'react-native'
-import {useConfigState} from '@/constants/config'
+import {handleUnlockFoldersEngineAction} from './engine-actions.desktop'
+import type {ProxyProps} from './main2.desktop'
+import {useUnlockFoldersState} from './store'
 
 const windowOpts = {height: 300, width: 500}
 
-const UnlockFolders = React.memo(function UnlockFolders(p: ProxyProps) {
+function UnlockFolders(p: ProxyProps) {
   const windowComponent = 'unlock-folders'
   const windowParam = windowComponent
 
@@ -19,15 +20,29 @@ const UnlockFolders = React.memo(function UnlockFolders(p: ProxyProps) {
     windowTitle: 'UnlockFolders',
   })
 
-  useSerializeProps(p, serialize, windowComponent, windowParam)
+  useSerializeProps(p, windowComponent, windowParam)
   return null
-})
+}
 
 const UnlockRemoteProxy = () => {
-  const devices = useConfigState(s => s.unlockFoldersDevices)
-  const paperKeyError = useConfigState(s => s.unlockFoldersError)
+  const {devices, open, paperKeyError} = useUnlockFoldersState(
+    C.useShallow(s => ({
+      devices: s.devices,
+      open: s.dispatch.open,
+      paperKeyError: s.paperKeyError,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting('unlock-folders:waiting')
   const isDarkMode = useColorScheme() === 'dark'
+
+  useEngineActionListener('keybase.1.rekeyUI.refresh', action => {
+    handleUnlockFoldersEngineAction(action, open)
+  })
+
+  useEngineActionListener('keybase.1.rekeyUI.delegateRekeyUI', action => {
+    handleUnlockFoldersEngineAction(action, open)
+  })
+
   if (devices.length) {
     return (
       <UnlockFolders

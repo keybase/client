@@ -1,30 +1,26 @@
-import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'
+import * as InputState from '@/chat/conversation/input-area/input-state'
 // we need to use the raw colors to animate
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
-import {
-  Gesture,
-  GestureDetector,
-  type GestureUpdateEvent,
-  type PanGestureHandlerEventPayload,
-} from 'react-native-gesture-handler'
-import {View} from 'react-native'
+import {PanResponder, View, type GestureResponderEvent, type PanResponderGestureState} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
-import {Audio} from 'expo-av'
+import {AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
 import {setupAudioMode} from '@/util/audio.native'
 import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
-import * as FileSystem from 'expo-file-system'
+import {File} from 'expo-file-system'
 import AudioSend from './audio-send.native'
+import {useConversationSendActions} from '@/chat/conversation/send-actions'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
 const {interpolate, withSequence, withSpring, runOnJS} = Reanimated
 const {useAnimatedReaction, withDelay, withTiming, interpolateColor, default: Animated} = Reanimated
+const AnimatedBox2 = Animated.createAnimatedComponent(Kb.Box2)
 type SVN = Reanimated.SharedValue<number>
 
 type Props = {
@@ -77,12 +73,116 @@ const useTooltip = () => {
     </Portal>
   ) : null
 
-  const flashTip = React.useCallback(() => {
+  const flashTip = () => {
     'worklet'
     runOnJS(setShowTooltip)(true)
-  }, [setShowTooltip])
+  }
 
   return {flashTip, tooltip}
+}
+
+type MicButtonProps = {
+  startedSV: SVN
+  fadeSV: SVN
+  canceledSV: SVN
+  lockedSV: SVN
+  dragXSV: SVN
+  dragYSV: SVN
+  startRecording: () => void
+  onCancelRecording: () => void
+  onFlashTip: () => void
+  sendRecording: () => void
+  onReset: () => void
+}
+
+const MicButton = (p: MicButtonProps) => {
+  'use no memo'
+  const {startedSV, fadeSV, canceledSV, lockedSV, dragXSV, dragYSV,
+    startRecording, onCancelRecording, onFlashTip, sendRecording, onReset} = p
+
+  const panStartRef = React.useRef(0)
+  const overlayTimeoutIdRef = React.useRef(0)
+  const cbRef = React.useRef({onCancelRecording, onFlashTip, sendRecording, onReset, startRecording})
+
+  // useState factory captures only plain mutable locals — no React refs transitively.
+  // We swap them out from useLayoutEffect, which is not subject to render-phase lint rules.
+  const [ctx] = React.useState(() => {
+    let _grant = () => {}
+    let _move = (_e: GestureResponderEvent, _gs: PanResponderGestureState) => {}
+    let _release = () => {}
+    let _terminate = () => {}
+    return {
+      panHandlers: PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => _grant(),
+        onPanResponderMove: (e, gs) => _move(e, gs),
+        onPanResponderRelease: () => _release(),
+        onPanResponderTerminate: () => _terminate(),
+      }).panHandlers,
+      set(
+        grant: () => void,
+        move: (e: GestureResponderEvent, gs: PanResponderGestureState) => void,
+        release: () => void,
+        terminate: () => void,
+      ) {
+        _grant = grant
+        _move = move
+        _release = release
+        _terminate = terminate
+      },
+    }
+  })
+
+  // All ref/SharedValue accesses live here — useLayoutEffect is post-render, not during render.
+  React.useLayoutEffect(() => {
+    cbRef.current = {onCancelRecording, onFlashTip, sendRecording, onReset, startRecording}
+    ctx.set(
+      () => {
+        overlayTimeoutIdRef.current = setTimeout(() => {
+          if (startedSV.value) return
+          startedSV.set(1)
+          fadeSV.set(withSpring(1, {duration: 200}))
+          cbRef.current.startRecording()
+        }, 200) as unknown as number
+        if (!panStartRef.current) panStartRef.current = Date.now()
+      },
+      (_e: GestureResponderEvent, gs: PanResponderGestureState) => {
+        if (lockedSV.value || canceledSV.value) return
+        const maxCancelDrift = -120
+        const maxLockDrift = -100
+        dragYSV.set(interpolate(gs.dy, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
+        dragXSV.set(interpolate(gs.dx, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP))
+        if (gs.dx < maxCancelDrift) canceledSV.set(1)
+        else if (gs.dy < maxLockDrift) lockedSV.set(1)
+      },
+      () => {
+        const diff = Date.now() - panStartRef.current
+        startedSV.set(0)
+        panStartRef.current = 0
+        clearTimeout(overlayTimeoutIdRef.current)
+        overlayTimeoutIdRef.current = 0
+        const wasCancel = canceledSV.value === 1
+        const panLocked = lockedSV.value === 1
+        if (wasCancel) { cbRef.current.onCancelRecording(); return }
+        if (diff < 200) { cbRef.current.onFlashTip(); return }
+        if (!panLocked) { cbRef.current.sendRecording(); cbRef.current.onReset() }
+      },
+      () => {
+        startedSV.set(0)
+        panStartRef.current = 0
+        clearTimeout(overlayTimeoutIdRef.current)
+        overlayTimeoutIdRef.current = 0
+        cbRef.current.onCancelRecording()
+      },
+    )
+  })
+
+  return (
+    <View {...ctx.panHandlers}>
+      <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+    </View>
+  )
 }
 
 const useIconAndOverlay = (p: {
@@ -121,149 +221,49 @@ const useIconAndOverlay = (p: {
     }
   )
 
-  const onReset = React.useCallback(() => {
+  const onReset = () => {
     'worklet'
     fadeSV.set(withTiming(0, {duration: 200}))
     dragXSV.set(0)
     dragYSV.set(0)
     lockedSV.set(0)
     canceledSV.set(0)
-  }, [fadeSV, dragXSV, dragYSV, lockedSV, canceledSV])
+  }
 
-  const onCancelRecording = React.useCallback(() => {
+  const onCancelRecording = () => {
     onReset()
     cancelRecording()
-  }, [cancelRecording, onReset])
+  }
 
-  const onStageRecording = React.useCallback(() => {
+  const onStageRecording = () => {
     onReset()
     stageRecording()
-  }, [stageRecording, onReset])
+  }
 
-  const onSendRecording = React.useCallback(() => {
+  const onSendRecording = () => {
     onReset()
     sendRecording()
-  }, [sendRecording, onReset])
+  }
 
-  const onFlashTip = React.useCallback(() => {
+  const onFlashTip = () => {
     flashTip()
     onCancelRecording()
-  }, [flashTip, onCancelRecording])
+  }
 
-  const [iconVisible, setIconVisible] = React.useState(false)
-
-  // work around bug in gesture handler where it crashes on mount
-  React.useEffect(() => {
-    const id = setTimeout(() => {
-      setIconVisible(true)
-      return () => {
-        clearTimeout(id)
-      }
-    }, 1000)
-  }, [])
-  const panStartSV = useSharedValue(0)
-
-  const gesture = React.useMemo(() => {
-    let id: number
-    const showOverlay = () => {
-      // we get this multiple times for some reason
-      if (startedSV.value) {
-        return
-      }
-      startedSV.set(1)
-      fadeSV.set(withSpring(1, {duration: 200}))
-      startRecording()
-    }
-
-    const setupOverlayTimeout = () => {
-      id = setTimeout(() => {
-        showOverlay()
-      }, 200) as unknown as number
-    }
-    const cleanupOverlayTimeout = () => {
-      clearTimeout(id)
-      id = 0
-    }
-
-    const panGesture = Gesture.Pan()
-      .minDistance(0)
-      .minPointers(1)
-      .maxPointers(1)
-      .onTouchesDown(() => {
-        'worklet'
-        runOnJS(setupOverlayTimeout)()
-        if (!panStartSV.value) {
-          panStartSV.set(Date.now())
-        }
-      })
-      .onFinalize((_e: unknown, _success: boolean) => {
-        'worklet'
-        const diff = Date.now() - panStartSV.value
-        startedSV.set(0)
-        panStartSV.set(0)
-        runOnJS(cleanupOverlayTimeout)()
-        const needTip = diff < 200
-        const wasCancel = canceledSV.value === 1
-        const panLocked = lockedSV.value === 1
-        if (wasCancel) {
-          runOnJS(onCancelRecording)()
-          return
-        }
-
-        if (needTip) {
-          runOnJS(onFlashTip)()
-          return
-        }
-
-        if (!panLocked) {
-          runOnJS(sendRecording)()
-          onReset()
-          fadeSV.set(withTiming(0, {duration: 200}))
-        }
-      })
-      .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
-        'worklet'
-        if (lockedSV.value || canceledSV.value) {
-          return
-        }
-        const maxCancelDrift = -120
-        const maxLockDrift = -100
-        dragYSV.set(interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
-        dragXSV.set(
-          interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
-        )
-        if (e.translationX < maxCancelDrift) {
-          canceledSV.set(1)
-        } else if (e.translationY < maxLockDrift) {
-          lockedSV.set(1)
-        }
-      })
-    return panGesture
-  }, [
-    onReset,
-    panStartSV,
-    fadeSV,
-    onFlashTip,
-    lockedSV,
-    canceledSV,
-    dragXSV,
-    dragYSV,
-    startRecording,
-    sendRecording,
-    onCancelRecording,
-    startedSV,
-  ])
-
-  const icon = iconVisible ? (
-    <View>
-      <GestureDetector gesture={gesture}>
-        <Kb.Box2 direction="vertical" collapsable={false}>
-          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
-        </Kb.Box2>
-      </GestureDetector>
-    </View>
-  ) : (
-    <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+  const icon = (
+    <MicButton
+      startedSV={startedSV}
+      fadeSV={fadeSV}
+      canceledSV={canceledSV}
+      lockedSV={lockedSV}
+      dragXSV={dragXSV}
+      dragYSV={dragYSV}
+      startRecording={startRecording}
+      onCancelRecording={onCancelRecording}
+      onFlashTip={onFlashTip}
+      sendRecording={sendRecording}
+      onReset={onReset}
+    />
   )
 
   const durationStyle = useAnimatedStyle(() => ({
@@ -308,50 +308,54 @@ const vibrate = (short: boolean) => {
   }
 }
 
-const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) => void) => {
-  vibrate(true)
-
-  const recording = new Audio.Recording()
-  await recording.prepareToRecordAsync({
-    android: {
-      audioEncoder: Audio.AndroidAudioEncoder.AAC,
-      bitRate: 32000,
-      extension: '.m4a',
-      numberOfChannels: 1,
-      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-      sampleRate: 22050,
-    },
-    ios: {
-      audioQuality: Audio.IOSAudioQuality.MIN,
-      bitRate: 32000,
-      extension: '.m4a',
-      linearPCMBitDepth: 16,
-      linearPCMIsBigEndian: false,
-      linearPCMIsFloat: false,
-      numberOfChannels: 1,
-      outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-      sampleRate: 22050,
-    },
-    isMeteringEnabled: true,
-    web: {},
-  })
-  recording.setProgressUpdateInterval(100)
-  recording.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
-  return recording
+const recordingOptions = {
+  android: {
+    audioEncoder: 'aac' as const,
+    outputFormat: 'mpeg4' as const,
+  },
+  bitRate: 32000,
+  extension: '.m4a',
+  ios: {
+    audioQuality: AudioQuality.MIN,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+    outputFormat: IOSOutputFormat.MPEG4AAC,
+  },
+  isMeteringEnabled: true,
+  numberOfChannels: 1,
+  sampleRate: 22050,
+  web: {},
 }
 
 // Hook for interfacing with the native recorder
 const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; showAudioSend: boolean}) => {
   const {ampSV, setShowAudioSend, showAudioSend} = p
-  const recordingRef = React.useRef<Audio.Recording | undefined>(undefined)
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
   const hasSetupRecording = React.useRef(false)
   const pathRef = React.useRef('')
-  const ampTracker = React.useRef(new AmpTracker()).current
+  const [ampTracker] = React.useState(() => new AmpTracker())
   const [staged, setStaged] = React.useState(false)
+  const [stagedRecording, setStagedRecording] = React.useState({duration: 0, path: ''})
 
-  const stopRecording = React.useCallback(async () => {
+  // Recorder is created lazily on startRecording and released on stop/reset/unmount.
+  // This avoids holding a native SharedRef across unrelated navigations (e.g. photo picker).
+  const recorderRef = React.useRef<InstanceType<typeof AudioModule.AudioRecorder> | null>(null)
+  const meteringIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const releaseRecorder = React.useCallback(() => {
+    if (meteringIntervalRef.current !== null) {
+      clearInterval(meteringIntervalRef.current)
+      meteringIntervalRef.current = null
+    }
+    if (recorderRef.current) {
+      recorderRef.current.release()
+      recorderRef.current = null
+    }
+  }, [])
+
+  const stopRecording = async () => {
     const needsTeardown = hasSetupRecording.current
     if (needsTeardown) {
       hasSetupRecording.current = false
@@ -359,47 +363,50 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     }
     recordEndRef.current = Date.now()
 
-    const recording = recordingRef.current
-    recordingRef.current = undefined
-    if (recording) {
-      recording.setOnRecordingStatusUpdate(null)
+    if (meteringIntervalRef.current !== null) {
+      clearInterval(meteringIntervalRef.current)
+      meteringIntervalRef.current = null
+    }
+
+    if (recordStartRef.current > 0 && recorderRef.current) {
       try {
-        await recording.stopAndUnloadAsync()
+        await recorderRef.current.stop()
       } catch (e) {
-        console.log('Recoding stopping fail', e)
+        console.log('Recording stopping fail', e)
       }
     }
-  }, [])
+  }
 
-  const onReset = React.useCallback(async () => {
+  const onReset = async () => {
     try {
       await stopRecording()
     } catch {}
+    releaseRecorder()
     ampTracker.reset()
     const path = pathRef.current
     pathRef.current = ''
     if (path) {
       try {
-        await FileSystem.deleteAsync(path, {idempotent: true})
+        new File(path).delete()
       } catch {}
     }
     recordStartRef.current = 0
     recordEndRef.current = 0
+    setStagedRecording({duration: 0, path: ''})
     setStaged(false)
     setShowAudioSend(false)
-  }, [setStaged, ampTracker, stopRecording, setShowAudioSend])
-  const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
+  }
+  const setCommandStatusInfo = InputState.useConversationInputDispatch(s => s.setCommandStatusInfo)
 
-  const startRecording = React.useCallback(() => {
-    // calls of this never handle the promise so just handle it here
+  const startRecording = () => {
     const checkPerms = async () => {
       try {
-        let {status} = await Audio.getPermissionsAsync()
-        if (status === Audio.PermissionStatus.UNDETERMINED) {
-          const askRes = await Audio.requestPermissionsAsync()
+        let {status} = await AudioModule.getRecordingPermissionsAsync()
+        if (status === 'undetermined') {
+          const askRes = await AudioModule.requestRecordingPermissionsAsync()
           status = askRes.status
         }
-        if (status === Audio.PermissionStatus.DENIED) {
+        if (status === 'denied') {
           throw new Error('Please allow Keybase to access the microphone in the phone settings.')
         }
         return true
@@ -423,46 +430,44 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
 
       await setupAudioMode(true)
       hasSetupRecording.current = true
-      const onRecordingStatusUpdate = (status: Audio.RecordingStatus) => {
-        const inamp = status.metering
-        if (inamp === undefined) {
-          return
-        }
+      vibrate(true)
+
+      const recorder = new AudioModule.AudioRecorder(recordingOptions)
+      recorderRef.current = recorder
+      await recorder.prepareToRecordAsync()
+      const audioPath = recorder.uri?.replace(/^file:\/\//, '')
+      if (!audioPath) {
+        throw new Error("Couldn't start audio recording")
+      }
+      pathRef.current = audioPath
+
+      recorder.record()
+      recordStartRef.current = Date.now()
+      recordEndRef.current = recordStartRef.current
+
+      meteringIntervalRef.current = setInterval(() => {
+        const status = recorderRef.current?.getStatus()
+        const inamp = status?.metering
+        if (inamp === undefined) return
         const amp = 10 ** (inamp * 0.05)
         ampTracker.addAmp(amp)
         const maxScale = 8
         const minScale = 3
         ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
-      }
-
-      const recording = await makeRecorder(onRecordingStatusUpdate)
-      const audioPath = recording.getURI()?.substring('file://'.length)
-      if (!audioPath) {
-        throw new Error("Couldn't start audio recording")
-      }
-      pathRef.current = audioPath
-      recordingRef.current = recording
-
-      await recording.startAsync()
-      recordStartRef.current = Date.now()
-      recordEndRef.current = recordStartRef.current
+      }, 100)
     }
 
     impl()
       .then(() => {})
       .catch(() => {
-        onReset()
-          // eslint-disable-next-line
-          .then(() => {})
-          // eslint-disable-next-line
-          .catch(() => {})
+        void onReset()
       })
     return
-  }, [setCommandStatusInfo, ampTracker, onReset, ampSV])
+  }
 
-  const sendAudioRecording = Chat.useChatContext(s => s.dispatch.sendAudioRecording)
+  const {sendAudioRecording} = useConversationSendActions()
 
-  const sendRecording = React.useCallback(() => {
+  const sendRecording = () => {
     const impl = async () => {
       await stopRecording()
       vibrate(false)
@@ -479,49 +484,55 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [sendAudioRecording, ampTracker, onReset, stopRecording])
+  }
 
-  const cancelRecording = React.useCallback(() => {
+  const cancelRecording = () => {
     onReset()
       .then(() => {})
       .catch(() => {})
-  }, [onReset])
+  }
 
   const audioSend = showAudioSend ? (
     <AudioSend
       ampTracker={ampTracker}
       cancelRecording={cancelRecording}
-      duration={(recordEndRef.current || recordStartRef.current) - recordStartRef.current}
-      path={pathRef.current}
+      duration={stagedRecording.duration}
+      path={stagedRecording.path}
       sendRecording={sendRecording}
     />
   ) : null
 
-  const stageRecording = React.useCallback(() => {
+  const stageRecording = () => {
     const impl = async () => {
       await stopRecording()
+      setStagedRecording({
+        duration: (recordEndRef.current || recordStartRef.current) - recordStartRef.current,
+        path: pathRef.current,
+      })
       setStaged(true)
       setShowAudioSend(true)
     }
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [stopRecording, setStaged, setShowAudioSend])
+  }
 
   // on unmount cleanup
+  const onResetEvent = React.useEffectEvent(onReset)
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
-      onReset()
+      releaseRecorder()
+      onResetEvent()
         .then(() => {})
         .catch(() => {})
     }
-  }, [onReset, setShowAudioSend])
+  }, [setShowAudioSend, releaseRecorder])
 
   return {audioSend, cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }
 
-const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
+const AudioRecorder = function AudioRecorder(props: Props) {
   const {setShowAudioSend, showAudioSend} = props
   const ampSV = useSharedValue(0)
 
@@ -548,7 +559,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
       {overlay}
     </>
   )
-})
+}
 
 const BigBackground = (props: {fadeSV: SVN}) => {
   'use no memo'
@@ -658,18 +669,12 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   })
   return (
     <>
-      <Kb.Box2Animated
-        direction="vertical"
-        style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}
-      >
+      <AnimatedBox2 direction="vertical" style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
-      </Kb.Box2Animated>
-      <Kb.Box2Animated
-        direction="vertical"
-        style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}
-      >
+      </AnimatedBox2>
+      <AnimatedBox2 direction="vertical" style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon type="iconfont-lock" />
-      </Kb.Box2Animated>
+      </AnimatedBox2>
     </>
   )
 }
@@ -739,12 +744,12 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 
   return (
     <>
-      <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, arrowStyle]}>
+      <AnimatedBox2 direction="vertical" style={[styles.cancelHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
-      </Kb.Box2Animated>
-      <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, closeStyle]}>
-        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} />
-      </Kb.Box2Animated>
+      </AnimatedBox2>
+      <AnimatedBox2 direction="vertical" style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}>
+        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={Kb.Styles.globalColors.black_20} />
+      </AnimatedBox2>
       <AnimatedText
         type="BodySmallPrimaryLink"
         onClick={onCancel}
@@ -821,10 +826,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bigBackgroundStyle: {
     ...circleAroundIcon(Kb.Styles.isTablet ? 2000 : 750),
   },
-  cancelHintIcon: {
-    left: 0,
-    position: 'absolute',
-  },
   cancelHintStyle: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -841,16 +842,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   iconStyle: {padding: Kb.Styles.globalMargins.tiny},
   innerCircleStyle: {
     ...circleAroundIcon(84),
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...Kb.Styles.centered(),
   },
   lockHintStyle: {
     ...centerAroundIcon(32),
   },
   sendRecordingButtonStyle: {
     ...circleAroundIcon(32),
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...Kb.Styles.centered(),
   },
   tooltipContainer: {
     backgroundColor: Kb.Styles.globalColors.black,

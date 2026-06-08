@@ -1,14 +1,19 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {LastModifiedLine, Filename} from '@/fs/common'
-import {useFSState} from '@/constants/fs'
+import {
+  LastModifiedLine,
+  Filename,
+  useFsDismissUpload,
+  useFsDownloadIntent,
+  useFsPathItem,
+  useFsUploadStatus,
+} from '@/fs/common'
 import * as FS from '@/constants/fs'
 
 type OwnProps = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
 }
 
@@ -26,23 +31,17 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 }
 
 const StillContainer = (p: OwnProps) => {
-  const {destinationPickerIndex, path} = p
-  const {_downloads, _pathItem, _pathItemActionMenu, _uploads, dismissUpload} = useFSState(
-    C.useShallow(s => ({
-      _downloads: s.downloads,
-      _pathItem: FS.getPathItem(s.pathItems, path),
-      _pathItemActionMenu: s.pathItemActionMenu,
-      _uploads: s.uploads,
-      dismissUpload: s.dispatch.dismissUpload,
-    }))
-  )
+  const {destinationPickerSource, path} = p
+  const _pathItem = useFsPathItem(path, {loadOnMount: false, subscribe: false})
+  const dismissUpload = useFsDismissUpload()
+  const _uploads = useFsUploadStatus()
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)
-  const onOpen = useOpen({destinationPickerIndex, path})
+  const onOpen = useOpen({destinationPickerSource, path})
 
   const dismissUploadError = writingToJournalUploadState?.error
     ? () => dismissUpload(writingToJournalUploadState.uploadID)
     : undefined
-  const intentIfDownloading = FS.getDownloadIntent(path, _downloads, _pathItemActionMenu)
+  const intentIfDownloading = useFsDownloadIntent(path)
   const isEmpty =
     _pathItem.type === T.FS.PathType.Folder &&
     _pathItem.progress === T.FS.ProgressType.Loaded &&
@@ -54,6 +53,7 @@ const StillContainer = (p: OwnProps) => {
   return (
     <StillCommon
       path={path}
+      inDestinationPicker={!!destinationPickerSource}
       onOpen={onOpen}
       writingToJournal={writingToJournal}
       uploadErrored={!!dismissUploadError}
@@ -75,7 +75,7 @@ const StillContainer = (p: OwnProps) => {
             Upload has failed.{' '}
             <Kb.Text
               type="BodySmallPrimaryLink"
-              style={styles.redDark}
+              style={{color: Kb.Styles.globalColors.redDark}}
               onClick={e => {
                 e.stopPropagation()
                 dismissUploadError()
@@ -97,9 +97,5 @@ const StillContainer = (p: OwnProps) => {
     />
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  redDark: {color: Kb.Styles.globalColors.redDark},
-}))
 
 export default StillContainer

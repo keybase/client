@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 
 const EnterPaperKey = () => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     navigateUp()
   }

@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -433,12 +435,7 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 }
 
 func checkMessageTypeQual(messageType chat1.MessageType, l []chat1.MessageType) bool {
-	for _, mt := range l {
-		if messageType == mt {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(l, messageType)
 }
 
 func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
@@ -535,21 +532,21 @@ func (d DebugLabeler) showLog() bool {
 	return true
 }
 
-func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
+func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...any) {
 	if d.showLog() {
 		d.G().GetLog().CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
 	}
 }
 
-func (d DebugLabeler) Trace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+func (d DebugLabeler) Trace(ctx context.Context, err *error, format string, args ...any) func() {
 	return d.trace(ctx, d.G().GetLog(), err, format, args...)
 }
 
-func (d DebugLabeler) PerfTrace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+func (d DebugLabeler) PerfTrace(ctx context.Context, err *error, format string, args ...any) func() {
 	return d.trace(ctx, d.G().GetPerfLog(), err, format, args...)
 }
 
-func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, err *error, format string, args ...interface{}) func() {
+func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, err *error, format string, args ...any) func() {
 	if d.showLog() {
 		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
@@ -771,11 +768,8 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 		if err != nil {
 			return nil, err
 		}
-		for _, memb := range membs {
-			if memb == nname.String() {
-				shouldLookup = true
-				break
-			}
+		if slices.Contains(membs, nname.String()) {
+			shouldLookup = true
 		}
 	}
 	if shouldLookup {
@@ -1347,6 +1341,47 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	res.ConvID = rc.ConvIDStr
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
+	// For ad-hoc convs, prefer the locally-cached participant order. WriterNames is
+	// stored in activity order (ConversationLocal.AllNames, from ReorderParticipants),
+	// which is the same order the participant fetch will later push to the inbox row.
+	// Seeding the row name from it keeps the row from reshuffling once participants load.
+	// WriterNames includes restricted bots, but the canonical TLF name does not (bots
+	// aren't in the implied-team name) and the frontend hides them, so intersect with the
+	// TLF-name writers to avoid flashing a bot in before it gets filtered out. WriterNames
+	// is empty until the conv has been localized once, so fall back to the TLF name.
+	if !res.IsTeam && rc.LocalMetadata != nil && len(rc.LocalMetadata.WriterNames) > 0 {
+		writers := make(map[string]bool)
+		// TLF names look like "writer1,writer2#reader1,reader2 (conflicted...)"; only the
+		// portion before the first "#" or extension-suffix space lists writers.
+		tlfWriters := GetRemoteConvTLFName(rc)
+		if idx := strings.IndexAny(tlfWriters, " #"); idx >= 0 {
+			tlfWriters = tlfWriters[:idx]
+		}
+		for _, w := range strings.Split(tlfWriters, ",") {
+			if w = strings.TrimSpace(w); w != "" {
+				writers[w] = true
+			}
+		}
+		names := make([]string, 0, len(rc.LocalMetadata.WriterNames))
+		for _, w := range rc.LocalMetadata.WriterNames {
+			if writers[w] {
+				names = append(names, w)
+			}
+		}
+		// Drop self, except in a conversation with only ourselves. Mirrors the frontend.
+		if len(names) > 1 {
+			others := make([]string, 0, len(names))
+			for _, w := range names {
+				if w != username {
+					others = append(others, w)
+				}
+			}
+			names = others
+		}
+		if len(names) > 0 {
+			res.Name = strings.Join(names, ",")
+		}
+	}
 	res.Time = GetConvMtime(rc)
 	res.LastSendTime = GetConvLastSendTime(rc)
 	if rc.LocalMetadata != nil {
@@ -1805,9 +1840,7 @@ func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, uid gr
 				chat1.MessageType_REACTION, msg.Emojis)
 		}
 		desc.Users = make(map[string]chat1.Reaction)
-		for username, reaction := range value {
-			desc.Users[username] = reaction
-		}
+		maps.Copy(desc.Users, value)
 		res.Reactions[key] = desc
 	}
 	return res
@@ -2289,7 +2322,7 @@ func ParseTeamNameFromDisplayName(displayName string) string {
 // comma-separated display name (e.g. "alice,bob,charlie").
 func ParseParticipantNamesFromDisplayName(displayName string, maxCount int) []string {
 	var out []string
-	for _, p := range strings.Split(displayName, ",") {
+	for p := range strings.SplitSeq(displayName, ",") {
 		if u := strings.TrimSpace(p); u != "" {
 			out = append(out, u)
 			if len(out) >= maxCount {
@@ -2636,7 +2669,7 @@ func EscapeForDecorate(ctx context.Context, body string) string {
 	})
 }
 
-func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int) {
+func DecorateBody(ctx context.Context, body string, offset, length int, decoration any) (res string, added int) {
 	out, err := json.Marshal(decoration)
 	if err != nil {
 		return res, 0
@@ -2838,7 +2871,7 @@ func ReplaceQuotedSubstrings(xs string, skipAngleQuotes bool) string {
 	// Remove all quoted lines. Because we removed all codeblocks
 	// before, we only need to consider single lines.
 	var ret []string
-	for _, line := range strings.Split(xs, string(newline)) {
+	for line := range strings.SplitSeq(xs, string(newline)) {
 		if skipAngleQuotes || !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
 			ret = append(ret, line)
 		} else {

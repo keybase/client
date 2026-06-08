@@ -585,7 +585,7 @@ type AEADMessage struct {
 // SealWithAssociatedData is a wrapper around SealWhole which adds an associatedData object
 // (see AEAD ciphers) which must be message-packable into bytes. This exact object is required
 // to call OpenWithAssociatedData on the ciphertext.
-func SealWithAssociatedData(msg []byte, associatedData interface{}, encKey SecretboxKey, signKey SignKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce) (ret []byte, err error) {
+func SealWithAssociatedData(msg []byte, associatedData any, encKey SecretboxKey, signKey SignKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce) (ret []byte, err error) {
 	adEncoded, err := msgpack.Encode(associatedData)
 	if err != nil {
 		return ret, err
@@ -603,7 +603,7 @@ func SealWithAssociatedData(msg []byte, associatedData interface{}, encKey Secre
 	return SealWhole(clearBytes, encKey, signKey, signaturePrefix, nonce), nil
 }
 
-func OpenWithAssociatedData(sealed []byte, associatedData interface{}, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce) (ret []byte, err error) {
+func OpenWithAssociatedData(sealed []byte, associatedData any, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce) (ret []byte, err error) {
 	clearBytes, err := OpenWhole(sealed, encKey, verifyKey, signaturePrefix, nonce)
 	if err != nil {
 		return ret, err
@@ -648,7 +648,7 @@ type Error struct {
 	Message string
 }
 
-func NewError(errorType ErrorType, message string, args ...interface{}) error {
+func NewError(errorType ErrorType, message string, args ...any) error {
 	return Error{
 		Type:    errorType,
 		Message: fmt.Sprintf(message, args...),

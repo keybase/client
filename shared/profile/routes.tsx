@@ -1,29 +1,105 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
+import * as T from '@/constants/types'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {ModalTitle} from '@/teams/common'
+import {defineRouteMap} from '@/constants/types/router'
+import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 const Title = React.lazy(async () => import('./search'))
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      modal2: {width: Kb.Styles.isMobile ? undefined : 500},
+      overlay: {width: isMobile ? undefined : 500},
     }) as const
 )
 
-export const newRoutes = {
+const profileModalStyle = {width: 560}
+
+const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
+  const navigateUp = C.Router2.navigateUp
+  if (wizard || showBack) {
+    return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+  }
+  return <HeaderLeftButton mode="cancel" />
+}
+
+const EditAvatarHeaderRight = ({
+  parentTeamMemberCount,
+  wizard,
+  wizardState,
+}: {
+  parentTeamMemberCount: number
+  wizard?: boolean
+  wizardState?: T.Teams.NewTeamWizardState
+}) => {
+  const navigateAppend = C.Router2.navigateAppend
+  const onSkip = () => {
+    if (!wizardState) {
+      return
+    }
+    navigateAppend(
+      {
+        name: 'profileEditAvatar',
+        params: {createdTeam: true, newTeamWizard: wizardState, teamID: T.Teams.newTeamWizardTeamID, wizard},
+      },
+      true
+    )
+    navigateAppend(getNextRouteAfterAvatar(wizardState, parentTeamMemberCount))
+  }
+  if (!wizard) return null
+  if (isMobile) {
+    return <Kb.Text type="BodyBigLink" onClick={onSkip}>Skip</Kb.Text>
+  }
+  return <Kb.Button label="Skip" mode="Secondary" onClick={onSkip} style={skipButtonStyle} type="Default" />
+}
+const skipButtonStyle = {minWidth: 60}
+
+const EditAvatarHeaderTitle = ({
+  hasImage,
+  newTeamWizard,
+  teamID,
+  wizard,
+}: {
+  hasImage?: boolean
+  newTeamWizard?: T.Teams.NewTeamWizardState
+  teamID?: string
+  wizard?: boolean
+}) => {
+  if (teamID) {
+    const title = hasImage && isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
+    if (isMobile) {
+      return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
+    }
+    return <Kb.Text type="BodyBig">{title}</Kb.Text>
+  }
+  return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
+}
+
+const EditAvatarWizardHeaderRight = ({
+  route,
+}: {
+  route: {params: {newTeamWizard?: T.Teams.NewTeamWizardState; wizard?: boolean}}
+}) => {
+  const parentTeamID = route.params.newTeamWizard?.parentTeamID ?? T.Teams.noTeamID
+  const {teamMeta} = useLoadedTeam(parentTeamID, parentTeamID !== T.Teams.noTeamID)
+  return (
+    <EditAvatarHeaderRight
+      parentTeamMemberCount={teamMeta.memberCount}
+      wizard={route.params.wizard}
+      wizardState={route.params.newTeamWizard}
+    />
+  )
+}
+
+export const newRoutes = defineRouteMap({
   profile: C.makeScreen(
     React.lazy(async () => import('./user')),
     {
       getOptions: {
-        headerLeft: p => {
-          return (
-            <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-              <HeaderLeftArrowCanGoBack onPress={p.onPress} tintColor={p.tintColor} />
-            </Kb.Styles.CanFixOverdrawContext.Provider>
-          )
-        },
         headerShown: true,
         headerStyle: {backgroundColor: 'transparent'},
         headerTitle: () => (
@@ -35,39 +111,54 @@ export const newRoutes = {
       },
     }
   ),
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   profileAddToTeam: C.makeScreen(
     React.lazy(async () => import('./add-to-team')),
     {
       getOptions: {
-        modal2: true,
-        modal2ClearCover: false,
-        modal2Style: styles.modal2,
-        modal2Type: 'DefaultFullHeight',
+        modalStyle: {height: 560},
+        overlayStyle: styles.overlay,
+        overlayTransparent: false,
       },
     }
   ),
-  profileConfirmOrPending: {screen: React.lazy(async () => import('./confirm-or-pending'))},
-  profileEdit: {screen: React.lazy(async () => import('./edit-profile'))},
-  profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar'))),
-  profileFinished: {screen: React.lazy(async () => import('./pgp/finished'))},
-  profileGenerate: {screen: React.lazy(async () => import('./pgp/generate'))},
-  profileGenericEnterUsername: {
-    getOptions: {gesturesEnabled: false},
-    screen: React.lazy(async () => import('./generic/enter-username')),
-  },
-  profileGenericProofResult: {screen: React.lazy(async () => import('./generic/result'))},
-  profileImport: {screen: React.lazy(async () => import('./pgp/import'))},
-  profilePgp: {screen: React.lazy(async () => import('./pgp/choice'))},
-  profilePostProof: {screen: React.lazy(async () => import('./post-proof'))},
-  profileProofsList: {screen: React.lazy(async () => import('./generic/proofs-list'))},
-  profileProveEnterUsername: {screen: React.lazy(async () => import('./prove-enter-username'))},
-  profileProveWebsiteChoice: {screen: React.lazy(async () => import('./prove-website-choice'))},
-  profileProvideInfo: {screen: React.lazy(async () => import('./pgp/info'))},
-  profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke'))),
-  profileShowcaseTeamOffer: {screen: React.lazy(async () => import('./showcase-team-offer'))},
-}
-
-export type RootParamListProfile = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+  profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
+    getOptions: {modalStyle: {height: 450, width: 350}, title: 'Edit Profile'},
+  }),
+  profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar')), {
+    getOptions: ({route}) => ({
+      headerLeft: () => (
+        <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
+      ),
+      headerRight: () => <EditAvatarWizardHeaderRight route={route} />,
+      headerTitle: () => (
+        <EditAvatarHeaderTitle
+          hasImage={!!route.params.image}
+          newTeamWizard={route.params.newTeamWizard}
+          teamID={route.params.teamID}
+          wizard={route.params.wizard}
+        />
+      ),
+    }),
+  }),
+  profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import')), {
+    getOptions: Kb.doneModalOptions(''),
+  }),
+  profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
+    getOptions: {modalStyle: {height: 485, width: 560}},
+  }),
+  profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
+    getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
+  }),
+  profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
+    getOptions: {...Kb.doneModalOptions(''), modalStyle: profileModalStyle},
+  }),
+  profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
+    getOptions: {modalStyle: profileModalStyle},
+  }),
+  profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
+    getOptions: {modalStyle: {maxHeight: 600, maxWidth: 600}, title: 'Feature your teams'},
+  }),
+})

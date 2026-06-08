@@ -1,31 +1,24 @@
 import SelectOtherDevice from '@/provision/select-other-device'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import type {Device} from '@/stores/provision'
+import {
+  cancelRecoverPassword,
+  submitRecoverPasswordDeviceSelect,
+  submitRecoverPasswordNoDevice,
+} from './flow'
 
-const RecoverPasswordDeviceSelector = () => {
-  const devices = useRecoverState(s => s.devices)
-  const submitDeviceSelect = useRecoverState(s => s.dispatch.dynamic.submitDeviceSelect)
-  const cancel = useRecoverState(s => s.dispatch.dynamic.cancel)
-  const onBack = () => {
-    cancel?.()
-  }
-  const onResetAccount = () => {
-    submitDeviceSelect?.('')
-  }
-  const onSelect = (name: string) => {
-    if (submitDeviceSelect) {
-      submitDeviceSelect(name)
-    } else {
-      console.log('Missing device select?')
-    }
-  }
-  const props = {
-    devices,
-    onBack,
-    onResetAccount,
-    onSelect,
-    passwordRecovery: true,
-  }
-  return <SelectOtherDevice {...props} />
+type Props = {route: {params: {devices: ReadonlyArray<Device>}}}
+
+const RecoverPasswordDeviceSelector = ({route}: Props) => {
+  const {devices} = route.params
+  return (
+    <SelectOtherDevice
+      devices={devices}
+      onBack={cancelRecoverPassword}
+      onResetAccount={submitRecoverPasswordNoDevice}
+      onSelect={(name: string) => submitRecoverPasswordDeviceSelect(devices.find(d => d.name === name)?.id)}
+      passwordRecovery={true}
+    />
+  )
 }
 
 export default RecoverPasswordDeviceSelector

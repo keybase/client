@@ -30,7 +30,7 @@ func (e InternalError) Message() string {
 	return e.Msg
 }
 
-func NewInternalError(ctx context.Context, d utils.DebugLabeler, msg string, args ...interface{}) InternalError {
+func NewInternalError(ctx context.Context, d utils.DebugLabeler, msg string, args ...any) InternalError {
 	d.Debug(ctx, "internal chat storage error: "+msg, args...)
 	return InternalError{Msg: fmt.Sprintf(msg, args...)}
 }

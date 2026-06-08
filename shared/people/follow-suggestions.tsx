@@ -1,6 +1,8 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
+const horizontalScrollProps = isMobile ? ({alwaysBounceHorizontal: false, horizontal: true} as const) : {}
+
 export type FollowSuggestion = T.People.FollowSuggestion
 
 export type Props = {
@@ -8,16 +10,16 @@ export type Props = {
 }
 
 const FollowSuggestions = (props: Props) => (
-  <Kb.Box style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.container}>
     <Kb.Text type="BodySmallSemibold" style={styles.text}>
       Consider following...
     </Kb.Text>
     <Kb.ScrollView
-      {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+      {...horizontalScrollProps}
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
-        <Kb.ConnectedNameWithIcon
+        <Kb.NameWithIcon
           key={suggestion.username}
           username={suggestion.username}
           metaOne={suggestion.fullName}
@@ -29,25 +31,20 @@ const FollowSuggestions = (props: Props) => (
         />
       ))}
     </Kb.ScrollView>
-  </Kb.Box>
+  </Kb.Box2>
 )
 export default FollowSuggestions
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Kb.Styles.globalColors.fastBlank,
     paddingTop: Kb.Styles.globalMargins.tiny,
-    position: 'relative',
   },
   meta: {
-    paddingLeft: 2,
-    paddingRight: 2,
+    ...Kb.Styles.paddingH(2),
   },
   scrollViewContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexBoxRow,
-      backgroundColor: Kb.Styles.globalColors.fastBlank,
       borderBottomWidth: 1,
       borderColor: Kb.Styles.globalColors.black_10,
       paddingBottom: Kb.Styles.globalMargins.small,

@@ -73,10 +73,7 @@ func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
 	}
 
 	// reset the ticker
-	refreshSeconds := a.expireIn / 2
-	if refreshSeconds < AuthTokenMinRefreshSeconds {
-		refreshSeconds = AuthTokenMinRefreshSeconds
-	}
+	refreshSeconds := max(a.expireIn/2, AuthTokenMinRefreshSeconds)
 	a.startTicker(refreshSeconds)
 
 	return signature, nil

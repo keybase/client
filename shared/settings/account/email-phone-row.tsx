@@ -1,16 +1,17 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsEmailState} from '@/stores/settings-email'
 
 const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
 }
 
 const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => (
-  <Kb.Box
+  <Kb.Box2
+    direction="vertical"
     style={Kb.Styles.collapseStyles([
       styles.badge,
       p.menuItem ? styles.badgeMenuItem : styles.badgeGearIcon,
@@ -19,12 +20,12 @@ const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => (
   />
 )
 
-const EmailPhoneRow = (p: {contactKey: string}) => {
-  const props = useData(p.contactKey)
+const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (email: string) => void}) => {
+  const props = useData(p.contactKey, p.onEmailVerificationSuccess)
   const {address, onDelete, onMakePrimary, onToggleSearchable, onVerify, moreThanOneEmail} = props
   const {primary, searchable, superseded, type, verified, lastVerifyEmailDate} = props
 
-  const menuItems = React.useMemo(() => {
+  const menuItems = (() => {
     const menuItems: Kb.MenuItems = []
     if (!verified) {
       menuItems.push({
@@ -52,7 +53,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
         onClick: onToggleSearchable,
         subTitle: searchable
           ? `Don't let friends find you by this ${copyType}.`
-          : `${Kb.Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
+          : `${isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
         title: searchable ? 'Make unsearchable' : 'Make searchable',
       })
     }
@@ -72,46 +73,30 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
       : {danger: true, icon: 'iconfont-trash', onClick: onDelete, title: 'Delete'}
     menuItems.push(deleteItem)
     return menuItems
-  }, [
-    moreThanOneEmail,
-    onDelete,
-    onMakePrimary,
-    onToggleSearchable,
-    onVerify,
-    primary,
-    searchable,
-    type,
-    verified,
-  ])
+  })()
 
-  const header = React.useMemo(
-    () => (
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
-        <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
-        {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
-      </Kb.Box2>
-    ),
-    [address, primary]
+  const header = (
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
+      <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
+      {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
+    </Kb.Box2>
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeText="Cancel"
-          visible={true}
-          position="bottom right"
-          header={Kb.Styles.isMobile ? header : undefined}
-          onHidden={hidePopup}
-          items={menuItems}
-          closeOnSelect={true}
-        />
-      )
-    },
-    [menuItems, header]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeText="Cancel"
+        visible={true}
+        position="bottom right"
+        header={isMobile ? header : undefined}
+        onHidden={hidePopup}
+        items={menuItems}
+        closeOnSelect={true}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -126,7 +111,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
 
   let subtitle = ''
 
-  if (C.isMobile && hasRecentVerifyEmail && !verified) {
+  if (isMobile && hasRecentVerifyEmail && !verified) {
     subtitle = 'Check your inbox'
   } else {
     if (hasRecentVerifyEmail && !verified) {
@@ -149,7 +134,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Kb.Styles.globalStyles.flexOne}}>
+      <Kb.Box2 alignItems="flex-start" direction="vertical" flex={1}>
         <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
           {address}
         </Kb.Text>
@@ -166,6 +151,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
             className="hover_container"
             onClick={showPopup}
             ref={popupAnchor}
+            direction="vertical"
             style={styles.gearIconContainer}
           >
             <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" style={styles.gearIcon} />
@@ -182,9 +168,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badge: {
-        borderRadius: Kb.Styles.isMobile ? 5 : 4,
-        height: Kb.Styles.isMobile ? 10 : 8,
-        width: Kb.Styles.isMobile ? 10 : 8,
+        borderRadius: isMobile ? 5 : 4,
+        ...Kb.Styles.size(isMobile ? 10 : 8),
       },
       badgeGearIcon: {
         position: 'absolute',
@@ -196,7 +181,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: 'auto',
       },
       container: {
-        height: Kb.Styles.isMobile ? 48 : 40,
+        height: isMobile ? 48 : 40,
       },
       gearIcon: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.clickable},
@@ -211,7 +196,7 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const useData = (contactKey: string) => {
+const useData = (contactKey: string, onEmailVerificationSuccess: (email: string) => void) => {
   const _emailRow = useSettingsEmailState(s => s.emails.get(contactKey) ?? null)
   const _phoneRow = useSettingsPhoneState(s => s.phones?.get(contactKey) || null)
   const moreThanOneEmail = useSettingsEmailState(s => s.emails.size > 1)
@@ -222,34 +207,42 @@ const useData = (contactKey: string) => {
   const _onMakeSearchable = () => {
     editEmail({email: contactKey, makeSearchable: true})
   }
-
-  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
-  const resendVerificationForPhoneNumber = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const setVisibilityPhoneNumber = C.useRPC(T.RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise)
+  const navigateAppend = C.Router2.navigateAppend
 
   const dispatchProps = {
     email: {
       _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
         navigateAppend({
-          props: {address, lastEmail, searchable, type: 'email'},
-          selected: 'settingsDeleteAddress',
+          name: 'settingsDeleteAddress',
+          params: {address, lastEmail, searchable, type: 'email'},
         }),
       onMakePrimary: () => {
         editEmail({email: contactKey, makePrimary: true})
       },
       onVerify: () => {
-        editEmail({email: contactKey, verify: true})
+        editEmail({email: contactKey, onSuccess: () => onEmailVerificationSuccess(contactKey), verify: true})
       },
     },
     phone: {
       _onDelete: (address: string, searchable: boolean) =>
-        navigateAppend({props: {address, searchable, type: 'phone'}, selected: 'settingsDeleteAddress'}),
+        navigateAppend({name: 'settingsDeleteAddress', params: {address, searchable, type: 'phone'}}),
       _onToggleSearchable: (setSearchable: boolean) => {
-        editPhone(contactKey, undefined, setSearchable)
+        setVisibilityPhoneNumber(
+          [
+            {
+              phoneNumber: contactKey,
+              visibility: setSearchable
+                ? T.RPCGen.IdentityVisibility.public
+                : T.RPCGen.IdentityVisibility.private,
+            },
+          ],
+          () => {},
+          () => {}
+        )
       },
       _onVerify: (phoneNumber: string) => {
-        resendVerificationForPhoneNumber(phoneNumber)
-        navigateAppend('settingsVerifyPhone')
+        navigateAppend({name: 'settingsVerifyPhone', params: {initialResend: true, phoneNumber}})
       },
       onMakePrimary: () => {}, // this is not a supported phone action
     },

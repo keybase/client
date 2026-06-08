@@ -60,7 +60,7 @@ func (b *blockEngineMemCacheImpl) getBlock(ctx context.Context, uid gregor1.UID,
 	if v, ok := b.blockCache.Get(key); ok {
 		bl := v.(block)
 		var retMsgs [blockSize]chat1.MessageUnboxed
-		for i := 0; i < blockSize; i++ {
+		for i := range blockSize {
 			retMsgs[i] = bl.Msgs[i].DeepCopy()
 		}
 		return block{
@@ -78,7 +78,7 @@ func (b *blockEngineMemCacheImpl) writeBlock(ctx context.Context, uid gregor1.UI
 	lock := b.lockTab.AcquireOnName(ctx, b.logContext, key)
 	defer lock.Release(ctx)
 	var storedMsgs [blockSize]chat1.MessageUnboxed
-	for i := 0; i < blockSize; i++ {
+	for i := range blockSize {
 		storedMsgs[i] = bl.Msgs[i].DeepCopy()
 	}
 	b.blockCache.Add(key, block{

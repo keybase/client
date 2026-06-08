@@ -1,30 +1,26 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
+import {useConversationThreadMessage, useConversationThreadSelector} from '../../../thread-context'
+import {useConversationSendActions} from '../../../send-actions'
 
-const CoinFlipContainer = React.memo(function CoinFlipContainer() {
+function CoinFlipContainer() {
   const ordinal = useOrdinal()
-  const {isSendError, text, flipGameID, sendMessage} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      const isSendError = message?.type === 'text' ? !!message.errorReason : false
-      const text = message?.type === 'text' ? message.text : undefined
-      const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
-      const {sendMessage} = s.dispatch
-      return {flipGameID, isSendError, message, sendMessage, text}
-    })
-  )
-  const status = Chat.useChatState(s => s.flipStatusMap.get(flipGameID))
-  const onFlipAgain = React.useCallback(() => {
-    text && sendMessage(text.stringValue())
-  }, [sendMessage, text])
+  const message = useConversationThreadMessage(ordinal)
+  const isSendError = message?.type === 'text' ? !!message.errorReason : false
+  const text = message?.type === 'text' ? message.text : undefined
+  const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
+  const {sendMessage} = useConversationSendActions()
+  const status = useConversationThreadSelector(s => s.flipStatusMap.get(flipGameID))
+  const onFlipAgain = () => {
+    if (text) {
+      sendMessage(text.stringValue())
+    }
+  }
   const phase = status?.phase
   const errorInfo = phase === T.RPCChat.UICoinFlipPhase.error ? status?.errorInfo : undefined
   const participants = status?.participants ?? undefined
@@ -40,25 +36,22 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     }, 0) ?? 0
   const revealSummary = `${revealed} / ${numParticipants}`
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <CoinFlipParticipants
-          attachTo={attachTo}
-          onHidden={hidePopup}
-          participants={participants}
-          visible={true}
-        />
-      )
-    },
-    [participants]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <CoinFlipParticipants
+        attachTo={attachTo}
+        onHidden={hidePopup}
+        participants={participants}
+        visible={true}
+      />
+    )
+  }
   const {showPopup, hidePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const statusText = showParticipants ? (
-    <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
-      {!Kb.Styles.isMobile && (
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+      {!isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}
         </Kb.Text>
@@ -67,12 +60,12 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
         {`${numParticipants} ${pluralize('participant', numParticipants)}`}
       </Kb.Text>
       {popup}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Text selectable={true} type="BodySmallSemibold">
-          {!Kb.Styles.isMobile && 'Collecting '}commitments: {numParticipants}
+          {!isMobile && 'Collecting '}commitments: {numParticipants}
         </Kb.Text>
         {phase === T.RPCChat.UICoinFlipPhase.reveals && (
           <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
@@ -81,7 +74,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
       {phase === T.RPCChat.UICoinFlipPhase.reveals && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
           <Kb.Text selectable={true} type="BodySmallSemibold">
-            {!Kb.Styles.isMobile && 'Collecting '}secrets: {revealSummary}
+            {!isMobile && 'Collecting '}secrets: {revealSummary}
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -103,7 +96,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Box2 direction="vertical">
               {(commitmentVis?.length ?? 0) > 0 ? (
-                <Kb.Image2 src={commitSrc} style={styles.progressVis} />
+                <Kb.Image src={commitSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"
@@ -113,7 +106,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
             </Kb.Box2>
             <Kb.Box2 direction="vertical">
               {(revealVis?.length ?? 0) > 0 && phase !== T.RPCChat.UICoinFlipPhase.commitment ? (
-                <Kb.Image2 src={revealSrc} style={styles.progressVis} />
+                <Kb.Image src={revealSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"
@@ -151,7 +144,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
       )}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -168,26 +161,10 @@ const styles = Kb.Styles.styleSheetCreate(
       flipAgainContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
       flipAgainContainerHidden: {opacity: 0, paddingTop: Kb.Styles.globalMargins.tiny},
       placeholder: {backgroundColor: Kb.Styles.globalColors.grey},
-      progress: Kb.Styles.platformStyles({
-        isElectron: {
-          cursor: 'text',
-          userSelect: 'text',
-          wordBreak: 'break-all',
-        },
-      }),
       progressVis: {
         height: 40,
         width: 64,
       },
-      result: Kb.Styles.platformStyles({
-        common: {fontWeight: '600'},
-        isElectron: {
-          cursor: 'text',
-          userSelect: 'text',
-          wordBreak: 'break-all',
-        },
-      }),
-      statusContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

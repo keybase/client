@@ -165,7 +165,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 	var firstErr error
 	var anySuccess bool
 	numUnboxThreads := 2
-	for i := 0; i < numUnboxThreads; i++ {
+	for range numUnboxThreads {
 		eg.Go(func() error {
 			for responseRepo := range repoCh {
 				info, skip, err := getMetadataInnerSingle(ctx, g, folder, responseRepo)

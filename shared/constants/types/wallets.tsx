@@ -1,9 +1,4 @@
-import type * as StellarRPCTypes from './rpc-stellar-gen'
-
-export type Reserve = {
-  amount: string
-  description: string // e.g. 'account' or 'KEYZ/keybase.io trust line'
-}
+import type * as StellarRPCTypes from '@/constants/rpc/rpc-stellar-gen'
 
 export type AccountID = string
 export const noAccountID = 'NOACCOUNTID'

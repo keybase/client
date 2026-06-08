@@ -8,6 +8,7 @@ export type StillCommonProps = {
   inDestinationPicker?: boolean
   onOpen?: () => void
   mixedMode?: boolean
+  testID?: string
 }
 
 export const StillCommon = (
@@ -20,11 +21,14 @@ export const StillCommon = (
     uploadErrored?: boolean
   }
 ) => (
-  <Kb.ListItem2
+  <Kb.ListItem
     type="Small"
+    testID={props.testID}
     statusIcon={<PathStatusIcon path={props.path} />}
     icon={
       <ItemIcon
+        loadOnMount={false}
+        subscribe={false}
         path={props.path}
         size={32}
         style={Kb.Styles.collapseStyles([
@@ -38,7 +42,9 @@ export const StillCommon = (
     onClick={props.onOpen}
     body={
       props.body || (
-        <Kb.Box
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
           style={Kb.Styles.collapseStyles([
             rowStyles.itemBox,
             props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
@@ -48,7 +54,7 @@ export const StillCommon = (
             {props.content}
           </Kb.Box2>
           {props.status || null}
-        </Kb.Box>
+        </Kb.Box2>
       )
     }
     onlyShowActionOnHover="fade"
@@ -74,21 +80,17 @@ export const rowStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       itemBox: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
         justifyContent: 'center',
         minWidth: 0,
         width: 0,
       },
       opacity30: {opacity: 0.3},
-      pathItemIcon: {
-        marginLeft: Kb.Styles.globalMargins.medium,
-        marginRight: Kb.Styles.globalMargins.medium,
-      },
+      pathItemIcon: Kb.Styles.marginH(Kb.Styles.globalMargins.medium),
       rowText: Kb.Styles.platformStyles({
         isMobile: {flexShrink: 1},
       }),
     }) as const
 )
 
-export const normalRowHeight = Kb.smallListItem2Height
+export const normalRowHeight = Kb.smallListItemHeight

@@ -1,31 +1,168 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Kb from '@/common-adapters'
+import * as ChatCommon from '@/constants/chat/common'
+import * as Meta from '@/constants/chat/meta'
 import * as Teams from '@/constants/teams'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useModalHeaderState} from '@/stores/modal-header'
 import ChannelPicker from './channel-picker'
-import openURL from '@/util/open-url'
+import {useChatTeam} from '../team-hooks'
+import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
-import {useBotsState} from '@/constants/bots'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useFeaturedBot} from '@/util/featured-bots'
+import {RPCError} from '@/util/errors'
+import logger from '@/logger'
+import {useBotSettings} from './settings'
+import {getInboxConversationMeta, metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useConversationMeta} from '../data-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 
-export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
-  const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
-  const [conversationIDKey, setConversationIDKey] = React.useState(cleanInConvIDKey)
-  const generalConvID = Chat.useChatState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
-  const findGeneralConvIDFromTeamID = Chat.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
+export const useRefreshBotMembershipOnSuccess = (
+  conversationIDKey: T.Chat.ConversationIDKey | undefined,
+  waitingKey: string,
+  error: RPCError | undefined,
+  shouldRefreshMembership: boolean,
+  onSuccess: () => void
+) => {
+  const waiting = C.Waiting.useAnyWaiting(waitingKey)
+  const wasWaitingRef = React.useRef(waiting)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+
   React.useEffect(() => {
-    if (!cleanInConvIDKey && teamID) {
-      if (!generalConvID) {
-        findGeneralConvIDFromTeamID(teamID)
+    if (!waiting && wasWaitingRef.current && !error) {
+      if (!shouldRefreshMembership) {
+        onSuccess()
+      } else if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+        onSuccess()
       } else {
-        setConversationIDKey(generalConvID)
+        previewConversationByID(
+          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+          preview => {
+            participantInfoReceived(
+              conversationIDKey,
+              ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+              getInboxConversationMeta(conversationIDKey)
+            )
+            onSuccess()
+          },
+          () => {
+            onSuccess()
+          }
+        )
       }
     }
-  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
+    wasWaitingRef.current = waiting
+  }, [
+    conversationIDKey,
+    error,
+    onSuccess,
+    previewConversationByID,
+    shouldRefreshMembership,
+    waiting,
+  ])
+}
+
+export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
+  const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
+  const [generalConversation, setGeneralConversation] = React.useState<
+    | {
+        conversationIDKey: T.Chat.ConversationIDKey
+        teamID: T.Teams.TeamID
+      }
+    | undefined
+  >()
+  const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
+  const requestIDRef = React.useRef(0)
+  const conversationIDKey =
+    cleanInConvIDKey ??
+    (generalConversation && generalConversation.teamID === teamID
+      ? generalConversation.conversationIDKey
+      : undefined)
+
+  React.useEffect(() => {
+    requestIDRef.current += 1
+    if (cleanInConvIDKey || !teamID) {
+      return
+    }
+    const requestID = requestIDRef.current
+    findGeneralConvIDFromTeamID(
+      [{teamID}],
+      conv => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        const meta = Meta.inboxUIItemToConversationMeta(conv)
+        if (!meta) {
+          return
+        }
+        metasReceived([meta])
+        setGeneralConversation({conversationIDKey: meta.conversationIDKey, teamID})
+      },
+      () => {}
+    )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
+  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, teamID])
   return conversationIDKey
+}
+
+export const useBotTeamRole = (
+  conversationIDKey: T.Chat.ConversationIDKey | undefined,
+  botUsername: string
+) => {
+  const [loaded, setLoaded] = React.useState<
+    | {
+        botUsername: string
+        conversationIDKey: T.Chat.ConversationIDKey
+        teamRole?: T.Teams.TeamRoleType
+      }
+    | undefined
+  >()
+  const loadBotTeamRole = C.useRPC(T.RPCChat.localGetTeamRoleInConversationRpcPromise)
+  const requestIDRef = React.useRef(0)
+
+  React.useEffect(() => {
+    requestIDRef.current += 1
+    if (!conversationIDKey) {
+      return undefined
+    }
+    const requestID = requestIDRef.current
+    loadBotTeamRole(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey), username: botUsername}],
+      role => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        const teamRole = Teams.teamRoleByEnum[role]
+        setLoaded({
+          botUsername,
+          conversationIDKey,
+          teamRole: teamRole === 'none' ? undefined : teamRole,
+        })
+      },
+      error => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`)
+        setLoaded({botUsername, conversationIDKey})
+      }
+    )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
+  }, [botUsername, conversationIDKey, loadBotTeamRole])
+
+  return loaded && loaded.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
+    ? loaded.teamRole
+    : undefined
 }
 
 type LoaderProps = {
@@ -40,11 +177,7 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!conversationIDKey) return null
-  return (
-    <Chat.ChatProvider id={conversationIDKey}>
-      <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </Chat.ChatProvider>
-  )
+  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }
 
 type Props = {
@@ -64,107 +197,172 @@ const InstallBotPopup = (props: Props) => {
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<ReadonlyArray<string>>([])
   const [disableDone, setDisableDone] = React.useState(false)
+  const [loadedBotPublicCommands, setLoadedBotPublicCommands] = React.useState<
+    | {
+        botUsername: string
+        commands: T.Chat.BotPublicCommands
+      }
+    | undefined
+  >()
 
-  const botPublicCommands = Chat.useChatState(s => s.botPublicCommands.get(botUsername))
-  const meta = Chat.useChatContext(s => s.meta)
-  const commands = React.useMemo(() => {
-    const {botCommands} = meta
-    const commands = (
-      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
-        ? botCommands.custom.commands || blankCommands
-        : blankCommands
-    )
-      .filter(c => c.username === botUsername)
-      .map(c => c.name)
-    const convCommands: T.Chat.BotPublicCommands = {commands, loadError: false}
-    return commands.length > 0 ? convCommands : botPublicCommands
-  }, [meta, botPublicCommands, botUsername])
+  const meta = useConversationMeta(conversationIDKey ?? T.Chat.noConversationIDKey)
+  const commandsFromMeta = (
+    meta.botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+      ? meta.botCommands.custom.commands || blankCommands
+      : blankCommands
+  )
+    .filter(c => c.username === botUsername)
+    .map(c => c.name)
+  const commands =
+    commandsFromMeta.length > 0
+      ? ({commands: commandsFromMeta, loadError: false} satisfies T.Chat.BotPublicCommands)
+      : loadedBotPublicCommands?.botUsername === botUsername
+        ? loadedBotPublicCommands.commands
+        : undefined
 
-  const featured = useBotsState(s => s.featuredBotsMap.get(botUsername))
-  const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))
+  const featured = useFeaturedBot(botUsername)
+  const teamRole = useBotTeamRole(conversationIDKey, botUsername)
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
-  const readOnly = Teams.useTeamsState(s =>
-    meta.teamname ? !Teams.getCanPerformByID(s, meta.teamID).manageBots : false
-  )
-  const settings = Chat.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
+  const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
+  const readOnly = meta.teamname ? !yourOperations.manageBots : false
+  const {settings} = useBotSettings(conversationIDKey, botUsername, !!inTeam)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
+  let refreshTeamID: T.Teams.TeamID | undefined
   if (meta.teamname) {
     teamID = meta.teamID
+    refreshTeamID = meta.teamID
     teamname = meta.teamname
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
+  const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const mutationError = C.Waiting.useAnyErrors(C.waitingKeyChatBotAdd)
   // dispatch
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const addBotMember = Chat.useChatContext(s => s.dispatch.addBotMember)
-  const onClose = () => {
-    Kb.Styles.isMobile ? navigateUp() : clearModals()
-  }
+  const clearModals = C.Router2.clearModals
+  const navigateUp = C.Router2.navigateUp
+  const [pendingMutation, setPendingMutation] = React.useState<'add' | 'edit' | undefined>()
   const onLearn = () => {
-    openURL('https://book.keybase.io/docs/chat/restricted-bots')
-  }
-  const onLeftAction = () => {
-    if (installScreen) {
-      setInstallScreen(false)
-    } else {
-      onClose()
-    }
+    void openURL('https://book.keybase.io/docs/chat/restricted-bots')
   }
   const onInstall = () => {
     if (!conversationIDKey) {
       return
     }
-    addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
+    dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+    setPendingMutation('add')
+    const f = async () => {
+      try {
+        await T.RPCChat.localAddBotMemberRpcPromise(
+          {
+            botSettings: installWithRestrict
+              ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
+              : null,
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            role: installWithRestrict ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
+            username: botUsername,
+          },
+          C.waitingKeyChatBotAdd
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info('addBotMember: failed to add bot member: ' + error.message)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
-  const editBotSettings = Chat.useChatContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
     }
-    editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
+    dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+    setPendingMutation('edit')
+    const f = async () => {
+      try {
+        await T.RPCChat.localSetBotMemberSettingsRpcPromise(
+          {
+            botSettings: {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions},
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            username: botUsername,
+          },
+          C.waitingKeyChatBotAdd
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info('addBotMember: failed to edit bot settings: ' + error.message)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onRemove = () => {
     if (!conversationIDKey) {
       return
     }
     navigateAppend({
-      props: {botUsername, conversationIDKey},
-      selected: 'chatConfirmRemoveBot',
+      name: 'chatConfirmRemoveBot',
+      params: {botUsername, conversationIDKey, teamID: refreshTeamID},
     })
   }
   const onFeedback = () => {
-    navigateAppend('feedback')
+    navigateAppend({name: 'feedback', params: {}})
   }
 
-  const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)
-  const refreshBotRoleInConv = Chat.useChatContext(s => s.dispatch.refreshBotRoleInConv)
-
-  // lifecycle
-  React.useEffect(() => {
-    if (conversationIDKey) {
-      refreshBotRoleInConv(botUsername)
-      if (inTeam) {
-        refreshBotSettings(botUsername)
-      }
+  useRefreshBotMembershipOnSuccess(
+    conversationIDKey,
+    C.waitingKeyChatBotAdd,
+    mutationError,
+    pendingMutation !== undefined,
+    () => {
+      setPendingMutation(undefined)
+      clearModals()
     }
-  }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
-  const noCommands = !commands?.commands
+  )
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
-  const refreshBotPublicCommands = Chat.useChatState(s => s.dispatch.refreshBotPublicCommands)
+  const loadBotPublicCommands = C.useRPC(T.RPCChat.localListPublicBotCommandsLocalRpcPromise)
+  const botPublicCommandsRequestIDRef = React.useRef(0)
+  const clearedWaitingForBotRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
-    dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
-    if (noCommands) {
-      refreshBotPublicCommands(botUsername)
+    if (!mutationWaiting && clearedWaitingForBotRef.current !== botUsername) {
+      clearedWaitingForBotRef.current = botUsername
+      dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     }
-  }, [dispatchClearWaiting, refreshBotPublicCommands, noCommands, botUsername])
+  }, [botUsername, dispatchClearWaiting, mutationWaiting])
+  React.useEffect(() => {
+    botPublicCommandsRequestIDRef.current += 1
+    if (commandsFromMeta.length > 0) {
+      return
+    }
+    const requestID = botPublicCommandsRequestIDRef.current
+    loadBotPublicCommands(
+      [{username: botUsername}],
+      res => {
+        if (botPublicCommandsRequestIDRef.current !== requestID) {
+          return
+        }
+        const commands = (res.commands ?? []).map(command => command.name)
+        setLoadedBotPublicCommands({botUsername, commands: {commands, loadError: false}})
+      },
+      () => {
+        if (botPublicCommandsRequestIDRef.current !== requestID) {
+          return
+        }
+        setLoadedBotPublicCommands({botUsername, commands: {commands: [], loadError: true}})
+      }
+    )
+    return () => {
+      if (botPublicCommandsRequestIDRef.current === requestID) {
+        botPublicCommandsRequestIDRef.current += 1
+      }
+    }
+  }, [botUsername, commandsFromMeta.length, loadBotPublicCommands])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
@@ -189,12 +387,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const featuredContent = !!featured && (
-    <Kb.Box2
-      direction="vertical"
-      style={Kb.Styles.collapseStyles([styles.container, {flex: 1}])}
-      fullWidth={true}
-      gap="small"
-    >
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="small">
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
         <Kb.NameWithIcon
           botAlias={featured.botAlias}
@@ -304,8 +497,8 @@ const InstallBotPopup = (props: Props) => {
           <Kb.Text type="Body">
             <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
               Install as a restricted bot
-            </Kb.Text>{' '}
-            if you’d like to customize which messages are encrypted for this bot.
+            </Kb.Text>
+            {' if you’d like to customize which messages are encrypted for this bot.'}
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -333,12 +526,6 @@ const InstallBotPopup = (props: Props) => {
       : featured
         ? featuredContent
         : usernameContent
-  const getHeight = () => {
-    if (channelPickerScreen) {
-      return 440
-    }
-    return 560
-  }
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && isBot && !installScreen
@@ -426,69 +613,84 @@ const InstallBotPopup = (props: Props) => {
       type="Default"
     />
   )
-  const backButton = Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
-  const enabled = !!conversationIDKey
-  return (
-    <Kb.Modal
-      onClose={!Kb.Styles.isMobile ? onClose : undefined}
-      header={{
-        leftButton: channelPickerScreen ? (
-          <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
-            Back
-          </Kb.Text>
-        ) : Kb.Styles.isMobile || installScreen ? (
-          <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
-            {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: channelPickerScreen ? 'Channels' : '',
-      }}
-      footer={
-        enabled && (!readOnly || showReviewButton)
-          ? {
-              content: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
-                  <Kb.ButtonBar direction="column">
-                    {doneButton}
-                    {editButton}
-                    {saveButton}
-                    {reviewButton}
-                    {installButton}
-                    {removeButton}
-                  </Kb.ButtonBar>
-                  {!!error && (
-                    <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
-                      {'Something went wrong! Please try again, or send '}
-                      <Kb.Text
-                        type="Body"
-                        style={{color: Kb.Styles.globalColors.redDark}}
-                        underline={true}
-                        onClick={onFeedback}
-                      >
-                        {'feedback'}
-                      </Kb.Text>
-                    </Kb.Text>
-                  )}
-                </Kb.Box2>
-              ),
-            }
-          : undefined
+  React.useEffect(() => {
+    const handleBack = () => {
+      if (channelPickerScreen) {
+        setChannelPickerScreen(false)
+      } else if (installScreen) {
+        setInstallScreen(false)
+      } else {
+        if (isMobile) {
+          navigateUp()
+        } else {
+          clearModals()
+        }
       }
-    >
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
-        fullWidth={true}
-      >
-        {enabled ? (
-          content
-        ) : (
-          <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
-            <Kb.ProgressIndicator type="Large" />
-          </Kb.Box2>
-        )}
+    }
+    useModalHeaderState.setState({
+      botInTeam: !!inTeam,
+      botReadOnly: readOnly,
+      botSubScreen: channelPickerScreen ? 'channels' : installScreen ? 'install' : '',
+      onAction: handleBack,
+      title: channelPickerScreen ? 'Channels' : '',
+    })
+    return () => {
+      useModalHeaderState.setState({
+        botInTeam: false,
+        botReadOnly: false,
+        botSubScreen: '',
+        onAction: undefined,
+        title: '',
+      })
+    }
+  }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
+
+  const enabled = !!conversationIDKey
+  const bodyContent =
+    enabled && !channelPickerScreen ? (
+      <Kb.ScrollView style={styles.bodyScroll} contentContainerStyle={styles.bodyScrollContent}>
+        {content}
+      </Kb.ScrollView>
+    ) : enabled ? (
+      content
+    ) : (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
+        <Kb.ProgressIndicator type="Large" />
       </Kb.Box2>
-    </Kb.Modal>
+    )
+  return (
+    <>
+      <Kb.Box2 direction="vertical" flex={1} style={styles.outerContainer} fullWidth={true}>
+        {bodyContent}
+      </Kb.Box2>
+      {enabled && (!readOnly || showReviewButton) ? (
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
+            <Kb.ButtonBar direction="column">
+              {doneButton}
+              {editButton}
+              {saveButton}
+              {reviewButton}
+              {installButton}
+              {removeButton}
+            </Kb.ButtonBar>
+            {!!error && (
+              <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
+                {'Something went wrong! Please try again, or send '}
+                <Kb.Text
+                  type="Body"
+                  style={{color: Kb.Styles.globalColors.redDark}}
+                  underline={true}
+                  onClick={onFeedback}
+                >
+                  {'feedback'}
+                </Kb.Text>
+              </Kb.Text>
+            )}
+          </Kb.Box2>
+        </Kb.Box2>
+      ) : null}
+    </>
   )
 }
 
@@ -590,6 +792,18 @@ const PermsList = (props: PermsListProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  bodyScroll: {
+    flex: 1,
+    minHeight: 0,
+    position: 'relative',
+  },
+  bodyScrollContent: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.globalStyles.flexBoxColumn,
+      flexGrow: 1,
+      width: '100%',
+    },
+  }),
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
   },
@@ -599,9 +813,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   dropdownButton: {
     padding: Kb.Styles.globalMargins.tiny,
   },
-  outerContainer: Kb.Styles.platformStyles({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      ...Kb.Styles.topDivider(),
+    },
     isElectron: {
-      height: 560,
+      ...Kb.Styles.roundedBottom(),
+    },
+  }),
+  outerContainer: Kb.Styles.platformStyles({
+    common: {
+      minHeight: 0,
     },
   }),
   reviewButton: {marginTop: -Kb.Styles.globalMargins.tiny},

@@ -21,67 +21,67 @@ func NewRPCLoggerAdapter(log rpc.LogOutput) Logger {
 	}
 }
 
-func (l RPCLoggerAdapter) Debug(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Debug(format string, args ...any) {
 	l.log.Debug(format, args)
 }
 
-func (l RPCLoggerAdapter) CDebugf(_ context.Context, format string, args ...interface{}) {
+func (l RPCLoggerAdapter) CDebugf(_ context.Context, format string, args ...any) {
 	l.log.Debug(format, args)
 }
 
-func (l RPCLoggerAdapter) Info(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Info(format string, args ...any) {
 	l.log.Info(format, args)
 }
 
-func (l RPCLoggerAdapter) CInfof(_ context.Context, format string, args ...interface{}) {
+func (l RPCLoggerAdapter) CInfof(_ context.Context, format string, args ...any) {
 	l.log.Info(format, args)
 }
 
-func (l RPCLoggerAdapter) Notice(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Notice(format string, args ...any) {
 	l.log.Warning(format, args)
 }
 
-func (l RPCLoggerAdapter) CNoticef(_ context.Context, format string, args ...interface{}) {
+func (l RPCLoggerAdapter) CNoticef(_ context.Context, format string, args ...any) {
 	l.log.Warning(format, args)
 }
 
-func (l RPCLoggerAdapter) Warning(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Warning(format string, args ...any) {
 	l.log.Warning(format, args)
 }
 
-func (l RPCLoggerAdapter) CWarningf(_ context.Context, format string, args ...interface{}) {
+func (l RPCLoggerAdapter) CWarningf(_ context.Context, format string, args ...any) {
 	l.log.Warning(format, args)
 }
 
-func (l RPCLoggerAdapter) Error(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Error(format string, args ...any) {
 	l.log.Error(format, args)
 }
 
-func (l RPCLoggerAdapter) Errorf(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Errorf(format string, args ...any) {
 	l.log.Error(format, args)
 }
 
-func (l RPCLoggerAdapter) CErrorf(_ context.Context, format string, args ...interface{}) {
+func (l RPCLoggerAdapter) CErrorf(_ context.Context, format string, args ...any) {
 	l.log.Error(format, args)
 }
 
-func (l RPCLoggerAdapter) Critical(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Critical(format string, args ...any) {
 	l.log.Error(format, args)
 }
 
-func (l RPCLoggerAdapter) CCriticalf(_ context.Context, format string, args ...interface{}) {
+func (l RPCLoggerAdapter) CCriticalf(_ context.Context, format string, args ...any) {
 	l.log.Error(format, args)
 }
 
-func (l RPCLoggerAdapter) Fatalf(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Fatalf(format string, args ...any) {
 	l.log.Error(format, args)
 }
 
-func (l RPCLoggerAdapter) CFatalf(_ context.Context, format string, args ...interface{}) {
+func (l RPCLoggerAdapter) CFatalf(_ context.Context, format string, args ...any) {
 	l.log.Error(format, args)
 }
 
-func (l RPCLoggerAdapter) Profile(format string, args ...interface{}) {
+func (l RPCLoggerAdapter) Profile(format string, args ...any) {
 	l.log.Profile(format, args)
 }
 

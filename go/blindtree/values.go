@@ -12,7 +12,7 @@ import (
 // appropriate.
 type BlindMerkleValue struct {
 	ValueType  BlindMerkleValueType
-	InnerValue interface{}
+	InnerValue any
 }
 
 // Note: values up to 127 are preferred as they are encoded in a single byte

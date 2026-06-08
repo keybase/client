@@ -128,22 +128,22 @@ func (c *CmdWatchdog) GetUsage() libkb.Usage {
 }
 
 // Debugf (for watchdog.Log interface)
-func (c *CmdWatchdog) Debugf(s string, args ...interface{}) {
+func (c *CmdWatchdog) Debugf(s string, args ...any) {
 	c.G().Log.Debug(s, args...)
 }
 
 // Infof (for watchdog.Log interface)
-func (c *CmdWatchdog) Infof(s string, args ...interface{}) {
+func (c *CmdWatchdog) Infof(s string, args ...any) {
 	c.G().Log.Info(s, args...)
 }
 
 // Warningf (for watchdog Log interface)
-func (c *CmdWatchdog) Warningf(s string, args ...interface{}) {
+func (c *CmdWatchdog) Warningf(s string, args ...any) {
 	c.G().Log.Warning(s, args...)
 }
 
 // Errorf (for watchdog Log interface)
-func (c *CmdWatchdog) Errorf(s string, args ...interface{}) {
+func (c *CmdWatchdog) Errorf(s string, args ...any) {
 	c.G().Log.Errorf(s, args...)
 }
 

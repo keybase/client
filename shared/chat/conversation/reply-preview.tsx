@@ -1,13 +1,12 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import {zoomImage} from '@/constants/chat/helpers'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as InputState from './input-area/input-state'
+import {useConversationThreadMessage} from './thread-context'
 
 const ReplyPreview = () => {
-  const rordinal = Chat.useChatContext(s => s.replyTo)
-  const message = Chat.useChatContext(s => {
-    return rordinal ? s.messageMap.get(rordinal) : null
-  })
+  const rordinal = InputState.useConversationInput(s => s.replyTo)
+  const message = useConversationThreadMessage(rordinal)
   let text = ''
   if (message) {
     switch (message.type) {
@@ -30,20 +29,20 @@ const ReplyPreview = () => {
   const imageURL = attachment?.previewURL
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
-  const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : null
-  const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
-  const onCancel = React.useCallback(() => {
+  const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : null
+  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
+  const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
-  }, [setReplyTo])
+  }
 
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.replyContainer}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" padding="tiny">
+          <Kb.Box2 direction="vertical" alignSelf="stretch" flex={1} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={username} size={32} />
               <Kb.Text type="BodyBold" style={styles.username}>
@@ -52,10 +51,10 @@ const ReplyPreview = () => {
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
               {!!imageURL && (
-                <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-                  <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-                    <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-                  </Kb.Box>
+                <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
+                  <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
+                    <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
+                  </Kb.Box2>
                 </Kb.Box2>
               )}
               <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
@@ -63,60 +62,44 @@ const ReplyPreview = () => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} boxStyle={styles.close} />
+          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      close: {alignSelf: 'flex-start'},
+      close: {alignSelf: 'flex-start', flexShrink: 0},
       container: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
           borderRadius: Kb.Styles.borderRadius,
         },
       }),
-      contentContainer: Kb.Styles.platformStyles({
-        isMobile: {flex: 1},
-      }),
+      contentContainer: {minWidth: 0},
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
           position: 'relative',
         },
       }),
-      replyContainer: {
-        justifyContent: 'space-between',
-        padding: Kb.Styles.globalMargins.tiny,
-      },
-      replyImageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
       text: Kb.Styles.platformStyles({
         isElectron: {
           contain: 'strict',
           display: 'inline',
           flex: 1,
           height: 20,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
         isMobile: {flex: 1},
       }),
       title: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-        paddingRight: Kb.Styles.globalMargins.xsmall,
-        paddingTop: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
       username: {alignSelf: 'center'},
     }) as const

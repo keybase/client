@@ -159,7 +159,7 @@ func (i InnerLink) hash() (LinkID, error) {
 	return hashInterface(i)
 }
 
-func hashInterface(i interface{}) (LinkID, error) {
+func hashInterface(i any) (LinkID, error) {
 	b, err := msgpack.Encode(i)
 	if err != nil {
 		return LinkID{}, err
@@ -474,7 +474,7 @@ func signGeneric(g Generic, privkey kbcrypto.NaclSigningKeyPrivate) (ret *Sig3Bu
 
 // Export a sig3 up to the server in base64'ed JSON format, as in a POST request.
 func (s Sig3Bundle) Export() (ret ExportJSON, err error) {
-	enc := func(i interface{}) (string, error) {
+	enc := func(i any) (string, error) {
 		b, err := msgpack.Encode(i)
 		if err != nil {
 			return "", err

@@ -1,40 +1,29 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
 import JumpToRecent from './jump-to-recent'
-import type * as T from '@/constants/types'
-import logger from '@/logger'
+import {useConversationCenter} from '../center-context'
+import {
+  useConversationThreadMarkThreadAsRead,
+  useConversationThreadSelector,
+  useConversationThreadToggleSearch,
+} from '../thread-context'
 
-export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-  const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
-    const selected = Chat.getSelectedConversation()
-    if (selected !== conversationIDKey) {
-      logger.info('mark intially as read bail on not looking at this thread anymore?')
-      return
-    }
-    // Force mark as read since this is triggered by navigation (user action)
-    Chat.getConvoState(conversationIDKey).dispatch.markThreadAsRead(true)
-  }, [conversationIDKey])
-
+export const useActions = () => {
+  const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
   return {markInitiallyLoadedThreadAsRead}
 }
 
 export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const {loaded, moreToLoadForward} = s
-      const {jumpToRecent, toggleThreadSearch} = s.dispatch
-      return {jumpToRecent, loaded, moreToLoadForward, toggleThreadSearch}
-    })
+  const {moreToLoadForward, loaded} = useConversationThreadSelector(
+    C.useShallow(s => ({loaded: s.loaded, moreToLoadForward: s.moreToLoadForward}))
   )
-  const {moreToLoadForward, jumpToRecent, loaded, toggleThreadSearch} = data
+  const toggleThreadSearch = useConversationThreadToggleSearch()
+  const {jumpToRecent} = useConversationCenter()
 
-  const onJump = React.useCallback(() => {
+  const onJump = () => {
     scrollToBottom()
     jumpToRecent()
     toggleThreadSearch(true)
-  }, [toggleThreadSearch, jumpToRecent, scrollToBottom])
+  }
 
   return loaded && moreToLoadForward && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
 }

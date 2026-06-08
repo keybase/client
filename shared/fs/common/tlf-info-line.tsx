@@ -1,8 +1,17 @@
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import * as FS from '@/constants/fs'
 import {formatTimeForFS} from '@/util/timestamp'
+import {useFsTlfs} from './hooks'
+import {useCurrentUserState} from '@/stores/current-user'
 
-export type Props = {
+export type OwnProps = {
+  path: T.FS.Path
+  mixedMode?: boolean
+  mode: 'row' | 'default'
+}
+
+type Props = {
   isNew: boolean
   mixedMode?: boolean
   mode: 'row' | 'default'
@@ -45,7 +54,7 @@ const resetText = (props: Props) => {
     <Kb.Text
       type="BodySmallError"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
     >
       {text}
     </Kb.Text>
@@ -56,10 +65,9 @@ const getPrefixText = (props: Props) =>
   props.mixedMode && props.tlfType ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true}>
       <Kb.Text
-        fixOverdraw={true}
         type="BodySmall"
         style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-        lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+        lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
       >
         {props.tlfType}/
       </Kb.Text>
@@ -69,17 +77,16 @@ const getPrefixText = (props: Props) =>
 const timeText = (props: Props) =>
   props.tlfMtime ? (
     <Kb.Text
-      fixOverdraw={true}
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
     >
       {formatTimeForFS(props.tlfMtime, props.mode !== 'row')}
     </Kb.Text>
   ) : null
 
 const getText = (props: Props) => {
-  if (Kb.Styles.isMobile && props.mixedMode) {
+  if (isMobile && props.mixedMode) {
     // on mobile in fs root, don't show reset text, and only show time text
     // if reset badge isn't shown, i.e. not self reset
     return props.reset !== true ? timeText(props) : null
@@ -94,14 +101,27 @@ const getText = (props: Props) => {
   return props.reset ? resetText(props) : null
 }
 
-const TlfInfoLine = (props: Props) => {
+const TlfInfoLine = (ownProps: OwnProps) => {
+  const _tlf = FS.getTlfFromPath(useFsTlfs(), ownProps.path)
+  const _username = useCurrentUserState(s => s.username)
+  const resetParticipants = _tlf === FS.unknownTlf ? undefined : _tlf.resetParticipants
+  const props: Props = {
+    isNew: _tlf.isNew,
+    mixedMode: ownProps.mixedMode,
+    mode: ownProps.mode,
+    reset:
+      !!resetParticipants &&
+      !!resetParticipants.length &&
+      (resetParticipants.includes(_username) || resetParticipants),
+    tlfMtime: _tlf.tlfMtime,
+    tlfType: T.FS.getPathVisibility(ownProps.path),
+  }
   const prefix = getPrefixText(props)
   const dot = (
     <Kb.Text
-      fixOverdraw={true}
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
     >
       •&nbsp;
     </Kb.Text>
@@ -139,9 +159,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       textRow: Kb.Styles.platformStyles({
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
         isMobile: {
           flexShrink: 1,

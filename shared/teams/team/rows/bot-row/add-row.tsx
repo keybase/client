@@ -6,12 +6,15 @@ type Props = {
 }
 const AddBotRow = (props: Props) => {
   const {teamID} = props
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onBotAdd = () => navigateAppend({props: {teamID}, selected: 'chatSearchBots'})
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.container}>
-      <Kb.Button type="Default" mode="Secondary" label="Install bots" onClick={onBotAdd} />
+      <Kb.Button
+        type="Default"
+        mode="Secondary"
+        label="Install bots"
+        onClick={() => C.Router2.navigateAppend({name: 'chatSearchBots', params: {teamID}})}
+      />
     </Kb.Box2>
   )
 }

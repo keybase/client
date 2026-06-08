@@ -1,33 +1,34 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import openUrl from '@/util/open-url'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {openURL as openUrl} from '@/util/misc'
 
 const privacyPolicy = 'https://keybase.io/_/webview/privacypolicy'
 const terms = 'https://keybase.io/_/webview/terms'
 
 const About = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onShowPrivacyPolicy = () => {
-    if (C.isMobile) {
+    if (isMobile) {
       navigateAppend({
-        props: {title: 'Privacy Policy', url: privacyPolicy},
-        selected: 'webLinks',
+        name: 'webLinks',
+        params: {title: 'Privacy Policy', url: privacyPolicy},
       })
     } else {
-      openUrl(privacyPolicy)
+      void openUrl(privacyPolicy)
     }
   }
   const onShowTerms = () => {
-    if (C.isMobile) {
-      navigateAppend({props: {title: 'Terms', url: terms}, selected: 'webLinks'})
+    if (isMobile) {
+      navigateAppend({name: 'webLinks', params: {title: 'Terms', url: terms}})
     } else {
-      openUrl(terms)
+      void openUrl(terms)
     }
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.Icon type="icon-keybase-logo-64" />
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} testID={TestIDs.SETTINGS_ABOUT}>
+      <Kb.ImageIcon type="icon-keybase-logo-64" />
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
         <Kb.Text center={true} type="Body">
           You are running version{' '}
@@ -46,10 +47,6 @@ const About = () => {
   )
 }
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   terms: {
     marginBottom: Kb.Styles.globalMargins.tiny,
   },

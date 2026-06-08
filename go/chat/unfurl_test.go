@@ -198,7 +198,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 			}
 			// We get two of these, one for local and remote, but its hard to know where they
 			// come from at the source, so just check twice.
-			for i := 0; i < 2; i++ {
+			for range 2 {
 				select {
 				case mu := <-listener0.messagesUpdated:
 					require.Equal(t, 1, len(mu.Updates))
@@ -272,7 +272,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		httpSrv.setSucceed(true)
 
 		var u *chat1.Unfurl
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
 			recvSingleRetry()
 			u = recvUnfurl()

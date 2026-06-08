@@ -1,9 +1,7 @@
-import * as React from 'react'
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
-import {useProvisionState} from '@/constants/provision'
+import * as T from '@/constants/types'
+import {useProvisionState} from '@/stores/provision'
 type Props = {
   mode: 'QR' | 'text'
   onCancel: () => void
@@ -19,19 +17,19 @@ type BigButtonProps = {
 }
 
 const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
-  <Kb.ClickableBox onClick={waiting ? undefined : onClick}>
-    <Kb.Box2
-      direction={Kb.Styles.isMobile ? 'horizontal' : 'vertical'}
-      style={styles.bigButton}
-      className="hover_background_color_blueLighter2"
-    >
+  <Kb.ClickableBox
+    onClick={waiting ? undefined : onClick}
+    direction={isMobile ? 'horizontal' : 'vertical'}
+    style={styles.bigButton}
+    className="hover_background_color_blueLighter2"
+  >
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
         style={Kb.Styles.collapseStyles([styles.buttonIcon, waiting && Kb.Styles.globalStyles.opacity0])}
         gap="tiny"
       >
-        <Kb.Icon type={icon} sizeType="Big" color={Kb.Styles.globalColors.blue} />
+        <Kb.IconAuto type={icon} sizeType="Big" color={Kb.Styles.globalColors.blue} />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
@@ -45,53 +43,52 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
           <Kb.ProgressIndicator />
         </Kb.Box2>
       )}
-    </Kb.Box2>
   </Kb.ClickableBox>
 )
 
 const Troubleshooting = (props: Props) => {
   const onBack = props.onCancel
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
-  const onWayBack = React.useCallback(() => {
-    navUpToScreen('login')
-  }, [navUpToScreen])
+  const onWayBack = () => {
+    C.Router2.navUpToScreen('login')
+  }
 
   const device = useProvisionState(s => s.codePageOtherDevice)
-  const deviceIconNo = (device.deviceNumberOfType % Devices.numBackgrounds) + 1
+  const deviceIconNo = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
   const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
-    deviceIconNo === -1 ? 1 : deviceIconNo
+    deviceIconNo
   }-64` as Kb.IconType
 
   return (
-    <Kb.Modal
-      onClose={onBack}
-      header={{
-        hideBorder: false,
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onBack}>
-            Back
+    <>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+        <Kb.Box2
+          direction="horizontal"
+          alignItems="center"
+          fullHeight={true}
+          flex={1}
+        >
+          <Kb.Box2 direction="horizontal" flex={1} style={styles.headerSide}>
+            {isMobile ? (
+              <Kb.Text type="BodySemiboldLink" onClick={onBack}>
+                Back
+              </Kb.Text>
+            ) : null}
+          </Kb.Box2>
+          <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+            Troubleshooting
           </Kb.Text>
-        ) : null,
-        title: 'Troubleshooting',
-      }}
-      footer={
-        Kb.Styles.isMobile
-          ? undefined
-          : {
-              content: <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />,
-              hideBorder: true,
-            }
-      }
-      mobileStyle={styles.mobileModal}
-      mode="Wide"
-    >
+          <Kb.Box2 direction="horizontal" flex={1} style={styles.headerSide} />
+        </Kb.Box2>
+      </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
         <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
-            This appears to be a new {Kb.Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
-            backup or uninstalled Keybase. Either way, Keybase keys aren’t backed up, so this is now a totally
+            This appears to be a new {isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
+            {
+              "backup or uninstalled Keybase. Either way, Keybase keys aren't backed up, so this is now a totally"
+            }
             new device.
           </Kb.Text>
           <Kb.Text type="Body" center={true}>
@@ -99,7 +96,7 @@ const Troubleshooting = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2
-          direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
+          direction={isMobile ? 'vertical' : 'horizontal'}
           style={styles.buttonBar}
           gap="xsmall"
         >
@@ -119,7 +116,17 @@ const Troubleshooting = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+      {!isMobile && (
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          style={styles.modalFooterNoBorder}
+        >
+          <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />
+        </Kb.Box2>
+      )}
+    </>
   )
 }
 export default Troubleshooting
@@ -128,10 +135,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bigButton: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderColor: Kb.Styles.globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
       position: 'relative',
     },
     isElectron: {
@@ -153,13 +157,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   buttonBar: {
-    marginLeft: Kb.Styles.globalMargins.medium,
-    marginRight: Kb.Styles.globalMargins.medium,
+    ...Kb.Styles.marginH(Kb.Styles.globalMargins.medium),
   },
   buttonIcon: {
-    height: 64,
+    ...Kb.Styles.size(64),
     paddingRight: Kb.Styles.globalMargins.small,
-    width: 64,
   },
   buttonText: Kb.Styles.platformStyles({
     isElectron: {
@@ -169,7 +171,19 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       maxWidth: 188,
     },
   }),
-  mobileModal: {
-    backgroundColor: Kb.Styles.globalColors.white,
+  header: {
+    ...Kb.Styles.bottomDivider(48),
   },
+  headerSide: {
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
+  },
+  modalFooterNoBorder: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      minHeight: 56,
+    },
+    isElectron: {
+      ...Kb.Styles.roundedBottom(),
+    },
+  }),
 }))

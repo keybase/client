@@ -16,8 +16,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       video: Kb.Styles.platformStyles({
         isElectron: {
-          marginBottom: Kb.Styles.globalMargins.medium,
-          marginTop: Kb.Styles.globalMargins.medium,
+          ...Kb.Styles.marginV(Kb.Styles.globalMargins.medium),
         },
         isMobile: {
           backgroundColor: Kb.Styles.globalColors.blueLighter3,

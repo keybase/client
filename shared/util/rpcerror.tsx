@@ -1,4 +1,4 @@
-import type {StatusCode} from '@/constants/types/rpc-gen'
+import type {StatusCode} from '@/constants/rpc/rpc-gen'
 class RPCError {
   // Fields to make RPCError 'look' like Error, since we don't want to
   // inherit from Error.

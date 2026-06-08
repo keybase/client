@@ -61,7 +61,7 @@ func TestTeamApplicationKey(t *testing.T) {
 func TestTeamGetRepeat(t *testing.T) {
 	t.Skip("not needed")
 	// in order to try to repro in CI, run this 10 times
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		tc := SetupTest(t, "team", 1)
 		defer tc.Cleanup()
 
@@ -87,12 +87,12 @@ func TestTeamGetWhileCreate(t *testing.T) {
 
 	name := createTeam(tc)
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		go createTeam(tc)
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		_, err := GetForTestByStringName(context.TODO(), tc.G, name)
 		if err != nil {
 			t.Fatal(err)
@@ -104,7 +104,7 @@ func TestTeamGetConcurrent(t *testing.T) {
 	t.Skip("this is slow but it passes")
 	work := make(chan bool)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go func() {
 			for x := range work {
 				_ = x
@@ -113,7 +113,7 @@ func TestTeamGetConcurrent(t *testing.T) {
 		}()
 	}
 
-	for j := 0; j < 100; j++ {
+	for range 100 {
 		work <- true
 	}
 }

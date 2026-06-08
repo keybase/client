@@ -1,10 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useCurrentUserState} from '@/constants/current-user'
+import {isBigTeam} from '@/constants/chat/helpers'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/constants/teams'
-import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import RoleButton from '../../role-button'
 import logger from '@/logger'
@@ -12,14 +13,15 @@ import {FloatingRolePicker} from '../../role-picker'
 import {formatTimeForTeamMember, formatTimeRelativeToNow} from '@/util/timestamp'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
-import {useTeamDetailsSubscribe} from '@/teams/subscriber'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {navToProfile} from '@/constants/router'
+import {getRolePickerDisabledReasons, isLastOwnerInTeamMembers} from '@/teams/role-picker-utils'
+import {useLoadedTeam} from '../use-loaded-team'
+import {useTeamsList} from '@/teams/use-teams-list'
+import {removeMember} from '@/teams/actions'
 
 type Props = {
-  teamID: T.Teams.TeamID
-  username: string
-}
-type OwnProps = {
   teamID: T.Teams.TeamID
   username: string
 }
@@ -29,69 +31,194 @@ type TeamTreeRowNotIn = {
   teamname: string
   memberCount?: number
   joinTime?: number
-  canAdminister: boolean
 }
 type TeamTreeRowIn = {
+  lastActivity?: number
   role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
 
-const getMemberships = (
-  state: Teams.State,
-  teamIDs: Array<T.Teams.TeamID>,
+type TeamTreeMembershipState = {
+  expectedCount?: number
+  guid?: number
+  lastActivity: Map<T.Teams.TeamID, number>
+  memberships: Array<T.RPCGen.TeamTreeMembership>
+  sparseMemberInfos: Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>
+  targetTeamID: T.Teams.TeamID
   username: string
-): Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo> => {
-  const results = new Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>()
-  teamIDs.forEach(teamID => {
-    const info = Teams.maybeGetSparseMemberInfo(state, teamID, username)
-    if (info) {
-      results.set(teamID, info)
-    }
-  })
-  return results
 }
 
-type TreeMembershipOK = {s: T.RPCGen.TeamTreeMembershipStatus.ok; ok: T.RPCGen.TeamTreeMembershipValue}
-const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
+const makeEmptyTeamTreeMembershipState = (
+  targetTeamID: T.Teams.TeamID,
+  username: string
+): TeamTreeMembershipState => ({
+  lastActivity: new Map(),
+  memberships: [],
+  sparseMemberInfos: new Map(),
+  targetTeamID,
+  username,
+})
+
+const matchesTeamTreeMembershipState = (
+  state: TeamTreeMembershipState,
+  targetTeamID: T.Teams.TeamID,
+  username: string
+) => state.targetTeamID === targetTeamID && state.username === username
+
+const consumeTeamTreeMembershipValue = (
+  value: T.RPCGen.TeamTreeMembershipValue
+): T.Teams.TreeloaderSparseMemberInfo => ({
+  joinTime: value.joinTime ?? undefined,
+  type: Teams.teamRoleByEnum[value.role],
+})
+
+const getSparseMemberInfo = (
+  sparseMemberInfos: ReadonlyMap<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>,
+  teamID: T.Teams.TeamID
+) => sparseMemberInfos.get(teamID)
+
+const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
+  const loadTeamTreeMemberships = C.useRPC(T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise)
+  const {teams} = useTeamsList()
+  const teamMetas = new Map(teams.map(team => [team.id, team] as const))
+  const [state, setState] = React.useState(() => makeEmptyTeamTreeMembershipState(targetTeamID, username))
+  const hasFocusedSinceMountRef = React.useRef(false)
+
+  const loadLastActivity = React.useEffectEvent((teamID: T.Teams.TeamID) => {
+    C.ignorePromise(
+      T.RPCChat.localGetLastActiveAtMultiLocalRpcPromise(
+        {teamIDs: [teamID], username},
+        C.waitingKeyTeamsLoadTeamTreeActivity(teamID, username)
+      )
+        .then(activityMap => {
+          setState(prev => {
+            if (!matchesTeamTreeMembershipState(prev, targetTeamID, username)) {
+              return prev
+            }
+            const nextLastActivity = new Map(prev.lastActivity)
+            Object.entries(activityMap ?? {}).forEach(([activityTeamID, lastActivity]) => {
+              nextLastActivity.set(activityTeamID, lastActivity)
+            })
+            return {...prev, lastActivity: nextLastActivity}
+          })
+          return undefined
+        })
+        .catch(error => {
+          logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}`, error)
+        })
+    )
+  })
+
+  const load = React.useCallback(() => {
+    loadTeamTreeMemberships(
+      [{teamID: targetTeamID, username}],
+      () => {},
+      error => {
+        logger.warn(`Failed to load team tree memberships for ${targetTeamID}:${username}`, error)
+      }
+    )
+  }, [loadTeamTreeMemberships, targetTeamID, username])
+
+  const reload = React.useCallback(() => {
+    setState(makeEmptyTeamTreeMembershipState(targetTeamID, username))
+    load()
+  }, [load, targetTeamID, username])
+
+  React.useEffect(() => {
+    load()
+  }, [load])
+
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      if (hasFocusedSinceMountRef.current) {
+        reload()
+      } else {
+        hasFocusedSinceMountRef.current = true
+      }
+    }, [reload])
+  )
+
+  useEngineActionListener('keybase.1.NotifyTeam.teamTreeMembershipsDone', action => {
+    const {result} = action.payload.params
+    if (result.targetTeamID !== targetTeamID || result.targetUsername !== username) {
+      return
+    }
+    setState(prev => {
+      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
+        ? prev
+        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
+      if (base.guid !== undefined && result.guid < base.guid) {
+        return base
+      }
+      if (base.guid === undefined || result.guid > base.guid) {
+        return {
+          ...makeEmptyTeamTreeMembershipState(targetTeamID, username),
+          expectedCount: result.expectedCount,
+          guid: result.guid,
+        }
+      }
+      return {...base, expectedCount: result.expectedCount}
+    })
+  })
+
+  useEngineActionListener('keybase.1.NotifyTeam.teamTreeMembershipsPartial', action => {
+    const {membership} = action.payload.params
+    if (membership.targetTeamID !== targetTeamID || membership.targetUsername !== username) {
+      return
+    }
+    setState(prev => {
+      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
+        ? prev
+        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
+      if (base.guid !== undefined && membership.guid < base.guid) {
+        return base
+      }
+      const nextMemberships =
+        base.guid === undefined || membership.guid > base.guid
+          ? [membership]
+          : [...base.memberships, membership]
+      const nextSparseMemberInfos =
+        base.guid === undefined || membership.guid > base.guid ? new Map() : new Map(base.sparseMemberInfos)
+      if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
+        nextSparseMemberInfos.set(
+          membership.result.ok.teamID,
+          consumeTeamTreeMembershipValue(membership.result.ok)
+        )
+      }
+      return {
+        ...base,
+        guid: membership.guid,
+        memberships: nextMemberships,
+        sparseMemberInfos: nextSparseMemberInfos,
+      }
+    })
+    if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
+      loadLastActivity(membership.result.ok.teamID)
+    }
+  })
+
   const errors: Array<T.RPCGen.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
-
-  const {memberships, roleMap, teamMetas} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      memberships: s.teamMemberToTreeMemberships.get(targetTeamID)?.get(username),
-      roleMap: s.teamRoleMap.roles,
-      teamMetas: s.teamMeta,
-    }))
-  )
+  const visibleState = matchesTeamTreeMembershipState(state, targetTeamID, username)
+    ? state
+    : makeEmptyTeamTreeMembershipState(targetTeamID, username)
 
   // Note that we do not directly take any information directly from the TeamTree result other
-  // than the **shape of the tree**. The other information is delegated to
-  // Teams.maybeGetSparseMemberInfo which opportunistically sources the information from the
-  // teamDetails map if present, so as to show up-to-date information.
-  const teamIDs: Array<T.Teams.TeamID> =
-    memberships?.memberships
-      .filter(m => m.result.s === T.RPCGen.TeamTreeMembershipStatus.ok)
-      .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
-  const upToDateSparseMemberInfos = Teams.useTeamsState(C.useDeep(s => getMemberships(s, teamIDs, username)))
-
-  if (!memberships) {
-    return {errors, nodesIn, nodesNotIn}
-  }
-
-  for (const membership of memberships.memberships) {
+  // than the **shape of the tree**. Membership metadata comes from the async tree-membership
+  // results themselves instead of peeking into the global teams cache.
+  for (const membership of visibleState.memberships) {
     const teamname = membership.teamName
 
     if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
-      const sparseMemberInfo = upToDateSparseMemberInfos.get(teamID)
+      const sparseMemberInfo = getSparseMemberInfo(visibleState.sparseMemberInfos, teamID)
       if (!sparseMemberInfo) {
         continue
       }
 
-      const ops = Teams.deriveCanPerform(roleMap.get(teamID))
       const row = {
-        canAdminister: ops.manageMembers,
         joinTime: sparseMemberInfo.joinTime,
+        lastActivity: visibleState.lastActivity.get(teamID),
         // memberCount should always be populated because the TeamList, which is synced
         // eagerly, provides it.
         memberCount: teamMetas.get(teamID)?.memberCount,
@@ -113,8 +240,11 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
   }
   return {
     errors,
+    loading:
+      visibleState.expectedCount === undefined || visibleState.memberships.length < visibleState.expectedCount,
     nodesIn,
     nodesNotIn,
+    reload,
   }
 }
 
@@ -141,36 +271,11 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
 type Item = {type: 'section-nodes'; tri: TeamTreeRowIn} | {type: 'section-add-nodes'; tni: TeamTreeRowNotIn}
 type Section = Kb.SectionType<Item>
 
-const TeamMember = (props: OwnProps) => {
+const TeamMember = (props: Props) => {
   const username = props.username
   const teamID = props.teamID
   const isMe = username === useCurrentUserState(s => s.username)
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => {
-      const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
-      let loading = true
-      if (memberships?.expectedCount) {
-        const got = memberships.memberships.length
-        const want = memberships.expectedCount
-        if (got > want) {
-          logger.error(`got ${got} notifications for ${teamID}; only wanted ${want}`)
-        }
-        loading = got < want
-      }
-      return {
-        loadTeamTree: s.dispatch.loadTeamTree,
-        loading,
-      }
-    })
-  )
-  const {loadTeamTree, loading} = teamsState
-
-  // Load up the memberships when the page is opened
-  React.useEffect(() => {
-    loadTeamTree(teamID, username)
-  }, [loadTeamTree, teamID, username])
-
-  const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
+  const {errors, loading, nodesIn, nodesNotIn, reload} = useTeamTreeMemberships(teamID, username)
 
   const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
 
@@ -220,7 +325,7 @@ const TeamMember = (props: OwnProps) => {
 
   const sections: Array<Section> = nodesNotIn.length > 0 ? [nodesInSection, nodesNotInSection] : [nodesInSection]
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} relative={true} testID={TestIDs.TEAMS_MEMBER_PAGE}>
       {errors.length > 0 && (
         <Kb.Banner color="red">
           {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
@@ -230,7 +335,7 @@ const TeamMember = (props: OwnProps) => {
             content={[
               'The following teams could not be loaded. ',
               {
-                onClick: () => loadTeamTree(teamID, username),
+                onClick: reload,
                 text: 'Click to reload.',
               },
             ]}
@@ -248,10 +353,10 @@ const TeamMember = (props: OwnProps) => {
               if (error.result.error.willSkipAncestors) {
                 failedAt.push('its parent teams')
               }
-              let failedAtStr = ''
+              let failedAtStr: string
               if (failedAt.length > 1) {
-                const last = failedAt.pop()
-                failedAtStr = failedAt.join(', ') + ', and ' + last
+                const last = failedAt.pop() ?? ''
+                failedAtStr = `${failedAt.join(', ')}, and ${last}`
               } else {
                 failedAtStr = failedAt[0] ?? ''
               }
@@ -282,22 +387,51 @@ type NodeNotInRowProps = {
   username: string
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
-  useTeamDetailsSubscribe(props.node.teamID)
+  const currentUsername = useCurrentUserState(s => s.username)
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(props.node.teamID)
   const nav = useSafeNavigation()
   const onAddWaitingKey = C.waitingKeyTeamsAddMember(props.node.teamID, props.username)
-  const {addToTeam, disabledRoles} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      addToTeam: s.dispatch.addToTeam,
-      disabledRoles: Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username),
-    }))
-  )
+  const disabledRoles = getRolePickerDisabledReasons({
+    canManageMembers: yourOperations.manageMembers,
+    currentUsername,
+    members: teamDetails.members,
+    membersToModify: props.username,
+    teamname: teamMeta.teamname,
+  })
+  const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const [error, setError] = React.useState('')
+  const navigateAppend = C.Router2.navigateAppend
   const onAdd = (role: T.Teams.TeamRoleType) => {
-    addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
+    setError('')
+    addToTeam(
+      [
+        {
+          sendChatNotification: true,
+          teamID: props.node.teamID,
+          users: [{assertion: props.username, role: T.RPCGen.TeamRole[role]}],
+        },
+        [C.waitingKeyTeamsTeam(props.node.teamID), onAddWaitingKey],
+      ],
+      res => {
+        const usernames = res.notAdded?.map(user => user.username) ?? []
+        if (usernames.length) {
+          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddSomeFailed', usernames}})
+        }
+      },
+      err => {
+        if (err.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+          const users = (err.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+            ?.filter(field => field?.key === 'usernames')
+            .map(field => field?.value)
+          const usernames = users?.[0]?.split(',') ?? []
+          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddAllFailed', usernames}})
+          return
+        }
+        setError(err.message)
+      }
+    )
   }
-  const openTeam = React.useCallback(
-    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
-    [props.node.teamID, nav]
-  )
+  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -342,8 +476,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
           </Kb.Box2>
         </Kb.Box2>
 
-        {props.node.canAdminister && (
-          <Kb.Box2 direction="horizontal" alignSelf="center">
+        {yourOperations.manageMembers && (
+          <Kb.Box2 direction="vertical" alignSelf="center" gap="xtiny" alignItems="flex-end">
             <FloatingRolePicker
               onConfirm={role => {
                 onAdd(role)
@@ -361,6 +495,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
                 waitingKey={onAddWaitingKey}
               />
             </FloatingRolePicker>
+            {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -368,17 +503,13 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   )
 }
 
-const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username: string}) => {
-  const lastActivity = Teams.useTeamsState(s =>
-    Teams.getTeamMemberLastActivity(s, props.teamID, props.username)
-  )
-
+const LastActivity = (props: {lastActivity?: number; loading: boolean}) => {
   return (
     <Kb.Text type="BodySmall">
       {props.loading
         ? 'Loading activity...'
-        : lastActivity
-          ? `Active ${formatTimeRelativeToNow(lastActivity)}`
+        : props.lastActivity
+          ? `Active ${formatTimeRelativeToNow(props.lastActivity)}`
           : 'No activity'}
     </Kb.Text>
   )
@@ -392,17 +523,18 @@ type NodeInRowProps = {
   setExpanded: (b: boolean) => void
 }
 const NodeInRow = (props: NodeInRowProps) => {
+  const currentUsername = useCurrentUserState(s => s.username)
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(props.node.teamID)
   const {channelMetas, loadingChannels} = useAllChannelMetas(
     props.node.teamID,
     !props.expanded /* dontCallRPC */
   )
-  useTeamDetailsSubscribe(props.node.teamID)
 
   const nav = useSafeNavigation()
   const onAddToChannels = () =>
     nav.safeNavigateAppend({
-      props: {teamID: props.node.teamID, usernames: [props.username]},
-      selected: 'teamAddToChannels',
+      name: 'teamAddToChannels',
+      params: {teamID: props.node.teamID, usernames: [props.username]},
     })
   const onKickOutWaitingKey = C.waitingKeyTeamsRemoveMember(props.node.teamID, props.username)
   const onKickOut = () => {
@@ -412,31 +544,48 @@ const NodeInRow = (props: NodeInRowProps) => {
     }
   }
 
-  const openTeam = React.useCallback(
-    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
-    [props.node.teamID, nav]
-  )
+  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
 
   const {expanded, setExpanded} = props
 
   const [role, setRole] = React.useState<T.Teams.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
-  const {amLastOwner, disabledRoles, editMembership, myRole, removeMember} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      amLastOwner: Teams.isLastOwner(s, props.node.teamID),
-      disabledRoles: Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username),
-      editMembership: s.dispatch.editMembership,
-      myRole: Teams.getRole(s, props.node.teamID),
-      removeMember: s.dispatch.removeMember,
-    }))
-  )
-  const isMe = props.username === useCurrentUserState(s => s.username)
-  const isSmallTeam = !Chat.useChatState(s => Chat.isBigTeam(s, props.node.teamID))
-  const onChangeRole = (role: T.Teams.TeamRoleType) => {
-    setRole(role)
-    editMembership(props.node.teamID, [props.username], role)
+  const disabledRoles = getRolePickerDisabledReasons({
+    canManageMembers: yourOperations.manageMembers,
+    currentUsername,
+    members: teamDetails.members,
+    membersToModify: props.username,
+    teamname: teamMeta.teamname,
+  })
+  const myRole = teamMeta.role
+  const amLastOwner = myRole === 'owner' && isLastOwnerInTeamMembers(teamDetails.members, currentUsername)
+  const isMe = props.username === currentUsername
+  const isSmallTeam = !useInboxLayoutState(s => isBigTeam(s.layout, props.node.teamID))
+  const editMembership = C.useRPC(T.RPCGen.teamsTeamEditMembersRpcPromise)
+  const [error, setError] = React.useState('')
+  const onChangeRole = (nextRole: T.Teams.TeamRoleType) => {
+    const previousRole = role
+    setError('')
+    setRole(nextRole)
+    editMembership(
+      [
+        {
+          teamID: props.node.teamID,
+          users: [{assertion: props.username, role: T.RPCGen.TeamRole[nextRole]}],
+        },
+        [
+          C.waitingKeyTeamsTeam(props.node.teamID),
+          C.waitingKeyTeamsEditMembership(props.node.teamID, props.username),
+        ],
+      ],
+      () => {},
+      err => {
+        setRole(previousRole)
+        setError(err.message)
+      }
+    )
     setOpen(false)
-    if (['reader, writer'].includes(role) && props.isParentTeamMe) {
+    if (['reader', 'writer'].includes(nextRole) && props.isParentTeamMe) {
       nav.safeNavigateUp()
     }
   }
@@ -452,7 +601,8 @@ const NodeInRow = (props: NodeInRowProps) => {
         .map(([_, {channelname}]) => channelname)
         .join(', #')
 
-  const rolePicker = props.node.canAdminister ? (
+  const canAdminister = yourOperations.manageMembers
+  const rolePicker = canAdminister ? (
     <RoleButton
       containerStyle={Kb.Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
       loading={changingRole}
@@ -463,7 +613,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     <></>
   )
 
-  const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
+  const cantKickOut = canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
     <>
@@ -476,10 +626,8 @@ const NodeInRow = (props: NodeInRowProps) => {
         position="top right"
         open={open}
         disabledRoles={disabledRoles}
-        floatingContainerStyle={styles.floatingContainerStyle}
       />
-      <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
+      <Kb.ClickableBox onClick={() => setExpanded(!expanded)} direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
@@ -542,23 +690,13 @@ const NodeInRow = (props: NodeInRowProps) => {
                       type="iconfont-typing"
                       sizeType="Small"
                       color={Kb.Styles.globalColors.black_20}
-                      boxStyle={styles.membershipIcon}
                     />
-                    <LastActivity
-                      loading={loadingActivity}
-                      teamID={props.node.teamID}
-                      username={props.username}
-                    />
+                    <LastActivity lastActivity={props.node.lastActivity} loading={loadingActivity} />
                   </Kb.Box2>
                 )}
                 {expanded && !isSmallTeam && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
-                    <Kb.Icon
-                      type="iconfont-hash"
-                      sizeType="Small"
-                      color={Kb.Styles.globalColors.black_20}
-                      boxStyle={styles.membershipIcon}
-                    />
+                    <Kb.Icon type="iconfont-hash" sizeType="Small" color={Kb.Styles.globalColors.black_20} />
                     <Kb.Text
                       type="BodySmall"
                       style={Kb.Styles.globalStyles.flexOne}
@@ -569,12 +707,12 @@ const NodeInRow = (props: NodeInRowProps) => {
                     </Kb.Text>
                   </Kb.Box2>
                 )}
-                {expanded && (props.node.canAdminister || isMe) && (
+                {expanded && (canAdminister || isMe) && (
                   <Kb.Box2
                     direction="horizontal"
                     gap="tiny"
                     alignSelf="flex-start"
-                    gapEnd={Kb.Styles.isMobile}
+                    gapEnd={isMobile}
                     style={styles.paddingBottomMobile}
                   >
                     {!isSmallTeam && (
@@ -588,16 +726,22 @@ const NodeInRow = (props: NodeInRowProps) => {
                     {!(isMe && amLastOwner) && !cantKickOut && (
                       <Kb.WaitingButton
                         mode="Secondary"
-                        icon={isMe ? 'iconfont-team-leave' : 'iconfont-block'}
                         type="Danger"
                         onClick={onKickOut}
                         label={isMe ? 'Leave team' : 'Kick out'}
                         small={true}
                         waitingKey={onKickOutWaitingKey}
-                      />
+                      >
+                        <Kb.Icon
+                          type={isMe ? 'iconfont-team-leave' : 'iconfont-block'}
+                          sizeType="Small"
+                          color={Kb.Styles.globalColors.redDark}
+                        />
+                      </Kb.WaitingButton>
                     )}
                   </Kb.Box2>
                 )}
+                {expanded && !!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
               </Kb.Box2>
             </Kb.Box2>
             {!Kb.Styles.isPhone && (
@@ -606,7 +750,6 @@ const NodeInRow = (props: NodeInRowProps) => {
               </Kb.Box2>
             )}
           </Kb.Box2>
-        </Kb.Box2>
       </Kb.ClickableBox>
     </>
   )
@@ -618,20 +761,14 @@ export const TeamMemberHeader = (props: Props) => {
   const nav = useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
-  const {teamDetails, teamMeta} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      teamDetails: s.teamDetails.get(teamID),
-      teamMeta: Teams.getTeamMeta(s, teamID),
-    }))
-  )
+  const {teamDetails, teamMeta} = useLoadedTeam(teamID)
   const yourUsername = useCurrentUserState(s => s.username)
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
-  const onViewProfile = () => showUserProfile(username)
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewProfile = () => navToProfile(username)
+  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
-  const member = teamDetails?.members.get(username)
+  const member = teamDetails.members.get(username)
   if (!member) {
     if (!leaving) {
       // loading? should never happen.
@@ -700,26 +837,23 @@ export const TeamMemberHeader = (props: Props) => {
 const BlockDropdown = (props: {username: string}) => {
   const {username} = props
   const nav = useSafeNavigation()
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onBlock = () => nav.safeNavigateAppend({props: {username}, selected: 'chatBlockingModal'})
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-        />
-      )
-    },
-    [nav, username]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
+      />
+    )
+  }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button
+      <Kb.IconButton
         small={true}
         icon="iconfont-ellipsis"
         onClick={showPopup}
@@ -732,18 +866,6 @@ const BlockDropdown = (props: {username: string}) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  backButton: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-    position: 'relative',
-    width: '100%',
-  },
   contentCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 48},
     isPhone: {height: 64},
@@ -763,12 +885,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 64,
       padding: 0,
       width: 10 + Kb.Styles.globalMargins.small * 2, // 16px side paddings
-    },
-  }),
-  floatingContainerStyle: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      right: Kb.Styles.globalMargins.tiny,
     },
   }),
   headerContainer: Kb.Styles.platformStyles({
@@ -806,28 +922,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {paddingBottom: Kb.Styles.globalMargins.tiny},
     isTablet: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
-  membershipIcon: {
-    flexShrink: 0,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
   membershipTeamText: {justifyContent: 'center'},
   membershipTeamTextExpanded: Kb.Styles.platformStyles({
     isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},
   }),
-  mobileHeader: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    height: 40,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
   paddingBottomMobile: Kb.Styles.platformStyles({
     isPhone: {paddingBottom: Kb.Styles.globalMargins.small},
   }),
-  reloadButton: {
-    marginTop: Kb.Styles.globalMargins.tiny,
-    minWidth: 56,
-  },
   roleButton: {paddingRight: 0},
   roleButtonExpanded: Kb.Styles.platformStyles({
     isElectron: {
@@ -845,7 +946,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 65,
     },
   }),
-  smallHeader: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge)},
   teamNameLink: {color: Kb.Styles.globalColors.black},
 }))
 

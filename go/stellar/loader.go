@@ -491,7 +491,7 @@ func (p *Loader) cleanPayments(n int) int {
 		return 0
 	}
 
-	for i := 0; i < toDelete; i++ {
+	for i := range toDelete {
 		delete(p.payments, p.plist[i])
 		delete(p.pmessages, p.plist[i])
 		deleted++
@@ -512,7 +512,7 @@ func (p *Loader) cleanRequests(n int) int {
 		return 0
 	}
 
-	for i := 0; i < toDelete; i++ {
+	for i := range toDelete {
 		delete(p.requests, p.rlist[i])
 		delete(p.rmessages, p.rlist[i])
 		deleted++

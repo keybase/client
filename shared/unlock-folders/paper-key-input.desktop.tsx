@@ -10,20 +10,19 @@ export type Props = {
 
 const PaperKeyInput = (props: Props) => {
   const [paperkey, setPaperkey] = React.useState('')
-  const errorText = props.paperkeyError
 
   return (
-    <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+    <Kb.Box2 alignItems="center" direction="vertical" padding="small">
       <Kb.BackButton onClick={props.onBack} style={styles.back} />
-      <Kb.Icon style={styles.icon} type="icon-paper-key-48" />
-      <Kb.LabeledInput
+      <Kb.ImageIcon style={styles.icon} type="icon-paper-key-48" />
+      <Kb.Input3
         multiline={true}
         rowsMax={3}
         onChangeText={setPaperkey}
-        error={!!errorText}
+        error={!!props.paperkeyError}
         placeholder="Enter your paper key"
       />
-      {!!errorText && <Kb.Text type="BodySmallError">{errorText}</Kb.Text>}
+      {!!props.paperkeyError && <Kb.Text type="BodySmallError">{props.paperkeyError}</Kb.Text>}
       <Kb.Button
         label="Continue"
         style={styles.button}
@@ -41,7 +40,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: 30,
   },
   button: {marginTop: Kb.Styles.globalMargins.small},
-  container: {padding: Kb.Styles.globalMargins.small},
   icon: {marginBottom: Kb.Styles.globalMargins.tiny},
 }))
 

@@ -1,11 +1,11 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
+import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
+import {useChatTeamMembers} from '../../team-hooks'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useConversationMetadata} from '../../data-hooks'
 
 export const transformer = (
   input: {
@@ -33,15 +33,9 @@ export const transformer = (
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconPeople: {
-    alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.white,
-    borderColor: Kb.Styles.globalColors.black_10,
-    borderRadius: 16,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
+    ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 16),
+    ...Kb.Styles.size(32),
   },
 }))
 
@@ -128,63 +122,62 @@ const filterAndJoin = (
 const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
   const bigTeams =
     layout?.bigTeams?.reduce<Array<string>>((arr, l) => {
-      l.state === T.RPCChat.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
+      if (l.state === T.RPCChat.UIInboxBigTeamRowTyp.label) {
+        arr.push(l.label.name)
+      }
       return arr
     }, []) ?? []
   const smallTeams =
     layout?.smallTeams?.reduce<Array<string>>((arr, l) => {
-      l.isTeam && arr.push(l.name)
+      if (l.isTeam) {
+        arr.push(l.name)
+      }
       return arr
     }, []) ?? []
   return bigTeams.concat(smallTeams).map(teamname => ({channelname: '', teamname}))
 }
 
-const useDataUsers = () => {
+const useDataUsers = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  return Chat.useChatContext(
-    C.useDeep(s => {
-      const {teamID, teamType} = s.meta
-      // TODO not reactive
-      const teamMembers = useTeamsState.getState().teamIDToMembers.get(teamID)
-      const usernames = teamMembers
-        ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-        : participantInfo.all
-      const suggestions = usernames.map(username => ({
-        fullName: infoMap.get(username)?.fullname || '',
-        username,
-      }))
-      if (teamType !== 'adhoc') {
-        const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
-        suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
-      }
-      // TODO this will thrash on every store change, TODO fix
-      return suggestions
-    })
-  )
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const {teamID, teamType} = meta
+  const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
+  const suggestions =
+    teamType !== 'adhoc' && !loadingTeamMembers && teamMembers.size > 0
+      ? [...teamMembers.values()]
+          .sort((a, b) => a.username.localeCompare(b.username))
+          .map(member => ({
+            fullName: member.fullName || infoMap.get(member.username)?.fullname || '',
+            username: member.username,
+          }))
+      : participantInfo.all.map(username => ({
+          fullName: infoMap.get(username)?.fullname || '',
+          username,
+        }))
+  if (teamType !== 'adhoc') {
+    const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+    suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+  }
+  return suggestions
 }
 
 const useDataTeams = () => {
-  const inboxLayout = Chat.useChatState(s => s.inboxLayout)
-  const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
-  const allChannels = React.useMemo(
-    () =>
-      inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
-        if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
-          if (t.channel.channelname.length) {
-            arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
-          }
-        }
-        return arr
-      }, []) ?? [],
-    [inboxLayout]
-  )
+  const inboxLayout = useInboxLayoutState(s => s.layout)
+  const teams = getTeams(inboxLayout)
+  const allChannels = inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
+    if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
+      if (t.channel.channelname.length) {
+        arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+      }
+    }
+    return arr
+  }, []) ?? []
   return {allChannels, teams}
 }
 
-const useDataSource = (filter: string) => {
+const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
   const fl = filter.toLowerCase()
-  const users = useDataUsers()
+  const users = useDataUsers(conversationIDKey)
   const {teams, allChannels} = useDataTeams()
   return filterAndJoin(users, teams, allChannels, fl)
 }
@@ -208,8 +201,9 @@ type ListItem = {
 
 type ListProps = Pick<
   Common.ListProps<ListItem>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
@@ -236,7 +230,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
       gap="tiny"
     >
       {Chat.isSpecialMention(username ?? '') ? (
-        <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
+        <Kb.Box2 direction="horizontal" style={styles.iconPeople} centerChildren={true}>
           <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (
@@ -262,8 +256,8 @@ const keyExtractor = (item: ListItem) => {
 }
 
 export const UsersList = (p: ListProps) => {
-  const {filter, ...rest} = p
-  const items = useDataSource(filter)
+  const {conversationIDKey, filter, ...rest} = p
+  const items = useDataSource(conversationIDKey, filter)
   return (
     <Common.List
       {...rest}

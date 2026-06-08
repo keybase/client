@@ -80,7 +80,7 @@ func TestOuterLinkV2WithMetadataContainerEncode(t *testing.T) {
 }
 
 func TestOuterLinkV2WithMetadataContainerDecode(t *testing.T) {
-	bytes, err := msgpack.Encode(map[string]interface{}{
+	bytes, err := msgpack.Encode(map[string]any{
 		"O": []byte{0x01, 0x02},
 	})
 	require.NoError(t, err)
@@ -103,7 +103,7 @@ func TestOuterLinkV2WithMetadataPointerContainerEncode(t *testing.T) {
 }
 
 func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
-	bytes, err := msgpack.Encode(map[string]interface{}{
+	bytes, err := msgpack.Encode(map[string]any{
 		"O": []byte{0x01, 0x02},
 	})
 	require.NoError(t, err)

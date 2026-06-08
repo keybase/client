@@ -197,8 +197,8 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
 			res0 = consumeFlipToResult(t, ui0, listener0, gameID, numUsers)
 			t.Logf("res0 (shuffle): %s", res0)
-			toks := strings.Split(res0, ",")
-			for _, t := range toks {
+			toks := strings.SplitSeq(res0, ",")
+			for t := range toks {
 				delete(refMap, strings.Trim(t, " "))
 			}
 			require.Zero(t, len(refMap))

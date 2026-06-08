@@ -1,18 +1,12 @@
 package com.reactnativekb
 
-import androidx.annotation.Nullable
-
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
-import com.facebook.react.TurboReactPackage
+import com.facebook.react.BaseReactPackage
 
-import java.util.HashMap
-import java.util.Map
-
-class KbPackage : TurboReactPackage() {
-    @Nullable
+class KbPackage : BaseReactPackage() {
     override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
         return if (name == KbModule.NAME) {
             KbModule(reactContext)
@@ -23,12 +17,11 @@ class KbPackage : TurboReactPackage() {
 
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
         return ReactModuleInfoProvider {
-            val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
+            val moduleInfos: MutableMap<String, ReactModuleInfo> = mutableMapOf()
             val isTurboModule = true
             moduleInfos[KbModule.NAME] = ReactModuleInfo(
                     KbModule.NAME,
                     KbModule.NAME,
-                    false, // canOverrideExistingModule
                     false, // needsEagerInit
                     true,  // hasConstants
                     false, // isCxxModule

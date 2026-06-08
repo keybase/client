@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -109,7 +110,7 @@ type txPayload struct {
 	Tag txPayloadTag
 	// txPayload holds either of: *SCTeamInvites or
 	// *keybase1.TeamChangeReq.
-	Val interface{}
+	Val any
 }
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
@@ -121,7 +122,7 @@ func CreateAddMemberTx(t *Team) *AddMemberTx {
 	}
 }
 
-func (tx *AddMemberTx) DebugPayloads() (res []interface{}) {
+func (tx *AddMemberTx) DebugPayloads() (res []any) {
 	for _, v := range tx.payloads {
 		res = append(res, v.Val)
 	}
@@ -136,7 +137,7 @@ func (tx *AddMemberTx) IsEmpty() bool {
 // of AddMemberTx API. Users of this API should avoid lowercase
 // methods and fields at all cost, even from same package.
 
-func (tx *AddMemberTx) findPayload(tag txPayloadTag, forUID keybase1.UID) interface{} {
+func (tx *AddMemberTx) findPayload(tag txPayloadTag, forUID keybase1.UID) any {
 	minSeqno := 0
 	hasUID := !forUID.IsNil()
 	if hasUID {
@@ -913,9 +914,7 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 		if payload.CompletedInvites == nil {
 			payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
 		}
-		for i, v := range completedInvites {
-			payload.CompletedInvites[i] = v
-		}
+		maps.Copy(payload.CompletedInvites, completedInvites)
 	}
 
 	return nil

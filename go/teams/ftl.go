@@ -268,7 +268,7 @@ func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *f
 // loadLockedWithRetries attempts two loads of the team. If the first iteration returns an FTLMissingSeedError,
 // we'll blast through the cache and attempt a full reload a second time. Then that's for all the marbles.
 func (f *FastTeamChainLoader) loadLockedWithRetries(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		res, err = f.loadLocked(m, arg)
 		if err == nil {
 			return res, err
@@ -720,7 +720,7 @@ func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg
 	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#loadFromServerWithRetries(%s,%v)", arg.ID, arg.Public), &err)()
 
 	const nRetries = 3
-	for i := 0; i < nRetries; i++ {
+	for range nRetries {
 		groceries, err = f.loadFromServerOnce(m, arg, state, shoppingList, hp)
 		switch err.(type) {
 		case nil:

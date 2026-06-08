@@ -1,9 +1,13 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
-import {useUsersState} from '@/constants/users'
+import * as T from '@/constants/types'
+import * as S from '@/constants/strings'
+import {useUsersState} from '@/stores/users'
+import {leaveTeam} from '@/teams/actions'
+import {navigateToInbox} from '@/constants/router'
+import {persistRoute} from '@/util/storeless-actions'
+import {useConfigState} from '@/stores/config'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
@@ -26,7 +30,7 @@ type OwnProps = {
   flagUserByDefault?: boolean
   reportsUserByDefault?: boolean
   context?: BlockModalContext
-  conversationIDKey?: string
+  conversationIDKey?: T.Chat.ConversationIDKey
   others?: Array<string>
   team?: string
   username?: string
@@ -52,12 +56,12 @@ const CheckboxRow = (props: CheckboxRowProps) => (
       onClick={() => props.onCheck(!props.checked)}
       style={styles.shrink}
     />
-    <Kb.Box style={styles.iconBox} />
+    <Kb.Box2 direction="vertical" flex={1} style={styles.iconBox} />
     {props.info && (
       <Kb.WithTooltip
         tooltip={props.info}
         showOnPressMobile={true}
-        position={Kb.Styles.isMobile ? 'bottom center' : 'top center'}
+        position={isMobile ? 'bottom center' : 'top center'}
         multiline={true}
       >
         <Kb.Icon type="iconfont-question-mark" color="grey" />
@@ -76,11 +80,11 @@ type ReportOptionsProps = {
   showIncludeTranscript: boolean
 }
 const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...'] as const
-const defaultReport: ReportSettings = {
+const defaultReport = {
   extraNotes: '',
   includeTranscript: true,
   reason: reasons[0],
-}
+} satisfies ReportSettings
 const ReportOptions = (props: ReportOptionsProps) => {
   const {showIncludeTranscript} = props
   return (
@@ -94,7 +98,9 @@ const ReportOptions = (props: ReportOptionsProps) => {
           style={styles.radioButton}
         />
       ))}
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
         style={Kb.Styles.collapseStyles([
           styles.feedback,
           !showIncludeTranscript && styles.feedbackPaddingBottom,
@@ -103,13 +109,13 @@ const ReportOptions = (props: ReportOptionsProps) => {
         <Kb.Text type="BodySmall" style={{marginLeft: 4}}>
           We will review this report within 24 hours and take an action
         </Kb.Text>
-        <Kb.NewInput
+        <Kb.Input3
           multiline={true}
           placeholder="Extra notes"
           onChangeText={props.setExtraNotes}
           value={props.extraNotes}
         />
-      </Kb.Box>
+      </Kb.Box2>
       {showIncludeTranscript && (
         <CheckboxRow
           text="Include the transcript of this chat"
@@ -121,10 +127,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
   )
 }
 
-// In order to have this play nicely with scrolling and keyboards, put all the stuff in a List.
-type Item = 'topStuff' | {username: string}
-
-const Container = React.memo(function BlockModal(ownProps: OwnProps) {
+const BlockModal = (ownProps: OwnProps) => {
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
   let {username: adderUsername, others} = ownProps
@@ -139,49 +142,60 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   const _allKnownBlocks = useUsersState(s => s.blockMap)
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
-  const onClose = C.useRouterState(s => s.dispatch.navigateUp)
-  const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
-  const leaveTeamAndBlock = React.useCallback(
-    (teamname: string) => {
-      leaveTeam(teamname, true, 'chat')
-    },
-    [leaveTeam]
-  )
+  const navigateUp = C.Router2.navigateUp
+  const reportUserRPC = C.useRPC(T.RPCGen.userReportUserRpcPromise)
+  const setUserBlocksRPC = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
+  const leaveTeamAndBlock = (teamname: string) => {
+    leaveTeam(teamname, true, 'chat')
+  }
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
-  const _reportUser = useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
-  const reportUser = React.useCallback(
-    (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
-      _reportUser({
-        comment: report.extraNotes,
-        conversationIDKey,
-        includeTranscript: report.includeTranscript && !!conversationIDKey,
-        reason: report.reason,
-        username,
-      })
-    },
-    [_reportUser]
-  )
-  const setConversationStatus = Chat.useChatContext(s => s.dispatch.blockConversation)
-  const _setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
-  const setUserBlocks = React.useCallback(
-    (newBlocks: NewBlocksMap) => {
-      // Convert our state block array to action payload.
-      const blocks = [...newBlocks.entries()]
-        .filter(
-          ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
-        )
-        .map(([username, userBlocks]) => ({
-          setChatBlock: userBlocks.chatBlocked,
-          setFollowBlock: userBlocks.followBlocked,
+  const reportUser = (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
+    reportUserRPC(
+      [
+        {
+          comment: report.extraNotes,
+          convID: conversationIDKey,
+          includeTranscript: report.includeTranscript && !!conversationIDKey,
+          reason: report.reason,
           username,
-        }))
-      if (blocks.length) {
-        _setUserBlocks(blocks)
-      }
-    },
-    [_setUserBlocks]
-  )
+        },
+        S.waitingKeyUsersReportUser,
+      ],
+      () => {},
+      () => {}
+    )
+  }
+  const setConversationStatus = (reportUser: boolean) => {
+    if (!conversationIDKey) {
+      return
+    }
+    const f = async () => {
+      navigateToInbox()
+      persistRoute(false, false, () => useConfigState.getState().startup.loaded)
+      await T.RPCChat.localSetConversationStatusLocalRpcPromise({
+        conversationID: T.Chat.keyToConversationID(conversationIDKey),
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        status: reportUser ? T.RPCChat.ConversationStatus.reported : T.RPCChat.ConversationStatus.blocked,
+      })
+    }
+    C.ignorePromise(f())
+  }
+  const setUserBlocks = (newBlocks: NewBlocksMap) => {
+    // Convert our state block array to action payload.
+    const blocks = [...newBlocks.entries()]
+      .filter(
+        ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
+      )
+      .map(([username, userBlocks]) => ({
+        setChatBlock: userBlocks.chatBlocked,
+        setFollowBlock: userBlocks.followBlocked,
+        username,
+      }))
+    if (blocks.length) {
+      setUserBlocksRPC([{blocks}, S.waitingKeyUsersSetUserBlocks], () => {}, () => {})
+    }
+  }
 
   const otherUsernames = others && others.length > 0 ? others : undefined
   const finishWaiting = waitingForLeave || waitingForBlocking || waitingForReport
@@ -208,21 +222,29 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
     }
     newBlocks.forEach(({report}, username) => report && reportUser(username, conversationIDKey, report))
     if (!takingAction) {
-      onClose()
+      navigateUp()
     }
   }
-  const refreshBlocks = React.useCallback(() => {
-    const usernames = [...(adderUsername ? [adderUsername] : []), ...(otherUsernames || [])]
-    if (usernames.length) {
-      refreshBlocksFor(usernames)
-    }
-  }, [adderUsername, otherUsernames, refreshBlocksFor])
-
-  const [blockTeam, setBlockTeam] = React.useState(true)
+  const [blockTeam, setBlockTeam] = React.useState(context !== 'message-popup')
   const [finishClicked, setFinishClicked] = React.useState(false)
   // newBlocks holds a Map of blocks that will be applied when user clicks
   // "Finish" button. reports is the same thing for reporting.
-  const [newBlocks, setNewBlocks] = React.useState<NewBlocksMap>(new Map())
+  const [newBlocks, setNewBlocks] = React.useState<NewBlocksMap>(() => {
+    const initialBlocks = new Map<string, BlocksForUser>()
+    if (blockUserByDefault && adderUsername) {
+      initialBlocks.set(adderUsername, {
+        chatBlocked: true,
+        followBlocked: true,
+        report: reportsUserByDefault
+          ? {
+              ...defaultReport,
+              ...(flagUserByDefault ? {reason: reasons[reasons.length - 2] ?? defaultReport.reason} : {}),
+            }
+          : undefined,
+      })
+    }
+    return initialBlocks
+  })
 
   const loadedOnceRef = React.useRef(false)
   React.useEffect(() => {
@@ -231,46 +253,19 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
 
     // Once we get here, trigger actions to refresh current block state of
     // users.
-    refreshBlocks()
-
-    // Set default checkbox block values for adder user. We don't care if they
-    // are already blocked, setting a block is idempotent.
-    if (blockUserByDefault && adderUsername) {
-      const map = newBlocks
-      map.set(adderUsername, {
-        chatBlocked: true,
-        followBlocked: true,
-        report: reportsUserByDefault
-          ? {
-              ...defaultReport,
-              ...(flagUserByDefault ? {reason: reasons[reasons.length - 2]} : {}),
-            }
-          : undefined,
-      })
-      setNewBlocks(new Map(map))
+    const usernames = [...(adderUsername ? [adderUsername] : []), ...(otherUsernames || [])]
+    if (usernames.length) {
+      refreshBlocksFor(usernames)
     }
-    if (context === 'message-popup') {
-      // Do not block conversation by default when coming from message popup
-      // menu.
-      setBlockTeam(false)
-    }
-  }, [
-    adderUsername,
-    blockUserByDefault,
-    context,
-    flagUserByDefault,
-    newBlocks,
-    refreshBlocks,
-    reportsUserByDefault,
-  ])
+  }, [adderUsername, otherUsernames, refreshBlocksFor])
 
   const lastFinishWaitingRef = React.useRef(finishWaiting)
   React.useEffect(() => {
     if (finishClicked && lastFinishWaitingRef.current && !finishWaiting) {
-      onClose()
+      navigateUp()
     }
     lastFinishWaitingRef.current = finishWaiting
-  }, [finishClicked, onClose, finishWaiting])
+  }, [finishClicked, navigateUp, finishWaiting])
 
   const getBlockFor = (username: string, which: BlockType) => {
     // First get a current setting from a checkbox, if user has checked anything.
@@ -409,81 +404,79 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
     </>
   )
 
-  const header = {
-    leftButton: Kb.Styles.isMobile ? (
-      <Kb.Text onClick={onClose} type="BodyPrimaryLink">
-        Cancel
-      </Kb.Text>
-    ) : undefined,
-    title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
-  }
-
   if (loadingWaiting) {
     return (
-      <Kb.Modal mode="Default" header={header}>
-        <Kb.Box style={styles.loadingAnimationBox}>
-          <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
-        </Kb.Box>
-      </Kb.Modal>
+      <Kb.Box2 direction="vertical" alignSelf="center" padding="medium">
+        <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
+      </Kb.Box2>
     )
   }
 
   const teamCheckboxDisabled = !!teamname && !otherUsernames?.length && !adderUsername
   const teamLabel = context === 'message-popup'
 
-  const topStuff = (
-    <React.Fragment key="topStuff">
-      {(!!teamname || !adderUsername) && (
-        <>
-          <CheckboxRow
-            text={`Leave and block ${teamname || 'this conversation'}`}
-            onCheck={setBlockTeam}
-            checked={blockTeam}
-            disabled={teamCheckboxDisabled}
-          />
-          <Kb.Divider />
-        </>
-      )}
-      {!!adderUsername && renderRowsForUsername(adderUsername, true, teamLabel)}
-      {!!otherUsernames?.length && (
-        <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
-          <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
-        </Kb.Box2>
-      )}
-    </React.Fragment>
-  )
-
+  type Item = 'topStuff' | {username: string}
   const items: Array<Item> = ['topStuff']
   otherUsernames?.forEach(username => items.push({username}))
+
+  const topStuffHeight =
+    120 +
+    (!!adderUsername && getShouldReport(adderUsername)
+      ? reasons.length * 18 + 54 + 40 + 20
+      : 0) +
+    (otherUsernames?.length ? 41 : 0)
+  // Each username row is 2 checkboxes (40px each) + 1px divider = 81px
+  const usernameRowHeight = 81
+
+  const itemHeight = {
+    getItemLayout: (index: number, item?: Item) => {
+      const length = item === 'topStuff' ? topStuffHeight : usernameRowHeight
+      let offset = 0
+      for (let i = 0; i < index; i++) {
+        offset += items[i] === 'topStuff' ? topStuffHeight : usernameRowHeight
+      }
+      return {index, length, offset}
+    },
+    type: 'variable' as const,
+  }
+
+  const renderItem = (_: number, item: Item) => {
+    if (item === 'topStuff') {
+      return (
+        <>
+          {(!!teamname || !adderUsername) && (
+            <>
+              <CheckboxRow
+                text={`Leave and block ${teamname || 'this conversation'}`}
+                onCheck={setBlockTeam}
+                checked={blockTeam}
+                disabled={teamCheckboxDisabled}
+              />
+              <Kb.Divider />
+            </>
+          )}
+          {!!adderUsername && renderRowsForUsername(adderUsername, true, teamLabel)}
+          {!!otherUsernames?.length && (
+            <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
+              <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
+            </Kb.Box2>
+          )}
+        </>
+      )
+    }
+    return renderRowsForUsername(item.username, item === items[items.length - 1])
+  }
+
   return (
-    <Kb.Modal
-      mode="Default"
-      popupStyleContainer={styles.popupStyleContainer}
-      onClose={onClose}
-      header={header}
-      footer={{
-        content: (
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && (
-              <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />
-            )}
-            <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
-          </Kb.ButtonBar>
-        ),
-      }}
-      noScrollView={true}
-    >
+    <>
       <Kb.List
-        keyboardDismissMode="none"
         items={items}
-        renderItem={(idx: number, item: Item) =>
-          item === 'topStuff'
-            ? topStuff
-            : renderRowsForUsername(item.username, idx === otherUsernames?.length)
-        }
+        renderItem={renderItem}
         indexAsKey={true}
+        extraData={newBlocks}
+        itemHeight={itemHeight}
         style={
-          Kb.Styles.isMobile
+          isMobile
             ? styles.grow
             : getListHeightStyle(
                 otherUsernames?.length ?? 0,
@@ -491,11 +484,19 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
               )
         }
       />
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            {!isMobile && (
+              <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />
+            )}
+            <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
+          </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
-})
+}
 
-export default Container
+export default BlockModal
 
 const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
   height:
@@ -507,7 +508,7 @@ const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
       : 0) +
     (expanded
       ? // When you expand the report menu, every option gets an 18px row + 54px for the extra notes + 40px transcript
-        reasons.length * 18 + 54 + 40
+        reasons.length * 18 + 54 + 40 + 20
       : 0),
 })
 
@@ -519,28 +520,27 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   greyBox: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
     color: Kb.Styles.globalColors.black_50,
-    width: '100%',
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
   },
   grow: {flexGrow: 1},
-  iconBox: {flex: 1, paddingLeft: Kb.Styles.globalMargins.tiny},
+  iconBox: {paddingLeft: Kb.Styles.globalMargins.tiny},
   loadingAnimation: Kb.Styles.platformStyles({
     isElectron: {
-      height: 32,
-      width: 32,
+      ...Kb.Styles.size(32),
     },
     isMobile: {
-      height: 48,
-      width: 48,
+      ...Kb.Styles.size(48),
     },
   }),
-  loadingAnimationBox: {
-    alignSelf: 'center',
-    padding: Kb.Styles.globalMargins.medium,
-  },
-
-  popupStyleContainer: {height: 450},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      ...Kb.Styles.topDivider(),
+    },
+    isElectron: {
+      ...Kb.Styles.roundedBottom(),
+    },
+  }),
   radioButton: {marginLeft: Kb.Styles.globalMargins.large},
-  scroll: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
   shrink: {flexShrink: 1},
 }))

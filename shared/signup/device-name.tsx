@@ -1,31 +1,97 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {SignupScreen, errorBanner} from './common'
-import * as Provision from '@/constants/provision'
-import {useSignupState} from '@/constants/signup'
+import {SignupScreen, errorBanner, desktopInputWidth} from './common'
+import * as Provision from '@/stores/provision'
+import {usePushState} from '@/stores/push'
+import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
+import {ignorePromise} from '@/constants/utils'
+import logger from '@/logger'
+import type {StaticScreenProps} from '@react-navigation/core'
+import {
+  clearSignupDeviceNameDraft,
+  getSignupDeviceNameDraft,
+  setSignupDeviceNameDraft,
+} from './device-name-draft'
 
-const ConnectedEnterDevicename = () => {
-  const error = useSignupState(s => s.devicenameError)
-  const initialDevicename = useSignupState(s => s.devicename)
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const goBackAndClearErrors = useSignupState(s => s.dispatch.goBackAndClearErrors)
-  const checkDeviceName = useSignupState(s => s.dispatch.checkDeviceName)
-  const onBack = goBackAndClearErrors
-  const onContinue = checkDeviceName
-  const props = {
-    error,
-    initialDevicename,
-    onBack,
-    onContinue,
-    waiting,
+type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
+
+const ConnectedEnterDevicename = (p: Props) => {
+  const showPermissionsPrompt = usePushState(s => s.dispatch.showPermissionsPrompt)
+  const initialDevicename = getSignupDeviceNameDraft()
+  const inviteCode = p.route.params.inviteCode ?? ''
+  const username = p.route.params.username ?? ''
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
+  const {navigateAppend, navigateUp} = C.Router2
+  const [error, setError] = React.useState('')
+  const onContinue = (devicename: string) => {
+    setError('')
+    setSignupDeviceNameDraft(devicename)
+    const f = async () => {
+      try {
+        await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, C.waitingKeySignup)
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          setError(error_.desc)
+        }
+        return
+      }
+
+      if (!username || !devicename) {
+        logger.warn('Missing data during signup phase', username, devicename)
+        return
+      }
+
+      try {
+        showPermissionsPrompt({justSignedUp: true})
+        await T.RPCGen.signupSignupRpcListener({
+          customResponseIncomingCallMap: {
+            'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+              response.result(false)
+            },
+          },
+          incomingCallMap: {
+            'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+          },
+          params: {
+            botToken: '',
+            deviceName: devicename,
+            deviceType: isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
+            email: '',
+            genPGPBatch: false,
+            genPaper: false,
+            inviteCode,
+            passphrase: '',
+            randomPw: true,
+            skipGPG: true,
+            skipMail: true,
+            storeSecret: true,
+            username,
+            verifyEmail: true,
+          },
+          waitingKey: C.waitingKeySignup,
+        })
+        clearSignupDeviceNameDraft()
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          showPermissionsPrompt({justSignedUp: false})
+          navigateAppend({
+            name: 'signupError',
+            params: {errorCode: error_.code, errorMessage: error_.desc},
+          })
+        }
+      }
+    }
+    ignorePromise(f())
   }
-  return <EnterDevicename {...props} />
+
+  return <EnterDevicename error={error} initialDevicename={initialDevicename} onBack={navigateUp} onContinue={onContinue} waiting={waiting} />
 }
 
 export default ConnectedEnterDevicename
 
-type Props = {
+type EnterDevicenameProps = {
   error: string
   initialDevicename?: string
   onBack: () => void
@@ -39,8 +105,10 @@ const makeCleanDeviceName = (d: string) => {
   return good
 }
 
-const EnterDevicename = (props: Props) => {
-  const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
+const EnterDevicename = (props: EnterDevicenameProps) => {
+  const [deviceName, setDeviceName] = React.useState(() =>
+    makeCleanDeviceName(props.initialDevicename || '')
+  )
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const _setReadyToShowError = C.useDebouncedCallback((ready: boolean) => {
     setReadyToShowError(ready)
@@ -54,57 +122,29 @@ const EnterDevicename = (props: Props) => {
     Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const _setDeviceName = (deviceName: string) => {
-    setDeviceName(deviceName)
+    setDeviceName(makeCleanDeviceName(deviceName))
     setReadyToShowError(false)
     _setReadyToShowError(true)
   }
-  const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
-
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
-  C.useOnMountOnce(() => {
-    inputRef.current?.transformText(i => {
-      if (!props.initialDevicename) return i
-      return {
-        selection: {
-          end: props.initialDevicename.length,
-          start: 0,
-        },
-        text: props.initialDevicename,
-      }
-    })
-  })
-
-  React.useEffect(() => {
-    if (cleanDeviceName !== deviceName) {
-      inputRef.current?.transformText(() => {
-        return {
-          selection: {
-            end: cleanDeviceName.length,
-            start: cleanDeviceName.length,
-          },
-          text: cleanDeviceName,
-        }
-      })
-    }
-  }, [deviceName, cleanDeviceName])
+  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(cleanDeviceName))
 
   return (
     <SignupScreen
       banners={errorBanner(props.error)}
       buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
       onBack={props.onBack}
-      title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
+      title={isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2
         alignItems="center"
         direction="vertical"
-        gap={Kb.Styles.isMobile ? 'small' : 'medium'}
+        gap={isMobile ? 'small' : 'medium'}
         fullWidth={true}
-        style={Kb.Styles.globalStyles.flexOne}
+        flex={1}
       >
-        <Kb.Icon
+        <Kb.ImageIcon
           type={
-            Kb.Styles.isMobile
+            isMobile
               ? C.isLargeScreen
                 ? 'icon-phone-background-1-96'
                 : 'icon-phone-background-1-64'
@@ -112,16 +152,16 @@ const EnterDevicename = (props: Props) => {
           }
         />
         <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
-          <Kb.LabeledInput
-            ref={inputRef}
+          <Kb.Input3
             autoFocus={true}
+            selectTextOnFocus={true}
             containerStyle={styles.input}
             error={showDisabled}
             maxLength={64}
             placeholder="Name"
-            hoverPlaceholder={Kb.Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
+            value={deviceName}
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
@@ -142,8 +182,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     color: Kb.Styles.globalColors.redDark,
     marginLeft: 2,
   },
-  input: Kb.Styles.platformStyles({
-    isElectron: {width: 368},
-    isTablet: {width: 368},
-  }),
+  input: desktopInputWidth,
 }))

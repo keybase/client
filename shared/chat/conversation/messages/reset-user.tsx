@@ -1,28 +1,42 @@
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import {navToProfile} from '@/constants/router'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const ResetUser = () => {
-  const meta = Chat.useChatContext(s => s.meta)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const resetChatWithoutThem = Chat.useChatContext(s => s.dispatch.resetChatWithoutThem)
-  const resetLetThemIn = Chat.useChatContext(s => s.dispatch.resetLetThemIn)
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
+  const conversationIDKey = useConversationThreadID()
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const _viewProfile = showUserProfile
+  const _viewProfile = navToProfile
   const username = [..._resetParticipants][0] || ''
   const nonResetUsers = new Set(_participants)
   _resetParticipants.forEach(r => nonResetUsers.delete(r))
   const allowChatWithoutThem = nonResetUsers.size > 1
-  const chatWithoutThem = resetChatWithoutThem
-  const letThemIn = () => resetLetThemIn(username)
+  const chatWithoutThem = () => {
+    C.Router2.previewConversation({
+      participants: [...nonResetUsers],
+      reason: 'resetChatWithoutThem',
+    })
+  }
+  const letThemIn = () => {
+    const f = async () => {
+      await T.RPCChat.localAddTeamMemberAfterResetRpcPromise({
+        convID: T.Chat.keyToConversationID(conversationIDKey),
+        username,
+      })
+    }
+    C.ignorePromise(f())
+  }
   const viewProfile = () => _viewProfile(username)
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
-      <Kb.Icon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
-      <Kb.Box2 direction="vertical" style={styles.textContainer}>
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} padding="small" style={styles.container}>
+      <Kb.ImageIcon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.textContainer}>
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
             {username}
@@ -33,32 +47,32 @@ const ResetUser = () => {
             }
           </Kb.Text>
         </Kb.Text>
-        <Kb.Box style={styles.bullet}>
-          <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
+        <Kb.Box2 direction="vertical" style={styles.bullet} gap="tiny" gapStart={true}>
+          <Kb.Text type="BodySemibold" negative={true}>
             1. Be satisfied with their new proofs, or
           </Kb.Text>
-          <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
+          <Kb.Text type="BodySemibold" negative={true}>
             2. Know them outside Keybase and have gotten a thumbs up from them.
           </Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Text type="BodySemibold" negative={true} style={styles.lastSentence}>
           Don&apos;t let them in until one of the above is&nbsp;true.
         </Kb.Text>
         <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonContainer}>
           <Kb.Button
-            backgroundColor="red"
             fullWidth={true}
             label="View profile"
             mode="Secondary"
-            type="Dim"
             onClick={viewProfile}
+            style={styles.secondaryOnRed}
+            labelStyle={styles.secondaryOnRedLabel}
           />
           <Kb.Button
-            backgroundColor="red"
             fullWidth={true}
             label="Let them in"
             onClick={letThemIn}
-            type="Dim"
+            style={styles.primaryOnRed}
+            labelStyle={styles.primaryOnRedLabel}
           />
         </Kb.ButtonBar>
         {allowChatWithoutThem && (
@@ -78,40 +92,35 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bullet: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         maxWidth: 320,
       },
       buttonContainer: {
-        alignItems: 'center',
-        marginBottom: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.small,
-        width: '100%',
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
       },
       container: {
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.red,
         marginBottom: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
-        padding: Kb.Styles.globalMargins.small,
-        width: '100%',
       },
       lastSentence: {
         marginTop: Kb.Styles.globalMargins.medium,
         textAlign: 'center',
       },
+      primaryOnRed: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnRedLabel: {color: Kb.Styles.globalColors.redDark},
+      secondaryOnRed: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnRedLabel: {color: Kb.Styles.globalColors.white},
       skullIcon: Kb.Styles.platformStyles({
         common: {margin: Kb.Styles.globalMargins.medium},
-        isElectron: {height: 48, width: 48},
-        isMobile: {height: 64, width: 64},
+        isElectron: {...Kb.Styles.size(48)},
+        isMobile: {...Kb.Styles.size(64)},
       }),
       textContainer: Kb.Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          width: '100%',
-        },
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.large,
-          paddingRight: Kb.Styles.globalMargins.large,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         },
       }),
     }) as const

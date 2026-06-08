@@ -1201,7 +1201,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	clearedCache := false
 	// Try this up to 5 times in case we are trying to set the topic name, and the topic name
 	// state is moving around underneath us.
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv, prepareOpts); err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err)

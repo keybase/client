@@ -29,8 +29,8 @@ type DeviceKeyInfoMapV3 map[kbfscrypto.CryptPublicKey]TLFCryptKeyInfo
 
 // static sizes in DeviceKeyInfoMapV3
 var (
-	ssCryptPublicKey  = int(reflect.TypeOf(kbfscrypto.CryptPublicKey{}).Size())
-	ssTLFCryptKeyInfo = int(reflect.TypeOf(TLFCryptKeyInfo{}).Size())
+	ssCryptPublicKey  = int(reflect.TypeFor[kbfscrypto.CryptPublicKey]().Size())
+	ssTLFCryptKeyInfo = int(reflect.TypeFor[TLFCryptKeyInfo]().Size())
 )
 
 // Size implements the cache.Measurable interface.

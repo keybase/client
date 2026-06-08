@@ -398,14 +398,14 @@ func (t *EphemeralTracker) OnLogout(mctx libkb.MetaContext) error {
 	return nil
 }
 
-func decode(data []byte, res interface{}) error {
+func decode(data []byte, res any) error {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	dec := codec.NewDecoderBytes(data, &mh)
 	err := dec.Decode(res)
 	return err
 }
 
-func encode(input interface{}) ([]byte, error) {
+func encode(input any) ([]byte, error) {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var data []byte
 	enc := codec.NewEncoderBytes(&data, &mh)

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 
@@ -34,13 +33,13 @@ const AudioVis = (props: VisProps) => {
         style={{
           backgroundColor: index < threshold ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black,
           height,
-          marginRight: C.isMobile ? 4 * Kb.Styles.hairlineWidth : 2,
-          width: C.isMobile ? 3 * Kb.Styles.hairlineWidth : 1,
+          marginRight: isMobile ? 4 * Kb.Styles.hairlineWidth : 2,
+          width: isMobile ? 3 * Kb.Styles.hairlineWidth : 1,
         }}
       />
     )
   })
-  return C.isMobile ? (
+  return isMobile ? (
     <Kb.ScrollView
       horizontal={true}
       style={{height: maxHeight, maxWidth: maxWidth}}
@@ -70,25 +69,27 @@ const AudioPlayer = (props: Props) => {
   const {duration, big, maxWidth, url, visAmps} = props
   const [playedRatio, setPlayedRatio] = React.useState(0)
   const [paused, setPaused] = React.useState(true)
+  // Only mount AudioVideo after the user first taps play; calling useAudioPlayer
+  // unconditionally for every message in the list spawns CoreMedia threads per
+  // message and exhausts VM memory.
+  const [everPlayed, setEverPlayed] = React.useState(false)
   const onClick = () => {
     if (paused) {
+      setEverPlayed(true)
       setPaused(false)
     } else {
       setPaused(true)
     }
   }
 
-  const onPositionUpdated = React.useCallback(
-    (ratio: number) => {
-      setPlayedRatio(ratio)
-    },
-    [setPlayedRatio]
-  )
+  const onPositionUpdated = (ratio: number) => {
+    setPlayedRatio(ratio)
+  }
 
-  const onEnded = React.useCallback(() => {
+  const onEnded = () => {
     setPaused(true)
     setPlayedRatio(0)
-  }, [setPaused, setPlayedRatio])
+  }
 
   const timeLeft = duration - playedRatio * duration
   return (
@@ -97,18 +98,18 @@ const AudioPlayer = (props: Props) => {
       style={Kb.Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
       gap="tiny"
     >
-      <Kb.ClickableBox onClick={url ? onClick : undefined} style={{justifyContent: 'center'}}>
+      <Kb.ClickableBox direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
           fontSize={32}
           color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
         />
       </Kb.ClickableBox>
-      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.visContainer} gap="xxtiny" fullHeight={true} justifyContent="flex-end">
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
-      {url.length > 0 && (
+      {url.length > 0 && everPlayed && (
         <AudioVideo url={url} paused={paused} onPositionUpdated={onPositionUpdated} onEnded={onEnded} />
       )}
     </Kb.Box2>
@@ -116,26 +117,12 @@ const AudioPlayer = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  button: {
-    borderRadius: 15,
-    height: 30,
-    position: 'relative',
-    width: 30,
-  },
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
+    ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
     backgroundColor: Kb.Styles.globalColors.white,
-    borderColor: Kb.Styles.globalColors.grey,
-    borderRadius: Kb.Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-  },
-  vis: {
-    alignSelf: 'flex-start',
   },
   visContainer: {
-    alignItems: 'flex-start',
-    justifyContent: 'flex-end',
     minWidth: 40,
   },
 }))

@@ -1,10 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
-import type * as T from '@/constants/types'
-import {ModalTitle} from '@/teams/common'
+import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   channelname: string
@@ -20,59 +19,70 @@ const EditChannel = (props: Props) => {
   const oldDescription = props.description
 
   const nav = useSafeNavigation()
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))
 
   const [description, setDescription] = React.useState(oldDescription)
+  const updateChannelNameRPC = C.useRPC(T.RPCChat.localPostMetadataRpcPromise)
+  const updateTopicRPC = C.useRPC(T.RPCChat.localPostHeadlineRpcPromise)
+  const waitingKey = C.waitingKeyTeamsUpdateChannelName(teamID)
 
-  const onBack = () => nav.safeNavigateUp()
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onClose = () => clearModals()
-
-  const updateChannelName = useTeamsState(s => s.dispatch.updateChannelName)
-  const updateTopic = useTeamsState(s => s.dispatch.updateTopic)
-
-  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const updateChannelName = async (newChannelName: string) =>
+    await new Promise<void>((resolve, reject) => {
+      updateChannelNameRPC(
+        [
+          {
+            channelName: newChannelName,
+            conversationID: T.Chat.keyToConversationID(conversationIDKey),
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            tlfName: teamname,
+            tlfPublic: false,
+          },
+          waitingKey,
+        ],
+        () => resolve(),
+        reject
+      )
+    })
+  const updateTopic = async (newTopic: string) =>
+    await new Promise<void>((resolve, reject) => {
+      updateTopicRPC(
+        [
+          {
+            conversationID: T.Chat.keyToConversationID(conversationIDKey),
+            headline: newTopic,
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            tlfName: teamname,
+            tlfPublic: false,
+          },
+          waitingKey,
+        ],
+        () => resolve(),
+        reject
+      )
+    })
 
   const onSave = () => {
     const ps = [
-      ...(oldName !== name ? [updateChannelName(teamID, conversationIDKey, name)] : []),
-      ...(oldDescription !== description ? [updateTopic(teamID, conversationIDKey, description)] : []),
+      ...(oldName !== name ? [updateChannelName(name)] : []),
+      ...(oldDescription !== description ? [updateTopic(description)] : []),
     ]
     Promise.all(ps)
       .then(() => {
         nav.safeNavigateUp()
-        loadTeamChannelList(teamID)
       })
       .catch(() => {})
   }
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsUpdateChannelName(teamID))
+  const waiting = C.Waiting.useAnyWaiting(waitingKey)
 
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      onClose={onClose}
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title={`#${oldName}`} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={oldName === name && description === oldDescription}
-            waiting={waiting}
-          />
-        ),
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
-        <Kb.NewInput
+        <Kb.Input3
           autoFocus={true}
           maxLength={16}
           onChangeText={setName}
@@ -85,8 +95,7 @@ const EditChannel = (props: Props) => {
         {oldName === 'general' && (
           <Kb.Text type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text>
         )}
-        <Kb.LabeledInput
-          hoverPlaceholder="What is this channel about?"
+        <Kb.Input3
           placeholder="Description"
           value={description}
           rowsMin={3}
@@ -96,20 +105,37 @@ const EditChannel = (props: Props) => {
           maxLength={280}
         />
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.Button
+          label="Save"
+          onClick={onSave}
+          fullWidth={true}
+          disabled={oldName === name && description === oldDescription}
+          waiting={waiting}
+        />
+      </Kb.Box2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderRadius: 4,
+      borderRadius: Kb.Styles.borderRadius,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   channelNameinput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      ...Kb.Styles.topDivider(),
+    },
+    isElectron: {
+      ...Kb.Styles.roundedBottom(),
+    },
+  }),
 }))
 
 export default EditChannel

@@ -726,16 +726,16 @@ func unboxFilename(inFilename, suffix, destinationDir string) (string, *libkb.Bu
 
 	// if the input filename ends in .encrypted.saltpack or .signed.saltpack,
 	// strip that off and use that instead.
-	if strings.HasSuffix(file, encryptedExtension) {
-		desiredFilename = strings.TrimSuffix(file, encryptedExtension)
-	} else if strings.HasSuffix(file, signedExtension) {
-		desiredFilename = strings.TrimSuffix(file, signedExtension)
+	if before, ok := strings.CutSuffix(file, encryptedExtension); ok {
+		desiredFilename = before
+	} else if before, ok := strings.CutSuffix(file, signedExtension); ok {
+		desiredFilename = before
 	}
 
 	finalPath := filepath.Join(dir, desiredFilename)
 
 	var found bool
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		possible := finalPath
 		if i > 0 {
 			// after the first time through, add a (i) to the filename

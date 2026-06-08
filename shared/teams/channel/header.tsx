@@ -1,26 +1,36 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
-import {Activity, useChannelParticipants} from '../common'
+import {Activity, useActivityLevels, useChannelParticipants} from '../common'
+import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
+  const [loadedRecentJoins, setLoadedRecentJoins] = React.useState<
+    {conversationIDKey: T.Chat.ConversationIDKey; recentJoins: number} | undefined
+  >(undefined)
   const getRecentJoinsRPC = C.useRPC(T.RPCChat.localGetRecentJoinsLocalRpcPromise)
   React.useEffect(() => {
-    setRecentJoins(undefined)
+    let canceled = false
     getRecentJoinsRPC(
       [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-      r => setRecentJoins(r),
+      recentJoins => {
+        if (!canceled) {
+          setLoadedRecentJoins({conversationIDKey, recentJoins})
+        }
+      },
       () => {}
     )
-  }, [conversationIDKey, getRecentJoinsRPC, setRecentJoins])
-  return recentJoins
+    return () => {
+      canceled = true
+    }
+  }, [conversationIDKey, getRecentJoinsRPC])
+  return loadedRecentJoins?.conversationIDKey === conversationIDKey
+    ? loadedRecentJoins.recentJoins
+    : undefined
 }
 
 type HeaderTitleProps = {
@@ -30,12 +40,15 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
-  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
-  const {channelname, description} = channelInfo
+  const {teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const {channels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
+  const channelInfo = channels.get(conversationIDKey)
+  const channelname = channelInfo?.channelname ?? ''
+  const description = channelInfo?.description ?? ''
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = useTeamsState(s => Teams.getCanPerformByID(s, teamID))
-  const canDelete = yourOperations.deleteChannel && channelname !== 'general'
+  const canDelete = !!channelInfo && yourOperations.deleteChannel && channelname !== 'general'
+  const canEdit = !!channelInfo && yourOperations.editChannelDescription
+  const {channels: activityByChannel} = useActivityLevels()
 
   const editChannelProps = {
     channelname: channelname,
@@ -44,22 +57,22 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     teamID,
   }
   const nav = useSafeNavigation()
-  const onEditChannel = () => nav.safeNavigateAppend({props: editChannelProps, selected: 'teamEditChannel'})
+  const onEditChannel = () => nav.safeNavigateAppend({name: 'teamEditChannel', params: editChannelProps})
   const onAddMembers = () =>
-    nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
-  const onNavToTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
-  const activityLevel = useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
+    nav.safeNavigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
+  const onNavToTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
+  const activityLevel = activityByChannel.get(conversationIDKey) || 'none'
   const newMemberCount = useRecentJoins(conversationIDKey)
 
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({conversationIDKey, reason: 'channelHeader'})
 
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" style={styles.flexShrink}>
-        <Kb.Avatar editable={false} teamname={teamname} size={16} style={styles.alignSelfFlexStart} />
+        <Kb.Avatar teamname={teamMeta.teamname} size={16} style={styles.alignSelfFlexStart} />
         <Kb.Text className="hover-underline" type="BodySmallSemibold" onClick={onNavToTeam}>
-          {teamname}
+          {teamMeta.teamname}
         </Kb.Text>
       </Kb.Box2>
       <Kb.Text type="Header" lineClamp={1} style={styles.header}>
@@ -68,49 +81,41 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
-
-  const menuItems: Array<Kb.MenuItem> = React.useMemo(
-    () => [
-      // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
-      // It's included in the other place this menu appears.
-      ...(canDelete
-        ? [
-            {
-              danger: true,
-              onClick: () => {
-                nav.safeNavigateUp()
-                deleteChannelConfirmed(teamID, conversationIDKey)
-              },
-              title: 'Delete channel',
+  const menuItems: Array<Kb.MenuItem> = [
+    // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
+    // It's included in the other place this menu appears.
+    ...(canDelete
+      ? [
+          {
+            danger: true,
+            onClick: () => {
+              nav.safeNavigateUp()
+              nav.safeNavigateAppend({name: 'teamDeleteChannel', params: {conversationIDKey, teamID}})
             },
-          ]
-        : []),
-    ],
-    [deleteChannelConfirmed, nav, teamID, conversationIDKey, canDelete]
-  )
+            title: 'Delete channel',
+          },
+        ]
+      : []),
+  ]
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-        />
-      )
-    },
-    [menuItems]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
 
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const bottomDescriptorsAndButtons = (
     <>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isMobile}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!isMobile}>
         {!!description && (
           <Kb.Text type="Body" lineClamp={3}>
             {description}
@@ -127,10 +132,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
           {yourOperations.chat && <Kb.Button label="View" onClick={onChat} small={true} />}
-          {yourOperations.editChannelDescription && (
+          {canEdit && (
             <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
           )}
-          {!Kb.Styles.isMobile && (
+          {!isMobile && (
             <Kb.Button
               label="Add members"
               onClick={onAddMembers}
@@ -140,7 +145,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             />
           )}
           {!!menuItems.length && (
-            <Kb.Button
+            <Kb.IconButton
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"
@@ -162,7 +167,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.outerBoxMobile}>
@@ -187,6 +192,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         alignItems="flex-start"
         alignSelf="flex-start"
+        flex={1}
         style={styles.outerBoxDesktop}
       >
         {topDescriptors}
@@ -221,7 +227,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
       },
       outerBoxDesktop: {
-        flexGrow: 1,
         flexShrink: 1,
         marginBottom: Kb.Styles.globalMargins.small,
       },

@@ -41,6 +41,12 @@
   }
 }
 
+.chat-message-list [data-index]:has(.WrapperMessage-hoverBox:hover) {
+  contain: layout style !important;
+  overflow: visible !important;
+  z-index: 1;
+}
+
 .WrapperMessage-hoverBox {
   padding: 3px 16px 3px 0;
   display: flex;

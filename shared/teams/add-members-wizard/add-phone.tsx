@@ -1,50 +1,49 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {ModalTitle, usePhoneNumberList} from '../common'
-import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {usePhoneNumberList} from '../common'
+import {useDefaultPhoneCountry} from '@/util/phone-numbers'
+import {addMembersToWizard, type AddMembersWizard} from './state'
 
 const waitingKey = 'phoneLookup'
 
-const AddPhone = () => {
-  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
+const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
   const [error, setError] = React.useState('')
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
 
-  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
-  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
-
-  React.useEffect(() => {
-    if (!defaultCountry) {
-      loadDefaultPhoneCountry()
-    }
-  }, [defaultCountry, loadDefaultPhoneCountry])
+  const defaultCountry = useDefaultPhoneCountry()
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
-  const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
+  const navUpToScreen = C.Router2.navUpToScreen
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
       [{emails: '', phoneNumbers: phoneNumbers.map(pn => pn.phoneNumber)}, waitingKey],
-      r =>
-        r?.length
-          ? addMembersWizardPushMembers(
+      r => {
+        if (!r?.length) {
+          setError('You must enter at least one valid phone number.')
+          return
+        }
+        const f = async () => {
+          try {
+            const nextWizard = await addMembersToWizard(
+              wizard,
               r.map(m => ({
-                ...(m.foundUser
-                  ? {assertion: m.username, resolvedFrom: m.assertion}
-                  : {assertion: m.assertion}),
+                ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
                 role: 'writer',
               }))
             )
-          : setError('You must enter at least one valid phone number.'),
+            navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+          } catch (err) {
+            setError(err instanceof Error ? err.message : String(err))
+          }
+        }
+        C.ignorePromise(f())
+      },
       err => setError(err.message)
     )
   }
@@ -56,32 +55,12 @@ const AddPhone = () => {
   }
 
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Phone list" />,
-      }}
-      allowOverflow={true}
-      footer={{
-        content: (
-          <Kb.Button
-            waiting={waiting}
-            fullWidth={true}
-            label="Continue"
-            onClick={onContinue}
-            disabled={disabled}
-          />
-        ),
-      }}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-    >
+    <>
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="flex-start">
@@ -95,10 +74,19 @@ const AddPhone = () => {
               onEnterKeyDown={maybeSubmit}
             />
           ))}
-          <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
+          <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Button
+            waiting={waiting}
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -111,12 +99,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-  wordBreak: Kb.Styles.platformStyles({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      ...Kb.Styles.topDivider(),
+    },
     isElectron: {
-      wordBreak: 'break-all',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
 }))

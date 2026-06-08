@@ -1,9 +1,8 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import openUrl from '@/util/open-url'
-import {useFSState} from '@/constants/fs'
+import * as Kbfs from '@/fs/common'
+import {openURL as openUrl} from '@/util/misc'
 import * as FS from '@/constants/fs'
 
 type OwnProps = {
@@ -12,38 +11,45 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
-  const finishManualConflictResolution = useFSState(s => s.dispatch.finishManualConflictResolution)
-  const startManualConflictResolution = useFSState(s => s.dispatch.startManualConflictResolution)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onFinishResolving = React.useCallback(() => {
-    finishManualConflictResolution(path)
-  }, [finishManualConflictResolution, path])
-  const onGoToSamePathInDifferentTlf = React.useCallback(
-    (tlfPath: T.FS.Path) => {
-      navigateAppend({props: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
-    },
-    [navigateAppend, path]
-  )
-  const onHelp = React.useCallback(() => {
-    openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
-  }, [])
-  const onStartResolving = React.useCallback(() => {
-    startManualConflictResolution(path)
-  }, [startManualConflictResolution, path])
+  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
+  const openPathInSystemFileManagerDesktop = Kbfs.useOpenPathInSystemFileManagerDesktop()
+  const tlf = Kbfs.useFsTlf(path)
+  const onFinishResolving = () => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+          path: FS.pathToRPCPath(path),
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
+  }
+  const onGoToSamePathInDifferentTlf = (tlfPath: T.FS.Path) => {
+    C.Router2.navigateAppend({name: 'fsBrowse', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
+  }
+  const onHelp = () => {
+    void openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
+  }
+  const onStartResolving = () => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSClearConflictStateRpcPromise({
+          path: FS.pathToRPCPath(path),
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
+  }
 
-  const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
-  )
+  const openInSystemFileManager = (path: T.FS.Path) => {
+    openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
+  }
 
-  const openInSystemFileManager = React.useCallback(
-    (path: T.FS.Path) => {
-      openPathInSystemFileManagerDesktop?.(path)
-    },
-    [openPathInSystemFileManagerDesktop]
-  )
-
-  const conflictState = _tlf.conflictState
+  const conflictState = tlf.conflictState
   const finishRes = {onClick: onFinishResolving, text: ' Delete this conflict view '}
   const helpAction = {onClick: onHelp, text: ' What does this mean? '}
   const startRes = {onClick: onStartResolving, text: ' Resolve conflict '}
@@ -121,7 +127,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       )
     }
     default:
-      return <Kb.Text type="Body">{'Unknown conflictState: ' + conflictState}</Kb.Text>
+      return <Kb.Text type="Body">{'Unknown conflictState: ' + String(conflictState)}</Kb.Text>
   }
 }
 

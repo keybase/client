@@ -9,12 +9,7 @@ export const useLocalBadging = (storeSet: ReadonlySet<string> | undefined, clear
   const [badged, setBadged] = React.useState(storeSet?.size ? storeSet : noBadges)
 
   // keep adding if we got new ones
-  const toAdd = [...(storeSet ?? new Set<string>())].reduce((arr, n) => {
-    if (!badged.has(n)) {
-      arr.push(n)
-    }
-    return arr
-  }, new Array<string>())
+  const toAdd = [...(storeSet ?? new Set<string>())].filter(n => !badged.has(n))
   if (toAdd.length) {
     setBadged(s => {
       const next = new Set(s)
@@ -25,14 +20,12 @@ export const useLocalBadging = (storeSet: ReadonlySet<string> | undefined, clear
     })
   }
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      clearStoreBadges()
-      return () => {
-        setBadged(noBadges)
-      }
-    }, [clearStoreBadges])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    clearStoreBadges()
+    return () => {
+      setBadged(noBadges)
+    }
+  })
 
   return {badged}
 }

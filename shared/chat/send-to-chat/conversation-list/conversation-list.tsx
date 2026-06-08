@@ -23,34 +23,19 @@ type Row = {
 const _itemRenderer = (index: number, row: Row) => {
   const item = row.item
   return (
-    <Kb.ClickableBox key={index} onClick={row.onSelect}>
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        gap="tiny"
-        style={Kb.Styles.collapseStyles([
-          styles.results,
-          {
-            backgroundColor:
-              !Kb.Styles.isMobile && row.isSelected
-                ? Kb.Styles.globalColors.blue
-                : Kb.Styles.globalColors.white,
-          },
-        ])}
-      >
-        {item.isTeam ? (
-          <TeamAvatar isHovered={false} isMuted={false} isSelected={row.isSelected} teamname={item.tlfName} />
-        ) : (
-          <Avatars
-            isSelected={row.isSelected}
-            participantOne={item.parts?.[0]}
-            participantTwo={item.parts?.[1]}
-          />
-        )}
-        <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
-          {item.name}
-        </Kb.Text>
-      </Kb.Box2>
+    <Kb.ClickableBox key={index} onClick={row.onSelect} direction="horizontal" fullWidth={true} gap="tiny" style={Kb.Styles.collapseStyles([styles.results, {backgroundColor: !isMobile && row.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}])}>
+      {item.isTeam ? (
+        <TeamAvatar isHovered={false} isMuted={false} isSelected={row.isSelected} teamname={item.tlfName} />
+      ) : (
+        <Avatars
+          isSelected={row.isSelected}
+          participantOne={item.parts?.[0]}
+          participantTwo={item.parts?.[1]}
+        />
+      )}
+      <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
+        {item.name}
+      </Kb.Text>
     </Kb.ClickableBox>
   )
 }
@@ -105,7 +90,7 @@ type ConversationListRenderProps = {
 
 const ConversationListRender = (props: ConversationListRenderProps) => {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{flex: 1}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
         <Kb.SearchFilter
           placeholderText="Search chats..."
@@ -139,18 +124,16 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
           }}
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{flex: 1}}>
-        <Kb.List2
-          itemHeight={{height: 65, type: 'fixed'}}
-          items={props.results.map((r, index) => ({
-            isSelected: index === props.selected,
-            item: r,
-            onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
-          }))}
-          renderItem={_itemRenderer}
-          indexAsKey={true}
-        />
-      </Kb.Box2>
+      <Kb.List
+        itemHeight={{height: 65, type: 'fixed'}}
+        items={props.results.map((r, index) => ({
+          isSelected: index === props.selected,
+          item: r,
+          onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
+        }))}
+        renderItem={_itemRenderer}
+        indexAsKey={true}
+      />
     </Kb.Box2>
   )
 }

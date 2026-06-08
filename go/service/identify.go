@@ -75,7 +75,7 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (ret keybase1.IdentifyLiteRes, err error) {
 	mctx := libkb.NewMetaContext(netCtx, h.G()).WithLogTag("IDL")
 	defer mctx.Trace("IdentifyHandler#IdentifyLite", &err)()
-	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+	loader := func(mctx libkb.MetaContext) (any, error) {
 		return h.identifyLite(mctx, arg)
 	}
 	cacheArg := keybase1.IdentifyLiteArg{
@@ -174,7 +174,7 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg) (ret keybase1.UserOrTeamLite, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
 	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), &err)()
-	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, &ret, func(mctx libkb.MetaContext) (interface{}, error) {
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, &ret, func(mctx libkb.MetaContext) (any, error) {
 		return h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
 	})
 	if err != nil {
@@ -210,7 +210,7 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 		IsPublic:   arg.IsPublic,
 	}
 
-	servedRes, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, &res, func(mctx libkb.MetaContext) (interface{}, error) {
+	servedRes, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, &res, func(mctx libkb.MetaContext) (any, error) {
 		return h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
 	})
 
@@ -322,7 +322,6 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 
 	// Identify everyone who resolved in parallel, checking that they match their resolved UID and original assertions.
 	for _, resolvedAssertion := range resolvedAssertions {
-		resolvedAssertion := resolvedAssertion // https://golang.org/doc/faq#closures_and_goroutines
 		group.Go(func() error {
 			h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String())
 

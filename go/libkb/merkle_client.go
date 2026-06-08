@@ -816,7 +816,7 @@ func (mc *MerkleClient) lookupLeafAndPath(m MetaContext, q HTTPArgs, root *Merkl
 func (mc *MerkleClient) lookupLeafAndPathHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, root *MerkleRoot, opts MerkleOpts) (apiRes *APIRes, newRoot *MerkleRoot, err error) {
 	defer m.VTrace(VLog1, "MerkleClient#lookupLeafAndPathHelper", &err)()
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		apiRes, rootRefreshNeeded, err := mc.lookupLeafAndPathHelperOnce(m, q, sigHints, root, opts)
 		if err != nil {
 			return nil, nil, err

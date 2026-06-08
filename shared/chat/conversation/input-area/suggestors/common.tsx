@@ -43,7 +43,6 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
 
 export type ItemRendererProps<T> = {selected: boolean; item: T}
 export type ListProps<L> = {
-  expanded: boolean
   items: Array<L>
   keyExtractor: (item: L, idx: number) => string
   suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
@@ -57,17 +56,14 @@ export type ListProps<L> = {
 }
 
 export function List<T>(p: ListProps<T>) {
-  const {expanded, items, ItemRenderer, loading, keyExtractor, onSelected} = p
+  const {items, ItemRenderer, loading, keyExtractor, onSelected} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
-  const renderItem = React.useCallback(
-    (idx: number, item: T) => (
-      <Kb.ClickableBox key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
-        <ItemRenderer selected={idx === selectedIndex} item={item} />
-      </Kb.ClickableBox>
-    ),
-    [selectedIndex, onSelected, ItemRenderer, keyExtractor]
+  const renderItem = (idx: number, item: T) => (
+    <Kb.ClickableBox direction="vertical" fullWidth={true} key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
+      <ItemRenderer selected={idx === selectedIndex} item={item} />
+    </Kb.ClickableBox>
   )
 
   const lastSelectedIndex = React.useRef(selectedIndex)
@@ -81,32 +77,31 @@ export function List<T>(p: ListProps<T>) {
     }
   }, [onSelected, sel, selectedIndex])
 
-  const onMove = React.useCallback(
-    (up: boolean) => {
+  React.useEffect(() => {
+    const onMove = (up: boolean) => {
       const length = items.length
       const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
       if (s !== selectedIndex) {
         setSelectedIndex(s)
       }
-    },
-    [setSelectedIndex, items, selectedIndex]
-  )
+    }
 
-  const onSubmit = React.useCallback(() => {
-    const sel = items[selectedIndex]
-    sel && onSelected(sel, true)
-    return !!sel
-  }, [selectedIndex, onSelected, items])
+    const onSubmit = () => {
+      const sel = items[selectedIndex]
+      if (sel) {
+        onSelected(sel, true)
+      }
+      return !!sel
+    }
 
-  React.useEffect(() => {
     setOnMoveRef(onMove)
     setOnSubmitRef(onSubmit)
-  }, [setOnMoveRef, setOnSubmitRef, onMove, onSubmit])
+  }, [setOnMoveRef, setOnSubmitRef, items, selectedIndex, onSelected, setSelectedIndex])
 
   return (
     <>
       <SuggestionList
-        style={expanded ? {bottom: 95, position: 'absolute', top: 95} : listStyle}
+        style={listStyle}
         items={items}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -114,7 +109,7 @@ export function List<T>(p: ListProps<T>) {
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       />
       {loading && (
-        <Kb.ProgressIndicator type={Kb.Styles.isMobile ? undefined : 'Large'} style={spinnerStyle} />
+        <Kb.ProgressIndicator type={isMobile ? undefined : 'Large'} style={spinnerStyle} />
       )}
     </>
   )
@@ -128,10 +123,7 @@ export const styles = Kb.Styles.styleSheetCreate(
       }),
       suggestionBase: {
         alignItems: 'center',
-        paddingBottom: Kb.Styles.globalMargins.xtiny,
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-        paddingRight: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
       },
     }) as const
 )

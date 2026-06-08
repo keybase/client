@@ -45,7 +45,7 @@ func NewBaseX(alphabet string) *BaseXEncoder {
 func reverseBuf(buf []byte) {
 	tot := len(buf)
 	mid := tot / 2
-	for i := 0; i < mid; i++ {
+	for i := range mid {
 		buf[i], buf[tot-i-1] = buf[tot-i-1], buf[i]
 	}
 }

@@ -1,117 +1,106 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
-import {ModalTitle} from '../common'
+import {type AddMembersWizard} from './state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
-const Skip = () => {
-  const finishNewTeamWizard = Teams.useTeamsState(s => s.dispatch.finishNewTeamWizard)
-  const onSkip = () => finishNewTeamWizard()
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
-
-  if (Kb.Styles.isMobile) {
-    return waiting ? (
-      <Kb.ProgressIndicator />
-    ) : (
-      <Kb.Text type="BodyBigLink" onClick={onSkip}>
-        Skip
-      </Kb.Text>
-    )
-  } else {
-    return <Kb.Button mode="Secondary" label="Skip" small={true} onClick={onSkip} waiting={waiting} />
-  }
+type Props = {
+  wizard: AddMembersWizard
 }
 
-const AddFromWhere = () => {
+const AddFromWhere = ({wizard}: Props) => {
   const nav = useSafeNavigation()
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
-  const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
-  // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
-  const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
-  const onClose = () => cancelAddMembersWizard()
-  const onBack = () => nav.safeNavigateUp()
-  const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
-  const onContinueKeybase = () => appendNewTeamBuilder(teamID)
-  const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
-  const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
-  const onContinueEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
+  const isNewTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
+  const navigateAppend = C.Router2.navigateAppend
+  const createTeamError = isNewTeam ? wizard.newTeamWizard?.error : undefined
+  const onContinueKeybase = () =>
+    navigateAppend({
+      name: 'teamsTeamBuilder',
+      params: {
+        addMembersWizard: wizard,
+        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+        goButtonLabel: 'Add',
+        namespace: 'teams',
+        teamID: wizard.teamID,
+        title: '',
+      },
+    })
+  const onContinuePhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {wizard}})
+  const onContinueContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {wizard}})
+  const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
+
   return (
-    <Kb.Modal
-      allowOverflow={true}
-      onClose={newTeam ? undefined : onClose} // Only show the close button if we're not coming from the new team wizard
-      banners={
-        createTeamError ? (
-          <Kb.Banner color="red" key="err">
-            {createTeamError}
-          </Kb.Banner>
-        ) : null
-      }
-      header={{
-        leftButton: newTeam ? (
-          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-        ) : Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
-          </Kb.Text>
-        ) : undefined,
-        rightButton: newTeam ? <Skip /> : undefined,
-        title: (
-          <ModalTitle
-            title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
-            teamID={teamID}
-          />
-        ),
-      }}
-      mode="DefaultFullHeight"
-      backgroundStyle={styles.bg}
-    >
+    <>
+      {createTeamError ? (
+        <Kb.Banner color="red" key="err">
+          {createTeamError}
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2
         direction="vertical"
-        gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
+        gap={isMobile ? 'tiny' : 'xsmall'}
         style={styles.body}
         fullWidth={true}
       >
         <Kb.Text type="Body">
-          {newTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
+          {isNewTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
         </Kb.Text>
-        <Kb.RichButton
-          icon="icon-teams-add-search-64"
-          title="From Keybase"
-          description="Search users by username."
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-add-search-64" />}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">From Keybase</Kb.Text>
+              <Kb.Text type="BodySmall">Search users by username.</Kb.Text>
+            </Kb.Box2>
+          }
           onClick={onContinueKeybase}
         />
-        <Kb.RichButton
-          icon="icon-teams-add-email-list-64"
-          title="A list of email addresses"
-          description="Enter one or multiple email addresses."
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-add-email-list-64" />}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">A list of email addresses</Kb.Text>
+              <Kb.Text type="BodySmall">Enter one or multiple email addresses.</Kb.Text>
+            </Kb.Box2>
+          }
           onClick={onContinueEmail}
         />
-        {Kb.Styles.isMobile && (
-          <Kb.RichButton
-            icon="icon-teams-add-phone-contacts-64"
-            title="From your contacts"
-            description="Add your friends, family, or colleagues."
+        {isMobile && (
+          <Kb.ListItem
+            type="Card"
+            firstItem={true}
+            icon={<Kb.IconAuto type="icon-teams-add-phone-contacts-64" />}
+            body={
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Text type="BodySemibold">From your contacts</Kb.Text>
+                <Kb.Text type="BodySmall">Add your friends, family, or colleagues.</Kb.Text>
+              </Kb.Box2>
+            }
             onClick={onContinueContacts}
           />
         )}
-        <Kb.RichButton
-          icon="icon-teams-add-number-list-64"
-          title="A list of phone numbers"
-          description="Enter one or multiple phone numbers"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-add-number-list-64" />}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">A list of phone numbers</Kb.Text>
+              <Kb.Text type="BodySmall">Enter one or multiple phone numbers</Kb.Text>
+            </Kb.Box2>
+          }
           onClick={onContinuePhone}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
-    isElectron: {borderRadius: 4},
-  }),
   body: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {
@@ -121,6 +110,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
         Kb.Styles.globalMargins.xlarge
       ),
       borderBottomRadius: 4,
+      flex: 1,
     },
     isMobile: {
       ...Kb.Styles.globalStyles.flexOne,

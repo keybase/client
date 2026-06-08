@@ -1,11 +1,19 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as React from 'react'
+import * as React from 'react'
+import * as T from '@/constants/types'
 import EmailPhoneRow from './email-phone-row'
-import {usePWState} from '@/constants/settings-password'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSettingsState, settingsPasswordTab} from '@/constants/settings'
+import logger from '@/logger'
+import {openURL} from '@/util/misc'
+import {loadSettings} from '../load-settings'
+import {useTypedNavigation} from '@/util/typed-navigation'
+import {useIsFocused} from '@react-navigation/core'
+import {useConfigState} from '@/stores/config'
+import {makePhoneError, useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {settingsPasswordTab} from '@/constants/settings'
+import type {SettingsAccountRouteParams} from '../routes'
+import {useRandomPWState} from '../use-random-pw'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -25,24 +33,24 @@ const AddButton = (props: AddButtonProps) => (
     label={`Add ${props.kind}`}
     small={true}
     disabled={props.disabled}
-    className="tooltip-top-right"
     tooltip={props.disabled ? `You're already at the maximum ${props.kind}s` : undefined}
   />
 )
 
-const EmailPhone = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (email: string) => void}) => {
+  const navigateAppend = C.Router2.navigateAppend
   const _emails = useSettingsEmailState(s => s.emails)
   const _phones = useSettingsPhoneState(s => s.phones)
   const contactKeys = [..._emails.keys(), ...(_phones ? _phones.keys() : [])]
   const tooManyEmails = _emails.size >= 10 // If you change this, also change in keybase/config/prod/email.iced
   const tooManyPhones = !!_phones && _phones.size >= 10 // If you change this, also change in keybase/config/prod/phone_numbers.iced
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsLoadSettings)
+  const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/phones-and-emails')
   const onAddEmail = () => {
-    navigateAppend('settingsAddEmail')
+    navigateAppend({name: 'settingsAddEmail', params: {}})
   }
   const onAddPhone = () => {
-    navigateAppend('settingsAddPhone')
+    navigateAppend({name: 'settingsAddPhone', params: {}})
   }
   return (
     <SettingsSection>
@@ -54,21 +62,16 @@ const EmailPhone = () => {
         <Kb.Text type="BodySmall">
           Secures your account by letting us send important notifications, and allows friends and teammates to
           find you by phone number or email.{' '}
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/chat/phones-and-emails">
+          <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon
-              type="iconfont-open-browser"
-              sizeType="Tiny"
-              boxStyle={styles.displayInline}
-              color={Kb.Styles.globalColors.blueDark}
-            />
+            <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" color={Kb.Styles.globalColors.blueDark} />
           </Kb.Text>
         </Kb.Text>
       </Kb.Box2>
       {!!contactKeys.length && (
         <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
           {contactKeys.map(ck => (
-            <EmailPhoneRow contactKey={ck} key={ck} />
+            <EmailPhoneRow contactKey={ck} key={ck} onEmailVerificationSuccess={onEmailVerificationSuccess} />
           ))}
         </Kb.Box2>
       )}
@@ -80,15 +83,15 @@ const EmailPhone = () => {
   )
 }
 
-const Password = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+const Password = ({randomPW}: {randomPW?: boolean}) => {
+  const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
-    navigateAppend(settingsPasswordTab)
+    navigateAppend({name: settingsPasswordTab, params: {}})
   }
-  const hasPassword = usePWState(s => !s.randomPW)
+  const hasPassword = !randomPW
   let passwordLabel: string
   if (hasPassword) {
-    passwordLabel = Kb.Styles.isMobile ? 'Change' : 'Change password'
+    passwordLabel = isMobile ? 'Change' : 'Change password'
   } else {
     passwordLabel = 'Set a password'
   }
@@ -113,7 +116,16 @@ const Password = () => {
 }
 
 const WebAuthTokenLogin = () => {
-  const loginBrowserViaWebAuthToken = useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
+  const generateWebAuthToken = C.useRPC(T.RPCGen.configGenerateWebAuthTokenRpcPromise)
+  const loginBrowserViaWebAuthToken = () => {
+    generateWebAuthToken(
+      [undefined],
+      link => {
+        void openURL(link)
+      },
+      () => {}
+    )
+  }
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -133,9 +145,9 @@ const WebAuthTokenLogin = () => {
 }
 
 const DeleteAccount = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteAccount = () => {
-    navigateAppend('deleteConfirm')
+    navigateAppend({name: 'deleteConfirm', params: {}})
   }
   return (
     <SettingsSection>
@@ -158,64 +170,106 @@ const DeleteAccount = () => {
   )
 }
 
-const AccountSettings = () => {
-  const {addedEmail, resetAddedEmail} = useSettingsEmailState(
-    C.useShallow(s => ({
-      addedEmail: s.addedEmail,
-      resetAddedEmail: s.dispatch.resetAddedEmail,
-    }))
-  )
-  const {
-    _phones,
-    addedPhone,
-    clearAddedPhone,
-    editPhone,
-  } = useSettingsPhoneState(
-    C.useShallow(s => ({
-      _phones: s.phones,
-      addedPhone: s.addedPhone,
-      clearAddedPhone: s.dispatch.clearAddedPhone,
-      editPhone: s.dispatch.editPhone,
-    }))
-  )
-  const {loadSettings} = useSettingsState(
-    C.useShallow(s => ({
-      loadSettings: s.dispatch.loadSettings,
-    }))
-  )
-  const {loadHasRandomPw, loadRememberPassword} = usePWState(
-    C.useShallow(s => ({
-      loadHasRandomPw: s.dispatch.loadHasRandomPw,
-      loadRememberPassword: s.dispatch.loadRememberPassword,
-    }))
-  )
-  const {navigateAppend, switchTab} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      switchTab: s.dispatch.switchTab,
-    }))
-  )
+type Props = {route: {params?: SettingsAccountRouteParams}}
+
+type AddedBannerState = {
+  email: string
+  isFocused: boolean
+  phone: boolean
+  routeEmail: string | undefined
+  routePhone: boolean
+}
+
+const AccountSettings = ({route}: Props) => {
+  const addedEmailFromRoute = route.params?.addedEmailBannerEmail
+  const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
+  const navigation = useTypedNavigation('settingsTabs.accountTab')
+  const isFocused = useIsFocused()
+  const emails = useSettingsEmailState(s => s.emails)
+  const phones = useSettingsPhoneState(s => s.phones)
+  const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
+  const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
+  const [addedBannerState, setAddedBannerState] = React.useState<AddedBannerState>(() => ({
+    email: addedEmailFromRoute ?? '',
+    isFocused,
+    phone: addedPhoneFromRoute,
+    routeEmail: addedEmailFromRoute,
+    routePhone: addedPhoneFromRoute,
+  }))
+  const {randomPW, reload: reloadRandomPW} = useRandomPWState()
+  const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
-    editPhone(phone, true)
+    deletePhoneNumber(
+      [{phoneNumber: phone}],
+      () => {},
+      error => {
+        logger.warn('Error deleting superseded phone number', error)
+        setGlobalError(new Error(makePhoneError(error)))
+      }
+    )
   }
-  const onClearAddedEmail = resetAddedEmail
-  const onClearAddedPhone = clearAddedPhone
+  let nextAddedBannerState = addedBannerState
+  if (nextAddedBannerState.routeEmail !== addedEmailFromRoute) {
+    nextAddedBannerState = {
+      ...nextAddedBannerState,
+      email: addedEmailFromRoute ?? nextAddedBannerState.email,
+      routeEmail: addedEmailFromRoute,
+    }
+  }
+  if (nextAddedBannerState.routePhone !== addedPhoneFromRoute) {
+    nextAddedBannerState = {
+      ...nextAddedBannerState,
+      phone: addedPhoneFromRoute ? true : nextAddedBannerState.phone,
+      routePhone: addedPhoneFromRoute,
+    }
+  }
+  if (nextAddedBannerState.isFocused !== isFocused) {
+    nextAddedBannerState = {
+      ...nextAddedBannerState,
+      email: isFocused ? nextAddedBannerState.email : '',
+      isFocused,
+      phone: isFocused ? nextAddedBannerState.phone : false,
+    }
+  }
+  const addedEmailRow = nextAddedBannerState.email ? emails.get(nextAddedBannerState.email) : undefined
+  if (nextAddedBannerState.email && (!addedEmailRow || addedEmailRow.isVerified)) {
+    nextAddedBannerState = {...nextAddedBannerState, email: ''}
+  }
+  if (nextAddedBannerState !== addedBannerState) {
+    setAddedBannerState(nextAddedBannerState)
+  }
+  const addedEmail = nextAddedBannerState.email
+  const addedPhone = nextAddedBannerState.phone
+  React.useEffect(() => {
+    if (!addedEmailFromRoute) {
+      return
+    }
+    navigation.setParams({addedEmailBannerEmail: undefined})
+  }, [addedEmailFromRoute, navigation])
+  React.useEffect(() => {
+    if (!addedPhoneFromRoute) {
+      return
+    }
+    navigation.setParams({addedPhoneBanner: undefined})
+  }, [addedPhoneFromRoute, navigation])
+  const onEmailVerificationSuccess = (email: string) => setAddedBannerState(s => ({...s, email}))
+  const onClearAddedEmail = () => setAddedBannerState(s => ({...s, email: ''}))
+  const onClearAddedPhone = () => setAddedBannerState(s => ({...s, phone: false}))
   const onReload = () => {
     loadSettings()
-    loadRememberPassword()
-    loadHasRandomPw()
+    reloadRandomPW()
   }
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
-    navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
-    clearAddedPhone()
+    navigateAppend({name: 'chatNewChat', params: {namespace: 'chat'}})
+    setAddedBannerState(s => ({...s, phone: false}))
   }
-  const _supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
+  const _supersededPhoneNumber = phones && [...phones.values()].find(p => p.superseded)
   const supersededKey = _supersededPhoneNumber?.e164
   const onClearSupersededPhoneNumber = () => supersededKey && _onClearSupersededPhoneNumber(supersededKey)
   const supersededPhoneNumber = _supersededPhoneNumber ? _supersededPhoneNumber.displayNumber : undefined
   const onAddPhone = () => {
-    navigateAppend('settingsAddPhone')
+    navigateAppend({name: 'settingsAddPhone', params: {}})
   }
 
   return (
@@ -239,8 +293,8 @@ const AccountSettings = () => {
               onClick={onAddPhone}
               label="Add a new number"
               small={true}
-              backgroundColor="yellow"
-              style={styles.topButton}
+              style={Kb.Styles.collapseStyles([styles.topButton, styles.primaryOnYellow])}
+              labelStyle={styles.primaryOnYellowLabel}
             />
           </Kb.Banner>
         )}
@@ -256,9 +310,9 @@ const AccountSettings = () => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          <EmailPhone />
+          <EmailPhone onEmailVerificationSuccess={onEmailVerificationSuccess} />
           <Kb.Divider />
-          <Password />
+          <Password randomPW={randomPW} />
           <Kb.Divider />
           <WebAuthTokenLogin />
           <Kb.Divider />
@@ -277,15 +331,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   contactRows: Kb.Styles.platformStyles({
     isElectron: {paddingTop: Kb.Styles.globalMargins.xtiny},
   }),
-  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
-    flexGrow: 1,
+    ...Kb.Styles.globalStyles.flexGrow,
   },
-  progress: {
-    height: 16,
-    width: 16,
-  },
+  primaryOnYellow: {backgroundColor: Kb.Styles.globalColors.white},
+  primaryOnYellowLabel: {color: Kb.Styles.globalColors.brown_75OrYellow},
+  progress: Kb.Styles.size(16),
   section: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(

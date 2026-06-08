@@ -150,7 +150,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	// Alice puts a secret
 	namespace := "myapp"
 	entryKey := "asdfasfeasef"
-	secretData := map[string]interface{}{
+	secretData := map[string]any{
 		"username":      "hunter2",
 		"email":         "thereal@example.com",
 		"password":      "super random password",
@@ -788,7 +788,7 @@ func TestKVStoreRace(t *testing.T) {
 	}
 	var wg sync.WaitGroup
 	errChan := make(chan error, 10)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

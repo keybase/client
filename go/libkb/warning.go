@@ -18,7 +18,7 @@ func (s StringWarning) Warning() string {
 	return string(s)
 }
 
-func Warningf(format string, a ...interface{}) Warning {
+func Warningf(format string, a ...any) Warning {
 	return StringWarning(fmt.Sprintf(format, a...))
 }
 

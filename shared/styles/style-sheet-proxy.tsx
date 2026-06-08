@@ -1,5 +1,5 @@
-import {useDarkModeState} from '@/constants/darkmode'
-import type {StylesCrossPlatform} from '.'
+import {useDarkModeState} from '@/stores/darkmode'
+import type {StylesCrossPlatform} from '@/styles/css'
 
 // Support a closure to enable simple dark mode.
 // transform is to allow native styleSheetCreate to convert the object

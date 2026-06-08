@@ -1,0 +1,12 @@
+appId: keybase.ios
+---
+- tapOn:
+    id: "backButton"
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: "People"
+    commands:
+      - tapOn:
+          text: "People"

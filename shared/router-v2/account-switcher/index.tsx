@@ -1,30 +1,27 @@
 import * as C from '@/constants'
 import './account-switcher.css'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {settingsLogOutTab} from '@/constants/settings/util'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useProvisionState} from '@/constants/provision'
+import {settingsLogOutTab} from '@/constants/settings'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
   myUsername: string
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
-const Container = () => {
+const AccountSwitcher = () => {
   const _fullnames = useUsersState(s => s.infoMap)
   const _accountRows = useConfigState(s => s.configuredAccounts)
   const you = useCurrentUserState(s => s.username)
-  const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
+  const fullname = _fullnames.get(you)?.fullname ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
-  const _onProfileClick = useProfileState(s => s.dispatch.showUserProfile)
-  const onLoginAsAnotherUser = useProvisionState(s => s.dispatch.startProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onLoginAsAnotherUser = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
@@ -36,10 +33,10 @@ const Container = () => {
     login(username, '')
   }
   const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = React.useCallback(() => {
-    navigateAppend(settingsLogOutTab)
-  }, [navigateAppend])
+  const navigateAppend = C.Router2.navigateAppend
+  const onSignOut = () => {
+    navigateAppend({name: settingsLogOutTab, params: {}})
+  }
 
   const accountRows = prepareAccountRows(_accountRows, you)
   const props = {
@@ -50,7 +47,7 @@ const Container = () => {
     fullname,
     onCancel,
     onLoginAsAnotherUser,
-    onProfileClick: () => _onProfileClick(you),
+    onProfileClick: () => navToProfile(you),
     onSelectAccount: (username: string) => {
       const rows = accountRows.filter(account => account.username === username)
       const loggedIn = (rows.length && rows[0]?.hasStoredSecret) ?? false
@@ -62,30 +59,22 @@ const Container = () => {
   }
 
   return (
-    <Kb.HeaderHocWrapper
-      leftAction="cancel"
-      onCancel={props.onCancel}
-      // else right isn't pushed over, will address in nav5
-      title=" "
-      rightActionLabel="Sign out"
-      onRightAction={props.onSignOut}
-      rightActionColor="red"
-    >
+    <>
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          {Kb.Styles.isMobile && <MobileHeader {...props} />}
+          {isMobile && <MobileHeader {...props} />}
           <Kb.Divider style={styles.divider} />
-          {Kb.Styles.isMobile ? (
+          {isMobile ? (
             <AccountsRows {...props} />
           ) : (
             <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
               <AccountsRows {...props} />
             </Kb.ScrollView>
           )}
-          {props.accountRows.length > 0 && !Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
+          {props.accountRows.length > 0 && !isMobile && <Kb.Divider style={styles.divider} />}
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.HeaderHocWrapper>
+    </>
   )
 }
 
@@ -114,6 +103,7 @@ const MobileHeader = (props: Props) => (
       gapStart={true}
       centerChildren={true}
       gapEnd={true}
+      fullWidth={true}
       style={styles.userBox}
     >
       <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
@@ -147,23 +137,24 @@ type AccountRowProps = {
 }
 const AccountRow = (props: AccountRowProps) => {
   const {waiting} = props
-  const [clicked, setClicked] = React.useState(false)
-  React.useEffect(() => {
-    if (!waiting) {
-      setClicked(false)
-    }
-  }, [setClicked, waiting])
+  const [{clicked, wasWaiting}, setClickedState] = React.useState(() => ({
+    clicked: false,
+    wasWaiting: waiting,
+  }))
+  if (wasWaiting !== waiting) {
+    setClickedState({clicked: waiting ? clicked : false, wasWaiting: waiting})
+  }
 
   const onClick = waiting
     ? undefined
     : () => {
-        setClicked(true)
+        setClickedState({clicked: true, wasWaiting: waiting})
         props.onSelectAccount(props.entry.account.username)
       }
   return (
-    <Kb.ListItem2
-      type={Kb.Styles.isMobile ? 'Large' : 'Small'}
-      icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
+    <Kb.ListItem
+      type={isMobile ? 'Large' : 'Small'}
+      icon={<Kb.Avatar size={isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
       action={clicked ? <Kb.ProgressIndicator type="Large" /> : undefined}
       body={
@@ -212,17 +203,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {flexShrink: 1},
     isElectron: {wordBreak: 'break-all'},
   }),
-  row: {
-    paddingBottom: -Kb.Styles.globalMargins.small,
-    paddingTop: -Kb.Styles.globalMargins.small,
-  },
   text2: {flexShrink: 0},
   userBox: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
-    width: '100%',
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
   },
   waiting: {opacity: 0.5},
 }))
 
-export default Container
+export default AccountSwitcher

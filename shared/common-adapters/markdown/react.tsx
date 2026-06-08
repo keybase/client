@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
-import Box from '@/common-adapters/box'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
+import {Box2} from '@/common-adapters/box'
 import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type {StyleOverride} from '.'
@@ -69,12 +70,8 @@ const _markdownStyles = Styles.styleSheetCreate(
           common: {
             ...this.codeSnippetStyle,
             backgroundColor: Styles.globalColors.redLighter,
-            marginBottom: Styles.globalMargins.xtiny,
-            marginTop: Styles.globalMargins.xtiny,
-            paddingBottom: Styles.globalMargins.xtiny,
-            paddingLeft: Styles.globalMargins.tiny,
-            paddingRight: Styles.globalMargins.tiny,
-            paddingTop: Styles.globalMargins.xtiny,
+            ...Styles.marginV(Styles.globalMargins.xtiny),
+            ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
           },
           isElectron: {
             ...electronWrapStyle,
@@ -89,8 +86,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.black,
           fontSize: 15,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.xtiny,
+          ...Styles.marginV(Styles.globalMargins.xtiny),
         },
       }),
       codeSnippetStyle: Styles.platformStyles({
@@ -99,8 +95,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           ...Styles.globalStyles.rounded,
           backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.blueDarkOrBlueLight,
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.xtiny,
+          ...Styles.paddingH(Styles.globalMargins.xtiny),
         },
         isElectron: {
           ...electronWrapStyle,
@@ -180,8 +175,8 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
-  return Styles.isMobile ? (
-    <Box>
+  return isMobile ? (
+    <Box2 direction="vertical" fullWidth={true}>
       <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
@@ -189,11 +184,12 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
       >
         {children}
       </Text>
-    </Box>
+    </Box2>
   ) : (
     <Text
       type="Body"
       style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
+      allowFontScaling={state.allowFontScaling}
     >
       {children}
     </Text>
@@ -211,7 +207,7 @@ const reactComponentsForMarkdownType = {
       // nodes together into a single string output.
       let lastResult: React.ReactNode = null
       for (let i = 0; i < arr.length; i++) {
-        state.key = '' + i
+        state.key = String(i)
         const nodeOut = output(arr[i]!, state)
         if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
           lastResult = lastResult + nodeOut
@@ -233,9 +229,9 @@ const reactComponentsForMarkdownType = {
       state.inBlockQuote = true
 
       const ret = (
-        <Box key={state.key} style={markdownStyles.quoteStyle}>
+        <Box2 direction="vertical" fullWidth={true} key={state.key} style={markdownStyles.quoteStyle}>
           {output(node['content'], state)}
-        </Box>
+        </Box2>
       )
       state.inBlockQuote = oldInBlockQuote
       return ret
@@ -266,6 +262,7 @@ const reactComponentsForMarkdownType = {
             state.insideStrong && markdownStyles.boldStyle,
             state.styleOverride?.em,
           ])}
+          allowFontScaling={state.allowFontScaling}
         >
           {output(node['content'], state)}
         </Text>
@@ -284,6 +281,7 @@ const reactComponentsForMarkdownType = {
         size={state.styleOverride?.emojiSize?.size ?? 16}
         key={state.key}
         disableSelecting={state.virtualText}
+        allowFontScaling={state.allowFontScaling}
         style={state.styleOverride?.emoji}
       />
     ),
@@ -308,7 +306,7 @@ const reactComponentsForMarkdownType = {
   },
   newline: {
     react: (_node: Node, output: SM.ReactOutput, state: State): React.ReactNode =>
-      !Styles.isMobile || state.inParagraph ? (
+      !isMobile || state.inParagraph ? (
         output({content: '\n', type: 'text'}, state)
       ) : (
         <Text

@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
+import {FsDataProvider} from './hooks'
+import {FsErrorProvider} from './error-state'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
@@ -18,24 +20,28 @@ type PopupProps = Props & {
 }
 
 const useOpenInFilesTab = (path: T.FS.Path) => {
-  return React.useCallback(() => FS.makeActionForOpenPathInFilesTab(path), [path])
+  return () => FS.navToPath(path)
 }
 
 const KbfsPathPopup = (props: PopupProps) => {
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const header = (
-    <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
-      <PathItemInfo
-        path={props.standardPath}
-        containerStyle={Kb.Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
-      />
-      <Kb.Divider />
-      <PathInfo
-        path={props.standardPath}
-        knownPathInfo={props.knownPathInfo}
-        containerStyle={styles.sectionContainer}
-      />
-    </Kb.Box2>
+    <FsErrorProvider>
+      <FsDataProvider>
+        <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
+          <PathItemInfo
+            path={props.standardPath}
+            containerStyle={Kb.Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
+          />
+          <Kb.Divider />
+          <PathInfo
+            path={props.standardPath}
+            knownPathInfo={props.knownPathInfo}
+            containerStyle={styles.sectionContainer}
+          />
+        </Kb.Box2>
+      </FsDataProvider>
+    </FsErrorProvider>
   )
 
   return (
@@ -44,10 +50,10 @@ const KbfsPathPopup = (props: PopupProps) => {
       attachTo={props.attachRef}
       onHidden={props.onHidden}
       position="top center"
-      propagateOutsideClicks={!Kb.Styles.isMobile}
+      propagateOutsideClicks={!isMobile}
       header={header}
       items={
-        Kb.Styles.isMobile
+        isMobile
           ? [
               'Divider',
               {
@@ -81,20 +87,21 @@ const KbfsPath = (props: Props) => {
   const popup = showing ? (
     <KbfsPathPopup attachRef={textRef} visible={showing} onHidden={() => setShowing(false)} {...props} />
   ) : null
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <>
       {text}
       {popup}
     </>
   ) : (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       style={styles.textContainer}
       onMouseOver={() => setShowing(true)}
       onMouseLeave={() => setShowing(false)}
     >
       {text}
       {popup}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

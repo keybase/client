@@ -3,28 +3,30 @@ import {useOpen} from '@/fs/common/use-open'
 import * as FS from '@/constants/fs'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   name: T.FS.TlfType
 }
 
 const TLFTypeContainer = (p: OwnProps) => {
-  const {destinationPickerIndex, name} = p
+  const {destinationPickerSource, name} = p
   const path = T.FS.stringToPath(`/keybase/${name}`)
-  const onOpen = useOpen({destinationPickerIndex, path})
+  const onOpen = useOpen({destinationPickerSource, path})
 
   return (
     <StillCommon
+      testID={TestIDs.FILES_TLF_ROW}
       path={path}
+      inDestinationPicker={!!destinationPickerSource}
       onOpen={onOpen}
       writingToJournal={false}
       content={
         <Kb.Text
-          fixOverdraw={true}
           type={FS.pathTypeToTextType(T.FS.PathType.Folder)}
           style={rowStyles.rowText}
-          lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+          lineClamp={isMobile ? 1 : undefined}
         >
           {T.FS.getPathName(path)}
         </Kb.Text>

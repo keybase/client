@@ -1,22 +1,8 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 import type SetChannelnameType from './container'
 
-const SetChannelname = React.memo(function SetChannelname(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
-
-  if (message?.type !== 'setChannelname') return null
+export default makeMessageWrapper('setChannelname', message => {
   if (message.newChannelname === 'general') return null
-
-  const {default: SetChannelname} = require('./container') as {default: typeof SetChannelnameType}
-  return (
-    <WrapperMessage {...p} {...common}>
-      <SetChannelname message={message} />
-    </WrapperMessage>
-  )
+  const {default: SetChannelnameComponent} = require('./container') as {default: typeof SetChannelnameType}
+  return <SetChannelnameComponent message={message} />
 })
-
-export default SetChannelname

@@ -1,20 +1,11 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
 import {Title, TransferIcon, ShowToastAfterSaving, messageAttachmentHasProgress} from './shared'
 
-const missingMessage = Chat.makeMessageAttachment()
-
-const AudioAttachment = () => {
-  const ordinal = useOrdinal()
-
-  // TODO not message
-  const message = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m : missingMessage
-  })
+const AudioAttachment = ({message, ordinal}: {message: T.Chat.MessageAttachment; ordinal: T.Chat.Ordinal}) => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message.transferState)
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
@@ -25,17 +16,21 @@ const AudioAttachment = () => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start">
       <ShowToastAfterSaving transferState={message.transferState} toastTargetRef={toastTargetRef} />
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
         alignItems="center"
-        gap={Kb.Styles.isMobile ? undefined : 'small'}
+        gap={isMobile ? undefined : 'small'}
         ref={toastTargetRef}
       >
         <AudioPlayer big={true} duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
-        <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
-      </Kb.Box2Measure>
-      {showTitle ? <Title /> : null}
+        <TransferIcon
+          message={message}
+          ordinal={ordinal}
+          style={isMobile ? styles.transferIcon : undefined}
+        />
+      </Kb.Box2>
+      {showTitle ? <Title message={message} /> : null}
       {progressLabel || hasProgress ? (
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
           {progressLabel ? (
@@ -63,7 +58,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     color: Kb.Styles.globalColors.black_50,
     marginRight: Kb.Styles.globalMargins.tiny,
   },
-  transferIcon: {left: -32, position: 'absolute'},
+  transferIcon: {left: -32, position: 'absolute' as const},
 }))
 
 export default AudioAttachment

@@ -1,78 +1,72 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Crypto from '@/constants/crypto'
-import * as React from 'react'
+import * as CryptoRoutes from '@/constants/crypto'
+import * as Chat from '@/constants/chat'
+import * as T from '@/constants/types'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
-import type * as T from '@/constants/types'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, messageAttachmentHasProgress, ShowToastAfterSaving} from './shared'
-import {useFSState} from '@/constants/fs'
+import {makeUUID} from '@/util/uuid'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {showPDFViewer, useConversationAttachmentActions} from '../../attachment-actions'
 
-type OwnProps = {showPopup: () => void}
+type OwnProps = {
+  isEditing: boolean
+  message: T.Chat.MessageAttachment
+  ordinal: T.Chat.Ordinal
+  showPopup: () => void
+}
 
-const missingMessage = Chat.makeMessageAttachment({})
+function FileContainer(p: OwnProps) {
+  const {isEditing, message, ordinal} = p
+  const {attachmentDownload, messageAttachmentNativeShare} = useConversationAttachmentActions()
+  const {
+    conversationIDKey,
+    downloadPath,
+    fileName: _fileName,
+    fileType,
+    transferErrMsg,
+    transferProgress: progress,
+    transferState,
+  } = message
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
+  const title = message.decoratedText?.stringValue() || message.title || message.fileName
 
-const FileContainer = React.memo(function FileContainer(p: OwnProps) {
-  const ordinal = useOrdinal()
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal) ?? missingMessage
-      const isEditing = !!s.editing
-      const conversationIDKey = s.id
-      const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
-      const title = m.decoratedText?.stringValue() || m.title || m.fileName
-      const progress = m.type === 'attachment' ? m.transferProgress : 0
+  const switchTab = C.Router2.switchTab
+  const navigateAppend = C.Router2.navigateAppend
+  const onSaltpackFileOpen = (
+    path: string,
+    name: typeof CryptoRoutes.decryptTab | typeof CryptoRoutes.verifyTab
+  ) => {
+    switchTab(C.Tabs.cryptoTab)
+    navigateAppend(
+      {
+        name,
+        params: {
+          entryNonce: makeUUID(),
+          seedInputPath: path,
+          seedInputType: 'file',
+        },
+      },
+      true
+    )
+  }
+  const _onShowInFinder = () => {
+    if (downloadPath) {
+      openLocalPathInSystemFileManagerDesktop(downloadPath)
+    }
+  }
 
-      const {dispatch} = s
-      const {attachmentDownload, messageAttachmentNativeShare} = dispatch
-      return {
-        attachmentDownload,
-        conversationIDKey,
-        downloadPath,
-        fileName,
-        fileType,
-        isEditing,
-        messageAttachmentNativeShare,
-        progress,
-        title,
-        transferErrMsg,
-        transferState,
-      }
-    })
-  )
-
-  const {conversationIDKey, fileType, downloadPath, isEditing, progress, messageAttachmentNativeShare} = data
-  const {attachmentDownload, title, transferState, transferErrMsg, fileName: _fileName} = data
-
-  const saltpackOpenFile = Crypto.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onSaltpackFileOpen = React.useCallback(
-    (path: string, operation: T.Crypto.Operations) => {
-      switchTab(C.Tabs.cryptoTab)
-      saltpackOpenFile(operation, path)
-    },
-    [switchTab, saltpackOpenFile]
-  )
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
-  )
-  const _onShowInFinder = React.useCallback(() => {
-    downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
-  }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
-
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDownload = React.useCallback(() => {
-    if (C.isMobile) {
+  const onDownload = () => {
+    if (!hasMessageID) {
+      return
+    }
+    if (isMobile) {
       messageAttachmentNativeShare(ordinal, true)
     } else if (!downloadPath) {
       if (fileType === 'application/pdf') {
-        navigateAppend({
-          props: {conversationIDKey, ordinal},
-          selected: 'chatPDF',
-        })
+        showPDFViewer(conversationIDKey, message)
       } else {
         switch (transferState) {
           case 'uploading':
@@ -84,18 +78,9 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
         attachmentDownload(ordinal)
       }
     }
-  }, [
-    ordinal,
-    conversationIDKey,
-    navigateAppend,
-    attachmentDownload,
-    messageAttachmentNativeShare,
-    downloadPath,
-    transferState,
-    fileType,
-  ])
+  }
 
-  const arrowColor = C.isMobile
+  const arrowColor = isMobile
     ? ''
     : downloadPath
       ? Kb.Styles.globalColors.green
@@ -105,33 +90,36 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const hasProgress = messageAttachmentHasProgress(transferState)
 
   const errorMsg = transferErrMsg || ''
-  const fileName = _fileName ?? ''
+  const fileName = _fileName
   const isSaltpackFile = !!fileName && isPathSaltpack(fileName)
-  const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
-  const showMessageMenu = p.showPopup
+  const onShowInFinder = !isMobile && downloadPath ? _onShowInFinder : undefined
+  const showMessageMenu = hasMessageID ? p.showPopup : undefined
 
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(transferState)
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
-  const operation = isPathSaltpackEncrypted(fileName)
-    ? Crypto.Operations.Decrypt
+  const cryptoRoute = isPathSaltpackEncrypted(fileName)
+    ? CryptoRoutes.decryptTab
     : isPathSaltpackSigned(fileName)
-      ? Crypto.Operations.Verify
+      ? CryptoRoutes.verifyTab
       : undefined
-  const operationTitle = captialize(operation)
+  const actionTitle = captialize(cryptoRoute?.replace('Tab', ''))
 
-  const styleOverride = Kb.Styles.isMobile
+  const styleOverride = isMobile
     ? ({paragraph: getEditStyle(isEditing)} as StyleOverride)
     : undefined
 
   return (
-    <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={onDownload}>
+    <Kb.ClickableBox direction="vertical" fullWidth={true} onLongPress={showMessageMenu} onClick={hasMessageID ? onDownload : undefined}>
       <ShowToastAfterSaving transferState={transferState} />
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        relative={true}
         style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing), styles.filename])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-          <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
+          <Kb.ImageIcon type={iconType} style={styles.iconStyle} />
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             {fileName === title ? (
               // if the title is the filename, don't try to parse it as markdown
               <Kb.Text
@@ -158,7 +146,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
             {fileName !== title && (
               <Kb.Text
                 type="BodyTiny"
-                onClick={onDownload}
+                onClick={hasMessageID ? onDownload : undefined}
                 style={Kb.Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
                   getEditStyle(isEditing),
@@ -169,58 +157,54 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        {!Kb.Styles.isMobile && isSaltpackFile && operation && (
-          <Kb.Box style={styles.saltpackOperationContainer}>
+        {!isMobile && isSaltpackFile && cryptoRoute && (
+          <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.saltpackOperationContainer}>
             <Kb.Button
               mode="Secondary"
               small={true}
-              label={operationTitle}
+              label={actionTitle}
               style={styles.saltpackOperation}
-              onClick={() => onSaltpackFileOpen(fileName, operation)}
+              onClick={() => onSaltpackFileOpen(fileName, cryptoRoute)}
             />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!arrowColor && (
-          <Kb.Box style={styles.downloadedIconWrapperStyle}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.downloadedIconWrapperStyle}>
             <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!progressLabel && (
-          <Kb.Box style={styles.progressContainerStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.progressOverlay}>
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel}
             </Kb.Text>
             {hasProgress && <Kb.ProgressBar ratio={progress} />}
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!errorMsg && (
-          <Kb.Box style={styles.progressContainerStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.error}>
               Failed to download.{' '}
-              <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownload}>
+              <Kb.Text type="BodySmall" style={styles.retry} onClick={hasMessageID ? onDownload : undefined}>
                 Retry
               </Kb.Text>
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {onShowInFinder && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
             Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         )}
-      </Kb.Box>
-    </Kb.ClickableBox2>
+      </Kb.Box2>
+    </Kb.ClickableBox>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       containerStyle: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          width: '100%',
-        },
         isElectron: {...Kb.Styles.desktopStyles.clickable},
       }),
       downloadedIcon: {
@@ -229,7 +213,6 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 1,
       },
       downloadedIconWrapperStyle: {
-        ...Kb.Styles.globalStyles.flexBoxCenter,
         ...Kb.Styles.padding(3, 0, 3, 3),
         borderRadius: 20,
         bottom: 0,
@@ -240,8 +223,7 @@ const styles = Kb.Styles.styleSheetCreate(
       filename: Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.clickable}}),
       iconStyle: Kb.Styles.platformStyles({
         common: {
-          height: 32,
-          width: 32,
+          ...Kb.Styles.size(32),
         },
         isElectron: {
           display: 'block',
@@ -250,13 +232,17 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       linkStyle: {color: Kb.Styles.globalColors.black_50},
-      progressContainerStyle: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-      },
       progressLabelStyle: {
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
+      },
+      progressOverlay: {
+        backgroundColor: Kb.Styles.globalColors.greyLight,
+        bottom: 0,
+        left: 0,
+        opacity: 0.9,
+        position: 'absolute',
+        width: 'auto',
       },
       retry: {
         color: Kb.Styles.globalColors.redDark,
@@ -265,10 +251,8 @@ const styles = Kb.Styles.styleSheetCreate(
       saltpackFileName: {color: Kb.Styles.globalColors.greenDark},
       saltpackOperation: Kb.Styles.platformStyles({isTablet: {alignSelf: 'flex-start'}}),
       saltpackOperationContainer: {
-        alignItems: 'flex-start',
         marginTop: Kb.Styles.globalMargins.xtiny,
       },
-      titleStyle: {flex: 1},
     }) as const
 )
 

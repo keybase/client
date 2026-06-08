@@ -1,0 +1,263 @@
+# E2E Flow Test Coverage — Page Checklist
+
+**Skill:** Use the `keybase-e2e-tests` skill for testID conventions, Playwright gotchas, Maestro command patterns, and iOS navigation structure.
+
+Each bucket is a logical group for one or more PRs. Items are ordered easiest-first within each bucket. Validate after each bucket before moving on.
+
+**Pairing rule:** Do Electron and iOS for each bucket together before moving to the next bucket.
+
+**Branch scripts:** `yarn test:e2e:desktop:branch` and `yarn test:e2e:ios:branch` run only the new flows being developed. When a flow is verified working on both platforms, remove it from the branch scripts. When adding a new bucket's test files, add them to both scripts.
+
+Out of scope = screens that create, delete, add, invite, or remove something. Everything else is in scope even if it requires app state to reach.
+
+**testID rule:** Never wrap existing component content in a new `Kb.Box2` (or any container) just to attach a `testID`. Instead, add the `testID` prop directly to an element that already exists in the component — an input, a scroll view, a pre-existing wrapper, etc.
+
+---
+
+## Bucket 1 — Crypto sub-tabs (inputs)
+
+Navigate to each sub-tab in the Crypto section.
+
+- [x] Encrypt input renders
+- [x] Decrypt input renders
+- [x] Sign input renders
+- [x] Verify input renders
+
+---
+
+## Bucket 2 — Crypto outputs
+
+Type something in each sub-tab and run it to see the output screen. Local-only operation, no server mutation.
+
+- [x] Encrypt → output screen renders (Electron ✓, iOS written)
+- [x] Decrypt → output screen renders — encrypt first, feed ciphertext to decrypt (Electron ✓, iOS: needs clipboard support, skipped)
+- [x] Sign → output screen renders (Electron ✓, iOS written)
+- [x] Verify → output screen renders — sign first, feed signed text to verify (Electron ✓, iOS: needs clipboard support, skipped)
+
+---
+
+## Bucket 3 — Chat: conversation view
+
+Open an existing conversation. No sending.
+
+- [x] Open first inbox row → message list renders (Electron ✓, iOS written)
+- [x] Chat input visible in open conversation (Electron ✓, iOS: chat-send-message.yaml already covers this)
+- [x] Return to inbox from conversation (Electron ✓, iOS written)
+
+---
+
+## Bucket 4 — Chat: in-conversation modals
+
+From an open conversation, open each of these. Dismiss/cancel without submitting.
+
+- [ ] Info panel (the ⓘ / conversation info button)
+- [ ] Message popup / context menu (long-press or right-click a message)
+- [ ] Emoji picker (tap emoji button in input area)
+- [ ] Search bots modal (tap bot icon)
+- [ ] Bot info / install preview — open a bot, view, don't install (`chatInstallBot`)
+- [ ] Bot team picker (`chatInstallBotPick`) — view destinations, cancel
+- [ ] Forward message pick (`chatForwardMsgPick`) — view destinations, cancel
+- [ ] Attachment fullscreen (`chatAttachmentFullscreen`) — requires a message with an image
+- [ ] PDF viewer (`chatPDF`) — requires a message with a PDF
+- [ ] Location map popup (`chatUnfurlMapPopup`) — requires a message with a location unfurl
+- [ ] External link warning (`chatConfirmNavigateExternal`) — click an http link in a message
+
+---
+
+## Bucket 5 — Settings sub-pages (batch 1)
+
+Navigate from the Settings nav. Confirm renders, go back.
+
+- [x] About (Electron ✓, iOS written)
+- [x] Advanced (Electron ✓, iOS written)
+- [x] Display (Electron ✓, iOS written)
+- [x] Notifications (Electron ✓, iOS written)
+- [x] Feedback (Electron ✓, iOS written)
+- [ ] Password (modal: `settingsTabs.password`) — needs Account settings navigation; no testID yet
+
+---
+
+## Bucket 6 — Settings sub-pages (batch 2)
+
+Same pattern. Devices and Git reuse their main tab screen components.
+
+- [x] Chat (Electron ✓, iOS written via settings-subpages.yaml)
+- [x] Files (Electron ✓, iOS written via settings-subpages.yaml)
+- [x] Git — reuses git root component (Electron ✓, iOS ✓ via git.yaml)
+- [x] Devices — reuses devices root component (Electron ✓, iOS ✓ via devices-view.yaml)
+- [ ] Wallet
+- [x] Archive / Backup (Electron ✓, iOS written via settings-subpages.yaml)
+- [ ] Contacts (mobile only, `settingsTabs.contactsTab`)
+- [x] Screen Protector (mobile only, `settingsTabs.screenprotector`) (Electron ✓, iOS: Android only)
+
+---
+
+## Bucket 7 — Settings: misc modals
+
+Settings-adjacent modals that are viewable without mutating.
+
+- [ ] Archive modal (`archiveModal`) — view the backup flow, cancel
+- [ ] Contacts joined (`settingsContactsJoined`) — notification screen (hard to trigger naturally; may need investigation)
+- [ ] Push prompt (`settingsPushPrompt`) — mobile only, view and skip
+- [ ] Proxy settings (`proxySettingsModal`) — from the login screen or settings; view and cancel
+
+---
+
+## Bucket 8 — Device detail
+
+From the Devices tab, click a device row.
+
+- [x] Device detail page renders (Electron ✓, iOS written)
+
+---
+
+## Bucket 9 — Team detail tabs
+
+Open a team, navigate each internal tab.
+
+- [x] Members tab renders (Electron ✓, iOS written)
+- [x] Channels tab renders — conditional on big team/admin (Electron ✓, iOS written)
+- [x] Bots tab renders (Electron ✓, iOS written)
+- [x] Settings tab renders (Electron ✓, iOS written)
+
+---
+
+## Bucket 10 — Team sub-screens
+
+From within a team.
+
+- [x] Team member page (Electron ✓, iOS written) — taps smoke user's username in member list
+- [ ] Edit channel modal — open, cancel (`teamEditChannel`)
+- [ ] Team description edit modal — open, cancel (`teamEditTeamDescription`)
+- [ ] Team info edit modal — open, cancel (`teamEditTeamInfo`)
+- [ ] Invite link join page (`teamInviteLinkJoin`) — view the page, don't join
+- [ ] Open team warning modal (`openTeamWarning`) — view and dismiss
+- [ ] Retention warning modal (`retentionWarning`) — view and dismiss
+- [ ] External team page (`teamExternalTeam`) — view a public/open team without membership
+
+---
+
+## Bucket 11 — Profile page and modals
+
+- [x] Profile page renders (Electron ✓ via People tab header; iOS written — conditional on username in feed)
+- [ ] Proofs list modal (`profileProofsList`) — open from a profile, view, close
+- [ ] Showcase team offer (`profileShowcaseTeamOffer`) — open from own profile, view, cancel
+
+---
+
+## Bucket 12 — Files navigation
+
+From the Files root, tap each TLF type then back.
+
+- [x] Navigate into `public/` → browser renders (Electron ✓, iOS written)
+- [x] Navigate into `private/` → browser renders (Electron ✓, iOS written)
+- [x] Navigate into `team/` → browser renders (Electron ✓, iOS written)
+- [ ] Navigate back to files root from subfolder (Electron ✓, iOS written)
+- [ ] Destination picker (`destinationPicker`) — open move/copy flow, cancel
+
+---
+
+## Bucket 13 — Git
+
+- [x] Git repo list renders (Electron ✓, iOS written)
+- [x] Git repo row is visible (Electron ✓, iOS written)
+- [ ] Git repo detail (investigate first — clicking a row may open a mutation modal or nothing)
+- [ ] Git select channel (`gitSelectChannel`) — open from a repo to set a notification channel, cancel
+
+---
+
+## Bucket 14 — People and account switcher
+
+- [ ] Account switcher modal (People tab → avatar in header)
+
+---
+
+## Bucket 15 — Wallets
+
+- [ ] Wallet root screen renders (`walletsRoot`, accessible via Settings → Wallet)
+- [ ] Remove account modal (`removeAccount`) — open, cancel (view-only intent, cancel before submitting)
+
+---
+
+## Out of scope — mutations
+
+These create, delete, add, invite, or remove something. All explicitly listed so nothing is accidentally omitted from evaluation.
+
+**Chat:**
+- `chatNewChat` — create new chat / new conversation
+- `chatCreateChannel` — create a channel
+- `chatAddToChannel` — add members to a channel
+- `chatBlockingModal` — block / report / filter a user
+- `chatConfirmRemoveBot` — remove a bot from a conversation
+- `chatDeleteHistoryWarning` — delete conversation history
+- `chatShowNewTeamDialog` — create a new team from a conversation
+- `chatSendToChat` — send a file to a chat (FS share flow)
+- `chatAttachmentGetTitles` — set titles before sending attachments
+- `chatLocationPreview` — send your location (input side, not unfurl view)
+
+**Crypto:**
+- `cryptoTeamBuilder` — pick recipients for encrypt (team builder modal)
+
+**Devices:**
+- `deviceRevoke` — revoke a device
+- `deviceAdd` — add a new device
+- `devicePaperKey` — paper key display (only shown during provisioning)
+- All provision sub-routes — device provisioning flow
+
+**Files:**
+- `confirmDelete` — delete a file/folder
+
+**Git:**
+- `gitNewRepo` — create a new git repo
+- `gitDeleteRepo` — delete a git repo
+
+**Login/signup/recover:**
+- All `login`, `signup*`, `recoverPassword*`, `reset*` routes — not relevant while logged in
+- `recoverPasswordSetPassword` — set a new password
+- `proxySettingsModal` moved to Bucket 7 (view + cancel is fine)
+
+**People:**
+- `peopleTeamBuilder` — the team builder launched from People (adds people to something)
+
+**Profile:**
+- `profileEdit` — edit your own profile bio/location
+- `profileEditAvatar` — change avatar
+- `profileImport` — import a PGP key
+- `profilePgp` — start a PGP proof flow
+- `profileProveWebsiteChoice` — start a website proof
+- `profileRevoke` — revoke a proof
+- `profileAddToTeam` — add the viewed user to one of your teams
+
+**Settings:**
+- `settingsAddEmail` — add an email address
+- `settingsAddPhone` — add a phone number
+- `settingsDeleteAddress` — delete an email or phone
+- `settingsVerifyPhone` — verify a phone number
+- `settingsLogOutTab` — log out
+- `checkPassphraseBeforeDeleteAccount` — step in account deletion
+- `deleteConfirm` — delete account
+
+**Teams:**
+- `teamNewTeamDialog` — create a team
+- `teamsTeamBuilder` — add members to a team
+- `teamAddEmoji` — add a custom emoji
+- `teamAddEmojiAlias` — add an emoji alias
+- `teamAddToChannels` — add a user to channels
+- `teamAddToTeamFromWhere` / `teamAddToTeamConfirm` / `teamAddToTeamContacts` / `teamAddToTeamEmail` / `teamAddToTeamPhone` — add members wizard
+- `teamCreateChannels` — create channels
+- `teamDeleteChannel` — delete a channel
+- `teamDeleteTeam` — delete a team
+- `teamInviteByContact` — invite via contacts
+- `teamInviteByEmail` — invite via email
+- `teamJoinTeamDialog` — join a team (adds self)
+- `teamReallyLeaveTeam` — leave a team
+- `teamReallyRemoveChannelMember` — remove someone from a channel
+- `teamReallyRemoveMember` — kick a member
+- `teamRename` — rename a subteam
+- `teamWizard1TeamPurpose` / `teamWizard2TeamInfo` / `teamWizard4TeamSize` / `teamWizard5Channels` / `teamWizard6Subteams` / `teamWizardSubteamMembers` — new team creation wizard
+
+**Wallets:**
+- `reallyRemoveAccount` — confirm removal of a wallet account
+
+**Incoming share:**
+- `incomingShareNew` — triggered by the OS share sheet; not reachable from within the app

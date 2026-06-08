@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"slices"
+	"strings"
 
 	goerrors "github.com/go-errors/errors"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -111,12 +113,13 @@ type missingKeyBundlesError struct {
 }
 
 func (e missingKeyBundlesError) Error() string {
-	s := "Missing key bundles: \n"
+	var s strings.Builder
+	s.WriteString("Missing key bundles: \n")
 	for _, pc := range e.stack {
 		f := goerrors.NewStackFrame(pc)
-		s += f.String()
+		s.WriteString(f.String())
 	}
-	return s
+	return s.String()
 }
 
 func makeMissingKeyBundlesError() missingKeyBundlesError {
@@ -426,10 +429,8 @@ func (md *RootMetadataV3) isNonTeamWriter(
 			return false, err
 		}
 
-		for _, w := range md.WriterMetadata.Writers {
-			if w == user.AsUserOrTeam() {
-				return true, nil
-			}
+		if slices.Contains(md.WriterMetadata.Writers, user.AsUserOrTeam()) {
+			return true, nil
 		}
 		return false, nil
 	case tlf.Private:

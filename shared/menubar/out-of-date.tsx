@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as R from '@/constants/remote'
-import * as RemoteGen from '../actions/remote-gen'
+import * as RemoteGen from '../constants/remote-actions'
 import {isWindows, isDarwin} from '@/constants/platform'
 import type * as T from '@/constants/types'
 
@@ -45,8 +45,7 @@ const OutOfDate = ({outOfDate}: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   banner: {flexShrink: 0},
   textContainerStyle: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
   },
   textCritical: {color: Kb.Styles.globalColors.white},
   textNonCritical: {color: Kb.Styles.globalColors.brown_75},

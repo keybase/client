@@ -1,49 +1,35 @@
-import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
-import {SetRecycleTypeContext} from '../../recycle-type-context'
-import {WrapperMessage, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
-import isEqual from 'lodash/isEqual'
+import {useConversationCenter} from '../../center-context'
 
-// Encoding all 4 states as static objects so we don't re-render
+let _sentHighlighted: Kb.Styles.StylesCrossPlatform | undefined
+const getSentHighlighted = () => {
+  _sentHighlighted ??= Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+  return _sentHighlighted
+}
+
 const getStyle = (
   type: 'error' | 'sent' | 'pending',
   isEditing: boolean,
   isHighlighted?: boolean
 ): Kb.Styles.StylesCrossPlatform => {
   if (isHighlighted) {
-    return Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+    return getSentHighlighted()
   } else if (type === 'sent') {
-    return isEditing
-      ? sharedStyles.sentEditing
-      : Kb.Styles.collapseStyles([sharedStyles.sent, {backgroundColor: Kb.Styles.globalColors.fastBlank}])
+    return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
   } else {
-    return isEditing
-      ? sharedStyles.pendingFailEditing
-      : Kb.Styles.collapseStyles([
-          sharedStyles.pendingFail,
-          {backgroundColor: Kb.Styles.globalColors.fastBlank},
-        ])
+    return isEditing ? sharedStyles.pendingFailEditing : sharedStyles.pendingFail
   }
 }
 
-const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
-  const {style} = p
+function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; text: string}) {
   const ordinal = useOrdinal()
-  const text = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type !== 'text') return ''
-    const decoratedText = m.decoratedText
-    const text = m.text
-    return decoratedText ? decoratedText.stringValue() : text.stringValue()
-  })
-
-  const styleOverride = React.useMemo(() => (Kb.Styles.isMobile ? {paragraph: style} : undefined), [style])
+  const styleOverride = isMobile ? {paragraph: style} : undefined
 
   return (
     <Kb.Markdown
@@ -56,75 +42,42 @@ const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles
       {text}
     </Kb.Markdown>
   )
-})
+}
 
-const WrapperText = React.memo(function WrapperText(p: Props) {
-  const {ordinal} = p
-  // Fetch message data once and share with both useCommon and WrapperMessage
-  const messageData = useMessageData(ordinal)
-  const common = useCommonWithData(ordinal, messageData)
-  const {type, showCenteredHighlight} = common
-  const {isEditing, hasReactions} = messageData
+function WrapperText(p: Props) {
+  const {ordinal, isCenteredHighlight = false} = p
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {messageData} = wrapper
+  const {centerOnMessage} = useConversationCenter()
+  const {isEditing, message, replyTo} = messageData
 
-  const bottomChildren = useBottom(ordinal)
-  const reply = useReply(ordinal)
-
-  // Get text-specific styling info
-  const textType = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const errorReason = m?.errorReason
-    return errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =
+    messageData
+  const bottomChildren = useBottom({
+    author: message.author,
+    conversationIDKey: message.conversationIDKey,
+    hasCoinFlip,
+    hasUnfurlList,
+    hasUnfurlPrompts,
+    messageID: message.id,
+    unfurls: message.type === 'text' ? message.unfurls : undefined,
   })
-
-  const setRecycleType = React.useContext(SetRecycleTypeContext)
-
-  React.useEffect(() => {
-    let subType = ''
-    if (reply) {
-      subType += ':reply'
+  const onReplyClick = () => {
+    const id = replyTo?.id ?? 0
+    if (id) {
+      centerOnMessage(id, 'flash')
     }
-    if (hasReactions) {
-      subType += ':reactions'
-    }
-    if (subType.length) {
-      setRecycleType(ordinal, 'text' + subType)
-    }
-  }, [ordinal, reply, hasReactions, setRecycleType])
+  }
+  const reply = useReply(replyTo, onReplyClick)
 
-  // Uncomment to test effective recycling
-  // const DEBUGOldOrdinalRef = React.useRef(0)
-  // const DEBUGOldTypeRef = React.useRef('')
-  // React.useEffect(() => {
-  //   const oldtype = DEBUGOldTypeRef.current
-  //   if (DEBUGOldOrdinalRef.current) {
-  //     console.log(
-  //       'debug textwrapperRecycle',
-  //       DEBUGOldOrdinalRef.current,
-  //       ordinal,
-  //       subType === oldtype ? `SAME ${subType}` : `${subType} != ${oldtype} <<<<<<<<<<<<<<<<<`
-  //     )
-  //   }
-  //   DEBUGOldOrdinalRef.current = ordinal
-  //   DEBUGOldTypeRef.current = subType
-  // }, [ordinal, subType])
+  const style = getStyle(textType, isEditing, showCenteredHighlight)
 
-  const [style, setStyle] = React.useState<Kb.Styles.StylesCrossPlatform>(
-    getStyle(textType, isEditing, showCenteredHighlight)
+  const children = (
+    <>
+      {reply}
+      <MessageMarkdown style={style} text={text} />
+    </>
   )
-
-  React.useEffect(() => {
-    const s = getStyle(textType, isEditing, showCenteredHighlight)
-    setStyle(old => (isEqual(s, old) ? old : s))
-  }, [textType, isEditing, showCenteredHighlight])
-
-  const children = React.useMemo(() => {
-    return (
-      <>
-        {reply}
-        <MessageMarkdown style={style} />
-      </>
-    )
-  }, [reply, style])
 
   // due to recycling, we can have items that aren't connected to the list that might have live connectors
   // so when we load more etc the entire messagMap could no longer have your item
@@ -133,10 +86,10 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   }
 
   return (
-    <WrapperMessage {...p} {...common} bottomChildren={bottomChildren} messageData={messageData}>
+    <WrapperMessage {...p} {...wrapper} bottomChildren={bottomChildren}>
       {children}
     </WrapperMessage>
   )
-})
+}
 
 export default WrapperText

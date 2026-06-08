@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build !production
-// +build !production
 
 package libkb
 

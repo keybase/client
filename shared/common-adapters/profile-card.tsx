@@ -2,34 +2,31 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as Platforms from '@/util/platforms'
-import * as Tracker from '@/constants/tracker2'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import Box, {Box2, Box2Measure} from './box'
-import ClickableBox from './clickable-box'
+import {Box2, ClickableBox} from './box'
 import ConnectedNameWithIcon from './name-with-icon'
 import {_setWithProfileCardPopup} from './usernames'
 import FloatingMenu from './floating-menu'
 import Icon from './icon'
 import Meta from './meta'
-import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import type ChatButtonType from '../chat/chat-button'
-import {useTrackerState} from '@/constants/tracker2'
 import type {MeasureRef} from './measure-ref'
+import {navToProfile} from '@/constants/router'
+import {useTrackerProfile} from '@/tracker/use-profile'
+import {noAssertion} from '@/tracker/model'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
 
 const Kb = {
-  Box,
   Box2,
-  Box2Measure,
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
@@ -91,7 +88,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
       centerChildren={true}
     >
       {serviceIdsShowing.map(serviceId => {
-        const assertion = services.get(serviceId) || Tracker.noAssertion
+        const assertion = services.get(serviceId) || noAssertion
         return (
           <Kb.WithTooltip
             key={serviceId}
@@ -110,7 +107,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
             />
             {assertion.state !== 'valid' && (
               <Kb.Icon
-                fontSize={Styles.isMobile ? 12 : 10}
+                fontSize={isMobile ? 12 : 10}
                 style={styles.brokenBadge}
                 type="iconfont-proof-broken"
                 color={Styles.globalColors.red}
@@ -120,7 +117,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
         )
       })}
       {!!expandLabel && (
-        <Kb.ClickableBox onClick={() => setExpanded(true)} style={styles.expand}>
+        <Kb.ClickableBox onClick={() => setExpanded(true)} direction="vertical" style={styles.expand}>
           <Kb.Meta title={expandLabel} backgroundColor={Styles.globalColors.greyDark} />
         </Kb.ClickableBox>
       )}
@@ -137,7 +134,7 @@ const ProfileCard = ({
   username,
 }: Props) => {
   const {default: ChatButton} = require('../chat/chat-button') as {default: typeof ChatButtonType}
-  const userDetails = useTrackerState(s => s.getDetails(username))
+  const {details: userDetails, loadProfile} = useTrackerProfile(username)
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
   const isSelf = useCurrentUserState(s => s.username === username)
@@ -161,10 +158,6 @@ const ProfileCard = ({
     bio: userDetailsBio,
     fullname: userDetailsFullname,
   } = userDetails
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  React.useEffect(() => {
-    userDetailsState === 'unknown' && showUser(username, false, true)
-  }, [showUser, username, userDetailsState])
   // signal layout change when it happens, to prevent popup cutoff.
   React.useEffect(() => {
     onLayoutChange?.()
@@ -177,30 +170,28 @@ const ProfileCard = ({
     showFollowButton,
   ])
 
-  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
-  const _changeFollow = React.useCallback(
-    (follow: boolean) => changeFollow(userDetails.guiID, follow),
-    [changeFollow, userDetails]
-  )
-
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const openProfile = React.useCallback(() => {
-    showUserProfile(username)
-    onHide?.()
-  }, [showUserProfile, onHide, username])
+  const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
+  const _changeFollow = (follow: boolean) =>
+    followUser([{follow, guiID: userDetails.guiID}, C.waitingKeyTracker], () => loadProfile(false), () => {})
 
   const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
     default: typeof FollowButtonType
   }
 
+  const openProfile = () => {
+    navToProfile(username)
+    onHide?.()
+  }
+
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([styles.container, containerStyle])}
       alignItems="center"
+      relative={true}
+      style={Styles.collapseStyles([styles.container, containerStyle])}
     >
       {!!showClose && (
-        <Kb.Icon type="iconfont-close" onClick={() => {}} boxStyle={styles.close} padding="tiny" />
+        <Kb.Icon type="iconfont-close" color={Styles.globalColors.black_20} onClick={() => {}} style={styles.close} padding="tiny" />
       )}
       <Kb.ConnectedNameWithIcon
         onClick={clickToProfile && openProfile}
@@ -258,33 +249,30 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
-  const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
+  const onLayoutChange = () => setRemeasureHint(Date.now())
   const you = useCurrentUserState(s => s.username)
   const isSelf = you === username
-  const onShow = C.useDebouncedCallback(
-    React.useCallback(() => {
-      setShowing(true)
-    }, []),
-    200
-  )
-  const onHide = React.useCallback(() => {
+  const onShow = C.useDebouncedCallback(() => {
+    setShowing(true)
+  }, 200)
+  const onHide = () => {
     onShow.cancel()
     setShowing(false)
-  }, [onShow])
+  }
 
   if (isSelf) {
     return children()
   }
   const popup = showing && (
-    <DelayedMounting delay={Styles.isMobile ? 0 : 300}>
+    <DelayedMounting delay={isMobile ? 0 : 300}>
       <Kb.FloatingMenu
-        attachTo={popupAnchor}
+        attachTo={isMobile ? undefined : popupAnchor}
         closeOnSelect={true}
         onHidden={onHide}
         position="top center"
-        offset={Styles.isMobile ? 0 : 10}
+        offset={isMobile ? 0 : 10}
         positionFallbacks={positionFallbacks}
-        propagateOutsideClicks={!Styles.isMobile}
+        propagateOutsideClicks={!isMobile}
         remeasureHint={remeasureHint}
         visible={showing}
         header={
@@ -300,13 +288,13 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       />
     </DelayedMounting>
   )
-  return Styles.isMobile ? (
+  return isMobile ? (
     <>
       {children(onShow)}
       {popup}
     </>
   ) : (
-    <Kb.Box2Measure
+    <Kb.Box2
       direction="vertical"
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={onShow}
@@ -315,7 +303,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
     >
       {children()}
       {popup}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 
@@ -328,9 +316,7 @@ const styles = Styles.styleSheetCreate(
     ({
       brokenBadge: Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.white,
-          borderStyle: 'solid',
-          borderWidth: Styles.globalMargins.xxtiny,
+          ...Styles.border(Styles.globalColors.white, Styles.globalMargins.xxtiny),
           bottom: -Styles.globalMargins.xxtiny,
           position: 'absolute',
           right: -Styles.globalMargins.xxtiny,
@@ -367,7 +353,6 @@ const styles = Styles.styleSheetCreate(
             Styles.globalMargins.small,
             Styles.globalMargins.tiny
           ),
-          position: 'relative',
         },
         isElectron: {
           width: 170,

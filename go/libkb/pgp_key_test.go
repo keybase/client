@@ -44,7 +44,7 @@ HKfiyXs8709e067vsE5FCTMvZCq4vt/lkEJ59xn58QBfEILMwQDNLqVGyA54MPwh
 -----END PGP PUBLIC KEY BLOCK-----
 `
 	expected := "Primary Primary <primary@uid.com>"
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		key, _, err := ReadOneKeyFromString(armored)
 		if err != nil {
 			t.Error(err)

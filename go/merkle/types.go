@@ -31,7 +31,7 @@ type EncodedLeaf []byte
 
 var _ merkletree.ValueConstructor = (*EncodedLeaf)(nil)
 
-func (l EncodedLeaf) Construct() interface{} {
+func (l EncodedLeaf) Construct() any {
 	return &[]byte{}
 }
 

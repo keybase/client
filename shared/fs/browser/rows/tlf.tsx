@@ -2,33 +2,24 @@ import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {useFsPathMetadata, TlfInfoLine, Filename} from '@/fs/common'
-import {useFSState} from '@/constants/fs'
+import {TlfInfoLine, Filename} from '@/fs/common'
 import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   disabled: boolean
   mixedMode?: boolean
   name: string
   tlfType: T.FS.TlfType
 }
 
-// TODO dont do this pattern
-const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
-  useFsPathMetadata(path)
-  return null
-}
-
 const TLFContainer = (p: OwnProps) => {
-  const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
-  const tlf = useFSState(s => FS.getTlfFromTlfs(s.tlfs, tlfType, name))
+  const {tlfType, name, mixedMode, destinationPickerSource, disabled} = p
   const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
-  const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
-  const onOpen = useOpen({destinationPickerIndex, path})
-  const loadPathMetadata = tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled
+  const _usernames = FS.getUsernamesFromTlfName(name).filter(u => u !== username)
+  const onOpen = useOpen({destinationPickerSource, path})
   // Only include the user if they're the only one
   const usernames = !_usernames.length ? [username] : _usernames
 
@@ -53,34 +44,32 @@ const TLFContainer = (p: OwnProps) => {
   )
 
   const avatar = (
-    <Kb.Box style={styles.avatarBox}>
+    <Kb.Box2 direction="horizontal" style={styles.avatarBox}>
       {FS.isTeamPath(path) ? (
         <Kb.Avatar size={32} isTeam={true} teamname={usernames[0]} />
       ) : (
         <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={usernames} />
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 
   return (
-    <>
-      {!!loadPathMetadata && <FsPathMetadataLoader path={path} />}
-      <StillCommon
-        path={path}
-        onOpen={disabled ? undefined : onOpen}
-        mixedMode={mixedMode}
-        writingToJournal={false}
-        body={Kb.Styles.isMobile ? <Kb.Box style={rowStyles.itemBox}>{content}</Kb.Box> : undefined}
-        content={
-          !Kb.Styles.isMobile ? (
-            <>
-              {content}
-              {avatar}
-            </>
-          ) : undefined
-        }
-      />
-    </>
+    <StillCommon
+      path={path}
+      inDestinationPicker={!!destinationPickerSource}
+      onOpen={disabled ? undefined : onOpen}
+      mixedMode={mixedMode}
+      writingToJournal={false}
+      body={isMobile ? <Kb.Box2 direction="vertical" fullWidth={true} style={rowStyles.itemBox}>{content}</Kb.Box2> : undefined}
+      content={
+        !isMobile ? (
+          <>
+            {content}
+            {avatar}
+          </>
+        ) : undefined
+      }
+    />
   )
 }
 

@@ -7,10 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"time"
 )
 
 type MessageBoxed struct {

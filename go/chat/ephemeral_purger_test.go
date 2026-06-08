@@ -314,7 +314,7 @@ func TestBackgroundPurge(t *testing.T) {
 	world.Fc.Advance(lifetimeDuration * 3)
 	// keep the fakeclock ticking
 	go func() {
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			world.Fc.Advance(lifetimeDuration)
 			time.Sleep(lifetimeDuration)
 		}

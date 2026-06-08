@@ -1,21 +1,18 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
-import type SystemLeftType from './container'
+import * as Kb from '@/common-adapters'
+import UserNotice from '../user-notice'
+import {useConversationThreadSelector} from '../../thread-context'
+import {makeMessageWrapper} from '../wrapper/wrapper'
 
-const SystemLeft = React.memo(function SystemLeft(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+function SystemLeft() {
+  const meta = useConversationThreadSelector(s => s.meta)
+  const {channelname, teamType, teamname} = meta
+  const isBigTeam = teamType === 'big'
 
-  if (message?.type !== 'systemLeft') return null
-
-  const {default: SystemLeft} = require('./container') as {default: typeof SystemLeftType}
   return (
-    <WrapperMessage {...p} {...common}>
-      <SystemLeft />
-    </WrapperMessage>
+    <UserNotice>
+      <Kb.Text type="BodySmall">{`left ${isBigTeam ? `#${channelname}` : teamname}.`}</Kb.Text>
+    </UserNotice>
   )
-})
+}
 
-export default SystemLeft
+export default makeMessageWrapper('systemLeft', () => <SystemLeft />)

@@ -1,19 +1,18 @@
-import URL from 'url-parse'
 import * as Electron from 'electron'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import * as R from '@/constants/remote'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
 import {showDevTools} from '@/local-debug'
-import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform.desktop'
+import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
-import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '@/util/electron.desktop'
+import {htmlURL, preloadPath} from './html-root.desktop'
+import KB2 from '@/util/electron'
 
 const {env} = KB2.constants
 
-let htmlFile = `${htmlPrefix}${assetRoot}main${__FILE_SUFFIX__}.html`
+let htmlFile = htmlURL('main')
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -29,11 +28,19 @@ const setupDefaultSession = () => {
     if (permission === 'fullscreen') {
       return callback(true)
     }
-    const ourURL = new URL(htmlFile)
-    const requestURL = new URL(webContents.getURL())
+
+    let ourPathname: string
+    let requestPathname: string
+    try {
+      ourPathname = new URL(htmlFile).pathname
+      requestPathname = new URL(webContents.getURL()).pathname
+    } catch {
+      return callback(false)
+    }
+
     if (
       permission === 'notifications' &&
-      requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
+      requestPathname.toLowerCase() === ourPathname.toLowerCase()
     ) {
       // Allow notifications
       return callback(true)
@@ -92,6 +99,8 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
 const changeDock = (show: boolean) => {
   const dock = Electron.app.dock
   if (!dock) return
+  windowState.dockHidden = !show
+  R.remoteDispatch(RemoteGen.createUpdateWindowState({windowState}))
   if (show) {
     dock
       .show()
@@ -100,9 +109,6 @@ const changeDock = (show: boolean) => {
   } else {
     dock.hide()
   }
-
-  windowState.dockHidden = !show
-  R.remoteDispatch(RemoteGen.createUpdateWindowState({windowState}))
 }
 
 export const showDockIcon = () => changeDock(true)
@@ -322,7 +328,7 @@ const MainWindow = () => {
       devTools: showDevTools,
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
-      preload: `${assetRoot}preload${__FILE_SUFFIX__}.bundle.js`,
+      preload: preloadPath,
       spellcheck: !disableSpellCheck,
     },
     width: windowState.width,
@@ -349,7 +355,7 @@ const MainWindow = () => {
 
   menuHelper(win)
 
-  if (showDevTools) {
+  if (showDevTools && !process.env['KB_E2E_TEST']) {
     win.webContents.openDevTools({mode: 'detach', title: `${__DEV__ ? 'DEV' : 'Prod'} Keybase Devtools`})
   }
 

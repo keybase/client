@@ -1,9 +1,9 @@
 import {themed as globalColors} from './colors'
-import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '@/constants/platform'
+import {isTablet, isPhone} from '@/constants/platform'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
-import type {Background} from '@/common-adapters/text'
+import type {Background} from '@/common-adapters/text.shared'
 
-/* eslint-disable sort-keys */
+ 
 export const globalMargins = {
   xxtiny: 2,
   xtiny: 4,
@@ -15,7 +15,7 @@ export const globalMargins = {
   large: 40,
   xlarge: 64,
 } as const
-/* eslint-enable sort-keys */
+ 
 
 export const backgroundModeToColor = {
   get Announcements() {
@@ -56,7 +56,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background) => {
 
 const flexCommon = isMobile ? {} : ({display: 'flex'} as const)
 export const util = {
-  fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
+  fillAbsolute: {inset: 0, position: 'absolute'},
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
   flexBoxColumnReverse: {...flexCommon, flexDirection: 'column-reverse'},
@@ -170,7 +170,7 @@ export function platformStyles<
   return out
 }
 
-/* eslint-disable sort-keys */
+ 
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
   paddingTop: top,
   paddingRight: right !== undefined ? right : top,

@@ -1,10 +1,8 @@
-import * as React from 'react'
-import {Box, Box2} from './box'
+import {Box2} from './box'
 import Text from './text'
 import * as Styles from '@/styles'
 
 const Kb = {
-  Box,
   Box2,
   Text,
 }
@@ -21,10 +19,10 @@ export type Badge2Props = {
   border?: boolean
 }
 
-const Badge = React.memo(function Badge(p: Badge2Props) {
+function Badge(p: Badge2Props) {
   const {border, containerStyle, className, badgeNumberStyle, badgeNumber, badgeStyle} = p
-  const fontSize = p.fontSize ?? (Styles.isMobile ? 12 : 10)
-  const height = p.height ?? (Styles.isMobile ? 20 : 16)
+  const fontSize = p.fontSize ?? (isMobile ? 12 : 10)
+  const height = p.height ?? (isMobile ? 20 : 16)
   const leftRightPadding = p.leftRightPadding ?? (Styles.isPhone ? 5 : 4)
 
   if (border) {
@@ -51,11 +49,10 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
           style={Styles.collapseStyles([
             styles.badge,
             {
+              ...Styles.paddingH(leftRightPadding),
               borderRadius: innerSize,
               height: innerSize,
               minWidth: innerSize,
-              paddingLeft: leftRightPadding,
-              paddingRight: leftRightPadding,
             },
             badgeStyle,
           ])}
@@ -85,11 +82,10 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
         style={Styles.collapseStyles([
           styles.badge,
           {
+            ...Styles.paddingH(leftRightPadding),
             borderRadius: height,
             height: height,
             minWidth: height,
-            paddingLeft: leftRightPadding,
-            paddingRight: leftRightPadding,
           },
           badgeStyle,
         ])}
@@ -100,11 +96,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
             type="BodyTinyBold"
             style={Styles.collapseStyles([
               styles.text,
-              {
-                fontSize: fontSize,
-                height: height,
-                lineHeight: Styles.isMobile ? height : `${height}px`,
-              } as const,
+              {fontSize, height, lineHeight: isMobile ? height : `${height}px`} as const,
               badgeNumberStyle,
             ])}
           >
@@ -114,7 +106,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
       </Kb.Box2>
     )
   }
-})
+}
 export default Badge
 
 const styles = Styles.styleSheetCreate(() => ({

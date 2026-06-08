@@ -22,8 +22,8 @@ func TestRPCCacheBestEffort(t *testing.T) {
 	rpcCache := NewRPCCache(tc.G)
 
 	inHandlerCh := make(chan struct{}, 1)
-	handlerCh := make(chan interface{}, 1)
-	handler := func(mctx libkb.MetaContext) (interface{}, error) {
+	handlerCh := make(chan any, 1)
+	handler := func(mctx libkb.MetaContext) (any, error) {
 		inHandlerCh <- struct{}{}
 		return <-handlerCh, nil
 	}
@@ -60,7 +60,7 @@ func TestRPCCacheBestEffort(t *testing.T) {
 	t.Log("Read via the cache, when connected but the handler is slow")
 	var res3 int
 	resp3 := &res3
-	var servedRes3 interface{}
+	var servedRes3 any
 	errCh := make(chan error)
 	go func() {
 		var err error

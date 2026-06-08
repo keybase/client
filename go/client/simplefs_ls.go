@@ -91,7 +91,7 @@ func (d DirentFileInfo) IsDir() bool {
 }
 
 // Sys - underlying data source (can return nil)
-func (d DirentFileInfo) Sys() interface{} {
+func (d DirentFileInfo) Sys() any {
 	return nil
 }
 
@@ -667,13 +667,13 @@ func (c *CmdSimpleFSList) writeListingsToBuffer(outputBuffer *bytes.Buffer,
 			}
 
 			colListings := make([]int, numCols)
-			for i := 0; i < len(colListings); i++ {
+			for i := range colListings {
 				colListings[i] = 0
 			}
 
 			// calculate necessary column widths
 			// also calculate the number of listings per column
-			for i := 0; i < len(listings); i++ {
+			for i := range listings {
 				col := i / numRows
 				if colWidths[col] < len(listings[i].name) {
 					colWidths[col] = len(listings[i].name)
@@ -683,7 +683,7 @@ func (c *CmdSimpleFSList) writeListingsToBuffer(outputBuffer *bytes.Buffer,
 
 			// calculate the maximum width of each row
 			maxRowLength := 0
-			for i := 0; i < numCols; i++ {
+			for i := range numCols {
 				maxRowLength += colWidths[i]
 			}
 			maxRowLength += len(separator) * (numCols - 1)
@@ -745,8 +745,8 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 			parseLsColors(lsColors)
 		} else if lsUnderscoreColors != "" {
 			// parse lsUnderscoreColors
-			lsColorsSplit := strings.Split(lsUnderscoreColors, ":")
-			for _, i := range lsColorsSplit {
+			lsColorsSplit := strings.SplitSeq(lsUnderscoreColors, ":")
+			for i := range lsColorsSplit {
 				if i == "" {
 					continue
 				}

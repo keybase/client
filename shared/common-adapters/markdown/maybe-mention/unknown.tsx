@@ -3,7 +3,7 @@ import Text from '@/common-adapters/text'
 import Button from '@/common-adapters/button'
 import {Box2} from '@/common-adapters/box'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
-import type {MenuItems} from '@/common-adapters/floating-menu/menu-layout'
+import type {MenuItems} from '@/common-adapters/floating-menu/menu-layout/index.shared'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import * as Styles from '@/styles'
 
@@ -21,7 +21,7 @@ const items: MenuItems = []
 
 const UnknownMentionPopup = (props: PopupProps) => {
   const header = (
-    <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer} gapStart={true}>
+    <Kb.Box2 direction="vertical" gap="tiny" padding="tiny" style={styles.popupContainer} gapStart={true}>
       <Kb.Text type="BodySemibold">User or team?</Kb.Text>
       <Kb.Text type="BodySmall">
         {props.text} could be either a user or team. You can find out with a quick request to Keybase.
@@ -54,13 +54,13 @@ const UnknownMention = (props: Props) => {
   const [showPopup, setShowPopup] = React.useState(false)
   const mentionRef = React.useRef<MeasureRef | null>(null)
 
-  const handleMouseOver = React.useCallback(() => setShowPopup(true), [])
-  const handleMouseLeave = React.useCallback(() => setShowPopup(false), [])
+  const handleMouseOver = () => setShowPopup(true)
+  const handleMouseLeave = () => setShowPopup(false)
 
-  const onResolve = React.useCallback(() => {
+  const onResolve = () => {
     _onResolve()
     handleMouseLeave()
-  }, [_onResolve, handleMouseLeave])
+  }
 
   let text = `@${props.name}`
   if (props.channel.length > 0) {
@@ -71,7 +71,7 @@ const UnknownMention = (props: Props) => {
     <Kb.Text
       textRef={mentionRef}
       type="BodySemibold"
-      className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
+      className={Kb.Styles.classNames({'hover-underline': !isMobile})}
       allowFontScaling={props.allowFontScaling}
       style={Kb.Styles.collapseStyles([props.style, styles.text])}
       onClick={handleMouseOver}
@@ -82,7 +82,7 @@ const UnknownMention = (props: Props) => {
 
   const popups = (
     <UnknownMentionPopup
-      attachTo={mentionRef}
+      attachTo={isMobile ? undefined : mentionRef}
       onHidden={handleMouseLeave}
       onResolve={onResolve}
       text={text}
@@ -90,7 +90,7 @@ const UnknownMention = (props: Props) => {
     />
   )
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <>
       {content}
       {popups}
@@ -118,7 +118,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       popupContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Kb.Styles.globalMargins.tiny,
           textAlign: 'center',
         },
         isElectron: {
@@ -130,16 +129,12 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.greyLight,
           borderRadius: 2,
           letterSpacing: 0.3,
-          paddingLeft: 2,
-          paddingRight: 2,
+          ...Kb.Styles.paddingH(2),
         },
         isElectron: {
           display: 'inline-block',
         },
       }),
-      warning: {
-        color: Kb.Styles.globalColors.redDark,
-      },
     }) as const
 )
 

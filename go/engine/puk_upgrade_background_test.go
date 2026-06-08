@@ -122,7 +122,7 @@ func TestPerUserKeyUpgradeBackgroundShutdownMiddle(t *testing.T) {
 	expectMeta(t, metaCh, "woke-start")
 
 	n := 3
-	for i := 0; i < n; i++ {
+	for i := range n {
 		t.Logf("check %v", i)
 		select {
 		case x := <-roundResCh:
@@ -142,7 +142,7 @@ func TestPerUserKeyUpgradeBackgroundShutdownMiddle(t *testing.T) {
 	eng.Shutdown()
 	expectMeta(t, metaCh, "loop-exit")
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		advance(PerUserKeyUpgradeBackgroundSettings.Interval)
 		select {
 		case x := <-roundResCh:

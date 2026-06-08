@@ -1,9 +1,12 @@
-import * as React from 'react'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
+import * as T from '@/constants/types'
+import logger from '@/logger'
+import {makePhoneError} from '@/stores/settings-phone'
 import * as PhoneUtil from '@/util/phone-numbers'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsEmailState} from '@/stores/settings-email'
 
 type OwnProps = {
   address: string
@@ -19,25 +22,35 @@ const DeleteModal = (props: OwnProps) => {
   const itemSearchable = props.searchable
   const lastEmail = props.lastEmail ?? false
 
-  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
-  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
+  const onCancel = () => nav.safeNavigateUp()
+  const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
-  const onConfirm = React.useCallback(() => {
+  const [error, setError] = React.useState('')
+  const onConfirm = () => {
     if (itemType === 'phone') {
-      editPhone(itemAddress, true)
+      setError('')
+      deletePhoneNumber(
+        [{phoneNumber: itemAddress}],
+        () => {
+          nav.safeNavigateUp()
+        },
+        error_ => {
+          logger.warn('Error deleting phone number', error_)
+          setError(makePhoneError(error_))
+        }
+      )
     } else {
       editEmail({delete: true, email: itemAddress})
+      nav.safeNavigateUp()
     }
-
-    nav.safeNavigateUp()
-  }, [editEmail, editPhone, itemAddress, itemType, nav])
+  }
 
   const icon =
     itemType === 'email'
-      ? Kb.Styles.isMobile
+      ? isMobile
         ? 'icon-email-remove-96'
         : 'icon-email-remove-64'
-      : Kb.Styles.isMobile
+      : isMobile
         ? 'icon-phone-number-remove-96'
         : 'icon-phone-number-remove-64'
 
@@ -74,6 +87,7 @@ const DeleteModal = (props: OwnProps) => {
       icon={icon}
       prompt={prompt}
       description={description}
+      error={error}
       onCancel={onCancel}
       onConfirm={onConfirm}
       confirmText="Yes, delete"

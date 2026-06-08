@@ -1,95 +1,102 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useConfigState} from '@/constants/config'
-import {useCurrentUserState} from '@/constants/current-user'
-import * as React from 'react'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
+import type * as React from 'react'
 import * as T from '@/constants/types'
-import type {Position, StylesCrossPlatform} from '@/styles'
-import {useItems, useHeader, useModeration} from './hooks'
-import openURL from '@/util/open-url'
+import {copyToClipboard} from '@/util/storeless-actions'
+import {openURL} from '@/util/misc'
+import {replyPrivatelyToConversationMessage} from '../../message-actions'
+import {useConversationMetadata} from '../../data-hooks'
+import {useCurrentUserState} from '@/stores/current-user'
+import {
+  useConversationThreadMessage,
+  useConversationThreadMessageActions,
+  useConversationThreadSelector,
+} from '../../thread-context'
+import type {MessagePopupItems} from './hooks'
+import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  conversationIDKey?: T.Chat.ConversationIDKey
+  message?: T.Chat.Message
+  mode?: 'modal' | 'bottomsheet'
   ordinal: T.Chat.Ordinal
   onHidden: () => void
-  position: Position
-  style?: StylesCrossPlatform
+  position: Kb.Styles.Position
+  style?: Kb.Styles.StylesCrossPlatform
   visible: boolean
 }
 
 const emptyMessage = Chat.makeMessageText({})
 
-const PopText = (ownProps: OwnProps) => {
-  const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const message = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const message = m ?? emptyMessage
-    return message
-  })
+const messageText = (message: T.Chat.Message) => {
+  switch (message.type) {
+    case 'text':
+      return message.text.stringValue()
+    case 'setDescription':
+      return message.newDescription.stringValue() || undefined
+    case 'systemGitPush':
+      switch (message.pushType) {
+        case T.RPCGen.GitPushType.createrepo:
+          return `created a new team repository called ${message.repo}`
+        case T.RPCGen.GitPushType.default:
+          return message.refs
+            ?.map(ref => {
+              const commits =
+                ref.commits?.map(
+                  c =>
+                    `• ${c.commitHash.substring(0, 8)} - ${c.message.endsWith('\n') ? c.message.substring(0, c.message.length - 1) : c.message}`
+                ) ?? []
+
+              const branchName = Chat.systemGitBranchName(ref)
+              const parts = [
+                `pushed ${ref.commits?.length ?? 0} commit${(ref.commits?.length ?? 0) > 1 ? 's' : ''} to ${message.repo}/${branchName}`,
+                ...commits,
+              ]
+              return parts.join('\n')
+            })
+            .join('\n')
+        default:
+          return undefined
+      }
+    default:
+      return undefined
+  }
+}
+
+const PopTextLoaded = (ownProps: OwnProps & {
+  header: React.ReactNode
+  itemsData: MessagePopupItems
+  message: T.Chat.Message
+  meta: T.Chat.ConversationMeta
+  onReplyPrivately: () => void
+  participantInfo: T.Chat.ParticipantInfo
+}) => {
+  const {attachTo, header, itemsData: i, message, meta, mode, onHidden, position, style, visible} = ownProps
+  const {conversationIDKey, author} = message
+  const text = messageText(message)
   const you = useCurrentUserState(s => s.username)
-  const text = React.useMemo(() => {
-    switch (message.type) {
-      case 'text':
-        return message.text.stringValue()
-      case 'setDescription':
-        return message.newDescription.stringValue() || undefined
-      case 'systemGitPush':
-        switch (message.pushType) {
-          case T.RPCGen.GitPushType.createrepo:
-            return `created a new team repository called ${message.repo}`
-          case T.RPCGen.GitPushType.default:
-            return message.refs
-              ?.map(ref => {
-                const commits =
-                  ref.commits?.map(
-                    c =>
-                      `• ${c.commitHash.substring(0, 8)} - ${c.message.endsWith('\n') ? c.message.substring(0, c.message.length - 1) : c.message}`
-                  ) ?? []
-
-                const branchName = Chat.systemGitBranchName(ref)
-                const parts = [
-                  `pushed ${ref.commits?.length ?? 0} commit${(ref.commits?.length ?? 0) > 1 ? 's' : ''} to ${message.repo}/${branchName}`,
-                  ...commits,
-                ]
-                return parts.join('\n')
-              })
-              .join('\n')
-          default:
-            return undefined
-        }
-      default:
-        return undefined
-    }
-  }, [message])
-
-  const {author, conversationIDKey} = message
   const yourMessage = author === you
-  const {messageReplyPrivately, numPart, teamType} = Chat.useChatContext(
-    C.useShallow(s => {
-      const {messageReplyPrivately} = s.dispatch
-      const numPart = s.participants.all.length
-      const {teamType} = s.meta
-      return {messageReplyPrivately, numPart, teamType}
-    })
-  )
-  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey)
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const onCopy = React.useCallback(() => {
-    text && copyToClipboard(text)
-  }, [copyToClipboard, text])
-  // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
+  const {teamType, teamname} = meta
+  const isTeam = !!teamname
+  const numPart = ownProps.participantInfo.all.length
   const canReplyPrivately = teamType === 'small' || teamType === 'big' || numPart > 2
-  const _onReplyPrivately = React.useCallback(() => {
-    messageReplyPrivately(ordinal)
-  }, [messageReplyPrivately, ordinal])
-  const onReplyPrivately = !yourMessage && canReplyPrivately ? _onReplyPrivately : undefined
-  const mapUnfurl = Chat.getMapUnfurl(message)
-  // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
-  const onViewMap =
-    mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined
+  const onCopy = () => {
+    if (text) {
+      copyToClipboard(text)
+    }
+  }
 
-  const i = useItems(ordinal, onHidden)
+  const onReplyPrivately = !yourMessage && canReplyPrivately ? ownProps.onReplyPrivately : undefined
+  const mapUnfurl = Chat.getMapUnfurl(message)
+  const onViewMap =
+    mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone
+      ? async () => openURL(mapUnfurl.url)
+      : undefined
+
+  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey, isTeam, numPart)
+
   const {itemReaction, itemBot, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
   const {itemDelete, itemExplode, itemKick, itemProfile} = i
 
@@ -125,8 +132,7 @@ const PopText = (ownProps: OwnProps) => {
     ...itemReport,
     ...itemFlag,
   ]
-  const header = useHeader(ordinal, onHidden)
-  const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
+  const snapPoints = [8 * 40 + 25]
 
   return (
     <Kb.FloatingMenu
@@ -134,6 +140,7 @@ const PopText = (ownProps: OwnProps) => {
       closeOnSelect={true}
       header={header}
       items={items}
+      mode={mode}
       onHidden={onHidden}
       position={position}
       containerStyle={style}
@@ -142,6 +149,56 @@ const PopText = (ownProps: OwnProps) => {
       safeProviderStyle={safeProviderStyle}
     />
   )
+}
+
+const PopTextThread = (ownProps: OwnProps) => {
+  const {ordinal, onHidden} = ownProps
+  const message = useConversationThreadMessage(ordinal) ?? emptyMessage
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
+  const itemsData = useItems(ordinal, onHidden)
+  const header = useHeader(ordinal, onHidden)
+  const {messageReplyPrivately} = useConversationThreadMessageActions()
+  return (
+    <PopTextLoaded
+      {...ownProps}
+      header={header}
+      itemsData={itemsData}
+      message={message}
+      meta={meta}
+      onReplyPrivately={() => messageReplyPrivately(ordinal)}
+      participantInfo={participantInfo}
+    />
+  )
+}
+
+const PopTextStoreless = (ownProps: OwnProps & {
+  conversationIDKey: T.Chat.ConversationIDKey
+  message: T.Chat.Message
+}) => {
+  const {conversationIDKey, message, onHidden} = ownProps
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const itemsData = useStorelessItems({conversationIDKey, message, meta, onHidden, participantInfo})
+  const header = useHeaderForMessage(message, onHidden)
+  return (
+    <PopTextLoaded
+      {...ownProps}
+      header={header}
+      itemsData={itemsData}
+      meta={meta}
+      onReplyPrivately={() => replyPrivatelyToConversationMessage(message)}
+      participantInfo={participantInfo}
+    />
+  )
+}
+
+const PopText = (ownProps: OwnProps) => {
+  const {conversationIDKey, message} = ownProps
+  if (conversationIDKey && message) {
+    return <PopTextStoreless {...ownProps} conversationIDKey={conversationIDKey} message={message} />
+  }
+  return <PopTextThread {...ownProps} />
 }
 
 const safeProviderStyle = {flex: 1} as const

@@ -1,22 +1,22 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
-import {useProvisionState} from '@/constants/provision'
+import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'
+import {startAccountReset} from '@/login/reset/account-reset'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
-  <LoginContainer onBack={p.onBack}>
-    <Kb.Icon type="icon-illustration-zen-240-180" style={styles.icon} />
+  <LoginContainer>
+    <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
     <Kb.Text type="Header" style={styles.header}>
       Oops, something went wrong.
     </Kb.Text>
     <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}
     </Kb.Box2>
-    {Kb.Styles.isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
+    {isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
   </LoginContainer>
 )
 
@@ -29,25 +29,21 @@ const rewriteErrorDesc = (s: string) => {
   }
 }
 
-// Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
-const RenderError = () => {
-  const _username = AutoReset.useAutoResetState(s => s.username)
-  const error = useProvisionState(s => s.finalError)
-  const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
-  const _onAccountReset = (username: string) => {
-    startAccountReset(false, username)
+type Props = {
+  route: {
+    params: {
+      error?: ProvisionRouteError
+    }
   }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-  }
-  const onKBHome = () => {
-    openURL('https://keybase.io/')
-  }
-  const onPasswordReset = () => {
-    openURL('https://keybase.io/#password-reset')
-  }
-  const onAccountReset = () => _onAccountReset(_username)
+}
+
+const RenderError = ({route}: Props) => {
+  const error = route.params.error
+  const username = useProvisionState(s => s.username)
+  const onBack = C.Router2.navigateUp
+  const onKBHome = () => void openURL('https://keybase.io/')
+  const onPasswordReset = () => void openURL('https://keybase.io/#password-reset')
+  const onAccountReset = () => startAccountReset(false, username)
 
   if (!error) {
     return (
@@ -58,11 +54,11 @@ const RenderError = () => {
       </Wrapper>
     )
   }
-  const f = error.fields as Array<undefined | {key?: string; value?: string}> | undefined
+  const f = error.fields
   const fields =
     f?.reduce<{[key: string]: string}>((acc, f) => {
-      const k = f && typeof f.key === 'string' ? f.key : ''
-      acc[k] = f?.value || ''
+      const k = typeof f.key === 'string' ? f.key : ''
+      acc[k] = f.value || ''
       return acc
     }, {}) ?? {}
   switch (error.code) {
@@ -149,7 +145,7 @@ const RenderError = () => {
                 {' - Use '}
                 <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to log in
               </Kb.Text>
-              {!Kb.Styles.isMobile && (
+              {!isMobile && (
                 <Kb.Text center={true} type="Body">
                   {' - Install GPG on this machine and import your PGP private key into it'}
                 </Kb.Text>
@@ -218,7 +214,7 @@ const RenderError = () => {
               <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
               private key
             </Kb.Text>
-            {!Kb.Styles.isMobile && (
+            {!isMobile && (
               <Kb.Text center={true} type="Body">
                 {' - Install GPG, put your PGP private key on this machine and try again'}
               </Kb.Text>
@@ -301,9 +297,9 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 240,
       },
       list: {
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         marginBottom: 10,
         marginLeft: Kb.Styles.globalMargins.tiny,
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         maxWidth: 460,
       },
     }) as const

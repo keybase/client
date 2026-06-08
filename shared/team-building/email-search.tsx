@@ -1,11 +1,12 @@
 import * as C from '@/constants'
-import * as TB from '@/constants/team-building'
+import * as TB from '@/stores/team-building'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {validateEmailAddress} from '@/util/email-address'
 import {UserMatchMention} from './phone-search'
 import ContinueButton from './continue-button'
+import {searchWaitingKey} from '@/constants/strings'
 
 type EmailSearchProps = {
   continueLabel: string
@@ -17,39 +18,36 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const teamBuildingSearchResults = TB.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = C.Waiting.useAnyWaiting(TB.searchWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(searchWaitingKey)
   const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
-  const onChange = React.useCallback(
-    (_text: string) => {
-      // Remove leading or trailing whitespace
-      const text = _text.trim()
-      setEmailString(text)
-      const valid = validateEmailAddress(text)
-      setEmailValidity(valid)
-      if (valid) {
-        search(text, 'email')
-      }
-    },
-    [search]
-  )
+  const onChange = (_text: string) => {
+    // Remove leading or trailing whitespace
+    const text = _text.trim()
+    setEmailString(text)
+    const valid = validateEmailAddress(text)
+    setEmailValidity(valid)
+    if (valid) {
+      search(text, 'email')
+    }
+  }
 
   const addUsersToTeamSoFar = TB.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (!user || !canSubmit) {
       return
     }
     addUsersToTeamSoFar([user])
     // Clear input
     onChange('')
-  }, [addUsersToTeamSoFar, canSubmit, user, onChange])
+  }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.flexGrow}>
-        <Kb.NewInput
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.background}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
+        <Kb.Input3
           autoFocus={true}
           containerStyle={styles.input}
           keyboardType="email-address"
@@ -69,16 +67,16 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
         ) : (
           <Kb.Box2
             alignSelf="center"
-            centerChildren={!Kb.Styles.isMobile}
+            centerChildren={!isMobile}
             direction="vertical"
             fullWidth={true}
             gap="tiny"
             style={styles.emptyContainer}
           >
-            {!Kb.Styles.isMobile && (
+            {!isMobile && (
               <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
-            {namespace === 'chat2' ? (
+            {namespace === 'chat' ? (
               <Kb.Text type="BodySmall" style={styles.helperText}>
                 Start a chat with any email contact, then tell them to install Keybase. Your messages will
                 unlock after they sign up.
@@ -105,15 +103,11 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
           flex: 1,
-          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
           zIndex: -1,
         },
       }),
-      bottomContainer: {
-        flexGrow: 1,
-      },
       emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
@@ -122,18 +116,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '90%'},
       }),
-      flexGrow: {
-        flex: 1,
-      },
       helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
         },
       }),
       input: Kb.Styles.platformStyles({
-        common: {},
         isElectron: {
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
           height: 38,
@@ -143,10 +132,6 @@ const styles = Kb.Styles.styleSheetCreate(
           height: 48,
         },
       }),
-      userMatchMention: {
-        alignSelf: 'flex-start',
-        marginLeft: Kb.Styles.globalMargins.small,
-      },
     }) as const
 )
 

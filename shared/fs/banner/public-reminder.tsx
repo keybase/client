@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useFSState} from '@/constants/fs'
+import {getVisibleScreen, navigateAppend} from '@/constants/router'
+import {useFsPathItem} from '@/fs/common'
 import * as FS from '@/constants/fs'
 
 type Props = {
+  lastClosedTlf?: string
   path: T.FS.Path
 }
 
@@ -15,10 +17,20 @@ const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
   return parsedPath.tlfName
 }
 
-const PublicBanner = ({path}: Props) => {
-  const isWritable = useFSState(s => FS.getPathItem(s.pathItems, path).writable)
-  const lastPublicBannerClosedTlf = useFSState(s => s.lastPublicBannerClosedTlf)
-  const setLastPublicBannerClosedTlf = useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
+const PublicBanner = (props: Props) => {
+  const {path} = props
+  const isWritable = useFsPathItem(path).writable
+  const lastPublicBannerClosedTlf = props.lastClosedTlf ?? ''
+  const setLastPublicBannerClosedTlf = React.useCallback(
+    (tlf: string) => {
+      // Dismiss = update the param on the screen we're on. The public folder may
+      // be the Files tab root (fsRoot) or a pushed folder (fsBrowse); replace
+      // only collapses to setParams when the name matches the current route.
+      const name = getVisibleScreen()?.name === 'fsBrowse' ? 'fsBrowse' : 'fsRoot'
+      navigateAppend({name, params: {lastClosedPublicBannerTlf: tlf, path}}, true)
+    },
+    [path]
+  )
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 

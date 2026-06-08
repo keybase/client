@@ -1,14 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useDaemonState} from '@/constants/daemon'
+import {useDaemonState} from '@/stores/daemon'
 
 const SplashContainer = () => {
   const failedReason = useDaemonState(s => s.handshakeFailedReason)
   const retriesLeft = useDaemonState(s => s.handshakeRetriesLeft)
   const startHandshake = useDaemonState(s => s.dispatch.startHandshake)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-
   let status = ''
   let failed = ''
 
@@ -23,9 +21,9 @@ const SplashContainer = () => {
     status = `Loading...  (still trying${failedText})`
   }
 
-  const onFeedback = C.isMobile
+  const onFeedback = isMobile
     ? () => {
-        navigateAppend('feedback')
+        C.Router2.navigateAppend({name: 'feedback', params: {}})
       }
     : undefined
   const onRetry = retriesLeft === 0 ? startHandshake : undefined
@@ -52,9 +50,9 @@ export const Splash = (p: SplashProps) => {
   }, [])
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
-      <Kb.Icon type={onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
-      <Kb.Icon type="icon-keybase-wordmark-128-48" />
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" alignItems="center" gap="small">
+      <Kb.ImageIcon type={onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
+      <Kb.ImageIcon type="icon-keybase-wordmark-128-48" />
       {!!status && <Kb.Text type="BodySmall">{status}</Kb.Text>}
       {!!failed && (
         <Kb.Text type="BodySmall">
@@ -86,12 +84,5 @@ const Feedback = ({onFeedback}: {onFeedback?: () => void}) =>
       from the terminal.
     </Kb.Text>
   )
-
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      container: {alignItems: 'center', justifyContent: 'center'},
-    }) as const
-)
 
 export default SplashContainer

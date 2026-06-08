@@ -3,76 +3,71 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
+import {openAppStore} from '@/util/storeless-actions'
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.fillAbsolute,
     backgroundColor: Kb.Styles.globalColors.red,
     bottom: undefined,
-    padding: Kb.Styles.globalMargins.small,
     zIndex: 9999,
   },
   messageContainer: {
     backgroundColor: Kb.Styles.globalColors.white_90,
     borderRadius: Kb.Styles.borderRadius,
-    padding: Kb.Styles.globalMargins.medium,
   },
 }))
 
-type Status = 'critical' | 'suggested' | 'ok' | 'checking'
 const OutOfDate = () => {
-  const [message, setMessage] = React.useState('')
-  const [status, setStatus] = React.useState<Status>('ok')
+  const outOfDate = useConfigState(s => s.outOfDate)
+  const [mobileMessage, setMobileMessage] = React.useState('')
+  const [mobileCritical, setMobileCritical] = React.useState(false)
 
-  C.useOnMountOnce(() => {
-    const f = async () => {
-      await C.timeoutPromise(60_000) // don't bother checking during startup
-      // check every hour
-      while (true) {
-        try {
-          const update = await T.RPCGen.configGetUpdateInfo2RpcPromise({})
-          let s: typeof status = 'ok'
-          let m = ''
-          switch (update.status) {
-            case T.RPCGen.UpdateInfoStatus2.ok:
-              break
-            case T.RPCGen.UpdateInfoStatus2.suggested:
-              s = 'suggested'
-              m = update.suggested.message
-              break
-            case T.RPCGen.UpdateInfoStatus2.critical:
-              s = 'critical'
-              m = update.critical.message
-              break
-            default:
-          }
-          setStatus(s)
-          setMessage(m)
-        } catch (e) {
-          logger.warn("Can't call critical check", e)
-        }
-        // We just need this once on mobile. Long timers don't work there.
-        if (C.isMobile) {
-          break
-        }
-        await C.timeoutPromise(3_600_000) // 1 hr
-      }
+  React.useEffect(() => {
+    if (!isMobile) {
+      return
     }
-    C.ignorePromise(f())
-  })
 
-  const onOpenAppStore = useConfigState(s => s.dispatch.dynamic.openAppStore)
+    const timeoutID = setTimeout(() => {
+      C.ignorePromise(
+        T.RPCGen.configGetUpdateInfo2RpcPromise({})
+          .then(update => {
+            switch (update.status) {
+              case T.RPCGen.UpdateInfoStatus2.critical:
+                setMobileCritical(true)
+                setMobileMessage(update.critical.message)
+                break
+              default:
+                setMobileCritical(false)
+                setMobileMessage('')
+            }
+            return undefined
+          })
+          .catch(e => {
+            logger.warn("Can't call critical check", e)
+            return undefined
+          })
+      )
+    }, 60_000) // don't bother checking during startup
 
-  return status !== 'critical' ? null : (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
+    return () => {
+      clearTimeout(timeoutID)
+    }
+  }, [])
+
+  const critical = isMobile ? mobileCritical : outOfDate.critical
+  const message = isMobile ? mobileMessage : outOfDate.message
+
+  return !critical ? null : (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" padding="small" style={styles.container}>
       <Kb.Text center={true} type="Header" negative={true}>
         Your version of Keybase is critically out of date!
       </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
+      <Kb.Box2 direction="vertical" padding="medium" fullWidth={true} style={styles.messageContainer}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>
-      {Kb.Styles.isMobile && <Kb.Button label="Update" onClick={onOpenAppStore} />}
+      {isMobile && <Kb.Button label="Update" onClick={openAppStore} />}
     </Kb.Box2>
   )
 }

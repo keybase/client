@@ -6,6 +6,7 @@ package tlf
 
 import (
 	"reflect"
+	"slices"
 	"sort"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -210,12 +211,7 @@ func (h Handle) TypeForKeying() KeyingType {
 func (h Handle) findUserInList(user keybase1.UserOrTeamID,
 	users []keybase1.UserOrTeamID,
 ) bool {
-	for _, u := range users {
-		if u == user {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(users, user)
 }
 
 // IsWriter returns whether or not the given user is a writer for the

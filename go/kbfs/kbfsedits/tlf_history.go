@@ -70,12 +70,12 @@ func (wbr writersByRevision) Swap(i, j int) {
 	wbr[i], wbr[j] = wbr[j], wbr[i]
 }
 
-func (wbr *writersByRevision) Push(x interface{}) {
+func (wbr *writersByRevision) Push(x any) {
 	wn := x.(*writerNotifications)
 	*wbr = append(*wbr, wn)
 }
 
-func (wbr *writersByRevision) Pop() interface{} {
+func (wbr *writersByRevision) Pop() any {
 	// The item to remove is the last item; heap has already swapped
 	// it to the end.
 	old := *wbr

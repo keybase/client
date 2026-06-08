@@ -8,26 +8,7 @@ type Props = {
 }
 
 const ReallyLeaveTeam = (props: Props) => (
-  <Kb.Modal
-    mode="Wide"
-    onClose={props.onBack}
-    header={{hideBorder: true}}
-    footer={{
-      content: (
-        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button
-            onClick={props.onBack}
-            label="Got it"
-            fullWidth={true}
-            type="Dim"
-            disabled={props.stillLoadingTeam}
-          />
-        </Kb.ButtonBar>
-      ),
-      hideBorder: true,
-      style: styles.footer,
-    }}
-  >
+  <>
     {props.stillLoadingTeam ? (
       <Kb.ProgressIndicator type="Huge" />
     ) : (
@@ -45,7 +26,7 @@ const ReallyLeaveTeam = (props: Props) => (
           style={Kb.Styles.globalStyles.flexBoxCenter}
         >
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.positionRelative}>
-            <Kb.Avatar teamname={props.name} size={Kb.Styles.isMobile ? 96 : 64} />
+            <Kb.Avatar teamname={props.name} size={isMobile ? 96 : 64} />
             <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
           </Kb.Box2>
           <Kb.Text type="Header" center={true} style={styles.headerText}>
@@ -61,7 +42,18 @@ const ReallyLeaveTeam = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     )}
-  </Kb.Modal>
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+      <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+        <Kb.Button
+          onClick={props.onBack}
+          label="Got it"
+          fullWidth={true}
+          type="Dim"
+          disabled={props.stillLoadingTeam}
+        />
+      </Kb.ButtonBar>
+    </Kb.Box2>
+  </>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
@@ -71,9 +63,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: Kb.Styles.platformStyles({
     isElectron: {
-      height: '100%',
+      ...Kb.Styles.size('100%'),
       marginBottom: 48, // footer height
-      width: '100%',
     },
     isMobile: {
       ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
@@ -105,16 +96,23 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       borderRadius: 12,
       borderWidth: 2,
-      height: 26,
+      ...Kb.Styles.size(26),
       lineHeight: 26,
-      width: 26,
     },
     isMobile: {
       borderRadius: 16,
       borderWidth: 3.5,
-      height: 34,
+      ...Kb.Styles.size(34),
       lineHeight: 34,
-      width: 34,
+    },
+  }),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      ...Kb.Styles.topDivider(),
+    },
+    isElectron: {
+      ...Kb.Styles.roundedBottom(),
     },
   }),
 }))

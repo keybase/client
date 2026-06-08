@@ -8,4 +8,3 @@ global.__HOT__ = false
 const immer = require('immer') as typeof Immer
 immer.enableMapSet()
 immer.setUseStrictIteration(false)
-import '../util/why-did-you-render'

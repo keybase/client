@@ -54,7 +54,7 @@ const getFrequentSection = (
   }
 }
 
-const singleEmojiWidth = C.isMobile ? 32 : 26
+const singleEmojiWidth = isMobile ? 32 : 26
 const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
@@ -63,7 +63,7 @@ const notFoundHeight = 224
 type Row = {emojis: Array<EmojiData>; key: string}
 type Item = Row
 
-type Section = Omit<Kb.SectionType<Item>, 'renderItem'> & {key: string; title: string}
+type Section = Kb.SectionType<Item> & {key: string; title: string}
 
 type Props = {
   addEmoji: () => void
@@ -170,12 +170,13 @@ const getSectionsAndBookmarks = (
 
   getEmojiSections(emojisPerLine).forEach(section => {
     const categoryIcon = emojiData.categoryIcons[section.title] as Kb.IconType | undefined
-    categoryIcon &&
+    if (categoryIcon) {
       bookmarks.push({
         coveredSectionKeys: new Set([section.key]),
         iconType: categoryIcon,
         sectionIndex: sections.length,
       })
+    }
     sections.push(section)
   })
 
@@ -203,26 +204,27 @@ const getSectionsAndBookmarks = (
   return {bookmarks, sections}
 }
 
-const EmojiRow = React.memo(function EmojiRow(p: {
+function EmojiRow(p: {
   row: Row
   emojisPerLine: number
   mapper: (e: Row['emojis'][number]) => React.ReactNode
 }) {
   const {row, emojisPerLine, mapper} = p
   return (
-    <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
+    <Kb.Box2 key={row.key} fullWidth={true} centerChildren={true} style={styles.emojiRowContainer} direction="horizontal">
       {row.emojis.map(mapper)}
       {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
     </Kb.Box2>
   )
-})
+}
 
-const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
+function EmojiPicker(props: Props) {
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     return (
-      <Kb.ClickableBox2
+      <Kb.ClickableBox
+        direction="vertical"
         className="emoji-picker-emoji-box"
         onClick={() => {
           props.onChoose(
@@ -241,7 +243,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
           showTooltip={false}
           size={singleEmojiWidth}
         />
-      </Kb.ClickableBox2>
+      </Kb.ClickableBox>
     )
   }
 
@@ -264,7 +266,8 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
             : bookmarkIndex === 0
           const secKey = bookmark.coveredSectionKeys.values().next().value ?? ''
           return (
-            <Kb.Box
+            <Kb.Box2
+              direction="vertical"
               key={bookmark.sectionIndex}
               className="emoji-picker-emoji-box"
               style={isActive ? styles.activeBookmark : undefined}
@@ -282,12 +285,12 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
                   })
                 }}
               />
-            </Kb.Box>
+            </Kb.Box2>
           )
         })}
       </Kb.Box2>
     )
-    return Kb.Styles.isMobile ? (
+    return isMobile ? (
       <Kb.ScrollView key="bookmark" horizontal={true} style={styles.bookmarkScrollView}>
         {content}
       </Kb.ScrollView>
@@ -297,7 +300,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
   }
 
   const getSectionHeader = (title: string) => (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.sectionHeader}>
       <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
     </Kb.Box2>
   )
@@ -305,8 +308,8 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
   const onSectionChange = C.useDebouncedCallback((section: Section) => setActiveSectionKey(section.key), 100)
 
   const makeNotFound = () => (
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
-      <Kb.Icon type="icon-empty-emoji-126-96" />
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} justifyContent="space-between" style={styles.notFoundContainer}>
+      <Kb.ImageIcon type="icon-empty-emoji-126-96" />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall" center={true}>
           Still haven’t found what you’re
@@ -318,10 +321,6 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
       <Kb.Button mode="Secondary" label="Add custom emoji" small={true} onClick={props.addEmoji} />
     </Kb.Box2>
   )
-
-  const getEmojiWidthWithPadding = () => {
-    return emojiWidthWithPadding
-  }
 
   const renderSectionHeader = ({section}: {section: Section}) => {
     return section.key === 'not-found' ? makeNotFound() : getSectionHeader(section.title)
@@ -338,9 +337,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
     return sections[sectionIndex]?.key === 'not-found' ? notFoundHeight : 32
   }
   const emojisPerLine = getEmojisPerLine(props.width)
-  const renderItem = (p: {item: Row}) => {
-    return getEmojiRow(p.item, emojisPerLine)
-  }
+  const renderItem = (p: {item: Row}) => getEmojiRow(p.item, emojisPerLine)
   const getFilterResults = getResultFilter(props.customEmojiGroups)
   // For filtered results, we have <= `maxEmojiSearchResults` emojis
   // to render. Render them directly rather than going through chunkData
@@ -358,11 +355,13 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
         fullWidth={true}
         centerChildren={true}
         alignItems="flex-start"
-        style={{...Kb.Styles.globalStyles.flexGrow, overflow: 'hidden'}}
+        overflow="hidden"
+        style={Kb.Styles.globalStyles.flexGrow}
       >
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
+          centerChildren={true}
           style={Kb.Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
         >
           {getSectionHeader('Search results')}
@@ -385,11 +384,13 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
         key="section-list-container"
         direction="vertical"
         fullWidth={true}
+        flex={1}
+        overflow="hidden"
         style={styles.sectionListContainer}
       >
         <Kb.SectionList
           ref={sectionListRef}
-          getItemHeight={getEmojiWidthWithPadding}
+          getItemHeight={() => emojiWidthWithPadding}
           getSectionHeaderHeight={getSectionHeaderHeight}
           keyboardShouldPersistTaps="handled"
           initialNumToRender={14}
@@ -402,7 +403,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
       </Kb.Box2>
     </>
   )
-})
+}
 
 export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
   if (skinTone && emoji.skin_variations?.[skinTone]) {
@@ -413,7 +414,7 @@ export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T
 }
 
 const makeEmojiPlaceholder = (index: number) => (
-  <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
+  <Kb.Box2 direction="vertical" key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -424,47 +425,40 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       bookmarkContainer: {
         height: 44,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       bookmarkScrollView: {
+        flexGrow: 0,
         flexShrink: 0,
+        height: 44,
       },
       emoji: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         borderRadius: 2,
         height: emojiWidthWithPadding,
-        justifyContent: 'center',
         width: emojiWidthWithPadding,
       },
       emojiPlaceholder: {
         width: emojiWidthWithPadding,
       },
       emojiRowContainer: {
-        alignItems: 'center',
         height: emojiWidthWithPadding,
-        justifyContent: 'center',
       },
       flexWrap: {
         flexWrap: 'wrap',
       },
       notFoundContainer: {
         height: notFoundHeight,
-        justifyContent: 'space-between',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       sectionListContainer: {
-        flexGrow: 1,
         flexShrink: 1,
-        overflow: 'hidden',
       },
     }) as const
 )

@@ -1,5 +1,4 @@
 //go:build dragonfly || freebsd || linux || netbsd || openbsd || solaris
-// +build dragonfly freebsd linux netbsd openbsd solaris
 
 package libkb
 

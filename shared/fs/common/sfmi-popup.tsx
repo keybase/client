@@ -1,9 +1,8 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useFuseClosedSourceConsent} from './hooks'
-import {useFSState} from '@/constants/fs'
+import {useSystemFileManagerIntegration} from './sfmi'
 
 type Props = {
   mode: 'Icon' | 'Button'
@@ -12,56 +11,50 @@ type Props = {
 
 const SFMIPopup = (props: Props) => {
   const {invert} = props
-  const sfmi = useFSState(s => s.sfmi)
-  const driverEnable = useFSState(s => s.dispatch.driverEnable)
-  const {driverStatus} = sfmi
+  const {driverEnable, driverStatus} = useSystemFileManagerIntegration()
   const {type} = driverStatus
   const isEnabling = type === T.FS.DriverStatusType.Disabled ? driverStatus.isEnabling : false
-  const enableDriver = React.useCallback(() => driverEnable(), [driverEnable])
+  const enableDriver = () => driverEnable()
   const {canContinue, component: fuseConsentComponent} = useFuseClosedSourceConsent(
     type === T.FS.DriverStatusType.Disabled && isEnabling,
     invert
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
 
-      return (
-        <Kb.Overlay style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
-          <Kb.Box
-            style={styles.container}
-            onClick={e => {
-              e.stopPropagation()
-            }}
-          >
-            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
-              <Kb.Icon type="icon-fancy-finder-132-96" />
-            </Kb.Box2>
-            <Kb.Text type="BodyBig" style={styles.text}>
-              Enable Keybase in {C.fileUIName}?
-            </Kb.Text>
-            <Kb.Text type="BodySmall" style={styles.text} center={true}>
-              Get access to your files and folders just like you normally do with your local files. It&apos;s
-              encrypted and secure.
-            </Kb.Text>
-            <Kb.Divider style={styles.divider} />
-            {fuseConsentComponent}
-            <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>
-              <Kb.Button
-                type="Success"
-                label="Yes, enable"
-                waiting={type === T.FS.DriverStatusType.Disabled && isEnabling}
-                disabled={!canContinue}
-                onClick={enableDriver}
-              />
-            </Kb.Box2>
-          </Kb.Box>
-        </Kb.Overlay>
-      )
-    },
-    [canContinue, isEnabling, enableDriver, fuseConsentComponent, type]
-  )
+    return (
+      <Kb.Popup style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
+        <Kb.ClickableBox
+          direction="vertical"
+          fullWidth={true}
+          onClick={e => e?.stopPropagation()}
+        >
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
+            <Kb.ImageIcon type="icon-fancy-finder-132-96" />
+          </Kb.Box2>
+          <Kb.Text type="BodyBig" style={styles.text}>
+            Enable Keybase in {C.fileUIName}?
+          </Kb.Text>
+          <Kb.Text type="BodySmall" style={styles.text} center={true}>
+            Get access to your files and folders just like you normally do with your local files. It&apos;s
+            encrypted and secure.
+          </Kb.Text>
+          <Kb.Divider style={styles.divider} />
+          {fuseConsentComponent}
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>
+            <Kb.Button
+              type="Success"
+              label="Yes, enable"
+              waiting={type === T.FS.DriverStatusType.Disabled && isEnabling}
+              disabled={!canContinue}
+              onClick={enableDriver}
+            />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      </Kb.Popup>
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   if (type !== T.FS.DriverStatusType.Disabled) {
@@ -71,15 +64,16 @@ const SFMIPopup = (props: Props) => {
     <>
       {props.mode === 'Icon' ? (
         <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
-          <Kb.Icon
-            type="iconfont-finder"
-            padding="tiny"
-            fontSize={16}
-            color={Kb.Styles.globalColors.black_50}
-            hoverColor={Kb.Styles.globalColors.black}
-            onClick={showPopup}
-            ref={popupAnchor}
-          />
+          <Kb.Box2 direction="vertical" ref={popupAnchor}>
+            <Kb.Icon
+              type="iconfont-finder"
+              padding="tiny"
+              fontSize={16}
+              color={Kb.Styles.globalColors.black_50}
+              hoverColor={Kb.Styles.globalColors.black}
+              onClick={showPopup}
+            />
+          </Kb.Box2>
         </Kb.WithTooltip>
       ) : (
         <Kb.Button
@@ -97,22 +91,14 @@ const SFMIPopup = (props: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBox: {
-    paddingBottom: Kb.Styles.globalMargins.tiny,
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
-    paddingTop: Kb.Styles.globalMargins.small,
-  },
-  container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    width: '100%',
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
   },
   divider: {
     marginBottom: Kb.Styles.globalMargins.tiny,
     marginTop: Kb.Styles.globalMargins.small,
   },
   fancyFinderIcon: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     paddingTop: Kb.Styles.globalMargins.medium,
   },
   popup: {
@@ -123,8 +109,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: 260,
   },
   text: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
 }))

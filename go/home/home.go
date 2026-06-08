@@ -122,10 +122,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.Trace("Home#getToCache", &err)()
 
-	numPeopleToRequest := 100
-	if numPeopleWanted > numPeopleToRequest {
-		numPeopleToRequest = numPeopleWanted
-	}
+	numPeopleToRequest := max(numPeopleWanted, 100)
 	if skipPeople {
 		numPeopleToRequest = 0
 	}

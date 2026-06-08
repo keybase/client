@@ -1,31 +1,29 @@
 import * as Kb from '@/common-adapters'
 
-const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
-  <div style={styles.container}>
-    <Kb.Icon type="icon-folder-success-48" />
-    <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
+const Success = ({onClose}: {onClose: () => void}) => (
+  <Kb.Box2 direction="vertical" alignItems="center" justifyContent="space-between" style={styles.container}>
+    <Kb.ImageIcon type="icon-folder-success-48" />
+    <Kb.Box2 direction="vertical">
       <Kb.Text center={true} type="BodySemibold">
         Success!
       </Kb.Text>
-      <Kb.Text center={true} style={{paddingLeft: 40, paddingRight: 40}} type="Body">
+      <Kb.Text center={true} style={styles.body} type="Body">
         Your paper key is now rekeying folders for this computer. It takes just a couple minutes but lasts
         forever, like the decision to have a child
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
     <Kb.ButtonBar>
       <Kb.Button label="Okay" onClick={onClose} />
     </Kb.ButtonBar>
-  </div>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      body: {...Kb.Styles.paddingH(40)},
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         bottom: 30,
-        justifyContent: 'space-between',
         left: 0,
         position: 'absolute',
         right: 0,
@@ -34,4 +32,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default PaperKeyInput
+export default Success

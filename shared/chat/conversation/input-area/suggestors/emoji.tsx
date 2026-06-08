@@ -1,9 +1,8 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {type EmojiData, RPCToEmojiData, emojiData} from '@/common-adapters/emoji'
+import {useUserEmoji} from '@/chat/user-emoji'
+import type * as T from '@/constants/types'
 
 export const transformer = (
   emoji: EmojiData,
@@ -38,15 +37,8 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const empty = new Array<EmojiData>()
 
-const useDataSource = (filter: string) => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const fetchUserEmoji = Chat.useChatState(s => s.dispatch.fetchUserEmoji)
-  React.useEffect(() => {
-    fetchUserEmoji(conversationIDKey)
-  }, [conversationIDKey, fetchUserEmoji])
-
-  const userEmojisLoading = C.Waiting.useAnyWaiting(C.waitingKeyChatLoadingEmoji)
-  const userEmojis = Chat.useChatState(s => s.userEmojisForAutocomplete)
+const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
+  const {emojis: userEmojis, loading: userEmojisLoading} = useUserEmoji({conversationIDKey})
 
   if (!emojiPrepass.test(filter)) {
     return {
@@ -58,12 +50,10 @@ const useDataSource = (filter: string) => {
   // prefill data with stock emoji
   let results: Array<EmojiData> = emojiData.emojiSearch(filter, 50)
 
-  if (userEmojis) {
-    const userEmoji = userEmojis
-      .filter(emoji => emoji.alias.toLowerCase().includes(filter))
-      .map(emoji => RPCToEmojiData(emoji, false))
-    results = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(results)
-  }
+  const userEmoji = userEmojis
+    .filter(emoji => emoji.alias.toLowerCase().includes(filter))
+    .map(emoji => RPCToEmojiData(emoji, false))
+  results = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(results)
 
   return {
     items: results,
@@ -73,16 +63,17 @@ const useDataSource = (filter: string) => {
 
 type ListProps = Pick<
   Common.ListProps<EmojiData>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
 }
 export const List = (p: ListProps) => {
-  const {filter, ...rest} = p
-  const {items, loading} = useDataSource(filter)
+  const {conversationIDKey, filter, ...rest} = p
+  const {items, loading} = useDataSource(conversationIDKey, filter)
   return (
     <Common.List
       {...rest}

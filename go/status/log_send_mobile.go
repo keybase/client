@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build ios || android
-// +build ios android
 
 package status
 

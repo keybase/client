@@ -1,10 +1,13 @@
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
+import {useLoadedTeam} from '../use-loaded-team'
+import {joinConversation} from '@/chat/conversation/status-actions'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -29,28 +32,32 @@ const buttonLabel = {
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
   const nav = useSafeNavigation()
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
         if (conversationIDKey) {
           nav.safeNavigateAppend({
-            props: {conversationIDKey: conversationIDKey, teamID},
-            selected: 'chatAddToChannel',
+            name: 'chatAddToChannel',
+            params: {conversationIDKey: conversationIDKey, teamID},
           })
         } else {
-          startAddMembersWizard(teamID)
+          nav.safeNavigateAppend({
+            name: 'teamAddToTeamFromWhere',
+            params: {wizard: makeAddMembersWizard(teamID)},
+          })
         }
         break
       case 'subteams':
-        launchNewTeamWizardOrModal(teamID)
+        nav.safeNavigateAppend({
+          name: 'teamWizard2TeamInfo',
+          params: {wizard: makeNewTeamWizard({parentTeamID: teamID, teamType: 'subteam'})},
+        })
         break
       case 'channelsFew':
-        nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
+        nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
         break
       case 'channelsEmpty':
-        nav.safeNavigateAppend({props: {teamID}, selected: 'teamCreateChannels'})
+        nav.safeNavigateAppend({name: 'teamCreateChannels', params: {teamID}})
         break
     }
   }
@@ -80,20 +87,50 @@ Make it a big team by creating chat channels.`
 
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const {teamMeta} = useLoadedTeam(teamID)
   const notIn = teamMeta.role === 'none' || props.notChannelMember
   const you = useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
-  const addToTeam = Teams.useTeamsState(s => s.dispatch.addToTeam)
-  const joinConversation = Chat.useConvoState(
-    conversationIDKey ?? Chat.noConversationIDKey,
-    s => s.dispatch.joinConversation
-  )
+  const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const [error, setError] = React.useState('')
   const onAddSelf = () => {
     if (conversationIDKey) {
-      joinConversation()
+      joinConversation(conversationIDKey)
     } else {
-      addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
+      setError('')
+      addToTeam(
+        [
+          {
+            sendChatNotification: false,
+            teamID,
+            users: [{assertion: you, role: T.RPCGen.TeamRole.admin}],
+          },
+          [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddMember(teamID, you)],
+        ],
+        res => {
+          const usernames = res.notAdded?.map(user => user.username) ?? []
+          if (usernames.length) {
+            C.Router2.navigateAppend({
+              name: 'contactRestricted',
+              params: {source: 'teamAddSomeFailed', usernames},
+            })
+          }
+        },
+        err => {
+          if (err.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+            const users = (err.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+              ?.filter(field => field?.key === 'usernames')
+              .map(field => field?.value)
+            const usernames = users?.[0]?.split(',') ?? []
+            C.Router2.navigateAppend({
+              name: 'contactRestricted',
+              params: {source: 'teamAddAllFailed', usernames},
+            })
+            return
+          }
+          setError(err.message)
+        }
+      )
     }
   }
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, you))
@@ -101,10 +138,15 @@ const EmptyRow = (props: Props) => {
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname
   return (
-    <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal">
-        <Kb.Icon type={icon[props.type]} style={styles.iconHeight} />
-      </Kb.Box2>
+    <Kb.Box2
+      direction="vertical"
+      gap="small"
+      alignItems="center"
+      style={styles.container}
+      fullWidth={true}
+      justifyContent="flex-start"
+    >
+      <Kb.ImageIcon type={icon[props.type]} style={styles.iconHeight} />
       <Kb.Text type="BodySmall" center={true} style={styles.text}>
         {getFirstText(props.type, teamOrChannel, teamOrChannelName, notIn)}
       </Kb.Text>
@@ -114,7 +156,7 @@ const EmptyRow = (props: Props) => {
           .istanbul, ...
         </Kb.Text>
       )}
-      <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
+      <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} gap="tiny">
         {props.type === 'members' && notIn && (
           <Kb.Button small={true} mode="Primary" label="Add yourself" onClick={onAddSelf} waiting={waiting} />
         )}
@@ -125,6 +167,11 @@ const EmptyRow = (props: Props) => {
           onClick={onSecondaryAction}
         />
       </Kb.Box2>
+      {!!error && (
+        <Kb.Text type="BodySmallError" center={true} style={styles.text}>
+          {error}
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
 }
@@ -135,7 +182,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         ...Kb.Styles.padding(40, 0),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        justifyContent: 'flex-start',
       },
       iconHeight: {height: 96},
       text: Kb.Styles.platformStyles({

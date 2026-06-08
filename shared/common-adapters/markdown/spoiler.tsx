@@ -23,23 +23,18 @@ const Spoiler = (p: Props) => {
     }
   }, [key])
 
-  const onClick = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setShown(s => {
-        spoilerState.set(key, !s)
-        return !s
-      })
-    },
-    [key]
-  )
+  const onClick = (e: React.BaseSyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setShown(s => {
+      spoilerState.set(key, !s)
+      return !s
+    })
+  }
 
   const smallContent = content.substring(0, 10)
   const len = smallContent.length
-  const masked = React.useMemo(() => {
-    return Array(len).fill('•').join('')
-  }, [len])
+  const masked = Array(len).fill('•').join('')
 
   return (
     <Text
@@ -54,37 +49,27 @@ const Spoiler = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => {
-  return {
-    hidden: Styles.platformStyles({
-      common: {
-        backgroundColor: Styles.globalColors.black_on_white,
-        color: Styles.globalColors.black_on_white,
-      },
-      isElectron: {
-        borderRadius: Styles.borderRadius,
-        paddingLeft: 2,
-        paddingRight: 2,
-      },
-    }),
-    shown: Styles.platformStyles({
-      common: {
-        backgroundColor: Styles.globalColors.black_on_white,
-        color: Styles.globalColors.white,
-      },
-      isElectron: {
-        borderRadius: Styles.borderRadius,
-        paddingLeft: 2,
-        paddingRight: 2,
-      },
-    }),
-    tip: Styles.platformStyles({
-      isElectron: {
-        alignItems: 'flex-start',
-        display: 'inline-flex',
-      },
-    }),
-  } as const
-})
+const styles = Styles.styleSheetCreate(() => ({
+  hidden: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.black_on_white,
+      color: Styles.globalColors.black_on_white,
+    },
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+      ...Styles.paddingH(2),
+    },
+  }),
+  shown: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.black_on_white,
+      color: Styles.globalColors.white,
+    },
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+      ...Styles.paddingH(2),
+    },
+  }),
+} as const))
 
 export default Spoiler

@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build android
-// +build android
 
 package keybase
 

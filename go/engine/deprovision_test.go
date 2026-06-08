@@ -499,7 +499,7 @@ func TestConcurrentDeprovision(t *testing.T) {
 	}
 
 	g := new(errgroup.Group)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		g.Go(func() error {
 			e := NewDeprovisionEngine(tc.G, fu.Username, false, libkb.LogoutOptions{})
 			uis = libkb.UIs{

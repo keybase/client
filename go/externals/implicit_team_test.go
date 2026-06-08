@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,12 +19,7 @@ import (
 )
 
 func containsString(xs []string, target string) bool {
-	for _, x := range xs {
-		if x == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(xs, target)
 }
 
 func TestParseImplicitTeamTLFName(t *testing.T) {

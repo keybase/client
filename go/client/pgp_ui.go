@@ -31,7 +31,7 @@ func (p PgpUI) OutputPGPWarning(_ context.Context, arg keybase1.OutputPGPWarning
 func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
 	un := ColorString(p.G(), "bold", "%s", arg.Username)
-	output := func(fmtString string, args ...interface{}) {
+	output := func(fmtString string, args ...any) {
 		s := fmt.Sprintf(fmtString, args...)
 		s = ColorString(p.G(), "green", "%s", s)
 		_, _ = p.w.Write([]byte(s))
@@ -57,7 +57,7 @@ func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSi
 
 func (p PgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.OutputSignatureNonKeybaseArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
-	output := func(fmtString string, args ...interface{}) {
+	output := func(fmtString string, args ...any) {
 		s := fmt.Sprintf(fmtString, args...)
 		s = ColorString(p.G(), "red", "%s", s)
 		_, _ = p.w.Write([]byte(s))

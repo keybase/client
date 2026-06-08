@@ -1,8 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Meta from '@/constants/chat/meta'
+import {isBigTeam} from '@/constants/chat/helpers'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
-import * as Kb from '@/common-adapters'
+import type * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmptyRow from './empty-row'
 import LoadingRow from './loading'
@@ -14,7 +15,9 @@ import {RequestRow, InviteRow} from './invite-row'
 import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {useEmojiState} from '../../emojis/use-emoji'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useTeamsListMap} from '@/teams/use-teams-list'
+import {metasReceived} from '@/chat/inbox/metadata'
 
 type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
 
@@ -62,6 +65,7 @@ export type Section = Kb.SectionType<Item> & {
 
 export const useMembersSections = (
   teamID: T.Teams.TeamID,
+  loading: boolean,
   meta: T.Teams.TeamMeta,
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
@@ -70,7 +74,7 @@ export const useMembersSections = (
   // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
 
   // TODO: consider moving this to the parent
-  const stillLoading = meta.memberCount > 0 && !details.members.size
+  const stillLoading = loading || (meta.memberCount > 0 && !details.members.size)
   if (stillLoading) {
     return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
   }
@@ -100,11 +104,12 @@ export const useMembersSections = (
 
 export const useBotSections = (
   teamID: T.Teams.TeamID,
+  loading: boolean,
   meta: T.Teams.TeamMeta,
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const stillLoading = meta.memberCount > 0 && !details.members.size
+  const stillLoading = loading || (meta.memberCount > 0 && !details.members.size)
   if (stillLoading) {
     return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
   }
@@ -124,12 +129,13 @@ export const useBotSections = (
   ]
 }
 
-export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.TeamDetails): Array<Section> => {
-  const invitesCollapsed = Teams.useTeamsState(s => s.invitesCollapsed)
-  const collapsed = invitesCollapsed.has(teamID)
-  const toggleInvitesCollapsed = Teams.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
-  const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
-
+export const useInvitesSections = (
+  teamID: T.Teams.TeamID,
+  details: T.Teams.TeamDetails,
+  collapsed: boolean,
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
+): Array<Section> => {
+  const onToggleCollapsed = () => setCollapsed(prev => !prev)
   const sections: Array<Section> = []
   const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
@@ -162,7 +168,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
         item.type === 'invite-requests' ? (
           <RequestRow {...item} teamID={teamID} firstItem={index === 0} />
         ) : null,
-      title: Kb.Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
+      title: isMobile ? `Requests (${details.requests.size})` : undefined,
     } satisfies Section
     sections.push(requestsSection)
   }
@@ -187,11 +193,11 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
 }
 export const useChannelsSections = (
   teamID: T.Teams.TeamID,
-  yourOperations: T.Teams.TeamOperations
+  yourOperations: T.Teams.TeamOperations,
+  channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>,
+  loading: boolean
 ): Array<Section> => {
-  const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
-  const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
-  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
+  const isBig = useInboxLayoutState(s => isBigTeam(s.layout, teamID))
 
   if (!isBig) {
     return [
@@ -201,10 +207,10 @@ export const useChannelsSections = (
       } as const,
     ]
   }
-  if (!channels) {
+  if (loading) {
     return [{data: [{type: 'channel-loading'}], renderItem: () => <LoadingRow />} as const]
   }
-  const createRow = canCreate
+  const createRow = yourOperations.createChannel
     ? [{data: [{type: 'channel-add'}], renderItem: () => <ChannelHeaderRow teamID={teamID} />} as const]
     : []
 
@@ -223,7 +229,7 @@ export const useChannelsSections = (
         ),
       renderItem: ({item}: {item: Item}) =>
         item.type === 'channel-channels' ? (
-          <ChannelRow teamID={teamID} conversationIDKey={item.c.conversationIDKey} />
+          <ChannelRow teamID={teamID} channel={item.c} />
         ) : null,
     },
     channels.size < 5 && yourOperations.createChannel
@@ -243,22 +249,29 @@ export const useChannelsSections = (
 export const useSubteamsSections = (
   teamID: T.Teams.TeamID,
   details: T.Teams.TeamDetails,
-  yourOperations: T.Teams.TeamOperations
+  yourOperations: T.Teams.TeamOperations,
+  subteamFilter: string,
+  setSubteamFilter: React.Dispatch<React.SetStateAction<string>>
 ): Array<Section> => {
-  const subteamsFiltered = Teams.useTeamsState(s => s.subteamsFiltered)
-  const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
+  const teamMetaByID = useTeamsListMap()
+  const filterLC = subteamFilter.toLowerCase().trim()
+  const subteams = [...details.subteams]
+    .filter(subteamID => !filterLC || teamMetaByID.get(subteamID)?.teamname.toLowerCase().includes(filterLC))
+    .sort()
   const sections: Array<Section> = []
 
   if (yourOperations.manageSubteams && details.subteams.size) {
     sections.push({
       data: [{type: 'subteam-add'}],
-      renderItem: () => <SubteamAddRow teamID={teamID} />,
+      renderItem: () => (
+        <SubteamAddRow teamID={teamID} subteamFilter={subteamFilter} setSubteamFilter={setSubteamFilter} />
+      ),
     } as const)
   }
   sections.push({
     data: subteams.map(s => ({id: s, type: 'subteams'})),
-    renderItem: ({item, index}: {item: Item; index: number}) =>
-      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} firstItem={index === 0} /> : null,
+    renderItem: ({item}: {item: Item}) =>
+      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} teamMeta={teamMetaByID.get(item.id)} /> : null,
   } as const)
 
   if (details.subteams.size) {
@@ -273,30 +286,54 @@ export const useSubteamsSections = (
 }
 
 const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
-  const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
-  const generalConvID = Chat.useChatState(s => (teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined))
-  const findGeneralConvIDFromTeamID = Chat.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
+  const [conversationIDKeyResult, setConversationIDKeyResult] = React.useState<
+    {conversationIDKey: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID} | undefined
+  >()
+  const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
+  const requestIDRef = React.useRef(0)
+  const conversationIDKey =
+    conversationIDKeyResult && conversationIDKeyResult.teamID === teamID
+      ? conversationIDKeyResult.conversationIDKey
+      : undefined
+
   React.useEffect(() => {
-    if (!conversationIDKey && teamID) {
-      if (!generalConvID) {
-        findGeneralConvIDFromTeamID(teamID)
-      } else {
-        setConversationIDKey(generalConvID)
+    if (conversationIDKey || !teamID) {
+      return
+    }
+    requestIDRef.current += 1
+    const requestID = requestIDRef.current
+    findGeneralConvIDFromTeamID(
+      [{teamID}],
+      conv => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        const meta = Meta.inboxUIItemToConversationMeta(conv)
+        if (!meta) {
+          return
+        }
+        metasReceived([meta])
+        setConversationIDKeyResult({conversationIDKey: meta.conversationIDKey, teamID})
+      },
+      () => {}
+    )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
       }
     }
-  }, [conversationIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, teamID])
   return conversationIDKey
 }
 
 export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
   const convID = useGeneralConversationIDKey(teamID)
-  const [lastActuallyLoad, setLastActuallyLoad] = React.useState(false)
   const getUserEmoji = C.useRPC(T.RPCChat.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
 
-  const doGetUserEmoji = React.useCallback(() => {
-    if (!convID || convID === Chat.noConversationIDKey || !shouldActuallyLoad) {
+  const doGetUserEmoji = React.useEffectEvent(() => {
+    if (!convID || convID === T.Chat.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
     getUserEmoji(
@@ -319,22 +356,13 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
       },
       _ => setCustomEmoji([])
     )
-  }, [convID, getUserEmoji, shouldActuallyLoad])
+  })
 
   const updatedTrigger = useEmojiState(s => s.emojiUpdatedTrigger)
-  const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
 
   React.useEffect(() => {
-    if (shouldActuallyLoad !== lastActuallyLoad || lastUpdatedTrigger !== updatedTrigger) {
-      setLastActuallyLoad(shouldActuallyLoad)
-      setLastUpdatedTrigger(updatedTrigger)
-      doGetUserEmoji()
-    }
-  }, [doGetUserEmoji, lastActuallyLoad, lastUpdatedTrigger, shouldActuallyLoad, updatedTrigger])
-
-  C.useOnMountOnce(() => {
     doGetUserEmoji()
-  })
+  }, [convID, shouldActuallyLoad, updatedTrigger])
 
   let filteredEmoji: T.RPCChat.Emoji[] = customEmoji
   if (filter !== '') {
@@ -347,7 +375,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
     renderItem: () => (
       <EmojiAddRow
         teamID={teamID}
-        convID={convID ?? Chat.noConversationIDKey}
+        convID={convID ?? T.Chat.noConversationIDKey}
         filter={filter}
         setFilter={setFilter}
       />
@@ -355,7 +383,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   } as const)
 
   if (customEmoji.length) {
-    if (!Kb.Styles.isMobile) {
+    if (!isMobile) {
       sections.push({
         data: [{type: 'emoji-header'}],
         renderItem: () => <EmojiHeader />,
@@ -369,7 +397,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
           <EmojiItemRow
             emoji={item.e}
             firstItem={index === 0}
-            conversationIDKey={convID ?? Chat.noConversationIDKey}
+            conversationIDKey={convID ?? T.Chat.noConversationIDKey}
             teamID={teamID}
           />
         ) : null,

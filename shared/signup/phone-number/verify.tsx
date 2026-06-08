@@ -4,62 +4,35 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import VerifyBody from './verify-body'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {usePhoneVerification} from './use-verification'
 
-const Container = () => {
-  const error = useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
-  const phoneNumber = useSettingsPhoneState(s => s.pendingVerification)
-  const resendWaiting = C.Waiting.useAnyWaiting([
-    C.waitingKeySettingsPhoneResendVerification,
-    C.waitingKeySettingsPhoneAddPhoneNumber,
-  ])
-  const verificationStatus = useSettingsPhoneState(s => s.verificationState)
+type Props = {route: {params: {phoneNumber: string}}}
+
+const VerifyPhoneNumber = ({route}: Props) => {
+  const {phoneNumber} = route.params
+  const resendWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneResendVerification)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
+  const onSuccess = C.Router2.clearModals
+  const {error, resendVerificationForPhone, verifyPhoneNumber} = usePhoneVerification({
+    onSuccess,
+    phoneNumber,
+  })
 
-  const verifyPhoneNumber = useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
-  const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
-
-  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
-
-  const _onContinue = (phoneNumber: string, code: string) => {
-    verifyPhoneNumber(phoneNumber, code)
-  }
-  const _onResend = (phoneNumber: string) => {
-    resendVerificationForPhone(phoneNumber)
-  }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-  }
-  const onCleanup = clearPhoneNumberAdd
-  const onSuccess = C.useRouterState(s => s.dispatch.clearModals)
-  const ponContinue = (code: string) => _onContinue(phoneNumber, code)
-  const onResend = () => _onResend(phoneNumber)
-
-  React.useEffect(() => {
-    if (verificationStatus === 'success') {
-      onSuccess()
-    }
-  }, [verificationStatus, onSuccess])
-
-  React.useEffect(() => {
-    return () => {
-      onCleanup()
-    }
-  }, [onCleanup])
+  const navigateUp = C.Router2.navigateUp
+  const onResend = () => resendVerificationForPhone(phoneNumber)
 
   const [code, onChangeCode] = React.useState('')
   const disabled = !code
   const onContinue = disabled
     ? () => {}
     : () => {
-        ponContinue(code)
+        verifyPhoneNumber(phoneNumber, code)
       }
 
   const displayPhone = e164ToDisplay(phoneNumber)
   return (
     <SignupScreen
-      onBack={onBack}
+      onBack={navigateUp}
       banners={
         error ? (
           <Kb.Banner key="error" color="red">
@@ -76,19 +49,18 @@ const Container = () => {
       containerStyle={styles.container}
       headerStyle={styles.container}
       header={
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerContainer}>
-          <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={onBack}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.headerContainer}>
+          <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={navigateUp}>
             Back
           </Kb.Text>
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
             {displayPhone}
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+          <Kb.Box2 direction="horizontal" flex={1} />
         </Kb.Box2>
       }
       negativeHeader={true}
-      skipMobileHeader={true}
-      showHeaderInfoicon={true}
+      showHeaderInfoIcon={true}
     >
       <VerifyBody onChangeCode={onChangeCode} code={code} onResend={onResend} resendWaiting={resendWaiting} />
     </SignupScreen>
@@ -100,16 +72,15 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       backButton: {
         color: Kb.Styles.globalColors.white,
-        flex: 1,
+        ...Kb.Styles.globalStyles.flexOne,
       },
       container: {backgroundColor: Kb.Styles.globalColors.blue},
       headerContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         backgroundColor: Kb.Styles.globalColors.blue,
-        position: 'relative',
       },
       headerText: {color: Kb.Styles.globalColors.black_50},
     }) as const
 )
 
-export default Container
+export default VerifyPhoneNumber

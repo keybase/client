@@ -10,12 +10,12 @@ import (
 
 // Log is the logging interface for the service package
 type Log interface {
-	Debug(...interface{})
-	Info(...interface{})
-	Debugf(s string, args ...interface{})
-	Infof(s string, args ...interface{})
-	Warningf(s string, args ...interface{})
-	Errorf(s string, args ...interface{})
+	Debug(...any)
+	Info(...any)
+	Debugf(s string, args ...any)
+	Infof(s string, args ...any)
+	Warningf(s string, args ...any)
+	Errorf(s string, args ...any)
 }
 
 type service struct {

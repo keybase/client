@@ -18,6 +18,7 @@ import (
 	"math"
 	"reflect"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -1269,7 +1270,7 @@ type ToStatusAble interface {
 // status object. If it is something that can be made into a Status object via the
 // ToStatusAble interface, then we'll try that. Otherwise, we'll just make a generic
 // Error type.
-func WrapError(e error) interface{} {
+func WrapError(e error) any {
 	if e == nil {
 		return nil
 	}
@@ -1309,13 +1310,13 @@ type ErrorUnwrapper struct {
 
 // MakeArg just makes a dummy object that we can unmarshal into, as needed by the
 // underlying RPC library.
-func (eu ErrorUnwrapper) MakeArg() interface{} {
+func (eu ErrorUnwrapper) MakeArg() any {
 	return &Status{}
 }
 
 // UnwrapError takes an incoming RPC object, attempts to coerce it into a Status
 // object, and then Upcasts via the Upcaster or just returns if not was provided.
-func (eu ErrorUnwrapper) UnwrapError(arg interface{}) (appError, dispatchError error) {
+func (eu ErrorUnwrapper) UnwrapError(arg any) (appError, dispatchError error) {
 	targ, ok := arg.(*Status)
 	if !ok {
 		dispatchError = errors.New("Error converting status to keybase1.Status object")
@@ -2402,7 +2403,7 @@ func (t TeamName) IsAncestorOf(other TeamName) bool {
 		return false
 	}
 
-	for i := 0; i < depth; i++ {
+	for i := range depth {
 		if !other.Parts[i].Eq(t.Parts[i]) {
 			return false
 		}
@@ -2683,13 +2684,6 @@ func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
 
 func (e *TeamInviteMaxUses) IsNotNilAndValid() bool {
 	return e != nil && (*e > 0 || *e == TeamMaxUsesInfinite)
-}
-
-func max(a, b int) int {
-	if a >= b {
-		return a
-	}
-	return b
 }
 
 func (ti TeamInvite) UsesLeftString(alreadyUsed int) string {
@@ -3262,7 +3256,7 @@ func (fct FolderConflictType) MarshalText() ([]byte, error) {
 	case FolderConflictType_IN_CONFLICT_AND_STUCK:
 		return []byte("in conflict and stuck"), nil
 	default:
-		return []byte(fmt.Sprintf("unknown conflict type: %d", fct)), nil
+		return fmt.Appendf(nil, "unknown conflict type: %d", fct), nil
 	}
 }
 
@@ -3985,10 +3979,8 @@ func (s *TeamBotSettings) ConvIDAllowed(strCID string) bool {
 	if s == nil {
 		return true
 	}
-	for _, strConvID := range s.Convs {
-		if strCID == strConvID {
-			return true
-		}
+	if slices.Contains(s.Convs, strCID) {
+		return true
 	}
 	return len(s.Convs) == 0
 }
@@ -4141,7 +4133,7 @@ func (e TeamSearchExport) Hash() string {
 		rounder := int(math.Pow(10, log))
 		value := (team.MemberCount / rounder) * rounder
 		hasher.Write(team.Id.ToBytes())
-		hasher.Write([]byte(fmt.Sprintf("%d", value)))
+		hasher.Write(fmt.Appendf(nil, "%d", value))
 	}
 	for _, id := range e.Suggested {
 		hasher.Write(id.ToBytes())

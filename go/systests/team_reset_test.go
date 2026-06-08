@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
+func divDebug(ctx *smuContext, fmt string, arg ...any) {
 	div := "------------"
 	ctx.log.Debug(div+" "+fmt+" "+div, arg...)
 }
@@ -366,7 +366,7 @@ func TestTeamResetManyNoKeys(t *testing.T) {
 
 	ann.readChats(team, 1)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		bob.reset()
 		divDebug(ctx, "Reset bob (%s)", bob.username)
 

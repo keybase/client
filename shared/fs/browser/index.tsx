@@ -1,47 +1,66 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Kbfs from '../common'
-import * as React from 'react'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import ConflictBanner from '../banner/conflict-banner'
 import Footer from '../footer/footer'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
+import {FsBrowserEditProvider} from './edit-state'
+import {FsBrowserSortProvider} from './sort-state'
 import Root from './root'
 import Rows from './rows/rows-container'
+import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf, useFsUpload} from '../common'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
-import {useFSState} from '@/constants/fs'
+import {useModalHeaderState} from '@/stores/modal-header'
 import * as FS from '@/constants/fs'
+import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/stores/fs-platform'
 
-type OwnProps = {path: T.FS.Path}
+type OwnProps = {
+  lastClosedPublicBannerTlf?: string
+  path: T.FS.Path
+}
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const {_kbfsDaemonStatus, _pathItem, resetBannerType} = useFSState(
-    C.useShallow(s => ({
-      _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      _pathItem: FS.getPathItem(s.pathItems, path),
-      resetBannerType: FS.resetBannerType(s, path),
-    }))
-  )
-  const props = {
-    offlineUnsynced: FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
-    path,
-    resetBannerType,
-    writable: _pathItem.writable,
-  }
+  const filter = useModalHeaderState(s => s.folderViewFilter)
+  const _pathItem = useFsPathItem(path)
+  const tlf = useFsTlf(path)
+  const _kbfsDaemonStatus = Kbfs.useKbfsDaemonStatus()
+  const resetBannerType = Kbfs.resetBannerTypeFromTlf(tlf)
+  const offlineUnsynced = FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path)
+  const writable = _pathItem.writable
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}}>
+    // collapsable={false}: keeps this wrapper from being view-flattened, which would hoist the
+    // list's scroll view into a sibling and break iOS 26 tabBarMinimizeBehavior detection.
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      collapsable={false}
+      style={Kb.Styles.globalStyles.flexGrow}
+      testID={TestIDs.FILES_BROWSER}
+    >
       <Kb.KeyboardAvoidingView2>
         <Kbfs.Errs />
-        <BrowserContent {...props} />
-        <Footer path={props.path} />
+        <BrowserContent
+          filter={filter}
+          lastClosedPublicBannerTlf={ownProps.lastClosedPublicBannerTlf}
+          offlineUnsynced={offlineUnsynced}
+          path={path}
+          resetBannerType={resetBannerType}
+          writable={writable}
+        />
+        <Footer path={path} />
       </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
   )
 }
 
 type Props = {
+  filter?: string
+  lastClosedPublicBannerTlf?: string
   offlineUnsynced: boolean
   path: T.FS.Path
   resetBannerType: T.FS.ResetBannerType
@@ -57,22 +76,30 @@ const SelfReset = (_: Props) => (
       />
     </Kb.Banner>
     <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} centerChildren={true}>
-      <Kb.Icon type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+      <Kb.ImageIcon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>
   </Kb.Box2>
 )
 
-const DragAndDrop = React.memo(function DragAndDrop(p: {
+function DragAndDrop(p: {
   children: React.ReactNode
   path: T.FS.Path
   rejectReason?: string
 }) {
   const {children, path, rejectReason} = p
-  const uploadFromDragAndDrop = useFSState(s => s.dispatch.dynamic.uploadFromDragAndDropDesktop)
-  const onAttach = React.useCallback(
-    (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths),
-    [path, uploadFromDragAndDrop]
-  )
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const upload = useFsUpload()
+  const onAttach = (localPaths: Array<string>) => {
+    const f = async () => {
+      try {
+        const nextLocalPaths = await uploadFromDragAndDropInPlatform(localPaths)
+        nextLocalPaths.forEach(localPath => upload(path, localPath))
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
+  }
   return (
     <Kb.DragAndDrop
       allowFolders={true}
@@ -84,9 +111,9 @@ const DragAndDrop = React.memo(function DragAndDrop(p: {
       {children}
     </Kb.DragAndDrop>
   )
-})
+}
 
-const BrowserContent = React.memo(function BrowserContent(props: Props) {
+function BrowserContent(props: Props) {
   const parsedPath = FS.parsePath(props.path)
   if (parsedPath.kind === T.FS.PathKind.Root) {
     return (
@@ -98,7 +125,7 @@ const BrowserContent = React.memo(function BrowserContent(props: Props) {
   if (parsedPath.kind === T.FS.PathKind.TlfList) {
     return (
       <DragAndDrop path={props.path} rejectReason="You can only drop files inside a folder.">
-        <Rows path={props.path} />
+        <Rows filter={props.filter} path={props.path} />
       </DragAndDrop>
     )
   }
@@ -111,7 +138,7 @@ const BrowserContent = React.memo(function BrowserContent(props: Props) {
   }
   const addCommonStuff = (children: React.ReactNode) => (
     <>
-      <PublicReminder path={props.path} />
+      <PublicReminder path={props.path} lastClosedTlf={props.lastClosedPublicBannerTlf} />
       <ConflictBanner path={props.path} />
       {children}
     </>
@@ -131,9 +158,17 @@ const BrowserContent = React.memo(function BrowserContent(props: Props) {
       path={props.path}
       rejectReason={props.writable ? undefined : "You don't have write permission in this folder."}
     >
-      <Rows path={props.path} headerRows={resetBannerAsRows(props.path, props.resetBannerType)} />
+      <Rows filter={props.filter} path={props.path} headerRows={resetBannerAsRows(props.path, props.resetBannerType)} />
     </DragAndDrop>
   )
-})
+}
 
-export default Container
+const Screen = (props: OwnProps) => (
+  <FsBrowserEditProvider>
+    <FsBrowserSortProvider>
+      <Container {...props} />
+    </FsBrowserSortProvider>
+  </FsBrowserEditProvider>
+)
+
+export default Screen

@@ -1,21 +1,29 @@
 import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import {makeNewTeamWizard} from './new-team/wizard/state'
+import {useTeamsList} from './use-teams-list'
+import {useRoute} from '@react-navigation/native'
+import type {RootRouteProps} from '@/router-v2/route-params'
+import {useTypedNavigation} from '@/util/typed-navigation'
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
-  const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
-    onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
+    onCreateTeam: () =>
+      nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}}),
+    onJoinTeam: () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}}),
   }
 }
 
 const TeamsFilter = () => {
-  const filterValue = useTeamsState(s => s.teamListFilter)
-  const numTeams = useTeamsState(s => s.teamMeta.size)
-  const setFilter = useTeamsState(s => s.dispatch.setTeamListFilter)
+  const route = useRoute() as RootRouteProps<'teamsRoot'>
+  const params = route.params
+  const navigation = useTypedNavigation('teamsRoot')
+  const filterValue = params.filter ?? ''
+  const {teams} = useTeamsList()
+  const numTeams = teams.length
+  const setFilter = (filter: string) => navigation.setParams({...params, filter})
   return numTeams >= 20 ? (
     <Kb.SearchFilter
       value={filterValue}
@@ -44,6 +52,6 @@ const ConnectedHeaderRightActions = () => {
 }
 
 export default {
-  headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
+  headerRightActions: !isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }

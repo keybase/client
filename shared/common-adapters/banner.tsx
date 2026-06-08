@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box, {Box2} from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
 import * as Styles from '@/styles'
@@ -27,7 +27,9 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
   >
     {(Array.isArray(props.content) ? props.content : [props.content])
       .reduce<Array<_Segment | string>>((arr, s) => {
-        s && arr.push(s)
+        if (s) {
+          arr.push(s)
+        }
         return arr
       }, [])
       .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
@@ -111,16 +113,16 @@ export const Banner = (props: BannerProps) => (
       )}
     </Box2>
     {!!props.onClose && (
-      <Box key="iconBox" style={styles.iconContainer}>
+      <Box2 direction="vertical" key="iconBox" style={styles.iconContainer}>
         <Icon
           padding="xtiny"
           sizeType="Small"
           type="iconfont-close"
-          color={colorToIconColor()[props.color]}
-          hoverColor={colorToIconHoverColor()[props.color]}
+          color={colorToIconColor[props.color]}
+          hoverColor={colorToIconHoverColor[props.color]}
           onClick={props.onClose}
         />
-      </Box>
+      </Box2>
     )}
   </Box2>
 )
@@ -148,32 +150,25 @@ const styles = Styles.styleSheetCreate(
       }),
       inlineText: {textAlign: 'left'},
       inlineTextContainer: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       },
       narrowTextContainer: Styles.platformStyles({
         common: {
           flex: 1,
           maxWidth: '100%',
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          ...Styles.paddingV(Styles.globalMargins.tiny),
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          ...Styles.paddingH(Styles.globalMargins.medium),
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          ...Styles.paddingH(Styles.globalMargins.small),
         },
       }),
       smallTextContainer: {
         flex: 1,
         maxWidth: '100%',
-        paddingBottom: Styles.globalMargins.xxtiny,
-        paddingTop: Styles.globalMargins.xxtiny,
+        ...Styles.paddingV(Styles.globalMargins.xxtiny),
       },
       text: Styles.platformStyles({
         common: {
@@ -186,16 +181,13 @@ const styles = Styles.styleSheetCreate(
         common: {
           flex: 1,
           maxWidth: '100%',
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          ...Styles.paddingV(Styles.globalMargins.tiny),
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          ...Styles.paddingH(Styles.globalMargins.medium),
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          ...Styles.paddingH(Styles.globalMargins.small),
         },
       }),
       underline: Styles.platformStyles({
@@ -222,20 +214,20 @@ const colorToTextColorStyles = Styles.styleSheetCreate(() => ({
   yellow: {color: Styles.globalColors.brown_75},
 }))
 
-const colorToIconColor = () => ({
+const colorToIconColor = {
   blue: Styles.globalColors.white_90,
   green: Styles.globalColors.white_90,
   grey: Styles.globalColors.black_50,
   red: Styles.globalColors.white_90,
   white: Styles.globalColors.black_50,
   yellow: Styles.globalColors.brown_75,
-})
+}
 
-const colorToIconHoverColor = () => ({
+const colorToIconHoverColor = {
   blue: Styles.globalColors.white,
   green: Styles.globalColors.white,
   grey: Styles.globalColors.black,
   red: Styles.globalColors.white,
   white: Styles.globalColors.black,
   yellow: Styles.globalColors.brown,
-})
+}

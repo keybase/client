@@ -139,7 +139,7 @@ func TestPRNGCornerCases(t *testing.T) {
 	// failed when I went back and rebroke the shuffle function.
 	flips := 0
 	n := 40
-	for i := 0; i < n; i++ {
+	for range n {
 		res := prng.Permutation(2)
 		if res[0] == 1 {
 			flips++

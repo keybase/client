@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -109,7 +110,7 @@ func (s *DeviceEKStorage) SetLogPrefix(mctx libkb.MetaContext) {
 
 // Log sensitive deletion actions to a separate log file so we don't lose the
 // logs during normal rotation.
-func (s *DeviceEKStorage) ekLogf(mctx libkb.MetaContext, format string, args ...interface{}) {
+func (s *DeviceEKStorage) ekLogf(mctx libkb.MetaContext, format string, args ...any) {
 	mctx.Debug(format, args...)
 	if s.logger != nil {
 		s.logger.Printf(format, args...)
@@ -292,7 +293,7 @@ func (s *DeviceEKStorage) get(mctx libkb.MetaContext, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) Delete(mctx libkb.MetaContext, generation keybase1.EkGeneration,
-	reason string, args ...interface{},
+	reason string, args ...any,
 ) (err error) {
 	s.Lock()
 	defer s.Unlock()
@@ -300,7 +301,7 @@ func (s *DeviceEKStorage) Delete(mctx libkb.MetaContext, generation keybase1.EkG
 }
 
 func (s *DeviceEKStorage) delete(mctx libkb.MetaContext, generation keybase1.EkGeneration,
-	reason string, args ...interface{},
+	reason string, args ...any,
 ) (err error) {
 	defer s.ekLogCTrace(mctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v reason: %s", generation, fmt.Sprintf(reason, args...)), &err)()
 
@@ -535,7 +536,7 @@ func (s *DeviceEKStorage) getExpiredGenerations(mctx libkb.MetaContext, keyMap k
 	for k := range keyMap {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	slices.Sort(keys)
 
 	for i, generation := range keys {
 		keyCtime := keyMap[generation].Time()
@@ -544,11 +545,9 @@ func (s *DeviceEKStorage) getExpiredGenerations(mctx libkb.MetaContext, keyMap k
 		// to be at most libkb.MaxEphemeralKeyStaleness
 		expiryOffset1 := libkb.MaxEphemeralKeyStaleness
 		if i < len(keys)-1 {
-			expiryOffset1 = keyMap[keys[i+1]].Time().Sub(keyCtime)
-			// Offset can be max libkb.MaxEphemeralKeyStaleness
-			if expiryOffset1 > libkb.MaxEphemeralKeyStaleness {
-				expiryOffset1 = libkb.MaxEphemeralKeyStaleness
-			}
+			expiryOffset1 = min(
+				// Offset can be max libkb.MaxEphemeralKeyStaleness
+				keyMap[keys[i+1]].Time().Sub(keyCtime), libkb.MaxEphemeralKeyStaleness)
 		}
 
 		// Offset between the key one generation older and two generations
@@ -556,10 +555,7 @@ func (s *DeviceEKStorage) getExpiredGenerations(mctx libkb.MetaContext, keyMap k
 		// libkb.MaxEphemeralKeyStaleness
 		expiryOffset2 := libkb.MaxEphemeralKeyStaleness
 		if i < len(keys)-2 {
-			expiryOffset2 = keyMap[keys[i+2]].Time().Sub(keyMap[keys[i+1]].Time())
-			if expiryOffset2 > libkb.MaxEphemeralKeyStaleness {
-				expiryOffset2 = libkb.MaxEphemeralKeyStaleness
-			}
+			expiryOffset2 = min(keyMap[keys[i+2]].Time().Sub(keyMap[keys[i+1]].Time()), libkb.MaxEphemeralKeyStaleness)
 		}
 
 		expiryOffset := expiryOffset1 + expiryOffset2

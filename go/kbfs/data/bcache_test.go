@@ -196,7 +196,7 @@ func TestBlockCacheEvictOnBytes(t *testing.T) {
 	bcache := blockCacheTestInit(t, 1000, 5)
 
 	tlf := tlf.FakeID(1, tlf.Private)
-	for i := byte(0); i < 8; i++ {
+	for i := range byte(8) {
 		block := &FileBlock{
 			Contents: make([]byte, 1),
 		}
@@ -208,7 +208,7 @@ func TestBlockCacheEvictOnBytes(t *testing.T) {
 	}
 
 	// Only blocks 3 through 7 should be left
-	for i := byte(0); i < 3; i++ {
+	for i := range byte(3) {
 		id := kbfsblock.FakeID(i)
 		testExpectedMissing(t, id, bcache)
 	}

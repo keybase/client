@@ -1,32 +1,26 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
-  const {driverStatus, driverEnable, driverDisable, setSfmiBannerDismissedDesktop, settings} = useFSState(
-    C.useShallow(s => ({
-      driverDisable: s.dispatch.driverDisable,
-      driverEnable: s.dispatch.driverEnable,
-      driverStatus: s.sfmi.driverStatus,
-      setSfmiBannerDismissedDesktop: s.dispatch.dynamic.setSfmiBannerDismissedDesktop,
-      settings: s.settings,
-    }))
-  )
-  const onDisable = React.useCallback(() => driverDisable(), [driverDisable])
-  const onDismiss = React.useCallback(
-    () => setSfmiBannerDismissedDesktop?.(true),
-    [setSfmiBannerDismissedDesktop]
-  )
-  const onEnable = driverEnable
+  const {
+    driverDisable,
+    driverEnable,
+    driverStatus,
+    settingsLoaded,
+    setSfmiBannerDismissed,
+    sfmiBannerDismissed,
+  } = Kbfs.useSystemFileManagerIntegration()
+  const onDismiss = () => setSfmiBannerDismissed(true)
   const alwaysShow = op.alwaysShow
 
-  if (!FS.sfmiInfoLoaded(settings, driverStatus)) {
+  if (!FS.sfmiInfoLoaded({loaded: settingsLoaded}, driverStatus)) {
     return alwaysShow ? (
       <Banner
         background={Background.Blue}
@@ -39,22 +33,21 @@ const SFMIContainer = (op: OwnProps) => {
 
   switch (driverStatus.type) {
     case T.FS.DriverStatusType.Disabled:
-      return alwaysShow || !settings.sfmiBannerDismissed ? (
+      return alwaysShow || !sfmiBannerDismissed ? (
         <Disabled
           driverStatus={driverStatus}
-          onEnable={onEnable}
+          onEnable={driverEnable}
           alwaysShow={alwaysShow}
-          settings={settings}
           onDismiss={onDismiss}
         />
       ) : null
     case T.FS.DriverStatusType.Enabled:
-      return alwaysShow || !settings.sfmiBannerDismissed ? (
+      return alwaysShow || !sfmiBannerDismissed ? (
         <Enabled
           driverStatus={driverStatus}
-          onDisable={onDisable}
+          onDisable={driverDisable}
           alwaysShow={alwaysShow}
-          settings={settings}
+          sfmiBannerDismissed={sfmiBannerDismissed}
           onDismiss={onDismiss}
         />
       ) : null
@@ -91,15 +84,11 @@ type BannerProps = {
 const backgroundToTextStyle = (background: Background) => {
   switch (background) {
     case Background.Blue:
-      return styles.textWhite
     case Background.Green:
+    case Background.Black:
       return styles.textWhite
     case Background.Yellow:
       return styles.textBrown
-    case Background.Black:
-      return styles.textWhite
-    default:
-      return styles.textWhite
   }
 }
 
@@ -113,8 +102,21 @@ const backgroundToBackgroundColor = (background: Background) => {
       return Kb.Styles.globalColors.yellow
     case Background.Black:
       return Kb.Styles.globalColors.black
-    default:
-      return Kb.Styles.globalColors.black
+  }
+}
+
+const buttonOnColorStyle = {backgroundColor: Kb.Styles.globalColors.white}
+
+const backgroundToButtonLabelStyle = (background: Background) => {
+  switch (background) {
+    case Background.Blue:
+      return {color: Kb.Styles.globalColors.blueDark}
+    case Background.Green:
+      return {color: Kb.Styles.globalColors.greenDark}
+    case Background.Yellow:
+      return {color: Kb.Styles.globalColors.brown_75OrYellow}
+    case Background.Black:
+      return {color: Kb.Styles.globalColors.black}
   }
 }
 
@@ -125,21 +127,21 @@ const Banner = (props: BannerProps) => (
     centerChildren={true}
     style={{backgroundColor: backgroundToBackgroundColor(props.background)}}
   >
-    <Kb.Icon
+    <Kb.IconAuto
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
       style={styles.fancyIcon}
     />
-    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer}>
+    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} padding="mediumLarge" style={styles.bodyContainer} justifyContent="center">
       <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
         <Kb.Text type="Header" style={backgroundToTextStyle(props.background)}>
           {props.title}
         </Kb.Text>
         {props.body && (
-          <Kb.Box style={Kb.Styles.globalStyles.flexGrow}>
+          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow}>
             <Kb.Text type="Body" style={backgroundToTextStyle(props.background)}>
               {props.body}
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         )}
       </Kb.Box2>
       {props.bodyExtraComponent ?? false}
@@ -147,26 +149,28 @@ const Banner = (props: BannerProps) => (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           {!!props.button && (
             <Kb.Button
-              backgroundColor={props.background}
               disabled={props.button.disabled}
               label={props.button.buttonText}
               onClick={props.button.action}
               waiting={props.button.inProgress}
+              style={buttonOnColorStyle}
+              labelStyle={backgroundToButtonLabelStyle(props.background)}
             />
           )}
           {!!props.buttonSecondary && (
             <Kb.Button
-              backgroundColor={props.background}
               disabled={props.buttonSecondary.disabled}
               label={props.buttonSecondary.buttonText}
               onClick={props.buttonSecondary.action}
               waiting={props.buttonSecondary.inProgress}
+              style={buttonOnColorStyle}
+              labelStyle={backgroundToButtonLabelStyle(props.background)}
             />
           )}
         </Kb.Box2>
       )}
     </Kb.Box2>
-    <Kb.Box style={Kb.Styles.globalStyles.flexGrow} />
+    <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
     {!!props.onDismiss && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Icon
@@ -215,14 +219,11 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const {displayingMountDir, openLocalPathInSystemFileManagerDesktop} = useFSState(
-    C.useShallow(s => ({
-      displayingMountDir: s.sfmi.preferredMountDirs[0] ?? '',
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-    }))
-  )
+  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
+  const {preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
+  const displayingMountDir = preferredMountDirs[0] ?? ''
   const open = displayingMountDir
-    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
+    ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir, errorToActionOrThrow)
     : undefined
   return (
     <Banner
@@ -248,10 +249,10 @@ const Enabled = (props: {
   driverStatus: T.FS.DriverStatus
   onDisable: () => void
   alwaysShow?: boolean
-  settings: T.FS.Settings
+  sfmiBannerDismissed: boolean
   onDismiss: () => void
 }) => {
-  const {driverStatus, onDisable, alwaysShow, settings, onDismiss} = props
+  const {driverStatus, onDisable, alwaysShow, sfmiBannerDismissed, onDismiss} = props
   if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
@@ -270,7 +271,7 @@ const Enabled = (props: {
       />
     )
   }
-  if (alwaysShow || !settings.sfmiBannerDismissed) {
+  if (alwaysShow || !sfmiBannerDismissed) {
     return <JustEnabled onDismiss={alwaysShow ? undefined : onDismiss} />
   }
   return null
@@ -280,7 +281,6 @@ const Disabled = (props: {
   driverStatus: T.FS.DriverStatus
   onEnable: () => void
   alwaysShow?: boolean
-  settings: T.FS.Settings
   onDismiss: () => void
 }) => {
   const {driverStatus, onEnable, alwaysShow, onDismiss} = props
@@ -314,9 +314,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
-        justifyContent: 'center',
         maxWidth: Kb.Styles.globalMargins.large * 14 + Kb.Styles.globalMargins.mediumLarge * 2,
-        padding: Kb.Styles.globalMargins.mediumLarge,
       },
       dismissIcon: Kb.Styles.platformStyles({
         isElectron: {

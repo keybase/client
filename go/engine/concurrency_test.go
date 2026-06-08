@@ -31,11 +31,11 @@ func TestConcurrentLogin(t *testing.T) {
 
 	done := make(chan bool)
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		lwg.Add(1)
 		go func(index int) {
 			defer lwg.Done()
-			for j := 0; j < 4; j++ {
+			for range 4 {
 				Logout(tc)
 				err := u.Login(tc.G)
 				require.NoError(t, err)
@@ -83,11 +83,11 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 
 	done := make(chan bool)
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		lwg.Add(1)
 		go func(index int) {
 			defer lwg.Done()
-			for j := 0; j < 4; j++ {
+			for range 4 {
 				Logout(tc)
 				err := u.Login(tc.G)
 				require.NoError(t, err)
@@ -132,11 +132,11 @@ func TestConcurrentSignup(t *testing.T) {
 
 	done := make(chan bool)
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		lwg.Add(1)
 		go func(index int) {
 			defer lwg.Done()
-			for j := 0; j < 4; j++ {
+			for range 4 {
 				Logout(tc)
 				err := u.Login(tc.G)
 				require.NoError(t, err)
@@ -173,10 +173,10 @@ func TestConcurrentGlobals(t *testing.T) {
 		genv,
 	}
 	var wg sync.WaitGroup
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wg.Add(1)
 		go func(_ int) {
-			for j := 0; j < 10; j++ {
+			for range 10 {
 				f := fns[rand.Intn(len(fns))] //nolint:gosec // G404: Test code with randomized function calls, not security-critical
 				f(tc.G)
 			}

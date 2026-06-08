@@ -146,13 +146,14 @@ const Card = (props: CardType) => (
   <Kb.Box2
     direction="vertical"
     centerChildren={true}
+    noShrink={true}
     style={styles.card}
     title={cardToTitle(cards[props.card])}
   >
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
-        type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'}
+        type={isMobile ? 'BodySmall' : 'Body'}
         style={{color: suits[cards[props.card].suit].color}}
       >
         {cards[props.card].value}
@@ -160,7 +161,7 @@ const Card = (props: CardType) => (
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
-        fontSize={Kb.Styles.isMobile ? 10 : 12}
+        fontSize={isMobile ? 10 : 12}
         type={suits[cards[props.card].suit].icon}
         color={suits[cards[props.card].suit].color}
         style={styles.cardSuit}
@@ -191,7 +192,7 @@ type CoinType = {
 const CoinFlipResultCoin = (props: CoinType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
-      <Kb.Icon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
+      <Kb.ImageIcon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text selectable={true} type="Header">
@@ -211,7 +212,7 @@ const CoinFlipResultHands = (props: HandType) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
+        <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="space-around" style={styles.handTarget}>
           {handsWithCards.map(hand => (
             <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical">
               <Kb.Text selectable={true} type="BodyBig">
@@ -282,7 +283,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
 
 const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
   <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
-    <Kb.Box2 direction="vertical" centerChildren={true} alignItems="center" style={styles.listOrderContainer}>
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.listOrderContainer}>
       <Kb.Text
         selectable={true}
         center={true}
@@ -301,9 +302,9 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
 const paragraphOverrides = {
   paragraph: {
     // These are Header's styles.
-    fontSize: Kb.Styles.isMobile ? 20 : 18,
+    fontSize: isMobile ? 20 : 18,
     fontWeight: '700',
-    lineHeight: Kb.Styles.isMobile ? 24 : undefined,
+    lineHeight: isMobile ? 24 : undefined,
   } as const,
 }
 
@@ -318,11 +319,7 @@ const styles = Kb.Styles.styleSheetCreate(
       card: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
-          borderColor: Kb.Styles.globalColors.black_10OrBlack,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          flexShrink: 0,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_10OrBlack, 1, Kb.Styles.borderRadius),
           height: 44,
           marginRight: -4,
           marginTop: Kb.Styles.globalMargins.tiny,
@@ -353,8 +350,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       coin: {
-        height: 48,
-        width: 48,
+        ...Kb.Styles.size(48),
       },
       commonContainer: {
         marginTop: Kb.Styles.globalMargins.tiny,
@@ -365,7 +361,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       handTarget: {
         height: 'auto',
-        justifyContent: 'space-around',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
       listContainer: {
@@ -384,8 +379,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.greyDark,
           borderRadius: 2,
           color: Kb.Styles.globalColors.black,
-          height: 14,
-          width: 14,
+          ...Kb.Styles.size(14),
         },
         isMobile: {
           height: 16,
@@ -394,16 +388,14 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       listOrderContainer: {
-        marginLeft: Kb.Styles.globalMargins.xtiny,
-        marginRight: Kb.Styles.globalMargins.xtiny,
+        ...Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
         width: 20,
       },
       listOrderFirst: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.black,
           color: Kb.Styles.globalColors.white,
-          height: 18,
-          width: 18,
+          ...Kb.Styles.size(18),
         },
         isMobile: {
           height: 20,

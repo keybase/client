@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type SettingsItemProps = {
@@ -15,14 +15,18 @@ type SettingsItemProps = {
   selected: boolean
 }
 
-const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) {
+function SettingsItem(props: SettingsItemProps) {
   const {onClick: _onClick, type, selected} = props
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     _onClick(type)
-  }, [_onClick, type])
+  }
   return (
     <Kb.ClickableBox
       onClick={onClick}
+      direction="horizontal"
+      alignItems="center"
+      relative={true}
+      fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.item, selected && styles.selected] as const)}
     >
       {props.iconComponent ? (
@@ -33,12 +37,12 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
           type={props.icon}
           color={Kb.Styles.globalColors.black_50}
           style={{
-            marginRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
+            marginRight: isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
           }}
         />
       ) : null}
       <Kb.Box2 direction="vertical">
-        <Kb.Text2
+        <Kb.Text
           type="BodySemibold"
           style={Kb.Styles.collapseStyles([
             selected ? styles.selectedText : styles.itemText,
@@ -46,8 +50,8 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
           ])}
         >
           {props.text}
-        </Kb.Text2>
-        {props.text && props.subText && <Kb.Text2 type="BodySmall">{props.subText}</Kb.Text2>}
+        </Kb.Text>
+        {props.text && props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
       </Kb.Box2>
       {props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (
@@ -55,7 +59,7 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
       )}
     </Kb.ClickableBox>
   )
-})
+}
 export default SettingsItem
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
@@ -64,15 +68,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   item: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
-      position: 'relative',
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       height: 32,
-      width: '100%',
     },
     isMobile: {
       borderBottomColor: Kb.Styles.globalColors.black_10,

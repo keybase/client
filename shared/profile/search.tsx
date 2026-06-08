@@ -2,16 +2,16 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 const ProfileSearch = () => {
-  const appendPeopleBuilder = C.useRouterState(s => s.appendPeopleBuilder)
+  const appendPeopleBuilder = C.Router2.appendPeopleBuilder
   const onSearch = appendPeopleBuilder
   return (
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.SearchFilter
         hotkey="k"
         icon="iconfont-search"
-        onFocus={Kb.Styles.isMobile ? undefined : onSearch}
-        onClick={!Kb.Styles.isMobile ? undefined : onSearch}
-        placeholderText={Kb.Styles.isMobile ? 'Search' : 'Search people'}
+        onFocus={isMobile ? undefined : onSearch}
+        onClick={!isMobile ? undefined : onSearch}
+        placeholderText={isMobile ? 'Search' : 'Search people'}
         size="full-width"
         style={styles.filter}
       />
@@ -26,13 +26,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   filter: Kb.Styles.platformStyles({
     isElectron: {
-      marginLeft: Kb.Styles.globalMargins.xsmall,
-      marginRight: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.marginH(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
       height: 40,
-      paddingLeft: 0,
-      paddingRight: 0,
+      ...Kb.Styles.paddingH(0),
     },
   }),
 }))

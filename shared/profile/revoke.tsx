@@ -1,49 +1,78 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '@/util/platforms'
 import {SiteIcon} from './generic/shared'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import Modal from './modal'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 type OwnProps = {
   icon: T.Tracker.SiteIconSet
+  kid?: string
   platform: T.More.PlatformsExpandedType
   platformHandle: string
   proofId: string
 }
 const RevokeProof = (ownProps: OwnProps) => {
-  const {platformHandle, platform, proofId, icon} = ownProps
-  const errorMessage = useProfileState(s => s.revokeError)
-  const finishRevoking = useProfileState(s => s.dispatch.finishRevoking)
-  const submitRevokeProof = useProfileState(s => s.dispatch.submitRevokeProof)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const {icon, kid, platform, platformHandle, proofId} = ownProps
+  const [errorMessage, setErrorMessage] = React.useState('')
+  const currentUsername = useCurrentUserState(s => s.username)
+  const revokeKey = C.useRPC(T.RPCGen.revokeRevokeKeyRpcPromise)
+  const revokeSigs = C.useRPC(T.RPCGen.revokeRevokeSigsRpcPromise)
+  const clearModals = C.Router2.clearModals
+  const onSuccess = () => {
+    navToProfile(currentUsername)
+    clearModals()
+  }
   const onCancel = () => {
-    finishRevoking()
     clearModals()
   }
   const onRevoke = () => {
-    proofId && submitRevokeProof(proofId)
-    clearModals()
+    if (!proofId) {
+      clearModals()
+      return
+    }
+    if (platform === 'pgp') {
+      if (!kid) {
+        setErrorMessage('This PGP key cannot be dropped because its key ID is missing.')
+        return
+      }
+      revokeKey([{keyID: kid}, C.waitingKeyProfile], onSuccess, error => {
+        setErrorMessage(`Error in dropping Pgp Key: ${error.message}`)
+      })
+      return
+    }
+    revokeSigs([{sigIDQueries: [proofId]}, C.waitingKeyProfile], onSuccess, () => {
+      setErrorMessage('There was an error revoking your proof. You can click the button to try again.')
+    })
   }
 
   const platformHandleSubtitle = platformSubtitle(platform)
   return (
     <Modal onCancel={onCancel} skipButton={true}>
       {!!errorMessage && (
-        <Kb.Box style={styles.errorBanner}>
-          <Kb.Text center={!Kb.Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
+        <Kb.Box2
+          direction="vertical"
+          alignItems="center"
+          fullWidth={true}
+          justifyContent="center"
+          padding="tiny"
+          style={styles.errorBanner}
+        >
+          <Kb.Text center={!isMobile} style={styles.errorBannerText} type="BodySemibold">
             {errorMessage}
           </Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
-      <Kb.Box style={styles.contentContainer}>
-        <Kb.Box style={styles.positionRelative}>
+      <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.contentContainer}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={icon} full={true} style={styles.siteIcon} />
-          <Kb.Icon type="icon-proof-broken" style={styles.revokeIcon} />
-        </Kb.Box>
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.platformUsername} type="Header">
+          <Kb.ImageIcon type="icon-proof-broken" style={styles.revokeIcon} />
+        </Kb.Box2>
+        <Kb.Text center={!isMobile} style={styles.platformUsername} type="Header">
           {platformHandle}
         </Kb.Text>
         {!!platformHandleSubtitle && (
@@ -51,10 +80,10 @@ const RevokeProof = (ownProps: OwnProps) => {
             {platformHandleSubtitle}
           </Kb.Text>
         )}
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.descriptionText} type="Header">
+        <Kb.Text center={!isMobile} style={styles.descriptionText} type="Header">
           {formatMessage(platform)}
         </Kb.Text>
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.reminderText} type="Body">
+        <Kb.Text center={!isMobile} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
         <Kb.ButtonBar>
@@ -66,7 +95,7 @@ const RevokeProof = (ownProps: OwnProps) => {
             waitingKey={C.waitingKeyProfile}
           />
         </Kb.ButtonBar>
-      </Kb.Box>
+      </Kb.Box2>
     </Modal>
   )
 }
@@ -75,23 +104,14 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contentContainer: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        flexGrow: 1,
-        justifyContent: 'center',
-        margin: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
+        margin: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
         maxWidth: 512,
-        textAlign: Kb.Styles.isMobile ? undefined : 'center',
+        textAlign: isMobile ? undefined : 'center',
       },
       descriptionText: {marginTop: Kb.Styles.globalMargins.medium},
       errorBanner: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.red,
-        justifyContent: 'center',
         minHeight: Kb.Styles.globalMargins.large,
-        padding: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
       errorBannerText: {
         color: Kb.Styles.globalColors.white,
@@ -110,10 +130,9 @@ const styles = Kb.Styles.styleSheetCreate(
           overflowWrap: 'break-word',
         },
       }),
-      positionRelative: {position: 'relative'},
       reminderText: {marginTop: Kb.Styles.globalMargins.tiny},
       revokeIcon: {bottom: -8, position: 'absolute', right: -10},
-      siteIcon: Kb.Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
+      siteIcon: isMobile ? Kb.Styles.size(64) : Kb.Styles.size(48),
     }) as const
 )
 

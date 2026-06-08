@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import type {NotificationsSettingsState} from '@/constants/settings-notifications'
 
 type GroupProps = {
   allowEdit: boolean
@@ -7,7 +6,11 @@ type GroupProps = {
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
-  settings?: ReadonlyArray<NotificationsSettingsState>
+  settings?: ReadonlyArray<{
+    description: string
+    name: string
+    subscribed: boolean
+  }>
   title?: string
   unsub?: string
   unsubscribedFromAll: boolean
@@ -58,7 +61,7 @@ const Group = (props: GroupProps) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      label: {marginBottom: Kb.Styles.globalMargins.xtiny, marginTop: Kb.Styles.globalMargins.xtiny},
+      label: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},
     }) as const
 )
 

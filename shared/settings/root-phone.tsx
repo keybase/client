@@ -1,20 +1,19 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {keybaseFM} from '@/constants/whats-new'
 import SettingsItem from './sub-nav/settings-item'
-import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as Settings from '@/constants/settings'
-import {usePushState} from '@/constants/push'
-import {useNotifState} from '@/constants/notifications'
+import {usePushState} from '@/stores/push'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
-  const ref = React.useRef<Kb.PlainInputRef>(null)
+  const ref = React.useRef<Kb.Input3Ref>(null)
 
   return (
     <Kb.Box2
@@ -32,19 +31,14 @@ const PerfRow = () => {
           T.RPCGen.logPerfLogPointRpcPromise({msg: toSubmit})
             .then(() => {})
             .catch(() => {})
-          ref.current?.transformText(
-            () => ({
-              selection: {end: 0, start: 0},
-              text: '',
-            }),
-            true
-          )
+          ref.current?.clear()
         }}
       />
-      <Kb.PlainInput
+      <Kb.Input3
         ref={ref}
-        onChangeText={text => setToSubmit(`GUI: ${text}`)}
-        style={styles.perfInput}
+        onChangeText={(text: string) => setToSubmit(`GUI: ${text}`)}
+        hideBorder={true}
+        containerStyle={styles.perfInput}
         placeholder="Add to perf log"
       />
     </Kb.Box2>
@@ -60,13 +54,13 @@ type Item = {
   subText?: string
   textColor?: string
 }
-type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
+type Section = {title: string; data: ReadonlyArray<Item>}
 
 function SettingsNav() {
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => !s.hasPermissions)
   const statsShown = useConfigState(s => !!s.runtimeStats)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const contactsLabel = useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
@@ -78,7 +72,7 @@ function SettingsNav() {
         {
           icon: 'iconfont-nav-2-crypto',
           onClick: () => {
-            navigateAppend(Settings.settingsCryptoTab)
+            navigateAppend({name: Settings.settingsCryptoTab, params: {}})
           },
           text: 'Crypto',
         },
@@ -86,7 +80,7 @@ function SettingsNav() {
           badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
           icon: 'iconfont-nav-2-devices',
           onClick: () => {
-            navigateAppend(Settings.settingsDevicesTab)
+            navigateAppend({name: Settings.settingsDevicesTab, params: {}})
           },
           text: 'Devices',
         },
@@ -94,24 +88,16 @@ function SettingsNav() {
           badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
           icon: 'iconfont-nav-2-git',
           onClick: () => {
-            navigateAppend(Settings.settingsGitTab)
+            navigateAppend({name: Settings.settingsGitTab, params: {}})
           },
           text: 'Git',
         },
         {
           icon: 'iconfont-nav-2-wallets',
           onClick: () => {
-            navigateAppend(Settings.settingsWalletsTab)
+            navigateAppend({name: Settings.settingsWalletsTab, params: {}})
           },
           text: 'Wallet',
-        },
-        {
-          iconComponent: WhatsNewIcon,
-          onClick: () => {
-            navigateAppend(Settings.settingsWhatsNewTab)
-          },
-          subText: `What's new?`,
-          text: keybaseFM,
         },
       ],
       title: '',
@@ -121,64 +107,64 @@ function SettingsNav() {
         {
           badgeNumber: badgeNumbers.get(C.Tabs.settingsTab),
           onClick: () => {
-            navigateAppend(Settings.settingsAccountTab)
+            navigateAppend({name: Settings.settingsAccountTab, params: {}})
           },
           text: 'Account',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsAdvancedTab)
+            navigateAppend({name: Settings.settingsAdvancedTab, params: {}})
           },
           text: 'Advanced',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsArchiveTab)
+            navigateAppend({name: Settings.settingsArchiveTab, params: {}})
           },
           text: 'Backup',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsChatTab)
+            navigateAppend({name: Settings.settingsChatTab, params: {}})
           },
           text: 'Chat',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsDisplayTab)
+            navigateAppend({name: Settings.settingsDisplayTab, params: {}})
           },
           text: 'Display',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsFeedbackTab)
+            navigateAppend({name: Settings.settingsFeedbackTab, params: {}})
           },
           text: 'Feedback',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsFsTab)
+            navigateAppend({name: Settings.settingsFsTab, params: {}})
           },
           text: 'Files',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsContactsTab)
+            navigateAppend({name: Settings.settingsContactsTab, params: {}})
           },
           text: contactsLabel,
         },
         {
           badgeNumber: badgeNotifications ? 1 : 0,
           onClick: () => {
-            navigateAppend(Settings.settingsNotificationsTab)
+            navigateAppend({name: Settings.settingsNotificationsTab, params: {}})
           },
           text: 'Notifications',
         },
-        ...(C.isAndroid
+        ...(isAndroid
           ? [
               {
                 onClick: () => {
-                  navigateAppend(Settings.settingsScreenprotectorTab)
+                  navigateAppend({name: Settings.settingsScreenprotectorTab, params: {}})
                 },
                 text: 'Screen protector',
               } as const,
@@ -191,13 +177,29 @@ function SettingsNav() {
       data: [
         {
           onClick: () => {
-            navigateAppend(Settings.settingsAboutTab)
+            navigateAppend({name: Settings.settingsAboutTab, params: {}})
           },
           text: 'About',
         },
+        ...(__DEV__
+          ? [
+              {
+                onClick: () => {
+                  navigateAppend({name: Settings.settingsTypographyTab, params: {}})
+                },
+                text: 'Typography',
+              } as const,
+              {
+                onClick: () => {
+                  navigateAppend({name: Settings.settingsIconsTab, params: {}})
+                },
+                text: 'Icons',
+              } as const,
+            ]
+          : []),
         {
           onClick: () => {
-            navigateAppend(Settings.settingsLogOutTab)
+            navigateAppend({name: Settings.settingsLogOutTab, params: {}})
           },
           text: 'Sign out',
           textColor: Kb.Styles.globalColors.red,
@@ -208,41 +210,40 @@ function SettingsNav() {
   ]
 
   return (
-    <Kb.SectionList
-      keyboardShouldPersistTaps="handled"
-      keyExtractor={(item, index) => item.text + index}
-      initialNumToRender={20}
-      renderItem={({item}) => {
-        if (item.text === 'perf') {
-          return <PerfRow />
-        }
-        return item.text ? (
-          <SettingsItem {...item} type={item.text} onClick={() => item.onClick()} selected={false} />
-        ) : null
-      }}
-      renderSectionHeader={({section: {title}}) =>
-        title ? (
-          <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
-            {title}
-          </Kb.Text>
-        ) : null
-      }
-      style={Kb.Styles.globalStyles.fullHeight}
-      sections={sections}
-    />
+    <Kb.ScrollView style={Kb.Styles.globalStyles.fullHeight} testID={TestIDs.SETTINGS_ACCOUNT}>
+      {sections.map(section => (
+        <React.Fragment key={section.title || '_top'}>
+          {section.title ? (
+            <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
+              {section.title}
+            </Kb.Text>
+          ) : null}
+          {section.data.map((item, index) =>
+            item.text === 'perf' ? (
+              <PerfRow key="perf" />
+            ) : item.text ? (
+              <SettingsItem
+                {...item}
+                key={item.text + String(index)}
+                type={item.text}
+                onClick={() => item.onClick()}
+                selected={false}
+              />
+            ) : null
+          )}
+        </React.Fragment>
+      ))}
+    </Kb.ScrollView>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  perfInput: {backgroundColor: Kb.Styles.globalColors.grey},
+  perfInput: {backgroundColor: Kb.Styles.globalColors.grey, flex: 1, padding: 0, width: 'auto' as const},
   perfRow: {height: 44},
   sectionTitle: {
     backgroundColor: Kb.Styles.globalColors.blueLighter3,
     color: Kb.Styles.globalColors.black_50,
-    paddingBottom: 7,
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
-    paddingTop: 7,
+    ...Kb.Styles.padding(7, Kb.Styles.globalMargins.small),
   },
 }))
 

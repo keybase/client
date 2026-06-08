@@ -129,7 +129,7 @@ func (b *BlockCacheStandard) subtractBlockBytes(block Block) {
 	}
 }
 
-func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
+func (b *BlockCacheStandard) onEvict(key any, value any) {
 	block, ok := value.(Block)
 	if !ok {
 		return

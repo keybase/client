@@ -1,4 +1,4 @@
-import * as Kb from '@/common-adapters/index'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   label: string
@@ -18,9 +18,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {flexGrow: 0},
   continueText: {
     color: Kb.Styles.globalColors.white,
-  },
-  rabbitEmoji: {
-    marginLeft: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

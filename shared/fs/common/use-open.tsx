@@ -1,43 +1,52 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFsPathItem} from './hooks'
 
 type Props = {
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
-  destinationPickerIndex?: number
 }
 
 export const useOpen = (props: Props) => {
-  const {destPicker, pathItems} = useFSState(
-    C.useShallow(s => {
-      const {destinationPicker, pathItems} = s
-      return {destPicker: destinationPicker, pathItems}
-    })
-  )
+  const pathItem = useFsPathItem(props.path, {loadOnMount: false, subscribe: false})
   const nav = useSafeNavigation()
 
-  if (typeof props.destinationPickerIndex !== 'number') {
-    return () => nav.safeNavigateAppend({props: {path: props.path}, selected: 'fsRoot'})
+  if (!props.destinationPickerSource) {
+    const knownType = pathItem.type !== T.FS.PathType.Unknown ? pathItem.type : undefined
+    const knownTimestamp = pathItem.type === T.FS.PathType.File ? pathItem.lastModifiedTimestamp : undefined
+    return () => {
+      if (isMobile && knownType === T.FS.PathType.File) {
+        nav.safeNavigateAppend({
+          name: 'fsFilePreview',
+          params: {initialLastModifiedTimestamp: knownTimestamp, path: props.path},
+        })
+      } else {
+        nav.safeNavigateAppend({
+          name: 'fsBrowse',
+          params: {initialLastModifiedTimestamp: knownTimestamp, initialPathType: knownType, path: props.path},
+        })
+      }
+    }
   }
 
-  const isFolder =
-    T.FS.getPathLevel(props.path) <= 3 ||
-    FS.getPathItem(pathItems, props.path).type === T.FS.PathType.Folder
+  const destinationPickerSource = props.destinationPickerSource
+  const isFolder = T.FS.getPathLevel(props.path) <= 3 || pathItem.type === T.FS.PathType.Folder
 
   const canOpenInDestinationPicker =
     isFolder &&
-    (destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ||
-      (destPicker.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
-        destPicker.source.path !== props.path))
+    (destinationPickerSource.type === T.FS.DestinationPickerSource.IncomingShare
+      ? true
+      : destinationPickerSource.path !== props.path)
 
   if (!canOpenInDestinationPicker) {
     return
   }
 
   const destinationPickerGoTo = () =>
-    FS.makeActionsForDestinationPickerOpen((props.destinationPickerIndex || 0) + 1, props.path)
+    nav.safeNavigateAppend({
+      name: 'destinationPicker',
+      params: {parentPath: props.path, source: destinationPickerSource},
+    })
 
   return destinationPickerGoTo
 }

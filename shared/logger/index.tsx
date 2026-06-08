@@ -2,7 +2,6 @@ import * as T from '@/constants/types'
 import Logger from './ring-logger'
 import noop from 'lodash/noop'
 import type {hasEngine as HasEngineType} from '../engine/require'
-import {isMobile} from '@/constants/platform'
 import {requestIdleCallback} from '@/util/idle-callback'
 
 export type Timestamp = number
@@ -24,6 +23,7 @@ export type Loggers = {
 const localLog = isMobile ? (__DEV__ ? console.log.bind(console) : noop) : console.log.bind(console)
 const localWarn = console.warn.bind(console)
 const localError = console.error.bind(console)
+const isJest = typeof process !== 'undefined' && !!process.env['JEST_WORKER_ID']
 
 // inject for convenience
 if (__DEV__) {
@@ -59,7 +59,9 @@ class AggregateLoggerImpl {
   private timerID: undefined | ReturnType<typeof setTimeout>
 
   private resetPeriodic = () => {
-    this.timerID && clearTimeout(this.timerID)
+    if (this.timerID) {
+      clearTimeout(this.timerID)
+    }
     // we wait, then want a good opportunity
     this.timerID = setTimeout(() => {
       requestIdleCallback(
@@ -91,7 +93,9 @@ class AggregateLoggerImpl {
     }
 
     this.allLoggers = [this._action, this._debug, this._error, this._info, this._warn]
-    this.resetPeriodic()
+    if (!isJest) {
+      this.resetPeriodic()
+    }
   }
 
   dump = async (periodic: boolean = false) => {
@@ -113,7 +117,7 @@ class AggregateLoggerImpl {
       // NativeTransport forwards responses to the renderer without processing
       // them locally, so RPCs sent from node never get responses.
       try {
-        if (typeof process !== 'undefined' && process.type !== 'renderer') {
+        if (typeof process !== 'undefined' && process['type'] !== 'renderer') {
           return await Promise.resolve()
         }
         const {hasEngine} = require('../engine/require') as {hasEngine: typeof HasEngineType}

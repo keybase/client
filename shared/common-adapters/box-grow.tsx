@@ -1,6 +1,6 @@
 // A box that flex grows but constrains children
 import * as Styles from '@/styles'
-import Box, {Box2, type LayoutEvent} from './box'
+import {Box2, type LayoutEvent} from './box'
 
 type Props = {
   children?: React.ReactNode
@@ -10,9 +10,11 @@ type Props = {
 
 const BoxGrow = (p: Props) => {
   return (
-    <Box style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
-      <Box style={styles.inner}>{p.children}</Box>
-    </Box>
+    <Box2 direction="vertical" alignSelf="stretch" relative={true} style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
+      <Box2 direction="vertical" style={styles.inner}>
+        {p.children}
+      </Box2>
+    </Box2>
   )
 }
 
@@ -23,14 +25,11 @@ const styles = Styles.styleSheetCreate(
       inner2: {...Styles.globalStyles.fillAbsolute, display: 'flex', height: '100%', width: '100%'},
       outer: {
         flexGrow: 1,
-        position: 'relative',
       },
       outer2: {
-        alignSelf: 'stretch',
         display: 'flex',
         flexGrow: 1,
         flexShrink: 1,
-        position: 'relative',
       },
     }) as const
 )
@@ -40,7 +39,7 @@ export default BoxGrow
 export const BoxGrow2 = (p: Props) => {
   const {onLayout, style, children} = p
   return (
-    <Box2 direction="horizontal" style={Styles.collapseStyles([styles.outer2, style])} onLayout={onLayout}>
+    <Box2 direction="horizontal" alignSelf="stretch" relative={true} style={Styles.collapseStyles([styles.outer2, style])} onLayout={onLayout}>
       <Box2 direction="horizontal" style={styles.inner2}>
         {children}
       </Box2>

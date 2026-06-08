@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "migrate-to-static-config": {
+      "source": "react-navigation/skills",
+      "sourceType": "github",
+      "computedHash": "052dbba0f84ad2376c07e60c9619d7088d8e728a0107ff00c5bf47e8c7ad2923"
+    },
+    "react-native-best-practices": {
+      "source": "software-mansion-labs/skills",
+      "sourceType": "github",
+      "computedHash": "265c36081262430c0d1e45a114378c8d93ffec20f8adf4e461dff407581c3b86"
+    },
+    "upgrade-react-navigation": {
+      "source": "react-navigation/skills",
+      "sourceType": "github",
+      "computedHash": "49e493a5e878c7ef4e77dd7b5ed98c477c6a815617351c337c9cd374414669f3"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "1be892a3ea68b74654326ef836a58dd528d99ae0ab8d879764e2519c39068e67"
+    },
+    "vercel-react-native-skills": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "2e9088a7333666d8c2833b8ff58bd51b955501c42b4c7244f72b4cbf22dafcc4"
+    }
+  }
+}

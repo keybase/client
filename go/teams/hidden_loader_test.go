@@ -116,7 +116,7 @@ func requestNewBlindTreeFromArchitectAndWaitUntilDone(t *testing.T, uTc *libkb.T
 }
 
 func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
-	for i := 0; i < n; i++ {
+	for range n {
 		succeeded := f(t)
 		if succeeded {
 			t.Logf("Succeeded!")
@@ -438,7 +438,7 @@ func TestSubteamReaderFTL(t *testing.T) {
 
 	t.Logf("create team")
 	teamName, teamID := createTeam2(*tcs[0])
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		makeHiddenRotation(t, tcs[0].G, teamName)
 	}
 	createSubteam(tcs[0], teamName, "unused")

@@ -37,7 +37,7 @@ func NewFeaturedBotLoader(g *libkb.GlobalContext) *FeaturedBotLoader {
 	}
 }
 
-func (l *FeaturedBotLoader) debug(mctx libkb.MetaContext, msg string, args ...interface{}) {
+func (l *FeaturedBotLoader) debug(mctx libkb.MetaContext, msg string, args ...any) {
 	l.G().Log.CDebugf(mctx.Ctx(), "FeaturedBotLoader: %s", fmt.Sprintf(msg, args...))
 }
 

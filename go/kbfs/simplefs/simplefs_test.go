@@ -1412,14 +1412,11 @@ func TestGetRevisions(t *testing.T) {
 	}
 
 	t.Log("Write 6 revisions of a single file, spaced out a minute each")
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		clock.Add(1 * time.Minute)
 		writeRemoteFile(ctx, t, sfs, filePath, []byte{byte(i)})
 		syncFS(ctx, t, sfs, "/private/jdoe")
-		numExpected := i + 1
-		if numExpected > 5 {
-			numExpected = 5
-		}
+		numExpected := min(i+1, 5)
 		checkRevisions(numExpected, i+2, keybase1.RevisionSpanType_DEFAULT)
 		checkRevisions(numExpected, i+2, keybase1.RevisionSpanType_LAST_FIVE)
 	}

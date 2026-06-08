@@ -86,7 +86,7 @@ func (m *CountMeter) Mark(i int64) {
 
 func (m *CountMeter) rateN(n int) float64 {
 	var count int64
-	for i := 0; i < n; i++ {
+	for i := range n {
 		count += m.counters[i]
 	}
 	return float64(count)

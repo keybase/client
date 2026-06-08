@@ -1,0 +1,34 @@
+appId: keybase.ios
+---
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+# Reset scroll position so each flow sees the top of any scrollable list
+- swipe:
+    direction: DOWN
+    duration: 500

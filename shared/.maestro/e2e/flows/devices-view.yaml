@@ -1,0 +1,17 @@
+appId: keybase.ios
+---
+- runFlow: ../subflows/escape-to-tabs.yaml
+- tapOn:
+    text: "More"
+- tapOn:
+    text: ".*Devices"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      id: "devices-list"
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "devices-row"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/devices-view

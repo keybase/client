@@ -1,0 +1,58 @@
+import * as React from 'react'
+import * as Kb from '@/common-adapters'
+
+type Props = {
+  onBarCodeRead: (code: string) => void
+  notAuthorizedView: React.ReactElement | null
+  style: Kb.Styles.StylesCrossPlatform
+}
+
+const QRScannerMobile = (p: Props): React.ReactElement | null => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  const {CameraView, useCameraPermissions} = require('expo-camera') as typeof import('expo-camera')
+  const [scanned, setScanned] = React.useState(false)
+  const [permission, requestPermission] = useCameraPermissions()
+
+  React.useEffect(() => {
+    if (!permission) {
+      requestPermission()
+        .then(() => {})
+        .catch(() => {})
+    }
+  }, [permission, requestPermission])
+
+  if (!permission) {
+    return (
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([p.style, styles.gettingPermissions])} />
+    )
+  }
+  if (!permission.granted) {
+    return p.notAuthorizedView || null
+  }
+
+  return (
+    <CameraView
+      barcodeScannerSettings={{barcodeTypes: ['qr']}}
+      onBarcodeScanned={({data}) => {
+        if (scanned) return
+        setScanned(true)
+        p.onBarCodeRead(data)
+      }}
+      style={p.style}
+    />
+  )
+}
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  gettingPermissions: {
+    backgroundColor: Kb.Styles.globalColors.greyLight,
+  },
+}))
+
+const QRScanner = (p: Props): React.ReactElement | null => {
+  if (!isMobile) return null
+  return <QRScannerMobile {...p} />
+}
+
+export default QRScanner

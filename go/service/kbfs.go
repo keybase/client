@@ -149,7 +149,7 @@ func (h *KBFSHandler) CreateTLF(ctx context.Context, arg keybase1.CreateTLFArg) 
 
 func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, arg keybase1.GetKBFSTeamSettingsArg) (ret keybase1.KBFSTeamSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SETTINGS")
-	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+	loader := func(mctx libkb.MetaContext) (any, error) {
 		return teams.GetKBFSTeamSettings(mctx.Ctx(), mctx.G(), arg.TeamID.IsPublic(), arg.TeamID)
 	}
 	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "kbfs.getKBFSTeamSettings", false, arg, &ret, loader)

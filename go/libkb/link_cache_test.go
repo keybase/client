@@ -39,7 +39,7 @@ func TestLinkCacheBasics(t *testing.T) {
 		t.Errorf("Get failed after Put")
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		nlink := randChainLink()
 		c.Put(m, nlink.id, nlink)
 	}
@@ -80,7 +80,7 @@ func TestLinkCacheAtime(t *testing.T) {
 		t.Errorf("Get failed after Put")
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		nlink := randChainLink()
 		c.Put(m, nlink.id, nlink)
 	}
@@ -117,10 +117,10 @@ func TestLinkCacheConcurrent(t *testing.T) {
 	var m MetaContext
 
 	var wg sync.WaitGroup
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		wg.Add(1)
 		go func() {
-			for x := 0; x < 100; x++ {
+			for range 100 {
 				link := randChainLink()
 				c.Put(m, link.id, link)
 				_, ok := c.Get(link.id)

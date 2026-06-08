@@ -7,7 +7,7 @@ type Props = {
   // Desktop only
   icon?: IconType
   isSelected?: boolean
-  // Moible only
+  // Mobile only
   description?: string
   illustration?: IconType
   onClick: () => void
@@ -20,19 +20,20 @@ const NavRow = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
+      testID={`crypto-nav-${props.tab}`}
       className={Kb.Styles.classNames({
         background_color_blue: isSelected,
         hover_background_color_blueGreyDark: !isSelected,
       })}
     >
-      <Kb.ListItem2
+      <Kb.ListItem
         type="Small"
         firstItem={true}
         statusIcon={
-          <Kb.Icon
+          <Kb.IconAuto
             type={icon}
             sizeType="Small"
-            color={isSelected ? Kb.Styles.globalColors.whiteOrWhite : ''}
+            color={isSelected ? Kb.Styles.globalColors.whiteOrWhite : undefined}
             padding="xtiny"
           />
         }
@@ -43,7 +44,8 @@ const NavRow = (props: Props) => {
             direction="vertical"
             fullHeight={true}
             fullWidth={true}
-            style={Kb.Styles.collapseStyles([styles.textContainer])}
+            justifyContent="center"
+            style={styles.desktopItemBody}
           >
             <Kb.Text
               type="BodySemibold"
@@ -61,25 +63,27 @@ const NavRow = (props: Props) => {
 
   const mobileRow =
     description && illustration ? (
-      <Kb.RichButton title={title} description={description} icon={illustration} onClick={onClick} />
+      <Kb.Box2 direction="vertical" fullWidth={true} testID={`crypto-nav-${props.tab}`}>
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type={illustration} />}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">{title}</Kb.Text>
+              <Kb.Text type="BodySmall">{description}</Kb.Text>
+            </Kb.Box2>
+          }
+          onClick={onClick}
+        />
+      </Kb.Box2>
     ) : null
 
-  return Kb.Styles.isMobile ? mobileRow : desktopRow
+  return isMobile ? mobileRow : desktopRow
 }
 
-const rowHeight = 50
-
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  clickableContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.desktopStyles.clickable,
-      flexShrink: 0,
-      height: rowHeight,
-      width: '100%',
-    },
-  }),
-  textContainer: {
-    justifyContent: 'center',
+  desktopItemBody: {
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
 }))

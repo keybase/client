@@ -1,51 +1,64 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as React from 'react'
+import * as InputState from '../input-area/input-state'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
+import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
+import {showForwardMessagePicker} from '../fwd-msg'
+import {
+  useConversationThreadID,
+  useConversationThreadMessage,
+  useConversationThreadMessageActions,
+} from '../thread-context'
 
 type OwnProps = {
   className?: string
+  hasUnfurls: boolean
+  messageType: T.Chat.MessageType
+  onReact?: (emoji: string) => void
+  onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
-  const {className, onShowingEmojiPicker, style} = p
+function EmojiRowContainer(p: OwnProps) {
+  const {
+    className,
+    hasUnfurls,
+    messageType,
+    onReact: onReactProp,
+    onReply: onReplyProp,
+    onShowingEmojiPicker,
+    style,
+  } = p
   const ordinal = useOrdinal()
-
-  const {hasUnfurls, setReplyTo, toggleMessageReaction, type} = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal)
-      const type = m?.type
-      const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
-      const {toggleMessageReaction, setReplyTo} = s.dispatch
-      return {hasUnfurls, setReplyTo, toggleMessageReaction, type}
-    })
-  )
-
-  const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const _onForward = React.useCallback(() => {
-    navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, ordinal},
-      selected: 'chatForwardMsgPick',
-    }))
-  }, [navigateAppend, ordinal])
-  const onReact = React.useCallback(
-    (emoji: string) => {
-      toggleMessageReaction(ordinal, emoji)
-    },
-    [toggleMessageReaction, ordinal]
-  )
-  const _onReply = React.useCallback(() => {
+  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
+  const {toggleMessageReaction} = useConversationThreadMessageActions()
+  const emojis = useReactionRowTopReacjis()
+  const conversationIDKey = useConversationThreadID()
+  const message = useConversationThreadMessage(ordinal)
+  const hasMessageID = !!message && !!T.Chat.messageIDToNumber(message.id)
+  const _onForward = () => {
+    showForwardMessagePicker(conversationIDKey, message)
+  }
+  const onReact = (emoji: string) => {
+    if (!hasMessageID) {
+      return
+    }
+    if (onReactProp) {
+      onReactProp(emoji)
+      return
+    }
+    toggleMessageReaction(ordinal, emoji)
+  }
+  const _onReply = () => {
     setReplyTo(ordinal)
-  }, [setReplyTo, ordinal])
+  }
 
-  const onForward = hasUnfurls || type === 'attachment' ? _onForward : undefined
-  const onReply = type === 'text' || type === 'attachment' ? _onReply : undefined
+  const onForward = hasMessageID && (hasUnfurls || messageType === 'attachment') ? _onForward : undefined
+  const onReply =
+    messageType === 'text' || messageType === 'attachment' ? (onReplyProp ?? _onReply) : undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
@@ -56,7 +69,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const _showPicker = () => _setShowingPicker(true)
   const _hidePicker = () => _setShowingPicker(false)
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       direction="horizontal"
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([styles.container, style])}
@@ -69,56 +82,68 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
-        <Kb.Box
+        <Kb.ClickableBox
+          direction="vertical"
           className="hover_container"
-          onClick={_showPicker}
-          style={styles.iconContainer}
+          onClick={hasMessageID ? _showPicker : undefined}
+          style={Kb.Styles.collapseStyles([styles.iconContainer, !hasMessageID && styles.disabled])}
           tooltip="React"
         >
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
-        </Kb.Box>
+        </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.Box className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
+          <Kb.ClickableBox
+            direction="vertical"
+            className="hover_container"
+            onClick={onReply}
+            style={styles.iconContainer}
+            tooltip="Reply"
+          >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
         {!!onForward && (
-          <Kb.Box
+          <Kb.ClickableBox
+            direction="vertical"
             className="hover_container"
             onClick={onForward}
             style={styles.iconContainer}
             tooltip="Forward"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
       </Kb.Box2>
-      {showingPicker && (
-        <Kb.FloatingBox
+      {showingPicker && message && hasMessageID && (
+        <Kb.Popup
           attachTo={popupAnchor}
           containerStyle={styles.pickerContainer}
           position="top right"
           onHidden={_hidePicker}
           propagateOutsideClicks={false}
         >
-          <EmojiPickerDesktop onPickAddToMessageOrdinal={ordinal} onDidPick={_hidePicker} />
-        </Kb.FloatingBox>
+          <EmojiPickerDesktop
+            conversationIDKey={conversationIDKey}
+            onPickAddToMessageID={message.id}
+            onDidPick={_hidePicker}
+          />
+        </Kb.Popup>
       )}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
-})
+}
 
 const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) => {
   const [hovering, setHovering] = React.useState(false)
-  const _setHovering = React.useCallback(() => setHovering(true), [])
-  const _setNotHovering = React.useCallback(() => setHovering(false), [])
+  const _setHovering = () => setHovering(true)
+  const _setNotHovering = () => setHovering(false)
   return (
     <Kb.ClickableBox
+      direction="horizontal"
+      centerChildren={true}
       onClick={props.onClick}
       onMouseOver={_setHovering}
       onMouseLeave={_setNotHovering}
-      underlayColor={Kb.Styles.globalColors.transparent}
-      hoverColor={Kb.Styles.globalColors.transparent}
       style={styles.emojiBox}
     >
       <Kb.Emoji
@@ -143,29 +168,22 @@ const styles = Kb.Styles.styleSheetCreate(
           height: Kb.Styles.globalMargins.medium,
         },
       }),
+      disabled: {opacity: 0.3},
       divider: {
-        marginBottom: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
         marginLeft: Kb.Styles.globalMargins.xsmall,
         marginRight: Kb.Styles.globalMargins.xtiny,
-        marginTop: Kb.Styles.globalMargins.tiny,
       },
       emojiBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        height: Kb.Styles.globalMargins.small,
-        justifyContent: 'center',
+        ...Kb.Styles.size(Kb.Styles.globalMargins.small),
         marginRight: Kb.Styles.globalMargins.xxtiny,
-        width: Kb.Styles.globalMargins.small,
       },
       hoverEmoji: {position: 'absolute'},
       icon: {
         position: 'relative',
         top: 1,
       },
-      iconContainer: Kb.Styles.platformStyles({
-        common: {padding: Kb.Styles.globalMargins.tiny},
-        isElectron: {...Kb.Styles.desktopStyles.clickable},
-      }),
+      iconContainer: {padding: Kb.Styles.globalMargins.tiny},
       pickerContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,

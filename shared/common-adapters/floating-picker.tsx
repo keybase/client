@@ -1,0 +1,136 @@
+import * as React from 'react'
+import * as Styles from '@/styles'
+import SafeAreaView from './safe-area-view'
+import {Picker} from '@react-native-picker/picker'
+import {Box2} from './box'
+import Popup from './popup'
+import Text from './text'
+
+export type PickerItem<T> = {
+  label: string
+  value: T
+}
+
+export type Props<T> = {
+  items: PickerItem<T>[]
+  selectedValue?: T
+  onSelect: (t: T | undefined) => void
+  header?: React.ReactNode
+  prompt?: React.ReactNode
+  promptString?: string
+  onHidden: () => void
+  onCancel: () => void
+  onDone: () => void
+  visible: boolean
+}
+
+const Kb = {Box2, Picker, Popup, SafeAreaView, Text}
+
+function WrapPicker<T>(p: {
+  initialValue?: T
+  onValueChange: (v: T | undefined) => void
+  prompt?: string
+  style?: Styles.StylesCrossPlatform
+  itemStyle?: Styles.StylesCrossPlatform
+  options: Array<{label: string; value: T}>
+}) {
+  const {initialValue, onValueChange, options, prompt, style, itemStyle} = p
+  const [localValue, setLocalValue] = React.useState(initialValue)
+
+  const handleValueChange = (value: T) => {
+    const selectedOption = options.find(option => option.value === value)
+    if (!selectedOption) return
+    setLocalValue(selectedOption.value)
+    onValueChange(selectedOption.value)
+  }
+
+  return (
+    <Picker
+      selectedValue={localValue}
+      onValueChange={handleValueChange}
+      prompt={prompt}
+      style={style}
+      itemStyle={itemStyle}
+    >
+      {options.map((option, index) => (
+        <Picker.Item key={index} label={option.label} value={option.value} />
+      ))}
+    </Picker>
+  )
+}
+
+export {Picker}
+
+// NOTE: this doesn't seem to work well when debugging w/ chrome. aka if you scroll and set a value
+// the native component will undo it a bunch and its very finnicky. works fine outside of that it seems
+const FloatingPicker = <T extends string | number>(props: Props<T>): React.ReactNode => {
+  if (!isMobile || !props.visible) {
+    return null
+  }
+
+  return (
+    <Kb.Popup
+      key={isAndroid ? props.selectedValue || 0 : undefined}
+      onHidden={props.onHidden}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="stretch" justifyContent="flex-end" style={styles.menu}>
+        {props.header}
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="stretch"
+          justifyContent="flex-end"
+          style={styles.actionButtons}
+        >
+          <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
+            Cancel
+          </Kb.Text>
+          <Kb.Box2 direction="horizontal" flex={1} />
+          <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
+            Done
+          </Kb.Text>
+        </Kb.Box2>
+        {props.prompt}
+        <WrapPicker<T>
+          initialValue={props.selectedValue}
+          onValueChange={props.onSelect}
+          prompt={props.promptString}
+          style={styles.picker}
+          itemStyle={styles.item}
+          options={props.items}
+        />
+        <Kb.SafeAreaView style={styles.safeArea} />
+      </Kb.Box2>
+    </Kb.Popup>
+  )
+}
+
+const styles = Styles.styleSheetCreate(() => ({
+  actionButtons: {
+    height: 56,
+  },
+  item: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black,
+  },
+  link: {
+    color: Styles.globalColors.blueDark,
+    fontSize: 17,
+    padding: Styles.globalMargins.small,
+  },
+  menu: {
+    backgroundColor: Styles.globalColors.white,
+  },
+  picker: Styles.platformStyles({
+    isAndroid: {
+      color: Styles.globalColors.black,
+      marginBottom: Styles.globalMargins.large,
+      marginTop: Styles.globalMargins.medium,
+    },
+  }),
+  safeArea: {
+    backgroundColor: Styles.globalColors.white,
+  },
+}))
+
+export default FloatingPicker

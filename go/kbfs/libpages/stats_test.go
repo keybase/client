@@ -15,7 +15,7 @@ func (f fileInfoForActivesGetterTest) Size() int64        { return 0 }
 func (f fileInfoForActivesGetterTest) Mode() os.FileMode  { return 0 }
 func (f fileInfoForActivesGetterTest) ModTime() time.Time { return time.Time(f) }
 func (f fileInfoForActivesGetterTest) IsDir() bool        { return false }
-func (f fileInfoForActivesGetterTest) Sys() interface{}   { return nil }
+func (f fileInfoForActivesGetterTest) Sys() any           { return nil }
 
 func makeFileInfoActivesGetterForTest(
 	tlfModTimes, hostModTimes []time.Time,

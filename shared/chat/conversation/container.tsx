@@ -1,15 +1,32 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
+import type {ThreadSearchRouteProps} from './thread-search-route'
+import type * as T from '@/constants/types'
+import {LiveConversationThreadProvider, useConversationThreadID, useConversationThreadSelector} from './thread-context'
 
-const Conversation = function Conversation() {
-  const type = Chat.useChatContext(s => {
-    const meta = s.meta
-    switch (s.id) {
+type Props = ThreadSearchRouteProps & {
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
+
+const Conversation = function Conversation(props: Props) {
+  const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
+  return (
+    <LiveConversationThreadProvider key={conversationIDKey} id={conversationIDKey}>
+      <ConversationInner />
+    </LiveConversationThreadProvider>
+  )
+}
+
+const ConversationInner = function ConversationInner() {
+  const conversationIDKey = useConversationThreadID()
+  const meta = useConversationThreadSelector(s => s.meta)
+  const type = (() => {
+    switch (conversationIDKey) {
       case Chat.noConversationIDKey:
         return 'noConvo'
       default:
@@ -23,8 +40,7 @@ const Conversation = function Conversation() {
           return 'normal'
         }
     }
-  })
-
+  })()
   switch (type) {
     case 'error':
       return <Error />

@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -170,8 +171,13 @@ func (h *Server) RequestInboxLayout(ctx context.Context, reselectMode chat1.Inbo
 func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	ctx = globals.CtxAddLocalizerCancelable(ctx)
+	reqID := libkb.RandStringB64(3)
 	defer h.Trace(ctx, &err, "RequestInboxUnbox")()
 	defer h.PerfTrace(ctx, &err, "RequestInboxUnbox")()
+	h.Debug(ctx, "RequestInboxUnbox[%s]: begin convs: %d", reqID, len(convIDs))
+	defer func() {
+		h.Debug(ctx, "RequestInboxUnbox[%s]: return err: %v", reqID, err)
+	}()
 	for _, convID := range convIDs {
 		h.GetPerfLog().CDebugf(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
 		h.Debug(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
@@ -397,14 +403,26 @@ func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) 
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	reqID := libkb.RandStringB64(3)
 	defer h.Trace(ctx, &err,
 		"GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason)()
 	defer h.PerfTrace(ctx, &err,
 		"GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		h.Debug(ctx, "GetThreadNonblock[%s]: return convID: %s err: %v", reqID, arg.ConversationID, err)
+	}()
 	defer h.suspendBgConvLoads(ctx)()
-	defer h.suspendInboxSource(ctx)()
+	h.Debug(ctx, "GetThreadNonblock[%s]: suspend inbox source begin convID: %s", reqID, arg.ConversationID)
+	resumeInboxSource := h.suspendInboxSource(ctx)
+	h.Debug(ctx, "GetThreadNonblock[%s]: suspend inbox source done convID: %s", reqID, arg.ConversationID)
+	defer func() {
+		h.Debug(ctx, "GetThreadNonblock[%s]: resume inbox source begin convID: %s", reqID, arg.ConversationID)
+		resumeInboxSource()
+		h.Debug(ctx, "GetThreadNonblock[%s]: resume inbox source done convID: %s", reqID, arg.ConversationID)
+	}()
+	h.Debug(ctx, "GetThreadNonblock[%s]: begin convID: %s sessionID: %d", reqID, arg.ConversationID, arg.SessionID)
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return chat1.NonblockFetchRes{}, err
@@ -2698,9 +2716,7 @@ func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSetting
 	for w := range settings.Whitelist {
 		res.Whitelist = append(res.Whitelist, w)
 	}
-	sort.Slice(res.Whitelist, func(i, j int) bool {
-		return res.Whitelist[i] < res.Whitelist[j]
-	})
+	slices.Sort(res.Whitelist)
 	return res, nil
 }
 
@@ -3022,7 +3038,6 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 	if err != nil {
 		return res, err
 	}
-
 	providedUIDs := make([]keybase1.UID, 0, len(usernames))
 	for _, username := range usernames {
 		providedUIDs = append(providedUIDs, libkb.GetUIDByUsername(h.G().GlobalContext, username))
@@ -3041,7 +3056,13 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 		return res, err
 	}
 
+	type matchedTeam struct {
+		mtime gregor1.Time
+		team  chat1.SharedTeam
+	}
+
 	// loop through convs
+	var matchedTeams []matchedTeam
 	var resLock sync.Mutex
 	pipeliner := pipeliner.NewPipeliner(4)
 	for _, conv := range inbox.ConvsUnverified {
@@ -3078,14 +3099,26 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 			}
 			if allOK {
 				resLock.Lock()
-				res.TeamIDs = append(res.TeamIDs,
-					keybase1.TeamID(conv.Conv.Metadata.IdTriple.Tlfid.String()))
+				matchedTeams = append(matchedTeams, matchedTeam{
+					mtime: conv.GetMtime(),
+					team: chat1.SharedTeam{
+						TeamID: keybase1.TeamID(conv.Conv.Metadata.IdTriple.Tlfid.String()),
+						Name:   utils.GetRemoteConvTLFName(conv),
+					},
+				})
 				resLock.Unlock()
 			}
 			pipeliner.CompleteOne(nil)
 		}(conv)
 	}
 	err = pipeliner.Flush(ctx)
+	sort.Slice(matchedTeams, func(i, j int) bool {
+		return matchedTeams[i].mtime > matchedTeams[j].mtime
+	})
+	res.Teams = make([]chat1.SharedTeam, 0, len(matchedTeams))
+	for _, matched := range matchedTeams {
+		res.Teams = append(res.Teams, matched.team)
+	}
 	return res, err
 }
 

@@ -1,150 +1,139 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
+import * as T from '@/constants/types'
+import {getDeviceIconType} from './device-icon'
 
-type OwnProps = {
+type AddDeviceProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
 }
 const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
-export default function AddDevice(ownProps: OwnProps) {
+export default function AddDevice(ownProps: AddDeviceProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const iconNumbers = Devices.useNextDeviceIconNumber()
+  const [iconNumbers, setIconNumbers] = React.useState({
+    desktop: 1 as T.Devices.IconNumber,
+    mobile: 1 as T.Devices.IconNumber,
+  } as const)
   const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
+  const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
 
-  const onAddComputer = React.useCallback(() => {
+  C.useOnMountOnce(() => {
+    loadDeviceHistory(
+      [undefined, C.waitingKeyDevices],
+      results => {
+        const devices =
+          results?.map(result => ({
+            deviceNumberOfType: result.device.deviceNumberOfType,
+            type: T.Devices.stringToDeviceType(result.device.type),
+          })) ?? []
+        setIconNumbers(T.Devices.nextDeviceIconNumbers(devices))
+      },
+      _ => {}
+    )
+  })
+
+  const onAddComputer = () => {
     addNewDevice('desktop')
-  }, [addNewDevice])
+  }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
-  // don't allow mutliple clicks to add paper key
+  // don't allow multiple clicks to add paper key
   const canAddPaperKeyRef = React.useRef(true)
-  const onAddPaperKey = React.useCallback(() => {
+  const onAddPaperKey = () => {
     if (!canAddPaperKeyRef.current) return
     canAddPaperKeyRef.current = false
-    navigateAppend('devicePaperKey')
+    navigateAppend({name: 'devicePaperKey', params: {}})
     setTimeout(() => {
       canAddPaperKeyRef.current = true
     }, 1000)
-  }, [navigateAppend])
+  }
 
-  const onAddPhone = React.useCallback(() => {
+  const onAddPhone = () => {
     addNewDevice('mobile')
-  }, [addNewDevice])
-  const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => {
-    cancel?.()
-    navigateUp()
-  }, [cancel, navigateUp])
-
+  }
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
-      <Kb.ScrollView alwaysBounceVertical={false}>
+    <Kb.ScrollView alwaysBounceVertical={false}>
+      <Kb.Box2
+        direction="vertical"
+        gap="medium"
+        alignItems="center"
+        padding="small"
+        gapStart={true}
+        gapEnd={true}
+      >
+        <Kb.Text type="Body" center={true}>
+          Protect your account by having more devices and paper keys.
+        </Kb.Text>
         <Kb.Box2
-          direction="vertical"
-          gap="medium"
-          alignItems="center"
-          style={styles.container}
-          gapStart={true}
+          direction={isMobile ? 'vertical' : 'horizontal'}
+          gap="mediumLarge"
+          style={styles.deviceOptions}
           gapEnd={true}
         >
-          <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-            {!Kb.Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
-            <Kb.Text type="Body" center={true}>
-              Protect your account by having more devices and paper keys.
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Box2
-            direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
-            gap="mediumLarge"
-            style={styles.deviceOptions}
-            gapEnd={true}
-          >
-            <DeviceOption
-              iconNumber={iconNumbers.desktop}
-              onClick={onAddComputer}
-              type="computer"
-              highlight={highlight.includes('computer')}
-            />
-            <DeviceOption
-              iconNumber={iconNumbers.mobile}
-              onClick={onAddPhone}
-              type="phone"
-              highlight={highlight.includes('phone')}
-            />
-            <DeviceOption
-              onClick={onAddPaperKey}
-              type="paper key"
-              highlight={highlight.includes('paper key')}
-            />
-          </Kb.Box2>
+          <DeviceOption
+            iconNumber={iconNumbers.desktop}
+            onClick={onAddComputer}
+            type="computer"
+            highlight={highlight.includes('computer')}
+          />
+          <DeviceOption
+            iconNumber={iconNumbers.mobile}
+            onClick={onAddPhone}
+            type="phone"
+            highlight={highlight.includes('phone')}
+          />
+          <DeviceOption
+            onClick={onAddPaperKey}
+            type="paper key"
+            highlight={highlight.includes('paper key')}
+          />
         </Kb.Box2>
-      </Kb.ScrollView>
-    </Kb.PopupWrapper>
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
 type DeviceOptionProps = {
   highlight?: boolean
-  iconNumber?: number
+  iconNumber?: T.Devices.IconNumber
   onClick: () => void
   type: 'computer' | 'paper key' | 'phone'
 }
-const bigIcon = C.isLargeScreen && Kb.Styles.isMobile
-const getIconType = (deviceType: DeviceOptionProps['type'], iconNumber?: number) => {
-  let iconType: string
-  const size = bigIcon ? 96 : 64
-  switch (deviceType) {
-    case 'computer':
-      iconType = iconNumber ? `icon-computer-background-${iconNumber}-${size}` : `icon-computer-${size}`
-      break
-    case 'paper key':
-      iconType = `icon-paper-key-${size}`
-      break
-    case 'phone':
-      iconType = iconNumber ? `icon-phone-background-${iconNumber}-${size}` : `icon-phone-${size}`
-      break
-  }
-  if (Kb.isValidIconType(iconType)) {
-    return iconType
-  }
-  return bigIcon ? 'icon-computer-96' : 'icon-computer-64'
-}
+const bigIcon = C.isLargeScreen && isMobile
+const deviceOptionTypeMap = {
+  computer: 'desktop',
+  'paper key': 'backup',
+  phone: 'mobile',
+} as const
 const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => (
-  <Kb.ClickableBox onClick={onClick}>
-    <Kb.Box2
-      className="hover_background_color_blueLighter2"
-      style={Kb.Styles.collapseStyles([
-        styles.deviceOption,
-        Kb.Styles.isMobile && highlight && styles.deviceOptionHighlighted,
-      ])}
-      direction="vertical"
-      centerChildren={true}
-      gap="xtiny"
-      gapEnd={!Kb.Styles.isMobile}
-    >
-      <Kb.Icon type={getIconType(type, iconNumber)} />
-      <Kb.Text type="BodySemibold">
-        {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
-      </Kb.Text>
-    </Kb.Box2>
+  <Kb.ClickableBox
+    onClick={onClick}
+    className="hover_background_color_blueLighter2"
+    style={Kb.Styles.collapseStyles([
+      styles.deviceOption,
+      isMobile && highlight && styles.deviceOptionHighlighted,
+    ])}
+    direction="vertical"
+    centerChildren={true}
+    gap="xtiny"
+    gapEnd={!isMobile}
+    padding="tiny"
+  >
+    <Kb.ImageIcon type={getDeviceIconType(deviceOptionTypeMap[type], iconNumber ?? (1 as T.Devices.IconNumber), bigIcon ? 96 : 64)} />
+    <Kb.Text type="BodySemibold">
+      {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
+    </Kb.Text>
   </Kb.ClickableBox>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {padding: Kb.Styles.globalMargins.small},
   deviceOption: Kb.Styles.platformStyles({
     common: {
-      borderColor: Kb.Styles.globalColors.black_05,
-      borderRadius: Kb.Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      padding: Kb.Styles.globalMargins.tiny,
-      width: Kb.Styles.isMobile ? 192 : 168,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
+      width: isMobile ? 192 : 168,
     },
     isElectron: {
       ...Kb.Styles.transition('background-color'),

@@ -153,7 +153,7 @@ func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
 	return st, nil
 }
 
-func (s *Server) siteCacheEvict(_ interface{}, value interface{}) {
+func (s *Server) siteCacheEvict(_ any, value any) {
 	if s, ok := value.(*site); ok {
 		// It's possible to have a race here where a site gets evicted by the
 		// LRU cache while the server is still using it to serve a request. But
@@ -207,7 +207,7 @@ type adaptedLogger struct {
 	logger *zap.Logger
 }
 
-func (a adaptedLogger) Warning(format string, args ...interface{}) {
+func (a adaptedLogger) Warning(format string, args ...any) {
 	a.logger.Warn(a.msg, zap.String("desc", fmt.Sprintf(format, args...)))
 }
 
