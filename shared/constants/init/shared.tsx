@@ -278,7 +278,13 @@ const onHandshakeStateChanged = (handshakeState: DaemonState['handshakeState']) 
   }
 }
 
-const onStartProvisionTriggerChanged = () => {
+const onStartProvisionTriggerChanged = (value: number, previous: number) => {
+  // The trigger only counts up when a provision actually starts. A reset (resetState /
+  // resetAllStores) rewinds it to 0; ignore that, otherwise resetState after a successful
+  // provision would log the just-provisioned user back out.
+  if (value <= previous) {
+    return
+  }
   useConfigState.getState().dispatch.setLoginError()
   useConfigState.getState().dispatch.resetRevokedSelf()
   const f = async () => {
