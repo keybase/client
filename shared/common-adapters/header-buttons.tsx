@@ -96,7 +96,7 @@ export function HeaderRightButton(hp: {onPress?: () => void}) {
 // clear the left slot here. The right slot uses a plain headerRight component on every
 // platform (HeaderRightButton dismisses via useNavigation); iOS only treats the left
 // slot specially, so clearing it needs unstable_headerLeftItems there.
-export const doneModalOptions = (title: string): GetOptionsRet => ({
+export const doneModalOptions = (title: string): NonNullable<GetOptionsRet> => ({
   ...(isIOS ? {unstable_headerLeftItems: () => []} : {headerLeft: () => null}),
   headerRight: () => <HeaderRightButton />,
   ...(isMobile ? {headerBackVisible: false} : {}),
