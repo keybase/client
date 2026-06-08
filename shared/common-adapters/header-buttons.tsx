@@ -11,14 +11,14 @@ const Kb = {BackButton, Box2, Text}
 
 const LeftAction = (p: {
   badgeNumber: number
-  mode: 'back' | 'cancel'
+  mode: 'back' | 'cancel' | 'done'
   onAction: () => void
   iconColor?: string
 }) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftAction}>
-    {p.mode === 'cancel' ? (
+    {p.mode === 'cancel' || p.mode === 'done' ? (
       <Text type="BodyBigLink" style={styles.action} onClick={p.onAction}>
-        Cancel
+        {p.mode === 'done' ? 'Done' : 'Cancel'}
       </Text>
     ) : (
       <Kb.BackButton
@@ -57,7 +57,7 @@ const styles = Styles.styleSheetCreate(() => ({
 
 export function HeaderLeftButton(hp: HeaderBackButtonProps & {
   badgeNumber?: number
-  mode?: 'back' | 'cancel'
+  mode?: 'back' | 'cancel' | 'done'
   autoDetectCanGoBack?: boolean
 }) {
   const nav = useNavigation()

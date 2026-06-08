@@ -5,7 +5,7 @@ import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/he
 import cryptoTeamBuilder from '../team-building/page'
 import {TeamBuilderScreen} from '../team-building/page'
 import type {StaticScreenProps} from '@react-navigation/core'
-import {defineRouteMap} from '@/constants/types/router'
+import {defineRouteMap, type GetOptionsRet} from '@/constants/types/router'
 import type {
   CommonOutputRouteParams,
   CryptoInputRouteParams,
@@ -97,6 +97,24 @@ const CryptoTeamBuilderScreen = (p: StaticScreenProps<CryptoTeamBuilderRoutePara
   )
 }
 
+// Output modals dismiss with a "Done" left button on both platforms. We must override
+// the default modal options for both: iOS reads unstable_headerLeftItems (a plain headerLeft
+// is ignored there), and Android needs headerBackVisible:false to drop the native back arrow.
+const doneHeaderOptions =
+  (title: string) =>
+  ({navigation}: {navigation: {goBack: () => void}}): GetOptionsRet => ({
+    ...(isIOS
+      ? {
+          unstable_headerLeftItems: () => [
+            {label: 'Done', onPress: () => navigation.goBack(), type: 'button' as const},
+          ],
+        }
+      : {headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="done" {...p} />}),
+    headerBackVisible: false,
+    headerShown: true,
+    title,
+  })
+
 export const newRoutes = defineRouteMap({
   [Crypto.decryptTab]: {
     getOptions: {headerShown: true, title: 'Decrypt'},
@@ -122,31 +140,19 @@ export const newRoutes = defineRouteMap({
 
 export const newModalRoutes = defineRouteMap({
   [Crypto.decryptOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
-      headerShown: true,
-      title: 'Decrypted',
-    },
+    getOptions: doneHeaderOptions('Decrypted'),
     screen: DecryptOutputScreen,
   },
   [Crypto.encryptOutput]: {
-    getOptions: {headerShown: true, title: 'Encrypted'},
+    getOptions: doneHeaderOptions('Encrypted'),
     screen: EncryptOutputScreen,
   },
   [Crypto.signOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
-      headerShown: true,
-      title: 'Signed',
-    },
+    getOptions: doneHeaderOptions('Signed'),
     screen: SignOutputScreen,
   },
   [Crypto.verifyOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
-      headerShown: true,
-      title: 'Verified',
-    },
+    getOptions: doneHeaderOptions('Verified'),
     screen: VerifyOutputScreen,
   },
   cryptoTeamBuilder: {
