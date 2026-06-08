@@ -728,8 +728,8 @@ func MakeBlockCryptKey(data [32]byte) BlockCryptKey {
 
 func xorKeys(x, y [32]byte) [32]byte {
 	var res [32]byte
-	for i := range 32 {
-		res[i] = x[i] ^ y[i]
+	for i, v := range x {
+		res[i] = v ^ y[i]
 	}
 	return res
 }
