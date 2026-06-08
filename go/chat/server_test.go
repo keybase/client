@@ -35,6 +35,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/chat/wallet"
+	"github.com/keybase/client/go/git"
 	"github.com/keybase/client/go/gregor"
 	grutils "github.com/keybase/client/go/gregor/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -8572,5 +8573,130 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotZero(t, lastActiveAt)
+	})
+}
+
+// TestChatSrvGitTeamRepoChatSettings exercises the end-to-end flow between the
+// git team repo chat settings and chat conversation lifecycle. It runs against
+// a real server connection so that the server-side conv validation and the
+// on-delete cleanup are actually exercised, rather than mocked.
+func TestChatSrvGitTeamRepoChatSettings(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// git team repo chat settings only apply to team conversations.
+		if mt != chat1.ConversationMembersType_TEAM {
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvGitTeamRepoChatSettings", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		tuc := ctc.as(t, users[0])
+		ctx := tuc.startCtx
+		g := ctc.world.Tcs[users[0].Username].G
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		// Create the team (and its #general conversation).
+		general := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		teamName := general.TlfName
+
+		// Create a separate "git" channel that we will wire the repo to.
+		topicName := "git"
+		channel, err := tuc.chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       teamName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		channelConvID := channel.Conv.GetConvID()
+
+		folder := keybase1.FolderHandle{
+			Name:       teamName,
+			FolderType: keybase1.FolderType_TEAM,
+		}
+		repoID := keybase1.RepoID("abc123")
+
+		// The repo must exist before settings can reference it. Use a DEFAULT
+		// push with no commits so PutMetadata does not also try to send a chat
+		// message.
+		err = git.PutMetadata(ctx, g, keybase1.PutGitMetadataArg{
+			Folder: folder,
+			RepoID: repoID,
+			Metadata: keybase1.GitLocalMetadata{
+				RepoName: keybase1.GitRepoName("repoName"),
+				PushType: keybase1.GitPushType_DEFAULT,
+			},
+		})
+		require.NoError(t, err)
+
+		getArg := keybase1.GetTeamRepoSettingsArg{
+			Folder: folder,
+			RepoID: repoID,
+		}
+
+		// Point the repo at the "git" channel. The conv is a real, active team
+		// chat conversation owned by this team, so server-side validation
+		// should accept it.
+		err = git.SetTeamRepoSettings(ctx, g, keybase1.SetTeamRepoSettingsArg{
+			Folder:       folder,
+			RepoID:       repoID,
+			ChatDisabled: false,
+			ChannelName:  &topicName,
+		})
+		require.NoError(t, err)
+
+		settings, err := git.GetTeamRepoSettings(ctx, g, getArg)
+		require.NoError(t, err)
+		require.False(t, settings.ChatDisabled)
+		require.NotNil(t, settings.ChannelName)
+		require.Equal(t, topicName, *settings.ChannelName)
+
+		// A well-formed conv id that is not a real team chat conversation must
+		// be rejected by server-side validation. SetTeamRepoSettings only ever
+		// sends a server-resolved conv id, so post a bogus one directly to the
+		// settings endpoint to exercise the validation path.
+		teamID, err := git.NewTeamer(g).LookupOrCreate(ctx, folder)
+		require.NoError(t, err)
+		bogusConvID := strings.Repeat("ab", 32) // 64 hex chars / 32 bytes, not a real conv
+		_, err = g.GetAPI().Post(libkb.NewMetaContext(ctx, g), libkb.APIArg{
+			Endpoint:    "kbfs/git/team/settings",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args: libkb.HTTPArgs{
+				"team_id":       libkb.S{Val: string(teamID.TeamID)},
+				"repo_id":       libkb.S{Val: string(repoID)},
+				"chat_disabled": libkb.B{Val: false},
+				"chat_conv_id":  libkb.S{Val: bogusConvID},
+			},
+		})
+		require.Error(t, err, "server should reject an invalid chat_conv_id")
+		code, ok := libkb.GetAppStatusCode(err)
+		require.True(t, ok, "expected an app status error, got: %v", err)
+		require.Equal(t, keybase1.StatusCode_SCNotFound, code,
+			"expected NOT_FOUND for an invalid chat_conv_id, got: %v", err)
+
+		// The rejected write must not have mutated the stored settings.
+		settings, err = git.GetTeamRepoSettings(ctx, g, getArg)
+		require.NoError(t, err)
+		require.False(t, settings.ChatDisabled)
+		require.NotNil(t, settings.ChannelName)
+		require.Equal(t, topicName, *settings.ChannelName)
+
+		// Deleting the configured conversation should trigger the server-side
+		// cleanup, which clears the stored conv id and disables chat for the
+		// repo settings that referenced it.
+		_, err = tuc.chatLocalHandler().DeleteConversationLocal(ctx,
+			chat1.DeleteConversationLocalArg{
+				ConvID:    channelConvID,
+				Confirmed: true,
+			})
+		require.NoError(t, err)
+
+		settings, err = git.GetTeamRepoSettings(ctx, g, getArg)
+		require.NoError(t, err)
+		require.True(t, settings.ChatDisabled, "deleting the conv should disable repo chat")
+		require.Nil(t, settings.ChannelName, "deleting the conv should clear the channel")
 	})
 }
