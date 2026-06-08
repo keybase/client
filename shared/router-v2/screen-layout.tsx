@@ -36,11 +36,22 @@ const TabScreenWrapper = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-const StackScreenWrapper = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
-    {children}
-  </Kb.Box2>
-)
+const StackScreenWrapper = ({children}: {children: React.ReactNode}) => {
+  // Android targets SDK 35+ which enforces edge-to-edge, so content draws under
+  // the system nav bar unless we apply the bottom inset ourselves.
+  if (isAndroid) {
+    return (
+      <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
+        {children}
+      </RNScreensSafeAreaView>
+    )
+  }
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
+      {children}
+    </Kb.Box2>
+  )
+}
 
 const desktopMakeLayout = (
   isModal: boolean,

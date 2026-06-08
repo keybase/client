@@ -10,7 +10,7 @@
     "android:bundle:prod": "curl -o ~/Desktop/bundle.prod.js 'http://localhost:8081/index.bundle?platform=android&dev=false&minify=false&app=io.keybase.ossifrage&modulesOnly=false&runModule=true'",
     "android:bundle:profile": "NODE_OPTIONS=--no-experimental-fetch npx react-native profile-hermes ~/Desktop/",
     "android:clean": "cd android; rm -rf build; rm -rf app/.cxx ; ./gradlew clean",
-    "android:debug": "NODE_ENV=development npx expo run:android --variant debug",
+    "android:debug": "NODE_ENV=development ./scripts/android-debug.sh",
     "android:gobuild": "./react-native/gobuild.sh android && yarn postinstall",
     "android:jsbundle": "mkdir -p android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output android/dist/main.jsbundle --sourcemap-output android/dist/main.jsbundle.sourcemap",
     "android:logs:clear": "adb logcat -b all -c",

@@ -92,11 +92,11 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
-    ndkVersion rootProject.ext.ndkVersion
+    ndkVersion = rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "io.keybase.ossifrage"
+    namespace = "io.keybase.ossifrage"
     defaultConfig {
         applicationId "io.keybase.ossifrage"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -105,7 +105,7 @@ android {
         versionName VERSION_NAME
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
         // KB added
-        multiDexEnabled true
+        multiDexEnabled = true
     }
 
     signingConfigs {
@@ -124,14 +124,14 @@ android {
             }
         }
         release {
-            signingConfig signingConfigs.release
+            signingConfig = signingConfigs.release
             minifyEnabled enableMinifyInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
         releaseUnsigned.initWith(buildTypes.release)
         releaseUnsigned {
             applicationIdSuffix ".unsigned"
-            signingConfig buildTypes.debug.signingConfig
+            signingConfig = buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
             manifestPlaceholders["usesCleartextTraffic"] = "false"
         }
@@ -165,11 +165,11 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'androidx.work:work-runtime:2.11.1'
+    implementation 'androidx.work:work-runtime:2.11.2'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "com.google.firebase:firebase-messaging:25.0.1"
+    implementation "com.google.firebase:firebase-messaging:25.0.2"
     implementation "com.facebook.fresco:animated-gif:${expoLibs.versions.fresco.get()}"
-    implementation 'org.msgpack:msgpack-core:0.9.10'
+    implementation 'org.msgpack:msgpack-core:0.9.12'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "androidx.lifecycle:lifecycle-common-java8:2.10.0"

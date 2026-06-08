@@ -27,7 +27,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     C.ignorePromise(f())
   }
   const onGoToSamePathInDifferentTlf = (tlfPath: T.FS.Path) => {
-    C.Router2.navigateAppend({name: 'fsRoot', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
+    C.Router2.navigateAppend({name: 'fsBrowse', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
   }
   const onHelp = () => {
     void openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
