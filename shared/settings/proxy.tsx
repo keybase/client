@@ -250,7 +250,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     minHeight: '40%',
   },
   proxySetting: {marginBottom: Kb.Styles.globalMargins.small},
-  radioButton: {marginRight: Kb.Styles.globalMargins.medium},
+  radioButton: {alignSelf: 'flex-start', marginRight: Kb.Styles.globalMargins.medium},
   text: Kb.Styles.platformStyles({
     isElectron: {
       cursor: 'default',
