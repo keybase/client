@@ -882,8 +882,8 @@ func NoiseXOR(secret [32]byte, noise NoiseBytes) ([]byte, error) {
 	}
 
 	xor := make([]byte, len(sum))
-	for i := range len(sum) {
-		xor[i] = sum[i] ^ secret[i]
+	for i, v := range sum {
+		xor[i] = v ^ secret[i]
 	}
 
 	return xor, nil
