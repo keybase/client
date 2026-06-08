@@ -84,6 +84,7 @@ This regenerates `shared/desktop/electron-sums.mts` with the correct SHA256 chec
 ## Notes
 
 - `lodash` types (`@types/lodash`, `@types/lodash-es`) can be updated independently of lodash itself.
-- `@types/react`, `@types/react-dom`, `@types/react-is` should stay in sync with their runtime counterparts — update only if the runtime version changed.
+- **Always bump `@types/react` to the latest patch the script finds, even if runtime `react` is unchanged.** DefinitelyTyped ships type-only patches independent of the react runtime version. When you bump it, update the `resolutions` entry (`**/@types/react`) to the SAME version — multiple installed copies of `@types/react` cause type conflicts.
+- `@types/react-dom`, `@types/react-is` should stay in sync with their runtime counterparts — update only if the runtime version changed.
 - Packages with versions matching the `expo` SDK pattern (e.g., `56.x.x`) are `expo-*` packages and can be updated together.
 - **`@react-navigation/core` must track what `@react-navigation/native` actually resolves**, not just the surface number of the other nav packages. `@react-navigation/native` (alpha.24) and `@react-navigation/core` (alpha.15/alpha.16) use different numbering — they are NOT in sync by design. Always check-outdated on `@react-navigation/core` and accept upgrades the script finds, even if the number looks unrelated to the other nav alpha versions. Skipping this causes duplicate installs and React context identity mismatches at runtime.

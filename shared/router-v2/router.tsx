@@ -680,7 +680,7 @@ function NativeRouter() {
   return (
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={rootKey}>
       {bar}
-      <NavigationContainer
+      <NavigationContainer<RootParamList>
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         linking={loggedIn ? nativeLinkingConfig : undefined}
         onReady={onReady}
