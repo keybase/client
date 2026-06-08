@@ -242,7 +242,11 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatInfoPanel: makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel')),
-    {getOptions: isMobile ? undefined : {modalStyle: {height: '80%', width: '80%'}}}
+    {
+      getOptions: isMobile
+        ? Kb.doneModalOptions('')
+        : {...Kb.doneModalOptions(''), modalStyle: {height: '80%', width: '80%'}},
+    }
   ),
   chatInstallBot: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/install')),
@@ -261,7 +265,7 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatLocationPreview: makeChatScreen(
     React.lazy(async () => import('./conversation/input-area/location-popup')),
-    {getOptions: {title: 'Location'}}
+    {getOptions: Kb.doneModalOptions('Location')}
   ),
   chatMessagePopup: makeChatScreen(
     React.lazy(async () => {
@@ -289,7 +293,7 @@ export const newModalRoutes = defineRouteMap({
       React.lazy(async () => import('./conversation/bot/search')),
       {
         canBeNullConvoID: true,
-        getOptions: {title: 'Add a bot'},
+        getOptions: Kb.doneModalOptions('Add a bot'),
       }
     ),
     initialParams: emptyChatSearchBotsRouteParams,
@@ -310,6 +314,6 @@ export const newModalRoutes = defineRouteMap({
   },
   chatUnfurlMapPopup: makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
-    {getOptions: {title: 'Location'}}
+    {getOptions: Kb.doneModalOptions('Location')}
   ),
 })

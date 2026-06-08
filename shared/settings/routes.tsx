@@ -238,7 +238,9 @@ export const newModalRoutes = defineRouteMap({
     {getOptions: {headerLeft: () => <CheckPassphraseCancelButton />}}
   ),
   modalFeedback: feedback,
-  settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined'))),
+  settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined')), {
+    getOptions: Kb.doneModalOptions(''),
+  }),
   settingsPushPrompt: isMobile
     ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
         getOptions: {

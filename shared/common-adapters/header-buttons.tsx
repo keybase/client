@@ -4,6 +4,7 @@ import {Box2} from '@/common-adapters/box'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {HeaderOptions} from '@react-navigation/elements'
+import type {GetOptionsRet} from '@/constants/types/router'
 
 export type HeaderBackButtonProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
 
@@ -11,14 +12,14 @@ const Kb = {BackButton, Box2, Text}
 
 const LeftAction = (p: {
   badgeNumber: number
-  mode: 'back' | 'cancel' | 'done'
+  mode: 'back' | 'cancel'
   onAction: () => void
   iconColor?: string
 }) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftAction}>
-    {p.mode === 'cancel' || p.mode === 'done' ? (
+    {p.mode === 'cancel' ? (
       <Text type="BodyBigLink" style={styles.action} onClick={p.onAction}>
-        {p.mode === 'done' ? 'Done' : 'Cancel'}
+        Cancel
       </Text>
     ) : (
       <Kb.BackButton
@@ -53,11 +54,17 @@ const styles = Styles.styleSheetCreate(() => ({
       justifyContent: 'flex-start',
     },
   }),
+  rightAction: Styles.platformStyles({
+    common: {
+      flexShrink: 1,
+      justifyContent: 'flex-end',
+    },
+  }),
 }))
 
 export function HeaderLeftButton(hp: HeaderBackButtonProps & {
   badgeNumber?: number
-  mode?: 'back' | 'cancel' | 'done'
+  mode?: 'back' | 'cancel'
   autoDetectCanGoBack?: boolean
 }) {
   const nav = useNavigation()
@@ -72,3 +79,27 @@ export function HeaderLeftButton(hp: HeaderBackButtonProps & {
     />
   )
 }
+
+export function HeaderRightButton(hp: {onPress?: () => void}) {
+  const nav = useNavigation()
+  return (
+    <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.rightAction}>
+      <Text type="BodyBigLink" style={styles.action} onClick={hp.onPress ?? nav.goBack}>
+        Done
+      </Text>
+    </Kb.Box2>
+  )
+}
+
+// Modals that are info-only / viewers / live-apply dismiss with a right-side "Done"
+// (iOS convention). The modal group injects a left "Cancel" by default, so we also
+// clear the left slot here. The right slot uses a plain headerRight component on every
+// platform (HeaderRightButton dismisses via useNavigation); iOS only treats the left
+// slot specially, so clearing it needs unstable_headerLeftItems there.
+export const doneModalOptions = (title: string): GetOptionsRet => ({
+  ...(isIOS ? {unstable_headerLeftItems: () => []} : {headerLeft: () => null}),
+  headerRight: () => <HeaderRightButton />,
+  ...(isMobile ? {headerBackVisible: false} : {}),
+  headerShown: true,
+  title,
+})
