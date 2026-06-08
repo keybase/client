@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
-import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
+import {doneModalOptions} from '@/common-adapters/header-buttons'
 import cryptoTeamBuilder from '../team-building/page'
 import {TeamBuilderScreen} from '../team-building/page'
 import type {StaticScreenProps} from '@react-navigation/core'
@@ -122,31 +122,19 @@ export const newRoutes = defineRouteMap({
 
 export const newModalRoutes = defineRouteMap({
   [Crypto.decryptOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
-      headerShown: true,
-      title: 'Decrypted',
-    },
+    getOptions: doneModalOptions('Decrypted'),
     screen: DecryptOutputScreen,
   },
   [Crypto.encryptOutput]: {
-    getOptions: {headerShown: true, title: 'Encrypted'},
+    getOptions: doneModalOptions('Encrypted'),
     screen: EncryptOutputScreen,
   },
   [Crypto.signOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
-      headerShown: true,
-      title: 'Signed',
-    },
+    getOptions: doneModalOptions('Signed'),
     screen: SignOutputScreen,
   },
   [Crypto.verifyOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
-      headerShown: true,
-      title: 'Verified',
-    },
+    getOptions: doneModalOptions('Verified'),
     screen: VerifyOutputScreen,
   },
   cryptoTeamBuilder: {

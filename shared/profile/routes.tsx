@@ -143,7 +143,9 @@ export const newModalRoutes = defineRouteMap({
       ),
     }),
   }),
-  profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
+  profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import')), {
+    getOptions: Kb.doneModalOptions(''),
+  }),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
     getOptions: {modalStyle: {height: 485, width: 560}},
   }),
@@ -151,7 +153,7 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
   }),
   profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
-    getOptions: {modalStyle: profileModalStyle},
+    getOptions: {...Kb.doneModalOptions(''), modalStyle: profileModalStyle},
   }),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
     getOptions: {modalStyle: profileModalStyle},

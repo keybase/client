@@ -95,6 +95,7 @@ const nativeStyles = Styles.styleSheetCreate(
     ({
       container: {
         ...Styles.paddingV(Styles.globalMargins.xtiny),
+        alignSelf: 'flex-start',
       },
       inner: {
         borderColor: Styles.globalColors.white,
