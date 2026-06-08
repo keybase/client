@@ -3,9 +3,24 @@ import * as path from 'path'
 import {computeDiff, buildReport} from './generate-report-shared.mts'
 import type {CardData, Section} from './generate-report-shared.mts'
 
-const debugDir = 'tests/results/ios-debug'
-const prevDir = 'tests/results/ios-prev'
-const outputPath = 'tests/results/ios-report.html'
+const prevDir = process.env['KB_IOS_PREV_DIR'] ?? 'tests/results/ios-prev'
+const outputPath = process.env['KB_IOS_REPORT'] ?? 'tests/results/ios-report.html'
+
+// One report can aggregate several device runs. KB_IOS_DEBUG_DIRS is a comma
+// separated list of `label=dir` pairs (one per simulator); each becomes its own
+// titled section. Falls back to the single KB_IOS_DEBUG_DIR for one-device runs.
+function deviceDirs(): Array<{label: string; dir: string}> {
+  const multi = process.env['KB_IOS_DEBUG_DIRS']
+  if (multi) {
+    return multi.split(',').map(part => {
+      const eq = part.indexOf('=')
+      return eq === -1
+        ? {label: '', dir: part.trim()}
+        : {label: part.slice(0, eq).trim(), dir: part.slice(eq + 1).trim()}
+    })
+  }
+  return [{label: '', dir: process.env['KB_IOS_DEBUG_DIR'] ?? 'tests/results/ios-debug'}]
+}
 
 type CommandStatus = string
 type CommandEntry = {
@@ -13,13 +28,13 @@ type CommandEntry = {
   metadata: {status: CommandStatus; timestamp: number; duration: number; sequenceNumber: number; error?: string}
 }
 
-function readCommandsFile(name: string): CommandEntry[] | null {
+function readCommandsFile(debugDir: string, name: string): CommandEntry[] | null {
   const filePath = path.join(debugDir, `commands-(${name}).json`)
   if (!fs.existsSync(filePath)) return null
   return JSON.parse(fs.readFileSync(filePath, 'utf8')) as CommandEntry[]
 }
 
-function findFailureScreenshot(name: string): string | null {
+function findFailureScreenshot(debugDir: string, name: string): string | null {
   const pattern = `-(${name}).png`
   function searchDir(dir: string): string | null {
     for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
@@ -35,15 +50,15 @@ function findFailureScreenshot(name: string): string | null {
   return searchDir(debugDir)
 }
 
-function parseFlow(name: string): CardData[] {
-  const commands = readCommandsFile(name)
+function parseFlow(debugDir: string, name: string): CardData[] {
+  const commands = readCommandsFile(debugDir, name)
   const failed = commands?.find(c => c.metadata.status === 'FAILED')
   const passed = commands != null && commands.length > 0 && !failed
   const durationMs = commands?.reduce((sum, c) => sum + c.metadata.duration, 0) ?? 0
   const errorMessage = failed
     ? (failed.metadata.error ?? `${Object.keys(failed.command)[0] ?? 'unknown'} failed`)
     : (commands == null || commands.length === 0 ? 'No command data found' : null)
-  const failureScreenshotPath = passed ? null : findFailureScreenshot(name)
+  const failureScreenshotPath = passed ? null : findFailureScreenshot(debugDir, name)
 
   const displayName = name.replace(/^(smoke|flow)-/, '')
 
@@ -99,6 +114,16 @@ function parseFlow(name: string): CardData[] {
   return results
 }
 
+function cardsForDir(debugDir: string): CardData[] {
+  if (!fs.existsSync(debugDir)) { console.error(`Debug dir not found: ${debugDir}`); return [] }
+  const testNames = fs.readdirSync(debugDir)
+    .filter(f => f.startsWith('commands-(') && f.endsWith(').json'))
+    .map(f => f.replace('commands-(', '').replace(').json', ''))
+    .filter(name => name !== 'setup')
+    .sort()
+  return testNames.flatMap(name => parseFlow(debugDir, name))
+}
+
 function saveBaseline(cards: CardData[]) {
   fs.mkdirSync(prevDir, {recursive: true})
   let saved = 0
@@ -114,29 +139,27 @@ function saveBaseline(cards: CardData[]) {
 function main() {
   const isSaveBaseline = process.argv.includes('--save-baseline')
 
-  if (!fs.existsSync(debugDir)) { console.error(`Debug dir not found: ${debugDir}`); process.exit(1) }
-  const testNames = fs.readdirSync(debugDir)
-    .filter(f => f.startsWith('commands-(') && f.endsWith(').json'))
-    .map(f => f.replace('commands-(', '').replace(').json', ''))
-    .filter(name => name !== 'setup')
-    .sort()
-  if (testNames.length === 0) { console.error('No test results found in', debugDir); process.exit(1) }
-  const cards = testNames.flatMap(parseFlow)
+  const dirs = deviceDirs()
+  const sections: Section[] = dirs.map(({label, dir}) => ({
+    header: label || undefined,
+    cards: cardsForDir(dir),
+  }))
+  const allCards = sections.flatMap(s => s.cards)
+  if (allCards.length === 0) { console.error('No test results found in', dirs.map(d => d.dir).join(', ')); process.exit(1) }
 
   if (isSaveBaseline) {
-    saveBaseline(cards)
+    saveBaseline(allCards)
     return
   }
 
-  const sections: Section[] = [{cards}]
   const timestamp = new Date().toLocaleString()
   const html = buildReport('Keybase iOS E2E Tests', sections, timestamp, outputPath)
   const outDir = path.dirname(outputPath)
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, {recursive: true})
   fs.writeFileSync(outputPath, html)
-  const withDiff = cards.filter(c => c.diff !== null).length
+  const withDiff = allCards.filter(c => c.diff !== null).length
   const diffNote = withDiff > 0 ? `, ${withDiff} vs baseline` : ''
-  console.log(`Report written to ${outputPath} (${cards.filter(c => c.passed).length}/${cards.length} passed${diffNote})`)
+  console.log(`Report written to ${outputPath} (${allCards.filter(c => c.passed).length}/${allCards.length} passed${diffNote})`)
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
