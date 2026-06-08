@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import Popup from './popup'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
 import {colors, darkColors} from '@/styles/colors'
@@ -21,7 +20,6 @@ type Props = {
 
 const Kb = {
   Box2,
-  KeyboardAvoidingView2,
   Popup,
 }
 
@@ -144,24 +142,22 @@ const Toast = (props: Props) => {
 
   return shouldRender ? (
     <Kb.Popup>
-      <Kb.KeyboardAvoidingView2>
-        <Kb.Box2 direction="vertical" pointerEvents="none" alignItems="center" justifyContent="center" style={nativeStyles.wrapper}>
-          <NativeAnimated.View
-            style={[
-              Styles.collapseStyles([
-                nativeStyles.container,
-                {
-                  backgroundColor: isDarkMode ? darkColors.black : colors.black,
-                },
-                props.containerStyle,
-              ]),
-              {opacity},
-            ]}
-          >
-            {props.children}
-          </NativeAnimated.View>
-        </Kb.Box2>
-      </Kb.KeyboardAvoidingView2>
+      <Kb.Box2 direction="vertical" pointerEvents="none" alignItems="center" justifyContent="center" style={nativeStyles.wrapper}>
+        <NativeAnimated.View
+          style={[
+            Styles.collapseStyles([
+              nativeStyles.container,
+              {
+                backgroundColor: isDarkMode ? darkColors.black : colors.black,
+              },
+              props.containerStyle,
+            ]),
+            {opacity},
+          ]}
+        >
+          {props.children}
+        </NativeAnimated.View>
+      </Kb.Box2>
     </Kb.Popup>
   ) : null
 }

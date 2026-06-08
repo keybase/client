@@ -444,6 +444,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         },
       }),
-      toastText: {color: Kb.Styles.globalColors.white},
+      toastText: {color: Kb.Styles.globalColors.white, textAlign: 'center'},
     }) as const
 )
