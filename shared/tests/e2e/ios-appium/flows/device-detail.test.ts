@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore} from '../helpers/navigate'
+import {escapeToTabs, navigateToMore, goBack} from '../helpers/navigate'
 import {el, els, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -16,6 +16,6 @@ describe('device detail', () => {
     await waitForTestID(T.DEVICE_PAGE, 5000)
     await expect(el(T.DEVICE_PAGE)).toExist()
 
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
   })
 })

@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
-import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
+import {escapeToTabs, navigateToPeople, goBack} from '../helpers/navigate'
 import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -24,6 +24,6 @@ describe('people profile', () => {
     await waitForTestID(T.PROFILE_PAGE, 10000)
     await expect(el(T.PROFILE_PAGE)).toExist()
 
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
   })
 })

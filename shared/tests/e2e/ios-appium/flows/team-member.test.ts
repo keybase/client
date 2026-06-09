@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
-import {escapeToTabs, navigateToTeams} from '../helpers/navigate'
+import {escapeToTabs, navigateToTeams, goBack} from '../helpers/navigate'
 import {el, els, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -22,6 +22,6 @@ describe('team member', () => {
     // Box2 that XCUITest reports visible="false" even when on screen.
     await expect(el(T.TEAMS_MEMBER_PAGE)).toExist()
 
-    if ((await els(T.COMMON_BACK_BUTTON).length) > 0) await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
   })
 })

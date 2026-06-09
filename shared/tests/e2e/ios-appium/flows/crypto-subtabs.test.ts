@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore} from '../helpers/navigate'
+import {escapeToTabs, navigateToMore, goBack} from '../helpers/navigate'
 import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -15,24 +15,24 @@ describe('crypto subtabs', () => {
     await el(T.CRYPTO_NAV_ENCRYPT).click()
     await waitForTestID(T.CRYPTO_ENCRYPT_INPUT, 3000)
     await expect(el(T.CRYPTO_ENCRYPT_INPUT)).toExist()
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
 
     // Decrypt
     await el(T.CRYPTO_NAV_DECRYPT).click()
     await waitForTestID(T.CRYPTO_DECRYPT_INPUT, 3000)
     await expect(el(T.CRYPTO_DECRYPT_INPUT)).toExist()
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
 
     // Sign
     await el(T.CRYPTO_NAV_SIGN).click()
     await waitForTestID(T.CRYPTO_SIGN_INPUT, 3000)
     await expect(el(T.CRYPTO_SIGN_INPUT)).toExist()
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
 
     // Verify
     await el(T.CRYPTO_NAV_VERIFY).click()
     await waitForTestID(T.CRYPTO_VERIFY_INPUT, 3000)
     await expect(el(T.CRYPTO_VERIFY_INPUT)).toExist()
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
   })
 })

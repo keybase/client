@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs} from '../helpers/navigate'
+import {escapeToTabs, goBack} from '../helpers/navigate'
 import {el, els, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -18,8 +18,7 @@ describe('chat conversation', () => {
     await expect(el(T.CHAT_MESSAGE_LIST)).toExist()
 
     // Back to inbox
-    await waitForTestID(T.COMMON_BACK_BUTTON, 3000)
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
     await waitForTestID(T.CHAT_INBOX_LIST, 5000)
     await expect(el(T.CHAT_INBOX_LIST)).toExist()
   })

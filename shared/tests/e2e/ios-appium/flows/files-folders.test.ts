@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs} from '../helpers/navigate'
+import {escapeToTabs, goBack} from '../helpers/navigate'
 import {el, els, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -14,20 +14,17 @@ describe('files folders', () => {
 
     // Navigate into private folder (index 0)
     await els(T.FILES_TLF_ROW)[0]!.click()
-    await waitForTestID(T.COMMON_BACK_BUTTON, 3000)
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
     await waitForTestID(T.FILES_TLF_ROW, 3000)
 
     // Navigate into public folder (index 1)
     await els(T.FILES_TLF_ROW)[1]!.click()
-    await waitForTestID(T.COMMON_BACK_BUTTON, 3000)
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
     await waitForTestID(T.FILES_TLF_ROW, 3000)
 
     // Navigate into team folder (index 2)
     await els(T.FILES_TLF_ROW)[2]!.click()
-    await waitForTestID(T.COMMON_BACK_BUTTON, 3000)
-    await el(T.COMMON_BACK_BUTTON).click()
+    await goBack()
     await waitForTestID(T.FILES_TLF_ROW, 3000)
     await expect(el(T.FILES_TLF_ROW)).toExist()
   })
