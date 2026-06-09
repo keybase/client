@@ -19,7 +19,25 @@ function deviceDirs(): Array<{label: string; dir: string}> {
       return eq === -1 ? {label: '', dir: part.trim()} : {label: part.slice(0, eq).trim(), dir: part.slice(eq + 1).trim()}
     })
   }
-  return [{label: '', dir: process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-appium-debug'}]
+  const single = process.env['KB_IOS_APPIUM_DEBUG_DIR']
+  if (single) return [{label: '', dir: single}]
+  // No env (e.g. `yarn test:e2e:ios:report` run standalone): auto-discover the
+  // per-device debug dirs the device runners leave behind so the report covers
+  // every device, not just the last single run. Fall back to the lone default
+  // dir only when no per-device dirs exist.
+  const results = 'tests/results'
+  const perDevice = fs.existsSync(results)
+    ? fs
+        .readdirSync(results)
+        .filter(d => d.startsWith('ios-appium-debug-'))
+        .sort()
+        .map(d => {
+          const slug = d.slice('ios-appium-debug-'.length)
+          return {label: slug.charAt(0).toUpperCase() + slug.slice(1), dir: path.join(results, d)}
+        })
+    : []
+  if (perDevice.length) return perDevice
+  return [{label: '', dir: 'tests/results/ios-appium-debug'}]
 }
 
 type TestArtifact = {label: string; passed: boolean; durationMs: number; error: string | null}
