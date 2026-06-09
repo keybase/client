@@ -21,7 +21,8 @@ export const config: WebdriverIO.Config = {
   runner: 'local',
   port: 4723,
   path: '/',
-  specs: ['./flows/**/*.test.ts'],
+  // One aggregate file → one session for the whole suite (see all.test.ts).
+  specs: ['./all.test.ts'],
   maxInstances: 1,
   capabilities: [iosCapabilities(udid)],
   logLevel: 'warn',

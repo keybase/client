@@ -1,24 +1,18 @@
 import {expect} from '@wdio/globals'
 import {escapeToTabs, navigateToTeams} from '../helpers/navigate'
-import {el, els, byText} from '../helpers/elements'
+import {el, els, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('teams browse', () => {
-  it('renders the teams list', async () => {
+  it('renders the teams list and opens the first team', async () => {
     await escapeToTabs()
     await navigateToTeams()
     await expect(el(T.TEAMS_LIST)).toExist()
-  })
 
-  it('opens first team if one exists', async () => {
-    await escapeToTabs()
-    await navigateToTeams()
-
-    // Maestro: runFlow when visible teams-row — legitimately-absent data guard
-    if ((await els(T.TEAMS_ROW).length) === 0) return // account has no teams
+    // Wait for real team rows to load, then open the first.
+    await waitForTestID(T.TEAMS_ROW, 8000)
     await els(T.TEAMS_ROW)[0]!.click()
-    // Maestro: extendedWaitUntil visible text: "Members"
-    await byText('Members').waitForExist({timeout: 3000, timeoutMsg: '"Members" tab never appeared after opening team'})
+    await byText('Members').waitForExist({timeout: 5000, timeoutMsg: '"Members" never appeared after opening team'})
     await expect(byText('Members')).toExist()
   })
 })

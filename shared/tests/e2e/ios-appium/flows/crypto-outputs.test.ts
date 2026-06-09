@@ -3,11 +3,13 @@ import {escapeToTabs, navigateToMore} from '../helpers/navigate'
 import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
+// Two separate tests: the crypto output is shown in its own modal whose "Done"
+// dismiss doesn't cleanly return to the input tabs, so each operation navigates
+// fresh rather than chaining. (beforeTest reset is cheap within one session.)
 describe('crypto outputs', () => {
   it('encrypt produces output', async () => {
     await escapeToTabs()
     await navigateToMore()
-    // Maestro: scrollUntilVisible + tapOn text: ".*Crypto" — label match for the Crypto menu item
     await byText('Crypto').click()
     await waitForTestID(T.CRYPTO_INPUT, 3000)
 
@@ -18,8 +20,6 @@ describe('crypto outputs', () => {
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()
-    // Dismiss the output modal so the next test starts from a clean stack.
-    await byText('Done').click()
   })
 
   it('sign produces output', async () => {
@@ -35,7 +35,5 @@ describe('crypto outputs', () => {
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()
-    // Dismiss the output modal so the next test starts from a clean stack.
-    await byText('Done').click()
   })
 })

@@ -5,17 +5,11 @@ import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('people profile', () => {
-  it('renders the people feed', async () => {
-    await escapeToTabs()
-    await navigateToPeople()
-    await expect(el(T.PEOPLE_FEED)).toExist()
-  })
-
-  it('opens own profile from the feed when visible', async () => {
+  it('renders the feed and opens own profile when visible', async () => {
     const smokeUser = requireSmokeUser()
     await escapeToTabs()
     await navigateToPeople()
-    await waitForTestID(T.PEOPLE_FEED, 3000)
+    await expect(el(T.PEOPLE_FEED)).toExist()
 
     // Your own username appearing in your own feed is genuinely conditional
     // (the feed surfaces others' activity), so guard rather than hard-wait.
