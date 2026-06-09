@@ -16,10 +16,13 @@ process.env['APPIUM_HOME'] ||= `${homedir()}/.appium`
 requireSmokeUser()
 const deviceName = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 const udid = process.env['KB_IOS_UDID'] ?? udidForName(deviceName)
+// Parameterized so the parallel runner can give each device its own appium
+// server + port (run-ios-appium-parallel.sh).
+const port = Number(process.env['KB_APPIUM_PORT'] ?? 4723)
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
-  port: 4723,
+  port,
   path: '/',
   // One aggregate file → one session for the whole suite (see all.test.ts).
   specs: ['./all.test.ts'],
@@ -29,7 +32,7 @@ export const config: WebdriverIO.Config = {
   framework: 'mocha',
   mochaOpts: {ui: 'bdd', timeout: 60000},
   reporters: ['spec'],
-  services: [['appium', {args: {basePath: '/'}}]],
+  services: [['appium', {args: {basePath: '/', port}}]],
   // The app restores its last screen on launch and screens leak between specs,
   // so reset to the root tab bar before each test by climbing out of any stack.
   // (Cheaper + more reliable than a cold relaunch, which also restores state.)
