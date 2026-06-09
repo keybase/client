@@ -1,23 +1,33 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
-import {byText, els, waitForTestID, tab} from './elements'
+import {byText, el, els, waitForTestID, tab} from './elements'
 
-// Swipe up (content moves up) until text is on screen, for items below the fold.
-// iOS XCUITest prunes off-screen views, so byText can't find them until scrolled.
-export async function scrollDownToText(text: string, maxSwipes = 6): Promise<void> {
+// Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
+// present — a settings row below the fold still "exists" in the tree). Swiping
+// the left ~15% scrolls the tablet settings LeftNav (and is within the list on
+// phone too). Generic over a target check so it works for testIDs and text.
+async function scrollUpUntil(visible: () => Promise<boolean>, maxSwipes: number): Promise<void> {
   for (let i = 0; i < maxSwipes; i++) {
-    if (await byText(text).isExisting()) return
+    if (await visible()) return
     const {width, height} = await browser.getWindowRect()
+    const x = Math.round(width * 0.15)
     await browser
       .action('pointer')
-      .move({x: Math.round(width / 2), y: Math.round(height * 0.7)})
+      .move({x, y: Math.round(height * 0.7)})
       .down()
-      .move({x: Math.round(width / 2), y: Math.round(height * 0.3), duration: 300})
+      .move({x, y: Math.round(height * 0.3), duration: 300})
       .up()
       .perform()
-    // Detect the target appearing rather than sleeping a fixed amount.
-    await browser.waitUntil(async () => byText(text).isExisting(), {timeout: 800, interval: 100}).catch(() => {})
+    await browser.waitUntil(visible, {timeout: 800, interval: 100}).catch(() => {})
   }
+}
+
+export async function scrollToTestID(id: string, maxSwipes = 8): Promise<void> {
+  await scrollUpUntil(async () => el(id).isDisplayed().catch(() => false), maxSwipes)
+}
+
+export async function scrollDownToText(text: string, maxSwipes = 8): Promise<void> {
+  await scrollUpUntil(async () => byText(text).isDisplayed().catch(() => false), maxSwipes)
 }
 
 // True once the native tab bar (root) is on screen.

@@ -32,7 +32,9 @@ export const config: WebdriverIO.Config = {
   capabilities: [iosCapabilities(udid)],
   logLevel: 'warn',
   framework: 'mocha',
-  mochaOpts: {ui: 'bdd', timeout: 60000},
+  // 120s: the tablet settings-subpages flow (8 subpages, two-pane scroll+retry)
+  // can run long; phone tests finish well under this.
+  mochaOpts: {ui: 'bdd', timeout: 120000},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/', port}}]],
   // Set device orientation once at session start (e.g. iPad in landscape).
