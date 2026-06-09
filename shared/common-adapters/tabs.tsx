@@ -23,6 +23,7 @@ export type Tab<TitleT extends string> = {
   text?: string // text to show instead of title
   icon?: IconType
   badgeNumber?: number
+  testID?: string // e2e: needed for icon-only tabs that have no tappable text
 }
 
 type Props<TitleT extends string> = {
@@ -58,6 +59,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
         <Kb.ClickableBox
           onClick={() => props.onSelect(tab.title)}
           key={tab.title}
+          testID={tab.testID}
           direction="vertical"
           style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle, props.clickableTabStyle])}
           fullWidth={true}

@@ -11,6 +11,7 @@ type SettingsItemProps = {
   text: string
   type: string
   subText?: string
+  testID?: string
   textColor?: Kb.Styles.Color
   selected: boolean
 }
@@ -23,6 +24,7 @@ function SettingsItem(props: SettingsItemProps) {
   return (
     <Kb.ClickableBox
       onClick={onClick}
+      testID={props.testID}
       direction="horizontal"
       alignItems="center"
       relative={true}

@@ -32,6 +32,10 @@ export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
 export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
+// The settings team-tab is an icon-only gear on phone (no tappable text), so it
+// needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,
+// which marks the settings tab's content).
+export const TEAMS_TAB_SETTINGS_BUTTON = 'teams-tab-settings-button'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'
@@ -48,6 +52,11 @@ export const SETTINGS_CHAT              = 'settings-chat'
 export const SETTINGS_DISPLAY           = 'settings-display'
 export const SETTINGS_FEEDBACK          = 'settings-feedback'
 export const SETTINGS_FILES             = 'settings-files'
+// Settings-list ROW testIDs (distinct from the subpage content above). Needed
+// for Chat/Files because their row text collides with the bottom tab bar's
+// "Chat"/"Files" tabs, making a text match ambiguous.
+export const SETTINGS_ROW_CHAT          = 'settings-row-chat'
+export const SETTINGS_ROW_FILES         = 'settings-row-files'
 export const SETTINGS_NOTIFICATIONS     = 'settings-notifications'
 export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
 

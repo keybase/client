@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, goBack} from '../helpers/navigate'
+import {escapeToTabs, navigateToMore, goBack, scrollDownToText} from '../helpers/navigate'
 import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -28,8 +28,8 @@ describe('settings subpages', () => {
 
   it('Chat page renders', async () => {
     await openMore()
-    // Maestro: tapOn text: "Chat" — taps the Chat settings item (not the tab bar Chat)
-    await byText('Chat').click()
+    // Tap by row testID, not text: "Chat" collides with the bottom tab bar's Chat tab.
+    await el(T.SETTINGS_ROW_CHAT).click()
     await waitForTestID(T.SETTINGS_CHAT, 3000)
     await expect(el(T.SETTINGS_CHAT)).toExist()
     await goBack()
@@ -53,8 +53,8 @@ describe('settings subpages', () => {
 
   it('Files page renders', async () => {
     await openMore()
-    // Maestro: tapOn text: "Files" — taps the Files settings item (not the tab bar Files)
-    await byText('Files').click()
+    // Tap by row testID, not text: "Files" collides with the bottom tab bar's Files tab.
+    await el(T.SETTINGS_ROW_FILES).click()
     await waitForTestID(T.SETTINGS_FILES, 3000)
     await expect(el(T.SETTINGS_FILES)).toExist()
     await goBack()
@@ -62,8 +62,7 @@ describe('settings subpages', () => {
 
   it('Notifications page renders', async () => {
     await openMore()
-    // Maestro: scrollUntilVisible then tapOn text: "Notifications"
-    await byText('Notifications').scrollIntoView()
+    await scrollDownToText('Notifications')
     await byText('Notifications').click()
     await waitForTestID(T.SETTINGS_NOTIFICATIONS, 3000)
     await expect(el(T.SETTINGS_NOTIFICATIONS)).toExist()
@@ -72,8 +71,7 @@ describe('settings subpages', () => {
 
   it('About page renders', async () => {
     await openMore()
-    // Maestro: scrollUntilVisible then tapOn text: "About"
-    await byText('About').scrollIntoView()
+    await scrollDownToText('About')
     await byText('About').click()
     await waitForTestID(T.SETTINGS_ABOUT, 3000)
     await expect(el(T.SETTINGS_ABOUT)).toExist()

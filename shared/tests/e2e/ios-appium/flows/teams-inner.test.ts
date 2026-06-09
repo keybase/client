@@ -16,8 +16,8 @@ describe('teams inner', () => {
     await waitForTestID(T.TEAMS_MEMBER_LIST, 5000)
     await expect(el(T.TEAMS_MEMBER_LIST)).toExist()
 
-    // Settings tab — Maestro: tapOn text: "Settings"
-    await byText('Settings').click()
+    // Settings tab is an icon-only gear on phone (no text), so tap by testID.
+    await el(T.TEAMS_TAB_SETTINGS_BUTTON).click()
     await waitForTestID(T.TEAMS_SETTINGS_TAB, 3000)
     await expect(el(T.TEAMS_SETTINGS_TAB)).toExist()
 

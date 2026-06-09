@@ -1,5 +1,22 @@
 import * as T from '../../shared/test-ids'
-import {els, waitForTestID, tab} from './elements'
+import {byText, els, waitForTestID, tab} from './elements'
+
+// Swipe up (content moves up) until text is on screen, for items below the fold.
+// iOS XCUITest prunes off-screen views, so byText can't find them until scrolled.
+export async function scrollDownToText(text: string, maxSwipes = 6): Promise<void> {
+  for (let i = 0; i < maxSwipes; i++) {
+    if (await byText(text).isExisting()) return
+    const {width, height} = await browser.getWindowRect()
+    await browser
+      .action('pointer')
+      .move({x: Math.round(width / 2), y: Math.round(height * 0.7)})
+      .down()
+      .move({x: Math.round(width / 2), y: Math.round(height * 0.3), duration: 300})
+      .up()
+      .perform()
+    await browser.pause(400)
+  }
+}
 
 // True once the native tab bar (root) is on screen.
 async function atTabs(): Promise<boolean> {

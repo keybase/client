@@ -22,7 +22,11 @@ const TeamTabs = (props: TeamTabsProps) => {
     ...(!props.isBig ? [{title: 'emoji' as const}] : []),
     ...(props.isBig || props.admin ? [{title: 'channels' as const}] : []),
     ...(props.isBig ? [{title: 'emoji' as const}] : []),
-    {icon: Kb.Styles.isPhone ? 'iconfont-gear' : undefined, title: 'settings' as const},
+    {
+      icon: Kb.Styles.isPhone ? 'iconfont-gear' : undefined,
+      testID: TestIDs.TEAMS_TAB_SETTINGS_BUTTON,
+      title: 'settings' as const,
+    },
     // TODO: should we not show bots if there are no bots and you have no permissions?
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
