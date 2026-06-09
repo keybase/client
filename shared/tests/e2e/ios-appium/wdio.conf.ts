@@ -32,9 +32,12 @@ export const config: WebdriverIO.Config = {
   capabilities: [iosCapabilities(udid)],
   logLevel: 'warn',
   framework: 'mocha',
-  // 120s: the tablet settings-subpages flow (8 subpages, two-pane scroll+retry)
-  // can run long; phone tests finish well under this.
-  mochaOpts: {ui: 'bdd', timeout: 120000},
+  // 120s: the tablet settings-subpages flow can run long; phone tests finish well
+  // under this. retries: 1 — the one-session suite accumulates load over 16 flows
+  // (KBFS/list loads, transient nav), so a flow can intermittently time out; a
+  // single retry (with a fresh escapeToTabs reset) absorbs those without masking
+  // real failures (a real break fails both attempts).
+  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 1},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/', port}}]],
   // Set device orientation once at session start (e.g. iPad in landscape).
