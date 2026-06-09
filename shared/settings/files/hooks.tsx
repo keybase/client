@@ -1,9 +1,11 @@
-import {defaultNotificationThreshold} from '.'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {clientID as fsClientID} from '@/fs/common/client'
+
+export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
+export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 type FilesSettings = {
   isLoading: boolean
