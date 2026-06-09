@@ -19,6 +19,8 @@ const udid = process.env['KB_IOS_UDID'] ?? udidForName(deviceName)
 // Parameterized so the parallel runner can give each device its own appium
 // server + port (run-ios-appium-parallel.sh).
 const port = Number(process.env['KB_APPIUM_PORT'] ?? 4723)
+// 'LANDSCAPE' | 'PORTRAIT' — the runner sets LANDSCAPE for iPad.
+const orientation = process.env['KB_IOS_ORIENTATION']
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
@@ -33,6 +35,10 @@ export const config: WebdriverIO.Config = {
   mochaOpts: {ui: 'bdd', timeout: 60000},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/', port}}]],
+  // Set device orientation once at session start (e.g. iPad in landscape).
+  before: async () => {
+    if (orientation) await browser.setOrientation(orientation as 'LANDSCAPE' | 'PORTRAIT').catch(() => {})
+  },
   // The app restores its last screen on launch and screens leak between specs,
   // so reset to the root tab bar before each test by climbing out of any stack.
   // (Cheaper + more reliable than a cold relaunch, which also restores state.)

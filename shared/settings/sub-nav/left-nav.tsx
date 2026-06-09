@@ -70,6 +70,7 @@ const LeftNav = (props: Props) => {
       />
       <SettingsItem
         text="Chat"
+        testID={TestIDs.SETTINGS_ROW_CHAT}
         type={Settings.settingsChatTab}
         selected={props.selected === Settings.settingsChatTab}
         onClick={props.onClick}
@@ -96,6 +97,7 @@ const LeftNav = (props: Props) => {
       />
       <SettingsItem
         text="Files"
+        testID={TestIDs.SETTINGS_ROW_FILES}
         type={Settings.settingsFsTab}
         selected={props.selected === Settings.settingsFsTab}
         onClick={props.onClick}

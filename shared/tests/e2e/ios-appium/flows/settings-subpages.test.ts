@@ -15,8 +15,12 @@ describe('settings subpages', () => {
       await open()
       await waitForTestID(marker, 4000)
       await expect(el(marker)).toExist()
-      await goBack()
-      await waitForTestID(T.SETTINGS_ACCOUNT, 4000) // back on the More/settings root
+      // Phone pushes a full-screen subpage (go back to the list); tablet keeps
+      // the left nav visible alongside the detail pane (no back needed).
+      if (!(await el(T.SETTINGS_ACCOUNT).isExisting())) {
+        await goBack()
+        await waitForTestID(T.SETTINGS_ACCOUNT, 4000)
+      }
     }
 
     await visit(async () => byText('Advanced').click(), T.SETTINGS_ADVANCED)

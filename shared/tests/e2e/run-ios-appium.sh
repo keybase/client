@@ -51,8 +51,11 @@ for NAME in "${DEVICES[@]}"; do
   fi
   open -a Simulator >/dev/null 2>&1 || true
 
-  echo "▶ Running suite on $NAME"
-  KB_IOS_DEVICE="$NAME" KB_IOS_APPIUM_DEBUG_DIR="$DBG" \
+  # iPad runs in landscape; phones stay portrait.
+  ORIENT=""; case "$NAME" in *[Pp]ad*) ORIENT="LANDSCAPE";; esac
+
+  echo "▶ Running suite on $NAME${ORIENT:+ ($ORIENT)}"
+  KB_IOS_DEVICE="$NAME" KB_IOS_APPIUM_DEBUG_DIR="$DBG" KB_IOS_ORIENTATION="$ORIENT" \
     yarn wdio run tests/e2e/ios-appium/wdio.conf.ts || OVERALL=1
   DIRS="${DIRS:+$DIRS,}$NAME=$DBG"
 done

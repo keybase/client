@@ -36,8 +36,9 @@ for NAME in "${DEVICES[@]}"; do
   DBG="tests/results/ios-appium-debug-$SLUG"
   rm -rf "$DBG"; mkdir -p "$DBG"
   P=$((BASE_PORT + i)); i=$((i + 1))
-  echo "▶ [$NAME] appium port $P → log tests/results/run-$SLUG.log"
-  KB_IOS_DEVICE="$NAME" KB_APPIUM_PORT="$P" KB_IOS_APPIUM_DEBUG_DIR="$DBG" \
+  ORIENT=""; case "$NAME" in *[Pp]ad*) ORIENT="LANDSCAPE";; esac
+  echo "▶ [$NAME] appium port $P${ORIENT:+ ($ORIENT)} → log tests/results/run-$SLUG.log"
+  KB_IOS_DEVICE="$NAME" KB_APPIUM_PORT="$P" KB_IOS_APPIUM_DEBUG_DIR="$DBG" KB_IOS_ORIENTATION="$ORIENT" \
     yarn wdio run tests/e2e/ios-appium/wdio.conf.ts >"tests/results/run-$SLUG.log" 2>&1 &
   PIDS+=("$!")
   DIRS="${DIRS:+$DIRS,}$NAME=$DBG"
