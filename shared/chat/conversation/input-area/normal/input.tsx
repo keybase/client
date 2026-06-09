@@ -1025,6 +1025,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
           onClick={onSubmit}
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
+          testID={TestIDs.CHAT_SEND_BUTTON}
           style={isExploding ? nativeStyles.explodingSendBtn : nativeStyles.sendBtn}
         />
       )}
