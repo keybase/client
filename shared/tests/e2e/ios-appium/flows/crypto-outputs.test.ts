@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, goBack} from '../helpers/navigate'
+import {escapeToTabs, navigateToMore} from '../helpers/navigate'
 import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -18,10 +18,6 @@ describe('crypto outputs', () => {
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()
-
-    // Maestro: tapOn text: "Done" then backButton
-    await byText('Done').click()
-    await goBack()
   })
 
   it('sign produces output', async () => {
@@ -37,8 +33,5 @@ describe('crypto outputs', () => {
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()
-
-    await byText('Done').click()
-    await goBack()
   })
 })

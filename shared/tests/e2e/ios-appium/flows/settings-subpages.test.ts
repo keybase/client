@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, goBack, scrollDownToText} from '../helpers/navigate'
+import {escapeToTabs, navigateToMore, scrollDownToText} from '../helpers/navigate'
 import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -15,7 +15,6 @@ describe('settings subpages', () => {
     await byText('Advanced').click()
     await waitForTestID(T.SETTINGS_ADVANCED, 3000)
     await expect(el(T.SETTINGS_ADVANCED)).toExist()
-    await goBack()
   })
 
   it('Backup page renders', async () => {
@@ -23,7 +22,6 @@ describe('settings subpages', () => {
     await byText('Backup').click()
     await waitForTestID(T.SETTINGS_ARCHIVE, 3000)
     await expect(el(T.SETTINGS_ARCHIVE)).toExist()
-    await goBack()
   })
 
   it('Chat page renders', async () => {
@@ -32,7 +30,6 @@ describe('settings subpages', () => {
     await el(T.SETTINGS_ROW_CHAT).click()
     await waitForTestID(T.SETTINGS_CHAT, 3000)
     await expect(el(T.SETTINGS_CHAT)).toExist()
-    await goBack()
   })
 
   it('Display page renders', async () => {
@@ -40,7 +37,6 @@ describe('settings subpages', () => {
     await byText('Display').click()
     await waitForTestID(T.SETTINGS_DISPLAY, 3000)
     await expect(el(T.SETTINGS_DISPLAY)).toExist()
-    await goBack()
   })
 
   it('Feedback page renders', async () => {
@@ -48,7 +44,6 @@ describe('settings subpages', () => {
     await byText('Feedback').click()
     await waitForTestID(T.SETTINGS_FEEDBACK, 3000)
     await expect(el(T.SETTINGS_FEEDBACK)).toExist()
-    await goBack()
   })
 
   it('Files page renders', async () => {
@@ -57,7 +52,6 @@ describe('settings subpages', () => {
     await el(T.SETTINGS_ROW_FILES).click()
     await waitForTestID(T.SETTINGS_FILES, 3000)
     await expect(el(T.SETTINGS_FILES)).toExist()
-    await goBack()
   })
 
   it('Notifications page renders', async () => {
@@ -66,7 +60,6 @@ describe('settings subpages', () => {
     await byText('Notifications').click()
     await waitForTestID(T.SETTINGS_NOTIFICATIONS, 3000)
     await expect(el(T.SETTINGS_NOTIFICATIONS)).toExist()
-    await goBack()
   })
 
   it('About page renders', async () => {
@@ -75,6 +68,5 @@ describe('settings subpages', () => {
     await byText('About').click()
     await waitForTestID(T.SETTINGS_ABOUT, 3000)
     await expect(el(T.SETTINGS_ABOUT)).toExist()
-    await goBack()
   })
 })

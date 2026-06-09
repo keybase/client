@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToTeams, goBack} from '../helpers/navigate'
+import {escapeToTabs, navigateToTeams} from '../helpers/navigate'
 import {el, els, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -20,7 +20,5 @@ describe('teams browse', () => {
     // Maestro: extendedWaitUntil visible text: "Members"
     await byText('Members').waitForExist({timeout: 3000, timeoutMsg: '"Members" tab never appeared after opening team'})
     await expect(byText('Members')).toExist()
-
-    await goBack()
   })
 })

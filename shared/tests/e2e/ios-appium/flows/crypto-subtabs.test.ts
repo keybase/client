@@ -33,6 +33,5 @@ describe('crypto subtabs', () => {
     await el(T.CRYPTO_NAV_VERIFY).click()
     await waitForTestID(T.CRYPTO_VERIFY_INPUT, 3000)
     await expect(el(T.CRYPTO_VERIFY_INPUT)).toExist()
-    await goBack()
   })
 })

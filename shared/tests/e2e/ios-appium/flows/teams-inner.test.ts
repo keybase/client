@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToTeams, goBack} from '../helpers/navigate'
+import {escapeToTabs, navigateToTeams} from '../helpers/navigate'
 import {el, els, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -34,7 +34,5 @@ describe('teams inner', () => {
       await waitForTestID(T.TEAMS_CHANNEL_LIST, 3000)
       await expect(el(T.TEAMS_CHANNEL_LIST)).toExist()
     }
-
-    await goBack()
   })
 })
