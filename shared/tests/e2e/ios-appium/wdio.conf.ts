@@ -19,6 +19,10 @@ const udid = process.env['KB_IOS_UDID'] ?? udidForName(deviceName)
 // Parameterized so the parallel runner can give each device its own appium
 // server + port (run-ios-appium-parallel.sh).
 const port = Number(process.env['KB_APPIUM_PORT'] ?? 4723)
+// Parallel runs give each device a distinct appium port; derive a matching WDA
+// port (8100 + offset) so concurrent sims don't both grab 8100. Undefined when
+// running on the default port (serial), keeping single-device runs on defaults.
+const wdaLocalPort = port === 4723 ? undefined : 8100 + (port - 4723)
 // 'LANDSCAPE' | 'PORTRAIT' — the runner sets LANDSCAPE for iPad.
 const orientation = process.env['KB_IOS_ORIENTATION']
 
@@ -29,7 +33,7 @@ export const config: WebdriverIO.Config = {
   // One aggregate file → one session for the whole suite (see all.test.ts).
   specs: ['./all.test.ts'],
   maxInstances: 1,
-  capabilities: [iosCapabilities(udid)],
+  capabilities: [iosCapabilities(udid, wdaLocalPort)],
   logLevel: 'warn',
   framework: 'mocha',
   // 120s: the tablet settings-subpages flow can run long; phone tests finish well

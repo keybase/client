@@ -17,7 +17,7 @@ export function requireSmokeUser(): string {
   return u
 }
 
-export function iosCapabilities(udid: string) {
+export function iosCapabilities(udid: string, wdaLocalPort?: number) {
   return {
     platformName: 'iOS',
     'appium:automationName': 'XCUITest',
@@ -31,5 +31,17 @@ export function iosCapabilities(udid: string) {
     'appium:waitForIdleTimeout': 0,
     'appium:usePrebuiltWDA': true,
     'appium:skipLogCapture': true,
+    // WDA listens on 8100 by default; the parallel runner (run-ios-appium-parallel.sh)
+    // runs two sims at once, so each needs its OWN WDA port or the second WDA
+    // collides with the first (connect ECONNREFUSED 127.0.0.1:8100, sessions die
+    // mid-suite). Don't override derivedDataPath: usePrebuiltWDA reuses the single
+    // prebuilt WDA build read-only (safe concurrently); a fresh dir would have no
+    // build to launch → xcodebuild exits 65. Serial runs leave the port undefined.
+    ...(wdaLocalPort
+      ? {
+          'appium:wdaLocalPort': wdaLocalPort,
+          'appium:mjpegServerPort': wdaLocalPort + 100,
+        }
+      : {}),
   }
 }
