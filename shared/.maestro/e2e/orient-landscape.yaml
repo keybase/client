@@ -1,4 +1,0 @@
-appId: keybase.ios
----
-# Run before the suite on tablet sims so screenshots are captured in landscape.
-- setOrientation: LANDSCAPE_LEFT
