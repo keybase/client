@@ -18,6 +18,8 @@ describe('crypto outputs', () => {
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()
+    // Dismiss the output modal so the next test starts from a clean stack.
+    await byText('Done').click()
   })
 
   it('sign produces output', async () => {
@@ -33,5 +35,7 @@ describe('crypto outputs', () => {
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()
+    // Dismiss the output modal so the next test starts from a clean stack.
+    await byText('Done').click()
   })
 })

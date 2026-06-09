@@ -31,6 +31,22 @@ async function atTabs(): Promise<boolean> {
 export async function escapeToTabs(): Promise<void> {
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
+    // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
+    // also have a back button, and tapping back on it is a no-op that loops —
+    // so its Done/Close/Cancel must win. These are tappable StaticText/
+    // ClickableBox, not Buttons, so match by text (any element type).
+    let dismissed = false
+    for (const word of ['Done', 'Close', 'Cancel']) {
+      if (await byText(word).isExisting()) {
+        await byText(word).click().catch(() => {})
+        dismissed = true
+        break
+      }
+    }
+    if (dismissed) {
+      await browser.pause(400)
+      continue
+    }
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
       await els(T.COMMON_BACK_BUTTON)[0]!.click().catch(() => {})
       await browser.pause(400)
