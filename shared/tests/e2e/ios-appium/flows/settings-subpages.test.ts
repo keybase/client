@@ -1,5 +1,5 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, goBack, scrollDownToText, scrollToTestID} from '../helpers/navigate'
+import {escapeToTabs, navigateToMore, goBack, scrollDownToText, scrollToTestID, dismissKeyboard} from '../helpers/navigate'
 import {el, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -13,6 +13,10 @@ describe('settings subpages', () => {
     await waitForTestID(T.SETTINGS_ACCOUNT, 3000)
 
     const visit = async (open: () => Promise<unknown>, marker: string) => {
+      // A prior subpage (e.g. Feedback) raises the keyboard, which covers the
+      // lower LeftNav rows on the tablet (they report displayed=false → taps
+      // no-op). Dismiss it before tapping the next row.
+      await dismissKeyboard()
       await open()
       await waitForTestID(marker, 5000)
       await expect(el(marker)).toExist()

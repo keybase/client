@@ -35,6 +35,17 @@ async function atTabs(): Promise<boolean> {
   return (await els('People').length) > 0
 }
 
+// Dismiss the keyboard ONLY when one is present — calling mobile: hideKeyboard
+// with no keyboard up hangs until timeout. The keyboard (raised by chat/crypto/
+// feedback inputs) can cover tappable UI on later screens.
+export async function dismissKeyboard(): Promise<void> {
+  // isKeyboardShown is a direct Appium endpoint (fast) — avoid an
+  // //XCUIElementTypeKeyboard xpath, which is a slow full-tree search per call.
+  if (await browser.isKeyboardShown().catch(() => false)) {
+    await browser.execute('mobile: hideKeyboard').catch(() => {})
+  }
+}
+
 // Climb out of any pushed screen / stack back to the root tab bar. The app
 // restores its last screen on launch, and different screens expose different
 // back affordances: app-custom headers use testID "backButton", native nav
@@ -58,6 +69,9 @@ async function settleAfter(ctrl: ChainablePromiseElement): Promise<void> {
 }
 
 export async function escapeToTabs(): Promise<void> {
+  // A flow may end with the keyboard up (chat input, crypto, feedback); it can
+  // cover tappable UI on the next test, so dismiss it before resetting.
+  await dismissKeyboard()
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can

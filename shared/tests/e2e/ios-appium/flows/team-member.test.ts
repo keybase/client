@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
-import {escapeToTabs, navigateToTeams} from '../helpers/navigate'
+import {escapeToTabs, navigateToTeams, scrollDownToText} from '../helpers/navigate'
 import {el, els, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -19,8 +19,11 @@ describe('team member', () => {
     await el(T.TEAMS_TAB_MEMBERS_BUTTON).click()
     await waitForTestID(T.TEAMS_MEMBER_LIST, 10000)
 
+    // Scroll the member list until the smoke user shows — the list loads lazily
+    // (slow under the full suite) and the user may be below the fold; scrolling
+    // both waits for and reveals/renders the row.
+    await scrollDownToText(smokeUser)
     const user = byText(smokeUser)
-    await user.waitForExist({timeout: 8000})
     await user.click()
     await waitForTestID(T.TEAMS_MEMBER_PAGE, 5000)
     // toExist (presence), not toBeDisplayed: the member-page container is a flex
