@@ -61,7 +61,7 @@ const TeamRow = function TeamRow(props: Props) {
   if (isMobile) {
     return (
       <>
-        <Kb.ClickableBox onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
+        <Kb.ClickableBox onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
           <Kb.Divider style={styles.divider} />
           <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
             <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
