@@ -20,29 +20,31 @@ export async function escapeToTabs(): Promise<void> {
   await browser.pause(400)
 }
 
+// The iOS tab bar is a NATIVE UITabBar: testIDs (nav-tab-*) do not reach the
+// native UITabBarItems, but their titles do (exposed as the accessibility
+// name/label). So tabs are tapped by visible label, not testID.
 export async function navigateToPeople(): Promise<void> {
-  await tab(T.NAV_TAB_PEOPLE).click()
+  await tab('People').click()
   await waitForTestID(T.PEOPLE_FEED, 5000)
 }
 
 export async function navigateToChat(): Promise<void> {
-  await tab(T.NAV_TAB_CHAT).click()
+  await tab('Chat').click()
   await waitForTestID(T.CHAT_INBOX_LIST, 5000)
 }
 
 export async function navigateToFiles(): Promise<void> {
-  await tab(T.NAV_TAB_FILES).click()
+  await tab('Files').click()
   await waitForTestID(T.FILES_BROWSER, 5000)
 }
 
 export async function navigateToTeams(): Promise<void> {
-  await tab(T.NAV_TAB_TEAMS).click()
+  await tab('Teams').click()
   await waitForTestID(T.TEAMS_LIST, 3000)
 }
 
-// Tap the More tab (settingsTab, testID nav-tab-settings) to surface
-// Crypto / Git / Devices / Settings — which live under the More stack.
+// The "More" tab surfaces Crypto / Git / Devices / Settings under its stack.
 export async function navigateToMore(): Promise<void> {
-  await tab(T.NAV_TAB_SETTINGS).click()
+  await tab('More').click()
   await waitForTestID(T.SETTINGS_ACCOUNT, 5000)
 }

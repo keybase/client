@@ -18,7 +18,9 @@ describe('team member', () => {
     if (!(await user.isExisting())) return // smoke user not a member of this team
     await user.click()
     await waitForTestID(T.TEAMS_MEMBER_PAGE, 5000)
-    await expect(el(T.TEAMS_MEMBER_PAGE)).toBeDisplayed()
+    // toExist (presence), not toBeDisplayed: the member-page container is a flex
+    // Box2 that XCUITest reports visible="false" even when on screen.
+    await expect(el(T.TEAMS_MEMBER_PAGE)).toExist()
 
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) await el(T.COMMON_BACK_BUTTON).click()
   })
