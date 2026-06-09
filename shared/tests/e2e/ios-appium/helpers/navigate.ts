@@ -1,3 +1,4 @@
+import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {byText, els, waitForTestID, tab} from './elements'
 
@@ -14,7 +15,8 @@ export async function scrollDownToText(text: string, maxSwipes = 6): Promise<voi
       .move({x: Math.round(width / 2), y: Math.round(height * 0.3), duration: 300})
       .up()
       .perform()
-    await browser.pause(400)
+    // Detect the target appearing rather than sleeping a fixed amount.
+    await browser.waitUntil(async () => byText(text).isExisting(), {timeout: 800, interval: 100}).catch(() => {})
   }
 }
 
@@ -28,33 +30,45 @@ async function atTabs(): Promise<boolean> {
 // back affordances: app-custom headers use testID "backButton", native nav
 // bars expose "BackButton", and some screens only pop via the iOS left-edge
 // swipe. Try each, re-checking for the tab bar, until we're home.
+// One predicate for any modal/sheet dismiss control (Done/Close/Cancel), any
+// element type — cheaper than three separate searches.
+const DISMISS_PRED =
+  '-ios predicate string:label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel"'
+
+// Wait for a tapped control to take effect — return as soon as the tab bar
+// appears OR the control we clicked is gone (the screen transitioned). No fixed
+// sleep: this detects the change and proceeds immediately.
+async function settleAfter(ctrl: ChainablePromiseElement): Promise<void> {
+  await browser
+    .waitUntil(async () => (await atTabs()) || !(await ctrl.isExisting().catch(() => false)), {
+      timeout: 3000,
+      interval: 80,
+    })
+    .catch(() => {})
+}
+
 export async function escapeToTabs(): Promise<void> {
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
     // also have a back button, and tapping back on it is a no-op that loops —
-    // so its Done/Close/Cancel must win. These are tappable StaticText/
-    // ClickableBox, not Buttons, so match by text (any element type).
-    let dismissed = false
-    for (const word of ['Done', 'Close', 'Cancel']) {
-      if (await byText(word).isExisting()) {
-        await byText(word).click().catch(() => {})
-        dismissed = true
-        break
-      }
-    }
-    if (dismissed) {
-      await browser.pause(400)
+    // so its Done/Close/Cancel must win.
+    if ((await browser.$$(DISMISS_PRED).length) > 0) {
+      const ctrl = browser.$$(DISMISS_PRED)[0]!
+      await ctrl.click().catch(() => {})
+      await settleAfter(ctrl)
       continue
     }
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
-      await els(T.COMMON_BACK_BUTTON)[0]!.click().catch(() => {})
-      await browser.pause(400)
+      const ctrl = els(T.COMMON_BACK_BUTTON)[0]!
+      await ctrl.click().catch(() => {})
+      await settleAfter(ctrl)
       continue
     }
     if ((await els('BackButton').length) > 0) {
-      await els('BackButton')[0]!.click().catch(() => {})
-      await browser.pause(400)
+      const ctrl = els('BackButton')[0]!
+      await ctrl.click().catch(() => {})
+      await settleAfter(ctrl)
       continue
     }
     // No back button visible — try the iOS pop gesture (swipe from left edge).
@@ -66,7 +80,7 @@ export async function escapeToTabs(): Promise<void> {
       .move({x: Math.round(width * 0.85), y: Math.round(height / 2), duration: 250})
       .up()
       .perform()
-    await browser.pause(400)
+    await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
   }
 }
 

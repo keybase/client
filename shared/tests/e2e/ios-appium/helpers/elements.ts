@@ -9,7 +9,9 @@ export const els = (id: string): ChainablePromiseArray => browser.$$(`~${id}`)
 // would spuriously fail. iOS prunes truly off-screen views from the tree, so
 // existence is a reliable "this screen is active" signal.
 export const waitForTestID = async (id: string, timeout = 5000) =>
-  el(id).waitForExist({timeout, timeoutMsg: `testID "${id}" never appeared`})
+  // interval 150 (vs the 500 default) so a wait returns promptly once the
+  // element appears, instead of idling up to half a second per wait.
+  el(id).waitForExist({timeout, interval: 150, timeoutMsg: `testID "${id}" never appeared`})
 
 export const countTestID = async (id: string): Promise<number> => els(id).length
 

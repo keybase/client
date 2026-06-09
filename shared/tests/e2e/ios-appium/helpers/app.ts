@@ -26,5 +26,10 @@ export function iosCapabilities(udid: string) {
     'appium:noReset': true,
     'appium:newCommandTimeout': 120,
     'appium:wdaLaunchTimeout': 120000,
+    // Speed up session init / commands: don't wait for app quiescence on launch,
+    // reuse the prebuilt WDA, and skip device log capture.
+    'appium:waitForIdleTimeout': 0,
+    'appium:usePrebuiltWDA': true,
+    'appium:skipLogCapture': true,
   }
 }
