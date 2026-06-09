@@ -4,9 +4,23 @@ import {buildReport} from './generate-report-shared.mts'
 import type {CardData, Section} from './generate-report-shared.mts'
 
 // Builds the unified HTML report from the artifacts the wdio afterTest hook
-// writes (one <slug>.json + <slug>.png per test) into the debug dir.
-const debugDir = process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-appium-debug'
+// writes (one <slug>.json + <slug>.png per test) into the debug dir(s).
+//
+// Single device: KB_IOS_APPIUM_DEBUG_DIR (one section).
+// Multi device:  KB_IOS_APPIUM_DEBUG_DIRS = "iPhoneTest=dir1,iPadTest=dir2"
+//                (one titled section per device, set by run-ios-appium.sh).
 const outputPath = process.env['KB_IOS_APPIUM_REPORT'] ?? 'tests/results/ios-appium-report.html'
+
+function deviceDirs(): Array<{label: string; dir: string}> {
+  const multi = process.env['KB_IOS_APPIUM_DEBUG_DIRS']
+  if (multi) {
+    return multi.split(',').map(part => {
+      const eq = part.indexOf('=')
+      return eq === -1 ? {label: '', dir: part.trim()} : {label: part.slice(0, eq).trim(), dir: part.slice(eq + 1).trim()}
+    })
+  }
+  return [{label: '', dir: process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-appium-debug'}]
+}
 
 type TestArtifact = {label: string; passed: boolean; durationMs: number; error: string | null}
 
@@ -33,12 +47,13 @@ function readCards(dir: string): CardData[] {
     })
 }
 
-const cards = readCards(debugDir)
-const sections: Section[] = [{cards}]
+const dirs = deviceDirs()
+const sections: Section[] = dirs.map(({label, dir}) => ({header: label || undefined, cards: readCards(dir)}))
 const timestamp = new Date().toLocaleString()
 const html = buildReport('Keybase iOS E2E Tests (Appium)', sections, timestamp, outputPath)
 fs.mkdirSync(path.dirname(outputPath), {recursive: true})
 fs.writeFileSync(outputPath, html)
 
-const passed = cards.filter(c => c.passed).length
-console.log(`Report written to ${outputPath} (${passed}/${cards.length} passed)`)
+const allCards = sections.flatMap(s => s.cards)
+const passed = allCards.filter(c => c.passed).length
+console.log(`Report written to ${outputPath} (${passed}/${allCards.length} passed across ${dirs.length} device(s))`)
