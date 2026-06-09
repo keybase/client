@@ -13,7 +13,10 @@ export const waitForTestID = async (id: string, timeout = 5000) =>
 
 export const countTestID = async (id: string): Promise<number> => els(id).length
 
+// CONTAINS, not ==, on purpose: many tappable rows (More menu items, team tabs)
+// are ClickableBoxes whose accessibility label is a merge of child labels, e.g.
+// ", Crypto" rather than "Crypto". This mirrors Maestro's substring text match.
 export const byText = (text: string): ChainablePromiseElement =>
-  browser.$(`-ios predicate string:label == "${text}" OR name == "${text}"`)
+  browser.$(`-ios predicate string:label CONTAINS "${text}" OR name CONTAINS "${text}"`)
 
 export const tab = (label: string): ChainablePromiseElement => browser.$(`~${label}`)
