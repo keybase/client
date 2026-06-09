@@ -34,7 +34,7 @@ appId: keybase.ios
     timeout: 10000
 - takeScreenshot: tests/results/ios-debug/crypto-outputs-encrypt
 - tapOn:
-    text: "Cancel"
+    text: "Done"
 - tapOn:
     id: "backButton"
 
@@ -56,6 +56,6 @@ appId: keybase.ios
     timeout: 10000
 - takeScreenshot: tests/results/ios-debug/crypto-outputs-sign
 - tapOn:
-    text: "Cancel"
+    text: "Done"
 - tapOn:
     id: "backButton"
