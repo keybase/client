@@ -5,7 +5,9 @@ import {iosCapabilities, udidForName, requireSmokeUser} from './helpers/app'
 import {escapeToTabs} from './helpers/navigate'
 
 // Where per-test artifacts (screenshot + status json) land for the HTML report.
-const debugDir = process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? '../../results/ios-appium-debug'
+// Relative to shared/ (the yarn cwd), matching generate-appium-report.mts and
+// the tests/results/ convention used by the maestro debug output.
+const debugDir = process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-appium-debug'
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.
