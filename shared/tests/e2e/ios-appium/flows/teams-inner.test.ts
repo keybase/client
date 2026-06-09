@@ -8,12 +8,14 @@ describe('teams inner', () => {
     await escapeToTabs()
     await navigateToTeams()
 
-    // Maestro: runFlow when visible teams-row — legitimately-absent data guard
-    if ((await els(T.TEAMS_ROW).length) === 0) return // account has no teams
+    // Wait for real team rows to load before tapping (container renders first).
+    await waitForTestID(T.TEAMS_ROW, 8000)
     await els(T.TEAMS_ROW)[0]!.click()
 
-    // Members tab is the default
-    await waitForTestID(T.TEAMS_MEMBER_LIST, 5000)
+    // Explicitly select the Members tab by testID (the app remembers the
+    // last-selected team tab; "Members" text also matches "N members").
+    await el(T.TEAMS_TAB_MEMBERS_BUTTON).click()
+    await waitForTestID(T.TEAMS_MEMBER_LIST, 10000)
     await expect(el(T.TEAMS_MEMBER_LIST)).toExist()
 
     // Settings tab is an icon-only gear on phone (no text), so tap by testID.

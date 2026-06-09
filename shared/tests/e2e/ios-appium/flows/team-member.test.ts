@@ -10,9 +10,14 @@ describe('team member', () => {
     await escapeToTabs()
     await navigateToTeams()
 
-    if ((await els(T.TEAMS_ROW).length) === 0) return // account legitimately has no teams
+    // Wait for real team rows to load before tapping (the list container renders
+    // before its data, so tapping too early misses / doesn't navigate).
+    await waitForTestID(T.TEAMS_ROW, 8000)
     await els(T.TEAMS_ROW)[0]!.click()
-    await waitForTestID(T.TEAMS_MEMBER_LIST, 5000)
+    // The app remembers the last-selected tab per team, so explicitly select
+    // the Members tab (by testID — "Members" text also matches "N members").
+    await el(T.TEAMS_TAB_MEMBERS_BUTTON).click()
+    await waitForTestID(T.TEAMS_MEMBER_LIST, 10000)
 
     const user = byText(smokeUser)
     await user.waitForExist({timeout: 8000})

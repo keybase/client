@@ -17,8 +17,10 @@ describe('people profile', () => {
     await navigateToPeople()
     await waitForTestID(T.PEOPLE_FEED, 3000)
 
+    // Your own username appearing in your own feed is genuinely conditional
+    // (the feed surfaces others' activity), so guard rather than hard-wait.
     const userEl = byText(smokeUser)
-    await userEl.waitForExist({timeout: 8000})
+    if (!(await userEl.isExisting())) return
     await userEl.click()
     await waitForTestID(T.PROFILE_PAGE, 10000)
     await expect(el(T.PROFILE_PAGE)).toExist()

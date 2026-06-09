@@ -18,7 +18,7 @@ type TeamTabsProps = {
 
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs: Array<TabType<T.Teams.TabKey>> = [
-    {badgeNumber: props.resetUserCount, title: 'members' as const},
+    {badgeNumber: props.resetUserCount, testID: TestIDs.TEAMS_TAB_MEMBERS_BUTTON, title: 'members' as const},
     ...(!props.isBig ? [{title: 'emoji' as const}] : []),
     ...(props.isBig || props.admin ? [{title: 'channels' as const}] : []),
     ...(props.isBig ? [{title: 'emoji' as const}] : []),

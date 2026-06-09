@@ -36,6 +36,7 @@ export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
 // needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,
 // which marks the settings tab's content).
 export const TEAMS_TAB_SETTINGS_BUTTON = 'teams-tab-settings-button'
+export const TEAMS_TAB_MEMBERS_BUTTON  = 'teams-tab-members-button'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'
