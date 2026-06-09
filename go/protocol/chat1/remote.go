@@ -833,6 +833,28 @@ func (o SweepRes) DeepCopy() SweepRes {
 	}
 }
 
+type ValidateTeamGitChatConvRes struct {
+	IsActive    bool                    `codec:"isActive" json:"isActive"`
+	TopicType   TopicType               `codec:"topicType" json:"topicType"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TeamID      *keybase1.TeamID        `codec:"teamID,omitempty" json:"teamID,omitempty"`
+}
+
+func (o ValidateTeamGitChatConvRes) DeepCopy() ValidateTeamGitChatConvRes {
+	return ValidateTeamGitChatConvRes{
+		IsActive:    o.IsActive,
+		TopicType:   o.TopicType.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
+		TeamID: (func(x *keybase1.TeamID) *keybase1.TeamID {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.TeamID),
+	}
+}
+
 type ServerNowRes struct {
 	RateLimit *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 	Now       gregor1.Time `codec:"now" json:"now"`
@@ -1856,6 +1878,11 @@ type TeamIDOfConvArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type ValidateTeamGitChatConvArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+}
+
 type ServerNowArg struct {
 }
 
@@ -1944,6 +1971,7 @@ type RemoteInterface interface {
 	FailSharePost(context.Context, FailSharePostArg) error
 	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
 	TeamIDOfConv(context.Context, ConversationID) (*keybase1.TeamID, error)
+	ValidateTeamGitChatConv(context.Context, ValidateTeamGitChatConvArg) (ValidateTeamGitChatConvRes, error)
 	ServerNow(context.Context) (ServerNowRes, error)
 	GetExternalAPIKeys(context.Context, []ExternalAPIKeyTyp) ([]ExternalAPIKey, error)
 	AdvertiseBotCommands(context.Context, []RemoteBotCommandsAdvertisement) (AdvertiseBotCommandsRes, error)
@@ -2556,6 +2584,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"validateTeamGitChatConv": {
+				MakeArg: func() any {
+					var ret [1]ValidateTeamGitChatConvArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]ValidateTeamGitChatConvArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ValidateTeamGitChatConvArg)(nil), args)
+						return
+					}
+					ret, err = i.ValidateTeamGitChatConv(ctx, typedArgs[0])
+					return
+				},
+			},
 			"serverNow": {
 				MakeArg: func() any {
 					var ret [1]ServerNowArg
@@ -2927,6 +2970,11 @@ func (c RemoteClient) BroadcastGregorMessageToConv(ctx context.Context, __arg Br
 func (c RemoteClient) TeamIDOfConv(ctx context.Context, convID ConversationID) (res *keybase1.TeamID, err error) {
 	__arg := TeamIDOfConvArg{ConvID: convID}
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.teamIDOfConv", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) ValidateTeamGitChatConv(ctx context.Context, __arg ValidateTeamGitChatConvArg) (res ValidateTeamGitChatConvRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.validateTeamGitChatConv", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
