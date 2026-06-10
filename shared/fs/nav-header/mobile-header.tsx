@@ -5,10 +5,12 @@ import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
 import {useModalHeaderState} from '@/stores/modal-header'
 import Actions from './actions'
-import MainBanner from './main-banner'
 import * as FS from '@/constants/fs'
 
 /*
+ *
+ * Android only: iOS uses the native header (see ios-header.tsx) so its items
+ * get the liquid glass treatment.
  *
  * If layout changes in this file cause mobile header height change, it's
  * important to update getBaseHeight otherwise KeyboardAvoidingView won't work
@@ -60,7 +62,6 @@ const NavMobileHeaderInner = (props: Props) => {
           <FilesTabStatusIcon />
         </Kb.Box2>
       </Kb.Box2>
-      <MainBanner />
     </Kb.SafeAreaViewTop>
   ) : (
     <Kb.SafeAreaViewTop>
@@ -90,7 +91,6 @@ const NavMobileHeaderInner = (props: Props) => {
           </Kb.Box2>
           <MaybePublicTag path={props.path} />
         </Kb.Box2>
-        <MainBanner />
       </Kb.Box2>
     </Kb.SafeAreaViewTop>
   )
@@ -99,30 +99,22 @@ const NavMobileHeaderInner = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: Kb.Styles.platformStyles({
-        common: {
-          opacity: 1,
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-        },
-        isAndroid: {paddingRight: Kb.Styles.globalMargins.small},
-      }),
+      backButton: {
+        opacity: 1,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+        paddingRight: Kb.Styles.globalMargins.small,
+      },
       expandedTitleContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         padding: Kb.Styles.globalMargins.tiny,
         paddingBottom: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny,
       },
-      rootContainer: Kb.Styles.platformStyles({
-        isAndroid: {height: 56},
-        isIOS: {height: 44},
-      }),
-      expandedTopContainer: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.white,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-        },
-        isAndroid: {height: 56},
-        isIOS: {height: 44},
-      }),
+      rootContainer: {height: 56},
+      expandedTopContainer: {
+        backgroundColor: Kb.Styles.globalColors.white,
+        height: 56,
+        paddingRight: Kb.Styles.globalMargins.tiny,
+      },
       filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
       filesTabStatusIcon: Kb.Styles.size(Kb.Styles.globalMargins.small),
       headerContainer: {

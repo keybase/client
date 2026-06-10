@@ -29,7 +29,8 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
       <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
-      {isMobile ? (
+      {/* iOS uses the native header search bar instead; see ios-header.tsx */}
+      {isIOS ? null : isMobile ? (
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
         <Kbfs.FolderViewFilter

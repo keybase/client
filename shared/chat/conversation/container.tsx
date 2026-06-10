@@ -7,6 +7,7 @@ import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import type {ThreadSearchRouteProps} from './thread-search-route'
 import type * as T from '@/constants/types'
+import {BadgeHeaderUpdater} from './header-area'
 import {LiveConversationThreadProvider, useConversationThreadID, useConversationThreadSelector} from './thread-context'
 
 type Props = ThreadSearchRouteProps & {
@@ -17,6 +18,7 @@ const Conversation = function Conversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   return (
     <LiveConversationThreadProvider key={conversationIDKey} id={conversationIDKey}>
+      <BadgeHeaderUpdater conversationIDKey={conversationIDKey} />
       <ConversationInner />
     </LiveConversationThreadProvider>
   )

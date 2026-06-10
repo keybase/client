@@ -1062,7 +1062,13 @@ const NativeAnimatedExpand = (() => {
       }, [expanded, offset])
 
       return (
-        <Kb.ClickableBox direction="vertical" relative={true} onClick={expandInput} style={nativeStyles.iconContainer}>
+        <Kb.ClickableBox
+          direction="vertical"
+          relative={true}
+          alignSelf="flex-start"
+          onClick={expandInput}
+          style={nativeStyles.iconContainer}
+        >
           <Animated.View style={[nativeStyles.iconTop, topStyle]} pointerEvents="none">
             <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
@@ -1452,7 +1458,7 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         borderTopWidth: 1,
         minHeight: 1,
         overflow: 'hidden',
-        ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
+        ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.xsmall, 0),
       },
       editingButton: {
         ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),

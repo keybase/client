@@ -113,6 +113,9 @@ const NativeConversation = function NativeConversation() {
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [maxInputArea, setMaxInputArea] = React.useState(0)
+  // measure the fixed-height outer container, not the flex list area: the list
+  // shrinks as the input expands, so measuring it makes the expand animation
+  // chase a moving target
   const onContentLayout = (e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }
@@ -133,14 +136,20 @@ const NativeConversation = function NativeConversation() {
 
   return (
     <PerfProfiler id="Conversation">
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle} relative={true}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        style={safeStyle}
+        relative={true}
+        onLayout={onContentLayout}
+      >
         {threadLoadedOffline && <Offline />}
         <Kb.Box2
           direction="vertical"
           flex={1}
           fullWidth={true}
           key={conversationIDKey}
-          onLayout={onContentLayout}
           relative={true}
           style={styles.listContainer}
         >

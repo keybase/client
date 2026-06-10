@@ -24,7 +24,7 @@ export const tabBarStyle = {
 } as const
 
 export const tabBarBlurEffect = isMobile ? ('systemDefault' as const) : undefined
-export const tabBarMinimizeBehavior = isMobile ? ('onScrollDown' as const) : undefined
+export const tabBarMinimizeBehavior = undefined
 
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)

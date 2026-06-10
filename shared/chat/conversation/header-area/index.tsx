@@ -1,8 +1,10 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
+import {useNavigation} from '@react-navigation/native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {Keyboard} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
@@ -19,7 +21,7 @@ import {muteConversation} from '../status-actions'
 
 type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
 
-const HeaderAreaRightImpl = (props: HeaderConversationProps) => {
+const HeaderAreaRight = (props: HeaderConversationProps) => {
   const {conversationIDKey} = props
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
@@ -50,17 +52,11 @@ const HeaderAreaRightImpl = (props: HeaderConversationProps) => {
     </Kb.Box2>
   )
 }
-export const HeaderAreaRight = isMobile ? HeaderAreaRightImpl : () => null
-
 enum HeaderType {
   Team,
   PhoneEmail,
   User,
 }
-
-const HeaderBranchContainer = isMobile
-  ? () => <HeaderBranchContainerInner conversationIDKey={Chat.noConversationIDKey} />
-  : () => null
 
 const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
   const {conversationIDKey} = props
@@ -86,7 +82,6 @@ const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: He
       return <UsernameHeader conversationIDKey={conversationIDKey} />
   }
 }
-export default HeaderBranchContainer
 
 const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps) => {
   const {conversationIDKey, ...rest} = p
@@ -100,8 +95,9 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
   if (!isMobile) return {}
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
-    // iOS 26: headerLeft omitted — native back button comes from tabStackOptions (headerBackVisible: true).
-    // BadgeHeaderUpdater in container.tsx drives unstable_headerLeftItems for the badge count.
+    // iOS 26: headerLeft omitted — the native back button is used by default. When unreads exist
+    // elsewhere, BadgeHeaderUpdater (mounted in container.tsx) swaps it for a custom back button
+    // carrying the badge via setOptions (headerBackVisible: false + unstable_headerLeftItems).
     ...(!isIOS
       ? {
           headerBackVisible: false,
@@ -110,7 +106,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
             return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
           },
         }
-      : {}),
+      : {headerBackVisible: true}),
     // iOS 26: single overflow menu (one glass pill) housing search + info actions.
     ...(isIOS
       ? {
@@ -153,7 +149,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
   }
 }
 
-export const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
+const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
   const badgeState = useConfigState(s => s.badgeState)
@@ -165,6 +161,35 @@ export const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
   if (!onTopOfInbox) return 0
   return badgeNumber
 }
+
+// iOS only: screen options functions aren't reactive to store state, so a mounted null
+// component pushes the unread badge into the header via setOptions as badge counts change.
+// The badge can't overlay the native chevron, so while badged we swap the native back button
+// for our own back button (arrow + badge as one pressable, same as the Android header).
+// Android renders the badge through headerLeft (BadgeHeaderLeftArray) instead.
+export const BadgeHeaderUpdater = isIOS
+  ? function BadgeHeaderUpdater(props: HeaderConversationProps) {
+      const {conversationIDKey} = props
+      const badgeNumber = useBackBadge(conversationIDKey)
+      const navigation = useNavigation()
+      React.useEffect(() => {
+        navigation.setOptions(
+          badgeNumber > 0
+            ? {
+                headerBackVisible: false,
+                unstable_headerLeftItems: () => [
+                  {
+                    element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
+                    type: 'custom' as const,
+                  },
+                ],
+              }
+            : {headerBackVisible: true, unstable_headerLeftItems: undefined}
+        )
+      }, [navigation, badgeNumber])
+      return null
+    }
+  : (_props: HeaderConversationProps) => null
 
 const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
@@ -186,11 +211,16 @@ const ShhIcon = function ShhIcon(props: HeaderConversationProps) {
   ) : null
 }
 
+// iOS never renders the back badge (native back button, no headerLeft), so don't subscribe to
+// badge state there — width reacting to other conversations' badges makes the title reflow live.
+const useHeaderBadge = isIOS ? () => 0 : useBackBadge
+
+// maxWidth only, no minWidth: a fixed-width title view can't be centered by the native header
+// when the left/right items don't match the reserved space, which shifts the title off-center.
 const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const {width} = useSafeAreaFrame()
-  const hasBadge = useBackBadge(conversationIDKey) > 0
-  const w = width - 140 - (hasBadge ? 40 : 0)
-  return {maxWidth: w, minWidth: w}
+  const hasBadge = useHeaderBadge(conversationIDKey) > 0
+  return {maxWidth: width - 140 - (hasBadge ? 40 : 0)}
 }
 
 const ChannelHeader = (props: HeaderConversationProps) => {
@@ -254,7 +284,7 @@ const UsernameHeader = (props: HeaderConversationProps) => {
 
   return (
     <Kb.Box2
-      direction={theirFullname ? 'vertical' : 'horizontal'}
+      direction="vertical"
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       {!!theirFullname && (
@@ -319,6 +349,11 @@ const styles = Kb.Styles.styleSheetCreate(
       headerRight: {
         height: 22,
         width: 56,
+      },
+      iosBackBadgeButton: {
+        marginRight: 0,
+        minWidth: 0,
+        padding: Kb.Styles.globalMargins.xtiny,
       },
       lessMargins: {marginBottom: -5},
       shhIcon: {marginLeft: Kb.Styles.globalMargins.xtiny},

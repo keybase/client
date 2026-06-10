@@ -16,6 +16,7 @@ import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
+import {Sent} from './sent'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
@@ -302,6 +303,8 @@ const getCommonMessageData = ({
   const text =
     message.type === 'text' ? (message.decoratedText?.stringValue() ?? message.text.stringValue()) : ''
   const showCenteredHighlight = !!isCenteredHighlight
+  // a message of yours that hasn't been confirmed by the server yet
+  const youSent = you === author && !idMatchesOrdinal && !!submitState
 
   return {
     botname,
@@ -338,6 +341,7 @@ const getCommonMessageData = ({
     text,
     textType,
     type,
+    youSent,
   }
 }
 
@@ -901,6 +905,10 @@ export function WrapperMessage(p: WrapperMessageProps) {
   const {setEditing, setReplyTo, toggleMessageReaction} = mdata
   const {author, botAlias, isAdhocBot, showUsername, teamID, teamType, teamname, timestamp} = mdata
 
+  // captured at mount: only the row created by your send animates, and the tree
+  // shape stays stable when the message is later confirmed (youSent flips false)
+  const [animateSent] = React.useState(isMobile && mdata.youSent)
+
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
     botname,
@@ -947,21 +955,25 @@ export function WrapperMessage(p: WrapperMessageProps) {
 
   const messageContext = {isHighlighted: showCenteredHighlight, ordinal}
 
+  const row = (
+    <Kb.Box2 direction="vertical" relative={true} fullWidth={true}>
+      <AuthorHeader
+        author={author}
+        botAlias={botAlias}
+        isAdhocBot={isAdhocBot}
+        showUsername={showUsername}
+        teamID={teamID}
+        teamType={teamType}
+        teamname={teamname}
+        timestamp={timestamp}
+      />
+      <TextAndSiblings {...tsprops} />
+    </Kb.Box2>
+  )
+
   return (
     <MessageContext value={messageContext}>
-      <Kb.Box2 direction="vertical" relative={true} fullWidth={true}>
-        <AuthorHeader
-          author={author}
-          botAlias={botAlias}
-          isAdhocBot={isAdhocBot}
-          showUsername={showUsername}
-          teamID={teamID}
-          teamType={teamType}
-          teamname={teamname}
-          timestamp={timestamp}
-        />
-        <TextAndSiblings {...tsprops} />
-      </Kb.Box2>
+      {animateSent ? <Sent>{row}</Sent> : row}
       {popup}
     </MessageContext>
   )

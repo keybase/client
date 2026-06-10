@@ -165,7 +165,10 @@ function Avatar(p: Props) {
   const content = (
     <>
       {source && !imgError ? (
-        <Image source={source} style={cached.image} recyclingKey={source.uri} cachePolicy="memory-disk" onError={() => setErrorUri(source.uri)} />
+        // recyclingKey must be the identity (name), not the uri: changing it blanks the view,
+        // and the uri churns when the local http srv hands out a new address/token on foreground
+
+        <Image source={source} style={cached.image} recyclingKey={name} cachePolicy="memory-disk" onError={() => setErrorUri(source.uri)} />
       ) : (
         <Image source={placeholderSource} style={imageStyle} />
       )}
