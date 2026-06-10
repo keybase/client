@@ -12,7 +12,7 @@
 // as bailouts.
 import * as babel from '@babel/core'
 import {readFileSync, readdirSync, statSync} from 'fs'
-import {join, extname} from 'path'
+import {basename, join, extname} from 'path'
 
 type CompilerEvent = {
   kind: string
@@ -26,7 +26,7 @@ const skipDirs = new Set(['node_modules', '.git', 'dist'])
 const collectFiles = (path: string, out: Array<string>) => {
   const st = statSync(path)
   if (st.isDirectory()) {
-    if (skipDirs.has(path.split('/').at(-1) ?? '')) return
+    if (skipDirs.has(basename(path))) return
     for (const entry of readdirSync(path)) {
       collectFiles(join(path, entry), out)
     }

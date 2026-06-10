@@ -242,14 +242,15 @@ export const useSafeFocusEffect = (fn: React.EffectCallback) => {
       return undefined
     }
     let cleanup: ReturnType<React.EffectCallback>
-    const runEffect = () => {
-      cleanup = fn()
-    }
     const runCleanup = () => {
       if (typeof cleanup === 'function') {
         cleanup()
       }
       cleanup = undefined
+    }
+    const runEffect = () => {
+      runCleanup()
+      cleanup = fn()
     }
     if (navigation.isFocused()) {
       runEffect()
