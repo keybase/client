@@ -106,6 +106,9 @@ export async function escapeToTabs(): Promise<void> {
       .perform()
     await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
   }
+  // Failing loudly here beats letting the NEXT test fail confusingly on a
+  // screen it never expected to start from.
+  throw new Error('escapeToTabs: root tab bar not reached after 10 attempts')
 }
 
 // Pop one screen. Like escapeToTabs's step but a single hop: app testID
