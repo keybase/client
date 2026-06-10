@@ -61,6 +61,23 @@ This finds packages where a nested `node_modules` contains a **newer** version t
 
 **Why this matters:** Packages that use `React.createContext()` or other module-level singletons break silently when installed twice — the provider uses one instance and the consumer reads a different one. Classic symptom: "Couldn't determine focus state. Is your component inside a screen in a navigator?" (`useIsFocused` from `@react-navigation/core`).
 
+### 4b. Security audit
+
+After `yarn`, run:
+
+```bash
+cd shared && python3 ../.claude/skills/update-dependencies/check-audit.py
+```
+
+This runs `yarn audit --json`, dedupes the advisories, and cross-references `yarn.lock` to suggest the cheapest fix for each one:
+
+- **DIRECT** — the vulnerable package is in our `package.json`. Bump it there (exact version), run `yarn`.
+- **LOCKFILE** — transitive, and the patched version satisfies every range that requires it. Delete the listed entry block(s) from `yarn.lock` (the entry key line plus its indented lines), then run `yarn` — it re-resolves to the patched version with no `package.json` change.
+- **RESOLUTION** — transitive, but the patched version is outside the range the parent accepts. Bumping the **direct dependency that pulls it in** (first segment of the `via:` path) is the better fix when possible — but if you already brought direct deps current in steps 1–4, a still-flagged advisory means no released parent fixes it yet (confirm with `npm view <parent> dependencies` only if you skipped updating that parent). Then add the suggested `resolutions` entry. Prefer scoping it to the vulnerable parent (e.g. `"xcode/uuid"`) over a blanket `"**/uuid"` when some installed copies are already on a safe version — forcing a major-version jump on every consumer risks breaking ones that were fine. If ALL installed versions are vulnerable (the `installed:` line lists every copy), a blanket `**/` resolution is correct and covers them all with one entry. If multiple advisories suggest different versions for the same module, add ONE resolution entry with the highest version.
+- **NO-FIX** — no patched version published. Don't work around it; report it to the user with the advisory link.
+
+After applying fixes: re-run `yarn`, re-run this script to confirm clean, and re-run the dupes check (4a) — resolutions can change the dedupe picture. A forced major bump via `resolutions` runs code the parent package never tested with. "Verify" means: `yarn lint` + `yarn tsc` always; if the forced package sits under runtime app code, also build/run the app; if it sits under tooling (test runners, bundler, patch-package), run that tool once if cheap. Either way, explicitly tell the user which packages were force-bumped so they can watch for fallout.
+
 ### 5. Evaluate existing patches
 
 After `yarn`, check whether any `patches/*.patch` files target a package you just updated — the filename encodes the version (e.g. `@legendapp+list+3.0.0-beta.56.patch`). For each such patch:
