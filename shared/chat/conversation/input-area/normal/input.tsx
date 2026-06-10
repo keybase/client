@@ -1458,7 +1458,7 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         borderTopWidth: 1,
         minHeight: 1,
         overflow: 'hidden',
-        ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
+        ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.xsmall, 0),
       },
       editingButton: {
         ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
