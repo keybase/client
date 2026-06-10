@@ -1,7 +1,7 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
-import {el, els, waitForTestID, byText} from '../helpers/elements'
+import {anyExist, el, els, waitForTestID, byText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('chat send message', () => {
@@ -10,7 +10,9 @@ describe('chat send message', () => {
     await escapeToTabs()
     await navigateToChat()
 
-    if ((await els(T.CHAT_INBOX_ROW).length) === 0) return // account legitimately has no conversations
+    // Rows stream in after the inbox list mounts — give them a moment before
+    // concluding the account legitimately has no conversations.
+    if (!(await anyExist(T.CHAT_INBOX_ROW))) return
     await els(T.CHAT_INBOX_ROW)[0]!.click()
     await waitForTestID(T.CHAT_MESSAGE_LIST, 5000)
 

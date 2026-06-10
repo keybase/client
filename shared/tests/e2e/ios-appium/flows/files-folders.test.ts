@@ -12,6 +12,10 @@ describe('files folders', () => {
     await waitForTestID(T.FILES_BROWSER, 3000)
     await expect(el(T.FILES_BROWSER)).toExist()
 
+    // TLF rows load after the browser mounts (KBFS can be slow) — wait for
+    // them before indexing.
+    await waitForTestID(T.FILES_TLF_ROW, 10000)
+
     // Navigate into private folder (index 0)
     await els(T.FILES_TLF_ROW)[0]!.click()
     await goBack()

@@ -30,9 +30,13 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
   await scrollUpUntil(async () => byText(text).isDisplayed().catch(() => false), maxSwipes)
 }
 
-// True once the native tab bar (root) is on screen.
+// True once we're at the root of a tab. The tab bar alone isn't proof: on iPad
+// it stays visible inside pushed stack screens, so also require that no back
+// button (app-custom or native) is present.
 async function atTabs(): Promise<boolean> {
-  return (await els('People').length) > 0
+  if ((await els('People').length) === 0) return false
+  if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
+  return (await els('BackButton').length) === 0
 }
 
 // Dismiss the keyboard ONLY when one is present — calling mobile: hideKeyboard

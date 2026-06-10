@@ -15,6 +15,16 @@ export const waitForTestID = async (id: string, timeout = 5000) =>
 
 export const countTestID = async (id: string): Promise<number> => els(id).length
 
+// Best-effort wait for at least one match. Returns false (rather than throwing)
+// if none appear — for list rows that stream in after the list mounts, where
+// "no rows" is a legitimate outcome and not a test failure.
+export const anyExist = async (id: string, timeout = 3000): Promise<boolean> => {
+  await browser
+    .waitUntil(async () => (await els(id).length) > 0, {timeout, interval: 150})
+    .catch(() => {})
+  return (await els(id).length) > 0
+}
+
 // Backslashes and double quotes would otherwise terminate/alter the quoted
 // predicate literal and make the selector invalid.
 const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
