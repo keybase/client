@@ -1,5 +1,5 @@
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index 0d65e82..ac2490c 100644
+index 5db8825..0e191e9 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -709,15 +709,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -54,7 +54,7 @@ index 0d65e82..ac2490c 100644
        if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
          window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index 168d233..c70915c 100644
+index 2cdadd0..e188c85 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -688,15 +688,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -109,7 +109,7 @@ index 168d233..c70915c 100644
        if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
          window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index 0d65e82..ac2490c 100644
+index 5db8825..0e191e9 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -709,15 +709,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -164,7 +164,7 @@ index 0d65e82..ac2490c 100644
        if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
          window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index 168d233..c70915c 100644
+index 2cdadd0..e188c85 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -688,15 +688,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
