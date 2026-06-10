@@ -61,5 +61,5 @@ for NAME in "${DEVICES[@]}"; do
 done
 
 echo "▶ Building merged report"
-node tests/e2e/generate-appium-report.mts
+node tests/e2e/generate-appium-report.mts || OVERALL=1
 exit $OVERALL
