@@ -12,7 +12,7 @@
 #include <jsi/jsi.h>
 #include <memory>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 namespace kb {
 
@@ -46,11 +46,15 @@ private:
 
   std::unique_ptr<facebook::jsi::Function> cachedUint8ArrayCtor_;
   std::unique_ptr<facebook::jsi::Function> cachedRpcOnJs_;
+  std::unordered_map<std::string, facebook::jsi::PropNameID> cachedPropNames_;
+  std::string propNameScratch_;
   facebook::jsi::Runtime *cachedRuntime_ = nullptr;
   std::function<void(void *ptr, size_t size)> writeToGo_;
-  std::vector<uint8_t> combinedBuf_;
 
   void resetCaches(facebook::jsi::Runtime &runtime);
+  const facebook::jsi::PropNameID &
+  mapKeyPropName(facebook::jsi::Runtime &runtime, const char *ptr,
+                 size_t size);
   facebook::jsi::Function &uint8ArrayCtor(facebook::jsi::Runtime &runtime);
   facebook::jsi::Value binaryFromBytes(facebook::jsi::Runtime &runtime,
                                        const char *ptr, size_t size);
