@@ -25,6 +25,7 @@ void KBBridge::teardown() {
   // if the bridge outlives the runtime (due to shared_ptr captures).
   cachedUint8ArrayCtor_.reset();
   cachedRpcOnJs_.reset();
+  cachedPropNames_.clear();
   cachedRuntime_ = nullptr;
 }
 
@@ -34,6 +35,7 @@ void KBBridge::resetCaches(Runtime &runtime) {
   if (cachedRuntime_ != &runtime) {
     cachedUint8ArrayCtor_.reset();
     cachedRpcOnJs_.reset();
+    cachedPropNames_.clear();
     cachedRuntime_ = &runtime;
   }
 }
@@ -47,18 +49,53 @@ Function &KBBridge::uint8ArrayCtor(Runtime &runtime) {
   return *cachedUint8ArrayCtor_;
 }
 
+namespace {
+// Single-pass copy into an uninitialized buffer. Constructing a
+// Uint8Array of the target size would zero-fill it before we memcpy
+// over it — two passes over large binary payloads instead of one.
+class CopiedBuffer : public MutableBuffer {
+public:
+  CopiedBuffer(const char *ptr, size_t size)
+      : buf_(new uint8_t[size]), size_(size) {
+    if (size > 0) {
+      std::memcpy(buf_.get(), ptr, size);
+    }
+  }
+  size_t size() const override { return size_; }
+  uint8_t *data() override { return buf_.get(); }
+
+private:
+  std::unique_ptr<uint8_t[]> buf_;
+  size_t size_;
+};
+} // namespace
+
 Value KBBridge::binaryFromBytes(Runtime &runtime, const char *ptr,
                                 size_t size) {
-  Value uint8Array = uint8ArrayCtor(runtime).callAsConstructor(
-      runtime, static_cast<double>(size));
-  Object uint8ArrayObj = uint8Array.asObject(runtime);
-  ArrayBuffer buffer = uint8ArrayObj.getProperty(runtime, "buffer")
-                           .asObject(runtime)
-                           .getArrayBuffer(runtime);
-  if (size > 0) {
-    std::memcpy(buffer.data(runtime), ptr, size);
+  ArrayBuffer buffer(runtime, std::make_shared<CopiedBuffer>(ptr, size));
+  return uint8ArrayCtor(runtime).callAsConstructor(runtime,
+                                                   std::move(buffer));
+}
+
+const PropNameID &KBBridge::mapKeyPropName(Runtime &runtime, const char *ptr,
+                                           size_t size) {
+  // RPC maps reuse a small set of string keys; caching the PropNameIDs
+  // avoids re-interning the same symbols on every message.
+  propNameScratch_.assign(ptr, size);
+  auto it = cachedPropNames_.find(propNameScratch_);
+  if (it == cachedPropNames_.end()) {
+    if (cachedPropNames_.size() >= 4096) {
+      // Some maps are keyed by dynamic IDs; cap growth and restart.
+      cachedPropNames_.clear();
+    }
+    it = cachedPropNames_
+             .emplace(propNameScratch_,
+                      PropNameID::forUtf8(
+                          runtime, reinterpret_cast<const uint8_t *>(ptr),
+                          size))
+             .first;
   }
-  return uint8Array;
+  return it->second;
 }
 
 static std::string mpToString(msgpack::object &o) {
@@ -106,14 +143,14 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
       auto val = convertMPToJSI(runtime, &p->val);
       auto &k = p->key;
       if (k.type == msgpack::type::STR) {
-        obj.setProperty(runtime,
-            jsi::PropNameID::forUtf8(runtime,
-                reinterpret_cast<const uint8_t*>(k.via.str.ptr), k.via.str.size),
+        obj.setProperty(
+            runtime, mapKeyPropName(runtime, k.via.str.ptr, k.via.str.size),
             val);
       } else {
         auto keyStr = mpToString(k);
         obj.setProperty(runtime,
-            jsi::PropNameID::forUtf8(runtime, keyStr), val);
+                        mapKeyPropName(runtime, keyStr.data(), keyStr.size()),
+                        val);
       }
     }
     return obj;
@@ -195,12 +232,14 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
     } else {
       auto tryPackTypedArray = [&](bool requireUint8Array,
                                    bool validateView) -> bool {
+        // Check byteLength before instanceOf: plain objects bail after a
+        // single property get instead of a prototype-chain walk.
+        auto byteLengthProp = obj.getProperty(runtime, "byteLength");
+        if (!byteLengthProp.isNumber()) return false;
         if (requireUint8Array &&
             !obj.instanceOf(runtime, uint8ArrayCtor(runtime))) {
           return false;
         }
-        auto byteLengthProp = obj.getProperty(runtime, "byteLength");
-        if (!byteLengthProp.isNumber()) return false;
         auto bufferProp = obj.getProperty(runtime, "buffer");
         if (!bufferProp.isObject()) return false;
         auto bufferObj = bufferProp.asObject(runtime);
@@ -270,27 +309,26 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
 }
 
 void KBBridge::packAndSend(Runtime &runtime, const Value &value) {
+  // Reserve space for the frame header (msgpack uint32 length prefix:
+  // 0xce followed by 4 big-endian bytes) up front, then patch it in
+  // place after packing — avoids copying the payload into a second
+  // buffer just to prepend the header.
+  constexpr size_t headerLen = 5;
   mp_->sendBuf.clear();
+  const char placeholder[headerLen] = {0};
+  mp_->sendBuf.write(placeholder, headerLen);
   msgpack::packer<msgpack::sbuffer> pk(&mp_->sendBuf);
   convertJSIToMP(runtime, value, &pk);
 
-  // Encode frame header (msgpack uint32 length prefix) on the stack.
-  // 0xce = msgpack uint32 format tag, followed by 4 big-endian bytes.
-  auto contentSize = static_cast<uint32_t>(mp_->sendBuf.size());
-  uint8_t frameHeader[5] = {
-    0xce,
-    static_cast<uint8_t>(contentSize >> 24),
-    static_cast<uint8_t>(contentSize >> 16),
-    static_cast<uint8_t>(contentSize >> 8),
-    static_cast<uint8_t>(contentSize),
-  };
-  constexpr size_t headerLen = 5;
+  auto contentSize = static_cast<uint32_t>(mp_->sendBuf.size() - headerLen);
+  auto *header = reinterpret_cast<uint8_t *>(mp_->sendBuf.data());
+  header[0] = 0xce;
+  header[1] = static_cast<uint8_t>(contentSize >> 24);
+  header[2] = static_cast<uint8_t>(contentSize >> 16);
+  header[3] = static_cast<uint8_t>(contentSize >> 8);
+  header[4] = static_cast<uint8_t>(contentSize);
 
-  combinedBuf_.resize(headerLen + mp_->sendBuf.size());
-  std::memcpy(combinedBuf_.data(), frameHeader, headerLen);
-  std::memcpy(combinedBuf_.data() + headerLen, mp_->sendBuf.data(), mp_->sendBuf.size());
-
-  writeToGo_(combinedBuf_.data(), combinedBuf_.size());
+  writeToGo_(mp_->sendBuf.data(), mp_->sendBuf.size());
 }
 
 void KBBridge::install(
