@@ -235,16 +235,32 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
 // if a toast is inside of a portal then its not in nav so useFocusEffect would throw,
 // and maybe other places also. Read the navigation context directly and no-op when absent.
 // Like useFocusEffect, a non-memoized fn re-runs the effect every render while focused.
-export const useSafeFocusEffect = (fn: () => void) => {
+export const useSafeFocusEffect = (fn: React.EffectCallback) => {
   const navigation = React.useContext(NavigationContext)
   React.useEffect(() => {
     if (!navigation) {
       return undefined
     }
-    if (navigation.isFocused()) {
-      fn()
+    let cleanup: ReturnType<React.EffectCallback>
+    const runEffect = () => {
+      cleanup = fn()
     }
-    return navigation.addListener('focus', fn)
+    const runCleanup = () => {
+      if (typeof cleanup === 'function') {
+        cleanup()
+      }
+      cleanup = undefined
+    }
+    if (navigation.isFocused()) {
+      runEffect()
+    }
+    const unsubFocus = navigation.addListener('focus', runEffect)
+    const unsubBlur = navigation.addListener('blur', runCleanup)
+    return () => {
+      runCleanup()
+      unsubFocus()
+      unsubBlur()
+    }
   }, [navigation, fn])
 }
 

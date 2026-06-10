@@ -64,6 +64,7 @@ const isOptedOut = (sourceLines: Array<string>, fnStartLine: number | undefined)
 let totalOk = 0
 let totalBail = 0
 let totalOptOut = 0
+let totalParseFailed = 0
 for (const file of files) {
   const source = readFileSync(file, 'utf8')
   const events: Array<CompilerEvent> = []
@@ -76,6 +77,7 @@ for (const file of files) {
       presets: [['@babel/preset-typescript', {allExtensions: true, isTSX: true}]],
     })
   } catch (e) {
+    totalParseFailed++
     console.log(`${file}: PARSE FAILED ${e instanceof Error ? e.message.split('\n')[0] : ''}`)
     continue
   }
@@ -94,9 +96,17 @@ for (const file of files) {
     }
   }
 }
-console.log(`\n${totalOk} compiled, ${totalBail} bailed out, ${totalOptOut} opted out, ${files.length} files`)
-if (checkMode && totalBail > 0) {
-  console.log("\nNew react-compiler bailouts. Fix them (often: move try/catch out of the component")
-  console.log("body into a helper) or add a 'use no memo' directive for an intentional opt-out.")
+console.log(
+  `\n${totalOk} compiled, ${totalBail} bailed out, ${totalOptOut} opted out, ${totalParseFailed} parse failed, ${files.length} files`
+)
+if (checkMode && (totalBail > 0 || totalParseFailed > 0)) {
+  if (totalParseFailed > 0) {
+    console.log('\nSome files failed to parse, so they could not be checked for bailouts.')
+  }
+  if (totalBail > 0) {
+    console.log(
+      "\nNew react-compiler bailouts. Fix them (often: move try/catch out of the component body into a helper) or add a 'use no memo' directive for an intentional opt-out."
+    )
+  }
   process.exit(1)
 }
