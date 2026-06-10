@@ -1235,6 +1235,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         revertDeleting()
         if (error instanceof RPCError) {
           logger.warn(`messageDelete: failed to delete: ${error.message}`)
+        } else {
+          throw error
         }
       }
     }
