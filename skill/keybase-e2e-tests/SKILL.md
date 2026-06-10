@@ -43,8 +43,9 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 | Helpers | `shared/tests/e2e/ios-appium/helpers/` (elements, navigate, app) |
 | Aggregate spec | `shared/tests/e2e/ios-appium/all.test.ts` (imports all flows → ONE session) |
 | Config | `shared/tests/e2e/ios-appium/wdio.conf.ts` |
-| Run all | `KB_SMOKE_USER=<user> yarn test:e2e:ios` (booted sim + installed app) |
-| Report | `yarn test:e2e:ios:report` |
+| Run both devices | `KB_SMOKE_USER=<user> yarn test:e2e:ios` (iPhoneTest + iPadTest in PARALLEL; app installed on both) |
+| Run one device | `KB_SMOKE_USER=<user> yarn test:e2e:ios:iphone` / `yarn test:e2e:ios:ipad` (serial runner, shuts down other sims) |
+| Report | `yarn test:e2e:ios:report` (reads ONLY `tests/results/ios-appium-debug-{iphone,ipad}`; each run overwrites its device's dir; per-image timestamps show when each device last ran) |
 
 Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testID>` (testID → iOS accessibilityIdentifier). Helpers: `el/els/waitForTestID/countTestID/byText/tab` (elements), `escapeToTabs/goBack/navigateTo*/scrollDownToText` (navigate). `escapeToTabs` runs before every test (resets to the tab root).
 

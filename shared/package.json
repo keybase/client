@@ -71,10 +71,10 @@
     "test:e2e:desktop:branch": "playwright test --config tests/e2e/electron/playwright.config.ts tests/e2e/electron/flows/team-member.test.ts && yarn test:e2e:desktop:report",
     "test:e2e:desktop:report": "node tests/e2e/generate-electron-report.mts && open tests/results/electron-report.html",
     "test:e2e:desktop:save-baseline": "node tests/e2e/generate-electron-report.mts --save-baseline",
-    "test:e2e:ios": "rm -rf tests/results/ios-appium-debug && wdio run tests/e2e/ios-appium/wdio.conf.ts",
+    "test:e2e:ios": "bash tests/e2e/run-ios-appium-parallel.sh",
+    "test:e2e:ios:iphone": "bash tests/e2e/run-ios-appium.sh iPhoneTest",
+    "test:e2e:ios:ipad": "bash tests/e2e/run-ios-appium.sh iPadTest",
     "test:e2e:ios:report": "node tests/e2e/generate-appium-report.mts && open tests/results/ios-appium-report.html",
-    "test:e2e:ios:devices": "bash tests/e2e/run-ios-appium.sh",
-    "test:e2e:ios:devices:parallel": "bash tests/e2e/run-ios-appium-parallel.sh",
     "test:unit": "napi-postinstall unrs-resolver 1.11.1 check; jest --runInBand",
     "test:unit:ios": "xcodebuild test -project ./ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
     "tsc": "./node_modules/.bin/tsgo --project ./tsconfig.desktop.json && ./node_modules/.bin/tsgo --project ./tsconfig.native.json"

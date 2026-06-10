@@ -17,6 +17,9 @@ export type CardData = {
   failureScreenshotPath?: string | null
   diff: DiffResult | null
   errorMessage: string | null
+  // When the screenshot was taken — overlaid on the image so stale results
+  // (e.g. an old per-device run mixed into a multi-device report) are obvious.
+  timestamp?: string | null
 }
 
 export type Section = {
@@ -60,6 +63,8 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
     : ''
   const durStr = card.durationMs > 0 ? formatDuration(card.durationMs) : ''
 
+  const ts = card.timestamp ? `<div class="lbl lbl-ts">${escapeHtml(card.timestamp)}</div>` : ''
+
   let visual: string
   if (card.screenshotPath && card.prevScreenshotPath) {
     visual = `<div class="compare" id="cmp${idx}">
@@ -68,11 +73,12 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
         <div class="handle"><div class="grip">⇔</div></div>
         <div class="lbl lbl-l">BASELINE</div>
         <div class="lbl lbl-r">NOW</div>
+        ${ts}
       </div>`
   } else if (card.screenshotPath) {
-    visual = `<div class="solo-wrap"><img class="solo" src="${relFn(card.screenshotPath)}" alt="${escapeHtml(card.label)}" loading="lazy"></div>`
+    visual = `<div class="solo-wrap"><img class="solo" src="${relFn(card.screenshotPath)}" alt="${escapeHtml(card.label)}" loading="lazy">${ts}</div>`
   } else if (card.failureScreenshotPath) {
-    visual = `<div class="solo-wrap"><img class="solo dim" src="${relFn(card.failureScreenshotPath)}" alt="failure" loading="lazy"></div>`
+    visual = `<div class="solo-wrap"><img class="solo dim" src="${relFn(card.failureScreenshotPath)}" alt="failure" loading="lazy">${ts}</div>`
   } else {
     visual = `<div class="empty">No screenshot</div>`
   }
@@ -92,20 +98,26 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
   const hasDiff = allCards.some(c => c.diff !== null)
 
   const relFn = (p: string) => path.relative(path.dirname(outputPath), p)
+  const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
   let idx = 0
   const cardHtml = sections.map(section => {
     const sectionHeader = section.header
-      ? `<div class="section-hdr">${escapeHtml(section.header)}</div>`
+      ? `<div class="section-hdr" id="sec-${slugify(section.header)}">${escapeHtml(section.header)}</div>`
       : ''
     const cards = section.cards.map(card => buildCard(card, idx++, relFn)).join('\n')
     return [sectionHeader, cards].filter(Boolean).join('\n')
   }).join('\n')
 
-  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, hasDiff, timestamp, cardHtml)
+  const navLinks = sections
+    .filter(s => s.header)
+    .map(s => `<a class="sec-link" href="#sec-${slugify(s.header!)}">${escapeHtml(s.header!)}</a>`)
+    .join('')
+
+  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, hasDiff, timestamp, cardHtml, navLinks)
 }
 
-export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, hasDiff: boolean, timestamp: string, cards: string): string {
+export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, hasDiff: boolean, timestamp: string, cards: string, navLinks = ''): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,7 +130,7 @@ ${sharedCss(allPassed)}
 <body>
 <header>
   <div class="hdr-top"><h1>${title}</h1><button id="slideshow-btn" title="Slideshow">▶</button></div>
-  <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ' <span>· vs baseline</span>' : ''}<span class="ts">${timestamp}</span></div>
+  <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ' <span>· vs baseline</span>' : ''}${navLinks ? `<span class="sec-links">${navLinks}</span>` : ''}<span class="ts">${timestamp}</span></div>
   <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false">${hasDiff ? '<label class="diff-only-label"><input type="checkbox" id="diff-only"> Pixel diff only</label>' : ''}</div>
 </header>
 <div class="grid">${cards}</div>
@@ -159,7 +171,11 @@ h1{font-size:20px;font-weight:600}
 .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .lbl{position:absolute;bottom:8px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:3px;background:rgba(0,0,0,.55);color:#fff;pointer-events:none}
 .lbl-l{left:8px}.lbl-r{right:8px}
-.section-hdr{grid-column:1/-1;font-size:15px;font-weight:600;padding:10px 0 4px;border-bottom:2px solid #ddd;margin-top:8px;color:#444}
+.lbl-ts{top:8px;left:8px;bottom:auto}
+.section-hdr{grid-column:1/-1;font-size:15px;font-weight:600;padding:10px 0 4px;border-bottom:2px solid #ddd;margin-top:8px;color:#444;scroll-margin-top:12px}
+.sec-links{display:flex;gap:10px}
+.sec-link{color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:2px;opacity:.85}
+.sec-link:hover{opacity:1}
 .expand-btn{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:5px;padding:5px 8px;font-size:15px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s;z-index:5}
 .compare:hover .expand-btn,.solo-wrap:hover .expand-btn{opacity:1}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000;align-items:center;justify-content:center}

@@ -1,15 +1,16 @@
 #!/bin/bash
 # Run the Appium iOS e2e suite across one or more named simulators, SERIALLY
 # (a backgrounded sim is render-throttled by macOS, which makes the run crawl),
-# then build ONE merged HTML report with a section per device.
+# then build the merged HTML report.
 #
 # Usage:
 #   KB_SMOKE_USER=<user> tests/e2e/run-ios-appium.sh ["iPhoneTest" "iPadTest" ...]
 #
 # Defaults to "iPhoneTest" and "iPadTest". The app (keybase.ios) must already be
 # installed on each named simulator, and the appium xcuitest driver installed
-# (yarn appium driver install xcuitest). Each device writes its own debug dir
-# (tests/results/ios-appium-debug-<slug>); the merged report is ios-appium-report.html.
+# (yarn appium driver install xcuitest). Artifacts land in the fixed per-device
+# dirs (tests/results/ios-appium-debug-{iphone,ipad}) the report reads; the
+# merged report is ios-appium-report.html.
 set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SHARED_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -20,18 +21,18 @@ if [ ${#DEVICES[@]} -eq 0 ]; then
   DEVICES=("iPhoneTest" "iPadTest")
 fi
 
-slugify() { echo "$1" | tr '[:upper:] ' '[:lower:]-'; }
+# iPhone results always go to -iphone, iPad to -ipad — the report only reads
+# these two dirs, so each run overwrites its device's slot in the report.
+dir_for() { case "$1" in *[Pp]ad*) echo "tests/results/ios-appium-debug-ipad";; *) echo "tests/results/ios-appium-debug-iphone";; esac }
 
 booted_udids() {
   xcrun simctl list devices booted -j | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);for(const k in j.devices)for(const d of j.devices[k])if(d.state==="Booted")console.log(d.udid)})'
 }
 
 OVERALL=0
-DIRS="" # accumulates "Label=dir" pairs for the merged report
 
 for NAME in "${DEVICES[@]}"; do
-  SLUG="$(slugify "$NAME")"
-  DBG="tests/results/ios-appium-debug-$SLUG"
+  DBG="$(dir_for "$NAME")"
   rm -rf "$DBG"; mkdir -p "$DBG"
 
   # Only the target sim should be booted — a backgrounded sim window gets
@@ -57,9 +58,8 @@ for NAME in "${DEVICES[@]}"; do
   echo "▶ Running suite on $NAME${ORIENT:+ ($ORIENT)}"
   KB_IOS_DEVICE="$NAME" KB_IOS_APPIUM_DEBUG_DIR="$DBG" KB_IOS_ORIENTATION="$ORIENT" \
     yarn wdio run tests/e2e/ios-appium/wdio.conf.ts || OVERALL=1
-  DIRS="${DIRS:+$DIRS,}$NAME=$DBG"
 done
 
 echo "▶ Building merged report"
-KB_IOS_APPIUM_DEBUG_DIRS="$DIRS" node tests/e2e/generate-appium-report.mts
+node tests/e2e/generate-appium-report.mts
 exit $OVERALL

@@ -4,17 +4,19 @@ import {homedir} from 'os'
 import {iosCapabilities, udidForName, requireSmokeUser} from './helpers/app'
 import {escapeToTabs} from './helpers/navigate'
 
-// Where per-test artifacts (screenshot + status json) land for the HTML report.
-// Relative to shared/ (the yarn cwd), matching generate-appium-report.mts and
-// the tests/results/ convention used by the maestro debug output.
-const debugDir = process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-appium-debug'
-
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.
 process.env['APPIUM_HOME'] ||= `${homedir()}/.appium`
 
 requireSmokeUser()
 const deviceName = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
+// Where per-test artifacts (screenshot + status json) land for the HTML report.
+// Relative to shared/ (the yarn cwd). Defaults to the fixed per-device dir
+// generate-appium-report.mts reads, keyed off the device name, so even a direct
+// `wdio run` lands its results in the right report slot.
+const debugDir =
+  process.env['KB_IOS_APPIUM_DEBUG_DIR'] ??
+  (/pad/i.test(deviceName) ? 'tests/results/ios-appium-debug-ipad' : 'tests/results/ios-appium-debug-iphone')
 const udid = process.env['KB_IOS_UDID'] ?? udidForName(deviceName)
 // Parameterized so the parallel runner can give each device its own appium
 // server + port (run-ios-appium-parallel.sh).

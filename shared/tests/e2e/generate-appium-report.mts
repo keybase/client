@@ -4,41 +4,16 @@ import {buildReport} from './generate-report-shared.mts'
 import type {CardData, Section} from './generate-report-shared.mts'
 
 // Builds the unified HTML report from the artifacts the wdio afterTest hook
-// writes (one <slug>.json + <slug>.png per test) into the debug dir(s).
-//
-// Single device: KB_IOS_APPIUM_DEBUG_DIR (one section).
-// Multi device:  KB_IOS_APPIUM_DEBUG_DIRS = "iPhoneTest=dir1,iPadTest=dir2"
-//                (one titled section per device, set by run-ios-appium.sh).
-const outputPath = process.env['KB_IOS_APPIUM_REPORT'] ?? 'tests/results/ios-appium-report.html'
+// writes (one <slug>.json + <slug>.png per test) into the two fixed per-device
+// dirs the runners (run-ios-appium*.sh) populate. Each device run overwrites
+// its own dir, so the report always shows the latest run per device — the
+// per-image timestamps reveal when each device last ran.
+const outputPath = 'tests/results/ios-appium-report.html'
 
-function deviceDirs(): Array<{label: string; dir: string}> {
-  const multi = process.env['KB_IOS_APPIUM_DEBUG_DIRS']
-  if (multi) {
-    return multi.split(',').map(part => {
-      const eq = part.indexOf('=')
-      return eq === -1 ? {label: '', dir: part.trim()} : {label: part.slice(0, eq).trim(), dir: part.slice(eq + 1).trim()}
-    })
-  }
-  const single = process.env['KB_IOS_APPIUM_DEBUG_DIR']
-  if (single) return [{label: '', dir: single}]
-  // No env (e.g. `yarn test:e2e:ios:report` run standalone): auto-discover the
-  // per-device debug dirs the device runners leave behind so the report covers
-  // every device, not just the last single run. Fall back to the lone default
-  // dir only when no per-device dirs exist.
-  const results = 'tests/results'
-  const perDevice = fs.existsSync(results)
-    ? fs
-        .readdirSync(results)
-        .filter(d => d.startsWith('ios-appium-debug-'))
-        .sort()
-        .map(d => {
-          const slug = d.slice('ios-appium-debug-'.length)
-          return {label: slug.charAt(0).toUpperCase() + slug.slice(1), dir: path.join(results, d)}
-        })
-    : []
-  if (perDevice.length) return perDevice
-  return [{label: '', dir: 'tests/results/ios-appium-debug'}]
-}
+const deviceDirs = [
+  {label: 'iPhone', dir: 'tests/results/ios-appium-debug-iphone'},
+  {label: 'iPad', dir: 'tests/results/ios-appium-debug-ipad'},
+]
 
 type TestArtifact = {label: string; passed: boolean; durationMs: number; error: string | null}
 
@@ -52,6 +27,11 @@ function readCards(dir: string): CardData[] {
       const data = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')) as TestArtifact
       const shot = path.join(dir, f.replace(/\.json$/, '.png'))
       const screenshotPath = fs.existsSync(shot) ? path.resolve(shot) : null
+      // mtime of the artifact = when the test actually ran. Sections can mix
+      // runs from different days (per-device dirs persist), so stamp each shot.
+      const timestamp = fs
+        .statSync(screenshotPath ?? path.join(dir, f))
+        .mtime.toLocaleString(undefined, {day: 'numeric', hour: 'numeric', minute: '2-digit', month: 'numeric'})
       return {
         label: data.label,
         passed: data.passed,
@@ -61,12 +41,25 @@ function readCards(dir: string): CardData[] {
         failureScreenshotPath: data.passed ? null : screenshotPath,
         diff: null,
         errorMessage: data.error,
+        timestamp,
       }
     })
 }
 
-const dirs = deviceDirs()
-const sections: Section[] = dirs.map(({label, dir}) => ({header: label || undefined, cards: readCards(dir)}))
+// A section is stale when its newest artifact (i.e. the run time) is over an
+// hour old — flags e.g. an iPhone-only run sitting next to yesterday's iPad run.
+const STALE_MS = 60 * 60 * 1000
+function newestMtimeMs(dir: string): number {
+  if (!fs.existsSync(dir)) return 0
+  return Math.max(0, ...fs.readdirSync(dir).map(f => fs.statSync(path.join(dir, f)).mtimeMs))
+}
+
+const sections: Section[] = deviceDirs
+  .map(({label, dir}) => {
+    const stale = Date.now() - newestMtimeMs(dir) > STALE_MS
+    return {header: stale ? `${label} (stale)` : label, cards: readCards(dir)}
+  })
+  .filter(s => s.cards.length > 0)
 const timestamp = new Date().toLocaleString()
 const html = buildReport('Keybase iOS E2E Tests (Appium)', sections, timestamp, outputPath)
 fs.mkdirSync(path.dirname(outputPath), {recursive: true})
@@ -74,4 +67,4 @@ fs.writeFileSync(outputPath, html)
 
 const allCards = sections.flatMap(s => s.cards)
 const passed = allCards.filter(c => c.passed).length
-console.log(`Report written to ${outputPath} (${passed}/${allCards.length} passed across ${dirs.length} device(s))`)
+console.log(`Report written to ${outputPath} (${passed}/${allCards.length} passed across ${sections.length} device(s))`)
