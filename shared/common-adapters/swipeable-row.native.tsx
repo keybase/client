@@ -99,7 +99,10 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
       (dx, vx) => {
         const newX = Math.min(0, startTranslationRef.current + dx)
         const width = openWidthRef.current
-        const shouldOpen = width > 0 && (newX < -(width * 0.4) || vx < -0.5)
+        // opening needs a deliberate drag; closing an open row only needs a small nudge right
+        const shouldOpen = wasClosedOnGrantRef.current
+          ? width > 0 && (newX < -(width * 0.4) || vx < -0.5)
+          : width > 0 && newX < -(width * 0.85) && vx <= 0.1
         if (shouldOpen) {
           translationXRef.current = -width
           Animated.spring(translationX, {...springConfig, toValue: -width}).start()
