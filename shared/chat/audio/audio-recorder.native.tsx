@@ -328,6 +328,29 @@ const recordingOptions = {
   web: {},
 }
 
+const checkPerms = async (setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void) => {
+  try {
+    let {status} = await AudioModule.getRecordingPermissionsAsync()
+    if (status === 'undetermined') {
+      const askRes = await AudioModule.requestRecordingPermissionsAsync()
+      status = askRes.status
+    }
+    if (status === 'denied') {
+      throw new Error('Please allow Keybase to access the microphone in the phone settings.')
+    }
+    return true
+  } catch (_error) {
+    const error = _error as {message: string}
+    logger.info('failed to get audio perms: ' + error.message)
+    setCommandStatusInfo({
+      actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+      displayText: `Failed to access audio. ${error.message}`,
+      displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+    })
+  }
+  return false
+}
+
 // Hook for interfacing with the native recorder
 const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; showAudioSend: boolean}) => {
   const {ampSV, setShowAudioSend, showAudioSend} = p
@@ -399,31 +422,9 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   const setCommandStatusInfo = InputState.useConversationInputDispatch(s => s.setCommandStatusInfo)
 
   const startRecording = () => {
-    const checkPerms = async () => {
-      try {
-        let {status} = await AudioModule.getRecordingPermissionsAsync()
-        if (status === 'undetermined') {
-          const askRes = await AudioModule.requestRecordingPermissionsAsync()
-          status = askRes.status
-        }
-        if (status === 'denied') {
-          throw new Error('Please allow Keybase to access the microphone in the phone settings.')
-        }
-        return true
-      } catch (_error) {
-        const error = _error as {message: string}
-        logger.info('failed to get audio perms: ' + error.message)
-        setCommandStatusInfo({
-          actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
-          displayText: `Failed to access audio. ${error.message}`,
-          displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
-        })
-      }
-      return false
-    }
     const impl = async () => {
       await onReset()
-      const goodPerms = await checkPerms()
+      const goodPerms = await checkPerms(setCommandStatusInfo)
       if (!goodPerms) {
         throw new Error("Couldn't get audio permissions")
       }

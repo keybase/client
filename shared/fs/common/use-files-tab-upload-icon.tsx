@@ -19,6 +19,28 @@ const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIc
   }
 }
 
+const fetchUploadIcon = async (
+  generation: number,
+  generationRef: React.RefObject<number>,
+  connectedRef: React.RefObject<boolean>,
+  setUploadIcon: (icon: T.FS.UploadIcon | undefined) => void
+) => {
+  try {
+    const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+    if (generation === generationRef.current && connectedRef.current) {
+      setUploadIcon(filesTabBadgeToUploadIcon(badge))
+    }
+  } catch {
+    // Retry once; see HOTPOT-1226.
+    try {
+      const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+      if (generation === generationRef.current && connectedRef.current) {
+        setUploadIcon(filesTabBadgeToUploadIcon(badge))
+      }
+    } catch {}
+  }
+}
+
 export const useFilesTabUploadIcon = () => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const connectedRef = React.useRef(connected)
@@ -36,23 +58,7 @@ export const useFilesTabUploadIcon = () => {
       return
     }
     const generation = ++generationRef.current
-    const f = async () => {
-      try {
-        const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-        if (generation === generationRef.current && connectedRef.current) {
-          setUploadIcon(filesTabBadgeToUploadIcon(badge))
-        }
-      } catch {
-        // Retry once; see HOTPOT-1226.
-        try {
-          const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-          if (generation === generationRef.current && connectedRef.current) {
-            setUploadIcon(filesTabBadgeToUploadIcon(badge))
-          }
-        } catch {}
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(fetchUploadIcon(generation, generationRef, connectedRef, setUploadIcon))
   })
   const [stableLoadUploadIcon] = React.useState(() => () => {
     loadUploadIcon()

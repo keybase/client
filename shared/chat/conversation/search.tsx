@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationCenter} from './center-context'
+import {useConversationCenterActions} from './center-context'
 import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
 import {
   useConversationThreadID,
@@ -26,10 +26,80 @@ type SearchState = {
   status: T.Chat.ThreadSearchInfo['status']
 }
 
+const runSearchInbox = async (p: {
+  conversationIDKey: T.Chat.ConversationIDKey
+  deviceName: string
+  getLastOrdinal: () => T.Chat.Ordinal
+  onDone: () => void
+  pendingHitsRef: {current: Array<T.Chat.Message>}
+  pendingReplaceHitsRef: {current: Array<T.Chat.Message> | undefined}
+  query: string
+  scheduleFlush: () => void
+  updateIfCurrent: (updater: (state: SearchState) => SearchState) => void
+  username: string
+}) => {
+  const {conversationIDKey, deviceName, getLastOrdinal, onDone, query, username} = p
+  const {pendingHitsRef, pendingReplaceHitsRef, scheduleFlush, updateIfCurrent} = p
+  try {
+    await searchInboxRPC({
+      incomingCallMap: {
+        'chat.1.chatUi.chatSearchDone': onDone,
+        'chat.1.chatUi.chatSearchHit': hit => {
+          const message = Message.uiMessageToMessage(
+            conversationIDKey,
+            hit.searchHit.hitMessage,
+            username,
+            getLastOrdinal,
+            deviceName
+          )
+          if (!message) {
+            return
+          }
+          pendingHitsRef.current.push(message)
+          scheduleFlush()
+        },
+        'chat.1.chatUi.chatSearchInboxDone': onDone,
+        'chat.1.chatUi.chatSearchInboxHit': resp => {
+          const messages = (resp.searchHit.hits || []).reduce<Array<T.Chat.Message>>((result, hit) => {
+            const message = Message.uiMessageToMessage(
+              conversationIDKey,
+              hit.hitMessage,
+              username,
+              getLastOrdinal,
+              deviceName
+            )
+            if (message) {
+              result.push(message)
+            }
+            return result
+          }, [])
+          pendingHitsRef.current = []
+          pendingReplaceHitsRef.current = messages
+          scheduleFlush()
+        },
+        'chat.1.chatUi.chatSearchInboxStart': () => {
+          updateIfCurrent(state => ({...state, status: 'inprogress'}))
+        },
+      },
+      opts: {
+        convID: T.Chat.isValidConversationIDKey(conversationIDKey)
+          ? T.Chat.keyToConversationID(conversationIDKey)
+          : new Uint8Array(0),
+        maxHits: 1000,
+      },
+      query,
+    })
+  } catch (error) {
+    if (error instanceof RPCError) {
+      updateIfCurrent(state => ({...state, status: 'done'}))
+    }
+  }
+}
+
 const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
   const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {centerOnMessage, clearCenter} = useConversationCenter()
+  const {centerOnMessage, clearCenter} = useConversationCenterActions()
   const onToggleThreadSearch = () => {
     clearCenter()
     toggleThreadSearch()
@@ -129,63 +199,20 @@ const useCommon = (ownProps: CommonProps) => {
       flushPendingHits('done')
     }
 
-    const f = async () => {
-      try {
-        await searchInboxRPC({
-          incomingCallMap: {
-            'chat.1.chatUi.chatSearchDone': onDone,
-            'chat.1.chatUi.chatSearchHit': hit => {
-              const message = Message.uiMessageToMessage(
-                conversationIDKey,
-                hit.searchHit.hitMessage,
-                username,
-                getLastOrdinal,
-                deviceName
-              )
-              if (!message) {
-                return
-              }
-              pendingHitsRef.current.push(message)
-              scheduleFlush()
-            },
-            'chat.1.chatUi.chatSearchInboxDone': onDone,
-            'chat.1.chatUi.chatSearchInboxHit': resp => {
-              const messages = (resp.searchHit.hits || []).reduce<Array<T.Chat.Message>>((result, hit) => {
-                const message = Message.uiMessageToMessage(
-                  conversationIDKey,
-                  hit.hitMessage,
-                  username,
-                  getLastOrdinal,
-                  deviceName
-                )
-                if (message) {
-                  result.push(message)
-                }
-                return result
-              }, [])
-              pendingHitsRef.current = []
-              pendingReplaceHitsRef.current = messages
-              scheduleFlush()
-            },
-            'chat.1.chatUi.chatSearchInboxStart': () => {
-              updateIfCurrent(state => ({...state, status: 'inprogress'}))
-            },
-          },
-          opts: {
-            convID: T.Chat.isValidConversationIDKey(conversationIDKey)
-              ? T.Chat.keyToConversationID(conversationIDKey)
-              : new Uint8Array(0),
-            maxHits: 1000,
-          },
-          query,
-        })
-      } catch (error) {
-        if (error instanceof RPCError) {
-          updateIfCurrent(state => ({...state, status: 'done'}))
-        }
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      runSearchInbox({
+        conversationIDKey,
+        deviceName,
+        getLastOrdinal,
+        onDone,
+        pendingHitsRef,
+        pendingReplaceHitsRef,
+        query,
+        scheduleFlush,
+        updateIfCurrent,
+        username,
+      })
+    )
   })
 
   const runThreadSearch = (query: string) => {

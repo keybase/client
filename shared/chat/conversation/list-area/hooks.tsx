@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import JumpToRecent from './jump-to-recent'
-import {useConversationCenter} from '../center-context'
+import {useConversationCenterActions} from '../center-context'
 import {
   useConversationThreadMarkThreadAsRead,
   useConversationThreadSelector,
@@ -17,7 +17,7 @@ export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number)
     C.useShallow(s => ({loaded: s.loaded, moreToLoadForward: s.moreToLoadForward}))
   )
   const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {jumpToRecent} = useConversationCenter()
+  const {jumpToRecent} = useConversationCenterActions()
 
   const onJump = () => {
     scrollToBottom()

@@ -170,6 +170,58 @@ export const buildNotificationSavePayload = (
   return {JSONPayload, chatGlobalArg}
 }
 
+const saveNotificationSettings = async (
+  nextGroups: Map<string, NotificationsGroupState>,
+  prevGroups: Map<string, NotificationsGroupState>,
+  saveSubscriptionsRPC: (
+    args: Parameters<typeof T.RPCGen.apiserverPostJSONRpcPromise>,
+    setResult: (r: T.RPCGen.APIRes) => void,
+    setError: (e: RPCError) => void
+  ) => void,
+  saveGlobalSettingsRPC: (
+    args: Parameters<typeof T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise>,
+    setResult: () => void,
+    setError: (e: RPCError) => void
+  ) => void,
+  setGroups: (groups: Map<string, NotificationsGroupState>) => void,
+  setAllowEdit: (allowEdit: boolean) => void
+) => {
+  try {
+    if (!nextGroups.get('email')) {
+      throw new Error('No notifications loaded yet')
+    }
+    const {JSONPayload, chatGlobalArg} = buildNotificationSavePayload(nextGroups)
+    const result = await new Promise<T.RPCGen.APIRes>((resolve, reject) => {
+      saveSubscriptionsRPC(
+        [
+          {
+            JSONPayload,
+            args: [],
+            endpoint: 'account/subscribe',
+          },
+          S.waitingKeySettingsGeneric,
+        ],
+        resolve,
+        reject
+      )
+    })
+    await new Promise<void>((resolve, reject) => {
+      saveGlobalSettingsRPC([{settings: {...chatGlobalArg}}, S.waitingKeySettingsGeneric], () => resolve(), reject)
+    })
+    if (
+      !result.body ||
+      (JSON.parse(result.body) as {status?: {code?: number}} | undefined)?.status?.code !== 0
+    ) {
+      throw new Error(`Invalid response ${result.body || '(no result)'}`)
+    }
+  } catch (error) {
+    logger.warn('Failed to save notification settings', error)
+    setGroups(prevGroups)
+  } finally {
+    setAllowEdit(true)
+  }
+}
+
 const useNotificationSettings = (): UseNotificationSettingsResult => {
   const loadSubscriptionsRPC = C.useRPC(T.RPCGen.apiserverGetWithSessionRpcPromise)
   const loadGlobalSettingsRPC = C.useRPC(T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise)
@@ -238,47 +290,16 @@ const useNotificationSettings = (): UseNotificationSettingsResult => {
       setAllowEdit(false)
       setGroups(nextGroups)
 
-      const f = async () => {
-        try {
-          if (!nextGroups.get('email')) {
-            throw new Error('No notifications loaded yet')
-          }
-          const {JSONPayload, chatGlobalArg} = buildNotificationSavePayload(nextGroups)
-          const result = await new Promise<T.RPCGen.APIRes>((resolve, reject) => {
-            saveSubscriptionsRPC(
-              [
-                {
-                  JSONPayload,
-                  args: [],
-                  endpoint: 'account/subscribe',
-                },
-                S.waitingKeySettingsGeneric,
-              ],
-              resolve,
-              reject
-            )
-          })
-          await new Promise<void>((resolve, reject) => {
-            saveGlobalSettingsRPC(
-              [{settings: {...chatGlobalArg}}, S.waitingKeySettingsGeneric],
-              () => resolve(),
-              reject
-            )
-          })
-          if (
-            !result.body ||
-            (JSON.parse(result.body) as {status?: {code?: number}} | undefined)?.status?.code !== 0
-          ) {
-            throw new Error(`Invalid response ${result.body || '(no result)'}`)
-          }
-        } catch (error) {
-          logger.warn('Failed to save notification settings', error)
-          setGroups(prevGroups)
-        } finally {
-          setAllowEdit(true)
-        }
-      }
-      ignorePromise(f())
+      ignorePromise(
+        saveNotificationSettings(
+          nextGroups,
+          prevGroups,
+          saveSubscriptionsRPC,
+          saveGlobalSettingsRPC,
+          setGroups,
+          setAllowEdit
+        )
+      )
     },
     [allowEdit, groups, saveGlobalSettingsRPC, saveSubscriptionsRPC]
   )

@@ -32,6 +32,8 @@ const ResumableZoom = ({
   onUpdate,
   onSwipe,
 }: ResumableZoomProps) => {
+  // vendored reanimated gesture code; shared-value writes during render are intentional
+  'use no memo'
   if (userMaxScale < 1) {
     throw new Error('ResumableZoom: maxScale must be >= 1')
   }

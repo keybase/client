@@ -220,6 +220,29 @@ function useEnsureWidgetData(
   }, [widgetList])
 }
 
+const loadUserFileEditsRPC = async (
+  generation: number,
+  generationRef: {current: number},
+  enabledRef: {current: boolean},
+  setTlfUpdateState: (state: TlfUpdateState) => void,
+  errorToActionOrThrow: (error: unknown) => void
+) => {
+  try {
+    const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+    if (generation !== generationRef.current || !enabledRef.current) {
+      return
+    }
+    setTlfUpdateState({
+      shouldClear: false,
+      tlfUpdates: userTlfHistoryRPCToState(writerEdits || []),
+    })
+  } catch (error) {
+    if (generation === generationRef.current && enabledRef.current) {
+      errorToActionOrThrow(error)
+    }
+  }
+}
+
 function useMenubarTlfUpdates(
   loggedIn: boolean,
   userSwitching: boolean,
@@ -254,23 +277,9 @@ function useMenubarTlfUpdates(
       return
     }
     const generation = ++generationRef.current
-    const f = async () => {
-      try {
-        const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
-        if (generation !== generationRef.current || !enabledRef.current) {
-          return
-        }
-        setTlfUpdateState({
-          shouldClear: false,
-          tlfUpdates: userTlfHistoryRPCToState(writerEdits || []),
-        })
-      } catch (error) {
-        if (generation === generationRef.current && enabledRef.current) {
-          errorToActionOrThrow(error)
-        }
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      loadUserFileEditsRPC(generation, generationRef, enabledRef, setTlfUpdateState, errorToActionOrThrow)
+    )
   }, 5000)
 
   React.useEffect(() => {

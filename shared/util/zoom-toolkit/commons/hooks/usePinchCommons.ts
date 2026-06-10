@@ -39,6 +39,8 @@ type PinchOptions = {
 type PinchGestueUpdateEvent = GestureUpdateEvent<PinchGestureHandlerEventPayload>
 
 export const usePinchCommons = (options: PinchOptions) => {
+  // vendored reanimated gesture code; shared-value writes during render are intentional
+  'use no memo'
   const {
     container,
     translate,

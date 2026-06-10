@@ -14,7 +14,7 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input.shared'
-import {useConversationCenter} from '../../center-context'
+import {useConversationCenter, useConversationCenterActions} from '../../center-context'
 import {
   useConversationThreadID,
   useConversationThreadMessage,
@@ -158,7 +158,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
   const updateUnsentText = InputState.useConversationInputDispatch(s => s.injectIntoInput)
   const sendComposerText = InputState.useConversationInputDispatch(s => s.sendComposerText)
-  const {hasCenter, jumpToRecent} = useConversationCenter()
+  const {hasCenter} = useConversationCenter()
+  const {jumpToRecent} = useConversationCenterActions()
   const toggleThreadSearch = useConversationThreadToggleSearch()
 
   const isExploding = explodingModeSecondsRaw !== 0

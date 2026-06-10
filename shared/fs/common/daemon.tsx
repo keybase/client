@@ -22,6 +22,48 @@ const emptyFsDaemonActions: FsDaemonActions = {
 const FsDaemonStatusContext = React.createContext<T.FS.KbfsDaemonStatus | undefined>(undefined)
 const FsDaemonActionsContext = React.createContext<FsDaemonActions | undefined>(undefined)
 
+const waitForKbfsDaemon = async (
+  generation: number,
+  isCurrentAsyncGeneration: (generation: number) => boolean,
+  kbfsDaemonStatusRef: {current: T.FS.KbfsDaemonStatus},
+  kbfsDaemonRpcStatusChanged: (rpcStatus: T.FS.KbfsDaemonRpcStatus) => void,
+  waitForKbfsDaemonInProgressRef: {current: boolean},
+  asyncGenerationRef: {current: number}
+) => {
+  while (isCurrentAsyncGeneration(generation)) {
+    try {
+      const connected = await T.RPCGen.configWaitForClientRpcPromise({
+        clientType: T.RPCGen.ClientType.kbfs,
+        timeout: 0, // Don't wait; just check if it's there.
+      })
+      if (!isCurrentAsyncGeneration(generation)) {
+        return
+      }
+      const newStatus = connected ? T.FS.KbfsDaemonRpcStatus.Connected : T.FS.KbfsDaemonRpcStatus.Waiting
+      if (kbfsDaemonStatusRef.current.rpcStatus !== newStatus) {
+        kbfsDaemonRpcStatusChanged(newStatus)
+      }
+      if (newStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
+        return
+      }
+      waitForKbfsDaemonInProgressRef.current = true
+      try {
+        await T.RPCGen.configWaitForClientRpcPromise({
+          clientType: T.RPCGen.ClientType.kbfs,
+          timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
+        })
+      } catch {
+      } finally {
+        if (generation === asyncGenerationRef.current) {
+          waitForKbfsDaemonInProgressRef.current = false
+        }
+      }
+    } catch {
+      return
+    }
+  }
+}
+
 export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const userSwitching = useConfigState(s => s.userSwitching)
@@ -62,42 +104,16 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
     if (waitForKbfsDaemonInProgressRef.current || !loggedIn || userSwitching) {
       return
     }
-    const generation = asyncGenerationRef.current
-    const f = async () => {
-      while (isCurrentAsyncGeneration(generation)) {
-        try {
-          const connected = await T.RPCGen.configWaitForClientRpcPromise({
-            clientType: T.RPCGen.ClientType.kbfs,
-            timeout: 0, // Don't wait; just check if it's there.
-          })
-          if (!isCurrentAsyncGeneration(generation)) {
-            return
-          }
-          const newStatus = connected ? T.FS.KbfsDaemonRpcStatus.Connected : T.FS.KbfsDaemonRpcStatus.Waiting
-          if (kbfsDaemonStatusRef.current.rpcStatus !== newStatus) {
-            kbfsDaemonRpcStatusChanged(newStatus)
-          }
-          if (newStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-            return
-          }
-          waitForKbfsDaemonInProgressRef.current = true
-          try {
-            await T.RPCGen.configWaitForClientRpcPromise({
-              clientType: T.RPCGen.ClientType.kbfs,
-              timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
-            })
-          } catch {
-          } finally {
-            if (generation === asyncGenerationRef.current) {
-              waitForKbfsDaemonInProgressRef.current = false
-            }
-          }
-        } catch {
-          return
-        }
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      waitForKbfsDaemon(
+        asyncGenerationRef.current,
+        isCurrentAsyncGeneration,
+        kbfsDaemonStatusRef,
+        kbfsDaemonRpcStatusChanged,
+        waitForKbfsDaemonInProgressRef,
+        asyncGenerationRef
+      )
+    )
   })
 
   const onlineStatusChanged = React.useEffectEvent((onlineStatus: T.RPCGen.KbfsOnlineStatus) => {

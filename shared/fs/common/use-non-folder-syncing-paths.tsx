@@ -100,7 +100,9 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
             if (!latestSyncingPaths.current.has(path) || prevPathTypes.get(path) === type) {
               continue
             }
-            nextPathTypes ??= new Map(prevPathTypes)
+            if (nextPathTypes === undefined) {
+              nextPathTypes = new Map(prevPathTypes)
+            }
             nextPathTypes.set(path, type)
           }
           return nextPathTypes ?? prevPathTypes

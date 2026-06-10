@@ -108,6 +108,248 @@ type Step =
   | PostProofStep
   | ConfirmOrPendingStep
 
+const checkProofAndNavigate = async (
+  proofPlatform: T.More.PlatformsExpandedType,
+  sigID: T.RPCGen.SigID,
+  username: string,
+  proofText: string,
+  mountedRef: React.RefObject<boolean>,
+  setStepSafe: (next: Step) => void
+) => {
+  try {
+    const {found, status} = await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
+    if (!mountedRef.current) return
+    if (!found && status >= T.RPCGen.ProofStatus.baseHardError) {
+      setStepSafe({
+        error: "We couldn't find your proof. Please retry!",
+        kind: 'postProof',
+        platform: proofPlatform,
+        proofText,
+        sigID,
+        username,
+      })
+    } else {
+      setStepSafe({
+        kind: 'confirmOrPending',
+        platform: proofPlatform,
+        proofFound: found,
+        proofStatus: status,
+        username,
+      })
+    }
+  } catch {
+    logger.warn('Error getting proof update')
+    setStepSafe({
+      error: "We couldn't verify your proof. Please retry!",
+      kind: 'postProof',
+      platform: proofPlatform,
+      proofText,
+      sigID,
+      username,
+    })
+  }
+}
+
+const runProofFlow = async (p: {
+  afterCheckProofRef: React.RefObject<undefined | (() => void)>
+  cancelCurrentRef: React.RefObject<undefined | (() => void)>
+  currentGenericParamsRef: React.RefObject<ProveGenericParams>
+  currentUsernameRef: React.RefObject<string>
+  genericService: string | null
+  loadCurrentProfile: () => void
+  mountedRef: React.RefObject<boolean>
+  navigateAppend: typeof C.Router2.navigateAppend
+  navigateUp: typeof C.Router2.navigateUp
+  proofPlatform: string
+  proofReason: 'appLink' | 'profile'
+  resetSession: () => void
+  service: T.More.PlatformsExpandedType | undefined
+  setStepSafe: (next: Step) => void
+  submitUsernameRef: React.RefObject<undefined | ((username: string) => void)>
+}) => {
+  const {
+    afterCheckProofRef,
+    cancelCurrentRef,
+    currentGenericParamsRef,
+    currentUsernameRef,
+    genericService,
+    loadCurrentProfile,
+    mountedRef,
+    navigateAppend,
+    navigateUp,
+    proofPlatform,
+    proofReason,
+    resetSession,
+    service,
+    setStepSafe,
+    submitUsernameRef,
+  } = p
+
+  const inputCancelError = {
+    code: T.RPCGen.StatusCode.scinputcanceled,
+    desc: 'Cancel Add Proof',
+  }
+
+  let canceled = false
+  let proofText = ''
+  currentUsernameRef.current = ''
+  currentGenericParamsRef.current = makeProveGenericParams()
+
+  const failIfCanceled = (response: {error: (arg0: {code: number; desc: string}) => void}) => {
+    if (canceled || !mountedRef.current) {
+      response.error(inputCancelError)
+      return true
+    }
+    return false
+  }
+
+  try {
+    const {sigID} = await T.RPCGen.proveStartProofRpcListener({
+      customResponseIncomingCallMap: {
+        'keybase.1.proveUi.checking': (_, response) => {
+          if (failIfCanceled(response)) {
+            return
+          }
+          response.result()
+        },
+        'keybase.1.proveUi.continueChecking': (_, response) =>
+          response.result(!(canceled || !mountedRef.current)),
+        'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
+        'keybase.1.proveUi.outputInstructions': ({proof}, response) => {
+          if (failIfCanceled(response)) {
+            return
+          }
+          afterCheckProofRef.current = () => {
+            afterCheckProofRef.current = undefined
+            response.result()
+          }
+          cancelCurrentRef.current = () => {
+            canceled = true
+            response.error(inputCancelError)
+          }
+
+          if (service && proof) {
+            proofText = proof
+            setStepSafe({
+              error: '',
+              kind: 'postProof',
+              platform: service,
+              proofText: proof,
+              username: currentUsernameRef.current,
+            })
+          } else if (proof) {
+            const genericParams = currentGenericParamsRef.current
+            setStepSafe({
+              error: '',
+              genericParams,
+              kind: 'genericEnterUsername',
+              proofUrl: proof,
+              service: genericService ?? '',
+              username: currentUsernameRef.current,
+            })
+            void openUrl(proof)
+            afterCheckProofRef.current()
+          }
+        },
+        'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
+        'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
+        'keybase.1.proveUi.promptUsername': (args, response) => {
+          if (failIfCanceled(response)) {
+            return
+          }
+          const {parameters, prevError} = args
+          cancelCurrentRef.current = () => {
+            canceled = true
+            response.error(inputCancelError)
+          }
+          submitUsernameRef.current = (username: string) => {
+            const {normalized} = normalizeProofUsername(service, username)
+            currentUsernameRef.current = normalized
+            submitUsernameRef.current = undefined
+            response.result(normalized)
+          }
+          if (service) {
+            setStepSafe({
+              error: prevError?.desc ?? '',
+              kind: 'enterUsername',
+              platform: service,
+              username: currentUsernameRef.current,
+            })
+            cancelCurrentRef.current = () => {
+              canceled = true
+              response.error(inputCancelError)
+            }
+          } else if (genericService && parameters) {
+            currentGenericParamsRef.current = toProveGenericParams(parameters)
+            setStepSafe({
+              error: prevError?.desc ?? '',
+              genericParams: currentGenericParamsRef.current,
+              kind: 'genericEnterUsername',
+              service: genericService,
+              username: currentUsernameRef.current,
+            })
+          }
+          afterCheckProofRef.current = undefined
+        },
+      },
+      incomingCallMap: {
+        'keybase.1.proveUi.displayRecheckWarning': () => {},
+        'keybase.1.proveUi.outputPrechecks': () => {},
+      },
+      params: {
+        auto: false,
+        force: true,
+        promptPosted: !!genericService,
+        service: proofPlatform,
+        username: '',
+      },
+      waitingKey: C.waitingKeyProfile,
+    })
+
+    loadCurrentProfile()
+
+    if (service) {
+      ignorePromise(
+        checkProofAndNavigate(service, sigID, currentUsernameRef.current, proofText, mountedRef, setStepSafe)
+      )
+    } else {
+      setStepSafe({
+        error: '',
+        genericParams: currentGenericParamsRef.current,
+        kind: 'genericResult',
+        username: currentUsernameRef.current,
+      })
+    }
+  } catch (_error) {
+    loadCurrentProfile()
+    if (!(_error instanceof RPCError)) {
+      return
+    }
+    const error = _error
+    logger.warn('Error making proof')
+
+    if (genericService) {
+      setStepSafe({
+        error: error.desc || 'Failed to verify proof',
+        genericParams: currentGenericParamsRef.current,
+        kind: 'genericResult',
+        username: currentUsernameRef.current,
+      })
+    } else if (proofReason === 'appLink' && error.code === T.RPCGen.StatusCode.scgeneric) {
+      navigateUp()
+      navigateAppend({
+        name: 'keybaseLinkError',
+        params: {
+          error:
+            "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
+        },
+      })
+    }
+  } finally {
+    resetSession()
+  }
+}
+
 const Container = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const {proofSuggestions} = useProofSuggestions()
@@ -180,46 +422,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     navToProfile(currentUsername)
   }
 
-  const checkProofAndNavigate = async (
-    proofPlatform: T.More.PlatformsExpandedType,
-    sigID: T.RPCGen.SigID,
-    username: string,
-    proofText: string
-  ) => {
-    try {
-      const {found, status} = await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
-      if (!mountedRef.current) return
-      if (!found && status >= T.RPCGen.ProofStatus.baseHardError) {
-        setStepSafe({
-          error: "We couldn't find your proof. Please retry!",
-          kind: 'postProof',
-          platform: proofPlatform,
-          proofText,
-          sigID,
-          username,
-        })
-      } else {
-        setStepSafe({
-          kind: 'confirmOrPending',
-          platform: proofPlatform,
-          proofFound: found,
-          proofStatus: status,
-          username,
-        })
-      }
-    } catch {
-      logger.warn('Error getting proof update')
-      setStepSafe({
-        error: "We couldn't verify your proof. Please retry!",
-        kind: 'postProof',
-        platform: proofPlatform,
-        proofText,
-        sigID,
-        username,
-      })
-    }
-  }
-
   const startProof = (proofPlatform: string, proofReason: 'appLink' | 'profile') => {
     const service = T.More.asPlatformsExpandedType(proofPlatform)
     const genericService = service ? null : proofPlatform
@@ -241,170 +443,24 @@ const Container = ({platform, reason = 'profile'}: Props) => {
 
     setStepSafe({kind: 'loading'})
 
-    const inputCancelError = {
-      code: T.RPCGen.StatusCode.scinputcanceled,
-      desc: 'Cancel Add Proof',
-    }
-
-    let canceled = false
-    let proofText = ''
-    currentUsernameRef.current = ''
-    currentGenericParamsRef.current = makeProveGenericParams()
-
-    const failIfCanceled = (response: {error: (arg0: {code: number; desc: string}) => void}) => {
-      if (canceled || !mountedRef.current) {
-        response.error(inputCancelError)
-        return true
-      }
-      return false
-    }
-
     ignorePromise(
-      (async () => {
-        try {
-          const {sigID} = await T.RPCGen.proveStartProofRpcListener({
-            customResponseIncomingCallMap: {
-              'keybase.1.proveUi.checking': (_, response) => {
-                if (failIfCanceled(response)) {
-                  return
-                }
-                response.result()
-              },
-              'keybase.1.proveUi.continueChecking': (_, response) =>
-                response.result(!(canceled || !mountedRef.current)),
-              'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
-              'keybase.1.proveUi.outputInstructions': ({proof}, response) => {
-                if (failIfCanceled(response)) {
-                  return
-                }
-                afterCheckProofRef.current = () => {
-                  afterCheckProofRef.current = undefined
-                  response.result()
-                }
-                cancelCurrentRef.current = () => {
-                  canceled = true
-                  response.error(inputCancelError)
-                }
-
-                if (service && proof) {
-                  proofText = proof
-                  setStepSafe({
-                    error: '',
-                    kind: 'postProof',
-                    platform: service,
-                    proofText: proof,
-                    username: currentUsernameRef.current,
-                  })
-                } else if (proof) {
-                  const genericParams = currentGenericParamsRef.current
-                  setStepSafe({
-                    error: '',
-                    genericParams,
-                    kind: 'genericEnterUsername',
-                    proofUrl: proof,
-                    service: genericService ?? '',
-                    username: currentUsernameRef.current,
-                  })
-                  void openUrl(proof)
-                  afterCheckProofRef.current()
-                }
-              },
-              'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
-              'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
-              'keybase.1.proveUi.promptUsername': (args, response) => {
-                if (failIfCanceled(response)) {
-                  return
-                }
-                const {parameters, prevError} = args
-                cancelCurrentRef.current = () => {
-                  canceled = true
-                  response.error(inputCancelError)
-                }
-                submitUsernameRef.current = (username: string) => {
-                  const {normalized} = normalizeProofUsername(service, username)
-                  currentUsernameRef.current = normalized
-                  submitUsernameRef.current = undefined
-                  response.result(normalized)
-                }
-                if (service) {
-                  setStepSafe({
-                    error: prevError?.desc ?? '',
-                    kind: 'enterUsername',
-                    platform: service,
-                    username: currentUsernameRef.current,
-                  })
-                  cancelCurrentRef.current = () => {
-                    canceled = true
-                    response.error(inputCancelError)
-                  }
-                } else if (genericService && parameters) {
-                  currentGenericParamsRef.current = toProveGenericParams(parameters)
-                  setStepSafe({
-                    error: prevError?.desc ?? '',
-                    genericParams: currentGenericParamsRef.current,
-                    kind: 'genericEnterUsername',
-                    service: genericService,
-                    username: currentUsernameRef.current,
-                  })
-                }
-                afterCheckProofRef.current = undefined
-              },
-            },
-            incomingCallMap: {
-              'keybase.1.proveUi.displayRecheckWarning': () => {},
-              'keybase.1.proveUi.outputPrechecks': () => {},
-            },
-            params: {
-              auto: false,
-              force: true,
-              promptPosted: !!genericService,
-              service: proofPlatform,
-              username: '',
-            },
-            waitingKey: C.waitingKeyProfile,
-          })
-
-          loadCurrentProfile()
-
-          if (service) {
-            ignorePromise(checkProofAndNavigate(service, sigID, currentUsernameRef.current, proofText))
-          } else {
-            setStepSafe({
-              error: '',
-              genericParams: currentGenericParamsRef.current,
-              kind: 'genericResult',
-              username: currentUsernameRef.current,
-            })
-          }
-        } catch (_error) {
-          loadCurrentProfile()
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.warn('Error making proof')
-
-          if (genericService) {
-            setStepSafe({
-              error: error.desc || 'Failed to verify proof',
-              genericParams: currentGenericParamsRef.current,
-              kind: 'genericResult',
-              username: currentUsernameRef.current,
-            })
-          } else if (proofReason === 'appLink' && error.code === T.RPCGen.StatusCode.scgeneric) {
-            navigateUp()
-            navigateAppend({
-              name: 'keybaseLinkError',
-              params: {
-                error:
-                  "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
-              },
-            })
-          }
-        } finally {
-          resetSession()
-        }
-      })()
+      runProofFlow({
+        afterCheckProofRef,
+        cancelCurrentRef,
+        currentGenericParamsRef,
+        currentUsernameRef,
+        genericService,
+        loadCurrentProfile,
+        mountedRef,
+        navigateAppend,
+        navigateUp,
+        proofPlatform,
+        proofReason,
+        resetSession,
+        service,
+        setStepSafe,
+        submitUsernameRef,
+      })
     )
   }
 
@@ -544,7 +600,16 @@ const Container = ({platform, reason = 'profile'}: Props) => {
                 return
               }
               if (step.sigID) {
-                ignorePromise(checkProofAndNavigate(step.platform, step.sigID, step.username, step.proofText))
+                ignorePromise(
+                  checkProofAndNavigate(
+                    step.platform,
+                    step.sigID,
+                    step.username,
+                    step.proofText,
+                    mountedRef,
+                    setStepSafe
+                  )
+                )
               }
             }}
             step={step}

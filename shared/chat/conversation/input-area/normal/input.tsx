@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as ChatTypes from '@/constants/types/chat/message'
+import type * as T from '@/constants/types'
 import * as InputState from '../input-state'
 import SetExplodingMessagePopup from './set-explode-popup'
 import Typing from './typing'
@@ -353,9 +354,7 @@ function NativeInput(p: InputLowLevelProps) {
         onChangeText(ti.text)
         setSelection(ti.selection)
       },
-      get value() {
-        return value
-      },
+      value,
     }
   }, [onChangeText, selection, value])
 
@@ -1080,57 +1079,62 @@ type NativeChatFilePickerProps = {
   showingPopup: boolean
   hidePopup: () => void
 }
+const launchNativeImagePickerImpl = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  mediaType: string,
+  location: string
+) => {
+  const mt = mediaType as 'photo' | 'video' | 'mixed'
+  const handleSelection = (result: {canceled: boolean; assets: Array<{uri: string}> | null}) => {
+    if (result.canceled || !result.assets || result.assets.length === 0) {
+      return
+    }
+    const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
+    C.Router2.navigateAppend({
+      name: 'chatAttachmentGetTitles',
+      params: {conversationIDKey, pathAndOutboxIDs},
+    })
+  }
+
+  switch (location) {
+    case 'camera':
+      try {
+        const res = await launchCameraAsync(mt)
+        handleSelection(res)
+      } catch (error) {
+        filePickerError(new Error(String(error)))
+      }
+      break
+    case 'library':
+      try {
+        const res = await launchImageLibraryAsync(mt, true, true)
+        handleSelection(res)
+      } catch (error) {
+        filePickerError(new Error(String(error)))
+      }
+      break
+    case 'file':
+      try {
+        const res = await pickDocumentsAsync(true)
+        if (!res.canceled && res.assets.length > 0) {
+          const pathAndOutboxIDs = res.assets.map(a => ({path: a.uri}))
+          C.Router2.navigateAppend({
+            name: 'chatAttachmentGetTitles',
+            params: {conversationIDKey, pathAndOutboxIDs},
+          })
+        }
+      } catch (error) {
+        filePickerError(new Error(String(error)))
+      }
+      break
+  }
+}
+
 const NativeChatFilePicker = (p: NativeChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
   const conversationIDKey = useConversationThreadID()
   const launchNativeImagePicker = (mediaType: string, location: string) => {
-    const f = async () => {
-      const mt = mediaType as 'photo' | 'video' | 'mixed'
-      const handleSelection = (result: {canceled: boolean; assets: Array<{uri: string}> | null}) => {
-        if (result.canceled || !result.assets || result.assets.length === 0) {
-          return
-        }
-        const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
-        C.Router2.navigateAppend({
-          name: 'chatAttachmentGetTitles',
-          params: {conversationIDKey, pathAndOutboxIDs},
-        })
-      }
-
-      switch (location) {
-        case 'camera':
-          try {
-            const res = await launchCameraAsync(mt)
-            handleSelection(res)
-          } catch (error) {
-            filePickerError(new Error(String(error)))
-          }
-          break
-        case 'library':
-          try {
-            const res = await launchImageLibraryAsync(mt, true, true)
-            handleSelection(res)
-          } catch (error) {
-            filePickerError(new Error(String(error)))
-          }
-          break
-        case 'file':
-          try {
-            const res = await pickDocumentsAsync(true)
-            if (!res.canceled && res.assets.length > 0) {
-              const pathAndOutboxIDs = res.assets.map(a => ({path: a.uri}))
-              C.Router2.navigateAppend({
-                name: 'chatAttachmentGetTitles',
-                params: {conversationIDKey, pathAndOutboxIDs},
-              })
-            }
-          } catch (error) {
-            filePickerError(new Error(String(error)))
-          }
-          break
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(launchNativeImagePickerImpl(conversationIDKey, mediaType, location))
   }
 
   return (

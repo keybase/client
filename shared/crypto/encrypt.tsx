@@ -187,7 +187,8 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
   const {commitState, state, stateRef} = useCommittedState(() => createEncryptState(params))
   const handledTeamBuilderNonceRef = React.useRef<string | undefined>(undefined)
 
-  const runEncrypt = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
+  const runEncrypt = React.useCallback(async (destinationDir = '', _snapshot?: EncryptState) => {
+    const snapshot = _snapshot ?? stateRef.current
     const username = useCurrentUserState.getState().username
     const signed = snapshot.options.sign
     const opts = {
@@ -219,10 +220,14 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
         usedUnresolvedSBS = result.usedUnresolvedSBS
       }
 
+      let warningMessage = ''
+      if (usedUnresolvedSBS) {
+        warningMessage = getWarningMessageForSBS(unresolvedSBSAssertion)
+      }
       const next = onSuccess(
         stateRef.current,
         stateRef.current.input === snapshot.input,
-        usedUnresolvedSBS ? getWarningMessageForSBS(unresolvedSBSAssertion) : '',
+        warningMessage,
         output,
         snapshot.inputType,
         signed,

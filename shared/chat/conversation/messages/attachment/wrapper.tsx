@@ -2,11 +2,11 @@ import type AudioAttachmentType from './audio'
 import type FileAttachmentType from './file'
 import type ImageAttachmentType from './image'
 import type VideoAttachmentType from './video'
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 
 export function WrapperAttachmentAudio(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
   if (message.type !== 'attachment') {
     return null
@@ -20,7 +20,7 @@ export function WrapperAttachmentAudio(p: Props) {
 }
 export function WrapperAttachmentFile(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {showPopup} = wrapper
   const {message, isEditing} = wrapper.messageData
   if (message.type !== 'attachment') {
@@ -37,7 +37,7 @@ export function WrapperAttachmentFile(p: Props) {
 }
 export function WrapperAttachmentVideo(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {showPopup} = wrapper
   const {message} = wrapper.messageData
   if (message.type !== 'attachment') {
@@ -53,7 +53,7 @@ export function WrapperAttachmentVideo(p: Props) {
 }
 export function WrapperAttachmentImage(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {showPopup} = wrapper
   const {message} = wrapper.messageData
   if (message.type !== 'attachment') {

@@ -460,6 +460,155 @@ const updateAttachmentViewMap = (
   return nextMap
 }
 
+const runAttachmentViewLoad = async (p: {
+  conversationIDKey: T.Chat.ConversationIDKey
+  viewType: T.RPCChat.GalleryItemTyp
+  fromMsgID: T.Chat.MessageID | undefined
+  reason: AttachmentLoadReason
+  generation: number
+  isCurrentLoad: () => boolean
+  lastOrdinalRef: {current: T.Chat.Ordinal}
+  updateCurrentAttachmentViewMap: (
+    viewType: T.RPCChat.GalleryItemTyp,
+    updateInfo: (info: T.Chat.AttachmentViewInfo) => void
+  ) => void
+}) => {
+  const {conversationIDKey, viewType, fromMsgID, reason, generation} = p
+  const {isCurrentLoad, lastOrdinalRef, updateCurrentAttachmentViewMap} = p
+  const convID = T.Chat.keyToConversationID(conversationIDKey)
+  const pendingMessages: Array<T.Chat.Message> = []
+  let flushTimeout: ReturnType<typeof setTimeout> | undefined
+  const flushPendingMessages = () => {
+    if (flushTimeout) {
+      clearTimeout(flushTimeout)
+      flushTimeout = undefined
+    }
+    if (!pendingMessages.length) {
+      return
+    }
+    const messages = pendingMessages.splice(0)
+    if (!isCurrentLoad()) {
+      return
+    }
+    const dedupedMessages = new Array<T.Chat.Message>()
+    const seenMessageIDs = new Set<T.Chat.MessageID>()
+    for (const message of messages) {
+      if (!seenMessageIDs.has(message.id)) {
+        seenMessageIDs.add(message.id)
+        dedupedMessages.push(message)
+      }
+    }
+    updateCurrentAttachmentViewMap(viewType, info => {
+      const existingMessageIDs = new Set(info.messages.map(item => item.id))
+      const nextMessages = [...info.messages]
+      let changed = false
+      for (const message of dedupedMessages) {
+        if (!existingMessageIDs.has(message.id)) {
+          existingMessageIDs.add(message.id)
+          nextMessages.push(message)
+          changed = true
+        }
+      }
+      if (changed) {
+        info.messages = nextMessages.sort((l, r) => r.id - l.id)
+      }
+    })
+  }
+  const scheduleFlushPendingMessages = () => {
+    if (flushTimeout) {
+      return
+    }
+    flushTimeout = setTimeout(() => {
+      flushPendingMessages()
+    }, 16)
+  }
+  try {
+    const {deviceName, username} = useCurrentUserState.getState()
+    const getLastOrdinal = () => lastOrdinalRef.current
+    const res = await T.RPCChat.localLoadGalleryRpcListener({
+      incomingCallMap: {
+        'chat.1.chatUi.chatLoadGalleryHit': hit => {
+          const message = Message.uiMessageToMessage(
+            conversationIDKey,
+            hit.message,
+            username,
+            getLastOrdinal,
+            deviceName
+          )
+
+          if (message) {
+            if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinalRef.current)) {
+              lastOrdinalRef.current = message.ordinal
+            }
+            pendingMessages.push({
+              ...message,
+              conversationMessage: false,
+            })
+            scheduleFlushPendingMessages()
+          }
+        },
+      },
+      params: {
+        convID,
+        fromMsgID,
+        num: 50,
+        typ: viewType,
+      },
+    })
+    flushPendingMessages()
+    if (!isCurrentLoad()) {
+      logger.info('attachment gallery load stale success ignored', {
+        conversationIDKey,
+        fromMsgID,
+        generation,
+        reason,
+        viewType,
+      })
+      return
+    }
+    logger.info('attachment gallery load success', {
+      conversationIDKey,
+      fromMsgID,
+      generation,
+      last: !!res.last,
+      reason,
+      viewType,
+    })
+    updateCurrentAttachmentViewMap(viewType, info => {
+      info.last = !!res.last
+      info.status = 'success'
+    })
+  } catch (error) {
+    flushPendingMessages()
+    if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
+      logger.error('failed to load attachment view: ' + error.message, {
+        conversationIDKey,
+        fromMsgID,
+        generation,
+        reason,
+        viewType,
+      })
+      updateCurrentAttachmentViewMap(viewType, info => {
+        info.last = false
+        info.status = 'error'
+      })
+    } else if (error instanceof RPCError || error instanceof Error) {
+      logger.info('attachment gallery load stale error ignored', {
+        conversationIDKey,
+        error: error.message,
+        fromMsgID,
+        generation,
+        reason,
+        viewType,
+      })
+    }
+  } finally {
+    if (flushTimeout) {
+      clearTimeout(flushTimeout)
+    }
+  }
+}
+
 const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const lastOrdinalRef = React.useRef(T.Chat.numberToOrdinal(0))
   const [attachmentViewState, setAttachmentViewState] = React.useState<AttachmentViewState>(() => ({
@@ -508,141 +657,18 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
         viewType,
       })
       const isCurrentLoad = () => loadGenerationRef.current === generation
-      const f = async () => {
-        const convID = T.Chat.keyToConversationID(conversationIDKey)
-        const pendingMessages: Array<T.Chat.Message> = []
-        let flushTimeout: ReturnType<typeof setTimeout> | undefined
-        const flushPendingMessages = () => {
-          if (flushTimeout) {
-            clearTimeout(flushTimeout)
-            flushTimeout = undefined
-          }
-          if (!pendingMessages.length) {
-            return
-          }
-          const messages = pendingMessages.splice(0)
-          if (!isCurrentLoad()) {
-            return
-          }
-          const dedupedMessages = new Array<T.Chat.Message>()
-          const seenMessageIDs = new Set<T.Chat.MessageID>()
-          for (const message of messages) {
-            if (!seenMessageIDs.has(message.id)) {
-              seenMessageIDs.add(message.id)
-              dedupedMessages.push(message)
-            }
-          }
-          updateCurrentAttachmentViewMap(viewType, info => {
-            const existingMessageIDs = new Set(info.messages.map(item => item.id))
-            const nextMessages = [...info.messages]
-            let changed = false
-            for (const message of dedupedMessages) {
-              if (!existingMessageIDs.has(message.id)) {
-                existingMessageIDs.add(message.id)
-                nextMessages.push(message)
-                changed = true
-              }
-            }
-            if (changed) {
-              info.messages = nextMessages.sort((l, r) => r.id - l.id)
-            }
-          })
-        }
-        const scheduleFlushPendingMessages = () => {
-          if (flushTimeout) {
-            return
-          }
-          flushTimeout = setTimeout(() => {
-            flushPendingMessages()
-          }, 16)
-        }
-        try {
-          const {deviceName, username} = useCurrentUserState.getState()
-          const getLastOrdinal = () => lastOrdinalRef.current
-          const res = await T.RPCChat.localLoadGalleryRpcListener({
-            incomingCallMap: {
-              'chat.1.chatUi.chatLoadGalleryHit': hit => {
-                const message = Message.uiMessageToMessage(
-                  conversationIDKey,
-                  hit.message,
-                  username,
-                  getLastOrdinal,
-                  deviceName
-                )
-
-                if (message) {
-                  if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinalRef.current)) {
-                    lastOrdinalRef.current = message.ordinal
-                  }
-                  pendingMessages.push({
-                    ...message,
-                    conversationMessage: false,
-                  })
-                  scheduleFlushPendingMessages()
-                }
-              },
-            },
-            params: {
-              convID,
-              fromMsgID,
-              num: 50,
-              typ: viewType,
-            },
-          })
-          flushPendingMessages()
-          if (!isCurrentLoad()) {
-            logger.info('attachment gallery load stale success ignored', {
-              conversationIDKey,
-              fromMsgID,
-              generation,
-              reason,
-              viewType,
-            })
-            return
-          }
-          logger.info('attachment gallery load success', {
-            conversationIDKey,
-            fromMsgID,
-            generation,
-            last: !!res.last,
-            reason,
-            viewType,
-          })
-          updateCurrentAttachmentViewMap(viewType, info => {
-            info.last = !!res.last
-            info.status = 'success'
-          })
-        } catch (error) {
-          flushPendingMessages()
-          if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
-            logger.error('failed to load attachment view: ' + error.message, {
-              conversationIDKey,
-              fromMsgID,
-              generation,
-              reason,
-              viewType,
-            })
-            updateCurrentAttachmentViewMap(viewType, info => {
-              info.last = false
-              info.status = 'error'
-            })
-          } else if (error instanceof RPCError || error instanceof Error) {
-            logger.info('attachment gallery load stale error ignored', {
-              conversationIDKey,
-              error: error.message,
-              fromMsgID,
-              generation,
-              reason,
-              viewType,
-            })
-          }
-        } finally {
-          if (flushTimeout) {
-            clearTimeout(flushTimeout)
-          }
-        }
-      }
-      C.ignorePromise(f())
+      C.ignorePromise(
+        runAttachmentViewLoad({
+          conversationIDKey,
+          fromMsgID,
+          generation,
+          isCurrentLoad,
+          lastOrdinalRef,
+          reason,
+          updateCurrentAttachmentViewMap,
+          viewType,
+        })
+      )
     }
   )
 

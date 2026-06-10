@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
-import {useConversationCenter} from './center-context'
+import {useConversationCenterActions} from './center-context'
 import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -19,7 +19,7 @@ const PinnedMessage = function PinnedMessage() {
       teamname: s.meta.teamname,
     }))
   )
-  const {centerOnMessage} = useConversationCenter()
+  const {centerOnMessage} = useConversationCenterActions()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))

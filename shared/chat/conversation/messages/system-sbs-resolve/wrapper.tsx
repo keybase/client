@@ -1,11 +1,11 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 import type SystemSBSResolvedType from './container'
 import type SystemJoinedType from '../system-joined/container'
 import {useCurrentUserState} from '@/stores/current-user'
 
 function WrapperSystemInvite(p: Props) {
   const {ordinal, isCenteredHighlight} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
   const you = useCurrentUserState(s => s.username)
 

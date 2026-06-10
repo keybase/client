@@ -41,6 +41,8 @@ type PanCommmonOptions = {
 type PanGestureUpdadeEvent = GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>
 
 export const usePanCommons = (options: PanCommmonOptions) => {
+  // vendored reanimated gesture code; shared-value writes during render are intentional
+  'use no memo'
   const {container, translate, offset, panMode, decay, boundFn, userCallbacks} = options
   const {onSwipe, onGestureEnd, onOverPanning} = userCallbacks
 

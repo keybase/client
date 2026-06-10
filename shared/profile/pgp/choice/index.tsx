@@ -28,6 +28,69 @@ const makeInitialForm = (): GeneratePgpArgs => ({
   pgpFullName: '',
 })
 
+const generatePgp = async (
+  args: GeneratePgpArgs,
+  mountedRef: React.RefObject<boolean>,
+  cancelCurrentRef: React.RefObject<undefined | (() => void)>,
+  finishCurrentRef: React.RefObject<undefined | ((shouldStoreKeyOnServer: boolean) => void)>,
+  setStepSafe: (next: Step) => void
+) => {
+  let canceled = false
+  let pgpKeyString = 'Error getting public key...'
+  const inputCancelError = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
+  const ids = [args.pgpEmail1, args.pgpEmail2, args.pgpEmail3].filter(Boolean).map(email => ({
+    comment: '',
+    email,
+    username: args.pgpFullName,
+  }))
+
+  cancelCurrentRef.current = () => {
+    canceled = true
+  }
+
+  try {
+    await T.RPCGen.pgpPgpKeyGenDefaultRpcListener({
+      customResponseIncomingCallMap: {
+        'keybase.1.pgpUi.keyGenerated': ({key}, response) => {
+          if (canceled || !mountedRef.current) {
+            response.error(inputCancelError)
+            return
+          }
+          pgpKeyString = key.key
+          response.result()
+        },
+        'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
+          if (canceled || !mountedRef.current) {
+            response.error(inputCancelError)
+            return
+          }
+          cancelCurrentRef.current = () => {
+            canceled = true
+            response.error(inputCancelError)
+          }
+          finishCurrentRef.current = (shouldStoreKeyOnServer: boolean) => {
+            finishCurrentRef.current = undefined
+            response.result(shouldStoreKeyOnServer)
+          }
+          setStepSafe({kind: 'finished', pgpKeyString, promptShouldStoreKeyOnServer: prompt})
+        },
+      },
+      incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
+      params: {createUids: {ids, useDefault: false}},
+    })
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
+    if (error.code !== T.RPCGen.StatusCode.scinputcanceled) {
+      throw error
+    }
+  } finally {
+    cancelCurrentRef.current = undefined
+    finishCurrentRef.current = undefined
+  }
+}
+
 export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
   <Modal onCancel={onCancel}>
     <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
@@ -100,64 +163,7 @@ export default function Choice() {
     const args = form
     setStepSafe({kind: 'generate'})
 
-    ignorePromise(
-      (async () => {
-        let canceled = false
-        let pgpKeyString = 'Error getting public key...'
-        const inputCancelError = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
-        const ids = [args.pgpEmail1, args.pgpEmail2, args.pgpEmail3].filter(Boolean).map(email => ({
-          comment: '',
-          email,
-          username: args.pgpFullName,
-        }))
-
-        cancelCurrentRef.current = () => {
-          canceled = true
-        }
-
-        try {
-          await T.RPCGen.pgpPgpKeyGenDefaultRpcListener({
-            customResponseIncomingCallMap: {
-              'keybase.1.pgpUi.keyGenerated': ({key}, response) => {
-                if (canceled || !mountedRef.current) {
-                  response.error(inputCancelError)
-                  return
-                }
-                pgpKeyString = key.key
-                response.result()
-              },
-              'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-                if (canceled || !mountedRef.current) {
-                  response.error(inputCancelError)
-                  return
-                }
-                cancelCurrentRef.current = () => {
-                  canceled = true
-                  response.error(inputCancelError)
-                }
-                finishCurrentRef.current = (shouldStoreKeyOnServer: boolean) => {
-                  finishCurrentRef.current = undefined
-                  response.result(shouldStoreKeyOnServer)
-                }
-                setStepSafe({kind: 'finished', pgpKeyString, promptShouldStoreKeyOnServer: prompt})
-              },
-            },
-            incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
-            params: {createUids: {ids, useDefault: false}},
-          })
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          if (error.code !== T.RPCGen.StatusCode.scinputcanceled) {
-            throw error
-          }
-        } finally {
-          cancelCurrentRef.current = undefined
-          finishCurrentRef.current = undefined
-        }
-      })()
-    )
+    ignorePromise(generatePgp(args, mountedRef, cancelCurrentRef, finishCurrentRef, setStepSafe))
   }
 
   const content = (() => {

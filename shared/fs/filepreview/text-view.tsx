@@ -8,26 +8,34 @@ type Props = {
   onUrlError?: (err: string) => void
 }
 
+const fetchContent = (
+  url: string,
+  setContent: (content: string) => void,
+  onUrlError?: (err: string) => void
+) => {
+  const req = new XMLHttpRequest()
+  req.onreadystatechange = () => {
+    try {
+      if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
+        setContent(req.responseText)
+      }
+    } catch {
+      onUrlError?.('http request failed')
+    }
+  }
+  try {
+    req.open('GET', url)
+    req.send()
+  } catch {}
+}
+
 const TextView = (props: Props) => {
   const {onUrlError, url} = props
 
   const [content, setContent] = React.useState('')
   React.useEffect(() => {
     if (isMobile) return
-    const req = new XMLHttpRequest()
-    req.onreadystatechange = () => {
-      try {
-        if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
-          setContent(req.responseText)
-        }
-      } catch {
-        onUrlError?.('http request failed')
-      }
-    }
-    try {
-      req.open('GET', url)
-      req.send()
-    } catch {}
+    fetchContent(url, setContent, onUrlError)
   }, [onUrlError, url])
 
   if (!isMobile) {

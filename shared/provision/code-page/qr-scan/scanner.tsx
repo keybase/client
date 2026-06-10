@@ -7,12 +7,18 @@ type Props = {
   style: Kb.Styles.StylesCrossPlatform
 }
 
+// Hoisted: resolving useCameraPermissions from require() during render makes the react
+// compiler bail (hooks must be the same function on every render). The require is
+// guarded so it never executes on desktop.
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+type ExpoCamera = typeof import('expo-camera')
+const {CameraView, useCameraPermissions} = isMobile
+  ? (require('expo-camera') as ExpoCamera)
+  : ({} as Partial<ExpoCamera>)
+
 const QRScannerMobile = (p: Props): React.ReactElement | null => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  const {CameraView, useCameraPermissions} = require('expo-camera') as typeof import('expo-camera')
   const [scanned, setScanned] = React.useState(false)
-  const [permission, requestPermission] = useCameraPermissions()
+  const [permission, requestPermission] = useCameraPermissions!()
 
   React.useEffect(() => {
     if (!permission) {
@@ -30,6 +36,7 @@ const QRScannerMobile = (p: Props): React.ReactElement | null => {
   if (!permission.granted) {
     return p.notAuthorizedView || null
   }
+  if (!CameraView) return null
 
   return (
     <CameraView

@@ -45,8 +45,9 @@ const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
 const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
   const {centeredHighlightOrdinal} = useConversationCenter()
-  const editingOrdinal = InputState.useConversationInput(s => s.editing)
-  const isHighlighted = centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal
+  // derived boolean: raw s.editing would re-render every row on edit start/stop
+  const isEditing = InputState.useConversationInput(s => s.editing === ordinal)
+  const isHighlighted = centeredHighlightOrdinal === ordinal || isEditing
   return (
     <div
       data-ordinal={ordinal}

@@ -62,6 +62,38 @@ const rpcSuggestionToAssertion = (suggestion: T.RPCGen.ProofSuggestion): T.Track
   }
 }
 
+const loadProofSuggestions = async (
+  version: number,
+  requestVersionRef: React.RefObject<number>,
+  enabled: boolean,
+  loadKey: number,
+  setProofSuggestionsState: React.Dispatch<React.SetStateAction<ProofSuggestionsState>>
+) => {
+  try {
+    const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
+      undefined,
+      waitingKeyTrackerProfileLoad
+    )
+    if (requestVersionRef.current !== version) {
+      return
+    }
+    const nextSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? emptyProofSuggestions
+    setProofSuggestionsState(state =>
+      state.enabled === enabled && state.loadKey === loadKey
+        ? {...state, suggestions: nextSuggestions}
+        : state
+    )
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
+    if (requestVersionRef.current !== version) {
+      return
+    }
+    logger.error(`Error loading proof suggestions: ${error.message}`)
+  }
+}
+
 export const useProofSuggestions = (enabled = true) => {
   const uid = useCurrentUserState(s => s.uid)
   const [proofSuggestionsState, setProofSuggestionsState] = React.useState<ProofSuggestionsState>({
@@ -86,33 +118,7 @@ export const useProofSuggestions = (enabled = true) => {
     const version = requestVersionRef.current + 1
     requestVersionRef.current = version
 
-    const load = async () => {
-      try {
-        const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
-          undefined,
-          waitingKeyTrackerProfileLoad
-        )
-        if (requestVersionRef.current !== version) {
-          return
-        }
-        const nextSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? emptyProofSuggestions
-        setProofSuggestionsState(state =>
-          state.enabled === enabled && state.loadKey === loadKey
-            ? {...state, suggestions: nextSuggestions}
-            : state
-        )
-      } catch (error) {
-        if (!(error instanceof RPCError)) {
-          return
-        }
-        if (requestVersionRef.current !== version) {
-          return
-        }
-        logger.error(`Error loading proof suggestions: ${error.message}`)
-      }
-    }
-
-    ignorePromise(load())
+    ignorePromise(loadProofSuggestions(version, requestVersionRef, enabled, loadKey, setProofSuggestionsState))
   }, [enabled, loadKey])
 
   React.useEffect(() => {

@@ -14,15 +14,18 @@ type CenterState = {
   threadSearchVisible: boolean
 }
 
-type CenterContextType = {
+type CenterStateContextType = {
+  centeredHighlightOrdinal: T.Chat.Ordinal | undefined
+  centeredOrdinal: T.Chat.Ordinal | undefined
+  hasCenter: boolean
+}
+
+type CenterActionsContextType = {
   centerOnMessage: (
     messageID: T.Chat.MessageID,
     highlightMode: T.Chat.CenterOrdinalHighlightMode
   ) => void
-  centeredHighlightOrdinal: T.Chat.Ordinal | undefined
-  centeredOrdinal: T.Chat.Ordinal | undefined
   clearCenter: () => void
-  hasCenter: boolean
   jumpToRecent: () => void
 }
 
@@ -30,17 +33,25 @@ const missingContext = () => {
   throw new Error('Missing ConversationCenterContext in the tree')
 }
 
-const CenterContext = React.createContext<CenterContextType>({
-  centerOnMessage: missingContext,
+// Split contexts: the state changes when centering/highlighting, the actions stay
+// stable. Per-row consumers that only dispatch (e.g. reply-quote click) subscribe
+// to actions only, so a highlight change doesn't re-render every row.
+const CenterStateContext = React.createContext<CenterStateContextType>({
   centeredHighlightOrdinal: undefined,
   centeredOrdinal: undefined,
-  clearCenter: missingContext,
   hasCenter: false,
+})
+CenterStateContext.displayName = 'ConversationCenterStateContext'
+
+const CenterActionsContext = React.createContext<CenterActionsContextType>({
+  centerOnMessage: missingContext,
+  clearCenter: missingContext,
   jumpToRecent: missingContext,
 })
-CenterContext.displayName = 'ConversationCenterContext'
+CenterActionsContext.displayName = 'ConversationCenterActionsContext'
 
-export const useConversationCenter = () => React.useContext(CenterContext)
+export const useConversationCenter = () => React.useContext(CenterStateContext)
+export const useConversationCenterActions = () => React.useContext(CenterActionsContext)
 
 const stateForThreadSearchVisible = (state: CenterState, threadSearchVisible: boolean): CenterState => {
   if (state.threadSearchVisible === threadSearchVisible) {
@@ -135,14 +146,20 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
 
   const center = currentCenterState.center
   const centeredHighlightOrdinal = center && center.highlightMode !== 'none' ? center.ordinal : undefined
-  const value = {
-    centerOnMessage,
+  const stateValue = {
     centeredHighlightOrdinal,
     centeredOrdinal: center?.ordinal,
-    clearCenter,
     hasCenter: !!center,
+  }
+  const actionsValue = {
+    centerOnMessage,
+    clearCenter,
     jumpToRecent,
   }
 
-  return <CenterContext value={value}>{children}</CenterContext>
+  return (
+    <CenterActionsContext value={actionsValue}>
+      <CenterStateContext value={stateValue}>{children}</CenterStateContext>
+    </CenterActionsContext>
+  )
 }

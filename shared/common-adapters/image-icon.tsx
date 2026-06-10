@@ -57,19 +57,25 @@ const ImageIconDesktop = (props: ImageIconProps) => {
   return img
 }
 
+// Hoisted: resolving useColorScheme from require() during render makes the react
+// compiler bail (hooks must be the same function on every render). The require is
+// guarded so it never executes on desktop.
+const {Image: RNImage, useColorScheme} = isMobile
+  ? (require('react-native') as {
+      Image: typeof RNImageType
+      useColorScheme: () => 'light' | 'dark' | null | undefined
+    })
+  : {Image: undefined, useColorScheme: undefined}
+
 const ImageIconNative = (props: ImageIconProps) => {
-  const {Image: RNImage, useColorScheme} = require('react-native') as {
-    Image: typeof RNImageType
-    useColorScheme: () => 'light' | 'dark' | null | undefined
-  }
   const {type, style} = props
-  const isDarkMode = useColorScheme() === 'dark'
+  const isDarkMode = useColorScheme!() === 'dark'
 
   let source = (isDarkMode && iconMeta[type].requireDark) || iconMeta[type].require
   if (typeof source !== 'number') {
     source = undefined
   }
-  if (!source) return null
+  if (!source || !RNImage) return null
 
   return <RNImage source={source} style={style} />
 }

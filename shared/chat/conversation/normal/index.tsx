@@ -8,7 +8,7 @@ import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
-import {useConversationCenter} from '../center-context'
+import {useConversationCenterActions} from '../center-context'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
@@ -68,7 +68,7 @@ const DesktopConversation = function DesktopConversation() {
       .catch(() => {})
   }
   const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {clearCenter} = useConversationCenter()
+  const {clearCenter} = useConversationCenterActions()
   const onToggleThreadSearch = () => {
     if (showThreadSearch) {
       clearCenter()

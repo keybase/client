@@ -464,53 +464,61 @@ const ErrorComponent = (p: {children: React.ReactNode}) => {
   )
 }
 
-function SimpleMarkdownComponent(p: Props) {
-  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
-  const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
-  const {serviceOnlyNoWrap, disallowAnimation, context} = p
-  let parseTree: Array<SM.SingleASTNode>
-  let output: React.ReactNode
+// Kept outside the component: the react compiler can't yet compile value blocks
+// inside try/catch, so an inline try/catch would bail out the whole component and
+// re-parse the markdown on every render.
+const renderMarkdown = (
+  children: string | undefined,
+  messageType: Props['messageType'],
+  state: State,
+  kindOptions: Pick<Props, 'preview' | 'serviceOnly' | 'serviceOnlyNoWrap' | 'smallStandaloneEmoji'>
+): {parseFailed: boolean; output: React.ReactNode} => {
   try {
-    parseTree = parseMarkdown(children ?? '', {isMobile: isMobile, messageType})
-
-    const state = {
-      allowFontScaling,
-      context,
-      disallowAnimation,
-      messageType,
-      paragraphTextClassName,
-      selectable,
-      styleOverride,
-      virtualText,
-    }
-
-    const outputKind = getMarkdownOutputKind(parseTree, {
-      preview,
-      serviceOnly,
-      serviceOnlyNoWrap,
-      smallStandaloneEmoji,
-    })
-
+    const parseTree = parseMarkdown(children ?? '', {isMobile: isMobile, messageType})
+    const outputKind = getMarkdownOutputKind(parseTree, kindOptions)
     switch (outputKind) {
       case 'serviceOnlyNoWrap':
-        output = serviceOnlyNoWrapOutput(parseTree, state)
-        break
+        return {output: serviceOnlyNoWrapOutput(parseTree, state), parseFailed: false}
       case 'serviceOnly':
-        output = serviceOnlyOutput(parseTree, state)
-        break
+        return {output: serviceOnlyOutput(parseTree, state), parseFailed: false}
       case 'preview':
-        output = previewOutput(parseTree, state)
-        break
+        return {output: previewOutput(parseTree, state), parseFailed: false}
       case 'bigEmoji':
-        output = bigEmojiOutput(parseTree, state)
-        break
+        return {output: bigEmojiOutput(parseTree, state), parseFailed: false}
       default:
-        output = reactOutput(parseTree, state)
-        break
+        return {output: reactOutput(parseTree, state), parseFailed: false}
     }
   } catch (e) {
     logger.error('Error parsing markdown')
     logger.debug('Error parsing markdown', e)
+    return {output: null, parseFailed: true}
+  }
+}
+
+function SimpleMarkdownComponent(p: Props) {
+  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
+  const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
+  const {serviceOnlyNoWrap, disallowAnimation, context} = p
+
+  const state = {
+    allowFontScaling,
+    context,
+    disallowAnimation,
+    messageType,
+    paragraphTextClassName,
+    selectable,
+    styleOverride,
+    virtualText,
+  }
+
+  const {output, parseFailed} = renderMarkdown(children, messageType, state, {
+    preview,
+    serviceOnly,
+    serviceOnlyNoWrap,
+    smallStandaloneEmoji,
+  })
+
+  if (parseFailed) {
     return <ErrorComponent>{children}</ErrorComponent>
   }
 

@@ -24,24 +24,28 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordi
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const orangeMessage = s.messageMap.get(orangeOrdinal || noOrdinal)
       const previous = RowMetadata.getPreviousOrdinal(messageOrdinals, ordinal)
-      const showUsername = RowMetadata.getMessageShowUsername({
-        message: m,
-        messageMap: s.messageMap,
-        messageOrdinals,
-        ordinal,
-        you,
-      })
-      const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
       const orangeOrdinalExists =
         !!orangeOrdinal && s.messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
       const orangeLineAbove =
         orangeOrdinalExists &&
         (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))
-      const isJoinLeave = m.type === 'systemJoined'
-      const orangeTime =
-        !isMobile && !showUsername && !tooSoon && !isJoinLeave
-          ? formatTimeForConversationList(m.timestamp)
-          : ''
+
+      // only pay for the time label when an orange line will actually render
+      let orangeTime = ''
+      if (orangeLineAbove && !isMobile) {
+        const showUsername = RowMetadata.getMessageShowUsername({
+          message: m,
+          messageMap: s.messageMap,
+          messageOrdinals,
+          ordinal,
+          you,
+        })
+        const tooSoon = !m.timestamp || Date.now() - m.timestamp < 1000 * 60 * 60 * 2
+        const isJoinLeave = m.type === 'systemJoined'
+        if (!showUsername && !tooSoon && !isJoinLeave) {
+          orangeTime = formatTimeForConversationList(m.timestamp)
+        }
+      }
 
       return {orangeLineAbove, orangeTime, ordinal}
     })

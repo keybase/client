@@ -80,6 +80,17 @@ const resetBrowserEditState = () => {
   browserEditStateListeners.forEach(listener => listener())
 }
 
+const addBrowserEditProvider = () => {
+  ++browserEditProviderCount
+}
+
+const removeBrowserEditProvider = () => {
+  --browserEditProviderCount
+  if (!browserEditProviderCount) {
+    resetBrowserEditState()
+  }
+}
+
 const addOrReplaceEdit = (
   prevEdits: ReadonlyMap<T.FS.EditID, T.FS.Edit>,
   editID: T.FS.EditID,
@@ -119,6 +130,55 @@ const deleteSubmitting = (prevSubmitting: ReadonlySet<T.FS.EditID>, editID: T.FS
 
 export const useFsBrowserEdits = () => React.useContext(BrowserEditContext)
 
+const commitEditRPC = async (
+  edit: T.FS.Edit,
+  editID: T.FS.EditID,
+  errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
+) => {
+  try {
+    switch (edit.type) {
+      case T.FS.EditType.NewFolder:
+        await T.RPCGen.SimpleFSSimpleFSOpenRpcPromise(
+          {
+            dest: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
+            flags: T.RPCGen.OpenFlags.directory,
+            opID: makeUUID(),
+          },
+          S.waitingKeyFSCommitEdit
+        )
+        break
+      case T.FS.EditType.Rename: {
+        const opID = makeUUID()
+        await T.RPCGen.SimpleFSSimpleFSMoveRpcPromise({
+          dest: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
+          opID,
+          overwriteExistingFiles: false,
+          src: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
+        })
+        await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, S.waitingKeyFSCommitEdit)
+        break
+      }
+    }
+    setBrowserEdits(prevEdits => deleteEdit(prevEdits, editID))
+  } catch (error) {
+    if (
+      edit.type === T.FS.EditType.Rename &&
+      error instanceof RPCError &&
+      [T.RPCGen.StatusCode.scsimplefsdirnotempty, T.RPCGen.StatusCode.scsimplefsnameexists].includes(
+        error.code
+      )
+    ) {
+      setBrowserEdits(prevEdits =>
+        addOrReplaceEdit(prevEdits, editID, {...edit, error: error.desc || 'name exists'})
+      )
+      return
+    }
+    errorToActionOrThrow(error, edit.parentPath)
+  } finally {
+    setBrowserSubmitting(prevSubmitting => deleteSubmitting(prevSubmitting, editID))
+  }
+}
+
 const getStaleRenameEditIDs = (
   edits: ReadonlyMap<T.FS.EditID, T.FS.Edit>,
   pathItems: T.FS.PathItems
@@ -146,13 +206,8 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
   const pathItems = useFsLoadedPathItems()
 
   React.useEffect(() => {
-    browserEditProviderCount++
-    return () => {
-      browserEditProviderCount--
-      if (!browserEditProviderCount) {
-        resetBrowserEditState()
-      }
-    }
+    addBrowserEditProvider()
+    return removeBrowserEditProvider
   }, [])
 
   React.useEffect(() => {
@@ -180,51 +235,7 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
       return
     }
     setBrowserSubmitting(prevSubmitting => addSubmitting(prevSubmitting, editID))
-    const f = async () => {
-      try {
-        switch (edit.type) {
-          case T.FS.EditType.NewFolder:
-            await T.RPCGen.SimpleFSSimpleFSOpenRpcPromise(
-              {
-                dest: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
-                flags: T.RPCGen.OpenFlags.directory,
-                opID: makeUUID(),
-              },
-              S.waitingKeyFSCommitEdit
-            )
-            break
-          case T.FS.EditType.Rename: {
-            const opID = makeUUID()
-            await T.RPCGen.SimpleFSSimpleFSMoveRpcPromise({
-              dest: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
-              opID,
-              overwriteExistingFiles: false,
-              src: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
-            })
-            await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, S.waitingKeyFSCommitEdit)
-            break
-          }
-        }
-        setBrowserEdits(prevEdits => deleteEdit(prevEdits, editID))
-      } catch (error) {
-        if (
-          edit.type === T.FS.EditType.Rename &&
-          error instanceof RPCError &&
-          [T.RPCGen.StatusCode.scsimplefsdirnotempty, T.RPCGen.StatusCode.scsimplefsnameexists].includes(
-            error.code
-          )
-        ) {
-          setBrowserEdits(prevEdits =>
-            addOrReplaceEdit(prevEdits, editID, {...edit, error: error.desc || 'name exists'})
-          )
-          return
-        }
-        errorToActionOrThrow(error, edit.parentPath)
-      } finally {
-        setBrowserSubmitting(prevSubmitting => deleteSubmitting(prevSubmitting, editID))
-      }
-    }
-    ignorePromise(f())
+    ignorePromise(commitEditRPC(edit, editID, errorToActionOrThrow))
   }
 
   const discardEdit = (editID: T.FS.EditID) => {
