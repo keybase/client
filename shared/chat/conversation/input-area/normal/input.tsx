@@ -1062,7 +1062,13 @@ const NativeAnimatedExpand = (() => {
       }, [expanded, offset])
 
       return (
-        <Kb.ClickableBox direction="vertical" relative={true} onClick={expandInput} style={nativeStyles.iconContainer}>
+        <Kb.ClickableBox
+          direction="vertical"
+          relative={true}
+          alignSelf="flex-start"
+          onClick={expandInput}
+          style={nativeStyles.iconContainer}
+        >
           <Animated.View style={[nativeStyles.iconTop, topStyle]} pointerEvents="none">
             <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
