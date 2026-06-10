@@ -11,6 +11,8 @@ export type FetchImageResolutionResult = {
 }
 
 export default function useImageResolution(source: Source | number): FetchImageResolutionResult {
+  // vendored code with an eslint suppression the compiler refuses to optimize past
+  'use no memo'
   const deps = JSON.stringify(source)
   const [resolvedDeps, setResolvedDeps] = useState('')
   const [resolution, setResolution] = useState<SizeVector<number> | undefined>(undefined)

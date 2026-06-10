@@ -9,6 +9,26 @@ type OwnProps = {
   tlfPath: T.FS.Path
 }
 
+const setTlfSyncConfigRPC = async (
+  tlfPath: T.FS.Path,
+  enabled: boolean,
+  refreshTlf: () => void,
+  errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
+) => {
+  try {
+    await T.RPCGen.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+      {
+        config: {mode: enabled ? T.RPCGen.FolderSyncMode.enabled : T.RPCGen.FolderSyncMode.disabled},
+        path: FS.pathToRPCPath(tlfPath),
+      },
+      C.waitingKeyFSSyncToggle
+    )
+    refreshTlf()
+  } catch (error) {
+    errorToActionOrThrow(error, tlfPath)
+  }
+}
+
 const SyncToggle = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const tlfPathItem = useFsFolderChildren(tlfPath)
@@ -18,21 +38,7 @@ const SyncToggle = (ownProps: OwnProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyFSSyncToggle)
 
   const setTlfSyncConfig = (enabled: boolean) => {
-    const f = async () => {
-      try {
-        await T.RPCGen.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
-          {
-            config: {mode: enabled ? T.RPCGen.FolderSyncMode.enabled : T.RPCGen.FolderSyncMode.disabled},
-            path: FS.pathToRPCPath(tlfPath),
-          },
-          C.waitingKeyFSSyncToggle
-        )
-        refreshTlf()
-      } catch (error) {
-        errorToActionOrThrow(error, tlfPath)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(setTlfSyncConfigRPC(tlfPath, enabled, refreshTlf, errorToActionOrThrow))
   }
 
   const enableSync = () => {

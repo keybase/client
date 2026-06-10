@@ -210,6 +210,29 @@ type AvatarZoomRef = {
   getRect: () => {width: number; height: number; x: number; y: number} | undefined
 }
 
+const chooseAvatar = async (
+  onSelected: (image: ImageInfo) => void,
+  onCancel: () => void,
+  onError: (error: string) => void
+) => {
+  try {
+    const result = await launchImageLibraryAsync('photo')
+    const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
+      if (!acc && (a.type === 'image' || a.type === 'video')) {
+        return a as ImageInfo
+      }
+      return acc
+    }, undefined)
+    if (!result.canceled && first) {
+      onSelected(first)
+    } else {
+      onCancel()
+    }
+  } catch (error) {
+    onError(String(error))
+  }
+}
+
 const NativeAvatarUploadWrapper = (p: Props) => {
   const {newTeamWizard} = p
   const props = useHooks(p)
@@ -221,49 +244,23 @@ const NativeAvatarUploadWrapper = (p: Props) => {
   const navUp = () => nav.safeNavigateUp()
 
   const onChooseNewAvatar = () => {
-    const f = async () => {
-      try {
-        const result = await launchImageLibraryAsync('photo')
-        const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
-          if (!acc && (a.type === 'image' || a.type === 'video')) {
-            return a as ImageInfo
+    C.ignorePromise(
+      chooseAvatar(
+        setSelectedImage,
+        () => {
+          if (!props.wizard) {
+            navUp()
           }
-          return acc
-        }, undefined)
-        if (!result.canceled && first) {
-          setSelectedImage(first)
-        } else if (!props.wizard) {
-          navUp()
-        }
-      } catch (error) {
-        setImageError(String(error))
-      }
-    }
-    C.ignorePromise(f())
+        },
+        setImageError
+      )
+    )
   }
 
   const noImage = !image
   React.useEffect(() => {
     if (!wizard && noImage) {
-      const f = async () => {
-        try {
-          const result = await launchImageLibraryAsync('photo')
-          const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
-            if (!acc && (a.type === 'image' || a.type === 'video')) {
-              return a as ImageInfo
-            }
-            return acc
-          }, undefined)
-          if (!result.canceled && first) {
-            setSelectedImage(first)
-          } else {
-            nav.safeNavigateUp()
-          }
-        } catch (error) {
-          setImageError(String(error))
-        }
-      }
-      C.ignorePromise(f())
+      C.ignorePromise(chooseAvatar(setSelectedImage, () => nav.safeNavigateUp(), setImageError))
     }
   }, [noImage, wizard, nav])
 

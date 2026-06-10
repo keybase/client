@@ -1,4 +1,4 @@
-import type * as React from 'react'
+import * as React from 'react'
 import * as T from './types'
 import type * as ChatInboxMetadataType from '@/chat/inbox/metadata'
 import type * as InboxLayoutStateType from '@/chat/inbox/layout-state'
@@ -10,7 +10,7 @@ import {
   TabActions,
   CommonActions,
   type NavigationContainerRef,
-  useFocusEffect,
+  NavigationContext,
   createNavigationContainerRef,
   type NavigationState,
 } from '@react-navigation/core'
@@ -232,12 +232,20 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
   return route[0]?.name === 'loggedIn'
 }
 
-// if a toast is inside of a portal then its not in nav so we can't use useFocusEffect and
-// maybe other places also
+// if a toast is inside of a portal then its not in nav so useFocusEffect would throw,
+// and maybe other places also. Read the navigation context directly and no-op when absent.
+// Like useFocusEffect, a non-memoized fn re-runs the effect every render while focused.
 export const useSafeFocusEffect = (fn: () => void) => {
-  try {
-    useFocusEffect(fn)
-  } catch {}
+  const navigation = React.useContext(NavigationContext)
+  React.useEffect(() => {
+    if (!navigation) {
+      return undefined
+    }
+    if (navigation.isFocused()) {
+      fn()
+    }
+    return navigation.addListener('focus', fn)
+  }, [navigation, fn])
 }
 
 // Helper to reduce boilerplate in route definitions

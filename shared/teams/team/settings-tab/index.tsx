@@ -367,9 +367,11 @@ const Container = (ownProps: OwnProps) => {
   const savePublicity = React.useCallback(
     (settings: T.Teams.PublicitySettings) => {
       void (async () => {
+        const openChanged =
+          openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)
         try {
           let changed = false
-          if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
+          if (openChanged) {
             changed = true
             await callRPC(setTeamSettingsRPC, [
               {

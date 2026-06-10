@@ -187,6 +187,35 @@ type Props = {
 
 const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
+const addBotMember = async (p: {
+  botUsername: string
+  conversationIDKey: T.Chat.ConversationIDKey
+  installInConvs: ReadonlyArray<string>
+  installWithCommands: boolean
+  installWithMentions: boolean
+  installWithRestrict: boolean
+}) => {
+  const {botUsername, conversationIDKey, installInConvs} = p
+  const {installWithCommands, installWithMentions, installWithRestrict} = p
+  try {
+    await T.RPCChat.localAddBotMemberRpcPromise(
+      {
+        botSettings: installWithRestrict
+          ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
+          : null,
+        convID: T.Chat.keyToConversationID(conversationIDKey),
+        role: installWithRestrict ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
+        username: botUsername,
+      },
+      C.waitingKeyChatBotAdd
+    )
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.info('addBotMember: failed to add bot member: ' + error.message)
+    }
+  }
+}
+
 const InstallBotPopup = (props: Props) => {
   const {botUsername, conversationIDKey} = props
   // state
@@ -255,26 +284,16 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     setPendingMutation('add')
-    const f = async () => {
-      try {
-        await T.RPCChat.localAddBotMemberRpcPromise(
-          {
-            botSettings: installWithRestrict
-              ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
-              : null,
-            convID: T.Chat.keyToConversationID(conversationIDKey),
-            role: installWithRestrict ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
-            username: botUsername,
-          },
-          C.waitingKeyChatBotAdd
-        )
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.info('addBotMember: failed to add bot member: ' + error.message)
-        }
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      addBotMember({
+        botUsername,
+        conversationIDKey,
+        installInConvs,
+        installWithCommands,
+        installWithMentions,
+        installWithRestrict,
+      })
+    )
   }
   const onEdit = () => {
     if (!conversationIDKey) {

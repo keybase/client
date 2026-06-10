@@ -78,6 +78,81 @@ const getJournalWaitDuration = (endEstimate: number | undefined, lower: number, 
   return diff < lower ? lower : diff > upper ? upper : diff
 }
 
+const loadUploadStatusImpl = async (
+  generation: number,
+  isCurrentGeneration: (generation: number) => boolean,
+  getStatusStateForCurrentGeneration: (status: FsStatusState) => FsStatusState,
+  setFsStatusState: React.Dispatch<React.SetStateAction<FsStatusState>>,
+  errorToActionOrThrow: (error: unknown) => void
+) => {
+  try {
+    const uploadStates = await T.RPCGen.SimpleFSSimpleFSGetUploadStatusRpcPromise()
+    if (!isCurrentGeneration(generation)) {
+      return
+    }
+    setFsStatusState(s => {
+      const currentState = getStatusStateForCurrentGeneration(s)
+      return C.produce(currentState, draft => {
+        const writingToJournal = new Map<T.FS.Path, T.RPCGen.UploadState>(
+          (uploadStates ?? []).map(uploadState => {
+            const path = rpcPathToPath(uploadState.targetPath)
+            const oldUploadState = currentState.uploads.writingToJournal.get(path)
+            return [
+              path,
+              oldUploadState &&
+              uploadState.error === oldUploadState.error &&
+              uploadState.canceled === oldUploadState.canceled &&
+              uploadState.uploadID === oldUploadState.uploadID
+                ? oldUploadState
+                : uploadState,
+            ] as const
+          })
+        )
+        if (!isEqual(writingToJournal, currentState.uploads.writingToJournal)) {
+          draft.uploads.writingToJournal = T.castDraft(writingToJournal)
+        }
+      })
+    })
+  } catch (error) {
+    if (!isCurrentGeneration(generation)) {
+      return
+    }
+    errorToActionOrThrow(error)
+  }
+}
+
+const pollJournalStatusImpl = async (
+  generation: number,
+  isCurrentGeneration: (generation: number) => boolean,
+  journalUpdate: (
+    syncingPaths: ReadonlyArray<T.FS.Path>,
+    totalSyncingBytes: number,
+    endEstimate?: number
+  ) => void,
+  onDone: () => void
+) => {
+  try {
+    while (isCurrentGeneration(generation)) {
+      const {syncingPaths, totalSyncingBytes, endEstimate} =
+        await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
+          filter: T.RPCGen.ListFilter.filterSystemHidden,
+        })
+      if (!isCurrentGeneration(generation)) {
+        return
+      }
+      journalUpdate((syncingPaths || []).map(T.FS.stringToPath), totalSyncingBytes, endEstimate ?? undefined)
+
+      if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
+        break
+      }
+      useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
+      await C.timeoutPromise(getJournalWaitDuration(endEstimate || undefined, 100, 4000))
+    }
+  } finally {
+    onDone()
+  }
+}
+
 const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const {checkKbfsDaemonRpcStatus} = useFsDaemonActions()
@@ -145,43 +220,15 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
 
   const loadUploadStatus = React.useEffectEvent(() => {
     const generation = generationRef.current
-    const f = async () => {
-      try {
-        const uploadStates = await T.RPCGen.SimpleFSSimpleFSGetUploadStatusRpcPromise()
-        if (!isCurrentGeneration(generation)) {
-          return
-        }
-        setFsStatusState(s => {
-          const currentState = getStatusStateForCurrentGeneration(s)
-          return C.produce(currentState, draft => {
-            const writingToJournal = new Map<T.FS.Path, T.RPCGen.UploadState>(
-              (uploadStates ?? []).map(uploadState => {
-                const path = rpcPathToPath(uploadState.targetPath)
-                const oldUploadState = currentState.uploads.writingToJournal.get(path)
-                return [
-                  path,
-                  oldUploadState &&
-                  uploadState.error === oldUploadState.error &&
-                  uploadState.canceled === oldUploadState.canceled &&
-                  uploadState.uploadID === oldUploadState.uploadID
-                    ? oldUploadState
-                    : uploadState,
-                ] as const
-              })
-            )
-            if (!isEqual(writingToJournal, currentState.uploads.writingToJournal)) {
-              draft.uploads.writingToJournal = T.castDraft(writingToJournal)
-            }
-          })
-        })
-      } catch (error) {
-        if (!isCurrentGeneration(generation)) {
-          return
-        }
-        errorToActionOrThrow(error)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      loadUploadStatusImpl(
+        generation,
+        isCurrentGeneration,
+        getStatusStateForCurrentGeneration,
+        setFsStatusState,
+        errorToActionOrThrow
+      )
+    )
   })
 
   const journalUpdate = React.useEffectEvent(
@@ -207,29 +254,8 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     pollJournalStatusPollingRef.current = true
     const generation = generationRef.current
 
-    const f = async () => {
-      try {
-        while (isCurrentGeneration(generation)) {
-          const {syncingPaths, totalSyncingBytes, endEstimate} =
-            await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
-              filter: T.RPCGen.ListFilter.filterSystemHidden,
-            })
-          if (!isCurrentGeneration(generation)) {
-            return
-          }
-          journalUpdate(
-            (syncingPaths || []).map(T.FS.stringToPath),
-            totalSyncingBytes,
-            endEstimate ?? undefined
-          )
-
-          if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
-            break
-          }
-          useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
-          await C.timeoutPromise(getJournalWaitDuration(endEstimate || undefined, 100, 4000))
-        }
-      } finally {
+    C.ignorePromise(
+      pollJournalStatusImpl(generation, isCurrentGeneration, journalUpdate, () => {
         if (generation === generationRef.current) {
           pollJournalStatusPollingRef.current = false
         }
@@ -237,9 +263,8 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
         if (isCurrentGeneration(generation)) {
           checkKbfsDaemonRpcStatus()
         }
-      }
-    }
-    C.ignorePromise(f())
+      })
+    )
   })
 
   const syncStatusChanged = React.useEffectEvent((status: T.RPCGen.FolderSyncStatus) => {

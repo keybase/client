@@ -61,31 +61,36 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
   return []
 }
 
+const revokeDevice = async (
+  username: string,
+  wasCurrentDevice: boolean,
+  deviceID: T.Devices.DeviceID,
+  deviceName: string
+) => {
+  if (wasCurrentDevice) {
+    try {
+      await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.waitingKeyDevices)
+      useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
+    } catch {}
+  } else {
+    try {
+      await T.RPCGen.revokeRevokeDeviceRpcPromise(
+        {deviceID, forceLast: false, forceSelf: false},
+        C.waitingKeyDevices
+      )
+      useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
+      C.Router2.navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
+    } catch {}
+  }
+}
+
 const useRevoke = (device: T.Devices.Device) => {
   const username = useCurrentUserState(s => s.username)
   const wasCurrentDevice = device.currentDevice
-  const navUpToScreen = C.Router2.navUpToScreen
   const deviceID = device.deviceID
   const deviceName = device.name
   return () => {
-    const f = async () => {
-      if (wasCurrentDevice) {
-        try {
-          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.waitingKeyDevices)
-          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
-        } catch {}
-      } else {
-        try {
-          await T.RPCGen.revokeRevokeDeviceRpcPromise(
-            {deviceID, forceLast: false, forceSelf: false},
-            C.waitingKeyDevices
-          )
-          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
-          navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
-        } catch {}
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(revokeDevice(username, wasCurrentDevice, deviceID, deviceName))
   }
 }
 

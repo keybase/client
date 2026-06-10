@@ -69,7 +69,8 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
     commitState(clearInputState(stateRef.current))
   }, [commitState, stateRef])
 
-  const verify = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
+  const verify = React.useCallback(async (destinationDir = '', maybeSnapshot?: CommonState) => {
+    const snapshot = maybeSnapshot ?? stateRef.current
     commitState(beginRun(snapshot))
     try {
       if (snapshot.inputType === 'text') {

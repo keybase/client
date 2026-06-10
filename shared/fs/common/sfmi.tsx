@@ -60,6 +60,62 @@ const makeInitialSfmiStateWithPermissionError = (initialKextPermissionError: boo
     : initialState
 }
 
+const refreshDriverStatusImpl = async (
+  previousDriverStatus: T.FS.DriverStatus,
+  setDriverStatus: (driverStatus: T.FS.DriverStatus) => void,
+  refreshMountDirs: (driverStatus: T.FS.DriverStatus) => Promise<{directMountDir: string}>,
+  errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
+) => {
+  try {
+    const previousType = previousDriverStatus.type
+    const status = await refreshDriverStatusInPlatform()
+    const refreshedDriverStatus = fuseStatusToDriverStatus(status)
+    const driverStatus =
+      previousDriverStatus.type === T.FS.DriverStatusType.Disabled &&
+      previousDriverStatus.kextPermissionError &&
+      refreshedDriverStatus.type === T.FS.DriverStatusType.Disabled
+        ? {
+            ...refreshedDriverStatus,
+            kextPermissionError: true,
+          }
+        : refreshedDriverStatus
+    setDriverStatus(driverStatus)
+    const {directMountDir} = await refreshMountDirs(driverStatus)
+    if (status?.kextStarted && previousType === T.FS.DriverStatusType.Disabled) {
+      const path = T.FS.stringToPath('/keybase')
+      try {
+        await openPathInSystemFileManagerInPlatform(path, driverStatus, directMountDir)
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+  } catch (error) {
+    errorToActionOrThrow(error)
+  }
+}
+
+const driverEnableImpl = async (
+  isRetry: boolean,
+  driverKextPermissionError: () => void,
+  refreshDriverStatus: () => Promise<void>,
+  errorToActionOrThrow: (error: unknown) => void
+) => {
+  try {
+    const result = await afterDriverEnabledInPlatform(isRetry)
+    if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
+      driverKextPermissionError()
+      if (result === 'kextPermissionError') {
+        C.Router2.navigateAppend({name: 'kextPermission', params: {}})
+      }
+      return
+    }
+    await refreshDriverStatus()
+    notifySfmiReload()
+  } catch (error) {
+    errorToActionOrThrow(error)
+  }
+}
+
 export const SystemFileManagerIntegrationProvider = ({
   children,
   initialKextPermissionError = false,
@@ -146,33 +202,12 @@ export const SystemFileManagerIntegrationProvider = ({
   })
 
   const refreshDriverStatus = React.useEffectEvent(async () => {
-    try {
-      const previousDriverStatus = sfmiStateRef.current.driverStatus
-      const previousType = previousDriverStatus.type
-      const status = await refreshDriverStatusInPlatform()
-      const refreshedDriverStatus = fuseStatusToDriverStatus(status)
-      const driverStatus =
-        previousDriverStatus.type === T.FS.DriverStatusType.Disabled &&
-        previousDriverStatus.kextPermissionError &&
-        refreshedDriverStatus.type === T.FS.DriverStatusType.Disabled
-          ? {
-              ...refreshedDriverStatus,
-              kextPermissionError: true,
-            }
-          : refreshedDriverStatus
-      setDriverStatus(driverStatus)
-      const {directMountDir} = await refreshMountDirsDesktop(driverStatus)
-      if (status?.kextStarted && previousType === T.FS.DriverStatusType.Disabled) {
-        const path = T.FS.stringToPath('/keybase')
-        try {
-          await openPathInSystemFileManagerInPlatform(path, driverStatus, directMountDir)
-        } catch (error) {
-          defaultErrorToActionOrThrow(error, path)
-        }
-      }
-    } catch (error) {
-      defaultErrorToActionOrThrow(error)
-    }
+    await refreshDriverStatusImpl(
+      sfmiStateRef.current.driverStatus,
+      setDriverStatus,
+      refreshMountDirsDesktop,
+      defaultErrorToActionOrThrow
+    )
   })
 
   const refreshDriverStatusDesktop = React.useEffectEvent(() => {
@@ -259,20 +294,7 @@ export const SystemFileManagerIntegrationProvider = ({
         })
       )
       setSfmiBannerDismissed(false)
-      try {
-        const result = await afterDriverEnabledInPlatform(!!isRetry)
-        if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
-          driverKextPermissionError()
-          if (result === 'kextPermissionError') {
-            C.Router2.navigateAppend({name: 'kextPermission', params: {}})
-          }
-          return
-        }
-        await refreshDriverStatus()
-        notifySfmiReload()
-      } catch (error) {
-        defaultErrorToActionOrThrow(error)
-      }
+      await driverEnableImpl(!!isRetry, driverKextPermissionError, refreshDriverStatus, defaultErrorToActionOrThrow)
     }
     C.ignorePromise(f())
   })

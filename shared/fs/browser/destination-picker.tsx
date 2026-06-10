@@ -22,6 +22,57 @@ const canBackUp = isMobile
   ? (parentPath: T.FS.Path) => T.FS.getPathLevel(parentPath) > 1
   : () => false
 
+const doMoveOrCopy = async (
+  type: 'move' | 'copy',
+  source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource,
+  parentPath: T.FS.Path,
+  errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
+) => {
+  const params =
+    source.type === T.FS.DestinationPickerSource.MoveOrCopy
+      ? [
+          {
+            dest: FS.pathToRPCPath(T.FS.pathConcat(parentPath, T.FS.getPathName(source.path))),
+            opID: makeUUID(),
+            overwriteExistingFiles: false,
+            src: FS.pathToRPCPath(source.path),
+          },
+        ]
+      : source.source
+          .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+          .filter(({originalPath}) => !!originalPath)
+          .map(({originalPath, scaledPath}) => ({
+            dest: FS.pathToRPCPath(
+              T.FS.pathConcat(
+                parentPath,
+                T.FS.getLocalPathName(originalPath)
+                // We use the local path name here since we only care about file name.
+              )
+            ),
+            opID: makeUUID(),
+            overwriteExistingFiles: false,
+            src: {
+              PathType: T.RPCGen.PathType.local,
+              local: T.FS.getNormalizedLocalPath(
+                useConfigState.getState().incomingShareUseOriginal
+                  ? originalPath
+                  : scaledPath || originalPath
+              ),
+            } as T.RPCGen.Path,
+          }))
+
+  try {
+    const rpc =
+      type === 'move'
+        ? T.RPCGen.SimpleFSSimpleFSMoveRpcPromise
+        : T.RPCGen.SimpleFSSimpleFSCopyRecursiveRpcPromise
+    await Promise.all(params.map(async param => rpc(param)))
+    await Promise.all(params.map(async ({opID}) => T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})))
+  } catch (error) {
+    errorToActionOrThrow(error, parentPath)
+  }
+}
+
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const {parentPath, source} = ownProps
   const parentPathItem = FsCommon.useFsPathMetadata(parentPath)
@@ -37,52 +88,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const nav = useSafeNavigation()
   const clearModals = C.Router2.clearModals
   const moveOrCopy = (type: 'move' | 'copy') => {
-    const f = async () => {
-      const params =
-        source.type === T.FS.DestinationPickerSource.MoveOrCopy
-          ? [
-              {
-                dest: FS.pathToRPCPath(T.FS.pathConcat(parentPath, T.FS.getPathName(source.path))),
-                opID: makeUUID(),
-                overwriteExistingFiles: false,
-                src: FS.pathToRPCPath(source.path),
-              },
-            ]
-          : source.source
-              .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
-              .filter(({originalPath}) => !!originalPath)
-              .map(({originalPath, scaledPath}) => ({
-                dest: FS.pathToRPCPath(
-                  T.FS.pathConcat(
-                    parentPath,
-                    T.FS.getLocalPathName(originalPath)
-                    // We use the local path name here since we only care about file name.
-                  )
-                ),
-                opID: makeUUID(),
-                overwriteExistingFiles: false,
-                src: {
-                  PathType: T.RPCGen.PathType.local,
-                  local: T.FS.getNormalizedLocalPath(
-                    useConfigState.getState().incomingShareUseOriginal
-                      ? originalPath
-                      : scaledPath || originalPath
-                  ),
-                } as T.RPCGen.Path,
-              }))
-
-      try {
-        const rpc =
-          type === 'move'
-            ? T.RPCGen.SimpleFSSimpleFSMoveRpcPromise
-            : T.RPCGen.SimpleFSSimpleFSCopyRecursiveRpcPromise
-        await Promise.all(params.map(async param => rpc(param)))
-        await Promise.all(params.map(async ({opID}) => T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})))
-      } catch (error) {
-        errorToActionOrThrow(error, parentPath)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(doMoveOrCopy(type, source, parentPath, errorToActionOrThrow))
   }
   const onBackUp =
     isShare || !canBackUp(parentPath)

@@ -49,6 +49,8 @@
     "ios:pod:install": "cd ios; pod install --repo-update",
     "ios:sim:push-chat": "bash tools/sim-push-chat.sh",
     "lint": "yarn run lint:specific .",
+    "lint:all": "yarn lint && yarn lint:bailouts && yarn tsc",
+    "lint:bailouts": "node --experimental-strip-types scripts/react-compiler-bailouts.mts --check .",
     "lint:daemon": "eslint_d --cache .",
     "lint:specific": "eslint --cache --quiet ",
     "lint:warn": "eslint .",

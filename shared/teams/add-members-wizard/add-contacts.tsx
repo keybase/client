@@ -28,8 +28,31 @@ type ContactsModule = {
   EnableContactsPopup: React.ComponentType<{noAccess: boolean; onClose: () => void}>
 }
 
+// Hoisted: resolving useContacts from require() during render makes the react
+// compiler bail (hooks must be the same function on every render). The require is
+// guarded so it never executes on desktop.
+// On desktop nothing here renders (AddContacts bails on !isMobile) so the empty
+// fallback is never dereferenced.
+const {
+  default: ContactsList,
+  useContacts,
+  EnableContactsPopup,
+} = (isMobile ? require('../common/contacts-list.native') : {}) as ContactsModule
+
+const addPreparedMembersToWizard = async (
+  wizard: AddMembersWizard,
+  members: Parameters<typeof addMembersToWizard>[1],
+  onError: (message: string) => void
+) => {
+  try {
+    const nextWizard = await addMembersToWizard(wizard, members)
+    C.Router2.navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+  } catch (err) {
+    onError(err instanceof Error ? err.message : String(err))
+  }
+}
+
 const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
-  const {default: ContactsList, useContacts, EnableContactsPopup} = require('../common/contacts-list.native') as ContactsModule
   const onBack = C.Router2.navigateUp
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
@@ -72,24 +95,16 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
         [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
         r => {
           if (r?.length) {
-            const f = async () => {
-              try {
-                const nextWizard = await addMembersToWizard(
-                  wizard,
-                  r.map(m => ({
-                    ...(m.foundUser
-                      ? {assertion: m.username, resolvedFrom: m.assertion}
-                      : {assertion: m.assertion}),
-                    role: 'writer',
-                  }))
-                )
-                C.Router2.navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
-              } catch (err) {
+            const members = r.map(m => ({
+              ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
+              role: 'writer' as const,
+            }))
+            C.ignorePromise(
+              addPreparedMembersToWizard(wizard, members, message => {
                 setWaiting(false)
-                setError(err instanceof Error ? err.message : String(err))
-              }
-            }
-            C.ignorePromise(f())
+                setError(message)
+              })
+            )
           } else {
             setWaiting(false)
             setError('Could not add any of the selected contacts. Try another contact or method.')

@@ -41,8 +41,8 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
   })()
 
   const unfurlList = (() => {
-    const {default: UnfurlList} = require('./unfurl/unfurl-list') as {default: typeof UnfurlListType}
     if (hasUnfurlList) {
+      const {default: UnfurlList} = require('./unfurl/unfurl-list') as {default: typeof UnfurlListType}
       return <UnfurlList author={author} conversationIDKey={conversationIDKey} key="UnfurlList" unfurls={unfurls} />
     }
     return null

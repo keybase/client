@@ -121,6 +121,49 @@ export const getCachedResourceCache = <T, K>(
   return created
 }
 
+const runLoad = async <T, K>(
+  cache: CachedResourceCache<T, K>,
+  cacheKey: K,
+  initialData: T,
+  load: () => Promise<T>,
+  onError: ((error: unknown) => void) | undefined,
+  requestVersion: number,
+  requestVersionRef: React.RefObject<number>,
+  setState: React.Dispatch<React.SetStateAction<StoredCachedResourceState<T, K>>>
+) => {
+  let request: Promise<T> | undefined
+  try {
+    const inFlight = cache.getInFlight()
+    if (inFlight) {
+      const data = await inFlight
+      if (requestVersion === requestVersionRef.current) {
+        setState(storedState(cache, cacheKey, initialData, {data, loaded: true, loading: false}))
+      }
+      return
+    }
+    const generation = cache.getGeneration()
+    request = load().then(data => {
+      cache.setDataLoaded(data, generation)
+      return data
+    })
+    cache.setInFlight(request)
+    const data = await request
+    if (requestVersion === requestVersionRef.current) {
+      setState(storedState(cache, cacheKey, initialData, {data, loaded: true, loading: false}))
+    }
+  } catch (error) {
+    if (requestVersion !== requestVersionRef.current) {
+      return
+    }
+    onError?.(error)
+    setState(prev => ({...prev, loading: false}))
+  } finally {
+    if (request) {
+      cache.clearInFlight(request)
+    }
+  }
+}
+
 export const useCachedResource = <T, K>(props: Props<T, K>) => {
   const {cache, cacheKey, enabled = true, initialData, load, onError, refreshKey, staleMs} = props
   const [state, setState] = React.useState<StoredCachedResourceState<T, K>>(() =>
@@ -192,37 +235,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
           ? {...prev, loading: true}
           : storedState(cache, cacheKey, initialData, {...emptyState(initialData), loading: true})
       )
-      let request: Promise<T> | undefined
-      try {
-        const inFlight = cache.getInFlight()
-        if (inFlight) {
-          const data = await inFlight
-          if (requestVersion === requestVersionRef.current) {
-            setState(storedState(cache, cacheKey, initialData, {data, loaded: true, loading: false}))
-          }
-          return
-        }
-        const generation = cache.getGeneration()
-        request = load().then(data => {
-          cache.setDataLoaded(data, generation)
-          return data
-        })
-        cache.setInFlight(request)
-        const data = await request
-        if (requestVersion === requestVersionRef.current) {
-          setState(storedState(cache, cacheKey, initialData, {data, loaded: true, loading: false}))
-        }
-      } catch (error) {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        onError?.(error)
-        setState(prev => ({...prev, loading: false}))
-      } finally {
-        if (request) {
-          cache.clearInFlight(request)
-        }
-      }
+      await runLoad(cache, cacheKey, initialData, load, onError, requestVersion, requestVersionRef, setState)
     },
     []
   )

@@ -329,6 +329,8 @@ export function useInboxSearch(): InboxSearchController {
           updateIfActive(prev => ({...prev, indexPercent: resp.status.percentIndexed}))
         }
 
+        const maxNameConvs =
+          query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults
         try {
           await searchInboxRPC({
             incomingCallMap: {
@@ -344,7 +346,7 @@ export function useInboxSearch(): InboxSearchController {
               maxBots: 10,
               maxConvsHit: inboxSearchMaxTextResults,
               maxHits: inboxSearchMaxTextMessages,
-              maxNameConvs: query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults,
+              maxNameConvs,
               maxTeams: 10,
             },
             query,

@@ -328,6 +328,16 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
   return {...visibleState, reload}
 }
 
+const loadTeamNameForID = async (teamID: T.Teams.TeamID) => {
+  try {
+    const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
+    return teamname ? ([teamID, teamname] as const) : undefined
+  } catch (error) {
+    logger.warn(`Failed to load chat team name for ${teamID}`, error)
+    return undefined
+  }
+}
+
 const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = true): ChatTeamNames => {
   const username = useCurrentUserState(s => s.username)
   const teamIDsKey = [
@@ -350,17 +360,7 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
   }
 
   const loadTeamNamesForIDs = React.useCallback(async (teamIDs: ReadonlyArray<T.Teams.TeamID>) => {
-    const resolvedTeamnames = await Promise.all(
-      teamIDs.map(async teamID => {
-        try {
-          const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
-          return teamname ? ([teamID, teamname] as const) : undefined
-        } catch (error) {
-          logger.warn(`Failed to load chat team name for ${teamID}`, error)
-          return undefined
-        }
-      })
-    )
+    const resolvedTeamnames = await Promise.all(teamIDs.map(loadTeamNameForID))
     const teamnames = new Map<T.Teams.TeamID, string>()
     resolvedTeamnames.forEach(entry => {
       if (entry) {
@@ -532,6 +532,18 @@ export const useChatTeamMembers = (teamID: T.Teams.TeamID): ChatTeamMembers => {
   const useContextValue = context?.teamID === teamID
   const raw = useChatTeamMembersRaw(teamID, !useContextValue)
   return useContextValue ? context.members : raw
+}
+
+// Context-only role lookup for per-message-row use. useChatTeamMembers mounts
+// engine listeners and a fetch fallback per caller, which is too heavy to run
+// once per visible row; rows always render under the conversation's
+// ChatTeamProvider so the context has the data.
+export const useChatTeamMemberRole = (
+  teamID: T.Teams.TeamID,
+  username: string
+): T.Teams.MemberInfo['type'] | undefined => {
+  const context = React.useContext(ChatTeamContext)
+  return context?.teamID === teamID ? context.members.members.get(username)?.type : undefined
 }
 
 export const useChatTeamNames = (teamIDs: ReadonlyArray<T.Teams.TeamID>): ChatTeamNames =>

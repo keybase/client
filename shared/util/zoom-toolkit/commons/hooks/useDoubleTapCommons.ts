@@ -26,6 +26,8 @@ export const useDoubleTapCommons = ({
   boundsFn,
   onGestureEnd,
 }: DoubleTapOptions) => {
+  // vendored reanimated gesture code; shared-value writes during render are intentional
+  'use no memo'
   const [isPanGestureEnabled, setIsPanGestureEnabled] = useState<boolean>(true)
 
   const onDoubleTapStart = () => {

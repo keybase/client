@@ -66,20 +66,23 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
     commitState(clearInputState(stateRef.current))
   }, [commitState, stateRef])
 
-  const sign = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
+  const sign = React.useCallback(async (destinationDir = '', maybeSnapshot?: CommonState) => {
+    const snapshot = maybeSnapshot ?? stateRef.current
     commitState(beginRun(snapshot))
     try {
       const username = useCurrentUserState.getState().username
-      const output =
-        snapshot.inputType === 'text'
-          ? await T.RPCGen.saltpackSaltpackSignStringRpcPromise(
-              {plaintext: snapshot.input},
-              C.waitingKeyCrypto
-            )
-          : await T.RPCGen.saltpackSaltpackSignFileRpcPromise(
-              {destinationDir, filename: snapshot.input},
-              C.waitingKeyCrypto
-            )
+      let output: string
+      if (snapshot.inputType === 'text') {
+        output = await T.RPCGen.saltpackSaltpackSignStringRpcPromise(
+          {plaintext: snapshot.input},
+          C.waitingKeyCrypto
+        )
+      } else {
+        output = await T.RPCGen.saltpackSaltpackSignFileRpcPromise(
+          {destinationDir, filename: snapshot.input},
+          C.waitingKeyCrypto
+        )
+      }
       const next = onSuccess(
         stateRef.current,
         stateRef.current.input === snapshot.input,

@@ -17,6 +17,69 @@ import {
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 
+const checkDeviceNameAndSignup = async (
+  devicename: string,
+  username: string,
+  inviteCode: string,
+  setError: (error: string) => void,
+  showPermissionsPrompt: (p: {justSignedUp: boolean}) => void,
+  navigateAppend: typeof C.Router2.navigateAppend
+) => {
+  try {
+    await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, C.waitingKeySignup)
+  } catch (error_) {
+    if (error_ instanceof RPCError) {
+      setError(error_.desc)
+    }
+    return
+  }
+
+  if (!username || !devicename) {
+    logger.warn('Missing data during signup phase', username, devicename)
+    return
+  }
+
+  try {
+    showPermissionsPrompt({justSignedUp: true})
+    await T.RPCGen.signupSignupRpcListener({
+      customResponseIncomingCallMap: {
+        'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+          response.result(false)
+        },
+      },
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+      },
+      params: {
+        botToken: '',
+        deviceName: devicename,
+        deviceType: isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
+        email: '',
+        genPGPBatch: false,
+        genPaper: false,
+        inviteCode,
+        passphrase: '',
+        randomPw: true,
+        skipGPG: true,
+        skipMail: true,
+        storeSecret: true,
+        username,
+        verifyEmail: true,
+      },
+      waitingKey: C.waitingKeySignup,
+    })
+    clearSignupDeviceNameDraft()
+  } catch (error_) {
+    if (error_ instanceof RPCError) {
+      showPermissionsPrompt({justSignedUp: false})
+      navigateAppend({
+        name: 'signupError',
+        params: {errorCode: error_.code, errorMessage: error_.desc},
+      })
+    }
+  }
+}
+
 const ConnectedEnterDevicename = (p: Props) => {
   const showPermissionsPrompt = usePushState(s => s.dispatch.showPermissionsPrompt)
   const initialDevicename = getSignupDeviceNameDraft()
@@ -28,62 +91,9 @@ const ConnectedEnterDevicename = (p: Props) => {
   const onContinue = (devicename: string) => {
     setError('')
     setSignupDeviceNameDraft(devicename)
-    const f = async () => {
-      try {
-        await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, C.waitingKeySignup)
-      } catch (error_) {
-        if (error_ instanceof RPCError) {
-          setError(error_.desc)
-        }
-        return
-      }
-
-      if (!username || !devicename) {
-        logger.warn('Missing data during signup phase', username, devicename)
-        return
-      }
-
-      try {
-        showPermissionsPrompt({justSignedUp: true})
-        await T.RPCGen.signupSignupRpcListener({
-          customResponseIncomingCallMap: {
-            'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
-              response.result(false)
-            },
-          },
-          incomingCallMap: {
-            'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
-          },
-          params: {
-            botToken: '',
-            deviceName: devicename,
-            deviceType: isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
-            email: '',
-            genPGPBatch: false,
-            genPaper: false,
-            inviteCode,
-            passphrase: '',
-            randomPw: true,
-            skipGPG: true,
-            skipMail: true,
-            storeSecret: true,
-            username,
-            verifyEmail: true,
-          },
-          waitingKey: C.waitingKeySignup,
-        })
-        clearSignupDeviceNameDraft()
-      } catch (error_) {
-        if (error_ instanceof RPCError) {
-          showPermissionsPrompt({justSignedUp: false})
-          navigateAppend({
-            name: 'signupError',
-            params: {errorCode: error_.code, errorMessage: error_.desc},
-          })
-        }
-      }
-    }
-    ignorePromise(f())
+    ignorePromise(
+      checkDeviceNameAndSignup(devicename, username, inviteCode, setError, showPermissionsPrompt, navigateAppend)
+    )
   }
 
   return <EnterDevicename error={error} initialDevicename={initialDevicename} onBack={navigateUp} onContinue={onContinue} waiting={waiting} />

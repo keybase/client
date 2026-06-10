@@ -29,6 +29,20 @@ type DragEvent = {
   }
 }
 
+const containsDirectory = async (paths: Array<string>) => {
+  for (const path of paths) {
+    try {
+      const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
+      if (isDir) {
+        return true
+      }
+    } catch (error) {
+      logger.warn(`Error stating dropped attachment: ${String(error)}`)
+    }
+  }
+  return false
+}
+
 const DragAndDrop = (props: Props): React.ReactNode => {
   const [showDropOverlay, setShowDropOverlay] = React.useState(false)
 
@@ -44,18 +58,9 @@ const DragAndDrop = (props: Props): React.ReactNode => {
         ? Array.from({length: fileList.length}, (_, i) => getPathForFile?.(fileList[i] as File) ?? '')
         : []
       if (paths.length) {
-        if (!props.allowFolders) {
-          for (const path of paths) {
-            try {
-              const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
-              if (isDir) {
-                setShowDropOverlay(false)
-                return
-              }
-            } catch (error) {
-              logger.warn(`Error stating dropped attachment: ${String(error)}`)
-            }
-          }
+        if (!props.allowFolders && (await containsDirectory(paths))) {
+          setShowDropOverlay(false)
+          return
         }
         props.onAttach?.(paths)
       }

@@ -26,7 +26,7 @@ import {
   useConversationThreadSelector,
 } from '../../thread-context'
 import type {ConversationInputState} from '../../input-area/input-state'
-import {useChatTeamMembers} from '../../team-hooks'
+import {useChatTeamMemberRole} from '../../team-hooks'
 
 type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
 type PaymentStatusMap = ReadonlyMap<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
@@ -120,8 +120,7 @@ const getRowActions = (
 function AuthorSection(p: AuthorProps) {
   const {author, botAlias, isAdhocBot, teamID, teamType, teamname, timestamp, showUsername} = p
 
-  const {members: teamMembers} = useChatTeamMembers(teamID)
-  const authorRoleInTeam = teamMembers.get(author)?.type
+  const authorRoleInTeam = useChatTeamMemberRole(teamID, author)
   const onAuthorClick = () => navToProfile(showUsername)
 
   const authorIsOwner = authorRoleInTeam === 'owner'
@@ -253,19 +252,17 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
 
 const getCommonMessageData = ({
   accountsInfoMap,
-  editing,
   isCenteredHighlight,
+  isEditing,
   message,
-  ordinal,
   paymentStatusMap,
   unfurlPrompt,
   you,
 }: {
   accountsInfoMap: AccountsInfoMap
-  editing: T.Chat.Ordinal
   isCenteredHighlight?: boolean
+  isEditing: boolean
   message: T.Chat.Message
-  ordinal: T.Chat.Ordinal
   paymentStatusMap: PaymentStatusMap
   unfurlPrompt: UnfurlPromptMap
   you: string
@@ -321,7 +318,7 @@ const getCommonMessageData = ({
     hasReactions,
     hasUnfurlList,
     hasUnfurlPrompts,
-    isEditing: editing === ordinal,
+    isEditing,
     messageKey: isExplodingMessage ? getMessageKey(message) : '',
     reactions,
     replyTo,
@@ -359,9 +356,11 @@ const getEditCancelRetryData = (
 }
 
 // Combined selector hook that fetches all common wrapper data in a single subscription.
+// Subscribes to the derived isEditing boolean (not the raw editing ordinal) so only
+// the affected rows re-render when editing starts/stops.
 export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
-  const editing = InputState.useConversationInput(s => s.editing)
+  const isEditing = InputState.useConversationInput(s => s.editing === ordinal)
   const uiDispatch = InputState.useConversationInputDispatch(
     C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
@@ -373,49 +372,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
       const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
-        editing,
         isCenteredHighlight,
+        isEditing,
         message,
-        ordinal,
-        paymentStatusMap: s.paymentStatusMap,
-        unfurlPrompt: s.unfurlPrompt,
-        you,
-      })
-      const showUsername = RowMetadata.getMessageShowUsername({
-        message,
-        messageMap: s.messageMap,
-        messageOrdinals: s.messageOrdinals ?? [],
-        ordinal,
-        you,
-      })
-      return {
-        ...commonData,
-        ...getEditCancelRetryData(commonData.ecrType, message),
-        ...getRowActions(messageActions, uiDispatch, retryMessage),
-        ...getAuthorData(message, s.meta, s.participants, showUsername),
-      }
-    })
-  )
-}
-
-const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
-  const you = useCurrentUserState(s => s.username)
-  const editing = InputState.useConversationInput(s => s.editing)
-  const uiDispatch = InputState.useConversationInputDispatch(
-    C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
-  )
-  const {retryMessage} = useConversationThreadActions()
-  const messageActions = useConversationThreadMessageActions()
-
-  return useConversationThreadSelector(
-    C.useShallow(s => {
-      const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
-      const commonData = getCommonMessageData({
-        accountsInfoMap: s.accountsInfoMap,
-        editing,
-        isCenteredHighlight,
-        message,
-        ordinal,
         paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
@@ -460,18 +419,13 @@ export const useWrapperMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?:
   return {...useWrapperPopup(ordinal, messageData), messageData}
 }
 
-export const useWrapperMessageWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
-  const messageData = useMessageDataWithMessage(ordinal, isCenteredHighlight)
-  return {...useWrapperPopup(ordinal, messageData), messageData}
-}
-
 export function makeMessageWrapper<Type extends T.Chat.Message['type']>(
   type: Type,
   render: (message: Extract<T.Chat.Message, {type: Type}>) => React.ReactNode
 ) {
   return function WrapperGenerated(p: Props) {
     const {ordinal, isCenteredHighlight} = p
-    const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+    const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
     const {message} = wrapper.messageData
     if (message.type !== type) return null
     const child = render(message as Extract<T.Chat.Message, {type: Type}>)

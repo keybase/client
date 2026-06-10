@@ -24,6 +24,34 @@ const headerBackgroundColorType = (
   }
 }
 
+const loadSharedTeams = async (
+  requestUsernameKey: string,
+  requestID: number,
+  requestIDRef: {current: number},
+  setSharedTeamsState: (s: {teams?: ReadonlyArray<T.RPCChat.SharedTeam>; usernameKey: string}) => void
+) => {
+  try {
+    const res = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
+      {usernames: [requestUsernameKey]},
+      C.waitingKeyTrackerSharedTeams(requestUsernameKey)
+    )
+    if (requestIDRef.current !== requestID) {
+      return
+    }
+    const teams = res.teams ?? []
+    setSharedTeamsState({teams, usernameKey: requestUsernameKey})
+  } catch (error) {
+    if (requestIDRef.current !== requestID) {
+      return
+    }
+    if (error instanceof RPCError) {
+      logger.error(`Error loading shared teams: ${error.message}`)
+    } else {
+      logger.error('Error loading shared teams: non-RPC error', error)
+    }
+  }
+}
+
 const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const usernameKey = username.toLowerCase()
@@ -51,29 +79,7 @@ const useUserData = (username: string) => {
     const requestUsernameKey = usernameKey
     const requestID = requestIDRef.current + 1
     requestIDRef.current = requestID
-    const f = async () => {
-      try {
-        const res = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
-          {usernames: [requestUsernameKey]},
-          C.waitingKeyTrackerSharedTeams(requestUsernameKey)
-        )
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        const teams = res.teams ?? []
-        setSharedTeamsState({teams, usernameKey: requestUsernameKey})
-      } catch (error) {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        if (error instanceof RPCError) {
-          logger.error(`Error loading shared teams: ${error.message}`)
-        } else {
-          logger.error('Error loading shared teams: non-RPC error', error)
-        }
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(loadSharedTeams(requestUsernameKey, requestID, requestIDRef, setSharedTeamsState))
     return () => {
       if (requestIDRef.current === requestID) {
         requestIDRef.current += 1

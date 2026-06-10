@@ -69,7 +69,8 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
     commitState(clearInputState(stateRef.current))
   }, [commitState, stateRef])
 
-  const decrypt = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
+  const decrypt = React.useCallback(async (destinationDir = '', _snapshot?: CommonState) => {
+    const snapshot = _snapshot ?? stateRef.current
     commitState(beginRun(snapshot))
     try {
       if (snapshot.inputType === 'text') {

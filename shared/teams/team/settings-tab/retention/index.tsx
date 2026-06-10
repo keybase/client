@@ -382,6 +382,28 @@ const policyToExplanation = (
   return exp
 }
 
+const loadTeamRetentionPolicy = async (
+  teamID: T.Teams.TeamID,
+  shouldApply: () => boolean,
+  setTeamRetentionPolicy: (policy?: T.RPCChat.RetentionPolicy | null) => void
+) => {
+  try {
+    const servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
+      {teamID},
+      C.waitingKeyTeamsLoadRetentionPolicy(teamID)
+    )
+    if (!shouldApply()) {
+      return
+    }
+    setTeamRetentionPolicy(servicePolicy)
+  } catch {
+    if (!shouldApply()) {
+      return
+    }
+    setTeamRetentionPolicy(undefined)
+  }
+}
+
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
   type TeamRetentionState = {
     loadedTeamID?: T.Teams.TeamID
@@ -402,21 +424,11 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
 
   const reload = React.useCallback(async () => {
     const requestVersion = ++requestVersionRef.current
-    try {
-      const servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
-        {teamID},
-        C.waitingKeyTeamsLoadRetentionPolicy(teamID)
-      )
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setTeamRetentionPolicy(servicePolicy)
-    } catch {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setTeamRetentionPolicy(undefined)
-    }
+    await loadTeamRetentionPolicy(
+      teamID,
+      () => requestVersion === requestVersionRef.current,
+      setTeamRetentionPolicy
+    )
   }, [setTeamRetentionPolicy, teamID])
 
   React.useEffect(() => {
@@ -429,24 +441,11 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
   React.useEffect(() => {
     let canceled = false
     const requestVersion = ++requestVersionRef.current
-    const load = async () => {
-      try {
-        const servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
-          {teamID},
-          C.waitingKeyTeamsLoadRetentionPolicy(teamID)
-        )
-        if (canceled || requestVersion !== requestVersionRef.current) {
-          return
-        }
-        setTeamRetentionPolicy(servicePolicy)
-      } catch {
-        if (canceled || requestVersion !== requestVersionRef.current) {
-          return
-        }
-        setTeamRetentionPolicy(undefined)
-      }
-    }
-    void load()
+    void loadTeamRetentionPolicy(
+      teamID,
+      () => !canceled && requestVersion === requestVersionRef.current,
+      setTeamRetentionPolicy
+    )
     return () => {
       canceled = true
     }

@@ -80,7 +80,7 @@ class Timers {
 
   _removeTimer = (key: string) => {
     const i = this._timers.findIndex(t => t.key === key)
-    if (i > 0) {
+    if (i >= 0) {
       clearTimeout(this._timers[i]?.timeoutID)
       this._timers.splice(i, 1)
     }

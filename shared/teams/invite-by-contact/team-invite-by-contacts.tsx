@@ -77,6 +77,23 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
   return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
 }
 
+const sendSMSInvite = async (
+  contact: Contact,
+  teamname: string,
+  seitan: string,
+  setInviteErrorMessage: (message: string) => void,
+  updateLoadingInvite: (loadingKey: string, isLoading: boolean) => void
+) => {
+  try {
+    await openSMS([contact.valueFormatted || contact.value], generateSMSBody(teamname, seitan))
+  } catch (error) {
+    logger.info('Error sending SMS', error)
+    setInviteErrorMessage('Failed to open SMS composer.')
+  } finally {
+    updateLoadingInvite(contact.value, false)
+  }
+}
+
 const TeamInviteByContactMobile = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
@@ -153,16 +170,7 @@ const TeamInviteByContactMobile = (props: Props) => {
           ],
           seitan => {
             C.ignorePromise(
-              (async () => {
-                try {
-                  await openSMS([contact.valueFormatted || contact.value], generateSMSBody(teamname, seitan))
-                } catch (error) {
-                  logger.info('Error sending SMS', error)
-                  setInviteErrorMessage('Failed to open SMS composer.')
-                } finally {
-                  updateLoadingInvite(contact.value, false)
-                }
-              })()
+              sendSMSInvite(contact, teamname, seitan, setInviteErrorMessage, updateLoadingInvite)
             )
           },
           error => {

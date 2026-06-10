@@ -2,10 +2,10 @@ import * as Kb from '@/common-adapters'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
-import {useConversationCenter} from '../../center-context'
+import {useConversationCenterActions} from '../../center-context'
 
 let _sentHighlighted: Kb.Styles.StylesCrossPlatform | undefined
 const getSentHighlighted = () => {
@@ -46,9 +46,9 @@ function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; t
 
 function WrapperText(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
-  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {messageData} = wrapper
-  const {centerOnMessage} = useConversationCenter()
+  const {centerOnMessage} = useConversationCenterActions()
   const {isEditing, message, replyTo} = messageData
 
   const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =

@@ -24,6 +24,52 @@ type Options = {
   reloadOnFocus?: boolean
 }
 
+const loadNonUserDetails = async (
+  username: string,
+  version: number,
+  requestVersionRef: React.RefObject<number>,
+  setNonUserDetails: React.Dispatch<
+    React.SetStateAction<{details: T.Tracker.NonUserDetails; username: string}>
+  >
+) => {
+  const assertion = username
+  try {
+    const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise({assertion})
+    if (requestVersionRef.current !== version || !res.isNonUser) {
+      return
+    }
+    const common = {
+      assertionKey: res.assertionKey,
+      assertionValue: res.assertionValue,
+      description: res.description,
+      siteIcon: res.siteIcon || [],
+      siteIconDarkmode: res.siteIconDarkmode || [],
+      siteIconFull: res.siteIconFull || [],
+      siteIconFullDarkmode: res.siteIconFullDarkmode || [],
+      siteURL: '',
+    }
+    if (res.service) {
+      setNonUserDetails({details: {...noNonUserDetails, ...common, ...res.service}, username})
+    } else {
+      const {formatPhoneNumberInternational} = await import('@/util/phone-numbers')
+      const formattedName =
+        res.assertionKey === 'phone' ? formatPhoneNumberInternational('+' + res.assertionValue) : undefined
+      const fullName = res.contact?.contactName ?? ''
+      if (requestVersionRef.current !== version) {
+        return
+      }
+      setNonUserDetails({
+        details: {...noNonUserDetails, ...common, formattedName, fullName},
+        username,
+      })
+    }
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn(`Error loading non user profile: ${error.message}`)
+    }
+  }
+}
+
 export const useTrackerProfile = (username: string, options?: Options) => {
   const currentUser = useCurrentUserState(
     C.useShallow(s => ({
@@ -48,46 +94,9 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     if (!username) {
       return
     }
-    const assertion = username
-    const version = requestVersionRef.current
-    const f = async () => {
-      try {
-        const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise({assertion})
-        if (requestVersionRef.current !== version || !res.isNonUser) {
-          return
-        }
-        const common = {
-          assertionKey: res.assertionKey,
-          assertionValue: res.assertionValue,
-          description: res.description,
-          siteIcon: res.siteIcon || [],
-          siteIconDarkmode: res.siteIconDarkmode || [],
-          siteIconFull: res.siteIconFull || [],
-          siteIconFullDarkmode: res.siteIconFullDarkmode || [],
-          siteURL: '',
-        }
-        if (res.service) {
-          setNonUserDetails({details: {...noNonUserDetails, ...common, ...res.service}, username})
-        } else {
-          const {formatPhoneNumberInternational} = await import('@/util/phone-numbers')
-          const formattedName =
-            res.assertionKey === 'phone' ? formatPhoneNumberInternational('+' + res.assertionValue) : undefined
-          const fullName = res.contact?.contactName ?? ''
-          if (requestVersionRef.current !== version) {
-            return
-          }
-          setNonUserDetails({
-            details: {...noNonUserDetails, ...common, formattedName, fullName},
-            username,
-          })
-        }
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.warn(`Error loading non user profile: ${error.message}`)
-        }
-      }
-    }
-    ignorePromise(f())
+    ignorePromise(
+      loadNonUserDetails(username, requestVersionRef.current, requestVersionRef, setNonUserDetails)
+    )
   }, [username])
 
   const loadProfile = React.useCallback(

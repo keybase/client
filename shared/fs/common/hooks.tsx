@@ -201,6 +201,226 @@ const setTlfs = (setFsSharedData: SetFsSharedData, updater: (prevTlfs: T.FS.Tlfs
   )
 }
 
+type ErrorToActionOrThrow = (error: unknown, path?: T.FS.Path) => void
+type SoftErrorSetter = (path: T.FS.Path, softError?: T.FS.SoftError) => void
+
+const loadDownloadInfoAsync = async (
+  downloadID: string,
+  loadingDownloadInfos: Set<string>,
+  setFsSharedData: SetFsSharedData,
+  errorToActionOrThrow: ErrorToActionOrThrow
+) => {
+  try {
+    const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
+      downloadID,
+    })
+    setDownloadInfos(setFsSharedData, prevDownloadInfos => {
+      const old = prevDownloadInfos.get(downloadID)
+      const nextDownloadInfos = new Map(prevDownloadInfos)
+      nextDownloadInfos.set(downloadID, {
+        filename: res.filename,
+        intent: old?.intent,
+        isRegularDownload: res.isRegularDownload,
+        path: T.FS.stringToPath('/keybase' + res.path.path),
+        startTime: res.startTime,
+      })
+      return nextDownloadInfos
+    })
+  } catch (error) {
+    errorToActionOrThrow(error)
+  } finally {
+    loadingDownloadInfos.delete(downloadID)
+  }
+}
+
+const loadDownloadStatusAsync = async (
+  setFsSharedData: SetFsSharedData,
+  errorToActionOrThrow: ErrorToActionOrThrow
+) => {
+  try {
+    const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
+    const regularDownloads = [...(res.regularDownloadIDs || [])]
+    const state = new Map(
+      (res.states || []).map(s => [
+        s.downloadID,
+        {
+          canceled: s.canceled,
+          done: s.done,
+          endEstimate: s.endEstimate,
+          error: s.error,
+          localPath: s.localPath,
+          progress: s.progress,
+        },
+      ])
+    )
+    setDownloads(setFsSharedData, {regularDownloads, state})
+  } catch (error) {
+    errorToActionOrThrow(error)
+  }
+}
+
+const loadPathMetadataAsync = async (
+  path: T.FS.Path,
+  loadingPathMetadata: Set<T.FS.Path>,
+  setFsSharedData: SetFsSharedData,
+  errorToActionOrThrow: ErrorToActionOrThrow,
+  setPathSoftError: SoftErrorSetter,
+  setTlfSoftError: SoftErrorSetter
+) => {
+  try {
+    const dirent = await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+      path: FS.pathToRPCPath(path),
+      refreshSubscription: false,
+    })
+    const pathItem = makeEntry(dirent)
+    setPathItems(setFsSharedData, prevPathItems => {
+      const nextPathItems = new Map(prevPathItems)
+      const oldPathItem = FS.getPathItem(prevPathItems, path)
+      nextPathItems.set(path, updatePathItem(oldPathItem, pathItem))
+      return nextPathItems
+    })
+    setPathSoftError(path)
+    const tlfPath = FS.getTlfPath(path)
+    if (tlfPath) {
+      setTlfSoftError(tlfPath)
+    }
+  } catch (error) {
+    errorToActionOrThrow(error, path)
+  } finally {
+    loadingPathMetadata.delete(path)
+  }
+}
+
+const loadFolderChildrenAsync = async (
+  rootPath: T.FS.Path,
+  initialLoadRecursive: boolean,
+  loadKey: string,
+  loadingFolderChildren: Set<string>,
+  setFsSharedData: SetFsSharedData,
+  errorToActionOrThrow: ErrorToActionOrThrow
+) => {
+  try {
+    const opID = makeUUID()
+    if (initialLoadRecursive) {
+      await T.RPCGen.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
+        depth: 1,
+        filter: T.RPCGen.ListFilter.filterSystemHidden,
+        opID,
+        path: FS.pathToRPCPath(rootPath),
+        refreshSubscription: false,
+      })
+    } else {
+      await T.RPCGen.SimpleFSSimpleFSListRpcPromise({
+        filter: T.RPCGen.ListFilter.filterSystemHidden,
+        opID,
+        path: FS.pathToRPCPath(rootPath),
+        refreshSubscription: false,
+      })
+    }
+
+    await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})
+    const result = await T.RPCGen.SimpleFSSimpleFSReadListRpcPromise({opID})
+    const entries = result.entries || []
+
+    setPathItems(setFsSharedData, prevPathItems => {
+      const nextPathItems = new Map(prevPathItems)
+      const loadedPathItems = makePathItemsFromDirents({
+        entries,
+        isRecursive: initialLoadRecursive,
+        rootPath,
+        rootPathItem: FS.getPathItem(prevPathItems, rootPath),
+      })
+      loadedPathItems.forEach((pathItemFromAction, path) => {
+        const oldPathItem = FS.getPathItem(nextPathItems, path)
+        const nextPathItem = updatePathItem(oldPathItem, pathItemFromAction)
+        if (oldPathItem.type === T.FS.PathType.Folder) {
+          oldPathItem.children.forEach(name => {
+            if (nextPathItem.type !== T.FS.PathType.Folder || !nextPathItem.children.has(name)) {
+              nextPathItems.delete(T.FS.pathConcat(path, name))
+            }
+          })
+        }
+        nextPathItems.set(path, nextPathItem)
+      })
+      return nextPathItems
+    })
+  } catch (error) {
+    errorToActionOrThrow(error, rootPath)
+  } finally {
+    loadingFolderChildren.delete(loadKey)
+  }
+}
+
+const loadTlfsAsync = async (
+  username: string,
+  loadTlfsInProgressRef: {current: boolean},
+  setFsSharedData: SetFsSharedData,
+  errorToActionOrThrow: ErrorToActionOrThrow
+) => {
+  try {
+    const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
+    setTlfs(setFsSharedData, prevTlfs => {
+      const nextTlfs = favoritesResultToTlfs(results, username, prevTlfs.additionalTlfs)
+      return isEqual(nextTlfs, prevTlfs) ? prevTlfs : nextTlfs
+    })
+  } catch (error) {
+    errorToActionOrThrow(error)
+  } finally {
+    loadTlfsInProgressRef.current = false
+  }
+}
+
+const loadAdditionalTlfAsync = async (
+  tlfPath: T.FS.Path,
+  username: string,
+  loadingAdditionalTlfs: Set<T.FS.Path>,
+  setFsSharedData: SetFsSharedData,
+  errorToActionOrThrow: ErrorToActionOrThrow
+) => {
+  if (T.FS.getPathLevel(tlfPath) !== 3) {
+    logger.warn('loadAdditionalTlf called on non-TLF path')
+    loadingAdditionalTlfs.delete(tlfPath)
+    return
+  }
+  try {
+    const result = await T.RPCGen.SimpleFSSimpleFSGetFolderRpcPromise({
+      path: FS.pathToRPCPath(tlfPath).kbfs,
+    })
+    const next = folderToTlf({
+      folder: result.folder,
+      isFavorite: result.isFavorite,
+      isIgnored: result.isIgnored,
+      isNew: result.isNew,
+      username,
+    })
+    if (!next) {
+      return
+    }
+    setTlfs(setFsSharedData, prevTlfs => {
+      const additionalTlfs = new Map(prevTlfs.additionalTlfs)
+      additionalTlfs.set(tlfPath, next.tlf)
+      return {
+        ...prevTlfs,
+        additionalTlfs,
+      }
+    })
+  } catch (error) {
+    if (error instanceof RPCError && error.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+      const fields = error.fields as undefined | Array<{key?: string; value?: string}>
+      const users = fields?.filter(elem => elem.key === 'usernames')
+      const usernames = users?.map(elem => elem.value ?? '') ?? []
+      C.Router2.navigateUp()
+      C.Router2.navigateAppend({
+        name: 'contactRestricted',
+        params: {source: 'newFolder', usernames},
+      })
+    }
+    errorToActionOrThrow(error, tlfPath)
+  } finally {
+    loadingAdditionalTlfs.delete(tlfPath)
+  }
+}
+
 export const FsDataProvider = ({
   children,
   initialLastModifiedTimestamp,
@@ -274,30 +494,9 @@ const FsDataProviderForUsername = ({
       return
     }
     loadingDownloadInfos.add(downloadID)
-    const f = async () => {
-      try {
-        const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
-          downloadID,
-        })
-        setDownloadInfos(setFsSharedData, prevDownloadInfos => {
-          const old = prevDownloadInfos.get(downloadID)
-          const nextDownloadInfos = new Map(prevDownloadInfos)
-          nextDownloadInfos.set(downloadID, {
-            filename: res.filename,
-            intent: old?.intent,
-            isRegularDownload: res.isRegularDownload,
-            path: T.FS.stringToPath('/keybase' + res.path.path),
-            startTime: res.startTime,
-          })
-          return nextDownloadInfos
-        })
-      } catch (error) {
-        errorToActionOrThrow(error)
-      } finally {
-        loadingDownloadInfos.delete(downloadID)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      loadDownloadInfoAsync(downloadID, loadingDownloadInfos, setFsSharedData, errorToActionOrThrow)
+    )
   }
 
   const recordDownloadStarted = (downloadID: string, path: T.FS.Path, type: DownloadStartType) => {
@@ -331,7 +530,9 @@ const FsDataProviderForUsername = ({
         if (activeDownloadIDSet.has(downloadID) || !seenDownloadIDs.has(downloadID)) {
           return
         }
-        nextDownloadInfos ??= new Map(prevDownloadInfos)
+        if (nextDownloadInfos === undefined) {
+          nextDownloadInfos = new Map(prevDownloadInfos)
+        }
         nextDownloadInfos.delete(downloadID)
         seenDownloadIDs.delete(downloadID)
       })
@@ -344,29 +545,7 @@ const FsDataProviderForUsername = ({
   }, [downloads.state])
 
   const loadDownloadStatus = () => {
-    const f = async () => {
-      try {
-        const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
-        const regularDownloads = [...(res.regularDownloadIDs || [])]
-        const state = new Map(
-          (res.states || []).map(s => [
-            s.downloadID,
-            {
-              canceled: s.canceled,
-              done: s.done,
-              endEstimate: s.endEstimate,
-              error: s.error,
-              localPath: s.localPath,
-              progress: s.progress,
-            },
-          ])
-        )
-        setDownloads(setFsSharedData, {regularDownloads, state})
-      } catch (error) {
-        errorToActionOrThrow(error)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(loadDownloadStatusAsync(setFsSharedData, errorToActionOrThrow))
   }
 
   const loadPathMetadata = (path: T.FS.Path) => {
@@ -375,31 +554,16 @@ const FsDataProviderForUsername = ({
       return
     }
     loadingPathMetadata.add(path)
-    const f = async () => {
-      try {
-        const dirent = await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
-          path: FS.pathToRPCPath(path),
-          refreshSubscription: false,
-        })
-        const pathItem = makeEntry(dirent)
-        setPathItems(setFsSharedData, prevPathItems => {
-          const nextPathItems = new Map(prevPathItems)
-          const oldPathItem = FS.getPathItem(prevPathItems, path)
-          nextPathItems.set(path, updatePathItem(oldPathItem, pathItem))
-          return nextPathItems
-        })
-        setPathSoftError(path)
-        const tlfPath = FS.getTlfPath(path)
-        if (tlfPath) {
-          setTlfSoftError(tlfPath)
-        }
-      } catch (error) {
-        errorToActionOrThrow(error, path)
-      } finally {
-        loadingPathMetadata.delete(path)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      loadPathMetadataAsync(
+        path,
+        loadingPathMetadata,
+        setFsSharedData,
+        errorToActionOrThrow,
+        setPathSoftError,
+        setTlfSoftError
+      )
+    )
   }
 
   const loadFolderChildren = (rootPath: T.FS.Path, initialLoadRecursive: boolean) => {
@@ -409,59 +573,16 @@ const FsDataProviderForUsername = ({
       return
     }
     loadingFolderChildren.add(loadKey)
-    const f = async () => {
-      try {
-        const opID = makeUUID()
-        if (initialLoadRecursive) {
-          await T.RPCGen.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
-            depth: 1,
-            filter: T.RPCGen.ListFilter.filterSystemHidden,
-            opID,
-            path: FS.pathToRPCPath(rootPath),
-            refreshSubscription: false,
-          })
-        } else {
-          await T.RPCGen.SimpleFSSimpleFSListRpcPromise({
-            filter: T.RPCGen.ListFilter.filterSystemHidden,
-            opID,
-            path: FS.pathToRPCPath(rootPath),
-            refreshSubscription: false,
-          })
-        }
-
-        await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})
-        const result = await T.RPCGen.SimpleFSSimpleFSReadListRpcPromise({opID})
-        const entries = result.entries || []
-
-        setPathItems(setFsSharedData, prevPathItems => {
-          const nextPathItems = new Map(prevPathItems)
-          const loadedPathItems = makePathItemsFromDirents({
-            entries,
-            isRecursive: initialLoadRecursive,
-            rootPath,
-            rootPathItem: FS.getPathItem(prevPathItems, rootPath),
-          })
-          loadedPathItems.forEach((pathItemFromAction, path) => {
-            const oldPathItem = FS.getPathItem(nextPathItems, path)
-            const nextPathItem = updatePathItem(oldPathItem, pathItemFromAction)
-            if (oldPathItem.type === T.FS.PathType.Folder) {
-              oldPathItem.children.forEach(name => {
-                if (nextPathItem.type !== T.FS.PathType.Folder || !nextPathItem.children.has(name)) {
-                  nextPathItems.delete(T.FS.pathConcat(path, name))
-                }
-              })
-            }
-            nextPathItems.set(path, nextPathItem)
-          })
-          return nextPathItems
-        })
-      } catch (error) {
-        errorToActionOrThrow(error, rootPath)
-      } finally {
-        loadingFolderChildren.delete(loadKey)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      loadFolderChildrenAsync(
+        rootPath,
+        initialLoadRecursive,
+        loadKey,
+        loadingFolderChildren,
+        setFsSharedData,
+        errorToActionOrThrow
+      )
+    )
   }
 
   const loadTlfs = () => {
@@ -469,20 +590,7 @@ const FsDataProviderForUsername = ({
       return
     }
     loadTlfsInProgressRef.current = true
-    const f = async () => {
-      try {
-        const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
-        setTlfs(setFsSharedData, prevTlfs => {
-          const nextTlfs = favoritesResultToTlfs(results, username, prevTlfs.additionalTlfs)
-          return isEqual(nextTlfs, prevTlfs) ? prevTlfs : nextTlfs
-        })
-      } catch (error) {
-        errorToActionOrThrow(error)
-      } finally {
-        loadTlfsInProgressRef.current = false
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(loadTlfsAsync(username, loadTlfsInProgressRef, setFsSharedData, errorToActionOrThrow))
   }
 
   const loadAdditionalTlf = (tlfPath: T.FS.Path) => {
@@ -491,51 +599,9 @@ const FsDataProviderForUsername = ({
       return
     }
     loadingAdditionalTlfs.add(tlfPath)
-    const f = async () => {
-      if (T.FS.getPathLevel(tlfPath) !== 3) {
-        logger.warn('loadAdditionalTlf called on non-TLF path')
-        loadingAdditionalTlfs.delete(tlfPath)
-        return
-      }
-      try {
-        const result = await T.RPCGen.SimpleFSSimpleFSGetFolderRpcPromise({
-          path: FS.pathToRPCPath(tlfPath).kbfs,
-        })
-        const next = folderToTlf({
-          folder: result.folder,
-          isFavorite: result.isFavorite,
-          isIgnored: result.isIgnored,
-          isNew: result.isNew,
-          username,
-        })
-        if (!next) {
-          return
-        }
-        setTlfs(setFsSharedData, prevTlfs => {
-          const additionalTlfs = new Map(prevTlfs.additionalTlfs)
-          additionalTlfs.set(tlfPath, next.tlf)
-          return {
-            ...prevTlfs,
-            additionalTlfs,
-          }
-        })
-      } catch (error) {
-        if (error instanceof RPCError && error.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-          const fields = error.fields as undefined | Array<{key?: string; value?: string}>
-          const users = fields?.filter(elem => elem.key === 'usernames')
-          const usernames = users?.map(elem => elem.value ?? '') ?? []
-          C.Router2.navigateUp()
-          C.Router2.navigateAppend({
-            name: 'contactRestricted',
-            params: {source: 'newFolder', usernames},
-          })
-        }
-        errorToActionOrThrow(error, tlfPath)
-      } finally {
-        loadingAdditionalTlfs.delete(tlfPath)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      loadAdditionalTlfAsync(tlfPath, username, loadingAdditionalTlfs, setFsSharedData, errorToActionOrThrow)
+    )
   }
 
   return (

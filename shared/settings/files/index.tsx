@@ -184,6 +184,8 @@ const ThresholdDropdown = (
 
 const FilesSettings = () => {
   const props = useFiles()
+  // unconditional: a hook inside the isMobile branch makes the react compiler bail
+  const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(C.waitingKeyFSSetSyncOnCellular)
   if (isMobile) {
     const {
       onDisableSyncNotifications,
@@ -196,7 +198,6 @@ const FilesSettings = () => {
     const toggleSyncOnCellular = () => {
       setSyncOnCellular(!syncOnCellular)
     }
-    const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(C.waitingKeyFSSetSyncOnCellular)
     return (
       <Kb.Box2
         direction="vertical"
