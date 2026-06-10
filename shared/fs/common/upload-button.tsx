@@ -11,11 +11,15 @@ import {useFsPathItem, useFsUpload} from './hooks'
 
 type OwnProps = {
   path: T.FS.Path
+  // Render a dimmed, inert icon instead of nothing when uploading isn't
+  // allowed, so containers with a fixed layout (iOS header pill) don't resize.
+  showDisabled?: boolean
   style?: Kb.Styles.StylesCrossPlatform
 }
 
 type UploadButtonProps = {
   canUpload: boolean
+  showDisabled?: boolean
   openAndUploadBoth?: () => void
   openAndUploadDirectory?: () => void
   openAndUploadFile?: () => void
@@ -51,7 +55,9 @@ const UploadButton = (props: UploadButtonProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   if (!props.canUpload) {
-    return null
+    return props.showDisabled ? (
+      <Kb.Icon type="iconfont-upload" padding="tiny" color={Kb.Styles.globalColors.black_20} />
+    ) : null
   }
   if (props.openAndUploadBoth) {
     return <Kb.Button small={true} onClick={props.openAndUploadBoth} label="Upload" style={props.style} />
@@ -164,6 +170,7 @@ const Container = (ownProps: OwnProps) => {
     pickAndUploadMixed: isIOS ? pickAndUploadMixed : undefined,
     pickAndUploadPhoto,
     pickAndUploadVideo,
+    showDisabled: ownProps.showDisabled,
     style: ownProps.style,
   }
   return <UploadButton {...props} />

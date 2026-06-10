@@ -3,6 +3,7 @@ import * as FS from '@/constants/fs'
 import * as Kbfs from '../common'
 import * as SimpleScreens from '../simple-screens'
 import NormalPreview from './normal-preview'
+import {MainBanner} from '../nav-header'
 
 type OwnProps = {
   initialLastModifiedTimestamp?: number
@@ -25,10 +26,18 @@ const FilePreviewScreenInner = ({path}: {path: T.FS.Path}) => {
   Kbfs.useFsOnlineStatus()
   Kbfs.useFsTlf(path)
 
-  if (fileContext === FS.emptyFileContext) {
-    return <SimpleScreens.Loading />
-  }
-  return <NormalPreview path={path} onUrlError={onUrlError} />
+  // On mobile the native/custom header no longer hosts the banner, so it lives
+  // at the top of the screen body instead.
+  return (
+    <>
+      {isMobile && <MainBanner />}
+      {fileContext === FS.emptyFileContext ? (
+        <SimpleScreens.Loading />
+      ) : (
+        <NormalPreview path={path} onUrlError={onUrlError} />
+      )}
+    </>
+  )
 }
 
 export default FilePreviewScreen

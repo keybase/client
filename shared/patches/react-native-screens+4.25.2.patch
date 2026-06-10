@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
+index 15c0da5..7ca135b 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
+@@ -282,6 +282,11 @@ - (void)configureBarButtonItem
+   if (@available(iOS 26.0, *)) {
+     if (_barButtonItem != nil) {
+       [_barButtonItem setHidesSharedBackground:_hidesSharedBackground];
++      // KB patch: give custom items a stable per-slot identifier so UIKit
++      // matches them across push/pop transitions and morphs them in place
++      // instead of playing the assemble/expand animation on every screen.
++      _barButtonItem.identifier =
++          _type == RNSScreenStackHeaderSubviewTypeRight ? @"rns-custom-right" : @"rns-custom-left";
+     }
+   }
+ #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
