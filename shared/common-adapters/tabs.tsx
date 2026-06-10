@@ -23,6 +23,7 @@ export type Tab<TitleT extends string> = {
   text?: string // text to show instead of title
   icon?: IconType
   badgeNumber?: number
+  testID?: string // e2e: needed for icon-only tabs that have no tappable text
 }
 
 type Props<TitleT extends string> = {
@@ -58,9 +59,9 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
         <Kb.ClickableBox
           onClick={() => props.onSelect(tab.title)}
           key={tab.title}
+          testID={tab.testID}
           direction="vertical"
           style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle, props.clickableTabStyle])}
-          fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
             {tab.icon ? (
@@ -122,6 +123,13 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.xtiny),
   },
   tabContainer: Styles.platformStyles({
+    // flexGrow (not fullWidth) so tabs share the row: in a bounded row they
+    // distribute evenly, and inside a horizontal ScrollView (team/channel tabs)
+    // they fill the min-100%-width content instead of each claiming 100% (which
+    // pushed all but the first tab off-screen).
+    common: {
+      flexGrow: 1,
+    },
     isElectron: {
       height: 40,
     },

@@ -191,7 +191,7 @@ export default [
     languageOptions: {
       ...config.languageOptions,
       parserOptions: {
-        project: ['./tsconfig.native.json', './tsconfig.desktop.json'],
+        project: ['./tsconfig.native.json', './tsconfig.desktop.json', './tests/e2e/ios-appium/tsconfig.json'],
       },
     },
   })),

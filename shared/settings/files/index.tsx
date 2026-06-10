@@ -5,14 +5,11 @@ import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
-import useFiles from './hooks'
+import useFiles, {allowedNotificationThresholds, defaultNotificationThreshold} from './hooks'
 import * as FS from '@/constants/fs'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 type Props = ReturnType<typeof useFiles>
-
-export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
-export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 // Desktop: inline dropdown row
 const SyncNotificationSetting = (

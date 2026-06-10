@@ -35,46 +35,31 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 **Common pitfall — hidden nav stack elements:** React Navigation keeps prior screens mounted but hidden. `getByTestId(X)` may match 2+ elements (one hidden, one visible), causing Playwright strict-mode failures. Fix: use a selector unique to the destination screen rather than one shared with the source screen. Example: after navigating into a Files subfolder, the root screen's `files-browser` is still in the DOM but hidden — check for the Filter textbox instead, which only exists in subfolder views.
 
-## iOS — Maestro
+## iOS — Appium + WebdriverIO (TypeScript)
 
 | What | Where |
 |------|-------|
-| Flow files | `shared/.maestro/e2e/flows/*.yaml` |
-| Subflows | `shared/.maestro/e2e/subflows/` |
-| Config | `shared/.maestro/e2e/config.yaml` (60 s timeout) |
-| Run all | `yarn test:e2e:ios` |
-| Run branch | `yarn test:e2e:ios:branch` |
+| Flow files | `shared/tests/e2e/ios-appium/flows/*.test.ts` |
+| Helpers | `shared/tests/e2e/ios-appium/helpers/` (elements, navigate, app) |
+| Aggregate spec | `shared/tests/e2e/ios-appium/all.test.ts` (imports all flows → ONE session) |
+| Config | `shared/tests/e2e/ios-appium/wdio.conf.ts` |
+| Run both devices | `KB_SMOKE_USER=<user> yarn test:e2e:ios` (iPhoneTest + iPadTest in PARALLEL; app installed on both) |
+| Run one device | `KB_SMOKE_USER=<user> yarn test:e2e:ios:iphone` / `yarn test:e2e:ios:ipad` (serial runner, shuts down other sims) |
+| Report | `yarn test:e2e:ios:report` (reads ONLY `tests/results/ios-appium-debug-{iphone,ipad}`; each run overwrites its device's dir; per-image timestamps show when each device last ran) |
 
-**iOS tab structure:**
-- Direct tabs: **People**, **Teams**
-- Via Teams first: **Chat**, **Files** (both also appear in More menu — tap Teams first to avoid ambiguity)
-- **More** tab contains: Crypto, Devices, Git, Settings, and settings sub-pages
+Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testID>` (testID → iOS accessibilityIdentifier). Helpers: `el/els/waitForTestID/countTestID/byText/tab` (elements), `escapeToTabs/goBack/navigateTo*/scrollDownToText` (navigate). `escapeToTabs` runs before every test (resets to the tab root).
 
-**Subflow — escape-to-tabs:** Taps backButton up to 4 times to reset any open screen back to the tab bar. Always run at the start of each flow.
+**Gotchas (hard-won — read before adding flows):**
+- **Native tab bar:** tap tabs by **label** (`tab('People')` → `~People`), NOT `nav-tab-*` testIDs — those don't reach the native `UITabBar`.
+- **Container testIDs** (a flex `Kb.Box2` wrapping a list) report `visible="false"` to XCUITest even when on screen → use `waitForTestID` (it uses `waitForExist`, presence), never `toBeDisplayed`.
+- **testIDs must be on the MOBILE-rendered element.** Many components branch on `isMobile`/`.desktop`/`.native`; a desktop-only testID is invisible on iOS (see [[project_e2e_testid_mobile_branch]]). Put the testID on the **clickable/leaf** element (e.g. `Kb.ListItem`'s `testID`, a `ClickableBox`), not a non-clickable wrapping `Box2` — wdio `.click()` no-ops on a non-accessible container.
+- **`byText` uses CONTAINS** — tappable rows have merged accessibility labels (e.g. `", Crypto"`), so exact match fails.
+- **`Kb.Tabs`** supports a per-tab `testID` (needed for icon-only tabs like the team Settings gear). The app remembers the last-selected team tab → select tabs by testID, don't assume the default.
+- **Modals:** dismiss via Done/Close/Cancel (`escapeToTabs` does this first, before back buttons — a modal's back button is a no-op that loops).
+- **HMR applies testID/component changes** to the running sim app — no manual reload needed when adding testIDs.
+- Wait for a **real data row** (not just the list container) before asserting/screenshotting, so shots show loaded content.
 
-**Maestro command patterns:**
-```yaml
-appId: keybase.ios
----
-- runFlow: ../subflows/escape-to-tabs.yaml
-- tapOn:
-    text: "Teams"           # navigate past ambiguous tabs first
-- tapOn:
-    text: "Files"
-- extendedWaitUntil:
-    visible:
-      id: "files-browser"   # testID value (not the constant name)
-    timeout: 3000
-- takeScreenshot: tests/results/ios-debug/flow-name-step
-- runFlow:
-    when:
-      visible:
-        id: "some-id"       # conditional block — skip gracefully if no data
-    commands:
-      - tapOn:
-          id: "some-id"
-          index: 0
-```
+**iOS tab structure:** People & Teams are direct tabs; Chat & Files have their own nav helpers; Crypto/Devices/Git/Settings live under the **More** tab (`navigateToMore`).
 
 ## Plan
 

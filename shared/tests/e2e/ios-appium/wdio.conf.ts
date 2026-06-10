@@ -1,0 +1,76 @@
+import * as fs from 'fs'
+import * as path from 'path'
+import {homedir} from 'os'
+import {iosCapabilities, udidForName, requireSmokeUser} from './helpers/app'
+import {escapeToTabs} from './helpers/navigate'
+
+// The xcuitest driver is installed under ~/.appium; the appium service spawns
+// its own appium process, so point it at that home or it won't find the driver.
+process.env['APPIUM_HOME'] ||= `${homedir()}/.appium`
+
+requireSmokeUser()
+const deviceName = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
+// Where per-test artifacts (screenshot + status json) land for the HTML report.
+// Relative to shared/ (the yarn cwd). Defaults to the fixed per-device dir
+// generate-appium-report.mts reads, keyed off the device name, so even a direct
+// `wdio run` lands its results in the right report slot.
+const debugDir =
+  process.env['KB_IOS_APPIUM_DEBUG_DIR'] ??
+  (/pad/i.test(deviceName) ? 'tests/results/ios-appium-debug-ipad' : 'tests/results/ios-appium-debug-iphone')
+const udid = process.env['KB_IOS_UDID'] ?? udidForName(deviceName)
+// Parameterized so the parallel runner can give each device its own appium
+// server + port (run-ios-appium-parallel.sh).
+const port = Number(process.env['KB_APPIUM_PORT'] ?? 4723)
+// Parallel runs give each device a distinct appium port; derive a matching WDA
+// port (8100 + offset) so concurrent sims don't both grab 8100. Undefined when
+// running on the default port (serial), keeping single-device runs on defaults.
+const wdaLocalPort = port === 4723 ? undefined : 8100 + (port - 4723)
+// 'LANDSCAPE' | 'PORTRAIT' — the runner sets LANDSCAPE for iPad.
+const orientation = process.env['KB_IOS_ORIENTATION']
+
+export const config: WebdriverIO.Config = {
+  runner: 'local',
+  port,
+  path: '/',
+  // One aggregate file → one session for the whole suite (see all.test.ts).
+  specs: ['./all.test.ts'],
+  maxInstances: 1,
+  capabilities: [iosCapabilities(udid, wdaLocalPort)],
+  logLevel: 'warn',
+  framework: 'mocha',
+  // 120s: the tablet settings-subpages flow can run long; phone tests finish well
+  // under this. retries: 1 — the one-session suite accumulates load over 16 flows
+  // (KBFS/list loads, transient nav), so a flow can intermittently time out; a
+  // single retry (with a fresh escapeToTabs reset) absorbs those without masking
+  // real failures (a real break fails both attempts).
+  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 1},
+  reporters: ['spec'],
+  services: [['appium', {args: {basePath: '/', port}}]],
+  // Set device orientation once at session start (e.g. iPad in landscape).
+  before: async () => {
+    if (orientation) await browser.setOrientation(orientation as 'LANDSCAPE' | 'PORTRAIT').catch(() => {})
+  },
+  // The app restores its last screen on launch and screens leak between specs,
+  // so reset to the root tab bar before each test by climbing out of any stack.
+  // (Cheaper + more reliable than a cold relaunch, which also restores state.)
+  beforeTest: async () => {
+    await escapeToTabs()
+  },
+  // Emit a screenshot + status json per test so generate-appium-report.mts can
+  // build the unified HTML report (one card per test).
+  afterTest: async (test, _context, result: {passed: boolean; duration: number; error?: Error}) => {
+    fs.mkdirSync(debugDir, {recursive: true})
+    const slug = `${test.parent} ${test.title}`.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
+    const screenshotPath = path.join(debugDir, `${slug}.png`)
+    await browser.saveScreenshot(screenshotPath).catch(() => {})
+    fs.writeFileSync(
+      path.join(debugDir, `${slug}.json`),
+      JSON.stringify({
+        label: `${test.parent} › ${test.title}`,
+        passed: result.passed,
+        durationMs: result.duration,
+        error: result.error?.message ?? null,
+      })
+    )
+  },
+}

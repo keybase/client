@@ -17,6 +17,7 @@
     "./common-adapters/icon.constants-gen.native.tsx",
     "./common-adapters/icon.constants-gen.shared.tsx",
     "./chat/conversation/normal/container.test.tsx",
-    "./common-adapters/markdown/index.test.tsx"
+    "./common-adapters/markdown/index.test.tsx",
+    "./tests/e2e/ios-appium"
   ]
 }

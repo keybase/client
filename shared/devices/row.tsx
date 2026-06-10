@@ -27,10 +27,11 @@ function DeviceRow(ownProps: OwnProps) {
   const isRevoked = !!device.revokedByName
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.DEVICES_ROW}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.ListItem
         type="Small"
         firstItem={firstItem}
+        testID={TestIDs.DEVICES_ROW}
         onClick={showExistingDevicePage}
         icon={
           <DeviceIcon

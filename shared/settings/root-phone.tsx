@@ -52,6 +52,7 @@ type Item = {
   onClick: () => void
   iconComponent?: (a: object) => React.ReactElement
   subText?: string
+  testID?: string
   textColor?: string
 }
 type Section = {title: string; data: ReadonlyArray<Item>}
@@ -127,6 +128,7 @@ function SettingsNav() {
           onClick: () => {
             navigateAppend({name: Settings.settingsChatTab, params: {}})
           },
+          testID: TestIDs.SETTINGS_ROW_CHAT,
           text: 'Chat',
         },
         {
@@ -145,6 +147,7 @@ function SettingsNav() {
           onClick: () => {
             navigateAppend({name: Settings.settingsFsTab, params: {}})
           },
+          testID: TestIDs.SETTINGS_ROW_FILES,
           text: 'Files',
         },
         {

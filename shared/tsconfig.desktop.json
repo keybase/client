@@ -22,6 +22,7 @@
     "./common-adapters/icon.constants-gen.native.tsx",
     "./common-adapters/icon.constants-gen.shared.tsx",
     "./globals.native.d.ts",
-    "./**/*.native.d.ts"
+    "./**/*.native.d.ts",
+    "./tests/e2e/ios-appium"
   ]
 }
