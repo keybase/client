@@ -16,7 +16,6 @@ import {
 import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type {DebouncedFunc} from 'lodash'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
@@ -113,7 +112,9 @@ const getExplodingModeFromGregorItems = (
   const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
   const item = explodingItems.find(i => i.item.category === category)
   if (!item) {
-    return undefined
+    // Other conversations have exploding modes but this one's category is absent,
+    // meaning it was dismissed: the mode is off.
+    return 0
   }
   const secondsString = uint8ArrayToString(item.item.body)
   const seconds = parseInt(secondsString, 10)
@@ -280,7 +281,7 @@ type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   reason: string
   scrollDirection?: ScrollDirection
 }
-type LoadMoreMessages = DebouncedFunc<(p: LoadMoreMessagesParams) => void>
+type LoadMoreMessages = ((p: LoadMoreMessagesParams) => void) & {cancel: () => void}
 type LoadMessagesCentered = (
   messageID: T.Chat.MessageID,
   highlightMode: T.Chat.CenterOrdinalHighlightMode,
@@ -310,6 +311,7 @@ type ConversationThreadActions = {
     centered: boolean
     disableActiveMarkRead?: boolean
     enableActiveMarkRead: boolean
+    forceContainsLatestCalc?: boolean
     messages: ReadonlyArray<T.Chat.Message>
     moreToLoad: boolean
     scrollDirection: ScrollDirection
@@ -600,6 +602,9 @@ const applyIncomingMessageToThread = (
         markAsRead: activelyLookingAtThread,
       })
     } else {
+      if (snapshot.moreToLoadForward) {
+        return
+      }
       actions.addMessages([message], {liveUpdate: true, markAsRead: activelyLookingAtThread})
     }
   } else {
@@ -707,6 +712,7 @@ const loadConversationThreadMessages = (
   const {
     allowMarkAsRead = true,
     reason,
+    forceContainsLatestCalc,
     messageIDControl,
     knownRemotes,
     centeredMessageID,
@@ -807,6 +813,7 @@ const loadConversationThreadMessages = (
         centered: !!centeredMessageID,
         disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
         enableActiveMarkRead: canMarkReadForThreadWindow,
+        forceContainsLatestCalc,
         messages,
         moreToLoad,
         scrollDirection,
@@ -1010,6 +1017,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       centered: boolean
       disableActiveMarkRead?: boolean
       enableActiveMarkRead: boolean
+      forceContainsLatestCalc?: boolean
       messages: ReadonlyArray<T.Chat.Message>
       moreToLoad: boolean
       scrollDirection: ScrollDirection
@@ -1017,6 +1025,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }) => {
       updateThreadState(s => {
         s.loaded = true
+        if (p.messages.length) {
+          addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
+          clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
+        }
         switch (p.scrollDirection) {
           case 'forward':
             s.moreToLoadForward = p.moreToLoad
@@ -1024,16 +1036,27 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
           case 'back':
             s.moreToLoadBack = p.moreToLoad
             break
-          case 'none':
+          case 'none': {
             s.moreToLoadBack = p.moreToLoad
-            s.moreToLoadForward = p.centered
+            // A centered window may already include the latest message; leaving
+            // moreToLoadForward true would drop live incoming messages and block mark-read.
+            let containsLatest = false
+            if (p.centered && p.forceContainsLatestCalc) {
+              const {maxVisibleMsgID} = s.meta
+              const ordinal = findLast(s.messageOrdinals ?? [], o => !!s.messageMap.get(o)?.id)
+              const message = ordinal ? s.messageMap.get(ordinal) : undefined
+              containsLatest = !!message?.id && maxVisibleMsgID > 0 && message.id >= maxVisibleMsgID
+            }
+            s.moreToLoadForward = p.centered && !containsLatest
             break
-        }
-        if (p.messages.length) {
-          addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
-          clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
+          }
         }
       })
+      if (p.scrollDirection === 'forward' && !p.moreToLoad) {
+        // User scrolled all the way to the latest message; release any mark-read
+        // block left from jumping to a highlighted message.
+        markReadBlockedRef.current = false
+      }
       if (p.disableActiveMarkRead) {
         activeMarkReadEnabledRef.current = false
       } else if (p.enableActiveMarkRead && !markReadBlockedRef.current) {
@@ -1170,32 +1193,52 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         m.submitState = 'deleting'
       }
     })
+    const revertDeleting = () => {
+      updateThreadState(s => {
+        const m = s.messageMap.get(ordinal)
+        if (m?.type === 'text' && m.submitState === 'deleting') {
+          m.submitState = undefined
+        }
+      })
+    }
 
     const f = async () => {
       const snapshot = getSnapshot()
       const message = snapshot.messageMap.get(ordinal)
       if (!message) {
         logger.warn('Deleting invalid message')
+        revertDeleting()
         return
       }
       if (snapshot.meta.conversationIDKey !== id) {
         logger.warn('Deleting message w/ no meta')
+        revertDeleting()
         return
       }
-      if (!message.id) {
-        if (message.outboxID) {
-          await cancelConversationPost(message.outboxID)
-          deleteMessages({ordinals: [message.ordinal]})
-        } else {
-          logger.warn('Delete of no message id and no outboxid')
+      try {
+        if (!message.id) {
+          if (message.outboxID) {
+            await cancelConversationPost(message.outboxID)
+            deleteMessages({ordinals: [message.ordinal]})
+          } else {
+            logger.warn('Delete of no message id and no outboxid')
+            revertDeleting()
+          }
+          return
         }
-        return
+        await postConversationDelete({
+          conversationIDKey: id,
+          messageID: message.id,
+          tlfName: snapshot.meta.tlfname,
+        })
+      } catch (error) {
+        revertDeleting()
+        if (error instanceof RPCError) {
+          logger.warn(`messageDelete: failed to delete: ${error.message}`)
+        } else {
+          throw error
+        }
       }
-      await postConversationDelete({
-        conversationIDKey: id,
-        messageID: message.id,
-        tlfName: snapshot.meta.tlfname,
-      })
     }
     ignorePromise(f())
   })
@@ -1292,6 +1335,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       const {type, exploded, id: messageID} = message
       if ((type === 'text' || type === 'attachment') && exploded) {
         logger.warn(`toggleMessageReaction: message is exploded`)
+        return
+      }
+      if (!messageID) {
+        logger.warn(`toggleMessageReaction: message has no id yet`)
         return
       }
       const username = useCurrentUserState.getState().username
@@ -1479,12 +1526,31 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   )
   const [threadActions] = React.useState<ConversationThreadActions>(() => {
     const threadActionsHolder: {current?: ConversationThreadActions} = {}
-    const loadMoreMessages: LoadMoreMessages = throttle((p: LoadMoreMessagesParams) => {
+    const loadMoreMessagesImpl = (p: LoadMoreMessagesParams) => {
       const actions = threadActionsHolder.current
       if (actions) {
         loadConversationThreadMessages(id, p, actions)
       }
-    }, 500)
+    }
+    const throttledLoadMoreMessages = throttle(loadMoreMessagesImpl, 500)
+    // The throttle keeps only the last trailing call, so a centered or jump-to-recent
+    // load issued between two other loads would be silently dropped — after
+    // loadMessagesCentered already cleared the thread. Run those immediately instead.
+    const loadMoreMessages: LoadMoreMessages = Object.assign(
+      (p: LoadMoreMessagesParams) => {
+        if (p.centeredMessageID || p.messageIDControl || p.reason === 'jump to recent') {
+          throttledLoadMoreMessages.cancel()
+          loadMoreMessagesImpl(p)
+        } else {
+          throttledLoadMoreMessages(p)
+        }
+      },
+      {
+        cancel: () => {
+          throttledLoadMoreMessages.cancel()
+        },
+      }
+    )
     const threadActions: ConversationThreadActions = {
       addMessages,
       addOptimisticReaction,
@@ -1732,9 +1798,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
     const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
     if (!requestInfo) {
-      const errMsg = `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-      logger.error(errMsg)
-      throw new Error(errMsg)
+      logger.error(
+        `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
+      )
+      return
     }
     threadActions.receiveRequestInfo(T.Chat.numberToMessageID(msgID), requestInfo)
   })
@@ -1745,9 +1812,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
     const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
     if (!paymentInfo) {
-      const errMsg = `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-      logger.error(errMsg)
-      throw new Error(errMsg)
+      logger.error(
+        `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
+      )
+      return
     }
     threadActions.receivePaymentInfo(T.Chat.numberToMessageID(msgID), paymentInfo)
   })

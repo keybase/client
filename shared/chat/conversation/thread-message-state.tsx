@@ -487,7 +487,7 @@ export const updateAttachmentDownloadProgressInThreadState = (
   bytesComplete: number,
   bytesTotal: number
 ) => {
-  const ratio = bytesComplete / bytesTotal
+  const ratio = bytesTotal > 0 ? bytesComplete / bytesTotal : 0
   const ordinal = maybeGetOrdinalByMessageID(state, T.Chat.numberToMessageID(msgID))
   if (!ordinal) return false
   const m = state.messageMap.get(ordinal)

@@ -75,6 +75,8 @@ export const metaReceivedError = (
     logger.info(
       `metaReceivedError: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
     )
+    // Allow a later unbox to retry; a row left 'requesting' is never re-requested.
+    setInboxRowTrustedState([conversationIDKey], 'untrusted')
     return
   }
   logger.info(
@@ -451,6 +453,9 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
       if (error instanceof RPCError) {
         logger.info(`unboxRows: failed ${error.desc}`)
       }
+      // No per-conversation results arrived; leaving rows 'requesting' would make
+      // every future non-forced unbox skip them permanently.
+      setInboxRowTrustedState(conversationIDKeys, 'untrusted')
     } finally {
       conversationIDKeys.forEach(id => inFlightUnboxRows.delete(id))
       const rerunIDs = conversationIDKeys.filter(id => {
