@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
+import {ZoomedImage} from './common'
 import {useConversationCenterActions} from './center-context'
 import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
 import logger from '@/logger'
@@ -89,13 +90,7 @@ const PinnedMessage = function PinnedMessage() {
   const pin = (
     <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container}>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
-      {!!imageURL && (
-        <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
-          <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
-            <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-          </Kb.Box2>
-        </Kb.Box2>
-      )}
+      {!!imageURL && <ZoomedImage src={imageURL} sizing={sizing} />}
       <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
           <Kb.Text type="BodyTinyBold" style={styles.author}>
@@ -191,10 +186,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
+        ...Kb.Styles.bottomDivider(),
         backgroundColor: Kb.Styles.globalColors.white,
-        borderBottomWidth: 1,
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderStyle: 'solid',
       },
       label: {color: Kb.Styles.globalColors.blueDark},
       popup: Kb.Styles.platformStyles({

@@ -22,34 +22,19 @@ const ValidatedStatus = () => {
   ) : null
 }
 
-const getBkgColor = (status: T.RPCChat.UIChatThreadStatusTyp) => {
-  switch (status) {
-    case T.RPCChat.UIChatThreadStatusTyp.validated:
-      return 'green'
-    default:
-      return 'grey'
-  }
-}
-
 const ThreadLoadStatus = () => {
   const status = useThreadLoadStatus()
   const conversationIDKey = useConversationThreadID()
 
   logger.info(`ThreadLoadStatus: convID: ${conversationIDKey} status: ${status}`)
-  if (status === T.RPCChat.UIChatThreadStatusTyp.none) {
-    return null
-  }
   switch (status) {
     case T.RPCChat.UIChatThreadStatusTyp.server:
-      return (
-        <Kb.Banner color={getBkgColor(status)} small={true} style={styles.banner}>
-          Syncing messages with server...
-        </Kb.Banner>
-      )
     case T.RPCChat.UIChatThreadStatusTyp.validating:
       return (
-        <Kb.Banner color={getBkgColor(status)} small={true} style={styles.banner}>
-          Validating sender signing keys...
+        <Kb.Banner color="grey" small={true} style={styles.banner}>
+          {status === T.RPCChat.UIChatThreadStatusTyp.server
+            ? 'Syncing messages with server...'
+            : 'Validating sender signing keys...'}
         </Kb.Banner>
       )
     case T.RPCChat.UIChatThreadStatusTyp.validated:

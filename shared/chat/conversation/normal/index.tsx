@@ -78,36 +78,37 @@ const DesktopConversation = function DesktopConversation() {
   Kb.useHotKey('mod+f', onToggleThreadSearch)
 
   return (
-    <div className="conversation" style={desktopStyles.container} onPaste={onPaste} key={conversationIDKey}>
-      <Kb.DragAndDrop
-        onAttach={cannotWrite ? undefined : onAttach}
-        fullHeight={true}
-        fullWidth={true}
-        rejectReason={dragAndDropRejectReason}
+    <PerfProfiler id="Conversation">
+      <div
+        className="conversation"
+        style={desktopStyles.container}
+        onPaste={onPaste}
+        key={conversationIDKey}
       >
-        {threadLoadedOffline && <Offline />}
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
-          <ListArea />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.overlayTop}>
-            <ThreadLoadStatus />
-            {!showThreadSearch && <PinnedMessage />}
+        <Kb.DragAndDrop
+          onAttach={cannotWrite ? undefined : onAttach}
+          fullHeight={true}
+          fullWidth={true}
+          rejectReason={dragAndDropRejectReason}
+        >
+          {threadLoadedOffline && <Offline />}
+          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
+            <ListArea />
+            <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.overlayTop}>
+              <ThreadLoadStatus />
+              {!showThreadSearch && <PinnedMessage />}
+            </Kb.Box2>
+            {showThreadSearch && <ThreadSearch style={desktopStyles.threadSearchStyle} />}
+            <LoadingLine />
           </Kb.Box2>
-          {showThreadSearch && <ThreadSearch style={desktopStyles.threadSearchStyle} />}
-          <LoadingLine />
-        </Kb.Box2>
-        <InvitationToBlock />
-        <Banner />
-        <InputArea />
-      </Kb.DragAndDrop>
-    </div>
+          <InvitationToBlock />
+          <Banner />
+          <InputArea />
+        </Kb.DragAndDrop>
+      </div>
+    </PerfProfiler>
   )
 }
-
-const DesktopConversationWithProfiler = () => (
-  <PerfProfiler id="Conversation">
-    <DesktopConversation />
-  </PerfProfiler>
-)
 
 const NativeConversation = function NativeConversation() {
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
@@ -151,7 +152,7 @@ const NativeConversation = function NativeConversation() {
           fullWidth={true}
           key={conversationIDKey}
           relative={true}
-          style={styles.listContainer}
+          style={styles.whiteBackground}
         >
           <ThreadLoadStatus />
           <PinnedMessage />
@@ -159,7 +160,7 @@ const NativeConversation = function NativeConversation() {
           <LoadingLine />
         </Kb.Box2>
         <KeyboardStickyView offset={stickyOffset}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.whiteBackground}>
             <InvitationToBlock />
             <Banner />
             <MaxInputAreaContext value={maxInputArea}>
@@ -181,9 +182,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-      offline: {
-        padding: Kb.Styles.globalMargins.xxtiny,
-      },
       overlayTop: {
         left: 0,
         position: 'absolute' as const,
@@ -199,12 +197,9 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      inputContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-      },
-      listContainer: {backgroundColor: Kb.Styles.globalColors.white},
       offline: {padding: Kb.Styles.globalMargins.xxtiny},
+      whiteBackground: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
 )
 
-export default isMobile ? NativeConversation : DesktopConversationWithProfiler
+export default isMobile ? NativeConversation : DesktopConversation
