@@ -213,7 +213,6 @@ type gregorHandler struct {
 	sessionID         gregor1.SessionID
 	firstConnectMu    sync.Mutex
 	firstConnect      bool
-	forceSessionCheck bool
 
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
@@ -243,7 +242,6 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		pushStateFilter:   func(m gregor.Message) bool { return true },
 		badger:            nil,
 		broadcastCh:       make(chan gregor1.Message, 10000),
-		forceSessionCheck: false,
 		connectHappened:   make(chan struct{}),
 		replayCh:          make(chan replayThreadArg, 10),
 		pushStateCh:       make(chan struct{}, 100),
@@ -822,12 +820,14 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt
-		if _, ok := err.(libkb.BadSessionError); ok {
+		if errors.As(err, &libkb.BadSessionError{}) {
 			g.chatLog.Debug(ctx, "bad session from SyncAll(): forcing session check on next attempt")
-			g.forceSessionCheck = true
 			nist.MarkFailure()
 		}
-		return fmt.Errorf("error running SyncAll: %s", err)
+		// Wrap with %w so the BadSessionError stays in the chain: ShouldRetryOnConnect
+		// inspects this error and must be able to see a bad session to avoid an
+		// immediate reconnect/auth loop on an unusable token.
+		return fmt.Errorf("error running SyncAll: %w", err)
 	}
 
 	// Use the client parameter instead of conn.GetClient(), since we can get stuck
@@ -893,8 +893,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	// No longer first connect if we are now connected
 	g.chatLog.Debug(ctx, "setting first connect to false")
 	g.setFirstConnect(false)
-	// On successful login we can reset this guy to not force a check
-	g.forceSessionCheck = false
 	g.chatLog.Debug(ctx, "OnConnect complete")
 
 	return nil
@@ -953,7 +951,7 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 		g.chatLog.Debug(ctx, "duplicate connection error, not retrying")
 		return false
 	}
-	if _, ok := err.(libkb.BadSessionError); ok {
+	if errors.As(err, &libkb.BadSessionError{}) {
 		g.chatLog.Debug(ctx, "bad session error, not retrying")
 		return false
 	}
@@ -1404,8 +1402,7 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *g
 		*auth, err = ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
 		if err != nil {
 			g.chatLog.Debug(ctx, "auth error: %s", err)
-			g.forceSessionCheck = true
-			nist.DidFail()
+			nist.MarkFailure()
 			return err
 		}
 	} else {
