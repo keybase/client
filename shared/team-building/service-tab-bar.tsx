@@ -273,7 +273,7 @@ const MoreNetworksButton = (props: {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1}>
+      <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={desktopStyles.serviceIconFlex}>
         <Kb.Box2
           direction="vertical"
           style={desktopStyles.moreNetworks1}
@@ -361,7 +361,7 @@ const ServiceTabBarDesktop = (props: Props) => {
   const [lastSelectedUnlockedService, setLastSelectedUnlockedService] = React.useState<
     T.TB.ServiceIdWithContact | undefined
   >()
-  const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
+  const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 4} = props
   const onChangeService = (service: T.TB.ServiceIdWithContact) => {
     if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
       setLastSelectedUnlockedService(service)
