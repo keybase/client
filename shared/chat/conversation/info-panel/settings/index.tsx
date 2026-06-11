@@ -79,13 +79,13 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         fullWidth={true}
         alignItems="flex-start"
         padding="small"
-        gap="tiny"
+        gap="small"
       >
         {isPreview ? (
-          <Kb.Box2 direction="vertical" fullWidth={true}>
+          <>
             <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
-            <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
-          </Kb.Box2>
+            <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.button} />
+          </>
         ) : (
           <Notifications conversationIDKey={conversationIDKey} />
         )}
@@ -95,47 +95,33 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             mode="Secondary"
             label="Leave channel"
             onClick={() => C.Router2.leaveConversation(conversationIDKey)}
-            style={styles.smallButton}
+            style={styles.button}
             waiting={spinnerForLeave}
           >
             <Kb.Icon type="iconfont-leave" sizeType="Small" color={Kb.Styles.globalColors.blue} />
           </Kb.Button>
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Button
+          type="Default"
+          mode="Secondary"
+          label="Backup channel"
+          onClick={onArchive}
+          style={styles.button}
+        >
+          <Kb.Icon type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
+        </Kb.Button>
+        {entityType !== 'channel' && (
           <Kb.Button
             type="Default"
             mode="Secondary"
-            label="Backup channel"
-            onClick={onArchive}
+            label={ignored ? 'Unhide this conversation' : 'Hide this conversation'}
+            onClick={ignored ? onUnhideConv : onHideConv}
+            style={styles.button}
           >
-            <Kb.Icon type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
+            <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
           </Kb.Button>
-        </Kb.Box2>
-        {entityType !== 'channel' &&
-          (ignored ? (
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Button
-                type="Default"
-                mode="Secondary"
-                label="Unhide this conversation"
-                onClick={onUnhideConv}
-              >
-                <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
-              </Kb.Button>
-            </Kb.Box2>
-          ) : (
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Button
-                type="Default"
-                mode="Secondary"
-                label="Hide this conversation"
-                onClick={onHideConv}
-              >
-                <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
-              </Kb.Button>
-            </Kb.Box2>
-          ))}
+        )}
         <RetentionPicker
           conversationIDKey={
             ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : Chat.noConversationIDKey
@@ -149,7 +135,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           <MinWriterRole conversationIDKey={conversationIDKey} />
         )}
         {showDangerZone ? (
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <>
             <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
             {canDeleteHistory && (
               <Kb.Button
@@ -157,6 +143,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Secondary"
                 label="Clear entire conversation"
                 onClick={onShowClearConversationDialog}
+                style={styles.button}
               />
             )}
             {entityType === 'adhoc' && (
@@ -165,11 +152,12 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Primary"
                 label="Block"
                 onClick={onShowBlockConversationDialog}
+                style={styles.button}
               >
                 <Kb.Icon type="iconfont-remove" sizeType="Small" color={Kb.Styles.globalColors.whiteOrWhite} />
               </Kb.Button>
             )}
-          </Kb.Box2>
+          </>
         ) : null}
       </Kb.Box2>
     </Kb.ScrollView>
@@ -179,20 +167,12 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      buttonStyle: {
-        alignSelf: 'flex-start',
-        marginBottom: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.small,
-      },
-      retentionDropdownStyle: Kb.Styles.platformStyles({
-        isElectron: {
-          marginRight: 45 - 16,
-          width: 'auto',
-        },
-        isMobile: {width: '100%'},
-      }),
-      smallButton: {
+      button: {
         alignSelf: 'center',
+      },
+      retentionDropdownStyle: {
+        marginBottom: 0,
+        width: '100%',
       },
     }) as const
 )

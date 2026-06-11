@@ -162,8 +162,9 @@ const RetentionPicker = (p: Props) => {
   return (
     <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
       {popup}
-      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.heading} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" style={styles.heading} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
+        {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
       </Kb.Box2>
       <Kb.ClickableBox
         onClick={showPopup}
@@ -184,7 +185,6 @@ const RetentionPicker = (p: Props) => {
         </Kb.Box2>
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
-      {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
     </Kb.Box2>
   )
 }
@@ -247,17 +247,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 220,
         },
       }),
-      saveState: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          ...Kb.Styles.centered(),
-          height: 17,
-          marginTop: Kb.Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          height: Kb.Styles.globalMargins.medium,
-        },
-      }),
+      saveState: {height: 17},
     }) as const
 )
 

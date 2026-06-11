@@ -86,18 +86,18 @@ const MinWriterRole = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
     title: upperFirst(role),
   }))
 
+  const saveIndicatorStyle = Kb.Styles.collapseStyles([
+    styles.saveIndicator,
+    saveError ? styles.hidden : null,
+  ])
   return (
     <Kb.Box2 direction="vertical" gap={canSetMinWriterRole ? 'tiny' : 'xxtiny'} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
         <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
+        {canSetMinWriterRole && <Kb.SaveIndicator saving={saving} style={saveIndicatorStyle} />}
       </Kb.Box2>
       {canSetMinWriterRole ? (
-        <Dropdown
-          minWriterRole={selectedRole}
-          items={items}
-          saving={saving}
-          hasSaveError={!!saveError}
-        />
+        <Dropdown minWriterRole={selectedRole} items={items} />
       ) : (
         <Display minWriterRole={minWriterRole} />
       )}
@@ -113,12 +113,10 @@ const MinWriterRole = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
 type DropdownProps = {
   minWriterRole: T.Teams.TeamRoleType
   items: Kb.MenuItems
-  saving: boolean
-  hasSaveError: boolean
 }
 
 const Dropdown = (p: DropdownProps) => {
-  const {hasSaveError, items, minWriterRole, saving} = p
+  const {items, minWriterRole} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
@@ -134,10 +132,6 @@ const Dropdown = (p: DropdownProps) => {
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  const saveIndicatorStyle = Kb.Styles.collapseStyles([
-    styles.saveIndicator,
-    hasSaveError ? styles.hidden : null,
-  ])
   return (
     <>
       <Kb.ClickableBox
@@ -153,7 +147,6 @@ const Dropdown = (p: DropdownProps) => {
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
       </Kb.ClickableBox>
       {popup}
-      <Kb.SaveIndicator saving={saving} style={saveIndicatorStyle} />
     </>
   )
 }
@@ -168,33 +161,17 @@ const Display = ({minWriterRole}: {minWriterRole: T.Teams.TeamRoleType}) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      dropdown: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
-          minWidth: 220,
-          paddingRight: Kb.Styles.globalMargins.small,
-        },
-        isElectron: {
-          marginRight: 45 - 16,
-          width: 'auto',
-        },
-      }),
+      dropdown: {
+        ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
+        paddingRight: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
       hidden: {display: 'none'},
       label: {
         minHeight: isMobile ? 40 : 32,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },
-      saveIndicator: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          ...Kb.Styles.centered(),
-          height: 17,
-          marginTop: Kb.Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          height: Kb.Styles.globalMargins.medium,
-        },
-      }),
+      saveIndicator: {height: 17},
     }) as const
 )
 
