@@ -683,7 +683,7 @@ const InstallBotPopup = (props: Props) => {
         {bodyContent}
       </Kb.Box2>
       {enabled && (!readOnly || showReviewButton) ? (
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ModalFooter>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
             <Kb.ButtonBar direction="column">
               {doneButton}
@@ -707,7 +707,7 @@ const InstallBotPopup = (props: Props) => {
               </Kb.Text>
             )}
           </Kb.Box2>
-        </Kb.Box2>
+        </Kb.ModalFooter>
       ) : null}
     </>
   )
@@ -832,15 +832,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   dropdownButton: {
     padding: Kb.Styles.globalMargins.tiny,
   },
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
   outerContainer: Kb.Styles.platformStyles({
     common: {
       minHeight: 0,

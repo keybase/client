@@ -484,14 +484,12 @@ const BlockModal = (ownProps: OwnProps) => {
               )
         }
       />
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!isMobile && (
-              <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />
-            )}
-            <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
-          </Kb.ButtonBar>
-      </Kb.Box2>
+      <Kb.ModalFooter>
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          {!isMobile && <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />}
+          <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
+        </Kb.ButtonBar>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -530,15 +528,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       ...Kb.Styles.size(48),
-    },
-  }),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
     },
   }),
   radioButton: {marginLeft: Kb.Styles.globalMargins.large},

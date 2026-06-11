@@ -72,11 +72,11 @@ export const ContactRestricted = (props: Props) => {
           {description}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
           <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -94,15 +94,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium),
       flex: 1,
-    },
-  }),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
     },
   }),
   text: {

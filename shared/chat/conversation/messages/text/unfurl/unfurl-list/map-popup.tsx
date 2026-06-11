@@ -43,7 +43,7 @@ const UnfurlMapPopupInner = (props: Props) => {
   return (
     <>
       <LocationMap mapSrc={mapSrc} height={height} width={width} />
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
           <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
           {isAuthor && isLiveLocation && (
@@ -56,7 +56,7 @@ const UnfurlMapPopupInner = (props: Props) => {
             />
           )}
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -64,17 +64,5 @@ const UnfurlMapPopupInner = (props: Props) => {
 const UnfurlMapPopup = (props: Props) => {
   return <UnfurlMapPopupInner {...props} />
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
-}))
 
 export default UnfurlMapPopup
