@@ -293,7 +293,7 @@ const AddToTeam = (ownProps: OwnProps) => {
           </FloatingRolePicker>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
           {!isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
           <Kb.WaitingButton
@@ -305,7 +305,7 @@ const AddToTeam = (ownProps: OwnProps) => {
             waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
           />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -409,15 +409,6 @@ const styles = Kb.Styles.styleSheetCreate(
       teamNameDisabled: {color: Kb.Styles.globalColors.black_50},
       teamNameEnabled: {color: Kb.Styles.globalColors.black},
       teamRowAvatar: {marginRight: Kb.Styles.globalMargins.tiny},
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
       teamRow: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),

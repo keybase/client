@@ -250,11 +250,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
         <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
       </Kb.Box2>
-      {footer ? (
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          {footer.content}
-        </Kb.Box2>
-      ) : null}
+      {footer ? <Kb.ModalFooter>{footer.content}</Kb.ModalFooter> : null}
     </>
   )
 }
@@ -332,15 +328,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   footerIcon: {
     marginRight: Kb.Styles.globalMargins.tiny,
   },
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))
 
 const incomingShareTypeToString = (
