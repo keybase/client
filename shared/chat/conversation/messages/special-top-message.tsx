@@ -12,7 +12,6 @@ import {
   useConversationThreadID,
   useConversationThreadSelector,
 } from '../thread-context'
-import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -178,8 +177,8 @@ function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box2>
       )}
-      {!isMobile || usingFlashList ? null : (
-        // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
+      {!isMobile ? null : (
+        // special case here with the sep. The flatlist inverts the leading-trailing, see useStateFast
         <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={firstOrdinal} />
       )}
     </Kb.Box2>

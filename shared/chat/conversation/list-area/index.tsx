@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Hooks from './hooks'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
@@ -15,9 +14,11 @@ import {
   useConversationThreadID,
   useConversationThreadLoadNewerMessagesDueToScroll,
   useConversationThreadLoadOlderMessagesDueToScroll,
+  useConversationThreadMarkThreadAsRead,
   useConversationThreadSelector,
   useConversationThreadStore,
 } from '../thread-context'
+import {useJumpToRecent} from './jump-to-recent'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 import {getMessageRowType} from '../messages/row-metadata'
 import * as InputState from '../input-area/input-state'
@@ -29,7 +30,6 @@ import {LegendList} from '@legendapp/list/react'
 import type {LegendListRef} from '@/common-adapters'
 import {FlatList} from 'react-native'
 import type {ScrollViewProps} from 'react-native'
-import {usingFlashList} from './flashlist-config'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {
   KeyboardChatScrollView,
@@ -40,6 +40,24 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context'
 type ItemType = T.Chat.Ordinal
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
+
+// Item type for list recycling pool separation
+const useGetItemType = () => {
+  const threadStore = useConversationThreadStore()
+  return React.useCallback(
+    (ordinal: T.Chat.Ordinal) => {
+      if (!ordinal) {
+        return 'null'
+      }
+      const {messageMap, messageTypeMap} = threadStore.getState()
+      const message = messageMap.get(ordinal)
+      return message
+        ? getMessageRowType(message, messageTypeMap.get(ordinal))
+        : (messageTypeMap.get(ordinal) ?? 'text')
+    },
+    [threadStore]
+  )
+}
 
 // ==================== DESKTOP ====================
 
@@ -100,11 +118,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const listRef = React.useRef<LegendListRef | null>(null)
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
 
-  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
+  const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
-  const threadStore = useConversationThreadStore()
 
   // Stable refs for values used inside stable callbacks
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
@@ -122,17 +139,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     messageOrdinalsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  // Item type for LegendList recycling pool separation
-  const getItemType = React.useCallback(
-    (ordinal: T.Chat.Ordinal) => {
-      const {messageMap, messageTypeMap} = threadStore.getState()
-      const message = messageMap.get(ordinal)
-      return message
-        ? getMessageRowType(message, messageTypeMap.get(ordinal))
-        : (messageTypeMap.get(ordinal) ?? 'text')
-    },
-    [threadStore]
-  )
+  const getItemType = useGetItemType()
 
   // Imperative scroll for ScrollContext
   const scrollToBottom = React.useCallback(() => {
@@ -297,7 +304,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     []
   )
 
-  const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
+  const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   const {focusInput} = React.useContext(FocusContext)
   const handleListClick = (ev: React.MouseEvent) => {
@@ -452,7 +459,6 @@ const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordin
 const useNativeScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
-  conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.RefObject<RNFlatListRef | null>
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals} = p
@@ -534,12 +540,6 @@ const NativeConversationList = function NativeConversationList() {
     Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}
   >
 
-  const debugWhichList = __DEV__ ? (
-    <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
-      {usingFlashList ? 'FLASH' : 'old'}
-    </Kb.Text>
-  ) : null
-
   const conversationIDKey = useConversationThreadID()
   const listData = useConversationThreadSelector(
     C.useShallow(s => ({
@@ -556,7 +556,7 @@ const NativeConversationList = function NativeConversationList() {
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
   const listRef = React.useRef<RNFlatListRef | null>(null)
-  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
+  const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -572,32 +572,18 @@ const NativeConversationList = function NativeConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const threadStore = useConversationThreadStore()
-  const getItemType = React.useCallback(
-    (ordinal: T.Chat.Ordinal) => {
-      if (!ordinal) {
-        return 'null'
-      }
-      const {messageMap, messageTypeMap} = threadStore.getState()
-      const message = messageMap.get(ordinal)
-      return message
-        ? getMessageRowType(message, messageTypeMap.get(ordinal))
-        : (messageTypeMap.get(ordinal) ?? 'text')
-    },
-    [threadStore]
-  )
+  const getItemType = useGetItemType()
 
   const insets = useSafeAreaInsets()
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useNativeScrolling({
     centeredOrdinal: centeredOrdinalOrNone,
-    conversationIDKey,
     listRef,
     messageOrdinals,
   })
 
-  const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
+  const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
@@ -743,7 +729,6 @@ const NativeConversationList = function NativeConversationList() {
             }
           />
           {jumpToRecent}
-          {debugWhichList}
         </Kb.Box2>
       </PerfProfiler>
     </Kb.ErrorBoundary>

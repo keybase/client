@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as InputState from './input-area/input-state'
 import {useConversationThreadMessage} from './thread-context'
+import {ZoomedImage} from './common'
 
 const ReplyPreview = () => {
   const rordinal = InputState.useConversationInput(s => s.replyTo)
@@ -29,7 +30,7 @@ const ReplyPreview = () => {
   const imageURL = attachment?.previewURL
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
-  const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : null
+  const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : undefined
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
@@ -50,13 +51,7 @@ const ReplyPreview = () => {
               </Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-              {!!imageURL && (
-                <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
-                  <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
-                    <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-                  </Kb.Box2>
-                </Kb.Box2>
-              )}
+              {!!imageURL && <ZoomedImage src={imageURL} sizing={sizing} />}
               <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
                 {text}
               </Kb.Text>

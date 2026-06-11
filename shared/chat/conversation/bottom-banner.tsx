@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
+import * as Z from '@/util/zustand'
 import {openSMS as _openSMS} from '@/util/misc'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useUsersState} from '@/stores/users'
@@ -11,7 +12,37 @@ import {
   useConversationThreadID,
   useConversationThreadSelector,
 } from './thread-context'
-import {useBottomBannerState} from './bottom-banner-state'
+
+type Store = T.Immutable<{
+  inviteBannerDismissed: Set<T.Chat.ConversationIDKey>
+}>
+
+const initialStore: Store = {
+  inviteBannerDismissed: new Set(),
+}
+
+type State = Store & {
+  dispatch: {
+    dismissInviteBanner: (conversationIDKey: T.Chat.ConversationIDKey) => void
+    resetState: () => void
+  }
+}
+
+const useBottomBannerState = Z.createZustand<State>('chat-bottom-banner', set => {
+  const dispatch: State['dispatch'] = {
+    dismissInviteBanner: conversationIDKey => {
+      set(s => {
+        s.inviteBannerDismissed.add(conversationIDKey)
+      })
+    },
+    resetState: Z.defaultReset,
+  }
+
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -97,14 +128,6 @@ const Invite = (props: {onDismiss: () => void}) => {
   )
 }
 
-const Broken = () => {
-  const following = useFollowerState(s => s.following)
-  const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = useConversationThreadSelector(s => s.participants)
-  const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
-  return <Kb.ProofBrokenBanner users={users} />
-}
-
 const BannerContainer = function BannerContainer() {
   const conversationIDKey = useConversationThreadID()
   return <BannerContainerInner key={conversationIDKey} conversationIDKey={conversationIDKey} />
@@ -125,28 +148,19 @@ const BannerContainerInner = function BannerContainerInner(props: {
   const {meta, participantInfo} = useConversationThreadSelector(
     C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
   )
-  const type = (() => {
-    if (meta.teamType !== 'adhoc') {
-      return 'none'
-    }
-    const participantInfoAll = participantInfo.all
-    const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)
-    if (broken) {
-      return 'broken'
-    }
-    const toInvite = participantInfoAll.some(p => p.includes('@'))
-    const hasMessages = !meta.isEmpty
-    return toInvite && !dismissed && hasMessages ? 'invite' : 'none'
-  })()
-
-  switch (type) {
-    case 'invite':
-      return <Invite onDismiss={() => dismissInviteBanner(conversationIDKey)} />
-    case 'broken':
-      return <Broken />
-    case 'none':
-      return null
+  if (meta.teamType !== 'adhoc') {
+    return null
   }
+  const participantInfoAll = participantInfo.all
+  const brokenUsers = participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
+  if (brokenUsers.length > 0) {
+    return <Kb.ProofBrokenBanner users={brokenUsers} />
+  }
+  const toInvite = participantInfoAll.some(p => p.includes('@'))
+  const hasMessages = !meta.isEmpty
+  return toInvite && !dismissed && hasMessages ? (
+    <Invite onDismiss={() => dismissInviteBanner(conversationIDKey)} />
+  ) : null
 }
 
 export default BannerContainer
@@ -173,8 +187,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       bannerStyle: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.red,
-          flexWrap: 'wrap',
+          ...Kb.Styles.globalStyles.flexWrap,
           ...Kb.Styles.padding(8, 24),
         },
         isElectron: {

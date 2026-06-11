@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {zoomImage} from '@/constants/chat/helpers'
 import {useIsHighlighted} from '../ids-context'
+import {ZoomedImage} from '../../common'
 import type * as T from '@/constants/types'
 
 export const useReply = (replyTo?: T.Chat.MessageReplyTo, onClick?: () => void) => {
@@ -40,13 +41,7 @@ const ReplyImage = () => {
   const imageHeight = replyTo.previewHeight
   const imageWidth = replyTo.previewWidth
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : undefined
-  return (
-    <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
-      <Kb.Box2 direction="vertical" style={sizing?.margins}>
-        <Kb.Image src={imageURL} style={sizing?.dims} />
-      </Kb.Box2>
-    </Kb.Box2>
-  )
+  return <ZoomedImage src={imageURL} sizing={sizing} />
 }
 
 const ReplyText = () => {

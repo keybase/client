@@ -168,14 +168,14 @@ const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
   )
 }
 
-const NormalProviderChildren = (props: {
-  active: boolean
-  allowMarkReadOnLoad: boolean
-  conversationIDKey: T.Chat.ConversationIDKey
-  mobileAppState: ShellState['mobileAppState']
-  skipThreadLoadOnSelection: boolean
-}) => {
-  const {active, allowMarkReadOnLoad, conversationIDKey, mobileAppState, skipThreadLoadOnSelection} = props
+const NormalWrapper = function NormalWrapper() {
+  const conversationIDKey = useConversationThreadID()
+  const {active, mobileAppState} = useShellState(
+    C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
+  )
+  const routeParams = useChatThreadRouteParams()
+  const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
+  const allowMarkReadOnLoad = !routeParams?.highlightMessageID && !routeParams?.threadSearch
   useShowManageChannels()
   return (
     <MaybeMentionProvider>
@@ -205,25 +205,6 @@ const NormalProviderChildren = (props: {
         </ChatTeamProvider>
       </NormalOrangeLineProvider>
     </MaybeMentionProvider>
-  )
-}
-
-const NormalWrapper = function NormalWrapper() {
-  const conversationIDKey = useConversationThreadID()
-  const {active, mobileAppState} = useShellState(
-    C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
-  )
-  const routeParams = useChatThreadRouteParams()
-  const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
-  const allowMarkReadOnLoad = !routeParams?.highlightMessageID && !routeParams?.threadSearch
-  return (
-    <NormalProviderChildren
-      active={active}
-      allowMarkReadOnLoad={allowMarkReadOnLoad}
-      conversationIDKey={conversationIDKey}
-      mobileAppState={mobileAppState}
-      skipThreadLoadOnSelection={skipThreadLoadOnSelection}
-    />
   )
 }
 export default NormalWrapper

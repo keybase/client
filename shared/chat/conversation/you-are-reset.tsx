@@ -6,7 +6,7 @@ const YouAreReset = () => (
       <Kb.ImageIcon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" alignItems="center" padding="small" fullWidth={true} style={styles.box}>
-      <Kb.Text type="BodySemibold" negative={true} style={{textAlign: 'center' as const}}>
+      <Kb.Text type="BodySemibold" negative={true} center={true}>
         Since you reset your account, participants have to accept to let you back in.
       </Kb.Text>
     </Kb.Box2>
