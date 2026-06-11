@@ -117,14 +117,9 @@ const Troubleshooting = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {!isMobile && (
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          fullWidth={true}
-          style={styles.modalFooterNoBorder}
-        >
+        <Kb.ModalFooter hideBorder={true}>
           <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />
-        </Kb.Box2>
+        </Kb.ModalFooter>
       )}
     </>
   )
@@ -177,13 +172,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   headerSide: {
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
-  modalFooterNoBorder: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      minHeight: 56,
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))

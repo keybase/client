@@ -99,7 +99,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         <Kb.WaitingButton
           type="Danger"
           fullWidth={true}
@@ -107,7 +107,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
           waitingKey={C.waitingKeyAutoresetCancel}
           label="Cancel account reset"
         />
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 
@@ -148,15 +148,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.white,
     zIndex: 1000,
   },
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
   skullIcon: {
     ...Kb.Styles.size(48),
   },

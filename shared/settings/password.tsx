@@ -122,7 +122,7 @@ export const UpdatePassword = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
           <Kb.Button
             fullWidth={true}
@@ -132,7 +132,7 @@ export const UpdatePassword = (props: Props) => {
             waiting={props.waitingForResponse}
           />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -155,15 +155,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
       passwordFormat: {
         alignSelf: 'flex-start',
         marginTop: Kb.Styles.globalMargins.xtiny,

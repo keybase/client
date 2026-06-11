@@ -77,12 +77,7 @@ export const Email = () => {
           }
         />
       </Kb.Box2>
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        fullWidth={true}
-        style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}
-      >
+      <Kb.ModalFooter style={styles.footer}>
         <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
           {!isMobile && (
             <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
@@ -95,7 +90,7 @@ export const Email = () => {
             waiting={waiting}
           />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -165,7 +160,7 @@ export const Phone = () => {
           }
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+      <Kb.ModalFooter style={styles.footer}>
         <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
           {!isMobile && (
             <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
@@ -178,7 +173,7 @@ export const Phone = () => {
             waiting={waiting}
           />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -237,7 +232,7 @@ export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
           onChangeCode={onChangeCode}
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooterNoBorder, styles.blueBackground])}>
+      <Kb.ModalFooter hideBorder={true} style={styles.blueBackground}>
         <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
           <Kb.Button
             disabled={disabled}
@@ -248,7 +243,7 @@ export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
             fullWidth={true}
           />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -279,24 +274,6 @@ const styles = Kb.Styles.styleSheetCreate(
       footer: {
         padding: Kb.Styles.globalMargins.small,
       },
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
-      modalFooterNoBorder: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          minHeight: 56,
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
       verifyContainer: {
         ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       },
