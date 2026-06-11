@@ -913,7 +913,12 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   const active = useShellState(s => s.active)
   const appFocused = useShellState(s => s.appFocused)
   const routeFocused = useIsFocused()
-  const previousActiveRef = React.useRef(active)
+  // Mark-read attempts bail while we're not looking at the thread (backgrounded,
+  // covered by another route, or idle on desktop), so re-fire when any of those
+  // gates reopen. On mobile `active` never changes; appFocused/routeFocused are
+  // the only signals that we came back.
+  const lookingAtThread = active && appFocused && routeFocused
+  const previousLookingAtThreadRef = React.useRef(lookingAtThread)
   const activeMarkReadEnabledRef = React.useRef(false)
   const markReadBlockedRef = React.useRef(false)
 
@@ -979,12 +984,12 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     ignorePromise(f())
   })
   React.useEffect(() => {
-    const wasActive = previousActiveRef.current
-    previousActiveRef.current = active
-    if (!wasActive && active && activeMarkReadEnabledRef.current) {
+    const wasLookingAtThread = previousLookingAtThreadRef.current
+    previousLookingAtThreadRef.current = lookingAtThread
+    if (!wasLookingAtThread && lookingAtThread && activeMarkReadEnabledRef.current) {
       markThreadAsRead()
     }
-  }, [active])
+  }, [lookingAtThread])
   const addMessages = React.useEffectEvent(
     (
       messages: ReadonlyArray<T.Chat.Message>,
