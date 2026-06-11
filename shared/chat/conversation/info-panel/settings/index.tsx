@@ -84,7 +84,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         {isPreview ? (
           <>
             <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
-            <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.button} />
+            <Kb.Button type="Success" mode="Primary" label="Join channel" fullWidth={true} />
           </>
         ) : (
           <Notifications conversationIDKey={conversationIDKey} />
@@ -95,7 +95,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             mode="Secondary"
             label="Leave channel"
             onClick={() => C.Router2.leaveConversation(conversationIDKey)}
-            style={styles.button}
+            fullWidth={true}
             waiting={spinnerForLeave}
           >
             <Kb.Icon type="iconfont-leave" sizeType="Small" color={Kb.Styles.globalColors.blue} />
@@ -107,7 +107,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           mode="Secondary"
           label="Backup channel"
           onClick={onArchive}
-          style={styles.button}
+          fullWidth={true}
         >
           <Kb.Icon type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
         </Kb.Button>
@@ -117,7 +117,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             mode="Secondary"
             label={ignored ? 'Unhide this conversation' : 'Hide this conversation'}
             onClick={ignored ? onUnhideConv : onHideConv}
-            style={styles.button}
+            fullWidth={true}
           >
             <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
           </Kb.Button>
@@ -143,7 +143,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Secondary"
                 label="Clear entire conversation"
                 onClick={onShowClearConversationDialog}
-                style={styles.button}
+                fullWidth={true}
               />
             )}
             {entityType === 'adhoc' && (
@@ -152,7 +152,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Primary"
                 label="Block"
                 onClick={onShowBlockConversationDialog}
-                style={styles.button}
+                fullWidth={true}
               >
                 <Kb.Icon type="iconfont-remove" sizeType="Small" color={Kb.Styles.globalColors.whiteOrWhite} />
               </Kb.Button>
@@ -167,9 +167,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      button: {
-        alignSelf: 'center',
-      },
       retentionDropdownStyle: {
         marginBottom: 0,
         width: '100%',
