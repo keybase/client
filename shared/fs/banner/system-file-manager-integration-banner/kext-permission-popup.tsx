@@ -79,10 +79,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        maxWidth: 700,
-        minWidth: 700,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.mediumLarge, Kb.Styles.globalMargins.large),
-        width: 700,
       },
       enablingContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,

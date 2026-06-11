@@ -74,8 +74,7 @@ export type ModalWrapperProps = {
 
 export const ModalWrapper = (p: ModalWrapperProps) => {
   const {navigationOptions, navigation, children} = p
-  const {overlayStyle, overlayAvoidTabs, overlayTransparent, overlayNoClose, modalFooter, modalStyle} =
-    navigationOptions ?? {}
+  const {overlayAvoidTabs, overlayTransparent, overlayNoClose, modalSize} = navigationOptions ?? {}
 
   const headerTitle = navigationOptions?.['headerTitle'] ?? navigationOptions?.['title']
   const headerLeft = navigationOptions?.['headerLeft']
@@ -134,23 +133,24 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
       {overlayAvoidTabs && (
         <Kb.Box2 direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
       )}
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.overlayStyle, overlayStyle])}>
-        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modalBox, modalStyle])}>
+      <Kb.Box2
+        direction="vertical"
+        style={Kb.Styles.collapseStyles([
+          styles.overlayStyle,
+          modalSize === 'fullscreen' && styles.overlayStretch,
+        ])}
+      >
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([
+            styles.modalBox,
+            modalSize === 'wide' && styles.sizeWide,
+            modalSize === 'fullscreen' && styles.sizeFullscreen,
+            !modalSize && styles.sizeDefault,
+          ])}
+        >
           {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
           {children}
-          {modalFooter ? (
-            <Kb.Box2
-              direction="vertical"
-              centerChildren={true}
-              fullWidth={true}
-              style={Kb.Styles.collapseStyles([
-                modalFooter.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter,
-                modalFooter.style,
-              ])}
-            >
-              {modalFooter.content}
-            </Kb.Box2>
-          ) : null}
           {!overlayTransparent && !overlayNoClose && (
             <Kb.Icon
               type="iconfont-close"
@@ -193,28 +193,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.desktopStyles.boxShadow,
       backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: Kb.Styles.borderRadius,
-      maxHeight: 560,
       pointerEvents: 'auto',
       position: 'relative',
-      width: 400,
-    },
-  }),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
-  modalFooterNoBorder: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      minHeight: 56,
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
     },
   }),
   overlayAvoidTabs: Kb.Styles.platformStyles({
@@ -227,8 +207,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   overlayContainer: {
     ...Kb.Styles.globalStyles.fillAbsolute,
   },
+  overlayStretch: {alignSelf: 'stretch'},
   overlayStyle: Kb.Styles.platformStyles({
     isElectron: {...Kb.Styles.centered(), flexGrow: 1, pointerEvents: 'none'},
   }),
   overlayTransparent: {backgroundColor: undefined},
+  sizeDefault: Kb.Styles.platformStyles({isElectron: {maxHeight: 560, width: 400}}),
+  sizeFullscreen: Kb.Styles.platformStyles({isElectron: {height: '80%', width: '80%'}}),
+  sizeWide: Kb.Styles.platformStyles({isElectron: {height: 560, width: 560}}),
 }))

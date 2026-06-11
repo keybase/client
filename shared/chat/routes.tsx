@@ -186,21 +186,14 @@ export const newModalRoutes = defineRouteMap({
         orientation: 'all',
         ...(isIOS ? {presentation: 'transparentModal'} : {}),
         headerShown: false,
-        modalStyle: {flex: 1, maxHeight: 9999, width: '100%'},
-        overlayStyle: {
-          alignSelf: 'stretch',
-          paddingBottom: 16,
-          paddingLeft: 40,
-          paddingRight: 40,
-          paddingTop: 40,
-        },
+        modalSize: 'fullscreen',
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
   ),
   chatAttachmentGetTitles: makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles')),
-    {getOptions: {modalStyle: {height: 660, maxHeight: 660}}}
+    {getOptions: {modalSize: 'wide'}}
   ),
   chatBlockingModal: {
     ...makeChatScreen(
@@ -245,7 +238,7 @@ export const newModalRoutes = defineRouteMap({
     {
       getOptions: isMobile
         ? Kb.doneModalOptions('')
-        : {...Kb.doneModalOptions(''), modalStyle: {height: '80%', width: '80%'}},
+        : {...Kb.doneModalOptions(''), modalSize: 'fullscreen'},
     }
   ),
   chatInstallBot: makeChatScreen(
@@ -254,7 +247,7 @@ export const newModalRoutes = defineRouteMap({
       getOptions: {
         headerLeft: () => <BotInstallHeaderLeft />,
         headerTitle: () => <BotInstallHeaderTitle />,
-        ...(isMobile ? undefined : {modalStyle: {height: 660, maxHeight: 660}}),
+        modalSize: 'wide',
       },
       skipProvider: true,
     }
@@ -282,8 +275,7 @@ export const newModalRoutes = defineRouteMap({
     {
       getOptions: p => ({
         headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
-        modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
-        overlayStyle: {alignSelf: 'stretch'},
+        modalSize: 'fullscreen',
         title: 'PDF',
       }),
     }
