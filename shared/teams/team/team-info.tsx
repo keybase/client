@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../common/modal-footer'
 import * as T from '@/constants/types'
 import {useLoadedTeam} from './use-loaded-team'
 
@@ -145,9 +144,9 @@ const TeamInfo = (props: Props) => {
         />
         {/* TODO: location */}
       </Kb.Box2>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.Button label="Save" onClick={onSave} fullWidth={true} disabled={saveDisabled} waiting={waiting} />
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }

@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../common/modal-footer'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import * as React from 'react'
@@ -123,7 +122,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
           </Kb.Box2>
         )}
       </Kb.ScrollView>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
           <Kb.WaitingButton
             fullWidth={true}
@@ -133,7 +132,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
             waitingKey={C.waitingKeyTeamsJoinTeam}
           />
         </Kb.ButtonBar>
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }

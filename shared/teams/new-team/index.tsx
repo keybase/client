@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../common/modal-footer'
 import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import upperFirst from 'lodash/upperFirst'
@@ -79,9 +78,9 @@ export const CreateNewTeam = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.ScrollView>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.Button waiting={waiting} fullWidth={true} label="Create team" onClick={onSubmitCb} disabled={disabled} />
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }

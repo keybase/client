@@ -3,7 +3,6 @@ import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../../common/modal-footer'
 import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
@@ -183,7 +182,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
   const desktopFooter =
     !isMobile && mode !== 'self' ? (
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
           <Kb.Button
             type="Dim"
@@ -200,7 +199,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
             waiting={waiting}
           />
         </Kb.Box2>
-      </ModalFooter>
+      </Kb.ModalFooter>
     ) : null
 
   React.useEffect(() => {

@@ -6,7 +6,6 @@ import {pluralize} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
 import * as C from '@/constants'
-import ModalFooter from '../../common/modal-footer'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
 import {useTypedNavigation} from '@/util/typed-navigation'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
@@ -99,9 +98,9 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
   }, [doneLabel, onContinue])
 
   const desktopFooter = !isMobile ? (
-    <ModalFooter>
+    <Kb.ModalFooter>
       <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />
-    </ModalFooter>
+    </Kb.ModalFooter>
   ) : null
 
   return (

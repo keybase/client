@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../../common/modal-footer'
 
 type Props = {
   onBack: () => void
@@ -38,7 +37,7 @@ const ReallyLeaveTeam = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     )}
-    <ModalFooter style={styles.footer}>
+    <Kb.ModalFooter style={styles.footer}>
       <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
         <Kb.Button
           onClick={props.onBack}
@@ -48,7 +47,7 @@ const ReallyLeaveTeam = (props: Props) => (
           disabled={props.stillLoadingTeam}
         />
       </Kb.ButtonBar>
-    </ModalFooter>
+    </Kb.ModalFooter>
   </>
 )
 

@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../../common/modal-footer'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
@@ -225,9 +224,9 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
           labelSubtitle="Your profile will mention this team. Team description and number of members will be public."
         />
       </Kb.Box2>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }
