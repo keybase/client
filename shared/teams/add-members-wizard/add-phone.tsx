@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {usePhoneNumberList} from '../common'
+import ModalFooter from '../common/modal-footer'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
@@ -77,15 +78,9 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
           <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Button
-            waiting={waiting}
-            fullWidth={true}
-            label="Continue"
-            onClick={onContinue}
-            disabled={disabled}
-          />
-      </Kb.Box2>
+      <ModalFooter>
+        <Kb.Button waiting={waiting} fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />
+      </ModalFooter>
     </>
   )
 }
@@ -98,15 +93,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
   }),
 }))
 

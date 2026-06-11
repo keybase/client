@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../../common/modal-footer'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -105,7 +106,7 @@ const EditChannel = (props: Props) => {
           maxLength={280}
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <ModalFooter>
         <Kb.Button
           label="Save"
           onClick={onSave}
@@ -113,7 +114,7 @@ const EditChannel = (props: Props) => {
           disabled={oldName === name && description === oldDescription}
           waiting={waiting}
         />
-      </Kb.Box2>
+      </ModalFooter>
     </>
   )
 }
@@ -127,15 +128,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   channelNameinput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))
 
 export default EditChannel

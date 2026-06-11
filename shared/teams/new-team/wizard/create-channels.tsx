@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../../common/modal-footer'
 import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
@@ -83,7 +84,7 @@ export const CreateChannelsModal = (props: Props) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>{submitButton}</Kb.Box2>
+      <ModalFooter>{submitButton}</ModalFooter>
     </>
   )
 }
@@ -150,15 +151,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
       inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
       noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},
     }) as const
 )

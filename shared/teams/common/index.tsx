@@ -1,5 +1,4 @@
 import * as React from 'react'
-export {default as ParticipantMeta} from './meta'
 export {default as Activity, useActivityLevels, ActivityLevelsProvider, ModalTitle} from './activity'
 export {ChannelsWidget} from './channels-widget'
 export {useAllChannelMetas, useChannelParticipants} from './channel-hooks'

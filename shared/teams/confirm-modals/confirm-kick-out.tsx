@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import setRouteParamsIfPresent from '../common/set-route-params-if-present'
+import setRouteParamsIfPresent from './set-route-params-if-present'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {useTeamsListMap} from '../use-teams-list'
 

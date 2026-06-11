@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import ModalFooter from './common/modal-footer'
 import * as T from '@/constants/types'
 import {useLoadedTeam} from './team/use-loaded-team'
 
@@ -74,17 +75,17 @@ const EditTeamDescription = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />
-            <Kb.Button
-              disabled={description === origDescription}
-              label="Save"
-              onClick={onSave}
-              waiting={waiting}
-            />
-          </Kb.ButtonBar>
-      </Kb.Box2>
+      <ModalFooter>
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          <Kb.Button label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />
+          <Kb.Button
+            disabled={description === origDescription}
+            label="Save"
+            onClick={onSave}
+            waiting={waiting}
+          />
+        </Kb.ButtonBar>
+      </ModalFooter>
     </>
   )
 }
@@ -94,15 +95,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
   },
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))
 
 export default EditTeamDescription

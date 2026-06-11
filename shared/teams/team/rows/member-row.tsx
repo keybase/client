@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
-import MenuHeader from './menu-header.new'
+import MenuHeader from './menu-header'
+import {selectionStyles} from './common'
 import {useTeamSelectionState} from '../../common/selection-state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -51,7 +52,6 @@ export const TeamMemberRow = (props: Props) => {
       <Kb.Icon
         type={('iconfont-crown-' + roleType) as Kb.IconType}
         color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-        style={styles.crownIcon}
         fontSize={10}
       />
     ) : null
@@ -95,7 +95,7 @@ export const TeamMemberRow = (props: Props) => {
       checked={selected}
       onCheck={onSelect}
       key={`check-${props.username}`}
-      style={styles.widenClickableArea}
+      style={selectionStyles.widenClickableArea}
     />
   )
 
@@ -109,14 +109,13 @@ export const TeamMemberRow = (props: Props) => {
           colorFollowing={true}
           onUsernameClicked={onClick}
         />
-        <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
+        <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start" gap="xtiny">
           {fullNameLabel}
           {crown}
           {!active && (
             <Kb.Meta
               backgroundColor={Kb.Styles.globalColors.red}
               title={props.status === 'reset' ? 'locked out' : 'deleted'}
-              style={styles.lockedOutMeta}
             />
           )}
           <Kb.Text type="BodySmall">
@@ -202,7 +201,7 @@ export const TeamMemberRow = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      style={props.youCanManageMembers ? styles.mobileMarginsHack : undefined}
+      style={props.youCanManageMembers ? selectionStyles.mobileMarginsHack : undefined}
     >
       {popup}
       <Kb.IconButton
@@ -229,7 +228,7 @@ export const TeamMemberRow = (props: Props) => {
     ? {
         containerStyleOverride: styles.listItemMargin,
         icon: checkCircle,
-        iconStyleOverride: styles.checkCircle,
+        iconStyleOverride: selectionStyles.checkCircle,
       }
     : {}
 
@@ -250,21 +249,13 @@ export const TeamMemberRow = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  checkCircle: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-    alignSelf: 'center',
-  },
-  crownIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
-  fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
+  fullNameLabel: {flexShrink: 1},
   listItemMargin: {marginLeft: 0},
-  lockedOutMeta: {marginRight: Kb.Styles.globalMargins.xtiny},
-  mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
   nameContainer: {
     marginLeft: Kb.Styles.globalMargins.small,
   },
   selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
   unselected: {backgroundColor: Kb.Styles.globalColors.white},
-  widenClickableArea: {margin: -5, padding: 5},
 }))
 
 type OwnProps = {
@@ -275,7 +266,7 @@ type OwnProps = {
 
 const blankInfo = Teams.initialMemberInfo
 
-const Container = (ownProps: OwnProps) => {
+const MemberRow = (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const members = teamDetails.members
@@ -342,4 +333,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default MemberRow

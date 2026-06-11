@@ -85,7 +85,7 @@ const useDoAddEmojis = (
   return {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis}
 }
 
-const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => void) => {
+const useEmojiUpload = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => void) => {
   const [filePaths, setFilePaths] = React.useState<Array<string>>([])
 
   const [aliasMap, setAliasMap] = React.useState(new Map<string, string>())
@@ -159,7 +159,7 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
 export const AddEmojiModal = (props: Props) => {
   const onChange = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const {addFiles, bannerError, clearErrors, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} =
-    useStuff(props.conversationIDKey, onChange)
+    useEmojiUpload(props.conversationIDKey, onChange)
 
   const pick = () => {
     pickEmojisPromise()

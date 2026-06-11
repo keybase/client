@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../../common/modal-footer'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
@@ -224,9 +225,9 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
           labelSubtitle="Your profile will mention this team. Team description and number of members will be public."
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <ModalFooter>
         <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
-      </Kb.Box2>
+      </ModalFooter>
     </>
   )
 }
@@ -243,15 +244,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   extraLineText: {
     height: 36,
   },
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 

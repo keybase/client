@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../../common/modal-footer'
 
 type Props = {
   onBack: () => void
@@ -19,12 +20,7 @@ const ReallyLeaveTeam = (props: Props) => (
         style={styles.container}
         centerChildren={true}
       >
-        <Kb.Box2
-          direction="vertical"
-          gap="medium"
-          fullWidth={true}
-          style={Kb.Styles.globalStyles.flexBoxCenter}
-        >
+        <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} centerChildren={true}>
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.positionRelative}>
             <Kb.Avatar teamname={props.name} size={isMobile ? 96 : 64} />
             <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
@@ -42,7 +38,7 @@ const ReallyLeaveTeam = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     )}
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+    <ModalFooter style={styles.footer}>
       <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
         <Kb.Button
           onClick={props.onBack}
@@ -52,7 +48,7 @@ const ReallyLeaveTeam = (props: Props) => (
           disabled={props.stillLoadingTeam}
         />
       </Kb.ButtonBar>
-    </Kb.Box2>
+    </ModalFooter>
   </>
 )
 
@@ -71,12 +67,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       paddingBottom: 64, // footer height
     },
   }),
-  footer: {
-    borderStyle: 'solid',
-    borderTopColor: Kb.Styles.globalColors.black_10,
-    borderTopWidth: 1,
-    padding: 0,
-  },
+  footer: {padding: 0},
   headerText: {maxWidth: 380},
   leaveIcon: Kb.Styles.platformStyles({
     common: {
@@ -104,15 +95,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderWidth: 3.5,
       ...Kb.Styles.size(34),
       lineHeight: 34,
-    },
-  }),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
     },
   }),
 }))

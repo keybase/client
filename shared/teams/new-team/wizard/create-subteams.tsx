@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../../common/modal-footer'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
@@ -74,9 +75,9 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
         ))}
         <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <ModalFooter>
         <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />
-      </Kb.Box2>
+      </ModalFooter>
     </>
   )
 }
@@ -99,15 +100,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))
 
 export default CreateSubteams

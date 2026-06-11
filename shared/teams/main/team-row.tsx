@@ -58,98 +58,64 @@ const TeamRow = function TeamRow(props: Props) {
     </Kb.Box2>
   ) : null
 
-  if (isMobile) {
-    return (
-      <>
-        <Kb.ClickableBox onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
-          <Kb.Divider style={styles.divider} />
-          <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
-            <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
-              <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
-              {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-              {crownIcon}
-            </Kb.Box2>
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
-            <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-              <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
-                {teamMeta.teamname}
-              </Kb.Text>
-              {teamMeta.isOpen && (
-                <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.alignSelfCenter} />
-              )}
-            </Kb.Box2>
-            <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
-              {isNew && (
-                <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} style={styles.alignSelfCenter} />
-              )}
-              <Kb.Text type="BodySmall">
-                {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
-              </Kb.Text>
-            </Kb.Box2>
-            {activity}
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.actionMobile}>
-            {showChat && (
-              <Kb.IconButton
-                type="Dim"
-                onClick={onChat}
-                disabled={!teamMeta.isMember}
-                mode="Secondary"
-                small={true}
-                icon="iconfont-chat"
-              />
-            )}
-            <Kb.IconButton
-              type="Dim"
-              onClick={showPopup}
-              mode="Secondary"
-              small={true}
-              icon="iconfont-ellipsis"
-              ref={popupAnchor}
-            />
-          </Kb.Box2>
-        </Kb.ClickableBox>
-        {popup}
-      </>
-    )
-  }
+  const avatarBlock = (
+    <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
+      <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
+        <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+        {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+        {crownIcon}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+
+  const nameAndMemberCount = (
+    <>
+      <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
+        <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+          {teamMeta.teamname}
+        </Kb.Text>
+        {teamMeta.isOpen && (
+          <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.alignSelfCenter} />
+        )}
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
+        {isNew && (
+          <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} style={styles.alignSelfCenter} />
+        )}
+        <Kb.Text type="BodySmall">
+          {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
+        </Kb.Text>
+      </Kb.Box2>
+    </>
+  )
 
   return (
     <>
-      <Kb.ClickableBox onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
+      <Kb.ClickableBox onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className={isMobile ? undefined : 'teamRow'} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
         <Kb.Divider style={styles.divider} />
-        <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
-          <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
-            <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
-            {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-            {crownIcon}
-          </Kb.Box2>
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
-          <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
-            <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-              <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
-                {teamMeta.teamname}
-              </Kb.Text>
-              {teamMeta.isOpen && (
-                <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.alignSelfCenter} />
-              )}
-            </Kb.Box2>
-            <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
-              {isNew && (
-                <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} style={styles.alignSelfCenter} />
-              )}
-              <Kb.Text type="BodySmall">
-                {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" alignItems="center" style={styles.bodyRight}>
+        {avatarBlock}
+        {isMobile ? (
+          <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
+            {nameAndMemberCount}
             {activity}
           </Kb.Box2>
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" className="fade" gap="xtiny" alignItems="center" style={styles.action}>
+        ) : (
+          <Kb.Box2 direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
+            <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
+              {nameAndMemberCount}
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" alignItems="center" style={styles.bodyRight}>
+              {activity}
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
+        <Kb.Box2
+          direction="horizontal"
+          className={isMobile ? undefined : 'fade'}
+          gap={isMobile ? 'tiny' : 'xtiny'}
+          alignItems="center"
+          style={isMobile ? styles.actionMobile : styles.action}
+        >
           {showChat && (
             <Kb.IconButton
               type="Dim"
@@ -158,7 +124,7 @@ const TeamRow = function TeamRow(props: Props) {
               mode="Secondary"
               small={true}
               icon="iconfont-chat"
-              tooltip={!teamMeta.isMember ? 'You are not a member of this team.' : ''}
+              tooltip={isMobile ? undefined : !teamMeta.isMember ? 'You are not a member of this team.' : ''}
             />
           )}
           <Kb.IconButton

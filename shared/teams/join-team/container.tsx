@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../common/modal-footer'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import * as React from 'react'
@@ -122,7 +123,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
           </Kb.Box2>
         )}
       </Kb.ScrollView>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <ModalFooter>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
           <Kb.WaitingButton
             fullWidth={true}
@@ -132,7 +133,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
             waitingKey={C.waitingKeyTeamsJoinTeam}
           />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </ModalFooter>
     </>
   )
 }
@@ -159,15 +160,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         padding: Kb.Styles.globalMargins.small,
       },
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
     }) as const
 )
 

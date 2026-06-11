@@ -261,7 +261,7 @@ export const newRoutes = defineRouteMap({
     }
   ),
   teamMember: C.makeScreen(
-    React.lazy(async () => import('./team/member/index.new')),
+    React.lazy(async () => import('./team/member')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
   teamsRoot: {
@@ -352,7 +352,7 @@ export const newModalRoutes = defineRouteMap({
       headerTitle: () => <TeamInfoHeaderTitle teamID={route.params.teamID} />,
     }),
   }),
-  teamInviteByContact: C.makeScreen(React.lazy(async () => import('./invite-by-contact/container')), {
+  teamInviteByContact: C.makeScreen(React.lazy(async () => import('./invite-by-contact/team-invite-by-contacts')), {
     getOptions: {title: 'Invite contacts'},
   }),
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),

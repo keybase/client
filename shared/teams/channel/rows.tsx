@@ -3,7 +3,8 @@ import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useChannelSelectionState} from '../common/selection-state'
-import MenuHeader from '../team/rows/menu-header.new'
+import MenuHeader from '../team/rows/menu-header'
+import {selectionStyles} from '../team/rows/common'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
@@ -64,7 +65,6 @@ const ChannelMemberRow = (props: Props) => {
       <Kb.Icon
         type={type}
         color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-        style={styles.crownIcon}
         fontSize={10}
       />
     ) : null
@@ -109,7 +109,7 @@ const ChannelMemberRow = (props: Props) => {
       checked={memberSelected}
       onCheck={onSelect}
       key={`check-${username}`}
-      style={styles.widenClickableArea}
+      style={selectionStyles.widenClickableArea}
     />
   )
 
@@ -122,7 +122,7 @@ const ChannelMemberRow = (props: Props) => {
           <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
         </Kb.Box2>
 
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
           {fullNameLabel}
           {crown}
           {!active && (
@@ -239,7 +239,7 @@ const ChannelMemberRow = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      style={yourOperations.manageMembers ? styles.mobileMarginsHack : undefined}
+      style={yourOperations.manageMembers ? selectionStyles.mobileMarginsHack : undefined}
     >
       {popup}
       <Kb.IconButton
@@ -266,7 +266,7 @@ const ChannelMemberRow = (props: Props) => {
     ? {
         containerStyleOverride: styles.listItemMargin,
         icon: checkCircle,
-        iconStyleOverride: styles.checkCircle,
+        iconStyleOverride: selectionStyles.checkCircle,
       }
     : {}
   return (
@@ -287,20 +287,11 @@ const ChannelMemberRow = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      checkCircle: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-        alignSelf: 'center',
-      },
-      crownIcon: {
-        marginRight: Kb.Styles.globalMargins.xtiny,
-      },
-      fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
+      fullNameLabel: {flexShrink: 1},
       listItemMargin: {marginLeft: 0},
       marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},
-      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
       nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
       selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
-      widenClickableArea: {margin: -5, padding: 5},
     }) as const
 )
 
