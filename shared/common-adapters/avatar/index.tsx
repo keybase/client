@@ -54,6 +54,7 @@ for (const size of allSizes) {
 }
 
 const bgColor = Styles.globalColors.greyLight
+const errorUnderlay = {backgroundColor: bgColor, position: 'absolute'} as const
 
 // ── Desktop-only ─────────────────────────────────────────────────────────────
 
@@ -160,17 +161,28 @@ function Avatar(p: Props) {
   const placeholderSource = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size) as unknown as number
   const imgError = !!source && errorUri === source.uri
   const containerStyle = style ? Styles.collapseStyles([cached.container, style]) : cached.container
-  const imageStyle = imgError ? Styles.collapseStyles([cached.image, {backgroundColor: bgColor}]) : cached.image
 
   const content = (
     <>
-      {source && !imgError ? (
-        // recyclingKey must be the identity (name), not the uri: changing it blanks the view,
-        // and the uri churns when the local http srv hands out a new address/token on foreground
-
-        <Image source={source} style={cached.image} recyclingKey={name} cachePolicy="memory-disk" onError={() => setErrorUri(source.uri)} />
+      {source ? (
+        <>
+          {imgError && <Image source={placeholderSource} style={[cached.image, errorUnderlay]} />}
+          {/* recyclingKey must be the identity (name), not the uri: changing it blanks the view,
+              and the uri churns when the local http srv hands out a new address/token on foreground.
+              Keep this mounted on error: onError can fire for a stale load after the uri changes,
+              so unmounting would hide a load that succeeds; the placeholder underlays real
+              failures and onLoad clears the error. */}
+          <Image
+            source={source}
+            style={cached.image}
+            recyclingKey={name}
+            cachePolicy="memory-disk"
+            onError={() => setErrorUri(source.uri)}
+            onLoad={() => setErrorUri(undefined)}
+          />
+        </>
       ) : (
-        <Image source={placeholderSource} style={imageStyle} />
+        <Image source={placeholderSource} style={cached.image} />
       )}
       {children}
     </>
