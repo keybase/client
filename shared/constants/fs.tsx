@@ -13,11 +13,10 @@ const prefetchComplete = {
 
 export {prefetchNotStarted, prefetchComplete}
 
-export const navToPath = (
-  // TODO: remove the second arg when we are done with migrating to nav2
-  path: T.FS.Path
-) => {
-  navigateAppend({name: 'fsRoot', params: {path}})
+// Jump to a KBFS path from outside the Files tab. Pushes fsBrowse: on phones
+// fsRoot only exists as the Files tab root, so pushing it is an unhandled action.
+export const navToPath = (path: T.FS.Path) => {
+  navigateAppend({name: 'fsBrowse', params: {path}})
 }
 
 // Path Constants
