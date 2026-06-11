@@ -162,7 +162,26 @@ const customGetStateFromPath = (
     case 'public': {
       try {
         const decoded = decodeURIComponent(cleanPath)
-        return makeTabState(Tabs.fsTab, [{name: 'fsRoot', params: {path: `/keybase/${decoded}`}}])
+        const path = `/keybase/${decoded}`
+        if (isSplit) {
+          // Tablet: push the folder above the Files tab root, inside the tab stack.
+          return makeTabState(Tabs.fsTab, [{name: 'fsRoot'}, {name: 'fsBrowse', params: {path}}])
+        }
+        // Phone: fsRoot is the only screen in the Files tab stack; folders open as
+        // fsBrowse pushed on the root stack, above the tabs.
+        return {
+          index: 1,
+          routes: [
+            {
+              name: 'loggedIn',
+              state: {
+                index: 0,
+                routes: [{name: Tabs.fsTab, state: {index: 0, routes: [{name: 'fsRoot'}]}}],
+              },
+            },
+            {name: 'fsBrowse', params: {path}},
+          ],
+        }
       } catch {}
       break
     }

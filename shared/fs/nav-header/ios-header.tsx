@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useNavigation} from '@react-navigation/native'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {FsBrowserEditProvider} from '../browser/edit-state'
 
 // iOS renders fs screens with the native header so the back button and right
@@ -19,14 +20,24 @@ const FilesTabStatusIcon = () => {
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.statusIcon} /> : null
 }
 
-const TitleInner = ({path}: {path: T.FS.Path}) =>
-  path === FS.defaultPath ? (
+// maxWidth only, no minWidth — same trick as chat's header (see chat/conversation/header-area):
+// the native header doesn't constrain a custom title view against the left/right items, so a
+// long filename otherwise renders underneath them. The title is centered, so it must clear the
+// wider side on both sides: the right glass pill holds two items (~120pt including edge margin).
+const useMaxWidthStyle = () => {
+  const {width} = useSafeAreaFrame()
+  return {maxWidth: width - 240}
+}
+
+const TitleInner = ({path}: {path: T.FS.Path}) => {
+  const maxWidthStyle = useMaxWidthStyle()
+  return path === FS.defaultPath ? (
     <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
       <Kb.Text type="BodyBig">Files</Kb.Text>
       <FilesTabStatusIcon />
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="vertical" centerChildren={true}>
+    <Kb.Box2 direction="vertical" centerChildren={true} style={maxWidthStyle}>
       <Kb.Box2 direction="horizontal" centerChildren={true} gap="xxtiny">
         <Kbfs.PathStatusIcon path={path} showTooltipOnPressMobile={true} />
         <Kbfs.Filename path={path} selectable={true} type="BodyBig" />
@@ -34,6 +45,7 @@ const TitleInner = ({path}: {path: T.FS.Path}) =>
       <MaybePublicTag path={path} />
     </Kb.Box2>
   )
+}
 
 export const IosHeaderTitle = ({path}: {path: T.FS.Path}) => (
   <Kbfs.FsErrorProvider>

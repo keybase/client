@@ -239,14 +239,6 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		h.Debug(ctx, "MarkAsRead: not logged in: %s", err)
 		return chat1.MarkAsReadLocalRes{}, nil
 	}
-	// Don't send remote mark as read if we somehow get this in the background.
-	if h.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
-		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
-			h.G().MobileAppState.State())
-		return chat1.MarkAsReadLocalRes{
-			Offline: h.G().InboxSource.IsOffline(ctx),
-		}, nil
-	}
 	if err = h.G().InboxSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID, arg.ForceUnread); err != nil {
 		switch err {
 		case utils.ErrGetUnverifiedConvNotFound, utils.ErrGetVerifiedConvNotFound:
