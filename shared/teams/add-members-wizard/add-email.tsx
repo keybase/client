@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import ModalFooter from '../common/modal-footer'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
 type Props = {
@@ -88,15 +89,9 @@ const AddEmail = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Button
-            fullWidth={true}
-            label="Continue"
-            onClick={onContinue}
-            disabled={disabled}
-            waiting={waiting}
-          />
-      </Kb.Box2>
+      <ModalFooter>
+        <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} waiting={waiting} />
+      </ModalFooter>
     </>
   )
 }
@@ -111,15 +106,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   errorText: {color: Kb.Styles.globalColors.redDark},
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))
 
 export default AddEmail

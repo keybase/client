@@ -70,8 +70,14 @@ export const TeamBotRow = (props: Props) => {
 
   // TODO: switch this to a ListItem so that we get dividers, free styling, etc
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true} alignItems="center" style={styles.innerContainerTop}>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      relative={true}
+      noShrink={true}
+      alignItems="center"
+      style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}
+    >
         <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
           <Kb.Avatar
             username={props.username}
@@ -107,23 +113,20 @@ export const TeamBotRow = (props: Props) => {
             onHidden={onHideMenu}
           />
         </Kb.Box2>
-      </Kb.Box2>
     </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
     backgroundColor: Kb.Styles.globalColors.white,
+    height: isMobile ? 56 : 48,
   },
   containerReset: {
     backgroundColor: Kb.Styles.globalColors.blueLighter2,
   },
   fullNameLabel: {marginRight: Kb.Styles.globalMargins.xtiny},
-  innerContainerTop: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-    height: isMobile ? 56 : 48,
-  },
   menuButtonDesktop: {
     marginLeft: Kb.Styles.globalMargins.small,
     marginRight: Kb.Styles.globalMargins.tiny,
@@ -150,7 +153,7 @@ type OwnProps = {
 
 const blankInfo = Teams.initialMemberInfo
 
-const Container = (ownProps: OwnProps) => {
+const BotRow = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {teamDetails, yourOperations} = useLoadedTeam(teamID)
   const info: T.Teams.MemberInfo = teamDetails.members.get(ownProps.username) || blankInfo
@@ -194,4 +197,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default BotRow

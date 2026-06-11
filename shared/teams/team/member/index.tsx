@@ -2,270 +2,29 @@ import * as C from '@/constants'
 import {isBigTeam} from '@/constants/chat/helpers'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import RoleButton from '../../role-button'
-import logger from '@/logger'
 import {FloatingRolePicker} from '../../role-picker'
 import {formatTimeForTeamMember, formatTimeRelativeToNow} from '@/util/timestamp'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {navToProfile} from '@/constants/router'
 import {getRolePickerDisabledReasons, isLastOwnerInTeamMembers} from '@/teams/role-picker-utils'
 import {useLoadedTeam} from '../use-loaded-team'
-import {useTeamsList} from '@/teams/use-teams-list'
 import {removeMember} from '@/teams/actions'
+import {TeamMemberHeader} from './header'
+import {
+  useTeamTreeMemberships,
+  type TeamTreeRowIn,
+  type TeamTreeRowNotIn,
+} from './use-team-tree-memberships'
 
 type Props = {
   teamID: T.Teams.TeamID
   username: string
-}
-
-type TeamTreeRowNotIn = {
-  teamID: T.Teams.TeamID
-  teamname: string
-  memberCount?: number
-  joinTime?: number
-}
-type TeamTreeRowIn = {
-  lastActivity?: number
-  role: T.Teams.TeamRoleType
-} & TeamTreeRowNotIn
-
-type TeamTreeMembershipState = {
-  expectedCount?: number
-  guid?: number
-  lastActivity: Map<T.Teams.TeamID, number>
-  memberships: Array<T.RPCGen.TeamTreeMembership>
-  sparseMemberInfos: Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>
-  targetTeamID: T.Teams.TeamID
-  username: string
-}
-
-const makeEmptyTeamTreeMembershipState = (
-  targetTeamID: T.Teams.TeamID,
-  username: string
-): TeamTreeMembershipState => ({
-  lastActivity: new Map(),
-  memberships: [],
-  sparseMemberInfos: new Map(),
-  targetTeamID,
-  username,
-})
-
-const matchesTeamTreeMembershipState = (
-  state: TeamTreeMembershipState,
-  targetTeamID: T.Teams.TeamID,
-  username: string
-) => state.targetTeamID === targetTeamID && state.username === username
-
-const consumeTeamTreeMembershipValue = (
-  value: T.RPCGen.TeamTreeMembershipValue
-): T.Teams.TreeloaderSparseMemberInfo => ({
-  joinTime: value.joinTime ?? undefined,
-  type: Teams.teamRoleByEnum[value.role],
-})
-
-const getSparseMemberInfo = (
-  sparseMemberInfos: ReadonlyMap<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>,
-  teamID: T.Teams.TeamID
-) => sparseMemberInfos.get(teamID)
-
-const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
-  const loadTeamTreeMemberships = C.useRPC(T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise)
-  const {teams} = useTeamsList()
-  const teamMetas = new Map(teams.map(team => [team.id, team] as const))
-  const [state, setState] = React.useState(() => makeEmptyTeamTreeMembershipState(targetTeamID, username))
-  const hasFocusedSinceMountRef = React.useRef(false)
-
-  const loadLastActivity = React.useEffectEvent((teamID: T.Teams.TeamID) => {
-    C.ignorePromise(
-      T.RPCChat.localGetLastActiveAtMultiLocalRpcPromise(
-        {teamIDs: [teamID], username},
-        C.waitingKeyTeamsLoadTeamTreeActivity(teamID, username)
-      )
-        .then(activityMap => {
-          setState(prev => {
-            if (!matchesTeamTreeMembershipState(prev, targetTeamID, username)) {
-              return prev
-            }
-            const nextLastActivity = new Map(prev.lastActivity)
-            Object.entries(activityMap ?? {}).forEach(([activityTeamID, lastActivity]) => {
-              nextLastActivity.set(activityTeamID, lastActivity)
-            })
-            return {...prev, lastActivity: nextLastActivity}
-          })
-          return undefined
-        })
-        .catch(error => {
-          logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}`, error)
-        })
-    )
-  })
-
-  const load = React.useCallback(() => {
-    loadTeamTreeMemberships(
-      [{teamID: targetTeamID, username}],
-      () => {},
-      error => {
-        logger.warn(`Failed to load team tree memberships for ${targetTeamID}:${username}`, error)
-      }
-    )
-  }, [loadTeamTreeMemberships, targetTeamID, username])
-
-  const reload = React.useCallback(() => {
-    setState(makeEmptyTeamTreeMembershipState(targetTeamID, username))
-    load()
-  }, [load, targetTeamID, username])
-
-  React.useEffect(() => {
-    load()
-  }, [load])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (hasFocusedSinceMountRef.current) {
-        reload()
-      } else {
-        hasFocusedSinceMountRef.current = true
-      }
-    }, [reload])
-  )
-
-  useEngineActionListener('keybase.1.NotifyTeam.teamTreeMembershipsDone', action => {
-    const {result} = action.payload.params
-    if (result.targetTeamID !== targetTeamID || result.targetUsername !== username) {
-      return
-    }
-    setState(prev => {
-      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
-        ? prev
-        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
-      if (base.guid !== undefined && result.guid < base.guid) {
-        return base
-      }
-      if (base.guid === undefined || result.guid > base.guid) {
-        return {
-          ...makeEmptyTeamTreeMembershipState(targetTeamID, username),
-          expectedCount: result.expectedCount,
-          guid: result.guid,
-        }
-      }
-      return {...base, expectedCount: result.expectedCount}
-    })
-  })
-
-  useEngineActionListener('keybase.1.NotifyTeam.teamTreeMembershipsPartial', action => {
-    const {membership} = action.payload.params
-    if (membership.targetTeamID !== targetTeamID || membership.targetUsername !== username) {
-      return
-    }
-    setState(prev => {
-      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
-        ? prev
-        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
-      if (base.guid !== undefined && membership.guid < base.guid) {
-        return base
-      }
-      const nextMemberships =
-        base.guid === undefined || membership.guid > base.guid
-          ? [membership]
-          : [...base.memberships, membership]
-      const nextSparseMemberInfos =
-        base.guid === undefined || membership.guid > base.guid ? new Map() : new Map(base.sparseMemberInfos)
-      if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
-        nextSparseMemberInfos.set(
-          membership.result.ok.teamID,
-          consumeTeamTreeMembershipValue(membership.result.ok)
-        )
-      }
-      return {
-        ...base,
-        guid: membership.guid,
-        memberships: nextMemberships,
-        sparseMemberInfos: nextSparseMemberInfos,
-      }
-    })
-    if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
-      loadLastActivity(membership.result.ok.teamID)
-    }
-  })
-
-  const errors: Array<T.RPCGen.TeamTreeMembership> = []
-  const nodesNotIn: Array<TeamTreeRowNotIn> = []
-  const nodesIn: Array<TeamTreeRowIn> = []
-  const visibleState = matchesTeamTreeMembershipState(state, targetTeamID, username)
-    ? state
-    : makeEmptyTeamTreeMembershipState(targetTeamID, username)
-
-  // Note that we do not directly take any information directly from the TeamTree result other
-  // than the **shape of the tree**. Membership metadata comes from the async tree-membership
-  // results themselves instead of peeking into the global teams cache.
-  for (const membership of visibleState.memberships) {
-    const teamname = membership.teamName
-
-    if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
-      const teamID = membership.result.ok.teamID
-      const sparseMemberInfo = getSparseMemberInfo(visibleState.sparseMemberInfos, teamID)
-      if (!sparseMemberInfo) {
-        continue
-      }
-
-      const row = {
-        joinTime: sparseMemberInfo.joinTime,
-        lastActivity: visibleState.lastActivity.get(teamID),
-        // memberCount should always be populated because the TeamList, which is synced
-        // eagerly, provides it.
-        memberCount: teamMetas.get(teamID)?.memberCount,
-        teamID,
-        teamname,
-      }
-
-      if ('none' !== sparseMemberInfo.type) {
-        nodesIn.push({
-          role: sparseMemberInfo.type,
-          ...row,
-        })
-      } else {
-        nodesNotIn.push(row)
-      }
-    } else if (T.RPCGen.TeamTreeMembershipStatus.error === membership.result.s) {
-      errors.push(membership)
-    }
-  }
-  return {
-    errors,
-    loading:
-      visibleState.expectedCount === undefined || visibleState.memberships.length < visibleState.expectedCount,
-    nodesIn,
-    nodesNotIn,
-    reload,
-  }
-}
-
-const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
-  const nav = useSafeNavigation()
-  const waitingKey = C.waitingKeyTeamsRemoveMember(teamID, username)
-  const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const wasWaitingRef = React.useRef(waiting)
-  const [leaving, setLeaving] = React.useState(false)
-
-  React.useEffect(() => {
-    if (wasWaitingRef.current && !waiting) {
-      setLeaving(true)
-      nav.safeNavigateUp()
-    } else {
-      setLeaving(false)
-    }
-    wasWaitingRef.current = waiting
-  }, [waiting, nav])
-
-  return leaving
 }
 
 type Item = {type: 'section-nodes'; tri: TeamTreeRowIn} | {type: 'section-add-nodes'; tni: TeamTreeRowNotIn}
@@ -755,116 +514,6 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
 }
 
-// exported for stories
-export const TeamMemberHeader = (props: Props) => {
-  const {teamID, username} = props
-  const nav = useSafeNavigation()
-  const leaving = useNavUpIfRemovedFromTeam(teamID, username)
-
-  const {teamDetails, teamMeta} = useLoadedTeam(teamID)
-  const yourUsername = useCurrentUserState(s => s.username)
-  const previewConversation = C.Router2.previewConversation
-  const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
-  const onViewProfile = () => navToProfile(username)
-  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
-
-  const member = teamDetails.members.get(username)
-  if (!member) {
-    if (!leaving) {
-      // loading? should never happen.
-      logger.error('[team member view] no data! this should never happen.')
-    }
-    return null
-  }
-
-  const buttons = (
-    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Kb.Styles.isPhone ? 'flex-start' : 'flex-end'}>
-      <Kb.Button small={true} label="Chat" onClick={onChat} />
-      <Kb.Button small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
-      {username !== yourUsername && <BlockDropdown username={username} />}
-    </Kb.Box2>
-  )
-
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.headerContainer}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-          <Kb.Box2
-            direction="horizontal"
-            alignItems="center"
-            gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}
-            alignSelf="flex-start"
-          >
-            <Kb.Avatar size={16} teamname={teamMeta.teamname} />
-            <Kb.Text
-              type={Kb.Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
-              onClick={onViewTeam}
-            >
-              {teamMeta.teamname}
-            </Kb.Text>
-          </Kb.Box2>
-
-          <Kb.Box2
-            direction="horizontal"
-            gap="large"
-            fullWidth={true}
-            alignItems="flex-end"
-            style={styles.headerTextContainer}
-          >
-            <Kb.Box2 direction="horizontal" gap="small">
-              <Kb.Avatar size={64} username={username} onClick={onViewProfile} />
-              <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
-                <Kb.ConnectedUsernames type="Header" usernames={username} onUsernameClicked={onViewProfile} />
-                {!!member.fullName && (
-                  <Kb.Text type="BodySemibold" lineClamp={1}>
-                    {member.fullName}
-                  </Kb.Text>
-                )}
-                <Kb.Text type="BodySmall">
-                  Joined {member.joinTime ? formatTimeForTeamMember(member.joinTime) : 'this team'}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-            {!Kb.Styles.isPhone && buttons}
-          </Kb.Box2>
-          {Kb.Styles.isPhone && buttons}
-        </Kb.Box2>
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-}
-
-const BlockDropdown = (props: {username: string}) => {
-  const {username} = props
-  const nav = useSafeNavigation()
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
-    return (
-      <Kb.FloatingMenu
-        attachTo={attachTo}
-        visible={true}
-        onHidden={hidePopup}
-        closeOnSelect={true}
-        items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-      />
-    )
-  }
-  const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
-  return (
-    <>
-      <Kb.IconButton
-        small={true}
-        icon="iconfont-ellipsis"
-        onClick={showPopup}
-        mode="Secondary"
-        ref={popupAnchor}
-      />
-      {popup}
-    </>
-  )
-}
-
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contentCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 48},
@@ -886,23 +535,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       padding: 0,
       width: 10 + Kb.Styles.globalMargins.small * 2, // 16px side paddings
     },
-  }),
-  headerContainer: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.white,
-      paddingBottom: Kb.Styles.globalMargins.small,
-    },
-    isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
-    isPhone: {paddingTop: Kb.Styles.globalMargins.small},
-    isTablet: {paddingTop: Kb.Styles.globalMargins.small},
-  }),
-  headerContent: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
-  headerText: Kb.Styles.platformStyles({
-    common: {width: 127},
-    isPhone: {flex: 1},
-  }),
-  headerTextContainer: Kb.Styles.platformStyles({
-    isPhone: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
   inviteButton: {minWidth: 56},
   inviteTeamInfo: Kb.Styles.platformStyles({

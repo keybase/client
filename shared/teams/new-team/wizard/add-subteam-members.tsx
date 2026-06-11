@@ -6,6 +6,7 @@ import {pluralize} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
 import * as C from '@/constants'
+import ModalFooter from '../../common/modal-footer'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
 import {useTypedNavigation} from '@/util/typed-navigation'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
@@ -98,9 +99,9 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
   }, [doneLabel, onContinue])
 
   const desktopFooter = !isMobile ? (
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+    <ModalFooter>
       <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />
-    </Kb.Box2>
+    </ModalFooter>
   ) : null
 
   return (
@@ -147,15 +148,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.small,
   },
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
   search: {
     borderRadius: Kb.Styles.borderRadius,
   },

@@ -8,7 +8,7 @@ import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import {getRolePickerDisabledReasons} from '@/teams/role-picker-utils'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
-import MenuHeader from '../menu-header.new'
+import MenuHeader from '../menu-header'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {ignoreRequest, removeMember} from '@/teams/actions'
@@ -215,7 +215,7 @@ const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
   )
 }
 
-const Container = (ownProps: OwnProps) => {
+const RequestRow = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
   const currentUsername = useCurrentUserState(s => s.username)
   const {
@@ -301,4 +301,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default RequestRow

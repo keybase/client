@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {Activity, useActivityLevels, useChannelParticipants} from '@/teams/common'
 import {useTeamSelectionState} from '@/teams/common/selection-state'
+import {selectionStyles} from '../common'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -73,7 +74,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       disabled={isGeneral}
       onCheck={onSelect}
       key={`check-${channel.channelname}`}
-      style={styles.widenClickableArea}
+      style={selectionStyles.widenClickableArea}
     />
   )
   const membersText = hasAllMembers
@@ -117,7 +118,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      style={Kb.Styles.collapseStyles([styles.actionButtons, styles.mobileMarginsHack])}
+      style={Kb.Styles.collapseStyles([styles.actionButtons, selectionStyles.mobileMarginsHack])}
       alignSelf="flex-start"
     >
       {popup}
@@ -170,13 +171,11 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       checkCircle: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
-      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
       row: {
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },
       selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
       unselected: {backgroundColor: Kb.Styles.globalColors.white},
-      widenClickableArea: {margin: -5, padding: 5},
     }) as const
 )
 

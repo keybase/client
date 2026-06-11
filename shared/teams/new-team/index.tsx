@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../common/modal-footer'
 import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import upperFirst from 'lodash/upperFirst'
@@ -78,29 +79,14 @@ export const CreateNewTeam = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Button
-            waiting={waiting}
-            fullWidth={true}
-            label="Create team"
-            onClick={onSubmitCb}
-            disabled={disabled}
-          />
-      </Kb.Box2>
+      <ModalFooter>
+        <Kb.Button waiting={waiting} fullWidth={true} label="Create team" onClick={onSubmitCb} disabled={disabled} />
+      </ModalFooter>
     </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
   wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

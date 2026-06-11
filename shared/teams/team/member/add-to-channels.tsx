@@ -3,6 +3,7 @@ import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../../common/modal-footer'
 import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
@@ -182,7 +183,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
   const desktopFooter =
     !isMobile && mode !== 'self' ? (
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <ModalFooter>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
           <Kb.Button
             type="Dim"
@@ -199,7 +200,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
             waiting={waiting}
           />
         </Kb.Box2>
-      </Kb.Box2>
+      </ModalFooter>
     ) : null
 
   React.useEffect(() => {
@@ -509,7 +510,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
         <Kb.Box2 direction="vertical">
           <Common.Activity level={activityLevel} iconOnly={true} />
         </Kb.Box2>
-        <Common.ParticipantMeta numParticipants={participants.length} />
+        <ParticipantMeta numParticipants={participants.length} />
         {selfMode ? (
           <SelfChannelActions
             canDeleteChannel={canDeleteChannel}
@@ -552,7 +553,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
               <Common.Activity level={activityLevel} />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal">
-              <Common.ParticipantMeta numParticipants={participants.length} />
+              <ParticipantMeta numParticipants={participants.length} />
             </Kb.Box2>
             <SelfChannelActions
               canDeleteChannel={canDeleteChannel}
@@ -602,6 +603,17 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   )
 }
 
+const ParticipantMeta = (props: {numParticipants: number}) => (
+  <Kb.Meta
+    color={Kb.Styles.globalColors.black_50}
+    icon="iconfont-people-solid"
+    iconColor={Kb.Styles.globalColors.black_20}
+    title={props.numParticipants.toLocaleString()}
+    backgroundColor={Kb.Styles.globalColors.black_10}
+    style={styles.participantMeta}
+  />
+)
+
 const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
   channelText: {flexGrow: 1, flexShrink: 1},
@@ -621,15 +633,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
   }),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
+  participantMeta: {...Kb.Styles.padding(3, 6)},
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),

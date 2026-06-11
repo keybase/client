@@ -186,7 +186,7 @@ const IgnoreAccessRequests = (props: {
   )
 }
 
-export const Settings = (p: Props) => {
+const Settings = (p: Props) => {
   const {error, savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
   const {canShowcase, allowOpenTrigger} = p
 

@@ -94,7 +94,7 @@ const getLabels = (user: T.Teams.InviteInfo) => {
 }
 
 // TODO: when removing flags.teamsRedesign, move this into the component itself
-const Container = (ownProps: OwnProps) => {
+const InviteRow = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {teamDetails} = useLoadedTeam(teamID)
   const invites = teamDetails.invites
@@ -108,4 +108,4 @@ const Container = (ownProps: OwnProps) => {
   return <TeamInviteRow firstItem={ownProps.firstItem} isKeybaseUser={isKeybaseUser} label={label} onCancelInvite={onCancelInvite} role={role} subLabel={subLabel} />
 }
 
-export default Container
+export default InviteRow

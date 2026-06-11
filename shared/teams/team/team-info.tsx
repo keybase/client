@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import ModalFooter from '../common/modal-footer'
 import * as T from '@/constants/types'
 import {useLoadedTeam} from './use-loaded-team'
 
@@ -144,15 +145,9 @@ const TeamInfo = (props: Props) => {
         />
         {/* TODO: location */}
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={saveDisabled}
-            waiting={waiting}
-          />
-      </Kb.Box2>
+      <ModalFooter>
+        <Kb.Button label="Save" onClick={onSave} fullWidth={true} disabled={saveDisabled} waiting={waiting} />
+      </ModalFooter>
     </>
   )
 }
@@ -181,15 +176,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   faded: {opacity: 0.5},
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 

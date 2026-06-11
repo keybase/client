@@ -9,6 +9,7 @@ import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
 import {ChannelsWidget} from '../common'
+import ModalFooter from '../common/modal-footer'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -185,7 +186,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <ModalFooter>
         <Kb.Button
           fullWidth={true}
           label={`Invite ${addingMembers.length} ${noun} & finish`}
@@ -193,7 +194,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
           onClick={onComplete}
           disabled={addingMembers.length === 0}
         />
-      </Kb.Box2>
+      </ModalFooter>
     </>
   )
 }
@@ -569,15 +570,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   flexDefinitelyShrink: {flexShrink: 100},
   flexShrink: {flexShrink: 1},
   memberPill: {width: 0},
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))
 
 type Props = {
