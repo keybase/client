@@ -1026,6 +1026,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
           label={isEditing ? 'Save' : 'Send'}
           testID={TestIDs.CHAT_SEND_BUTTON}
           style={isExploding ? nativeStyles.explodingSendBtn : nativeStyles.sendBtn}
+          labelStyle={isExploding ? nativeStyles.explodingSendBtnLabel : undefined}
         />
       )}
     </Kb.Box2>
@@ -1474,6 +1475,9 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.black,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
+      // explodingSendBtn bg is globalColors.black which inverts in dark mode, so the
+      // default whiteOrWhite label would be white-on-white there
+      explodingSendBtnLabel: {color: Kb.Styles.globalColors.white},
       explodingText: {
         fontSize: 11,
         lineHeight: 16,
