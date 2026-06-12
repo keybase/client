@@ -25,9 +25,9 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
       <Kb.Text center={true} type="Body">
         You may lose access to these folders forever:
       </Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-        <Kb.ScrollView>{props.endangeredTLFs.map((tlf, index) => renderTLFEntry(index, tlf))}</Kb.ScrollView>
-      </Kb.Box2>
+      <Kb.ScrollView style={styles.listContainer}>
+        {props.endangeredTLFs.map((tlf, index) => renderTLFEntry(index, tlf))}
+      </Kb.ScrollView>
     </>
   )
 }
@@ -218,7 +218,6 @@ const styles = Kb.Styles.styleSheetCreate(
       italicName: {...Kb.Styles.globalStyles.italic},
       listContainer: Kb.Styles.platformStyles({
         common: {
-          alignContent: 'center',
           ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
           flexGrow: 1,
           ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),

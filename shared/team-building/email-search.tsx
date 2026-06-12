@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {validateEmailAddress} from '@/util/email-address'
 import {UserMatchMention} from './phone-search'
+import {SearchEmptyState} from './common'
 import ContinueButton from './continue-button'
 import {searchWaitingKey} from '@/constants/strings'
 
@@ -65,29 +66,14 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
         {!!user && canSubmit && !!user.serviceMap.keybase ? (
           <UserMatchMention username={user.serviceMap.keybase} />
         ) : (
-          <Kb.Box2
-            alignSelf="center"
-            centerChildren={!isMobile}
-            direction="vertical"
-            fullWidth={true}
-            gap="tiny"
-            style={styles.emptyContainer}
-          >
-            {!isMobile && (
-              <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
-            )}
-            {namespace === 'chat' ? (
-              <Kb.Text type="BodySmall" style={styles.helperText}>
-                Start a chat with any email contact, then tell them to install Keybase. Your messages will
-                unlock after they sign up.
-              </Kb.Text>
-            ) : (
-              <Kb.Text type="BodySmall" style={styles.helperText}>
-                Add any email contact, then tell them to install Keybase. They will automatically join the
-                team after they sign up.
-              </Kb.Text>
-            )}
-          </Kb.Box2>
+          <SearchEmptyState
+            icon="iconfont-mention"
+            text={
+              namespace === 'chat'
+                ? 'Start a chat with any email contact, then tell them to install Keybase. Your messages will unlock after they sign up.'
+                : 'Add any email contact, then tell them to install Keybase. They will automatically join the team after they sign up.'
+            }
+          />
         )}
         {/* TODO: add support for multiple emails  */}
       </Kb.Box2>
@@ -106,20 +92,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {
           zIndex: -1,
-        },
-      }),
-      emptyContainer: Kb.Styles.platformStyles({
-        common: {flex: 1},
-        isElectron: {
-          maxWidth: 290,
-          paddingBottom: 40,
-        },
-        isMobile: {maxWidth: '90%'},
-      }),
-      helperText: Kb.Styles.platformStyles({
-        common: {textAlign: 'center'},
-        isMobile: {
-          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
         },
       }),
       input: Kb.Styles.platformStyles({

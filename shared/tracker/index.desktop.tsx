@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import {useColorScheme} from 'react-native'
+import Bio from './bio'
 import {assertionColorToColor, assertionColorToTextColor, stateToIcon} from './model'
 
 export type Props = {
@@ -80,68 +81,6 @@ const getButtons = (props: Props) => {
       break
   }
   return []
-}
-
-// Inline bio rendering (store-free)
-const Bio = (props: {
-  bio?: string
-  blocked: boolean
-  followThem: boolean
-  followersCount?: number
-  followingCount?: number
-  followsYou: boolean
-  fullname?: string
-  hidFromFollowers: boolean
-  location?: string
-  trackerUsername: string
-}) => {
-  const {bio, blocked, followThem, followersCount, followingCount, followsYou, fullname, hidFromFollowers, location, trackerUsername} = props
-  let followText = ''
-  if (followThem) {
-    followText = followsYou ? 'YOU FOLLOW EACH OTHER' : 'YOU FOLLOW THEM'
-  } else if (followsYou) {
-    followText = 'FOLLOWS YOU'
-  }
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.bioContainer} centerChildren={true} gap="xtiny">
-      <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-        <Kb.Text center={true} type="BodyBig" lineClamp={1} selectable={true}>
-          {fullname}
-        </Kb.Text>
-      </Kb.Box2>
-      {!!followText && <Kb.Text type="BodySmall">{followText}</Kb.Text>}
-      {followersCount !== undefined && (
-        <Kb.Text type="BodySmall">
-          <Kb.Text type="BodySmall" style={styles.bold}>{followersCount}</Kb.Text>
-          {' Followers · Following '}
-          <Kb.Text type="BodySmall" style={styles.bold}>{followingCount}</Kb.Text>
-        </Kb.Text>
-      )}
-      {!!bio && (
-        <Kb.Text type="Body" center={true} lineClamp={2} style={styles.bioText} selectable={true}>
-          {bio}
-        </Kb.Text>
-      )}
-      {!!location && (
-        <Kb.Text type="BodySmall" center={true} lineClamp={1} style={styles.bioText} selectable={true}>
-          {location}
-        </Kb.Text>
-      )}
-      {blocked ? (
-        <Kb.Text type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
-          {"You blocked them. "}
-          {trackerUsername}
-          {" won't be able to chat with you or add you to teams."}
-        </Kb.Text>
-      ) : (
-        hidFromFollowers && (
-          <Kb.Text type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
-            You hid them from your followers.
-          </Kb.Text>
-        )
-      )}
-    </Kb.Box2>
-  )
 }
 
 const _scoreAssertionKey = (a: string) => {
@@ -265,20 +204,25 @@ const Tracker = (props: Props) => {
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
           </Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} relative={true} noShrink={true}>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            relative={true}
+            noShrink={true}
+            centerChildren={true}
+            gap="tiny"
+          >
             <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
-            <Kb.Box2 direction="vertical" centerChildren={true} gap="tiny" alignSelf="center">
-              <img
-                src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, isDarkMode)}
-                width={96}
-                height={96}
-                style={styles.avatar}
-                loading="lazy"
-              />
-              <Kb.Text type="BodyBig" selectable={true}>
-                {props.trackerUsername}
-              </Kb.Text>
-            </Kb.Box2>
+            <img
+              src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, isDarkMode)}
+              width={96}
+              height={96}
+              style={styles.avatar}
+              loading="lazy"
+            />
+            <Kb.Text type="BodyBig" selectable={true}>
+              {props.trackerUsername}
+            </Kb.Text>
           </Kb.Box2>
           <Bio
             bio={props.bio}
@@ -289,8 +233,9 @@ const Tracker = (props: Props) => {
             followsYou={props.followsYou}
             fullname={props.fullname}
             hidFromFollowers={props.hidFromFollowers}
+            inTracker={true}
             location={props.location}
-            trackerUsername={props.trackerUsername}
+            username={props.trackerUsername}
           />
           {props.teamShowcase && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamShowcases} gap="xtiny">
@@ -353,20 +298,6 @@ const styles = Kb.Styles.styleSheetCreate(
         right: 0,
         top: avatarSize / 2,
       },
-      bioContainer: {backgroundColor: Kb.Styles.globalColors.white},
-      bioText: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
-        },
-        isElectron: {wordBreak: 'break-word'} as const,
-      }),
-      blockedBackgroundText: {
-        backgroundColor: Kb.Styles.globalColors.red_20,
-        borderRadius: Kb.Styles.borderRadius,
-        margin: Kb.Styles.globalMargins.small,
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-      },
-      bold: {...Kb.Styles.globalStyles.fontBold},
       buttons: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.fillAbsolute,
@@ -386,9 +317,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {
         backgroundColor: Kb.Styles.globalColors.white,
-      },
-      fullNameContainer: {
-        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
       },
       header: {
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),

@@ -4,7 +4,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
+import {CryptoBanner, Input, InputActionsBar} from './input'
+import OperationIO from './operation-io'
 import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from './output'
 import {
@@ -228,15 +229,15 @@ export const DecryptIO = () => {
   const {params} = useRoute() as RootRouteProps<'decryptTab'>
   const controller = useDecryptState(params)
   return (
-    <DragAndDrop
+    <OperationIO
       allowFolders={false}
+      divider={true}
       prompt={filePrompt}
       inProgress={controller.state.inProgress}
       onAttach={controller.openFile}
       testID={TestIDs.CRYPTO_DECRYPT_INPUT}
-    >
-      <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+      input={
+        <>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Input
             allowDirectories={false}
@@ -248,9 +249,10 @@ export const DecryptIO = () => {
             onSetInput={controller.setInput}
             onClearInput={controller.clearInput}
           />
-        </Kb.Box2>
-        <Kb.Divider />
-        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>
+        </>
+      }
+      output={
+        <>
           <CryptoSignedSender isSelfSigned={false} state={controller.state} />
           <CryptoOutput
             actionLabel="Decrypt"
@@ -260,8 +262,8 @@ export const DecryptIO = () => {
             onChooseOutputFolder={destinationDir => C.ignorePromise(controller.decrypt(destinationDir) as unknown as Promise<void>)}
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />
-        </Kb.Box2>
-      </Kb.Box2>
-    </DragAndDrop>
+        </>
+      }
+    />
   )
 }

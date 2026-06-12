@@ -19,9 +19,7 @@ const useMountPointPath = (platformAfterMountPath: string) => {
   return mount && platformAfterMountPath && `${mount}${platformAfterMountPath}`
 }
 
-// name it different because of a bug in eslint that warns above in Props:
-//   11:25  error  'PathInfo' was used before it was defined  no-use-before-define
-const PathInfo_ = (props: PathInfoProps) => {
+const PathInfo = (props: PathInfoProps) => {
   const pathInfo = useFsPathInfo(props.path, props.knownPathInfo || FS.emptyPathInfo)
   const mountPointPath = useMountPointPath(pathInfo.platformAfterMountPath)
   return (
@@ -44,7 +42,7 @@ const PathInfo_ = (props: PathInfoProps) => {
   )
 }
 
-export default PathInfo_
+export default PathInfo
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

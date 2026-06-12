@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
+import SettingsSectionTitle from './section-title'
 import {loadSettings} from './load-settings'
 import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
@@ -205,9 +206,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
 
   return (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-        <Kb.Text type="Header">Security</Kb.Text>
-      </Kb.Box2>
+      <SettingsSectionTitle title="Security" style={styles.innerContainer} />
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         {!!groups.get('security')?.settings && (
@@ -338,12 +337,11 @@ const Links = () => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.innerContainer}>
-        <Kb.Text type="Header">Link previews</Kb.Text>
-        <Kb.Text type="BodySmall">
-          Your Keybase app will visit the links you share and automatically post previews.
-        </Kb.Text>
-      </Kb.Box2>
+      <SettingsSectionTitle
+        title="Link previews"
+        description="Your Keybase app will visit the links you share and automatically post previews."
+        style={styles.innerContainer}
+      />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -368,10 +366,9 @@ const Links = () => {
             {getUnfurlWhitelist(false).map((w, idx) => {
               const wlremoved = unfurlWhitelistRemoved[w]
               return (
-                <Kb.Box2 direction="vertical" key={w} style={styles.whitelistInner}>
+                <React.Fragment key={w}>
                   {idx === 0 && <Kb.Box2 direction="vertical" style={styles.whitelistOuter} />}
                   <Kb.Box2
-                    fullWidth={true}
                     direction="horizontal"
                     justifyContent="space-between"
                     noShrink={true}
@@ -398,7 +395,7 @@ const Links = () => {
                       </Kb.WithTooltip>
                     )}
                   </Kb.Box2>
-                </Kb.Box2>
+                </React.Fragment>
               )
             })}
           </Kb.ScrollView>
@@ -526,11 +523,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {paddingLeft: Kb.Styles.globalMargins.medium},
     isMobile: {paddingBottom: Kb.Styles.globalMargins.medium, paddingLeft: Kb.Styles.globalMargins.small},
   }),
-  container: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
-    },
-  }),
+  container: {
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
+  },
   divider: {marginBottom: Kb.Styles.globalMargins.small},
   error: {color: Kb.Styles.globalColors.redDark},
   innerContainer: Kb.Styles.platformStyles({
@@ -580,22 +575,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: '95%',
     },
   }),
-  whitelistInner: {
-    marginBottom: 1,
-    paddingRight: Kb.Styles.globalMargins.tiny,
-  },
   whitelistOuter: {
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
-  whitelistRowContainer: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.white,
-      height: 40,
-      marginLeft: Kb.Styles.globalMargins.tiny,
-      padding: Kb.Styles.globalMargins.tiny,
-      paddingRight: Kb.Styles.globalMargins.small,
-    },
-  }),
+  whitelistRowContainer: {
+    backgroundColor: Kb.Styles.globalColors.white,
+    height: 40,
+    marginBottom: 1,
+    marginLeft: Kb.Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
+    padding: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.small,
+  },
 }))
 
 export default Chat

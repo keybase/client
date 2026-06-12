@@ -318,29 +318,33 @@ const ServiceIconDesktop = (props: IconProps) => {
       flex={1}
       style={desktopStyles.serviceIconFlex}
     >
-      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={desktopStyles.serviceIconContainer}>
-        <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true} justifyContent="flex-start">
-          <Kb.Box2 direction="vertical" relative={true}>
-            {serviceIdToBadge(props.service) && (
-              <Kb.Badge
-                border={true}
-                height={9}
-                containerStyle={desktopStyles.badgeContainerStyle}
-                badgeStyle={desktopStyles.badgeStyle}
-                leftRightPadding={0}
-              />
-            )}
-            <Kb.Box2 direction="vertical" style={desktopStyles.serviceIconBox}>
-              <Kb.Icon color={color} fontSize={16} type={serviceIdToIconFont(props.service)} />
-            </Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        justifyContent="flex-start"
+        flex={1}
+        style={desktopStyles.serviceIconContainer}
+      >
+        <Kb.Box2 direction="vertical" relative={true}>
+          {serviceIdToBadge(props.service) && (
+            <Kb.Badge
+              border={true}
+              height={9}
+              containerStyle={desktopStyles.badgeContainerStyle}
+              badgeStyle={desktopStyles.badgeStyle}
+              leftRightPadding={0}
+            />
+          )}
+          <Kb.Box2 direction="vertical" style={desktopStyles.serviceIconBox}>
+            <Kb.Icon color={color} fontSize={16} type={serviceIdToIconFont(props.service)} />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={desktopStyles.label}>
-            {props.label.map((label, i) => (
-              <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
-                {label}
-              </Kb.Text>
-            ))}
-          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={desktopStyles.label}>
+          {props.label.map((label, i) => (
+            <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
+              {label}
+            </Kb.Text>
+          ))}
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2

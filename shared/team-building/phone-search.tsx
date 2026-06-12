@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import ContinueButton from './continue-button'
+import {SearchEmptyState} from './common'
 import {searchWaitingKey} from '@/constants/strings'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
@@ -63,29 +64,14 @@ const PhoneSearch = (props: PhoneSearchProps) => {
         {!!user && canSubmit && !!user.serviceMap.keybase ? (
           <UserMatchMention username={user.serviceMap.keybase} />
         ) : (
-          <Kb.Box2
-            alignSelf="center"
-            centerChildren={!isMobile}
-            direction="vertical"
-            fullWidth={true}
-            gap="tiny"
-            style={styles.emptyContainer}
-          >
-            {!isMobile && (
-              <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
-            )}
-            {namespace === 'chat' ? (
-              <Kb.Text type="BodySmall" style={styles.helperText}>
-                Start a chat with any phone contact, then tell them to install Keybase. Your messages will
-                unlock after they sign up.
-              </Kb.Text>
-            ) : (
-              <Kb.Text type="BodySmall" style={styles.helperText}>
-                Add any phone contact, then tell them to install Keybase. They will automatically join the
-                team after they sign up.
-              </Kb.Text>
-            )}
-          </Kb.Box2>
+          <SearchEmptyState
+            icon="iconfont-number-pad"
+            text={
+              namespace === 'chat'
+                ? 'Start a chat with any phone contact, then tell them to install Keybase. Your messages will unlock after they sign up.'
+                : 'Add any phone contact, then tell them to install Keybase. They will automatically join the team after they sign up.'
+            }
+          />
         )}
         {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
       </Kb.Box2>
@@ -124,20 +110,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {
           zIndex: -1,
-        },
-      }),
-      emptyContainer: Kb.Styles.platformStyles({
-        common: {flex: 1},
-        isElectron: {
-          maxWidth: 290,
-          paddingBottom: 40,
-        },
-        isMobile: {maxWidth: '90%'},
-      }),
-      helperText: Kb.Styles.platformStyles({
-        common: {textAlign: 'center'},
-        isMobile: {
-          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
         },
       }),
       loading: {alignSelf: 'center'},

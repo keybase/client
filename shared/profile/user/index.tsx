@@ -310,19 +310,39 @@ export type BioTeamProofsProps = {
   fullName?: string
   title: string
 }
-const BioTeamProofs = (props: BioTeamProofsProps) => {
-  const addIdentity = props.onAddIdentity ? (
-    <Kb.ButtonBar style={styles.addIdentityContainer}>
-      <Kb.Button
-        fullWidth={true}
-        onClick={props.onAddIdentity}
-        style={styles.addIdentityButton}
-        mode="Secondary"
-        label="Add more identities"
-      />
-    </Kb.ButtonBar>
-  ) : null
-  return isMobile ? (
+const BackgroundColorBox = (p: {backgroundColorType: BackgroundColorType}) => (
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    style={Kb.Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(p.backgroundColorType)])}
+  />
+)
+
+const TeamsAndProofs = (props: BioTeamProofsProps) => (
+  <>
+    <TeamSections
+      notAUser={props.notAUser}
+      sharedTeams={props.sharedTeams}
+      teamShowcase={props.teamShowcase}
+      username={props.username}
+    />
+    <Proofs {...props} />
+    {!!props.onAddIdentity && (
+      <Kb.ButtonBar style={styles.addIdentityContainer}>
+        <Kb.Button
+          fullWidth={true}
+          onClick={props.onAddIdentity}
+          style={styles.addIdentityButton}
+          mode="Secondary"
+          label="Add more identities"
+        />
+      </Kb.ButtonBar>
+    )}
+  </>
+)
+
+const BioTeamProofs = (props: BioTeamProofsProps) =>
+  isMobile ? (
     <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="space-around" relative={true} style={styles.bioAndProofs}>
       {!!props.reason && (
         <Kb.Text
@@ -335,37 +355,16 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
         </Kb.Text>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Kb.Styles.collapseStyles([
-            styles.backgroundColor,
-            colorTypeToStyle(props.backgroundColorType),
-          ])}
-        />
+        <BackgroundColorBox backgroundColorType={props.backgroundColorType} />
       </Kb.Box2>
       <BioLayout {...props} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
-        <TeamSections
-          notAUser={props.notAUser}
-          sharedTeams={props.sharedTeams}
-          teamShowcase={props.teamShowcase}
-          username={props.username}
-        />
-        <Proofs {...props} />
-        {addIdentity}
+        <TeamsAndProofs {...props} />
       </Kb.Box2>
     </Kb.Box2>
   ) : (
     <>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Kb.Styles.collapseStyles([
-          styles.backgroundColor,
-          colorTypeToStyle(props.backgroundColorType),
-        ])}
-      />
+      <BackgroundColorBox backgroundColorType={props.backgroundColorType} />
       <Kb.Box2
         key="bioTeam"
         direction="horizontal"
@@ -379,19 +378,11 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {props.reason}
           </Kb.Text>
-          <TeamSections
-            notAUser={props.notAUser}
-            sharedTeams={props.sharedTeams}
-            teamShowcase={props.teamShowcase}
-            username={props.username}
-          />
-          <Proofs {...props} />
-          {addIdentity}
+          <TeamsAndProofs {...props} />
         </Kb.Box2>
       </Kb.Box2>
     </>
   )
-}
 
 type Tab = 'followers' | 'following'
 

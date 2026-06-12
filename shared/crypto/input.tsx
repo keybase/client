@@ -157,31 +157,29 @@ const FileInput = ({fileIcon, onClearFiles, state}: FileProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      alignItems="stretch"
-      style={styles.commonContainer}
-    >
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
-          <Kb.ImageIcon type={fileIcon} />
-          <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySemibold">{state.input}</Kb.Text>
-            {state.bytesTotal ? (
-              <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(state.bytesTotal)}</Kb.Text>
-            ) : null}
-          </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        alignSelf="flex-start"
+        padding="small"
+      >
+        <Kb.ImageIcon type={fileIcon} />
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="BodySemibold">{state.input}</Kb.Text>
+          {state.bytesTotal ? (
+            <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(state.bytesTotal)}</Kb.Text>
+          ) : null}
         </Kb.Box2>
-        {state.input && !waiting && (
-          <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
-            <Kb.Text type="BodySmallPrimaryLink" onClick={onClearFiles} style={styles.clearButtonInput}>
-              Clear
-            </Kb.Text>
-          </Kb.Box2>
-        )}
       </Kb.Box2>
+      {state.input && !waiting && (
+        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onClearFiles} style={styles.clearButtonInput}>
+            Clear
+          </Kb.Text>
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
 }
@@ -265,6 +263,8 @@ export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActio
       direction="vertical"
       fullWidth={true}
       gap={Kb.Styles.isTablet ? 'small' : 'tiny'}
+      alignItems="flex-start"
+      padding="small"
       style={styles.inputActionsBarContainer}
     >
       {children}
@@ -306,10 +306,6 @@ const styles = Kb.Styles.styleSheetCreate(
           marginTop: 1,
         },
       }),
-      fileContainer: {
-        alignSelf: 'flex-start',
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      },
       input: Kb.Styles.platformStyles({
         common: {
           color: Kb.Styles.globalColors.black,
@@ -318,13 +314,9 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.globalStyles.fullHeight,
         },
       }),
-      inputActionsBarContainer: Kb.Styles.platformStyles({
-        isMobile: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-          alignItems: 'flex-start',
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
-        },
-      }),
+      inputActionsBarContainer: {
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+      },
       inputAndFilePickerContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0, Kb.Styles.globalMargins.tiny),

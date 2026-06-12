@@ -61,7 +61,7 @@ const TeamRow = (p: RowProps) => {
   const {canShowcase, name, isOpen, membercount, onPromote, showcased, waiting, isExplicitMember} = p
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowShowcaseTeamOffer}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" style={styles.teamRowShowcaseTeamOffer}>
         <Kb.Avatar isTeam={true} size={isMobile ? 48 : 32} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameShowcaseTeamOffer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="flex-start">
@@ -72,9 +72,7 @@ const TeamRow = (p: RowProps) => {
               <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
             )}
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-            <Kb.Text type="BodySmall">{String(membercount) + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
-          </Kb.Box2>
+          <Kb.Text type="BodySmall">{String(membercount) + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
         </Kb.Box2>
         {showcased || canShowcase || waiting ? (
           <Kb.Button
@@ -86,13 +84,11 @@ const TeamRow = (p: RowProps) => {
             waiting={waiting}
           />
         ) : (
-          <Kb.Box2 direction="vertical" style={styles.membershipTextShowcaseTeamOffer}>
-            <Kb.Text style={styles.membershipText} type="BodySmall">
-              {isExplicitMember
-                ? "Admins aren't allowing members to feature."
-                : 'Add yourself to the team first.'}
-            </Kb.Text>
-          </Kb.Box2>
+          <Kb.Text style={styles.membershipText} type="BodySmall">
+            {isExplicitMember
+              ? "Admins aren't allowing members to feature."
+              : 'Add yourself to the team first.'}
+          </Kb.Text>
         )}
       </Kb.Box2>
       {!isMobile && <Kb.Divider style={{marginLeft: 48}} />}
@@ -121,11 +117,14 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       membershipText: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_50},
+        common: {
+          alignSelf: 'center',
+          color: Kb.Styles.globalColors.black_50,
+          flexShrink: 1,
+        },
         isElectron: {textAlign: 'right'},
         isMobile: {textAlign: 'center'},
       }),
-      membershipTextShowcaseTeamOffer: {flexShrink: 1},
       meta: {
         alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,
@@ -137,10 +136,7 @@ const styles = Kb.Styles.styleSheetCreate(
       noteText: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.large, Kb.Styles.globalMargins.small),
       },
-      teamNameShowcaseTeamOffer: {
-        flexShrink: 1,
-        ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
-      },
+      teamNameShowcaseTeamOffer: {flexShrink: 1},
       teamRowShowcaseTeamOffer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),

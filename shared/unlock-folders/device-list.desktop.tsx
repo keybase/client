@@ -16,13 +16,11 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
   )[device.type]
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.deviceRow}>
+    <Kb.Box2 direction="horizontal" gap="small">
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconWrapper}>
         <Kb.ImageIcon type={icon} style={{height: 22}} />
       </Kb.Box2>
-      <Kb.Text type="BodySemibold" style={styles.deviceName}>
-        {device.name}
-      </Kb.Text>
+      <Kb.Text type="BodySemibold">{device.name}</Kb.Text>
     </Kb.Box2>
   )
 }
@@ -33,7 +31,7 @@ const DeviceList = (props: Props) => (
       This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
       please turn on one of the devices below:
     </Kb.Text>
-    <Kb.Box2 direction="vertical" style={styles.devicesContainer}>
+    <Kb.Box2 direction="vertical" gap="small" style={styles.devicesContainer}>
       {props.devices.map(d => (
         <DeviceRow key={d.deviceID} device={d} />
       ))}
@@ -53,15 +51,11 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonsContainer: {
-        alignSelf: 'center',
         marginRight: 30,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      deviceName: {marginLeft: 16},
-      deviceRow: {marginBottom: 16},
       devicesContainer: Kb.Styles.platformStyles({
         isElectron: {
-          alignSelf: 'center',
           backgroundColor: Kb.Styles.globalColors.greyLight,
           height: 162,
           overflowY: 'auto',

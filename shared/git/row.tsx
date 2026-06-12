@@ -22,6 +22,156 @@ type OwnProps = {
 
 const channelNameToString = (channelName?: string) => (channelName ? `#${channelName}` : '#general')
 
+const CloneRow = (p: {url: string}) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.cloneRow}>
+    <Kb.Text type="Body">Clone:</Kb.Text>
+    <Kb.CopyText text={p.url} containerStyle={styles.copyTextContainer} />
+  </Kb.Box2>
+)
+
+const LastPushRow = (p: {
+  devicename: string
+  lastEditTime: string
+  lastEditUser: string
+  teamname?: string
+  onClickDevice: () => void
+}) => {
+  const {devicename, lastEditTime, lastEditUser, teamname, onClickDevice} = p
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      alignItems="center"
+      alignSelf="flex-start"
+      style={styles.lastPushRow}
+    >
+      <Kb.Text type="BodySmall">
+        {`Last push ${lastEditTime}${!!teamname && !!lastEditUser ? ' by ' : ''}`}
+      </Kb.Text>
+      {!!teamname && !!lastEditUser && (
+        <Kb.Avatar
+          username={lastEditUser}
+          size={16}
+          style={styles.lastEditAvatar}
+        />
+      )}
+      {!!teamname && !!lastEditUser && (
+        <Kb.ConnectedUsernames
+          type="BodySmallBold"
+          underline={true}
+          colorFollowing={true}
+          usernames={lastEditUser}
+          onUsernameClicked={() => navToProfile(lastEditUser)}
+          containerStyle={styles.usernameContainer}
+        />
+      )}
+      {isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
+      <Kb.Text type="BodySmall">
+        <Kb.Text type="BodySmall">
+          {isMobile
+            ? 'Signed and encrypted using device'
+            : ', signed and encrypted using device'}
+        </Kb.Text>
+        <Kb.Text type="BodySmall" style={styles.device} onClick={onClickDevice}>
+          {' '}
+          {devicename}
+        </Kb.Text>
+        <Kb.Text type="BodySmall">.</Kb.Text>
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
+
+const ChatRow = (p: {
+  canEdit: boolean
+  channelName?: string
+  chatDisabled: boolean
+  teamname: string
+  onChannelClick: (e: React.BaseSyntheticEvent) => void
+  onToggleChatEnabled: () => void
+}) => {
+  const {canEdit, channelName, chatDisabled, teamname, onChannelClick, onToggleChatEnabled} = p
+  return (
+    <Kb.Box2 direction="horizontal" alignItems="center">
+      {canEdit && (
+        <Kb.Checkbox
+          checked={!chatDisabled}
+          onCheck={onToggleChatEnabled}
+          label=""
+          labelComponent={
+            <Kb.Text type="BodySmall">
+              Announce pushes in{' '}
+              <Kb.Text
+                type={chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                onClick={onChannelClick}
+              >
+                {channelNameToString(channelName)}
+              </Kb.Text>
+            </Kb.Text>
+          }
+        />
+      )}
+      {!canEdit && (
+        <Kb.Text type="BodySmall">
+          {chatDisabled
+            ? 'Pushes are not announced'
+            : `Pushes are announced in ${teamname}${channelNameToString(channelName)}`}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+}
+
+const ActionsRow = (p: {
+  canDelete: boolean
+  onArchiveGitRepo: () => void
+  onBrowseGitRepo: () => void
+  onShowDelete: () => void
+}) => {
+  const {canDelete, onArchiveGitRepo, onBrowseGitRepo, onShowDelete} = p
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.actionRow} gap="tiny">
+      <Kb.Button
+        type="Dim"
+        mode="Secondary"
+        small={true}
+        label="View files"
+        onClick={onBrowseGitRepo}
+      >
+        <Kb.Icon
+          type="iconfont-file"
+          sizeType="Small"
+          color={Kb.Styles.globalColors.black_50}
+          style={styles.iconXtiny}
+        />
+      </Kb.Button>
+      <Kb.Button
+        type="Dim"
+        mode="Secondary"
+        small={true}
+        label="Archive"
+        onClick={onArchiveGitRepo}
+      >
+        <Kb.Icon
+          type="iconfont-mailbox"
+          sizeType="Small"
+          color={Kb.Styles.globalColors.black_50}
+          style={styles.iconXtiny}
+        />
+      </Kb.Button>
+      {canDelete && (
+        <Kb.Button
+          type="Danger"
+          mode="Secondary"
+          small={true}
+          label="Delete repo"
+          onClick={onShowDelete}
+        />
+      )}
+    </Kb.Box2>
+  )
+}
+
 function ConnectedRow(ownProps: OwnProps) {
   const {expanded, git, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_, reload, setError} = ownProps
   const {id} = git
@@ -80,8 +230,6 @@ function ConnectedRow(ownProps: OwnProps) {
       }
     )
   }
-
-  const openUserProfile = (username: string) => navToProfile(username)
 
   const onBrowseGitRepo = () =>
     _onBrowseGitRepo(
@@ -151,132 +299,30 @@ function ConnectedRow(ownProps: OwnProps) {
           </Kb.ClickableBox>
           {expanded && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowBottom}>
-              <Kb.Box2
-                direction="horizontal"
-                fullWidth={true}
-                alignItems="center"
-                relative={true}
-                style={styles.cloneRow}
-              >
-                <Kb.Text type="Body">Clone:</Kb.Text>
-                <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
-                  <Kb.CopyText text={gitURL} containerStyle={styles.copyTextWidth} />
-                </Kb.Box2>
-              </Kb.Box2>
-              <Kb.Box2
-                direction="horizontal"
-                fullWidth={true}
-                alignItems="center"
-                alignSelf="flex-start"
-                style={styles.lastPushRow}
-              >
-                <Kb.Text type="BodySmall">
-                  {`Last push ${lastEditTime}${!!teamname && !!lastEditUser ? ' by ' : ''}`}
-                </Kb.Text>
-                {!!teamname && !!lastEditUser && (
-                  <Kb.Avatar
-                    username={lastEditUser}
-                    size={16}
-                    style={styles.lastEditAvatar}
-                  />
-                )}
-                {!!teamname && !!lastEditUser && (
-                  <Kb.ConnectedUsernames
-                    type="BodySmallBold"
-                    underline={true}
-                    colorFollowing={true}
-                    usernames={lastEditUser}
-                    onUsernameClicked={() => openUserProfile(lastEditUser)}
-                    containerStyle={styles.usernameContainer}
-                  />
-                )}
-                {isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
-                <Kb.Text type="BodySmall">
-                  <Kb.Text type="BodySmall">
-                    {isMobile
-                      ? 'Signed and encrypted using device'
-                      : ', signed and encrypted using device'}
-                  </Kb.Text>
-                  <Kb.Text type="BodySmall" style={styles.device} onClick={onClickDevice}>
-                    {' '}
-                    {devicename}
-                  </Kb.Text>
-                  <Kb.Text type="BodySmall">.</Kb.Text>
-                </Kb.Text>
-              </Kb.Box2>
+              <CloneRow url={gitURL} />
+              <LastPushRow
+                devicename={devicename}
+                lastEditTime={lastEditTime}
+                lastEditUser={lastEditUser}
+                teamname={teamname}
+                onClickDevice={onClickDevice}
+              />
               {!!teamname && (
-                <Kb.Box2 direction="horizontal" alignItems="center">
-                  {canEdit && (
-                    <Kb.Checkbox
-                      checked={!chatDisabled}
-                      onCheck={onToggleChatEnabled}
-                      label=""
-                      labelComponent={
-                        <Kb.Text type="BodySmall">
-                          Announce pushes in{' '}
-                          <Kb.Text
-                            type={chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
-                            onClick={onChannelClick}
-                          >
-                            {channelNameToString(channelName)}
-                          </Kb.Text>
-                        </Kb.Text>
-                      }
-                    />
-                  )}
-                  {!canEdit && (
-                    <Kb.Text type="BodySmall">
-                      {chatDisabled
-                        ? 'Pushes are not announced'
-                        : `Pushes are announced in ${teamname}${channelNameToString(channelName)}`}
-                    </Kb.Text>
-                  )}
-                </Kb.Box2>
+                <ChatRow
+                  canEdit={canEdit}
+                  channelName={channelName}
+                  chatDisabled={chatDisabled}
+                  teamname={teamname}
+                  onChannelClick={onChannelClick}
+                  onToggleChatEnabled={onToggleChatEnabled}
+                />
               )}
-              <Kb.Box2
-                direction="horizontal"
-                fullWidth={true}
-                style={styles.actionRow}
-                gap="tiny"
-              >
-                <Kb.Button
-                  type="Dim"
-                  mode="Secondary"
-                  small={true}
-                  label="View files"
-                  onClick={onBrowseGitRepo}
-                >
-                  <Kb.Icon
-                    type="iconfont-file"
-                    sizeType="Small"
-                    color={Kb.Styles.globalColors.black_50}
-                    style={styles.iconXtiny}
-                  />
-                </Kb.Button>
-                <Kb.Button
-                  type="Dim"
-                  mode="Secondary"
-                  small={true}
-                  label="Archive"
-                  onClick={onArchiveGitRepo}
-                >
-                  <Kb.Icon
-                    type="iconfont-mailbox"
-                    sizeType="Small"
-                    color={Kb.Styles.globalColors.black_50}
-                    style={styles.iconXtiny}
-                  />
-                </Kb.Button>
-                {canDelete && (
-                  <Kb.Button
-                    type="Danger"
-                    mode="Secondary"
-                    small={true}
-                    label="Delete repo"
-                    onClick={onShowDelete}
-                  />
-                )}
-              </Kb.Box2>
+              <ActionsRow
+                canDelete={canDelete}
+                onArchiveGitRepo={onArchiveGitRepo}
+                onBrowseGitRepo={onBrowseGitRepo}
+                onShowDelete={onShowDelete}
+              />
             </Kb.Box2>
           )}
         </Kb.Box2>
@@ -295,7 +341,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       actionRow: {marginTop: Kb.Styles.globalMargins.tiny},
       cloneRow: {maxWidth: '100%'},
-      copyTextWidth: {width: '100%'},
       containerMobile: Kb.Styles.platformStyles({
         isMobile: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),

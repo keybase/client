@@ -18,7 +18,7 @@ const PlaceholderRow = ({type}: PlaceholderProps) => (
       />
     }
     body={
-      <Kb.Box2 direction="vertical" style={rowStyles.itemBox}>
+      <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={rowStyles.itemBox}>
         <Kb.Placeholder style={styles.placeholder} />
       </Kb.Box2>
     }

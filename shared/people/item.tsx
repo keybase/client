@@ -27,7 +27,7 @@ export type Props = {
 const PeopleItem = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
     {!!props.icon && (
-      <Kb.Box2 key="icon" direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
         {props.icon}
       </Kb.Box2>
     )}
@@ -36,6 +36,7 @@ const PeopleItem = (props: Props) => (
       direction="vertical"
       flex={1}
       gap="xtiny"
+      overflow="hidden"
       style={Kb.Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
     >
       {props.children}
@@ -79,7 +80,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   button: {marginBottom: Kb.Styles.globalMargins.xtiny, marginRight: Kb.Styles.globalMargins.tiny},
   childrenContainer: {
-    overflow: 'hidden',
     position: 'relative',
     width: 'auto',
   },
