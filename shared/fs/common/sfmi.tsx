@@ -11,7 +11,7 @@ import {
   refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
   refreshMountDirsDesktop as refreshMountDirsInPlatform,
   setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform,
-} from '@/stores/fs-platform'
+} from '@/util/fs-platform'
 import {clientID as fsClientID} from './client'
 import {useFsErrorActionOrThrow} from './error-state'
 import {useKbfsDaemonStatus} from './daemon'

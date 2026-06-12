@@ -5,7 +5,7 @@ import {
   pickAndUploadMobile as pickAndUploadInPlatform,
   pickDocumentsMobile as pickDocumentsInPlatform,
   selectFilesToUploadDesktop as selectFilesToUploadInPlatform,
-} from '@/stores/fs-platform'
+} from '@/util/fs-platform'
 import {useFsErrorActionOrThrow} from './error-state'
 import {useFsPathItem, useFsUpload} from './hooks'
 

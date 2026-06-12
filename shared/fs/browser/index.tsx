@@ -16,7 +16,7 @@ import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf, useFsUpload} from '../
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useModalHeaderState} from '@/stores/modal-header'
 import * as FS from '@/constants/fs'
-import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/stores/fs-platform'
+import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/util/fs-platform'
 
 type OwnProps = {
   lastClosedPublicBannerTlf?: string

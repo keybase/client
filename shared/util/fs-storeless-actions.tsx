@@ -8,7 +8,7 @@ import {
   openPathInSystemFileManagerDesktop as openPathInSystemFileManagerInPlatform,
   refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
   refreshMountDirsDesktop as refreshMountDirsInPlatform,
-} from '@/stores/fs-platform'
+} from '@/util/fs-platform'
 
 const noopSoftError = () => {}
 const setGlobalError = (msg: string) => useConfigState.getState().dispatch.setGlobalError(new Error(msg))
