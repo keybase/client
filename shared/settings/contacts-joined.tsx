@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
-import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useFollowerState} from '@/stores/followers'
 import {useTrackerProfile} from '@/tracker/use-profile'
 
@@ -78,10 +77,9 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   )
 }
 
-const ContactsJoinedModal = () => {
-  const people = useSettingsContactsState(s => s.alreadyOnKeybase)
+const ContactsJoinedModal = (props: {contacts: ReadonlyArray<T.RPCGen.ProcessedContact>}) => {
   const following = useFollowerState(s => s.following)
-  const filteredPeople = people.filter(p => !following.has(p.username))
+  const filteredPeople = props.contacts.filter(p => !following.has(p.username))
   return (
     <>
       <Kb.Text type="Body" style={styles.woot} center={true}>
