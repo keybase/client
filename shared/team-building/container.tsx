@@ -9,6 +9,8 @@ type RouteParams = {
   teamID?: string
   filterServices?: Array<T.TB.ServiceIdWithContact>
   goButtonLabel?: T.TB.GoButtonLabel
+  // entry context, e.g. an error from a failed add-members attempt that reopened this screen
+  initialError?: string
   title?: string
   recommendedHideYourself?: boolean
 }

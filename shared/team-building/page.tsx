@@ -87,21 +87,17 @@ const HeaderRightUpdater = ({
   return null
 }
 
-// Calls resetState when the screen is removed (e.g. default cancel button pressed)
-const CancelOnRemove = ({
-  skipResetOnRemoveRef,
-}: {
-  skipResetOnRemoveRef: React.MutableRefObject<boolean>
-}) => {
+// Cancels the building session when the screen stops being visible: removed
+// (e.g. default cancel button) or covered by another screen pushed on top.
+const CancelOnBlur = () => {
   const navigation = useNavigation()
-  const resetState = useTBContext(s => s.dispatch.resetState)
+  const cancelTeamBuilding = useTBContext(s => s.dispatch.cancelTeamBuilding)
   React.useEffect(
     () =>
-      navigation.addListener('beforeRemove', () => {
-        if (skipResetOnRemoveRef.current) return
-        resetState()
+      navigation.addListener('blur', () => {
+        cancelTeamBuilding()
       }),
-    [navigation, resetState, skipResetOnRemoveRef]
+    [navigation, cancelTeamBuilding]
   )
   return null
 }
@@ -162,27 +158,29 @@ const ScreenBody = ({
   onComplete?: (users: ReadonlySet<T.TB.User>) => void
   routeParams: TeamBuilderRouteParams
 }) => {
-  const {goButtonLabel, namespace} = routeParams
+  const {goButtonLabel, initialError, namespace} = routeParams
   const teamSoFar = useTBContext(s => s.teamSoFar)
   const closeTeamBuilding = useTBContext(s => s.dispatch.closeTeamBuilding)
   const finishedTeamBuilding = useTBContext(s => s.dispatch.finishedTeamBuilding)
-  const skipResetOnRemoveRef = React.useRef(false)
+  const setError = useTBContext(s => s.dispatch.setError)
+
+  React.useEffect(() => {
+    if (initialError) {
+      setError(initialError)
+    }
+  }, [initialError, setError])
 
   const onFinishTeamBuilding = React.useCallback(() => {
     if (!teamSoFar.size) return
     const users = new Set(teamSoFar)
-    skipResetOnRemoveRef.current = true
     finishedTeamBuilding()
     closeTeamBuilding()
     onComplete?.(users)
-    setTimeout(() => {
-      skipResetOnRemoveRef.current = false
-    }, 0)
   }, [closeTeamBuilding, finishedTeamBuilding, onComplete, teamSoFar])
 
   return (
     <>
-      <CancelOnRemove skipResetOnRemoveRef={skipResetOnRemoveRef} />
+      <CancelOnBlur />
       <HeaderRightUpdater
         namespace={namespace}
         goButtonLabel={goButtonLabel}
