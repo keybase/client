@@ -38,37 +38,25 @@ const Container = (ownProps: OwnProps) => {
       <Username mode={mode} lastWriter={lastWriter} />
     </>
   )
-  switch (mode) {
-    case 'menu':
-      return (
-        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={mode !== 'row'}>
+      {mode === 'menu' ? (
+        <>
           <Kb.Text type="BodyTiny" center={true}>
             {time}
           </Kb.Text>
           <Kb.Text type="BodyTiny" center={true}>
             {by}
           </Kb.Text>
-        </Kb.Box2>
-      )
-    case 'row':
-      return (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySmall" lineClamp={1}>
-            {time}
-            {by}
-          </Kb.Text>
-        </Kb.Box2>
-      )
-    case 'default':
-      return (
-        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text type="BodySmall" center={true}>
-            {time}
-            {by}
-          </Kb.Text>
-        </Kb.Box2>
-      )
-  }
+        </>
+      ) : (
+        <Kb.Text type="BodySmall" center={mode === 'default'} lineClamp={mode === 'row' ? 1 : undefined}>
+          {time}
+          {by}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
 }
 
 export default Container

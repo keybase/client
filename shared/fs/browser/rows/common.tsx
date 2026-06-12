@@ -45,6 +45,8 @@ export const StillCommon = (
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
+          flex={1}
+          justifyContent="center"
           style={Kb.Styles.collapseStyles([
             rowStyles.itemBox,
             props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
@@ -80,8 +82,6 @@ export const rowStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       itemBox: {
-        flex: 1,
-        justifyContent: 'center',
         minWidth: 0,
         width: 0,
       },

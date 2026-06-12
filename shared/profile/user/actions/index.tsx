@@ -19,6 +19,12 @@ type OwnProps = {
   username: string
 }
 
+const ActionsContainer = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
+    {children}
+  </Kb.Box2>
+)
+
 const Actions = (ownProps: OwnProps) => {
   const {blocked, followThem, followsYou, guiID, hidFromFollowers, onReload, state, username} = ownProps
   const isBot = !!useFeaturedBot(username)
@@ -40,7 +46,7 @@ const Actions = (ownProps: OwnProps) => {
 
   if (blocked) {
     return (
-      <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
+      <ActionsContainer>
         <Kb.Button
           key="Manage blocking"
           mode="Secondary"
@@ -48,7 +54,7 @@ const Actions = (ownProps: OwnProps) => {
           label="Manage blocking"
           onClick={onManageBlocking}
         />
-      </Kb.Box2>
+      </ActionsContainer>
     )
   }
 
@@ -140,9 +146,7 @@ const Actions = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
-      {state === 'checking' ? <Kb.ProgressIndicator type="Small" /> : buttons}
-    </Kb.Box2>
+    <ActionsContainer>{state === 'checking' ? <Kb.ProgressIndicator type="Small" /> : buttons}</ActionsContainer>
   )
 }
 

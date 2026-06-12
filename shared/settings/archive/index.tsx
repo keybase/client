@@ -376,6 +376,12 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
   )
 }
 
+const ArchiveButtonRow = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+    {children}
+  </Kb.Box2>
+)
+
 const Archive = () => {
   const {chatJobs, kbfsJobs, load, loadChat} = useArchiveJobs()
   const navigateAppend = C.Router2.navigateAppend
@@ -453,20 +459,20 @@ const Archive = () => {
           </Kb.Box2>
           {isMobile ? (
             <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
-              <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+              <ArchiveButtonRow>
                 <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
                 <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
-              </Kb.Box2>
-              <Kb.Box2 direction="horizontal" alignSelf="center">
+              </ArchiveButtonRow>
+              <ArchiveButtonRow>
                 <Kb.Button small={isMobile} label="Backup all Git repos" onClick={archiveGit} />
-              </Kb.Box2>
+              </ArchiveButtonRow>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+            <ArchiveButtonRow>
               <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
               <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
               <Kb.Button small={isMobile} label="Backup all Git repos" onClick={archiveGit} />
-            </Kb.Box2>
+            </ArchiveButtonRow>
           )}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

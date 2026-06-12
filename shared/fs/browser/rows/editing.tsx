@@ -30,7 +30,7 @@ function Editing({editSession}: Props) {
         </Kb.Box2>
       }
       body={
-        <Kb.Box2 direction="vertical" key="main" style={rowStyles.itemBox}>
+        <Kb.Box2 direction="vertical" key="main" flex={1} justifyContent="center" style={rowStyles.itemBox}>
           <Kb.Input3
             value={edit.name}
             placeholder={edit.originalName}

@@ -645,6 +645,14 @@ const Container = ({platform, reason = 'profile'}: Props) => {
   return content
 }
 
+const ErrorBanner = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} padding="medium" style={styles.error}>
+    <Kb.Text center={true} negative={true} type="BodySemibold">
+      {children}
+    </Kb.Text>
+  </Kb.Box2>
+)
+
 const ProviderPicker = ({
   onCancel,
   onSelect,
@@ -674,67 +682,65 @@ const ProviderPicker = ({
   })()
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileFlex}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Input3
-          autoFocus={true}
-          containerStyle={styles.inputContainer}
-          hideBorder={true}
-          icon="iconfont-search"
-          inputStyle={styles.text}
-          onChangeText={setFilter}
-          placeholder={`Search ${providers.length} platforms`}
-          value={filter}
-        />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-          <Kb.BoxGrow2>
-            <Kb.List
-              itemHeight={itemHeight}
-              items={items}
-              keyProperty="key"
-              renderItem={(_: unknown, provider: Provider) => (
-                <React.Fragment key={provider.name}>
-                  <Kb.Divider />
-                  <Kb.ClickableBox
-                    direction="horizontal"
-                    alignItems="center"
-                    justifyContent="flex-start"
-                    fullWidth={true}
-                    className="hover_background_color_blueLighter2"
-                    onClick={() => onSelect(provider.key)}
-                    style={styles.containerBox}
-                  >
-                    <SiteIcon full={true} set={provider.icon} style={styles.icon} />
-                    <Kb.Box2 direction="vertical" fullWidth={true}>
-                      <Kb.Text type="BodySemibold" style={styles.title}>
-                        {provider.name}
-                      </Kb.Text>
-                      {(provider.new || !!provider.desc) && (
-                        <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-                          {provider.new && (
-                            <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
-                          )}
-                          <Kb.Text type="BodySmall" style={styles.description}>
-                            {provider.desc}
-                          </Kb.Text>
-                        </Kb.Box2>
-                      )}
-                    </Kb.Box2>
-                    <Kb.Icon
-                      color={Kb.Styles.globalColors.black_50}
-                      fontSize={isMobile ? 20 : 16}
-                      style={styles.iconArrow}
-                      type="iconfont-arrow-right"
-                    />
-                  </Kb.ClickableBox>
-                </React.Fragment>
-              )}
-            />
-          </Kb.BoxGrow2>
-          <Kb.Divider />
-          <Kb.Box2 direction="horizontal" justifyContent="center" fullWidth={true} padding="medium">
-            <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
-          </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Input3
+        autoFocus={true}
+        containerStyle={styles.inputContainer}
+        hideBorder={true}
+        icon="iconfont-search"
+        inputStyle={styles.text}
+        onChangeText={setFilter}
+        placeholder={`Search ${providers.length} platforms`}
+        value={filter}
+      />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+        <Kb.BoxGrow2>
+          <Kb.List
+            itemHeight={itemHeight}
+            items={items}
+            keyProperty="key"
+            renderItem={(_: unknown, provider: Provider) => (
+              <React.Fragment key={provider.name}>
+                <Kb.Divider />
+                <Kb.ClickableBox
+                  direction="horizontal"
+                  alignItems="center"
+                  justifyContent="flex-start"
+                  fullWidth={true}
+                  className="hover_background_color_blueLighter2"
+                  onClick={() => onSelect(provider.key)}
+                  style={styles.containerBox}
+                >
+                  <SiteIcon full={true} set={provider.icon} style={styles.icon} />
+                  <Kb.Box2 direction="vertical" fullWidth={true}>
+                    <Kb.Text type="BodySemibold" style={styles.title}>
+                      {provider.name}
+                    </Kb.Text>
+                    {(provider.new || !!provider.desc) && (
+                      <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+                        {provider.new && (
+                          <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
+                        )}
+                        <Kb.Text type="BodySmall" style={styles.description}>
+                          {provider.desc}
+                        </Kb.Text>
+                      </Kb.Box2>
+                    )}
+                  </Kb.Box2>
+                  <Kb.Icon
+                    color={Kb.Styles.globalColors.black_50}
+                    fontSize={isMobile ? 20 : 16}
+                    style={styles.iconArrow}
+                    type="iconfont-arrow-right"
+                  />
+                </Kb.ClickableBox>
+              </React.Fragment>
+            )}
+          />
+        </Kb.BoxGrow2>
+        <Kb.Divider />
+        <Kb.Box2 direction="horizontal" justifyContent="center" fullWidth={true} padding="medium">
+          <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -790,13 +796,7 @@ const EnterUsername = ({
 
   return (
     <Modal onCancel={onCancel} skipButton={true}>
-      {!!errorText && (
-        <Kb.Box2 direction="vertical" gap="small" padding="medium" style={styles.error} fullWidth={true}>
-          <Kb.Text center={true} negative={true} type="BodySemibold">
-            {errorText}
-          </Kb.Text>
-        </Kb.Box2>
-      )}
+      {!!errorText && <ErrorBanner>{errorText}</ErrorBanner>}
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
         {isMobile ? null : (
           <Kb.Text center={true} type="Header">
@@ -1015,13 +1015,7 @@ const PostProof = ({
             }
           }}
         >
-          {!!step.error && (
-            <Kb.Box2 direction="vertical" fullWidth={true} padding="medium" style={styles.error}>
-              <Kb.Text center={true} negative={true} type="BodySemibold">
-                {step.error}
-              </Kb.Text>
-            </Kb.Box2>
-          )}
+          {!!step.error && <ErrorBanner>{step.error}</ErrorBanner>}
           <PlatformIcon
             platform={step.platform}
             style={styles.center}
@@ -1426,7 +1420,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       listContainer: {flex: 1},
       marginLeftAuto: {marginLeft: 'auto'},
-      mobileFlex: {flex: 1},
       new: {
         marginRight: Kb.Styles.globalMargins.xtiny,
         marginTop: 1,

@@ -88,7 +88,7 @@ const Announcement = (props: OwnProps) => {
     >
       <Kb.Text type="Body">{text}</Kb.Text>
       {(!!confirmLabel || !!onDismiss) && (
-        <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true} style={styles.container}>
+        <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true} alignSelf="flex-start">
           {!!confirmLabel && <Kb.Button small={true} label={confirmLabel} onClick={onConfirm} />}
           {!!onDismiss && <Kb.Button small={true} label="Later" onClick={onDismiss} mode="Secondary" />}
         </Kb.Box2>
@@ -100,7 +100,6 @@ const Announcement = (props: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {alignSelf: 'flex-start'},
       icon: {flexShrink: 0, ...Kb.Styles.size(32)},
     }) as const
 )

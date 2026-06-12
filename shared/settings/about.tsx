@@ -29,14 +29,12 @@ const About = () => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} testID={TestIDs.SETTINGS_ABOUT}>
       <Kb.ImageIcon type="icon-keybase-logo-64" />
-      <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
-        <Kb.Text center={true} type="Body">
-          You are running version{' '}
-        </Kb.Text>
-        <Kb.Text type="BodySemibold" selectable={true}>
-          {C.version}
-        </Kb.Text>
-      </Kb.Box2>
+      <Kb.Text center={true} type="Body" style={styles.version}>
+        You are running version{' '}
+      </Kb.Text>
+      <Kb.Text type="BodySemibold" selectable={true} style={styles.versionNumber}>
+        {C.version}
+      </Kb.Text>
       <Kb.Text style={styles.terms} type="BodyPrimaryLink" onClick={onShowTerms}>
         Terms and Conditions
       </Kb.Text>
@@ -51,8 +49,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginBottom: Kb.Styles.globalMargins.tiny,
   },
   version: {
-    marginBottom: Kb.Styles.globalMargins.large,
     paddingTop: Kb.Styles.globalMargins.large,
+  },
+  versionNumber: {
+    marginBottom: Kb.Styles.globalMargins.large,
   },
 }))
 

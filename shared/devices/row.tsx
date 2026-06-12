@@ -27,41 +27,39 @@ function DeviceRow(ownProps: OwnProps) {
   const isRevoked = !!device.revokedByName
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ListItem
-        type="Small"
-        firstItem={firstItem}
-        testID={TestIDs.DEVICES_ROW}
-        onClick={showExistingDevicePage}
-        icon={
-          <DeviceIcon
-            current={currentDevice}
-            device={device}
-            size={32}
-            style={isRevoked ? styles.icon : null}
-          />
-        }
-        body={
-          <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
-                {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
-              </Kb.Text>
-              {isNew && !currentDevice && (
-                <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
-              )}
-            </Kb.Box2>
-            <Kb.Text type="BodySmall">
-              {isRevoked
-                ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
-                : lastUsed
-                  ? `Last used ${formatTimeRelativeToNow(lastUsed)}`
-                  : 'Last used unknown'}
+    <Kb.ListItem
+      type="Small"
+      firstItem={firstItem}
+      testID={TestIDs.DEVICES_ROW}
+      onClick={showExistingDevicePage}
+      icon={
+        <DeviceIcon
+          current={currentDevice}
+          device={device}
+          size={32}
+          style={isRevoked ? styles.icon : null}
+        />
+      }
+      body={
+        <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
+              {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
             </Kb.Text>
+            {isNew && !currentDevice && (
+              <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
+            )}
           </Kb.Box2>
-        }
-      />
-    </Kb.Box2>
+          <Kb.Text type="BodySmall">
+            {isRevoked
+              ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
+              : lastUsed
+                ? `Last used ${formatTimeRelativeToNow(lastUsed)}`
+                : 'Last used unknown'}
+          </Kb.Text>
+        </Kb.Box2>
+      }
+    />
   )
 }
 

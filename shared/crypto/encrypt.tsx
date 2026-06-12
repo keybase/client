@@ -5,7 +5,8 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import Recipients from './recipients'
 import {openURL} from '@/util/misc'
-import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
+import {CryptoBanner, Input, InputActionsBar} from './input'
+import OperationIO from './operation-io'
 import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
 import {
@@ -588,9 +589,14 @@ export const EncryptIO = () => {
   const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
 
   return (
-    <DragAndDrop allowFolders={true} prompt={filePrompt} inProgress={controller.state.inProgress} onAttach={controller.openFile} testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>
-      <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+    <OperationIO
+      allowFolders={true}
+      prompt={filePrompt}
+      inProgress={controller.state.inProgress}
+      onAttach={controller.openFile}
+      testID={TestIDs.CRYPTO_ENCRYPT_INPUT}
+      input={
+        <>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Recipients
             recipients={controller.state.recipients}
@@ -617,12 +623,10 @@ export const EncryptIO = () => {
             setEncryptOptions={controller.setEncryptOptions}
             sign={controller.state.options.sign}
           />
-        </Kb.Box2>
-        <Kb.Box2
-          direction="vertical"
-          fullHeight={true}
-          style={isMobile ? undefined : Crypto.outputDesktopMaxHeight}
-        >
+        </>
+      }
+      output={
+        <>
           <EncryptOutputBanner
             hasRecipients={controller.state.meta.hasRecipients}
             includeSelf={controller.state.options.includeSelf}
@@ -631,7 +635,6 @@ export const EncryptIO = () => {
             recipients={controller.state.recipients}
           />
           <CryptoSignedSender isSelfSigned={true} state={controller.state} />
-          {isMobile ? <Kb.Divider /> : null}
           <CryptoOutput
             actionLabel="Encrypt"
             outputFileIcon="icon-file-saltpack-64"
@@ -645,8 +648,8 @@ export const EncryptIO = () => {
             state={controller.state}
             onSaveAsText={() => C.ignorePromise(controller.saveOutputAsText() as unknown as Promise<void>)}
           />
-        </Kb.Box2>
-      </Kb.Box2>
-    </DragAndDrop>
+        </>
+      }
+    />
   )
 }

@@ -123,7 +123,7 @@ const SelectOtherDevice = (props: Props) => {
       }
       contentContainerStyle={Kb.Styles.padding(0)}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} alignSelf="center" style={styles.contentBox} gap="medium">
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} alignSelf="center" style={styles.contentBox}>
         <Kb.List
           style={styles.list}
           items={items}

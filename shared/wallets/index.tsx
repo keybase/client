@@ -50,7 +50,7 @@ const Row = (p: {account: Account}) => {
         direction="vertical"
         gap="tiny"
         fullWidth={true}
-        style={styles.rowContents}
+        padding="tiny"
         alignItems="flex-start"
       >
         <Kb.Box2
@@ -205,9 +205,6 @@ const styles = Kb.Styles.styleSheetCreate(
           padding: 3,
         },
       }),
-      rowContents: {
-        padding: 8,
-      },
       scroll: {flexGrow: 1},
     }) as const
 )

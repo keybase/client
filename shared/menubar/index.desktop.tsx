@@ -133,7 +133,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
         httpSrvAddress={httpSrvAddress}
         httpSrvToken={httpSrvToken}
       />
-      <Kb.Box2 direction="vertical" flex={1} overflow="hidden" style={styles.chatRowText}>
+      <Kb.Box2 direction="vertical" flex={1} overflow="hidden">
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="space-between">
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
             <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
@@ -245,11 +245,9 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
   const followingSet = new Set(following)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
-        <Kb.Text type="BodySmallSemibold" style={styles.tlfSectionHeader}>
-          Recent files
-        </Kb.Text>
-      </Kb.Box2>
+      <Kb.Text type="BodySmallSemibold" style={styles.tlfSectionHeader}>
+        Recent files
+      </Kb.Text>
       {remoteTlfUpdates.map(update => {
           const tlf = T.FS.pathToString(update.tlf)
           const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
@@ -421,6 +419,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
       direction="horizontal"
       fullWidth={true}
       alignItems="center"
+      flex={1}
       style={Kb.Styles.collapseStyles([
         styles.topRow,
         {backgroundColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
@@ -516,20 +515,18 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
         centerChildren={true}
         padding="small"
       >
-        <Kb.Box2 direction="vertical">
-          <Kb.ImageIcon
-            type="icon-keybase-logo-logged-out-64"
-            style={styles.logo}
-          />
-          <Kb.Text type="Body" style={styles.loggedOutText}>
-            {text}
-          </Kb.Text>
-          {fullyLoggedOut ? (
-            <Kb.ButtonBar direction="row">
-              <Kb.Button label="Log in" onClick={logIn} />
-            </Kb.ButtonBar>
-          ) : null}
-        </Kb.Box2>
+        <Kb.ImageIcon
+          type="icon-keybase-logo-logged-out-64"
+          style={styles.logo}
+        />
+        <Kb.Text type="Body" style={styles.loggedOutText}>
+          {text}
+        </Kb.Text>
+        {fullyLoggedOut ? (
+          <Kb.ButtonBar direction="row">
+            <Kb.Button label="Log in" onClick={logIn} />
+          </Kb.ButtonBar>
+        ) : null}
       </Kb.Box2>
     </Kb.BoxGrow>
   )
@@ -649,7 +646,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   chatRowName: {flexShrink: 1},
 
   chatRowNameLeft: {flexShrink: 1},
-  chatRowText: {flexShrink: 1},
   chatSnippet: {color: Kb.Styles.globalColors.black_50},
   chatSnippetUnread: {color: Kb.Styles.globalColors.black},
   chatTimestamp: {color: Kb.Styles.globalColors.black_50, flexShrink: 0, marginLeft: Kb.Styles.globalMargins.tiny},
@@ -678,11 +674,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.mediumLarge,
   },
   loadingContainer: {height: 200},
-  loggedOutText: {alignSelf: 'center', marginTop: 6},
-  logo: {
-    alignSelf: 'center',
-    marginBottom: Kb.Styles.globalMargins.xsmall,
-  },
+  loggedOutText: {marginTop: 6},
+  logo: {marginBottom: Kb.Styles.globalMargins.xsmall},
   navIcons: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny)},
   showMoreContainer: {marginTop: Kb.Styles.globalMargins.tiny},
   tlfContainer: {
@@ -699,7 +692,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     color: Kb.Styles.globalColors.black_50,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, 0, Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
   },
-  tlfSectionHeaderContainer: {backgroundColor: Kb.Styles.globalColors.white},
   tlfTime: {marginRight: Kb.Styles.globalMargins.tiny},
 
   tlfWriterFollowing: {color: Kb.Styles.globalColors.greenDark},
@@ -707,7 +699,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   topRow: {
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
-    flex: 1,
     maxHeight: 40,
     minHeight: 40,
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
