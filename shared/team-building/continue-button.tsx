@@ -15,7 +15,7 @@ const ContinueButton = (props: Props) => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  button: {flexGrow: 0},
+  button: {alignSelf: 'center', flexGrow: 0},
   continueText: {
     color: Kb.Styles.globalColors.white,
   },
