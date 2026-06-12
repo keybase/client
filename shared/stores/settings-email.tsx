@@ -1,6 +1,5 @@
 import * as Z from '@/util/zustand'
-import {ignorePromise} from '@/constants/utils'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import logger from '@/logger'
 
 const makeEmailRow = (): EmailRow => ({
@@ -24,61 +23,16 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    editEmail: (p: {
-      email: string
-      delete?: boolean
-      makePrimary?: boolean
-      makeSearchable?: boolean
-      onSuccess?: () => void
-      verify?: boolean
-    }) => void
     notifyEmailAddressEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
     notifyEmailVerified: (email: string) => void
     resetState: () => void
+    // call after a verification email RPC succeeds; drives the resend cooldown UI
+    sentVerificationEmail: (email: string) => void
   }
 }
 
 export const useSettingsEmailState = Z.createZustand<State>('settings-email', set => {
   const dispatch: State['dispatch'] = {
-    editEmail: p => {
-      const f = async () => {
-        // TODO: consider allowing more than one action here
-        // TODO: handle errors
-        if (p.delete) {
-          await T.RPCGen.emailsDeleteEmailRpcPromise({email: p.email})
-          return
-        }
-        if (p.makePrimary) {
-          await T.RPCGen.emailsSetPrimaryEmailRpcPromise({email: p.email})
-          return
-        }
-        if (p.verify) {
-          await T.RPCGen.emailsSendVerificationEmailRpcPromise({email: p.email})
-          set(s => {
-            const old = s.emails.get(p.email) ?? {
-              ...makeEmailRow(),
-              email: p.email,
-              isVerified: false,
-            }
-            old.lastVerifyEmailDate = new Date().getTime() / 1000
-            s.emails.set(p.email, old)
-          })
-          p.onSuccess?.()
-          return
-        }
-        if (p.makeSearchable !== undefined) {
-          await T.RPCGen.emailsSetVisibilityEmailRpcPromise({
-            email: p.email,
-            visibility: p.makeSearchable
-              ? T.RPCChat.Keybase1.IdentityVisibility.public
-              : T.RPCChat.Keybase1.IdentityVisibility.private,
-          })
-          return
-        }
-        logger.warn('Empty editEmail action')
-      }
-      ignorePromise(f())
-    },
     notifyEmailAddressEmailsChanged: list => {
       set(s => {
         s.emails = new Map(list.map(row => [row.email, {...makeEmailRow(), ...row}]))
@@ -95,6 +49,17 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', se
       })
     },
     resetState: Z.defaultReset,
+    sentVerificationEmail: email => {
+      set(s => {
+        const old = s.emails.get(email) ?? {
+          ...makeEmailRow(),
+          email,
+          isVerified: false,
+        }
+        old.lastVerifyEmailDate = new Date().getTime() / 1000
+        s.emails.set(email, old)
+      })
+    },
   }
   return {
     ...initialStore,

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import {editAvatar, openURL} from '@/util/misc'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
@@ -200,9 +200,18 @@ const GitRepoTask = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailTask = (props: TodoOwnProps) => {
-  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
+  const sendVerificationEmail = C.useRPC(T.RPCGen.emailsSendVerificationEmailRpcPromise)
+  const sentVerificationEmail = useSettingsEmailState(s => s.dispatch.sentVerificationEmail)
+  const {setResentEmail} = props
   const onConfirm = (email: string) => {
-    editEmail({email, onSuccess: () => props.setResentEmail(email), verify: true})
+    sendVerificationEmail(
+      [{email}],
+      () => {
+        sentVerificationEmail(email)
+        setResentEmail(email)
+      },
+      () => {}
+    )
   }
   const {navigateAppend, switchTab} = C.Router2
   const onManage = () => {
@@ -259,12 +268,16 @@ const VerifyAllPhoneNumberTask = (props: TodoOwnProps) => {
 }
 
 const LegacyEmailVisibilityTask = (props: TodoOwnProps) => {
-  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
+  const setVisibilityEmail = C.useRPC(T.RPCGen.emailsSetVisibilityEmailRpcPromise)
   const {navigateAppend, switchTab} = C.Router2
   const onConfirm = (email: string) => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend({name: settingsAccountTab, params: {}})
-    editEmail({email, makeSearchable: true})
+    setVisibilityEmail(
+      [{email, visibility: T.RPCGen.IdentityVisibility.public}],
+      () => {},
+      () => {}
+    )
   }
   const onDismiss = useOnSkipTodo(props.skipTodo, 'legacyEmailVisibility')
   const buttons = makeConfirmAndSecondaryButtons(
