@@ -1,6 +1,6 @@
 import type {Meta, StoryObj} from '@storybook/react'
 import SelectOtherDevice from './select-other-device'
-import type {Device} from '@/stores/provision'
+import type {Device} from '@/constants/provision'
 
 const makeDevice = (overrides: Partial<Device> = {}): Device => ({
   deviceNumberOfType: 0,

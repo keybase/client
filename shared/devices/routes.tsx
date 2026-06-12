@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
-import {useProvisionState} from '@/stores/provision'
+import {cancelProvision} from '@/provision/flow'
 import {defineRouteMap} from '@/constants/types/router'
 import {HeaderTitle} from './common'
 
@@ -31,21 +31,17 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const AddDeviceCancelButton = () => {
-  const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
-  const navigateUp = C.Router2.navigateUp
-  return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={() => {
-        cancel?.()
-        navigateUp()
-      }}
-    >
-      Cancel
-    </Kb.Text>
-  )
-}
+const AddDeviceCancelButton = () => (
+  <Kb.Text
+    type="BodyBigLink"
+    onClick={() => {
+      cancelProvision()
+      C.Router2.navigateUp()
+    }}
+  >
+    Cancel
+  </Kb.Text>
+)
 
 export const newRoutes = defineRouteMap({
   devicePage: C.makeScreen(

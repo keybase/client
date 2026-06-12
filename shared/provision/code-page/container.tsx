@@ -6,22 +6,22 @@ import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
-import {type Device, useProvisionState} from '@/stores/provision'
+import type {Device} from '@/constants/provision'
+import {submitProvisionTextCode} from '../flow'
 
-const CodePageContainer = () => {
+type OwnProps = {
+  deviceName?: string
+  error?: string
+  otherDevice: Device
+  textCode: string
+}
+
+const CodePageContainer = (op: OwnProps) => {
   const storeDeviceName = useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
-  const provisionState = useProvisionState(
-    C.useShallow(s => ({
-      error: s.error,
-      otherDevice: s.codePageOtherDevice,
-      provisionDeviceName: s.deviceName,
-      submitTextCode: s.dispatch.dynamic.submitTextCode,
-      textCode: s.codePageIncomingTextCode,
-    }))
-  )
-  const {error, otherDevice, provisionDeviceName, submitTextCode, textCode} = provisionState
-  const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
+  const {otherDevice, textCode} = op
+  const error = op.error ?? ''
+  const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : (op.deviceName ?? '')
   const currentDevice = {
     created: 0,
     currentDevice: false,
@@ -38,7 +38,7 @@ const CodePageContainer = () => {
 
   const _onSubmitTextCode = (code: string) => {
     if (!waiting) {
-      submitTextCode?.(code)
+      submitProvisionTextCode(code)
     }
   }
 
@@ -233,9 +233,9 @@ const CodePageContainer = () => {
 
   const troubleshootingContent = () => (
     <Troubleshooting
+      device={otherDevice}
       mode={tab === 'QR' ? 'QR' : 'text'}
       onCancel={() => setTroubleshooting(false)}
-      otherDeviceType={otherDevice.type}
     />
   )
 

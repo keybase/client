@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner, desktopInputWidth} from './common'
-import {useProvisionState} from '@/stores/provision'
+import {startProvision} from '@/provision/flow'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
@@ -55,7 +55,7 @@ const ConnectedEnterUsername = (p: Props) => {
     ignorePromise(f())
   }
 
-  const onLogin = useProvisionState(s => s.dispatch.startProvision)
+  const onLogin = (username: string) => startProvision(username)
   return <EnterUsername error={error} initialUsername={initialUsername} onBack={onBack} onContinue={onContinue} onLogin={onLogin} onUsernameChange={onUsernameChange} usernameTaken={usernameTaken} waiting={waiting} />
 }
 

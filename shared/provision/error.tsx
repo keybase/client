@@ -4,7 +4,7 @@ import type * as React from 'react'
 import {SignupScreen} from '@/signup/common'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
-import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'
+import type {ProvisionRouteError} from '@/constants/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
@@ -37,13 +37,14 @@ type Props = {
   route: {
     params: {
       error?: ProvisionRouteError
+      username?: string
     }
   }
 }
 
 const RenderError = ({route}: Props) => {
   const error = route.params.error
-  const username = useProvisionState(s => s.username)
+  const username = route.params.username ?? ''
   const onBack = C.Router2.navigateUp
   const onKBHome = () => void openURL('https://keybase.io/')
   const onPasswordReset = () => void openURL('https://keybase.io/#password-reset')

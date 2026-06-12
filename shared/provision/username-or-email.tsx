@@ -3,59 +3,55 @@ import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import type {RPCError} from '@/util/errors'
 import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
-import {useProvisionState} from '@/stores/provision'
+import {submitProvisionUsername} from './flow'
 
-type OwnProps = {fromReset?: boolean; username?: string}
+type OwnProps = {
+  autoSubmit?: boolean
+  fromReset?: boolean
+  inlineErrorCode?: number
+  username?: string
+}
 
-const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
+const decodeInlineError = (inlineErrorCode?: number) => {
   let inlineError = ''
   let inlineSignUpLink = false
-  if (inlineRPCError) {
-    switch (inlineRPCError.code) {
-      case T.RPCGen.StatusCode.scnotfound:
-        // If it's a "not found" error, we will show "go to signup" link,
-        // otherwise just the error.
-        inlineError = ''
-        inlineSignUpLink = true
-        break
-      case T.RPCGen.StatusCode.scbadusername:
-        inlineError = C.usernameHint
-        inlineSignUpLink = false
-        break
-      default:
-    }
+  switch (inlineErrorCode) {
+    case T.RPCGen.StatusCode.scnotfound:
+      // If it's a "not found" error, we will show "go to signup" link,
+      // otherwise just the error.
+      inlineError = ''
+      inlineSignUpLink = true
+      break
+    case T.RPCGen.StatusCode.scbadusername:
+      inlineError = C.usernameHint
+      inlineSignUpLink = false
+      break
+    default:
   }
   return {inlineError, inlineSignUpLink}
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
-  const _error = useProvisionState(s => s.error)
-  const {inlineError, inlineSignUpLink} = useProvisionState(
-    C.useShallow(s => decodeInlineError(s.inlineError))
-  )
-  const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
-  // So we can clear the error if the name is changed
-  const _username = useProvisionState(s => s.username)
-  const resetBannerUser = op.fromReset ? _username : undefined
+  const {inlineError, inlineSignUpLink} = decodeInlineError(op.inlineErrorCode)
+  const error = inlineError && !inlineSignUpLink ? inlineError : ''
+  const resetBannerUser = op.fromReset ? op.username : undefined
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
   const onBack = useSafeSubmit(C.Router2.navigateUp, hasError)
   const onForgotUsername = () => C.Router2.navigateAppend({name: 'forgotUsername', params: {}})
   const requestAutoInvite = useRequestAutoInvite()
-  const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
-  const [username, setUsername] = React.useState(op.username ?? _username)
-  React.useEffect(() => {
-    if (op.username && op.username !== _username) {
-      _setUsername?.(op.username)
+  const [username, setUsername] = React.useState(op.username ?? '')
+  C.useOnMountOnce(() => {
+    if (op.autoSubmit && op.username) {
+      submitProvisionUsername(op.username)
     }
-  }, [op.username, _username, _setUsername])
+  })
   const onSubmit = () => {
-    if (!waiting) _setUsername?.(username)
+    if (!waiting) submitProvisionUsername(username)
   }
   const onGoToSignup = () => {
     requestAutoInvite(username)

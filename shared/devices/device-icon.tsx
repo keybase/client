@@ -1,4 +1,4 @@
-import type * as Provision from '@/stores/provision'
+import type * as Provision from '@/constants/provision'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 export type Props = {

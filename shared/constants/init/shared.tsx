@@ -30,7 +30,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
-import {useProvisionState} from '@/stores/provision'
 import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
@@ -276,25 +275,7 @@ const onHandshakeStateChanged = (handshakeState: DaemonState['handshakeState']) 
   }
 }
 
-const onStartProvisionTriggerChanged = (value: number, previous: number) => {
-  // The trigger only counts up when a provision actually starts. A reset (resetState /
-  // resetAllStores) rewinds it to 0; ignore that, otherwise resetState after a successful
-  // provision would log the just-provisioned user back out.
-  if (value <= previous) {
-    return
-  }
-  useConfigState.getState().dispatch.setLoginError()
-  useConfigState.getState().dispatch.resetRevokedSelf()
-  const f = async () => {
-    // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-    if (useConfigState.getState().loggedIn) {
-      await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
-    }
-  }
-  ignorePromise(f())
-}
-
-const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
+const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
   const next = nextNavState as Util.NavState
   const prev = previousNavState as Util.NavState
   if (prev === next) return
@@ -391,10 +372,6 @@ export const initSharedSubscriptions = () => {
       onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
     ),
     subscribeValue(useDaemonState, s => s.handshakeState, onHandshakeStateChanged)
-  )
-
-  _sharedUnsubs.push(
-    subscribeValue(useProvisionState, s => s.startProvisionTrigger, onStartProvisionTriggerChanged)
   )
 
   _sharedUnsubs.push(
