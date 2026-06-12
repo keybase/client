@@ -9,7 +9,7 @@ import {NotifyPopup} from '@/util/misc'
 import {showMain} from '@/util/storeless-actions'
 import {useShellState} from '@/stores/shell'
 import {useUsersState} from '@/stores/users'
-import {updateInboxRowTyping} from '@/stores/inbox-rows'
+import {updateInboxRowTyping} from '@/chat/inbox/rows-state'
 import {
   forceUnboxRowsForService,
   getInboxConversationMeta,

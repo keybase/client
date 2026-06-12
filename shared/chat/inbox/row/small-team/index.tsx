@@ -10,7 +10,7 @@ import './small-team.css'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {useOpenedRowState} from '../opened-row-state'
-import {useInboxRowSmall} from '@/stores/inbox-rows'
+import {useInboxRowSmall} from '@/chat/inbox/rows-state'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 export type Props = {
   conversationIDKey: string

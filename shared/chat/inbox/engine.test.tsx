@@ -8,9 +8,9 @@ import {
   syncInboxRowBadgeState,
   syncInboxRowsFromParticipantMap,
   updateInboxRowTyping,
-} from '@/stores/inbox-rows'
+} from '@/chat/inbox/rows-state'
 
-jest.mock('@/stores/inbox-rows', () => ({
+jest.mock('@/chat/inbox/rows-state', () => ({
   getInboxRowTrustedState: jest.fn(() => undefined),
   setInboxRowTrustedState: jest.fn(),
   syncInboxRowBadgeState: jest.fn(),

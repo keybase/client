@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '@/util/string'
 import {BottomLine} from './inbox/row/small-team'
-import {useInboxRowBig} from '@/stores/inbox-rows'
+import {useInboxRowBig} from '@/chat/inbox/rows-state'
 import type * as T from '@/constants/types'
 
 type OwnProps = {
