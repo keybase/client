@@ -185,12 +185,17 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
     double d = value.getNumber();
     // Doubles can exactly represent integers up to 2^53. Encode exact
     // integers as msgpack int/uint (matching @msgpack/msgpack JS behavior)
-    // so Go's decoder sees integer types, not float64.
+    // so Go's decoder sees integer types, not float64. Integer-valued
+    // doubles outside [INT64_MIN, UINT64_MAX] would be UB to cast, so
+    // those stay float64. 18446744073709551616.0 == 2^64 and
+    // -9223372036854775808.0 == -2^63 are both exact doubles.
     if (d == std::floor(d) && std::isfinite(d)) {
-      if (d >= 0) {
+      if (d >= 0 && d < 18446744073709551616.0) {
         pk.pack(static_cast<uint64_t>(d));
-      } else {
+      } else if (d < 0 && d >= -9223372036854775808.0) {
         pk.pack(static_cast<int64_t>(d));
+      } else {
+        pk.pack(d);
       }
     } else {
       pk.pack(d);

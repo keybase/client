@@ -6,6 +6,11 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
 @objc class FsHelper: NSObject {
     private static let cacheKeybaseURL = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Caches/Keybase")
     private static let appSupportKeybaseURL = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Keybase")
+    private static let fileProtectionAttrs = [FileAttributeKey.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
+
+    // Directories whose existing contents still need the relaxed protection
+    // attribute; swept on a background queue after setup completes.
+    private var pendingAttributeSweeps: [String] = []
 
     @objc func setupFs(_ skipLogFile: Bool, setupSharedHome shouldSetupSharedHome: Bool) -> [String: String] {
         let setupFsStartTime = CFAbsoluteTimeGetCurrent()
@@ -15,7 +20,7 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
         let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.keybase")
         var sharedHome = sharedURL?.path ?? ""
 
-        home = setupAppHome(home: home, sharedHome: sharedHome)
+        home = setupAppHome(home: home)
         if shouldSetupSharedHome {
             sharedHome = setupSharedHome(home: home, sharedHome: sharedHome)
         }
@@ -47,10 +52,24 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
             "kbfs_settings",
             "synced_tlf_config"
         ].forEach {
-            createBackgroundReadableDirectory(path: appKeybaseURL.appendingPathComponent($0).path, setAllFiles: true)
+            createBackgroundReadableDirectory(path: appKeybaseURL.appendingPathComponent($0).path)
         }
-        createBackgroundReadableDirectory(path: logURL.path, setAllFiles: true)
-        createBackgroundReadableDirectory(path: Self.cacheKeybaseURL.appendingPathComponent("avatars").path, setAllFiles: true)
+        createBackgroundReadableDirectory(path: logURL.path)
+        createBackgroundReadableDirectory(path: Self.cacheKeybaseURL.appendingPathComponent("avatars").path)
+
+        // The per-file sweep over existing cache contents can be slow for big
+        // caches, so it runs off the launch path. Dispatched after migration so
+        // it never races moving files between dirs. The enumerator is recursive,
+        // so drop paths nested under another swept path.
+        var sweepRoots: [String] = []
+        for path in pendingAttributeSweeps.sorted() {
+            if let last = sweepRoots.last, path.hasPrefix(last + "/") { continue }
+            sweepRoots.append(path)
+        }
+        pendingAttributeSweeps = []
+        DispatchQueue.global(qos: .utility).async {
+            sweepRoots.forEach { Self.setAttributesRecursively(path: $0) }
+        }
 
         let setupFsElapsed = CFAbsoluteTimeGetCurrent() - setupFsStartTime
         log.info("setupFs: completed in \(setupFsElapsed, format: .fixed(precision: 3)) seconds")
@@ -62,56 +81,52 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
         ]
     }
 
-    private func addSkipBackupAttribute(to path: String) -> Bool {
+    private func addSkipBackupAttribute(to path: String) {
         var url = URL(fileURLWithPath: path)
         do {
             var resourceValues = URLResourceValues()
             resourceValues.isExcludedFromBackup = true
             try url.setResourceValues(resourceValues)
-            return true
         } catch {
             log.error("Error excluding \(url.lastPathComponent, privacy: .public) from backup \(error.localizedDescription, privacy: .public)")
-            return false
         }
     }
 
-    private func createBackgroundReadableDirectory(path: String, setAllFiles: Bool) {
-        let dirStartTime = CFAbsoluteTimeGetCurrent()
+    private func createBackgroundReadableDirectory(path: String) {
         let fm = FileManager.default
         // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the
         // directory accessible as long as the user has unlocked the phone once. The
         // files are still stored on the disk encrypted (note for the chat database,
         // it means we are encrypting it twice), and are inaccessible otherwise.
-        let noProt = [FileAttributeKey.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
-        log.info("creating background readable directory: path: \(path, privacy: .public) setAllFiles: \(setAllFiles)")
-        _ = try? fm.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: noProt)
+        log.info("creating background readable directory: path: \(path, privacy: .public)")
+        _ = try? fm.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: Self.fileProtectionAttrs)
         do {
-            try fm.setAttributes(noProt, ofItemAtPath: path)
+            try fm.setAttributes(Self.fileProtectionAttrs, ofItemAtPath: path)
         } catch {
             log.error("Error setting file attributes on path: \(path, privacy: .public) error: \(error.localizedDescription, privacy: .public)")
         }
+        pendingAttributeSweeps.append(path)
+    }
 
-        guard setAllFiles else {
-            log.info("setAllFiles is false, so returning now")
-            return
-        }
-        log.info("setAllFiles is true charging forward")
-
-        // Recursively set attributes on all subdirectories and files
+    // Recursively set the relaxed protection attribute on existing contents.
+    // Catch-up for files created before the attribute was in place.
+    private static func setAttributesRecursively(path: String) {
+        let dirStartTime = CFAbsoluteTimeGetCurrent()
+        let fm = FileManager.default
         let pathURL = URL(fileURLWithPath: path)
         var fileCount = 0
         if let enumerator = fm.enumerator(atPath: path) {
             for case let file as String in enumerator {
                 let filePath = pathURL.appendingPathComponent(file).path
                 do {
-                    try fm.setAttributes(noProt, ofItemAtPath: filePath)
+                    try fm.setAttributes(fileProtectionAttrs, ofItemAtPath: filePath)
                     fileCount += 1
                 } catch {
                     log.error("Error setting file attributes on: \(filePath, privacy: .public) error: \(error.localizedDescription, privacy: .public)")
                 }
             }
             let dirElapsed = CFAbsoluteTimeGetCurrent() - dirStartTime
-            log.info("createBackgroundReadableDirectory completed for: \(path, privacy: .public), processed \(fileCount) files, total: \(dirElapsed, format: .fixed(precision: 3)) seconds")
+            log.info("setAttributesRecursively completed for: \(path, privacy: .public), processed \(fileCount) files, total: \(dirElapsed, format: .fixed(precision: 3)) seconds")
         } else {
             log.error("Error creating enumerator for path: \(path, privacy: .public)")
         }
@@ -157,15 +172,15 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
         return appSupportKeybaseURL.appendingPathComponent("eraseablekvstore/device-eks").path
     }
 
-    private func setupAppHome(home: String, sharedHome: String) -> String {
+    private func setupAppHome(home: String) -> String {
         let dyldDir = FileManager.default.temporaryDirectory.appendingPathComponent("com.apple.dyld").path
         let appKeybasePath = Self.getAppKeybasePath()
         let appEraseableKVPath = Self.getEraseableKVPath()
 
-        createBackgroundReadableDirectory(path: dyldDir, setAllFiles: true)
-        createBackgroundReadableDirectory(path: appKeybasePath, setAllFiles: true)
-        createBackgroundReadableDirectory(path: appEraseableKVPath, setAllFiles: true)
-        _ = addSkipBackupAttribute(to: appKeybasePath)
+        createBackgroundReadableDirectory(path: dyldDir)
+        createBackgroundReadableDirectory(path: appKeybasePath)
+        createBackgroundReadableDirectory(path: appEraseableKVPath)
+        addSkipBackupAttribute(to: appKeybasePath)
 
         return home
     }
@@ -176,9 +191,9 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
         let sharedKeybasePath = URL(fileURLWithPath: sharedHome).appendingPathComponent("Library/Application Support/Keybase").path
         let sharedEraseableKVPath = URL(fileURLWithPath: sharedKeybasePath).appendingPathComponent("eraseablekvstore/device-eks").path
 
-        createBackgroundReadableDirectory(path: sharedKeybasePath, setAllFiles: true)
-        createBackgroundReadableDirectory(path: sharedEraseableKVPath, setAllFiles: true)
-        _ = addSkipBackupAttribute(to: sharedKeybasePath)
+        createBackgroundReadableDirectory(path: sharedKeybasePath)
+        createBackgroundReadableDirectory(path: sharedEraseableKVPath)
+        addSkipBackupAttribute(to: sharedKeybasePath)
 
         guard maybeMigrateDirectory(source: appKeybasePath, dest: sharedKeybasePath),
               maybeMigrateDirectory(source: appEraseableKVPath, dest: sharedEraseableKVPath) else {

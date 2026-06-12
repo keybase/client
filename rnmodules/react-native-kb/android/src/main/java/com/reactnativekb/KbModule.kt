@@ -5,16 +5,12 @@ import android.app.DownloadManager
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.AssetFileDescriptor
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.text.format.DateFormat
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
@@ -22,17 +18,12 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.turbomodule.core.interfaces.TurboModuleWithJSIBindings
 import com.facebook.react.turbomodule.core.interfaces.BindingsInstallerHolder
 import com.facebook.proguard.annotations.DoNotStrip
-import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -41,39 +32,17 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.IOException
-import java.io.InputStreamReader
-import java.lang.reflect.Field
 import java.lang.reflect.Method
-import java.util.HashMap
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 import keybase.Keybase
 import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
-import android.media.MediaMetadataRetriever
-import androidx.media3.transformer.TransformationRequest
-import androidx.media3.transformer.Transformer
-import androidx.media3.transformer.EditedMediaItem
-import androidx.media3.transformer.Effects
-import androidx.media3.effect.ScaleAndRotateTransformation
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
-import androidx.media3.transformer.Transformer.Listener
-import androidx.media3.transformer.Composition
-import androidx.media3.transformer.ExportException
-import androidx.media3.transformer.ExportResult
-import androidx.media3.transformer.VideoEncoderSettings
-import androidx.media3.transformer.DefaultEncoderFactory
-import java.nio.ByteBuffer
-import kotlin.math.min
 
 class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), TurboModuleWithJSIBindings {
     private val misTestDevice: Boolean
-    private val initialIntent: HashMap<String?, String?>? = null
     private val reactContext: ReactApplicationContext
 
     @DoNotStrip
@@ -81,6 +50,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     private external fun nativeOnDataFromGo(data: ByteArray)
 
     private var executor: ExecutorService? = null
+    private var lifecycleListenerRegistered = false
 
     override fun getName(): String {
         return NAME
@@ -103,29 +73,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     override fun setEnablePasteImage(enabled: Boolean) {
         // not used
     }
-
-    private fun calculateOutputDimensions(width: Int, height: Int, maxPixels: Int): Pair<Int, Int> {
-        val pixelCount = width * height
-        if (pixelCount <= maxPixels) {
-            return Pair(width, height)
-        }
-
-        val scale = kotlin.math.sqrt(maxPixels.toDouble() / pixelCount)
-        val newWidth = (width * scale).toInt().let { if (it % 2 == 0) it else it - 1 }
-        val newHeight = (height * scale).toInt().let { if (it % 2 == 0) it else it - 1 }
-        return Pair(newWidth, newHeight)
-    }
-
-    private fun calculateBitrate(width: Int, height: Int): Int {
-        val pixelCount = width * height
-        return when {
-            pixelCount > 1920 * 1080 -> 8000000 // 8 Mbps for > 1080p
-            pixelCount > 1280 * 720 -> 5000000  // 5 Mbps for 1080p
-            else -> 3000000 // 3 Mbps for 720p and below
-        }
-    }
-
-
 
     /**
      * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
@@ -345,10 +292,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         misTestDevice = isTestDevice(reactContext)
     }
 
-    private fun isAsset(path: String): Boolean {
-        return path.startsWith(FILE_PREFIX_BUNDLE_ASSET)
-    }
-
     private fun normalizePath(path: String): String {
         if (!Regex("""\w+\:.*""").matches(path)) {
             return path
@@ -361,38 +304,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             return path
         } else {
             return PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
-        }
-    }
-
-    // download
-    private fun statFile(_path: String): WritableMap? {
-        var path  = _path
-        return try {
-            path = normalizePath(path)
-            val stat: WritableMap = Arguments.createMap()
-            if (isAsset(path)) {
-                val name: String = path.replace(FILE_PREFIX_BUNDLE_ASSET, "")
-                val fd: AssetFileDescriptor = reactContext.assets.openFd(name)
-                stat.putString("filename", name)
-                stat.putString("path", path)
-                stat.putString("type", "asset")
-                stat.putString("size", fd.length.toString())
-                stat.putInt("lastModified", 0)
-            } else {
-                val target = File(path)
-                if (!target.exists()) {
-                    return null
-                }
-                stat.putString("filename", target.name)
-                stat.putString("path", target.path)
-                stat.putString("type", if (target.isDirectory) "directory" else "file")
-                stat.putString("size", target.length().toString())
-                val lastModified: String = target.lastModified().toString()
-                stat.putString("lastModified", lastModified)
-            }
-            stat
-        } catch (err: Exception) {
-            null
         }
     }
 
@@ -410,14 +321,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             return
         }
         try {
-            val stat: WritableMap? = statFile(path)
-            var size = 0L
-            if (stat != null) {
-                val sizeStr = stat.getString("size")
-                if (sizeStr != null) {
-                    size = sizeStr.toLong()
-                }
-            }
+            val target = File(path)
+            val size = if (target.exists()) target.length() else 0L
             @Suppress("DEPRECATION")
             dm.addCompletedDownload(
                     if (config.hasKey("title")) config.getString("title") else "",
@@ -457,7 +362,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     @ReactMethod
     override fun getInitialNotification(promise: Promise) {
+        // Clear on read so it behaves as a one-shot, matching iOS.
         val bundle = KbModule.initialNotificationBundle
+        KbModule.initialNotificationBundle = null
         if (bundle != null) {
             try {
                 @Suppress("UNCHECKED_CAST")
@@ -472,18 +379,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     private fun emitPushNotificationInternal(notification: Bundle) {
-        android.util.Log.d("KbModule", "emitPushNotificationInternal called")
         if (reactContext.hasActiveReactInstance()) {
-            android.util.Log.d("KbModule", "emitPushNotificationInternal has active react instance, emitting event")
             try {
                 val payload = Arguments.fromBundle(notification)
                 reactContext.emitDeviceEvent("onPushNotification", payload)
-                android.util.Log.d("KbModule", "emitPushNotificationInternal event emitted successfully")
             } catch (e: Exception) {
-                android.util.Log.e("KbModule", "emitPushNotificationInternal failed to emit: " + e.message)
+                NativeLogger.error("emitPushNotificationInternal failed to emit: " + e.message)
             }
         } else {
-            android.util.Log.w("KbModule", "emitPushNotificationInternal no active react instance")
+            NativeLogger.warn("emitPushNotificationInternal no active react instance")
         }
     }
 
@@ -522,12 +426,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         promise.resolve(null)
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    override fun install(): Boolean {
-        // No-op: JSI bindings are now installed via TurboModuleWithJSIBindings.getBindingsInstaller()
-        return true
-    }
-
     @ReactMethod
     override fun engineReset() {
         try {
@@ -545,41 +443,39 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             // Signal to Go that JS is ready
             Keybase.notifyJSReady()
 
-            // Start the executor to read from Go
-            if (executor == null) {
-                val ex = Executors.newSingleThreadExecutor()
-                executor = ex
-                ex.execute(ReadFromKBLib(reactContext))
+            startReadLoop()
+
+            // Register once; restart the read loop on resume, tear down on destroy.
+            if (!lifecycleListenerRegistered) {
+                lifecycleListenerRegistered = true
+                reactContext.addLifecycleEventListener(object : LifecycleEventListener {
+                    override fun onHostResume() {
+                        startReadLoop()
+                    }
+
+                    override fun onHostPause() {
+                    }
+
+                    override fun onHostDestroy() {
+                        destroy()
+                    }
+                })
             }
         } catch (e: Exception) {
             NativeLogger.error("Exception in notifyJSReady", e)
         }
     }
 
-    // JSI
-    private inner class ReadFromKBLib(reactContext: ReactApplicationContext) : Runnable {
-        private val reactContext: ReactApplicationContext
-
-        init {
-            this.reactContext = reactContext
-            reactContext.addLifecycleEventListener(object : LifecycleEventListener {
-                override fun onHostResume() {
-                    if (executor == null) {
-                        val ex = Executors.newSingleThreadExecutor()
-                        executor = ex
-                        ex.execute(ReadFromKBLib(reactContext))
-                    }
-                }
-
-                override fun onHostPause() {
-                }
-
-                override fun onHostDestroy() {
-                    destroy()
-                }
-            })
+    private fun startReadLoop() {
+        if (executor == null) {
+            val ex = Executors.newSingleThreadExecutor()
+            executor = ex
+            ex.execute(ReadFromKBLib(reactContext))
         }
+    }
 
+    // JSI
+    private inner class ReadFromKBLib(private val reactContext: ReactApplicationContext) : Runnable {
         override fun run() {
             do {
                 try {
@@ -625,7 +521,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    @ReactMethod
+    // Called from JNI (cpp-adapter writeToGo), not from JS. DoNotStrip keeps it
+    // from being removed/renamed by ProGuard since the only caller is reflective.
+    @DoNotStrip
     fun rpcOnGo(arr: ByteArray) {
         try {
             writeArr(arr)
@@ -651,7 +549,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         const val NAME: String = "Kb"
-        private const val RN_NAME: String = "ReactNativeJS"
         private const val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
@@ -679,12 +576,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
         @JvmStatic
         fun emitPushNotification(notification: Bundle) {
-            if (instance == null) {
+            val module = instance
+            if (module == null) {
+                // NativeLogger writes to the Go service, which may not be up here.
                 android.util.Log.w("KbModule", "emitPushNotification called but instance is null (app may not be running)")
                 return
             }
-            android.util.Log.d("KbModule", "emitPushNotification called, instance exists")
-            instance?.emitPushNotificationInternal(notification)
+            module.emitPushNotificationInternal(notification)
         }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)

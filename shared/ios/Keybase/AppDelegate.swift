@@ -53,8 +53,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    let skipLogFile = false
-    self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
+    self.fsPaths = FsHelper().setupFs(false, setupSharedHome: true)
     FsPathsHolder.shared().fsPaths = self.fsPaths
 
     self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
@@ -198,8 +197,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   func setupGo() {
     // uncomment to get more console.logs
     // RCTSetLogThreshold(RCTLogLevel.info.rawValue - 1)
-    FsPathsHolder.shared().fsPaths = self.fsPaths
-
     let systemVer = UIDevice.current.systemVersion
     let isIPad = UIDevice.current.userInterfaceIdiom == .pad
     let isIOS = true
@@ -219,12 +216,10 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
     if let err {
       let initResult = "FAILED: \(err.localizedDescription) (code=\(err.code) domain=\(err.domain))"
-      KbSetInitResult(initResult)
       log.error("KeybaseInit FAILED: \(err.localizedDescription, privacy: .public)")
       self.writeStartupTimingLog("KeybaseInit \(initResult)")
       fatalError("KeybaseInit failed: \(initResult)")
     } else {
-      KbSetInitResult("succeeded")
       self.writeStartupTimingLog("KeybaseInit succeeded")
     }
 
@@ -313,14 +308,27 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   func handleAppRefresh(task: BGAppRefreshTask) {
     scheduleAppRefresh()
 
+    // setTaskCompleted must be called exactly once, whether the sync finishes
+    // or the task expires first.
+    let completionQueue = DispatchQueue(label: "kb.bg.refresh.completion")
+    var completed = false
+    let completeOnce: (Bool) -> Void = { success in
+      completionQueue.sync {
+        guard !completed else { return }
+        completed = true
+        task.setTaskCompleted(success: success)
+      }
+    }
+
     task.expirationHandler = {
       log.warning("Background refresh task expired")
+      completeOnce(false)
     }
 
     DispatchQueue.global(qos: .default).async {
       log.info("Background fetch started...")
       Keybasego.KeybaseBackgroundSync()
-      task.setTaskCompleted(success: true)
+      completeOnce(true)
       log.info("Background fetch completed...")
     }
   }
@@ -332,7 +340,10 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   }
 
   override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    guard let type = notification["type"] as? String else { return }
+    guard let type = notification["type"] as? String else {
+      completionHandler(.noData)
+      return
+    }
     if type == "chat.newmessageSilent_2" {
       DispatchQueue.global(qos: .default).async {
         let convID = notification["c"] as? String
@@ -423,26 +434,29 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationDidEnterBackground: after notifying go.")
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
-      let app = UIApplication.shared
-      self.shutdownTask = app.beginBackgroundTask {
+      self.shutdownTask = UIApplication.shared.beginBackgroundTask {
+        // Expiration handler runs on the main thread.
         log.info("applicationDidEnterBackground: shutdown task run.")
         Keybasego.KeybaseAppWillExit(PushNotifier())
-        let task = self.shutdownTask
-        if task != .invalid {
-          app.endBackgroundTask(task)
-          self.shutdownTask = .invalid
-        }
+        self.endShutdownTask()
       }
 
       DispatchQueue.global(qos: .default).async {
         Keybasego.KeybaseAppBeginBackgroundTask(PushNotifier())
-        let task = self.shutdownTask
-        if task != .invalid {
-          app.endBackgroundTask(task)
-          self.shutdownTask = .invalid
+        DispatchQueue.main.async {
+          self.endShutdownTask()
         }
       }
     }
+  }
+
+  // Main thread only: serializes the expiration handler and the background
+  // work both trying to end the same task.
+  private func endShutdownTask() {
+    let task = self.shutdownTask
+    guard task != .invalid else { return }
+    self.shutdownTask = .invalid
+    UIApplication.shared.endBackgroundTask(task)
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
@@ -451,29 +465,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationDidBecomeActive: notifying service.")
     notifyAppState(application)
 
-    // Check if there's a stored notification with userInteraction that needs to be processed
-    // This handles the case where app was backgrounded and notification was clicked
-    // but React Native wasn't ready yet
-    if let storedNotification = KbGetAndClearInitialNotification() {
-      let userInteraction = storedNotification["userInteraction"] as? Bool ?? false
-
-      if userInteraction {
-        let alreadyReEmitted = (storedNotification["reEmittedInBecomeActive"] as? Bool) == true
-        if alreadyReEmitted {
-          KbSetInitialNotification(storedNotification)
-        } else {
-          log.info("applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
-          KbEmitPushNotification(storedNotification)
-          var copy = storedNotification
-          copy["reEmittedInBecomeActive"] = true
-          KbSetInitialNotification(copy)
-        }
-      } else {
-        log.info("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")
-      }
-    } else {
-      log.info("applicationDidBecomeActive: no stored notification found")
-    }
+    // Re-emit a notification the user tapped while React Native wasn't ready yet.
+    KbEmitStoredNotificationOnBecomeActive()
   }
 
   override func applicationWillEnterForeground(_ application: UIApplication) {

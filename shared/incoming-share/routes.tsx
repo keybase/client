@@ -12,9 +12,11 @@ const IncomingShareHeaderLeft = () => {
   )
 }
 
+// Content-sized so the native header centers it in the bar (fullWidth would
+// center within the asymmetric space between the left/right items instead)
 const IncomingShareHeaderTitle = () => {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+    <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text type="BodyBig">Share to...</Kb.Text>
     </Kb.Box2>
   )

@@ -9,14 +9,19 @@ import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
 import {ensureError} from '@/util/errors'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
-export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
+export const getIncomingShareSizes = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
   const scaledTotalSize = incomingShareItems.reduce(
     (bytes, item) => bytes + (item.scaledSize ?? item.originalSize ?? 0),
     0
   )
-  const originalOnly = originalTotalSize <= scaledTotalSize
+  return {originalOnly: originalTotalSize <= scaledTotalSize, originalTotalSize, scaledTotalSize}
+}
+
+export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
+  const {originalOnly, originalTotalSize, scaledTotalSize} = getIncomingShareSizes(incomingShareItems)
   const setUseOriginalInStore = useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
 
   const setUseOriginalInService = (useOriginal: boolean) => {
@@ -129,16 +134,23 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
   return name || `1 ${incomingShareTypeToString(item.type, false, false)}`
 }
 
-const IncomingShareHeaderTitle = ({title}: {title?: string}) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-    {title ? (
-      <Kb.Text type="BodyTiny" lineClamp={1}>
-        {title}
-      </Kb.Text>
-    ) : null}
-    <Kb.Text type="BodyBig">Share to...</Kb.Text>
-  </Kb.Box2>
-)
+// Content-sized so the native header centers it in the bar; fullWidth would fill
+// the asymmetric space between the Cancel pill and the right item and center
+// within that instead. maxWidth keeps long filenames clear of both sides — same
+// trick as fs/nav-header/ios-header.
+const IncomingShareHeaderTitle = ({title}: {title?: string}) => {
+  const {width} = useSafeAreaFrame()
+  return (
+    <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: width - 240}}>
+      {title ? (
+        <Kb.Text type="BodyTiny" lineClamp={1}>
+          {title}
+        </Kb.Text>
+      ) : null}
+      <Kb.Text type="BodyBig">Share to...</Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   const navigateAppend = C.Router2.navigateAppend
@@ -222,11 +234,23 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   const footer = useFooter(props.incomingShareItems)
   const contentDescription = getContentDescriptionText(props.incomingShareItems)
 
+  // When there's no compress choice the header button renders nothing, but a set
+  // headerRight still gets an empty liquid glass circle on iOS 26 — so don't set
+  // it at all. The button's originalOnly store sync must then happen here.
+  const {originalOnly} = getIncomingShareSizes(props.incomingShareItems)
+  const setUseOriginalInStore = useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
+  React.useEffect(() => {
+    if (originalOnly) {
+      setUseOriginalInStore(true)
+    }
+  }, [originalOnly, setUseOriginalInStore])
+
   React.useEffect(() => {
     navigation.setOptions({
-      headerRight: props.incomingShareItems.length
-        ? () => <OriginalOrCompressedButton incomingShareItems={props.incomingShareItems} />
-        : undefined,
+      headerRight:
+        props.incomingShareItems.length && !originalOnly
+          ? () => <OriginalOrCompressedButton incomingShareItems={props.incomingShareItems} />
+          : undefined,
       headerTitle: () => <IncomingShareHeaderTitle title={contentDescription} />,
     })
     return () => {
@@ -235,7 +259,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
         headerTitle: () => <IncomingShareHeaderTitle />,
       })
     }
-  }, [contentDescription, navigation, props.incomingShareItems])
+  }, [contentDescription, navigation, originalOnly, props.incomingShareItems])
 
   if (canDirectNav) {
     return (

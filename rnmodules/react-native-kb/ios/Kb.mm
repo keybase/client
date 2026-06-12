@@ -31,19 +31,8 @@ using namespace kb;
   return sharedMyManager;
 }
 
-- (id)init {
-  if (self = [super init]) {
-  }
-  return self;
-}
-
-- (void)dealloc {
-  // Should never be called, but just here for clarity really.
-}
-
 @end
 
-static const NSString *tagName = @"NativeLogger";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
@@ -51,7 +40,6 @@ static __weak Kb *kbSharedInstance = nil;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
-static NSString *kbInitResult = nil;
 
 @interface Kb ()
 @property dispatch_queue_t readQueue;
@@ -102,22 +90,37 @@ RCT_EXPORT_MODULE()
 + (void)handlePastedImages:(NSArray<UIImage *> *)images {
   if (!kbSharedInstance || images.count == 0) return;
 
-  NSMutableArray *uris = [NSMutableArray array];
-  for (UIImage *image in images) {
-    NSData *data = UIImagePNGRepresentation(image);
-    if (!data) continue;
+  // Encoding and writing pasted images can be slow for large images; keep it
+  // off the main thread. sendEventWithName is safe to call from any thread.
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    NSMutableArray *uris = [NSMutableArray array];
+    for (UIImage *rawImage in images) {
+      UIImage *image = rawImage;
+      // UIImagePNGRepresentation encodes the raw pixels and PNG has no
+      // orientation tag, so bake imageOrientation in by redrawing.
+      if (image.imageOrientation != UIImageOrientationUp) {
+        UIGraphicsImageRenderer *renderer =
+            [[UIGraphicsImageRenderer alloc] initWithSize:image.size];
+        UIImage *src = image;
+        image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+          [src drawInRect:CGRectMake(0, 0, src.size.width, src.size.height)];
+        }];
+      }
+      NSData *data = UIImagePNGRepresentation(image);
+      if (!data) continue;
 
-    NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
-    NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+      NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
+      NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
 
-    if ([data writeToFile:tempPath atomically:YES]) {
-      [uris addObject:tempPath];
+      if ([data writeToFile:tempPath atomically:YES]) {
+        [uris addObject:tempPath];
+      }
     }
-  }
 
-  if (uris.count > 0) {
-    [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uris": uris}];
-  }
+    if (uris.count > 0) {
+      [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uris": uris}];
+    }
+  });
 }
 
 - (void)invalidate {
@@ -142,7 +145,6 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
   kbPasteImageEnabled = enabled;
 }
 
-// Don't compile this code when we build for the old architecture.
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
 (const facebook::react::ObjCTurboModule::InitParams &)params {
     return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
@@ -220,9 +222,6 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
   NSString *serverConfig = [self setupServerConfig];
   NSString *guiConfig = [self setupGuiConfig];
 
-  // Dark mode available since iOS 13.0; app targets iOS 15.1+
-  NSString *darkModeSupported = @"1";
-
   NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   if (appVersionString == nil) {
     appVersionString = @"";
@@ -244,7 +243,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
     @"androidIsTestDevice" : @NO,
     @"appVersionCode" : appBuildString,
     @"appVersionName" : appVersionString,
-    @"darkModeSupported" : darkModeSupported,
+    @"darkModeSupported" : @YES,
     @"fsCacheDir" : cacheDir,
     @"fsDownloadDir" : downloadDir,
     @"guiConfig" : guiConfig,
@@ -266,16 +265,15 @@ RCT_EXPORT_METHOD(engineReset) {
   }
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
-    // No-op: JSI bindings are now installed via installJSIBindingsWithRuntime:callInvoker:
-    return @YES;
-}
-
 RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
 
   NSLog(@"notifyJSReady: called from JS, queuing main thread block");
   dispatch_async(dispatch_get_main_queue(), ^{
+    if (self.readQueue) {
+      NSLog(@"notifyJSReady: read loop already running, ignoring");
+      return;
+    }
 
     self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
 
@@ -319,7 +317,7 @@ RCT_EXPORT_METHOD(logSend:(NSString *)status feedback:(NSString *)feedback sendL
   if (err == nil) {
     resolve(logId);
   } else {
-    resolve(@"");
+    reject(@"log_send_error", err.localizedDescription, err);
   }
 }
 
@@ -464,22 +462,6 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
   }];
 }
 
-/*
-RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
-  NSURL * videoURL = [NSURL URLWithString:path];
-
-  [MediaUtils processVideoFromOriginal:videoURL completion:^(NSError * _Nullable error, NSURL * _Nullable processedURL) {
-    if (error) {
-      reject(@"compression_error", error.localizedDescription, error);
-    } else if (processedURL) {
-      resolve(processedURL.path);
-    } else {
-      reject(@"compression_error", @"No processed video URL returned", nil);
-    }
-  }];
-}
-*/
-
 + (void)setDeviceToken:(NSString *)token {
   kbStoredDeviceToken = token;
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -570,12 +552,24 @@ void KbEmitPushNotification(NSDictionary *notification) {
   [Kb emitPushNotification:notification];
 }
 
-NSDictionary *KbGetAndClearInitialNotification(void) {
-  NSDictionary *notification = kbInitialNotification;
+void KbEmitStoredNotificationOnBecomeActive(void) {
+  NSDictionary *stored = kbInitialNotification;
   kbInitialNotification = nil;
-  return notification;
-}
-
-void KbSetInitResult(NSString *result) {
-  kbInitResult = result;
+  if (!stored) {
+    NSLog(@"KbEmitStoredNotificationOnBecomeActive: no stored notification");
+    return;
+  }
+  if (![stored[@"userInteraction"] boolValue]) {
+    // Not from a user tap; nothing to re-emit.
+    return;
+  }
+  if ([stored[@"reEmittedInBecomeActive"] boolValue]) {
+    // Already re-emitted once; keep it stored for getInitialNotification.
+    kbInitialNotification = stored;
+    return;
+  }
+  [Kb emitPushNotification:stored];
+  NSMutableDictionary *copy = [stored mutableCopy];
+  copy[@"reEmittedInBecomeActive"] = @YES;
+  kbInitialNotification = copy;
 }

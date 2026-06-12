@@ -55,6 +55,9 @@ const styles = Styles.styleSheetCreate(
     ({
       outerView: {
         flexGrow: 1,
+        // without shrink, content taller than the available space keeps its
+        // content height and paints past the parent (e.g. over modal footers)
+        flexShrink: 1,
         position: 'relative',
       },
     }) as const

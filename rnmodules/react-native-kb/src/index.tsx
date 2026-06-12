@@ -1,4 +1,4 @@
-import {Platform, NativeEventEmitter} from 'react-native'
+import {Platform, NativeEventEmitter, type EmitterSubscription} from 'react-native'
 import KbNative from './NativeKb'
 
 const Kb = KbNative
@@ -14,9 +14,6 @@ export const logSend = (
   return Kb.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir)
 }
 
-export const install = () => {
-  // No-op: JSI bindings are now installed automatically via TurboModuleWithJSIBindings
-}
 export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   if (Platform.OS === 'ios') {
     return Kb.iosGetHasShownPushPrompt()
@@ -48,7 +45,7 @@ export const androidAddCompleteDownload = (o: {
   if (Platform.OS === 'android') {
     return Kb.androidAddCompleteDownload(o)
   }
-  return Promise.reject()
+  return Promise.reject(new Error('wrong platform'))
 }
 
 export const androidAppColorSchemeChanged = (mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void => {
@@ -86,7 +83,7 @@ export const addNotificationRequest = (config: {body: string; id: string}): Prom
 }
 
 // Hardware keyboard events
-const hwKeyPressedListeners: any[] = []
+const hwKeyPressedListeners: Array<EmitterSubscription> = []
 
 export const onHWKeyPressed = (callback: (event: {pressedKey: string}) => void): void => {
   const emitter = getNativeEmitter()
@@ -95,7 +92,7 @@ export const onHWKeyPressed = (callback: (event: {pressedKey: string}) => void):
 }
 
 export const removeOnHWKeyPressed = (): void => {
-  hwKeyPressedListeners.forEach(listener => listener?.remove())
+  hwKeyPressedListeners.forEach(listener => listener.remove())
   hwKeyPressedListeners.length = 0
 }
 
@@ -131,11 +128,10 @@ export const clearLocalLogs = (): Promise<void> => {
   return Kb.clearLocalLogs()
 }
 
-// export const processVideo = (path: string): Promise<string> => {
-//   return Kb.processVideo(Platform.OS === 'android' ? path.replace('file://', '') : path)
-// }
+let nativeEmitter: NativeEventEmitter | undefined
 export const getNativeEmitter = () => {
-  return new NativeEventEmitter(Kb as any)
+  nativeEmitter ??= new NativeEventEmitter(Kb as any)
+  return nativeEmitter
 }
 
 const KBC = Kb.getTypedConstants()
