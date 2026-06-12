@@ -31,6 +31,7 @@ import {createPortal} from 'react-dom'
 import SearchRow from './search-row'
 import {useOpenedRowState} from './row/opened-row-state'
 import {Alert} from 'react-native'
+import {SafeAreaView as ScreensSafeAreaView} from 'react-native-screens/experimental'
 
 // Stub types to avoid dom lib dependency in native tsconfig
 type InboxDivRef = {
@@ -252,6 +253,18 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
     </Kb.Box2>
   </>
 )
+
+// iOS tab screens draw edge-to-edge under the native tab bar; scroll views get
+// automatic content insets but this non-scrolling empty state must inset itself
+// so the buttons clear the tab bar. Android already insets the whole tab screen.
+const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) =>
+  isIOS ? (
+    <ScreensSafeAreaView edges={{bottom: true}} style={nativeStyles.noChatsWrapper}>
+      {children}
+    </ScreensSafeAreaView>
+  ) : (
+    <>{children}</>
+  )
 
 const NativeNoRowsBuildTeam = () => {
   const isLoading = C.useWaitingState(s => [...s.counts.keys()].some(k => k.startsWith('chat:')))
@@ -520,7 +533,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
   const showFloatingDivider = showFloating && !isSearching && allowShowFloatingButton
   const showUnreadBanner = showUnread && !isSearching
 
-  const noChats = !neverLoaded && !isSearching && !rows.length && <NativeNoChats onNewChat={onNewChat} />
+  const noChats = !neverLoaded && !isSearching && !rows.length
 
   return (
     <Kb.ErrorBoundary>
@@ -550,7 +563,12 @@ function NativeInboxBody(p: ControlledInboxProps) {
               extraData={listExtraData}
             />
           )}
-          {noChats}
+          {noChats && (
+            <NativeNoChatsWrapper>
+              <NativeNoChats onNewChat={onNewChat} />
+              <NativeNoRowsBuildTeam />
+            </NativeNoChatsWrapper>
+          )}
           {showFloatingDivider || showUnreadBanner ? (
             <Kb.BottomAccessory>
               {showUnreadBanner && (
@@ -565,7 +583,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
               )}
             </Kb.BottomAccessory>
           ) : (
-            rows.length === 0 && !neverLoaded && <NativeNoRowsBuildTeam />
+            !noChats && rows.length === 0 && !neverLoaded && <NativeNoRowsBuildTeam />
           )}
         </Kb.Box2>
       </PerfProfiler>
@@ -718,6 +736,9 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       noChatsContainer: {
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
+      },
+      noChatsWrapper: {
+        alignSelf: 'stretch',
       },
     }) as const
 )
