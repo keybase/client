@@ -24,6 +24,7 @@ jest.mock('@/common-adapters', () => {
     HeaderLeftButton: ({onPress}: {onPress?: () => void}) =>
       React.createElement('button', {onClick: onPress, type: 'button'}, 'Back'),
     Icon: () => React.createElement('div'),
+    ModalFooter: ({children}: {children?: React.ReactNode}) => React.createElement('div', null, children),
     Styles: {
       border: () => ({}),
       borderRadius: 4,
