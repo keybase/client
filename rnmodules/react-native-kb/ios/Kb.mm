@@ -94,7 +94,18 @@ RCT_EXPORT_MODULE()
   // off the main thread. sendEventWithName is safe to call from any thread.
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
     NSMutableArray *uris = [NSMutableArray array];
-    for (UIImage *image in images) {
+    for (UIImage *rawImage in images) {
+      UIImage *image = rawImage;
+      // UIImagePNGRepresentation encodes the raw pixels and PNG has no
+      // orientation tag, so bake imageOrientation in by redrawing.
+      if (image.imageOrientation != UIImageOrientationUp) {
+        UIGraphicsImageRenderer *renderer =
+            [[UIGraphicsImageRenderer alloc] initWithSize:image.size];
+        UIImage *src = image;
+        image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+          [src drawInRect:CGRectMake(0, 0, src.size.width, src.size.height)];
+        }];
+      }
       NSData *data = UIImagePNGRepresentation(image);
       if (!data) continue;
 
