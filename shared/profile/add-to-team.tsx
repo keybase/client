@@ -294,7 +294,7 @@ const AddToTeam = (ownProps: OwnProps) => {
         </Kb.Box2>
       </Kb.Box2>
       <Kb.ModalFooter>
-        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+        <Kb.ButtonBar small={true} fullWidth={true} style={styles.buttonBar}>
           {!isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
           <Kb.WaitingButton
             disabled={selectedTeamCount === 0}
