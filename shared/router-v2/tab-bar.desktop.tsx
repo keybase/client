@@ -8,6 +8,7 @@ import * as React from 'react'
 import * as Tabs from '@/constants/tabs'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Common from './common'
+import {CommonActions} from '@react-navigation/core'
 import AccountSwitcher from './account-switcher'
 import RuntimeStats from '../app/runtime-stats'
 import {openURL} from '@/util/misc'
@@ -181,7 +182,7 @@ function TabBar(props: Props) {
   const {navigation, state} = props
   const username = useCurrentUserState(s => s.username)
   const onHotKey = (cmd: string) => {
-    navigation.navigate({name: keysMap[cmd] as Tabs.Tab, params: {}})
+    navigation.dispatch(CommonActions.navigate(keysMap[cmd] as Tabs.Tab))
   }
   Kb.useHotKey(hotKeys, onHotKey)
 
