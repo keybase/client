@@ -240,12 +240,10 @@ const Assertion = (ownProps: OwnProps) => {
           />
           {items ? (
             <>
-              <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+              {!isMobile && <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />}
               {popup}
             </>
-          ) : (
-            <Kb.Box2 direction="vertical" />
-          )}
+          ) : null}
         </Kb.ClickableBox>
       </Kb.Box2>
       {!!metas.length && (
