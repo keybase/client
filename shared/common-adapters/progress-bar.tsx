@@ -36,6 +36,7 @@ const styles = Styles.styleSheetCreate(() => ({
   flatLeft: {borderBottomLeftRadius: 0, borderTopLeftRadius: 0},
   flatRight: {borderBottomRightRadius: 0, borderTopRightRadius: 0},
   inner: {
+    alignSelf: 'flex-start',
     backgroundColor: Styles.globalColors.blue,
     ...Styles.globalStyles.rounded,
     height: 4,
