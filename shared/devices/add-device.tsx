@@ -67,12 +67,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
         <Kb.Text type="Body" center={true}>
           Protect your account by having more devices and paper keys.
         </Kb.Text>
-        <Kb.Box2
-          direction={isMobile ? 'vertical' : 'horizontal'}
-          gap="mediumLarge"
-          style={styles.deviceOptions}
-          gapEnd={true}
-        >
+        <Kb.Box2 direction="vertical" gap="mediumLarge" style={styles.deviceOptions} gapEnd={true}>
           <DeviceOption
             iconNumber={iconNumbers.desktop}
             onClick={onAddComputer}
@@ -141,7 +136,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   deviceOptionHighlighted: {backgroundColor: Kb.Styles.globalColors.blueLighter2},
   deviceOptions: Kb.Styles.platformStyles({
-    isElectron: {paddingLeft: Kb.Styles.globalMargins.large},
     isMobile: {paddingTop: Kb.Styles.globalMargins.medium},
   }),
 }))
