@@ -1,6 +1,6 @@
 import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
-import {afterKbfsDaemonRpcStatusChangedMobile as afterKbfsDaemonRpcStatusChangedInPlatform} from '@/stores/fs-platform'
+import {afterKbfsDaemonRpcStatusChangedMobile as afterKbfsDaemonRpcStatusChangedInPlatform} from '@/util/fs-platform'
 import {clientID as fsClientID} from './client'
 
 export const afterKbfsDaemonRpcStatusChanged = () => {
