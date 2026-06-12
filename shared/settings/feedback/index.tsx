@@ -57,7 +57,7 @@ const Feedback = (props: Props) => {
 
   return (
     <Kb.ScrollView alwaysBounceVertical={false} testID={TestIDs.SETTINGS_FEEDBACK}>
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         {showSuccessBanner && (
           <Kb.Banner color="green">
             <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
@@ -133,6 +133,7 @@ const styles = Kb.Styles.styleSheetCreate(
       inputResize: Kb.Styles.platformStyles({isElectron: {resize: 'vertical'}}),
       mainBox: Kb.Styles.platformStyles({
         isElectron: {
+          alignSelf: 'flex-start',
           maxWidth: 550,
           width: '100%',
         },
