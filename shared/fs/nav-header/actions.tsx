@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import {FsBrowserEditProvider} from '../browser/edit-state'
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
 }
 
 const FsNavHeaderRightActionsInner = (props: Props) => {
-  const {folderViewFilter, setFolderViewFilter} = useModalHeaderState(
+  const {folderViewFilter, setFolderViewFilter} = useFolderViewFilterState(
     C.useShallow(s => ({
       folderViewFilter: s.folderViewFilter,
       setFolderViewFilter: s.dispatch.setFolderViewFilter,

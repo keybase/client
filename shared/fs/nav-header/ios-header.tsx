@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import {useNavigation} from '@react-navigation/native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {FsBrowserEditProvider} from '../browser/edit-state'
@@ -94,7 +94,7 @@ export const IosHeaderRightItems = (props: RightItemsProps) => (
 // path is a filterable folder (that's store state), so the native search bar
 // is attached via setOptions once it is.
 export const IosHeaderSearch = ({path}: {path: T.FS.Path}) => {
-  const setFolderViewFilter = useModalHeaderState(s => s.dispatch.setFolderViewFilter)
+  const setFolderViewFilter = useFolderViewFilterState(s => s.dispatch.setFolderViewFilter)
   const pathItem = Kbfs.useFsPathItem(path)
   const show = FS.isFolder(path, pathItem) && T.FS.getPathLevel(path) > 1
   const navigation = useNavigation()

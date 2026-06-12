@@ -1,15 +1,14 @@
 import * as Z from '@/util/zustand'
-import * as T from '@/constants/types'
-import {ignorePromise} from '@/constants/utils'
 
+// Bridges action-button/title state between a mounted modal screen body and
+// its navigation header (headerRight/headerTitle render outside the screen's
+// component tree, so React context can't span the two).
 type Store = {
   actionEnabled: boolean
   actionWaiting: boolean
   botInTeam: boolean
   botReadOnly: boolean
   botSubScreen: '' | 'install' | 'channels'
-  deviceBadges: Set<T.Devices.DeviceID>
-  folderViewFilter: string | undefined
   onAction: (() => void) | undefined
   title: string
 }
@@ -20,40 +19,19 @@ const initialStore: Store = {
   botInTeam: false,
   botReadOnly: false,
   botSubScreen: '',
-  deviceBadges: new Set(),
-  folderViewFilter: undefined,
   onAction: undefined,
   title: '',
 }
 
 export type State = Store & {
   dispatch: {
-    clearDeviceBadges: () => void
     resetState: () => void
-    setDeviceBadges: (deviceBadges: Set<T.Devices.DeviceID>) => void
-    setFolderViewFilter: (folderViewFilter?: string) => void
   }
 }
 
-export const useModalHeaderState = Z.createZustand<State>('modal-header', set => {
+export const useModalHeaderState = Z.createZustand<State>('modal-header', () => {
   const dispatch: State['dispatch'] = {
-    clearDeviceBadges: () => {
-      ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
-      set(s => {
-        s.deviceBadges = new Set()
-      })
-    },
     resetState: Z.defaultReset,
-    setDeviceBadges: deviceBadges => {
-      set(s => {
-        s.deviceBadges = new Set(deviceBadges)
-      })
-    },
-    setFolderViewFilter: folderViewFilter => {
-      set(s => {
-        s.folderViewFilter = folderViewFilter
-      })
-    },
   }
   return {
     ...initialStore,

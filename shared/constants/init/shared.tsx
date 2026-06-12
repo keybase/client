@@ -30,7 +30,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
-import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
 import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
@@ -420,12 +419,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {badgeState} = action.payload.params
         syncBadgeState(badgeState)
-        useModalHeaderState
-          .getState()
-          .dispatch.setDeviceBadges(
-            new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])])
-          )
-
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }
