@@ -280,7 +280,6 @@ const Settings = (p: Props) => {
         )}
         {yourOperations.chat && (
           <RetentionPicker
-            containerStyle={styles.retentionPicker}
             showSaveIndicator={false}
             teamID={teamID}
             entityType={isBigTeam ? 'big team' : 'small team'}
@@ -298,7 +297,6 @@ const Settings = (p: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   grey: {color: Kb.Styles.globalColors.black_50},
-  retentionPicker: {marginTop: Kb.Styles.globalMargins.small},
   joinAs: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny},
   }),

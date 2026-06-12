@@ -126,7 +126,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           conversationIDKey={
             ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : Chat.noConversationIDKey
           }
-          dropdownStyle={styles.retentionDropdownStyle}
           entityType={entityType}
           showSaveIndicator={true}
           teamID={teamID}
@@ -163,16 +162,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     </Kb.ScrollView>
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      retentionDropdownStyle: {
-        marginBottom: 0,
-        width: '100%',
-      },
-    }) as const
-)
 
 type Item = {type: 'settings-panel'} | {type: 'tabs'} | {type: 'header-item'}
 type Section = Kb.SectionType<Item>

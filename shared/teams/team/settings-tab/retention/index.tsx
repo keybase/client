@@ -15,8 +15,6 @@ export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team
 export type Props = {
   entityType: RetentionEntityType
   canSetPolicy: boolean
-  containerStyle?: Kb.Styles.StylesCrossPlatform
-  dropdownStyle?: Kb.Styles.StylesCrossPlatform
   policy: T.Retention.RetentionPolicy
   policyIsExploding: boolean
   teamPolicy?: T.Retention.RetentionPolicy
@@ -31,7 +29,7 @@ export type Props = {
 
 const RetentionPicker = (p: Props) => {
   const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, entityType} = p
-  const {containerStyle, dropdownStyle, policyIsExploding, showOverrideNotice, showSaveIndicator} = p
+  const {policyIsExploding, showOverrideNotice, showSaveIndicator} = p
   const [pendingPolicy, setPendingPolicy] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
   const [selected, setSelected] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
 
@@ -160,9 +158,9 @@ const RetentionPicker = (p: Props) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       {popup}
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" style={styles.heading} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
         {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
       </Kb.Box2>
@@ -171,7 +169,7 @@ const RetentionPicker = (p: Props) => {
         ref={popupAnchor}
         direction="horizontal"
         alignItems="center"
-        style={Kb.Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
+        style={styles.retentionDropdown}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
           {policyToLabel(policy, teamPolicy)}
@@ -210,8 +208,8 @@ const RetentionDisplay = (
   }
   const text = policyToExplanation(convType, props.policy, props.teamPolicy)
   return (
-    <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={Kb.Styles.collapseStyles([styles.heading, styles.displayHeading])}>
+    <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
       </Kb.Box2>
       <Kb.Text type="BodySmall">{text}</Kb.Text>
@@ -222,12 +220,6 @@ const RetentionDisplay = (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      displayHeading: {
-        marginBottom: 2,
-      },
-      heading: {
-        marginBottom: Kb.Styles.globalMargins.tiny,
-      },
       label: {
         minHeight: isMobile ? 40 : 32,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
@@ -236,17 +228,11 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.size(30),
         marginTop: Kb.Styles.globalMargins.small,
       },
-      retentionDropdown: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          minWidth: 220,
-          paddingRight: Kb.Styles.globalMargins.small,
-        },
-        isElectron: {
-          width: 220,
-        },
-      }),
+      retentionDropdown: {
+        ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
+        paddingRight: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
       saveState: {height: 17},
     }) as const
 )
@@ -478,8 +464,6 @@ const RetentionSwitcher = (props: {entityType: RetentionEntityType} & Props) => 
 
 export type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
-  containerStyle?: Kb.Styles.StylesCrossPlatform
-  dropdownStyle?: Kb.Styles.StylesCrossPlatform
   entityType: RetentionEntityType
   showSaveIndicator: boolean
   teamID: T.Teams.TeamID
