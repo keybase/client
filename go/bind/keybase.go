@@ -76,14 +76,69 @@ func appStateForLog() string {
 }
 
 // log writes to kbCtx.Log if available, otherwise falls back to stderr.
-// Stderr is captured in crash logs and the Xcode console, making early Init
-// messages visible before kbCtx.Log is configured.
+// Stderr lands in the stderr capture file (see captureStderr) and the Xcode
+// console, making early Init messages visible before kbCtx.Log is configured.
 func log(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	if kbCtx != nil && kbCtx.Log != nil {
 		kbCtx.Log.Info(msg)
 	} else {
 		fmt.Fprintf(os.Stderr, "keybase: %s\n", msg)
+	}
+}
+
+// stderrFile keeps the stderr capture file open for the life of the process.
+var stderrFile *os.File
+
+// Cap growth of the stderr capture file across runs; non-panic noise written
+// to fd 2 (e.g. by native libraries) accumulates since the file is opened in
+// append mode.
+const maxStderrFileSize = 5 * 1024 * 1024
+
+// stderrLogPath returns the path of the stderr capture file for a service
+// log path, or "" if there is no log file.
+func stderrLogPath(logFile string) string {
+	if logFile == "" {
+		return ""
+	}
+	return logFile + ".stderr"
+}
+
+// captureStderr points fd 2 at <logFile>.stderr. Go runtime panic and fatal
+// error tracebacks are written to fd 2, and Apple crash reports only show
+// the cgo trampoline frames (runtime.raise_trampoline / exit) for a Go
+// crash, so without this the goroutine traceback that names the culprit is
+// lost on device. The capture file rides along with log sends as the start
+// log (status.Logs.Start).
+//
+// Called twice from Init: at the top to cover panics before logging is
+// configured, and again after kbCtx.Configure, which points fd 2 at the
+// service log (logger.LogFileWriter.Open).
+func captureStderr(logFile string) {
+	if runtime.GOOS == "android" {
+		// Redirecting fd 2 is not supported on Android (see
+		// logger.RedirectStderrTo); panics are visible in logcat instead.
+		return
+	}
+	path := stderrLogPath(logFile)
+	if path == "" {
+		return
+	}
+	if stderrFile == nil {
+		flags := os.O_CREATE | os.O_WRONLY | os.O_APPEND
+		if fi, err := os.Stat(path); err == nil && fi.Size() > maxStderrFileSize {
+			flags = os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+		}
+		f, err := os.OpenFile(path, flags, libkb.PermFile)
+		if err != nil {
+			log("Go: captureStderr: unable to open %s: %s", path, err)
+			return
+		}
+		fmt.Fprintf(f, "\n--- keybase start %s ---\n", time.Now().Format(time.RFC3339))
+		stderrFile = f
+	}
+	if err := logger.RedirectStderrTo(stderrFile); err != nil {
+		log("Go: captureStderr: unable to redirect stderr: %s", err)
 	}
 }
 
@@ -275,6 +330,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	// better crash logging
 	os.Setenv("GOTRACEBACK", "crash")
 	debug.SetTraceback("all")
+	captureStderr(logFile)
 
 	begin := time.Now()
 	log("Go: Initializing: home: %s mobileSharedHome: %s", homeDir, mobileSharedHome)
@@ -372,6 +428,10 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		log("failed to configure: %s", err)
 		return err
 	}
+	// Configure pointed fd 2 at the service log; point it back at the
+	// dedicated capture file so crash tracebacks stay in one small file
+	// that is uploaded whole, not subject to the service log's tail limit.
+	captureStderr(logFile)
 
 	kbSvc = service.NewService(kbCtx, false)
 	if err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline); err != nil {
@@ -401,6 +461,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		Service: config.GetLogFile(),
 		EK:      config.GetEKLogFile(),
 		Perf:    config.GetPerfLogFile(),
+		// Stderr capture file with Go panic tracebacks (see captureStderr);
+		// uploaded as the start log, which is otherwise unused on mobile.
+		Start: stderrLogPath(config.GetLogFile()),
 	}
 
 	log("Go: Using config: %+v", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
