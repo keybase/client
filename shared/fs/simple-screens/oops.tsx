@@ -48,35 +48,28 @@ const Explain = (props: Props) => {
 
 const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-    <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
-      <Kb.IconAuto
-        type={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
-      />
+    <Kb.EmptyState
+      illustration={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
+      action={{label: 'Go to parent folder', onClick: props.openParent}}
+    >
       <Kb.Text type="Header" style={styles.textYouDontHave}>
         {"You don't have access to this folder or file."}
       </Kb.Text>
       <Explain {...props} />
-      <Kb.Button
-        type="Default"
-        mode="Secondary"
-        label="Go to parent folder"
-        onClick={props.openParent}
-        style={styles.button}
-      />
-    </Kb.Box2>
+    </Kb.EmptyState>
   </Kb.Box2>
 )
 
 const NonExistent = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-    <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
-      <Kb.IconAuto
-        type={
-          isMobile
-            ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
-            : 'icon-fancy-folder-file-inexistant-desktop-153-94'
-        }
-      />
+    <Kb.EmptyState
+      illustration={
+        isMobile
+          ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
+          : 'icon-fancy-folder-file-inexistant-desktop-153-94'
+      }
+      action={{label: 'Go to parent folder', onClick: props.openParent}}
+    >
       <Kb.Text type="Header" style={styles.textYouDontHave}>
         {"This file or folder doesn't exist."}
       </Kb.Text>
@@ -85,14 +78,7 @@ const NonExistent = (props: Props) => (
           Either it was deleted, or the path is incorrect.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Button
-        type="Default"
-        mode="Secondary"
-        label="Go to parent folder"
-        onClick={props.openParent}
-        style={styles.button}
-      />
-    </Kb.Box2>
+    </Kb.EmptyState>
   </Kb.Box2>
 )
 
@@ -115,21 +101,19 @@ export default Oops
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      button: {marginTop: Kb.Styles.globalMargins.small},
       container: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
         isMobile: {padding: Kb.Styles.globalMargins.large},
       }),
+      // these margins stack with EmptyState's "small" gap
       explainBox: Kb.Styles.platformStyles({
-        isElectron: {marginTop: Kb.Styles.globalMargins.small},
-        isMobile: {marginTop: Kb.Styles.globalMargins.medium},
+        isMobile: {marginTop: Kb.Styles.globalMargins.tiny},
       }),
       explainTextTeam: Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
-      main: Kb.Styles.globalStyles.flexGrow,
       textYouDontHave: Kb.Styles.platformStyles({
-        isElectron: {marginTop: Kb.Styles.globalMargins.medium},
+        isElectron: {marginTop: Kb.Styles.globalMargins.tiny},
         isMobile: {
-          marginTop: Kb.Styles.globalMargins.xlarge,
+          marginTop: Kb.Styles.globalMargins.xlarge - Kb.Styles.globalMargins.small,
           textAlign: 'center',
         },
       }),

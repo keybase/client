@@ -75,9 +75,7 @@ const SelfReset = (_: Props) => (
         content="Since you reset your account, participants have to accept to let you back in."
       />
     </Kb.Banner>
-    <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} centerChildren={true}>
-      <Kb.ImageIcon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
-    </Kb.Box2>
+    <Kb.EmptyState illustration={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
   </Kb.Box2>
 )
 
