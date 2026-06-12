@@ -11,7 +11,6 @@ import {
 import logger from '@/logger'
 import {RPCError, logError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
-import {getTBStore} from '@/stores/team-building'
 import {useConfigState} from '@/stores/config'
 
 const newRequestsGregorPrefix = 'team.request_access:'
@@ -20,8 +19,7 @@ const newRequestsGregorKey = (teamID: T.Teams.TeamID) => `${newRequestsGregorPre
 export const addToTeam = (
   teamID: T.Teams.TeamID,
   users: Array<{assertion: string; role: T.Teams.TeamRoleType}>,
-  sendChatNotification: boolean,
-  fromTeamBuilder?: boolean
+  sendChatNotification: boolean
 ) => {
   const f = async () => {
     try {
@@ -41,16 +39,10 @@ export const addToTeam = (
       )
       if (res.notAdded && res.notAdded.length > 0) {
         const usernames = res.notAdded.map(elem => elem.username)
-        getTBStore('teams').dispatch.finishedTeamBuilding()
         navigateAppend({
           name: 'contactRestricted',
           params: {source: 'teamAddSomeFailed', usernames},
         })
-        return
-      }
-
-      if (fromTeamBuilder) {
-        getTBStore('teams').dispatch.finishedTeamBuilding()
       }
     } catch (error) {
       if (!(error instanceof RPCError)) {
@@ -61,7 +53,6 @@ export const addToTeam = (
           ?.filter(elem => elem?.key === 'usernames')
           .map(elem => elem?.value)
         const usernames = users?.[0]?.split(',') ?? []
-        getTBStore('teams').dispatch.finishedTeamBuilding()
         navigateAppend({
           name: 'contactRestricted',
           params: {source: 'teamAddAllFailed', usernames},
@@ -69,12 +60,7 @@ export const addToTeam = (
         return
       }
 
-      const msg = error.desc
-      if (fromTeamBuilder) {
-        getTBStore('teams').dispatch.setError(msg)
-      } else {
-        logger.error(`addToTeam failed for ${teamID}: ${msg}`)
-      }
+      logger.error(`addToTeam failed for ${teamID}: ${error.desc}`)
     }
   }
   ignorePromise(f())

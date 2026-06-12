@@ -19,7 +19,6 @@ import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-st
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
-import {getTBStore} from '@/stores/team-building'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
@@ -296,29 +295,10 @@ const onStartProvisionTriggerChanged = (value: number, previous: number) => {
   ignorePromise(f())
 }
 
-const teamBuilderNamespaces = ['chat', 'crypto', 'teams', 'people'] as const
-const namespaceToTeamBuilderRoute = {
-  chat: 'chatNewChat',
-  crypto: 'cryptoTeamBuilder',
-  people: 'peopleTeamBuilder',
-  teams: 'teamsTeamBuilder',
-} as const
-
 const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
   const next = nextNavState as Util.NavState
   const prev = previousNavState as Util.NavState
   if (prev === next) return
-
-  for (const namespace of teamBuilderNamespaces) {
-    const wasTeamBuilding = namespaceToTeamBuilderRoute[namespace] === Util.getVisibleScreen(prev)?.name
-    if (wasTeamBuilding) {
-      // team building or modal on top of that still
-      const isTeamBuilding = namespaceToTeamBuilderRoute[namespace] === Util.getVisibleScreen(next)?.name
-      if (!isTeamBuilding) {
-        getTBStore(namespace).dispatch.cancelTeamBuilding()
-      }
-    }
-  }
 
   // Clear critical update when we nav away from tab
   if (

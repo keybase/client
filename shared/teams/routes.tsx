@@ -3,7 +3,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {makeChatScreen} from '@/chat/make-chat-screen'
 import * as T from '@/constants/types'
-import * as TB from '@/stores/team-building'
 import {addMembersToWizard, makeAddMembersWizard, type AddMembersWizard} from './add-members-wizard/state'
 import {ModalTitle} from './common'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
@@ -31,8 +30,13 @@ const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
           )
           C.Router2.navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
         } catch (err) {
-          TB.getTBStore('teams').dispatch.setError(err instanceof Error ? err.message : String(err))
-          C.Router2.navigateAppend({name: 'teamsTeamBuilder', params: p.route.params}, true)
+          C.Router2.navigateAppend(
+            {
+              name: 'teamsTeamBuilder',
+              params: {...p.route.params, initialError: err instanceof Error ? err.message : String(err)},
+            },
+            true
+          )
         }
       }
       C.ignorePromise(f())
