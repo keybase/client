@@ -200,12 +200,29 @@ const useData = (contactKey: string, onEmailVerificationSuccess: (email: string)
   const _emailRow = useSettingsEmailState(s => s.emails.get(contactKey) ?? null)
   const _phoneRow = useSettingsPhoneState(s => s.phones?.get(contactKey) || null)
   const moreThanOneEmail = useSettingsEmailState(s => s.emails.size > 1)
-  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
+  const sentVerificationEmail = useSettingsEmailState(s => s.dispatch.sentVerificationEmail)
+  const setVisibilityEmail = C.useRPC(T.RPCGen.emailsSetVisibilityEmailRpcPromise)
+  const setPrimaryEmail = C.useRPC(T.RPCGen.emailsSetPrimaryEmailRpcPromise)
+  const sendVerificationEmail = C.useRPC(T.RPCGen.emailsSendVerificationEmailRpcPromise)
+  const _onSetEmailSearchable = (makeSearchable: boolean) => {
+    setVisibilityEmail(
+      [
+        {
+          email: contactKey,
+          visibility: makeSearchable
+            ? T.RPCGen.IdentityVisibility.public
+            : T.RPCGen.IdentityVisibility.private,
+        },
+      ],
+      () => {},
+      () => {}
+    )
+  }
   const _onMakeNotSearchable = () => {
-    editEmail({email: contactKey, makeSearchable: false})
+    _onSetEmailSearchable(false)
   }
   const _onMakeSearchable = () => {
-    editEmail({email: contactKey, makeSearchable: true})
+    _onSetEmailSearchable(true)
   }
   const setVisibilityPhoneNumber = C.useRPC(T.RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise)
   const navigateAppend = C.Router2.navigateAppend
@@ -218,10 +235,21 @@ const useData = (contactKey: string, onEmailVerificationSuccess: (email: string)
           params: {address, lastEmail, searchable, type: 'email'},
         }),
       onMakePrimary: () => {
-        editEmail({email: contactKey, makePrimary: true})
+        setPrimaryEmail(
+          [{email: contactKey}],
+          () => {},
+          () => {}
+        )
       },
       onVerify: () => {
-        editEmail({email: contactKey, onSuccess: () => onEmailVerificationSuccess(contactKey), verify: true})
+        sendVerificationEmail(
+          [{email: contactKey}],
+          () => {
+            sentVerificationEmail(contactKey)
+            onEmailVerificationSuccess(contactKey)
+          },
+          () => {}
+        )
       },
     },
     phone: {

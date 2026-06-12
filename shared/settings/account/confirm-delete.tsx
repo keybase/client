@@ -6,7 +6,6 @@ import logger from '@/logger'
 import {makePhoneError} from '@/stores/settings-phone'
 import * as PhoneUtil from '@/util/phone-numbers'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsEmailState} from '@/stores/settings-email'
 
 type OwnProps = {
   address: string
@@ -24,7 +23,7 @@ const DeleteModal = (props: OwnProps) => {
 
   const onCancel = () => nav.safeNavigateUp()
   const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
-  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
+  const deleteEmail = C.useRPC(T.RPCGen.emailsDeleteEmailRpcPromise)
   const [error, setError] = React.useState('')
   const onConfirm = () => {
     if (itemType === 'phone') {
@@ -40,7 +39,13 @@ const DeleteModal = (props: OwnProps) => {
         }
       )
     } else {
-      editEmail({delete: true, email: itemAddress})
+      deleteEmail(
+        [{email: itemAddress}],
+        () => {},
+        error_ => {
+          logger.warn('Error deleting email', error_)
+        }
+      )
       nav.safeNavigateUp()
     }
   }
