@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team'
 import {Avatars, TeamAvatar} from './avatars'
-import {useInboxRowSmall} from '@/stores/inbox-rows'
+import {useInboxRowSmall} from '@/chat/inbox/rows-state'
 import type * as T from '@/constants/types'
 
 type Props = {

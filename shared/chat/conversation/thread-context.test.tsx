@@ -28,7 +28,7 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 
-jest.mock('@/stores/inbox-rows', () => ({
+jest.mock('@/chat/inbox/rows-state', () => ({
   flushInboxRowUpdates: jest.fn(),
   getInboxRowTrustedState: jest.fn(() => undefined),
   queueInboxRowUpdate: jest.fn(),

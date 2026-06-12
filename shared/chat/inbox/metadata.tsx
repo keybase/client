@@ -25,7 +25,7 @@ import {
   syncInboxRowsFromMetas,
   syncInboxRowsFromParticipantMap,
   syncInboxRowsFromParticipants,
-} from '@/stores/inbox-rows'
+} from '@/chat/inbox/rows-state'
 
 type InboxMetadataState = T.Immutable<{
   metas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>

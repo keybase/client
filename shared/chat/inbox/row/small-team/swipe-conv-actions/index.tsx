@@ -13,7 +13,7 @@ type Props = {
 }
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {useOpenedRowState} from '../../opened-row-state'
-import {useInboxRowSmall} from '@/stores/inbox-rows'
+import {useInboxRowSmall} from '@/chat/inbox/rows-state'
 import {hideConversation, markConversationUnread, muteConversation} from '@/chat/conversation/status-actions'
 
 const actionWidth = 64

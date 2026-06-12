@@ -3,7 +3,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
-import {useInboxRowBig} from '@/stores/inbox-rows'
+import {useInboxRowBig} from '@/chat/inbox/rows-state'
 type Props = {
   conversationIDKey: string
   selected: boolean
