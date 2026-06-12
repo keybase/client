@@ -124,78 +124,41 @@ public class ItemProviderHelper: NSObject {
     return incomingShareFolderURL.appendingPathComponent("manifest.json")
   }
 
-  private func ensureArray(ofType type: String) -> [[String: Any]] {
-    if typeToArray[type] == nil {
-      typeToArray[type] = []
+  private func completeItemAndAppend(type: String, entry: [String: Any]) {
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      self.typeToArray[type, default: []].append(entry)
+      self.completeProcessingItemAlreadyInMainThread()
     }
-    return typeToArray[type]!
   }
 
   private func completeItemAndAppendManifest(type: String, originalFileURL: URL) {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      var arr = self.ensureArray(ofType: type)
-      arr.append([
-        "type": type,
-        "originalPath": originalFileURL.absoluteURL.path,
-      ])
-      self.typeToArray[type] = arr
-      self.completeProcessingItemAlreadyInMainThread()
-    }
+    completeItemAndAppend(type: type, entry: [
+      "type": type,
+      "originalPath": originalFileURL.absoluteURL.path,
+    ])
   }
 
   private func completeItemAndAppendManifest(type: String, content: String) {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      var arr = self.ensureArray(ofType: type)
-      arr.append([
-        "type": type,
-        "content": content,
-      ])
-      self.typeToArray[type] = arr
-      self.completeProcessingItemAlreadyInMainThread()
-    }
-  }
-
-  private func completeItemAndAppendManifest(type: String, originalFileURL: URL, content: String) {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      var arr = self.ensureArray(ofType: type)
-      arr.append([
-        "type": type,
-        "originalPath": originalFileURL.absoluteURL.path,
-        "content": content,
-      ])
-      self.typeToArray[type] = arr
-      self.completeProcessingItemAlreadyInMainThread()
-    }
+    completeItemAndAppend(type: type, entry: [
+      "type": type,
+      "content": content,
+    ])
   }
 
   private func completeItemAndAppendManifest(type: String, originalFileURL: URL, scaledFileURL: URL)
   {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      var arr = self.ensureArray(ofType: type)
-      arr.append([
-        "type": type,
-        "originalPath": originalFileURL.absoluteURL.path,
-        "scaledPath": scaledFileURL.absoluteURL.path,
-      ])
-      self.typeToArray[type] = arr
-      self.completeProcessingItemAlreadyInMainThread()
-    }
+    completeItemAndAppend(type: type, entry: [
+      "type": type,
+      "originalPath": originalFileURL.absoluteURL.path,
+      "scaledPath": scaledFileURL.absoluteURL.path,
+    ])
   }
 
   private func completeItemAndAppendManifestAndLogError(text: String, error: Error?) {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      var arr = self.ensureArray(ofType: "error")
-      arr.append([
-        "error": "\(text): \(error != nil ? String(describing: error!) : "<empty>")"
-      ])
-      self.typeToArray["error"] = arr
-      self.completeProcessingItemAlreadyInMainThread()
-    }
+    completeItemAndAppend(type: "error", entry: [
+      "error": "\(text): \(error != nil ? String(describing: error!) : "<empty>")"
+    ])
   }
 
   private func writeManifest() {
@@ -404,7 +367,7 @@ public class ItemProviderHelper: NSObject {
     }
 
     let imageHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { item, error in
-      var imgData: Data?  // Changed to var so we can modify it
+      var imgData: Data?
       if error == nil {
         if let url = item as? URL {
           imgData = try? Data(contentsOf: url)
@@ -431,7 +394,7 @@ public class ItemProviderHelper: NSObject {
     }
 
     let secureTextHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { item, error in
-      var text: String?  // Changed to var so we can modify it
+      var text: String?
       if error == nil {
         if let str = item as? String {
           text = str
@@ -448,7 +411,6 @@ public class ItemProviderHelper: NSObject {
       self.sendText(text ?? "")
     }
 
-    // Rest of the method remains the same...
     for items in itemArrs as! [[NSItemProvider]] {
       // Only handle one from itemArrs if we're already processing
       objc_sync_enter(self)
@@ -495,16 +457,8 @@ public class ItemProviderHelper: NSObject {
               forTypeIdentifier: "public.vcard", completionHandler: contactHandler)
             break
           }
-          // Plain Text (two attempts - direct and coerced)
+          // Plain Text
           else if type.conforms(to: .plainText) {
-            incrementUnprocessed()
-            item.loadItem(
-              forTypeIdentifier: "public.plain-text", options: nil,
-              completionHandler: { (item: NSSecureCoding?, error: Error?) in
-                let text = item as? String ?? ""
-                self.sendText(text)
-              })
-
             incrementUnprocessed()
             item.loadItem(
               forTypeIdentifier: "public.plain-text", options: nil,

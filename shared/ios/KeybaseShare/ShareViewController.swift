@@ -18,10 +18,9 @@ public class ShareViewController: UIViewController {
   var iph: ItemProviderHelper?
   var alert: UIAlertController?
   var selectedConvID: String?
-
-  public override func didReceiveMemoryWarning() {
-    super.didReceiveMemoryWarning()
-  }
+  // viewDidAppear fires again when the progress alert is dismissed; only
+  // process the share once.
+  private var didStartProcessing = false
 
   func openApp() {
     let path = selectedConvID.map { "keybase://incoming-share/\($0)" } ?? "keybase://incoming-share"
@@ -69,6 +68,8 @@ public class ShareViewController: UIViewController {
 
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    guard !didStartProcessing else { return }
+    didStartProcessing = true
     if let intent = extensionContext?.intent as? INSendMessageIntent {
       selectedConvID = intent.conversationIdentifier
     }

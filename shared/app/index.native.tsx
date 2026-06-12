@@ -19,7 +19,6 @@ import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
-import {install} from 'react-native-kb'
 import * as DarkMode from '@/stores/darkmode'
 import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import logger from '@/logger'
@@ -134,7 +133,6 @@ const useInit = () => {
     inited = true
     initDarkMode()
     Animated.addWhitelistedNativeProps({text: true})
-    install()
     const {batch} = C.useWaitingState.getState().dispatch
     const eng = makeEngine(batch, c => {
       if (c) {

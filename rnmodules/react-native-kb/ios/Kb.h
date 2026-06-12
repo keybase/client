@@ -16,7 +16,7 @@
 
 // Singleton to get the paths
 @interface FsPathsHolder : NSObject
-@property(nonatomic, retain) NSDictionary *fsPaths;
+@property(nonatomic, copy) NSDictionary *fsPaths;
 + (instancetype)sharedFsPathsHolder;
 @end
 
@@ -24,7 +24,6 @@
 FOUNDATION_EXPORT void KbSetDeviceToken(NSString *token);
 FOUNDATION_EXPORT void KbSetInitialNotification(NSDictionary *notification);
 FOUNDATION_EXPORT void KbEmitPushNotification(NSDictionary *notification);
-FOUNDATION_EXPORT NSDictionary *KbGetAndClearInitialNotification(void);
-
-// Init result - stored for inclusion in ReadArr error logs
-FOUNDATION_EXPORT void KbSetInitResult(NSString *result);
+// Re-emits a stored user-interaction notification once when the app becomes
+// active (covers notification taps that arrive before React Native is ready).
+FOUNDATION_EXPORT void KbEmitStoredNotificationOnBecomeActive(void);

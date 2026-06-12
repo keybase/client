@@ -3,13 +3,8 @@ package com.reactnativekb
 import android.util.Log
 import keybase.Keybase
 
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.WritableArray
 
 class NativeLogger(reactContext: ReactApplicationContext?) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
@@ -18,10 +13,6 @@ class NativeLogger(reactContext: ReactApplicationContext?) : ReactContextBaseJav
 
     companion object {
         private const val NAME: String = "NativeLogger"
-        private const val RN_NAME: String = "ReactNativeJS"
-        fun rawLog(tag: String, jsonLog: String) {
-            Log.i(tag + NAME, jsonLog)
-        }
 
         private fun formatLine(tagPrefix: String, toLog: String): String {
             // Copies the Style JS outputs in native/logger.native.tsx

@@ -1,7 +1,6 @@
 import {TurboModuleRegistry, type TurboModule} from 'react-native'
 
 export interface Spec extends TurboModule {
-  install: () => boolean
   addListener: (eventType: string) => void
   removeListeners: (count: number) => void
   getTypedConstants(): {
@@ -48,7 +47,6 @@ export interface Spec extends TurboModule {
   shareListenersRegistered(): void
   setEnablePasteImage(enabled: boolean): void
   clearLocalLogs(): Promise<void>
-  //processVideo(path: string): Promise<string>
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')
