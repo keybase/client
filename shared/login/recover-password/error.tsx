@@ -1,7 +1,5 @@
 import * as C from '@/constants'
-import * as Kb from '@/common-adapters'
-import type {ButtonType} from '@/common-adapters/button'
-import {SignupScreen} from '@/signup/common'
+import {SimpleErrorScreen} from '../simple-error'
 import {useConfigState} from '@/stores/config'
 
 type Props = {route: {params: {error: string}}}
@@ -17,24 +15,12 @@ const ConnectedError = ({route}: Props) => {
     }
   }
   return (
-    <SignupScreen
-      buttons={[
-        {
-          label: 'Back',
-          onClick: onBack,
-          type: 'Default' as ButtonType,
-        },
-      ]}
+    <SimpleErrorScreen
+      heading="Password recovery failed"
+      message={error}
       onBack={onBack}
       title="Recover password"
-    >
-      <Kb.Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
-        Password recovery failed
-      </Kb.Text>
-      <Kb.Text type="Body" center={true}>
-        {error}
-      </Kb.Text>
-    </SignupScreen>
+    />
   )
 }
 

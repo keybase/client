@@ -45,16 +45,11 @@ const ChatPDF = (props: Props) => {
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           <embed src={url} width="100%" height="100%" />
         </Kb.Box2>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          fullWidth={true}
-          style={desktopStyles.modalFooter}
-        >
+        <Kb.ModalFooter>
           <Kb.ButtonBar small={true}>
             <Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />
           </Kb.ButtonBar>
-        </Kb.Box2>
+        </Kb.ModalFooter>
       </>
     )
   }
@@ -86,18 +81,6 @@ const ChatPDF = (props: Props) => {
     </Kb.Box2>
   )
 }
-
-const desktopStyles = Kb.Styles.styleSheetCreate(() => ({
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
-}))
 
 const nativeStyles = Kb.Styles.styleSheetCreate(() => ({
   progressContainer: {position: 'absolute'},

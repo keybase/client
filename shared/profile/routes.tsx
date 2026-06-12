@@ -10,15 +10,6 @@ import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 const Title = React.lazy(async () => import('./search'))
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      overlay: {width: isMobile ? undefined : 500},
-    }) as const
-)
-
-const profileModalStyle = {width: 560}
-
 const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
   const navigateUp = C.Router2.navigateUp
   if (wizard || showBack) {
@@ -118,14 +109,13 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./add-to-team')),
     {
       getOptions: {
-        modalStyle: {height: 560},
-        overlayStyle: styles.overlay,
+        modalSize: 'wide',
         overlayTransparent: false,
       },
     }
   ),
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
-    getOptions: {modalStyle: {height: 450, width: 350}, title: 'Edit Profile'},
+    getOptions: {title: 'Edit Profile'},
   }),
   profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar')), {
     getOptions: ({route}) => ({
@@ -147,18 +137,18 @@ export const newModalRoutes = defineRouteMap({
     getOptions: Kb.doneModalOptions(''),
   }),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
-    getOptions: {modalStyle: {height: 485, width: 560}},
+    getOptions: {modalSize: 'wide'},
   }),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
-    getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
+    getOptions: {modalSize: 'wide', title: 'Prove your...'},
   }),
   profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
-    getOptions: {...Kb.doneModalOptions(''), modalStyle: profileModalStyle},
+    getOptions: {...Kb.doneModalOptions(''), modalSize: 'wide'},
   }),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
-    getOptions: {modalStyle: profileModalStyle},
+    getOptions: {modalSize: 'wide'},
   }),
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
-    getOptions: {modalStyle: {maxHeight: 600, maxWidth: 600}, title: 'Feature your teams'},
+    getOptions: {modalSize: 'wide', title: 'Feature your teams'},
   }),
 })

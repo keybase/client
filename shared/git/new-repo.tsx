@@ -9,6 +9,42 @@ import {useTeamsList} from '@/teams/use-teams-list'
 type OwnProps = {isTeam: boolean}
 const NewTeamSentry = '---NewTeam---'
 
+const PickTeamItem = () => (
+  <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.avatarBox} justifyContent="flex-start">
+    <Kb.Text type="BodyBig">Pick a team</Kb.Text>
+  </Kb.Box2>
+)
+
+const NewTeamItem = () => (
+  <Kb.Text type="Header" style={styles.newTeamItem}>
+    New team...
+  </Kb.Text>
+)
+
+const TeamItem = (p: {teamname: string}) => (
+  <Kb.Box2 direction="horizontal" alignItems="center" style={styles.avatarBox}>
+    <Kb.Avatar
+      isTeam={true}
+      teamname={p.teamname}
+      size={16}
+      style={styles.teamAvatar}
+    />
+    <Kb.Text type="Header" style={styles.teamName}>
+      {p.teamname}
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const makeDropdownItem = (item?: string) => {
+  if (!item) {
+    return <PickTeamItem />
+  }
+  if (item === NewTeamSentry) {
+    return <NewTeamItem key={NewTeamSentry} />
+  }
+  return <TeamItem key={item} teamname={item} />
+}
+
 const NewRepo = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const [error, setError] = React.useState('')
@@ -47,38 +83,6 @@ const NewRepo = (ownProps: OwnProps) => {
   const [selectedTeam, setSelectedTeam] = React.useState('')
 
   const makeDropdownItems = () => teams.concat(NewTeamSentry).map(makeDropdownItem)
-
-  const makeDropdownItem = (item?: string) => {
-    if (!item) {
-      return (
-        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.avatarBox} justifyContent="flex-start">
-          <Kb.Text type="BodyBig">Pick a team</Kb.Text>
-        </Kb.Box2>
-      )
-    }
-
-    if (item === NewTeamSentry) {
-      return (
-        <Kb.Text key={NewTeamSentry} type="Header" style={styles.newTeamItem}>
-          New team...
-        </Kb.Text>
-      )
-    }
-
-    return (
-      <Kb.Box2 direction="horizontal" key={item} alignItems="center" style={styles.avatarBox}>
-        <Kb.Avatar
-          isTeam={true}
-          teamname={item}
-          size={16}
-          style={styles.teamAvatar}
-        />
-        <Kb.Text type="Header" style={styles.teamName}>
-          {item}
-        </Kb.Text>
-      </Kb.Box2>
-    )
-  }
 
   const dropdownChanged = (idx: number) => {
     const t = teams.at(idx)

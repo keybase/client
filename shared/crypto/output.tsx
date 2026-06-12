@@ -62,6 +62,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
         fullWidth={true}
         alignItems="center"
         justifyContent="flex-start"
+        gap={signed && signedByUsername && !isSelfSigned ? 'xsmall' : 'xtiny'}
         noShrink={true}
         style={Kb.Styles.collapseStyles([
           styles.signedContainer,
@@ -69,19 +70,12 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
         ])}
       >
         {signed && signedByUsername ? (
-          <Kb.Box2
-            direction="horizontal"
-            gap={isSelfSigned ? 'xtiny' : 'xsmall'}
-            alignItems="center"
-          >
-            <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername} />
+          <>
+            <Kb.Avatar size={avatarSize} username={signedByUsername} />
             {isSelfSigned ? (
               <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.signedByText}>
-                <Kb.Text key="signedByUsername" type="BodySmall">
-                  {signedByText}
-                </Kb.Text>
+                <Kb.Text type="BodySmall">{signedByText}</Kb.Text>
                 <Kb.ConnectedUsernames
-                  key="username"
                   type={usernameType}
                   usernames={[signedByUsername]}
                   colorFollowing={true}
@@ -89,7 +83,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
                 />
               </Kb.Box2>
             ) : (
-              <Kb.Box2 key="signedByUsername" direction="vertical">
+              <Kb.Box2 direction="vertical">
                 <Kb.ConnectedUsernames
                   type={usernameType}
                   usernames={[signedByUsername]}
@@ -99,19 +93,15 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
                 {signedByFullname ? <Kb.Text type="BodySmall">{signedByFullname}</Kb.Text> : null}
               </Kb.Box2>
             )}
-          </Kb.Box2>
+          </>
         ) : (
-          <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
-            <Kb.ImageIcon key="avatar" type="icon-placeholder-secret-user-16" />
-            {isSelfSigned ? null : (
-              <Kb.Text key="username" type="BodySmallSemibold">
-                Anonymous sender
-              </Kb.Text>
-            )}
-            <Kb.Text key="signedByUsername" type="BodySmall">
+          <>
+            <Kb.ImageIcon type="icon-placeholder-secret-user-16" />
+            {isSelfSigned ? null : <Kb.Text type="BodySmallSemibold">Anonymous sender</Kb.Text>}
+            <Kb.Text type="BodySmall">
               {isSelfSigned ? 'Not signed (Sending anonymously)' : '(Not signed)'}
             </Kb.Text>
-          </Kb.Box2>
+          </>
         )}
         {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
       </Kb.Box2>
@@ -333,7 +323,7 @@ export const CryptoOutput = ({
         fullHeight={true}
         fullWidth={true}
         alignItems="center"
-        style={styles.fileOutputContainer}
+        padding="xsmall"
       >
         {outputFileIcon ? <Kb.ImageIcon type={outputFileIcon} /> : null}
         <Kb.Text
@@ -386,7 +376,6 @@ const styles = Kb.Styles.styleSheetCreate(
           flexShrink: 1,
         },
       }),
-      fileOutputContainer: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
       fileOutputText: {...Kb.Styles.globalStyles.fontSemibold},
       output: Kb.Styles.platformStyles({
         common: {

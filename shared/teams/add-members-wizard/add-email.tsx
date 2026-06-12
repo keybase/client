@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import ModalFooter from '../common/modal-footer'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
 type Props = {
@@ -89,9 +88,9 @@ const AddEmail = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} waiting={waiting} />
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }

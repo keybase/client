@@ -30,47 +30,45 @@ const Display = () => {
   }
   return (
     <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth} testID={TestIDs.SETTINGS_DISPLAY}>
-      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} padding="small">
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="medium">
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Text type="Header">Appearance</Kb.Text>
-            {supported && (
-              <Kb.RadioButton
-                label="Respect system settings"
-                selected={darkModePreference === 'system'}
-                onSelect={() => onSetDarkModePreference('system')}
-              />
-            )}
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} padding="small" gap="medium">
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Text type="Header">Appearance</Kb.Text>
+          {supported && (
             <Kb.RadioButton
-              label="Dark"
-              selected={darkModePreference === 'alwaysDark'}
-              onSelect={() => onSetDarkModePreference('alwaysDark')}
+              label="Respect system settings"
+              selected={darkModePreference === 'system'}
+              onSelect={() => onSetDarkModePreference('system')}
             />
-            <Kb.RadioButton
-              label={<Kb.Text type="Body">Light</Kb.Text>}
-              selected={darkModePreference === 'alwaysLight'}
-              onSelect={() => onSetDarkModePreference('alwaysLight')}
-            />
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Text type="Header">Emoji</Kb.Text>
-            <Kb.Checkbox
-              label="Allow animated emoji"
-              checked={allowAnimatedEmojis}
-              onCheck={doToggleAnimatedEmoji}
-            />
-          </Kb.Box2>
-          {isElectron && (
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Text type="Header">Navigation</Kb.Text>
-              <Kb.Checkbox
-                label="Force small navigation"
-                checked={forceSmallNav}
-                onCheck={toggleForceSmallNav}
-              />
-            </Kb.Box2>
           )}
+          <Kb.RadioButton
+            label="Dark"
+            selected={darkModePreference === 'alwaysDark'}
+            onSelect={() => onSetDarkModePreference('alwaysDark')}
+          />
+          <Kb.RadioButton
+            label={<Kb.Text type="Body">Light</Kb.Text>}
+            selected={darkModePreference === 'alwaysLight'}
+            onSelect={() => onSetDarkModePreference('alwaysLight')}
+          />
         </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Text type="Header">Emoji</Kb.Text>
+          <Kb.Checkbox
+            label="Allow animated emoji"
+            checked={allowAnimatedEmojis}
+            onCheck={doToggleAnimatedEmoji}
+          />
+        </Kb.Box2>
+        {isElectron && (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+            <Kb.Text type="Header">Navigation</Kb.Text>
+            <Kb.Checkbox
+              label="Force small navigation"
+              checked={forceSmallNav}
+              onCheck={toggleForceSmallNav}
+            />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.ScrollView>
   )

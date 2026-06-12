@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import ModalFooter from './common/modal-footer'
 import * as T from '@/constants/types'
 import {useLoadedTeam} from './team/use-loaded-team'
 
@@ -75,7 +74,7 @@ const EditTeamDescription = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.ScrollView>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
           <Kb.Button label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />
           <Kb.Button
@@ -85,7 +84,7 @@ const EditTeamDescription = (props: Props) => {
             waiting={waiting}
           />
         </Kb.ButtonBar>
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }

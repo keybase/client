@@ -149,7 +149,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
         />
       </Kb.Box2>
       {isMobile ? null : (
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ModalFooter>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Button type="Dim" label="Cancel" onClick={onClose} style={Kb.Styles.globalStyles.flexOne} />
             <Kb.Button
@@ -160,7 +160,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
               waiting={waiting}
             />
           </Kb.Box2>
-        </Kb.Box2>
+        </Kb.ModalFooter>
       )}
     </>
   )
@@ -178,15 +178,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   list: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
   listContainer: Kb.Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
 }))
 
 export default AddToChannel

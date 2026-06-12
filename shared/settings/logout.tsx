@@ -109,7 +109,7 @@ const LogoutContainer = () => {
           />
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         {!checkPasswordIsCorrect ? (
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
@@ -147,7 +147,7 @@ const LogoutContainer = () => {
             )}
           </Kb.ButtonBar>
         )}
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -173,15 +173,6 @@ const styles = Kb.Styles.styleSheetCreate(
       logoutContainer: Kb.Styles.platformStyles({
         common: {
           paddingTop: Kb.Styles.globalMargins.tiny,
-        },
-      }),
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
         },
       }),
       progress: {

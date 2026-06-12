@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../../common/modal-footer'
 import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
@@ -84,7 +83,7 @@ export const CreateChannelsModal = (props: Props) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-      <ModalFooter>{submitButton}</ModalFooter>
+      <Kb.ModalFooter>{submitButton}</Kb.ModalFooter>
     </>
   )
 }

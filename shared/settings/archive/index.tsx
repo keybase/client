@@ -78,6 +78,47 @@ const useArchiveJobs = () => {
   return {chatJobs, kbfsJobs, load, loadChat}
 }
 
+const JobWrapper = (p: {
+  index: number
+  icon: React.ReactNode
+  actions: React.ReactNode
+  children: React.ReactNode
+  fullHeight?: boolean
+  measureRef?: React.Ref<Kb.MeasureRef>
+}) => {
+  const {index, icon, actions, children, fullHeight, measureRef} = p
+  return (
+    <Kb.ListItem
+      firstItem={index === 0}
+      type="Small"
+      body={
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          gap="tiny"
+          fullHeight={fullHeight}
+          ref={measureRef}
+        >
+          {icon}
+          {children}
+          {actions}
+        </Kb.Box2>
+      }
+    />
+  )
+}
+
+const JobError = (p: {
+  error: string
+  fontSize?: number
+  containerStyle?: Kb.Styles.StylesCrossPlatform
+}) => (
+  <Kb.WithTooltip tooltip={p.error} showOnPressMobile={true} containerStyle={p.containerStyle}>
+    <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={p.fontSize} />
+  </Kb.WithTooltip>
+)
+
 function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise<void>}) {
   const {index, job, loadChat} = p
   const {id} = job
@@ -187,27 +228,21 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
   }
 
   return (
-    <Kb.ListItem
-      firstItem={index === 0}
-      type="Small"
-      body={
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-          <Kb.Box2 direction="vertical" style={{padding: isMobile ? 4 : 8, width: 32}}>
-            <Kb.Icon type="iconfont-chat" />
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.jobLeft} gap="xtiny">
-            {sub}
-            {!done && <Kb.ProgressBar ratio={progress} />}
-          </Kb.Box2>
-          {errorStr && (
-            <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true} containerStyle={styles.errorTip}>
-              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
-            </Kb.WithTooltip>
-          )}
-          {actions}
+    <JobWrapper
+      index={index}
+      icon={
+        <Kb.Box2 direction="vertical" style={{padding: isMobile ? 4 : 8, width: 32}}>
+          <Kb.Icon type="iconfont-chat" />
         </Kb.Box2>
       }
-    ></Kb.ListItem>
+      actions={actions}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.jobLeft} gap="xtiny">
+        {sub}
+        {!done && <Kb.ProgressBar ratio={progress} />}
+      </Kb.Box2>
+      {errorStr && <JobError error={errorStr} containerStyle={styles.errorTip} />}
+    </JobWrapper>
   )
 }
 
@@ -278,65 +313,19 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
       : null
 
   return (
-    <Kb.ListItem
-      firstItem={index === 0}
-      type="Small"
-      body={
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          alignItems="center"
-          gap="tiny"
-          fullHeight={true}
-          ref={popupAnchor}
-        >
-          {job.gitRepo ? (
-            <Kb.Icon type="iconfont-nav-2-git" fontSize={32} />
-          ) : (
-            <Kb.ImageIcon type="icon-folder-32" />
-          )}
-          <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="center" flex={1} style={styles.kbfsJobLeft}>
-            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
-              <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
-                {job.gitRepo ?? job.kbfsPath}
-              </Kb.Text>
-              {isMobile ? null : <Kb.Box2 direction="horizontal" flex={1} />}
-              {isMobile ? null : job.bytesTotal ? (
-                <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
-              ) : null}
-              <Kb.Text type="BodySmall" style={{flexShrink: 0}}>
-                {isMobile
-                  ? formatTimeForConversationList(job.started.getTime())
-                  : formatTimeForChat(job.started.getTime())}
-              </Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2
-              direction="horizontal"
-              alignItems="center"
-              fullWidth={true}
-              style={styles.kbfsProgress}
-              gap="tiny"
-            >
-              <Kb.ProgressBar ratio={progress} />
-              <Kb.Text type="Body">{String(Math.round(progress * 100)) + '%'}</Kb.Text>
-              <Kb.Box2 direction="horizontal" flex={1} />
-              {errorStr && (
-                <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
-                  <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={14} />
-                </Kb.WithTooltip>
-              )}
-              {!isMobile && revisionBehindStr && (
-                <Kb.WithTooltip tooltip={revisionBehindStr}>
-                  <Kb.Icon
-                    type="iconfont-exclamation"
-                    color={Kb.Styles.globalColors.yellowDark}
-                    fontSize={14}
-                  />
-                </Kb.WithTooltip>
-              )}
-              <Kb.Text type={job.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{job.phase}</Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
+    <JobWrapper
+      index={index}
+      fullHeight={true}
+      measureRef={popupAnchor}
+      icon={
+        job.gitRepo ? (
+          <Kb.Icon type="iconfont-nav-2-git" fontSize={32} />
+        ) : (
+          <Kb.ImageIcon type="icon-folder-32" />
+        )
+      }
+      actions={
+        <>
           <Kb.Box2 direction="vertical" alignItems="flex-end" noShrink={true}>
             {isMobile ? (
               <Kb.Box2 direction="horizontal" alignItems="center" style={{padding: 8}}>
@@ -370,11 +359,56 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
             )}
           </Kb.Box2>
           {popup}
-        </Kb.Box2>
+        </>
       }
-    ></Kb.ListItem>
+    >
+      <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="center" flex={1} style={styles.kbfsJobLeft}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
+          <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
+            {job.gitRepo ?? job.kbfsPath}
+          </Kb.Text>
+          {isMobile ? null : <Kb.Box2 direction="horizontal" flex={1} />}
+          {isMobile ? null : job.bytesTotal ? (
+            <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
+          ) : null}
+          <Kb.Text type="BodySmall" style={{flexShrink: 0}}>
+            {isMobile
+              ? formatTimeForConversationList(job.started.getTime())
+              : formatTimeForChat(job.started.getTime())}
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.Box2
+          direction="horizontal"
+          alignItems="center"
+          fullWidth={true}
+          style={styles.kbfsProgress}
+          gap="tiny"
+        >
+          <Kb.ProgressBar ratio={progress} />
+          <Kb.Text type="Body">{String(Math.round(progress * 100)) + '%'}</Kb.Text>
+          <Kb.Box2 direction="horizontal" flex={1} />
+          {errorStr && <JobError error={errorStr} fontSize={14} />}
+          {!isMobile && revisionBehindStr && (
+            <Kb.WithTooltip tooltip={revisionBehindStr}>
+              <Kb.Icon
+                type="iconfont-exclamation"
+                color={Kb.Styles.globalColors.yellowDark}
+                fontSize={14}
+              />
+            </Kb.WithTooltip>
+          )}
+          <Kb.Text type={job.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{job.phase}</Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </JobWrapper>
   )
 }
+
+const ArchiveButtonRow = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+    {children}
+  </Kb.Box2>
+)
 
 const Archive = () => {
   const {chatJobs, kbfsJobs, load, loadChat} = useArchiveJobs()
@@ -453,20 +487,20 @@ const Archive = () => {
           </Kb.Box2>
           {isMobile ? (
             <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
-              <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+              <ArchiveButtonRow>
                 <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
                 <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
-              </Kb.Box2>
-              <Kb.Box2 direction="horizontal" alignSelf="center">
+              </ArchiveButtonRow>
+              <ArchiveButtonRow>
                 <Kb.Button small={isMobile} label="Backup all Git repos" onClick={archiveGit} />
-              </Kb.Box2>
+              </ArchiveButtonRow>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+            <ArchiveButtonRow>
               <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
               <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
               <Kb.Button small={isMobile} label="Backup all Git repos" onClick={archiveGit} />
-            </Kb.Box2>
+            </ArchiveButtonRow>
           )}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

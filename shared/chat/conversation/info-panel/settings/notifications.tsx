@@ -26,7 +26,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
     ignoreMentionsSuffix = '(desktop)'
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+    <>
       {!allNotifsEnabled && (
         <Kb.Checkbox
           checked={!channelWide}
@@ -42,7 +42,6 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
           onCheck={toggleChannelWide}
         />
       )}
-
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Desktop notifications</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
@@ -98,7 +97,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </>
   )
 }
 
@@ -197,8 +196,8 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.Checkbox
           checked={muted}
           onCheck={() => {
@@ -208,6 +207,7 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
           label="Mute all notifications"
         />
         <Kb.Icon type="iconfont-shh" style={styles.icon} color={Kb.Styles.globalColors.black_20} />
+        <Kb.SaveIndicator saving={saving} style={styles.saveIndicator} />
       </Kb.Box2>
       {!muted && (
         <UnmutedNotificationPrefs
@@ -232,10 +232,8 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
         <Kb.Banner color="red">
           <Kb.BannerParagraph bannerColor="red" content={saveError} />
         </Kb.Banner>
-      ) : (
-        <Kb.SaveIndicator saving={saving} />
-      )}
-    </Kb.Box2>
+      ) : null}
+    </>
   )
 }
 
@@ -243,6 +241,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       icon: {marginLeft: Kb.Styles.globalMargins.xtiny},
+      saveIndicator: {height: 17},
       radioButton: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         marginLeft: Kb.Styles.globalMargins.tiny,

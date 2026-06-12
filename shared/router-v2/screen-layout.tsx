@@ -92,28 +92,8 @@ const nativeMakeLayout = (
   const modalOffset = isIOS ? 40 : 0
   return function Layout({children, route, navigation}: LayoutProps) {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
-    const {modalFooter} = navigationOptions ?? {}
 
-    const suspenseContent = <React.Suspense>{children}</React.Suspense>
-
-    const wrappedContent = modalFooter ? (
-      <>
-        {suspenseContent}
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          fullWidth={true}
-          style={Kb.Styles.collapseStyles([
-            modalFooter.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter,
-            modalFooter.style,
-          ])}
-        >
-          {modalFooter.content}
-        </Kb.Box2>
-      </>
-    ) : (
-      suspenseContent
-    )
+    const wrappedContent = <React.Suspense>{children}</React.Suspense>
 
     if (!isModal && !isLoggedOut && isTabScreen) {
       return <TabScreenWrapper>{wrappedContent}</TabScreenWrapper>
@@ -144,18 +124,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     maxHeight: '100%',
     position: 'relative',
   },
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-  }),
-  modalFooterNoBorder: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      minHeight: 56,
-    },
-  }),
   tabScreen: {
     flex: 1,
   },

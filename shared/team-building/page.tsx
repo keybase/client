@@ -115,9 +115,8 @@ const getOptions = ({route}: OwnProps) => {
   const title = typeof route.params.title === 'string' ? route.params.title : ''
   const goButtonLabel = route.params.goButtonLabel
   const common = {
-    modalStyle: {height: 560} as const,
+    modalSize: 'wide',
     overlayAvoidTabs: false,
-    overlayStyle: {alignSelf: 'center'} as const,
     overlayTransparent: false,
     title,
   } as const
@@ -126,13 +125,7 @@ const getOptions = ({route}: OwnProps) => {
     return {
       ...common,
       headerShown: isMobile,
-      modalStyle: {height: 560, width: '100%'},
       overlayAvoidTabs: true,
-      overlayStyle: {
-        alignSelf: 'flex-start',
-        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
-        paddingTop: Kb.Styles.globalMargins.mediumLarge,
-      } as const,
       overlayTransparent: true,
     } as const
   }

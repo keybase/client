@@ -148,7 +148,7 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
       ) : (
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
       )}
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
           <LocationButton
             disabled={locationDenied}
@@ -176,7 +176,7 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
             primary={true}
           />
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -210,15 +210,6 @@ const styles = Kb.Styles.styleSheetCreate(
       liveButtonLabelPrimary: {
         color: Kb.Styles.globalColors.whiteOrWhite,
       },
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
     }) as const
 )
 

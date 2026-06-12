@@ -1,10 +1,15 @@
 import * as Kb from '@/common-adapters'
 
 const NoConversation = () => (
-  <Kb.Box2 direction="vertical" gap="xsmall" centerChildren={true} flex={1} alignSelf="center">
-    <Kb.ImageIcon type="icon-fancy-encrypted-computer-desktop-150-72" />
-    <Kb.Text type="BodySmall">All conversations are end-to-end encrypted.</Kb.Text>
-  </Kb.Box2>
+  <Kb.EmptyState
+    gap="xsmall"
+    illustration="icon-fancy-encrypted-computer-desktop-150-72"
+    style={styles.container}
+    text="All conversations are end-to-end encrypted."
+    textType="BodySmall"
+  />
 )
+
+const styles = Kb.Styles.styleSheetCreate(() => ({container: {flex: 1}}) as const)
 
 export default NoConversation

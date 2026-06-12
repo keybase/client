@@ -13,6 +13,7 @@ import {makePhoneError, useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {settingsPasswordTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from '../routes'
+import SettingsSectionTitle from '../section-title'
 import {useRandomPWState} from '../use-random-pw'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
@@ -97,10 +98,7 @@ const Password = ({randomPW}: {randomPW?: boolean}) => {
   }
   return (
     <SettingsSection>
-      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Text type="Header">Password</Kb.Text>
-        <Kb.Text type="BodySmall">Allows you to sign out and sign back in.</Kb.Text>
-      </Kb.Box2>
+      <SettingsSectionTitle title="Password" description="Allows you to sign out and sign back in." />
       <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
         {hasPassword && (
           <Kb.Text type="BodySemibold" style={styles.password}>
@@ -128,10 +126,10 @@ const WebAuthTokenLogin = () => {
   }
   return (
     <SettingsSection>
-      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Text type="Header">Website login</Kb.Text>
-        <Kb.Text type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text>
-      </Kb.Box2>
+      <SettingsSectionTitle
+        title="Website login"
+        description="You can use your app to log your web browser into keybase.io."
+      />
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
         <Kb.Button
           label={`Open keybase.io in web browser`}
@@ -151,12 +149,10 @@ const DeleteAccount = () => {
   }
   return (
     <SettingsSection>
-      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Text type="Header">Delete account</Kb.Text>
-        <Kb.Text type="BodySmall">
-          This can not be undone. You won’t be able to create a new account with the same username.
-        </Kb.Text>
-      </Kb.Box2>
+      <SettingsSectionTitle
+        title="Delete account"
+        description="This can not be undone. You won’t be able to create a new account with the same username."
+      />
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
         <Kb.Button
           type="Danger"

@@ -7,6 +7,7 @@ import WaitingButton from './waiting-button'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {Banner, BannerParagraph} from './banner'
 import {Box2} from '@/common-adapters/box'
+import ModalFooter from './modal-footer'
 
 // generally one of icon or header will be given
 export type Props = {
@@ -69,7 +70,7 @@ const ConfirmModal = (props: Props) => (
       )}
       {props.content}
     </Box2>
-    <Box2 direction="vertical" centerChildren={true} fullWidth={true} style={isMobile ? styles.modalFooterNoBorder : styles.modalFooter}>
+    <ModalFooter hideBorder={isMobile}>
       <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
         {!isMobile && (
           <WaitingButton
@@ -93,7 +94,7 @@ const ConfirmModal = (props: Props) => (
           waiting={props.waiting}
         />
       </ButtonBar>
-    </Box2>
+    </ModalFooter>
   </>
 )
 
@@ -109,24 +110,6 @@ const styles = Styles.styleSheetCreate(() => ({
   icon: {
     ...Styles.marginV(Styles.globalMargins.small),
   },
-  modalFooter: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      ...Styles.topDivider(),
-    },
-    isElectron: {
-      ...Styles.roundedBottom(),
-    },
-  }),
-  modalFooterNoBorder: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      minHeight: 56,
-    },
-    isElectron: {
-      ...Styles.roundedBottom(),
-    },
-  }),
   text: {
     color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,

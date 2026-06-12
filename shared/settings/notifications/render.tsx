@@ -22,19 +22,6 @@ type Props = {
   showEmailSection: boolean
 }
 
-const EmailSection = (props: Pick<Props, 'allowEdit' | 'onToggle' | 'onToggleUnsubscribeAll' | 'groups'>) => (
-  <Group
-    allowEdit={props.allowEdit}
-    groupName="email"
-    label="All email notifications will be sent to your primary email address."
-    onToggle={props.onToggle}
-    onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
-    title="Email notifications"
-    unsub="email"
-    settings={props.groups.get('email')!.settings}
-    unsubscribedFromAll={props.groups.get('email')!.unsub}
-  />
-)
 const PhoneSection = (props: Props) => (
   <Group
     allowEdit={props.allowEdit}
@@ -59,7 +46,17 @@ const Notifications = (props: Props) => {
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.main} testID={TestIDs.SETTINGS_NOTIFICATIONS}>
       {emailGroup ? (
-        <EmailSection {...props} />
+        <Group
+          allowEdit={props.allowEdit}
+          groupName="email"
+          label="All email notifications will be sent to your primary email address."
+          onToggle={props.onToggle}
+          onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
+          title="Email notifications"
+          unsub="email"
+          settings={emailGroup.settings}
+          unsubscribedFromAll={emailGroup.unsub}
+        />
       ) : !props.showEmailSection ? (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header">Email notifications</Kb.Text>

@@ -5,7 +5,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openURL} from '@/util/misc'
-import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
+import {CryptoBanner, Input, InputActionsBar} from './input'
+import OperationIO from './operation-io'
 import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
 import {
@@ -239,15 +240,14 @@ export const SignIO = () => {
   const {params} = useRoute() as RootRouteProps<'signTab'>
   const controller = useSignState(params)
   return (
-    <DragAndDrop
+    <OperationIO
       allowFolders={true}
       prompt={filePrompt}
       inProgress={controller.state.inProgress}
       onAttach={controller.openFile}
       testID={TestIDs.CRYPTO_SIGN_INPUT}
-    >
-      <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+      input={
+        <>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Input
             allowDirectories={true}
@@ -259,8 +259,10 @@ export const SignIO = () => {
             onSetInput={controller.setInput}
             onClearInput={controller.clearInput}
           />
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>
+        </>
+      }
+      output={
+        <>
           <SignOutputBanner state={controller.state} />
           <CryptoSignedSender isSelfSigned={true} state={controller.state} />
           <CryptoOutput
@@ -276,8 +278,8 @@ export const SignIO = () => {
             state={controller.state}
             onSaveAsText={() => C.ignorePromise(controller.saveOutputAsText() as unknown as Promise<void>)}
           />
-        </Kb.Box2>
-      </Kb.Box2>
-    </DragAndDrop>
+        </>
+      }
+    />
   )
 }

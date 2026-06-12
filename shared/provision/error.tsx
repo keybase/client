@@ -1,23 +1,27 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import LoginContainer from '../login/forms/container'
+import {SignupScreen} from '@/signup/common'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
-  <LoginContainer>
-    <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
-    <Kb.Text type="Header" style={styles.header}>
-      Oops, something went wrong.
-    </Kb.Text>
-    <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
-      {p.children}
-    </Kb.Box2>
-    {isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
-  </LoginContainer>
+  <SignupScreen
+    onBack={p.onBack}
+    buttons={isMobile ? [{label: 'Close', onClick: p.onBack}] : undefined}
+  >
+    <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
+      <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
+      <Kb.Text type="Header" style={styles.header}>
+        Oops, something went wrong.
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+        {p.children}
+      </Kb.Box2>
+    </Kb.ScrollView>
+  </SignupScreen>
 )
 
 const rewriteErrorDesc = (s: string) => {
@@ -297,11 +301,11 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 240,
       },
       list: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         marginBottom: 10,
         marginLeft: Kb.Styles.globalMargins.tiny,
         maxWidth: 460,
       },
+      scrollContent: {alignItems: 'center'},
     }) as const
 )
 

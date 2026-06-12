@@ -26,7 +26,6 @@ type Props = {
   showTypingChange: (typingChange: boolean) => void
   onSubmit: () => void
   onFeedback: () => void
-  onLogin: (user: string, password: string) => void
 }
 
 // Desktop login
@@ -128,9 +127,9 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        ...Kb.Styles.centered(),
+        // UserCard's own desktop container already provides flexBoxColumn + alignItems center
         flex: 1,
+        justifyContent: 'center',
       },
       contentBox: {
         maxWidth: 460,
@@ -142,7 +141,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         borderBottomWidth: 0,
       },
       inputRow: {
-        marginBottom: 0,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
       loginSubmitButton: {
@@ -370,7 +368,6 @@ const ReloginContainer = () => {
       needPassword={!loggedInMap.get(selectedUser) || gotNeedPasswordError}
       onFeedback={onFeedback}
       onForgotPassword={() => startRecoverPassword({username: selectedUser})}
-      onLogin={onLogin}
       onSignup={onSignup}
       onSomeoneElse={onSomeoneElse}
       onSubmit={onSubmit}

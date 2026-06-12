@@ -123,7 +123,7 @@ const ConfirmReset = ({route}: Props) => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+      <Kb.ModalFooter style={styles.footer}>
         <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
           <Kb.WaitingButton
             disabled={disabled}
@@ -135,7 +135,7 @@ const ConfirmReset = ({route}: Props) => {
           />
           <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
         </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -152,15 +152,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   footer: Kb.Styles.platformStyles({
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-    },
-  }),
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
     },
   }),
 }))

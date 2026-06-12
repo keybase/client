@@ -191,7 +191,7 @@ const DesktopEditAvatar = (_p: Props) => {
         </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.ModalFooter>
         <Kb.WaitingButton
           fullWidth={true}
           label={wizard ? 'Continue' : 'Save'}
@@ -199,7 +199,7 @@ const DesktopEditAvatar = (_p: Props) => {
           disabled={loading !== 'loaded'}
           waitingKey={p.waitingKey}
         />
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -358,7 +358,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
             onClick={onChooseNewAvatar}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ModalFooter>
           <Kb.WaitingButton
             fullWidth={true}
             label={wizard ? 'Continue' : 'Save'}
@@ -366,7 +366,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
             disabled={!selectedImage}
             waitingKey={waitingKey}
           />
-        </Kb.Box2>
+        </Kb.ModalFooter>
       </>
     )
   }
@@ -492,6 +492,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
     },
     isElectron: {
+      alignItems: 'center',
       paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
@@ -515,15 +516,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: '50%',
   },
   instructions: {maxWidth: 200},
-  modalFooter: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      ...Kb.Styles.topDivider(),
-    },
-    isElectron: {
-      ...Kb.Styles.roundedBottom(),
-    },
-  }),
   paddingTopForCreatedTeam: {paddingTop: Kb.Styles.globalMargins.xlarge},
   placeholder: {
     alignItems: 'center',

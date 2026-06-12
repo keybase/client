@@ -250,7 +250,9 @@ const CodePageContainer = () => {
     return (
       <>
         {content}
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([f.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter, f.style])}>{f.content}</Kb.Box2>
+        <Kb.ModalFooter hideBorder={f.hideBorder} style={f.style}>
+          {f.content}
+        </Kb.ModalFooter>
       </>
     )
   }
@@ -542,24 +544,6 @@ const styles = Kb.Styles.styleSheetCreate(
       instructions: {color: Kb.Styles.globalColors.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
       instructionsUpper: {marginBottom: Kb.Styles.globalMargins.tiny},
-      modalFooter: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          ...Kb.Styles.topDivider(),
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
-      modalFooterNoBorder: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          minHeight: 56,
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
-        },
-      }),
       primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
       primaryOnColor: {backgroundColor: Kb.Styles.globalColors.white},
       primaryOnGreenLabel: {color: Kb.Styles.globalColors.greenDark},

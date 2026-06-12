@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {usePhoneNumberList} from '../common'
-import ModalFooter from '../common/modal-footer'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
@@ -78,9 +77,9 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
           <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.Button waiting={waiting} fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }

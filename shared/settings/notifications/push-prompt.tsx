@@ -22,7 +22,7 @@ const PushPrompt = () => {
           is a crucial security setting.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooterNoBorder, styles.footer])}>
+      <Kb.ModalFooter hideBorder={true} style={styles.footer}>
         <Kb.WaitingButton
           fullWidth={true}
           onClick={onRequestPermissions}
@@ -31,7 +31,7 @@ const PushPrompt = () => {
           style={styles.button}
           type="Success"
         />
-      </Kb.Box2>
+      </Kb.ModalFooter>
     </>
   )
 }
@@ -57,15 +57,6 @@ const styles = Kb.Styles.styleSheetCreate(
       image: Kb.Styles.platformStyles({
         isTablet: {
           alignSelf: 'center',
-        },
-      }),
-      modalFooterNoBorder: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          minHeight: 56,
-        },
-        isElectron: {
-          ...Kb.Styles.roundedBottom(),
         },
       }),
     }) as const

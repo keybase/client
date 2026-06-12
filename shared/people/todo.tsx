@@ -52,6 +52,15 @@ function makeDefaultButtons(
   return result
 }
 
+const makeConfirmAndSecondaryButtons = (
+  confirm: TaskButton | undefined,
+  secondaryLabel: string,
+  onSecondary: () => void
+): Array<TaskButton> => [
+  ...(confirm ? [confirm] : []),
+  {label: secondaryLabel, mode: 'Secondary', onClick: onSecondary},
+]
+
 type BasicTaskProps = TodoOwnProps & {
   dismissLabel?: string
   dismissTodoType?: T.People.TodoType
@@ -207,22 +216,17 @@ const VerifyAllEmailTask = (props: TodoOwnProps) => {
   // Has the user received a verification email less than 30 minutes ago?
   const hasRecentVerifyEmail = meta?.lastVerifyEmailDate && now / 1000 - meta.lastVerifyEmailDate < 30 * 60
 
-  const buttons: Array<TaskButton> = [
-    ...(meta
-      ? [
-          {
-            label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
-            onClick: () => onConfirm(meta.email),
-            type: 'Success' as const,
-          },
-        ]
-      : []),
-    {
-      label: 'Manage emails',
-      mode: 'Secondary',
-      onClick: onManage,
-    },
-  ]
+  const buttons = makeConfirmAndSecondaryButtons(
+    meta
+      ? {
+          label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
+          onClick: () => onConfirm(meta.email),
+          type: 'Success' as const,
+        }
+      : undefined,
+    'Manage emails',
+    onManage
+  )
   return <Task {...props} buttons={buttons} />
 }
 
@@ -235,27 +239,22 @@ const VerifyAllPhoneNumberTask = (props: TodoOwnProps) => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend({name: settingsAccountTab, params: {}})
   }
-  const buttons: Array<TaskButton> = [
-    ...(props.metadata
-      ? [
-          {
-            label: 'Verify',
-            onClick: () => {
-              const meta = props.metadata
-              if (meta?.type === 'phone') {
-                onConfirm(meta.phone)
-              }
-            },
-            type: 'Success' as const,
+  const buttons = makeConfirmAndSecondaryButtons(
+    props.metadata
+      ? {
+          label: 'Verify',
+          onClick: () => {
+            const meta = props.metadata
+            if (meta?.type === 'phone') {
+              onConfirm(meta.phone)
+            }
           },
-        ]
-      : []),
-    {
-      label: 'Manage numbers',
-      mode: 'Secondary',
-      onClick: onManage,
-    },
-  ]
+          type: 'Success' as const,
+        }
+      : undefined,
+    'Manage numbers',
+    onManage
+  )
   return <Task {...props} buttons={buttons} />
 }
 
@@ -268,27 +267,22 @@ const LegacyEmailVisibilityTask = (props: TodoOwnProps) => {
     editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo(props.skipTodo, 'legacyEmailVisibility')
-  const buttons: Array<TaskButton> = [
-    ...(props.metadata
-      ? [
-          {
-            label: 'Make searchable',
-            onClick: () => {
-              const meta = props.metadata
-              if (meta?.type === 'email') {
-                onConfirm(meta.email)
-              }
-            },
-            type: 'Success' as const,
+  const buttons = makeConfirmAndSecondaryButtons(
+    props.metadata
+      ? {
+          label: 'Make searchable',
+          onClick: () => {
+            const meta = props.metadata
+            if (meta?.type === 'email') {
+              onConfirm(meta.email)
+            }
           },
-        ]
-      : []),
-    {
-      label: 'No',
-      mode: 'Secondary',
-      onClick: onDismiss,
-    },
-  ]
+          type: 'Success' as const,
+        }
+      : undefined,
+    'No',
+    onDismiss
+  )
   const subText = 'Your email will never appear on your public profile.'
   return <Task {...props} buttons={buttons} subText={subText} />
 }

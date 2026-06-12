@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import ModalFooter from '../../common/modal-footer'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
@@ -75,9 +74,9 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
         ))}
         <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
       </Kb.Box2>
-      <ModalFooter>
+      <Kb.ModalFooter>
         <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />
-      </ModalFooter>
+      </Kb.ModalFooter>
     </>
   )
 }

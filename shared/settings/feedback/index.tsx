@@ -57,7 +57,7 @@ const Feedback = (props: Props) => {
 
   return (
     <Kb.ScrollView alwaysBounceVertical={false} testID={TestIDs.SETTINGS_FEEDBACK}>
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         {showSuccessBanner && (
           <Kb.Banner color="green">
             <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
@@ -82,16 +82,14 @@ const Feedback = (props: Props) => {
               <Kb.BannerParagraph bannerColor="green" content="next send will include full logs" />
             </Kb.Banner>
           )}
-          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>
-              <Kb.Checkbox
-                label="Include your logs"
-                labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
-                checked={sendLogs}
-                onCheck={setSendLogs}
-              />
-            </Kb.ClickableBox>
-          </Kb.Box2>
+          <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>
+            <Kb.Checkbox
+              label="Include your logs"
+              labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
+              checked={sendLogs}
+              onCheck={setSendLogs}
+            />
+          </Kb.ClickableBox>
           {props.loggedOut && (
             <Kb.Input3
               containerStyle={styles.input}
@@ -135,6 +133,7 @@ const styles = Kb.Styles.styleSheetCreate(
       inputResize: Kb.Styles.platformStyles({isElectron: {resize: 'vertical'}}),
       mainBox: Kb.Styles.platformStyles({
         isElectron: {
+          alignSelf: 'flex-start',
           maxWidth: 550,
           width: '100%',
         },
