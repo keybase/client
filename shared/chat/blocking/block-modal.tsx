@@ -419,27 +419,6 @@ const BlockModal = (ownProps: OwnProps) => {
   const items: Array<Item> = ['topStuff']
   otherUsernames?.forEach(username => items.push({username}))
 
-  const topStuffHeight =
-    120 +
-    (!!adderUsername && getShouldReport(adderUsername)
-      ? reasons.length * 18 + 54 + 40 + 20
-      : 0) +
-    (otherUsernames?.length ? 41 : 0)
-  // Each username row is 2 checkboxes (40px each) + 1px divider = 81px
-  const usernameRowHeight = 81
-
-  const itemHeight = {
-    getItemLayout: (index: number, item?: Item) => {
-      const length = item === 'topStuff' ? topStuffHeight : usernameRowHeight
-      let offset = 0
-      for (let i = 0; i < index; i++) {
-        offset += items[i] === 'topStuff' ? topStuffHeight : usernameRowHeight
-      }
-      return {index, length, offset}
-    },
-    type: 'variable' as const,
-  }
-
   const renderItem = (_: number, item: Item) => {
     if (item === 'topStuff') {
       return (
@@ -474,13 +453,16 @@ const BlockModal = (ownProps: OwnProps) => {
         renderItem={renderItem}
         indexAsKey={true}
         extraData={newBlocks}
-        itemHeight={itemHeight}
+        itemHeight={itemHeightTrueVariable}
+        estimatedItemHeight={81}
         style={
           isMobile
             ? styles.grow
             : getListHeightStyle(
-                otherUsernames?.length ?? 0,
-                !!adderUsername && getShouldReport(adderUsername)
+                !!teamname || !adderUsername,
+                !!adderUsername,
+                !!adderUsername && getShouldReport(adderUsername),
+                otherUsernames?.length ?? 0
               )
         }
       />
@@ -496,17 +478,25 @@ const BlockModal = (ownProps: OwnProps) => {
 
 export default BlockModal
 
-const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
+// Items measure themselves; this is only used to size the modal (which is
+// content-sized on desktop, capped at the modal maxHeight). Overshooting is
+// fine — the modal clamps and the list scrolls.
+const itemHeightTrueVariable = {type: 'trueVariable'} as const
+const checkboxRowHeight = 40
+const getListHeightStyle = (hasLeaveRow: boolean, hasAdder: boolean, expanded: boolean, numOthers: number) => ({
   height:
-    120 +
-    (numOthers >= 1
-      ? // "Also block others" is 41px, every row is 2 * 40px rows + a 1px divider.
-        // We cap the count at 4 but even that is greater than the max modal height in Keybase.
-        41 + (numOthers >= 4 ? 4 : numOthers) * 81
-      : 0) +
+    (hasLeaveRow ? checkboxRowHeight + 1 : 0) +
+    // Adder gets block + hide + report checkboxes.
+    (hasAdder ? 3 * checkboxRowHeight : 0) +
     (expanded
       ? // When you expand the report menu, every option gets an 18px row + 54px for the extra notes + 40px transcript
         reasons.length * 18 + 54 + 40 + 20
+      : 0) +
+    (numOthers >= 1
+      ? // "Also block others" header is 41px. Without an adder every other user also
+        // gets a report checkbox, so rows are 3 checkboxes tall instead of 2 (+1px divider).
+        // We cap the count at 4 but even that is greater than the max modal height in Keybase.
+        41 + Math.min(numOthers, 4) * ((hasAdder ? 2 : 3) * checkboxRowHeight + 1)
       : 0),
 })
 
