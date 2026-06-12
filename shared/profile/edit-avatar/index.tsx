@@ -492,6 +492,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
     },
     isElectron: {
+      alignItems: 'center',
       paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
