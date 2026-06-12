@@ -2,6 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useModalHeaderState} from '../modal-header'
+import {useNotifState} from '../notifications'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -19,8 +20,6 @@ test('resetState restores the modal header defaults', () => {
       botInTeam: true,
       botReadOnly: true,
       botSubScreen: 'install',
-      deviceBadges: new Set(['device-1']),
-      folderViewFilter: 'abc',
       onAction: () => undefined,
       title: 'custom title',
     }
@@ -31,18 +30,16 @@ test('resetState restores the modal header defaults', () => {
   expect(store.getState().actionEnabled).toBe(false)
   expect(store.getState().actionWaiting).toBe(false)
   expect(store.getState().botSubScreen).toBe('')
-  expect(store.getState().deviceBadges).toEqual(new Set())
-  expect(store.getState().folderViewFilter).toBeUndefined()
   expect(store.getState().title).toBe('')
 })
 
-test('device badge actions update local badge state and dismiss device badge notifications', () => {
+test('clearDeviceBadges clears badge state and dismisses device badge notifications', () => {
   const dismiss = jest
     .spyOn(T.RPCGen, 'deviceDismissDeviceChangeNotificationsRpcPromise')
     .mockResolvedValue(undefined as never)
-  const store = useModalHeaderState
+  const store = useNotifState
 
-  store.getState().dispatch.setDeviceBadges(new Set(['device-1', 'device-2']))
+  store.setState({deviceBadges: new Set(['device-1', 'device-2'])})
   expect(store.getState().deviceBadges).toEqual(new Set(['device-1', 'device-2']))
 
   store.getState().dispatch.clearDeviceBadges()

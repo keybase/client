@@ -7,7 +7,7 @@ import partition from 'lodash/partition'
 import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {useNotifState} from '@/stores/notifications'
 import {useTypedNavigation} from '@/util/typed-navigation'
 import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
 import {useEngineActionListener} from '@/engine/action-listener'
@@ -34,8 +34,8 @@ function ReloadableDevices() {
   const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
-  const clearBadges = useModalHeaderState(s => s.dispatch.clearDeviceBadges)
-  const storeSet = useModalHeaderState(s => s.deviceBadges)
+  const clearBadges = useNotifState(s => s.dispatch.clearDeviceBadges)
+  const storeSet = useNotifState(s => s.deviceBadges)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
   const loadDevices = React.useEffectEvent(() => {

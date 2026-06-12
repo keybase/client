@@ -2,6 +2,7 @@ import * as Z from '@/util/zustand'
 import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import {bodyToJSON} from '@/constants/rpc-utils'
+import {ignorePromise} from '@/constants/utils'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
@@ -15,6 +16,7 @@ type Store = T.Immutable<{
   badgeVersion: number
   deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>
   desktopAppBadgeCount: number
+  deviceBadges: Set<T.Devices.DeviceID>
   keyState: Map<NotificationKeys, boolean>
   mobileAppBadgeCount: number
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
@@ -27,6 +29,7 @@ const initialStore: Store = {
   badgeVersion: -1,
   deletedTeams: [],
   desktopAppBadgeCount: 0,
+  deviceBadges: new Set(),
   keyState: new Map(),
   mobileAppBadgeCount: 0,
   navBadges: new Map(),
@@ -38,6 +41,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    clearDeviceBadges: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
     badgeApp: (key: NotificationKeys, on: boolean) => void
@@ -130,10 +134,24 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         updateWidgetBadge(s)
       })
     },
+    clearDeviceBadges: () => {
+      ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
+      set(s => {
+        s.deviceBadges = new Set()
+      })
+    },
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
+          // device badges track the latest server state even when the inbox
+          // version guard below skips the rest
+          set(s => {
+            s.deviceBadges = new Set([
+              ...(badgeState.newDevices ?? []),
+              ...(badgeState.revokedDevices ?? []),
+            ])
+          })
           const currentBadgeVersion = get().badgeVersion
           if (currentBadgeVersion > badgeState.inboxVers) {
             break

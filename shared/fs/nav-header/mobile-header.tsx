@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import Actions from './actions'
 import * as FS from '@/constants/fs'
 
@@ -31,7 +31,7 @@ const FilesTabStatusIcon = () => {
 }
 
 const NavMobileHeaderInner = (props: Props) => {
-  const {expanded, folderViewFilter, setFolderViewFilter} = useModalHeaderState(
+  const {expanded, folderViewFilter, setFolderViewFilter} = useFolderViewFilterState(
     C.useShallow(s => ({
       expanded: s.folderViewFilter !== undefined,
       folderViewFilter: s.folderViewFilter,
