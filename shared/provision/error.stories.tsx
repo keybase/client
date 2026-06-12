@@ -1,7 +1,7 @@
 import type {Meta, StoryObj} from '@storybook/react'
 import * as T from '@/constants/types'
 import RenderError from './error'
-import type {ProvisionRouteError} from '@/stores/provision'
+import type {ProvisionRouteError} from '@/constants/provision'
 
 const makeError = (overrides: Partial<ProvisionRouteError> = {}): ProvisionRouteError => ({
   code: T.RPCGen.StatusCode.scgeneric,

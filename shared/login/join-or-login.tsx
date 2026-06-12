@@ -4,7 +4,7 @@ import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
-import {useProvisionState} from '@/stores/provision'
+import {startProvision} from '@/provision/flow'
 
 const Intro = () => {
   const justDeletedSelf = useConfigState(s => s.justDeletedSelf)
@@ -17,7 +17,6 @@ const Intro = () => {
 
   const isOnline = useConfigState(s => s.isOnline)
   const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
-  const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const requestAutoInvite = useRequestAutoInvite()
   const onLogin = () => startProvision()
   const onSignup = () => requestAutoInvite('')

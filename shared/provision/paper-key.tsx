@@ -2,19 +2,27 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useProvisionState} from '@/stores/provision'
+import {submitProvisionPassphrase} from './flow'
 
-const Container = () => {
-  const error = useProvisionState(s => s.error)
-  const hint = useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
+type RouteProps = {
+  route: {
+    params: {
+      deviceName: string
+      error?: string
+    }
+  }
+}
+
+const Container = ({route}: RouteProps) => {
+  const error = route.params.error ?? ''
+  const hint = `${route.params.deviceName || ''}...`
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   return (
     <PaperKey
       error={error}
       hint={hint}
       onBack={C.Router2.navigateUp}
-      onSubmit={(paperkey: string) => !waiting && onSubmit?.(paperkey)}
+      onSubmit={(paperkey: string) => !waiting && submitProvisionPassphrase(paperkey)}
       waiting={waiting}
     />
   )

@@ -1,12 +1,6 @@
 import * as T from './types'
+import type {Device} from './provision'
 import {uint8ArrayToString} from '@/util/uint8array'
-
-type Device = {
-  deviceNumberOfType: number
-  id: T.Devices.DeviceID
-  name: string
-  type: T.Devices.DeviceType
-}
 
 export const bodyToJSON = (body?: Uint8Array): unknown => {
   if (!body) return undefined

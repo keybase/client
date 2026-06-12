@@ -4,15 +4,24 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
-import * as Provision from '@/stores/provision'
+import * as Provision from '@/constants/provision'
 import * as T from '@/constants/types'
+import {submitProvisionDeviceName} from './flow'
 
-const SetPublicName = () => {
-  const devices = Provision.useProvisionState(s => s.devices)
-  const error = Provision.useProvisionState(s => s.error)
+type Props = {
+  route: {
+    params: {
+      devices?: ReadonlyArray<Provision.Device>
+      error?: string
+    }
+  }
+}
+
+const SetPublicName = ({route}: Props) => {
+  const devices = route.params.devices ?? []
+  const error = route.params.error ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const onBack = useSafeSubmit(C.Router2.navigateUp, !!error)
-  const submitDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const iconNumbers = T.Devices.nextDeviceIconNumbers(devices)
   const deviceIconNumber = isMobile ? iconNumbers.mobile : iconNumbers.desktop
 
@@ -28,7 +37,7 @@ const SetPublicName = () => {
     Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const onSubmit = () => {
-    if (!waiting) submitDeviceName?.(Provision.cleanDeviceName(cleanDeviceName))
+    if (!waiting) submitProvisionDeviceName(Provision.cleanDeviceName(cleanDeviceName))
   }
   const onChangeDeviceName = (name: string) => {
     setReadyToShowError(false)

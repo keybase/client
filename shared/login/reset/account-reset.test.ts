@@ -13,14 +13,8 @@ jest.mock('@/constants/router', () => {
   }
 })
 
-jest.mock('@/stores/provision', () => ({
-  useProvisionState: {
-    getState: jest.fn(() => ({
-      dispatch: {
-        startProvision: mockStartProvision,
-      },
-    })),
-  },
+jest.mock('@/provision/flow', () => ({
+  startProvision: (...args: Array<unknown>) => mockStartProvision(...args),
 }))
 
 import {enterResetPipeline, startAccountReset, submitResetPrompt} from './account-reset'
