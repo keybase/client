@@ -105,28 +105,45 @@ const NativeActiveVideo = (props: NativeActiveVideoProps) => {
   const {sourceUri, autoPlay, playing, style} = props
 
   const player = useVideoPlayer(sourceUri, p => {
-    p.loop = true
-    p.muted = true
-    if (autoPlay) {
-      p.play()
+    try {
+      p.loop = true
+      p.muted = true
+      if (autoPlay) {
+        p.play()
+      }
+    } catch {
+      // player's native shared object may be released; ignore
     }
   })
 
   React.useEffect(() => {
-    if (playing) {
-      player.play()
-    } else {
-      player.pause()
-    }
+    // When a frozen screen (react-native-screens Freeze/Activity) reconnects
+    // its passive effects, the native player may already be released. Calling
+    // play/pause then throws NativeSharedObjectNotFoundException synchronously.
+    try {
+      if (playing) {
+        player.play()
+      } else {
+        player.pause()
+      }
+    } catch {}
   }, [player, playing])
 
   React.useEffect(() => {
-    const sub = player.addListener('statusChange', ({status, error}) => {
-      if (status === 'error' && error) {
-        logger.error(`Error loading vid: ${JSON.stringify(error)}`)
+    try {
+      const sub = player.addListener('statusChange', ({status, error}) => {
+        if (status === 'error' && error) {
+          logger.error(`Error loading vid: ${JSON.stringify(error)}`)
+        }
+      })
+      return () => {
+        try {
+          sub.remove()
+        } catch {}
       }
-    })
-    return () => sub.remove()
+    } catch {
+      return () => {}
+    }
   }, [player])
 
   return (
