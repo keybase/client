@@ -31,7 +31,7 @@ export const useNav = () => {
   const na = useNavigation()
   const {canGoBack} = na
   const pop: undefined | (() => void) = canGoBack() ? na.goBack : undefined
-  const navigate: (n: RouteKeys) => void = na.navigate
+  const navigate = na.navigate as (n: RouteKeys) => void
   return {
     canGoBack,
     navigate,

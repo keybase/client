@@ -731,7 +731,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
     // the tab becomes visible and chat selects a thread immediately afterward.
     if (!shallowEqual(currentChatRoute.params, nextChatRoot.params)) {
       n.dispatch({
-        ...CommonActions.navigate({merge: true, name: 'chatRoot', params: nextChatRoot.params}),
+        ...CommonActions.navigate('chatRoot', nextChatRoot.params, {merge: true}),
         target: chatStackState.key,
       })
     }
