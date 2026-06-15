@@ -31,6 +31,7 @@ import {createPortal} from 'react-dom'
 import SearchRow from './search-row'
 import {useOpenedRowState} from './row/opened-row-state'
 import {Alert} from 'react-native'
+import {SafeAreaView as ScreensSafeAreaView} from 'react-native-screens/experimental'
 
 // Stub types to avoid dom lib dependency in native tsconfig
 type InboxDivRef = {
@@ -226,10 +227,10 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
   <>
     <Kb.Box2
       direction="vertical"
-      gapStart={true}
       gap="small"
-      justifyContent="flex-end"
+      justifyContent="center"
       alignItems="center"
+      fullWidth={true}
       style={nativeStyles.noChatsContainer}
     >
       <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
@@ -242,16 +243,27 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" gapStart={true} gap="medium" fullWidth={true} noShrink={true} style={nativeStyles.newChat}>
-      <Kb.Button
-        fullWidth={true}
-        onClick={props.onNewChat}
-        mode="Primary"
-        label="Start a new chat"
-      />
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} style={nativeStyles.newChat}>
+      <Kb.Button fullWidth={true} onClick={props.onNewChat} mode="Primary" label="Start a new chat" />
     </Kb.Box2>
   </>
 )
+
+// The empty state is a sibling of the (flex) list, which would otherwise eat the
+// vertical space and push this content off the bottom. Pin it as an absolute fill
+// overlay so the icon centers and the buttons sit at the bottom. On iOS the tab
+// screen draws edge-to-edge under the native tab bar, so inset the bottom edge to
+// clear it; Android already insets the whole tab screen.
+const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) =>
+  isIOS ? (
+    <ScreensSafeAreaView edges={{bottom: true}} style={nativeStyles.noChatsWrapper}>
+      {children}
+    </ScreensSafeAreaView>
+  ) : (
+    <Kb.Box2 direction="vertical" style={nativeStyles.noChatsWrapper}>
+      {children}
+    </Kb.Box2>
+  )
 
 const NativeNoRowsBuildTeam = () => {
   const isLoading = C.useWaitingState(s => [...s.counts.keys()].some(k => k.startsWith('chat:')))
@@ -520,7 +532,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
   const showFloatingDivider = showFloating && !isSearching && allowShowFloatingButton
   const showUnreadBanner = showUnread && !isSearching
 
-  const noChats = !neverLoaded && !isSearching && !rows.length && <NativeNoChats onNewChat={onNewChat} />
+  const noChats = !neverLoaded && !isSearching && !rows.length
 
   return (
     <Kb.ErrorBoundary>
@@ -550,7 +562,12 @@ function NativeInboxBody(p: ControlledInboxProps) {
               extraData={listExtraData}
             />
           )}
-          {noChats}
+          {noChats && (
+            <NativeNoChatsWrapper>
+              <NativeNoChats onNewChat={onNewChat} />
+              <NativeNoRowsBuildTeam />
+            </NativeNoChatsWrapper>
+          )}
           {showFloatingDivider || showUnreadBanner ? (
             <Kb.BottomAccessory>
               {showUnreadBanner && (
@@ -565,7 +582,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
               )}
             </Kb.BottomAccessory>
           ) : (
-            rows.length === 0 && !neverLoaded && <NativeNoRowsBuildTeam />
+            !noChats && rows.length === 0 && !neverLoaded && <NativeNoRowsBuildTeam />
           )}
         </Kb.Box2>
       </PerfProfiler>
@@ -715,9 +732,16 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       newChat: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       },
+      // flexGrow so the icon/text centers in the space above the bottom buttons.
       noChatsContainer: {
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
+        flexGrow: 1,
+      },
+      // Absolute fill so the empty state overlays the flex list instead of being pushed
+      // below it. On iOS the RNS SafeAreaView (forced flex: 1) applies the bottom inset as
+      // margin, which lifts the buttons above the tab bar within this fill box.
+      noChatsWrapper: {
+        ...Kb.Styles.globalStyles.fillAbsolute,
       },
     }) as const
 )
