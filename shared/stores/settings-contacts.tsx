@@ -13,7 +13,6 @@ import {useWaitingState} from '@/stores/waiting'
 type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
 
 type Store = T.Immutable<{
-  alreadyOnKeybase: Array<T.RPCGen.ProcessedContact>
   importEnabled?: boolean
   importError: string
   importPromptDismissed: boolean
@@ -39,7 +38,6 @@ import {getLocales} from 'expo-localization'
 import {addNotificationRequest} from 'react-native-kb'
 
 const initialStore: Store = {
-  alreadyOnKeybase: [],
   importError: '',
   importPromptDismissed: false,
   importedCount: undefined,
@@ -261,11 +259,10 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           }
           if (get().waitingToShowJoinedModal && resolved) {
             set(s => {
-              s.alreadyOnKeybase = T.castDraft(resolved)
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {
-              navigateAppend({name: 'settingsContactsJoined', params: {}})
+              navigateAppend({name: 'settingsContactsJoined', params: {contacts: resolved}})
             }
           }
         } catch (_error) {

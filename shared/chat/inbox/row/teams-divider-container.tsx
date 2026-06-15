@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type {ChatInboxRowItem} from '../rowitem'
 import {useConfigState} from '@/stores/config'
-import {useInboxRowsState} from '@/stores/inbox-rows'
+import {useInboxRowsState} from '@/chat/inbox/rows-state'
 import TeamsDivider from './teams-divider'
 
 type Props = Omit<React.ComponentProps<typeof TeamsDivider>, 'badgeCount'> & {

@@ -14,9 +14,9 @@ import Root from './root'
 import Rows from './rows/rows-container'
 import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf, useFsUpload} from '../common'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import * as FS from '@/constants/fs'
-import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/stores/fs-platform'
+import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/util/fs-platform'
 
 type OwnProps = {
   lastClosedPublicBannerTlf?: string
@@ -25,7 +25,7 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const filter = useModalHeaderState(s => s.folderViewFilter)
+  const filter = useFolderViewFilterState(s => s.folderViewFilter)
   const _pathItem = useFsPathItem(path)
   const tlf = useFsTlf(path)
   const _kbfsDaemonStatus = Kbfs.useKbfsDaemonStatus()

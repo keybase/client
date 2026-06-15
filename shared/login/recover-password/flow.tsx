@@ -6,7 +6,7 @@ import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
 import {callNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
-import {useProvisionState} from '@/stores/provision'
+import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {RPCError} from '@/util/errors'
 
@@ -50,7 +50,7 @@ export const startRecoverPassword = ({
   clearOwner(owner)
   const f = async () => {
     if (abortProvisioning) {
-      useProvisionState.getState().dispatch.dynamic.cancel?.()
+      cancelProvision()
     }
     let active = true
     let hadError = false

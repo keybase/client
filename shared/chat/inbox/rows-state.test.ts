@@ -1,8 +1,8 @@
 /// <reference types="jest" />
-import * as T from '../../constants/types'
-import * as Meta from '../../constants/chat/meta'
-import {resetAllStores} from '../../util/zustand'
-import {useCurrentUserState} from '../current-user'
+import * as T from '@/constants/types'
+import * as Meta from '@/constants/chat/meta'
+import {resetAllStores} from '@/util/zustand'
+import {useCurrentUserState} from '@/stores/current-user'
 import {
   syncInboxRowBadgeState,
   syncInboxRowsFromLayout,
@@ -12,7 +12,7 @@ import {
   syncInboxRowsFromParticipants,
   updateInboxRowTyping,
   useInboxRowsState,
-} from '../inbox-rows'
+} from './rows-state'
 
 afterEach(() => {
   resetAllStores()

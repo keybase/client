@@ -1,5 +1,14 @@
 import type {Meta, StoryObj} from '@storybook/react'
 import Troubleshooting from './troubleshooting'
+import type {Device} from '@/constants/provision'
+
+const makeDevice = (overrides: Partial<Device> = {}): Device => ({
+  deviceNumberOfType: 0,
+  id: 'device-001' as Device['id'],
+  name: 'testuser-mac',
+  type: 'desktop',
+  ...overrides,
+})
 
 const meta: Meta<typeof Troubleshooting> = {
   component: Troubleshooting,
@@ -13,21 +22,21 @@ type Story = StoryObj<typeof Troubleshooting>
 
 export const QRMode: Story = {
   args: {
+    device: makeDevice(),
     mode: 'QR',
-    otherDeviceType: 'desktop',
   },
 }
 
 export const TextMode: Story = {
   args: {
+    device: makeDevice(),
     mode: 'text',
-    otherDeviceType: 'desktop',
   },
 }
 
 export const OtherDeviceMobile: Story = {
   args: {
+    device: makeDevice({name: 'iPhone 15', type: 'mobile'}),
     mode: 'QR',
-    otherDeviceType: 'mobile',
   },
 }

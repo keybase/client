@@ -21,7 +21,7 @@ import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths
 import {
   fuseStatusToDriverStatus,
   refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
-} from '@/stores/fs-platform'
+} from '@/util/fs-platform'
 
 const {showTray} = KB2.functions
 

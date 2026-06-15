@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {consumeKeyed, registerKeyedScoped} from '@/stores/flow-handles'
-import {useProvisionState} from '@/stores/provision'
+import {startProvision} from '@/provision/flow'
 import {RPCError} from '@/util/errors'
 
 type EnterResetPipelineParams = {
@@ -41,7 +41,7 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
           pendingDisposers.delete(disposeRegistration)
           response.result(action)
           if (action === T.RPCGen.ResetPromptResponse.confirmReset) {
-            useProvisionState.getState().dispatch.startProvision(username, true)
+            startProvision(username, true)
           } else {
             navUpToScreen('login')
           }

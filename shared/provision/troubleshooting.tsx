@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useProvisionState} from '@/stores/provision'
+import type {Device} from '@/constants/provision'
 type Props = {
+  device: Device
   mode: 'QR' | 'text'
   onCancel: () => void
-  otherDeviceType: T.Devices.DeviceType
 }
 
 type BigButtonProps = {
@@ -52,11 +52,11 @@ const Troubleshooting = (props: Props) => {
     C.Router2.navUpToScreen('login')
   }
 
-  const device = useProvisionState(s => s.codePageOtherDevice)
+  const {device} = props
   const deviceIconNo = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
-  const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
+  const otherDeviceIcon = `icon-${device.type === 'mobile' ? 'phone' : 'computer'}-background-${
     deviceIconNo
   }-64` as Kb.IconType
 

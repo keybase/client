@@ -19,7 +19,6 @@ import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-st
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
-import {getTBStore} from '@/stores/team-building'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
@@ -31,8 +30,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
-import {useModalHeaderState} from '@/stores/modal-header'
-import {useProvisionState} from '@/stores/provision'
 import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
@@ -278,47 +275,10 @@ const onHandshakeStateChanged = (handshakeState: DaemonState['handshakeState']) 
   }
 }
 
-const onStartProvisionTriggerChanged = (value: number, previous: number) => {
-  // The trigger only counts up when a provision actually starts. A reset (resetState /
-  // resetAllStores) rewinds it to 0; ignore that, otherwise resetState after a successful
-  // provision would log the just-provisioned user back out.
-  if (value <= previous) {
-    return
-  }
-  useConfigState.getState().dispatch.setLoginError()
-  useConfigState.getState().dispatch.resetRevokedSelf()
-  const f = async () => {
-    // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-    if (useConfigState.getState().loggedIn) {
-      await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
-    }
-  }
-  ignorePromise(f())
-}
-
-const teamBuilderNamespaces = ['chat', 'crypto', 'teams', 'people'] as const
-const namespaceToTeamBuilderRoute = {
-  chat: 'chatNewChat',
-  crypto: 'cryptoTeamBuilder',
-  people: 'peopleTeamBuilder',
-  teams: 'teamsTeamBuilder',
-} as const
-
-const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
+const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
   const next = nextNavState as Util.NavState
   const prev = previousNavState as Util.NavState
   if (prev === next) return
-
-  for (const namespace of teamBuilderNamespaces) {
-    const wasTeamBuilding = namespaceToTeamBuilderRoute[namespace] === Util.getVisibleScreen(prev)?.name
-    if (wasTeamBuilding) {
-      // team building or modal on top of that still
-      const isTeamBuilding = namespaceToTeamBuilderRoute[namespace] === Util.getVisibleScreen(next)?.name
-      if (!isTeamBuilding) {
-        getTBStore(namespace).dispatch.cancelTeamBuilding()
-      }
-    }
-  }
 
   // Clear critical update when we nav away from tab
   if (
@@ -415,10 +375,6 @@ export const initSharedSubscriptions = () => {
   )
 
   _sharedUnsubs.push(
-    subscribeValue(useProvisionState, s => s.startProvisionTrigger, onStartProvisionTriggerChanged)
-  )
-
-  _sharedUnsubs.push(
     subscribeValue(useRouterState, s => s.navState, onNavStateChanged)
   )
 }
@@ -440,12 +396,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {badgeState} = action.payload.params
         syncBadgeState(badgeState)
-        useModalHeaderState
-          .getState()
-          .dispatch.setDeviceBadges(
-            new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])])
-          )
-
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }

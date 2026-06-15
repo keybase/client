@@ -25,7 +25,7 @@ import {
 import {
   finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
-} from '@/stores/fs-platform'
+} from '@/util/fs-platform'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
 import {clientID as fsClientID, makeUUID} from './client'
 import {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'

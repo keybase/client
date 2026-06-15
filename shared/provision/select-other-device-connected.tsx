@@ -1,13 +1,21 @@
 import * as C from '@/constants'
 import {useSafeSubmit} from '@/util/safe-submit'
 import SelectOtherDevice from './select-other-device'
-import {useProvisionState} from '@/stores/provision'
+import type {Device} from '@/constants/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
+import {submitProvisionDeviceSelect} from './flow'
 
-const SelectOtherDeviceContainer = () => {
-  const devices = useProvisionState(s => s.devices)
-  const submitDeviceSelect = useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
-  const username = useProvisionState(s => s.username)
+type Props = {
+  route: {
+    params: {
+      devices: ReadonlyArray<Device>
+      username: string
+    }
+  }
+}
+
+const SelectOtherDeviceContainer = ({route}: Props) => {
+  const {devices, username} = route.params
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const onBack = useSafeSubmit(C.Router2.navigateUp, false)
 
@@ -16,7 +24,7 @@ const SelectOtherDeviceContainer = () => {
   }
 
   const onSelect = (name: string) => {
-    if (!waiting) submitDeviceSelect?.(name)
+    if (!waiting) submitProvisionDeviceSelect(name)
   }
 
   return (

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useProvisionState} from '@/stores/provision'
+import {startAddNewDevice} from '@/provision/flow'
 import * as T from '@/constants/types'
 import {getDeviceIconType} from './device-icon'
 
@@ -16,7 +16,6 @@ export default function AddDevice(ownProps: AddDeviceProps) {
     desktop: 1 as T.Devices.IconNumber,
     mobile: 1 as T.Devices.IconNumber,
   } as const)
-  const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
   const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
 
   C.useOnMountOnce(() => {
@@ -35,7 +34,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
   })
 
   const onAddComputer = () => {
-    addNewDevice('desktop')
+    startAddNewDevice('desktop')
   }
 
   const navigateAppend = C.Router2.navigateAppend
@@ -52,7 +51,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
   }
 
   const onAddPhone = () => {
-    addNewDevice('mobile')
+    startAddNewDevice('mobile')
   }
   return (
     <Kb.ScrollView alwaysBounceVertical={false}>

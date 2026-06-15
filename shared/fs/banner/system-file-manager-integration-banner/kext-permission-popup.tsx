@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/stores/fs-platform'
+import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/util/fs-platform'
 
 const InstallSecurityPrefs = () => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()

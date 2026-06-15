@@ -1,5 +1,5 @@
 import SelectOtherDevice from '@/provision/select-other-device'
-import type {Device} from '@/stores/provision'
+import type {Device} from '@/constants/provision'
 import {
   cancelRecoverPassword,
   submitRecoverPasswordDeviceSelect,

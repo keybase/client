@@ -9,7 +9,7 @@ import {isAndroidNewerThanM} from '@/constants/platform'
 import {useConfigState} from '@/stores/config'
 import {startRecoverPassword} from '@/login/recover-password/flow'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
-import {useProvisionState} from '@/stores/provision'
+import {startProvision} from '@/provision/flow'
 import Dropdown from './dropdown.native'
 type Props = {
   users: Array<T.Config.ConfiguredAccount>
@@ -305,7 +305,7 @@ const ReloginContainer = () => {
   const onLogin = useConfigState(s => s.dispatch.login)
   const requestAutoInvite = useRequestAutoInvite()
   const onSignup = () => requestAutoInvite('')
-  const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
+  const onSomeoneElse = () => startProvision()
   const error = perror?.desc || ''
   const loggedInMap = new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret]))
   const users = sortBy(_users, 'username')

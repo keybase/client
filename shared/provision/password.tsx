@@ -4,20 +4,28 @@ import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {startRecoverPassword} from '@/login/recover-password/flow'
-import {useProvisionState} from '@/stores/provision'
+import {submitProvisionPassphrase} from './flow'
 
-const Password = () => {
-  const error = useProvisionState(s => s.error)
-  const username = useProvisionState(s => s.username)
+type Props = {
+  route: {
+    params: {
+      error?: string
+      username: string
+    }
+  }
+}
+
+const Password = ({route}: Props) => {
+  const {username} = route.params
+  const error = route.params.error ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const [resetEmailSent, setResetEmailSent] = React.useState(false)
   const onForgotPassword = () => {
     startRecoverPassword({abortProvisioning: true, onResetEmailSent: () => setResetEmailSent(true), username})
   }
   const onBack = C.Router2.navigateUp
-  const setPassphrase = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const [password, setPassword] = React.useState('')
-  const onSubmit = () => !waiting && setPassphrase?.(password)
+  const onSubmit = () => !waiting && submitProvisionPassphrase(password)
 
   return (
     <SignupScreen
