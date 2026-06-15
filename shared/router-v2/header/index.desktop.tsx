@@ -155,14 +155,14 @@ function DesktopHeader(p: Props) {
   const showDivider = headerShadowVisible !== false
   const windowDecorationsAreNeeded = !Platform.isMac && !useNativeFrame
 
-  // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
-  // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
-  // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
-  // push the back arrow down below the system icons.
+  // The whole header normally clears the system icons (traffic lights on Mac) because the left nav
+  // bar pushes it down/right -- unless you're logged out, in which case there's no nav bar and the
+  // header starts at the top-left corner, overlapping them. So, on Mac when logged out, render a top
+  // strip so the back/title/actions row sits below the traffic lights.
+  const loggedOutDarwin = !loggedIn && Platform.isDarwin
   const iconContainerStyle: Kb.Styles.StylesCrossPlatform = Kb.Styles.collapseStyles([
     styles.iconContainer,
     !back && styles.iconContainerInactive,
-    !loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
   ] as const)
   const iconColor = back
     ? Kb.Styles.globalColors.black_50
@@ -171,6 +171,94 @@ function DesktopHeader(p: Props) {
       : Kb.Styles.globalColors.transparent
 
   const popupAnchor = React.createRef<Kb.MeasureRef | null>()
+
+  const defaultBackButton = (
+    <Kb.ClickableBox
+      className={Kb.Styles.classNames('hover_container', {
+        hover_background_color_black_10: !!back,
+      })}
+      onClick={pop}
+      style={iconContainerStyle}
+      direction="vertical"
+    >
+      <Kb.Icon
+        type="iconfont-arrow-left"
+        color={iconColor}
+        className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
+      />
+    </Kb.ClickableBox>
+  )
+
+  // headerLeft === null -> no back button; a node/function -> the route owns the back affordance
+  // (and its onClick, e.g. a flow cancel); undefined -> the default arrow that pops the stack.
+  // The header is a window-drag region, so a route-supplied control must be marked clickable or the
+  // OS drag swallows its clicks.
+  let backButton: React.ReactNode = null
+  if (headerLeft === null) {
+    backButton = null
+  } else if (typeof headerLeft === 'function') {
+    backButton = <Kb.Box2 direction="vertical" style={styles.headerLeftClickable}>{headerLeft({tintColor: iconColor})}</Kb.Box2>
+  } else if (headerLeft !== undefined) {
+    backButton = <Kb.Box2 direction="vertical" style={styles.headerLeftClickable}>{headerLeft}</Kb.Box2>
+  } else {
+    backButton = defaultBackButton
+  }
+
+  // Logged out: a top strip that holds only the system buttons (or, on Mac, just reserves space so the
+  // OS traffic lights have nothing beside them), then a row below with back on the left, title centered,
+  // actions on the right. The side sections share the same flex so the title stays centered regardless
+  // of their widths. Keeping the back/title/actions row in a fixed spot below the strip stops it from
+  // jumping between screens.
+  if (!loggedIn) {
+    const showTopStrip = loggedOutDarwin || windowDecorationsAreNeeded
+    return (
+      <Kb.Box2
+        noShrink={true}
+        direction="vertical"
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([
+          styles.headerContainer,
+          showDivider && styles.headerBorder,
+          style,
+          headerStyle,
+        ])}
+      >
+        {showTopStrip && (
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            alignItems="center"
+            justifyContent="flex-end"
+            style={styles.loggedOutTopStrip}
+          >
+            {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
+          </Kb.Box2>
+        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.singleRow}>
+          <Kb.Box2 direction="horizontal" flex={1} alignItems="center" justifyContent="flex-start">
+            {backButton}
+          </Kb.Box2>
+          {headerTitle ? (
+            titleNode
+          ) : (
+            <Kb.Text type="Header" lineClamp={1}>
+              {title}
+            </Kb.Text>
+          )}
+          <Kb.Box2
+            direction="horizontal"
+            flex={1}
+            alignItems="center"
+            justifyContent="flex-end"
+            style={styles.headerLeftClickable}
+          >
+            {rightActions}
+          </Kb.Box2>
+        </Kb.Box2>
+        {subHeaderNode}
+      </Kb.Box2>
+    )
+  }
 
   return (
     <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
@@ -194,22 +282,7 @@ function DesktopHeader(p: Props) {
           ref={popupAnchor}
         >
           {/* TODO have headerLeft be the back button */}
-          {headerLeft !== null && (
-            <Kb.ClickableBox
-              className={Kb.Styles.classNames('hover_container', {
-                hover_background_color_black_10: !!back,
-              })}
-              onClick={pop}
-              style={iconContainerStyle}
-              direction="vertical"
-            >
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                color={iconColor}
-                className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
-              />
-            </Kb.ClickableBox>
-          )}
+          {backButton}
           <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders
               negative={
@@ -292,14 +365,26 @@ const styles = Kb.Styles.styleSheetCreate(
           padding: Kb.Styles.globalMargins.xtiny,
         },
       }),
-      iconContainerDarwin: Kb.Styles.platformStyles({
-        isElectron: {
-          position: 'relative',
-          top: 30,
-        },
-      }),
       iconContainerInactive: Kb.Styles.platformStyles({
         isElectron: {cursor: 'default'},
+      }),
+      headerLeftClickable: Kb.Styles.platformStyles({
+        isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
+      }),
+      loggedOutTopStrip: Kb.Styles.platformStyles({
+        isElectron: {
+          height: 28,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+        },
+      }),
+      singleRow: Kb.Styles.platformStyles({
+        isElectron: {
+          minHeight: 48,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
+        },
       }),
       plainContainer: {
         ...Kb.Styles.globalStyles.flexGrow,

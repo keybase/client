@@ -142,6 +142,7 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
     <SignupScreen
       banners={errorBanner(props.error)}
       buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
+      hideDesktopHeader={!isMobile}
       onBack={props.onBack}
       title={isMobile ? 'Name this device' : 'Name this computer'}
     >

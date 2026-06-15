@@ -5,6 +5,18 @@ import {InfoIcon} from './common'
 import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'
 import {defineRouteMap} from '@/constants/types/router'
+import {clearSignupDeviceNameDraft} from './device-name-draft'
+
+// Backing out of the username screen also clears any device-name draft, so the next signup starts clean.
+const UsernameHeaderLeft = () => (
+  <Kb.HeaderLeftButton
+    autoDetectCanGoBack={true}
+    onPress={() => {
+      clearSignupDeviceNameDraft()
+      C.Router2.navigateUp()
+    }}
+  />
+)
 
 const EmailSkipButton = () => {
   const showPushPrompt = usePushState(s => isMobile && !s.hasPermissions && s.showPushPrompt)
@@ -43,13 +55,12 @@ const PhoneSkipButton = () => {
 
 export const newRoutes = defineRouteMap({
   signupEnterDevicename: {
-    getOptions: {title: 'Name this device'},
+    getOptions: {title: isMobile ? 'Name this device' : 'Name this computer'},
     screen: React.lazy(async () => import('./device-name')),
   },
   signupEnterUsername: {
     getOptions: {
-      headerBottomStyle: {height: undefined},
-      headerLeft: undefined, // no back button
+      ...(isMobile ? {headerLeft: undefined} : {headerLeft: () => <UsernameHeaderLeft />}),
       headerRightActions: () => (
         <Kb.Box2
           direction="horizontal"

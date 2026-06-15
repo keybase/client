@@ -62,13 +62,7 @@ const DesktopLogin = (props: Props) => {
 
   const selectedIdx = props.users.findIndex(u => u.username === props.selectedUser)
   return (
-    <SignupScreen
-      banners={errorBanner(props.error)}
-      headerStyle={desktopStyles.header}
-      onRightAction={props.onSignup}
-      rightActionLabel="Create account"
-      title="Log in"
-    >
+    <SignupScreen banners={errorBanner(props.error)} hideDesktopHeader={!isMobile}>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} alignSelf="center" padding="small" style={desktopStyles.contentBox}>
         <UserCard username={props.selectedUser} outerStyle={desktopStyles.container} style={desktopStyles.userContainer}>
           <Kb.Dropdown
@@ -136,9 +130,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       forgotPassword: {
         marginTop: Kb.Styles.globalMargins.tiny,
-      },
-      header: {
-        borderBottomWidth: 0,
       },
       inputRow: {
         marginTop: Kb.Styles.globalMargins.tiny,
