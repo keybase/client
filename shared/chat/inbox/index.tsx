@@ -227,10 +227,10 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
   <>
     <Kb.Box2
       direction="vertical"
-      gapStart={true}
       gap="small"
-      justifyContent="flex-end"
+      justifyContent="center"
       alignItems="center"
+      fullWidth={true}
       style={nativeStyles.noChatsContainer}
     >
       <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
@@ -243,27 +243,26 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" gapStart={true} gap="medium" fullWidth={true} noShrink={true} style={nativeStyles.newChat}>
-      <Kb.Button
-        fullWidth={true}
-        onClick={props.onNewChat}
-        mode="Primary"
-        label="Start a new chat"
-      />
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} style={nativeStyles.newChat}>
+      <Kb.Button fullWidth={true} onClick={props.onNewChat} mode="Primary" label="Start a new chat" />
     </Kb.Box2>
   </>
 )
 
-// iOS tab screens draw edge-to-edge under the native tab bar; scroll views get
-// automatic content insets but this non-scrolling empty state must inset itself
-// so the buttons clear the tab bar. Android already insets the whole tab screen.
+// The empty state is a sibling of the (flex) list, which would otherwise eat the
+// vertical space and push this content off the bottom. Pin it as an absolute fill
+// overlay so the icon centers and the buttons sit at the bottom. On iOS the tab
+// screen draws edge-to-edge under the native tab bar, so inset the bottom edge to
+// clear it; Android already insets the whole tab screen.
 const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) =>
   isIOS ? (
     <ScreensSafeAreaView edges={{bottom: true}} style={nativeStyles.noChatsWrapper}>
       {children}
     </ScreensSafeAreaView>
   ) : (
-    <>{children}</>
+    <Kb.Box2 direction="vertical" style={nativeStyles.noChatsWrapper}>
+      {children}
+    </Kb.Box2>
   )
 
 const NativeNoRowsBuildTeam = () => {
@@ -733,12 +732,16 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       newChat: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       },
+      // flexGrow so the icon/text centers in the space above the bottom buttons.
       noChatsContainer: {
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
+        flexGrow: 1,
       },
+      // Absolute fill so the empty state overlays the flex list instead of being pushed
+      // below it. On iOS the RNS SafeAreaView (forced flex: 1) applies the bottom inset as
+      // margin, which lifts the buttons above the tab bar within this fill box.
       noChatsWrapper: {
-        alignSelf: 'stretch',
+        ...Kb.Styles.globalStyles.fillAbsolute,
       },
     }) as const
 )
