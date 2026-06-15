@@ -42,6 +42,7 @@ const sharedStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 import {useVideoPlayer, VideoView} from 'expo-video'
+import {useIsFocused} from '@react-navigation/core'
 
 // Stub type to avoid dom lib dependency in native tsconfig
 type VideoElementRef = {
@@ -168,6 +169,11 @@ const NativeVideo = (props: Props) => {
     setActive(autoPlay)
   }
 
+  // When the screen blurs (e.g. a modal opens over the conversation),
+  // react-native-screens freezes it and expo-video releases the native
+  // player, leaving a blank view on return. Remount the player on refocus.
+  const isFocused = useIsFocused()
+
   const uri = url.length > 0 ? url : 'https://'
   const sourceUri = `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`
 
@@ -182,7 +188,7 @@ const NativeVideo = (props: Props) => {
 
   return (
     <Kb.ClickableBox direction="vertical" relative={true} alignSelf="flex-start" onClick={_onClick} style={style}>
-      {active && (
+      {active && isFocused && (
         <NativeActiveVideo
           sourceUri={sourceUri}
           autoPlay={autoPlay}
