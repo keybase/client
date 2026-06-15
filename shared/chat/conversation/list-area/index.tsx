@@ -589,25 +589,21 @@ const NativeConversationList = function NativeConversationList() {
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
   // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
   // React's commit) so the newest message stays visible.
-  const numOrdinalsRef = React.useRef(numOrdinals)
   const prevNumOrdinalsRef = React.useRef(numOrdinals)
+  // Tracks which conversation prevNumOrdinalsRef's baseline belongs to so the
+  // baseline resets on a real conversation switch (value compare) rather than on
+  // a react-native-screens freeze/thaw, which re-mounts effects.
+  const numBaselineConvRef = React.useRef(conversationIDKey)
   const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
-  React.useLayoutEffect(() => {
-    numOrdinalsRef.current = numOrdinals
-  })
   React.useLayoutEffect(() => {
     isKeyboardVisibleRef.current = isKeyboardVisible
   })
-  // Resets baseline on conversation switch using a ref so numOrdinals is not a dep
-  // (adding it would make this fire alongside the sibling effect, collapsing prev === current
-  // and preventing the scroll-to-bottom from triggering on the first new message).
   React.useLayoutEffect(() => {
-    prevNumOrdinalsRef.current = numOrdinalsRef.current
-  }, [conversationIDKey])
-  React.useLayoutEffect(() => {
+    const sameConv = numBaselineConvRef.current === conversationIDKey
+    numBaselineConvRef.current = conversationIDKey
     const prev = prevNumOrdinalsRef.current
     prevNumOrdinalsRef.current = numOrdinals
-    if (numOrdinals > prev && isKeyboardVisibleRef.current) {
+    if (sameConv && numOrdinals > prev && isKeyboardVisibleRef.current) {
       const id = setTimeout(() => {
         if (isKeyboardVisibleRef.current) {
           scrollToBottom()
@@ -616,7 +612,7 @@ const NativeConversationList = function NativeConversationList() {
       return () => clearTimeout(id)
     }
     return undefined
-  }, [numOrdinals, scrollToBottom])
+  }, [conversationIDKey, numOrdinals, scrollToBottom])
 
   const lastCenteredOrdinal = React.useRef(0)
   React.useEffect(() => {
@@ -635,20 +631,23 @@ const NativeConversationList = function NativeConversationList() {
     return undefined
   }, [centeredOrdinalOrNone, scrollToCentered])
 
-  const prevLoadedRef = React.useRef(false)
-  const markedLoadedThreadRef = React.useRef(false)
+  // These refs store the conversation they last applied to (not a boolean) so a
+  // freeze/thaw of this screen — which re-mounts effects without a real
+  // conversation change — does not reset them and re-trigger the initial scroll,
+  // which would lose the user's scroll position (e.g. returning from the info
+  // panel). They reset implicitly when conversationIDKey changes.
+  const loadedConvRef = React.useRef<string | undefined>(undefined)
+  const markedConvRef = React.useRef<string | undefined>(undefined)
   React.useLayoutEffect(() => {
-    prevLoadedRef.current = false
-    markedLoadedThreadRef.current = false
-  }, [conversationIDKey])
-  React.useLayoutEffect(() => {
-    const justLoaded = loaded && !prevLoadedRef.current
-    prevLoadedRef.current = loaded
+    const justLoaded = loaded && loadedConvRef.current !== conversationIDKey
+    if (loaded) {
+      loadedConvRef.current = conversationIDKey
+    }
 
     if (!justLoaded) return
 
-    if (!markedLoadedThreadRef.current) {
-      markedLoadedThreadRef.current = true
+    if (markedConvRef.current !== conversationIDKey) {
+      markedConvRef.current = conversationIDKey
       markInitiallyLoadedThreadAsRead()
     }
 
@@ -664,6 +663,7 @@ const NativeConversationList = function NativeConversationList() {
       }, 100)
     }
   }, [
+    conversationIDKey,
     centeredOrdinalOrNone,
     loaded,
     markInitiallyLoadedThreadAsRead,
