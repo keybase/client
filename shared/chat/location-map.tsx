@@ -12,9 +12,21 @@ type Props = {
 const LocationMap = (props: Props) => {
   const {height, mapSrc, width} = props
   const [mapLoaded, setMapLoaded] = React.useState(false)
+  const [mapFailed, setMapFailed] = React.useState(false)
+  // mapSrc updates as the live location moves; reset load/error state so a new
+  // coordinate can recover from a transient failure.
+  const [prevMapSrc, setPrevMapSrc] = React.useState(mapSrc)
+  if (mapSrc !== prevMapSrc) {
+    setPrevMapSrc(mapSrc)
+    setMapLoaded(false)
+    setMapFailed(false)
+  }
   const onLoad = () => {
     setMapLoaded(true)
     props.onLoad?.()
+  }
+  const onError = () => {
+    setMapFailed(true)
   }
 
   const inner = (
@@ -26,8 +38,13 @@ const LocationMap = (props: Props) => {
       justifyContent="center"
       style={styles.container}
     >
-      {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
-      {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
+      {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={onLoad} onError={onError} />}
+      {!mapLoaded && !mapFailed && <Kb.ProgressIndicator style={styles.loading} />}
+      {mapFailed && (
+        <Kb.Text center={true} type="BodySmall" style={styles.error}>
+          Unable to load map.
+        </Kb.Text>
+      )}
       <Kb.Banner color="white" style={styles.banner}>
         <Kb.BannerParagraph
           bannerColor="white"
@@ -56,6 +73,9 @@ const styles = Kb.Styles.styleSheetCreate(
         left: 0,
         position: 'absolute',
         top: 0,
+      },
+      error: {
+        color: Kb.Styles.globalColors.redDark,
       },
       container: Kb.Styles.platformStyles({
         common: {

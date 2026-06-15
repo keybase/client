@@ -107,6 +107,14 @@ func MapReaderFromURL(ctx context.Context, g *globals.Context, url string) (res 
 	if err != nil {
 		return nil, 0, err
 	}
+	// Google Static Maps returns errors (e.g. "The provided API key is
+	// invalid.") as a non-200 text/plain body. Surface that message instead of
+	// handing the error body to png.Decode, which only reports "not a PNG file".
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+		return nil, 0, fmt.Errorf("maps request failed: status=%d body=%q", resp.StatusCode, string(body))
+	}
 	return resp.Body, resp.ContentLength, nil
 }
 
