@@ -135,15 +135,17 @@ const ActionsRow = (p: {
         type="Dim"
         mode="Secondary"
         small={true}
-        label="View files"
+        label={isMobile ? 'View' : 'View files'}
         onClick={onBrowseGitRepo}
       >
-        <Kb.Icon
-          type="iconfont-file"
-          sizeType="Small"
-          color={Kb.Styles.globalColors.black_50}
-          style={styles.iconXtiny}
-        />
+        {!isMobile && (
+          <Kb.Icon
+            type="iconfont-file"
+            sizeType="Small"
+            color={Kb.Styles.globalColors.black_50}
+            style={styles.iconXtiny}
+          />
+        )}
       </Kb.Button>
       <Kb.Button
         type="Dim"
@@ -152,19 +154,21 @@ const ActionsRow = (p: {
         label="Archive"
         onClick={onArchiveGitRepo}
       >
-        <Kb.Icon
-          type="iconfont-mailbox"
-          sizeType="Small"
-          color={Kb.Styles.globalColors.black_50}
-          style={styles.iconXtiny}
-        />
+        {!isMobile && (
+          <Kb.Icon
+            type="iconfont-mailbox"
+            sizeType="Small"
+            color={Kb.Styles.globalColors.black_50}
+            style={styles.iconXtiny}
+          />
+        )}
       </Kb.Button>
       {canDelete && (
         <Kb.Button
           type="Danger"
           mode="Secondary"
           small={true}
-          label="Delete repo"
+          label={isMobile ? 'Delete' : 'Delete repo'}
           onClick={onShowDelete}
         />
       )}
