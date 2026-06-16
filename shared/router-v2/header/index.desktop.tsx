@@ -193,7 +193,7 @@ function DesktopHeader(p: Props) {
   // (and its onClick, e.g. a flow cancel); undefined -> the default arrow that pops the stack.
   // The header is a window-drag region, so a route-supplied control must be marked clickable or the
   // OS drag swallows its clicks.
-  let backButton: React.ReactNode = null
+  let backButton: React.ReactNode
   if (headerLeft === null) {
     backButton = null
   } else if (typeof headerLeft === 'function') {
