@@ -20,6 +20,8 @@ import * as FS from '@/constants/fs'
 import {useOpenPathInSystemFileManagerDesktop, useSystemFileManagerIntegration} from '../sfmi'
 import {useCurrentUserState} from '@/stores/current-user'
 
+const safeProviderStyle = {flex: 1} as const
+
 type OwnProps = {
   downloadID?: string
   downloadIntent?: T.FS.DownloadIntent
@@ -358,7 +360,7 @@ const Container = (op: OwnProps) => {
 
   return (
     <Kb.FloatingMenu
-      closeText="Cancel"
+      closeText="Close"
       closeOnSelect={false}
       containerStyle={containerStyle}
       attachTo={attachTo}
@@ -367,6 +369,7 @@ const Container = (op: OwnProps) => {
       position="left center"
       header={<Header path={path} />}
       items={items.length ? ['Divider' as const, ...items] : items}
+      safeProviderStyle={safeProviderStyle}
     />
   )
 }
