@@ -380,10 +380,7 @@ const styles = Kb.Styles.styleSheetCreate(
       singleRow: Kb.Styles.platformStyles({
         isElectron: {
           minHeight: 48,
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
         },
       }),
       plainContainer: {
