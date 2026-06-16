@@ -1,6 +1,5 @@
 export type GitInfo = {
   canDelete: boolean
-  channelName?: string
   chatDisabled: boolean
   devicename: string
   id: string // 'Global Unique ID',

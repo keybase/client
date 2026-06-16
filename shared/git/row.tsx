@@ -17,6 +17,7 @@ type OwnProps = {
   onShowDelete: (git: T.Git.GitInfo) => void
   onToggleExpand: (id: string) => void
   reload: () => void
+  refreshToken: number
   setError: (error?: Error) => void
 }
 
@@ -84,40 +85,54 @@ const LastPushRow = (p: {
 
 const ChatRow = (p: {
   canEdit: boolean
+  channelLoading: boolean
   channelName?: string
   chatDisabled: boolean
   teamname: string
   onChannelClick: (e: React.BaseSyntheticEvent) => void
   onToggleChatEnabled: () => void
 }) => {
-  const {canEdit, channelName, chatDisabled, teamname, onChannelClick, onToggleChatEnabled} = p
+  const {canEdit, channelLoading, channelName, chatDisabled, teamname, onChannelClick, onToggleChatEnabled} = p
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center">
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" alignSelf="flex-start">
       {canEdit && (
         <Kb.Checkbox
           checked={!chatDisabled}
           onCheck={onToggleChatEnabled}
           label=""
           labelComponent={
-            <Kb.Text type="BodySmall">
-              Announce pushes in{' '}
-              <Kb.Text
-                type={chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
-                onClick={onChannelClick}
-              >
-                {channelNameToString(channelName)}
+            channelLoading ? (
+              <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+                <Kb.Text type="BodySmall">Announce pushes in</Kb.Text>
+                <Kb.ProgressIndicator type="Small" />
+              </Kb.Box2>
+            ) : (
+              <Kb.Text type="BodySmall">
+                Announce pushes in{' '}
+                <Kb.Text
+                  type={chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                  onClick={onChannelClick}
+                >
+                  {channelNameToString(channelName)}
+                </Kb.Text>
               </Kb.Text>
-            </Kb.Text>
+            )
           }
         />
       )}
-      {!canEdit && (
-        <Kb.Text type="BodySmall">
-          {chatDisabled
-            ? 'Pushes are not announced'
-            : `Pushes are announced in ${teamname}${channelNameToString(channelName)}`}
-        </Kb.Text>
-      )}
+      {!canEdit &&
+        (channelLoading ? (
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+            <Kb.Text type="BodySmall">{`Pushes are announced in ${teamname}`}</Kb.Text>
+            <Kb.ProgressIndicator type="Small" />
+          </Kb.Box2>
+        ) : (
+          <Kb.Text type="BodySmall">
+            {chatDisabled
+              ? 'Pushes are not announced'
+              : `Pushes are announced in ${teamname}${channelNameToString(channelName)}`}
+          </Kb.Text>
+        ))}
     </Kb.Box2>
   )
 }
@@ -178,17 +193,48 @@ const ActionsRow = (p: {
 
 function ConnectedRow(ownProps: OwnProps) {
   const {expanded, git, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_, reload, setError} = ownProps
+  const {refreshToken} = ownProps
   const {id} = git
   const teamNameToID = useTeamsListNameToIDMap()
   const teamID = git.teamname ? teamNameToID.get(git.teamname) : undefined
   const isNew = React.useContext(NewContext).has(id)
   const you = useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useRPC(T.RPCGen.gitSetTeamRepoSettingsRpcPromise)
+  const getTeamRepoSettings = C.useRPC(T.RPCGen.gitGetTeamRepoSettingsRpcPromise)
   const _onBrowseGitRepo = FS.navToPath
   const navigateAppend = C.Router2.navigateAppend
 
-  const {url: gitURL, repoID, channelName, teamname, chatDisabled} = git
+  const {url: gitURL, repoID, teamname, chatDisabled} = git
   const {canDelete, devicename, lastEditTime, lastEditUser, name} = git
+
+  // The channel name is resolved lazily (it requires a per-repo chat lookup on
+  // the service), so we only fetch it once the row is expanded and chat is
+  // enabled. getAllGitMetadata no longer returns it. `channelLoaded` stays true
+  // across background refetches so we only show the spinner on the first load,
+  // not on every reload.
+  const [channelName, setChannelName] = React.useState<string | undefined>(undefined)
+  const [channelLoaded, setChannelLoaded] = React.useState(false)
+  React.useEffect(() => {
+    if (!expanded || !teamname || chatDisabled) {
+      return
+    }
+    getTeamRepoSettings(
+      [
+        {
+          folder: {created: false, folderType: T.RPCGen.FolderType.team, name: teamname},
+          repoID,
+        },
+      ],
+      res => {
+        setChannelName(res.channelName ?? undefined)
+        setChannelLoaded(true)
+      },
+      () => {
+        setChannelLoaded(true)
+      }
+    )
+  }, [getTeamRepoSettings, expanded, teamname, chatDisabled, repoID, refreshToken])
+  const channelLoading = !!teamname && !chatDisabled && expanded && !channelLoaded
 
   const onArchiveGitRepo = () => {
     if (gitURL) {
@@ -314,6 +360,7 @@ function ConnectedRow(ownProps: OwnProps) {
               {!!teamname && (
                 <ChatRow
                   canEdit={canEdit}
+                  channelLoading={channelLoading}
                   channelName={channelName}
                   chatDisabled={chatDisabled}
                   teamname={teamname}

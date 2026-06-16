@@ -300,6 +300,7 @@
   "keybase.1.git.deletePersonalRepo": {"promise":true},
   "keybase.1.git.deleteTeamRepo": {"promise":true},
   "keybase.1.git.getAllGitMetadata": {"promise":true},
+  "keybase.1.git.getTeamRepoSettings": {"promise":true},
   "keybase.1.git.setTeamRepoSettings": {"promise":true},
   "keybase.1.gpgUi.selectKey": {"custom":true},
   "keybase.1.gpgUi.wantToAddGPGKey": {"custom":true},

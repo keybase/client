@@ -23,7 +23,6 @@ const parseRepoResult = (result: T.RPCGen.GitRepoResult): T.Git.GitInfo | undefi
     const teamname = r.folder.folderType === T.RPCGen.FolderType.team ? r.folder.name : undefined
     return {
       canDelete: r.canDelete,
-      channelName: r.teamRepoSettings?.channelName || undefined,
       chatDisabled: !!r.teamRepoSettings?.chatDisabled,
       devicename: r.serverMetadata.lastModifyingDeviceName,
       id: r.globalUniqueID,
@@ -99,6 +98,9 @@ const GitRoot = (ownProps: OwnProps) => {
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   const [error, setError] = React.useState<Error | undefined>()
   const [idToInfo, setIDToInfo] = React.useState(new Map<string, T.Git.GitInfo>())
+  // Bumped on every (re)load so expanded rows refetch their lazily-loaded
+  // channel name (e.g. after returning from the channel selector).
+  const [refreshToken, setRefreshToken] = React.useState(0)
   const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
   const {badged} = useLocalBadging(new Set(isNew ?? []), () => {
     clearGitBadges(
@@ -120,6 +122,7 @@ const GitRoot = (ownProps: OwnProps) => {
         const {setGlobalError} = useConfigState.getState().dispatch
         errors.forEach(e => setGlobalError(e))
         setIDToInfo(repos)
+        setRefreshToken(t => t + 1)
         setError(undefined)
       },
       err => {
@@ -215,6 +218,7 @@ const GitRoot = (ownProps: OwnProps) => {
                 git={idToInfo.get(item)!}
                 onShowDelete={onShowDelete}
                 reload={load}
+                refreshToken={refreshToken}
                 setError={setError}
                 onToggleExpand={toggleExpand}
               />
