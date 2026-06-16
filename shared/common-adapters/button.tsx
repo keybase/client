@@ -231,8 +231,7 @@ const ButtonNative = (props: FullProps) => {
   const handlePress = unclickable ? undefined : onClick
 
   const whiteSpinner = isPrimary && type !== 'Dim'
-  const fontWeight = '600' as const
-  const fontSize = 16
+  const fontStyle = {...Styles.globalStyles.fontSemibold, fontSize: 16}
 
   const inner = (
     <>
@@ -240,7 +239,7 @@ const ButtonNative = (props: FullProps) => {
       {!!label && (
         <RNText
           style={Styles.castStyleNative(
-            waiting ? Styles.collapseStyles([labelStyle, labelStyleOverride, opacity0Style, {fontSize, fontWeight}]) : Styles.collapseStyles([labelStyle, labelStyleOverride, {fontSize, fontWeight}])
+            waiting ? Styles.collapseStyles([labelStyle, labelStyleOverride, opacity0Style, fontStyle]) : Styles.collapseStyles([labelStyle, labelStyleOverride, fontStyle])
           )}
         >
           {label}
