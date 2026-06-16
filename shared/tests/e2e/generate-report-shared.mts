@@ -83,7 +83,8 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
     visual = `<div class="empty">No screenshot</div>`
   }
 
-  return `<div class="card ${card.passed ? 'ok' : 'fail'}"${card.diff !== null && card.diff.changed > 0 ? ' data-has-diff="1"' : ''}>
+  const hasDiff = card.diff !== null && card.diff.pct >= 0.05
+  return `<div class="card ${card.passed ? 'ok' : 'fail'}" data-idx="${idx}" data-diff-pct="${card.diff ? card.diff.pct : 0}"${hasDiff ? ' data-has-diff="1"' : ''}>
   <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(card.label)}</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}${error}</div>
   ${visual}
 </div>`
@@ -95,7 +96,7 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
   const totalFailed = statsCards.length - totalPassed
   const allPassed = totalFailed === 0
   const allCards = sections.flatMap(s => s.cards)
-  const hasDiff = allCards.some(c => c.diff !== null)
+  const diffCount = allCards.filter(c => c.diff !== null && c.diff.pct >= 0.05).length
 
   const relFn = (p: string) => path.relative(path.dirname(outputPath), p)
   const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -114,10 +115,11 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
     .map(s => `<a class="sec-link" href="#sec-${slugify(s.header!)}">${escapeHtml(s.header!)}</a>`)
     .join('')
 
-  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, hasDiff, timestamp, cardHtml, navLinks)
+  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, diffCount, timestamp, cardHtml, navLinks)
 }
 
-export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, hasDiff: boolean, timestamp: string, cards: string, navLinks = ''): string {
+export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, diffCount: number, timestamp: string, cards: string, navLinks = ''): string {
+  const hasDiff = diffCount > 0
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,7 +132,7 @@ ${sharedCss(allPassed)}
 <body>
 <header>
   <div class="hdr-top"><h1>${title}</h1><button id="slideshow-btn" title="Slideshow">▶</button></div>
-  <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ' <span>· vs baseline</span>' : ''}${navLinks ? `<span class="sec-links">${navLinks}</span>` : ''}<span class="ts">${timestamp}</span></div>
+  <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ` <span>· ${diffCount} with diffs vs baseline</span>` : ''}${navLinks ? `<span class="sec-links">${navLinks}</span>` : ''}<span class="ts">${timestamp}</span></div>
   <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false">${hasDiff ? '<label class="diff-only-label"><input type="checkbox" id="diff-only"> Pixel diff only</label>' : ''}</div>
 </header>
 <div class="grid">${cards}</div>
@@ -356,9 +358,33 @@ slideshowBtn.addEventListener('click', () => {
 const filterInput = document.getElementById('filter-input')
 const diffOnlyCheck = document.getElementById('diff-only')
 
+// Sort cards by pixel-diff desc when diff-only is on; restore authored order when off.
+// Sorts within each section group so cards stay under their own header.
+function reorderCards(byDiff) {
+  const grid = document.querySelector('.grid')
+  if (!grid) return
+  const groups = []
+  let cur = {hdr: null, cards: []}
+  Array.from(grid.children).forEach(el => {
+    if (el.classList.contains('section-hdr')) { groups.push(cur); cur = {hdr: el, cards: []} }
+    else if (el.classList.contains('card')) cur.cards.push(el)
+  })
+  groups.push(cur)
+  const frag = document.createDocumentFragment()
+  groups.forEach(g => {
+    if (g.hdr) frag.appendChild(g.hdr)
+    g.cards.slice().sort((a, b) => byDiff
+      ? parseFloat(b.dataset.diffPct || '0') - parseFloat(a.dataset.diffPct || '0')
+      : parseInt(a.dataset.idx || '0', 10) - parseInt(b.dataset.idx || '0', 10)
+    ).forEach(c => frag.appendChild(c))
+  })
+  grid.appendChild(frag)
+}
+
 function applyFilter(q) {
   const lq = q.toLowerCase()
   const diffOnly = diffOnlyCheck?.checked ?? false
+  reorderCards(diffOnly)
   document.querySelectorAll('.grid .card').forEach(card => {
     const name = card.querySelector('.name')?.textContent?.toLowerCase() ?? ''
     const nameMatch = lq.length === 0 || name.includes(lq)
