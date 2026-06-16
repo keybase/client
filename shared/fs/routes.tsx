@@ -4,7 +4,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
-import {IosHeaderRightItems, IosHeaderTitle} from './nav-header/ios-header'
+import {IosHeaderTitle} from './nav-header/ios-header'
 import {Filename, ItemIcon} from './common'
 import {getIncomingShareSizes, OriginalOrCompressedButton} from '@/incoming-share'
 import {defineRouteMap} from '@/constants/types/router'
@@ -83,18 +83,11 @@ const fsFolderGetOptions = (ownProps?: {route: {params?: {path?: T.FS.Path}}}) =
   const path = params?.path ?? FS.defaultPath
   if (isIOS) {
     // Native header so the back button and right items get liquid glass on iOS 26.
-    // The banner and the folder-view filter (native search bar) are handled from
-    // the screen body; see fs/index.tsx.
+    // The banner, the folder-view filter, and the overflow menu (Search/Upload/
+    // More) are all attached from the screen body; see fs/index.tsx.
     return {
       headerBackVisible: true,
       headerTitle: () => <IosHeaderTitle path={path} />,
-      ...(path === FS.defaultPath
-        ? {}
-        : {
-            unstable_headerRightItems: () => [
-              {element: <IosHeaderRightItems path={path} mayUpload={true} />, type: 'custom' as const},
-            ],
-          }),
     }
   }
   return isMobile
@@ -119,9 +112,6 @@ export const newRoutes = defineRouteMap({
           headerTitle: () => <IosHeaderTitle path={path} />,
           // Full-screen attachment preview is allowed to rotate.
           orientation: 'all' as const,
-          unstable_headerRightItems: () => [
-            {element: <IosHeaderRightItems path={path} mayUpload={false} />, type: 'custom' as const},
-          ],
         }
       }
       return isMobile
