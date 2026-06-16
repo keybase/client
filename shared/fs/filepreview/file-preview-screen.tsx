@@ -4,6 +4,7 @@ import * as Kbfs from '../common'
 import * as SimpleScreens from '../simple-screens'
 import NormalPreview from './normal-preview'
 import {MainBanner} from '../nav-header'
+import {IosHeaderMenu} from '../nav-header/ios-header'
 
 type OwnProps = {
   initialLastModifiedTimestamp?: number
@@ -30,6 +31,7 @@ const FilePreviewScreenInner = ({path}: {path: T.FS.Path}) => {
   // at the top of the screen body instead.
   return (
     <>
+      {isIOS && <IosHeaderMenu path={path} mayUpload={false} />}
       {isMobile && <MainBanner />}
       {fileContext === FS.emptyFileContext ? (
         <SimpleScreens.Loading />

@@ -146,7 +146,10 @@ type SignupScreenProps = {
 
 // Screens with header + body bg color (i.e. all but join-or-login)
 export const SignupScreen = (props: SignupScreenProps) => {
-  const showDesktopHeader = !isMobile && !props.hideDesktopHeader
+  // When logged out, React Navigation's header owns the title/back/action row, so this screen-level
+  // header would be a second header. Only draw it for logged-in uses (e.g. the feedback modal).
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const showDesktopHeader = !isMobile && !props.hideDesktopHeader && loggedIn
 
   return (
     <Kb.Box2

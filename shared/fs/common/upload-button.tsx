@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {
   pickAndUploadMobile as pickAndUploadInPlatform,
@@ -14,12 +15,18 @@ type OwnProps = {
   // Render a dimmed, inert icon instead of nothing when uploading isn't
   // allowed, so containers with a fixed layout (iOS header pill) don't resize.
   showDisabled?: boolean
+  // Render no trigger button, only the popup. The upload menu is opened
+  // imperatively through the ref handle (used by the iOS native header menu).
+  hideTrigger?: boolean
   style?: Kb.Styles.StylesCrossPlatform
 }
+
+export type UploadButtonHandle = {open: () => void}
 
 type UploadButtonProps = {
   canUpload: boolean
   showDisabled?: boolean
+  hideTrigger?: boolean
   openAndUploadBoth?: () => void
   openAndUploadDirectory?: () => void
   openAndUploadFile?: () => void
@@ -30,7 +37,7 @@ type UploadButtonProps = {
   style: Kb.Styles.StylesCrossPlatform
 }
 
-const UploadButton = (props: UploadButtonProps) => {
+const UploadButton = React.forwardRef<UploadButtonHandle, UploadButtonProps>((props, ref) => {
   const {pickAndUploadPhoto, pickAndUploadVideo, pickAndUploadFile, openAndUploadDirectory, openAndUploadFile: openAndUploadFileDesktop} = props
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -54,6 +61,19 @@ const UploadButton = (props: UploadButtonProps) => {
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
+  const {canUpload, hideTrigger} = props
+  React.useImperativeHandle(ref, () => ({
+    open: () => {
+      if (canUpload) {
+        showPopup()
+      }
+    },
+  }))
+
+  if (hideTrigger) {
+    return <>{popup}</>
+  }
+
   if (!props.canUpload) {
     return props.showDisabled ? (
       <Kb.Icon type="iconfont-upload" padding="tiny" color={Kb.Styles.globalColors.black_20} />
@@ -74,9 +94,10 @@ const UploadButton = (props: UploadButtonProps) => {
       {popup}
     </>
   )
-}
+})
+UploadButton.displayName = 'UploadButtonInner'
 
-const Container = (ownProps: OwnProps) => {
+const Container = React.forwardRef<UploadButtonHandle, OwnProps>((ownProps, ref) => {
   const _pathItem = useFsPathItem(ownProps.path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const upload = useFsUpload()
@@ -162,7 +183,13 @@ const Container = (ownProps: OwnProps) => {
   const pickAndUploadFileMobile = isMobile ? _pickAndUploadFileMobile : undefined
 
   const props = {
-    canUpload: _pathItem.type === T.FS.PathType.Folder && _pathItem.writable,
+    // Optimistically show the upload button while the path item is still
+    // loading (Unknown), then hide it if we learn the path isn't an uploadable
+    // folder. Avoids the button popping in late on desktop.
+    canUpload:
+      _pathItem.type === T.FS.PathType.Unknown ||
+      (_pathItem.type === T.FS.PathType.Folder && _pathItem.writable),
+    hideTrigger: ownProps.hideTrigger,
     openAndUploadBoth,
     openAndUploadDirectory,
     openAndUploadFile,
@@ -173,7 +200,9 @@ const Container = (ownProps: OwnProps) => {
     showDisabled: ownProps.showDisabled,
     style: ownProps.style,
   }
-  return <UploadButton {...props} />
-}
+  return <UploadButton ref={ref} {...props} />
+})
+
+Container.displayName = 'UploadButton'
 
 export default Container

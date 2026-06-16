@@ -399,6 +399,16 @@ export const ListBody = ({
   const recommendedHideYourself = params.recommendedHideYourself ?? false
   const teamID = params.teamID
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
+  // modal drops its bottom safe-area edge (see page.tsx) so this list runs
+  // edge-to-edge. iOS contentInsetAdjustmentBehavior="automatic" handles the
+  // home-indicator inset; Android must pad the scroll content manually.
+  const insets = Kb.useSafeAreaInsets()
+  const listStyle = isAndroid
+    ? Kb.Styles.collapseStyles([
+        styles.list,
+        {paddingBottom: insets.bottom + Kb.Styles.globalMargins.small},
+      ])
+    : styles.list
 
   const {recommendations, searchResults, showLoading, showRecPending, showRecs, showResults} =
     useListBodyData({
@@ -454,7 +464,7 @@ export const ListBody = ({
         reAnimated={true}
         items={searchResults}
         selectedIndex={highlightedIndex || 0}
-        style={styles.list}
+        style={listStyle}
         keyboardShouldPersistTaps="handled"
         keyProperty="key"
         onEndReached={onEndReached}

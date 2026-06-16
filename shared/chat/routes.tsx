@@ -237,7 +237,10 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./conversation/info-panel')),
     {
       getOptions: isMobile
-        ? Kb.doneModalOptions('')
+        ? // body is a full-bleed scrolling tab list; run it to the screen bottom
+          // (its content inset clears the home indicator) instead of leaving a
+          // blank safe-area strip below the last row
+          {...Kb.doneModalOptions(''), safeAreaEdges: ['top', 'left', 'right'] as const}
         : {...Kb.doneModalOptions(''), modalSize: 'fullscreen'},
     }
   ),

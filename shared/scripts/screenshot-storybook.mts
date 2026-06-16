@@ -69,7 +69,19 @@ fs.rmSync(outputDir, {recursive: true, force: true})
 fs.mkdirSync(outputDir, {recursive: true})
 
 const executablePath = process.env['CHROME_PATH']
-const browser = await chromium.launch(executablePath ? {executablePath} : {})
+const launchOpts = executablePath ? {executablePath} : {}
+// Playwright bundles a browser keyed to its exact version. Our install path uses
+// `--ignore-scripts`, so the browser is never auto-downloaded and a `@playwright/test`
+// bump silently leaves the old revision behind. Self-heal: install on first launch failure.
+let browser
+try {
+  browser = await chromium.launch(launchOpts)
+} catch (err) {
+  if (executablePath || !/Executable doesn't exist|playwright install/.test((err as Error).message)) throw err
+  console.log('Chromium not installed for this Playwright version — installing...')
+  execSync('node_modules/.bin/playwright install chromium-headless-shell', {cwd: sharedDir, stdio: 'inherit'})
+  browser = await chromium.launch(launchOpts)
+}
 
 const queue = [...stories]
 let done = 0
@@ -77,7 +89,10 @@ const total = stories.length * 2
 
 await Promise.all(
   Array.from({length: CONCURRENCY}, async () => {
-    const page = await browser.newPage({viewport: {width: 1280, height: 800}})
+    // Fixed viewport with no fullPage capture: every screenshot is exactly
+    // 900x900. fullPage sizes to content height, which drifts between runs and
+    // makes baseline/now differ in dimensions (computeDiff bails on size mismatch).
+    const page = await browser.newPage({viewport: {width: 900, height: 900}})
 
     while (queue.length) {
       const item = queue.shift()
@@ -93,7 +108,7 @@ await Promise.all(
           waitUntil: 'load',
           timeout: 10000,
         })
-        await page.screenshot({path: path.join(storyDir, `${slug}.png`), fullPage: true})
+        await page.screenshot({path: path.join(storyDir, `${slug}.png`)})
         done++
         console.log(`  [${done}/${total}] ${title}/${name} (light)`)
 
@@ -102,7 +117,7 @@ await Promise.all(
           waitUntil: 'load',
           timeout: 10000,
         })
-        await page.screenshot({path: path.join(storyDir, `${slug}-dark.png`), fullPage: true})
+        await page.screenshot({path: path.join(storyDir, `${slug}-dark.png`)})
         done++
         console.log(`  [${done}/${total}] ${title}/${name} (dark)`)
       } catch (err) {

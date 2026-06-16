@@ -28,7 +28,12 @@ export type Props = {
   mode: 'row' | 'screen'
   path: T.FS.Path
   initView: T.FS.PathItemActionMenuView
+  // Render no trigger, only the popup. The menu is opened imperatively through
+  // the ref handle instead (used by the iOS native header overflow menu).
+  hideTrigger?: boolean
 }
+
+export type PathItemActionHandle = {open: () => void}
 
 type ICProps = {
   measureRef: React.RefObject<Kb.MeasureRef | null>
@@ -54,8 +59,8 @@ function IconClickable(props: ICProps) {
   )
 }
 
-const PathItemAction = (props: Props) => {
-  const {initView, path, mode} = props
+const PathItemAction = React.forwardRef<PathItemActionHandle, Props>((props, ref) => {
+  const {initView, path, mode, hideTrigger} = props
   const [previousView, setPreviousView] = React.useState(initView)
   const [view, setViewState] = React.useState(initView)
   const [downloadState, setDownloadState] = React.useState<{
@@ -109,8 +114,14 @@ const PathItemAction = (props: Props) => {
     showPopup()
   }
 
+  React.useImperativeHandle(ref, () => ({open: onClick}))
+
   if (props.path === FS.defaultPath) {
     return null
+  }
+
+  if (hideTrigger) {
+    return <>{showingPopup && popup}</>
   }
 
   return (
@@ -129,7 +140,7 @@ const PathItemAction = (props: Props) => {
       {showingPopup && popup}
     </>
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -147,5 +158,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
     }) as const
 )
+
+PathItemAction.displayName = 'PathItemAction'
 
 export default PathItemAction

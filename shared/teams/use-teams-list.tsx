@@ -226,6 +226,10 @@ export const useTeamsListMap = () => {
 }
 
 export const useTeamsListNameToIDMap = () => {
-  const {teams} = useTeamsList()
+  // NameWithIcon is a common-adapter that can render inside mobile popup portals
+  // (popup-root is a sibling to the router, outside LoadedTeamsListProvider), so
+  // fall back to the module cache instead of throwing when there's no provider.
+  const context = React.useContext(TeamsListContext)
+  const teams = context?.teams ?? teamsListCache.getData()
   return React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
 }

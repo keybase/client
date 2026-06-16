@@ -133,6 +133,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
         },
       ]}
       footer={isMobile ? eulaBlock : undefined}
+      hideDesktopHeader={!isMobile}
       onBack={props.onBack}
       title="Create account"
     >

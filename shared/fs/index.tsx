@@ -5,7 +5,7 @@ import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
 import * as FS from '@/constants/fs'
 import {MainBanner} from './nav-header'
-import {IosHeaderSearch} from './nav-header/ios-header'
+import {IosHeaderMenu} from './nav-header/ios-header'
 
 type ChooseComponentProps = {
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
@@ -64,7 +64,7 @@ const ConnectedInner = (ownProps: OwnProps) => {
   // at the top of the screen body instead.
   return (
     <>
-      {isIOS && <IosHeaderSearch path={path} />}
+      {isIOS && <IosHeaderMenu path={path} mayUpload={true} />}
       {isMobile && <MainBanner />}
       <ChooseComponent {...props} />
     </>

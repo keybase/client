@@ -27,6 +27,8 @@ const makeAliases = (): Record<string, string | false> => {
     '@react-native-picker/picker': path.resolve(rootDir, 'desktop/stubs/react-native-picker.js'),
     // electron stub MUST come before '@' (insertion order matters for webpack alias matching)
     '@/util/electron$': path.resolve(__dirname, 'mocks/electron.ts'),
+    // safe-navigation calls react-navigation useIsFocused(), which throws with no navigator
+    '@/util/safe-navigation$': path.resolve(__dirname, 'mocks/safe-navigation.ts'),
     '@': rootDir,
   }
 }

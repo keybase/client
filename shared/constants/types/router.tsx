@@ -32,6 +32,10 @@ export type ScreenComponentProps<
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {
   safeAreaStyle?: Styles.StylesCrossPlatform
+  // which edges the modal SafeAreaView insets; omit = all edges. Drop 'bottom'
+  // to let a scrolling body run edge-to-edge (its own content inset clears the
+  // home indicator) instead of leaving a blank safe-area strip below it.
+  safeAreaEdges?: ReadonlyArray<'top' | 'right' | 'bottom' | 'left'>
   overlayAvoidTabs?: boolean
   overlayTransparent?: boolean
   overlayNoClose?: boolean

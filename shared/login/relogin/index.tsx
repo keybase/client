@@ -62,13 +62,7 @@ const DesktopLogin = (props: Props) => {
 
   const selectedIdx = props.users.findIndex(u => u.username === props.selectedUser)
   return (
-    <SignupScreen
-      banners={errorBanner(props.error)}
-      headerStyle={desktopStyles.header}
-      onRightAction={props.onSignup}
-      rightActionLabel="Create account"
-      title="Log in"
-    >
+    <SignupScreen banners={errorBanner(props.error)} hideDesktopHeader={!isMobile}>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} alignSelf="center" padding="small" style={desktopStyles.contentBox}>
         <UserCard username={props.selectedUser} outerStyle={desktopStyles.container} style={desktopStyles.userContainer}>
           <Kb.Dropdown
@@ -137,9 +131,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       forgotPassword: {
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      header: {
-        borderBottomWidth: 0,
-      },
       inputRow: {
         marginTop: Kb.Styles.globalMargins.tiny,
       },
@@ -171,7 +162,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 // Native login
 
 const NativeLoginRender = (props: Props) => {
-  const [scrollViewHeight, setScrollViewHeight] = React.useState<number | undefined>(undefined)
   const inputProps = {
     autoFocus: true,
     error: !!props.error,
@@ -183,76 +173,67 @@ const NativeLoginRender = (props: Props) => {
   } as const
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      flex={1}
-      onLayout={evt => setScrollViewHeight(evt.nativeEvent.layout.height)}
-    >
-      <Kb.ScrollView style={nativeStyles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
-        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={nativeStyles.container}>
-          {isAndroid && !C.isDeviceSecureAndroid && !isAndroidNewerThanM && (
-            <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.deviceNotSecureContainer}>
-              <Kb.Text center={true} type="Body" negative={true} style={nativeStyles.deviceNotSecureText}>
-                {"Since you don't have a lock screen, you'll have to type your password everytime."}
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-          {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
-          <UserCard username={props.selectedUser} outerStyle={nativeStyles.card} style={nativeStyles.cardInner}>
-            <Dropdown
-              type="Username"
-              value={props.selectedUser}
-              onClick={props.selectedUserChange}
-              onOther={props.onSomeoneElse}
-              options={props.users}
-            />
-            {props.needPassword && (
-              <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
-                <Kb.Input3 {...inputProps} />
-                <Kb.Checkbox
-                  checked={props.showTyping}
-                  label="Show typing"
-                  onCheck={check => props.showTypingChange(check)}
-                  style={nativeStyles.formElements}
-                />
-              </Kb.Box2>
-            )}
-            <Kb.WaitingButton
-              disabled={props.needPassword && !props.password}
-              waitingKey={C.waitingKeyConfigLogin}
-              style={{marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small}}
-              fullWidth={true}
-              label="Log in"
-              onClick={props.onSubmit}
-            />
-            <Kb.Text
-              type="BodySmallSecondaryLink"
-              center={true}
-              onClick={props.onForgotPassword}
-              style={{
-                marginBottom: Kb.Styles.globalMargins.tiny,
-                marginTop: Kb.Styles.globalMargins.medium,
-              }}
-            >
-              Forgot password?
-            </Kb.Text>
-            <Kb.Text center={true} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
-              Problems logging in?
-            </Kb.Text>
-          </UserCard>
-          <Kb.Box2 direction="vertical" flex={1} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.createAccountContainer}>
-            <Kb.Button
-              fullWidth={true}
-              label="Create account"
-              mode="Secondary"
-              onClick={props.onSignup}
-              style={{flexGrow: 0}}
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={nativeStyles.container}>
+      {isAndroid && !C.isDeviceSecureAndroid && !isAndroidNewerThanM && (
+        <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.deviceNotSecureContainer}>
+          <Kb.Text center={true} type="Body" negative={true} style={nativeStyles.deviceNotSecureText}>
+            {"Since you don't have a lock screen, you'll have to type your password everytime."}
+          </Kb.Text>
+        </Kb.Box2>
+      )}
+      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+      <UserCard username={props.selectedUser} outerStyle={nativeStyles.card} style={nativeStyles.cardInner}>
+        <Dropdown
+          type="Username"
+          value={props.selectedUser}
+          onClick={props.selectedUserChange}
+          onOther={props.onSomeoneElse}
+          options={props.users}
+        />
+        {props.needPassword && (
+          <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
+            <Kb.Input3 {...inputProps} />
+            <Kb.Checkbox
+              checked={props.showTyping}
+              label="Show typing"
+              onCheck={check => props.showTypingChange(check)}
+              style={nativeStyles.formElements}
             />
           </Kb.Box2>
-        </Kb.Box2>
-      </Kb.ScrollView>
+        )}
+        <Kb.WaitingButton
+          disabled={props.needPassword && !props.password}
+          waitingKey={C.waitingKeyConfigLogin}
+          style={{marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small}}
+          fullWidth={true}
+          label="Log in"
+          onClick={props.onSubmit}
+        />
+        <Kb.Text
+          type="BodySmallSecondaryLink"
+          center={true}
+          onClick={props.onForgotPassword}
+          style={{
+            marginBottom: Kb.Styles.globalMargins.tiny,
+            marginTop: Kb.Styles.globalMargins.medium,
+          }}
+        >
+          Forgot password?
+        </Kb.Text>
+        <Kb.Text center={true} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
+          Problems logging in?
+        </Kb.Text>
+      </UserCard>
+      <Kb.Box2 direction="vertical" flex={1} />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.createAccountContainer}>
+        <Kb.Button
+          fullWidth={true}
+          label="Create account"
+          mode="Secondary"
+          onClick={props.onSignup}
+          style={{flexGrow: 0}}
+        />
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -284,9 +265,6 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       },
       formElements: {
         marginBottom: Kb.Styles.globalMargins.tiny,
-      },
-      scrollView: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
     }) as const
 )
