@@ -6,6 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
@@ -19,6 +20,9 @@ type Props = {
 const getChannelsForList = (
   channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
   channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>,
+  // Team channel participants arrive asynchronously via the ChatParticipantsInfo
+  // notification (stored here), not in the getTLFConversations RPC result.
+  inboxParticipants: T.Immutable<Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>>,
   usernames: string[]
 ) => {
   const processed = [...channels.values()].reduce(
@@ -31,7 +35,8 @@ const getChannelsForList = (
   const convIDKeysAvailable = sortedList
     .map(c => c.conversationIDKey)
     .filter(convIDKey => {
-      const participants = channelParticipants.get(convIDKey)?.all ?? []
+      const participants =
+        inboxParticipants.get(convIDKey)?.all ?? channelParticipants.get(convIDKey)?.all ?? []
       // At least one person is not in the channel
       return usernames.some(member => !participants.includes(member))
     })
@@ -51,9 +56,11 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const {yourOperations, teamDetails} = useLoadedTeam(teamID)
 
   const {channelMetas, channelParticipants, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
+  const inboxParticipants = useInboxMetadataState(s => s.participants)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
     channelMetas,
     channelParticipants,
+    inboxParticipants,
     usernames
   )
 
@@ -67,7 +74,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => {
-      const p = channelParticipants.get(c.conversationIDKey)
+      const p = inboxParticipants.get(c.conversationIDKey) ?? channelParticipants.get(c.conversationIDKey)
       const allParticipants = p?.name.length ? p.name : (p?.all ?? [])
       const participants = allParticipants.filter(u => {
         const m = teamDetails.members.get(u)
