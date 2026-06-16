@@ -146,6 +146,7 @@ const nativeMakeLayout = (
       <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
         <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
           <Kb.SafeAreaView
+            edges={navigationOptions?.safeAreaEdges}
             style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
           >
             {wrappedContent}

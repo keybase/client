@@ -31,6 +31,7 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
 
   const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>(() => tab ?? 'members')
   const selectedTab = tab ?? uncontrolledSelectedTab
+  const insets = Kb.useSafeAreaInsets()
 
   const hideInfoPanel = React.useEffectEvent(() => {
     showConversationInfoPanel(conversationIDKey, false, undefined)
@@ -114,6 +115,13 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     )
   }
 
+  // modal drops its bottom safe-area edge (see routes.tsx) so these lists run
+  // edge-to-edge. iOS contentInsetAdjustmentBehavior="automatic" clears the
+  // home indicator; Android pads the container manually.
+  const containerStyle = isAndroid
+    ? Kb.Styles.collapseStyles([styles.container, {paddingBottom: insets.bottom}])
+    : styles.container
+
   let sectionList: React.ReactNode
   switch (selectedTab) {
     case 'settings':
@@ -149,7 +157,7 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     )
   } else {
     return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true} fullHeight={true}>
         {sectionList}
       </Kb.Box2>
     )

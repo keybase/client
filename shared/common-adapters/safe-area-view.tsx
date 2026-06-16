@@ -7,6 +7,7 @@ import type {StylesCrossPlatform} from '@/styles'
 type Props = {
   children?: React.ReactNode
   style?: StylesCrossPlatform
+  edges?: ReadonlyArray<'top' | 'right' | 'bottom' | 'left'>
 }
 
 const SafeAreaViewTopNative = (p: Props) => {

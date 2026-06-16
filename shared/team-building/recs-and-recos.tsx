@@ -98,6 +98,13 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
   const {selectedService, onAdd, onRemove, teamSoFar} = props
   const sectionListRef = React.useRef<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
+  // modal drops its bottom safe-area edge (see page.tsx). iOS
+  // contentInsetAdjustmentBehavior="automatic" clears the home indicator;
+  // Android must pad the scroll content manually.
+  const insets = Kb.useSafeAreaInsets()
+  const contentContainerStyle = isAndroid
+    ? {minHeight: '133%' as const, paddingBottom: insets.bottom}
+    : {minHeight: '133%' as const}
 
   const highlightDetails = listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
 
@@ -116,7 +123,7 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
       <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.listContainer}>
         <Kb.SectionList
           ref={sectionListRef}
-          contentContainerStyle={{minHeight: '133%'}}
+          contentContainerStyle={contentContainerStyle}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           stickySectionHeadersEnabled={false}

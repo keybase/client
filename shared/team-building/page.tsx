@@ -114,6 +114,10 @@ const getOptions = ({route}: OwnProps) => {
     modalSize: 'wide',
     overlayAvoidTabs: false,
     overlayTransparent: false,
+    // body is a full-bleed scrolling result list; let it run to the screen
+    // bottom so its content inset clears the home indicator instead of leaving
+    // a blank safe-area strip below the last row
+    safeAreaEdges: ['top', 'left', 'right'],
     title,
   } as const
 
