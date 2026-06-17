@@ -27,6 +27,11 @@ const port = Number(process.env['KB_APPIUM_PORT'] ?? 4723)
 const wdaLocalPort = port === 4723 ? undefined : 8100 + (port - 4723)
 // 'LANDSCAPE' | 'PORTRAIT' — the runner sets LANDSCAPE for iPad.
 const orientation = process.env['KB_IOS_ORIENTATION']
+// Old-iOS sims (names ending in "Old", e.g. iOS 16.4) can't use the prebuilt
+// WDA (built against the current SDK); they build their own into a per-device
+// DerivedData dir so the build is cached and parallel builds don't collide.
+const isOld = /old$/i.test(deviceName)
+const derivedDataPath = isOld ? path.join(homedir(), '.appium', `wda-derived-${deviceName}`) : undefined
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
@@ -35,7 +40,7 @@ export const config: WebdriverIO.Config = {
   // One aggregate file → one session for the whole suite (see all.test.ts).
   specs: ['./all.test.ts'],
   maxInstances: 1,
-  capabilities: [iosCapabilities(udid, wdaLocalPort)],
+  capabilities: [iosCapabilities(udid, {wdaLocalPort, prebuilt: !isOld, derivedDataPath})],
   logLevel: 'warn',
   framework: 'mocha',
   // 120s: the tablet settings-subpages flow can run long; phone tests finish well

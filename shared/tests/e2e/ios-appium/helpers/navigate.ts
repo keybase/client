@@ -50,6 +50,36 @@ export async function dismissKeyboard(): Promise<void> {
   }
 }
 
+// Tap the leading (leftmost) button of a native NavigationBar — the back
+// chevron — when present. Needed because the back button's accessibility name
+// is NOT stable across iOS versions: on iOS 26 it surfaces as "BackButton",
+// but on iOS 16.4 the same chevron comes through with the prior screen's
+// label (e.g. "loggedIn"), so name-based lookups miss it. Position is reliable:
+// the back control is always the leftmost button inside the nav bar. Returns
+// true if it tapped one.
+// requireLeftEdge: only tap when the leftmost nav button sits near the screen's
+// left edge — i.e. a genuine back chevron. Use it for goBack (a single hop where
+// a wrong tap has no recovery): on an iPad split view the conversation pane's
+// leading button is mid-screen and is NOT a back control, so this skips it and
+// lets the caller fall back to the edge-swipe. escapeToTabs omits the guard
+// because its loop re-checks atTabs and self-corrects a mis-tap.
+async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
+  const btns = await browser.$$('//XCUIElementTypeNavigationBar//XCUIElementTypeButton').getElements()
+  let leftmost: {el: (typeof btns)[number]; x: number} | undefined
+  for (const b of btns) {
+    if (!(await b.isDisplayed().catch(() => false))) continue
+    const {x} = await b.getLocation().catch(() => ({x: Number.POSITIVE_INFINITY}))
+    if (!leftmost || x < leftmost.x) leftmost = {el: b, x}
+  }
+  if (!leftmost) return false
+  if (requireLeftEdge) {
+    const {width} = await browser.getWindowRect()
+    if (leftmost.x > width * 0.15) return false
+  }
+  await leftmost.el.click().catch(() => {})
+  return true
+}
+
 // Climb out of any pushed screen / stack back to the root tab bar. The app
 // restores its last screen on launch, and different screens expose different
 // back affordances: app-custom headers use testID "backButton", native nav
@@ -99,6 +129,13 @@ export async function escapeToTabs(): Promise<void> {
       await settleAfter(ctrl)
       continue
     }
+    // Native nav-bar back whose name varies by iOS version (e.g. "loggedIn" on
+    // iOS 16.4) — match it by position instead. Must come before the edge-swipe:
+    // the left-edge pop gesture does not reliably pop on older iOS here.
+    if (await tapNavBack()) {
+      await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
+      continue
+    }
     // No back button visible — try the iOS pop gesture (swipe from left edge).
     const {width, height} = await browser.getWindowRect()
     await browser
@@ -128,6 +165,10 @@ export async function goBack(): Promise<void> {
     await els('BackButton')[0]!.click()
     return
   }
+  // Native nav back whose name varies by iOS version (e.g. "loggedIn" on iOS
+  // 16.4). Guard to a true left-edge chevron so the iPad split conversation
+  // pane's mid-screen nav button isn't mistaken for back.
+  if (await tapNavBack(true)) return
   const {width, height} = await browser.getWindowRect()
   await browser
     .action('pointer')
