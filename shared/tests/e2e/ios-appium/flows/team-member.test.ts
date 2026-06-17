@@ -1,7 +1,7 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToTeams, scrollDownToText} from '../helpers/navigate'
-import {el, els, waitForTestID, byText} from '../helpers/elements'
+import {el, els, waitForTestID, byText, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('team member', () => {
@@ -16,8 +16,9 @@ describe('team member', () => {
     await els(T.TEAMS_ROW)[0]!.click()
     // The app remembers the last-selected tab per team, so explicitly select
     // the Members tab (by testID — "Members" text also matches "N members").
-    await el(T.TEAMS_TAB_MEMBERS_BUTTON).click()
-    await waitForTestID(T.TEAMS_MEMBER_LIST, 10000)
+    // tapForTestID: the tap follows the team-row push and is swallowed mid-
+    // transition on slow sims, so retry until the member list appears.
+    await tapForTestID(T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST, {timeout: 10000})
 
     // Scroll the member list until the smoke user shows — the list loads lazily
     // (slow under the full suite) and the user may be below the fold; scrolling
