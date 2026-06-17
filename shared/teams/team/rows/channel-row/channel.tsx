@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {Activity, useActivityLevels, useChannelParticipants} from '@/teams/common'
 import {useTeamSelectionState} from '@/teams/common/selection-state'
 import {selectionStyles} from '../common'
@@ -22,7 +23,8 @@ const ChannelRow = (props: ChannelRowProps) => {
   const canDelete = canPerform.deleteChannel && !isGeneral
   const {channels: activityByChannel} = useActivityLevels()
 
-  const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
+  const inboxParticipants = useInboxMetadataState(s => s.participants.get(conversationIDKey))
+  const numParticipants = useChannelParticipants(teamID, conversationIDKey, inboxParticipants).length
   const hasAllMembers = teamDetails.members.size === numParticipants
   const activityLevel = activityByChannel.get(channel.conversationIDKey) || 'none'
 

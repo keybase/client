@@ -4,7 +4,7 @@ import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {
@@ -22,7 +22,7 @@ import EmptyRow from '../team/rows/empty-row'
 import {LoadedTeamChannelsProvider} from '../common/use-loaded-team-channels'
 import {useUsersState} from '@/stores/users'
 import {LoadedTeamProvider, useLoadedTeam} from '../team/use-loaded-team'
-import {unboxRows} from '@/chat/inbox/metadata'
+import {unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -146,7 +146,15 @@ const ChannelBody = (props: OwnProps) => {
   const meta = channelMetas.get(conversationIDKey) ?? Chat.makeConversationMeta()
   const {loading: loadingTeam, teamDetails, yourOperations} = useLoadedTeam(teamID)
   const teamMembers = teamDetails.members
-  const participantInfo = channelParticipantsByConv.get(conversationIDKey) ?? emptyParticipantInfo
+  // getTLFConversations leaves team channel participants empty; ask the service to
+  // refresh them, which pushes ChatParticipantsInfo into useInboxMetadataState.
+  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
+  React.useEffect(() => {
+    refreshParticipants([{convID: T.Chat.keyToConversationID(conversationIDKey)}], () => {}, () => {})
+  }, [conversationIDKey, refreshParticipants])
+  // Participants arrive async via ChatParticipantsInfo in useInboxMetadataState.
+  const inboxParticipants = useInboxMetadataState(s => s.participants.get(conversationIDKey))
+  const participantInfo = inboxParticipants ?? channelParticipantsByConv.get(conversationIDKey) ?? emptyParticipantInfo
   const {bots, participants: _participants} = getBotsAndParticipants(
     meta,
     participantInfo,
@@ -155,7 +163,7 @@ const ChannelBody = (props: OwnProps) => {
   )
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-  const channelParticipants = useChannelParticipants(teamID, conversationIDKey)
+  const channelParticipants = useChannelParticipants(teamID, conversationIDKey, inboxParticipants)
   const generalMembersLoading = meta.channelname === 'general' && loadingTeam && teamMembers.size === 0
   const participants: ReadonlyArray<string> =
     meta.channelname === 'general' && teamMembers.size > 0 ? _participants : channelParticipants
