@@ -63,7 +63,15 @@ const NavRow = (props: Props) => {
 
   const mobileRow =
     description && illustration ? (
-      <Kb.Box2 direction="vertical" fullWidth={true} testID={`crypto-nav-${props.tab}`}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        // collapsable={false}: keep this testID'd row in the Android native view
+        // tree — RN flattens the wrapper away otherwise, so the e2e crypto-nav-*
+        // testID vanishes and the row can't be located/tapped.
+        collapsable={false}
+        testID={`crypto-nav-${props.tab}`}
+      >
         <Kb.ListItem
           type="Card"
           firstItem={true}

@@ -34,6 +34,14 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // it stays visible inside pushed stack screens, so also require that no back
 // button (app-custom or native) is present.
 async function atTabs(): Promise<boolean> {
+  if (browser.isAndroid) {
+    // Android tab labels are text/content-desc, not resource-id testIDs, so use
+    // tab() (byText) not els(). At a tab root the People tab shows and there's
+    // no app back button nor a native toolbar up-affordance.
+    if (!(await tab('People').isExisting().catch(() => false))) return false
+    if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
+    return (await browser.$$('//*[@content-desc="Navigate up" or @content-desc="Back"]').length) === 0
+  }
   if ((await els('People').length) === 0) return false
   if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
   return (await els('BackButton').length) === 0
@@ -46,7 +54,8 @@ export async function dismissKeyboard(): Promise<void> {
   // isKeyboardShown is a direct Appium endpoint (fast) — avoid an
   // //XCUIElementTypeKeyboard xpath, which is a slow full-tree search per call.
   if (await browser.isKeyboardShown().catch(() => false)) {
-    await browser.execute('mobile: hideKeyboard').catch(() => {})
+    if (browser.isAndroid) await browser.hideKeyboard().catch(() => {})
+    else await browser.execute('mobile: hideKeyboard').catch(() => {})
   }
 }
 
@@ -106,6 +115,18 @@ export async function escapeToTabs(): Promise<void> {
   // A flow may end with the keyboard up (chat input, crypto, feedback); it can
   // cover tappable UI on the next test, so dismiss it before resetting.
   await dismissKeyboard()
+  // Android: one back affordance for everything (modals, sheets, pushed screens
+  // all pop on the hardware back), so just press back until we're at a tab root.
+  // atTabs is checked first so we never press back AT the root (which would
+  // background/exit the app).
+  if (browser.isAndroid) {
+    for (let i = 0; i < 12; i++) {
+      if (await atTabs()) return
+      await browser.back()
+      await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
+    }
+    throw new Error('escapeToTabs(android): root tab bar not reached after 12 attempts')
+  }
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
@@ -157,6 +178,14 @@ export async function escapeToTabs(): Promise<void> {
 // left-edge pop gesture. Use this for in-flow back navigation instead of
 // clicking COMMON_BACK_BUTTON directly (inner native screens lack that testID).
 export async function goBack(): Promise<void> {
+  // Android: hardware back pops the current screen — but if a keyboard is up
+  // (e.g. the Feedback input auto-focuses), the first back only dismisses the
+  // keyboard and the screen stays. Hide it first so back actually pops.
+  if (browser.isAndroid) {
+    await dismissKeyboard()
+    await browser.back()
+    return
+  }
   if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
     await els(T.COMMON_BACK_BUTTON)[0]!.click()
     return
@@ -222,5 +251,19 @@ export async function navigateToTeams(): Promise<void> {
 // The "More" tab surfaces Crypto / Git / Devices / Settings under its stack.
 export async function navigateToMore(): Promise<void> {
   await tab('More').click()
+  // The More tab keeps its own nav stack: a prior flow (crypto/git/devices) can
+  // leave it on a pushed sub-screen, so the first tap just refocuses the tab
+  // without reaching settings root. Re-tapping the already-focused tab pops its
+  // stack to the top. Retry until the settings root marker shows.
+  for (let i = 0; i < 3; i++) {
+    if (
+      await el(T.SETTINGS_ACCOUNT)
+        .waitForExist({timeout: 2500, interval: 150})
+        .then(() => true)
+        .catch(() => false)
+    )
+      return
+    await tab('More').click()
+  }
   await waitForTestID(T.SETTINGS_ACCOUNT, 5000)
 }

@@ -3,19 +3,29 @@ import * as path from 'path'
 import {buildReport} from './generate-report-shared.mts'
 import type {CardData, Section} from './generate-report-shared.mts'
 
-// Builds the unified HTML report from the artifacts the wdio afterTest hook
-// writes (one <slug>.json + <slug>.png per test) into the four fixed per-device
-// dirs the runners (run-ios-appium*.sh) populate. Each device run overwrites
-// its own dir, so the report always shows the latest run per device — the
-// per-image timestamps reveal when each device last ran.
-const outputPath = 'tests/results/ios-appium-report.html'
+// Builds the HTML report from the artifacts the wdio afterTest hook writes (one
+// <slug>.json + <slug>.png per test) into the fixed per-device dirs the runners
+// (run-ios-appium*.sh / run-android-appium.sh) populate. Each device run
+// overwrites its own dir, so the report always shows the latest run per device —
+// the per-image timestamps reveal when each device last ran.
+//
+// Platform is selected by the first CLI arg (default 'ios'); iOS and Android get
+// SEPARATE reports so an Android run never shows stale iPad sections and vice
+// versa.
+const platform = (process.argv[2] ?? 'ios').toLowerCase()
 
-const deviceDirs = [
+const iosDirs = [
   {label: 'iPhone', dir: 'tests/results/ios-appium-debug-iphone'},
   {label: 'iPhone (Old)', dir: 'tests/results/ios-appium-debug-iphone-old'},
   {label: 'iPad', dir: 'tests/results/ios-appium-debug-ipad'},
   {label: 'iPad (Old)', dir: 'tests/results/ios-appium-debug-ipad-old'},
 ]
+const androidDirs = [{label: 'Android', dir: 'tests/results/android-appium-debug'}]
+
+const {deviceDirs, outputPath, title} =
+  platform === 'android'
+    ? {deviceDirs: androidDirs, outputPath: 'tests/results/android-appium-report.html', title: 'Keybase Android E2E Tests (Appium)'}
+    : {deviceDirs: iosDirs, outputPath: 'tests/results/ios-appium-report.html', title: 'Keybase iOS E2E Tests (Appium)'}
 
 type TestArtifact = {label: string; passed: boolean; durationMs: number; error: string | null}
 
@@ -63,7 +73,7 @@ const sections: Section[] = deviceDirs
   })
   .filter(s => s.cards.length > 0)
 const timestamp = new Date().toLocaleString()
-const html = buildReport('Keybase iOS E2E Tests (Appium)', sections, timestamp, outputPath)
+const html = buildReport(title, sections, timestamp, outputPath)
 fs.mkdirSync(path.dirname(outputPath), {recursive: true})
 fs.writeFileSync(outputPath, html)
 

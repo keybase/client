@@ -177,6 +177,10 @@ export const DecryptInput = (_props: unknown) => {
       direction="vertical"
       fullHeight={true}
       relative={true}
+      // collapsable={false}: keep this testID'd wrapper (and its EditText
+      // descendants) in the Android native view tree — RN flattens it away
+      // otherwise, leaving the e2e testID on an empty leaf with no input under it.
+      collapsable={false}
       testID={TestIDs.CRYPTO_DECRYPT_INPUT}
     >
       <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
