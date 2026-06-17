@@ -19,8 +19,13 @@ describe('chat conversation', () => {
     await waitForTestID(T.CHAT_MESSAGE_LIST, 5000)
     await expect(el(T.CHAT_MESSAGE_LIST)).toExist()
 
-    // Back to inbox
-    await goBack()
+    // Back to inbox. On tablet this is a split view — the inbox list stays
+    // visible beside the open conversation and there's no back control, so
+    // popping would destructively swipe out of the chat tab. Only go back when
+    // the conversation actually covers the inbox (phone).
+    if (!(await el(T.CHAT_INBOX_LIST).isExisting())) {
+      await goBack()
+    }
     await waitForTestID(T.CHAT_INBOX_LIST, 5000)
     await expect(el(T.CHAT_INBOX_LIST)).toExist()
   })
