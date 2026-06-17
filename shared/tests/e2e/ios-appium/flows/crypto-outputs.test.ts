@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
 import {escapeToTabs, navigateToMore} from '../helpers/navigate'
-import {el, waitForTestID, byText, tapForTestID, pasteText} from '../helpers/elements'
+import {el, waitForTestID, byText, tapForTestID, enterText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 // Two separate tests: the crypto output is shown in its own modal whose "Done"
@@ -14,7 +14,7 @@ describe('crypto outputs', () => {
     await waitForTestID(T.CRYPTO_INPUT, 3000)
 
     await tapForTestID(T.CRYPTO_NAV_ENCRYPT, T.CRYPTO_ENCRYPT_INPUT)
-    await pasteText(T.CRYPTO_ENCRYPT_INPUT, 'hello e2e')
+    await enterText(T.CRYPTO_ENCRYPT_INPUT, 'hello e2e')
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()
@@ -27,7 +27,7 @@ describe('crypto outputs', () => {
     await waitForTestID(T.CRYPTO_INPUT, 3000)
 
     await tapForTestID(T.CRYPTO_NAV_SIGN, T.CRYPTO_SIGN_INPUT)
-    await pasteText(T.CRYPTO_SIGN_INPUT, 'hello e2e')
+    await enterText(T.CRYPTO_SIGN_INPUT, 'hello e2e')
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForTestID(T.CRYPTO_OUTPUT, 10000)
     await expect(el(T.CRYPTO_OUTPUT)).toExist()

@@ -1,7 +1,7 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
-import {anyExist, el, els, waitForTestID, byText, pasteText} from '../helpers/elements'
+import {anyExist, el, els, waitForTestID, byText, enterText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('chat send message', () => {
@@ -20,8 +20,8 @@ describe('chat send message', () => {
 
     await waitForTestID(T.CHAT_INPUT, 5000)
     // Paste rather than type: per-key injection crashes RN's text adapter on
-    // older iOS (see pasteText).
-    await pasteText(T.CHAT_INPUT, testMessage)
+    // older iOS; enterText pastes there, types on modern (see enterText).
+    await enterText(T.CHAT_INPUT, testMessage)
 
     await waitForTestID(T.CHAT_SEND_BUTTON, 3000)
     await el(T.CHAT_SEND_BUTTON).click()

@@ -15,12 +15,31 @@ export const waitForTestID = async (id: string, timeout = 5000) =>
 
 export const countTestID = async (id: string): Promise<number> => els(id).length
 
+// True for the iOS-16.4 "Old" sims (device name ends in "Old"), set per device
+// by the runner via KB_IOS_DEVICE.
+const isOldDevice = (): boolean => /old$/i.test(process.env['KB_IOS_DEVICE'] ?? '')
+
+// Enter text into a field. On modern iOS, type it (setValue) — reliable, and the
+// keyboard a11y path does NOT crash there. Only the iOS-16.4 sims need the paste
+// workaround (see pasteText), and paste's heavy accessibility use (touch-and-hold
+// + predicate queries) itself destabilises XCUITest on iPad, so we keep it off
+// modern sims entirely.
+export const enterText = async (id: string, text: string): Promise<void> => {
+  if (isOldDevice()) {
+    await pasteText(id, text)
+    return
+  }
+  await el(id).click()
+  await el(id).setValue(text)
+}
+
 // Enter text by pasting from the system pasteboard instead of per-key typing.
 // Appium's keyboard injection (setValue) drives UIKit's per-character a11y
 // insertion path, which desyncs RN's RCTBackedTextInputDelegateAdapter cached
 // range on older iOS (16.4) → NSRangeException → app SIGABRT. Pasting inserts
 // the whole string in one shot via UIPasteboard, avoiding that path. The
 // touch-and-hold that summons the edit menu is occasionally missed, so retry it.
+// Used only via enterText on the Old sims.
 export const pasteText = async (id: string, text: string): Promise<void> => {
   await browser.execute('mobile: setPasteboard', {
     content: Buffer.from(text).toString('base64'),
