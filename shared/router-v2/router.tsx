@@ -559,7 +559,7 @@ if (isMobile) {
               {label: 'Cancel', onPress: () => navigation.goBack(), type: 'button' as const},
             ],
           }
-        : {headerLeft: () => <HeaderLeftButton mode="cancel" />}
+        : {headerBackVisible: false, headerLeft: () => <HeaderLeftButton mode="cancel" />}
     return {
       ...cancelItem,
       headerShown: true,
