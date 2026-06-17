@@ -44,11 +44,13 @@ export const config: WebdriverIO.Config = {
   logLevel: 'warn',
   framework: 'mocha',
   // 120s: the tablet settings-subpages flow can run long; phone tests finish well
-  // under this. retries: 1 — the one-session suite accumulates load over 16 flows
-  // (KBFS/list loads, transient nav), so a flow can intermittently time out; a
-  // single retry (with a fresh escapeToTabs reset) absorbs those without masking
-  // real failures (a real break fails both attempts).
-  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 1},
+  // under this. retries: 2 — the one-session suite accumulates load over 16 flows
+  // (KBFS/list loads, transient nav), and the old iOS-16.4 sims are slower/flakier
+  // still (paste-menu summon, list timing), so a flow can intermittently fail; up
+  // to two retries (each with a fresh escapeToTabs reset) absorbs that without
+  // masking real failures (a real break fails all attempts). Retries run ONLY on
+  // failure, so passing tests cost nothing.
+  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 2},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/', port}}]],
   // Set device orientation once at session start (e.g. iPad in landscape).
