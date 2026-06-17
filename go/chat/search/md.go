@@ -73,25 +73,20 @@ func (m *indexMetadata) indexStatus(conv chat1.Conversation) indexStatus {
 	return indexStatus{numMissing: numMissing, numMsgs: numMsgs}
 }
 
-func (m *indexMetadata) PercentIndexed(conv chat1.Conversation) int {
-	status := m.indexStatus(conv)
-	if status.numMsgs <= 1 {
-		return 100
-	}
-	return int(100 * (1 - (float64(status.numMissing) / float64(status.numMsgs))))
-}
-
-func (m *indexMetadata) FullyIndexed(conv chat1.Conversation) bool {
-	minID, maxID := MinMaxIDs(conv)
-	if maxID <= minID {
-		return true
-	}
-	return m.numMissing(minID, maxID) == 0
-}
-
 type indexStatus struct {
 	numMissing uint
 	numMsgs    uint
+}
+
+func (s indexStatus) fullyIndexed() bool {
+	return s.numMissing == 0
+}
+
+func (s indexStatus) percentIndexed() int {
+	if s.numMsgs <= 1 {
+		return 100
+	}
+	return int(100 * (1 - (float64(s.numMissing) / float64(s.numMsgs))))
 }
 
 type inboxIndexStatus struct {
@@ -133,11 +128,11 @@ func (p *inboxIndexStatus) numConvs() int {
 	return len(p.inbox)
 }
 
-func (p *inboxIndexStatus) addConv(m *indexMetadata, conv chat1.Conversation) {
+func (p *inboxIndexStatus) addConv(status indexStatus, conv chat1.Conversation) {
 	p.Lock()
 	defer p.Unlock()
 	p.dirty = true
-	p.inbox[conv.GetConvID().ConvIDStr()] = m.indexStatus(conv)
+	p.inbox[conv.GetConvID().ConvIDStr()] = status
 }
 
 func (p *inboxIndexStatus) rmConv(conv chat1.Conversation) {

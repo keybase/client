@@ -238,23 +238,19 @@ func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.Convers
 }
 
 func (s *searchSession) convFullyIndexed(ctx context.Context, conv chat1.Conversation) (bool, error) {
-	md, err := s.indexer.store.GetMetadata(ctx, conv.GetConvID())
-	if err != nil {
-		return false, err
-	}
-	return md.FullyIndexed(conv), nil
+	return s.indexer.store.FullyIndexed(ctx, conv)
 }
 
 func (s *searchSession) updateInboxIndex(ctx context.Context, conv chat1.Conversation) {
 	if err := s.indexer.store.Flush(); err != nil {
 		s.indexer.Debug(ctx, "updateInboxIndex: failed to flush: %s", err)
 	}
-	md, err := s.indexer.store.GetMetadata(ctx, conv.GetConvID())
+	status, err := s.indexer.store.IndexStatus(ctx, conv)
 	if err != nil {
-		s.indexer.Debug(ctx, "updateInboxIndex: unable to GetMetadata %v", err)
+		s.indexer.Debug(ctx, "updateInboxIndex: unable to get index status %v", err)
 		return
 	}
-	s.inboxIndexStatus.addConv(md, conv)
+	s.inboxIndexStatus.addConv(status, conv)
 }
 
 func (s *searchSession) percentIndexed() int {

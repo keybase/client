@@ -532,11 +532,10 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 ) (completedJobs int, err error) {
 	conv := rconv.Conv
 	convID := conv.GetConvID()
-	md, err := idx.store.GetMetadata(ctx, convID)
+	missingIDs, err := idx.store.MissingIDForConv(ctx, conv)
 	if err != nil {
 		return 0, err
 	}
-	missingIDs := md.MissingIDForConv(conv)
 	if len(missingIDs) == 0 {
 		return 0, nil
 	}
@@ -596,18 +595,18 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				break
 			}
 			if inboxIndexStatus != nil {
-				md, err := idx.store.GetMetadata(ctx, conv.GetConvID())
+				status, err := idx.store.IndexStatus(ctx, conv)
 				if err != nil {
-					idx.Debug(ctx, "updateInboxIndex: unable to GetMetadata %v", err)
+					idx.Debug(ctx, "updateInboxIndex: unable to get index status %v", err)
 					continue
 				}
-				inboxIndexStatus.addConv(md, conv)
+				inboxIndexStatus.addConv(status, conv)
 				percentIndexed, err := inboxIndexStatus.updateUI(ctx)
 				if err != nil {
 					idx.Debug(ctx, "unable to update ui %v", err)
 				} else {
 					idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
-						utils.GetRemoteConvDisplayName(rconv), md.PercentIndexed(conv), percentIndexed)
+						utils.GetRemoteConvDisplayName(rconv), status.percentIndexed(), percentIndexed)
 				}
 			}
 		}
@@ -751,12 +750,12 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 		default:
 		}
 		convID := conv.GetConvID()
-		md, err := idx.store.GetMetadata(ctx, convID)
+		fullyIndexed, err := idx.store.FullyIndexed(ctx, conv.Conv)
 		if err != nil {
 			idx.Debug(ctx, "SelectiveSync: Unable to get md for conv: %v, %v", convID, err)
 			continue
 		}
-		if md.FullyIndexed(conv.Conv) {
+		if fullyIndexed {
 			continue
 		}
 
@@ -804,19 +803,17 @@ func (idx *Indexer) IndexInbox(ctx context.Context) (res map[chat1.ConvIDStr]cha
 
 func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, &err, "Indexer.indexConvWithProfile")()
-	md, err := idx.store.GetMetadata(ctx, conv.GetConvID())
-	if err != nil {
-		return res, err
-	}
 	defer func() {
 		res.ConvName = utils.GetRemoteConvDisplayName(conv)
-		if md != nil {
+		// Re-read stats so the report reflects any reindexing performed above.
+		if stats, statsErr := idx.store.ConvIndexStats(ctx, conv.Conv); statsErr == nil {
 			minID, maxID := MinMaxIDs(conv.Conv)
 			res.MinConvID = minID
 			res.MaxConvID = maxID
-			res.NumMissing = len(md.MissingIDForConv(conv.Conv))
-			res.NumMessages = len(md.SeenIDs)
-			res.PercentIndexed = md.PercentIndexed(conv.Conv)
+			res.NumMissing = stats.numMissing
+			res.NumMessages = stats.numMessages
+			res.PercentIndexed = stats.percent
+			res.IndexSizeMem = stats.sizeMem
 		}
 		if err != nil {
 			res.Err = err.Error()
@@ -835,7 +832,6 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 		return res, err
 	}
 	res.IndexSizeDisk = len(b)
-	res.IndexSizeMem = md.Size()
 	return res, nil
 }
 
@@ -845,11 +841,7 @@ func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return false, err
 	}
-	md, err := idx.store.GetMetadata(ctx, convID)
-	if err != nil {
-		return false, err
-	}
-	return md.FullyIndexed(conv.Conv), nil
+	return idx.store.FullyIndexed(ctx, conv.Conv)
 }
 
 func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (res int, err error) {
@@ -858,11 +850,7 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 	if err != nil {
 		return 0, err
 	}
-	md, err := idx.store.GetMetadata(ctx, convID)
-	if err != nil {
-		return 0, err
-	}
-	return md.PercentIndexed(conv.Conv), nil
+	return idx.store.PercentIndexed(ctx, conv.Conv)
 }
 
 func (idx *Indexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
