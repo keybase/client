@@ -1,7 +1,5 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useConfigState} from '@/stores/config'
@@ -12,6 +10,7 @@ import RetentionPicker from './retention'
 import DefaultChannels from './default-channels'
 import isEqual from 'lodash/isEqual'
 import {useLoadedTeam} from '../use-loaded-team'
+import {useIsBigTeam} from '../../common/use-loaded-team-channels'
 import {useSettingsTabState} from './use-settings'
 
 type Props = {
@@ -345,7 +344,7 @@ const Container = (ownProps: OwnProps) => {
   const settings = teamDetails.settings
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
-  const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
+  const isBigTeam = useIsBigTeam(teamID)
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname

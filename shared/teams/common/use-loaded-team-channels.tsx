@@ -39,9 +39,19 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
   channels: emptyChannels,
 }
 
-const useLoadedTeamChannelsCacheMap = (providedCacheMap?: LoadedTeamChannelsCacheMap) => {
+// forceLocalCache: a disabled "shadow" instance (one that returns the context
+// value instead of its own) must NOT share the loader's cache map. With enabled=false
+// useCachedResource resets the cache (loadedAt=0), which would clobber the loader's
+// loaded data. Give shadows a private throwaway map so their resets are harmless.
+const useLoadedTeamChannelsCacheMap = (
+  providedCacheMap?: LoadedTeamChannelsCacheMap,
+  forceLocalCache = false
+) => {
   const contextCacheMap = React.useContext(LoadedTeamChannelsCacheContext)
   const [localCacheMap] = React.useState<LoadedTeamChannelsCacheMap>(() => new Map())
+  if (forceLocalCache) {
+    return localCacheMap
+  }
   return providedCacheMap ?? contextCacheMap ?? localCacheMap
 }
 
@@ -49,14 +59,15 @@ const useLoadedTeamChannelsRaw = (
   teamID: T.Teams.TeamID,
   providedTeamname?: string,
   enabled = true,
-  providedCacheMap?: LoadedTeamChannelsCacheMap
+  providedCacheMap?: LoadedTeamChannelsCacheMap,
+  forceLocalCache = false
 ): LoadedTeamChannels => {
   const validTeamID = loadableTeamID(teamID)
   const {
     teamMeta: {teamname: loadedTeamname},
   } = useLoadedTeam(teamID, enabled)
   const teamnameToLoad = providedTeamname || loadedTeamname
-  const cacheMap = useLoadedTeamChannelsCacheMap(providedCacheMap)
+  const cacheMap = useLoadedTeamChannelsCacheMap(providedCacheMap, forceLocalCache)
   const cache = React.useMemo(
     () => getCachedResourceCache(cacheMap, emptyLoadedTeamChannelsData, validTeamID),
     [cacheMap, validTeamID]
@@ -148,6 +159,15 @@ export const useLoadedTeamChannels = (
 ): LoadedTeamChannels => {
   const context = React.useContext(LoadedTeamChannelsContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useLoadedTeamChannelsRaw(teamID, teamname, !useContextValue)
+  const raw = useLoadedTeamChannelsRaw(teamID, teamname, !useContextValue, undefined, useContextValue)
   return useContextValue ? context : raw
+}
+
+// A team is "big" once it has channels beyond #general. Derive it from this
+// team's own channels (loaded here / via the screen's provider) rather than the
+// chat inbox layout, which is empty until the inbox has been visited — so the
+// answer is correct on first entry without depending on any other screen.
+export const useIsBigTeam = (teamID: T.Teams.TeamID): boolean => {
+  const {channels} = useLoadedTeamChannels(teamID)
+  return channels.size > 1
 }

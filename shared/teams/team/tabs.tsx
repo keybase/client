@@ -1,10 +1,9 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import {isBigTeam} from '@/constants/chat/helpers'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 import {useLoadedTeam} from './use-loaded-team'
+import {useIsBigTeam} from '../common/use-loaded-team-channels'
 
 type TeamTabsProps = {
   admin: boolean
@@ -91,7 +90,7 @@ const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
   const {teamDetails, yourOperations} = useLoadedTeam(teamID)
   const resetUserCount = [...teamDetails.members.values()].filter(member => member.status === 'reset').length
-  const isBig = useInboxLayoutState(s => isBigTeam(s.layout, teamID))
+  const isBig = useIsBigTeam(teamID)
   return (
     <TeamTabs
       admin={yourOperations.manageMembers}

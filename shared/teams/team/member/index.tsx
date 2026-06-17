@@ -1,6 +1,5 @@
 import * as C from '@/constants'
-import {isBigTeam} from '@/constants/chat/helpers'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useIsBigTeam} from '../../common/use-loaded-team-channels'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -319,7 +318,7 @@ const NodeInRow = (props: NodeInRowProps) => {
   const myRole = teamMeta.role
   const amLastOwner = myRole === 'owner' && isLastOwnerInTeamMembers(teamDetails.members, currentUsername)
   const isMe = props.username === currentUsername
-  const isSmallTeam = !useInboxLayoutState(s => isBigTeam(s.layout, props.node.teamID))
+  const isSmallTeam = !useIsBigTeam(props.node.teamID)
   const editMembership = C.useRPC(T.RPCGen.teamsTeamEditMembersRpcPromise)
   const [error, setError] = React.useState('')
   const onChangeRole = (nextRole: T.Teams.TeamRoleType) => {

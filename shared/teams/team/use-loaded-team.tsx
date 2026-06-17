@@ -67,9 +67,16 @@ const annotatedTeamToMeta = (
   teamname: annotatedTeam.name,
 })
 
-const useLoadedTeamCacheMap = (providedCacheMap?: LoadedTeamCacheMap) => {
+// forceLocalCache: a disabled "shadow" instance (one that returns the context
+// value instead of its own) must NOT share the loader's cache map. With enabled=false
+// useCachedResource resets the cache (loadedAt=0), which would clobber the loader's
+// loaded data. Give shadows a private throwaway map so their resets are harmless.
+const useLoadedTeamCacheMap = (providedCacheMap?: LoadedTeamCacheMap, forceLocalCache = false) => {
   const contextCacheMap = React.useContext(LoadedTeamCacheContext)
   const [localCacheMap] = React.useState<LoadedTeamCacheMap>(() => new Map())
+  if (forceLocalCache) {
+    return localCacheMap
+  }
   return providedCacheMap ?? contextCacheMap ?? localCacheMap
 }
 
@@ -77,11 +84,12 @@ const useLoadedTeamRaw = (
   teamID: T.Teams.TeamID,
   enabled = true,
   providedCacheMap?: LoadedTeamCacheMap,
-  subscribeToUpdates = enabled
+  subscribeToUpdates = enabled,
+  forceLocalCache = false
 ): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
-  const cacheMap = useLoadedTeamCacheMap(providedCacheMap)
+  const cacheMap = useLoadedTeamCacheMap(providedCacheMap, forceLocalCache)
   const cache = React.useMemo(
     () => getCachedResourceCache(cacheMap, emptyLoadedTeamData(validTeamID), validTeamID),
     [cacheMap, validTeamID]
@@ -163,6 +171,12 @@ export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Tea
 export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const context = React.useContext(LoadedTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useLoadedTeamRaw(teamID, enabled && !useContextValue, undefined, enabled && !useContextValue)
+  const raw = useLoadedTeamRaw(
+    teamID,
+    enabled && !useContextValue,
+    undefined,
+    enabled && !useContextValue,
+    useContextValue
+  )
   return useContextValue ? context : raw
 }

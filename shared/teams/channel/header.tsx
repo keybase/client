@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {Activity, useActivityLevels, useChannelParticipants} from '../common'
 import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {useLoadedTeam} from '../team/use-loaded-team'
@@ -45,7 +46,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const channelInfo = channels.get(conversationIDKey)
   const channelname = channelInfo?.channelname ?? ''
   const description = channelInfo?.description ?? ''
-  const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
+  const inboxParticipants = useInboxMetadataState(s => s.participants.get(conversationIDKey))
+  const numParticipants = useChannelParticipants(teamID, conversationIDKey, inboxParticipants).length
   const canDelete = !!channelInfo && yourOperations.deleteChannel && channelname !== 'general'
   const canEdit = !!channelInfo && yourOperations.editChannelDescription
   const {channels: activityByChannel} = useActivityLevels()

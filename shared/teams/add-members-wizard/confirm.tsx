@@ -1,6 +1,5 @@
 import * as C from '@/constants'
-import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useIsBigTeam} from '../common/use-loaded-team-channels'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -60,7 +59,8 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
     [initialWizard, navigation]
   )
   const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMeta.teamname.includes('.')
-  const isBigTeam = useInboxLayoutState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.layout, teamID)))
+  const channelsAreBig = useIsBigTeam(teamID)
+  const isBigTeam = fromNewTeamWizard ? false : channelsAreBig
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
   // TODO: consider useMemoing these
