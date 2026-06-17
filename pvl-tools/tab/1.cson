@@ -179,99 +179,76 @@ services:
       , from: "hint_url"
       , into: ["subreddit_from_url", "path_remainder", "json_trailer"]
       , error: ["BAD_API_URL", "URL should start with 'https://www.reddit.com/r/keybaseproofs'"] } },
-    # this assertion is just here to test the pvl updater
-    { assert_regex_match: {
-      , pattern: "^.*reddit.*$"
-      , from: "hint_url"
-      , error: ["BAD_API_URL", "URL should contain 'reddit'"] } },
     { assert_regex_match: {
       , pattern: "^keybaseproofs$"
       , case_insensitive: true
       , from: "subreddit_from_url"
-      , error: ["BAD_API_URL", "URL contained wrong subreddit '%{subreddit_from_url}' !+ 'keybaseproofs'"] } },
+      , error: ["BAD_API_URL", "URL contained wrong subreddit '%{subreddit_from_url}' != 'keybaseproofs'"] } },
     # Create the old.reddit.com url to fetch from
     { fill: {
-      , with: "https://old.reddit.com/r/%{subreddit_from_url}/%{path_remainder}/.rss"
+      , with: "https://old.reddit.com/r/%{subreddit_from_url}/%{path_remainder}/"
       , into: "our_url" } },
     { fetch: {
       , from: "our_url"
       , kind: "html" } },
-    # Index to the first entry: reddit's .rss for a comments page returns the
-    # submission as entry 0 followed by comment entries. The t3_ check below
-    # confirms entry 0 is the post (comments are t1_), so we fail closed if the
-    # ordering ever changes.
+    # Select the submission itself: on an old.reddit.com comments page the post
+    # is the single `link self` thing, while comments are separate `comment`
+    # things. We read its fullname and the t3_ check below confirms it really is
+    # a submission (t3_) and not a comment (t1_), so we fail closed if the markup
+    # ever changes.
     { selector_css: {
-      , selectors: ["feed", "entry", 0, "id", { contents: true }]
-      , into: "entry_id"
-      , error: ["CONTENT_MISSING", "Could not find entry ID"] } },
+      , selectors: ["div.thing.link.self"]
+      , attr: "data-fullname"
+      , into: "post_id"
+      , error: ["FAILED_PARSE", "Could not find post ID"] } },
     { assert_regex_match: {
       , pattern: "^t3_.+$"
-      , from: "entry_id"
-      , error: ["CONTENT_FAILURE", "Wanted an entry ID with 't3' prefix but got '%{entry_id}'"] } },
+      , from: "post_id"
+      , error: ["CONTENT_FAILURE", "Wanted an entry ID with 't3' prefix but got '%{post_id}'"] } },
     # check the subreddit
     { selector_css: {
-      , selectors: ["feed", "entry", 0, "category"]
-      , attr: "label"
-      , into: "subreddit_from_xml"
-      , error: ["CONTENT_MISSING", "Could not find category (subreddit)"] } },
+      , selectors: ["div.thing.link.self"]
+      , attr: "data-subreddit"
+      , into: "post_subreddit"
+      , error: ["FAILED_PARSE", "Could not find post subreddit"] } },
     { assert_regex_match: {
-      , pattern: "^r/keybaseproofs$"
+      , pattern: "^keybaseproofs$"
       , case_insensitive: true
-      , from: "subreddit_from_xml"
-      , error: ["CONTENT_FAILURE", "Wrong subreddit %{subreddit_from_xml}"] } },
+      , from: "post_subreddit"
+      , error: ["CONTENT_FAILURE", "Wrong subreddit %{post_subreddit}"] } },
     # check the author
     { selector_css: {
-      , selectors: ["feed", "entry", 0, "author", "name", { contents: true }]
-      , into: "author_from_xml"
-      , error: ["CONTENT_MISSING", "Could not find author"] } },
-    { fill: {
-      , with: "/u/%{username_service}"
-      , into: "our_author" } },
+      , selectors: ["div.thing.link.self"]
+      , attr: "data-author"
+      , into: "post_author"
+      , error: ["FAILED_PARSE", "Could not find post author"] } },
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "author_from_xml"
-      , b: "our_author"
-      , error: ["BAD_USERNAME", "Bad post author; wanted '%{our_author}' but got '%{author_from_xml}'"] } },
+      , a: "post_author"
+      , b: "username_service"
+      , error: ["BAD_USERNAME", "Bad post author; wanted '%{username_service}' but got '%{post_author}'"] } },
     # check the title
     { selector_css: {
-      , selectors: ["feed", "entry", 0, "title", { contents: true }]
+      , selectors: ["html", "head", "title", { contents: true }]
       , into: "title"
-      , error: ["CONTENT_MISSING", "Could not find title in XML"] } },
+      , error: ["TITLE_NOT_FOUND", "Could not find title in HTML"] } },
     { assert_regex_match: {
       , pattern: "^.*%{sig_id_medium}.*$"
+      , multiline: true
       , from: "title"
-      , error: ["TITLE_NOT_FOUND", "Missing signature ID (%{sig_id_medium})) in post title '%{title}'"] } },
-    # check the content
+      , error: ["TITLE_NOT_FOUND", "Missing signature ID (%{sig_id_medium}) in post title '%{title}'"] } },
+    # Grab the rendered post body. The signature lives in <code>/<pre> blocks
+    # whose newlines are preserved in the HTML, so pulling the whole usertext-body
+    # text into one register is enough to recover a multi-line PGP signature
+    # (see max's proof) as well as single-line NaCl ones.
     { selector_css: {
-      , selectors: ["feed", "entry", 0, "content", { contents: true }]
-      , into: "content_raw"
-      , error: ["CONTENT_MISSING", "Could not find content in XML"] } },
-    { parse_html: {
-      , from: "content_raw" } },
-    # Proof signatures are always in <code> blocks. There may be more than one
-    # code block in the post, though (see max's proof), extract and concatenate
-    # them all into one register.
-    { selector_css: {
-      , selectors: ["code", { contents: true }]
-      , into: "code_raw"
-      , multi: true
-      , error: ["CONTENT_MISSING", "Could not find content in XML"] } },
-    # The content in .rss endpoint is stripped out of newlines. We are going to
-    # normalize whitespace and replace all spaces with newlines to recover the
-    # matching multiline PGP signature so it matches the `sig` register. This has
-    # no effect on NaCl signatures.
-    { whitespace_normalize: {
-      , from: "code_raw"
-      , into: "code_nw" } },
-    { replace_all: {
-      , old: " "
-      , new: "\n"
-      , from: "code_nw"
-      , into: "code" } },
-    # Finally, find the signature in the normalized text.
+      , selectors: ["div.thing.link.self", "div.usertext-body"]
+      , into: "post_body"
+      , error: ["CONTENT_MISSING", "Could not find post body"] } },
+    # Finally, find the signature in the post body.
     { assert_find_base64: {
       , needle: "sig"
-      , haystack: "code"
+      , haystack: "post_body"
       , error: ["TEXT_NOT_FOUND", "Signature not found in body"] } },
   ]]
   rooter: [[

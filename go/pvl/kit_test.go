@@ -99,10 +99,10 @@ func TestKitRedditMax(t *testing.T) {
 		testRemoteUsername: "maxtaco", // remote (service) username
 		armoredSig:         string(armoredSig),
 
-		testResponseFile: "testdata/reddit-max.xml",
+		testResponseFile: "testdata/reddit-max.html",
 
 		testAPIURL:  "https://www.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/.json",
-		urloverride: "https://old.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/.rss",
+		urloverride: "https://old.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/",
 
 		shouldwork: true,
 	}
@@ -110,7 +110,7 @@ func TestKitRedditMax(t *testing.T) {
 
 	// Try a response for a different proof, should not work
 	utBad := ut
-	utBad.testResponseFile = "testdata/reddit-terribletext5299.xml"
+	utBad.testResponseFile = "testdata/reddit-terribletext5299.html"
 	utBad.shouldwork = false
 	utBad.errstatus = keybase1.ProofStatus_BAD_USERNAME
 	runKitUnitTest(t, &utBad)
@@ -126,10 +126,10 @@ func TestKitRedditTerribleText5299(t *testing.T) {
 		testRemoteUsername: "terrible-text5299", // remote (service) username
 		armoredSig:         armoredSig,
 
-		testResponseFile: "testdata/reddit-terribletext5299.xml",
+		testResponseFile: "testdata/reddit-terribletext5299.html",
 
 		testAPIURL:  "https://www.reddit.com/r/KeybaseProofs/comments/1pqpxtp/my_keybase_proof_redditterribletext5299/.json",
-		urloverride: "https://old.reddit.com/r/KeybaseProofs/comments/1pqpxtp/my_keybase_proof_redditterribletext5299/.rss",
+		urloverride: "https://old.reddit.com/r/KeybaseProofs/comments/1pqpxtp/my_keybase_proof_redditterribletext5299/",
 
 		shouldwork: true,
 	}
