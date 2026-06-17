@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {isBigTeam} from '@/constants/chat/helpers'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useIsBigTeam} from '@/teams/common/use-loaded-team-channels'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -223,9 +222,7 @@ const RequestRow = (ownProps: OwnProps) => {
     teamMeta: {teamname},
     yourOperations,
   } = useLoadedTeam(teamID)
-  const _notifLabel = useInboxLayoutState(s =>
-    isBigTeam(s.layout, teamID) ? `Announce them in #general` : `Announce them in team chat`
-  )
+  const _notifLabel = useIsBigTeam(teamID) ? `Announce them in #general` : `Announce them in team chat`
   const disabledReasonsForRolePicker = getRolePickerDisabledReasons({
     canManageMembers: yourOperations.manageMembers,
     currentUsername,

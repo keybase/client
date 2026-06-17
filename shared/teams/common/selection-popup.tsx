@@ -1,13 +1,11 @@
 import * as C from '@/constants'
-import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {FloatingRolePicker} from '../role-picker'
 import {getRolePickerDisabledReasons} from '../role-picker-utils'
-import {useLoadedTeamChannels} from './use-loaded-team-channels'
+import {useIsBigTeam, useLoadedTeamChannels} from './use-loaded-team-channels'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {pluralize} from '@/util/string'
@@ -182,7 +180,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const {selectedMembers} = useTeamSelectionState()
-  const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
+  const isBigTeam = useIsBigTeam(teamID)
   const navigateAppend = C.Router2.navigateAppend
   if (!selectedMembers.size) {
     // we shouldn't be rendered

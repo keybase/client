@@ -1,7 +1,5 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
-import {isBigTeam} from '@/constants/chat/helpers'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import * as T from '@/constants/types'
 import type * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -205,8 +203,13 @@ export const useChannelsSections = (
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>,
   loading: boolean
 ): Array<Section> => {
-  const isBig = useInboxLayoutState(s => isBigTeam(s.layout, teamID))
-
+  // Self-consistent: a big team has channels beyond #general. Derive from the
+  // channels we loaded here rather than the chat inbox layout, which is empty
+  // until the inbox has been visited.
+  if (loading && channels.size === 0) {
+    return [{data: [{type: 'channel-loading'}], renderItem: () => <LoadingRow />} as const]
+  }
+  const isBig = channels.size > 1
   if (!isBig) {
     return [
       {
@@ -214,9 +217,6 @@ export const useChannelsSections = (
         renderItem: () => <EmptyRow type="channelsEmpty" teamID={teamID} />,
       } as const,
     ]
-  }
-  if (loading) {
-    return [{data: [{type: 'channel-loading'}], renderItem: () => <LoadingRow />} as const]
   }
   const createRow = yourOperations.createChannel
     ? [{data: [{type: 'channel-add'}], renderItem: () => <ChannelHeaderRow teamID={teamID} />} as const]
