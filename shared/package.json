@@ -76,6 +76,8 @@
     "test:e2e:ios": "bash tests/e2e/run-ios-appium-parallel.sh",
     "test:e2e:ios:iphone": "bash tests/e2e/run-ios-appium.sh iPhoneTest",
     "test:e2e:ios:ipad": "bash tests/e2e/run-ios-appium.sh iPadTest",
+    "test:e2e:ios:iphone-old": "bash tests/e2e/run-ios-appium.sh iPhoneTestOld",
+    "test:e2e:ios:ipad-old": "bash tests/e2e/run-ios-appium.sh iPadTestOld",
     "test:e2e:ios:report": "node tests/e2e/generate-appium-report.mts && open tests/results/ios-appium-report.html",
     "test:unit": "napi-postinstall unrs-resolver 1.11.1 check; jest --runInBand",
     "test:unit:ios": "xcodebuild test -project ./ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",

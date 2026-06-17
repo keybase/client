@@ -6,11 +6,11 @@
 # Usage:
 #   KB_SMOKE_USER=<user> tests/e2e/run-ios-appium.sh ["iPhoneTest" "iPadTest" ...]
 #
-# Defaults to "iPhoneTest" and "iPadTest". The app (keybase.ios) must already be
-# installed on each named simulator, and the appium xcuitest driver installed
-# (yarn appium driver install xcuitest). Artifacts land in the fixed per-device
-# dirs (tests/results/ios-appium-debug-{iphone,ipad}) the report reads; the
-# merged report is ios-appium-report.html.
+# Defaults to "iPhoneTest" "iPadTest" "iPhoneTestOld" "iPadTestOld". The app
+# (keybase.ios) must already be installed on each named simulator, and the appium
+# xcuitest driver installed (yarn appium driver install xcuitest). Artifacts land
+# in the fixed per-device dirs (tests/results/ios-appium-debug-{iphone,ipad,iphone-old,ipad-old})
+# the report reads; the merged report is ios-appium-report.html.
 set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SHARED_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -18,12 +18,17 @@ cd "$SHARED_DIR"
 
 DEVICES=("$@")
 if [ ${#DEVICES[@]} -eq 0 ]; then
-  DEVICES=("iPhoneTest" "iPadTest")
+  DEVICES=("iPhoneTest" "iPadTest" "iPhoneTestOld" "iPadTestOld")
 fi
 
-# iPhone results always go to -iphone, iPad to -ipad — the report only reads
-# these two dirs, so each run overwrites its device's slot in the report.
-dir_for() { case "$1" in *[Pp]ad*) echo "tests/results/ios-appium-debug-ipad";; *) echo "tests/results/ios-appium-debug-iphone";; esac }
+# Each device name maps to one of four fixed slot dirs by form factor (pad vs
+# phone) plus an -old suffix for the older-OS sims (names ending in "Old"). The
+# report only reads these dirs, so each run overwrites its device's slot.
+dir_for() {
+  local base; case "$1" in *[Pp]ad*) base="ipad";; *) base="iphone";; esac
+  case "$1" in *[Oo]ld) base="$base-old";; esac
+  echo "tests/results/ios-appium-debug-$base"
+}
 
 booted_udids() {
   xcrun simctl list devices booted -j | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);for(const k in j.devices)for(const d of j.devices[k])if(d.state==="Booted")console.log(d.udid)})'
