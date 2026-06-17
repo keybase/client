@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
 import {escapeToTabs, goBack} from '../helpers/navigate'
-import {el, els, waitForTestID} from '../helpers/elements'
+import {el, els, waitForTestID, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('files folders', () => {
@@ -8,8 +8,9 @@ describe('files folders', () => {
     await escapeToTabs()
     // Maestro: tap Teams then Files to disambiguate from the More tab "Files" item
     await browser.$(`~Teams`).click()
-    await browser.$(`~Files`).click()
-    await waitForTestID(T.FILES_BROWSER, 3000)
+    // The Files tab tap lands right after the Teams switch; on slow sims the
+    // first tap is swallowed mid-transition (test stays on Teams), so retry.
+    await tapForTestID('Files', T.FILES_BROWSER)
     await expect(el(T.FILES_BROWSER)).toExist()
 
     // TLF rows load after the browser mounts (KBFS can be slow) — wait for

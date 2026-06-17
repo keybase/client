@@ -179,6 +179,23 @@ export async function goBack(): Promise<void> {
     .perform()
 }
 
+// goBack, retried until a marker testID from the screen being popped is gone.
+// A single goBack can no-op on slow/old sims (the back tap is swallowed, or the
+// left-edge guard rejects an oddly-positioned chevron), leaving the caller on
+// the old screen so the next tap lands wrong. Verifying the pop via the marker's
+// disappearance makes back navigation reliable. Returns once gone (or after
+// `tries` attempts — caller's next wait then surfaces a real failure).
+export async function goBackUntilGone(markerId: string, tries = 3): Promise<void> {
+  for (let i = 0; i < tries; i++) {
+    await goBack()
+    const gone = await browser
+      .waitUntil(async () => (await els(markerId).length) === 0, {timeout: 3000, interval: 150})
+      .then(() => true)
+      .catch(() => false)
+    if (gone) return
+  }
+}
+
 // The iOS tab bar is a NATIVE UITabBar: testIDs (nav-tab-*) do not reach the
 // native UITabBarItems, but their titles do (exposed as the accessibility
 // name/label). So tabs are tapped by visible label, not testID.
