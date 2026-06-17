@@ -5,24 +5,31 @@ import os
 
 private let log = Logger(subsystem: "com.keybase.app", category: "push")
 
+// Serial so notifications post in the order Go scheduled them.
+private let pushQueue = DispatchQueue(label: "com.keybase.app.push", qos: .userInitiated)
+
 class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
   func localNotification(
     _ ident: String?, title: String?, msg: String?, badgeCount: Int, soundName: String?,
     convID: String?, typ: String?, uid: String?
   ) {
-    let content = UNMutableNotificationContent()
-    if let soundName = soundName {
-      content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
-    }
-    content.badge = (badgeCount >= 0) ? NSNumber(value: badgeCount) : nil
-    content.title = title ?? ""
-    content.body = msg ?? ""
-    content.userInfo = ["convID": convID ?? "", "type": typ ?? "", "uid": uid ?? ""]
-    let request = UNNotificationRequest(
-      identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
-    UNUserNotificationCenter.current().add(request) { error in
-      if let error = error {
-        log.error("local notification failed: \(error.localizedDescription, privacy: .public)")
+    // Invoked by Go over the gomobile cgo bridge, so this runs on a Go-runtime-managed thread,
+    // not a real NSThread/dispatch queue. Hop to a GCD queue before touching UserNotifications.
+    pushQueue.async {
+      let content = UNMutableNotificationContent()
+      if let soundName = soundName {
+        content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
+      }
+      content.badge = (badgeCount >= 0) ? NSNumber(value: badgeCount) : nil
+      content.title = title ?? ""
+      content.body = msg ?? ""
+      content.userInfo = ["convID": convID ?? "", "type": typ ?? "", "uid": uid ?? ""]
+      let request = UNNotificationRequest(
+        identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
+      UNUserNotificationCenter.current().add(request) { error in
+        if let error = error {
+          log.error("local notification failed: \(error.localizedDescription, privacy: .public)")
+        }
       }
     }
   }
