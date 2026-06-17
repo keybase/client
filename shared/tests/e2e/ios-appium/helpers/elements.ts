@@ -27,21 +27,31 @@ export const pasteText = async (id: string, text: string): Promise<void> => {
     encoding: 'base64',
   })
   await el(id).click()
-  // Hold on the actually-focused text element, not the testID node: some testIDs
-  // sit on a wrapper Box2 that also contains a banner/recipients (e.g. the crypto
-  // inputs), so holding the wrapper lands above the editable area and no menu
-  // appears. The keyboard-focused element is the real text field — wait for it to
-  // exist (focus can lag under load) before holding.
+  // Summon the edit menu so we can tap Paste. The hold target matters: some
+  // testIDs sit on a wrapper Box2 that also contains a banner/recipients (the
+  // crypto inputs), so holding the wrapper node lands above the editable area
+  // and no menu shows. Prefer the keyboard-focused element (sign/chat auto- or
+  // click-focus the field). Inputs that don't take focus until tapped in the
+  // body (encrypt — a Recipients field sits above) expose no focused element,
+  // so fall back to coordinates stepping down into the input body.
   const focused = browser.$('-ios predicate string:hasKeyboardFocus == 1')
-  await focused.waitForExist({timeout: 4000}).catch(() => {})
+  await focused.waitForExist({timeout: 2000}).catch(() => {})
+  const box = el(id)
+  const loc = await box.getLocation()
+  const size = await box.getSize()
+  const cx = Math.round(loc.x + size.width / 2)
+  // null = hold the focused element; numbers = vertical fraction into the box.
+  const targets: Array<number | null> = [null, 0.3, 0.4, 0.2, 0.5]
   const paste = browser.$(
     '-ios predicate string:type == "XCUIElementTypeMenuItem" AND (label == "Paste" OR name == "Paste")'
   )
-  for (let i = 0; i < 6; i++) {
-    const fid = await focused.elementId.catch(() => undefined)
-    await browser
-      .execute('mobile: touchAndHold', fid ? {elementId: fid, duration: 1.3} : {elementId: await el(id).elementId, duration: 1.3})
-      .catch(() => {})
+  for (const t of targets) {
+    const fid = t === null ? await focused.elementId.catch(() => undefined) : undefined
+    const args =
+      t === null && fid
+        ? {elementId: fid, duration: 1.3}
+        : {x: cx, y: Math.round(loc.y + size.height * (t ?? 0.3)), duration: 1.3}
+    await browser.execute('mobile: touchAndHold', args).catch(() => {})
     const got = await paste
       .waitForExist({timeout: 1500})
       .then(() => true)
@@ -50,7 +60,7 @@ export const pasteText = async (id: string, text: string): Promise<void> => {
       await paste.click().catch(() => {})
       return
     }
-    await browser.pause(400)
+    await browser.pause(300)
   }
   throw new Error(`pasteText: Paste menu never appeared for "${id}"`)
 }
