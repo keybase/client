@@ -309,6 +309,9 @@ function NativeInput(p: InputLowLevelProps) {
   const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
     undefined
   )
+  // iOS multiline TextInput doesn't shrink its content height when value is
+  // reset programmatically (only on manual deletion), so remount to collapse.
+  const [resetKey, setResetKey] = React.useState(0)
   const inputRef = React.useRef<RNTextInput | null>(null)
 
   const setInputRef = (ti: RNTextInput | null) => {
@@ -337,7 +340,11 @@ function NativeInput(p: InputLowLevelProps) {
       clear: () => {
         setValue('')
         onChangeText('')
+        setSelection(undefined)
         setAutoFocus(true)
+        if (isIOS) {
+          setResetKey(k => k + 1)
+        }
       },
       focus: () => {
         i?.focus()
@@ -403,6 +410,7 @@ function NativeInput(p: InputLowLevelProps) {
 
   return (
     <TextInput
+      key={resetKey}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       autoFocus={autoFocus}
