@@ -29,11 +29,42 @@ const {deviceDirs, outputPath, title} =
 
 type TestArtifact = {label: string; passed: boolean; durationMs: number; error: string | null}
 
+// Runners drop a _run-error.json when wdio exits nonzero having written no test
+// artifacts (e.g. the Appium/WDA session never started). Surface it as a failed
+// card so a device that died on startup shows in the report instead of silently
+// vanishing (the prior behavior — empty dir => section filtered out).
+function readRunError(dir: string): string | null {
+  const p = path.join(dir, '_run-error.json')
+  if (!fs.existsSync(p)) return null
+  try {
+    return (JSON.parse(fs.readFileSync(p, 'utf8')) as {error?: string}).error ?? 'Run failed before any test ran.'
+  } catch {
+    return 'Run failed before any test ran.'
+  }
+}
+
+function runErrorCard(dir: string, error: string): CardData {
+  const timestamp = fs
+    .statSync(path.join(dir, '_run-error.json'))
+    .mtime.toLocaleString(undefined, {day: 'numeric', hour: 'numeric', minute: '2-digit', month: 'numeric'})
+  return {
+    label: 'Run error — session failed to start',
+    passed: false,
+    durationMs: 0,
+    screenshotPath: null,
+    prevScreenshotPath: null,
+    failureScreenshotPath: null,
+    diff: null,
+    errorMessage: error,
+    timestamp,
+  }
+}
+
 function readCards(dir: string): CardData[] {
   if (!fs.existsSync(dir)) return []
   return fs
     .readdirSync(dir)
-    .filter(f => f.endsWith('.json'))
+    .filter(f => f.endsWith('.json') && !f.startsWith('_'))
     .sort()
     .map(f => {
       const data = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')) as TestArtifact
@@ -69,7 +100,10 @@ function newestMtimeMs(dir: string): number {
 const sections: Section[] = deviceDirs
   .map(({label, dir}) => {
     const stale = Date.now() - newestMtimeMs(dir) > STALE_MS
-    return {header: stale ? `${label} (stale)` : label, cards: readCards(dir)}
+    const runError = readRunError(dir)
+    // Lead with the run-error card so a startup failure is the first thing seen.
+    const cards = [...(runError ? [runErrorCard(dir, runError)] : []), ...readCards(dir)]
+    return {header: stale ? `${label} (stale)` : label, cards}
   })
   .filter(s => s.cards.length > 0)
 const timestamp = new Date().toLocaleString()
