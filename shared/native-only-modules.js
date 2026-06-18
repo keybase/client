@@ -7,6 +7,7 @@
 //
 // When a merged .tsx file adds a new native-only package in an isMobile branch, add it here.
 module.exports = [
+  '@legendapp/list/keyboard',
   'lottie-react-native',
   'expo-audio',
   'expo-location',
