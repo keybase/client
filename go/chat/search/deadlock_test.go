@@ -232,3 +232,89 @@ func TestSearchDeadlockRegression(t *testing.T) {
 		}
 	})
 }
+
+// TestSearchMetadataConcurrentReadWrite guards against a regression where the
+// store's metadata read path iterated the cached indexMetadata.SeenIDs map
+// without holding the store lock, while the storage loop mutated the same map
+// under s.Lock() (Add/Remove). The runtime aborts that with "concurrent map
+// read and map write". Run with -race to catch the unsynchronized access.
+func TestSearchMetadataConcurrentReadWrite(t *testing.T) {
+	ctx := context.TODO()
+	_, s := setupDeadlockTestStore(t)
+
+	convID := chat1.ConversationID([]byte{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+	})
+	const maxID chat1.MessageID = 2000
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{ConversationID: convID},
+		MaxMsgSummaries: []chat1.MessageSummary{
+			{MsgID: maxID, MessageType: chat1.MessageType_TEXT},
+		},
+	}
+
+	makeTextMsg := func(id chat1.MessageID) chat1.MessageUnboxed {
+		return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+			ClientHeader: chat1.MessageClientHeaderVerified{
+				MessageType: chat1.MessageType_TEXT,
+				Conv:        chat1.ConversationIDTriple{TopicType: chat1.TopicType_CHAT},
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello world"}),
+			ServerHeader: chat1.MessageServerHeader{
+				MessageID: id,
+			},
+		})
+	}
+
+	var wg sync.WaitGroup
+	addErrCh := make(chan error, 1)
+	reportErr := func(err error) {
+		if err != nil {
+			select {
+			case addErrCh <- err:
+			default:
+			}
+		}
+	}
+
+	// Writer: continuously mutate md.SeenIDs under s.Lock() via store.Add.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for id := chat1.MessageID(1); id <= maxID; id++ {
+			reportErr(s.Add(ctx, convID, []chat1.MessageUnboxed{makeTextMsg(id)}))
+		}
+	}()
+
+	// Reader: exercise the store read accessors that iterate SeenIDs,
+	// mirroring the SelectiveSync/reindexConv read path that previously raced.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 2000; i++ {
+			if _, err := s.MissingIDForConv(ctx, conv); err != nil {
+				reportErr(err)
+				return
+			}
+			if _, err := s.FullyIndexed(ctx, conv); err != nil {
+				reportErr(err)
+				return
+			}
+			if _, err := s.PercentIndexed(ctx, conv); err != nil {
+				reportErr(err)
+				return
+			}
+			if _, err := s.IndexStatus(ctx, conv); err != nil {
+				reportErr(err)
+				return
+			}
+		}
+	}()
+
+	wg.Wait()
+	select {
+	case err := <-addErrCh:
+		require.NoError(t, err)
+	default:
+	}
+}

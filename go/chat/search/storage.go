@@ -648,7 +648,79 @@ func (s *store) removeMsg(ctx context.Context, convID chat1.ConversationID,
 	return nil
 }
 
-func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
+// The cached *indexMetadata (and its SeenIDs map) is mutated under s.Lock() by
+// Add/Remove, so the shared pointer must never escape the store lock. The read
+// helpers below acquire s.RLock() and return computed values (never the shared
+// map) to avoid a concurrent map read/write with the storage loop.
+
+// MissingIDForConv returns the message IDs in conv that are not yet indexed.
+func (s *store) MissingIDForConv(ctx context.Context, conv chat1.Conversation) (res []chat1.MessageID, err error) {
+	s.RLock()
+	defer s.RUnlock()
+	md, err := s.getMetadataLocked(ctx, conv.GetConvID())
+	if err != nil {
+		return nil, err
+	}
+	return md.MissingIDForConv(conv), nil
+}
+
+// FullyIndexed reports whether every message in conv has been indexed.
+func (s *store) FullyIndexed(ctx context.Context, conv chat1.Conversation) (res bool, err error) {
+	status, err := s.IndexStatus(ctx, conv)
+	if err != nil {
+		return false, err
+	}
+	return status.fullyIndexed(), nil
+}
+
+// PercentIndexed returns how much of conv has been indexed, as a percentage.
+func (s *store) PercentIndexed(ctx context.Context, conv chat1.Conversation) (res int, err error) {
+	status, err := s.IndexStatus(ctx, conv)
+	if err != nil {
+		return 0, err
+	}
+	return status.percentIndexed(), nil
+}
+
+// IndexStatus returns the missing/total message counts for conv.
+func (s *store) IndexStatus(ctx context.Context, conv chat1.Conversation) (res indexStatus, err error) {
+	s.RLock()
+	defer s.RUnlock()
+	md, err := s.getMetadataLocked(ctx, conv.GetConvID())
+	if err != nil {
+		return indexStatus{}, err
+	}
+	return md.indexStatus(conv), nil
+}
+
+type convIndexStats struct {
+	numMissing  int
+	numMessages int
+	percent     int
+	sizeMem     int64
+}
+
+// ConvIndexStats returns aggregate profiling stats for conv's index.
+func (s *store) ConvIndexStats(ctx context.Context, conv chat1.Conversation) (res convIndexStats, err error) {
+	s.RLock()
+	defer s.RUnlock()
+	md, err := s.getMetadataLocked(ctx, conv.GetConvID())
+	if err != nil {
+		return res, err
+	}
+	return convIndexStats{
+		numMissing:  len(md.MissingIDForConv(conv)),
+		numMessages: len(md.SeenIDs),
+		percent:     md.indexStatus(conv).percentIndexed(),
+		sizeMem:     md.Size(),
+	}, nil
+}
+
+// getMetadataLocked returns the live cached metadata for convID, populating the
+// cache from disk on a miss. The returned *indexMetadata is shared and its
+// SeenIDs map may be mutated, so callers must hold s.RLock for read-only access
+// or s.Lock to mutate it.
+func (s *store) getMetadataLocked(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
 	convIDStr := convID.ConvIDStr()
 	if cached, ok := s.mdCache.Get(convIDStr); ok {
 		return cached.(*indexMetadata), nil
@@ -712,7 +784,7 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	defer s.Unlock()
 
 	modified := false
-	md, err := s.GetMetadata(ctx, convID)
+	md, err := s.getMetadataLocked(ctx, convID)
 	if err != nil {
 		s.Debug(ctx, "failed to get metadata: %s", err)
 		return err
@@ -775,7 +847,7 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 	s.Lock()
 	defer s.Unlock()
 
-	md, err := s.GetMetadata(ctx, convID)
+	md, err := s.getMetadataLocked(ctx, convID)
 	if err != nil {
 		return err
 	}
