@@ -6,6 +6,8 @@ import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {pickFiles} from '@/util/misc'
+import {KeyboardStickyView, useKeyboardState} from 'react-native-keyboard-controller'
+import {SafeAreaView as ScreensSafeAreaView} from 'react-native-screens/experimental'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type CommonProps = {
@@ -36,6 +38,12 @@ type DragAndDropProps = {
   prompt: string
   testID?: string
 }
+
+// RNScreens' SafeAreaView hardcodes `flex: 1` (i.e. flexBasis 0%), which collapses the
+// bar to zero height inside the keyboard sticky view. A `flexBasis`/`flexGrow` override
+// loses to the `flex` shorthand in the style merge, so unset `flex` itself (plain object,
+// not styleSheetCreate, so the undefined survives) and let the bar size to its content.
+const unsetLibFlex = {flex: undefined}
 
 type RunActionBarProps = {
   blurCBRef?: React.RefObject<() => void>
@@ -256,6 +264,9 @@ export const CryptoBanner = ({infoMessage, state}: CryptoBannerProps) => {
 }
 
 export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActionBarProps) => {
+  const insets = Kb.useSafeAreaInsets()
+  const keyboardVisible = useKeyboardState(s => s.isVisible)
+  const androidOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
   const onClick = () => {
     blurCBRef?.current()
     setTimeout(() => {
@@ -263,7 +274,9 @@ export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActio
     }, 100)
   }
 
-  return isMobile ? (
+  if (!isMobile) return null
+
+  const bar = (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
@@ -282,7 +295,34 @@ export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActio
         testID={TestIDs.CRYPTO_RUN_BUTTON}
       />
     </Kb.Box2>
-  ) : null
+  )
+
+  // These screens draw edge-to-edge and the bar sticks to the keyboard. On phones it
+  // must clear the home indicator; on tablet the screen lives inside the tab navigator,
+  // so the real bottom inset also includes the native tab bar. useSafeAreaInsets only
+  // reports the home indicator, so on iOS read the true native inset via RNScreens'
+  // SafeAreaView (the tab controller adjusts it). Collapse the inset while the keyboard
+  // is up: it covers the home indicator and the sticky view already lifts the bar above
+  // it. Android already insets the whole tab/stack screen, so just offset for the home
+  // indicator as before.
+  if (isIOS) {
+    // RNScreens applies the bottom inset as margin (outside the SafeAreaView's box). Wrap it
+    // in a bar-colored Box2: a flex container includes its child's margin in its own height,
+    // so the bar color fills down to the screen edge instead of leaving a white strip below
+    // the bar (modern iPad has only a ~20pt home-indicator inset here; old iPad's inset also
+    // includes the native bottom tab bar, which sits over this colored area).
+    return (
+      <KeyboardStickyView>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.stickyBarSafeArea}>
+          <ScreensSafeAreaView edges={{bottom: !keyboardVisible}} style={[styles.stickyBarSafeArea, unsetLibFlex]}>
+            {bar}
+          </ScreensSafeAreaView>
+        </Kb.Box2>
+      </KeyboardStickyView>
+    )
+  }
+
+  return <KeyboardStickyView offset={androidOffset}>{bar}</KeyboardStickyView>
 }
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -321,6 +361,14 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputActionsBarContainer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
+      },
+      // RNScreens' SafeAreaView forces flex: 1; neutralize it so the bar wraps its
+      // content height instead of stretching inside the keyboard sticky view.
+      stickyBarSafeArea: {
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        flexBasis: 'auto',
+        flexGrow: 0,
+        flexShrink: 0,
       },
       inputAndFilePickerContainer: Kb.Styles.platformStyles({
         isElectron: {

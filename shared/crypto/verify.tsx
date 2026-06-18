@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {CryptoBanner, Input, InputActionsBar} from './input'
 import OperationIO from './operation-io'
-import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from './output'
 import {
   beginRun,
@@ -141,8 +140,6 @@ export const VerifyInput = (_props: unknown) => {
   const {params} = useRoute() as RootRouteProps<'verifyTab'>
   const controller = useVerifyState(params)
   const navigateAppend = C.Router2.navigateAppend
-  const insets = Kb.useSafeAreaInsets()
-  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
   const onRun = () => {
     const f = async () => {
@@ -194,9 +191,7 @@ export const VerifyInput = (_props: unknown) => {
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}
       />
-      <KeyboardStickyView offset={stickyOffset}>
-        <InputActionsBar runLabel="Verify" onRun={onRun} />
-      </KeyboardStickyView>
+      <InputActionsBar runLabel="Verify" onRun={onRun} />
     </Kb.Box2>
   )
 }
