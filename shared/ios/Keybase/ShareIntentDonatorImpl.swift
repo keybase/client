@@ -30,32 +30,42 @@ private struct ShareConversation: Decodable {
 }
 
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
+  // These protocol methods are invoked by Go over the gomobile cgo bridge, so they run on a
+  // Go-runtime-managed thread, not a real NSThread/dispatch queue. JSONDecoder, CoreGraphics,
+  // and Intents framework work must not run there; hop to a GCD queue first and return to Go
+  // immediately.
   func deleteAllDonations() {
-    INInteraction.deleteAll { _ in }
-    log.info("ShareIntentDonator: deleteAllDonations completed")
+    DispatchQueue.global(qos: .utility).async {
+      INInteraction.deleteAll { _ in }
+      log.info("ShareIntentDonator: deleteAllDonations completed")
+    }
   }
 
   func deleteDonation(_ conversationID: String?) {
     guard let id = conversationID, !id.isEmpty else { return }
-    INInteraction.delete(with: id, completion: nil)
-    log.info("ShareIntentDonator: deleteDonation completed for \(id, privacy: .public)")
+    DispatchQueue.global(qos: .utility).async {
+      INInteraction.delete(with: id, completion: nil)
+      log.info("ShareIntentDonator: deleteDonation completed for \(id, privacy: .public)")
+    }
   }
 
   func donateShareConversations(_ conversationsJSON: String?) {
-    guard let json = conversationsJSON, let data = json.data(using: .utf8) else {
-      log.info("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
-      return
+    DispatchQueue.global(qos: .utility).async { [weak self] in
+      guard let json = conversationsJSON, let data = json.data(using: .utf8) else {
+        log.info("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
+        return
+      }
+      guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
+        log.info("ShareIntentDonator: donateShareConversations: JSON decode failed")
+        return
+      }
+      guard !conversations.isEmpty else {
+        log.info("ShareIntentDonator: donateShareConversations: empty conversations array")
+        return
+      }
+      log.info("ShareIntentDonator: donateShareConversations: donating \(conversations.count) conversations")
+      self?.donateConversations(conversations)
     }
-    guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
-      log.info("ShareIntentDonator: donateShareConversations: JSON decode failed")
-      return
-    }
-    guard !conversations.isEmpty else {
-      log.info("ShareIntentDonator: donateShareConversations: empty conversations array")
-      return
-    }
-    log.info("ShareIntentDonator: donateShareConversations: donating \(conversations.count) conversations")
-    donateConversations(conversations)
   }
 
   private func donateConversations(_ conversations: [ShareConversation]) {

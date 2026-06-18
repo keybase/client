@@ -30,8 +30,10 @@ import {usePushState} from '@/stores/push'
 import {colors, darkColors} from '@/styles/colors'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
-import {StatusBar, View, useColorScheme} from 'react-native'
+import {Platform, StatusBar, View, useColorScheme} from 'react-native'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
+// `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
+const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
 
 // Tell the router constants which root-stack routes are modals (vs genuinely-visible
 // pushed screens like chatConversation). modalRoutes is the single source of truth.
@@ -425,7 +427,12 @@ const androidTabIcons = new Map<Tabs.Tab, number>(
 const iosTabIcons = new Map<Tabs.Tab, {active: SFSymbol; inactive: SFSymbol}>(
   isMobile
     ? [
-        [Tabs.chatTab, {active: 'bubble.fill', inactive: 'bubble'}],
+        [
+          Tabs.chatTab,
+          isIOS17Plus
+            ? {active: 'bubble.fill', inactive: 'bubble'}
+            : {active: 'message.fill', inactive: 'message'},
+        ],
         [Tabs.fsTab, {active: 'folder.fill', inactive: 'folder'}],
         [Tabs.peopleTab, {active: 'person.crop.rectangle.fill', inactive: 'person.crop.rectangle'}],
         [Tabs.settingsTab, {active: 'line.3.horizontal.circle.fill', inactive: 'line.3.horizontal'}],
@@ -559,7 +566,7 @@ if (isMobile) {
               {label: 'Cancel', onPress: () => navigation.goBack(), type: 'button' as const},
             ],
           }
-        : {headerLeft: () => <HeaderLeftButton mode="cancel" />}
+        : {headerBackVisible: false, headerLeft: () => <HeaderLeftButton mode="cancel" />}
     return {
       ...cancelItem,
       headerShown: true,

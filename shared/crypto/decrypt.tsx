@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {CryptoBanner, Input, InputActionsBar} from './input'
 import OperationIO from './operation-io'
-import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from './output'
 import {
   beginRun,
@@ -141,8 +140,6 @@ export const DecryptInput = (_props: unknown) => {
   const {params} = useRoute() as RootRouteProps<'decryptTab'>
   const controller = useDecryptState(params)
   const navigateAppend = C.Router2.navigateAppend
-  const insets = Kb.useSafeAreaInsets()
-  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
   const onRun = () => {
     const f = async () => {
@@ -177,6 +174,10 @@ export const DecryptInput = (_props: unknown) => {
       direction="vertical"
       fullHeight={true}
       relative={true}
+      // collapsable={false}: keep this testID'd wrapper (and its EditText
+      // descendants) in the Android native view tree — RN flattens it away
+      // otherwise, leaving the e2e testID on an empty leaf with no input under it.
+      collapsable={false}
       testID={TestIDs.CRYPTO_DECRYPT_INPUT}
     >
       <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
@@ -190,9 +191,7 @@ export const DecryptInput = (_props: unknown) => {
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}
       />
-      <KeyboardStickyView offset={stickyOffset}>
-        <InputActionsBar runLabel="Decrypt" onRun={onRun} />
-      </KeyboardStickyView>
+      <InputActionsBar runLabel="Decrypt" onRun={onRun} />
     </Kb.Box2>
   )
 }

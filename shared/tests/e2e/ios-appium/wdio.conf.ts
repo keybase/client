@@ -27,6 +27,11 @@ const port = Number(process.env['KB_APPIUM_PORT'] ?? 4723)
 const wdaLocalPort = port === 4723 ? undefined : 8100 + (port - 4723)
 // 'LANDSCAPE' | 'PORTRAIT' — the runner sets LANDSCAPE for iPad.
 const orientation = process.env['KB_IOS_ORIENTATION']
+// Old-iOS sims (names ending in "Old", e.g. iOS 16.4) can't use the prebuilt
+// WDA (built against the current SDK); they build their own into a per-device
+// DerivedData dir so the build is cached and parallel builds don't collide.
+const isOld = /old$/i.test(deviceName)
+const derivedDataPath = isOld ? path.join(homedir(), '.appium', `wda-derived-${deviceName}`) : undefined
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
@@ -35,15 +40,17 @@ export const config: WebdriverIO.Config = {
   // One aggregate file → one session for the whole suite (see all.test.ts).
   specs: ['./all.test.ts'],
   maxInstances: 1,
-  capabilities: [iosCapabilities(udid, wdaLocalPort)],
+  capabilities: [iosCapabilities(udid, {wdaLocalPort, prebuilt: !isOld, derivedDataPath})],
   logLevel: 'warn',
   framework: 'mocha',
   // 120s: the tablet settings-subpages flow can run long; phone tests finish well
-  // under this. retries: 1 — the one-session suite accumulates load over 16 flows
-  // (KBFS/list loads, transient nav), so a flow can intermittently time out; a
-  // single retry (with a fresh escapeToTabs reset) absorbs those without masking
-  // real failures (a real break fails both attempts).
-  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 1},
+  // under this. retries: 2 — the one-session suite accumulates load over 16 flows
+  // (KBFS/list loads, transient nav), and the old iOS-16.4 sims are slower/flakier
+  // still (paste-menu summon, list timing), so a flow can intermittently fail; up
+  // to two retries (each with a fresh escapeToTabs reset) absorbs that without
+  // masking real failures (a real break fails all attempts). Retries run ONLY on
+  // failure, so passing tests cost nothing.
+  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 2},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/', port}}]],
   // Set device orientation once at session start (e.g. iPad in landscape).

@@ -7,7 +7,6 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openURL} from '@/util/misc'
 import {CryptoBanner, Input, InputActionsBar} from './input'
 import OperationIO from './operation-io'
-import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
 import {
   beginRun,
@@ -152,8 +151,6 @@ export const SignInput = (_props: unknown) => {
   const controller = useSignState(params)
   const blurCBRef = React.useRef(() => {})
   const navigateAppend = C.Router2.navigateAppend
-  const insets = Kb.useSafeAreaInsets()
-  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
   const onRun = () => {
     const f = async () => {
@@ -184,12 +181,7 @@ export const SignInput = (_props: unknown) => {
   }
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      relative={true}
-      testID={TestIDs.CRYPTO_SIGN_INPUT}
-    >
+    <Kb.Box2 direction="vertical" fullHeight={true} relative={true}>
       <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
       <Input
         allowDirectories={true}
@@ -198,13 +190,12 @@ export const SignInput = (_props: unknown) => {
         inputPlaceholder={inputPlaceholder}
         state={controller.state}
         setBlurCB={(cb: () => void) => { blurCBRef.current = cb }}
+        testID={TestIDs.CRYPTO_SIGN_INPUT}
         textInputType="plain"
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}
       />
-      <KeyboardStickyView offset={stickyOffset}>
-        <InputActionsBar runLabel="Sign" blurCBRef={blurCBRef} onRun={onRun} />
-      </KeyboardStickyView>
+      <InputActionsBar runLabel="Sign" blurCBRef={blurCBRef} onRun={onRun} />
     </Kb.Box2>
   )
 }

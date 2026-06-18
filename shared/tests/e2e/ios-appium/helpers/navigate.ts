@@ -34,6 +34,14 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // it stays visible inside pushed stack screens, so also require that no back
 // button (app-custom or native) is present.
 async function atTabs(): Promise<boolean> {
+  if (browser.isAndroid) {
+    // Android tab labels are text/content-desc, not resource-id testIDs, so use
+    // tab() (byText) not els(). At a tab root the People tab shows and there's
+    // no app back button nor a native toolbar up-affordance.
+    if (!(await tab('People').isExisting().catch(() => false))) return false
+    if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
+    return (await browser.$$('//*[@content-desc="Navigate up" or @content-desc="Back"]').length) === 0
+  }
   if ((await els('People').length) === 0) return false
   if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
   return (await els('BackButton').length) === 0
@@ -46,8 +54,39 @@ export async function dismissKeyboard(): Promise<void> {
   // isKeyboardShown is a direct Appium endpoint (fast) — avoid an
   // //XCUIElementTypeKeyboard xpath, which is a slow full-tree search per call.
   if (await browser.isKeyboardShown().catch(() => false)) {
-    await browser.execute('mobile: hideKeyboard').catch(() => {})
+    if (browser.isAndroid) await browser.hideKeyboard().catch(() => {})
+    else await browser.execute('mobile: hideKeyboard').catch(() => {})
   }
+}
+
+// Tap the leading (leftmost) button of a native NavigationBar — the back
+// chevron — when present. Needed because the back button's accessibility name
+// is NOT stable across iOS versions: on iOS 26 it surfaces as "BackButton",
+// but on iOS 16.4 the same chevron comes through with the prior screen's
+// label (e.g. "loggedIn"), so name-based lookups miss it. Position is reliable:
+// the back control is always the leftmost button inside the nav bar. Returns
+// true if it tapped one.
+// requireLeftEdge: only tap when the leftmost nav button sits near the screen's
+// left edge — i.e. a genuine back chevron. Use it for goBack (a single hop where
+// a wrong tap has no recovery): on an iPad split view the conversation pane's
+// leading button is mid-screen and is NOT a back control, so this skips it and
+// lets the caller fall back to the edge-swipe. escapeToTabs omits the guard
+// because its loop re-checks atTabs and self-corrects a mis-tap.
+async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
+  const btns = await browser.$$('//XCUIElementTypeNavigationBar//XCUIElementTypeButton').getElements()
+  let leftmost: {el: (typeof btns)[number]; x: number} | undefined
+  for (const b of btns) {
+    if (!(await b.isDisplayed().catch(() => false))) continue
+    const {x} = await b.getLocation().catch(() => ({x: Number.POSITIVE_INFINITY}))
+    if (!leftmost || x < leftmost.x) leftmost = {el: b, x}
+  }
+  if (!leftmost) return false
+  if (requireLeftEdge) {
+    const {width} = await browser.getWindowRect()
+    if (leftmost.x > width * 0.15) return false
+  }
+  await leftmost.el.click().catch(() => {})
+  return true
 }
 
 // Climb out of any pushed screen / stack back to the root tab bar. The app
@@ -76,6 +115,18 @@ export async function escapeToTabs(): Promise<void> {
   // A flow may end with the keyboard up (chat input, crypto, feedback); it can
   // cover tappable UI on the next test, so dismiss it before resetting.
   await dismissKeyboard()
+  // Android: one back affordance for everything (modals, sheets, pushed screens
+  // all pop on the hardware back), so just press back until we're at a tab root.
+  // atTabs is checked first so we never press back AT the root (which would
+  // background/exit the app).
+  if (browser.isAndroid) {
+    for (let i = 0; i < 12; i++) {
+      if (await atTabs()) return
+      await browser.back()
+      await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
+    }
+    throw new Error('escapeToTabs(android): root tab bar not reached after 12 attempts')
+  }
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
@@ -99,6 +150,13 @@ export async function escapeToTabs(): Promise<void> {
       await settleAfter(ctrl)
       continue
     }
+    // Native nav-bar back whose name varies by iOS version (e.g. "loggedIn" on
+    // iOS 16.4) — match it by position instead. Must come before the edge-swipe:
+    // the left-edge pop gesture does not reliably pop on older iOS here.
+    if (await tapNavBack()) {
+      await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
+      continue
+    }
     // No back button visible — try the iOS pop gesture (swipe from left edge).
     const {width, height} = await browser.getWindowRect()
     await browser
@@ -120,14 +178,30 @@ export async function escapeToTabs(): Promise<void> {
 // left-edge pop gesture. Use this for in-flow back navigation instead of
 // clicking COMMON_BACK_BUTTON directly (inner native screens lack that testID).
 export async function goBack(): Promise<void> {
+  // Android: hardware back pops the current screen — but if a keyboard is up
+  // (e.g. the Feedback input auto-focuses), the first back only dismisses the
+  // keyboard and the screen stays. Hide it first so back actually pops.
+  if (browser.isAndroid) {
+    await dismissKeyboard()
+    await browser.back()
+    return
+  }
+  // .catch on the clicks: between the length check and the click the button can
+  // go stale (slow old sims re-render mid-pop), which would otherwise throw an
+  // unhandled "element wasn't found". Swallowing it leaves goBack a no-op that
+  // goBackUntilGone's retry loop recovers, instead of failing the whole flow.
   if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
-    await els(T.COMMON_BACK_BUTTON)[0]!.click()
+    await els(T.COMMON_BACK_BUTTON)[0]!.click().catch(() => {})
     return
   }
   if ((await els('BackButton').length) > 0) {
-    await els('BackButton')[0]!.click()
+    await els('BackButton')[0]!.click().catch(() => {})
     return
   }
+  // Native nav back whose name varies by iOS version (e.g. "loggedIn" on iOS
+  // 16.4). Guard to a true left-edge chevron so the iPad split conversation
+  // pane's mid-screen nav button isn't mistaken for back.
+  if (await tapNavBack(true)) return
   const {width, height} = await browser.getWindowRect()
   await browser
     .action('pointer')
@@ -136,6 +210,23 @@ export async function goBack(): Promise<void> {
     .move({x: Math.round(width * 0.85), y: Math.round(height / 2), duration: 250})
     .up()
     .perform()
+}
+
+// goBack, retried until a marker testID from the screen being popped is gone.
+// A single goBack can no-op on slow/old sims (the back tap is swallowed, or the
+// left-edge guard rejects an oddly-positioned chevron), leaving the caller on
+// the old screen so the next tap lands wrong. Verifying the pop via the marker's
+// disappearance makes back navigation reliable. Returns once gone (or after
+// `tries` attempts — caller's next wait then surfaces a real failure).
+export async function goBackUntilGone(markerId: string, tries = 3): Promise<void> {
+  for (let i = 0; i < tries; i++) {
+    await goBack()
+    const gone = await browser
+      .waitUntil(async () => (await els(markerId).length) === 0, {timeout: 3000, interval: 150})
+      .then(() => true)
+      .catch(() => false)
+    if (gone) return
+  }
 }
 
 // The iOS tab bar is a NATIVE UITabBar: testIDs (nav-tab-*) do not reach the
@@ -164,5 +255,19 @@ export async function navigateToTeams(): Promise<void> {
 // The "More" tab surfaces Crypto / Git / Devices / Settings under its stack.
 export async function navigateToMore(): Promise<void> {
   await tab('More').click()
+  // The More tab keeps its own nav stack: a prior flow (crypto/git/devices) can
+  // leave it on a pushed sub-screen, so the first tap just refocuses the tab
+  // without reaching settings root. Re-tapping the already-focused tab pops its
+  // stack to the top. Retry until the settings root marker shows.
+  for (let i = 0; i < 3; i++) {
+    if (
+      await el(T.SETTINGS_ACCOUNT)
+        .waitForExist({timeout: 2500, interval: 150})
+        .then(() => true)
+        .catch(() => false)
+    )
+      return
+    await tab('More').click()
+  }
   await waitForTestID(T.SETTINGS_ACCOUNT, 5000)
 }

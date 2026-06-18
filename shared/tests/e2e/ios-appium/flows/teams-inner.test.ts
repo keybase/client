@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
 import {escapeToTabs, navigateToTeams} from '../helpers/navigate'
-import {el, els, waitForTestID, byText} from '../helpers/elements'
+import {el, els, waitForTestID, byText, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('teams inner', () => {
@@ -14,8 +14,9 @@ describe('teams inner', () => {
 
     // Explicitly select the Members tab by testID (the app remembers the
     // last-selected team tab; "Members" text also matches "N members").
-    await el(T.TEAMS_TAB_MEMBERS_BUTTON).click()
-    await waitForTestID(T.TEAMS_MEMBER_LIST, 10000)
+    // tapForTestID: the tap follows the team-row push and is swallowed mid-
+    // transition on slow sims, so retry until the member list appears.
+    await tapForTestID(T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST, {timeout: 10000})
     await expect(el(T.TEAMS_MEMBER_LIST)).toExist()
 
     // Settings tab is an icon-only gear on phone (no text), so tap by testID.

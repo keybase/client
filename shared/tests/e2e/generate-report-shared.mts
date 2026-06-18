@@ -133,7 +133,7 @@ ${sharedCss(allPassed)}
 <header>
   <div class="hdr-top"><h1>${title}</h1><button id="slideshow-btn" title="Slideshow">▶</button></div>
   <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ` <span>· ${diffCount} with diffs vs baseline</span>` : ''}${navLinks ? `<span class="sec-links">${navLinks}</span>` : ''}<span class="ts">${timestamp}</span></div>
-  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false">${hasDiff ? '<label class="diff-only-label"><input type="checkbox" id="diff-only"> Pixel diff only</label>' : ''}</div>
+  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"><label class="diff-only-label${hasDiff ? '' : ' disabled'}"${hasDiff ? '' : ' title="No baseline diffs in this run"'}><input type="checkbox" id="diff-only"${hasDiff ? '' : ' disabled'}> Pixel diff only</label></div>
 </header>
 <div class="grid">${cards}</div>
 ${sliderScript()}
@@ -204,6 +204,8 @@ h1{font-size:20px;font-weight:600}
 #filter-input:focus{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.6)}
 .diff-only-label{display:flex;align-items:center;gap:6px;font-size:13px;color:#fff;cursor:pointer;white-space:nowrap;user-select:none}
 .diff-only-label input{cursor:pointer;accent-color:#fff;width:14px;height:14px}
+.diff-only-label.disabled{opacity:.45;cursor:not-allowed}
+.diff-only-label.disabled input{cursor:not-allowed}
 .card.hidden{display:none}
 .section-hdr.hidden{display:none}`
 }
