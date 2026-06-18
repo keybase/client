@@ -26,11 +26,12 @@ export const countTestID = async (id: string): Promise<number> => els(id).length
 // by the runner via KB_IOS_DEVICE.
 const isOldDevice = (): boolean => /old$/i.test(process.env['KB_IOS_DEVICE'] ?? '')
 
-// Enter text into a field. On modern iOS, type it (setValue) — reliable, and the
-// keyboard a11y path does NOT crash there. Only the iOS-16.4 sims need the paste
-// workaround (see pasteText), and paste's heavy accessibility use (touch-and-hold
-// + predicate queries) itself destabilises XCUITest on iPad, so we keep it off
-// modern sims entirely.
+// Enter text into a field. The testID is on the real input element (see Input3),
+// so el(id) is the editable itself. iOS-16.4 sims must paste (per-key injection
+// crashes RN there — see pasteText). On modern iOS, setValue works where the
+// input surfaces as a settable element (chat, sign, iPhone); the modern-iPad
+// encrypt input surfaces as an XCUIElementTypeOther (setValue → "element wasn't
+// found"), so fall back to pasting, which works regardless of element type.
 export const enterText = async (id: string, text: string): Promise<void> => {
   if (browser.isAndroid) {
     await androidEnterText(id, text)
@@ -40,8 +41,11 @@ export const enterText = async (id: string, text: string): Promise<void> => {
     await pasteText(id, text)
     return
   }
-  await el(id).click()
-  await el(id).setValue(text)
+  try {
+    await el(id).setValue(text)
+  } catch {
+    await pasteText(id, text)
+  }
 }
 
 // Android: a RN testID lands on the wrapper View, not the EditText itself, so
@@ -73,45 +77,31 @@ const androidEnterText = async (id: string, text: string): Promise<void> => {
 // Appium's keyboard injection (setValue) drives UIKit's per-character a11y
 // insertion path, which desyncs RN's RCTBackedTextInputDelegateAdapter cached
 // range on older iOS (16.4) → NSRangeException → app SIGABRT. Pasting inserts
-// the whole string in one shot via UIPasteboard, avoiding that path. The
-// touch-and-hold that summons the edit menu is occasionally missed, so retry it.
-// Used only via enterText on the Old sims.
+// the whole string in one shot via UIPasteboard, avoiding that path. Also the
+// modern-iPad fallback for inputs that don't expose as a settable element.
+// Everything here is element-based (the testID is on the real input) — no
+// coordinates: focus the field, long-press IT to raise the edit menu, tap Paste.
 export const pasteText = async (id: string, text: string): Promise<void> => {
   await browser.execute('mobile: setPasteboard', {
     content: Buffer.from(text).toString('base64'),
     encoding: 'base64',
   })
-  await el(id).click()
-  // Summon the edit menu so we can tap Paste. The hold target matters: some
-  // testIDs sit on a wrapper Box2 that also contains a banner/recipients (the
-  // crypto inputs), so holding the wrapper node lands above the editable area
-  // and no menu shows. Prefer the keyboard-focused element (sign/chat auto- or
-  // click-focus the field). Inputs that don't take focus until tapped in the
-  // body (encrypt — a Recipients field sits above) expose no focused element,
-  // so fall back to coordinates stepping down into the input body.
-  const focused = browser.$('-ios predicate string:hasKeyboardFocus == 1')
-  await focused.waitForExist({timeout: 2000}).catch(() => {})
-  const box = el(id)
-  const loc = await box.getLocation()
-  const size = await box.getSize()
-  const cx = Math.round(loc.x + size.width / 2)
-  // null = hold the focused element; numbers = vertical fraction into the box.
-  const targets: Array<number | null> = [null, 0.3, 0.4, 0.2, 0.5]
+  const field = await el(id).getElement()
+  await field.click().catch(() => {})
+  // The edit menu exposes THREE "Paste" nodes — a MenuItem, a non-tappable
+  // StaticText, and an "assistantPaste:" Button. Match only the tappable
+  // MenuItem/Button (matching the StaticText clicks a no-op and nothing pastes).
   const paste = browser.$(
-    '-ios predicate string:type == "XCUIElementTypeMenuItem" AND (label == "Paste" OR name == "Paste")'
+    '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
   )
-  for (const t of targets) {
-    const fid = t === null ? await focused.elementId.catch(() => undefined) : undefined
-    const args =
-      t === null && fid
-        ? {elementId: fid, duration: 1.3}
-        : {x: cx, y: Math.round(loc.y + size.height * (t ?? 0.3)), duration: 1.3}
-    await browser.execute('mobile: touchAndHold', args).catch(() => {})
-    const got = await paste
+  // The long-press that summons the menu is occasionally swallowed, so retry it.
+  for (let i = 0; i < 6; i++) {
+    await browser.execute('mobile: touchAndHold', {elementId: field.elementId, duration: 1.3}).catch(() => {})
+    const shown = await paste
       .waitForExist({timeout: 1500})
       .then(() => true)
       .catch(() => false)
-    if (got) {
+    if (shown) {
       await paste.click().catch(() => {})
       return
     }

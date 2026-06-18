@@ -19,6 +19,7 @@ type TextProps = CommonProps & {
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
   setBlurCB?: (cb: () => void) => void
+  testID?: string
   textInputType: 'cipher' | 'plain'
 }
 
@@ -51,6 +52,7 @@ type InputProps = CommonProps & {
   onClearInput: () => void
   onSetInput: (type: T.Crypto.InputTypes, value: string) => void
   setBlurCB?: (cb: () => void) => void
+  testID?: string
   textInputType: 'cipher' | 'plain'
 }
 
@@ -62,7 +64,7 @@ export type CryptoBannerProps = {
 }
 
 const TextInput = (props: TextProps) => {
-  const {allowDirectories, emptyInputWidth, inputPlaceholder, state, onChangeText, onSetFile, setBlurCB, textInputType} =
+  const {allowDirectories, emptyInputWidth, inputPlaceholder, state, onChangeText, onSetFile, setBlurCB, testID, textInputType} =
     props
   const value = state.inputType === 'text' ? state.input : ''
 
@@ -120,6 +122,7 @@ const TextInput = (props: TextProps) => {
       fullWidth={true}
       fullHeight={true}
       onClick={onFocusInput}
+      testID={testID}
       style={Kb.Styles.collapseStyles([styles.containerInputFocus, styles.commonContainer])}
     >
       <Kb.Box2
@@ -193,6 +196,7 @@ export const Input = ({
   onSetInput,
   setBlurCB,
   state,
+  testID,
   textInputType,
 }: InputProps) =>
   state.inputType === 'file' ? (
@@ -204,6 +208,7 @@ export const Input = ({
       inputPlaceholder={inputPlaceholder}
       setBlurCB={setBlurCB}
       state={state}
+      testID={testID}
       textInputType={textInputType}
       onSetFile={path => onSetInput('file', path)}
       onChangeText={text => onSetInput('text', text)}

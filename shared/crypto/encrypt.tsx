@@ -503,16 +503,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   }
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      relative={true}
-      // collapsable={false}: keep this testID'd wrapper (and its EditText
-      // descendants) in the Android native view tree — RN flattens it away
-      // otherwise, leaving the e2e testID on an empty leaf with no input under it.
-      collapsable={false}
-      testID={TestIDs.CRYPTO_ENCRYPT_INPUT}
-    >
+    <Kb.Box2 direction="vertical" fullHeight={true} relative={true}>
       <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
       <Recipients
         recipients={controller.state.recipients}
@@ -527,6 +518,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
         inputPlaceholder={inputPlaceholder}
         state={controller.state}
         setBlurCB={(cb: () => void) => { blurCBRef.current = cb }}
+        testID={TestIDs.CRYPTO_ENCRYPT_INPUT}
         textInputType="plain"
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}

@@ -186,12 +186,16 @@ export async function goBack(): Promise<void> {
     await browser.back()
     return
   }
+  // .catch on the clicks: between the length check and the click the button can
+  // go stale (slow old sims re-render mid-pop), which would otherwise throw an
+  // unhandled "element wasn't found". Swallowing it leaves goBack a no-op that
+  // goBackUntilGone's retry loop recovers, instead of failing the whole flow.
   if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
-    await els(T.COMMON_BACK_BUTTON)[0]!.click()
+    await els(T.COMMON_BACK_BUTTON)[0]!.click().catch(() => {})
     return
   }
   if ((await els('BackButton').length) > 0) {
-    await els('BackButton')[0]!.click()
+    await els('BackButton')[0]!.click().catch(() => {})
     return
   }
   // Native nav back whose name varies by iOS version (e.g. "loggedIn" on iOS
