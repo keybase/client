@@ -2150,7 +2150,7 @@ PODS:
     - React-utils (= 0.85.3)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.85.3)
-  - ReactNavigation (8.0.0-alpha.32):
+  - ReactNavigation (8.0.0-alpha.33):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2216,7 +2216,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNGestureHandler (3.0.1):
+  - RNGestureHandler (3.0.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2940,10 +2940,10 @@ SPEC CHECKSUMS:
   ReactCodegen: 7016a2114079361a2f1536b3c91a15ceb8eb7ca4
   ReactCommon: 7dfc3250793bf36cf221096ff59e1179e13eef7f
   ReactNativeDependencies: a6322d261348755da88238e31671807522b1ad9d
-  ReactNavigation: 718625a7111c7d5d23ca4e95eb246d23fce00c2c
+  ReactNavigation: 6d72ebe1e61346fbac405cb1febfc4d4e9cadebe
   RNCMaskedView: 8069b4d4e23b3d28b4fcac70bf266be43ffc3d2e
   RNCPicker: a3921be99ae291e420e3e8940e5b2b53e572c543
-  RNGestureHandler: 995b5d7992c5fc4c315c1d06a326dffe9b427e1d
+  RNGestureHandler: 795970e76a4f4bcef87e77c12c5c791d86574ab6
   RNReanimated: ad1e820ef645ecd3055e7cbaab8055b4f6fdd5eb
   RNScreens: 8d318eb8905fa1d3439a1ce5d567f82ae8245657
   RNWorklets: 2dd3ec21113976f9cf85f2864b9d9d27d9dedbaa
