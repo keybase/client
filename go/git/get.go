@@ -77,12 +77,21 @@ func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 }
 
 func folderFromTeamIDNamed(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.FolderHandle, error) {
-	name, err := teams.ResolveIDToName(ctx, g, teamID)
+	// Get the name from the FTL rather than teams.ResolveIDToName, which adds a
+	// server resolver round-trip for an untrusted candidate name that it then
+	// verifies via the FTL anyway. The FTL load here already cryptographically
+	// verifies the name itself, and it's cached (Unbox loads the same team), so
+	// this avoids a redundant per-repo round-trip when listing many repos.
+	mctx := libkb.NewMetaContext(ctx, g)
+	res, err := g.GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
+		ID:     teamID,
+		Public: teamID.IsPublic(),
+	})
 	if err != nil {
 		return keybase1.FolderHandle{}, err
 	}
 	return keybase1.FolderHandle{
-		Name:       name.String(),
+		Name:       res.Name.String(),
 		FolderType: keybase1.FolderType_TEAM,
 	}, nil
 }
@@ -333,11 +342,12 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 
 	var settings *keybase1.GitTeamRepoSettings
 	if repoFolder.FolderType == keybase1.FolderType_TEAM {
-		pset, err := convertTeamRepoSettings(ctx, g, responseRepo.TeamID, responseRepo.ChatConvID, responseRepo.ChatDisabled)
-		if err != nil {
-			return nil, false, err
+		// ChatDisabled is free (it's in the bulk response). ChannelName needs a
+		// per-repo chat topic-name lookup (the biggest cost of this call), so
+		// the GUI fetches it lazily via GetTeamRepoSettings on row expand.
+		settings = &keybase1.GitTeamRepoSettings{
+			ChatDisabled: responseRepo.ChatDisabled,
 		}
-		settings = &pset
 	}
 
 	return &keybase1.GitRepoInfo{
