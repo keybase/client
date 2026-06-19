@@ -109,6 +109,10 @@ const NativeActiveVideo = (props: NativeActiveVideoProps) => {
     try {
       p.loop = true
       p.muted = true
+      // Don't interrupt the user's background audio (e.g. music). Default
+      // 'auto' grabs an exclusive iOS audio session and pauses other apps,
+      // even though this player is muted.
+      p.audioMixingMode = 'mixWithOthers'
       if (autoPlay) {
         p.play()
       }
