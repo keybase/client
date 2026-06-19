@@ -12,15 +12,16 @@ import {useConversationThreadSelector} from '../thread-context'
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
 
-// Single merged selector replacing useStateFast + useState
-const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
-  const ordinal = isMobile ? leadingItem : trailingItem
+// Single merged selector replacing useStateFast + useState. The separator renders inline above
+// `trailingItem` on both platforms, so the orange line sits above that ordinal's message.
+const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
   const orangeOrdinal = React.useContext(OrangeLineContext)
   const you = useCurrentUserState(s => s.username)
 
   return useConversationThreadSelector(
     C.useShallow(s => {
       const messageOrdinals = s.messageOrdinals ?? []
+      const ordinal = trailingItem
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const orangeMessage = s.messageMap.get(orangeOrdinal || noOrdinal)
       const previous = RowMetadata.getPreviousOrdinal(messageOrdinals, ordinal)
@@ -53,13 +54,12 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordi
 }
 
 type Props = {
-  leadingItem?: T.Chat.Ordinal
   trailingItem: T.Chat.Ordinal
 }
 
 function SeparatorConnector(p: Props) {
-  const {leadingItem, trailingItem} = p
-  const data = useSeparatorData(trailingItem, leadingItem ?? T.Chat.numberToOrdinal(0))
+  const {trailingItem} = p
+  const data = useSeparatorData(trailingItem)
   const {ordinal, orangeLineAbove, orangeTime} = data
 
   if (!ordinal || !orangeLineAbove) return null

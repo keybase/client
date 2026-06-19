@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import Separator from './separator'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
@@ -111,9 +110,8 @@ const ErrorMessage = () => {
 function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
   const conversationIDKey = useConversationThreadID()
-  const {firstOrdinal, hasLoadedEver, meta, moreToLoadBack, participants} = useConversationThreadSelector(
+  const {hasLoadedEver, meta, moreToLoadBack, participants} = useConversationThreadSelector(
     C.useShallow(s => ({
-      firstOrdinal: s.messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0),
       hasLoadedEver: s.messageOrdinals !== undefined,
       meta: s.meta,
       moreToLoadBack: s.moreToLoadBack,
@@ -176,10 +174,6 @@ function SpecialTopMessage() {
           </Kb.Text>
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box2>
-      )}
-      {!isMobile ? null : (
-        // special case here with the sep. The flatlist inverts the leading-trailing, see useStateFast
-        <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={firstOrdinal} />
       )}
     </Kb.Box2>
   )
