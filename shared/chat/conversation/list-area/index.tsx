@@ -44,6 +44,8 @@ type ItemType = T.Chat.Ordinal
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
+const keyExtractor = (ordinal: ItemType) => String(ordinal)
+
 // trim off the search-bar lift so the jump button rests ~40px above the bar
 const jumpAboveBarTrim = 40
 
@@ -64,6 +66,71 @@ const useGetItemType = () => {
     [threadStore]
   )
 }
+
+// ==================== SHARED ====================
+
+// Both platforms read the same slice of thread state.
+const useThreadListData = () =>
+  useConversationThreadSelector(
+    C.useShallow(s => ({
+      containsLatestMessage: !s.moreToLoadForward,
+      loaded: s.loaded,
+      messageOrdinals: s.messageOrdinals ?? noOrdinals,
+    }))
+  )
+
+// Pagination: load older at the top of the list, newer at the bottom (only when not already at
+// the latest). Refs keep the throttled callbacks stable.
+const usePagination = (p: {
+  containsLatestMessage: boolean
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
+}) => {
+  const {containsLatestMessage, messageOrdinals} = p
+  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
+  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
+  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
+
+  const numOrdinalsRef = React.useRef(messageOrdinals.length)
+  React.useEffect(() => {
+    numOrdinalsRef.current = messageOrdinals.length
+  }, [messageOrdinals.length])
+
+  const containsLatestMessageRef = React.useRef(containsLatestMessage)
+  React.useEffect(() => {
+    containsLatestMessageRef.current = containsLatestMessage
+  }, [containsLatestMessage])
+
+  const onStartReached = React.useCallback(() => {
+    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
+
+  const onEndReached = C.useThrottledCallback(() => {
+    if (!containsLatestMessageRef.current) {
+      loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+    }
+  }, 200)
+  React.useEffect(
+    () => () => {
+      onEndReached.cancel()
+    },
+    [onEndReached]
+  )
+
+  return {onEndReached, onStartReached}
+}
+
+// When a centeredOrdinal is set at mount, start there; otherwise start at the end (newest).
+const useInitialScrollIndex = (
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>,
+  centeredOrdinal: T.Chat.Ordinal | undefined
+) =>
+  React.useMemo(() => {
+    const idx =
+      centeredOrdinal !== undefined
+        ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
+        : -1
+    return idx >= 0 ? ({index: idx, viewPosition: 0.5} as const) : undefined
+  }, [messageOrdinals, centeredOrdinal])
 
 // ==================== DESKTOP ====================
 
@@ -94,13 +161,7 @@ HighlightableRow.displayName = 'HighlightableRow'
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const conversationIDKey = useConversationThreadID()
-  const data = useConversationThreadSelector(
-    C.useShallow(s => ({
-      containsLatestMessage: !s.moreToLoadForward,
-      loaded: s.loaded,
-      messageOrdinals: s.messageOrdinals ?? noOrdinals,
-    }))
-  )
+  const data = useThreadListData()
   const {centeredOrdinal} = useConversationCenter()
   const {containsLatestMessage, messageOrdinals, loaded} = data
 
@@ -125,21 +186,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
 
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
-  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
-  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
-  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
 
-  // Stable refs for values used inside stable callbacks
-  const containsLatestMessageRef = React.useRef(containsLatestMessage)
-  React.useEffect(() => {
-    containsLatestMessageRef.current = containsLatestMessage
-  }, [containsLatestMessage])
+  const {onStartReached, onEndReached} = usePagination({containsLatestMessage, messageOrdinals})
 
-  const numOrdinalsRef = React.useRef(messageOrdinals.length)
-  React.useEffect(() => {
-    numOrdinalsRef.current = messageOrdinals.length
-  }, [messageOrdinals.length])
-
+  // messageOrdinalsRef feeds the imperative scroll-to-center / scroll-to-edit effects below.
   const messageOrdinalsRef = React.useRef(messageOrdinals)
   React.useEffect(() => {
     messageOrdinalsRef.current = messageOrdinals
@@ -206,24 +256,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       clearTimeout(scrollStopTimerRef.current)
     },
     [onScroll]
-  )
-
-  const onStartReached = React.useCallback(() => {
-    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
-
-  // Load newer messages when scrolled to the end (only when not at latest)
-  const onEndReached = C.useThrottledCallback(() => {
-    if (!containsLatestMessageRef.current) {
-      loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-    }
-  }, 200)
-
-  React.useEffect(
-    () => () => {
-      onEndReached.cancel()
-    },
-    [onEndReached]
   )
 
   // Scroll to centered ordinal when it changes (search / thread navigation).
@@ -373,12 +405,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     tempDiv.remove()
   }
 
-  // When a centeredOrdinal is set at mount, start there; otherwise start at the end
-  const _centeredIdx =
-    centeredOrdinal !== undefined
-      ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
-      : -1
-  const initialScrollIndex = _centeredIdx >= 0 ? {index: _centeredIdx, viewPosition: 0.5 as const} : undefined
+  const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
   return (
     <Kb.ErrorBoundary>
@@ -395,7 +422,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           ref={listRef as React.Ref<LegendListRef>}
           data={(layoutReady ? messageOrdinals : noOrdinals) as unknown as T.Chat.Ordinal[]}
           renderItem={renderItem}
-          keyExtractor={(ordinal: T.Chat.Ordinal) => String(ordinal)}
+          keyExtractor={keyExtractor}
           getItemType={getItemType}
           ListHeaderComponent={SpecialTopMessage}
           ListFooterComponent={SpecialBottomMessage}
@@ -452,13 +479,6 @@ const DesktopThreadWrapperWithProfiler = () => (
 
 // ==================== NATIVE ====================
 
-// LegendList's ItemSeparatorComponent supplies `leadingItem`; the mobile Separator keys
-// off leadingItem (trailingItem is unused on mobile but required by its props).
-const NativeSeparator = React.memo(({leadingItem}: {leadingItem: T.Chat.Ordinal}) => (
-  <Separator leadingItem={leadingItem} trailingItem={leadingItem} />
-))
-NativeSeparator.displayName = 'NativeSeparator'
-
 const useNativeScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   listRef: React.RefObject<LegendListRef | null>
@@ -514,13 +534,7 @@ const useNativeScrolling = (p: {
 
 const NativeConversationList = function NativeConversationList() {
   const conversationIDKey = useConversationThreadID()
-  const listData = useConversationThreadSelector(
-    C.useShallow(s => ({
-      containsLatestMessage: !s.moreToLoadForward,
-      loaded: s.loaded,
-      messageOrdinals: s.messageOrdinals ?? noOrdinals,
-    }))
-  )
+  const listData = useThreadListData()
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
@@ -537,22 +551,18 @@ const NativeConversationList = function NativeConversationList() {
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
-  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
-  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
-  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
 
-  const keyExtractor = (ordinal: ItemType) => {
-    return String(ordinal)
-  }
-
+  // Separator renders inline above each row (same as desktop) so the orange line keys off this
+  // row's ordinal directly.
   const renderItem = React.useCallback(
     ({item: ordinal}: {item: T.Chat.Ordinal}) => (
-      <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
+      <>
+        <Separator trailingItem={ordinal} />
+        <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
+      </>
     ),
     [centeredHighlightOrdinalOrNone]
   )
-
-  const numOrdinals = messageOrdinals.length
 
   const getItemType = useGetItemType()
 
@@ -588,15 +598,7 @@ const NativeConversationList = function NativeConversationList() {
     ],
   }))
 
-  // Stable refs read inside stable callbacks
-  const numOrdinalsRef = React.useRef(numOrdinals)
-  React.useEffect(() => {
-    numOrdinalsRef.current = numOrdinals
-  }, [numOrdinals])
-  const containsLatestMessageRef = React.useRef(containsLatestMessage)
-  React.useEffect(() => {
-    containsLatestMessageRef.current = containsLatestMessage
-  }, [containsLatestMessage])
+  const {onStartReached, onEndReached} = usePagination({containsLatestMessage, messageOrdinals})
 
   // The bottom clearance for the input bar is reserved statically via contentContainerStyle
   // (listContentStyle) below, so this composer inset is seeded to 0 — otherwise the two stack
@@ -619,24 +621,6 @@ const NativeConversationList = function NativeConversationList() {
   }, [centeredOrdinalOrNone])
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
-
-  // top of the (non-inverted) list = oldest messages
-  const onStartReached = React.useCallback(() => {
-    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
-
-  // end of the list = newest; only load newer when we are not already at the latest
-  const onEndReached = C.useThrottledCallback(() => {
-    if (!containsLatestMessageRef.current) {
-      loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-    }
-  }, 200)
-  React.useEffect(
-    () => () => {
-      onEndReached.cancel()
-    },
-    [onEndReached]
-  )
 
   // Re-assert native centering on the current target. scrollToItem(viewPosition: 0.5) lands
   // accurately on its own, but the centered load streams older messages in afterward (pagination
@@ -703,11 +687,7 @@ const NativeConversationList = function NativeConversationList() {
     }
   }, [conversationIDKey, centeredOrdinalOrNone, loaded, markInitiallyLoadedThreadAsRead, scrollToCentered])
 
-  // When a centeredOrdinal is set at mount, start there; otherwise start at the end (newest).
-  const centeredIdx = hasCentered
-    ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
-    : -1
-  const initialScrollIndex = centeredIdx >= 0 ? {index: centeredIdx, viewPosition: 0.5 as const} : undefined
+  const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
   // Reserve bottom space so the newest message clears the sticky input bar, which is pulled up
   // over the list bottom (KeyboardStickyView offset -insets.bottom) plus the floating typing
@@ -733,7 +713,6 @@ const NativeConversationList = function NativeConversationList() {
             getItemType={getItemType}
             ListHeaderComponent={SpecialTopMessage}
             ListFooterComponent={SpecialBottomMessage}
-            ItemSeparatorComponent={NativeSeparator}
             estimatedItemSize={72}
             recycleItems={true}
             drawDistance={250}
