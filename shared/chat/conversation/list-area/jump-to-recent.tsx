@@ -39,12 +39,15 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       arrowText: {paddingRight: Kb.Styles.globalMargins.tiny},
       outerContainer: Kb.Styles.platformStyles({
+        // mobile: positioning handled by the keyboard-aware wrapper in list-area
         common: {
-          bottom: 0,
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
+        },
+        isElectron: {
+          backgroundImage: `linear-gradient(transparent, ${Kb.Styles.globalColors.white} 75%)`,
+          bottom: 0,
           position: 'absolute',
         },
-        isElectron: {backgroundImage: `linear-gradient(transparent, ${Kb.Styles.globalColors.white} 75%)`},
       }),
     }) as const
 )

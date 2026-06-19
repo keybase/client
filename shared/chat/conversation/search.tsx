@@ -14,6 +14,7 @@ import {
   useConversationThreadToggleSearch,
 } from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
+import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
 
 type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
 type CommonProps = OwnProps & {
@@ -386,7 +387,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
 
   const _renderHit = (index: number, item: SearchHit) => {
     return (
-      <Kb.ClickableBox direction="horizontal" alignItems="center" justifyContent="space-between" key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" justifyContent="space-between" fullWidth={true} key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
         <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
@@ -474,7 +475,7 @@ const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
 const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps) {
   const props = useCommon(p)
   const {numHits, onEnter, onUp, onDown, onChangedText, onToggleThreadSearch} = props
-  const {inProgress, hasResults, selectedIndex, text, style, status} = props
+  const {inProgress, hasResults, selectedIndex, text, status} = props
 
   const inputRef = React.useRef<Kb.Input3Ref>(null)
   const onceRef = React.useRef(false)
@@ -486,9 +487,21 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
     }, 100)
   }, [])
 
+  // Report our height so the list can reserve space / lift the jump button while
+  // this bar overlays the bottom of the thread. Reset to 0 when we unmount.
+  const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
+  const onLayout = (e: {nativeEvent: {layout: {height: number}}}) => {
+    searchOverlayHeight?.set(e.nativeEvent.layout.height)
+  }
+  React.useEffect(() => {
+    return () => {
+      searchOverlayHeight?.set(0)
+    }
+  }, [searchOverlayHeight])
+
   return (
-    <Kb.Box2 direction="horizontal" style={style}>
-      <Kb.Box2 direction="horizontal" justifyContent="space-between" padding="tiny" style={styles.outerContainer} gap="tiny">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer} onLayout={onLayout}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" padding="tiny" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} noShrink={true}>
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
             Cancel
@@ -561,6 +574,10 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.textEllipsis,
         },
       }),
+      mobileContainer: {
+        backgroundColor: Kb.Styles.globalColors.white,
+        paddingBottom: Kb.Styles.globalMargins.small,
+      },
       inputContainer: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.white,

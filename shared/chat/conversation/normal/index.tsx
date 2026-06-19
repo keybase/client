@@ -23,7 +23,9 @@ import '../conversation.css'
 import {PortalHost} from '@/common-adapters/portal.native'
 import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {KeyboardStickyView} from 'react-native-keyboard-controller'
+import {useSharedValue} from 'react-native-reanimated'
 import logger from '@/logger'
 
 const Offline = () => (
@@ -135,41 +137,47 @@ const NativeConversation = function NativeConversation() {
 
   const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
+  // Height of the search bar that overlays the list bottom while searching.
+  // Shared with ListArea (extra content padding + jump-button lift).
+  const searchOverlayHeight = useSharedValue(0)
+
   return (
     <PerfProfiler id="Conversation">
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        style={safeStyle}
-        relative={true}
-        onLayout={onContentLayout}
-      >
-        {threadLoadedOffline && <Offline />}
+      <ThreadSearchOverlayContext value={searchOverlayHeight}>
         <Kb.Box2
           direction="vertical"
-          flex={1}
           fullWidth={true}
-          key={conversationIDKey}
+          fullHeight={true}
+          style={safeStyle}
           relative={true}
-          style={styles.whiteBackground}
+          onLayout={onContentLayout}
         >
-          <ThreadLoadStatus />
-          <PinnedMessage />
-          <ListArea />
-          <LoadingLine />
-        </Kb.Box2>
-        <KeyboardStickyView offset={stickyOffset}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.whiteBackground}>
-            <InvitationToBlock />
-            <Banner />
-            <MaxInputAreaContext value={maxInputArea}>
-              <InputArea />
-            </MaxInputAreaContext>
+          {threadLoadedOffline && <Offline />}
+          <Kb.Box2
+            direction="vertical"
+            flex={1}
+            fullWidth={true}
+            key={conversationIDKey}
+            relative={true}
+            style={styles.whiteBackground}
+          >
+            <ThreadLoadStatus />
+            <PinnedMessage />
+            <ListArea />
+            <LoadingLine />
           </Kb.Box2>
-        </KeyboardStickyView>
-        <PortalHost name="convOverlay" />
-      </Kb.Box2>
+          <KeyboardStickyView offset={stickyOffset}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.whiteBackground}>
+              <InvitationToBlock />
+              <Banner />
+              <MaxInputAreaContext value={maxInputArea}>
+                <InputArea />
+              </MaxInputAreaContext>
+            </Kb.Box2>
+          </KeyboardStickyView>
+          <PortalHost name="convOverlay" />
+        </Kb.Box2>
+      </ThreadSearchOverlayContext>
     </PerfProfiler>
   )
 }
