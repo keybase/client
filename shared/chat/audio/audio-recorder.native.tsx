@@ -197,6 +197,11 @@ const useIconAndOverlay = (p: {
   const {stageRecording, startRecording, sendRecording, cancelRecording, flashTip, ampSV} = p
   const [visible, setVisible] = React.useState(Visible.HIDDEN)
 
+  // The input bar (and the mic icon) is lifted up by insets.bottom while the keyboard
+  // is closed (KeyboardStickyView offset). Recording always happens keyboard-closed, so
+  // shift the overlay up by the same amount to keep the circles centered on the mic.
+  const insets = Kb.useSafeAreaInsets()
+
   const lockedSV = useSharedValue(0)
   const canceledSV = useSharedValue(0)
   const dragXSV = useSharedValue(0)
@@ -273,7 +278,7 @@ const useIconAndOverlay = (p: {
   const overlay =
     visible === Visible.HIDDEN ? null : (
       <Portal hostName="convOverlay" useFullScreenOverlay={false}>
-        <Animated.View style={styles.container} pointerEvents="box-none">
+        <Animated.View style={[styles.container, {bottom: insets.bottom}]} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
           <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
           <InnerCircle
