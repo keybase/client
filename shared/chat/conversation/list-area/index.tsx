@@ -610,17 +610,17 @@ const NativeConversationList = function NativeConversationList() {
   // that height as extra content padding (so centered/newest messages clear it) and
   // lift the jump-to-recent button above both the keyboard and the bar.
   const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
-  const {height: keyboardAnimHeight, progress: keyboardProgress} = useReanimatedKeyboardAnimation()
+  const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
   const insetsBottom = insets.bottom
-  // Keyboard closed: the search bar overlays the list bottom, so lift the jump button
-  // to clear it and sit a small gap above. Keyboard open: the keyboard term already
-  // moves the button up to the bar (which rides the keyboard top), so fade the bar term out.
+  // The search bar overlays the list bottom (keyboard closed) or rides the keyboard
+  // top (keyboard open) via KeyboardStickyView; either way it sits above the list, so
+  // always clear it. The keyboard term lifts past the keyboard, the bar term past the bar.
   const jumpLiftStyle = useAnimatedStyle(() => ({
     transform: [
       {
         translateY:
           Math.min(keyboardAnimHeight.value + insetsBottom, 0) -
-          Math.max((searchOverlayHeight?.value ?? 0) - jumpAboveBarTrim, 0) * (1 - keyboardProgress.value),
+          Math.max((searchOverlayHeight?.value ?? 0) - jumpAboveBarTrim, 0),
       },
     ],
   }))
