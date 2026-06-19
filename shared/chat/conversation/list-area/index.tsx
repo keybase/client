@@ -35,10 +35,17 @@ import {
   useKeyboardChatComposerInset,
   useKeyboardScrollToEnd,
 } from '@legendapp/list/keyboard'
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
+import Animated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated'
+import {scheduleOnRN} from 'react-native-worklets'
+import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 type ItemType = T.Chat.Ordinal
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
+
+// trim off the search-bar lift so the jump button rests ~40px above the bar
+const jumpAboveBarTrim = 40
 
 // Item type for list recycling pool separation
 const useGetItemType = () => {
@@ -551,6 +558,36 @@ const NativeConversationList = function NativeConversationList() {
 
   const insets = useSafeAreaInsets()
 
+  // While the thread-search bar is open it overlays the bottom of the list. Reserve that height
+  // as extra content padding (so the newest message clears it) and lift the jump-to-recent button
+  // above both the keyboard and the bar. searchOverlayHeight is a reanimated SharedValue set by
+  // the search bar's onLayout; mirror it to state for the (static) content padding.
+  const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
+  const [searchPad, setSearchPad] = React.useState(0)
+  useAnimatedReaction(
+    () => searchOverlayHeight?.value ?? 0,
+    (h, prev) => {
+      if (h !== prev) {
+        scheduleOnRN(setSearchPad, h)
+      }
+    },
+    [searchOverlayHeight]
+  )
+  const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
+  const insetsBottom = insets.bottom
+  // The jump button sits in a sibling of the keyboard-aware list, so it does not move with the
+  // keyboard on its own. Lift it past the keyboard (keyboard term) and past the search bar (bar
+  // term) so it never hides behind either.
+  const jumpLiftStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY:
+          Math.min(keyboardAnimHeight.value + insetsBottom, 0) -
+          Math.max((searchOverlayHeight?.value ?? 0) - jumpAboveBarTrim, 0),
+      },
+    ],
+  }))
+
   // Stable refs read inside stable callbacks
   const numOrdinalsRef = React.useRef(numOrdinals)
   React.useEffect(() => {
@@ -575,6 +612,12 @@ const NativeConversationList = function NativeConversationList() {
     scrollMessageToEnd,
   })
 
+  // Latest centered target, read inside the stable re-assert callback.
+  const centeredRef = React.useRef(centeredOrdinalOrNone)
+  React.useEffect(() => {
+    centeredRef.current = centeredOrdinalOrNone
+  }, [centeredOrdinalOrNone])
+
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   // top of the (non-inverted) list = oldest messages
@@ -595,22 +638,39 @@ const NativeConversationList = function NativeConversationList() {
     [onEndReached]
   )
 
+  // Re-assert native centering on the current target. scrollToItem(viewPosition: 0.5) lands
+  // accurately on its own, but the centered load streams older messages in afterward (pagination
+  // prepends), so we re-call it across a few frames; maintainVisibleContentPosition keeps the row
+  // steady between asserts.
+  const [reassertCentered] = React.useState(() => () => {
+    const co = centeredRef.current
+    if (co <= 0) return
+    void listRef.current?.scrollToItem({animated: false, item: co, viewPosition: 0.5})
+  })
+
+  // Center on the search hit once it actually appears in the loaded list. Centering on the raw
+  // centeredOrdinal change is unreliable: navigating to a hit reloads the thread centered on it,
+  // so messageOrdinals is briefly empty (the target not yet present) when the ordinal changes.
+  // Wait for the target to load, then coarse-scroll and re-assert across the pagination settle.
   const lastCenteredOrdinal = React.useRef(0)
   React.useEffect(() => {
+    if (centeredOrdinalOrNone <= 0) {
+      lastCenteredOrdinal.current = 0
+      return undefined
+    }
+    if (!messageOrdinals.includes(centeredOrdinalOrNone)) {
+      return undefined
+    }
     if (lastCenteredOrdinal.current === centeredOrdinalOrNone) {
-      return
+      return undefined
     }
     lastCenteredOrdinal.current = centeredOrdinalOrNone
-    if (centeredOrdinalOrNone > 0) {
-      const id = setTimeout(() => {
-        scrollToCentered()
-      }, 200)
-      return () => {
-        clearTimeout(id)
-      }
+    scrollToCentered()
+    const ids = [50, 250, 500, 900, 1400].map(d => setTimeout(reassertCentered, d))
+    return () => {
+      ids.forEach(clearTimeout)
     }
-    return undefined
-  }, [centeredOrdinalOrNone, scrollToCentered])
+  }, [centeredOrdinalOrNone, messageOrdinals, scrollToCentered, reassertCentered])
 
   // These refs store the conversation they last applied to (not a boolean) so a
   // freeze/thaw of this screen — which re-mounts effects without a real
@@ -654,8 +714,8 @@ const NativeConversationList = function NativeConversationList() {
   // indicator. Without this the list scrolls to its content end but the newest row sits behind
   // the input bar.
   const listContentStyle = React.useMemo(
-    () => ({paddingBottom: mobileTypingContainerHeight + insets.bottom}),
-    [insets.bottom]
+    () => ({paddingBottom: mobileTypingContainerHeight + insets.bottom + searchPad}),
+    [insets.bottom, searchPad]
   )
 
   return (
@@ -684,7 +744,7 @@ const NativeConversationList = function NativeConversationList() {
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             maintainScrollAtEnd={!hasCentered}
-            maintainVisibleContentPosition={hasCentered ? undefined : {data: true}}
+            maintainVisibleContentPosition={{data: true}}
             onStartReached={onStartReached}
             onStartReachedThreshold={2}
             onEndReached={onEndReached}
@@ -694,11 +754,27 @@ const NativeConversationList = function NativeConversationList() {
             keyboardOffset={insets.bottom}
           />
           ) : null}
-          {jumpToRecent}
+          {jumpToRecent && (
+            <Animated.View style={[nativeStyles.jumpWrapper, jumpLiftStyle]} pointerEvents="box-none">
+              {jumpToRecent}
+            </Animated.View>
+          )}
         </Kb.Box2>
       </PerfProfiler>
     </Kb.ErrorBoundary>
   )
 }
+
+const nativeStyles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      jumpWrapper: {
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+      },
+    }) as const
+)
 
 export default isMobile ? NativeConversationList : DesktopThreadWrapperWithProfiler
