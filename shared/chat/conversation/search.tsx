@@ -387,7 +387,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
 
   const _renderHit = (index: number, item: SearchHit) => {
     return (
-      <Kb.ClickableBox direction="horizontal" alignItems="center" justifyContent="space-between" key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" justifyContent="space-between" fullWidth={true} key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
         <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
