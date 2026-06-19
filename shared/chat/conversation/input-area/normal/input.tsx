@@ -30,6 +30,7 @@ import {
   withTiming,
   default as Reanimated,
 } from '@/common-adapters/reanimated'
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import FilePickerPopup from '../filepicker-popup'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
@@ -1186,11 +1187,19 @@ const NativeAnimatedInput = (() => {
       const {expanded, inputRef, reservedHeight = 0, ...rest} = p
       const lastExpandedRef = React.useRef(expanded)
       const offset = useSharedValue(expanded ? 1 : 0)
-      const maxHeight = Math.max(threeLineHeight, maxInputArea - inputAreaHeight - 15 - reservedHeight)
-      const as = useAnimatedStyle(() => ({
-        maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
-        minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
-      }))
+      // 0 (closed) down to -keyboardHeight (open). When the keyboard is up the
+      // input is pinned above it, so the room to expand into shrinks by the
+      // keyboard height — otherwise the expanded input grows past the top of the
+      // screen.
+      const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
+      const as = useAnimatedStyle(() => {
+        const available = maxInputArea + keyboardAnimHeight.value
+        const maxHeight = Math.max(threeLineHeight, available - inputAreaHeight - 15 - reservedHeight)
+        return {
+          maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
+          minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
+        }
+      })
       React.useEffect(() => {
         if (expanded !== lastExpandedRef.current) {
           lastExpandedRef.current = expanded
