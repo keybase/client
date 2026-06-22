@@ -20,7 +20,8 @@ import {
 } from '../thread-context'
 import {useJumpToRecent} from './jump-to-recent'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
-import {getMessageRowType} from '../messages/row-metadata'
+import {getMessageRowType, getMessageShowUsername} from '../messages/row-metadata'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as InputState from '../input-area/input-state'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import {copyToClipboard} from '@/util/storeless-actions'
@@ -49,21 +50,35 @@ const keyExtractor = (ordinal: ItemType) => String(ordinal)
 // trim off the search-bar lift so the jump button rests ~40px above the bar
 const jumpAboveBarTrim = 40
 
-// Item type for list recycling pool separation
+// Item type for list recycling pool separation. A message that leads its author group renders an
+// avatar + username header (~40px taller) than a grouped follow-on of the same render type. Without
+// splitting the pool, recycleItems reuses one container across both heights, so a recycled view
+// paints at the wrong height for a frame before re-measure — visible as rows overlapping during
+// scroll. Append ':hdr' so header and grouped rows pool separately.
 const useGetItemType = () => {
   const threadStore = useConversationThreadStore()
+  const you = useCurrentUserState(s => s.username)
   return React.useCallback(
     (ordinal: T.Chat.Ordinal) => {
       if (!ordinal) {
         return 'null'
       }
-      const {messageMap, messageTypeMap} = threadStore.getState()
+      const {messageMap, messageTypeMap, messageOrdinals} = threadStore.getState()
       const message = messageMap.get(ordinal)
-      return message
-        ? getMessageRowType(message, messageTypeMap.get(ordinal))
-        : (messageTypeMap.get(ordinal) ?? 'text')
+      if (!message) {
+        return messageTypeMap.get(ordinal) ?? 'text'
+      }
+      const base = getMessageRowType(message, messageTypeMap.get(ordinal))
+      const showUsername = getMessageShowUsername({
+        message,
+        messageMap,
+        messageOrdinals: messageOrdinals ?? noOrdinals,
+        ordinal,
+        you,
+      })
+      return showUsername ? `${base}:hdr` : base
     },
-    [threadStore]
+    [threadStore, you]
   )
 }
 
@@ -553,58 +568,17 @@ const NativeConversationList = function NativeConversationList() {
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
   const getItemType = useGetItemType()
-  const dbgStore = useConversationThreadStore()
-
-  // [LISTDBG] TEMP: log each row cell's measured height (separator + message) and how it CHANGES
-  // after first paint. A height that grows after mount is the Issue 1/2 culprit (first-paint
-  // height != final height). Wrapping in a measuring Box2 is temporary; remove with the logging.
-  // Measure the separator (username/timestamp header) and the message body SEPARATELY so we can
-  // tell which one changes height. Separator visibility depends on the PREVIOUS message (author
-  // grouping), so loading older messages can toggle it on an already-rendered row even though the
-  // message body is unchanged.
-  const dbgHeightsRef = React.useRef(new Map<T.Chat.Ordinal, {sep: number; msg: number}>())
-  const onRowPartLayout = React.useCallback(
-    (ordinal: T.Chat.Ordinal, part: 'sep' | 'msg', e: {nativeEvent: {layout: {height: number}}}) => {
-      const h = e.nativeEvent.layout.height
-      const rec = dbgHeightsRef.current.get(ordinal) ?? {msg: -1, sep: -1}
-      const prev = part === 'sep' ? rec.sep : rec.msg
-      if (Math.abs(prev - h) <= 0.01) return
-      if (part === 'sep') rec.sep = h
-      else rec.msg = h
-      dbgHeightsRef.current.set(ordinal, rec)
-      if (prev < 0) return
-      const dirTag = h > prev ? 'GREW' : 'SHRANK'
-      const m = dbgStore.getState().messageMap.get(ordinal) as undefined | Record<string, unknown>
-      const get = (k: string) => (m ? m[k] : undefined)
-      const sv = (k: string) => {
-        const v = get(k) as undefined | {stringValue?: () => string}
-        return v?.stringValue ? v.stringValue() : undefined
-      }
-      const txt = (sv('decoratedText') ?? sv('text') ?? '').slice(0, 40).replace(/\n/g, '\\n')
-      const sz = (k: string) => (get(k) as undefined | {size?: number})?.size ?? 0
-      console.log(
-        `[LISTDBG] row ${ordinal} ${part} ${prev.toFixed(2)}->${h.toFixed(2)} (${dirTag}) ` +
-          `type=${getItemType(ordinal)} edited=${!!get('hasBeenEdited')} reply=${!!get('replyTo')} ` +
-          `reactions=${sz('reactions')} unfurls=${sz('unfurls')} txt="${txt}"`
-      )
-    },
-    [getItemType, dbgStore]
-  )
 
   // Separator renders inline above each row (same as desktop) so the orange line keys off this
   // row's ordinal directly.
   const renderItem = React.useCallback(
     ({item: ordinal}: {item: T.Chat.Ordinal}) => (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} onLayout={e => onRowPartLayout(ordinal, 'sep', e)}>
-          <Separator trailingItem={ordinal} />
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} onLayout={e => onRowPartLayout(ordinal, 'msg', e)}>
-          <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
-        </Kb.Box2>
-      </Kb.Box2>
+      <>
+        <Separator trailingItem={ordinal} />
+        <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
+      </>
     ),
-    [centeredHighlightOrdinalOrNone, onRowPartLayout]
+    [centeredHighlightOrdinalOrNone]
   )
 
   const insets = useSafeAreaInsets()
@@ -830,7 +804,7 @@ const NativeConversationList = function NativeConversationList() {
             // first render, so this only seeds frame one + far-offscreen items.
             estimatedItemSize={120}
             recycleItems={true}
-            drawDistance={250}
+            drawDistance={1000}
             initialScrollAtEnd={initialScrollIndex === undefined}
             initialScrollIndex={initialScrollIndex}
             alignItemsAtEnd={true}
