@@ -38,7 +38,11 @@ func (f *EncryptedFile) Put(ctx context.Context, data any) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(f.path, b, 0o600)
+	// Write via a temp file + rename (libkb.SafeWriteToFile) so that an
+	// interrupted write (app kill, crash, power loss) can never leave a
+	// partially written file behind. A torn file would later fail to decrypt
+	// and be indistinguishable from corruption.
+	return libkb.NewFile(f.path, b, 0o600).Save(f.G().Log)
 }
 
 func (f *EncryptedFile) Remove(ctx context.Context) error {
