@@ -22,6 +22,7 @@ import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
 import {
   getConversationThreadDisplayMessage,
+  ShownUsernameCacheContext,
   useConversationThreadActions,
   useConversationThreadMessageActions,
   useConversationThreadSelector,
@@ -370,6 +371,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   )
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
+  const shownCache = React.useContext(ShownUsernameCacheContext)
 
   return useConversationThreadSelector(
     C.useShallow(s => {
@@ -389,6 +391,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         messageOrdinals: s.messageOrdinals ?? [],
         ordinal,
         you,
+        shownCache,
       })
       return {
         ...commonData,

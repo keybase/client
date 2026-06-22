@@ -8,6 +8,20 @@ import {pluralize} from '@/util/string'
 import {useConversationThreadMessage, useConversationThreadSelector} from '../../../thread-context'
 import {useConversationSendActions} from '../../../send-actions'
 
+// The flip result arrives via a separate status notification, not with the thread, so on initial
+// load (an already-finished flip) the card first-paints with no result and then grows when the
+// status streams in — which can leave the thread scrolled above the newest message. We can't know
+// the exact result size ahead of time, but the command text tells us the result TYPE, which is
+// enough to reserve an approximate result height up front so the card opens close to its final
+// size. Imperfect for multi-card / multi-item shuffles whose size depends on status-only data.
+const guessFlipResultHeight = (raw: string) => {
+  const s = raw.replace(/^\/flip/i, '').trim().toLowerCase()
+  if (s.startsWith('cards')) return 80 // dealt hand(s): at least one card row
+  if (s.includes(',')) return 120 // shuffle list (capped, ~5 items)
+  if (/^\d+(\s*(\.\.|-)\s*\d+)?$/.test(s)) return 40 // number / range: one line
+  return 56 // coin (default + most common): 48 icon + marginTop
+}
+
 function CoinFlipContainer() {
   const ordinal = useOrdinal()
   const message = useConversationThreadMessage(ordinal)
@@ -16,6 +30,9 @@ function CoinFlipContainer() {
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
   const {sendMessage} = useConversationSendActions()
   const status = useConversationThreadSelector(s => s.flipStatusMap.get(flipGameID))
+  // Reserve the result height only while the status has not loaded yet (the open-an-old-flip case).
+  // Once status is present the real result fills it, and live in-progress flips get no empty gap.
+  const reservedResultHeight = status === undefined ? guessFlipResultHeight(text?.stringValue() ?? '') : 0
   const onFlipAgain = () => {
     if (text) {
       sendMessage(text.stringValue())
@@ -118,7 +135,7 @@ function CoinFlipContainer() {
           </Kb.Box2>
         </>
       )}
-      <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={{minHeight: reservedResultHeight}}>
         {resultInfo && <CoinFlipResult result={resultInfo} />}
       </Kb.Box2>
       {isSendError || !!errorInfo ? (
