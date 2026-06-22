@@ -552,19 +552,52 @@ const NativeConversationList = function NativeConversationList() {
   const listRef = React.useRef<LegendListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
+  const getItemType = useGetItemType()
+  const dbgStore = useConversationThreadStore()
+
+  // [LISTDBG] TEMP: log each row cell's measured height (separator + message) and how it CHANGES
+  // after first paint. A height that grows after mount is the Issue 1/2 culprit (first-paint
+  // height != final height). Wrapping in a measuring Box2 is temporary; remove with the logging.
+  const dbgHeightsRef = React.useRef(new Map<T.Chat.Ordinal, number>())
+  const onRowLayout = React.useCallback(
+    (ordinal: T.Chat.Ordinal, e: {nativeEvent: {layout: {height: number}}}) => {
+      const h = Math.round(e.nativeEvent.layout.height)
+      const prev = dbgHeightsRef.current.get(ordinal)
+      if (prev !== h) {
+        dbgHeightsRef.current.set(ordinal, h)
+        if (prev !== undefined) {
+          const dirTag = h > prev ? 'GREW' : 'SHRANK'
+          const m = dbgStore.getState().messageMap.get(ordinal) as undefined | Record<string, unknown>
+          const get = (k: string) => (m ? m[k] : undefined)
+          const sv = (k: string) => {
+            const v = get(k) as undefined | {stringValue?: () => string}
+            return v?.stringValue ? v.stringValue() : undefined
+          }
+          const txt = (sv('decoratedText') ?? sv('text') ?? '').slice(0, 50).replace(/\n/g, '\\n')
+          const sz = (k: string) => (get(k) as undefined | {size?: number})?.size ?? 0
+          console.log(
+            `[LISTDBG] row ${ordinal} type=${getItemType(ordinal)} height ${prev}->${h} (${dirTag}) ` +
+              `mtype=${String(get('type'))} submit=${String(get('submitState'))} edited=${!!get('hasBeenEdited')} ` +
+              `reply=${!!get('replyTo')} reactions=${sz('reactions')} unfurls=${sz('unfurls')} ` +
+              `txt="${txt}"`
+          )
+        }
+      }
+    },
+    [getItemType, dbgStore]
+  )
+
   // Separator renders inline above each row (same as desktop) so the orange line keys off this
   // row's ordinal directly.
   const renderItem = React.useCallback(
     ({item: ordinal}: {item: T.Chat.Ordinal}) => (
-      <>
+      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={e => onRowLayout(ordinal, e)}>
         <Separator trailingItem={ordinal} />
         <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
-      </>
+      </Kb.Box2>
     ),
-    [centeredHighlightOrdinalOrNone]
+    [centeredHighlightOrdinalOrNone, onRowLayout]
   )
-
-  const getItemType = useGetItemType()
 
   const insets = useSafeAreaInsets()
 
@@ -689,6 +722,71 @@ const NativeConversationList = function NativeConversationList() {
 
   const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
+  // [LISTDBG] TEMP instrumentation. Two probes:
+  //  1) one-shot settle dump per conversation (does the list land at the end / drift after?)
+  //  2) a length-change dump that fires on EVERY messageOrdinals change after load, so late data
+  //     (backfill pagination, appended joins/leaves, reactions changing the array) is captured —
+  //     the one-shot dump alone misses everything that streams in after first load.
+  // gap = contentLength - scroll - scrollLength = pixels below the viewport bottom (gap>0 = parked
+  // above newest). dir = where the array changed: PREPEND (older/top) vs APPEND (newer/bottom).
+  const dbgOrdsRef = React.useRef(messageOrdinals)
+  dbgOrdsRef.current = messageOrdinals
+  const dbgDump = React.useCallback(
+    (tag: string) => {
+      const s = listRef.current?.getState()
+      const o = dbgOrdsRef.current
+      // real measured per-type averages — use these to pick a representative estimatedItemSize
+      let avgs = ''
+      try {
+        const a = s?.getAverageItemSizes?.() as Record<string, {average: number; count: number}> | undefined
+        if (a) {
+          avgs = Object.entries(a)
+            .map(([k, v]) => `${k}:${Math.round(v.average)}(${v.count})`)
+            .join(' ')
+        }
+      } catch {}
+      console.log(
+        `[LISTDBG] ${tag} conv=${conversationIDKey.slice(0, 6)} num=${o.length} ` +
+          `first=${o[0]} last=${o[o.length - 1]} isAtEnd=${s?.isAtEnd} scroll=${Math.round(s?.scroll ?? -1)} ` +
+          `scrollLength=${Math.round(s?.scrollLength ?? -1)} contentLength=${Math.round(s?.contentLength ?? -1)} ` +
+          `gap=${Math.round((s?.contentLength ?? 0) - (s?.scroll ?? 0) - (s?.scrollLength ?? 0))} avgs=[${avgs}]`
+      )
+    },
+    [conversationIDKey]
+  )
+
+  const dbgLoadedRef = React.useRef<string | undefined>(undefined)
+  React.useEffect(() => {
+    if (!loaded) return undefined
+    if (dbgLoadedRef.current === conversationIDKey) return undefined
+    dbgLoadedRef.current = conversationIDKey
+    const ids = [0, 100, 300, 600, 1200, 2000, 3500].map(d => setTimeout(() => dbgDump(`t+${d}`), d))
+    return () => {
+      ids.forEach(clearTimeout)
+    }
+  }, [loaded, conversationIDKey, dbgDump])
+
+  const dbgPrevRef = React.useRef<{conv: string; first?: T.Chat.Ordinal; last?: T.Chat.Ordinal; len: number}>({
+    conv: '',
+    len: -1,
+  })
+  React.useEffect(() => {
+    if (!loaded) return undefined
+    const o = messageOrdinals
+    const p = dbgPrevRef.current
+    const sameConv = p.conv === conversationIDKey
+    const headChanged = p.first !== o[0]
+    const tailChanged = p.last !== o[o.length - 1]
+    const dir = !sameConv
+      ? 'load'
+      : `${headChanged ? 'PREPEND' : ''}${tailChanged ? 'APPEND' : ''}` ||
+        (p.len !== o.length ? 'FILL' : 'same')
+    dbgPrevRef.current = {conv: conversationIDKey, first: o[0], last: o[o.length - 1], len: o.length}
+    if (sameConv && p.len === o.length && dir === 'same') return undefined
+    const id = setTimeout(() => dbgDump(`change(${dir} ${p.len}->${o.length})`), 0)
+    return () => clearTimeout(id)
+  }, [loaded, conversationIDKey, messageOrdinals, dbgDump])
+
   // Reserve bottom space so the newest message clears the sticky input bar, which is pulled up
   // over the list bottom (KeyboardStickyView offset -insets.bottom) plus the floating typing
   // indicator. Without this the list scrolls to its content end but the newest row sits behind
@@ -713,7 +811,10 @@ const NativeConversationList = function NativeConversationList() {
             getItemType={getItemType}
             ListHeaderComponent={SpecialTopMessage}
             ListFooterComponent={SpecialBottomMessage}
-            estimatedItemSize={72}
+            // ~text-row average (measured); biased slightly up since underestimating makes a
+            // bottom-anchored list scroll-to-end land short. Per-type averages take over after the
+            // first render, so this only seeds frame one + far-offscreen items.
+            estimatedItemSize={120}
             recycleItems={true}
             drawDistance={250}
             initialScrollAtEnd={initialScrollIndex === undefined}
@@ -723,6 +824,11 @@ const NativeConversationList = function NativeConversationList() {
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             maintainScrollAtEnd={!hasCentered}
+            // Default re-pin threshold is 0.1 (~10% of the viewport). Rows whose height settles
+            // after first paint (flip result, audio/video, unfurls) can grow more than that near
+            // the bottom and leave the thread parked above the newest message. Widen the window so
+            // late growth still re-pins to the end.
+            maintainScrollAtEndThreshold={0.5}
             maintainVisibleContentPosition={{data: true}}
             onStartReached={onStartReached}
             onStartReachedThreshold={2}
