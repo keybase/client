@@ -1607,7 +1607,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller (1.21.11):
+  - react-native-keyboard-controller (1.21.12):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1619,7 +1619,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.21.11)
+    - react-native-keyboard-controller/common (= 1.21.12)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1630,7 +1630,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller/common (1.21.11):
+  - react-native-keyboard-controller/common (1.21.12):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1743,7 +1743,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-webview (13.16.1):
+  - react-native-webview (14.0.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2902,10 +2902,10 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 3a42e75434099fd10030e36fe9f3b27e3811afd5
   React-mutationobservernativemodule: a7f3dc483d3e0e0fade0ea00e2cc95e2e462e023
   react-native-kb: 71289be80d93678d5abff5805cb638cd36d9e08e
-  react-native-keyboard-controller: 348bed8e8d1e8c6ab8eab4c480172b2d538d3efa
+  react-native-keyboard-controller: d2960aaadfed61655b3ec7b9e318683051214c8f
   react-native-netinfo: a05f9b897e76ad24b53f615fed1cbb731932363d
   react-native-safe-area-context: 0bbcdfba5c4a1b3203276f1ed9128e3239fdf199
-  react-native-webview: 2a4da2e03d3ec2c731c4d1a389cb86aaa4902167
+  react-native-webview: 8ea93f5c9c986e9ce9888953759aa3db77eaa379
   React-NativeModulesApple: deba264b03bd79c6bd61014fa30e40321b5e443a
   React-networking: 905170b05255ad7025dd16e9d0cf5a7b9458208a
   React-oscompat: 64a0c7ef5441855dc6e2a6afe8ba8f92aa05075e
