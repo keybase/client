@@ -245,6 +245,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return errors.New(s.Desc)
 	case SCBadSession:
 		return BadSessionError{s.Desc}
+	case SCNISTBadClock:
+		return BadClockError{s.Desc}
 	case SCBadLoginPassword:
 		return PassphraseError{s.Desc}
 	case SCKeyBadGen:
@@ -1009,6 +1011,15 @@ func (c CanceledError) ToStatus() (s keybase1.Status) {
 func (e BadSessionError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadSession
 	s.Name = "BAD_SESSION"
+	s.Desc = e.Desc
+	return s
+}
+
+// =============================================================================
+
+func (e BadClockError) ToStatus() (s keybase1.Status) {
+	s.Code = SCNISTBadClock
+	s.Name = "SC_NIST_BAD_CLOCK"
 	s.Desc = e.Desc
 	return s
 }
