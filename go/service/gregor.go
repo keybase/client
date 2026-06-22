@@ -208,11 +208,11 @@ type gregorHandler struct {
 	// connectHappened will be closed after gregor connection established
 	connectHappened chan struct{}
 
-	cli               rpc.GenericClient
-	pingCli           rpc.GenericClient
-	sessionID         gregor1.SessionID
-	firstConnectMu    sync.Mutex
-	firstConnect      bool
+	cli            rpc.GenericClient
+	pingCli        rpc.GenericClient
+	sessionID      gregor1.SessionID
+	firstConnectMu sync.Mutex
+	firstConnect   bool
 
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
@@ -236,16 +236,16 @@ var (
 
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
-		Contextified:      globals.NewContextified(g),
-		chatLog:           utils.NewDebugLabeler(g.ExternalG(), "PushHandler", false),
-		firstConnect:      true,
-		pushStateFilter:   func(m gregor.Message) bool { return true },
-		badger:            nil,
-		broadcastCh:       make(chan gregor1.Message, 10000),
-		connectHappened:   make(chan struct{}),
-		replayCh:          make(chan replayThreadArg, 10),
-		pushStateCh:       make(chan struct{}, 100),
-		forcePingCh:       make(chan struct{}, 5),
+		Contextified:    globals.NewContextified(g),
+		chatLog:         utils.NewDebugLabeler(g.ExternalG(), "PushHandler", false),
+		firstConnect:    true,
+		pushStateFilter: func(m gregor.Message) bool { return true },
+		badger:          nil,
+		broadcastCh:     make(chan gregor1.Message, 10000),
+		connectHappened: make(chan struct{}),
+		replayCh:        make(chan replayThreadArg, 10),
+		pushStateCh:     make(chan struct{}, 100),
+		forcePingCh:     make(chan struct{}, 5),
 	}
 	return gh
 }
