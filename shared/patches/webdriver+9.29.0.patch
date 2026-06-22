@@ -1,5 +1,5 @@
 diff --git a/node_modules/webdriver/build/index.js b/node_modules/webdriver/build/index.js
-index 9dad7b9..0634eed 100644
+index 73ef3f0..1c7b529 100644
 --- a/node_modules/webdriver/build/index.js
 +++ b/node_modules/webdriver/build/index.js
 @@ -2226,8 +2226,10 @@ var WebDriverRequest = class {
@@ -16,7 +16,7 @@ index 9dad7b9..0634eed 100644
      let endpoint = this.endpoint;
      if (this.requiresSessionId) {
 diff --git a/node_modules/webdriver/build/node.js b/node_modules/webdriver/build/node.js
-index 46a9511..d382d37 100644
+index 8448cba..9223910 100644
 --- a/node_modules/webdriver/build/node.js
 +++ b/node_modules/webdriver/build/node.js
 @@ -2156,8 +2156,10 @@ var WebDriverRequest = class {

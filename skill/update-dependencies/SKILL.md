@@ -27,6 +27,15 @@ cd shared && python3 ../.claude/skills/update-dependencies/check-outdated.py
 
 The script never suggests a downgrade. For packages currently on a stable version it finds the highest stable version. For packages currently on a pre-release version it finds the highest semver on the same major — which handles both newer pre-releases and graduation to stable (e.g. `56.0.0-preview.x` → `56.0.5`).
 
+When the highest stable version is on a **newer major** than the current one, the script also reports the highest version reachable **within the current major** as a separate `(in-major)` line, with the major jump flagged below it:
+
+```
+  @babel/core: 7.29.7 -> 7.30.0  (in-major)
+      ↳ MAJOR jump available: -> 8.0.1 (major 7 -> 8)
+```
+
+Take the `(in-major)` bump as the safe routine upgrade; treat the `↳ MAJOR jump` as an opt-in decision (peer-dep checks, app build to verify). If no in-major upgrade exists (already on the latest minor/patch of the current major), only the single `cur -> latest` line prints — the jump to the next major is then the only available upgrade.
+
 **Note on `eslint-plugin-react-compiler` rc versions:** npm may have rc.1-hash variants that sort after rc.2 alphabetically but are older. Verify manually if the script suggests downgrading to a hash-tagged rc.
 
 ### 3. Edit package.json with exact versions
