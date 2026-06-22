@@ -7,7 +7,7 @@ import * as T from '@/constants/types'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationThreadSelector} from '../thread-context'
+import {ShownUsernameCacheContext, useConversationThreadSelector} from '../thread-context'
 
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
@@ -17,6 +17,7 @@ const noOrdinal = T.Chat.numberToOrdinal(0)
 const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
   const orangeOrdinal = React.useContext(OrangeLineContext)
   const you = useCurrentUserState(s => s.username)
+  const shownCache = React.useContext(ShownUsernameCacheContext)
 
   return useConversationThreadSelector(
     C.useShallow(s => {
@@ -40,6 +41,7 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
           messageOrdinals,
           ordinal,
           you,
+          shownCache,
         })
         const tooSoon = !m.timestamp || Date.now() - m.timestamp < 1000 * 60 * 60 * 2
         const isJoinLeave = m.type === 'systemJoined'
