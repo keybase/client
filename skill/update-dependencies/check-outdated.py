@@ -51,7 +51,7 @@ def _is_prerelease(v):
 
 def get_latest(name, current):
     if name in SKIP or current.startswith('file:'):
-        return name, current, current, 'skip'
+        return name, current, current, 'skip', current
     is_pre = _is_prerelease(current)
     try:
         r = subprocess.run(['yarn', 'info', name, 'versions', '--json'],
@@ -63,20 +63,28 @@ def get_latest(name, current):
             raise RuntimeError('yarn info returned empty output')
         parsed = json.loads(raw)
         all_versions = parsed.get('data', [])
+        cur_major = _parse_semver(current)[0]
         if is_pre:
             # Consider all versions on the same major — pre or stable.
             # This handles graduation (e.g. 56.0.0-preview.x → 56.0.5 stable).
-            cur_major = _parse_semver(current)[0]
             candidates = [v for v in all_versions if _parse_semver(v) and _parse_semver(v)[0] == cur_major]
             latest = max(candidates, key=semver_key) if candidates else current
+            # in-major == overall for pre packages (already major-scoped).
+            in_major = latest
         else:
             candidates = [v for v in all_versions if not _is_prerelease(v)]
             latest = max(candidates, key=semver_key) if candidates else current
+            # Highest stable WITHIN the current major — the safe upgrade that
+            # avoids a major-version jump (e.g. babel 7.x newest, not 8.x).
+            in_major_c = [v for v in candidates if _parse_semver(v) and _parse_semver(v)[0] == cur_major]
+            in_major = max(in_major_c, key=semver_key) if in_major_c else current
         if semver_key(latest) < semver_key(current):
             latest = current
-        return name, current, latest, 'pre' if is_pre else 'stable'
+        if semver_key(in_major) < semver_key(current):
+            in_major = current
+        return name, current, latest, 'pre' if is_pre else 'stable', in_major
     except Exception as e:
-        return name, current, f'ERROR: {e}', 'error'
+        return name, current, f'ERROR: {e}', 'error', current
 
 results = []
 with ThreadPoolExecutor(max_workers=20) as ex:
@@ -86,21 +94,32 @@ with ThreadPoolExecutor(max_workers=20) as ex:
 results.sort()
 
 print('\n=== OUTDATED ===')
-for name, cur, lat, kind in results:
+for name, cur, lat, kind, in_major in results:
     if kind not in ('skip', 'error') and name not in PINNED and cur != lat and lat and 'ERROR' not in lat:
-        print(f'  {name}: {cur} -> {lat}' + (' [PRE]' if kind == 'pre' else ''))
+        pre = ' [PRE]' if kind == 'pre' else ''
+        # If the cross-major latest is also reachable without leaving the
+        # current major, just print the one line. Otherwise show the safe
+        # in-major upgrade first, then flag the major jump separately so we
+        # can take the in-major bump without being forced onto a new major.
+        if in_major != lat and semver_key(in_major) > semver_key(cur):
+            cur_major = _parse_semver(cur)[0]
+            lat_major = _parse_semver(lat)[0]
+            print(f'  {name}: {cur} -> {in_major}  (in-major){pre}')
+            print(f'      ↳ MAJOR jump available: -> {lat} (major {cur_major} -> {lat_major})')
+        else:
+            print(f'  {name}: {cur} -> {lat}{pre}')
 
 print('\n=== UP TO DATE ===')
-for name, cur, lat, kind in results:
+for name, cur, lat, kind, in_major in results:
     if kind not in ('skip', 'error') and name not in PINNED and (cur == lat or not lat):
         print(f'  {name}: {cur}')
 
 print('\n=== PINNED (skipped) ===')
-for name, cur, lat, kind in results:
+for name, cur, lat, kind, in_major in results:
     if name in PINNED:
         print(f'  {name}: {cur}')
 
-errors = [(name, lat) for name, cur, lat, kind in results if kind == 'error']
+errors = [(name, lat) for name, cur, lat, kind, in_major in results if kind == 'error']
 if errors:
     print('\n=== ERRORS (script broken — fix before trusting results) ===', file=sys.stderr)
     for name, msg in errors:
