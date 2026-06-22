@@ -230,6 +230,7 @@ const (
 	SCAssertionParseError                       = int(keybase1.StatusCode_SCAssertionParseError)
 	SCLoginRequired                             = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession                                = int(keybase1.StatusCode_SCBadSession)
+	SCNISTBadClock                              = int(keybase1.StatusCode_SCNISTBadClock)
 	SCNoSession                                 = int(keybase1.StatusCode_SCNoSession)
 	SCBadLoginUserNotFound                      = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword                          = int(keybase1.StatusCode_SCBadLoginPassword)

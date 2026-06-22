@@ -955,6 +955,14 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 		g.chatLog.Debug(ctx, "bad session error, not retrying")
 		return false
 	}
+	if errors.As(err, &libkb.BadClockError{}) {
+		// The client clock is outside the server's plausibility window, so
+		// every NIST we generate will be rejected identically. Retrying in a
+		// tight loop just hammers authd; stop until a later reconnect trigger
+		// (e.g. the ping loop) picks it up, by which point the clock may be fixed.
+		g.G().Log.CWarningf(ctx, "bad clock error, not retrying; user should fix their system clock: %s", err)
+		return false
+	}
 	if cerr, ok := err.(connectionAuthError); ok && !cerr.ShouldRetry() {
 		g.chatLog.Debug(ctx, "should retry on connect, non-retry error, ending: %s", err.Error())
 		return false

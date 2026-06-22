@@ -2396,6 +2396,19 @@ func (e BadSessionError) Error() string {
 	return fmt.Sprintf("bad session: %s", e.Desc)
 }
 
+// BadClockError is returned when the server rejects a NIST because the
+// client's clock is too far from the server's (outside the plausibility
+// window). A NIST signs the client's local time, so every regenerated token
+// fails identically until the user fixes their clock; treating this as a
+// terminal (non-retryable) auth error prevents a tight reconnect/auth loop.
+type BadClockError struct {
+	Desc string
+}
+
+func (e BadClockError) Error() string {
+	return fmt.Sprintf("bad clock: %s", e.Desc)
+}
+
 type LoginStateTimeoutError struct {
 	ActiveRequest    string
 	AttemptedRequest string
