@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -442,7 +443,12 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	}
 	status, res, err := s.G().AttachmentUploader.Status(ctx, obr.OutboxID)
 	if err != nil {
-		return obr, NewAttachmentUploadError(err.Error(), false)
+		// If the uploader's stored state cannot be read back (e.g. the encrypted
+		// status file is corrupt and fails to decrypt), retrying can never recover
+		// and would block delivery of every later message queued behind it in this
+		// conversation. Fail permanently in that case so the outbox can drain.
+		perm := errors.Is(err, encrypteddb.ErrDecryptionFailed)
+		return obr, NewAttachmentUploadError(err.Error(), perm)
 	}
 	switch status {
 	case types.AttachmentUploaderTaskStatusSuccess:

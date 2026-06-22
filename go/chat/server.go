@@ -1226,7 +1226,9 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 	if res, err = h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename); err != nil {
 		return res, err
 	}
-	return res, os.WriteFile(res, arg.Data, 0o600)
+	// Write via a temp file + rename so an interrupted write can't leave a
+	// partially written upload payload behind.
+	return res, libkb.NewFile(res, arg.Data, 0o600).Save(h.G().ExternalG().Log)
 }
 
 func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (err error) {
