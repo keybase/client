@@ -558,31 +558,35 @@ const NativeConversationList = function NativeConversationList() {
   // [LISTDBG] TEMP: log each row cell's measured height (separator + message) and how it CHANGES
   // after first paint. A height that grows after mount is the Issue 1/2 culprit (first-paint
   // height != final height). Wrapping in a measuring Box2 is temporary; remove with the logging.
-  const dbgHeightsRef = React.useRef(new Map<T.Chat.Ordinal, number>())
-  const onRowLayout = React.useCallback(
-    (ordinal: T.Chat.Ordinal, e: {nativeEvent: {layout: {height: number}}}) => {
-      const h = Math.round(e.nativeEvent.layout.height)
-      const prev = dbgHeightsRef.current.get(ordinal)
-      if (prev !== h) {
-        dbgHeightsRef.current.set(ordinal, h)
-        if (prev !== undefined) {
-          const dirTag = h > prev ? 'GREW' : 'SHRANK'
-          const m = dbgStore.getState().messageMap.get(ordinal) as undefined | Record<string, unknown>
-          const get = (k: string) => (m ? m[k] : undefined)
-          const sv = (k: string) => {
-            const v = get(k) as undefined | {stringValue?: () => string}
-            return v?.stringValue ? v.stringValue() : undefined
-          }
-          const txt = (sv('decoratedText') ?? sv('text') ?? '').slice(0, 50).replace(/\n/g, '\\n')
-          const sz = (k: string) => (get(k) as undefined | {size?: number})?.size ?? 0
-          console.log(
-            `[LISTDBG] row ${ordinal} type=${getItemType(ordinal)} height ${prev}->${h} (${dirTag}) ` +
-              `mtype=${String(get('type'))} submit=${String(get('submitState'))} edited=${!!get('hasBeenEdited')} ` +
-              `reply=${!!get('replyTo')} reactions=${sz('reactions')} unfurls=${sz('unfurls')} ` +
-              `txt="${txt}"`
-          )
-        }
+  // Measure the separator (username/timestamp header) and the message body SEPARATELY so we can
+  // tell which one changes height. Separator visibility depends on the PREVIOUS message (author
+  // grouping), so loading older messages can toggle it on an already-rendered row even though the
+  // message body is unchanged.
+  const dbgHeightsRef = React.useRef(new Map<T.Chat.Ordinal, {sep: number; msg: number}>())
+  const onRowPartLayout = React.useCallback(
+    (ordinal: T.Chat.Ordinal, part: 'sep' | 'msg', e: {nativeEvent: {layout: {height: number}}}) => {
+      const h = e.nativeEvent.layout.height
+      const rec = dbgHeightsRef.current.get(ordinal) ?? {msg: -1, sep: -1}
+      const prev = part === 'sep' ? rec.sep : rec.msg
+      if (Math.abs(prev - h) <= 0.01) return
+      if (part === 'sep') rec.sep = h
+      else rec.msg = h
+      dbgHeightsRef.current.set(ordinal, rec)
+      if (prev < 0) return
+      const dirTag = h > prev ? 'GREW' : 'SHRANK'
+      const m = dbgStore.getState().messageMap.get(ordinal) as undefined | Record<string, unknown>
+      const get = (k: string) => (m ? m[k] : undefined)
+      const sv = (k: string) => {
+        const v = get(k) as undefined | {stringValue?: () => string}
+        return v?.stringValue ? v.stringValue() : undefined
       }
+      const txt = (sv('decoratedText') ?? sv('text') ?? '').slice(0, 40).replace(/\n/g, '\\n')
+      const sz = (k: string) => (get(k) as undefined | {size?: number})?.size ?? 0
+      console.log(
+        `[LISTDBG] row ${ordinal} ${part} ${prev.toFixed(2)}->${h.toFixed(2)} (${dirTag}) ` +
+          `type=${getItemType(ordinal)} edited=${!!get('hasBeenEdited')} reply=${!!get('replyTo')} ` +
+          `reactions=${sz('reactions')} unfurls=${sz('unfurls')} txt="${txt}"`
+      )
     },
     [getItemType, dbgStore]
   )
@@ -591,12 +595,16 @@ const NativeConversationList = function NativeConversationList() {
   // row's ordinal directly.
   const renderItem = React.useCallback(
     ({item: ordinal}: {item: T.Chat.Ordinal}) => (
-      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={e => onRowLayout(ordinal, e)}>
-        <Separator trailingItem={ordinal} />
-        <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} onLayout={e => onRowPartLayout(ordinal, 'sep', e)}>
+          <Separator trailingItem={ordinal} />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} onLayout={e => onRowPartLayout(ordinal, 'msg', e)}>
+          <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
+        </Kb.Box2>
       </Kb.Box2>
     ),
-    [centeredHighlightOrdinalOrNone, onRowLayout]
+    [centeredHighlightOrdinalOrNone, onRowPartLayout]
   )
 
   const insets = useSafeAreaInsets()
@@ -796,6 +804,12 @@ const NativeConversationList = function NativeConversationList() {
     [insets.bottom, searchPad]
   )
 
+  // The input bar (KeyboardStickyView, closed offset -insets.bottom) overlaps the bottom of the
+  // list by insets.bottom, so without this the scroll indicator runs down behind it. Inset the
+  // indicator by exactly that overlap (NOT the full content padding, which also reserves space for
+  // the floating typing indicator that the scrollbar doesn't need to clear).
+  const scrollIndicatorInsets = React.useMemo(() => ({bottom: insets.bottom}), [insets.bottom])
+
   return (
     <Kb.ErrorBoundary>
       <PerfProfiler id="MessageList">
@@ -834,6 +848,7 @@ const NativeConversationList = function NativeConversationList() {
             onStartReachedThreshold={2}
             onEndReached={onEndReached}
             contentContainerStyle={listContentStyle}
+            scrollIndicatorInsets={scrollIndicatorInsets}
             contentInsetEndAdjustment={contentInsetEndAdjustment}
             freeze={freeze}
             keyboardOffset={insets.bottom}

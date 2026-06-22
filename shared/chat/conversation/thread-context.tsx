@@ -17,6 +17,7 @@ import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import {clearChatTimeCache} from '@/util/timestamp'
+import {clearShownUsernameCache} from './messages/row-metadata'
 import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
@@ -1429,6 +1430,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
   const messagesClear = React.useEffectEvent(() => {
     activeMarkReadEnabledRef.current = false
+    clearShownUsernameCache(id)
     updateThreadState(s => {
       s.pendingOutboxToOrdinal.clear()
       s.loaded = false
