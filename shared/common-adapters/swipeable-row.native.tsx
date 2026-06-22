@@ -16,6 +16,9 @@ type Props = {
   onSwipeableOpenStartDrag?: () => void
   onSwipeableWillOpen?: (direction: 'left') => void
   containerStyle?: ViewStyle
+  // When false, the swipe pan handlers are not attached (children stay mounted, so toggling this
+  // does NOT remount the row). Used to shed per-row touch evaluation during fast scroll.
+  enabled?: boolean
 }
 
 const springConfig = {friction: 20, tension: 150, useNativeDriver: false} as const
@@ -23,6 +26,7 @@ const springConfig = {friction: 20, tension: 150, useNativeDriver: false} as con
 const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function SwipeableRow(props, ref) {
   'use no memo'
   const {children, renderRightActions, onSwipeableOpenStartDrag, onSwipeableWillOpen, containerStyle} = props
+  const {enabled = true} = props
 
   const translationX = React.useRef(new Animated.Value(0)).current
   // Separate ref for current value since Animated.Value has no sync .value read
@@ -142,7 +146,7 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
           </View>
         </View>
       )}
-      <Animated.View style={animStyle} {...ctx.panHandlers}>
+      <Animated.View style={animStyle} {...(enabled ? ctx.panHandlers : undefined)}>
         {children}
       </Animated.View>
     </View>

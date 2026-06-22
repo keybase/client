@@ -15,6 +15,7 @@ type Props = {
   onSwipeableOpenStartDrag?: () => void
   onSwipeableWillOpen?: (direction: 'left') => void
   containerStyle?: object
+  enabled?: boolean
 }
 
 const SwipeableRow = (_p: Props & {ref?: React.Ref<SwipeableMethods>}) => null
