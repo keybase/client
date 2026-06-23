@@ -7,6 +7,7 @@ import {Alert, Linking} from 'react-native'
 import {showShareActionSheet as showShareActionSheetImpl} from '@/util/platform-specific'
 import {getTab, getVisiblePath} from '@/constants/router'
 import {peopleTab} from '@/constants/tabs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export const copyToClipboard = (text: string) => {
   if (isMobile) {
@@ -100,7 +101,11 @@ export const persistRoute = (clear: boolean, immediate: boolean, isStartupLoaded
       }
       return false
     })
-    const next = JSON.stringify({param, routeName})
+    // Stamp the persisted route with the current uid. ui.routeState2 is stored
+    // device-globally (not per-account), so on startup we must only restore a
+    // conversation that belongs to the account we end up logged in as.
+    const {uid} = useCurrentUserState.getState()
+    const next = JSON.stringify({param, routeName, uid})
     if (lastPersist === next) {
       return
     }

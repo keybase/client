@@ -215,6 +215,7 @@ const loadStartupDetails = async () => {
   ] as const)
 
   let conversation: T.Chat.ConversationIDKey | undefined
+  let conversationUid = ''
   let followUser = ''
   let link = ''
   let tab = ''
@@ -232,11 +233,14 @@ const loadStartupDetails = async () => {
     try {
       const item = JSON.parse(routeState) as
         | undefined
-        | {param?: {selectedConversationIDKey?: unknown}; routeName?: string}
+        | {param?: {selectedConversationIDKey?: unknown}; routeName?: string; uid?: unknown}
       if (item) {
         const _convo = item.param?.selectedConversationIDKey || undefined
         if (typeof _convo === 'string') {
           conversation = _convo
+          if (typeof item.uid === 'string') {
+            conversationUid = item.uid
+          }
           logger.info('initialState: routeState', conversation)
         }
         const _rn = item.routeName || undefined
@@ -256,6 +260,7 @@ const loadStartupDetails = async () => {
 
   useConfigState.getState().dispatch.setStartupDetails({
     conversation: conversation ?? noConversationIDKey,
+    conversationUid,
     followUser,
     link,
     tab: tab as Tabs.Tab,

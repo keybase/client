@@ -20,6 +20,7 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
+import {persistRoute} from '@/util/storeless-actions'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -868,6 +869,10 @@ const loadConversationThreadMessages = (
       if (error instanceof RPCError) {
         logger.warn(`loadMoreMessages: error: ${error.desc}`)
         if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
+          // We're no longer in this conv's team. Clear the persisted last-route
+          // (ui.routeState2) so app startup doesn't keep restoring and reloading
+          // this conv, which would re-trigger this error on every launch.
+          persistRoute(true, true, () => useConfigState.getState().startup.loaded)
           navigateToInbox(true, 'maybeKickedFromTeam')
         }
         if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
