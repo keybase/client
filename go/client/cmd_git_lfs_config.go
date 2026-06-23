@@ -86,7 +86,7 @@ func (c *CmdGitLFSConfig) getRepo() (string, error) {
 	reader := bytes.NewBufferString(output)
 	for {
 		line, err := reader.ReadString('\n')
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return "", errors.New("No keybase remote found")
 		} else if err != nil {
 			return "", err

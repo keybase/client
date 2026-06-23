@@ -490,7 +490,7 @@ func IsDirEmpty(dir string) (bool, error) {
 	defer f.Close()
 
 	_, err = f.Readdir(1)
-	if err == io.EOF {
+	if errors.Is(err, io.EOF) {
 		return true, nil
 	}
 	return false, err // Either not empty or error, suits both cases
@@ -812,11 +812,11 @@ func IsNoSpaceOnDeviceError(err error) bool {
 	case NoSpaceOnDeviceError:
 		return true
 	case *os.PathError:
-		return err.Err == syscall.ENOSPC
+		return errors.Is(err.Err, syscall.ENOSPC)
 	case *os.LinkError:
-		return err.Err == syscall.ENOSPC
+		return errors.Is(err.Err, syscall.ENOSPC)
 	case *os.SyscallError:
-		return err.Err == syscall.ENOSPC
+		return errors.Is(err.Err, syscall.ENOSPC)
 	}
 
 	return false

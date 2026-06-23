@@ -95,6 +95,10 @@ func (e ServerError) Error() string {
 	return "ServerError"
 }
 
+func (e ServerError) Unwrap() error {
+	return e.Err
+}
+
 // ServerErrorBadRequest is a generic client-side error.
 type ServerErrorBadRequest struct {
 	Reason string
@@ -212,6 +216,10 @@ func (e ServerErrorUnauthorized) Error() string {
 	return msg
 }
 
+func (e ServerErrorUnauthorized) Unwrap() error {
+	return e.Err
+}
+
 // ToStatus implements the ExportableError interface for ServerErrorUnauthorized.
 func (e ServerErrorUnauthorized) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeServerErrorUnauthorized
@@ -251,6 +259,10 @@ func (e ServerErrorThrottle) Error() string {
 	return fmt.Sprintf("ServerErrorThrottle[%s]{%s}", *e.SuggestedRetryIn, e.Err.Error())
 }
 
+func (e ServerErrorThrottle) Unwrap() error {
+	return e.Err
+}
+
 // ToStatus implements the ExportableError interface for ServerErrorThrottle.
 func (e ServerErrorThrottle) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeServerErrorThrottle
@@ -275,6 +287,10 @@ type ServerErrorConditionFailed struct {
 // Error implements the Error interface for ServerErrorConditionFailed.
 func (e ServerErrorConditionFailed) Error() string {
 	return "ServerErrorConditionFailed{" + e.Err.Error() + "}"
+}
+
+func (e ServerErrorConditionFailed) Unwrap() error {
+	return e.Err
 }
 
 // ToStatus implements the ExportableError interface for ServerErrorConditionFailed.

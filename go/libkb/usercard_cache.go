@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,7 +31,7 @@ func NewUserCardCache(maxAge time.Duration) *UserCardCache {
 func (c *UserCardCache) Get(uid keybase1.UID, useSession bool) (*keybase1.UserCard, error) {
 	v, err := c.cache.Get(c.key(uid, useSession))
 	if err != nil {
-		if err == ramcache.ErrNotFound {
+		if errors.Is(err, ramcache.ErrNotFound) {
 			return nil, nil
 		}
 		return nil, err

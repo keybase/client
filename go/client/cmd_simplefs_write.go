@@ -6,6 +6,7 @@ package client
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -94,7 +95,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 			if bufErr == nil {
 				continue
 			}
-			if bufErr == io.EOF {
+			if errors.Is(bufErr, io.EOF) {
 				break
 			}
 		}
@@ -111,7 +112,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 		c.offset += int64(n)
 
 		if bufErr != nil {
-			if bufErr == io.EOF {
+			if errors.Is(bufErr, io.EOF) {
 				err = nil
 			} else {
 				err = bufErr

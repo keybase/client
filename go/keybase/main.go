@@ -82,7 +82,7 @@ func main() {
 	}
 	if err != nil {
 		// if errParseArgs, the error was already output (along with usage)
-		if err != errParseArgs {
+		if !errors.Is(err, errParseArgs) {
 			g.Log.Errorf("%s", stripFieldsFromAppStatusError(err).Error())
 		}
 		if g.ExitCode == keybase1.ExitCode_OK {

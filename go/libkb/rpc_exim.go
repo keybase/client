@@ -149,21 +149,21 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 }
 
 func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
-	switch e {
-	case nil:
+	switch {
+	case e == nil:
 		return nil
-	case io.EOF:
+	case errors.Is(e, io.EOF):
 		return &keybase1.Status{
 			Code: SCStreamEOF,
 			Name: "STREAM_EOF",
 		}
-	case pgpErrors.ErrKeyIncorrect:
+	case errors.Is(e, pgpErrors.ErrKeyIncorrect):
 		return &keybase1.Status{
 			Code: SCKeyNoActive,
 			Name: "SC_KEY_NO_ACTIVE",
 			Desc: "No PGP key found",
 		}
-	case context.Canceled:
+	case errors.Is(e, context.Canceled):
 		return &keybase1.Status{
 			Code: SCCanceled,
 			Name: "SC_CANCELED",

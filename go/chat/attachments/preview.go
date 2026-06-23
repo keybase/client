@@ -45,20 +45,23 @@ type PreviewRes struct {
 }
 
 func IsFatalImageErr(err error) bool {
-	switch err {
-	case image.ErrFormat, bmp.ErrUnsupported:
+	if errors.Is(err, image.ErrFormat) || errors.Is(err, bmp.ErrUnsupported) {
 		return true
 	}
-	switch err.(type) {
-	case png.FormatError,
-		png.UnsupportedError,
-		tiff.FormatError,
-		tiff.UnsupportedError,
-		jpeg.FormatError,
-		jpeg.UnsupportedError:
-		return true
-	}
-	return false
+	var (
+		pngFormatErr       png.FormatError
+		pngUnsupportedErr  png.UnsupportedError
+		tiffFormatErr      tiff.FormatError
+		tiffUnsupportedErr tiff.UnsupportedError
+		jpegFormatErr      jpeg.FormatError
+		jpegUnsupportedErr jpeg.UnsupportedError
+	)
+	return errors.As(err, &pngFormatErr) ||
+		errors.As(err, &pngUnsupportedErr) ||
+		errors.As(err, &tiffFormatErr) ||
+		errors.As(err, &tiffUnsupportedErr) ||
+		errors.As(err, &jpegFormatErr) ||
+		errors.As(err, &jpegUnsupportedErr)
 }
 
 // Preview creates preview assets from src. It returns an in-memory BufferSource

@@ -92,7 +92,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 		dest, err = makeDestPath(ctx, c.G(), cli, src, c.dest, isDestDir, destPathString)
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", src, dest, isDestDir)
 
-		if err == ErrTargetFileExists {
+		if errors.Is(err, ErrTargetFileExists) {
 			if c.interactive {
 				err = doOverwritePrompt(c.G(), dest.String())
 			} else if c.force {

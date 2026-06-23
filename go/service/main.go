@@ -234,7 +234,7 @@ func (d *Service) Handle(c net.Conn) {
 	// err is always non-nil.
 	err := server.Err()
 	cl <- err
-	if err != io.EOF {
+	if !errors.Is(err, io.EOF) {
 		d.G().Log.Warning("Run error: %s", err)
 	}
 
@@ -1188,7 +1188,7 @@ func (d *Service) getPaperKey(mctx libkb.MetaContext) (key string, err error) {
 	mctx.Info("Reading paperkey from standard input in oneshot mode")
 
 	key, err = bufio.NewReader(os.Stdin).ReadString('\n')
-	if err == io.EOF && len(key) > 0 {
+	if errors.Is(err, io.EOF) && len(key) > 0 {
 		err = nil
 	}
 	if len(key) < 5 {

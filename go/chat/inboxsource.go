@@ -1371,7 +1371,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 		if ferr != nil {
 			// Only do this aggressive clear if the error we get is not some kind of network error
 			_, isStorageAbort := ferr.(storage.AbortedError)
-			if ferr != context.Canceled && !isStorageAbort &&
+			if !errors.Is(ferr, context.Canceled) && !isStorageAbort &&
 				IsOfflineError(ferr) == OfflineErrorKindOnline {
 				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
 				err := s.createInbox().Clear(ctx, uid)

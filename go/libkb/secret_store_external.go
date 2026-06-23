@@ -160,7 +160,7 @@ func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []s
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
-		if err == errNoExternalKeyStore {
+		if errors.Is(err, errNoExternalKeyStore) {
 			// this is to match previous behavior of this function,
 			// but perhaps it should return the error instead
 			return nil, nil

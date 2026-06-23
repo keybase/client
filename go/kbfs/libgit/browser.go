@@ -83,7 +83,7 @@ func NewBrowser(
 	}
 
 	repo, err := gogit.Open(storage, nil)
-	if errors.Cause(err) == gogit.ErrWorktreeNotProvided {
+	if errors.Is(err, gogit.ErrWorktreeNotProvided) {
 		// This is not a bare repo (it might be for a test).  So we
 		// need to pass in a working tree, but since `Browser` is
 		// read-only and doesn't even use the worktree, it doesn't
@@ -91,7 +91,7 @@ func NewBrowser(
 		repo, err = gogit.Open(storage, repoFS)
 	}
 
-	if err == gogit.ErrRepositoryNotExists && gitBranchName == masterBranch {
+	if errors.Is(err, gogit.ErrRepositoryNotExists) && gitBranchName == masterBranch {
 		// This repo is not initialized yet, so pretend it's empty.
 		return &Browser{
 			root:        string(gitBranchName),
@@ -111,12 +111,12 @@ func NewBrowser(
 	}
 
 	ref, err := repo.Reference(gitBranchName, true)
-	if err == plumbing.ErrReferenceNotFound && branchWasEmpty && gitBranchName != masterBranch {
+	if errors.Is(err, plumbing.ErrReferenceNotFound) && branchWasEmpty && gitBranchName != masterBranch {
 		// HEAD points to a nonexistent ref; fall back to master.
 		gitBranchName = masterBranch
 		ref, err = repo.Reference(gitBranchName, true)
 	}
-	if err == plumbing.ErrReferenceNotFound && (gitBranchName == masterBranch || branchWasEmpty) {
+	if errors.Is(err, plumbing.ErrReferenceNotFound) && (gitBranchName == masterBranch || branchWasEmpty) {
 		// No commits on this branch, so pretend it's empty.
 		return &Browser{
 			root:        string(gitBranchName),

@@ -107,7 +107,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 		statusesToFetch <- tlfID
 	}
 	close(statusesToFetch)
-	if err := eg.Wait(); err != nil && err != errIncomplete {
+	if err := eg.Wait(); err != nil && !errors.Is(err, errIncomplete) {
 		return err
 	}
 	close(unflushedPaths)

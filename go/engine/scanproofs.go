@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"encoding/csv"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -200,7 +201,7 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 	m.Debug("Reading csv... ")
 	for {
 		rec, err := r.Read()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {

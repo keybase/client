@@ -2148,10 +2148,10 @@ func (j *tlfJournal) putBlockData(
 	availableBytes, availableFiles, err := j.diskLimiter.reserveWithBackpressure(
 		acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax,
 		j.chargedTo)
-	switch errors.Cause(err) {
-	case nil:
+	switch {
+	case err == nil:
 		// Continue.
-	case context.DeadlineExceeded:
+	case errors.Is(err, context.DeadlineExceeded):
 		// NOTE: there is a slight race here, where if a flush
 		// finishes between the `beforeBlockPut` call and here, we
 		// could put out-of-date limit info in the error, and it might

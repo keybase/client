@@ -516,7 +516,8 @@ func (rmea *rmMergedEntryAction) do(
 	_, mergedDir *data.DirData,
 ) ([]data.BlockInfo, error) {
 	unrefs, err := mergedDir.RemoveEntry(ctx, rmea.name)
-	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
+	var noSuchNameErr idutil.NoSuchNameError
+	if errors.As(err, &noSuchNameErr) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err

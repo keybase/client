@@ -1236,7 +1236,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	}()
 
 	err = kbfsOps.SyncAll(ctx2, fileNode.GetFolderBranch())
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
 	if nowNBlocks != prevNBlocks+2 {
@@ -1649,7 +1649,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	t.Log("Unstall the sync.")
 	close(syncUnstallCh)
 	err = <-errChan
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Errorf("Sync got an unexpected error: %v", err)
 	}
 
@@ -1818,7 +1818,7 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
 	}
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("Create didn't fail after grace period after cancellation."+
 			" Got %v; expecting context.Canceled", err)
 	}
@@ -1883,7 +1883,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 
 	// We expect a canceled error
 	err = <-errChan
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
@@ -1966,7 +1966,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 
 	// We expect a canceled error
 	err = <-errChan
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
@@ -1988,7 +1988,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	// We expect a canceled error, or possibly a nil error since we
 	// ignore the PutUnmerged error internally.
 	err = <-errChan
-	if err != context.Canceled && err != nil {
+	if !errors.Is(err, context.Canceled) && err != nil {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
@@ -2073,7 +2073,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	// Unstall the sync.
 	close(syncUnstallCh)
 	err = <-errChan
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Errorf("Sync got wrong error: %v", err)
 	}
 
@@ -2403,7 +2403,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 
 	// We expect a canceled error
 	err = <-errChan
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
@@ -2429,7 +2429,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 
 	// We expect a canceled error
 	err = <-errChan
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 

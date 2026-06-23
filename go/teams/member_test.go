@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"sort"
 	"testing"
@@ -1159,7 +1160,7 @@ func TestMemberAddResolveCache(t *testing.T) {
 func assertRole(tc libkb.TestContext, name, username string, expected keybase1.TeamRole) {
 	role, err := MemberRole(context.TODO(), tc.G, name, username)
 	if err != nil {
-		if err == errInviteRequired && expected == keybase1.TeamRole_NONE {
+		if errors.Is(err, errInviteRequired) && expected == keybase1.TeamRole_NONE {
 			return
 		}
 		require.Fail(tc.T, err.Error())

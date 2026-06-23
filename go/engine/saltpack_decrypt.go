@@ -5,6 +5,7 @@ package engine
 
 import (
 	"bytes"
+	"errors"
 	"io"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -211,7 +212,8 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 	var mki *saltpack.MessageKeyInfo
 	mki, err = libkb.SaltpackDecrypt(m, e.arg.Source, e.arg.Sink, keyring, hookMki, hookSenderSigningKey, e.pnymResolver)
 
-	if decErr, ok := err.(libkb.DecryptionError); ok && decErr.Cause.Err == saltpack.ErrNoDecryptionKey {
+	var decErr libkb.DecryptionError
+	if errors.As(err, &decErr) && errors.Is(decErr.Cause.Err, saltpack.ErrNoDecryptionKey) {
 		m.Debug("switching cause of libkb.DecryptionError from saltpack.ErrNoDecryptionKey to more specific libkb.NoDecryptionKeyError")
 		if e.arg.Opts.UsePaperKey {
 			return libkb.DecryptionError{Cause: libkb.ErrorCause{Err: libkb.NoDecryptionKeyError{Msg: "this message was not directly encrypted for the given paper key. In some cases, you might still be able to decrypt the message from a device provisioned with this key."}, StatusCode: libkb.SCDecryptionKeyNotFound}}

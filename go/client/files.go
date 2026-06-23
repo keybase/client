@@ -72,7 +72,7 @@ func drain(f *os.File) error {
 	for !eof && err == nil {
 		if n, err = f.Read(buf); n == 0 && err != nil {
 			eof = true
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				err = nil
 			}
 		}

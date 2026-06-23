@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -68,10 +69,10 @@ func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbK
 func levelDbGetWhich(ops levelDBOps, cleaner *levelDbCleaner, key []byte) (val []byte, found bool, err error) {
 	val, err = ops.Get(key, nil)
 	found = false
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		found = true
-	case leveldb.ErrNotFound:
+	case stderrors.Is(err, leveldb.ErrNotFound):
 		err = nil
 	}
 

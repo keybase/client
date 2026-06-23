@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"errors"
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -83,7 +84,7 @@ func TestCreateIds(t *testing.T) {
 			continue
 		}
 		err := arg.CreatePGPIDs()
-		if err != test.errOut {
+		if !errors.Is(err, test.errOut) {
 			t.Errorf("%s: error %v, expected %v", test.name, err, test.errOut)
 			continue
 		}

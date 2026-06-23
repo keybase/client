@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"io"
 	"net/http"
 	"path"
@@ -227,7 +228,7 @@ func (s *Server) restart() (err error) {
 	if s.server == nil ||
 		// If pinned port is in use, just pick a new one like we never had a
 		// server before.
-		err == kbhttp.ErrPinnedPortInUse {
+		errors.Is(err, kbhttp.ErrPinnedPortInUse) {
 		s.server = kbhttp.NewSrv(s.logger,
 			kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd))
 		err = s.server.Start()

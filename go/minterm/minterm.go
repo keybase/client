@@ -142,7 +142,7 @@ func (m *MinTerm) restore() {
 }
 
 func convertErr(e error) error {
-	if e == io.ErrUnexpectedEOF {
+	if errors.Is(e, io.ErrUnexpectedEOF) {
 		e = ErrPromptInterrupted
 	}
 	return e

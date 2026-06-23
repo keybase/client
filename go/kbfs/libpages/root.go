@@ -6,6 +6,7 @@ package libpages
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -114,9 +115,9 @@ func (fs CacheableFS) EnsureNoSuchFileOutsideRoot(name string) (err error) {
 		}
 		p = strings.TrimSuffix(p, "/")
 		_, statErr := fs.tlfFS.Stat(path.Join(p, name))
-		switch statErr {
-		case os.ErrNotExist:
-		case nil:
+		switch {
+		case errors.Is(statErr, os.ErrNotExist):
+		case statErr == nil:
 			return fmt.Errorf("%s exists in a parent dir", name)
 		default:
 			return statErr

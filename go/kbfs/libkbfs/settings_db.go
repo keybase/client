@@ -159,11 +159,11 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 
 	var notificationThreshold int64
 	notificationThresholdBytes, err := db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
-	switch errors.Cause(err) {
-	case leveldb.ErrNotFound:
+	switch {
+	case errors.Is(err, leveldb.ErrNotFound):
 		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"notificationThreshold not set; using default value")
-	case nil:
+	case err == nil:
 		notificationThreshold, err = strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
 		if err != nil {
 			return keybase1.FSSettings{}, err
@@ -176,11 +176,11 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 
 	var sfmiBannerDismissed bool
 	sfmiBannerDismissedBytes, err := db.Get(getSettingsDbKey(uid, sfmiBannerDismissedKey), nil)
-	switch errors.Cause(err) {
-	case leveldb.ErrNotFound:
+	switch {
+	case errors.Is(err, leveldb.ErrNotFound):
 		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"sfmiBannerDismissed not set; using default value")
-	case nil:
+	case err == nil:
 		sfmiBannerDismissed, err = strconv.ParseBool(string(sfmiBannerDismissedBytes))
 		if err != nil {
 			return keybase1.FSSettings{}, err
@@ -193,11 +193,11 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 
 	var syncOnCellular bool
 	syncOnCellularBytes, err := db.Get(getSettingsDbKey(uid, syncOnCellularKey), nil)
-	switch errors.Cause(err) {
-	case leveldb.ErrNotFound:
+	switch {
+	case errors.Is(err, leveldb.ErrNotFound):
 		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"syncOnCellular not set; using default value")
-	case nil:
+	case err == nil:
 		syncOnCellular, err = strconv.ParseBool(string(syncOnCellularBytes))
 		if err != nil {
 			return keybase1.FSSettings{}, err

@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -95,14 +96,14 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 
 	filenamePPS := parentNode.ChildName(filename)
 	fileNode, de, err := kbfsOps.Lookup(ctx, parentNode, filenamePPS)
-	if err != nil && err != noSuchFileErr {
+	if err != nil && !errors.Is(err, noSuchFileErr) {
 		return err
 	}
 
 	needSync := false
 	var off int64
 
-	if err == noSuchFileErr {
+	if errors.Is(err, noSuchFileErr) {
 		if *verbose {
 			fmt.Fprintf(os.Stderr, "Creating %s\n", p)
 		}

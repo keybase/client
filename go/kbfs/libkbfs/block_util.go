@@ -18,11 +18,14 @@ import (
 )
 
 func isRecoverableBlockError(err error) bool {
-	_, isArchiveError := err.(kbfsblock.ServerErrorBlockArchived)
-	_, isDeleteError := err.(kbfsblock.ServerErrorBlockDeleted)
-	_, isRefError := err.(kbfsblock.ServerErrorBlockNonExistent)
-	_, isMaxExceededError := err.(kbfsblock.ServerErrorMaxRefExceeded)
-	return isArchiveError || isDeleteError || isRefError || isMaxExceededError
+	var archiveErr kbfsblock.ServerErrorBlockArchived
+	var deleteErr kbfsblock.ServerErrorBlockDeleted
+	var refErr kbfsblock.ServerErrorBlockNonExistent
+	var maxExceededErr kbfsblock.ServerErrorMaxRefExceeded
+	return errors.As(err, &archiveErr) ||
+		errors.As(err, &deleteErr) ||
+		errors.As(err, &refErr) ||
+		errors.As(err, &maxExceededErr)
 }
 
 // putBlockToServer either puts the full block to the block server, or

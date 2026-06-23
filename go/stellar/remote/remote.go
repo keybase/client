@@ -817,7 +817,7 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 		return err
 	}
 	err = bundle.MakeMobileOnly(b, accountID)
-	if err == bundle.ErrNoChangeNecessary {
+	if errors.Is(err, bundle.ErrNoChangeNecessary) {
 		g.Log.CDebugf(ctx, "SetAccountMobileOnly account %s is already mobile-only", accountID)
 		return nil
 	}
@@ -843,7 +843,7 @@ func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountI
 		return err
 	}
 	err = bundle.MakeAllDevices(b, accountID)
-	if err == bundle.ErrNoChangeNecessary {
+	if errors.Is(err, bundle.ErrNoChangeNecessary) {
 		g.Log.CDebugf(ctx, "MakeAccountAllDevices account %s is already in all-device mode", accountID)
 		return nil
 	}

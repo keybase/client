@@ -291,7 +291,7 @@ var _ rpc.ConnectionHandler = (*blockServerRemoteClientHandler)(nil)
 
 func (b *blockServerRemoteClientHandler) pingOnce(ctx context.Context) {
 	_, err := b.getClient().BlockPing(ctx)
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		b.log.CDebugf(
 			ctx, "%s: Ping timeout -- reinitializing connection", b.name)
 		if err = b.reconnect(); err != nil {

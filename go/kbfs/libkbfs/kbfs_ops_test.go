@@ -1474,7 +1474,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
-	} else if errors.Cause(err) != expectedErr {
+	} else if !errors.Is(err, expectedErr) {
 		t.Errorf("Got unexpected error on create: %+v", err)
 	}
 }
@@ -4863,7 +4863,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 		dmd, err := config.DiskBlockCache().(*diskBlockCacheWrapped).syncCache.
 			GetMetadata(ctx, md.BlockInfo.ID)
 		var ps PrefetchStatus
-		if errors.Cause(err) == ldberrors.ErrNotFound {
+		if errors.Is(err, ldberrors.ErrNotFound) {
 			ps = NoPrefetch
 		} else {
 			require.NoError(t, err)

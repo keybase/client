@@ -152,6 +152,10 @@ func (e NeedSelfRekeyError) Error() string {
 		tlfhandle.BuildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
 }
 
+func (e NeedSelfRekeyError) Unwrap() error {
+	return e.Err
+}
+
 // ToStatus exports error to status
 func (e NeedSelfRekeyError) ToStatus() keybase1.Status {
 	kv := keybase1.StringKVPair{
@@ -180,6 +184,10 @@ func (e NeedOtherRekeyError) Error() string {
 		"directory %s, ask one of the other directory participants to "+
 		"log into Keybase to grant you access automatically: %+v",
 		tlfhandle.BuildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
+}
+
+func (e NeedOtherRekeyError) Unwrap() error {
+	return e.Err
 }
 
 // ToStatus exports error to status
@@ -257,6 +265,10 @@ func (e BlockDecodeError) Error() string {
 	return fmt.Sprintf("Decode error for a block: %v", e.decodeErr)
 }
 
+func (e BlockDecodeError) Unwrap() error {
+	return e.decodeErr
+}
+
 // BadCryptoError indicates that KBFS performed a bad crypto operation.
 type BadCryptoError struct {
 	ID kbfsblock.ID
@@ -302,6 +314,10 @@ type MDMismatchError struct {
 func (e MDMismatchError) Error() string {
 	return fmt.Sprintf("Could not verify metadata (revision=%d) for directory %s (id=%s): %s",
 		e.Revision, e.Dir, e.TlfID, e.Err)
+}
+
+func (e MDMismatchError) Unwrap() error {
+	return e.Err
 }
 
 // NoSuchMDError indicates that there is no MD object for the given
@@ -767,6 +783,10 @@ func (e RekeyConflictError) Error() string {
 	return fmt.Sprintf("Conflict during a rekey, not retrying: %v", e.Err)
 }
 
+func (e RekeyConflictError) Unwrap() error {
+	return e.Err
+}
+
 // UnmergedSelfConflictError indicates that we hit a conflict on the
 // unmerged branch, so a previous MD PutUnmerged we thought had
 // failed, had actually succeeded.
@@ -777,6 +797,10 @@ type UnmergedSelfConflictError struct {
 // Error implements the error interface for UnmergedSelfConflictError.
 func (e UnmergedSelfConflictError) Error() string {
 	return fmt.Sprintf("Unmerged self conflict: %v", e.Err)
+}
+
+func (e UnmergedSelfConflictError) Unwrap() error {
+	return e.Err
 }
 
 // blockNonExistentError is returned when a block doesn't exist. This

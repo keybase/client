@@ -707,7 +707,7 @@ func editMember(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (
 	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings,
 ) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
-	if err == errInviteRequired {
+	if errors.Is(err, errInviteRequired) {
 		return editMemberInvite(ctx, g, teamGetter, username, role, uv, botSettings)
 	}
 	if err != nil {
@@ -1579,7 +1579,7 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, userna
 	mctx := libkb.NewMetaContext(ctx, g)
 	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
-		if err == errInviteRequired {
+		if errors.Is(err, errInviteRequired) {
 			return libkb.NotFoundError{
 				Msg: fmt.Sprintf("No keybase user found (%s)", username),
 			}

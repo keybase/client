@@ -1426,7 +1426,8 @@ func (fbo *folderBlockOps) setCachedAttrLocked(
 
 	dd := fbo.newDirDataLocked(lState, dir, chargedTo, kmd)
 	de, err = dd.Lookup(ctx, name)
-	if _, noExist := errors.Cause(err).(idutil.NoSuchNameError); noExist {
+	var noSuchNameErr idutil.NoSuchNameError
+	if errors.As(err, &noSuchNameErr) {
 		// The node may be unlinked.
 		unlinkedNode = fbo.nodeCache.Get(realEntry.Ref())
 		if unlinkedNode != nil && !fbo.nodeCache.IsUnlinked(unlinkedNode) {
@@ -1561,7 +1562,8 @@ func (fbo *folderBlockOps) getEntryLocked(ctx context.Context,
 	dd := fbo.newDirDataLocked(
 		lState, *file.ParentPath(), keybase1.UserOrTeamID(""), kmd)
 	de, err = dd.Lookup(ctx, file.TailName())
-	_, noExist := errors.Cause(err).(idutil.NoSuchNameError)
+	var noSuchNameErr idutil.NoSuchNameError
+	noExist := errors.As(err, &noSuchNameErr)
 	if includeDeleted && (noExist || de.BlockPointer != file.TailPointer()) {
 		unlinkedNode := fbo.nodeCache.Get(file.TailPointer().Ref())
 		if unlinkedNode != nil && fbo.nodeCache.IsUnlinked(unlinkedNode) {
@@ -1588,7 +1590,8 @@ func (fbo *folderBlockOps) updateEntryLocked(ctx context.Context,
 	parentPath := *file.ParentPath()
 	dd := fbo.newDirDataLocked(lState, parentPath, chargedTo, kmd)
 	unrefs, err := dd.UpdateEntry(ctx, file.TailName(), de)
-	_, noExist := errors.Cause(err).(idutil.NoSuchNameError)
+	var noSuchNameErr idutil.NoSuchNameError
+	noExist := errors.As(err, &noSuchNameErr)
 	switch {
 	case noExist && includeDeleted:
 		unlinkedNode := fbo.nodeCache.Get(file.TailPointer().Ref())
@@ -1964,7 +1967,8 @@ func (fbo *folderBlockOps) PrepRename(
 
 	replacedDe, err = fbo.getEntryLocked(
 		ctx, lState, kmd, newParent.ChildPathNoPtr(newName, nil), false)
-	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
+	var noSuchNameErr idutil.NoSuchNameError
+	if errors.As(err, &noSuchNameErr) {
 		return newDe, data.DirEntry{}, ro, nil
 	} else if err != nil {
 		return data.DirEntry{}, data.DirEntry{}, nil, err
@@ -2093,7 +2097,7 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 		// during an fsync, or a sync timed out, or a test was
 		// provoking an error specifically [KBFS-2164]).
 		cause := errors.Cause(err)
-		if cause == context.Canceled || cause == context.DeadlineExceeded {
+		if errors.Is(cause, context.Canceled) || errors.Is(cause, context.DeadlineExceeded) {
 			fbo.vlog.CLogf(ctx, libkb.VLog1, "Ignoring sync err: %+v", err)
 			err := registerErr()
 			if err != nil {

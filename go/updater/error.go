@@ -71,6 +71,10 @@ func (e Error) Error() string {
 	return fmt.Sprintf("Update Error (%s): %s", e.TypeString(), e.source.Error())
 }
 
+func (e Error) Unwrap() error {
+	return e.source
+}
+
 // CancelErr can be returned by lifecycle methods to abort an update
 func CancelErr(err error) Error {
 	return NewError(CancelError, err)

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"errors"
 	"io"
 	"net"
 	"runtime"
@@ -316,7 +317,7 @@ func TestReadDeadline(t *testing.T) {
 	}()
 	buf := make([]byte, 100)
 	_, err = c2.Read(buf)
-	if err != ErrTimedOut {
+	if !errors.Is(err, ErrTimedOut) {
 		t.Fatalf("wanted a read timeout")
 	}
 }
@@ -332,7 +333,7 @@ func TestReadTimeout(t *testing.T) {
 	}()
 	buf := make([]byte, 100)
 	_, err := c2.Read(buf)
-	if err != ErrTimedOut {
+	if !errors.Is(err, ErrTimedOut) {
 		t.Fatalf("wanted a read timeout")
 	}
 }
@@ -401,10 +402,10 @@ as though a harpoon were sparring for the kill.`
 	small := make([]byte, 3)
 	var buf []byte
 	for {
-		if n, err := c2.Read(small); err != nil && err != ErrAgain {
+		if n, err := c2.Read(small); err != nil && !errors.Is(err, ErrAgain) {
 			t.Fatal(err)
 		} else if n == 0 {
-			if err != ErrAgain {
+			if !errors.Is(err, ErrAgain) {
 				t.Fatalf("exepcted ErrAgain if we read 0 bytes, but got %v", err)
 			}
 			break
@@ -491,7 +492,7 @@ func TestClose(t *testing.T) {
 
 	// Assert we get an EOF now and forever...
 	for range 3 {
-		if n, err := c2.Read(buf); err != io.EOF {
+		if n, err := c2.Read(buf); !errors.Is(err, io.EOF) {
 			t.Fatalf("expected EOF, but got err = %v", err)
 		} else if n != 0 {
 			t.Fatalf("Expected 0-length read, but got %d", n)
@@ -504,7 +505,7 @@ func TestErrAgain(t *testing.T) {
 	defer cleanup()
 	_, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
 	buf := make([]byte, 100)
-	if n, err := c2.Read(buf); err != ErrAgain {
+	if n, err := c2.Read(buf); !errors.Is(err, ErrAgain) {
 		t.Fatalf("wanted ErrAgain, but got err = %v", err)
 	} else if n != 0 {
 		t.Fatalf("Wanted 0 bytes back; got %d", n)
@@ -562,7 +563,7 @@ func TestPollLoopTimeout(t *testing.T) {
 		_, _ = c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)
-	if _, err := c2.Read(buf); err != ErrTimedOut {
+	if _, err := c2.Read(buf); !errors.Is(err, ErrTimedOut) {
 		t.Fatalf("Wanted ErrTimedOut; got %v", err)
 	}
 }

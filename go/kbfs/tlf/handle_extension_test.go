@@ -5,6 +5,7 @@
 package tlf
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -128,23 +129,23 @@ func TestHandleExtensionKnownTime(t *testing.T) {
 
 func TestHandleExtensionErrors(t *testing.T) {
 	_, err := NewHandleExtension(HandleExtensionConflict, 0, "", time.Now())
-	if err != errHandleExtensionInvalidNumber {
+	if !errors.Is(err, errHandleExtensionInvalidNumber) {
 		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #0)")
-	if err != errHandleExtensionInvalidNumber {
+	if !errors.Is(err, errHandleExtensionInvalidNumber) {
 		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("nope")
-	if err != errHandleExtensionInvalidString {
+	if !errors.Is(err, errHandleExtensionInvalidString) {
 		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy #2)")
-	if err != errHandleExtensionInvalidString {
+	if !errors.Is(err, errHandleExtensionInvalidString) {
 		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #)")
-	if err != errHandleExtensionInvalidString {
+	if !errors.Is(err, errHandleExtensionInvalidString) {
 		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
 	}
 }

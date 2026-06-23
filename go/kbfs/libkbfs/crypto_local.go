@@ -73,7 +73,8 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		clientHalf, err := c.DecryptTLFCryptKeyClientHalf(
 			ctx, k.EPubKey, k.ClientHalf)
 		if err != nil {
-			_, isDecryptionError := errors.Cause(err).(libkb.DecryptionError)
+			var decryptionErr libkb.DecryptionError
+			isDecryptionError := errors.As(err, &decryptionErr)
 			if firstNonDecryptionErr == nil && !isDecryptionError {
 				firstNonDecryptionErr = err
 			}

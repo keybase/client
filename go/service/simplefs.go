@@ -59,6 +59,11 @@ func (e WaitingForKBFSTimeoutError) Cause() error {
 	return e.originalError
 }
 
+// Unwrap makes it work with errors.Is and errors.As.
+func (e WaitingForKBFSTimeoutError) Unwrap() error {
+	return e.originalError
+}
+
 // HumanError implements the HumanErrorer interface used in libkb/errors.
 // Without this, the Cause will end up being returned to GUI.
 func (e WaitingForKBFSTimeoutError) HumanError() error {

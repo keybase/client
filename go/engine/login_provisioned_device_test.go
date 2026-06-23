@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -28,7 +29,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 	eng := NewLoginProvisionedDevice(tc.G, fu.Username)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
-	if err != errNoDevice {
+	if !errors.Is(err, errNoDevice) {
 		t.Errorf("run error: %v, expected %v", err, errNoDevice)
 	}
 
@@ -37,7 +38,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 	require.NoError(t, err)
 	eng = NewLoginProvisionedDevice(tc.G, fu.Username)
 	err = RunEngine2(m, eng)
-	if err != errNoDevice {
+	if !errors.Is(err, errNoDevice) {
 		t.Errorf("run error: %v, expected %v", err, errNoDevice)
 	}
 }

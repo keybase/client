@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -245,8 +246,8 @@ func NewExplicitTeamOperationError(m string) error {
 }
 
 func IsTeamReadError(err error) bool {
-	aerr, ok := err.(libkb.AppStatusError)
-	return ok && keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError
+	var aerr libkb.AppStatusError
+	return errors.As(err, &aerr) && keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError
 }
 
 func FixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
@@ -397,6 +398,10 @@ func (e PrecheckStructuralError) Error() string {
 	return e.Msg
 }
 
+func (e PrecheckStructuralError) Unwrap() error {
+	return e.Inner
+}
+
 type AttemptedInviteSocialOwnerError struct{ Msg string }
 
 func NewAttemptedInviteSocialOwnerError(assertion string) error {
@@ -436,6 +441,10 @@ func (a AddMembersError) Error() string {
 		return fmt.Sprintf("Error adding email %q: %v", urls[0].GetValue(), a.Err)
 	}
 	return fmt.Sprintf("Error adding %q: %v", a.Assertion.String(), a.Err)
+}
+
+func (a AddMembersError) Unwrap() error {
+	return a.Err
 }
 
 type BadNameError struct {
@@ -548,14 +557,18 @@ func (e BoxRaceError) Error() string {
 	return e.inner.Error()
 }
 
+func (e BoxRaceError) Unwrap() error {
+	return e.inner
+}
+
 func (e BoxRaceError) IsStaleBoxError() {}
 
 func isStaleBoxError(err error) bool {
 	if err == nil {
 		return false
 	}
-	_, ok := err.(StaleBoxError)
-	return ok
+	var sbe StaleBoxError
+	return errors.As(err, &sbe)
 }
 
 type NeedHiddenChainRotationError struct{}
@@ -625,6 +638,10 @@ type InviteLinkAcceptanceError struct {
 
 func (e InviteLinkAcceptanceError) Error() string {
 	return fmt.Sprintf("InviteLinkAcceptanceError: %s", e.Cause)
+}
+
+func (e InviteLinkAcceptanceError) Unwrap() error {
+	return e.Cause
 }
 
 func NewInviteLinkAcceptanceError(format string, args ...any) InviteLinkAcceptanceError {

@@ -5,6 +5,7 @@ package util
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -170,7 +171,7 @@ func Unzip(sourcePath, destinationPath string, log Log) error {
 			// G110: Limit the size of the decompressed file to prevent decompression bombs
 			limitedReader := &io.LimitedReader{R: rc, N: MaxDecompressedSize}
 			n, err := io.Copy(fileCopy, limitedReader)
-			if err != nil && err != io.EOF {
+			if err != nil && !errors.Is(err, io.EOF) {
 				return err
 			}
 			if limitedReader.N == 0 && n == MaxDecompressedSize {

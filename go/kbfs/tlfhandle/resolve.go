@@ -1060,8 +1060,8 @@ func ParseHandlePreferred(
 }
 
 func isTlfNameNotCanonical(err error) bool {
-	_, ok := errors.Cause(err).(idutil.TlfNameNotCanonical)
-	return ok
+	var notCanonical idutil.TlfNameNotCanonical
+	return errors.As(err, &notCanonical)
 }
 
 type noImplicitTeamKBPKI struct {

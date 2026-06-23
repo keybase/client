@@ -34,6 +34,10 @@ func (e GPGExportingError) Error() string {
 	return e.err.Error()
 }
 
+func (e GPGExportingError) Unwrap() error {
+	return e.err
+}
+
 // =============================================================================
 
 type PGPImportStubbedError struct {
@@ -62,4 +66,8 @@ type SecretStoreNotFunctionalError struct {
 
 func (e SecretStoreNotFunctionalError) Error() string {
 	return fmt.Sprintf("Secret store not functional: %s", e.err)
+}
+
+func (e SecretStoreNotFunctionalError) Unwrap() error {
+	return e.err
 }

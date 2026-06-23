@@ -17,6 +17,7 @@ import (
 	"crypto/md5" //nolint:gosec // G501: MD5 required for S3 ETag computation (AWS API requirement, not cryptographic use)
 	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -1093,8 +1094,7 @@ func shouldRetry(err error) bool {
 		err = e.Err
 	}
 
-	switch err {
-	case io.ErrUnexpectedEOF, io.EOF:
+	if errors.Is(err, io.ErrUnexpectedEOF) || errors.Is(err, io.EOF) {
 		return true
 	}
 	switch e := err.(type) {

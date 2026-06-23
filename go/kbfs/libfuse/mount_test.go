@@ -2518,7 +2518,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input1; g != e {
@@ -2537,7 +2537,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input2; g != e {
@@ -2582,7 +2582,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input1; g != e {
@@ -2601,7 +2601,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input2; g != e {
@@ -2646,7 +2646,7 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input1; g != e {
@@ -2665,7 +2665,7 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input1[:newSize]; g != e {
@@ -2703,7 +2703,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input1; g != e {
@@ -2734,7 +2734,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input2; g != e {
@@ -3077,7 +3077,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	{
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			t.Fatal(err)
 		}
 		if g, e := string(buf[:n]), input1; g != e {

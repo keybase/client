@@ -6,6 +6,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -155,10 +156,10 @@ func (c *CmdCtlRedirector) createMount() error {
 		}
 		defer dir.Close()
 		_, err = dir.Readdir(1)
-		switch err {
-		case io.EOF:
+		switch {
+		case errors.Is(err, io.EOF):
 			// doesn't fall-through.
-		case nil:
+		case err == nil:
 			return fmt.Errorf("Root mount exists at %s, but is non-empty (is the redirector currently running?). Run `# pkill -f keybase-redirector`, delete directory %s and try again.", c.RootRedirectorMount, c.RootRedirectorMount)
 		default:
 			return fmt.Errorf("Unexpected error while reading %s: %s", c.RootRedirectorMount, err)

@@ -846,7 +846,9 @@ func (ccs *crChains) mostRecentFromOriginalOrSame(original data.BlockPointer) (
 	if err == nil {
 		// A satisfactory chain was found.
 		return ptr, nil
-	} else if _, ok := errors.Cause(err).(NoChainFoundError); !ok {
+	}
+	var noChainFoundErr NoChainFoundError
+	if !errors.As(err, &noChainFoundErr) {
 		// An unexpected error!
 		return data.BlockPointer{}, err
 	}
@@ -870,7 +872,9 @@ func (ccs *crChains) originalFromMostRecentOrSame(mostRecent data.BlockPointer) 
 	if err == nil {
 		// A satisfactory chain was found.
 		return ptr, nil
-	} else if _, ok := errors.Cause(err).(NoChainFoundError); !ok {
+	}
+	var noChainFoundErr NoChainFoundError
+	if !errors.As(err, &noChainFoundErr) {
 		// An unexpected error!
 		return data.BlockPointer{}, err
 	}

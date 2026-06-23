@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -504,7 +505,7 @@ func (p *GpgIndexParser) GetLine() (ret *GpgIndexLine, err error) {
 	}
 
 	s, e2 := p.src.ReadString(byte('\n'))
-	if e2 == io.EOF {
+	if errors.Is(e2, io.EOF) {
 		p.eof = true
 		return
 	}

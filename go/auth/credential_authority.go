@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -235,7 +236,7 @@ func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error
 // on the UserKeyAPIer once per iteration.
 func (v *CredentialAuthority) pollLoop() {
 	//nolint:revive // empty-block: intentional, pollOnce blocks internally
-	for v.pollOnce() != ErrShutdown {
+	for !errors.Is(v.pollOnce(), ErrShutdown) {
 		// We rely on pollOnce to not return right away, so we don't busy loop.
 	}
 }

@@ -447,7 +447,7 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 	if IsOfflineError(err) != OfflineErrorKindOnline {
 		return true
 	}
-	if err == context.Canceled {
+	if errors.Is(err, context.Canceled) {
 		return true
 	}
 	switch err.(type) {

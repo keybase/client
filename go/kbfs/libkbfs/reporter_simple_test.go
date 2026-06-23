@@ -23,7 +23,7 @@ func checkReportedErrors(t *testing.T, expected []error,
 
 	for i, e := range expected {
 		g := got[i]
-		if e != g.Error {
+		if !errors.Is(e, g.Error) {
 			t.Errorf("Unexpected error at %d: %s vs %s", i, e, g.Error)
 		}
 	}

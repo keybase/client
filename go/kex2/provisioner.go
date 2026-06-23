@@ -5,6 +5,7 @@ package kex2
 
 import (
 	"context"
+	"errors"
 	"net"
 	"strings"
 	"time"
@@ -161,7 +162,7 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 		p.canceled = true
 		return ErrCanceled
 	case err = <-ch:
-		if err == context.Canceled && !p.helloReceived {
+		if errors.Is(err, context.Canceled) && !p.helloReceived {
 			return ErrHelloTimeout
 		}
 		return err

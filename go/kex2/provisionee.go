@@ -5,6 +5,7 @@ package kex2
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -131,7 +132,7 @@ func (p *provisionee) run() (err error) {
 	go func() {
 		<-p.serverDoneCh
 		tmp := p.server.Err()
-		if tmp != nil && tmp != io.EOF {
+		if tmp != nil && !errors.Is(tmp, io.EOF) {
 			p.debug("provisionee#run: RPC server died with an error: %s", tmp.Error())
 		}
 	}()

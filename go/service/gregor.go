@@ -820,7 +820,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt
-		if errors.As(err, &libkb.BadSessionError{}) {
+		var bse libkb.BadSessionError
+		if errors.As(err, &bse) {
 			g.chatLog.Debug(ctx, "bad session from SyncAll(): forcing session check on next attempt")
 			nist.MarkFailure()
 		}
@@ -947,11 +948,12 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 
 	ctx := libkb.WithLogTag(context.Background(), "GRGRRETRY")
 	g.chatLog.Debug(ctx, "should retry on connect, err %v", err)
-	if err == chat.ErrDuplicateConnection {
+	if errors.Is(err, chat.ErrDuplicateConnection) {
 		g.chatLog.Debug(ctx, "duplicate connection error, not retrying")
 		return false
 	}
-	if errors.As(err, &libkb.BadSessionError{}) {
+	var bse libkb.BadSessionError
+	if errors.As(err, &bse) {
 		g.chatLog.Debug(ctx, "bad session error, not retrying")
 		return false
 	}
@@ -1512,7 +1514,7 @@ func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCancel 
 	}
 	if err != nil {
 		g.Debug(ctx, "ping loop: id: %x error: %s", id, err)
-		if err == context.DeadlineExceeded {
+		if errors.Is(err, context.DeadlineExceeded) {
 			g.chatLog.Debug(ctx, "ping loop: timeout: terminating connection")
 			var didShutdown bool
 			var err error
@@ -1922,7 +1924,7 @@ func (t *timeoutClient) Call(ctx context.Context, method string, arg any,
 		timeout = t.timeout
 	}
 	err := t.inner.Call(ctx, method, arg, res, timeout)
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		return t.timeoutErr
 	}
 	return err
@@ -1935,7 +1937,7 @@ func (t *timeoutClient) CallCompressed(ctx context.Context, method string, arg a
 		timeout = t.timeout
 	}
 	err := t.inner.CallCompressed(ctx, method, arg, res, ctype, timeout)
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		return t.timeoutErr
 	}
 	return err
@@ -1946,7 +1948,7 @@ func (t *timeoutClient) Notify(ctx context.Context, method string, arg any, time
 		timeout = t.timeout
 	}
 	err := t.inner.Notify(ctx, method, arg, timeout)
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		return t.timeoutErr
 	}
 	return err

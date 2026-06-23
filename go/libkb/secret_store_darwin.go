@@ -7,6 +7,7 @@ package libkb
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -114,7 +115,7 @@ func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(mctx MetaContex
 		mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: not an iOS app")
 		return
 	}
-	if err != keychain.ErrorInteractionNotAllowed {
+	if !errors.Is(err, keychain.ErrorInteractionNotAllowed) {
 		mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: wrong kind of error: %s", err)
 		return
 	}
@@ -133,7 +134,7 @@ func (k KeychainSecretStore) RetrieveSecret(mctx MetaContext, accountName Normal
 		if err == nil {
 			previousSecret = secret
 			mctx.Debug("successfully retrieved secret on attempt: %d, checking if there is another filled slot", i)
-		} else if _, ok := err.(SecretStoreError); ok || err == keychain.ErrorItemNotFound {
+		} else if _, ok := err.(SecretStoreError); ok || errors.Is(err, keychain.ErrorItemNotFound) {
 			// We've reached the end of the keychain entries so let's return
 			// the previous secret we found.
 			secret = previousSecret

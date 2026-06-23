@@ -8,6 +8,7 @@ package libfuse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -249,7 +250,7 @@ func (f *Folder) localChangeInvalidate(ctx context.Context, node libkbfs.Node,
 		return
 	}
 
-	if err := f.invalidateNodeDataRange(n, write); err != nil && err != fuse.ErrNotCached {
+	if err := f.invalidateNodeDataRange(n, write); err != nil && !errors.Is(err, fuse.ErrNotCached) {
 		// TODO we have no mechanism to do anything about this
 		f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 	}
@@ -290,13 +291,13 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 		switch {
 		case len(v.DirUpdated) > 0:
 			// invalidate potentially cached Readdir contents
-			if err := f.fs.fuse.InvalidateNodeData(n); err != nil && err != fuse.ErrNotCached {
+			if err := f.fs.fuse.InvalidateNodeData(n); err != nil && !errors.Is(err, fuse.ErrNotCached) {
 				// TODO we have no mechanism to do anything about this
 				f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 			}
 			for _, name := range v.DirUpdated {
 				// invalidate the dentry cache
-				if err := f.fs.fuse.InvalidateEntry(n, name.Plaintext()); err != nil && err != fuse.ErrNotCached {
+				if err := f.fs.fuse.InvalidateEntry(n, name.Plaintext()); err != nil && !errors.Is(err, fuse.ErrNotCached) {
 					// TODO we have no mechanism to do anything about this
 					f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 				}
@@ -304,7 +305,7 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 
 		case len(v.FileUpdated) > 0:
 			for _, write := range v.FileUpdated {
-				if err := f.invalidateNodeDataRange(n, write); err != nil && err != fuse.ErrNotCached {
+				if err := f.invalidateNodeDataRange(n, write); err != nil && !errors.Is(err, fuse.ErrNotCached) {
 					// TODO we have no mechanism to do anything about this
 					f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 				}
@@ -315,7 +316,7 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 				file.eiCache.destroy()
 			}
 			// just the attributes
-			if err := f.fs.fuse.InvalidateNodeAttr(n); err != nil && err != fuse.ErrNotCached {
+			if err := f.fs.fuse.InvalidateNodeAttr(n); err != nil && !errors.Is(err, fuse.ErrNotCached) {
 				// TODO we have no mechanism to do anything about this
 				f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 			}
@@ -978,6 +979,6 @@ func (d *Dir) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 
 // isNoSuchNameError checks for libkbfs.NoSuchNameError.
 func isNoSuchNameError(err error) bool {
-	_, ok := err.(idutil.NoSuchNameError)
-	return ok
+	var nsne idutil.NoSuchNameError
+	return errors.As(err, &nsne)
 }

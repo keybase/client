@@ -352,12 +352,7 @@ func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
 	case TransientUnboxingError:
 		return t.shouldIgnoreError(terr.Inner())
 	}
-	switch err {
-	case context.Canceled:
-		return true
-	default:
-	}
-	return false
+	return errors.Is(err, context.Canceled)
 }
 
 func (t *UIThreadLoader) noopCancel() {}

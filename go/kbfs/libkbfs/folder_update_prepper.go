@@ -313,7 +313,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			dd, cleanupFn = fup.blocks.newDirDataWithDBM(
 				lState, prevDir, chargedTo, md, dbm)
 			de, err = dd.Lookup(ctx, currName)
-			if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
+			var noSuchNameErr idutil.NoSuchNameError
+			if errors.As(err, &noSuchNameErr) {
 				// If this isn't the first time
 				// around, we have an error.
 				if len(newPath.Path) > 1 {

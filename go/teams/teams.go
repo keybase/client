@@ -2470,12 +2470,12 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 }
 
 func isHiddenAppendPrecheckError(err error) bool {
-	perr, ok := err.(PrecheckAppendError)
-	if !ok {
+	var perr PrecheckAppendError
+	if !errors.As(err, &perr) {
 		return false
 	}
-	_, ok = perr.Inner.(hidden.LoaderError)
-	return ok
+	var le hidden.LoaderError
+	return errors.As(perr.Inner, &le)
 }
 
 func isSigOldSeqnoError(err error) bool {

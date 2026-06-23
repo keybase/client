@@ -252,7 +252,7 @@ func (r *runner) runTestFixError(t string) error {
 	if err == nil {
 		return nil
 	}
-	if err != errTestFailed {
+	if !errors.Is(err, errTestFailed) {
 		return err
 	}
 	r.fails = append(r.fails, t)

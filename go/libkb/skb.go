@@ -472,7 +472,7 @@ func (s *SKB) PromptAndUnlock(m MetaContext, arg SecretKeyPromptArg, secretStore
 	if err == nil {
 		return ret, nil
 	}
-	if err != ErrUnlockNotPossible {
+	if !errors.Is(err, ErrUnlockNotPossible) {
 		return nil, err
 	}
 

@@ -197,10 +197,10 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 		}
 	}()
 	for {
-		if err := dec.Decode(&call); err == io.EOF {
+		if err := dec.Decode(&call); errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
-			if err == io.ErrUnexpectedEOF {
+			if errors.Is(err, io.ErrUnexpectedEOF) {
 				return ErrInvalidJSON{message: "expected more JSON in input"}
 			}
 			return err

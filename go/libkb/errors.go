@@ -126,7 +126,8 @@ func NewProofAPIError(s keybase1.ProofStatus, u string, d string, a ...any) *Pro
 // =============================================================================
 
 func XapiError(err error, u string) *ProofAPIError {
-	if ae, ok := err.(*APIError); ok {
+	var ae *APIError
+	if errors.As(err, &ae) {
 		var code keybase1.ProofStatus
 		switch ae.Code / 100 {
 		case 3:
@@ -200,8 +201,8 @@ func NewAssertionParseErrorWithReason(reason AssertionParseErrorReason, s string
 }
 
 func IsAssertionParseErrorWithReason(err error, reason AssertionParseErrorReason) bool {
-	aerr, ok := err.(AssertionParseError)
-	return ok && aerr.reason == reason
+	var aerr AssertionParseError
+	return errors.As(err, &aerr) && aerr.reason == reason
 }
 
 // =============================================================================
@@ -329,8 +330,8 @@ func (e NotFoundError) Error() string {
 }
 
 func IsNotFoundError(err error) bool {
-	_, ok := err.(NotFoundError)
-	return ok
+	var nfe NotFoundError
+	return errors.As(err, &nfe)
 }
 
 func NewNotFoundError(s string) error {
@@ -359,8 +360,8 @@ func (u NoKeyError) Error() string {
 }
 
 func IsNoKeyError(err error) bool {
-	_, ok := err.(NoKeyError)
-	return ok
+	var nke NoKeyError
+	return errors.As(err, &nke)
 }
 
 type NoSyncedPGPKeyError struct{}
@@ -500,13 +501,11 @@ type AppStatusError struct {
 // If the error is an AppStatusError, returns its code.
 // Otherwise returns (SCGeneric, false).
 func GetAppStatusCode(err error) (code keybase1.StatusCode, ok bool) {
-	code = keybase1.StatusCode_SCGeneric
-	switch err := err.(type) {
-	case AppStatusError:
-		return keybase1.StatusCode(err.Code), true
-	default:
-		return code, false
+	var ase AppStatusError
+	if errors.As(err, &ase) {
+		return keybase1.StatusCode(ase.Code), true
 	}
+	return keybase1.StatusCode_SCGeneric, false
 }
 
 func (a AppStatusError) IsBadField(s string) bool {
@@ -546,30 +545,25 @@ func (a AppStatusError) WithDesc(desc string) AppStatusError {
 }
 
 func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
-	switch err := err.(type) {
-	case AppStatusError:
-		return err.Code == int(code)
-	default:
-		return false
-	}
+	var ase AppStatusError
+	return errors.As(err, &ase) && ase.Code == int(code)
 }
 
 func IsEphemeralRetryableError(err error) bool {
-	switch err := err.(type) {
-	case AppStatusError:
-		switch keybase1.StatusCode(err.Code) {
-		case keybase1.StatusCode_SCSigWrongKey,
-			keybase1.StatusCode_SCSigOldSeqno,
-			keybase1.StatusCode_SCEphemeralKeyBadGeneration,
-			keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
-			keybase1.StatusCode_SCEphemeralKeyMissingBox,
-			keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
-			keybase1.StatusCode_SCTeambotKeyBadGeneration,
-			keybase1.StatusCode_SCTeambotKeyOldBoxedGeneration:
-			return true
-		default:
-			return false
-		}
+	var ase AppStatusError
+	if !errors.As(err, &ase) {
+		return false
+	}
+	switch keybase1.StatusCode(ase.Code) {
+	case keybase1.StatusCode_SCSigWrongKey,
+		keybase1.StatusCode_SCSigOldSeqno,
+		keybase1.StatusCode_SCEphemeralKeyBadGeneration,
+		keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
+		keybase1.StatusCode_SCEphemeralKeyMissingBox,
+		keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
+		keybase1.StatusCode_SCTeambotKeyBadGeneration,
+		keybase1.StatusCode_SCTeambotKeyOldBoxedGeneration:
+		return true
 	default:
 		return false
 	}
@@ -1463,6 +1457,10 @@ func (e APINetError) Error() string {
 	return fmt.Sprintf("API network error: %s", e.Err)
 }
 
+func (e APINetError) Unwrap() error {
+	return e.Err
+}
+
 // =============================================================================
 
 type NoDecryptionKeyError struct {
@@ -1490,6 +1488,10 @@ func (e DecryptionError) Error() string {
 		return "Decryption error"
 	}
 	return fmt.Sprintf("Decryption error: %+v", e.Cause)
+}
+
+func (e DecryptionError) Unwrap() error {
+	return e.Cause.Err
 }
 
 // =============================================================================
@@ -1669,12 +1671,9 @@ func (e IdentifySummaryError) Problems() []string {
 }
 
 func IsIdentifyProofError(err error) bool {
-	switch err.(type) {
-	case ProofError, IdentifySummaryError:
-		return true
-	default:
-		return false
-	}
+	var pe ProofError
+	var ise IdentifySummaryError
+	return errors.As(err, &pe) || errors.As(err, &ise)
 }
 
 // =============================================================================
@@ -1806,13 +1805,13 @@ func (e ResolutionError) Error() string {
 }
 
 func IsResolutionError(err error) bool {
-	_, ok := err.(ResolutionError)
-	return ok
+	var re ResolutionError
+	return errors.As(err, &re)
 }
 
 func IsResolutionNotFoundError(err error) bool {
-	rerr, ok := err.(ResolutionError)
-	if !ok {
+	var rerr ResolutionError
+	if !errors.As(err, &rerr) {
 		return false
 	}
 	return rerr.Kind == ResolutionErrorNotFound
@@ -1940,17 +1939,14 @@ func IsExecError(err error) bool {
 		return false
 	}
 
-	switch err.(type) {
-	case DirExecError:
-		return true
-	case FileExecError:
-		return true
-	case *exec.Error:
-		return true
-	case *os.PathError:
-		return true
-	}
-	return false
+	var dirExecErr DirExecError
+	var fileExecErr FileExecError
+	var execErr *exec.Error
+	var pathErr *os.PathError
+	return errors.As(err, &dirExecErr) ||
+		errors.As(err, &fileExecErr) ||
+		errors.As(err, &execErr) ||
+		errors.As(err, &pathErr)
 }
 
 // =============================================================================
@@ -2804,6 +2800,10 @@ func (e AppOutdatedError) Error() string {
 		return fmt.Sprintf("AppOutdatedError: %v", e.cause.Error())
 	}
 	return "AppOutdatedError"
+}
+
+func (e AppOutdatedError) Unwrap() error {
+	return e.cause
 }
 
 // ============================================================================

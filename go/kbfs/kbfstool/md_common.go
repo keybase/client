@@ -112,7 +112,9 @@ func getTlfID(
 	tlfID, err := tlf.ParseID(tlfStr)
 	if err == nil {
 		return tlfID, nil
-	} else if _, ok := errors.Cause(err).(tlf.InvalidIDError); !ok {
+	}
+	var invalidIDErr tlf.InvalidIDError
+	if !errors.As(err, &invalidIDErr) {
 		return tlf.ID{}, err
 	}
 

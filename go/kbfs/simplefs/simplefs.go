@@ -100,7 +100,7 @@ func translateErr(err error) error {
 		return errNameExists
 	case os.IsNotExist(cause):
 		return errNotExist
-	case cause == os.ErrPermission:
+	case errors.Is(cause, os.ErrPermission):
 		return errNoAccess
 	}
 
@@ -1333,7 +1333,7 @@ func copyWithCancellation(ctx context.Context, dst io.Writer, src io.Reader) err
 		default:
 		}
 		_, err := io.CopyN(dst, src, 64*1024)
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return nil
 		}
 		if err != nil {
@@ -2010,7 +2010,7 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	// TODO: make this a proper buffered read so we can get finer progress?
 	reader := &progressReader{k, arg.OpID, h.file}
 	n, err := reader.Read(bs)
-	if err != nil && err != io.EOF {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return keybase1.FileContent{}, err
 	}
 	bs = bs[:n]

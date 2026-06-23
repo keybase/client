@@ -143,7 +143,7 @@ func (c *ConversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 	for i := 0; i < c.maxAcquireRetries; i++ {
 		blocked, err = c.doAcquire(ctx, uid, convID)
 		if err != nil {
-			if err != ErrConvLockTabDeadlock {
+			if !errors.Is(err, ErrConvLockTabDeadlock) {
 				return true, err
 			}
 			c.Debug(ctx, "Acquire: deadlock condition detected, sleeping and trying again: attempt: %d", i)
