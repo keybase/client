@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -339,13 +340,13 @@ func TestCompareKeys(t *testing.T) {
 
 	missingSibkey := u.sibkeys[1:]
 	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, missingSibkey, u.subkeys)
-	if err != ErrKeysNotEqual {
+	if !errors.Is(err, ErrKeysNotEqual) {
 		t.Fatal("Expected an ErrKeysNotEqual")
 	}
 
 	missingSubkey := u.subkeys[1:]
 	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, missingSubkey)
-	if err != ErrKeysNotEqual {
+	if !errors.Is(err, ErrKeysNotEqual) {
 		t.Fatal("Expected an ErrKeysNotEqual")
 	}
 	credentialAuthority.Shutdown()

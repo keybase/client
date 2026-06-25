@@ -41,7 +41,7 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	var res keybase1.ProvisionMethod
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseProvisioningMethod, p.parent, "Choose a signing option", 1, maxOption)
 	if err != nil {
-		if err == ErrInputCanceled {
+		if errors.Is(err, ErrInputCanceled) {
 			return res, libkb.CanceledError{M: "user canceled input"}
 		}
 		return res, err
@@ -67,7 +67,7 @@ You have two options.
 `)
 		gret, err := PromptSelectionOrCancel(PromptDescriptorChooseGPGMethod, p.parent, "Which do you prefer?", 1, 2)
 		if err != nil {
-			if err == ErrInputCanceled {
+			if errors.Is(err, ErrInputCanceled) {
 				return res, libkb.CanceledError{M: "user canceled input"}
 			}
 			return res, err
@@ -109,7 +109,7 @@ func (p ProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.ChooseGPG
 `)
 	gret, err := PromptSelectionOrCancel(PromptDescriptorChooseGPGMethod, p.parent, "Which do you prefer?", 1, 2)
 	if err != nil {
-		if err == ErrInputCanceled {
+		if errors.Is(err, ErrInputCanceled) {
 			err = libkb.InputCanceledError{}
 		}
 		return keybase1.GPGMethod_GPG_NONE, err
@@ -156,7 +156,7 @@ func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDevice
 
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, p.parent, "Choose a device", 1, allowed)
 	if err != nil {
-		if err == ErrInputCanceled {
+		if errors.Is(err, ErrInputCanceled) {
 			return keybase1.DeviceID(""), libkb.InputCanceledError{}
 		}
 		return keybase1.DeviceID(""), err
@@ -186,7 +186,7 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDe
 
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDeviceType, p.parent, "Choose a device type", 1, 2)
 	if err != nil {
-		if err == ErrInputCanceled {
+		if errors.Is(err, ErrInputCanceled) {
 			return res, libkb.CanceledError{M: "user canceled input"}
 		}
 		return res, err

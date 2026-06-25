@@ -327,6 +327,11 @@ func (e BoxingCryptKeysError) Cause() error {
 	return e.Err
 }
 
+// Unwrap makes it work with errors.Is and errors.As.
+func (e BoxingCryptKeysError) Unwrap() error {
+	return e.Err
+}
+
 func NewBoxingCryptKeysError(err error) BoxingCryptKeysError {
 	return BoxingCryptKeysError{
 		Err: err,
@@ -567,12 +572,10 @@ func IsOfflineError(err error) OfflineErrorKind {
 		return IsOfflineError(terr.Inner())
 	}
 	// Check error itself
-	switch err {
-	case context.DeadlineExceeded:
-		fallthrough
-	case ErrChatServerTimeout:
+	switch {
+	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, ErrChatServerTimeout):
 		return OfflineErrorKindOfflineReconnect
-	case ErrDuplicateConnection:
+	case errors.Is(err, ErrDuplicateConnection):
 		return OfflineErrorKindOfflineBasic
 	}
 

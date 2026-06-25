@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"text/tabwriter"
@@ -46,7 +47,7 @@ func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, e
 
 	ret, err := PromptSelectionOrCancel(PromptDescriptorGPGSelectKey, g.parent, "Choose a key", 1, len(keys))
 	if err != nil {
-		if err == ErrInputCanceled {
+		if errors.Is(err, ErrInputCanceled) {
 			return "", nil
 		}
 		return "", err

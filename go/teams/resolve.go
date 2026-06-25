@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -128,7 +129,8 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 // prevent us from creating a team. We don't want a team where we don't know if
 // SBS user is resolvable but we just were unable to get the answer.
 func shouldPreventTeamCreation(err error) bool {
-	if resErr, ok := err.(libkb.ResolutionError); ok {
+	var resErr libkb.ResolutionError
+	if errors.As(err, &resErr) {
 		switch resErr.Kind {
 		case libkb.ResolutionErrorRateLimited, libkb.ResolutionErrorInvalidInput, libkb.ResolutionErrorRequestFailed:
 			return true

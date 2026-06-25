@@ -6,6 +6,7 @@ package data
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -551,7 +552,7 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 		if res.err != nil {
 			// If we are ok with just getting the prefix, don't treat a
 			// deadline exceeded error as fatal.
-			if prefixOk && res.err == context.DeadlineExceeded &&
+			if prefixOk && stderrors.Is(res.err, context.DeadlineExceeded) &&
 				!res.firstBlock && len(errors) == 0 {
 				mustCheckForHoles = true
 			} else {

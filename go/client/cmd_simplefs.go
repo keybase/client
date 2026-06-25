@@ -264,7 +264,7 @@ func makeDestPath(
 			// Here, we have both source and dest as paths, so
 			// we have to check whether dest exists. If so, append.
 			err2 := checkElementExists(ctx, cli, dest)
-			if err2 == ErrTargetFileExists {
+			if errors.Is(err2, ErrTargetFileExists) {
 				appendDest = true
 			}
 			g.Log.Debug("makeDestPath: src and dest both dir. append: %v", appendDest)

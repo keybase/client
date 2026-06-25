@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"time"
 
 	"github.com/keybase/client/go/kbun"
@@ -56,7 +57,8 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 	resp := deviceForUsersRet{}
 	err = mctx.G().API.PostDecode(mctx, arg, &resp)
 	var configsForReturn []deviceForUser
-	if _, ok := err.(APINetError); ok {
+	var apiNetErr APINetError
+	if errors.As(err, &apiNetErr) {
 		// We got a network error but we can still return offline results.
 		mctx.Info("Failed to check server for revoked in GAPU: %+v", err)
 		// Put together a fake response from the offline data:

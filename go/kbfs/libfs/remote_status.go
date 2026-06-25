@@ -6,6 +6,7 @@ package libfs
 
 import (
 	"context"
+	"errors"
 	"runtime"
 	"strings"
 	"sync"
@@ -113,8 +114,8 @@ func (r *RemoteStatus) update(ctx context.Context, st libkbfs.KBFSStatus) {
 }
 
 func isNotLoggedInError(err error) bool {
-	_, ok := err.(libkb.LoginRequiredError)
-	return ok
+	var lre libkb.LoginRequiredError
+	return errors.As(err, &lre)
 }
 
 var newline = func() string {

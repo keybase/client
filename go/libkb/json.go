@@ -97,7 +97,7 @@ func (f *JSONFile) LoadCheckFound() (found bool, err error) {
 	decoder := json.NewDecoder(&buf)
 	obj := make(map[string]any)
 	// Treat empty files like an empty dictionary
-	if err = decoder.Decode(&obj); err != nil && err != io.EOF {
+	if err = decoder.Decode(&obj); err != nil && !errors.Is(err, io.EOF) {
 		f.G().Log.Errorf("Error decoding %s file %s", f.which, f.filename)
 		return true, err
 	}
@@ -518,6 +518,6 @@ func (f *JSONFile) SetNullAtPath(p string) (err error) {
 }
 
 func isJSONNoSuchKeyError(err error) bool {
-	_, isJSONError := err.(*jsonw.Error)
-	return err != nil && isJSONError && strings.Contains(err.Error(), "no such key")
+	var jsonErr *jsonw.Error
+	return errors.As(err, &jsonErr) && strings.Contains(err.Error(), "no such key")
 }

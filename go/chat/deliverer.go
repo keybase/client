@@ -360,8 +360,8 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		}
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary() //nolint
 	}
-	switch err {
-	case ErrChatServerTimeout, ErrDuplicateConnection, ErrKeyServerTimeout:
+	if errors.Is(err, ErrChatServerTimeout) || errors.Is(err, ErrDuplicateConnection) ||
+		errors.Is(err, ErrKeyServerTimeout) {
 		return 0, err, false
 	}
 	return 0, err, true
@@ -643,7 +643,7 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
 	// This just happens when threads are racing to reconnect to
 	// Gregor, don't count it as an error to send.
-	return err != ErrDuplicateConnection
+	return !errors.Is(err, ErrDuplicateConnection)
 }
 
 func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord) bool {

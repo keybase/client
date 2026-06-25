@@ -222,9 +222,9 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 
 	quotaInfo, err := q.fetch(getCtx)
 	doCacheToDisk := dqc != nil
-	switch err {
-	case nil:
-	case context.DeadlineExceeded:
+	switch {
+	case err == nil:
+	case errors.Is(err, context.DeadlineExceeded):
 		go q.doBackgroundFetch()
 		if quotaInfoFromCache != nil {
 			q.log.CDebugf(ctx, "Can't contact server; using cached quota")

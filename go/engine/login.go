@@ -213,10 +213,10 @@ func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
 // notProvisionedErr will return true if err signifies that login
 // failed because this device has not yet been provisioned.
 func (e *Login) notProvisionedErr(m libkb.MetaContext, err error) bool {
-	if err == errNoDevice {
+	if errors.Is(err, errNoDevice) {
 		return true
 	}
-	if err == errNoConfig {
+	if errors.Is(err, errNoConfig) {
 		return true
 	}
 

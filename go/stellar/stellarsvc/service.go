@@ -648,7 +648,7 @@ func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (re
 			return res, nil
 		}
 
-		if err == stellar.ErrRelayinMultiBatch {
+		if errors.Is(err, stellar.ErrRelayinMultiBatch) {
 			mctx.Debug("found relay recipient in BatchMulti, using standard Batch instead")
 			return stellar.Batch(mctx, s.walletState, arg)
 		}

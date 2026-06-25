@@ -209,7 +209,7 @@ func (c *Conn) setWriteError(e error) error {
 func (c *Conn) getErrorForWrite() error {
 	var err error
 	c.errMutex.Lock()
-	if c.readErr != nil && c.readErr != io.EOF {
+	if c.readErr != nil && !errors.Is(c.readErr, io.EOF) {
 		err = c.readErr
 	} else if c.writeErr != nil {
 		err = c.writeErr
@@ -236,7 +236,7 @@ func (c *Conn) getErrorForRead() error {
 	c.errMutex.Lock()
 	if c.readErr != nil {
 		err = c.readErr
-	} else if c.writeErr != nil && c.writeErr != io.EOF {
+	} else if c.writeErr != nil && !errors.Is(c.writeErr, io.EOF) {
 		err = c.writeErr
 	}
 	c.errMutex.Unlock()

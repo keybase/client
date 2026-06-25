@@ -2583,7 +2583,8 @@ func SuspendComponents(ctx context.Context, g *globals.Context, suspendables []t
 }
 
 func IsPermanentErr(err error) bool {
-	if uberr, ok := err.(types.UnboxingError); ok {
+	var uberr types.UnboxingError
+	if errors.As(err, &uberr) {
 		return uberr.IsPermanent()
 	}
 	return err != nil
@@ -3190,14 +3191,14 @@ func GetConvParticipantUsernames(ctx context.Context, g *globals.Context, uid gr
 }
 
 func IsDeletedConvError(err error) bool {
-	switch err.(type) {
-	case libkb.ChatBadConversationError,
-		libkb.ChatNotInTeamError,
-		libkb.ChatNotInConvError:
-		return true
-	default:
-		return false
-	}
+	var (
+		badConv   libkb.ChatBadConversationError
+		notInTeam libkb.ChatNotInTeamError
+		notInConv libkb.ChatNotInConvError
+	)
+	return errors.As(err, &badConv) ||
+		errors.As(err, &notInTeam) ||
+		errors.As(err, &notInConv)
 }
 
 const (

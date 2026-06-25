@@ -6,6 +6,7 @@ package client
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -922,7 +923,7 @@ func (l LoginUI) ChooseDeviceToRecoverWith(ctx context.Context, arg keybase1.Cho
 
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, l.parent, "Choose a device", 1, allowed)
 	if err != nil {
-		if err == ErrInputCanceled {
+		if errors.Is(err, ErrInputCanceled) {
 			return keybase1.DeviceID(""), libkb.InputCanceledError{}
 		}
 		return keybase1.DeviceID(""), err
@@ -991,7 +992,7 @@ func (ui *UI) PromptPasswordMaybeScripted(pd libkb.PromptDescriptor, prompt stri
 		return ui.PromptPassword(pd, prompt)
 	}
 	ret, err = bufio.NewReader(os.Stdin).ReadString('\n')
-	if err == io.EOF && len(ret) > 0 {
+	if errors.Is(err, io.EOF) && len(ret) > 0 {
 		err = nil
 	}
 	return ret, err

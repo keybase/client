@@ -238,7 +238,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 		tctx, cancel := context.WithTimeout(ectx, kbfsTimeout)
 		defer cancel()
 		res, err = tlfClient.GetTLFCryptKeys(tctx, query)
-		if err == context.DeadlineExceeded {
+		if errors.Is(err, context.DeadlineExceeded) {
 			return ErrKeyServerTimeout
 		}
 		return err
@@ -298,7 +298,7 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 		tctx, cancel := context.WithTimeout(ectx, kbfsTimeout)
 		defer cancel()
 		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(tctx, query)
-		if err == context.DeadlineExceeded {
+		if errors.Is(err, context.DeadlineExceeded) {
 			return ErrKeyServerTimeout
 		}
 		return err

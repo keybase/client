@@ -148,7 +148,7 @@ func (k *KBFSService) handle(c net.Conn) {
 
 	// err is always non-nil.
 	err = server.Err()
-	if err != io.EOF {
+	if !errors.Is(err, io.EOF) {
 		k.log.Warning("Run error: %s", err)
 	}
 

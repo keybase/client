@@ -47,6 +47,10 @@ func (e HandleMismatchError) Error() string {
 		e.Revision, e.Dir, e.TlfID, e.Err)
 }
 
+func (e HandleMismatchError) Unwrap() error {
+	return e.Err
+}
+
 // ReadAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type ReadAccessError struct {

@@ -37,6 +37,10 @@ func (e ProofVerificationFailedError) Error() string {
 	return fmt.Sprintf("Proof Verification Error: %s", e.reason)
 }
 
+func (e ProofVerificationFailedError) Unwrap() error {
+	return e.reason
+}
+
 // NewProofVerificationFailedError returns a new error
 func NewProofVerificationFailedError(reason error) ProofVerificationFailedError {
 	return ProofVerificationFailedError{reason: reason}
@@ -90,6 +94,10 @@ type InvalidSeqnoError struct {
 
 func (e InvalidSeqnoError) Error() string {
 	return fmt.Sprintf("Invalid Seqno Error (Seqno: %v): %s", e.s, e.reason)
+}
+
+func (e InvalidSeqnoError) Unwrap() error {
+	return e.reason
 }
 
 // NewInvalidConfigError returns a new error

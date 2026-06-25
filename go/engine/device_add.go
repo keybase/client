@@ -5,6 +5,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
@@ -151,7 +152,7 @@ func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
 	}()
 
 	if err := RunEngine2(m, provisioner); err != nil {
-		if err == kex2.ErrHelloTimeout {
+		if errors.Is(err, kex2.ErrHelloTimeout) {
 			err = libkb.CanceledError{M: "Failed to provision device: are you sure you typed the secret properly?"}
 		}
 		return err

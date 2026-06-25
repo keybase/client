@@ -1,6 +1,7 @@
 package avatars
 
 import (
+	"errors"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -29,7 +30,7 @@ func (a *uploadAvatarMockAPI) PostRaw(mctx libkb.MetaContext, arg libkb.APIArg, 
 	mr := multipart.NewReader(r, params["boundary"])
 	for {
 		p, err := mr.NextPart()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {

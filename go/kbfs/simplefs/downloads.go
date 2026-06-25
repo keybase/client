@@ -188,7 +188,7 @@ func (m *downloadManager) moveToDownloadFolder(
 	case nil:
 		return destPath, nil
 	case *os.LinkError:
-		if er.Err != syscall.EXDEV {
+		if !errors.Is(er.Err, syscall.EXDEV) {
 			return "", err
 		}
 		// Rename failed because dest and src are on different devices. So
@@ -299,7 +299,7 @@ func (m *downloadManager) startDownload(
 			if d.state.Done || d.state.Canceled || len(d.state.Error) > 0 {
 				return d
 			}
-			if errors.Cause(err) == context.Canceled {
+			if errors.Is(err, context.Canceled) {
 				d.state.Canceled = true
 			} else if err != nil {
 				d.state.Error = err.Error()

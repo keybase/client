@@ -355,10 +355,12 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg any) (appError error, dispatchErr
 // IsThrottleError returns whether or not the given error signals
 // throttling.
 func IsThrottleError(err error) bool {
-	if _, ok := err.(ServerErrorThrottle); ok {
+	var throttleErr ServerErrorThrottle
+	if errors.As(err, &throttleErr) {
 		return true
 	}
-	if quotaErr, ok := err.(ServerErrorOverQuota); ok && quotaErr.Throttled {
+	var quotaErr ServerErrorOverQuota
+	if errors.As(err, &quotaErr) && quotaErr.Throttled {
 		return true
 	}
 	return false

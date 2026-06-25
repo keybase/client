@@ -48,6 +48,13 @@ func (e *EmojiValidationError) Error() string {
 	return e.Underlying.Error()
 }
 
+func (e *EmojiValidationError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.Underlying
+}
+
 func (e *EmojiValidationError) Export() *chat1.EmojiError {
 	if e == nil {
 		return nil

@@ -6,6 +6,7 @@ package kbfssync
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 )
@@ -46,7 +47,7 @@ func TestRepeatedWaitGroupCanceledWait(t *testing.T) {
 	}
 	cancel()
 	err := <-errChan
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("Unexpected error on wait: %v", err)
 	}
 }

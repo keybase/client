@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -47,7 +48,7 @@ func NewIdentify2Cache(maxAge time.Duration) *Identify2Cache {
 func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, gcdf GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2ResUPK2, error) {
 	v, err := c.cache.Get(string(uid))
 	if err != nil {
-		if err == ramcache.ErrNotFound {
+		if errors.Is(err, ramcache.ErrNotFound) {
 			return nil, nil
 		}
 		return nil, err

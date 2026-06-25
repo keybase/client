@@ -115,7 +115,7 @@ func (m *uploadManager) waitForCopy(uploadID string) {
 			if !ok {
 				return
 			}
-			if errors.Cause(err) == context.Canceled {
+			if errors.Is(err, context.Canceled) {
 				upload.state.Canceled = true
 			} else {
 				errStr := err.Error()

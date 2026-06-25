@@ -66,7 +66,7 @@ func (df *diffFile) Read(p []byte) (n int, err error) {
 
 func (df *diffFile) ReadAt(p []byte, off int64) (n int, err error) {
 	n, err = df.r.ReadAt(p, off)
-	if err == io.EOF {
+	if errors.Is(err, io.EOF) {
 		if n == 0 {
 			// The billy interface only likes EOFs when no data was read.
 			return 0, err

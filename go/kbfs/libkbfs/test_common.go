@@ -763,7 +763,7 @@ func testRPCWithCanceledContext(t logger.TestLogBackend,
 	}()
 
 	err := fn(ctx)
-	if errors.Cause(err) != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("Function did not return a canceled error: %+v", err)
 	}
 }

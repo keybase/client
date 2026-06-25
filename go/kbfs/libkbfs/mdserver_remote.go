@@ -360,7 +360,7 @@ func (md *MDServerRemote) pingOnce(ctx context.Context) {
 	clock := md.config.Clock()
 	beforePing := clock.Now()
 	resp, err := md.getClient().Ping2(ctx)
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		if md.getIsAuthenticated() {
 			md.log.CInfof(ctx, "Ping timeout -- reinitializing connection")
 			if err = md.reconnect(); err != nil {
@@ -658,9 +658,9 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 	}
 
 	_, rmdses, err := md.get(getCtx, arg)
-	switch errors.Cause(err) {
-	case nil:
-	case context.DeadlineExceeded:
+	switch {
+	case err == nil:
+	case errors.Is(err, context.DeadlineExceeded):
 		if cachedRmds != nil {
 			md.log.CDebugf(ctx, "Can't contact server; using cached MD")
 			return cachedRmds, nil
@@ -1110,9 +1110,9 @@ func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) 
 	}
 
 	buf, err := md.getClient().GetLatestFolderHandle(ctx, id.String())
-	switch errors.Cause(err) {
-	case nil:
-	case context.DeadlineExceeded:
+	switch {
+	case err == nil:
+	case errors.Is(err, context.DeadlineExceeded):
 		if handleErr == nil {
 			md.log.CDebugf(ctx,
 				"Got latest handle for %s from cache when mdserver can't "+

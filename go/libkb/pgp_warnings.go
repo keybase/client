@@ -3,6 +3,7 @@ package libkb
 import (
 	"bytes"
 	"crypto"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -37,7 +38,7 @@ func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.
 	packets := packet.NewReader(rd)
 	for {
 		p, err = packets.Next()
-		if err == io.EOF {
+		if stderrors.Is(err, io.EOF) {
 			if hashFunc != 0 {
 				return hashFunc, 0, nil
 			}

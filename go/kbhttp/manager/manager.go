@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 	"crypto/hmac"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime"
@@ -67,7 +68,7 @@ func (r *Srv) startHTTPSrv() {
 	success := false
 	for range maxTries {
 		if err := r.httpSrv.Start(); err != nil {
-			if err == kbhttp.ErrPinnedPortInUse {
+			if errors.Is(err, kbhttp.ErrPinnedPortInUse) {
 				// If we hit this, just try again and get a different port.
 				// The advantage is that backing in and out of the thread will restore attachments,
 				// whereas if we do nothing you need to bkg/foreground.

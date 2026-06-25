@@ -193,7 +193,7 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 	}
 
 	buf, err := md.handleDb.Get(handleBytes, nil)
-	if err != nil && err != leveldb.ErrNotFound {
+	if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
 		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
 	if err == nil {
@@ -298,7 +298,7 @@ func (md *MDServerDisk) getBranchID(ctx context.Context, id tlf.ID) (kbfsmd.Bran
 	}
 
 	buf, err := md.branchDb.Get(branchKey, nil)
-	if err == leveldb.ErrNotFound {
+	if errors.Is(err, leveldb.ErrNotFound) {
 		return kbfsmd.NullBranchID, nil
 	}
 	if err != nil {

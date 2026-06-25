@@ -173,11 +173,12 @@ func CleanOldDeletedReposTimeLimited(
 	ctx, cancel := context.WithTimeout(ctx, cleaningTimeLimit)
 	defer cancel()
 	err := CleanOldDeletedRepos(ctx, config, tlfHandle)
-	switch errors.Cause(err) {
-	case context.DeadlineExceeded, context.Canceled:
+	switch {
+	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, context.Canceled):
 		return nil
 	default:
-		if _, ok := errors.Cause(err).(libkbfs.OfflineUnsyncedError); ok {
+		var offlineErr libkbfs.OfflineUnsyncedError
+		if errors.As(err, &offlineErr) {
 			return nil
 		}
 		return err
@@ -441,7 +442,8 @@ func getOrCreateRepoAndID(
 	// exist, give them a nice error message.
 	repoExists := false
 	defer func() {
-		_, isWriteAccessErr := errors.Cause(err).(tlfhandle.WriteAccessError)
+		var writeAccessErr tlfhandle.WriteAccessError
+		isWriteAccessErr := errors.As(err, &writeAccessErr)
 		if !repoExists && isWriteAccessErr {
 			err = libkb.RepoDoesntExistError{Name: repoName}
 		}

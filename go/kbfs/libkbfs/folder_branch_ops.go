@@ -2599,7 +2599,8 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 		md, err = fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdWrite)
 	}
 
-	if _, noMD := errors.Cause(err).(NoMergedMDError); noMD {
+	var noMergedMDErr NoMergedMDError
+	if errors.As(err, &noMergedMDErr) {
 		return ImmutableRootMetadata{}, nil
 	}
 
@@ -3336,8 +3337,9 @@ func (fbo *folderBranchOps) getDirChildren(ctx context.Context, dir Node) (
 func (fbo *folderBranchOps) transformReadError(
 	ctx context.Context, node Node, err error,
 ) error {
-	_, isBlockNonExistent := errors.Cause(err).(kbfsblock.ServerErrorBlockNonExistent)
-	if errors.Cause(err) != context.DeadlineExceeded && !isBlockNonExistent {
+	var blockNonExistentErr kbfsblock.ServerErrorBlockNonExistent
+	isBlockNonExistent := errors.As(err, &blockNonExistentErr)
+	if !errors.Is(err, context.DeadlineExceeded) && !isBlockNonExistent {
 		return err
 	}
 
@@ -3658,10 +3660,12 @@ func (fbo *folderBranchOps) lookup(
 	}
 
 	node, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
-	if _, isMiss := errors.Cause(err).(idutil.NoSuchNameError); isMiss {
+	var noSuchNameErr idutil.NoSuchNameError
+	if errors.As(err, &noSuchNameErr) {
 		node, de.EntryInfo, err = fbo.processMissedLookup(
 			ctx, lState, dir, name, err)
-		if _, exists := errors.Cause(err).(data.NameExistsError); exists {
+		var nameExistsErr data.NameExistsError
+		if errors.As(err, &nameExistsErr) {
 			// Someone raced us to create the entry, so return the
 			// new entry.
 			node, de, err = fbo.blocks.Lookup(
@@ -3700,7 +3704,8 @@ func (fbo *folderBranchOps) Lookup(
 	})
 	// Only retry the lookup potentially if the lookup missed.
 	if err != nil {
-		if _, isMiss := errors.Cause(err).(idutil.NoSuchNameError); !isMiss {
+		var noSuchNameErr idutil.NoSuchNameError
+		if !errors.As(err, &noSuchNameErr) {
 			return nil, data.EntryInfo{}, err
 		}
 	}
@@ -3872,9 +3877,9 @@ func isRecoverableBlockErrorForRemoval(err error) bool {
 }
 
 func isRetriableError(err error, retries int) bool {
-	_, isExclOnUnmergedError := err.(ExclOnUnmergedError)
-	_, isUnmergedSelfConflictError := err.(UnmergedSelfConflictError)
-	recoverable := isExclOnUnmergedError || isUnmergedSelfConflictError ||
+	var exclErr ExclOnUnmergedError
+	var unmergedErr UnmergedSelfConflictError
+	recoverable := errors.As(err, &exclErr) || errors.As(err, &unmergedErr) ||
 		isRecoverableBlockError(err)
 	return recoverable && retries < maxRetriesOnRecoverableErrors
 }
@@ -3911,15 +3916,18 @@ func isRevisionConflict(err error) bool {
 	if err == nil {
 		return false
 	}
-	_, isConflictRevision := err.(kbfsmd.ServerErrorConflictRevision)
-	_, isConflictPrevRoot := err.(kbfsmd.ServerErrorConflictPrevRoot)
-	_, isConflictDiskUsage := err.(kbfsmd.ServerErrorConflictDiskUsage)
-	_, isConditionFailed := err.(kbfsmd.ServerErrorConditionFailed)
-	_, isConflictFolderMapping := err.(kbfsmd.ServerErrorConflictFolderMapping)
-	_, isJournal := err.(MDJournalConflictError)
-	return isConflictRevision || isConflictPrevRoot ||
-		isConflictDiskUsage || isConditionFailed ||
-		isConflictFolderMapping || isJournal
+	var conflictRevision kbfsmd.ServerErrorConflictRevision
+	var conflictPrevRoot kbfsmd.ServerErrorConflictPrevRoot
+	var conflictDiskUsage kbfsmd.ServerErrorConflictDiskUsage
+	var conditionFailed kbfsmd.ServerErrorConditionFailed
+	var conflictFolderMapping kbfsmd.ServerErrorConflictFolderMapping
+	var journalConflict MDJournalConflictError
+	return errors.As(err, &conflictRevision) ||
+		errors.As(err, &conflictPrevRoot) ||
+		errors.As(err, &conflictDiskUsage) ||
+		errors.As(err, &conditionFailed) ||
+		errors.As(err, &conflictFolderMapping) ||
+		errors.As(err, &journalConflict)
 }
 
 func (fbo *folderBranchOps) getConvID(
@@ -4637,7 +4645,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 			name, fbo.makeObfuscator()))
 	if err == nil {
 		return nil, data.DirEntry{}, data.NameExistsError{Name: name.String()}
-	} else if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); !notExists {
+	}
+	var noSuchNameErr idutil.NoSuchNameError
+	if !errors.As(err, &noSuchNameErr) {
 		return nil, data.DirEntry{}, err
 	}
 
@@ -4770,7 +4780,8 @@ func (fbo *folderBranchOps) createEntryLocked(
 	if excl == WithExcl {
 		// Sync this change to the server.
 		err := fbo.syncAllLocked(ctx, lState, WithExcl)
-		_, isNoUpdatesWhileDirty := errors.Cause(err).(NoUpdatesWhileDirtyError)
+		var noUpdatesWhileDirtyErr NoUpdatesWhileDirtyError
+		isNoUpdatesWhileDirty := errors.As(err, &noUpdatesWhileDirtyErr)
 		if isNoUpdatesWhileDirty {
 			// If an exclusive write hits a conflict, it will try to
 			// update, but won't be able to because of the dirty
@@ -5091,7 +5102,9 @@ func (fbo *folderBranchOps) createLinkLocked(
 			fromName, fbo.makeObfuscator()))
 	if err == nil {
 		return data.DirEntry{}, data.NameExistsError{Name: fromName.String()}
-	} else if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); !notExists {
+	}
+	var noSuchNameErr idutil.NoSuchNameError
+	if !errors.As(err, &noSuchNameErr) {
 		return data.DirEntry{}, err
 	}
 
@@ -5237,7 +5250,8 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	de, err := fbo.blocks.GetEntry(
 		ctx, lState, md, dirPath.ChildPathNoPtr(
 			name, fbo.makeObfuscator()))
-	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
+	var noSuchNameErr idutil.NoSuchNameError
+	if errors.As(err, &noSuchNameErr) {
 		return idutil.NoSuchNameError{Name: name.String()}
 	} else if err != nil {
 		return err
@@ -5302,7 +5316,8 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 	ob := fbo.makeObfuscator()
 	de, err := fbo.blocks.GetEntry(
 		ctx, lState, md.ReadOnly(), dirPath.ChildPathNoPtr(dirName, ob))
-	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
+	var noSuchNameErr idutil.NoSuchNameError
+	if errors.As(err, &noSuchNameErr) {
 		return idutil.NoSuchNameError{Name: dirName.String()}
 	} else if err != nil {
 		return err
@@ -5548,7 +5563,7 @@ func (fbo *folderBranchOps) Read(
 		defer func() { _ = fsFile.Close() }()
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "Reading from an FS file")
 		nInt, err := fsFile.ReadAt(dest, off)
-		if nInt == 0 && errors.Cause(err) == io.EOF {
+		if nInt == 0 && errors.Is(err, io.EOF) {
 			// The billy interfaces requires an EOF when you start
 			// reading past the end of a file, but the libkbfs
 			// interface wants a nil error in that case.
@@ -6967,7 +6982,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// Wait for CR to happen.
 	if !fbo.isUnmergedLocked(lState) {
 		mergedRev, journalEnd, err := fbo.getJournalRevisions(ctx)
-		if err == errNoFlushedRevisions {
+		if errors.Is(err, errNoFlushedRevisions) {
 			// If the journal is still on the initial revision, ignore
 			// the error and fall through to ignore CR.
 			mergedRev = kbfsmd.RevisionInitial
@@ -7736,7 +7751,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 
 	default:
 		_, isInputCanceled := err.(libkb.InputCanceledError)
-		if isInputCanceled || err == context.DeadlineExceeded {
+		if isInputCanceled || errors.Is(err, context.DeadlineExceeded) {
 			fbo.log.CDebugf(ctx, "Paper key prompt timed out")
 			// Reschedule the prompt in the timeout case.
 			stillNeedsRekey = true
@@ -7935,7 +7950,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 			}
 			if _, isUnmerged := err.(UnmergedError); isUnmerged {
 				continue
-			} else if err == errNoMergedRevWhileStaged {
+			} else if errors.Is(err, errNoMergedRevWhileStaged) {
 				continue
 			}
 			return err
@@ -7957,7 +7972,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	editCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 	if err := fbo.editActivity.Wait(editCtx); err != nil {
-		if err == context.DeadlineExceeded {
+		if errors.Is(err, context.DeadlineExceeded) {
 			fbo.log.CDebugf(ctx, "Couldn't wait for edit activity")
 		} else {
 			return err
@@ -7968,7 +7983,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	qrCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 	if err := fbo.fbm.waitForQuotaReclamations(qrCtx); err != nil {
-		if err == context.DeadlineExceeded {
+		if errors.Is(err, context.DeadlineExceeded) {
 			fbo.log.CDebugf(ctx, "Couldn't wait for qr activity")
 		} else {
 			return err
@@ -7977,7 +7992,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	cleanCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 	if err := fbo.fbm.waitForDiskCacheCleans(cleanCtx); err != nil {
-		if err == context.DeadlineExceeded {
+		if errors.Is(err, context.DeadlineExceeded) {
 			fbo.log.CDebugf(ctx, "Couldn't wait for disk clean activity")
 		} else {
 			return err
@@ -8336,7 +8351,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 		}
 	})
 
-	if err != nil && err != context.Canceled {
+	if err != nil && !errors.Is(err, context.Canceled) {
 		fbo.log.CWarningf(context.Background(),
 			"registerAndWaitForUpdates failed unexpectedly with an error: %v",
 			err)
@@ -9398,7 +9413,7 @@ func (fbo *folderBranchOps) GetSyncConfig(
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	config, tlfPath, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
-	if errors.Cause(err) == errNeedMDForPartialSyncConfig {
+	if errors.Is(err, errNeedMDForPartialSyncConfig) {
 		// This is a partially-synced TLF, so it should be initialized
 		// automatically by KBFSOps; we just need to wait for the MD.
 		var once sync.Once

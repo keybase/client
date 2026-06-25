@@ -415,7 +415,7 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 			cur, err = tryCurrent(name)
 			if err == nil {
 				break
-			} else if err == os.ErrNotExist { //nolint:revive // empty-block: intentional fallthrough to next iteration
+			} else if errors.Is(err, os.ErrNotExist) { //nolint:revive // empty-block: intentional fallthrough to next iteration
 				// Fallback to the next file.
 			} else if isCorrupted(err) {
 				lastCerr = err
@@ -458,14 +458,14 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 			pendNames[i] = fmt.Sprintf("CURRENT.%d", num)
 		}
 		pendCur, pendErr = tryCurrents(pendNames)
-		if pendErr != nil && pendErr != os.ErrNotExist && !isCorrupted(pendErr) {
+		if pendErr != nil && !errors.Is(pendErr, os.ErrNotExist) && !isCorrupted(pendErr) {
 			return storage.FileDesc{}, pendErr
 		}
 	}
 
 	// Try CURRENT and CURRENT.bak.
 	curCur, curErr := tryCurrents([]string{"CURRENT", "CURRENT.bak"})
-	if curErr != nil && curErr != os.ErrNotExist && !isCorrupted(curErr) {
+	if curErr != nil && !errors.Is(curErr, os.ErrNotExist) && !isCorrupted(curErr) {
 		return storage.FileDesc{}, curErr
 	}
 

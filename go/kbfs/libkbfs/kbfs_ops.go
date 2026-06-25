@@ -893,10 +893,11 @@ func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 func (fs *KBFSOpsStandard) transformReadError(
 	ctx context.Context, h *tlfhandle.Handle, err error,
 ) error {
-	if errors.Cause(err) != context.DeadlineExceeded {
+	if !errors.Is(err, context.DeadlineExceeded) {
 		return err
 	}
-	if _, ok := errors.Cause(err).(OfflineUnsyncedError); ok {
+	var offlineErr OfflineUnsyncedError
+	if errors.As(err, &offlineErr) {
 		return err
 	}
 
@@ -980,7 +981,8 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 	err = fops.SetInitialHeadToNew(ctx, h.TlfID(), h)
 	// Someone else initialized the TLF out from under us, so we
 	// didn't initialize it.
-	_, alreadyExisted := errors.Cause(err).(RekeyConflictError)
+	var rekeyConflictErr RekeyConflictError
+	alreadyExisted := errors.As(err, &rekeyConflictErr)
 	if err != nil && !alreadyExisted {
 		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
@@ -1865,7 +1867,9 @@ func (fs *KBFSOpsStandard) Reset(
 			fs.log.CDebugf(ctx, "Folder %s can't be reset; still has ID %s",
 				handle.GetCanonicalPath(), id)
 			return errors.WithStack(FolderNotResetOnServer{handle})
-		} else if _, ok := errors.Cause(err).(kbfsmd.ServerErrorClassicTLFDoesNotExist); !ok {
+		}
+		var classicTLFErr kbfsmd.ServerErrorClassicTLFDoesNotExist
+		if !errors.As(err, &classicTLFErr) {
 			// Return errors if they don't indicate the folder is new.
 			return err
 		}

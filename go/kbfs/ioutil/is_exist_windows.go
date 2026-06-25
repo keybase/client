@@ -30,5 +30,5 @@ func IsExist(err error) bool {
 	case *os.SyscallError:
 		err = pe.Err
 	}
-	return err == error_DIR_NOT_EMPTY
+	return errors.Is(err, error_DIR_NOT_EMPTY)
 }

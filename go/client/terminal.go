@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"io"
 	"sync"
 
@@ -63,7 +64,7 @@ func (t *Terminal) Prompt(s string) (string, error) {
 		return "", err
 	}
 	s, err := t.engine.Prompt(s)
-	if err == minterm.ErrPromptInterrupted {
+	if errors.Is(err, minterm.ErrPromptInterrupted) {
 		err = libkb.CanceledError{M: "input canceled"}
 	}
 	return s, err
@@ -147,7 +148,7 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 		txt, err = t.PromptPassword(s)
 	}
 
-	if err == io.EOF || err == minterm.ErrPromptInterrupted || len(txt) == 0 {
+	if errors.Is(err, io.EOF) || errors.Is(err, minterm.ErrPromptInterrupted) || len(txt) == 0 {
 		err = nil
 		res = &keybase1.SecretEntryRes{Canceled: true}
 	} else if err == nil {

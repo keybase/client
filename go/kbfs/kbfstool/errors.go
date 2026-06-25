@@ -25,3 +25,7 @@ func (e cannotWriteErr) Error() string {
 	}
 	return fmt.Sprintf("cannot write to %s", e.pathStr)
 }
+
+func (e cannotWriteErr) Unwrap() error {
+	return e.err
+}

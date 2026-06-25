@@ -255,7 +255,7 @@ func (a *S3Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan j
 		n, err := io.ReadFull(r, block)
 		// io.ErrUnexpectedEOF will be returned for last partial block,
 		// which is ok.
-		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
+		if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
 			return err
 		}
 		if n < blockSize {
@@ -280,7 +280,7 @@ func (a *S3Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan j
 				return err
 			}
 		}
-		if err == io.EOF || err == io.ErrUnexpectedEOF {
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 			break
 		}
 

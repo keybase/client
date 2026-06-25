@@ -2,6 +2,7 @@ package flip
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 )
@@ -81,7 +82,7 @@ func runReplayLoop(ctx context.Context, game *Game, gh GameHistory) (err error) 
 			return err
 		}
 		err = game.handleMessage(ctx, gmw, m.Time)
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return nil
 		}
 		if err != nil {

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -61,10 +62,11 @@ func bootstrapActiveDeviceFromConfigReturnRawError(m MetaContext, online bool, a
 }
 
 func isBootstrapLoggedOutError(err error) bool {
-	if _, ok := err.(NoUIDError); ok {
+	var nue NoUIDError
+	if errors.As(err, &nue) {
 		return true
 	}
-	if err == ErrUnlockNotPossible {
+	if errors.Is(err, ErrUnlockNotPossible) {
 		return true
 	}
 	return false
@@ -207,7 +209,7 @@ func BootstrapActiveDeviceWithMetaContextAndAssertUID(m MetaContext, uid keybase
 	case NoUIDError:
 		return false, nil
 	default:
-		if err == ErrUnlockNotPossible {
+		if errors.Is(err, ErrUnlockNotPossible) {
 			return false, nil
 		}
 		return false, err

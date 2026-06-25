@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,7 +29,7 @@ func NewTrackCache() *TrackCache {
 func (c *TrackCache) Get(key keybase1.TrackToken) (*IdentifyOutcome, error) {
 	v, err := c.cache.Get(string(key))
 	if err != nil {
-		if err == ramcache.ErrNotFound {
+		if errors.Is(err, ramcache.ErrNotFound) {
 			return nil, IdentifyTimeoutError{}
 		}
 		return nil, err

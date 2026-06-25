@@ -198,7 +198,7 @@ func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	}
 	user := []byte(string(session.UID))
 	data, err := db.Get(user, nil)
-	if err == leveldb.ErrNotFound {
+	if errors.Is(err, leveldb.ErrNotFound) {
 		f.log.CInfof(ctx, "No favorites cache found for user %v", user)
 		return nil
 	} else if err != nil {
@@ -527,7 +527,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			}
 			// If we weren't explicitly asked to refresh, we can return possibly
 			// stale favorites rather than return nothing.
-			if err == context.DeadlineExceeded {
+			if errors.Is(err, context.DeadlineExceeded) {
 				newCtx, cancel := context.WithTimeout(context.Background(),
 					favoritesBackgroundRefreshTimeout)
 				go func() {
@@ -747,7 +747,7 @@ func (f *Favorites) waitOnReq(ctx context.Context,
 		err = req.err
 		// If the request was canceled due to a context timeout that
 		// wasn't our own, try it again.
-		if err == context.Canceled || err == context.DeadlineExceeded {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			select {
 			case <-ctx.Done():
 				return false, err

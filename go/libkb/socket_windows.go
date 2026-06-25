@@ -88,5 +88,5 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 }
 
 func IsSocketClosedError(e error) bool {
-	return e == mspipe.ErrPipeListenerClosed
+	return errors.Is(e, mspipe.ErrPipeListenerClosed)
 }

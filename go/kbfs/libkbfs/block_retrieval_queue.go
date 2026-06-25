@@ -528,7 +528,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 			brq.notifyWorker(priority)
 		} else {
 			err := br.ctx.AddContext(ctx)
-			if err == context.Canceled {
+			if errors.Is(err, context.Canceled) {
 				// We need to delete the request pointer, but we'll still let
 				// the existing request be processed by a worker.
 				delete(brq.ptrs, bpLookup)

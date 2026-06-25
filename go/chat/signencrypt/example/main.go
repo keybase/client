@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/ed25519"
 	"encoding/hex"
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -58,7 +59,7 @@ func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signatur
 	var buf [4096]byte
 	for {
 		num, err := os.Stdin.Read(buf[:])
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			return err
@@ -85,7 +86,7 @@ func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, sign
 	var buf [4096]byte
 	for {
 		num, err := os.Stdin.Read(buf[:])
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			return err

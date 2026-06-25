@@ -156,7 +156,7 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOu
 	res, err = a.uploadAsset(ctx, task, enc, previous, resumable, encryptedOut)
 
 	// if the upload is aborted, reset the stream and start over to get new keys
-	if err == ErrAbortOnPartMismatch && previous != nil {
+	if errors.Is(err, ErrAbortOnPartMismatch) && previous != nil {
 		a.Debug(ctx, "UploadAsset: resume call aborted, resetting stream and starting from scratch")
 		a.aborts++
 		err := task.Plaintext.Reset()
@@ -211,7 +211,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	defer func() { _ = record.RecordAndFinish(ctx, length) }()
 	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {
-		if err == ErrAbortOnPartMismatch && previous != nil {
+		if errors.Is(err, ErrAbortOnPartMismatch) && previous != nil {
 			// erase information about previous upload attempt
 			a.finishUpload(ctx, task)
 		}

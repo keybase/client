@@ -470,7 +470,7 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	doneCh := make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		if err := s.localizeConversations(job); err == context.Canceled {
+		if err := s.localizeConversations(job); errors.Is(err, context.Canceled) {
 			// just put this right back if we canceled it
 			s.Debug(job.ctx, "localizeJobPulled[%s]: re-enqueuing canceled job", id)
 			s.jobQueue <- job.retry(s.G())

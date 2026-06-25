@@ -61,6 +61,10 @@ func (e VerificationError) Error() string {
 	return fmt.Sprintf("Verification failed: %s", e.Cause.Error())
 }
 
+func (e VerificationError) Unwrap() error {
+	return e.Cause
+}
+
 func (e VerificationError) ToStatus() keybase1.Status {
 	cause := ""
 	if e.Cause != nil {

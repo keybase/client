@@ -607,7 +607,8 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 	}
 	kmd := mergedChains.mostRecentChainMDInfo
 	mergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, mergedPath)
-	if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
+	var noSuchNameErr idutil.NoSuchNameError
+	if errors.As(err, &noSuchNameErr) {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -625,7 +626,7 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 		},
 	}
 	unmergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, unmergedPath)
-	if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
+	if errors.As(err, &noSuchNameErr) {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -721,7 +722,8 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		// stay the same, so we can still match the unmerged path
 		// correctly.
 		err := unmergedChains.changeOriginal(unmergedOriginal, mergedOriginal)
-		if _, notFound := errors.Cause(err).(NoChainFoundError); notFound {
+		var noChainFoundErr NoChainFoundError
+		if errors.As(err, &noChainFoundErr) {
 			unmergedChains.toUnrefPointers[unmergedOriginal] = true
 			continue
 		}
@@ -3308,10 +3310,10 @@ func getAndDeserializeConflicts(config Config, db *ldbutils.LevelDb,
 	}
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
-	switch errors.Cause(err) {
-	case leveldb.ErrNotFound:
+	switch {
+	case errors.Is(err, leveldb.ErrNotFound):
 		conflictsSoFar = nil
-	case nil:
+	case err == nil:
 		err = config.Codec().Decode(conflictsSoFarSerialized, &conflictsSoFar)
 		if err != nil {
 			return nil, err
@@ -3401,7 +3403,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 
 	// If we neither errored nor panicked, this CR succeeded and we can wipe
 	// the DB entry.
-	if (receivedErr == nil || receivedErr == context.Canceled) &&
+	if (receivedErr == nil || errors.Is(receivedErr, context.Canceled)) &&
 		panicVar == nil {
 		err := db.Delete(key, nil)
 		if err != nil {
@@ -3545,14 +3547,14 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
 
 	err = cr.recordStartResolve(ci)
-	switch errors.Cause(err) {
-	case ErrTooManyCRAttempts:
+	switch {
+	case errors.Is(err, ErrTooManyCRAttempts):
 		cr.log.CWarningf(ctx,
 			"Too many failed CR attempts for folder: %v", cr.fbo.id())
 		cr.config.GetPerfLog().CDebugf(
 			ctx, "Conflict resolution failed too many times for %v", err)
 		return
-	case nil:
+	case err == nil:
 		defer func() {
 			r := recover()
 			cr.recordFinishResolve(ctx, ci, r, err)
@@ -3575,7 +3577,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			cr.config.Reporter().ReportErr(
 				ctx, handle.GetCanonicalName(), handle.Type(),
 				WriteMode, CRWrapError{err})
-			if err == context.Canceled {
+			if errors.Is(err, context.Canceled) {
 				cr.inputLock.Lock()
 				defer cr.inputLock.Unlock()
 				cr.canceledCount++

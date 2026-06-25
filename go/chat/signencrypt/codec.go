@@ -128,6 +128,7 @@ import (
 	"crypto/ed25519"
 	"crypto/sha512"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 
@@ -447,7 +448,7 @@ func (r *codecReadWrapper) Read(callerBuf []byte) (int, error) {
 			r.outputBuf = append(r.outputBuf, newOutput...)
 		}
 		// Now handle EOF or other errors.
-		if ioErr == io.EOF {
+		if errors.Is(ioErr, io.EOF) {
 			// When we see EOF we finish the internal codec. We won't run this
 			// loop anymore, but we might still need to return bytes from our
 			// own buffer for many subsequent reads. Also nil out the codec and

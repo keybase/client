@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -54,11 +55,11 @@ func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSO
 		resp.Result, err = h.Handle(&req)
 	}
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// Success
 		resp.Status = "ok"
-	case io.EOF:
+	case errors.Is(err, io.EOF):
 		// Closed
 		return err
 	default:
@@ -126,7 +127,7 @@ func main() {
 
 	for {
 		err := process(h, in, out)
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			// Clean close
 			break
 		}

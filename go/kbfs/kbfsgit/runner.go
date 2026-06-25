@@ -415,7 +415,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	// repo.
 	r.log.CDebugf(ctx, "Attempting to init or open repo %s", r.repo)
 	repo, err = gogit.Init(storage, nil)
-	if err == gogit.ErrRepositoryAlreadyExists {
+	if errors.Is(err, gogit.ErrRepositoryAlreadyExists) {
 		repo, err = gogit.Open(storage, nil)
 	}
 	if err != nil {
@@ -734,7 +734,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	var bestBranch plumbing.ReferenceName
 	for {
 		ref, err := refs.Next()
-		if errors.Cause(err) == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -1266,7 +1266,8 @@ func (r *runner) checkGC(ctx context.Context) (err error) {
 
 	fs, _, err := libgit.GetRepoAndID(
 		ctx, r.config, r.h, r.repo, r.uniqID)
-	if _, noRepo := errors.Cause(err).(libkb.RepoDoesntExistError); noRepo {
+	var noRepoErr libkb.RepoDoesntExistError
+	if errors.As(err, &noRepoErr) {
 		r.log.CDebugf(ctx, "No such repo: %v", err)
 		return nil
 	} else if err != nil {
@@ -1483,7 +1484,7 @@ func (r *runner) canPushAll(
 	// Iterate through the remote references.
 	for {
 		ref, err := refs.Next()
-		if errors.Cause(err) == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			return false, false, err
@@ -1527,7 +1528,7 @@ func (r *runner) canPushAll(
 	// for this push.  If not, we can't blindly push everything.
 	for {
 		ref, err := localRefs.Next()
-		if errors.Cause(err) == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -1892,13 +1893,13 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	if headErr == nil && head.Type() == plumbing.SymbolicReference {
 		_, targetErr := repo.Storer.Reference(head.Target())
 		var bestBranch plumbing.ReferenceName
-		if targetErr == plumbing.ErrReferenceNotFound {
+		if errors.Is(targetErr, plumbing.ErrReferenceNotFound) {
 			allRefs, refsErr := repo.References()
 			if refsErr == nil {
 				defer allRefs.Close()
 				for {
 					ref, nextErr := allRefs.Next()
-					if errors.Cause(nextErr) == io.EOF {
+					if errors.Is(nextErr, io.EOF) {
 						break
 					}
 					if nextErr != nil {
@@ -2446,7 +2447,7 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 
 		select {
 		case err := <-stdinErrChan:
-			if errors.Cause(err) == io.EOF {
+			if errors.Is(err, io.EOF) {
 				r.log.CDebugf(ctx, "Done processing commands")
 				return nil
 			} else if err != nil {

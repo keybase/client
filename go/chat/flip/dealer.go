@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -616,7 +617,7 @@ func (g *Game) runMain(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return nil
 		}
 		if err != nil {

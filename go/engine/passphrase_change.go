@@ -417,7 +417,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(m libkb.MetaContext
 		if err == nil {
 			keyList = append(keyList, key)
 		} else {
-			if err != libkb.ErrUnlockNotPossible {
+			if !errors.Is(err, libkb.ErrUnlockNotPossible) {
 				return nil, 0, err
 			}
 			nLost++

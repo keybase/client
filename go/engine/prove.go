@@ -5,6 +5,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -332,7 +333,7 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 	m, cancel := m.WithTimeout(timeout)
 	defer cancel()
 	defer func() {
-		if err != nil && m.Ctx().Err() == context.DeadlineExceeded {
+		if err != nil && errors.Is(m.Ctx().Err(), context.DeadlineExceeded) {
 			m.Debug("Prove.verifyLoop rewriting error after timeout: %v", err)
 			err = fmt.Errorf("Timed out after looking for proof for %v", timeout)
 		}

@@ -67,7 +67,7 @@ var _ store.KVReader = (*bleveLevelDBReader)(nil)
 // Get implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) Get(key []byte) ([]byte, error) {
 	v, err := bldbr.snap.Get(key, nil)
-	if err == ldberrors.ErrNotFound {
+	if errors.Is(err, ldberrors.ErrNotFound) {
 		return nil, nil
 	}
 	return v, err
@@ -182,7 +182,7 @@ func (bldbw *bleveLevelDBWriter) ExecuteBatch(batch store.KVBatch) error {
 	for k, mergeOps := range b.m.Merges {
 		kb := []byte(k)
 		existingVal, err := bldbw.db.Get(kb, nil)
-		if err == ldberrors.ErrNotFound {
+		if errors.Is(err, ldberrors.ErrNotFound) {
 			existingVal = nil
 		} else if err != nil {
 			return err

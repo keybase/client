@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -108,11 +109,7 @@ func isTimeoutError(err error) bool {
 	if err == nil {
 		return false
 	}
-	if err == context.DeadlineExceeded {
-		return true
-	}
-	if err, ok := err.(libkb.APINetError); ok && err.Err == context.DeadlineExceeded {
-		return true
-	}
-	return false
+	// APINetError implements Unwrap, so errors.Is traverses into its
+	// wrapped cause as well.
+	return errors.Is(err, context.DeadlineExceeded)
 }

@@ -3,6 +3,7 @@ package attachments
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -194,9 +195,9 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res string, err error) {
 	head := make([]byte, 512)
 	_, err = io.ReadFull(src, head)
-	switch err {
-	case nil:
-	case io.EOF, io.ErrUnexpectedEOF:
+	switch {
+	case err == nil:
+	case errors.Is(err, io.EOF), errors.Is(err, io.ErrUnexpectedEOF):
 		return "", nil
 	default:
 		return res, err
