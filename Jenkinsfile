@@ -365,22 +365,28 @@ helpers.rootLinuxNode(env, {
                   "TEMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
                 ]) {
                 ws("client") {
-                  println "Checkout Windows"
-                  println "${env.PATH}"
-                  retry(3) {
-                    checkout scm
-                  }
-
-                  println "Test Windows"
-                  parallel (
-                    test_windows_go: {
-                      // install the updater test binary
-                      dir('go') {
-                        sh "go install github.com/keybase/client/go/updater/test"
-                      }
-                      testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
+                  try {
+                    println "Checkout Windows"
+                    println "${env.PATH}"
+                    retry(3) {
+                      checkout scm
                     }
-                  )
+
+                    println "Test Windows"
+                    parallel (
+                      test_windows_go: {
+                        // install the updater test binary
+                        dir('go') {
+                          sh "go install github.com/keybase/client/go/updater/test"
+                        }
+                        testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
+                      }
+                    )
+                  } finally {
+                    // Go marks module cache files read-only on Windows; strip before
+                    // Jenkins workspace cleanup to avoid AccessDeniedException in 2.555+
+                    bat 'if exist go\\pkg\\mod attrib -R /S /D go\\pkg\\mod 2>nul'
+                  }
                 }}
               }
             }
