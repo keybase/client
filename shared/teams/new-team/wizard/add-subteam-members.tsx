@@ -7,7 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useNavigation} from '@react-navigation/native'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type Props = {
@@ -15,7 +15,7 @@ type Props = {
 }
 
 const AddSubteamMembers = ({wizard: wizardState}: Props) => {
-  const navigation = useTypedNavigation('teamWizardSubteamMembers')
+  const navigation = useNavigation('teamWizardSubteamMembers')
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()

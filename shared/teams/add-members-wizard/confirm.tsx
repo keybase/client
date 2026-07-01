@@ -14,7 +14,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {createNewTeamFromWizard} from '../new-team/wizard/state'
 import {onTeamCreated} from '../create-team-effects'
 import {RPCError} from '@/util/errors'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useNavigation} from '@react-navigation/native'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {
   removeWizardMember,
@@ -36,7 +36,7 @@ const disabledRolesSubteam = {
 }
 
 const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
-  const navigation = useTypedNavigation('teamAddToTeamConfirm')
+  const navigation = useNavigation('teamAddToTeamConfirm')
   const [wizardState, setWizardState] = React.useState(() => ({
     initialWizard,
     wizard: initialWizard,

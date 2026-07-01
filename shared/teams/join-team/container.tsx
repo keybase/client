@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import * as React from 'react'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useNavigation} from '@react-navigation/native'
 
 type OwnProps = {initialTeamname?: string; success?: boolean}
 const getJoinTeamError = (error: unknown) => {
@@ -28,7 +28,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
   const [successTeamName, setSuccessTeamName] = React.useState('')
   const [name, _setName] = React.useState(initialTeamname ?? '')
   const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
-  const navigation = useTypedNavigation('teamJoinTeamDialog')
+  const navigation = useNavigation('teamJoinTeamDialog')
   const navigateUp = C.Router2.navigateUp
   const success = !!successParam
   const handoffToInviteRef = React.useRef(false)

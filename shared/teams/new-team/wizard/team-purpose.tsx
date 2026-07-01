@@ -2,14 +2,14 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {makeNewTeamWizard, type NewTeamWizard} from './state'
 import * as C from '@/constants'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useNavigation} from '@react-navigation/native'
 
 type Props = {
   wizard?: NewTeamWizard
 }
 
 const TeamPurpose = ({wizard: wizardParam}: Props) => {
-  const navigation = useTypedNavigation('teamWizard1TeamPurpose')
+  const navigation = useNavigation('teamWizard1TeamPurpose')
   const navigateAppend = C.Router2.navigateAppend
   const wizard = wizardParam ?? makeNewTeamWizard()
   const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => {

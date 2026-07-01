@@ -152,8 +152,15 @@ export const settingsDesktopTabRoutes = defineRouteMap({
   [Settings.settingsAdvancedTab]: sharedNewRoutes[Settings.settingsAdvancedTab],
   [Settings.settingsArchiveTab]: sharedNewRoutes[Settings.settingsArchiveTab],
   [Settings.settingsChatTab]: sharedNewRoutes[Settings.settingsChatTab],
-  [Settings.settingsCryptoTab]: sharedNewRoutes[Settings.settingsCryptoTab],
-  [Settings.settingsDevicesTab]: sharedNewRoutes[Settings.settingsDevicesTab],
+  // crypto/git/devices only appear in the left nav on tablet (desktop has dedicated tabs);
+  // registering them on desktop would mount them hidden via <Activity> for no reason
+  ...(C.isTablet
+    ? {
+        [Settings.settingsCryptoTab]: sharedNewRoutes[Settings.settingsCryptoTab],
+        [Settings.settingsDevicesTab]: sharedNewRoutes[Settings.settingsDevicesTab],
+        [Settings.settingsGitTab]: sharedNewRoutes[Settings.settingsGitTab],
+      }
+    : {}),
   [Settings.settingsDisplayTab]: sharedNewRoutes[Settings.settingsDisplayTab],
   [Settings.settingsFeedbackTab]: sharedNewRoutes[Settings.settingsFeedbackTab],
   [Settings.settingsFsTab]: sharedNewRoutes[Settings.settingsFsTab],
@@ -163,7 +170,6 @@ export const settingsDesktopTabRoutes = defineRouteMap({
         [Settings.settingsIconsTab]: sharedNewRoutes[Settings.settingsIconsTab],
       }
     : {}),
-  [Settings.settingsGitTab]: sharedNewRoutes[Settings.settingsGitTab],
   [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],
   [Settings.settingsScreenprotectorTab]: sharedNewRoutes[Settings.settingsScreenprotectorTab],
   [Settings.settingsWalletsTab]: sharedNewRoutes[Settings.settingsWalletsTab],

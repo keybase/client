@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useNavigation} from '@react-navigation/native'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
@@ -12,7 +12,7 @@ type Props = {
 }
 
 const CreateSubteams = ({wizard: wizardState}: Props) => {
-  const navigation = useTypedNavigation('teamWizard6Subteams')
+  const navigation = useNavigation('teamWizard6Subteams')
   const navigateAppend = C.Router2.navigateAppend
   const teamname = wizardState.name
   const initialSubteams = wizardState.subteams ?? ['', '', '']

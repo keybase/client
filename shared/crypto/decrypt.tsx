@@ -25,7 +25,6 @@ import {
 } from './helpers'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-import type {RootRouteProps} from '@/router-v2/route-params'
 import {useRoute} from '@react-navigation/core'
 
 const bannerMessage = Crypto.infoMessage.decrypt
@@ -137,7 +136,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
 }
 
 export const DecryptInput = (_props: unknown) => {
-  const {params} = useRoute() as RootRouteProps<'decryptTab'>
+  const {params} = useRoute('decryptTab')
   const controller = useDecryptState(params)
   const navigateAppend = C.Router2.navigateAppend
 
@@ -225,7 +224,7 @@ export const DecryptOutput = ({route}: {route: {params: CommonOutputRouteParams}
 }
 
 export const DecryptIO = () => {
-  const {params} = useRoute() as RootRouteProps<'decryptTab'>
+  const {params} = useRoute('decryptTab')
   const controller = useDecryptState(params)
   return (
     <OperationIO
