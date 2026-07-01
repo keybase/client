@@ -226,7 +226,10 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         )
 
         const navBadges = new Map([...s.navBadges, ...counts])
-        if (!isEqual(navBadges, s.navBadges)) {
+        // Compare against committed state, not the draft: immer 11.1.9 sanitizes
+        // constructor/prototype access on drafts (prototype-pollution fix),
+        // making lodash isEqual throw a proxy-invariant TypeError.
+        if (!isEqual(navBadges, get().navBadges)) {
           s.navBadges = navBadges
         }
         updateWidgetBadge(s)

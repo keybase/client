@@ -489,10 +489,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       }
     },
     setAccounts: a => {
+      // Compare against committed state, not the draft: immer 11.1.9 sanitizes
+      // constructor/prototype access on drafts (prototype-pollution fix), which
+      // makes lodash isEqual throw a proxy-invariant TypeError on a draft.
+      if (isEqual(a, get().configuredAccounts)) return
       set(s => {
-        if (!isEqual(a, s.configuredAccounts)) {
-          s.configuredAccounts = T.castDraft(a)
-        }
+        s.configuredAccounts = T.castDraft(a)
       })
     },
     setAndroidShare: share => {
