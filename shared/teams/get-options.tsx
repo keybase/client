@@ -2,9 +2,7 @@ import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {makeNewTeamWizard} from './new-team/wizard/state'
 import {useTeamsList} from './use-teams-list'
-import {useRoute} from '@react-navigation/native'
-import type {RootRouteProps} from '@/router-v2/route-params'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useRoute, useNavigation} from '@react-navigation/native'
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
@@ -16,9 +14,9 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const route = useRoute() as RootRouteProps<'teamsRoot'>
+  const route = useRoute('teamsRoot')
   const params = route.params
-  const navigation = useTypedNavigation('teamsRoot')
+  const navigation = useNavigation('teamsRoot')
   const filterValue = params.filter ?? ''
   const {teams} = useTeamsList()
   const numTeams = teams.length

@@ -6,9 +6,8 @@ import * as T from '@/constants/types'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import NewChatButton from '@/chat/inbox/new-chat-button'
 import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from '@/chat/inbox/header-portal-state'
-import type {ChatRootRouteParams} from '@/chat/inbox-and-conversation'
 import {useChatTeam} from '@/chat/conversation/team-hooks'
-import {useRoute, type RouteProp} from '@react-navigation/native'
+import {useRoute} from '@react-navigation/native'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useInboxRowsState} from '@/chat/inbox/rows-state'
 import {useUsersState} from '@/stores/users'
@@ -17,16 +16,16 @@ import {navToPath} from '@/constants/fs'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-context'
 import {muteConversation} from '@/chat/conversation/status-actions'
 
-type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
-
 const emptyMeta = Chat.makeConversationMeta()
 const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
 const emptyParticipants: ReadonlyArray<string> = []
 
 const Header = () => {
-  const {params} = useRoute() as ChatRootRoute
+  const {params} = useRoute('chatRoot')
   const username = useCurrentUserState(s => s.username)
-  const infoPanelShowing = !!params.infoPanel
+  // chatRoot params are a union of the split-view and phone inbox variants; only the
+  // split-view variant (where this header renders) carries infoPanel
+  const infoPanelShowing = 'infoPanel' in params && !!params.infoPanel
   const conversationIDKey = params.conversationIDKey ?? Chat.noConversationIDKey
   const {meta, participantInfo} = useInboxMetadataState(
     C.useShallow(s => ({

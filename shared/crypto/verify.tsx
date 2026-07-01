@@ -25,7 +25,6 @@ import {
 } from './helpers'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-import type {RootRouteProps} from '@/router-v2/route-params'
 import {useRoute} from '@react-navigation/core'
 
 const bannerMessage = Crypto.infoMessage.verify
@@ -137,7 +136,7 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
 }
 
 export const VerifyInput = (_props: unknown) => {
-  const {params} = useRoute() as RootRouteProps<'verifyTab'>
+  const {params} = useRoute('verifyTab')
   const controller = useVerifyState(params)
   const navigateAppend = C.Router2.navigateAppend
 
@@ -224,7 +223,7 @@ export const VerifyOutput = ({route}: {route: {params: CommonOutputRouteParams}}
 }
 
 export const VerifyIO = () => {
-  const {params} = useRoute() as RootRouteProps<'verifyTab'>
+  const {params} = useRoute('verifyTab')
   const controller = useVerifyState(params)
   return (
     <OperationIO

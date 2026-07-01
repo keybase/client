@@ -55,7 +55,10 @@ const RecoverPopLeft = () => (
 )
 const RecoverRestartLeft = () => {
   const route = useRoute()
-  const username = (route.params as {username?: string} | undefined)?.username ?? ''
+  const username =
+    route.name === 'recoverPasswordExplainDevice' || route.name === 'recoverPasswordPromptResetPassword'
+      ? route.params.username
+      : ''
   return (
     <Kb.HeaderLeftButton
       autoDetectCanGoBack={true}
@@ -64,14 +67,14 @@ const RecoverRestartLeft = () => {
   )
 }
 const PromptResetAccountLeft = () => {
-  const route = useRoute()
-  const {skipPassword, username} = (route.params as {skipPassword?: boolean; username?: string} | undefined) ?? {}
+  const {params} = useRoute('recoverPasswordPromptResetAccount')
+  const {skipPassword, username} = params
   return (
     <Kb.HeaderLeftButton
       autoDetectCanGoBack={true}
       onPress={() =>
         skipPassword
-          ? startRecoverPassword({replaceRoute: true, username: username ?? ''})
+          ? startRecoverPassword({replaceRoute: true, username})
           : C.Router2.navigateUp()
       }
     />

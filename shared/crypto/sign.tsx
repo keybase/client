@@ -27,7 +27,6 @@ import {
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {RootRouteProps} from '@/router-v2/route-params'
 import {useRoute} from '@react-navigation/core'
 
 const bannerMessage = Crypto.infoMessage.sign
@@ -147,7 +146,7 @@ const SignOutputBanner = ({state}: {state: CommonOutputRouteParams}) => (
 )
 
 export const SignInput = (_props: unknown) => {
-  const {params} = useRoute() as RootRouteProps<'signTab'>
+  const {params} = useRoute('signTab')
   const controller = useSignState(params)
   const blurCBRef = React.useRef(() => {})
   const navigateAppend = C.Router2.navigateAppend
@@ -228,7 +227,7 @@ export const SignOutput = ({route}: {route: {params: CommonOutputRouteParams}}) 
 }
 
 export const SignIO = () => {
-  const {params} = useRoute() as RootRouteProps<'signTab'>
+  const {params} = useRoute('signTab')
   const controller = useSignState(params)
   return (
     <OperationIO

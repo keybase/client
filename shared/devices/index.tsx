@@ -6,9 +6,10 @@ import DeviceRow, {BadgedDeviceIDsContext} from './row'
 import partition from 'lodash/partition'
 import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
+import {settingsDevicesTab} from '@/constants/settings'
 import {useLocalBadging} from '@/util/use-local-badging'
 import {useNotifState} from '@/stores/notifications'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useNavigation} from '@react-navigation/native'
 import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
 import {useEngineActionListener} from '@/engine/action-listener'
 
@@ -30,7 +31,8 @@ const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 function ReloadableDevices() {
-  const navigation = useTypedNavigation('devicesRoot')
+  // mounts as its own tab on desktop but under settings on mobile/tablet
+  const navigation = useNavigation(isMobile ? settingsDevicesTab : 'devicesRoot')
   const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)

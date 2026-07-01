@@ -16,10 +16,7 @@ import {
   useConversationThreadSelector,
 } from '../../thread-context'
 import {useConversationMetadata} from '../../data-hooks'
-import type {ChatRootRouteParams} from '@/chat/inbox-and-conversation-shared'
-import {useRoute, type RouteProp} from '@react-navigation/native'
-
-type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
+import {useRoute} from '@react-navigation/native'
 import type {MessagePopupItems} from './hooks'
 import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
 
@@ -166,8 +163,10 @@ const PopAttachThread = (ownProps: OwnProps) => {
     useConversationAttachmentActions()
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)
-  const {params} = useRoute() as ChatRootRoute
-  const infoPanelShowing = !!params.infoPanel
+  const route = useRoute()
+  // infoPanel only exists on the desktop/tablet split-view chatRoot route
+  const infoPanelShowing =
+    route.name === 'chatRoot' && 'infoPanel' in route.params && !!route.params.infoPanel
   const {meta, participantInfo} = useConversationThreadSelector(
     C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
   )

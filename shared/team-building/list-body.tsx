@@ -8,7 +8,6 @@ import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
 import * as T from '@/constants/types'
 import type * as Types from './types'
-import type {RootRouteProps} from '@/router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
 import {useRoute} from '@react-navigation/native'
@@ -395,9 +394,14 @@ export const ListBody = ({
   onFinishTeamBuilding,
   enterInputCounter,
 }: ListBodyProps) => {
-  const {params} = (useRoute() as RootRouteProps<'peopleTeamBuilder'>)
-  const recommendedHideYourself = params.recommendedHideYourself ?? false
-  const teamID = params.teamID
+  const route = useRoute()
+  // team building opens under a different route name per tab; all share the same params
+  const params =
+    route.name === 'peopleTeamBuilder' || route.name === 'teamsTeamBuilder' || route.name === 'chatNewChat'
+      ? route.params
+      : undefined
+  const recommendedHideYourself = params?.recommendedHideYourself ?? false
+  const teamID = params?.teamID
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
   // modal drops its bottom safe-area edge (see page.tsx) so this list runs
   // edge-to-edge. iOS contentInsetAdjustmentBehavior="automatic" handles the

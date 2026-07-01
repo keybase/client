@@ -24,7 +24,6 @@ import {
 } from '../../thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
-import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
 import {metasReceived, unboxRows} from '@/chat/inbox/metadata'
 
 const useHintText = (p: {
@@ -126,9 +125,10 @@ const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, 
 }
 
 const ConnectedPlatformInput = function ConnectedPlatformInput() {
-  const route = useRoute() as RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>
-  const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
-  const infoPanelShowing = !!(params && typeof params === 'object' && 'infoPanel' in params && params.infoPanel)
+  const route = useRoute()
+  // infoPanel only exists on the desktop/tablet split-view chatRoot route
+  const infoPanelShowing =
+    route.name === 'chatRoot' && 'infoPanel' in route.params && !!route.params.infoPanel
   const uiData = InputState.useConversationInput(
     C.useShallow(s => ({
       editOrdinal: s.editing,

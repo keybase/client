@@ -8,7 +8,7 @@ import {ActivityLevelsProvider, useActivityLevels} from './common'
 import {useTeamsList} from './use-teams-list'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {makeNewTeamWizard} from './new-team/wizard/state'
-import {useTypedNavigation} from '@/util/typed-navigation'
+import {useNavigation} from '@react-navigation/native'
 
 const orderTeams = (
   teams: ReadonlyArray<T.Teams.TeamMeta>,
@@ -74,7 +74,7 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
   }))
 
   const nav = useSafeNavigation()
-  const navigation = useTypedNavigation('teamsRoot')
+  const navigation = useNavigation('teamsRoot')
   const onCreateTeam = () =>
     nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
   const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
