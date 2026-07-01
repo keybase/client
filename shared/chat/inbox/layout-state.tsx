@@ -76,7 +76,10 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
             return
           }
           const layout = _layout as T.RPCChat.UIInboxLayout
-          if (!isEqual(s.layout, layout)) {
+          // Compare against committed state, not the draft: immer 11.1.9 sanitizes
+          // constructor/prototype access on drafts (prototype-pollution fix),
+          // making lodash isEqual throw a proxy-invariant TypeError.
+          if (!isEqual(get().layout, layout)) {
             s.layout = T.castDraft(layout)
           }
           s.hasLoaded = !!layout

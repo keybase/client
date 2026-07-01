@@ -45,7 +45,6 @@ export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from '@
 export {useShallow, useDeep} from '@/util/zustand'
 export {default as useRPC} from '@/util/use-rpc'
 export {produce} from 'immer'
-export * from './immer'
 export {default as featureFlags} from '../util/feature-flags'
 export {useOnMountOnce, useOnUnMountOnce, useLogMount} from './react'
 export {debugWarning} from '@/util/debug-warning'
