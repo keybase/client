@@ -216,10 +216,8 @@
   },
   "resolutions": {
     "**/@types/react": "19.2.17",
-    "**/esbuild": "0.28.1",
-    "**/form-data": "4.0.6",
-    "**/serialize-javascript": "7.0.5",
-    "**/uuid": "11.1.1"
+    "**/serialize-javascript": "7.0.7",
+    "**/uuid": "14.0.1"
   },
   "typecoverage": {
     "detail": true,

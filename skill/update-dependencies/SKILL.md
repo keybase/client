@@ -87,6 +87,18 @@ This runs `yarn audit --json`, dedupes the advisories, and cross-references `yar
 
 After applying fixes: re-run `yarn`, re-run this script to confirm clean, and re-run the dupes check (4a) — resolutions can change the dedupe picture. A forced major bump via `resolutions` runs code the parent package never tested with. "Verify" means: `yarn lint` + `yarn tsc` always; if the forced package sits under runtime app code, also build/run the app; if it sits under tooling (test runners, bundler, patch-package), run that tool once if cheap. Either way, explicitly tell the user which packages were force-bumped so they can watch for fallout.
 
+### 4c. Minimize existing resolutions
+
+Keep the `resolutions` block as small as possible — every entry overrides yarn's normal resolution forever and goes stale silently. Two failure modes of stale entries: (1) the entry is redundant because all requesting ranges now resolve to a safe version on their own; (2) the entry actively **downgrades** a parent's newer pin (e.g. a `**/uuid: 11.1.1` left in place forced `@appium/support`'s exact `uuid@14.0.0` down to 11).
+
+On every dep-update pass, audit each entry (except `**/@types/react`, which is permanent — see Notes):
+
+1. Remove the candidate entries from `package.json`, run `yarn`, then re-run the audit script (4b) and dupes script (4a).
+2. If both come back clean, the entries were redundant — leave them removed.
+3. If an advisory returns, that entry is still needed: restore it, bumped to the **latest** patched version (not just the minimum the advisory names).
+
+Testing removal is one `yarn` run — always do it empirically rather than reasoning from lockfile ranges.
+
 ### 5. Evaluate existing patches
 
 After `yarn`, check whether any `patches/*.patch` files target a package you just updated — the filename encodes the version (e.g. `@legendapp+list+3.0.0-beta.56.patch`). For each such patch:
