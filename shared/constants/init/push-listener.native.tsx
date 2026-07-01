@@ -205,6 +205,14 @@ const getStartupDetailsFromInitialPush = async () => {
     }
   } else if (notification.type === 'chat.newmessage' || notification.type === 'chat.newmessageSilent_2') {
     if (notification.conversationIDKey) {
+      // For chat.newmessage with forUid, route through the pending-notification
+      // subscribers so account-switching logic runs if the notification is for a
+      // different account. Returning startupConversation here would navigate to a
+      // conversation in the wrong account before the switch can happen.
+      if (notification.type === 'chat.newmessage' && notification.forUid) {
+        usePushState.getState().dispatch.setPendingPushNotification(notification)
+        return
+      }
       return {
         startupConversation: notification.conversationIDKey,
         startupPushPayload: notification.unboxPayload,
