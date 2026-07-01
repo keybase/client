@@ -2798,10 +2798,10 @@
   dependencies:
     "@khanacademy/perseus-utils" "2.1.5"
 
-"@legendapp/list@3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@legendapp/list/-/list-3.2.0.tgz#949fce502c4b747e027923ecc33a3fe7d94c71e7"
-  integrity sha512-bN+g/oQYjFz+UAyuBN4cmYJAwdJS1TdNcZZOVlh3+VwCQUWrsg0PH46Mvm76gdZSCYMfoFanPY4dKnILcYEzeg==
+"@legendapp/list@3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@legendapp/list/-/list-3.3.0.tgz#3a007f7d89d62bf1c597ecd92f9f5878420e08f0"
+  integrity sha512-I0sbBNmlniK8t1NXcuH+Bf3hYMwRNldaod2llgL0zCQmZVm8/ewiZz3RKbUzZTpMmqGrtTl/PsbrOjUEDTTlOg==
   dependencies:
     use-sync-external-store "^1.5.0"
 
@@ -7196,10 +7196,10 @@ electron-to-chromium@^1.5.328:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.361.tgz#b993bc7b34ea83f348aa1787a608ecf12e39b909"
   integrity sha512-Q6Hts7N9FnJc5LeGRINFvLhCI9xZmNtTDe5ZbcVezQz7cU4a8Aua3GH1b8J2XY8Al9PF+OCwYqhgsOOheMdvkA==
 
-electron@42.5.2:
-  version "42.5.2"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-42.5.2.tgz#912831f660dbb7f2d0ccd99ed24d65a8fafba5b8"
-  integrity sha512-nEoyciv2iC6gTvCbkQ3eP5tjAOo28wfm0adZaMYTns92MyODHeD1TlrGt4E35d4tJfDlmv+BHOuz0QIkJ63c6w==
+electron@43.0.0:
+  version "43.0.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-43.0.0.tgz#091f2a0442023b94db23a955bf829f25ee9b9f0c"
+  integrity sha512-PV60GsWU6qufhuOhw3n+Yix3WPDcqDtBqE8orbEQGQGHEkgp9o/JCPgb7L4vIL0r1HnfPdqSRtboOTqbDkcFDQ==
   dependencies:
     "@electron-internal/extract-zip" "^1.0.1"
     "@electron/get" "^5.0.0"
