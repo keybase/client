@@ -51,6 +51,9 @@ type Store = T.Immutable<{
   startup: {
     loaded: boolean
     conversation: T.Chat.ConversationIDKey
+    // uid of the account that persisted `conversation` (from ui.routeState2).
+    // Used to avoid replaying a conversation under a different account.
+    conversationUid?: string
     followUser: string
     link: string
     tab?: Tab

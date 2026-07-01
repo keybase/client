@@ -2,6 +2,7 @@ import * as Tabs from '@/constants/tabs'
 import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import type * as UsePushStateType from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
@@ -258,6 +259,13 @@ export const createLinkingConfig = (
       const {tab: startupTab, followUser: startupFollowUser} = startup
       let startupConversation = startup.conversation
       if (!isValidConversationIDKey(startupConversation)) {
+        startupConversation = ''
+      }
+
+      // Only restore a conv that belongs to the logged-in account; see persistRoute
+      // (ui.routeState2 is device-global, so it can hold another account's conv).
+      const {uid: currentUid} = useCurrentUserState.getState()
+      if (startupConversation && startup.conversationUid && startup.conversationUid !== currentUid) {
         startupConversation = ''
       }
 
