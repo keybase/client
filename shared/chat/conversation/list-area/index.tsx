@@ -570,6 +570,15 @@ const NativeConversationList = function NativeConversationList() {
   const listRef = React.useRef<LegendListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
+  // MVCP (hold scroll position) is only needed when the user scrolls UP to load older messages
+  // (a prepend). At the bottom it is not just unnecessary but harmful: enabling it there — or
+  // letting it act during the estimate-vs-real content correction on initial load — re-anchors and
+  // yanks a freshly opened thread to the top. So keep it OFF until the first onStartReached (user
+  // reached the top, a prepend is imminent); until then maintainScrollAtEnd owns the bottom. Keyed
+  // to the conversation so it resets when switching threads.
+  const [mvcpReadyConv, setMvcpReadyConv] = React.useState<string | undefined>(undefined)
+  const mvcpReady = mvcpReadyConv === conversationIDKey
+
   const getItemType = useGetItemType()
 
   // Separator renders inline above each row (same as desktop) so the orange line keys off this
@@ -616,7 +625,16 @@ const NativeConversationList = function NativeConversationList() {
     ],
   }))
 
-  const {onStartReached, onEndReached} = usePagination({containsLatestMessage, messageOrdinals})
+  const {onStartReached: onStartReachedRaw, onEndReached} = usePagination({
+    containsLatestMessage,
+    messageOrdinals,
+  })
+  // Turn on MVCP the first time the user reaches the top (a load-older prepend is imminent), so it
+  // holds scroll position for the prepend without having been active at the bottom on initial load.
+  const onStartReached = React.useCallback(() => {
+    setMvcpReadyConv(conversationIDKey)
+    onStartReachedRaw()
+  }, [conversationIDKey, onStartReachedRaw])
 
   // The bottom clearance for the input bar is reserved statically via contentContainerStyle
   // (listContentStyle) below, so this composer inset is seeded to 0 — otherwise the two stack
@@ -705,6 +723,64 @@ const NativeConversationList = function NativeConversationList() {
     }
   }, [conversationIDKey, centeredOrdinalOrNone, loaded, markInitiallyLoadedThreadAsRead, scrollToCentered])
 
+  // [LISTDBG] TEMP: diagnose initial-load not landing at bottom on tall-row threads. Dumps list
+  // state across the load settle: whether it lands short (gap>0) or drifts as rows measure, plus
+  // where the newest row actually sits (belowVp>0 = parked above) and real per-type avgs vs 120.
+  const dbgDump = React.useCallback(
+    (tag: string) => {
+      const s = listRef.current?.getState() as
+        | {
+            isAtEnd?: boolean
+            scroll?: number
+            scrollLength?: number
+            contentLength?: number
+            end?: number
+            endBuffered?: number
+            isWithinMaintainScrollAtEndThreshold?: boolean
+            getAverageItemSizes?: () => Record<string, {average: number; count: number}>
+            positionAtIndex?: (i: number) => number
+            sizeAtIndex?: (i: number) => number
+          }
+        | undefined
+      let avgs = ''
+      try {
+        const a = s?.getAverageItemSizes?.()
+        if (a) {
+          avgs = Object.entries(a)
+            .map(([k, v]) => `${k}:${Math.round(v.average)}(${v.count})`)
+            .join(' ')
+        }
+      } catch {}
+      const gap = Math.round((s?.contentLength ?? 0) - (s?.scroll ?? 0) - (s?.scrollLength ?? 0))
+      const lastIdx = messageOrdinals.length - 1
+      let lastInfo = ''
+      try {
+        const posLast = Math.round(s?.positionAtIndex?.(lastIdx) ?? -1)
+        const sizeLast = Math.round(s?.sizeAtIndex?.(lastIdx) ?? -1)
+        const vpBottom = Math.round((s?.scroll ?? 0) + (s?.scrollLength ?? 0))
+        lastInfo = `lastIdx=${lastIdx} posLast=${posLast} sizeLast=${sizeLast} lastBottom=${posLast + sizeLast} vpBottom=${vpBottom} belowVp=${posLast + sizeLast - vpBottom}`
+      } catch {}
+      console.log(
+        `[LISTDBG] ${tag} conv=${conversationIDKey.slice(0, 6)} num=${messageOrdinals.length} ` +
+          `isAtEnd=${s?.isAtEnd} withinThresh=${s?.isWithinMaintainScrollAtEndThreshold} ` +
+          `end=${s?.end} endBuf=${s?.endBuffered} ` +
+          `scroll=${Math.round(s?.scroll ?? -1)} scrollLen=${Math.round(s?.scrollLength ?? -1)} ` +
+          `contentLen=${Math.round(s?.contentLength ?? -1)} gap=${gap} ${lastInfo} avgs=[${avgs}]`
+      )
+    },
+    [conversationIDKey, messageOrdinals]
+  )
+  const dbgLoadedRef = React.useRef<string | undefined>(undefined)
+  React.useEffect(() => {
+    if (!loaded) return undefined
+    if (dbgLoadedRef.current === conversationIDKey) return undefined
+    dbgLoadedRef.current = conversationIDKey
+    const ids = [0, 100, 300, 600, 1200, 2000, 3500].map(d => setTimeout(() => dbgDump(`t+${d}`), d))
+    return () => {
+      ids.forEach(clearTimeout)
+    }
+  }, [loaded, conversationIDKey, dbgDump])
+
   const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
   // Reserve bottom space so the newest message clears the sticky input bar, which is pulled up
@@ -754,12 +830,15 @@ const NativeConversationList = function NativeConversationList() {
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             maintainScrollAtEnd={!hasCentered}
-            // Keep the default re-pin threshold (0.1). Widening it makes maintainScrollAtEnd treat
-            // "at the top of a short thread" as near-the-end, so loading older messages (a prepend
-            // from onStartReached) misfires scrollToEnd and yanks the thread to the bottom. Late
-            // row growth (flip result, unfurls) is handled by pushing real heights via setItemSize,
-            // not by widening this window.
-            maintainVisibleContentPosition={{data: true}}
+            // Wide re-pin window so the first render lands at the newest message: initialScrollAtEnd
+            // positions from estimatedItemSize, which underestimates our tall/variable rows, so
+            // without this the thread opens parked above newest. The downside (re-pinning load-older
+            // prepends to the bottom on short threads) is handled separately, not by narrowing this.
+            maintainScrollAtEndThreshold={0.5}
+            // Off until the user first reaches the top (mvcpReady, set in onStartReached) so the
+            // estimate-vs-real content correction on initial load can't yank the thread to the top;
+            // on afterward so load-older prepends hold scroll position.
+            maintainVisibleContentPosition={hasCentered || !mvcpReady ? undefined : {data: true}}
             onStartReached={onStartReached}
             onStartReachedThreshold={2}
             onEndReached={onEndReached}
