@@ -12,8 +12,9 @@ import {ConversationInputProvider, useConversationInput} from './input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 
 let mockRouteParams: Record<string, unknown> = {}
+// useChatThreadRouteParams only honors params on the chat thread routes, so the mock needs a matching name
 jest.mock('@react-navigation/native', () => ({
-  useRoute: () => ({params: mockRouteParams}),
+  useRoute: () => ({name: 'chatConversation', params: mockRouteParams}),
 }))
 
 jest.mock('@/chat/inbox/rows-state', () => ({
