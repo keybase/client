@@ -230,6 +230,34 @@ func (l *LevelDb) ForceOpen() error {
 	return l.doWhileOpenAndNukeIfCorrupted(func() error { return nil })
 }
 
+// levelDbFlushSentinelKey lives in the "pm" table so the db cleaner ignores
+// it. CompactRange only rotates the memtable when the given range overlaps
+// it, so Flush writes this key immediately before compacting its range.
+var levelDbFlushSentinelKey = []byte(levelDbTablePerm + ":ff:flush-sentinel")
+
+// Flush writes the current memtable to disk and rotates the journal. An
+// unclean process kill (routine on iOS) with a non-empty journal forces a
+// journal replay on the next open, or worse a whole-DB recovery if the
+// journal tail is corrupt — both of which block startup. Flushing while
+// entering the background leaves a near-empty journal so the next cold start
+// opens fast. No-op if the DB is not currently open; does not trigger a lazy
+// open.
+func (l *LevelDb) Flush() (err error) {
+	l.RLock()
+	defer l.RUnlock()
+	if l.db == nil {
+		return nil
+	}
+	if err = l.db.Put(levelDbFlushSentinelKey, nil, nil); err != nil {
+		return err
+	}
+	limit := append(append([]byte{}, levelDbFlushSentinelKey...), 0x00)
+	if err = l.db.CompactRange(util.Range{Start: levelDbFlushSentinelKey, Limit: limit}); err != nil {
+		return err
+	}
+	return l.db.Delete(levelDbFlushSentinelKey, nil)
+}
+
 func (l *LevelDb) Stats() (stats string) {
 	if err := l.doWhileOpenAndNukeIfCorrupted(func() (err error) {
 		stats, err = l.db.GetProperty("leveldb.stats")

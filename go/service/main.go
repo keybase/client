@@ -88,6 +88,12 @@ type Service struct {
 	loginSuccess    bool
 	oneshotUsername string
 	oneshotPaperkey string
+
+	// Closed after the first real startup login attempt (offline or online)
+	// finishes, so RPCs that report login state (GetBootstrapStatus) can wait
+	// for it instead of racing a login that runs off the Init path on mobile.
+	initialLoginAttemptDone chan struct{}
+	initialLoginAttemptOnce sync.Once
 }
 
 type Shutdowner interface {
@@ -114,6 +120,8 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
 		httpSrv:          manager.NewSrv(g),
+
+		initialLoginAttemptDone: make(chan struct{}),
 	}
 }
 
@@ -1347,7 +1355,26 @@ func (d *Service) configurePath() {
 // If that fails for any reason, LoginProvisionedDevice is used, which should get
 // around any issue where the session.json file is out of date or missing since the
 // last time the service started.
+// awaitInitialLoginAttempt blocks until the first startup login attempt has
+// finished (however it went), the context is done, or maxWait elapses. Used
+// by RPCs whose answer depends on login state so they don't race the login
+// that runs off the Init path on mobile.
+func (d *Service) awaitInitialLoginAttempt(m libkb.MetaContext, maxWait time.Duration) {
+	select {
+	case <-d.initialLoginAttemptDone:
+	case <-m.Ctx().Done():
+		m.Debug("awaitInitialLoginAttempt: context done: %v", m.Ctx().Err())
+	case <-time.After(maxWait):
+		m.Debug("awaitInitialLoginAttempt: gave up after %v", maxWait)
+	}
+}
+
 func (d *Service) tryLogin(ctx context.Context, mode libkb.LoginAttempt) {
+	if mode != libkb.LoginAttemptNone {
+		// Signal on every exit path; sync.Once makes repeat calls no-ops.
+		defer d.initialLoginAttemptOnce.Do(func() { close(d.initialLoginAttemptDone) })
+	}
+
 	d.loginAttemptMu.Lock()
 	defer d.loginAttemptMu.Unlock()
 
