@@ -436,7 +436,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         ref={wrapperRef}
       >
         <LegendList
-          key={conversationIDKey}
+          dataKey={conversationIDKey}
           ref={listRef as React.Ref<LegendListRef>}
           data={(layoutReady ? messageOrdinals : noOrdinals) as unknown as T.Chat.Ordinal[]}
           renderItem={renderItem}
@@ -451,7 +451,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
           maintainScrollAtEnd={
-            centeredOrdinal !== undefined ? false : {on: {dataChange: true, itemLayout: true}}
+            centeredOrdinal !== undefined
+              ? false
+              : {on: {dataChange: true, footerLayout: true, itemLayout: true}}
           }
           maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true}}
           onLoad={onLoad}
@@ -804,7 +806,7 @@ const NativeConversationList = function NativeConversationList() {
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           {listReady ? (
           <KeyboardAwareLegendList
-            key={conversationIDKey}
+            dataKey={conversationIDKey}
             testID={TestIDs.CHAT_MESSAGE_LIST}
             ref={listRef as never}
             data={messageOrdinals as T.Chat.Ordinal[]}
