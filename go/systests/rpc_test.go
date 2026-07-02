@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
@@ -41,6 +42,10 @@ func (f *fakeConnectivityMonitor) Set(r libkb.ConnectivityMonitorResult) {
 	f.Lock()
 	defer f.Unlock()
 	f.res = r
+}
+
+func (f *fakeConnectivityMonitor) ConnectedSince(ctx context.Context) time.Time {
+	return time.Time{}
 }
 
 func (f *fakeConnectivityMonitor) CheckReachability(ctx context.Context) error {

@@ -6,6 +6,7 @@ package service
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -79,6 +80,10 @@ func (h *reachability) check(ctx context.Context) (k keybase1.Reachability) {
 	}
 	h.setReachability(k)
 	return k
+}
+
+func (h *reachability) ConnectedSince(ctx context.Context) time.Time {
+	return h.gh.connectedSince()
 }
 
 func (h *reachability) IsConnected(ctx context.Context) libkb.ConnectivityMonitorResult {

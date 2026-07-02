@@ -60,6 +60,12 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
 
     self.didLaunchSetupBefore()
 
+    // Tell Go the real app state right after init. Go defaults to foreground,
+    // so a background launch (silent push, background fetch) would otherwise
+    // look foregrounded until didLaunchSetupAfter runs — long enough to join
+    // a coin flip it can't finish.
+    self.notifyAppState(application)
+
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
       let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
       KbSetInitialNotification(notificationDict)
