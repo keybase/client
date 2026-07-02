@@ -351,6 +351,10 @@ func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClie
 func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (res keybase1.BootstrapStatus, err error) {
 	m := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer m.Trace("GetBootstrapStatus", &err)()
+	// The GUI gates its first render on this RPC. Wait out the startup login
+	// attempt (which can be slow: leveldb open/recovery, keychain reads) so
+	// we don't report loggedIn=false while it is still in flight.
+	h.svc.awaitInitialLoginAttempt(m, 30*time.Second)
 	eng := engine.NewBootstrap(h.G())
 	if err = engine.RunEngine2(m, eng); err != nil {
 		return res, err

@@ -417,28 +417,41 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	captureStderr(logFile)
 
 	kbSvc = service.NewService(kbCtx, false)
-	if err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline); err != nil {
+	// LoginAttemptNone: the login attempt happens inside RunBackgroundOperations
+	// below, off the Init path. It can block for seconds (leveldb
+	// open/recovery, keychain reads) and Init runs on the native main thread;
+	// GetBootstrapStatus waits for the attempt so the GUI doesn't see a stale
+	// logged-out state.
+	phase := time.Now()
+	if err = kbSvc.StartLoopbackServer(libkb.LoginAttemptNone); err != nil {
 		log("failed to start loopback: %s", err)
 		return err
 	}
+	log("Go: Init: loopback server up: %s", time.Since(phase))
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
+	phase = time.Now()
 	if err = kbSvc.SetupCriticalSubServices(); err != nil {
 		log("failed subservices setup: %s", err)
 		return err
 	}
+	log("Go: Init: critical subservices up: %s", time.Since(phase))
 	kbSvc.SetupChatModules(nil)
 	if installReferrerListener != nil {
 		kbSvc.SetInstallReferrerListener(newInstallReferrerListener(installReferrerListener))
 	}
-	kbSvc.RunBackgroundOperations(uir)
 	kbChatCtx = kbSvc.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 	if shareIntentDonator != nil {
 		kbChatCtx.ShareIntentDonator = shareIntentDonatorAdapter{wrapped: shareIntentDonator}
 	}
+	// Runs the startup login attempt and then the long-lived background
+	// tasks. Off the Init thread so a slow login can't hold up app launch;
+	// must start after the chat context fields above are set since chat
+	// modules read them once started.
+	go kbSvc.RunBackgroundOperations(uir)
 
 	logs := status.Logs{
 		Service: config.GetLogFile(),
@@ -739,6 +752,35 @@ func SetAppStateBackground() {
 	}
 	defer kbCtx.Trace("SetAppStateBackground", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	flushLocalDbs()
+}
+
+// flushLocalDbs flushes the leveldb memtables in the background. An unclean
+// kill while suspended (routine on iOS) with a non-empty journal forces a
+// journal replay — or a whole-DB recovery — during the next launch, which is
+// the main cold-start cost. Called when the app heads to the background so
+// the journals are empty if the OS kills the process.
+func flushLocalDbs() {
+	if kbCtx == nil {
+		return
+	}
+	flush := func(name string, db *libkb.JSONLocalDb) {
+		if db == nil {
+			return
+		}
+		ldb, ok := db.GetEngine().(*libkb.LevelDb)
+		if !ok {
+			return
+		}
+		begin := time.Now()
+		if err := ldb.Flush(); err != nil {
+			log("Go: flushLocalDbs: %s flush error: %v", name, err)
+			return
+		}
+		log("Go: flushLocalDbs: %s flushed in %s", name, time.Since(begin))
+	}
+	go flush("LocalDb", kbCtx.LocalDb)
+	go flush("LocalChatDb", kbCtx.LocalChatDb)
 }
 
 func SetAppStateInactive() {
@@ -848,6 +890,7 @@ func AppWillExit(pusher PushNotifier) {
 		pushPendingMessageFailure(obrs, pusher)
 	}
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	flushLocalDbs()
 }
 
 // AppDidEnterBackground notifies the service that the app is in the background
@@ -878,6 +921,7 @@ func AppDidEnterBackground() bool {
 	if stayRunning {
 		kbCtx.Log.Debug("AppDidEnterBackground: setting background active")
 		kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+		flushLocalDbs()
 		return true
 	}
 	SetAppStateBackground()
