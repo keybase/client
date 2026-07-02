@@ -327,9 +327,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
 	shareIntentDonator ShareIntentDonator,
 ) (err error) {
-	// better crash logging
-	os.Setenv("GOTRACEBACK", "crash")
-	debug.SetTraceback("all")
+	// Dump all goroutines on a fatal error; the GOTRACEBACK env var can't be
+	// used here since the runtime reads it before Init runs.
+	debug.SetTraceback("crash")
 	captureStderr(logFile)
 
 	begin := time.Now()
@@ -342,9 +342,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		log("Go: Init complete: %v err: %v", time.Since(begin), err)
 	}()
 
-	// Buffer for the conn.Read. Size must stay divisible by 3 so we don't
-	// split a b64 encode across a payload boundary if we go over the buffer
-	// size.
+	// Buffer for the conn.Read. Bytes cross the bridge raw and the
+	// framed-msgpack transport tolerates arbitrary chunking, so the size is
+	// just a throughput knob.
 	buffer = make([]byte, 300*1024)
 
 	var perfLogFile, ekLogFile, guiLogFile string

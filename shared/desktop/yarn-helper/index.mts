@@ -38,14 +38,12 @@ const commands: {[key: string]: Command} = {
   },
   postinstall: {
     code: () => {
-      fixModules()
       syncLocalRNModules()
       checkFSEvents()
       clearTSCache()
       clearAndroidBuild()
       getMsgPack()
       patch()
-      patchIosKBLib()
     },
     help: '',
   },
@@ -82,21 +80,6 @@ const checkFSEvents = () => {
       )
     }
   }
-}
-
-function fixModules() {
-  // storybook uses react-docgen which really cr*ps itself with flow
-  // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
-  const root = path.resolve(__dirname, '..', '..', 'node_modules', 'babel-plugin-react-docgen')
-
-  try {
-    fs.mkdirSync(root)
-  } catch {}
-
-  try {
-    fs.writeFileSync(path.join(root, 'package.json'), `{"main": "index.js"}`)
-    fs.writeFileSync(path.join(root, 'index.js'), `module.exports = function(){return {};};`)
-  } catch {}
 }
 
 const syncLocalRNModules = () => {
@@ -217,32 +200,6 @@ const getMsgPack = () => {
         exec(`cd node_modules ; rm .cache/${file}`)
         exec(downloadMP)
         exec(checkAndUntar)
-      }
-    }
-  }
-}
-
-const patchIosKBLib = () => {
-  if (process.platform === 'darwin') {
-    const prefixes = [
-      'ios/keybasego.xcframework/ios-arm64',
-      'ios/keybasego.xcframework/ios-arm64_x86_64-simulator',
-    ]
-    const files = ['Keybase.objc.h', 'Universe.objc.h']
-    for (const prefix of prefixes) {
-      for (const file of files) {
-        const paths = [
-          `${prefix}/Keybasego.framework/Versions/Current/Headers/${file}`,
-          `${prefix}/Keybasego.framework/Headers/${file}`,
-        ]
-        for (const path of paths) {
-          try {
-            console.log('Patching go libs', path)
-            exec(`sed -i -e 's/@import Foundation;/#include <Foundation\\/Foundation.h>/' ${path}`)
-          } catch {
-            console.log('Patching skipped')
-          }
-        }
       }
     }
   }

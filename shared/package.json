@@ -43,7 +43,7 @@
     "gen:icon-constants": "yarn run _helper update:icon-constants",
     "gen:protocol": "cd ../protocol && make clean && make",
     "help": "yarn run _helper help",
-    "ios:gobuild": "./react-native/gobuild.sh ios && yarn postinstall",
+    "ios:gobuild": "./react-native/gobuild.sh ios",
     "ios:jsbundle": "mkdir -p ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output ios/dist/main.jsbundle --sourcemap-output ios/dist/main.jsbundle.sourcemap",
     "ios:pod:clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local; rm -rf ../rnmodules/react-native-kb/node_modules",
     "ios:pod:install": "cd ios; pod install --repo-update",
