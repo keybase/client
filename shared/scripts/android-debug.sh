@@ -11,8 +11,15 @@ cd "$(dirname "$0")/.." # shared/
 PKG=io.keybase.ossifrage
 APK=android/app/build/outputs/apk/debug/app-debug.apk
 
+# Build only the connected device's ABI (much faster). Falls back to the full
+# reactNativeArchitectures list from gradle.properties if no device answers.
+abi=$(adb shell getprop ro.product.cpu.abi 2>/dev/null | tr -d '[:space:]' || true)
+if [ -n "$abi" ]; then
+	echo "Building for device ABI: $abi"
+fi
+
 # Build debug APK.
-(cd android && ./gradlew :app:assembleDebug)
+(cd android && ./gradlew :app:assembleDebug ${abi:+-PreactNativeArchitectures="$abi"})
 
 # Install on the connected device/emulator.
 adb install -r -d "$APK"
