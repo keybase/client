@@ -316,7 +316,7 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 ) {
 	startOnce.Do(func() {
 		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS, shareIntentDonator); err != nil {
-			kbCtx.Log.Errorf("Init error: %s", err)
+			log("Init error: %s", err)
 		}
 	})
 }
@@ -342,18 +342,10 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		log("Go: Init complete: %v err: %v", time.Since(begin), err)
 	}()
 
-	if isIOS {
-		// buffer of bytes
-		buffer = make([]byte, 300*1024)
-	} else {
-		const targetBufferSize = 300 * 1024
-		// bufferSize must be divisible by 3 to ensure that we don't split
-		// our b64 encode across a payload boundary if we go over our buffer
-		// size.
-		const bufferSize = targetBufferSize - (targetBufferSize % 3)
-		// buffer for the conn.Read
-		buffer = make([]byte, bufferSize)
-	}
+	// Buffer for the conn.Read. Size must stay divisible by 3 so we don't
+	// split a b64 encode across a payload boundary if we go over the buffer
+	// size.
+	buffer = make([]byte, 300*1024)
 
 	var perfLogFile, ekLogFile, guiLogFile string
 	if logFile != "" {
@@ -366,15 +358,6 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		log("Go: Using guilog: %s", guiLogFile)
 	}
 	libkb.IsIPad = isIPad
-
-	// Reduce OS threads on mobile so we don't have too much contention with JS thread
-	// oldProcs := runtime.GOMAXPROCS(0)
-	// newProcs := oldProcs - 2
-	// if newProcs <= 0 {
-	// 	newProcs = 1
-	// }
-	// runtime.GOMAXPROCS(newProcs)
-	// fmt.Printf("Go: setting GOMAXPROCS to: %d previous: %d\n", newProcs, oldProcs)
 
 	startTrace(logFile)
 
@@ -499,7 +482,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 }
 
 func LogToService(str string) {
-	kbCtx.Log.Info(str)
+	log("%s", str)
 }
 
 type serviceCn struct{}
@@ -530,6 +513,9 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 // LogSend sends a log to Keybase
 func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
+	if !isInited() {
+		return "", errors.New("LogSend: service not initialized")
+	}
 	env := kbCtx.Env
 	logSendContext.UID = env.GetUID()
 	logSendContext.InstallID = env.GetInstallID()
@@ -556,6 +542,9 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 
 // WriteArr sends raw bytes encoded msgpack rpc payload from the native layer (iOS and Android)
 func WriteArr(b []byte) (err error) {
+	// The copy is load-bearing: gomobile only pins b's backing memory for
+	// the duration of this call, and the loopback conn's Write retains the
+	// slice instead of copying it.
 	bytes := make([]byte, len(b))
 	copy(bytes, b)
 	defer func() { err = flattenError(err) }()
@@ -589,10 +578,8 @@ func WriteArr(b []byte) (err error) {
 	return nil
 }
 
-const bufferSize = 1024 * 1024
-
-// buffer for the conn.Read
-var buffer = make([]byte, bufferSize)
+// buffer for the conn.Read; allocated in Init.
+var buffer []byte
 
 // ReadArr is a blocking read for msgpack rpc data.
 // It is called serially by the mobile run loops.
@@ -618,7 +605,11 @@ func ReadArr() (data []byte, err error) {
 	}
 
 	n, err := currentConn.Read(buffer)
-	if n > 0 && err == nil {
+	if n > 0 {
+		// Deliver data even if err != nil (allowed by the net.Conn
+		// contract); the error will surface on the next call. Returning a
+		// view of the shared buffer is safe because gomobile copies the
+		// bytes across the boundary and ReadArr is called serially.
 		return buffer[0:n], nil
 	}
 
@@ -694,17 +685,22 @@ func Reset() error {
 // jsReadyCh is closed once and stays closed, so repeated engine resets are no-ops.
 func NotifyJSReady() {
 	jsReadyOnce.Do(func() {
+		connMutex.Lock()
+		currentConn := conn
+		connMutex.Unlock()
 		log("Go: JS signaled ready, unblocking RPC communication appState=%s conn=%s",
-			appStateForLog(), describeConn(conn))
+			appStateForLog(), describeConn(currentConn))
 		close(jsReadyCh)
 	})
 }
 
 // ForceGC Forces a gc
 func ForceGC() {
-	log("Flushing global caches")
-	kbCtx.FlushCaches()
-	log("Done flushing global caches")
+	if kbCtx != nil {
+		log("Flushing global caches")
+		kbCtx.FlushCaches()
+		log("Done flushing global caches")
+	}
 	runtime.GC()
 	log("Starting force gc")
 	debug.FreeOSMemory()
@@ -795,22 +791,30 @@ func BackgroundSync() string {
 		return msg
 	}
 
+	// Flip to BACKGROUNDACTIVE only if still BACKGROUND, so a foreground
+	// transition that lands after the check above isn't overwritten. If the
+	// check fails, NextUpdate below fires immediately and we bail out.
 	nextState := keybase1.MobileAppState_BACKGROUNDACTIVE
-	kbCtx.MobileAppState.Update(nextState)
-	resultCh := make(chan string, 1)
-	go func() {
-		select {
-		case state := <-kbCtx.MobileAppState.NextUpdate(&nextState):
-			// if literally anything happens, let's get out of here
-			msg := fmt.Sprintf("bailing out early, appstate change: %v", state)
-			kbCtx.Log.Debug("BackgroundSync: %s", msg)
-			resultCh <- msg
-		case <-time.After(10 * time.Second):
-			kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-			resultCh <- "completed 10s window"
-		}
-	}()
-	return <-resultCh
+	kbCtx.MobileAppState.UpdateWithCheck(nextState, func(s keybase1.MobileAppState) bool {
+		return s == keybase1.MobileAppState_BACKGROUND
+	})
+	select {
+	case state := <-kbCtx.MobileAppState.NextUpdate(&nextState):
+		// if literally anything happens, let's get out of here
+		msg := fmt.Sprintf("bailing out early, appstate change: %v", state)
+		kbCtx.Log.Debug("BackgroundSync: %s", msg)
+		return msg
+	case <-time.After(10 * time.Second):
+		// Drop back to BACKGROUND only if we still hold BACKGROUNDACTIVE;
+		// the app may have foregrounded between the timer firing and this
+		// update, and clobbering FOREGROUND would cancel live RPCs and
+		// strand the service in BACKGROUND while the user is in the app.
+		kbCtx.MobileAppState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUND,
+			func(s keybase1.MobileAppState) bool {
+				return s == keybase1.MobileAppState_BACKGROUNDACTIVE
+			})
+		return "completed 10s window"
+	}
 }
 
 // pushPendingMessageFailure sends at most one notification that a message
@@ -899,6 +903,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	// Poll active deliveries in case we can shutdown early
 	beginTime := libkb.ForceWallClock(time.Now())
 	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
 	appState := kbCtx.MobileAppState.State()
 	if appState != keybase1.MobileAppState_BACKGROUNDACTIVE {
 		kbCtx.Log.Debug("AppBeginBackgroundTask: not in background mode, early out")
@@ -967,6 +972,9 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 
 func startTrace(logFile string) {
 	if os.Getenv("KEYBASE_TRACE_MOBILE") != "1" {
+		return
+	}
+	if logFile == "" {
 		return
 	}
 
