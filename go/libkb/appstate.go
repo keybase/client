@@ -173,6 +173,17 @@ func (a *MobileNetState) State() keybase1.MobileNetworkState {
 
 // --------------------------------------------------
 
+const (
+	// wakeWatchInterval is how often the wake watcher samples the wall clock.
+	wakeWatchInterval = 10 * time.Second
+	// wakeWatchGap is the wall-clock gap between samples that we take to mean
+	// the machine was asleep.
+	wakeWatchGap = 30 * time.Second
+	// wakeQuarantine is how long after an unexplained wake AwakeAndUnlocked
+	// keeps reporting false.
+	wakeQuarantine = 60 * time.Second
+)
+
 type DesktopAppState struct {
 	Contextified
 	sync.Mutex
@@ -180,18 +191,62 @@ type DesktopAppState struct {
 	suspended        bool
 	locked           bool
 	updateSuspendChs []chan bool
+	wakeWatcherOnce  sync.Once
+	wakeWatcherStop  chan struct{}
+	// wokeAt is the last time the wake watcher saw the machine come back from
+	// sleep without a corresponding power event (dark wake, lost "suspend"
+	// event, or no GUI connected to send one).
+	wokeAt time.Time
 }
 
 func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
-	d := &DesktopAppState{Contextified: NewContextified(g)}
+	d := &DesktopAppState{Contextified: NewContextified(g), wakeWatcherStop: make(chan struct{})}
 	g.PushShutdownHook(func(mctx MetaContext) error {
 		d.Lock()
 		defer d.Unlock()
 		// reset power state on shutdown
 		d.resetLocked()
+		select {
+		case <-d.wakeWatcherStop:
+		default:
+			close(d.wakeWatcherStop)
+		}
 		return nil
 	})
 	return d
+}
+
+// StartWakeWatcher spawns a loop that detects the machine sleeping when no
+// "suspend" power event told us about it: the event lost a race with sleep,
+// or no Electron GUI is connected to send power events at all. Detection is
+// a wall-clock gap between samples; anything past wakeWatchGap means we were
+// suspended.
+func (a *DesktopAppState) StartWakeWatcher() {
+	a.wakeWatcherOnce.Do(func() {
+		go a.wakeWatchLoop()
+	})
+}
+
+func (a *DesktopAppState) wakeWatchLoop() {
+	// Round(0) strips the monotonic reading so Sub measures wall-clock time,
+	// which keeps advancing across sleeps regardless of platform monotonic
+	// clock behavior.
+	last := time.Now().Round(0)
+	for {
+		select {
+		case <-time.After(wakeWatchInterval):
+		case <-a.wakeWatcherStop:
+			return
+		}
+		now := time.Now().Round(0)
+		if gap := now.Sub(last); gap > wakeWatchGap {
+			a.G().Log.Debug("DesktopAppState: wake with no power event, gap %v", gap)
+			a.Lock()
+			a.wokeAt = now
+			a.Unlock()
+		}
+		last = now
+	}
 }
 
 func (a *DesktopAppState) NextSuspendUpdate(lastState *bool) chan bool {
@@ -218,12 +273,16 @@ func (a *DesktopAppState) Update(mctx MetaContext, event string, provider rpc.Tr
 		a.suspended = true
 	case "resume":
 		a.suspended = false
+		// a power event arrived for this wake, so it's a real resume with the
+		// GUI alive, not a dark wake.
+		a.wokeAt = time.Time{}
 	case "shutdown":
 	case "lock-screen":
 		a.locked = true
 	case "unlock-screen":
 		a.suspended = false
 		a.locked = false
+		a.wokeAt = time.Time{}
 	}
 	for _, ch := range a.updateSuspendChs {
 		ch <- a.suspended
@@ -247,7 +306,17 @@ func (a *DesktopAppState) Disconnected(provider rpc.Transporter) {
 func (a *DesktopAppState) AwakeAndUnlocked(mctx MetaContext) bool {
 	a.Lock()
 	defer a.Unlock()
-	return !a.suspended && !a.locked
+	if a.suspended || a.locked {
+		return false
+	}
+	// A recent wake with no power event is either a dark wake or a machine
+	// with nothing reporting power state; don't claim awake until it has
+	// stayed up for a while.
+	if !a.wokeAt.IsZero() && time.Since(a.wokeAt) < wakeQuarantine {
+		mctx.Debug("DesktopAppState: in post-wake quarantine, woke %v ago", time.Since(a.wokeAt))
+		return false
+	}
+	return true
 }
 
 func (a *DesktopAppState) resetLocked() {

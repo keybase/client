@@ -214,6 +214,9 @@ type gregorHandler struct {
 	firstConnectMu sync.Mutex
 	firstConnect   bool
 
+	connectedAtMu sync.Mutex
+	connectedAt   time.Time
+
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
 	pushStateFilter func(m gregor.Message) bool
@@ -894,9 +897,22 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	// No longer first connect if we are now connected
 	g.chatLog.Debug(ctx, "setting first connect to false")
 	g.setFirstConnect(false)
+	g.setConnectedAt(time.Now())
 	g.chatLog.Debug(ctx, "OnConnect complete")
 
 	return nil
+}
+
+func (g *gregorHandler) setConnectedAt(t time.Time) {
+	g.connectedAtMu.Lock()
+	defer g.connectedAtMu.Unlock()
+	g.connectedAt = t
+}
+
+func (g *gregorHandler) connectedSince() time.Time {
+	g.connectedAtMu.Lock()
+	defer g.connectedAtMu.Unlock()
+	return g.connectedAt
 }
 
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
@@ -918,6 +934,7 @@ func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	ctx = libkb.WithLogTag(ctx, "GRGRONDISC")
 	g.chatLog.Debug(ctx, "disconnected: %v", status)
+	g.setConnectedAt(time.Time{})
 
 	// Alert chat syncer that we are now disconnected
 	g.G().Syncer.Disconnected(ctx)
@@ -1354,6 +1371,7 @@ func (g *gregorHandler) Shutdown(ctx context.Context) {
 	g.conn.Shutdown()
 	g.conn = nil
 	g.cli = nil
+	g.setConnectedAt(time.Time{})
 }
 
 func (g *gregorHandler) Reset() error {

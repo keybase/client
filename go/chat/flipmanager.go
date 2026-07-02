@@ -221,6 +221,11 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	go m.notificationLoop(shutdownCh)
 	go m.loadGameLoop(shutdownCh)
 	go m.maybeInjectLoop(shutdownCh)
+	if !m.G().IsMobileAppType() {
+		// so ShouldCommit can tell a dark wake or a missed suspend event from
+		// a machine that is really awake
+		m.G().DesktopAppState.StartWakeWatcher()
+	}
 }
 
 func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
@@ -1568,13 +1573,27 @@ func (m *FlipManager) Me() flip.UserDevice {
 	}
 }
 
+// minFlipConnAge is how long the gregor connection must have been up before
+// this device will join someone else's flip.
+const minFlipConnAge = 30 * time.Second
+
 func (m *FlipManager) ShouldCommit(ctx context.Context) bool {
-	if !m.G().IsMobileAppType() {
-		should := m.G().DesktopAppState.AwakeAndUnlocked(m.G().MetaContext(ctx))
-		if !should {
-			m.Debug(ctx, "ShouldCommit -> false")
+	if m.G().IsMobileAppType() {
+		return true
+	}
+	if !m.G().DesktopAppState.AwakeAndUnlocked(m.G().MetaContext(ctx)) {
+		m.Debug(ctx, "ShouldCommit -> false (not awake and unlocked)")
+		return false
+	}
+	// A gregor connection this fresh usually means the machine just woke up
+	// or reconnected (dark wakes included), and may vanish again before it
+	// can reveal; sit this game out. Zero means no connection-age data
+	// available, which is not grounds for a veto.
+	if cs := m.G().ConnectivityMonitor.ConnectedSince(ctx); !cs.IsZero() {
+		if age := m.clock.Now().Sub(cs); age < minFlipConnAge {
+			m.Debug(ctx, "ShouldCommit -> false (gregor connection too young: %v)", age)
+			return false
 		}
-		return should
 	}
 	return true
 }

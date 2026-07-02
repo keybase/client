@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
@@ -124,6 +125,10 @@ type OfflineConnectivityMonitor struct{}
 
 func (s OfflineConnectivityMonitor) IsConnected(ctx context.Context) libkb.ConnectivityMonitorResult {
 	return libkb.ConnectivityMonitorNo
+}
+
+func (s OfflineConnectivityMonitor) ConnectedSince(ctx context.Context) time.Time {
+	return time.Time{}
 }
 
 func (s OfflineConnectivityMonitor) CheckReachability(ctx context.Context) error {
