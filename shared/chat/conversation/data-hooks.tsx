@@ -15,7 +15,7 @@ import {loadThreadNonblock, markConversationRead} from './thread-rpc'
 import {setConversationOrangeLine} from './orange-line-context'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
-const emptyParticipantInfo: T.Chat.ParticipantInfo = {
+export const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   all: [],
   contactName: new Map(),
   name: [],
