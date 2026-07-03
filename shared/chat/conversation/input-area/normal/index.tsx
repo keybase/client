@@ -207,7 +207,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const updateDraftRaw = (text: string) => {
     // Immediately update local meta.draft so switching back to this thread
     // before the async unbox completes won't re-inject the old stale draft.
-    metasReceived([{...meta, draft: text}])
+    // Merges from the current meta (same inbox version), so force past gating.
+    metasReceived([{...meta, draft: text}], undefined, {force: true})
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
         conversationID: convoID,

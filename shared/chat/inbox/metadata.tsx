@@ -55,16 +55,21 @@ export const updateInboxConversationMeta = (
   if (!oldMeta) {
     return
   }
-  metasReceived([
-    {
-      ...oldMeta,
-      ...partial,
-      rekeyers: partial.rekeyers ? new Set(partial.rekeyers) : oldMeta.rekeyers,
-      resetParticipants: partial.resetParticipants
-        ? new Set(partial.resetParticipants)
-        : oldMeta.resetParticipants,
-    },
-  ])
+  // Already merged from the current meta, so bypass version gating.
+  metasReceived(
+    [
+      {
+        ...oldMeta,
+        ...partial,
+        rekeyers: partial.rekeyers ? new Set(partial.rekeyers) : oldMeta.rekeyers,
+        resetParticipants: partial.resetParticipants
+          ? new Set(partial.resetParticipants)
+          : oldMeta.resetParticipants,
+      },
+    ],
+    undefined,
+    {force: true}
+  )
 }
 
 export const metaReceivedError = (
@@ -90,7 +95,9 @@ export const metaReceivedError = (
   if (!meta) {
     return
   }
-  metasReceived([meta])
+  // Error metas share the prior inbox version but flip trustedState to 'error';
+  // gating would swallow that, so force the overwrite.
+  metasReceived([meta], undefined, {force: true})
   if (participants) {
     participantInfoReceived(conversationIDKey, participants, meta)
   }
@@ -111,18 +118,28 @@ export const participantInfoReceived = (
 
 export const metasReceived = (
   metas: ReadonlyArray<T.Chat.ConversationMeta>,
-  removals?: ReadonlyArray<T.Chat.ConversationIDKey>
+  removals?: ReadonlyArray<T.Chat.ConversationIDKey>,
+  options?: {force?: boolean}
 ) => {
+  const force = options?.force ?? false
+  // Version-gate against the currently stored meta so a stale-version update
+  // can't clobber newer data (previously done by the thread store). Compute
+  // against getState() (not the immer draft) so updateMeta never sees a proxy.
+  const current = useInboxMetadataState.getState().metas
+  const nextMetas = metas.map(m => {
+    const old = force ? undefined : current.get(m.conversationIDKey)
+    return old ? Meta.updateMeta(old, m) : m
+  })
   useInboxMetadataState.setState(s => {
     removals?.forEach(r => {
       s.metas.delete(r)
       s.participants.delete(r)
     })
-    metas.forEach(m => {
-      s.metas.set(m.conversationIDKey, T.castDraft(m))
+    nextMetas.forEach(next => {
+      s.metas.set(next.conversationIDKey, T.castDraft(next))
     })
   })
-  syncInboxRowsFromMetas(metas, removals)
+  syncInboxRowsFromMetas(nextMetas, removals)
 }
 
 const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>) => {
@@ -591,7 +608,8 @@ export const onChatInboxSynced = async (
       }, [])
       const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
       if (metas.length || removals?.length) {
-        metasReceived(metas, removals)
+        // Incremental unverified sync is authoritative for these convs; force past gating.
+        metasReceived(metas, removals, {force: true})
       }
 
       forceUnboxRowsForService(
