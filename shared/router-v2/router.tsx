@@ -108,6 +108,17 @@ type LeftTabNavigatorType = {
   }>
 }
 
+// Sticky: once the handshake finishes we never go back to the splash, even if it
+// restarts later (engine reconnect); the disconnected overlay covers that case.
+const useHandshakeEverDone = () => {
+  const everDoneRef = React.useRef(false)
+  return useDaemonState(s => {
+    const done = everDoneRef.current || s.handshakeState === 'done'
+    everDoneRef.current = done
+    return done
+  })
+}
+
 let desktopTab: LeftTabNavigatorType | undefined
 const desktopTabComponents: Record<string, React.ComponentType> = {}
 let DesktopRootComponent: React.ComponentType
@@ -187,35 +198,18 @@ if (!isMobile) {
     title: '',
   } satisfies NativeStackNavigationOptions
 
-  const useIsLoadingDesktop = () => {
-    const everLoadedRef = React.useRef(false)
-    return !useDaemonState(s => {
-      const loaded = everLoadedRef.current || s.handshakeState === 'done'
-      everLoadedRef.current = loaded
-      return loaded
-    })
-  }
+  const useIsLoadingDesktop = () => !useHandshakeEverDone()
 
   const useIsLoggedInDesktop = () => {
-    const everLoadedRef = React.useRef(false)
-    const loggedInLoaded = useDaemonState(s => {
-      const loaded = everLoadedRef.current || s.handshakeState === 'done'
-      everLoadedRef.current = loaded
-      return loaded
-    })
+    const loaded = useHandshakeEverDone()
     const loggedIn = useConfigState(s => s.loggedIn)
-    return loggedInLoaded && loggedIn
+    return loaded && loggedIn
   }
 
   const useIsLoggedOutDesktop = () => {
-    const everLoadedRef = React.useRef(false)
-    const loggedInLoaded = useDaemonState(s => {
-      const loaded = everLoadedRef.current || s.handshakeState === 'done'
-      everLoadedRef.current = loaded
-      return loaded
-    })
+    const loaded = useHandshakeEverDone()
     const loggedIn = useConfigState(s => s.loggedIn)
-    return loggedInLoaded && !loggedIn
+    return loaded && !loggedIn
   }
 
   const desktopModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
@@ -618,12 +612,7 @@ if (isMobile) {
 const nativeLinkingConfig = isMobile ? createLinkingConfig(handleAppLink) : undefined
 
 function NativeRouter() {
-  const everLoadedRef = React.useRef(false)
-  const loggedInLoaded = useDaemonState(s => {
-    const loaded = everLoadedRef.current || s.handshakeState === 'done'
-    everLoadedRef.current = loaded
-    return loaded
-  })
+  const loggedInLoaded = useHandshakeEverDone()
 
   const {loggedIn, startupLoaded} = useConfigState(
     C.useShallow(s => ({loggedIn: s.loggedIn, startupLoaded: s.startup.loaded}))
@@ -687,7 +676,7 @@ function NativeRouter() {
   return (
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={rootKey}>
       {bar}
-      <NavigationContainer<RootParamList>
+      <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         linking={loggedIn ? nativeLinkingConfig : undefined}
         onReady={onReady}
