@@ -76,12 +76,8 @@ export function useInboxState(
     inboxNumSmallRowsLoaded: false,
     inboxNumSmallRowsUserChanged: false,
     smallTeamsExpanded: false,
-    username,
   }))
-  const controlsMatchUser = inboxControls.username === username
-  const inboxNumSmallRows = controlsMatchUser ? inboxControls.inboxNumSmallRows : 5
-  const inboxNumSmallRowsLoaded = controlsMatchUser ? inboxControls.inboxNumSmallRowsLoaded : false
-  const smallTeamsExpanded = controlsMatchUser ? inboxControls.smallTeamsExpanded : false
+  const {inboxNumSmallRows, inboxNumSmallRowsLoaded, smallTeamsExpanded} = inboxControls
   const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
 
   const setInboxNumSmallRows = React.useCallback((rows: number, persist = true) => {
@@ -89,11 +85,10 @@ export function useInboxState(
       return
     }
     setInboxControls(state => ({
+      ...state,
       inboxNumSmallRows: rows,
       inboxNumSmallRowsLoaded: true,
       inboxNumSmallRowsUserChanged: true,
-      smallTeamsExpanded: state.username === username ? state.smallTeamsExpanded : false,
-      username,
     }))
     if (!persist) {
       return
@@ -107,17 +102,13 @@ export function useInboxState(
       } catch {}
     }
     C.ignorePromise(f())
-  }, [username])
+  }, [])
   const toggleSmallTeamsExpanded = React.useCallback(() => {
     setInboxControls(state => ({
-      inboxNumSmallRows: state.username === username ? state.inboxNumSmallRows : 5,
-      inboxNumSmallRowsLoaded: state.username === username ? state.inboxNumSmallRowsLoaded : false,
-      inboxNumSmallRowsUserChanged:
-        state.username === username ? state.inboxNumSmallRowsUserChanged : false,
-      smallTeamsExpanded: !(state.username === username ? state.smallTeamsExpanded : false),
-      username,
+      ...state,
+      smallTeamsExpanded: !state.smallTeamsExpanded,
     }))
-  }, [username])
+  }, [])
 
   const {
     allowShowFloatingButton,
@@ -181,16 +172,14 @@ export function useInboxState(
         }
         const count = rows.i ?? -1
         setInboxControls(state => {
-          if (state.username === username && state.inboxNumSmallRowsUserChanged) {
+          if (state.inboxNumSmallRowsUserChanged) {
             return state
           }
           return {
-            inboxNumSmallRows:
-              count > 0 ? count : state.username === username ? state.inboxNumSmallRows : 5,
+            ...state,
+            inboxNumSmallRows: count > 0 ? count : state.inboxNumSmallRows,
             inboxNumSmallRowsLoaded: true,
             inboxNumSmallRowsUserChanged: false,
-            smallTeamsExpanded: state.username === username ? state.smallTeamsExpanded : false,
-            username,
           }
         })
       },
@@ -199,12 +188,8 @@ export function useInboxState(
           return
         }
         setInboxControls(state => ({
-          inboxNumSmallRows: state.username === username ? state.inboxNumSmallRows : 5,
+          ...state,
           inboxNumSmallRowsLoaded: true,
-          inboxNumSmallRowsUserChanged:
-            state.username === username ? state.inboxNumSmallRowsUserChanged : false,
-          smallTeamsExpanded: state.username === username ? state.smallTeamsExpanded : false,
-          username,
         }))
       }
     )
