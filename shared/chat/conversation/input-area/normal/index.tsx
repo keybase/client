@@ -12,7 +12,7 @@ import * as T from '@/constants/types'
 import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
-import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
+import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input.shared'
 import {useConversationCenter, useConversationCenterActions} from '../../center-context'
 import {
@@ -183,7 +183,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     doInjectText(inputRef, text, focus)
   }
 
-  const {scrollToBottom} = React.useContext(ScrollContext)
+  const {scrollToBottom} = React.useContext(ThreadRefsContext)
   const onSubmit = (text: string) => {
     if (!text) return
     injectText('', true)
@@ -277,7 +277,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
   }, [focusInputCounter, updateUnsentText, unsentText])
 
-  const {setInputRef} = React.useContext(FocusContext)
+  const {setInputRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
     setInputRef(inputRef.current)
   }, [setInputRef])

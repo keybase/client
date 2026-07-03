@@ -4,7 +4,7 @@ import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
 import * as T from '@/constants/types'
-import {FocusProvider, ScrollProvider} from './context'
+import {ThreadRefsProvider} from './context'
 import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
@@ -192,11 +192,9 @@ const NormalWrapper = function NormalWrapper() {
           >
             <ConversationCenterProvider id={conversationIDKey}>
               <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
-                <FocusProvider>
-                  <ScrollProvider>
-                    <Normal />
-                  </ScrollProvider>
-                </FocusProvider>
+                <ThreadRefsProvider>
+                  <Normal />
+                </ThreadRefsProvider>
               </ConversationInputProvider>
             </ConversationCenterProvider>
           </ConversationThreadLoadStatusProvider>
