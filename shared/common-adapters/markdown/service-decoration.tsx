@@ -24,6 +24,33 @@ const linkStyle = Styles.platformStyles({
   isMobile: {fontWeight: undefined},
 })
 
+// Shared shell for every link decoration: same text type, hover classes and
+// [wrapStyle, linkStyle, override] style merge; behavior comes from url/onClick
+const LinkText = (p: {
+  children: React.ReactNode
+  className?: string
+  linkStyle?: StylesTextCrossPlatform | undefined
+  onClick?: () => void
+  title: string
+  url?: string
+  wrapStyle?: StylesTextCrossPlatform | undefined
+}) => {
+  const {children, className = 'hover-underline hover_contained_color_blueDark', onClick, title, url} = p
+  const urlProps = useClickURL(url)
+  return (
+    <Text
+      className={className}
+      type="BodyPrimaryLink"
+      style={Styles.collapseStyles([p.wrapStyle, linkStyle, p.linkStyle])}
+      title={title}
+      onClick={onClick}
+      {...urlProps}
+    >
+      {children}
+    </Text>
+  )
+}
+
 type KeybaseLinkProps = {
   link: string
   linkStyle?: StylesTextCrossPlatform | undefined
@@ -31,24 +58,19 @@ type KeybaseLinkProps = {
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
-  const onClick = () => {
-    // Route through the linking config for keybase:// and https://keybase.io/ URLs
-    // so React Navigation handles navigation declaratively.
-    // emitDeepLink normalizes URLs and dispatches through the linking config,
-    // falling back to handleAppLink for patterns not yet in the config.
-    emitDeepLink(props.link)
-  }
-
+  // Route through the linking config for keybase:// and https://keybase.io/ URLs
+  // so React Navigation handles navigation declaratively.
+  // emitDeepLink normalizes URLs and dispatches through the linking config,
+  // falling back to handleAppLink for patterns not yet in the config.
   return (
-    <Text
-      className="hover-underline hover_contained_color_blueDark"
-      type="BodyPrimaryLink"
-      style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
+    <LinkText
       title={props.link}
-      onClick={onClick}
+      linkStyle={props.linkStyle}
+      wrapStyle={props.wrapStyle}
+      onClick={() => emitDeepLink(props.link)}
     >
       {props.link}
-    </Text>
+    </LinkText>
   )
 }
 
@@ -63,29 +85,28 @@ type WarningLinkProps = {
 const WarningLink = (props: WarningLinkProps) => {
   const {display, punycode, url} = props
   const navigateAppend = C.Router2.navigateAppend
-  const urlProps = useClickURL(url)
   if (isMobile) {
     return (
-      <Text
+      <LinkText
         className="hover-underline"
-        type="BodyPrimaryLink"
-        style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
         title={display}
+        linkStyle={props.linkStyle}
+        wrapStyle={props.wrapStyle}
         onClick={() =>
           navigateAppend({name: 'chatConfirmNavigateExternal', params: {display, punycode, url}})
         }
       >
         {display}
-      </Text>
+      </LinkText>
     )
   }
   return (
-    <Text
+    <LinkText
       className="hover-underline"
-      type="BodyPrimaryLink"
-      style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
       title={display}
-      {...urlProps}
+      linkStyle={props.linkStyle}
+      wrapStyle={props.wrapStyle}
+      url={url}
     >
       <WithTooltip
         tooltip={punycode}
@@ -95,29 +116,7 @@ const WarningLink = (props: WarningLinkProps) => {
       >
         {display}
       </WithTooltip>
-    </Text>
-  )
-}
-
-const URLText = (p: {
-  url: string
-  className?: string
-  type?: string
-  style?: Styles.StylesCrossPlatform
-  title?: string
-  children?: React.ReactNode
-}) => {
-  const urlProps = useClickURL(p.url)
-  return (
-    <Text
-      className={p.className}
-      type={p.type as any}
-      style={p.style}
-      title={p.title}
-      {...urlProps}
-    >
-      {p.children}
-    </Text>
+    </LinkText>
   )
 }
 
@@ -196,30 +195,28 @@ const ServiceDecoration = (p: Props) => {
         wrapStyle={styles['wrapStyle']}
       />
     ) : (
-      <URLText
-        className="hover-underline hover_contained_color_blueDark"
-        type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride?.link])}
+      <LinkText
         title={parsed.link.url}
+        linkStyle={styleOverride?.link}
+        wrapStyle={styles['wrapStyle']}
         url={openUrl}
       >
         {parsed.link.url}
-      </URLText>
+      </LinkText>
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.mailto) {
     const openUrl = parsed.mailto.url.toLowerCase().startsWith('mailto:')
       ? parsed.mailto.url
       : 'mailto:' + parsed.mailto.url
     return (
-      <URLText
-        className="hover-underline hover_contained_color_blueDark"
-        type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride?.mailto])}
+      <LinkText
         title={parsed.mailto.url}
+        linkStyle={styleOverride?.mailto}
+        wrapStyle={styles['wrapStyle']}
         url={openUrl}
       >
         {parsed.mailto.url}
-      </URLText>
+      </LinkText>
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.channelnamemention) {
     return (

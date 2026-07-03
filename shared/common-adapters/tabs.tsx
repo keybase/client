@@ -79,6 +79,12 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
   </Kb.Box2>
 )
 
+const dividerBase = {
+  ...Styles.globalStyles.flexBoxRow,
+  minHeight: 2,
+  width: '100%',
+} as const
+
 const styles = Styles.styleSheetCreate(() => ({
   badge: Styles.platformStyles({
     isElectron: {
@@ -94,16 +100,12 @@ const styles = Styles.styleSheetCreate(() => ({
     maxHeight: isMobile ? 48 : 40,
   },
   divider: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...dividerBase,
     backgroundColor: Styles.globalColors.transparent,
-    minHeight: 2,
-    width: '100%',
   },
   dividerSelected: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...dividerBase,
     backgroundColor: Styles.globalColors.blue,
-    minHeight: 2,
-    width: '100%',
   },
   icon: {
     alignSelf: 'center',

@@ -11,7 +11,7 @@ export type RenderableEmoji = {
   renderUrl?: string
 }
 
-export const RPCUserReacjiToRenderableEmoji = (
+const RPCUserReacjiToRenderableEmoji = (
   userReacji: T.RPCGen.UserReacji,
   noAnim: boolean
 ): RenderableEmoji => ({

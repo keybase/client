@@ -91,12 +91,12 @@ export const Banner = (props: BannerProps) => (
       direction="vertical"
       style={Styles.collapseStyles([
         props.narrow
-          ? styles.narrowTextContainer
+          ? styles.textContainer
           : props.inline
-          ? styles.inlineTextContainer
-          : props.small
-          ? styles.smallTextContainer
-          : styles.textContainer,
+            ? styles.inlineTextContainer
+            : props.small
+              ? styles.smallTextContainer
+              : styles.textContainer,
         props.textContainerStyle,
       ])}
       centerChildren={true}
@@ -152,19 +152,6 @@ const styles = Styles.styleSheetCreate(
       inlineTextContainer: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       },
-      narrowTextContainer: Styles.platformStyles({
-        common: {
-          flex: 1,
-          maxWidth: '100%',
-          ...Styles.paddingV(Styles.globalMargins.tiny),
-        },
-        isElectron: {
-          ...Styles.paddingH(Styles.globalMargins.medium),
-        },
-        isMobile: {
-          ...Styles.paddingH(Styles.globalMargins.small),
-        },
-      }),
       smallTextContainer: {
         flex: 1,
         maxWidth: '100%',

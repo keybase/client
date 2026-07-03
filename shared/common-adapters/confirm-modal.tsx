@@ -34,7 +34,6 @@ const ConfirmModal = (props: Props) => (
       </Banner>
     ) : null}
     <Box2
-      alignItems="center"
       direction="vertical"
       centerChildren={true}
       fullWidth={true}

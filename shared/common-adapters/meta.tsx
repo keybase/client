@@ -20,6 +20,7 @@ const Meta = (props: Props) => (
     alignSelf="flex-start"
     alignItems="center"
     direction={props.icon ? 'horizontal' : 'vertical'}
+    gap="xtiny"
     pointerEvents="none"
     style={Styles.collapseStyles([
       styles.container,
@@ -28,7 +29,7 @@ const Meta = (props: Props) => (
       props.size === 'Small' && styles.containerSmall,
     ])}
   >
-    {!!props.icon && <IconAuto color={props.iconColor} sizeType="Small" style={styles.icon} type={props.icon} />}
+    {!!props.icon && <IconAuto color={props.iconColor} sizeType="Small" type={props.icon} />}
     <Text
       type={typeof props.title === 'number' ? 'BodySmallBold' : 'BodyTinyBold'}
       style={Styles.collapseStyles([
@@ -49,9 +50,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   containerSmall: {
     ...Styles.paddingH(2),
-  },
-  icon: {
-    paddingRight: Styles.globalMargins.xtiny,
   },
   text: Styles.platformStyles({
     common: {
