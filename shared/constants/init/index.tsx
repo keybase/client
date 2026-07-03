@@ -189,15 +189,13 @@ const loadStartupDetails = async () => {
   const {guiConfig, Linking} = _getNative()
   const {getStartupDetailsFromInitialPush} = await import('./push-listener.native')
 
-  const [routeState, initialUrl, push] = await Promise.all([
-    neverThrowPromiseFunc(async () => {
-      try {
-        const config = JSON.parse(guiConfig) as {ui?: {routeState2?: string}} | undefined
-        return Promise.resolve(config?.ui?.routeState2 ?? '')
-      } catch {
-        return Promise.resolve('')
-      }
-    }),
+  let routeState = ''
+  try {
+    const config = JSON.parse(guiConfig) as {ui?: {routeState2?: string}} | undefined
+    routeState = config?.ui?.routeState2 ?? ''
+  } catch {}
+
+  const [initialUrl, push] = await Promise.all([
     neverThrowPromiseFunc(async () => {
       const linkingStart = Date.now()
       logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')

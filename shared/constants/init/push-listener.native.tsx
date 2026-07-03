@@ -8,7 +8,6 @@ import {
   getNativeEmitter,
   getInitialNotification,
   removeAllPendingNotificationRequests,
-  shareListenersRegistered,
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -344,7 +343,9 @@ export const initPushListener = () => {
           }
           emitDeepLink('keybase://incoming-share')
         })
-        shareListenersRegistered()
+        // shareListenersRegistered() is deliberately NOT called here: it makes native flush
+        // pending share intents, and emitDeepLink has no queue. The init/index.tsx router
+        // subscriber calls it once we're logged in with the router mounted.
       }
     } catch (e) {
       logger.error('[Push] failed to set up listeners: ', e)
