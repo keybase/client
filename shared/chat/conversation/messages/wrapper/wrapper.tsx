@@ -29,7 +29,8 @@ import {
   useConversationThreadSelector,
   useThreadMeta,
 } from '../../thread-context'
-import {useConversationParticipants} from '../../data-hooks'
+import {emptyParticipantInfo} from '../../data-hooks'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
 
@@ -376,7 +377,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const messageActions = useConversationThreadMessageActions()
   const shownCache = React.useContext(ShownUsernameCacheContext)
   const conversationIDKey = useConversationThreadID()
-  const participantInfo = useConversationParticipants(conversationIDKey)
+  // Reload-free read: avoid useConversationParticipants' per-mount unboxRows + engine
+  // listener registration, which is too expensive to pay per message row.
+  const participantInfo = useInboxMetadataState(s => s.participants.get(conversationIDKey)) ?? emptyParticipantInfo
   const authorMeta = useThreadMeta(
     C.useShallow(m => ({
       botAliases: m.botAliases,
