@@ -12,6 +12,7 @@ import {
   useConversationThreadID,
   useConversationThreadSelector,
 } from '../conversation/thread-context'
+import {useConversationParticipants} from '../conversation/data-hooks'
 
 const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
   const f = async () => {
@@ -29,17 +30,16 @@ const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
 const BlockButtons = () => {
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
-  const {messageMap, messageOrdinals, participantInfo, team, teamID, tlfname} =
-    useConversationThreadSelector(
-      C.useShallow(s => ({
-        messageMap: s.messageMap,
-        messageOrdinals: s.messageOrdinals,
-        participantInfo: s.participants,
-        team: s.meta.teamname,
-        teamID: s.meta.teamID,
-        tlfname: s.meta.tlfname,
-      }))
-    )
+  const {messageMap, messageOrdinals, team, teamID, tlfname} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      messageMap: s.messageMap,
+      messageOrdinals: s.messageOrdinals,
+      team: s.meta.teamname,
+      teamID: s.meta.teamID,
+      tlfname: s.meta.tlfname,
+    }))
+  )
+  const participantInfo = useConversationParticipants(conversationIDKey)
   const blockButtonInfo = useBlockButtonsInfo(teamID)
   const currentUser = useCurrentUserState(s => s.username)
   const hasOwnMessage =

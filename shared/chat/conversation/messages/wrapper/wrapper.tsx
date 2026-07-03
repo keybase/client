@@ -24,9 +24,11 @@ import {
   getConversationThreadDisplayMessage,
   ShownUsernameCacheContext,
   useConversationThreadActions,
+  useConversationThreadID,
   useConversationThreadMessageActions,
   useConversationThreadSelector,
 } from '../../thread-context'
+import {useConversationParticipants} from '../../data-hooks'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
 
@@ -372,6 +374,8 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
   const shownCache = React.useContext(ShownUsernameCacheContext)
+  const conversationIDKey = useConversationThreadID()
+  const participantInfo = useConversationParticipants(conversationIDKey)
 
   return useConversationThreadSelector(
     C.useShallow(s => {
@@ -397,7 +401,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(messageActions, uiDispatch, retryMessage),
-        ...getAuthorData(message, s.meta, s.participants, showUsername),
+        ...getAuthorData(message, s.meta, participantInfo, showUsername),
         message,
       }
     })

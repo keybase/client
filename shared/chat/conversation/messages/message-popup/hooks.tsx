@@ -10,7 +10,7 @@ import {
 } from '../../message-actions'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
-import {markConversationAsUnread} from '../../data-hooks'
+import {markConversationAsUnread, useConversationParticipants} from '../../data-hooks'
 import {showForwardMessagePicker} from '../../fwd-msg'
 import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
 import {SetOrangeLineContext} from '../../orange-line-context'
@@ -332,9 +332,8 @@ export const useModeration = (
 const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const conversationIDKey = useConversationThreadID()
   const message = useConversationThreadMessage(ordinal) ?? emptyText
-  const {meta, participantInfo} = useConversationThreadSelector(
-    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
-  )
+  const meta = useConversationThreadSelector(s => s.meta)
+  const participantInfo = useConversationParticipants(conversationIDKey)
   const {messageDelete, toggleMessageReaction} = useConversationThreadMessageActions()
   const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
   return useItemsForMessage({

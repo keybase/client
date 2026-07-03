@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
@@ -6,9 +5,10 @@ import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {openURL} from '@/util/misc'
 import {replyPrivatelyToConversationMessage} from '../../message-actions'
-import {useConversationMetadata} from '../../data-hooks'
+import {useConversationMetadata, useConversationParticipants} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
+  useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadMessageActions,
   useConversationThreadSelector,
@@ -153,10 +153,10 @@ const PopTextLoaded = (ownProps: OwnProps & {
 
 const PopTextThread = (ownProps: OwnProps) => {
   const {ordinal, onHidden} = ownProps
+  const conversationIDKey = useConversationThreadID()
   const message = useConversationThreadMessage(ordinal) ?? emptyMessage
-  const {meta, participantInfo} = useConversationThreadSelector(
-    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
-  )
+  const meta = useConversationThreadSelector(s => s.meta)
+  const participantInfo = useConversationParticipants(conversationIDKey)
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)
   const {messageReplyPrivately} = useConversationThreadMessageActions()

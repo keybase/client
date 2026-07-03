@@ -11,6 +11,7 @@ import {
   useConversationThreadID,
   useConversationThreadSelector,
 } from '../thread-context'
+import {useConversationParticipants} from '../data-hooks'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -110,14 +111,14 @@ const ErrorMessage = () => {
 function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
   const conversationIDKey = useConversationThreadID()
-  const {hasLoadedEver, meta, moreToLoadBack, participants} = useConversationThreadSelector(
+  const {hasLoadedEver, meta, moreToLoadBack} = useConversationThreadSelector(
     C.useShallow(s => ({
       hasLoadedEver: s.messageOrdinals !== undefined,
       meta: s.meta,
       moreToLoadBack: s.moreToLoadBack,
-      participants: s.participants,
     }))
   )
+  const participants = useConversationParticipants(conversationIDKey)
   const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
   const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
   const pendingState =

@@ -27,6 +27,7 @@ import {
   useConversationThreadSelector,
   useConversationThreadStore,
 } from './thread-context'
+import {useConversationParticipants} from './data-hooks'
 
 jest.mock('@/chat/inbox/rows-state', () => ({
   flushInboxRowUpdates: jest.fn(),
@@ -331,7 +332,7 @@ test('separate providers do not share thread state', () => {
 })
 
 test('mounted thread syncs participant updates received outside its provider', () => {
-  const {result} = renderHook(() => useConversationThreadSelector(s => s.participants), {wrapper})
+  const {result} = renderHook(() => useConversationParticipants(convID), {wrapper})
   const participantInfo = {
     all: ['alice', 'helperbot'],
     contactName: new Map<string, string>(),
@@ -1140,7 +1141,7 @@ test('mounted thread listener applies inbox failure metadata for the active conv
   const {result} = renderHook(
     () => ({
       meta: useConversationThreadSelector(s => s.meta),
-      participants: useConversationThreadSelector(s => s.participants),
+      participants: useConversationParticipants(convID),
     }),
     {wrapper}
   )
