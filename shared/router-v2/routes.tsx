@@ -17,6 +17,17 @@ import {defineRouteMap} from '@/constants/types/router'
 import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef} from '@/constants/types/router'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 
+// The spread silently keeps the last route on a name collision, so assert uniqueness in dev
+const assertNoDuplicateRouteNames = (...maps: Array<Record<string, unknown>>) => {
+  const seen = new Set<string>()
+  for (const m of maps) {
+    for (const k of Object.keys(m)) {
+      if (seen.has(k)) throw new Error('Duplicate route name: ' + k)
+      seen.add(k)
+    }
+  }
+}
+
 // We have normal routes, modal routes, and logged out routes.
 // We also end up using existence of a nameToTab value for a route as a test
 // of whether we're on a loggedIn route: loggedOut routes have no selected tab.
@@ -33,22 +44,17 @@ export const routes = defineRouteMap({
 })
 
 if (__DEV__) {
-  const allRouteKeys = [
-    ...Object.keys(deviceNewRoutes),
-    ...Object.keys(chatNewRoutes),
-    ...Object.keys(cryptoNewRoutes),
-    ...Object.keys(peopleNewRoutes),
-    ...Object.keys(profileNewRoutes),
-    ...Object.keys(fsNewRoutes),
-    ...Object.keys(settingsNewRoutes),
-    ...Object.keys(teamsNewRoutes),
-    ...Object.keys(gitNewRoutes),
-  ]
-  const seen = new Set<string>()
-  for (const k of allRouteKeys) {
-    if (seen.has(k)) throw new Error('Duplicate route name: ' + k)
-    seen.add(k)
-  }
+  assertNoDuplicateRouteNames(
+    deviceNewRoutes,
+    chatNewRoutes,
+    cryptoNewRoutes,
+    peopleNewRoutes,
+    profileNewRoutes,
+    fsNewRoutes,
+    settingsNewRoutes,
+    teamsNewRoutes,
+    gitNewRoutes
+  )
 }
 
 export const tabRoots = {
@@ -82,26 +88,21 @@ export const modalRoutes = defineRouteMap({
 })
 
 if (__DEV__) {
-  const allModalKeys = [
-    ...Object.keys(chatNewModalRoutes),
-    ...Object.keys(cryptoNewModalRoutes),
-    ...Object.keys(deviceNewModalRoutes),
-    ...Object.keys(fsNewModalRoutes),
-    ...Object.keys(gitNewModalRoutes),
-    ...Object.keys(loginNewModalRoutes),
-    ...Object.keys(peopleNewModalRoutes),
-    ...Object.keys(profileNewModalRoutes),
-    ...Object.keys(settingsNewModalRoutes),
-    ...Object.keys(signupNewModalRoutes),
-    ...Object.keys(teamsNewModalRoutes),
-    ...Object.keys(walletsNewModalRoutes),
-    ...Object.keys(incomingShareNewModalRoutes),
-  ]
-  const seen = new Set<string>()
-  for (const k of allModalKeys) {
-    if (seen.has(k)) throw new Error('Duplicate modal route name: ' + k)
-    seen.add(k)
-  }
+  assertNoDuplicateRouteNames(
+    chatNewModalRoutes,
+    cryptoNewModalRoutes,
+    deviceNewModalRoutes,
+    fsNewModalRoutes,
+    gitNewModalRoutes,
+    loginNewModalRoutes,
+    peopleNewModalRoutes,
+    profileNewModalRoutes,
+    settingsNewModalRoutes,
+    signupNewModalRoutes,
+    teamsNewModalRoutes,
+    walletsNewModalRoutes,
+    incomingShareNewModalRoutes
+  )
 }
 
 export const loggedOutRoutes = defineRouteMap({..._loggedOutRoutes, ...signupNewRoutes})
@@ -117,7 +118,6 @@ type MakeLayoutFn = (
   isTabScreen: boolean,
   getOptions?: GetOptions
 ) => LayoutFn
-type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
 type CheckedRouteEntry<Routes extends Record<string, RouteDef>> = Routes[keyof Routes]
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
@@ -156,28 +156,4 @@ export function routeMapToStaticScreens<const RS extends Record<string, RouteDef
     }
   }
   return result
-}
-
-export function routeMapToScreenElements<const RS extends Record<string, RouteDef>>(
-  rs: RS,
-  Screen: React.ComponentType<any>,
-  makeLayoutFn: MakeLayoutFn,
-  makeOptionsFn: MakeOptionsFn,
-  isModal: boolean,
-  isLoggedOut: boolean,
-  isTabScreen: boolean
-) {
-  return (Object.keys(rs) as Array<keyof RS & string>).flatMap(name => {
-    const rd = rs[name] as CheckedRouteEntry<RS>
-    return [
-      <Screen
-        key={name}
-        name={name}
-        component={rd.screen}
-        {...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams})}
-        layout={makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions)}
-        options={makeOptionsFn(rd)}
-      />,
-    ]
-  })
 }

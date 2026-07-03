@@ -6,7 +6,6 @@ import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Tabs from '@/constants/tabs'
-import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Common from './common'
 import {CommonActions} from '@react-navigation/core'
 import AccountSwitcher from './account-switcher'
@@ -158,17 +157,6 @@ const Header = () => {
   )
 }
 
-const tabTestIDs = new Map<Tabs.AppTab, string>([
-  [Tabs.peopleTab, TestIDs.NAV_TAB_PEOPLE],
-  [Tabs.chatTab, TestIDs.NAV_TAB_CHAT],
-  [Tabs.fsTab, TestIDs.NAV_TAB_FILES],
-  [Tabs.cryptoTab, TestIDs.NAV_TAB_CRYPTO],
-  [Tabs.teamsTab, TestIDs.NAV_TAB_TEAMS],
-  [Tabs.gitTab, TestIDs.NAV_TAB_GIT],
-  [Tabs.devicesTab, TestIDs.NAV_TAB_DEVICES],
-  [Tabs.settingsTab, TestIDs.NAV_TAB_SETTINGS],
-])
-
 const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs)[number]}>(
   (map, tab, index) => {
     map[`mod+${index + 1}`] = tab
@@ -287,7 +275,7 @@ function Tab(props: TabProps) {
       onMouseLeave={onMouseLeave}
       direction="horizontal"
       fullWidth={true}
-      testID={tabTestIDs.get(tab)}
+      testID={Common.tabToTestID.get(tab)}
       className={Kb.Styles.classNames(
         isSelected ? 'tab-selected' : 'tab',
         'tab-tooltip',

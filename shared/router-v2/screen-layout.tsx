@@ -23,24 +23,10 @@ type LayoutProps = {
 
 // Native-only wrapper components
 
-const TabScreenWrapper = ({children}: {children: React.ReactNode}) => {
-  if (isAndroid) {
-    return (
-      <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
-        {children}
-      </RNScreensSafeAreaView>
-    )
-  }
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
-      {children}
-    </Kb.Box2>
-  )
-}
-
-const StackScreenWrapper = ({children}: {children: React.ReactNode}) => {
-  // Android targets SDK 35+ which enforces edge-to-edge, so content draws under
-  // the system nav bar unless we apply the bottom inset ourselves.
+// Wraps both tab-root and pushed stack screens. Android targets SDK 35+ which enforces
+// edge-to-edge, so content draws under the system nav bar unless we apply the bottom
+// inset ourselves.
+const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
   if (isAndroid) {
     return (
       <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
@@ -123,7 +109,7 @@ const desktopMakeLayout = (
 const nativeMakeLayout = (
   isModal: boolean,
   isLoggedOut: boolean,
-  isTabScreen: boolean,
+  _isTabScreen: boolean,
   getOptions?: GetOptions
 ) => {
   const modalOffset = isIOS ? 40 : 0
@@ -132,11 +118,8 @@ const nativeMakeLayout = (
 
     const wrappedContent = <React.Suspense>{children}</React.Suspense>
 
-    if (!isModal && !isLoggedOut && isTabScreen) {
-      return <TabScreenWrapper>{wrappedContent}</TabScreenWrapper>
-    }
     if (!isModal && !isLoggedOut) {
-      return <StackScreenWrapper>{wrappedContent}</StackScreenWrapper>
+      return <ScreenWrapper>{wrappedContent}</ScreenWrapper>
     }
     if (!isModal && isLoggedOut) {
       return <LoggedOutScreenWrapper>{wrappedContent}</LoggedOutScreenWrapper>
