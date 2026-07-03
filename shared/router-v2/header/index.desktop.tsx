@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
@@ -29,18 +29,11 @@ type RawOptions = {
   headerStyle?: Kb.Styles.CollapsibleStyle
 }
 
-type Options = {
-  headerMode?: string
-  title?: React.ReactNode
+// Same as RawOptions but with the component-constructor variants already rendered to nodes
+type Options = Omit<RawOptions, 'headerTitle' | 'headerRightActions' | 'subHeader'> & {
   headerTitle?: React.ReactNode
-  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
-  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
   headerRightActions?: React.ReactNode
   subHeader?: React.ReactNode
-  headerTransparent?: boolean
-  headerShadowVisible?: boolean
-  headerBottomStyle?: Kb.Styles.StylesCrossPlatform
-  headerStyle?: Kb.Styles.CollapsibleStyle
 }
 
 // A mobile-like header for desktop
@@ -52,7 +45,6 @@ type Props = {
   back?: boolean
   style?: Kb.Styles._StylesCrossPlatform
   useNativeFrame: boolean
-  params?: unknown
   isMaximized: boolean
   navigation: {
     pop: () => void
@@ -170,8 +162,6 @@ function DesktopHeader(p: Props) {
       ? Kb.Styles.globalColors.black_10
       : Kb.Styles.globalColors.transparent
 
-  const popupAnchor = React.createRef<Kb.MeasureRef | null>()
-
   const defaultBackButton = (
     <Kb.ClickableBox
       className={Kb.Styles.classNames('hover_container', {
@@ -279,7 +269,6 @@ function DesktopHeader(p: Props) {
           fullWidth={true}
           style={styles.headerBack}
           alignItems="center"
-          ref={popupAnchor}
         >
           {/* TODO have headerLeft be the back button */}
           {backButton}
@@ -396,6 +385,7 @@ const styles = Kb.Styles.styleSheetCreate(
 type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaximized'> & {
   back?: NativeStackHeaderProps['back']
   options: RawOptions
+  params?: unknown
 }
 
 function DesktopHeaderWrapper(p: HeaderProps) {
@@ -446,7 +436,6 @@ function DesktopHeaderWrapper(p: HeaderProps) {
       options={options}
       back={!!back /* not a bool upstream */}
       style={style}
-      params={params}
       navigation={navigation}
     />
   )

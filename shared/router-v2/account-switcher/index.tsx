@@ -4,15 +4,9 @@ import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {settingsLogOutTab} from '@/constants/settings'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
-
-const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
-  accountRows: ReadonlyArray<T>,
-  myUsername: string
-): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
 const AccountSwitcher = () => {
   const _fullnames = useUsersState(s => s.infoMap)
@@ -21,10 +15,6 @@ const AccountSwitcher = () => {
   const fullname = _fullnames.get(you)?.fullname ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   const onLoginAsAnotherUser = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
-  const navigateUp = C.Router2.navigateUp
-  const onCancel = () => {
-    navigateUp()
-  }
 
   const setUserSwitching = useConfigState(s => s.dispatch.setUserSwitching)
   const login = useConfigState(s => s.dispatch.login)
@@ -33,19 +23,14 @@ const AccountSwitcher = () => {
     login(username, '')
   }
   const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
-  const navigateAppend = C.Router2.navigateAppend
-  const onSignOut = () => {
-    navigateAppend({name: settingsLogOutTab, params: {}})
-  }
 
-  const accountRows = prepareAccountRows(_accountRows, you)
+  const accountRows = _accountRows.filter(account => account.username !== you)
   const props = {
     accountRows: accountRows.map(account => ({
       account: account,
       fullName: (_fullnames.get(account.username) || {fullname: ''}).fullname || '',
     })),
     fullname,
-    onCancel,
     onLoginAsAnotherUser,
     onProfileClick: () => navToProfile(you),
     onSelectAccount: (username: string) => {
@@ -53,28 +38,25 @@ const AccountSwitcher = () => {
       const loggedIn = (rows.length && rows[0]?.hasStoredSecret) ?? false
       return loggedIn ? onSelectAccountLoggedIn(username) : onSelectAccountLoggedOut(username)
     },
-    onSignOut,
     username: you,
     waiting,
   }
 
   return (
-    <>
-      <Kb.ScrollView alwaysBounceVertical={false}>
-        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          {isMobile && <MobileHeader {...props} />}
-          <Kb.Divider style={styles.divider} />
-          {isMobile ? (
+    <Kb.ScrollView alwaysBounceVertical={false}>
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+        {isMobile && <MobileHeader {...props} />}
+        <Kb.Divider style={styles.divider} />
+        {isMobile ? (
+          <AccountsRows {...props} />
+        ) : (
+          <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
             <AccountsRows {...props} />
-          ) : (
-            <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
-              <AccountsRows {...props} />
-            </Kb.ScrollView>
-          )}
-          {props.accountRows.length > 0 && !isMobile && <Kb.Divider style={styles.divider} />}
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </>
+          </Kb.ScrollView>
+        )}
+        {props.accountRows.length > 0 && !isMobile && <Kb.Divider style={styles.divider} />}
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
@@ -87,10 +69,8 @@ type Props = {
   accountRows: Array<AccountRowItem>
   fullname: string
   onLoginAsAnotherUser: () => void
-  onCancel: () => void
   onProfileClick: () => void
   onSelectAccount: (username: string) => void
-  onSignOut: () => void
   username: string
   waiting: boolean
 }

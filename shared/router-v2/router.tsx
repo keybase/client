@@ -18,13 +18,10 @@ import {useDaemonState} from '@/stores/daemon'
 import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 import {makeLayout} from './screen-layout'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import type {SFSymbol} from 'sf-symbols-typescript'
 import type {NavigationProp} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
-import {useCurrentUserState} from '@/stores/current-user'
-import * as Constants from '@/constants/router'
 import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
 import {colors, darkColors} from '@/styles/colors'
@@ -37,7 +34,7 @@ const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
 
 // Tell the router constants which root-stack routes are modals (vs genuinely-visible
 // pushed screens like chatConversation). modalRoutes is the single source of truth.
-Constants.setModalRouteNames(Object.keys(modalRoutes))
+C.Router2.setModalRouteNames(Object.keys(modalRoutes))
 
 function SimpleLoading() {
   return (
@@ -52,39 +49,37 @@ function SimpleLoading() {
   )
 }
 
-const darkTheme: Theme = {
+const makeTheme = (palette: {white: string; black: string; black_10: string}, dark: boolean): Theme => ({
   colors: {
-    background: darkColors.white,
-    border: darkColors.black_10,
-    card: darkColors.white,
-    notification: darkColors.black,
-    primary: darkColors.black,
-    text: darkColors.black,
+    background: palette.white,
+    border: palette.black_10,
+    card: palette.white,
+    notification: palette.black,
+    primary: palette.black,
+    text: palette.black,
   },
-  dark: true,
+  dark,
   fonts: {
     bold: Kb.Styles.globalStyles.fontBold,
     heavy: Kb.Styles.globalStyles.fontExtrabold,
     medium: Kb.Styles.globalStyles.fontSemibold,
     regular: Kb.Styles.globalStyles.fontRegular,
   },
+})
+const darkTheme = makeTheme(darkColors, true)
+const lightTheme = makeTheme(colors, false)
+
+// Shared NavigationContainer plumbing (identical on both platforms)
+const onUnhandledAction = (a: Readonly<{type: string}>) => {
+  logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
 }
-const lightTheme: Theme = {
-  colors: {
-    background: colors.white,
-    border: colors.black_10,
-    card: colors.white,
-    notification: colors.black,
-    primary: colors.black,
-    text: colors.black,
-  },
-  dark: false,
-  fonts: {
-    bold: Kb.Styles.globalStyles.fontBold,
-    heavy: Kb.Styles.globalStyles.fontExtrabold,
-    medium: Kb.Styles.globalStyles.fontSemibold,
-    regular: Kb.Styles.globalStyles.fontRegular,
-  },
+const onStateChange = () => {
+  C.useRouterState.getState().dispatch.setNavState(C.Router2.getRootState())
+}
+const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
+  if (ref) {
+    C.Router2.navigationRef.current = ref
+  }
 }
 
 // ─── Desktop ──────────────────────────────────────────────────────────────────
@@ -119,16 +114,14 @@ const useHandshakeEverDone = () => {
   })
 }
 
-let desktopTab: LeftTabNavigatorType | undefined
-const desktopTabComponents: Record<string, React.ComponentType> = {}
 let DesktopRootComponent: React.ComponentType
-let LoggedOutDesktop: React.ComponentType
 
 if (!isMobile) {
   const {createLeftTabNavigator} = require('./left-tab-navigator.desktop') as {
     createLeftTabNavigator: () => LeftTabNavigatorType
   }
-  desktopTab = createLeftTabNavigator()
+  const desktopTab = createLeftTabNavigator()
+  const desktopTabComponents: Record<string, React.ComponentType> = {}
 
   const desktopTabScreensConfig = routeMapToStaticScreens(routes, makeLayout, false, false, true)
 
@@ -152,27 +145,28 @@ if (!isMobile) {
     desktopTabComponents[tab] = nav.getComponent()
   }
 
-  // Keep appTabsInnerOptions stable (defined above before the loop)
-  const capturedOptions = appTabsInnerOptions
-  const capturedTab = desktopTab
-
-  function AppTabsInnerDesktop() {
+  function AppTabsDesktop() {
     return (
-      <capturedTab.Navigator backBehavior="none" screenOptions={capturedOptions}>
+      <desktopTab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
         {Tabs.desktopTabs.map(tab => (
-          <capturedTab.Screen key={tab} name={tab} component={desktopTabComponents[tab]!} />
+          <desktopTab.Screen key={tab} name={tab} component={desktopTabComponents[tab]!} />
         ))}
-      </capturedTab.Navigator>
+      </desktopTab.Navigator>
     )
   }
-  const AppTabsDesktop = () => <AppTabsInnerDesktop />
 
   type DesktopHeaderProps = Record<string, unknown> & {options: Record<string, unknown>}
   const DesktopHeaderComponent = (
     require('./header/index.desktop') as {default: React.ComponentType<DesktopHeaderProps>}
   ).default
 
-  const desktopLoggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true, false)
+  const desktopLoggedOutScreensConfig = routeMapToStaticScreens(
+    loggedOutRoutes,
+    makeLayout,
+    false,
+    true,
+    false
+  )
   const desktopLoggedOutOptions = {
     header: (p: Record<string, unknown>) => {
       const options = {
@@ -189,7 +183,7 @@ if (!isMobile) {
     screenOptions: desktopLoggedOutOptions,
     screens: desktopLoggedOutScreensConfig,
   })
-  LoggedOutDesktop = loggedOutNav.getComponent()
+  const LoggedOutDesktop = loggedOutNav.getComponent()
 
   const desktopRootScreenOptions = {
     headerLeft: () => <HeaderLeftButton mode="cancel" />,
@@ -272,35 +266,8 @@ const useConnectNavToState = () => {
 function DesktopRouter() {
   useConnectNavToState()
 
-  const onUnhandledAction = (a: Readonly<{type: string}>) => {
-    logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
-  }
-
-  const setNavState = C.useRouterState(s => s.dispatch.setNavState)
-  const onStateChange = () => {
-    const ns = C.Router2.getRootState()
-    setNavState(ns)
-  }
-
-  const navRef = (ref: typeof C.Router2.navigationRef.current) => {
-    if (ref) {
-      C.Router2.navigationRef.current = ref
-    }
-  }
-
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
-  const username = useCurrentUserState(s => s.username)
-  // Only remount the navigator when switching between logged-in users.
-  // Ignore '' → username (initial login) so in-flight unbox requests aren't interrupted.
-  const [navKey, setNavKey] = React.useState('')
-  const prevUsernameRef = React.useRef(username)
-  React.useEffect(() => {
-    const prev = prevUsernameRef.current
-    prevUsernameRef.current = username
-    if (prev && username && prev !== username) {
-      setNavKey(username)
-    }
-  }, [username])
+  const navKey = Common.useUserSwitchNavKey()
 
   const documentTitle = {
     formatter: () => {
@@ -317,7 +284,7 @@ function DesktopRouter() {
       documentTitle={documentTitle}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
-      ref={navRef}
+      ref={setNavRef}
       theme={isDarkMode ? darkTheme : lightTheme}
     >
       <LoadedTeamsListProvider>
@@ -329,10 +296,9 @@ function DesktopRouter() {
 
 // ─── Native ───────────────────────────────────────────────────────────────────
 
-if (isMobile) {
-  if (module.hot) {
-    module.hot.accept('', () => {})
-  }
+// Self-accept HMR so an edit here doesn't bubble up and reload the whole app
+if (isMobile && module.hot) {
+  module.hot.accept()
 }
 
 const tabToLabel = new Map<string, string>([
@@ -341,14 +307,6 @@ const tabToLabel = new Map<string, string>([
   [Tabs.teamsTab, 'Teams'],
   [Tabs.peopleTab, 'People'],
   [Tabs.settingsTab, 'More'],
-])
-
-const tabToTestID = new Map<string, string>([
-  [Tabs.chatTab, TestIDs.NAV_TAB_CHAT],
-  [Tabs.fsTab, TestIDs.NAV_TAB_FILES],
-  [Tabs.teamsTab, TestIDs.NAV_TAB_TEAMS],
-  [Tabs.peopleTab, TestIDs.NAV_TAB_PEOPLE],
-  [Tabs.settingsTab, TestIDs.NAV_TAB_SETTINGS],
 ])
 
 // just to get badge rollups
@@ -377,32 +335,29 @@ const phoneRootRoutes = Object.fromEntries(
 const nativeTabComponents: Record<string, React.ComponentType> = {}
 
 if (isMobile) {
-  const nativeTabScreensConfig = routeMapToStaticScreens(routes, makeLayout, false, false, true)
+  // Tablet tab stacks hold every route; phone tab stacks hold only their root screen
+  // (everything else lives in the root stack so it renders above the tab bar).
+  const tabletScreensConfig = C.isTablet
+    ? routeMapToStaticScreens(routes, makeLayout, false, false, true)
+    : undefined
 
   for (const tab of nativeTabs) {
-    if (C.isTablet) {
-      const nav = createNativeStackNavigator({
-        initialRouteName: tabRoots[tab],
-        screenOptions: tabStackOptions,
-        screens: nativeTabScreensConfig,
-      })
-      nativeTabComponents[tab] = nav.getComponent()
-    } else {
-      const rootName = tabRoots[tab]
-      const rootScreenConfig = routeMapToStaticScreens(
+    const rootName = tabRoots[tab]
+    const screens =
+      tabletScreensConfig ??
+      routeMapToStaticScreens(
         {[rootName]: routes[rootName as keyof typeof routes]} as typeof routes,
         makeLayout,
         false,
         false,
         true
       )
-      const nav = createNativeStackNavigator({
-        initialRouteName: rootName,
-        screenOptions: tabStackOptions,
-        screens: rootScreenConfig,
-      })
-      nativeTabComponents[tab] = nav.getComponent()
-    }
+    const nav = createNativeStackNavigator({
+      initialRouteName: rootName,
+      screenOptions: tabStackOptions,
+      screens,
+    })
+    nativeTabComponents[tab] = nav.getComponent()
   }
 }
 
@@ -497,48 +452,53 @@ const appTabsScreenOptions = (
         }),
     tabBarIcon: getNativeTabIcon(routeName),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
-    tabBarTestID: tabToTestID.get(routeName),
+    tabBarTestID: Common.tabToTestID.get(routeName),
     tabBarLabelVisibilityMode: 'labeled' as const,
     tabBarStyle: {backgroundColor: isDarkMode ? colors.greyDarkest : colors.blueDark},
     title: tabToLabel.get(routeName) ?? routeName,
   }
 }
 
-function AppTabsNative() {
-  const Tab = React.useMemo(() => createBottomTabNavigator(), [])
-  const navBadges = useNotifState(s => s.navBadges)
-  const hasPermissions = usePushState(s => s.hasPermissions)
-  const isDarkMode = useDarkModeState(s => s.isDarkMode())
-
-  return (
-    <Tab.Navigator backBehavior="none">
-      {nativeTabs.map(tab => (
-        <Tab.Screen
-          key={tab}
-          name={tab}
-          component={nativeTabComponents[tab]!}
-          options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
-        />
-      ))}
-    </Tab.Navigator>
-  )
-}
-
-let NativeLoggedOut: React.ComponentType
 let NativeRootComponent: React.ComponentType
 
 if (isMobile) {
-  const nativeLoggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true, false)
-  const nativeLoggedOutScreenOptions = {
-    ...Common.defaultNavigationOptions,
-  } as NativeStackNavigationOptions
+  // Created inside the isMobile guard: on desktop @react-navigation/bottom-tabs is
+  // aliased to the null module, so calling it at module scope would crash startup.
+  const NativeTab = createBottomTabNavigator()
+
+  function AppTabsNative() {
+    const navBadges = useNotifState(s => s.navBadges)
+    const hasPermissions = usePushState(s => s.hasPermissions)
+    const isDarkMode = useDarkModeState(s => s.isDarkMode())
+
+    return (
+      <NativeTab.Navigator backBehavior="none">
+        {nativeTabs.map(tab => (
+          <NativeTab.Screen
+            key={tab}
+            name={tab}
+            component={nativeTabComponents[tab]!}
+            options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
+          />
+        ))}
+      </NativeTab.Navigator>
+    )
+  }
+
+  const nativeLoggedOutScreensConfig = routeMapToStaticScreens(
+    loggedOutRoutes,
+    makeLayout,
+    false,
+    true,
+    false
+  )
 
   const loggedOutNav = createNativeStackNavigator({
     initialRouteName: 'login',
-    screenOptions: nativeLoggedOutScreenOptions,
+    screenOptions: Common.defaultNavigationOptions as NativeStackNavigationOptions,
     screens: nativeLoggedOutScreensConfig,
   })
-  NativeLoggedOut = loggedOutNav.getComponent()
+  const NativeLoggedOut = loggedOutNav.getComponent()
 
   const rootStackScreenOptions = {
     headerBackButtonDisplayMode: 'minimal',
@@ -617,25 +577,6 @@ function NativeRouter() {
   const {loggedIn, startupLoaded} = useConfigState(
     C.useShallow(s => ({loggedIn: s.loggedIn, startupLoaded: s.startup.loaded}))
   )
-  const setNavState = C.useRouterState(s => s.dispatch.setNavState)
-  const onStateChange = () => {
-    const ns = C.Router2.getRootState()
-    setNavState(ns)
-  }
-  // Sync the initial state from the linking config into the router store.
-  // onStateChange doesn't fire for the initial state, so this ensures
-  // onRouteChanged runs and conversation data gets loaded on startup.
-  const onReady = onStateChange
-
-  const onUnhandledAction = (a: Readonly<{type: string}>) => {
-    logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
-  }
-
-  const navRef = (ref: typeof Constants.navigationRef.current) => {
-    if (ref) {
-      Constants.navigationRef.current = ref
-    }
-  }
 
   const {barStyle, isDarkMode} = useDarkModeState(
     C.useShallow(s => {
@@ -650,20 +591,11 @@ function NativeRouter() {
     })
   )
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
-  // Inline useRootKey (from hooks.native.tsx — can't require *.native files from shared code)
+  // Android also remounts on dark mode changes
   const nativeIsDarkMode = useColorScheme() === 'dark'
-  const nativeUsername = useCurrentUserState(s => s.username)
-  const [nativeNavKey, setNativeNavKey] = React.useState('')
-  const nativePrevUsernameRef = React.useRef(nativeUsername)
-  React.useEffect(() => {
-    const prev = nativePrevUsernameRef.current
-    nativePrevUsernameRef.current = nativeUsername
-    if (prev && nativeUsername && prev !== nativeUsername) {
-      setNativeNavKey(nativeUsername)
-    }
-  }, [nativeUsername])
+  const navKey = Common.useUserSwitchNavKey()
   const nativeDarkSuffix = isAndroid ? (nativeIsDarkMode ? '-dark' : '-light') : ''
-  const rootKey = nativeNavKey ? `${nativeNavKey}${nativeDarkSuffix}` : ''
+  const rootKey = navKey ? `${navKey}${nativeDarkSuffix}` : ''
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (
@@ -679,10 +611,13 @@ function NativeRouter() {
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         linking={loggedIn ? nativeLinkingConfig : undefined}
-        onReady={onReady}
+        // Sync the initial state from the linking config into the router store.
+        // onStateChange doesn't fire for the initial state, so this ensures
+        // onRouteChanged runs and conversation data gets loaded on startup.
+        onReady={onStateChange}
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}
-        ref={navRef}
+        ref={setNavRef}
         theme={isDarkMode ? darkTheme : lightTheme}
       >
         <LoadedTeamsListProvider>
