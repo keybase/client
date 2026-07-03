@@ -1,8 +1,16 @@
 import logger from '@/logger'
-import {ignorePromise} from '@/constants/utils'
+import isEqual from 'lodash/isEqual'
+import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {maxHandshakeTries} from '@/constants/values'
+
+// A bootstrap step gates the handshake: the app stays on the splash screen until every step
+// resolves. Throwing fails the whole attempt (FatalHandshakeError skips the remaining retries).
+// Steps are injected by initSharedSubscriptions since stores can't import the init layer.
+export type BootstrapStep = () => Promise<void>
+
+export class FatalHandshakeError extends Error {}
 
 type Store = T.Immutable<{
   bootstrapStatus?: T.RPCGen.BootstrapStatus
@@ -10,143 +18,69 @@ type Store = T.Immutable<{
   handshakeFailedReason: string
   handshakeRetriesLeft: number
   handshakeState: T.Config.DaemonHandshakeState
-  handshakeVersion: number
-  handshakeWaiters: Map<string, number>
-  // if we ever restart handshake up this so we can ignore any waiters for old things
 }>
 
 const initialStore: Store = {
   bootstrapStatus: undefined,
+  error: undefined,
   handshakeFailedReason: '',
   handshakeRetriesLeft: maxHandshakeTries,
-  handshakeState: 'starting',
-  handshakeVersion: 0,
-  handshakeWaiters: new Map(),
+  handshakeState: 'loading',
 }
 
 export type State = Store & {
   dispatch: {
+    initBootstrapSteps: (steps: Array<BootstrapStep>) => void
     loadDaemonBootstrapStatus: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
-    setFailed: (r: string) => void
-    setState: (s: T.Config.DaemonHandshakeState) => void
-    updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
-    wait: (
-      name: string,
-      version: number,
-      increment: boolean,
-      failedReason?: string,
-      failedFatal?: true
-    ) => void
     startHandshake: () => void
-    daemonHandshake: (version: number) => void
-    daemonHandshakeDone: () => void
-    onRestartHandshakeNative: () => void
+    updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
   }
 }
 
+const retryDelayMs = 1000
+
 export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
-  const restartHandshake = () => {
-    get().dispatch.onRestartHandshakeNative()
-    set(s => {
-      s.handshakeState = 'starting'
-      s.handshakeFailedReason = ''
-      s.handshakeRetriesLeft = maxHandshakeTries
-    })
-  }
-
-  let _firstTimeBootstrapDone = true
-  const maybeDoneWithDaemonHandshake = (version: number) => {
-    if (version !== get().handshakeVersion) {
-      // ignore out of date actions
-      return
-    }
-    const {handshakeWaiters, handshakeFailedReason, handshakeRetriesLeft} = get()
-    if (handshakeWaiters.size === 0) {
-      if (handshakeFailedReason) {
-        if (handshakeRetriesLeft) {
-          restartHandshake()
-        }
-      } else {
-        if (_firstTimeBootstrapDone) {
-          _firstTimeBootstrapDone = false
-          logger.info('First bootstrap ended')
-        }
-        get().dispatch.daemonHandshakeDone()
-      }
-    }
-  }
-
-  // When there are no more waiters, we can show the actual app
+  let bootstrapSteps: Array<BootstrapStep> = []
+  // bumped on every startHandshake (engine reconnect, splash Reload) so a stale in-flight
+  // run can't write results over a newer one
+  let generation = 0
+  let inflightBootstrapStatus: Promise<void> | undefined
 
   const dispatch: State['dispatch'] = {
-    daemonHandshake: version => {
-      get().dispatch.setState('waitingForWaiters')
-      const changed = get().handshakeVersion !== version
-      set(s => {
-        s.handshakeVersion = version
-        s.handshakeWaiters = new Map()
-      })
-
-      if (!changed) return
-
-      const f = async () => {
-        const name = 'config.getBootstrapStatus'
-        const {wait} = get().dispatch
-        wait(name, version, true)
-        logger.info('[Bootstrap] loadDaemonBootstrapStatus: starting')
-        try {
-          await get().dispatch.loadDaemonBootstrapStatus()
-        } finally {
-          wait(name, version, false)
-        }
-      }
-      ignorePromise(f())
+    initBootstrapSteps: steps => {
+      bootstrapSteps = steps
     },
-    daemonHandshakeDone: () => {
-      get().dispatch.setState('done')
-    },
-    // set to true so we reget status when we're reachable again
     loadDaemonBootstrapStatus: async () => {
-      const version = get().handshakeVersion
-      const {wait} = get().dispatch
-
-      const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-      set(state => {
-        state.bootstrapStatus = T.castDraft(s)
-      })
-
-      logger.info(`[Bootstrap] loggedIn: ${s.loggedIn ? 1 : 0}`)
-
-      // set HTTP srv info
-      if (s.httpSrvInfo) {
-        logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-      } else {
-        logger.info(`[Bootstrap] http server: no info given`)
+      if (inflightBootstrapStatus) {
+        return inflightBootstrapStatus
       }
-
-      // if we're logged in act like getAccounts is done already
-      if (s.loggedIn) {
-        const {handshakeWaiters} = get()
-        if (handshakeWaiters.get('config.getAccounts')) {
-          wait('config.getAccounts', version, false)
+      const f = async () => {
+        const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+        logger.info(
+          `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
+        )
+        if (isEqual(bs, get().bootstrapStatus)) {
+          return
         }
+        set(s => {
+          s.bootstrapStatus = T.castDraft(bs)
+        })
       }
-    },
-    onRestartHandshakeNative: () => {
-      // overriden on desktop
+      inflightBootstrapStatus = f()
+      try {
+        await inflightBootstrapStatus
+      } finally {
+        inflightBootstrapStatus = undefined
+      }
     },
     resetState: () => {
       set(s => ({
         ...s,
         ...initialStore,
-        dispatch: {
-          ...s.dispatch,
-          onRestartHandshakeNative: s.dispatch.onRestartHandshakeNative,
-        },
+        dispatch: s.dispatch,
         handshakeState: s.handshakeState,
-        handshakeVersion: s.handshakeVersion,
       }))
     },
     setError: e => {
@@ -157,26 +91,49 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         s.error = e
       })
     },
-    setFailed: r => {
-      set(s => {
-        s.handshakeFailedReason = r
-      })
-    },
-    setState: ds => {
-      if (ds === get().handshakeState) return
-      set(s => {
-        s.handshakeState = ds
-      })
-    },
     startHandshake: () => {
-      const nextVersion = get().handshakeVersion + 1
+      const gen = ++generation
       set(s => {
         s.error = undefined
-        s.handshakeState = 'starting'
         s.handshakeFailedReason = ''
-        s.handshakeRetriesLeft = Math.max(0, s.handshakeRetriesLeft - 1)
+        s.handshakeRetriesLeft = maxHandshakeTries
+        s.handshakeState = 'loading'
       })
-      get().dispatch.daemonHandshake(nextVersion)
+      const run = async () => {
+        while (gen === generation) {
+          try {
+            await get().dispatch.loadDaemonBootstrapStatus()
+            await Promise.all(bootstrapSteps.map(async step => step()))
+            if (gen !== generation) {
+              return
+            }
+            set(s => {
+              s.handshakeFailedReason = ''
+              s.handshakeState = 'done'
+            })
+            logger.info('[Bootstrap] handshake done')
+            return
+          } catch (error) {
+            if (gen !== generation) {
+              return
+            }
+            const fatal = error instanceof FatalHandshakeError
+            logger.warn('[Bootstrap] handshake attempt failed:', error)
+            set(s => {
+              s.handshakeFailedReason = error instanceof Error ? error.message : String(error)
+              s.handshakeRetriesLeft = fatal ? 0 : Math.max(0, s.handshakeRetriesLeft - 1)
+            })
+            if (get().handshakeRetriesLeft === 0) {
+              set(s => {
+                s.handshakeState = 'failed'
+              })
+              return
+            }
+            await timeoutPromise(retryDelayMs)
+          }
+        }
+      }
+      ignorePromise(run())
     },
     updateUserReacjis: userReacjis => {
       set(s => {
@@ -184,41 +141,6 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
           s.bootstrapStatus.userReacjis = T.castDraft(userReacjis)
         }
       })
-    },
-    wait: (name, version, increment, failedReason, failedFatal) => {
-      const {handshakeState, handshakeFailedReason, handshakeVersion} = get()
-      if (handshakeState !== 'waitingForWaiters') {
-        throw new Error("Should only get a wait while we're waiting")
-      }
-      if (version !== handshakeVersion) {
-        logger.info('Ignoring handshake wait due to version mismatch', version, handshakeVersion)
-        return
-      }
-      set(s => {
-        const oldCount = s.handshakeWaiters.get(name) || 0
-        const newCount = oldCount + (increment ? 1 : -1)
-        if (newCount === 0) {
-          s.handshakeWaiters.delete(name)
-        } else {
-          s.handshakeWaiters.set(name, newCount)
-        }
-      })
-      const remaining = get().handshakeWaiters.size
-      logger.info(`[Bootstrap] waiter ${increment ? '+' : '-'} ${name} v${version}, remaining: ${remaining}`)
-
-      if (failedFatal) {
-        set(s => {
-          s.handshakeFailedReason = failedReason || ''
-          s.handshakeRetriesLeft = 0
-        })
-      } else {
-        // Keep the first error
-        const f = failedReason || ''
-        if (f && !handshakeFailedReason) {
-          get().dispatch.setFailed(f)
-        }
-      }
-      maybeDoneWithDaemonHandshake(version)
     },
   }
   return {

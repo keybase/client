@@ -6,12 +6,12 @@ import {useDaemonState} from '@/stores/daemon'
 const SplashContainer = () => {
   const failedReason = useDaemonState(s => s.handshakeFailedReason)
   const retriesLeft = useDaemonState(s => s.handshakeRetriesLeft)
+  const handshakeFailed = useDaemonState(s => s.handshakeState === 'failed')
   const startHandshake = useDaemonState(s => s.dispatch.startHandshake)
   let status = ''
   let failed = ''
 
-  // Totally failed
-  if (retriesLeft === 0) {
+  if (handshakeFailed) {
     failed = failedReason
   } else if (retriesLeft === C.maxHandshakeTries) {
     // First try
@@ -26,7 +26,7 @@ const SplashContainer = () => {
         C.Router2.navigateAppend({name: 'feedback', params: {}})
       }
     : undefined
-  const onRetry = retriesLeft === 0 ? startHandshake : undefined
+  const onRetry = handshakeFailed ? startHandshake : undefined
 
   return <Splash failed={failed} status={status} onRetry={onRetry} onFeedback={onFeedback} />
 }

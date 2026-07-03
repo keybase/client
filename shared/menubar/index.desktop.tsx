@@ -499,7 +499,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
 
   const text = fullyLoggedOut
     ? 'You are logged out of Keybase.'
-    : daemonHandshakeState === 'waitingForWaiters'
+    : daemonHandshakeState === 'loading'
       ? 'Connecting interface to crypto engine... This may take a few seconds.'
       : 'Starting up Keybase...'
 
