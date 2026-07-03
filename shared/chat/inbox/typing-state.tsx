@@ -22,7 +22,14 @@ export const updateInboxTyping = (updates?: ReadonlyArray<T.RPCChat.ConvTypingUp
   useInboxTypingState.setState(s => {
     updates.forEach(update => {
       const id = T.Chat.conversationIDToKey(update.convID)
-      s.typing.set(id, new Set(update.typers?.map(typer => typer.username)))
+      const typers = new Set(update.typers?.map(typer => typer.username))
+      // Absent key already means nobody typing; delete rather than store an
+      // empty Set so the map doesn't grow unbounded as conversations go quiet.
+      if (typers.size) {
+        s.typing.set(id, typers)
+      } else {
+        s.typing.delete(id)
+      }
     })
   })
 }

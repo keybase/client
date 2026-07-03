@@ -3,15 +3,14 @@ import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {getExplodingModeFromGregorItems, getLastOrdinalFromSnapshot, getOrdinalForMessageIDInSnapshot} from './thread-load'
+import {
+  getCurrentUser,
+  getExplodingModeFromGregorItems,
+  getLastOrdinalFromSnapshot,
+  getOrdinalForMessageIDInSnapshot,
+} from './thread-load'
 import type {ConversationThreadActions} from './thread-context'
-
-const getCurrentUser = () => {
-  const s = useCurrentUserState.getState()
-  return {devicename: s.deviceName, username: s.username}
-}
 
 export const applyMessagesUpdatedToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,

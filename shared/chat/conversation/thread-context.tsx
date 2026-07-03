@@ -56,8 +56,10 @@ import {
 } from './message-rpc'
 import {cancelActiveThreadSearchRPC} from '../search-rpc'
 import {
+  emptyConversationMeta,
   getClientPrevFromSnapshot,
   getExplodingModeFromConfig,
+  getMeta,
   loadConversationThreadMessages,
   numMessagesOnInitialLoad,
   numMessagesOnScrollback,
@@ -88,12 +90,6 @@ const formatTextForQuoting = (text: string) =>
     .split('\n')
     .map(line => `> ${line}\n`)
     .join('')
-
-// The inbox metadata store is the single owner of conversation meta; fall back to
-// an empty meta for reads that predate an unbox.
-const emptyConversationMeta = Meta.makeConversationMeta()
-const getMeta = (id: T.Chat.ConversationIDKey) =>
-  getInboxConversationMeta(id) ?? emptyConversationMeta
 
 const ConversationThreadIDContext = React.createContext<T.Chat.ConversationIDKey | undefined>(undefined)
 ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'

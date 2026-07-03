@@ -33,10 +33,10 @@ const ignoreErrors = [
 
 // The inbox metadata store is the single owner of conversation meta; fall back to
 // an empty meta for reads that predate an unbox.
-const emptyConversationMeta = Meta.makeConversationMeta()
-const getMeta = (id: T.Chat.ConversationIDKey) => getInboxConversationMeta(id) ?? emptyConversationMeta
+export const emptyConversationMeta = Meta.makeConversationMeta()
+export const getMeta = (id: T.Chat.ConversationIDKey) => getInboxConversationMeta(id) ?? emptyConversationMeta
 
-const getCurrentUser = () => {
+export const getCurrentUser = () => {
   const s = useCurrentUserState.getState()
   return {devicename: s.deviceName, username: s.username}
 }
