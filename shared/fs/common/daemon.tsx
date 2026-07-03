@@ -5,6 +5,7 @@ import * as RouterConstants from '@/constants/router'
 import * as T from '@/constants/types'
 import {timeoutPromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
+import {useDaemonState} from '@/stores/daemon'
 import {useRouterState} from '@/stores/router'
 import {afterKbfsDaemonRpcStatusChanged, fsUserIn, fsUserOut} from './lifecycle'
 
@@ -75,6 +76,9 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const userSwitching = useConfigState(s => s.userSwitching)
   const installerRanCount = useConfigState(s => s.installerRanCount)
+  // Re-kick the watcher when the daemon handshake (re)completes: the watch loop exits
+  // if the service dies, and a new handshake means RPCs work again.
+  const handshakeDone = useDaemonState(s => s.handshakeState === 'done')
   const navState = useRouterState(s => s.navState as RouterConstants.NavState | undefined)
   const [kbfsDaemonStatus, setKbfsDaemonStatus] = React.useState<T.FS.KbfsDaemonStatus>(
     Constants.unknownKbfsDaemonStatus
@@ -158,7 +162,7 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
       return
     }
     checkKbfsDaemonRpcStatus()
-  }, [installerRanCount, shouldRunBackgroundFSRPC])
+  }, [installerRanCount, shouldRunBackgroundFSRPC, handshakeDone])
 
   React.useEffect(() => {
     const previousNavState = previousNavStateRef.current

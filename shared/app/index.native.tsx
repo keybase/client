@@ -1,6 +1,5 @@
 /// <reference types="webpack-env" />
 import * as C from '@/constants'
-import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -143,7 +142,6 @@ const useInit = () => {
     }, onEngineIncoming)
     initPlatformListener()
     eng.listenersAreReady()
-    useConfigState.getState().dispatch.installerRan()
   }, [])
 }
 
