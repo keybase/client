@@ -15,7 +15,7 @@ type Props = {
 }
 import {useConversationThreadToggleSearch} from '../../../thread-context'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
-import {FocusContext} from '@/chat/conversation/normal/context'
+import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 
 function ReplyIcon({progress}: {progress: Animated.Value}) {
   const opacity = progress.interpolate({inputRange: [-20, 0], outputRange: [1, 0], extrapolate: 'clamp'})
@@ -30,7 +30,7 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   const toggleThreadSearch = useConversationThreadToggleSearch()
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const ordinal = useOrdinal()
-  const {focusInput} = React.useContext(FocusContext)
+  const {focusInput} = React.useContext(ThreadRefsContext)
   const swipeRef = React.useRef<SwipeableMethods | null>(null)
 
   if (!isMobile) {
