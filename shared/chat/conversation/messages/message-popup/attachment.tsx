@@ -14,7 +14,7 @@ import {
   showConversationInfoPanel,
   useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadSelector,
+  useThreadMeta,
 } from '../../thread-context'
 import {useConversationMetadata, useConversationParticipants} from '../../data-hooks'
 import {useRoute} from '@react-navigation/native'
@@ -169,7 +169,7 @@ const PopAttachThread = (ownProps: OwnProps) => {
   // infoPanel only exists on the desktop/tablet split-view chatRoot route
   const infoPanelShowing =
     route.name === 'chatRoot' && 'infoPanel' in route.params && !!route.params.infoPanel
-  const meta = useConversationThreadSelector(s => s.meta)
+  const meta = useThreadMeta(m => m)
   const participantInfo = useConversationParticipants(conversationIDKey)
   return (
     <PopAttachLoaded

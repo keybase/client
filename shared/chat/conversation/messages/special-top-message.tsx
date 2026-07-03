@@ -10,6 +10,7 @@ import {useChatThreadRouteParams} from '../thread-search-route'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
+  useThreadMeta,
 } from '../thread-context'
 import {useConversationParticipants} from '../data-hooks'
 import * as FS from '@/constants/fs'
@@ -111,15 +112,21 @@ const ErrorMessage = () => {
 function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
   const conversationIDKey = useConversationThreadID()
-  const {hasLoadedEver, meta, moreToLoadBack} = useConversationThreadSelector(
+  const {hasLoadedEver, moreToLoadBack} = useConversationThreadSelector(
     C.useShallow(s => ({
       hasLoadedEver: s.messageOrdinals !== undefined,
-      meta: s.meta,
       moreToLoadBack: s.moreToLoadBack,
     }))
   )
+  const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = useThreadMeta(
+    C.useShallow(m => ({
+      retentionPolicy: m.retentionPolicy,
+      supersedes: m.supersedes,
+      teamRetentionPolicy: m.teamRetentionPolicy,
+      teamType: m.teamType,
+    }))
+  )
   const participants = useConversationParticipants(conversationIDKey)
-  const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
   const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
   const pendingState =
     conversationIDKey === T.Chat.pendingWaitingConversationIDKey

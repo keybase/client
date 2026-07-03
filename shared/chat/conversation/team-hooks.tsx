@@ -8,7 +8,7 @@ import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
-import {useConversationThreadSelector} from './thread-context'
+import {useThreadMeta} from './thread-context'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -504,11 +504,11 @@ ChatTeamContext.displayName = 'ChatTeamContext'
 
 export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const {children} = props
-  const {teamID, teamType, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      teamID: s.meta.teamID,
-      teamType: s.meta.teamType,
-      teamname: s.meta.teamname,
+  const {teamID, teamType, teamname} = useThreadMeta(
+    C.useShallow(m => ({
+      teamID: m.teamID,
+      teamType: m.teamType,
+      teamname: m.teamname,
     }))
   )
   const outer = React.useContext(ChatTeamContext)

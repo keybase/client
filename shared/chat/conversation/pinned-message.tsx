@@ -7,17 +7,17 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
 import {useConversationCenterActions} from './center-context'
-import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
+import {useConversationThreadID, useThreadMeta} from './thread-context'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 
 const PinnedMessage = function PinnedMessage() {
   const conversationIDKey = useConversationThreadID()
-  const {pinnedMsg, teamID, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      pinnedMsg: s.meta.pinnedMsg,
-      teamID: s.meta.teamID,
-      teamname: s.meta.teamname,
+  const {pinnedMsg, teamID, teamname} = useThreadMeta(
+    C.useShallow(m => ({
+      pinnedMsg: m.pinnedMsg,
+      teamID: m.teamID,
+      teamname: m.teamname,
     }))
   )
   const {centerOnMessage} = useConversationCenterActions()

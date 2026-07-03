@@ -8,10 +8,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
-import {
-  useConversationThreadID,
-  useConversationThreadSelector,
-} from './thread-context'
+import {useConversationThreadID, useThreadMeta} from './thread-context'
 import {useConversationParticipants} from './data-hooks'
 
 type Store = T.Immutable<{
@@ -147,7 +144,7 @@ const BannerContainerInner = function BannerContainerInner(props: {
       dismissed: s.inviteBannerDismissed.has(conversationIDKey),
     }))
   )
-  const meta = useConversationThreadSelector(s => s.meta)
+  const meta = useThreadMeta(C.useShallow(m => ({isEmpty: m.isEmpty, teamType: m.teamType})))
   const participantInfo = useConversationParticipants(conversationIDKey)
   if (meta.teamType !== 'adhoc') {
     return null

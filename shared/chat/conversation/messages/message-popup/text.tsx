@@ -11,7 +11,7 @@ import {
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadMessageActions,
-  useConversationThreadSelector,
+  useThreadMeta,
 } from '../../thread-context'
 import type {MessagePopupItems} from './hooks'
 import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
@@ -155,7 +155,7 @@ const PopTextThread = (ownProps: OwnProps) => {
   const {ordinal, onHidden} = ownProps
   const conversationIDKey = useConversationThreadID()
   const message = useConversationThreadMessage(ordinal) ?? emptyMessage
-  const meta = useConversationThreadSelector(s => s.meta)
+  const meta = useThreadMeta(m => m)
   const participantInfo = useConversationParticipants(conversationIDKey)
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)

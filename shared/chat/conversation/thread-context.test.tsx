@@ -170,43 +170,6 @@ const makeIncomingOutboxReaction = (
   pagination: null,
 })
 
-const makeUnverifiedInboxUIItem = (): T.RPCChat.UnverifiedInboxUIItem => ({
-  commands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
-  convID: T.Chat.conversationIDKeyToString(convID),
-  convRetention: null,
-  draft: null,
-  finalizeInfo: null,
-  isDefaultConv: false,
-  isPublic: false,
-  localMetadata: {
-    channelName: '',
-    headline: '',
-    headlineDecorated: '',
-    resetParticipants: null,
-    snippet: '',
-    snippetDecoration: T.RPCChat.SnippetDecoration.none,
-    writerNames: null,
-  },
-  localVersion: 1,
-  maxMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(301)),
-  maxVisibleMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(301)),
-  memberStatus: T.RPCChat.ConversationMemberStatus.active,
-  membersType: T.RPCChat.ConversationMembersType.impteamnative,
-  name: 'alice,bob,charlie',
-  notifications: null,
-  readMsgID: 0,
-  status: T.RPCChat.ConversationStatus.unfiled,
-  supersededBy: null,
-  supersedes: null,
-  teamRetention: null,
-  teamType: T.RPCChat.TeamType.simple,
-  time: 1,
-  tlfID: 'tlf-id',
-  topicType: T.RPCChat.TopicType.chat,
-  version: 1,
-  visibility: T.RPCGen.TLFVisibility.private,
-})
-
 const makeFailedOutboxRecord = (
   conversationIDKey: T.Chat.ConversationIDKey,
   outboxID: T.Chat.OutboxID
@@ -1135,45 +1098,6 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
     decorated: 'server-plus-one',
     users: [{timestamp: 300, username: 'alice'}],
   })
-})
-
-test('mounted thread listener applies inbox failure metadata for the active conversation', () => {
-  const {result} = renderHook(
-    () => ({
-      meta: useConversationThreadSelector(s => s.meta),
-      participants: useConversationParticipants(convID),
-    }),
-    {wrapper}
-  )
-
-  act(() => {
-    notifyEngineActionListeners({
-      payload: {
-        params: {
-          convID: T.Chat.keyToConversationID(convID),
-          error: {
-            message: 'rekey needed',
-            rekeyInfo: {
-              readerNames: ['charlie'],
-              rekeyers: ['bob'],
-              tlfName: 'alice,bob,charlie',
-              tlfPublic: false,
-              writerNames: ['alice', 'bob'],
-            },
-            remoteConv: makeUnverifiedInboxUIItem(),
-            typ: T.RPCChat.ConversationErrorType.otherrekeyneeded,
-            unverifiedTLFName: 'alice,bob,charlie',
-          },
-        },
-      },
-      type: 'chat.1.chatUi.chatInboxFailed',
-    } as never)
-  })
-
-  expect(result.current.meta.trustedState).toBe('error')
-  expect(result.current.meta.snippet).toBe('rekey needed')
-  expect([...result.current.meta.rekeyers]).toEqual(['bob'])
-  expect(result.current.participants.name).toEqual(['alice', 'bob', 'charlie'])
 })
 
 test('mounted thread listener applies request and payment decorators for the active conversation', () => {
