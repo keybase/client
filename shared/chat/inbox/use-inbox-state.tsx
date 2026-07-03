@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useInboxRowsState} from '@/chat/inbox/rows-state'
+import {useInboxBadgeState} from '@/chat/inbox/badge-state'
 import {useIsFocused} from '@react-navigation/core'
 import type {ChatInboxRowItem} from './rowitem'
 import {useInboxLayout, useInboxRetryState} from './layout-state'
@@ -19,10 +19,10 @@ const useInboxBadges = (
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
 
-  const unreadBadges = useInboxRowsState(
+  const unreadBadges = useInboxBadgeState(
     C.useShallow(s =>
       bigConvIds.map(conversationIDKey =>
-        conversationIDKey ? (s.rowsBig.get(conversationIDKey)?.badgeCount ?? 0) : 0
+        conversationIDKey ? (s.counts.get(conversationIDKey)?.badgeCount ?? 0) : 0
       )
     )
   )

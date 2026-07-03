@@ -16,6 +16,7 @@ import * as Z from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
+import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
 import {
   getInboxRowTrustedState,
   setInboxRowTrustedState,
@@ -625,5 +626,6 @@ export const onChatInboxSynced = async (
 }
 
 export const syncBadgeState = (badgeState?: T.RPCGen.BadgeState) => {
+  syncInboxBadgeState(badgeState)
   syncInboxRowBadgeState(badgeState)
 }
