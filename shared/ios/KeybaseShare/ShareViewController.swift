@@ -62,10 +62,6 @@ public class ShareViewController: UIViewController {
     present(alertController, animated: true, completion: nil)
   }
 
-  func closeProgressView() {
-    alert?.dismiss(animated: true, completion: nil)
-  }
-
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     guard !didStartProcessing else { return }
