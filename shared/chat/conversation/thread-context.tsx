@@ -58,7 +58,6 @@ import {
   metasReceived,
   participantInfoReceived,
   unboxRows,
-  useInboxMetadataState,
 } from '@/chat/inbox/metadata'
 import {
   loadThreadMessageIDAtIndex,
@@ -96,11 +95,11 @@ const ignoreErrors = [
   T.RPCGen.StatusCode.sctimeout,
 ]
 
-const makeEmptyParticipantInfo = (): T.Chat.ParticipantInfo => ({
+const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   all: [],
   contactName: new Map(),
   name: [],
-})
+}
 
 const getExplodingModeFromGregorItems = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -203,7 +202,6 @@ export type ConversationThreadState = {
   moreToLoadForward: boolean
   optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
-  participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   typing: Set<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
@@ -238,7 +236,6 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       moreToLoadBack: false,
       moreToLoadForward: false,
       optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
-      participants: makeEmptyParticipantInfo(),
       paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       typing: new Set<string>(),
@@ -250,13 +247,9 @@ const makeEmptyThreadState = (): ConversationThreadState =>
 
 const makeInitialThreadState = (id: T.Chat.ConversationIDKey) => {
   const meta = getInboxConversationMeta(id)
-  const participants = getInboxConversationParticipants(id)
   return produce(makeEmptyThreadState(), s => {
     if (meta) {
       s.meta = T.castDraft(meta)
-    }
-    if (participants) {
-      s.participants = T.castDraft(participants)
     }
     s.explodingMode = getExplodingModeFromConfig(id)
   })
@@ -355,7 +348,6 @@ type ConversationThreadActions = {
   setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
   setMessageSubmitState: (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => void
   setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
-  setParticipants: (participants: T.Chat.ParticipantInfo) => void
   setTyping: (typing: ReadonlySet<string>) => void
   showUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   addOptimisticReaction: (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => void
@@ -1152,12 +1144,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       metasReceived([nextMeta])
     }
   })
-  const setParticipants = React.useEffectEvent((participants: T.Chat.ParticipantInfo) => {
-    updateThreadState(s => {
-      s.participants = T.castDraft(participants)
-    })
-    participantInfoReceived(id, participants, getSnapshot().meta)
-  })
   const setMarkAsUnread = React.useEffectEvent((readMsgID?: T.Chat.MessageID | false) => {
     if (readMsgID === false) {
       return
@@ -1595,7 +1581,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       setMessageErrored,
       setMessageSubmitState,
       setMeta,
-      setParticipants,
       setTyping,
       showUnfurlPrompt,
       startAttachmentDownload,
@@ -1617,15 +1602,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       threadActions.loadMoreMessages.cancel()
     }
   }, [threadActions])
-  const inboxParticipants = useInboxMetadataState(s => s.participants.get(id))
-  React.useEffect(() => {
-    if (!inboxParticipants) {
-      return
-    }
-    updateThreadState(s => {
-      s.participants = T.castDraft(inboxParticipants)
-    })
-  }, [inboxParticipants])
   useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
     const {activity} = action.payload.params
     switch (activity.activityType) {
@@ -1751,7 +1727,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       threadActions.setMeta(meta)
     }
     if (participants) {
-      threadActions.setParticipants(participants)
+      participantInfoReceived(id, participants, meta)
     }
   })
   useEngineActionListener('chat.1.NotifyChat.ChatSetConvSettings', action => {
@@ -1799,12 +1775,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     )
     if (meta) {
       applyConversationMetaToThread(meta, threadActions)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatParticipantsInfo', action => {
-    const participants = action.payload.params.participants?.[id]
-    if (participants) {
-      threadActions.setParticipants(Common.uiParticipantsToParticipantInfo(participants))
     }
   })
   useEngineActionListener('chat.1.NotifyChat.ChatRequestInfo', action => {
@@ -2048,7 +2018,6 @@ export const useConversationThreadMessageActions = () => {
 export const useConversationThreadSelectedConversation = () => {
   const conversationIDKey = useConversationThreadID()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const participantInfo = useConversationThreadSelector(s => s.participants)
 
   const selectedConversation: SelectedConversation = (options?: SelectedConversationOptions) => {
     const {skipThreadLoad, ...loadStatusOptions} = options ?? {}
@@ -2057,6 +2026,7 @@ export const useConversationThreadSelectedConversation = () => {
     unboxRows([conversationIDKey])
 
     const username = useCurrentUserState.getState().username
+    const participantInfo = getInboxConversationParticipants(conversationIDKey) ?? emptyParticipantInfo
     const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
     if (otherParticipants.length === 1) {
       const otherUsername = otherParticipants[0] || ''

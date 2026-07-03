@@ -22,6 +22,7 @@ import {
   useConversationThreadSetExplodingMode,
   useConversationThreadToggleSearch,
 } from '../../thread-context'
+import {useConversationParticipants} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows} from '@/chat/inbox/metadata'
@@ -34,14 +35,15 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
-  const {channelname, participantInfoName, teamType, teamname} = useConversationThreadSelector(
+  const conversationIDKey = useConversationThreadID()
+  const {channelname, teamType, teamname} = useConversationThreadSelector(
     C.useShallow(s => ({
       channelname: s.meta.channelname,
-      participantInfoName: s.participants.name,
       teamType: s.meta.teamType,
       teamname: s.meta.teamname,
     }))
   )
+  const participantInfoName = useConversationParticipants(conversationIDKey).name
   if (isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }

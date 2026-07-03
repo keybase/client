@@ -12,6 +12,7 @@ import {
   useConversationThreadID,
   useConversationThreadSelector,
 } from './thread-context'
+import {useConversationParticipants} from './data-hooks'
 
 type Store = T.Immutable<{
   inviteBannerDismissed: Set<T.Chat.ConversationIDKey>
@@ -48,7 +49,8 @@ const installMessage = `I sent you encrypted messages on Keybase. You can instal
 
 const Invite = (props: {onDismiss: () => void}) => {
   const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
-  const participantInfo = useConversationThreadSelector(s => s.participants)
+  const conversationIDKey = useConversationThreadID()
+  const participantInfo = useConversationParticipants(conversationIDKey)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
@@ -145,9 +147,8 @@ const BannerContainerInner = function BannerContainerInner(props: {
       dismissed: s.inviteBannerDismissed.has(conversationIDKey),
     }))
   )
-  const {meta, participantInfo} = useConversationThreadSelector(
-    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
-  )
+  const meta = useConversationThreadSelector(s => s.meta)
+  const participantInfo = useConversationParticipants(conversationIDKey)
   if (meta.teamType !== 'adhoc') {
     return null
   }
