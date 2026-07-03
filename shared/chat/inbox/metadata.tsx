@@ -16,7 +16,6 @@ import * as Z from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
-import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
 
 type InboxMetadataState = T.Immutable<{
   metas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
@@ -600,8 +599,4 @@ export const onChatInboxSynced = async (
     default:
       await refreshInbox('inboxSyncedUnknown')
   }
-}
-
-export const syncBadgeState = (badgeState?: T.RPCGen.BadgeState) => {
-  syncInboxBadgeState(badgeState)
 }

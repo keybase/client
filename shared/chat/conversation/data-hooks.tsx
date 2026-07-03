@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
@@ -9,10 +8,10 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
-import {uint8ArrayToString} from '@/util/uint8array'
 import logger from '@/logger'
 import {loadThreadNonblock, markConversationRead} from './thread-rpc'
 import {setConversationOrangeLine} from './orange-line-context'
+import {getExplodingModeFromGregorItems} from './thread-load'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
 export const emptyParticipantInfo: T.Chat.ParticipantInfo = {
@@ -128,28 +127,6 @@ export const useConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey)
 
 export const useConversationParticipants = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConversationMetadata(conversationIDKey).participants
-
-const getExplodingModeFromGregorItems = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  items: ReadonlyArray<{item: T.RPCGen.Gregor1.Item}>
-) => {
-  const explodingItems = items.filter(i => i.item.category.startsWith(Common.explodingModeGregorKeyPrefix))
-  if (!explodingItems.length) {
-    return 0
-  }
-  const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
-  const item = explodingItems.find(i => i.item.category === category)
-  if (!item) {
-    return undefined
-  }
-  const secondsString = uint8ArrayToString(item.item.body)
-  const seconds = parseInt(secondsString, 10)
-  if (isNaN(seconds)) {
-    logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-    return undefined
-  }
-  return seconds
-}
 
 export const useConversationExplodingMode = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConfigState(state => getExplodingModeFromGregorItems(conversationIDKey, state.gregorPushState) ?? 0)
