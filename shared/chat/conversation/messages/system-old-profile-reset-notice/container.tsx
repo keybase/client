@@ -1,13 +1,16 @@
 import type * as T from '@/constants/types'
+import * as C from '@/constants'
 import {navigateToThread, previewConversation} from '@/constants/router'
 import {Text} from '@/common-adapters'
 import UserNotice from '../user-notice'
-import {useConversationThreadID, useConversationThreadSelector} from '../../thread-context'
+import {useConversationThreadID, useThreadMeta} from '../../thread-context'
 import {useConversationParticipants} from '../../data-hooks'
 
 const SystemOldProfileResetNotice = () => {
   const conversationIDKey = useConversationThreadID()
-  const meta = useConversationThreadSelector(s => s.meta)
+  const meta = useThreadMeta(
+    C.useShallow(m => ({supersededBy: m.supersededBy, wasFinalizedBy: m.wasFinalizedBy}))
+  )
   const participantInfo = useConversationParticipants(conversationIDKey)
   const _participants = participantInfo.all
   const nextConversationIDKey = meta.supersededBy

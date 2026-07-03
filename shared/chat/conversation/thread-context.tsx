@@ -1,7 +1,6 @@
 import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
-import * as TeamsUtil from '@/constants/teams'
 import * as React from 'react'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
@@ -56,8 +55,9 @@ import {
   getInboxConversationMeta,
   getInboxConversationParticipants,
   metasReceived,
-  participantInfoReceived,
   unboxRows,
+  updateInboxConversationMeta,
+  useInboxMetadataState,
 } from '@/chat/inbox/metadata'
 import {
   loadThreadMessageIDAtIndex,
@@ -184,6 +184,12 @@ const getClientPrevFromSnapshot = (snapshot: ConversationThreadState): T.Chat.Me
   return message?.id || T.Chat.numberToMessageID(0)
 }
 
+// The inbox metadata store is the single owner of conversation meta; fall back to
+// an empty meta for reads that predate an unbox.
+const emptyConversationMeta = Meta.makeConversationMeta()
+const getMeta = (id: T.Chat.ConversationIDKey) =>
+  getInboxConversationMeta(id) ?? emptyConversationMeta
+
 const ConversationThreadIDContext = React.createContext<T.Chat.ConversationIDKey | undefined>(undefined)
 ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
 
@@ -193,7 +199,6 @@ export type ConversationThreadState = {
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean
   liveUpdateVersion: number
-  meta: T.Chat.ConversationMeta
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
@@ -232,7 +237,6 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>(),
       messageOrdinals: undefined as ReadonlyArray<T.Chat.Ordinal> | undefined,
       messageTypeMap: new Map<T.Chat.Ordinal, T.Chat.RenderMessageType>(),
-      meta: Meta.makeConversationMeta(),
       moreToLoadBack: false,
       moreToLoadForward: false,
       optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
@@ -246,11 +250,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
   )
 
 const makeInitialThreadState = (id: T.Chat.ConversationIDKey) => {
-  const meta = getInboxConversationMeta(id)
   return produce(makeEmptyThreadState(), s => {
-    if (meta) {
-      s.meta = T.castDraft(meta)
-    }
     s.explodingMode = getExplodingModeFromConfig(id)
   })
 }
@@ -344,7 +344,6 @@ type ConversationThreadActions = {
   receiveRequestInfo: (messageID: T.Chat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => void
   retryMessage: (outboxID: T.Chat.OutboxID) => void
   setExplodingMode: (seconds: number, incoming?: boolean) => void
-  setMeta: (meta?: T.Chat.ConversationMeta) => void
   setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
   setMessageSubmitState: (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => void
   setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
@@ -371,7 +370,6 @@ type ConversationThreadActions = {
     bytesComplete?: number,
     bytesTotal?: number
   ) => void
-  updateMeta: (meta: Partial<T.Chat.ConversationMeta>) => void
 }
 
 const ConversationThreadActionsContext = React.createContext<ConversationThreadActions | undefined>(
@@ -677,30 +675,6 @@ const applyEphemeralPurgeToThread = (
   }
 }
 
-const applyConversationMetaToThread = (
-  meta: T.Chat.ConversationMeta | undefined,
-  actions: ConversationThreadActions
-) => {
-  if (!meta) {
-    return
-  }
-  const oldMeta = actions.getSnapshot().meta
-  if (oldMeta.conversationIDKey === meta.conversationIDKey) {
-    actions.setMeta(Meta.updateMeta(oldMeta, meta))
-  } else {
-    actions.setMeta(meta)
-  }
-}
-
-const applyInboxUIItemToThread = (
-  conv: T.RPCChat.InboxUIItem | null | undefined,
-  actions: ConversationThreadActions
-) => {
-  if (conv) {
-    applyConversationMetaToThread(Meta.inboxUIItemToConversationMeta(conv), actions)
-  }
-}
-
 const loadConversationThreadMessages = (
   conversationIDKey: T.Chat.ConversationIDKey,
   p: LoadMoreMessagesParams,
@@ -734,7 +708,7 @@ const loadConversationThreadMessages = (
     }
 
     const loadStartedSnapshot = actions.getSnapshot()
-    const currentMeta = loadStartedSnapshot.meta
+    const currentMeta = getMeta(conversationIDKey)
     if (currentMeta.membershipType === 'youAreReset' || currentMeta.rekeyers.size > 0) {
       logger.info('loadMoreMessages: bail: we are reset')
       return
@@ -842,9 +816,7 @@ const loadConversationThreadMessages = (
       if (!isCurrentThreadLoad()) {
         return
       }
-      if (actions.getSnapshot().meta.conversationIDKey === conversationIDKey) {
-        actions.updateMeta({offline: results.offline})
-      }
+      updateInboxConversationMeta(conversationIDKey, {offline: results.offline})
     } catch (error) {
       if (!isCurrentThreadLoad()) {
         return
@@ -884,6 +856,16 @@ export const useConversationThreadStore = () => {
     throw new Error('Missing ConversationThreadProvider state in the tree')
   }
   return store
+}
+
+// Reads the meta for the current thread from its single owner (the inbox metadata
+// store). Pass a narrow selector (wrap object results in C.useShallow) so render-hot
+// callers don't re-render on unrelated meta churn (e.g. draft updates).
+export const useThreadMeta = <TValue,>(
+  selector: (meta: T.Immutable<T.Chat.ConversationMeta>) => TValue
+): TValue => {
+  const id = useConversationThreadID()
+  return useInboxMetadataState(s => selector(s.metas.get(id) ?? emptyConversationMeta))
 }
 
 type ConversationThreadProviderProps = React.PropsWithChildren<{
@@ -976,7 +958,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         logger.info(`marking read messages ${id} failed due to no id`)
         return
       }
-      if (snapshot.meta.conversationIDKey === id && readMsgID === snapshot.meta.readMsgID) {
+      if (readMsgID === getInboxConversationMeta(id)?.readMsgID) {
         logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
         return
       }
@@ -1049,7 +1031,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
             // moreToLoadForward true would drop live incoming messages and block mark-read.
             let containsLatest = false
             if (p.centered && p.forceContainsLatestCalc) {
-              const {maxVisibleMsgID} = s.meta
+              const {maxVisibleMsgID} = getMeta(id)
               const ordinal = findLast(s.messageOrdinals ?? [], o => !!s.messageMap.get(o)?.id)
               const message = ordinal ? s.messageMap.get(ordinal) : undefined
               containsLatest = !!message?.id && maxVisibleMsgID > 0 && message.id >= maxVisibleMsgID
@@ -1124,24 +1106,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       s.explodingMode = seconds
     })
     if (!incoming) {
-      persistExplodingMode(id, getSnapshot().meta, seconds)
-    }
-  })
-  const setMeta = React.useEffectEvent((meta?: T.Chat.ConversationMeta) => {
-    updateThreadState(s => {
-      s.meta = T.castDraft(meta ?? Meta.makeConversationMeta())
-    })
-    if (meta) {
-      metasReceived([getSnapshot().meta])
-    }
-  })
-  const updateMeta = React.useEffectEvent((meta: Partial<T.Chat.ConversationMeta>) => {
-    updateThreadState(s => {
-      Object.assign(s.meta, meta)
-    })
-    const nextMeta = getSnapshot().meta
-    if (nextMeta.conversationIDKey === id) {
-      metasReceived([nextMeta])
+      persistExplodingMode(id, getMeta(id), seconds)
     }
   })
   const setMarkAsUnread = React.useEffectEvent((readMsgID?: T.Chat.MessageID | false) => {
@@ -1154,7 +1119,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         return
       }
       const snapshot = getSnapshot()
-      const unreadLineID = readMsgID ? readMsgID : snapshot.meta.maxVisibleMsgID
+      const unreadLineID = readMsgID ? readMsgID : getMeta(id).maxVisibleMsgID
       let msgID = unreadLineID
 
       if (snapshot.messageMap.size) {
@@ -1211,7 +1176,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         revertDeleting()
         return
       }
-      if (snapshot.meta.conversationIDKey !== id) {
+      if (!getInboxConversationMeta(id)) {
         logger.warn('Deleting message w/ no meta')
         revertDeleting()
         return
@@ -1230,7 +1195,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         await postConversationDelete({
           conversationIDKey: id,
           messageID: message.id,
-          tlfName: snapshot.meta.tlfname,
+          tlfName: getMeta(id).tlfname,
         })
       } catch (error) {
         revertDeleting()
@@ -1367,7 +1332,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
           conversationIDKey: id,
           messageID,
           outboxID,
-          tlfName: snapshot.meta.tlfname,
+          tlfName: getMeta(id).tlfname,
         })
       } catch (error) {
         removeOptimisticReaction(localOutboxID)
@@ -1380,15 +1345,14 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
   const unfurlRemove = React.useEffectEvent((messageID: T.Chat.MessageID) => {
     const f = async () => {
-      const snapshot = getSnapshot()
-      if (snapshot.meta.conversationIDKey !== id) {
+      if (!getInboxConversationMeta(id)) {
         logger.debug('unfurl remove no meta found, aborting!')
         return
       }
       await postConversationDelete({
         conversationIDKey: id,
         messageID,
-        tlfName: snapshot.meta.tlfname,
+        tlfName: getMeta(id).tlfname,
       })
     }
     ignorePromise(f())
@@ -1580,7 +1544,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       setMarkReadBlocked,
       setMessageErrored,
       setMessageSubmitState,
-      setMeta,
       setTyping,
       showUnfurlPrompt,
       startAttachmentDownload,
@@ -1590,7 +1553,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       updateAttachmentDownloadProgress,
       updateAttachmentUploadProgress,
       updateCoinFlipStatuses,
-      updateMeta,
       updateOptimisticReactionDecorated,
       updateReactions,
     }
@@ -1609,45 +1571,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         const {incomingMessage} = activity
         const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
         if (conversationIDKey === id) {
-          applyInboxUIItemToThread(incomingMessage.conv, threadActions)
           applyIncomingMessageToThread(conversationIDKey, incomingMessage, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.setStatus: {
-        const {setStatus} = activity
-        const conversationIDKey = setStatus.conv
-          ? T.Chat.stringToConversationIDKey(setStatus.conv.convID)
-          : T.Chat.noConversationIDKey
-        if (conversationIDKey === id) {
-          applyInboxUIItemToThread(setStatus.conv, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.readMessage: {
-        const {readMessage} = activity
-        const conversationIDKey = readMessage.conv
-          ? T.Chat.stringToConversationIDKey(readMessage.conv.convID)
-          : T.Chat.noConversationIDKey
-        if (conversationIDKey === id) {
-          applyInboxUIItemToThread(readMessage.conv, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.newConversation: {
-        const {newConversation} = activity
-        const conversationIDKey = newConversation.conv
-          ? T.Chat.stringToConversationIDKey(newConversation.conv.convID)
-          : T.Chat.noConversationIDKey
-        if (conversationIDKey === id) {
-          applyInboxUIItemToThread(newConversation.conv, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
-        const {setAppNotificationSettings} = activity
-        if (T.Chat.conversationIDToKey(setAppNotificationSettings.convID) === id) {
-          threadActions.updateMeta(Meta.parseNotificationSettings(setAppNotificationSettings.settings))
         }
         break
       }
@@ -1661,7 +1585,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       }
       case T.RPCChat.ChatActivityType.failedMessage: {
         const {failedMessage} = activity
-        applyInboxUIItemToThread(failedMessage.conv, threadActions)
         applyFailedMessageToThread(id, failedMessage, threadActions)
         break
       }
@@ -1704,77 +1627,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     const seconds = getExplodingModeFromGregorItems(id, items)
     if (seconds !== undefined) {
       threadActions.setExplodingMode(seconds, true)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatConvUpdate', action => {
-    const {conv} = action.payload.params
-    const conversationIDKey = conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
-    if (conversationIDKey === id) {
-      applyInboxUIItemToThread(conv, threadActions)
-    }
-  })
-  useEngineActionListener('chat.1.chatUi.chatInboxFailed', action => {
-    const {convID, error} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const {meta, participants} = Meta.inboxUIItemErrorToConversationMetaAndParticipants(
-      error,
-      useCurrentUserState.getState().username,
-      threadActions.getSnapshot().meta
-    )
-    if (meta) {
-      threadActions.setMeta(meta)
-    }
-    if (participants) {
-      participantInfoReceived(id, participants, meta)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvSettings', action => {
-    const {conv, convID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const newRole = conv?.convSettings?.minWriterRoleInfo?.role
-    const role = newRole && TeamsUtil.teamRoleByEnum[newRole]
-    const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
-    if (role) {
-      threadActions.updateMeta({cannotWrite, minWriterRole: role})
-    } else {
-      logger.warn(
-        `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${id}. The local version may be out of date.`
-      )
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvRetention', action => {
-    const {conv, convID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    if (!conv) {
-      logger.warn('onChatSetConvRetention: no conv given')
-      return
-    }
-    const meta = Meta.inboxUIItemToConversationMeta(conv)
-    if (!meta) {
-      logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
-      return
-    }
-    applyConversationMetaToThread(meta, threadActions)
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
-    const meta = (action.payload.params.convs ?? []).reduce<T.Chat.ConversationMeta | undefined>(
-      (found, conv) => {
-        if (found) {
-          return found
-        }
-        const meta = Meta.inboxUIItemToConversationMeta(conv)
-        return meta?.conversationIDKey === id ? meta : undefined
-      },
-      undefined
-    )
-    if (meta) {
-      applyConversationMetaToThread(meta, threadActions)
     }
   })
   useEngineActionListener('chat.1.NotifyChat.ChatRequestInfo', action => {

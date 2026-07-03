@@ -6,15 +6,15 @@ import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from '../../team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {useConversationShowInfoPanel, useConversationThreadSelector} from '../../thread-context'
+import {useConversationShowInfoPanel, useThreadMeta} from '../../thread-context'
 import {makeMessageWrapper} from '../wrapper/wrapper'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
 function SystemCreateTeamContainer(p: OwnProps) {
   const {creator} = p.message
-  const {teamID, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({teamID: s.meta.teamID, teamname: s.meta.teamname}))
+  const {teamID, teamname} = useThreadMeta(
+    C.useShallow(m => ({teamID: m.teamID, teamname: m.teamname}))
   )
   const showInfoPanel = useConversationShowInfoPanel()
   const {role} = useChatTeam(teamID, teamname)

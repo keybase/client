@@ -12,6 +12,7 @@ import {ConversationInputProvider} from '../input-area/input-state'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
+  useThreadMeta,
 } from '../thread-context'
 import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
@@ -53,10 +54,12 @@ const useOrangeLine = (
   React.useLayoutEffect(() => {
     currentOrangeLineKeyRef.current = {conversationIDKey: id, mobileAppState}
   }, [id, mobileAppState])
-  const meta = useConversationThreadSelector(s => s.meta)
+  const {maxVisibleMsgID, readMsgID} = useThreadMeta(
+    C.useShallow(m => ({maxVisibleMsgID: m.maxVisibleMsgID, readMsgID: m.readMsgID}))
+  )
   // Keep the read position from when this conversation mounted. Mark-as-read updates
-  // meta.readMsgID shortly after navigation, but the open thread should retain its orange line.
-  const [initialReadMsgID] = React.useState(() => meta.readMsgID)
+  // readMsgID shortly after navigation, but the open thread should retain its orange line.
+  const [initialReadMsgID] = React.useState(() => readMsgID)
 
   const loadOrangeLine = React.useEffectEvent(
     (conversationIDKey: T.Chat.ConversationIDKey, readMsgID: T.Chat.MessageID) => {
@@ -97,15 +100,13 @@ const useOrangeLine = (
     }
   }, [id, loaded, initialReadMsgID])
 
-  const maxVisibleMsgID = meta.maxVisibleMsgID
-
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
   React.useEffect(() => {
     if (!active) {
-      loadOrangeLine(id, meta.readMsgID)
+      loadOrangeLine(id, readMsgID)
     }
-  }, [maxVisibleMsgID, active, id, meta.readMsgID])
+  }, [maxVisibleMsgID, active, id, readMsgID])
 
   const setOrangeLine = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
     const currentKey = currentOrangeLineKeyRef.current
@@ -136,8 +137,8 @@ const useOrangeLine = (
 
 const useShowManageChannels = () => {
   const navigateAppend = C.Router2.navigateAppend
-  const {teamID, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({teamID: s.meta.teamID, teamname: s.meta.teamname}))
+  const {teamID, teamname} = useThreadMeta(
+    C.useShallow(m => ({teamID: m.teamID, teamname: m.teamname}))
   )
   useEngineActionListener('chat.1.chatUi.chatShowManageChannels', action => {
     if (

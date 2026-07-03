@@ -21,6 +21,7 @@ import {
   useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
   useConversationThreadToggleSearch,
+  useThreadMeta,
 } from '../../thread-context'
 import {useConversationParticipants} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -36,11 +37,11 @@ const useHintText = (p: {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
   const conversationIDKey = useConversationThreadID()
-  const {channelname, teamType, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      channelname: s.meta.channelname,
-      teamType: s.meta.teamType,
-      teamname: s.meta.teamname,
+  const {channelname, teamType, teamname} = useThreadMeta(
+    C.useShallow(m => ({
+      channelname: m.channelname,
+      teamType: m.teamType,
+      teamname: m.teamname,
     }))
   )
   const participantInfoName = useConversationParticipants(conversationIDKey).name
@@ -141,9 +142,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   )
   const replyToMessage = useConversationThreadMessage(uiData.replyTo)
   const conversationIDKey = useConversationThreadID()
-  const {explodingMode, meta} = useConversationThreadSelector(
-    C.useShallow(s => ({explodingMode: s.explodingMode, meta: s.meta}))
-  )
+  const explodingMode = useConversationThreadSelector(s => s.explodingMode)
+  const meta = useThreadMeta(m => m)
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
   const {cannotWrite, minWriterRole, tlfname} = meta
   const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)

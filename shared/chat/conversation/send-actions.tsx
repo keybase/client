@@ -9,6 +9,7 @@ import {
   useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadSelector,
+  useThreadMeta,
 } from './thread-context'
 
 type SendTextParams = {
@@ -82,14 +83,14 @@ export const sendTextToConversation = (
 export const useConversationSendActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
-  const {explodingMode, messageMap, messageOrdinals, meta} = useConversationThreadSelector(
+  const {explodingMode, messageMap, messageOrdinals} = useConversationThreadSelector(
     C.useShallow(s => ({
       explodingMode: s.explodingMode,
       messageMap: s.messageMap,
       messageOrdinals: s.messageOrdinals,
-      meta: s.meta,
     }))
   )
+  const meta = useThreadMeta(C.useShallow(m => ({tlfname: m.tlfname})))
   const clientPrev = getClientPrevFromThread(messageMap, messageOrdinals)
 
   const editMessage = (ordinal: T.Chat.Ordinal, text: string) => {

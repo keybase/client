@@ -27,6 +27,7 @@ import {
   useConversationThreadID,
   useConversationThreadMessageActions,
   useConversationThreadSelector,
+  useThreadMeta,
 } from '../../thread-context'
 import {useConversationParticipants} from '../../data-hooks'
 import type {ConversationInputState} from '../../input-area/input-state'
@@ -204,7 +205,7 @@ function AuthorSection(p: AuthorProps) {
 
 const getAuthorData = (
   message: T.Chat.Message,
-  meta: T.Chat.ConversationMeta,
+  meta: Pick<T.Chat.ConversationMeta, 'botAliases' | 'teamID' | 'teamType' | 'teamname'>,
   participants: T.Chat.ParticipantInfo,
   showUsername: string
 ): FlatAuthorData => {
@@ -376,6 +377,14 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const shownCache = React.useContext(ShownUsernameCacheContext)
   const conversationIDKey = useConversationThreadID()
   const participantInfo = useConversationParticipants(conversationIDKey)
+  const authorMeta = useThreadMeta(
+    C.useShallow(m => ({
+      botAliases: m.botAliases,
+      teamID: m.teamID,
+      teamType: m.teamType,
+      teamname: m.teamname,
+    }))
+  )
 
   return useConversationThreadSelector(
     C.useShallow(s => {
@@ -401,7 +410,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(messageActions, uiDispatch, retryMessage),
-        ...getAuthorData(message, s.meta, participantInfo, showUsername),
+        ...getAuthorData(message, authorMeta, participantInfo, showUsername),
         message,
       }
     })
