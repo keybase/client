@@ -79,6 +79,7 @@ export type KB2 = {
     ipcRendererOn?: (channel: string, cb: (event: unknown, action: unknown) => void) => (() => void) | undefined
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
+    getRemoteProps?: (windowComponent: string, windowParam: string) => Promise<string>
     // defined for both always
     mainWindowDispatch: (action: Actions) => void
     mainWindowDispatchEngineIncoming?: (data: Uint8Array) => void

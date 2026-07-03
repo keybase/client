@@ -38,7 +38,6 @@ type Store = T.Immutable<{
   justRevokedSelf: string
   loggedIn: boolean
   outOfDate: T.Config.OutOfDate
-  remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
   runtimeStats?: T.RPCGen.RuntimeStats
   startup: {
@@ -83,7 +82,6 @@ const initialStore: Store = {
     outOfDate: false,
     updating: false,
   },
-  remoteWindowNeedsProps: new Map(),
   revokedTrigger: 0,
   startup: {
     conversation: noConversationIDKey,
@@ -109,7 +107,6 @@ export type State = Store & {
     onEngineIncoming: (action: EngineGen.Actions) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
-    remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string, wasCurrentDevice: boolean) => void
     refreshAccounts: () => Promise<void>
@@ -446,13 +443,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       } finally {
         inflightRefreshAccounts = undefined
       }
-    },
-    remoteWindowNeedsProps: (component, params) => {
-      set(s => {
-        const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
-        map.set(params, (map.get(params) ?? 0) + 1)
-        s.remoteWindowNeedsProps.set(component, map)
-      })
     },
     resetRevokedSelf: () => {
       set(s => {

@@ -14,7 +14,6 @@ const resetConfigState = () => {
       outOfDate: false,
       updating: false,
     },
-    remoteWindowNeedsProps: new Map(),
     startup: {
       conversation: noConversationIDKey,
       followUser: '',
@@ -32,18 +31,6 @@ beforeEach(() => {
 
 afterEach(() => {
   resetConfigState()
-})
-
-test('remoteWindowNeedsProps counts requests per component and params', () => {
-  const {dispatch} = useConfigState.getState()
-
-  dispatch.remoteWindowNeedsProps('remote-profile', '{"username":"alice"}')
-  dispatch.remoteWindowNeedsProps('remote-profile', '{"username":"alice"}')
-  dispatch.remoteWindowNeedsProps('remote-profile', '{"username":"bob"}')
-
-  const counts = useConfigState.getState().remoteWindowNeedsProps.get('remote-profile')
-  expect(counts?.get('{"username":"alice"}')).toBe(2)
-  expect(counts?.get('{"username":"bob"}')).toBe(1)
 })
 
 test('setStartupDetails only records the first startup payload', () => {

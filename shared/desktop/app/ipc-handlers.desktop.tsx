@@ -12,6 +12,12 @@ import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windows
 import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
 import {htmlURL, preloadPath} from './html-root.desktop'
+import {
+  cacheRemoteProps,
+  getCachedRemoteProps,
+  getRemoteWindow,
+  registerRemoteWindow,
+} from './remote-windows.desktop'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
@@ -19,15 +25,7 @@ import type {Engine} from '@/engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
-  htmlURL(windowComponent, `param=${windowParam}`)
-
-const findRemoteComponent = (windowComponent: string, windowParam: string) => {
-  const url = remoteURL(windowComponent, windowParam)
-  return Electron.BrowserWindow.getAllWindows().find(w => {
-    const wc = w.webContents
-    return wc.getURL() === url
-  })
-}
+  htmlURL('remote', `component=${windowComponent}&param=${windowParam}`)
 
 const winCheckRPCOwnership = async () => {
   const {env} = KB2.constants
@@ -171,11 +169,6 @@ const openInDefaultDirectory = async (openPath: string) => {
     return false
   }
 }
-
-const timeoutPromise = async (timeMs: number) =>
-  new Promise<void>(resolve => {
-    setTimeout(() => resolve(), timeMs)
-  })
 
 export const setupIPCHandlers = (deps: {
   getMainWindow: () => Electron.BrowserWindow | null
@@ -523,22 +516,18 @@ export const setupIPCHandlers = (deps: {
         break
       }
       case 'rendererNewProps': {
-        // this can be racy so we try a few
-        let count = 0
-        while (count < 5) {
-          const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-          if (w) {
-            w.webContents.send('KBprops', action.payload.propsStr)
-            break
-          } else {
-            await timeoutPromise(500)
-          }
-          ++count
-        }
+        const {windowComponent, windowParam, propsStr} = action.payload
+        // cache so a window that hasn't finished loading can pull these when it's ready
+        cacheRemoteProps(windowComponent, windowParam, propsStr)
+        getRemoteWindow(windowComponent, windowParam)?.webContents.send('KBprops', propsStr)
         break
       }
+      case 'getRemoteProps': {
+        const {windowComponent, windowParam} = action.payload
+        return getCachedRemoteProps(windowComponent, windowParam) ?? ''
+      }
       case 'closeRenderer': {
-        const w = findRemoteComponent(action.payload.windowComponent ?? '', action.payload.windowParam ?? '')
+        const w = getRemoteWindow(action.payload.windowComponent ?? '', action.payload.windowParam ?? '')
         w?.close()
         break
       }
@@ -559,6 +548,7 @@ export const setupIPCHandlers = (deps: {
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
+        registerRemoteWindow(action.payload.windowComponent, action.payload.windowParam ?? '', remoteWindow)
 
         remoteWindow.on('show', () => {
           R.remoteDispatch(RemoteGen.createUpdateWindowShown({component: action.payload.windowComponent}))

@@ -63,7 +63,6 @@ export type Props = {
   showingDiskSpaceBanner: boolean
   totalSyncingBytes: number
   username: string
-  darkMode: boolean
 }
 
 // Simple avatar via httpSrv
