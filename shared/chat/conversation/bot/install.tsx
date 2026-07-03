@@ -14,7 +14,7 @@ import {useFeaturedBot} from '@/util/featured-bots'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useBotSettings} from './settings'
-import {getInboxConversationMeta, metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMeta} from '../data-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
@@ -42,8 +42,7 @@ export const useRefreshBotMembershipOnSuccess = (
           preview => {
             participantInfoReceived(
               conversationIDKey,
-              ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
-              getInboxConversationMeta(conversationIDKey)
+              ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? [])
             )
             onSuccess()
           },

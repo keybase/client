@@ -4,22 +4,15 @@ import {resetAllStores} from '@/util/zustand'
 import {handleConvoEngineIncoming} from './engine'
 import {getInboxConversationMeta, getInboxConversationParticipants, syncBadgeState} from './metadata'
 import {useConfigState} from '@/stores/config'
-import {
-  syncInboxRowBadgeState,
-  syncInboxRowsFromParticipantMap,
-  updateInboxRowTyping,
-} from '@/chat/inbox/rows-state'
+import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
+import {updateInboxTyping} from '@/chat/inbox/typing-state'
 
-jest.mock('@/chat/inbox/rows-state', () => ({
-  getInboxRowTrustedState: jest.fn(() => undefined),
-  setInboxRowTrustedState: jest.fn(),
-  syncInboxRowBadgeState: jest.fn(),
-  syncInboxRowsFromLayout: jest.fn(),
-  syncInboxRowsFromMetaAndParticipants: jest.fn(),
-  syncInboxRowsFromMetas: jest.fn(),
-  syncInboxRowsFromParticipantMap: jest.fn(),
-  syncInboxRowsFromParticipants: jest.fn(),
-  updateInboxRowTyping: jest.fn(),
+jest.mock('@/chat/inbox/badge-state', () => ({
+  syncInboxBadgeState: jest.fn(),
+}))
+
+jest.mock('@/chat/inbox/typing-state', () => ({
+  updateInboxTyping: jest.fn(),
 }))
 
 afterEach(() => {
@@ -371,7 +364,7 @@ test('global typing and participant updates route to inbox rows', () => {
     type: 'chat.1.NotifyChat.ChatTypingUpdate',
   } as never)
 
-  expect(updateInboxRowTyping).toHaveBeenCalledWith(typingUpdates)
+  expect(updateInboxTyping).toHaveBeenCalledWith(typingUpdates)
 
   const participantMap = {
     [T.Chat.conversationIDKeyToString(convID)]: [
@@ -385,7 +378,7 @@ test('global typing and participant updates route to inbox rows', () => {
     type: 'chat.1.NotifyChat.ChatParticipantsInfo',
   } as never)
 
-  expect(syncInboxRowsFromParticipantMap).toHaveBeenCalledWith(participantMap)
+  expect(getInboxConversationParticipants(convID)?.name).toEqual(['alice', 'bob'])
 })
 
 test('global inbox failure routing stores error metadata and rekey participants', () => {
@@ -447,5 +440,5 @@ test('syncBadgeState delegates badge ownership to inbox rows', () => {
 
   syncBadgeState(badgeState)
 
-  expect(syncInboxRowBadgeState).toHaveBeenCalledWith(badgeState)
+  expect(syncInboxBadgeState).toHaveBeenCalledWith(badgeState)
 })

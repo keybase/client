@@ -102,13 +102,15 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
 // map lookup instead of scanning smallTeams/bigTeams. Built once per layout
 // object and memoized on it (a new layout object replaces the prior on change),
 // so selector bodies stay allocation-free after the first read.
+export type SmallLayoutRow = T.Immutable<T.RPCChat.UIInboxSmallTeamRow>
+export type BigLayoutChannelRow = T.Immutable<T.RPCChat.UIInboxBigTeamChannelRow>
 type LayoutIndex = {
-  bigChannels: Map<T.Chat.ConversationIDKey, T.RPCChat.UIInboxBigTeamChannelRow>
-  small: Map<T.Chat.ConversationIDKey, T.RPCChat.UIInboxSmallTeamRow>
+  bigChannels: Map<T.Chat.ConversationIDKey, BigLayoutChannelRow>
+  small: Map<T.Chat.ConversationIDKey, SmallLayoutRow>
 }
 const layoutIndexCache = new WeakMap<object, LayoutIndex>()
 
-const getLayoutIndex = (layout?: T.RPCChat.UIInboxLayout): LayoutIndex | undefined => {
+const getLayoutIndex = (layout?: T.Immutable<T.RPCChat.UIInboxLayout>): LayoutIndex | undefined => {
   if (!layout) {
     return undefined
   }
@@ -116,11 +118,11 @@ const getLayoutIndex = (layout?: T.RPCChat.UIInboxLayout): LayoutIndex | undefin
   if (existing) {
     return existing
   }
-  const small = new Map<T.Chat.ConversationIDKey, T.RPCChat.UIInboxSmallTeamRow>()
+  const small = new Map<T.Chat.ConversationIDKey, SmallLayoutRow>()
   layout.smallTeams?.forEach(row => {
     small.set(T.Chat.stringToConversationIDKey(row.convID), row)
   })
-  const bigChannels = new Map<T.Chat.ConversationIDKey, T.RPCChat.UIInboxBigTeamChannelRow>()
+  const bigChannels = new Map<T.Chat.ConversationIDKey, BigLayoutChannelRow>()
   layout.bigTeams?.forEach(row => {
     if (row.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
       bigChannels.set(T.Chat.stringToConversationIDKey(row.channel.convID), row.channel)
@@ -131,11 +133,13 @@ const getLayoutIndex = (layout?: T.RPCChat.UIInboxLayout): LayoutIndex | undefin
   return index
 }
 
-export const getSmallLayoutRow = (s: {layout?: T.RPCChat.UIInboxLayout}, id: T.Chat.ConversationIDKey) =>
-  getLayoutIndex(s.layout)?.small.get(id)
+export const getSmallLayoutRow = (
+  s: {layout?: T.Immutable<T.RPCChat.UIInboxLayout>},
+  id: T.Chat.ConversationIDKey
+) => getLayoutIndex(s.layout)?.small.get(id)
 
 export const getBigLayoutChannelRow = (
-  s: {layout?: T.RPCChat.UIInboxLayout},
+  s: {layout?: T.Immutable<T.RPCChat.UIInboxLayout>},
   id: T.Chat.ConversationIDKey
 ) => getLayoutIndex(s.layout)?.bigChannels.get(id)
 

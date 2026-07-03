@@ -1,7 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Common from '@/constants/chat/common'
-import * as Meta from '@/constants/chat/meta'
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -28,20 +27,6 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 import {useConversationParticipants} from './data-hooks'
-
-jest.mock('@/chat/inbox/rows-state', () => ({
-  flushInboxRowUpdates: jest.fn(),
-  getInboxRowTrustedState: jest.fn(() => undefined),
-  queueInboxRowUpdate: jest.fn(),
-  setInboxRowTrustedState: jest.fn(),
-  syncInboxRowBadgeState: jest.fn(),
-  syncInboxRowsFromLayout: jest.fn(),
-  syncInboxRowsFromMetaAndParticipants: jest.fn(),
-  syncInboxRowsFromMetas: jest.fn(),
-  syncInboxRowsFromParticipantMap: jest.fn(),
-  syncInboxRowsFromParticipants: jest.fn(),
-  updateInboxRowTyping: jest.fn(),
-}))
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const emptyStringSet = new Set<string>()
@@ -303,10 +288,7 @@ test('mounted thread syncs participant updates received outside its provider', (
   }
 
   act(() => {
-    participantInfoReceived(convID, participantInfo, {
-      ...Meta.makeConversationMeta(),
-      conversationIDKey: convID,
-    })
+    participantInfoReceived(convID, participantInfo)
   })
 
   expect(result.current.all).toEqual(['alice', 'helperbot'])
