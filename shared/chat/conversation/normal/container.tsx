@@ -119,16 +119,13 @@ const useOrangeLine = (
     })
   })
 
-  const explicitOrangeLine = useExplicitOrangeLineState(s => s.update)
+  const explicitOrangeLine = useExplicitOrangeLineState(s => s.updates.get(id))
   const explicitOrangeLineVersionRef = React.useRef(explicitOrangeLine?.version ?? 0)
   React.useEffect(() => {
     if (!explicitOrangeLine || explicitOrangeLine.version <= explicitOrangeLineVersionRef.current) {
       return
     }
     explicitOrangeLineVersionRef.current = explicitOrangeLine.version
-    if (explicitOrangeLine.conversationIDKey !== id) {
-      return
-    }
     setOrangeLine(explicitOrangeLine.ordinal)
   }, [explicitOrangeLine, id])
 
