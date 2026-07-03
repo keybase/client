@@ -12,7 +12,6 @@ import {
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useLogoutState} from '@/stores/logout'
 import {usePushState} from '@/stores/push'
 import {useShellState} from '@/stores/shell'
 
@@ -238,12 +237,6 @@ export const initPushListener = () => {
       .dispatch.checkPermissions()
       .then(() => {})
       .catch(() => {})
-  })
-
-  // Token handling
-  useLogoutState.subscribe((s, old) => {
-    if (s.version === old.version) return
-    usePushState.getState().dispatch.deleteToken(s.version)
   })
 
   let lastCount = -1

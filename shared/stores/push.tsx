@@ -9,7 +9,6 @@ import {emitDeepLink} from '@/router-v2/linking'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
-import {useLogoutState} from '@/stores/logout'
 import {useWaitingState} from '@/stores/waiting'
 import {openAppSettings} from '@/util/storeless-actions'
 type Store = {
@@ -24,7 +23,7 @@ type State = Store & {
   dispatch: {
     checkPermissions: () => Promise<boolean>
     clearPendingPushNotification: () => void
-    deleteToken: (version: number) => void
+    deleteTokenForLogout: () => Promise<void>
     handlePush: (notification: T.Push.PushNotification) => void
     initialPermissionsCheck: () => void
     rejectPermissions: () => void
@@ -66,7 +65,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         return Promise.resolve(false)
       },
       clearPendingPushNotification: () => {},
-      deleteToken: () => {},
+      deleteTokenForLogout: async () => {},
       handlePush: () => {},
       initialPermissionsCheck: () => {},
       rejectPermissions: () => {},
@@ -172,31 +171,24 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         s.pendingPushNotification = undefined
       })
     },
-    deleteToken: version => {
-      const f = async () => {
-        const waitKey = 'push:deleteToken'
-        useLogoutState.getState().dispatch.wait(waitKey, version, true)
-        try {
-          const deviceID = useCurrentUserState.getState().deviceID
-          if (!deviceID) {
-            logger.info('[PushToken] no device id')
-            return
-          }
-          await T.RPCGen.apiserverDeleteRpcPromise({
-            args: [
-              {key: 'device_id', value: deviceID},
-              {key: 'token_type', value: tokenType},
-            ],
-            endpoint: 'device/push_token',
-          })
-          logger.info('[PushToken] deleted from server')
-        } catch (e) {
-          logger.error('[PushToken] delete failed', e)
-        } finally {
-          useLogoutState.getState().dispatch.wait(waitKey, version, false)
+    deleteTokenForLogout: async () => {
+      try {
+        const deviceID = useCurrentUserState.getState().deviceID
+        if (!deviceID) {
+          logger.info('[PushToken] no device id')
+          return
         }
+        await T.RPCGen.apiserverDeleteRpcPromise({
+          args: [
+            {key: 'device_id', value: deviceID},
+            {key: 'token_type', value: tokenType},
+          ],
+          endpoint: 'device/push_token',
+        })
+        logger.info('[PushToken] deleted from server')
+      } catch (e) {
+        logger.error('[PushToken] delete failed', e)
       }
-      ignorePromise(f())
     },
     handlePush: notification => {
       const f = async () => {
