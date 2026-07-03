@@ -779,23 +779,14 @@ const loadConversationThreadMessages = (
       }
 
       const {username, devicename} = getCurrentUser()
-      const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
-
-      const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
-        const message = Message.uiMessageToMessage(
-          conversationIDKey,
-          m,
-          username,
-          () => getLastOrdinalFromSnapshot(actions.getSnapshot()),
-          devicename
-        )
-        if (message) {
-          arr.push(message)
-        }
-        return arr
-      }, [])
-
-      const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+      const {messages, pagination} = Message.parseUIMessagesJSON(
+        conversationIDKey,
+        thread,
+        username,
+        devicename,
+        () => getLastOrdinalFromSnapshot(actions.getSnapshot())
+      )
+      const moreToLoad = pagination ? !pagination.last : true
       const canMarkReadForThreadWindow =
         allowMarkAsRead &&
         !centeredMessageID &&

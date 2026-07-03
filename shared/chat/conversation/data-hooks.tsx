@@ -161,31 +161,22 @@ const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread
   if (!thread) {
     return emptyMessages
   }
-  try {
-    const {username, deviceName} = useCurrentUserState.getState()
-    let lastOrdinal = T.Chat.numberToOrdinal(0)
-    const getLastOrdinal = () => lastOrdinal
-    const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
-    return (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, uiMessage) => {
-      const message = Message.uiMessageToMessage(
-        conversationIDKey,
-        uiMessage,
-        username,
-        getLastOrdinal,
-        deviceName
-      )
-      if (message) {
-        arr.push(message)
-        if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinal)) {
-          lastOrdinal = message.ordinal
-        }
+  const {username, deviceName} = useCurrentUserState.getState()
+  let lastOrdinal = T.Chat.numberToOrdinal(0)
+  const getLastOrdinal = () => lastOrdinal
+  const {messages} = Message.parseUIMessagesJSON(
+    conversationIDKey,
+    thread,
+    username,
+    deviceName,
+    getLastOrdinal,
+    message => {
+      if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinal)) {
+        lastOrdinal = message.ordinal
       }
-      return arr
-    }, [])
-  } catch (error) {
-    logger.warn(`parseThreadMessages: failed for ${conversationIDKey}: ${String(error)}`)
-    return emptyMessages
-  }
+    }
+  )
+  return messages
 }
 
 const loadConversationMessagesAroundMessageID = async (
