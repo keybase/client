@@ -34,24 +34,17 @@ export const getFeaturedSorted = (featuredBots: ReadonlyArray<T.RPCGen.FeaturedB
 }
 
 export const useFeaturedBot = (botUsername?: string) => {
-  const {data, reload} = useRPCLoad(
+  const {data} = useRPCLoad(
     T.RPCGen.featuredBotSearchRpcPromise,
     [{limit: 10, offset: 0, query: botUsername ?? ''}],
     {
-      map: result => ({bot: pickFeaturedBot(botUsername ?? '', result.bots ?? []), botUsername}),
+      enabled: !!botUsername,
+      key: botUsername ?? '',
+      map: result => pickFeaturedBot(botUsername ?? '', result.bots ?? []),
       onError: error => logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`),
-      when: 'manual',
     }
   )
-
-  React.useEffect(() => {
-    if (botUsername) {
-      reload()
-    }
-  }, [botUsername, reload])
-
-  // data is keyed so a stale bot never shows while a new username loads
-  return data && data.botUsername === botUsername ? data.bot : undefined
+  return botUsername ? data : undefined
 }
 
 export const useFeaturedBotPage = () => {

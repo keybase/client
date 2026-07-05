@@ -11,6 +11,7 @@ import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useFeaturedBot} from '@/util/featured-bots'
+import {useRPCLoad} from '@/util/use-rpc-load'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useBotSettings} from './settings'
@@ -65,103 +66,48 @@ export const useRefreshBotMembershipOnSuccess = (
 
 export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
   const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
-  const [generalConversation, setGeneralConversation] = React.useState<
-    | {
-        conversationIDKey: T.Chat.ConversationIDKey
-        teamID: T.Teams.TeamID
-      }
-    | undefined
-  >()
-  const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
-  const requestIDRef = React.useRef(0)
-  const conversationIDKey =
-    cleanInConvIDKey ??
-    (generalConversation && generalConversation.teamID === teamID
-      ? generalConversation.conversationIDKey
-      : undefined)
-
-  React.useEffect(() => {
-    requestIDRef.current += 1
-    if (cleanInConvIDKey || !teamID) {
-      return
-    }
-    const requestID = requestIDRef.current
-    findGeneralConvIDFromTeamID(
-      [{teamID}],
-      conv => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
+  const {data: generalConvIDKey} = useRPCLoad(
+    T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise,
+    [{teamID: teamID ?? T.Teams.noTeamID}],
+    {
+      enabled: !cleanInConvIDKey && !!teamID,
+      key: teamID ?? T.Teams.noTeamID,
+      map: conv => {
         const meta = Meta.inboxUIItemToConversationMeta(conv)
         if (!meta) {
-          return
+          return undefined
         }
         metasReceived([meta])
-        setGeneralConversation({conversationIDKey: meta.conversationIDKey, teamID})
+        return meta.conversationIDKey
       },
-      () => {}
-    )
-    return () => {
-      if (requestIDRef.current === requestID) {
-        requestIDRef.current += 1
-      }
     }
-  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, teamID])
-  return conversationIDKey
+  )
+  return cleanInConvIDKey ?? generalConvIDKey
 }
 
 export const useBotTeamRole = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
   botUsername: string
 ) => {
-  const [loaded, setLoaded] = React.useState<
-    | {
-        botUsername: string
-        conversationIDKey: T.Chat.ConversationIDKey
-        teamRole?: T.Teams.TeamRoleType
-      }
-    | undefined
-  >()
-  const loadBotTeamRole = C.useRPC(T.RPCChat.localGetTeamRoleInConversationRpcPromise)
-  const requestIDRef = React.useRef(0)
-
-  React.useEffect(() => {
-    requestIDRef.current += 1
-    if (!conversationIDKey) {
-      return undefined
-    }
-    const requestID = requestIDRef.current
-    loadBotTeamRole(
-      [{convID: T.Chat.keyToConversationID(conversationIDKey), username: botUsername}],
-      role => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        const teamRole = Teams.teamRoleByEnum[role]
-        setLoaded({
-          botUsername,
-          conversationIDKey,
-          teamRole: teamRole === 'none' ? undefined : teamRole,
-        })
+  const {data: teamRole} = useRPCLoad(
+    T.RPCChat.localGetTeamRoleInConversationRpcPromise,
+    [
+      {
+        convID: conversationIDKey ? T.Chat.keyToConversationID(conversationIDKey) : new Uint8Array(),
+        username: botUsername,
       },
-      error => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`)
-        setLoaded({botUsername, conversationIDKey})
-      }
-    )
-    return () => {
-      if (requestIDRef.current === requestID) {
-        requestIDRef.current += 1
-      }
+    ],
+    {
+      enabled: !!conversationIDKey,
+      key: `${conversationIDKey ?? ''}:${botUsername}`,
+      map: role => {
+        const teamRole = Teams.teamRoleByEnum[role]
+        return teamRole === 'none' ? undefined : teamRole
+      },
+      onError: error => logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`),
     }
-  }, [botUsername, conversationIDKey, loadBotTeamRole])
-
-  return loaded && loaded.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
-    ? loaded.teamRole
-    : undefined
+  )
+  return conversationIDKey ? teamRole : undefined
 }
 
 type LoaderProps = {

@@ -81,26 +81,18 @@ const useContactSettings = () => {
 const useUnfurlSettings = () => {
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
   const [error, setError] = React.useState('')
-  // shown immediately on save, cleared once the post-save refresh lands
-  const [pending, setPending] = React.useState<{
-    mode: T.RPCChat.UnfurlMode
-    whitelist: ReadonlyArray<string>
-  }>()
-  const {data, reload} = useRPCLoad(
+  const {data, reload, setData} = useRPCLoad(
     T.RPCChat.localGetUnfurlSettingsRpcPromise,
     [undefined, C.waitingKeySettingsChatUnfurl],
     {
       map: result => ({mode: result.mode, whitelist: result.whitelist ?? emptyList}),
       onError: () => setError('Unable to load link preview settings, please try again.'),
-      onResult: () => {
-        setError('')
-        setPending(undefined)
-      },
+      onResult: () => setError(''),
       when: 'manual',
     }
   )
-  const mode = pending?.mode ?? data?.mode
-  const whitelist = pending?.whitelist ?? data?.whitelist ?? emptyList
+  const mode = data?.mode
+  const whitelist = data?.whitelist ?? emptyList
 
   const unfurlSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
@@ -112,7 +104,8 @@ const useUnfurlSettings = () => {
   const unfurlSettingsSaved = React.useCallback(
     (unfurlMode: T.RPCChat.UnfurlMode, unfurlWhitelist: ReadonlyArray<string>) => {
       setError('')
-      setPending({mode: unfurlMode, whitelist: unfurlWhitelist})
+      // optimistic, the post-save refresh has the final say
+      setData({mode: unfurlMode, whitelist: unfurlWhitelist})
       if (!useConfigState.getState().loggedIn) {
         return
       }
@@ -126,7 +119,7 @@ const useUnfurlSettings = () => {
         }
       )
     },
-    [saveUnfurlSettingsRPC, unfurlSettingsRefresh]
+    [saveUnfurlSettingsRPC, setData, unfurlSettingsRefresh]
   )
 
   return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}

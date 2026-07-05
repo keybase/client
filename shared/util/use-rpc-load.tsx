@@ -3,8 +3,14 @@ import * as C from '@/constants'
 import type {RPCError} from './errors'
 
 type Options<RESULT, DATA> = {
-  /** skips the mount/focus auto-load when false, checked when the trigger fires. reload() ignores this */
+  /** skips the mount/focus/key auto-load when false, checked when the trigger fires. reload() ignores this */
   enabled?: boolean
+  /**
+   * correlate results with the param they were requested for. data/error only
+   * surface while the key still matches, and the load auto-refires when the
+   * key changes (unless when is 'manual'). Don't combine with when: 'focus'
+   */
+  key?: string
   /** turn the raw rpc result into the data you want to keep */
   map: (result: RESULT) => DATA
   onError?: (error: RPCError) => void
@@ -19,21 +25,25 @@ type Options<RESULT, DATA> = {
  * useRPC + useState + load-on-mount/focus dance. Like useRPC this skips the
  * state layer entirely; pass a waitingKey inside `args` if you want spinners
  * driven by the waiting store.
- * @returns data: mapped result of the last successful load
+ * @returns data: mapped result of the last successful load (for the current key, if keyed)
  * @returns error: error from the last load, cleared on the next success
- * @returns loaded: true once any load attempt finished (success or error)
+ * @returns loaded: true once a load attempt finished (success or error; for the current key, if keyed)
+ * @returns loading: enabled and no finished attempt yet, spinner-friendly
  * @returns loadCount: number of successful loads, useful as a refresh token
  * @returns reload: kick off a load manually
+ * @returns setData: overwrite data locally, for optimistic updates; the next load result wins
  */
 export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   call: F,
   args: Parameters<F>,
   opts: Options<Awaited<ReturnType<F>>, DATA>
 ) {
-  const {enabled = true, map, onError, onResult, when = 'mount'} = opts
+  const {enabled = true, key, map, onError, onResult, when = 'mount'} = opts
   const [state, setState] = React.useState<{
     data?: DATA
+    dataKey?: string
     error?: RPCError
+    errorKey?: string
     loadCount: number
     loaded: boolean
   }>({loadCount: 0, loaded: false})
@@ -42,35 +52,76 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   const requestID = React.useRef(0)
   const load = React.useEffectEvent(() => {
     const id = ++requestID.current
+    const keyAtCall = key
     call(...args)
       .then((result: Awaited<ReturnType<F>>) => {
         if (requestID.current !== id) return
         const data = map(result)
-        setState(s => ({data, error: undefined, loadCount: s.loadCount + 1, loaded: true}))
+        setState(s => ({
+          data,
+          dataKey: keyAtCall,
+          error: undefined,
+          errorKey: undefined,
+          loadCount: s.loadCount + 1,
+          loaded: true,
+        }))
         onResult?.(data)
       })
       .catch((error: RPCError) => {
         if (requestID.current !== id) return
-        setState(s => ({...s, error, loaded: true}))
+        setState(s => ({...s, error, errorKey: keyAtCall, loaded: true}))
         onError?.(error)
       })
   })
 
+  const setData = React.useEffectEvent(
+    (next: DATA | undefined | ((prev: DATA | undefined) => DATA | undefined)) => {
+      const keyNow = key
+      setState(s => {
+        const prev = key !== undefined && s.dataKey !== keyNow ? undefined : s.data
+        return {
+          ...s,
+          data: typeof next === 'function' ? (next as (p: DATA | undefined) => DATA | undefined)(prev) : next,
+          dataKey: keyNow,
+        }
+      })
+    }
+  )
+
   const autoLoad = React.useEffectEvent(() => {
     if (enabled) load()
   })
-  // `when` is locked at mount so the focus subscription can stay stable
+  // `when` and key-presence are locked at mount so the subscriptions stay stable
   const [onMountOrFocus] = React.useState(() => ({
     focus: () => {
       if (when === 'focus') autoLoad()
       return undefined
     },
     mount: () => {
-      if (when === 'mount') autoLoad()
+      // keyed loads fire from the key effect below instead
+      if (when === 'mount' && key === undefined) autoLoad()
     },
   }))
   C.useOnMountOnce(onMountOrFocus.mount)
   C.Router2.useSafeFocusEffect(onMountOrFocus.focus)
+  const keyed = key !== undefined
+  React.useEffect(() => {
+    if (keyed && when !== 'manual') autoLoad()
+  }, [keyed, when, key])
 
-  return {...state, reload: load}
+  const data = keyed ? (state.dataKey === key ? state.data : undefined) : state.data
+  const error = keyed ? (state.errorKey === key ? state.error : undefined) : state.error
+  const loaded = keyed
+    ? state.dataKey === key || (state.error !== undefined && state.errorKey === key)
+    : state.loaded
+
+  return {
+    data,
+    error,
+    loadCount: state.loadCount,
+    loaded,
+    loading: enabled && !loaded,
+    reload: load,
+    setData,
+  }
 }
