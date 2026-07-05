@@ -8,6 +8,7 @@ import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
 import {ensureError} from '@/util/errors'
+import {useRPCLoad} from '@/util/use-rpc-load'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {IncomingShareHeaderTitle} from './routes'
 
@@ -266,24 +267,14 @@ const IncomingShareError = () => {
   )
 }
 
+const noShareItems = new Array<T.RPCGen.IncomingShareItem>()
+
 const useIncomingShareItems = () => {
-  const [incomingShareItems, setIncomingShareItems] = React.useState<
-    ReadonlyArray<T.RPCGen.IncomingShareItem>
-  >([])
-  const [incomingShareError, setIncomingShareError] = React.useState<unknown>(undefined)
-
-  const rpc = C.useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
-  React.useEffect(() => {
-    if (!isIOS) {
-      return
-    }
-
-    rpc(
-      [undefined],
-      items => setIncomingShareItems(items || []),
-      err => setIncomingShareError(err)
-    )
-  }, [rpc, setIncomingShareError, setIncomingShareItems])
+  const {data: incomingShareItems = noShareItems, error: incomingShareError} = useRPCLoad(
+    T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise,
+    [undefined],
+    {enabled: isIOS, map: items => items || noShareItems}
+  )
 
   const androidShare = useConfigState(s => s.androidShare)
   const androidShareItems =

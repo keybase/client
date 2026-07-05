@@ -8,6 +8,7 @@ import SettingsSectionTitle from './section-title'
 import {loadSettings} from './load-settings'
 import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
+import {useRPCLoad} from '@/util/use-rpc-load'
 import {useShellState} from '@/stores/shell'
 import {useTeamsList} from '@/teams/use-teams-list'
 
@@ -17,26 +18,25 @@ type ContactSettingsTeamsList = {[k in T.RPCGen.TeamID]: boolean}
 type NotificationSettingsState = ReturnType<typeof useNotificationSettings>
 
 const useContactSettings = () => {
-  const loadContactSettingsRPC = C.useRPC(T.RPCGen.accountUserGetContactSettingsRpcPromise)
   const saveContactSettingsRPC = C.useRPC(T.RPCGen.accountUserSetContactSettingsRpcPromise)
   const [error, setError] = React.useState('')
-  const [settings, setSettings] = React.useState<T.RPCGen.ContactSettings>()
+  const {data: settings, reload} = useRPCLoad(
+    T.RPCGen.accountUserGetContactSettingsRpcPromise,
+    [undefined],
+    {
+      map: s => s,
+      onError: () => setError('Unable to load contact settings, please try again.'),
+      onResult: () => setError(''),
+      when: 'manual',
+    }
+  )
 
   const contactSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
       return
     }
-    loadContactSettingsRPC(
-      [undefined],
-      nextSettings => {
-        setError('')
-        setSettings(nextSettings)
-      },
-      () => {
-        setError('Unable to load contact settings, please try again.')
-      }
-    )
-  }, [loadContactSettingsRPC])
+    reload()
+  }, [reload])
 
   const contactSettingsSaved = React.useCallback(
     (
@@ -79,34 +79,40 @@ const useContactSettings = () => {
 }
 
 const useUnfurlSettings = () => {
-  const loadUnfurlSettingsRPC = C.useRPC(T.RPCChat.localGetUnfurlSettingsRpcPromise)
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
   const [error, setError] = React.useState('')
-  const [mode, setMode] = React.useState<T.RPCChat.UnfurlMode>()
-  const [whitelist, setWhitelist] = React.useState<ReadonlyArray<string>>(emptyList)
+  // shown immediately on save, cleared once the post-save refresh lands
+  const [pending, setPending] = React.useState<{
+    mode: T.RPCChat.UnfurlMode
+    whitelist: ReadonlyArray<string>
+  }>()
+  const {data, reload} = useRPCLoad(
+    T.RPCChat.localGetUnfurlSettingsRpcPromise,
+    [undefined, C.waitingKeySettingsChatUnfurl],
+    {
+      map: result => ({mode: result.mode, whitelist: result.whitelist ?? emptyList}),
+      onError: () => setError('Unable to load link preview settings, please try again.'),
+      onResult: () => {
+        setError('')
+        setPending(undefined)
+      },
+      when: 'manual',
+    }
+  )
+  const mode = pending?.mode ?? data?.mode
+  const whitelist = pending?.whitelist ?? data?.whitelist ?? emptyList
 
   const unfurlSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
       return
     }
-    loadUnfurlSettingsRPC(
-      [undefined, C.waitingKeySettingsChatUnfurl],
-      result => {
-        setError('')
-        setMode(result.mode)
-        setWhitelist(result.whitelist ?? emptyList)
-      },
-      () => {
-        setError('Unable to load link preview settings, please try again.')
-      }
-    )
-  }, [loadUnfurlSettingsRPC])
+    reload()
+  }, [reload])
 
   const unfurlSettingsSaved = React.useCallback(
     (unfurlMode: T.RPCChat.UnfurlMode, unfurlWhitelist: ReadonlyArray<string>) => {
       setError('')
-      setMode(unfurlMode)
-      setWhitelist(unfurlWhitelist)
+      setPending({mode: unfurlMode, whitelist: unfurlWhitelist})
       if (!useConfigState.getState().loggedIn) {
         return
       }

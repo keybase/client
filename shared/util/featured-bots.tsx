@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
+import {useRPCLoad} from '@/util/use-rpc-load'
 
 const featuredBotPageSize = 100
 
@@ -33,39 +34,24 @@ export const getFeaturedSorted = (featuredBots: ReadonlyArray<T.RPCGen.FeaturedB
 }
 
 export const useFeaturedBot = (botUsername?: string) => {
-  const [loadedFeaturedBot, setLoadedFeaturedBot] = React.useState<{
-    bot?: T.RPCGen.FeaturedBot
-    botUsername: string
-  }>()
-  const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
+  const {data, reload} = useRPCLoad(
+    T.RPCGen.featuredBotSearchRpcPromise,
+    [{limit: 10, offset: 0, query: botUsername ?? ''}],
+    {
+      map: result => ({bot: pickFeaturedBot(botUsername ?? '', result.bots ?? []), botUsername}),
+      onError: error => logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`),
+      when: 'manual',
+    }
+  )
 
   React.useEffect(() => {
-    if (!botUsername) {
-      return
+    if (botUsername) {
+      reload()
     }
+  }, [botUsername, reload])
 
-    let canceled = false
-    searchFeaturedBots(
-      [{limit: 10, offset: 0, query: botUsername}],
-      result => {
-        if (!canceled) {
-          setLoadedFeaturedBot({bot: pickFeaturedBot(botUsername, result.bots ?? []), botUsername})
-        }
-      },
-      error => {
-        if (!canceled) {
-          logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`)
-        }
-      }
-    )
-    return () => {
-      canceled = true
-    }
-  }, [botUsername, searchFeaturedBots])
-
-  return loadedFeaturedBot && loadedFeaturedBot.botUsername === botUsername
-    ? loadedFeaturedBot.bot
-    : undefined
+  // data is keyed so a stale bot never shows while a new username loads
+  return data && data.botUsername === botUsername ? data.bot : undefined
 }
 
 export const useFeaturedBotPage = () => {

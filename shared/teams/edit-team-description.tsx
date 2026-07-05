@@ -71,22 +71,19 @@ const EditTeamDescription = (props: Props) => {
         </Kb.Box2>
       </Kb.ScrollView>
       <Kb.ModalFooter>
-        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />
-          <Kb.Button
-            disabled={description === origDescription}
-            label="Save"
-            onClick={onSave}
-            waiting={waiting}
-          />
-        </Kb.ButtonBar>
+        <Kb.ConfirmButtons
+          waiting={waiting}
+          onCancel={C.Router2.navigateUp}
+          onConfirm={onSave}
+          confirmLabel="Save"
+          confirmDisabled={description === origDescription}
+        />
       </Kb.ModalFooter>
     </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  buttonBar: {alignItems: 'center'},
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
   },

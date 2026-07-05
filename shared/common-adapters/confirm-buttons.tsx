@@ -1,9 +1,10 @@
+import Button, {type ButtonProps} from './button'
 import ButtonBar from './button-bar'
 import WaitingButton from './waiting-button'
-import type {ButtonProps} from './button'
 import type * as Styles from '@/styles'
 
 const Kb = {
+  Button,
   ButtonBar,
   WaitingButton,
 }
@@ -16,17 +17,19 @@ type Props = {
   onCancel: () => void
   onConfirm: () => void
   style?: Styles.StylesCrossPlatform
-  waitingKey: string | Array<string>
+  // either follow keys in the waiting store, or drive directly with a boolean
+  waitingKey?: string | Array<string>
+  waiting?: boolean
 }
 
 /**
  * The standard cancel + confirm footer for form/confirmation screens. Both
- * buttons follow the same waitingKey: confirm shows the spinner, cancel just
- * disables. Desktop: row with confirm on the right. Mobile: stacked full
- * width with confirm on top.
+ * buttons follow the same waiting state: confirm shows the spinner, cancel
+ * just disables. Desktop: row with confirm on the right. Mobile: stacked
+ * full width with confirm on top.
  */
 const ConfirmButtons = (props: Props) => {
-  const cancel = (
+  const cancel = props.waitingKey ? (
     <Kb.WaitingButton
       key="cancel"
       type="Dim"
@@ -36,8 +39,17 @@ const ConfirmButtons = (props: Props) => {
       onlyDisable={true}
       fullWidth={isMobile}
     />
+  ) : (
+    <Kb.Button
+      key="cancel"
+      type="Dim"
+      onClick={props.onCancel}
+      label={props.cancelLabel ?? 'Cancel'}
+      disabled={props.waiting}
+      fullWidth={isMobile}
+    />
   )
-  const confirm = (
+  const confirm = props.waitingKey ? (
     <Kb.WaitingButton
       key="confirm"
       type={props.confirmType}
@@ -45,6 +57,16 @@ const ConfirmButtons = (props: Props) => {
       label={props.confirmLabel}
       disabled={props.confirmDisabled}
       waitingKey={props.waitingKey}
+      fullWidth={isMobile}
+    />
+  ) : (
+    <Kb.Button
+      key="confirm"
+      type={props.confirmType}
+      onClick={props.onConfirm}
+      label={props.confirmLabel}
+      disabled={props.confirmDisabled}
+      waiting={props.waiting}
       fullWidth={isMobile}
     />
   )

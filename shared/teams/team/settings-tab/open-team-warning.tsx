@@ -49,15 +49,13 @@ const OpenTeamWarning = (props: Props) => {
           </Kb.Box2>
         }
       />
-      <Kb.ButtonBar>
-        <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
-        <Kb.Button
-          type="Danger"
-          onClick={onConfirm}
-          label={isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
-          disabled={!enabled}
-        />
-      </Kb.ButtonBar>
+      <Kb.ConfirmButtons
+        onCancel={onCancel}
+        onConfirm={onConfirm}
+        confirmLabel={isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
+        confirmType="Danger"
+        confirmDisabled={!enabled}
+      />
     </Kb.Box2>
   )
 }
