@@ -41,6 +41,86 @@ static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
 
+// from react-native-localize
+static bool kbUses24HourClockForLocale(NSLocale *_Nonnull locale) {
+  NSDateFormatter *formatter = [NSDateFormatter new];
+
+  [formatter setLocale:locale];
+  [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+  [formatter setDateStyle:NSDateFormatterNoStyle];
+  [formatter setTimeStyle:NSDateFormatterShortStyle];
+
+  NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
+  return [[formatter stringFromDate:date] containsString:@"20"];
+}
+
+static NSString *kbSetupServerConfig(void) {
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+  NSString *cachePath = [paths objectAtIndex:0];
+  NSString *filePath = [cachePath stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
+  NSError *err;
+  NSString *val = [NSString stringWithContentsOfFile:filePath
+                                            encoding:NSUTF8StringEncoding
+                                               error:&err];
+  if (err != nil || val == nil) {
+    return @"";
+  }
+  return val;
+}
+
+static NSString *kbSetupGuiConfig(void) {
+  NSString *filePath = [[[FsPathsHolder sharedFsPathsHolder] fsPaths][@"sharedHome"]
+          stringByAppendingPathComponent: @"/Library/Application Support/Keybase/gui_config.json"];
+  NSError *err;
+  NSString *val = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&err];
+  if (err != nil || val == nil) {
+    return @"";
+  }
+  return val;
+}
+
+// Built once; safe because fsPaths and KeybaseInit are set up in the app
+// delegate before React Native creates this module.
+static NSDictionary *kbConstants(void) {
+  static NSDictionary *constants = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    NSString *serverConfig = kbSetupServerConfig();
+    NSString *guiConfig = kbSetupGuiConfig();
+
+    NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    if (appVersionString == nil) {
+      appVersionString = @"";
+    }
+    NSString *appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    if (appBuildString == nil) {
+      appBuildString = @"";
+    }
+    NSLocale *currentLocale = [NSLocale currentLocale];
+    NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
+
+    NSString *kbVersion = KeybaseVersion();
+    if (kbVersion == nil) {
+      kbVersion = @"";
+    }
+    constants = @{
+      @"androidIsDeviceSecure" : @NO,
+      @"androidIsTestDevice" : @NO,
+      @"appVersionCode" : appBuildString,
+      @"appVersionName" : appVersionString,
+      @"darkModeSupported" : @YES,
+      @"fsCacheDir" : cacheDir,
+      @"fsDownloadDir" : downloadDir,
+      @"guiConfig" : guiConfig,
+      @"serverConfig" : serverConfig,
+      @"uses24HourClock" : @(kbUses24HourClockForLocale(currentLocale)),
+      @"version" : kbVersion
+    };
+  });
+  return constants;
+}
+
 @interface Kb ()
 @property dispatch_queue_t readQueue;
 @end
@@ -65,6 +145,11 @@ RCT_EXPORT_MODULE()
                                                name:@"hardwareKeyPressed"
                                              object:nil];
   [Kb swizzleUITextViewPaste];
+  // getTypedConstants is a blocking synchronous JS call that does file I/O;
+  // warm the cache off the main/JS threads so startup doesn't stall on disk.
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    (void)kbConstants();
+  });
   return self;
 }
 
@@ -176,81 +261,12 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
                          [[NSDate date] timeIntervalSince1970] * 1000]);
 }
 
-// from react-native-localize
-- (bool)uses24HourClockForLocale:(NSLocale *_Nonnull)locale {
-  NSDateFormatter *formatter = [NSDateFormatter new];
-
-  [formatter setLocale:locale];
-  [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-  [formatter setDateStyle:NSDateFormatterNoStyle];
-  [formatter setTimeStyle:NSDateFormatterShortStyle];
-
-  NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
-  return [[formatter stringFromDate:date] containsString:@"20"];
-}
-
-- (NSString *)setupServerConfig {
-  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-  NSString *cachePath = [paths objectAtIndex:0];
-  NSString *filePath = [cachePath stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
-  NSError *err;
-  NSString *val = [NSString stringWithContentsOfFile:filePath
-                                            encoding:NSUTF8StringEncoding
-                                               error:&err];
-  if (err != nil || val == nil) {
-    return @"";
-  }
-  return val;
-}
-
-- (NSString *)setupGuiConfig {
-  NSString *filePath = [[[FsPathsHolder sharedFsPathsHolder] fsPaths][@"sharedHome"]
-          stringByAppendingPathComponent: @"/Library/Application Support/Keybase/gui_config.json"];
-  NSError *err;
-  NSString *val = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&err];
-  if (err != nil || val == nil) {
-    return @"";
-  }
-  return val;
-}
-
  - (NSDictionary *)getConstants {
      return @{};
  }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
-  NSString *serverConfig = [self setupServerConfig];
-  NSString *guiConfig = [self setupGuiConfig];
-
-  NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-  if (appVersionString == nil) {
-    appVersionString = @"";
-  }
-  NSString *appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-  if (appBuildString == nil) {
-    appBuildString = @"";
-  }
-  NSLocale *currentLocale = [NSLocale currentLocale];
-  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
-  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
-
-  NSString *kbVersion = KeybaseVersion();
-  if (kbVersion == nil) {
-    kbVersion = @"";
-  }
-  return @{
-    @"androidIsDeviceSecure" : @NO,
-    @"androidIsTestDevice" : @NO,
-    @"appVersionCode" : appBuildString,
-    @"appVersionName" : appVersionString,
-    @"darkModeSupported" : @YES,
-    @"fsCacheDir" : cacheDir,
-    @"fsDownloadDir" : downloadDir,
-    @"guiConfig" : guiConfig,
-    @"serverConfig" : serverConfig,
-    @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
-    @"version" : kbVersion
-  };
+  return kbConstants();
 }
 
 RCT_EXPORT_METHOD(shareListenersRegistered) {

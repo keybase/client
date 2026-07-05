@@ -100,10 +100,23 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return GuiConfig.getInstance(reactContext.filesDir)?.asString()
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    override fun getTypedConstants(): WritableMap {
-        val versionCode: String = getBuildConfigValue("VERSION_CODE").toString()
-        val versionName: String = getBuildConfigValue("VERSION_NAME").toString()
+    private data class KbConstants(
+        val isDeviceSecure: Boolean,
+        val versionCode: String,
+        val versionName: String,
+        val cacheDir: String,
+        val downloadDir: String,
+        val guiConfig: String?,
+        val serverConfig: String,
+        val uses24HourClock: Boolean,
+        val version: String,
+    )
+
+    // getTypedConstants is a blocking synchronous JS call that does file I/O
+    // and reflection; built once, prewarmed off the JS thread in init.
+    private val cachedConstants: KbConstants by lazy { buildConstants() }
+
+    private fun buildConstants(): KbConstants {
         var isDeviceSecure = false
         try {
             val keyguardManager: KeyguardManager = reactContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
@@ -117,33 +130,34 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         } catch (e: Exception) {
             NativeLogger.warn(": Error reading server config", e)
         }
-        var cacheDir = ""
-        run {
-            val dir: File? = reactContext.cacheDir
-            if (dir != null) {
-                cacheDir = dir.absolutePath
-            }
-        }
-        var downloadDir = ""
-        run {
-            val dir: File? = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-            if (dir != null) {
-                downloadDir = dir.absolutePath
-            }
-        }
+        return KbConstants(
+            isDeviceSecure = isDeviceSecure,
+            versionCode = getBuildConfigValue("VERSION_CODE").toString(),
+            versionName = getBuildConfigValue("VERSION_NAME").toString(),
+            cacheDir = reactContext.cacheDir?.absolutePath ?: "",
+            downloadDir = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath ?: "",
+            guiConfig = readGuiConfig(),
+            serverConfig = serverConfig,
+            uses24HourClock = DateFormat.is24HourFormat(reactContext),
+            version = version(),
+        )
+    }
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun getTypedConstants(): WritableMap {
+        val c = cachedConstants
         val constants: WritableMap = Arguments.createMap()
-        constants.putBoolean("androidIsDeviceSecure", isDeviceSecure)
+        constants.putBoolean("androidIsDeviceSecure", c.isDeviceSecure)
         constants.putBoolean("androidIsTestDevice", misTestDevice)
-        constants.putString("appVersionCode", versionCode)
-        constants.putString("appVersionName", versionName)
+        constants.putString("appVersionCode", c.versionCode)
+        constants.putString("appVersionName", c.versionName)
         constants.putBoolean("darkModeSupported", false)
-        constants.putString("fsCacheDir", cacheDir)
-        constants.putString("fsDownloadDir", downloadDir)
-        constants.putString("guiConfig", readGuiConfig())
-        constants.putString("serverConfig", serverConfig)
-        constants.putBoolean("uses24HourClock", DateFormat.is24HourFormat(reactContext))
-        constants.putString("version", version())
+        constants.putString("fsCacheDir", c.cacheDir)
+        constants.putString("fsDownloadDir", c.downloadDir)
+        constants.putString("guiConfig", c.guiConfig)
+        constants.putString("serverConfig", c.serverConfig)
+        constants.putBoolean("uses24HourClock", c.uses24HourClock)
+        constants.putString("version", c.version)
         return constants
     }
 
@@ -290,6 +304,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         this.reactContext = reactContext!!
         instance = this
         misTestDevice = isTestDevice(reactContext)
+        Thread { cachedConstants }.start()
     }
 
     private fun normalizePath(path: String): String {
