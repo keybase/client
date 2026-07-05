@@ -261,10 +261,6 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
                          [[NSDate date] timeIntervalSince1970] * 1000]);
 }
 
- - (NSDictionary *)getConstants {
-     return @{};
- }
-
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
   return kbConstants();
 }
@@ -508,22 +504,9 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
   }
 }
 
-RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
-  NSDictionary *event = @{@"pressedKey": keyName};
-  [self sendEventWithName:@"hardwareKeyPressed" body:event];
-}
-
-- (NSNumber *)androidCheckPushPermissions {return @-1;}
-- (NSNumber *)androidRequestPushPermissions {return @-1;}
-- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
-- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
-- (NSString *)androidGetRegistrationToken {return @"";}
+// Android-only spec methods; stubs satisfy the NativeKbSpec protocol
 - (void)androidAddCompleteDownload:(JS::NativeKb::SpecAndroidAddCompleteDownloadO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidAppColorSchemeChanged:(NSString *)mode {}
-- (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidRequestPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{}
-- (void)androidSetApplicationIconBadgeNumber:(double)n {}
 - (void)androidShare:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 @end
