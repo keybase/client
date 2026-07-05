@@ -33,7 +33,6 @@ using namespace kb;
 
 @end
 
-static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 static __weak Kb *kbSharedInstance = nil;
@@ -136,6 +135,12 @@ RCT_EXPORT_MODULE()
   return YES;
 }
 
+// _eventEmitterCallback is only set once JS creates the TurboModule; emitting
+// through the generated helpers before then would call a null std::function.
+- (BOOL)canEmit {
+  return _eventEmitterCallback != nullptr;
+}
+
 - (instancetype)init {
   self = [super init];
   kbSharedInstance = self;
@@ -176,7 +181,7 @@ RCT_EXPORT_MODULE()
   if (!kbSharedInstance || images.count == 0) return;
 
   // Encoding and writing pasted images can be slow for large images; keep it
-  // off the main thread. sendEventWithName is safe to call from any thread.
+  // off the main thread. The emit helpers are safe to call from any thread.
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
     NSMutableArray *uris = [NSMutableArray array];
     for (UIImage *rawImage in images) {
@@ -203,7 +208,10 @@ RCT_EXPORT_MODULE()
     }
 
     if (uris.count > 0) {
-      [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uris": uris}];
+      Kb *instance = kbSharedInstance;
+      if (instance && [instance canEmit]) {
+        [instance emitOnPasteImage:uris];
+      }
     }
   });
 }
@@ -216,14 +224,9 @@ RCT_EXPORT_MODULE()
     kbBridge_->teardown();
     kbBridge_.reset();
   }
-  [super invalidate];
   self.readQueue = nil;
   NSError *error = nil;
   KeybaseReset(&error);
-}
-
-- (NSArray<NSString *> *)supportedEvents {
-return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage", @"onPushNotification", @"onPushToken" ];
 }
 
 RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
@@ -271,7 +274,9 @@ RCT_EXPORT_METHOD(shareListenersRegistered) {
 RCT_EXPORT_METHOD(engineReset) {
   NSError *error = nil;
   KeybaseReset(&error);
-  [self sendEventWithName:metaEventName body:metaEventEngineReset];
+  if ([self canEmit]) {
+    [self emitOnMetaEvent:metaEventEngineReset];
+  }
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
@@ -477,8 +482,9 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
 + (void)setDeviceToken:(NSString *)token {
   kbStoredDeviceToken = token;
   dispatch_async(dispatch_get_main_queue(), ^{
-    if (kbSharedInstance && token) {
-      [kbSharedInstance sendEventWithName:@"onPushToken" body:@{@"token": token}];
+    Kb *instance = kbSharedInstance;
+    if (instance && token && [instance canEmit]) {
+      [instance emitOnPushToken:token];
     }
   });
 }
@@ -488,19 +494,19 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
 }
 
 + (void)emitPushNotification:(NSDictionary *)notification {
-  if (kbSharedInstance) {
-    [kbSharedInstance sendEventWithName:@"onPushNotification" body:notification];
+  Kb *instance = kbSharedInstance;
+  if (instance && [instance canEmit]) {
+    [instance emitOnPushNotification:notification];
     NSLog(@"Kb.emitPushNotification: sent event 'onPushNotification' to JS");
   } else {
-    NSLog(@"Kb.emitPushNotification: WARNING - kbSharedInstance is nil, event not sent");
+    NSLog(@"Kb.emitPushNotification: WARNING - module not ready, event not sent");
   }
 }
 
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {
   NSString *keyName = notification.userInfo[@"pressedKey"];
-  if (keyName) {
-    NSDictionary *event = @{@"pressedKey": keyName};
-    [self sendEventWithName:@"hardwareKeyPressed" body:event];
+  if (keyName && [self canEmit]) {
+    [self emitOnHardwareKeyPressed:keyName];
   }
 }
 

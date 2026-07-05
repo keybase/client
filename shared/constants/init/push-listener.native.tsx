@@ -5,7 +5,9 @@ import {emitDeepLink} from '@/router-v2/linking'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,
-  getNativeEmitter,
+  onPushNotification,
+  onPushToken,
+  onShareData,
   getInitialNotification,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
@@ -297,8 +299,6 @@ export const initPushListener = () => {
   })
 
   const listenNative = async () => {
-    const RNEmitter = getNativeEmitter()
-
     // Set up listener immediately, before waiting for token
     // This ensures notifications aren't lost if they arrive before token is ready
     const onNotification = (n: object) => {
@@ -315,20 +315,17 @@ export const initPushListener = () => {
       // Unified push notification handling for both iOS and Android
       // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
       // Other notification types are handled natively first, then emitted to JS via onPushNotification
-      RNEmitter.addListener('onPushNotification', onNotification)
+      onPushNotification(onNotification)
 
       if (isIOS) {
-        RNEmitter.addListener('onPushToken', (payload?: {token?: string}) => {
-          const token = payload?.token
-          if (token) {
-            logger.debug('[PushToken] received token via onPushToken event: ', token)
-            usePushState.getState().dispatch.setPushToken(token)
-          }
+        onPushToken(token => {
+          logger.debug('[PushToken] received token via onPushToken event: ', token)
+          usePushState.getState().dispatch.setPushToken(token)
         })
       }
 
       if (isAndroid) {
-        RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
+        onShareData(evt => {
           const {setAndroidShare} = useConfigState.getState().dispatch
 
           const text = evt.text

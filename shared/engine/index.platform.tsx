@@ -20,7 +20,7 @@ import KB2 from '@/util/electron'
 import type {Socket} from 'net'
 import {printRPCBytes} from '@/local-debug'
 import {socketPath} from '@/constants/platform'
-import {getNativeEmitter, notifyJSReady, engineReset} from 'react-native-kb'
+import {onMetaEvent, notifyJSReady, engineReset} from 'react-native-kb'
 
 // used by node
 // Desktop transport — only instantiated when !isMobile
@@ -193,8 +193,7 @@ function createClient(
       }
     }
 
-    const RNEmitter = getNativeEmitter()
-    RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
+    onMetaEvent((payload: string) => {
       try {
         switch (payload) {
           case 'kb-engine-reset':

@@ -56,13 +56,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return NAME
     }
 
-    @ReactMethod
-    override fun addListener(eventName: String) {
-    }
-
-    @ReactMethod
-    override fun removeListeners(count: Double) {
-    }
+    // mEventEmitterCallback is only set once JS creates the TurboModule;
+    // the generated emit helpers would NPE before then.
+    private fun canEmit(): Boolean = mEventEmitterCallback != null
 
     @ReactMethod
     override fun clearLocalLogs(promise: Promise) {
@@ -394,15 +390,27 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     private fun emitPushNotificationInternal(notification: Bundle) {
-        if (reactContext.hasActiveReactInstance()) {
+        if (reactContext.hasActiveReactInstance() && canEmit()) {
             try {
                 val payload = Arguments.fromBundle(notification)
-                reactContext.emitDeviceEvent("onPushNotification", payload)
+                emitOnPushNotification(payload)
             } catch (e: Exception) {
                 NativeLogger.error("emitPushNotificationInternal failed to emit: " + e.message)
             }
         } else {
             NativeLogger.warn("emitPushNotificationInternal no active react instance")
+        }
+    }
+
+    internal fun emitShareDataInternal(data: WritableMap) {
+        if (reactContext.hasActiveReactInstance() && canEmit()) {
+            try {
+                emitOnShareData(data)
+            } catch (e: Exception) {
+                NativeLogger.error("emitShareDataInternal failed to emit: " + e.message)
+            }
+        } else {
+            NativeLogger.warn("emitShareDataInternal no active react instance")
         }
     }
 
@@ -441,11 +449,19 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         promise.resolve(null)
     }
 
+    private fun relayReset() {
+        if (!reactContext.hasActiveReactInstance() || !canEmit()) {
+            NativeLogger.info("$NAME: JS Bridge is dead, Can't send EOF message")
+        } else {
+            emitOnMetaEvent(RPC_META_EVENT_ENGINE_RESET)
+        }
+    }
+
     @ReactMethod
     override fun engineReset() {
         try {
             Keybase.reset()
-            relayReset(reactContext)
+            relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in engineReset", e)
         }
@@ -518,7 +534,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     fun destroy() {
         try {
             Keybase.reset()
-            relayReset(reactContext)
+            relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in KeybaseEngine.destroy", e)
         }
@@ -553,9 +569,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     private fun sendHardwareKeyEvent(keyName: String) {
-        val params = Arguments.createMap()
-        params.putString("pressedKey", keyName)
-        reactContext.emitDeviceEvent(HW_KEY_EVENT, params)
+        if (canEmit()) {
+            emitOnHardwareKeyPressed(keyName)
+        }
     }
 
     companion object {
@@ -564,11 +580,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         const val NAME: String = "Kb"
-        private const val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
-        private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
 
         var instance: KbModule? = null
         @JvmStatic
@@ -600,6 +614,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             module.emitPushNotificationInternal(notification)
         }
 
+        @JvmStatic
+        fun emitShareData(data: WritableMap) {
+            val module = instance
+            if (module == null) {
+                android.util.Log.w("KbModule", "emitShareData called but instance is null (app may not be running)")
+                return
+            }
+            module.emitShareDataInternal(data)
+        }
+
         // Is this a robot controlled test device? (i.e. pre-launch report?)
         private fun isTestDevice(context: ReactApplicationContext): Boolean {
             val testLabSetting: String? = Settings.System.getString(context.contentResolver, "firebase.test.lab")
@@ -607,14 +631,5 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         private const val FILE_PREFIX_BUNDLE_ASSET: String = "bundle-assets://"
-
-        // engine
-        private fun relayReset(reactContext: ReactApplicationContext) {
-            if (!reactContext.hasActiveReactInstance()) {
-                NativeLogger.info("$NAME: JS Bridge is dead, Can't send EOF message")
-            } else {
-                reactContext.emitDeviceEvent(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET)
-            }
-        }
     }
 }
