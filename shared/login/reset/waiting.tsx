@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
-import {commonStyles} from '../common'
+import {QuestionBody} from '../common'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
@@ -71,19 +71,15 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
       }
       buttons={[{label: 'Close', onClick: onClose, type: 'Dim'}]}
     >
-      <Kb.Box2
-        direction="vertical"
-        gap="medium"
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-        style={commonStyles.topGap}
+      <QuestionBody
+        icon={
+          <Kb.Icon
+            type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
+            color={Kb.Styles.globalColors.black}
+            fontSize={24}
+          />
+        }
       >
-        <Kb.Icon
-          type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
-          color={Kb.Styles.globalColors.black}
-          fontSize={24}
-        />
         <Kb.Box2 direction="vertical" centerChildren={true} gap="small">
           <Kb.Text type="Header" center={true}>
             {pipelineStarted ? `Check back in ${formattedTime}` : 'Check your email or phone.'}
@@ -111,7 +107,7 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
             </Kb.Box2>
           )}
         </Kb.Box2>
-      </Kb.Box2>
+      </QuestionBody>
     </SignupScreen>
   )
 }

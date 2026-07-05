@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '@/signup/common'
-import {commonStyles} from '../common'
+import {QuestionBody} from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {enterResetPipeline} from './account-reset'
 
@@ -27,15 +27,7 @@ const KnowPassword = ({route}: Props) => {
         {label: 'No', onClick: onNo, type: 'Dim', waiting},
       ]}
     >
-      <Kb.Box2
-        direction="vertical"
-        gap="medium"
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-        style={commonStyles.topGap}
-      >
-        <Kb.Icon type="iconfont-password" color={Kb.Styles.globalColors.black} fontSize={24} />
+      <QuestionBody icon={<Kb.Icon type="iconfont-password" color={Kb.Styles.globalColors.black} fontSize={24} />}>
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="Header" center={true}>
             Do you know your
@@ -44,7 +36,7 @@ const KnowPassword = ({route}: Props) => {
             password?
           </Kb.Text>
         </Kb.Box2>
-      </Kb.Box2>
+      </QuestionBody>
     </SignupScreen>
   )
 }

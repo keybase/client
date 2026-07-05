@@ -4,7 +4,7 @@ import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen, errorBanner} from '@/signup/common'
-import {commonStyles} from '../common'
+import {QuestionBody} from '../common'
 import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
 import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
@@ -59,15 +59,10 @@ const PromptReset = (props: Props) => {
       noBackground={true}
       title={title}
     >
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        fullHeight={true}
-        fullWidth={true}
-        gap="medium"
-        style={commonStyles.topGap}
+      <QuestionBody
+        centered={false}
+        icon={<Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         {props.resetPassword ? (
           <Kb.Text type="Body" center={true} style={styles.main}>
             If you have forgotten your password you can reset it here. You will keep your username, but{' '}
@@ -91,7 +86,7 @@ const PromptReset = (props: Props) => {
             </Kb.Text>
           </>
         )}
-      </Kb.Box2>
+      </QuestionBody>
     </SignupScreen>
   )
 }
