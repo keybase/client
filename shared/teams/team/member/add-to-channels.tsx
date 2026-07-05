@@ -190,22 +190,14 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const desktopFooter =
     !isMobile && mode !== 'self' ? (
       <Kb.ModalFooter>
-        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-          <Kb.Button
-            type="Dim"
-            label="Cancel"
-            onClick={onCancel}
-            style={Kb.Styles.globalStyles.flexOne}
-            disabled={waiting}
-          />
-          <Kb.Button
-            label={numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'}
-            onClick={onFinish}
-            disabled={!numSelected}
-            style={Kb.Styles.globalStyles.flexOne}
-            waiting={waiting}
-          />
-        </Kb.Box2>
+        <Kb.ConfirmButtons
+          split={true}
+          waiting={waiting}
+          onCancel={onCancel}
+          onConfirm={onFinish}
+          confirmLabel={numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'}
+          confirmDisabled={!numSelected}
+        />
       </Kb.ModalFooter>
     ) : null
 

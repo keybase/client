@@ -1,9 +1,11 @@
 import Button, {type ButtonProps} from './button'
 import ButtonBar from './button-bar'
 import WaitingButton from './waiting-button'
-import type * as Styles from '@/styles'
+import {Box2} from './box'
+import * as Styles from '@/styles'
 
 const Kb = {
+  Box2,
   Button,
   ButtonBar,
   WaitingButton,
@@ -16,6 +18,9 @@ type Props = {
   confirmType?: ButtonProps['type']
   onCancel: () => void
   onConfirm: () => void
+  // modal-footer variant: buttons share the row 50/50, cancel is desktop-only
+  // (mobile modals close from the header)
+  split?: boolean
   style?: Styles.StylesCrossPlatform
   // either follow keys in the waiting store, or drive directly with a boolean
   waitingKey?: string | Array<string>
@@ -29,6 +34,7 @@ type Props = {
  * full width with confirm on top.
  */
 const ConfirmButtons = (props: Props) => {
+  const splitStyle = props.split ? styles.split : undefined
   const cancel = props.waitingKey ? (
     <Kb.WaitingButton
       key="cancel"
@@ -38,6 +44,7 @@ const ConfirmButtons = (props: Props) => {
       waitingKey={props.waitingKey}
       onlyDisable={true}
       fullWidth={isMobile}
+      style={splitStyle}
     />
   ) : (
     <Kb.Button
@@ -47,6 +54,7 @@ const ConfirmButtons = (props: Props) => {
       label={props.cancelLabel ?? 'Cancel'}
       disabled={props.waiting}
       fullWidth={isMobile}
+      style={splitStyle}
     />
   )
   const confirm = props.waitingKey ? (
@@ -58,6 +66,7 @@ const ConfirmButtons = (props: Props) => {
       disabled={props.confirmDisabled}
       waitingKey={props.waitingKey}
       fullWidth={isMobile}
+      style={splitStyle}
     />
   ) : (
     <Kb.Button
@@ -68,8 +77,17 @@ const ConfirmButtons = (props: Props) => {
       disabled={props.confirmDisabled}
       waiting={props.waiting}
       fullWidth={isMobile}
+      style={splitStyle}
     />
   )
+  if (props.split) {
+    return (
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={props.style}>
+        {!isMobile && cancel}
+        {confirm}
+      </Kb.Box2>
+    )
+  }
   return (
     <Kb.ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile} style={props.style}>
       {isMobile ? confirm : cancel}
@@ -77,5 +95,9 @@ const ConfirmButtons = (props: Props) => {
     </Kb.ButtonBar>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  split: {...Styles.globalStyles.flexOne},
+}))
 
 export default ConfirmButtons
