@@ -60,6 +60,20 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
   </Text>
 )
 
+// red banner for local error state; renders nothing when there is no error
+export const ErrorBanner = (props: {error?: string | Error | null; onClose?: () => void}) => {
+  const {error, onClose} = props
+  const message = typeof error === 'string' ? error : error?.message
+  if (!message) {
+    return null
+  }
+  return (
+    <Banner color="red" onClose={onClose}>
+      {message}
+    </Banner>
+  )
+}
+
 type BannerProps = {
   color: Color
   children:

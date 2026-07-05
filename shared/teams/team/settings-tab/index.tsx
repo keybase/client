@@ -232,7 +232,7 @@ const Settings = (p: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
       <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.main} justifyContent="flex-start">
-        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+        <Kb.ErrorBanner error={error} />
         <SetMemberShowcase
           yourOperationsJoinTeam={yourOperations.joinTeam}
           canShowcase={canShowcase}

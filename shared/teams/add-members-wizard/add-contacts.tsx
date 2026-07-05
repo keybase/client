@@ -129,11 +129,7 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       <Kb.SearchFilter
         size="small"
         onChange={setSearch}

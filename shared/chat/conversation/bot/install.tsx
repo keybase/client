@@ -672,9 +672,7 @@ const InstallBotPopup = (props: Props) => {
     ) : enabled ? (
       content
     ) : (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
-        <Kb.ProgressIndicator type="Large" />
-      </Kb.Box2>
+      <Kb.LoadingScreen type="Large" />
     )
   return (
     <>

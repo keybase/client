@@ -86,15 +86,13 @@ const RevokeProof = (ownProps: OwnProps) => {
         <Kb.Text center={!isMobile} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
-        <Kb.ButtonBar>
-          <Kb.WaitingButton type="Dim" onClick={onCancel} label="Cancel" waitingKey={C.waitingKeyProfile} />
-          <Kb.WaitingButton
-            type="Danger"
-            onClick={onRevoke}
-            label={platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
-            waitingKey={C.waitingKeyProfile}
-          />
-        </Kb.ButtonBar>
+        <Kb.ConfirmButtons
+          waitingKey={C.waitingKeyProfile}
+          onCancel={onCancel}
+          onConfirm={onRevoke}
+          confirmLabel={platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
+          confirmType="Danger"
+        />
       </Kb.Box2>
     </Modal>
   )

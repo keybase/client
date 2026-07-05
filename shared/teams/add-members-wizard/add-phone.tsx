@@ -56,11 +56,7 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="flex-start">

@@ -181,7 +181,7 @@ const NativeLoginRender = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+      <Kb.ErrorBanner error={props.error} />
       <UserCard username={props.selectedUser} outerStyle={nativeStyles.card} style={nativeStyles.cardInner}>
         <Dropdown
           type="Username"

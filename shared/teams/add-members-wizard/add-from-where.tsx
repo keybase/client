@@ -31,11 +31,7 @@ const AddFromWhere = ({wizard}: Props) => {
 
   return (
     <>
-      {createTeamError ? (
-        <Kb.Banner color="red" key="err">
-          {createTeamError}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={createTeamError} />
       <Kb.Box2
         direction="vertical"
         gap={isMobile ? 'tiny' : 'xsmall'}

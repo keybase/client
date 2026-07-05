@@ -511,7 +511,7 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
           {name}
         </Kb.Text>
         {isOpen && (
-          <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
+          <Kb.Meta variant="open" style={styles.teamMeta} />
         )}
       </Kb.Box2>
     </Kb.Box2>
@@ -546,7 +546,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {marginRight: Kb.Styles.globalMargins.medium},
   }),
   teamMeta: {
-    alignSelf: 'center',
     marginLeft: Kb.Styles.globalMargins.xtiny,
     marginTop: 2,
   },

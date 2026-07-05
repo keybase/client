@@ -53,7 +53,7 @@ export const CreateNewTeam = (props: Props) => {
           />
         </Kb.Banner>
       ) : null}
-      {errorText ? <Kb.Banner color="red">{errorText}</Kb.Banner> : null}
+      <Kb.ErrorBanner error={errorText} />
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
           <Kb.Input3
@@ -114,11 +114,7 @@ const Container = (ownProps: OwnProps) => {
     onSubmit,
   }
   if (subteamOf !== T.Teams.noTeamID && (loading || !baseTeam)) {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-        <Kb.ProgressIndicator type="Large" />
-      </Kb.Box2>
-    )
+    return <Kb.LoadingScreen type="Large" />
   }
   return <CreateNewTeam {...props} />
 }

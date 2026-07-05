@@ -74,14 +74,10 @@ const TeamRow = function TeamRow(props: Props) {
         <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
           {teamMeta.teamname}
         </Kb.Text>
-        {teamMeta.isOpen && (
-          <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.alignSelfCenter} />
-        )}
+        {teamMeta.isOpen && <Kb.Meta variant="open" />}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
-        {isNew && (
-          <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} style={styles.alignSelfCenter} />
-        )}
+        {isNew && <Kb.Meta variant="new" />}
         <Kb.Text type="BodySmall">
           {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
         </Kb.Text>
@@ -154,9 +150,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   actionMobile: {
     flexShrink: 0,
     marginRight: 8,
-  },
-  alignSelfCenter: {
-    alignSelf: 'center',
   },
   avatarOuter: Kb.Styles.platformStyles({
     common: {

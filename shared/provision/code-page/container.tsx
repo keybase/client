@@ -136,7 +136,7 @@ const CodePageContainer = (op: OwnProps) => {
             <Kb.Divider />
           </>
         )}
-        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+        <Kb.ErrorBanner error={error} />
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <Kb.Box2 direction="vertical" fullHeight={true} style={Kb.Styles.globalStyles.flexGrow}>
             <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny" justifyContent="space-between">

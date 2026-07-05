@@ -123,11 +123,7 @@ const DesktopEditAvatar = (_p: Props) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="propsError">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       {serror ? (
         <Kb.Banner color="red" key="stateError">
           The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.

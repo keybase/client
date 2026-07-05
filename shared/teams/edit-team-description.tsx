@@ -52,11 +52,7 @@ const EditTeamDescription = (props: Props) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.Input3

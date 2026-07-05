@@ -307,11 +307,7 @@ const useIncomingShareItems = () => {
   return {incomingShareError, incomingShareItems: androidShareItems ?? incomingShareItems}
 }
 
-const LoadingSpinner = () => (
-  <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-    <Kb.ProgressIndicator type="Large" />
-  </Kb.Box2>
-)
+const LoadingSpinner = () => <Kb.LoadingScreen type="Large" />
 
 const IncomingShareMain = (props: SelectedConversationProps) => {
   const {incomingShareError, incomingShareItems} = useIncomingShareItems()

@@ -56,11 +56,7 @@ const AddEmail = (props: Props) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}

@@ -817,21 +817,13 @@ const EnterUsername = ({
           value={username}
         />
         <UsernameTips platform={platform} />
-        <Kb.Box2 direction="horizontal" gap="small">
-          <Kb.WaitingButton
-            waitingKey={C.waitingKeyProfile}
-            onlyDisable={true}
-            type="Dim"
-            onClick={onCancel}
-            label="Cancel"
-          />
-          <Kb.WaitingButton
-            waitingKey={C.waitingKeyProfile}
-            disabled={!canSubmit}
-            onClick={submit}
-            label="Continue"
-          />
-        </Kb.Box2>
+        <Kb.ConfirmButtons
+          waitingKey={C.waitingKeyProfile}
+          onCancel={onCancel}
+          onConfirm={submit}
+          confirmLabel="Continue"
+          confirmDisabled={!canSubmit}
+        />
       </Kb.Box2>
     </Modal>
   )

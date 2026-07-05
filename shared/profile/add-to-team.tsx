@@ -340,7 +340,7 @@ const TeamRow = (props: RowProps) => {
               {props.name}
             </Kb.Text>
             {props.isOpen && (
-              <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
+              <Kb.Meta variant="open" style={styles.meta} />
             )}
           </Kb.Box2>
           <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
@@ -402,7 +402,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {marginLeft: Kb.Styles.globalMargins.xxtiny, marginRight: Kb.Styles.globalMargins.tiny},
       }),
       meta: {
-        alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },

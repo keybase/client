@@ -136,7 +136,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           {!!onRename && <Kb.Icon type="iconfont-edit" onClick={onRename} />}
         </Kb.Box2>
         {meta.isOpen && (
-          <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.openMeta} />
+          <Kb.Meta variant="open" style={styles.openMeta} />
         )}
       </Kb.Box2>
       {

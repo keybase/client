@@ -97,15 +97,7 @@ const AddContactsHeaderRight = () => {
       >
         Done
       </Kb.Text>
-      {waiting && (
-        <Kb.Box2
-          direction="horizontal"
-          centerChildren={true}
-          style={Kb.Styles.globalStyles.fillAbsolute}
-        >
-          <Kb.ProgressIndicator />
-        </Kb.Box2>
-      )}
+      <Kb.LoadingOverlay show={waiting} />
     </Kb.Box2>
   )
 }
