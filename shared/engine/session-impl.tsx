@@ -3,6 +3,7 @@ import {
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
 } from '@/constants/rpc/rpc-gen'
+import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '@/util/errors'
@@ -72,17 +73,19 @@ class Session {
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number) {
     return (waiting: boolean, err: RPCError | undefined) => {
-      rpcLog({
-        extra: {
-          id: this.getId(),
-          seqid,
-          this: this,
-          waiting,
-        },
-        method,
-        reason: `[${waiting ? '+' : '-'}waiting]`,
-        type: 'engineInternal',
-      })
+      if (printRPC) {
+        rpcLog({
+          extra: {
+            id: this.getId(),
+            seqid,
+            this: this,
+            waiting,
+          },
+          method,
+          reason: `[${waiting ? '+' : '-'}waiting]`,
+          type: 'engineInternal',
+        })
+      }
       if (this._waitingKey) {
         getEngine().dispatchWaitingAction(this._waitingKey, waiting, err)
       }
@@ -134,12 +137,14 @@ class Session {
       sessionID: this.getId(),
     }
 
-    rpcLog({
-      extra: {id: this.getId(), this: this},
-      method,
-      reason: '[+session]',
-      type: 'engineInternal',
-    })
+    if (printRPC) {
+      rpcLog({
+        extra: {id: this.getId(), this: this},
+        method,
+        reason: '[+session]',
+        type: 'engineInternal',
+      })
+    }
 
     const outgoingRequest = new OutgoingRequest(
       method,
@@ -154,16 +159,18 @@ class Session {
 
   // We have an incoming call tied to a sessionID, called only by engine
   incomingCall(method: MethodKey, param: object, response?: ResponseType): boolean {
-    rpcLog({
-      extra: {
-        id: this.getId(),
-        response,
-        this: this,
-      },
-      method,
-      reason: '[-calling:session]',
-      type: 'engineInternal',
-    })
+    if (printRPC) {
+      rpcLog({
+        extra: {
+          id: this.getId(),
+          response,
+          this: this,
+        },
+        method,
+        reason: '[-calling:session]',
+        type: 'engineInternal',
+      })
+    }
 
     let handler = (this._incomingCallMap as {[key: string]: unknown})[method] as
       | undefined

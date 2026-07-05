@@ -63,7 +63,7 @@ abstract class TransportShared extends RPCTransport {
 
   // add logging / multiple call checking
   injectInstrumentedResponse(payload: PayloadType) {
-    if (!payload.response) {
+    if (!printRPC || !payload.response) {
       return
     }
 

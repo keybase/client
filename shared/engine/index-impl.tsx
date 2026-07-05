@@ -5,7 +5,7 @@ import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
-import {printOutstandingRPCs} from '@/local-debug'
+import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '@/constants/rpc'
@@ -151,14 +151,16 @@ class Engine {
     )
     if (cancelledSessionID) {
       const s = this._sessionsMap[cancelledSessionID]
-      rpcLog({
-        extra: {cancelledSessionID},
-        method: s?._startMethod || 'unknown',
-        reason: '[cancel]',
-        type: 'engineInternal',
-      })
+      if (printRPC) {
+        rpcLog({
+          extra: {cancelledSessionID},
+          method: s?._startMethod || 'unknown',
+          reason: '[cancel]',
+          type: 'engineInternal',
+        })
+      }
       s?.cancel()
-    } else {
+    } else if (printRPC) {
       rpcLog({
         extra: {cancelledSessionID},
         method: 'unknown',
@@ -262,14 +264,16 @@ class Engine {
 
   // Cleanup a session that ended
   _sessionEnded(session: {getId: () => number; _startMethod?: string}) {
-    rpcLog({
-      extra: {
-        sessionID: session.getId(),
-      },
-      method: session._startMethod || 'unknown',
-      reason: '[-session]',
-      type: 'engineInternal',
-    })
+    if (printRPC) {
+      rpcLog({
+        extra: {
+          sessionID: session.getId(),
+        },
+        method: session._startMethod || 'unknown',
+        reason: '[-session]',
+        type: 'engineInternal',
+      })
+    }
     delete this._sessionsMap[String(session.getId())] // eslint-disable-line
   }
 
