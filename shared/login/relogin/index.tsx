@@ -135,7 +135,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.tiny,
       },
       loginSubmitButton: {
-        marginTop: 0,
         maxHeight: 32,
       },
       other: {color: Kb.Styles.globalColors.black},
@@ -204,7 +203,7 @@ const NativeLoginRender = (props: Props) => {
         <Kb.WaitingButton
           disabled={props.needPassword && !props.password}
           waitingKey={C.waitingKeyConfigLogin}
-          style={{marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small}}
+          style={props.needPassword ? undefined : nativeStyles.loginButtonGap}
           fullWidth={true}
           label="Log in"
           onClick={props.onSubmit}
@@ -213,10 +212,7 @@ const NativeLoginRender = (props: Props) => {
           type="BodySmallSecondaryLink"
           center={true}
           onClick={props.onForgotPassword}
-          style={{
-            marginBottom: Kb.Styles.globalMargins.tiny,
-            marginTop: Kb.Styles.globalMargins.medium,
-          }}
+          style={nativeStyles.forgotPassword}
         >
           Forgot password?
         </Kb.Text>
@@ -231,7 +227,7 @@ const NativeLoginRender = (props: Props) => {
           label="Create account"
           mode="Secondary"
           onClick={props.onSignup}
-          style={{flexGrow: 0}}
+          style={nativeStyles.createAccountButton}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -251,21 +247,26 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
+      createAccountButton: {flexGrow: 0},
       createAccountContainer: Kb.Styles.platformStyles({
         common: {padding: Kb.Styles.globalMargins.medium},
         isTablet: {maxWidth: 410, padding: Kb.Styles.globalMargins.small},
       }),
       deviceNotSecureContainer: {
-        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.yellow,
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
       deviceNotSecureText: {
         color: Kb.Styles.globalColors.brown_75,
       },
+      forgotPassword: {
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.medium,
+      },
       formElements: {
         marginBottom: Kb.Styles.globalMargins.tiny,
       },
+      loginButtonGap: {marginTop: Kb.Styles.globalMargins.small},
     }) as const
 )
 

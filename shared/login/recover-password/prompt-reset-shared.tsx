@@ -3,7 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
-import {SignupScreen} from '@/signup/common'
+import {SignupScreen, errorBanner} from '@/signup/common'
+import {commonStyles} from '../common'
 import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
 import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
@@ -53,13 +54,7 @@ const PromptReset = (props: Props) => {
           waitingKey: C.waitingKeyAutoresetEnterPipeline,
         },
       ]}
-      banners={
-        error ? (
-          <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={error} />
-          </Kb.Banner>
-        ) : null
-      }
+      banners={errorBanner(error)}
       onBack={onBack}
       noBackground={true}
       title={title}
@@ -70,7 +65,7 @@ const PromptReset = (props: Props) => {
         fullHeight={true}
         fullWidth={true}
         gap="medium"
-        style={styles.topGap}
+        style={commonStyles.topGap}
       >
         <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         {props.resetPassword ? (
@@ -106,12 +101,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     maxWidth: 500,
   },
-  topGap: Kb.Styles.platformStyles({
-    isMobile: {
-      justifyContent: 'flex-start',
-      marginTop: '20%',
-    },
-  }),
 }))
 
 export default PromptReset

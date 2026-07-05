@@ -44,7 +44,7 @@ const UserCard = (p: Props) => {
       fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.container, outerStyle])}
     >
-      <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch" style={styles.avatar}>
+      <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch">
         <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([
@@ -67,9 +67,6 @@ const UserCard = (p: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  avatar: {
-    marginTop: 0,
-  },
   avatarBackground: {
     left: 0,
     position: 'absolute',

@@ -7,7 +7,7 @@ import {startRecoverPassword} from './flow'
 
 type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
 
-const ConnectedExplainDevice = ({route}: Props) => {
+const ExplainDevice = ({route}: Props) => {
   const {deviceName, deviceType, username} = route.params
   const onBack = () => {
     startRecoverPassword({
@@ -55,4 +55,4 @@ const ConnectedExplainDevice = ({route}: Props) => {
   )
 }
 
-export default ConnectedExplainDevice
+export default ExplainDevice
