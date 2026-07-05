@@ -1,7 +1,6 @@
 import type {ErrorType} from '@/engine/rpc-transport'
 export type MethodKey = string
 export type SessionID = number
-export type SessionIDKey = string // used in our maps, really converted to a string key
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => object
 export type EndHandlerType = (session: {getId: () => SessionID; _startMethod?: MethodKey}) => void
 export type ResponseType = {

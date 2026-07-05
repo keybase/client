@@ -5,7 +5,6 @@ import {
 } from '@/constants/rpc/rpc-gen'
 import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
-import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '@/util/errors'
 import {getEngine} from './require'
 import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
@@ -24,8 +23,8 @@ class Session {
   _waitingKey: WaitingKey
   // Tell engine we're done
   _endHandler: EndHandlerType | undefined
-  // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
-  _seqIDResponded: {[K in string]: boolean} = {}
+  // Sequence IDs awaiting a response; removed once we've responded (often we get cancel after we've replied)
+  _seqIDResponded = new Map<number, boolean>()
   // If you want to know about being cancelled
   _cancelHandler: CancelHandlerType | undefined
   // If true this session exists forever
@@ -37,10 +36,6 @@ class Session {
 
   // Allow us to make calls
   _invoke: InvokeType
-
-  // Outstanding requests
-  _outgoingRequests: Array<{method: string}> = []
-  _incomingRequests: Array<{method: string}> = []
 
   constructor(p: {
     sessionID: SessionID
@@ -71,8 +66,9 @@ class Session {
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
-  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number) {
-    return (waiting: boolean, err: RPCError | undefined) => {
+  _makeWaitingHandler(method: MethodKey, seqid?: number) {
+    let done = false
+    return (waiting: boolean, err?: RPCError) => {
       if (printRPC) {
         rpcLog({
           extra: {
@@ -91,16 +87,11 @@ class Session {
       }
 
       // Request is finished, do cleanup
-      if (!waiting) {
-        const requests = isOutgoing ? this._outgoingRequests : this._incomingRequests
-        const idx = requests.findIndex(r => r.method === method)
-        if (idx !== -1) {
-          // Mark us as responded
-          if (seqid) {
-            this._seqIDResponded[String(seqid)] = true
-          }
-          // Remove from our list
-          requests.splice(idx, 1)
+      if (!waiting && !done) {
+        done = true
+        if (seqid) {
+          // Responded; only unresponded seqids should cancel the session
+          this._seqIDResponded.delete(seqid)
         }
       }
     }
@@ -146,15 +137,12 @@ class Session {
       })
     }
 
-    const outgoingRequest = new OutgoingRequest(
-      method,
-      wrappedParam,
-      wrappedCallback,
-      this._makeWaitingHandler(true, method),
-      this._invoke
-    )
-    this._outgoingRequests.push(outgoingRequest)
-    outgoingRequest.send()
+    const updateWaiting = this._makeWaitingHandler(method)
+    updateWaiting(true)
+    this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
+      updateWaiting(false, err as RPCError | undefined)
+      wrappedCallback(err as RPCError | undefined, data)
+    })
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
@@ -186,13 +174,23 @@ class Session {
     }
 
     if (response?.seqid) {
-      this._seqIDResponded[String(response.seqid)] = false
+      this._seqIDResponded.set(response.seqid, false)
     }
 
-    const waitingHandler = this._makeWaitingHandler(false, method, response?.seqid)
-    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
-    this._incomingRequests.push(incomingRequest)
-    incomingRequest.handle()
+    const updateWaiting = this._makeWaitingHandler(method, response?.seqid)
+    updateWaiting(false) // got a call from the server so we're no longer waiting
+    // Cleanup wrapper: after we respond to the server we're waiting on it again
+    const request: ResponseType = {
+      error: (...args: Array<unknown>) => {
+        response?.error?.(...args)
+        updateWaiting(true)
+      },
+      result: (...args: Array<unknown>) => {
+        response?.result?.(...args)
+        updateWaiting(true)
+      },
+    }
+    handler(param, request)
     return true
   }
 
@@ -200,7 +198,7 @@ class Session {
   hasSeqID(seqID: number) {
     // The server can cancel callback seqids after we have already responded.
     // Only unresponded callback seqids should cancel the parent session.
-    return this._seqIDResponded[String(seqID)] === false
+    return this._seqIDResponded.get(seqID) === false
   }
 }
 

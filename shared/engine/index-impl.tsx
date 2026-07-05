@@ -3,7 +3,7 @@ import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type {SessionIDKey, MethodKey} from './types'
+import type {SessionID, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
@@ -18,7 +18,7 @@ type WaitingKey = string | ReadonlyArray<string>
 class Engine {
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
-  _sessionsMap: {[K in SessionIDKey]: Session} = {}
+  _sessionsMap = new Map<SessionID, Session>()
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
   // Set which actions we don't auto respond with so listeners can themselves
@@ -89,7 +89,7 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (Object.values(this._sessionsMap).some(session => !session.getDangling())) {
+        if ([...this._sessionsMap.values()].some(session => !session.getDangling())) {
           logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
@@ -97,10 +97,10 @@ class Engine {
   }
 
   _sessionSummary() {
-    return Object.entries(this._sessionsMap)
-      .filter(([, session]) => !session.getDangling())
-      .map(([id, session]) => ({
-        id,
+    return [...this._sessionsMap.values()]
+      .filter(session => !session.getDangling())
+      .map(session => ({
+        id: session.getId(),
         method: session._startMethod || 'unknown',
       }))
   }
@@ -146,23 +146,26 @@ class Engine {
 
   // Got a cancelled sequence id
   _handleCancel(seqid: number) {
-    const cancelledSessionID = Object.keys(this._sessionsMap).find(key =>
-      this._sessionsMap[key]?.hasSeqID(seqid)
-    )
-    if (cancelledSessionID) {
-      const s = this._sessionsMap[cancelledSessionID]
+    let cancelled: Session | undefined
+    for (const s of this._sessionsMap.values()) {
+      if (s.hasSeqID(seqid)) {
+        cancelled = s
+        break
+      }
+    }
+    if (cancelled) {
       if (printRPC) {
         rpcLog({
-          extra: {cancelledSessionID},
-          method: s?._startMethod || 'unknown',
+          extra: {cancelledSessionID: cancelled.getId()},
+          method: cancelled._startMethod || 'unknown',
           reason: '[cancel]',
           type: 'engineInternal',
         })
       }
-      s?.cancel()
+      cancelled.cancel()
     } else if (printRPC) {
       rpcLog({
-        extra: {cancelledSessionID},
+        extra: {seqid},
         method: 'unknown',
         reason: '[cancel?]',
         type: 'engineInternal',
@@ -180,7 +183,7 @@ class Engine {
     if (cancelled) {
       this._handleCancel(seqid)
     } else {
-      const session = this._sessionsMap[String(sessionID)]
+      const session = typeof sessionID === 'number' ? this._sessionsMap.get(sessionID) : undefined
       if (session?.incomingCall(method, param, response)) {
         // Part of a session?
       } else {
@@ -258,7 +261,7 @@ class Engine {
       waitingKey,
     })
 
-    this._sessionsMap[String(sessionID)] = session
+    this._sessionsMap.set(sessionID, session)
     return session
   }
 
@@ -274,7 +277,7 @@ class Engine {
         type: 'engineInternal',
       })
     }
-    delete this._sessionsMap[String(session.getId())] // eslint-disable-line
+    this._sessionsMap.delete(session.getId())
   }
 
   // Reset the engine
@@ -287,7 +290,7 @@ class Engine {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._sessionsMap = {}
+    this._sessionsMap.clear()
     this._queuedChanges = []
     this._hasConnected = false
     this._listenersAreReady = false
