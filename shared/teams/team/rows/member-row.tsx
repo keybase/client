@@ -1,9 +1,16 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
-import * as T from '@/constants/types'
-import MenuHeader from './menu-header'
-import {selectionStyles} from './common'
+import type * as T from '@/constants/types'
+import RoleCrown from '../../common/role-crown'
+import {
+  FullNameLabel,
+  getMassActionsProps,
+  getResetLabel,
+  MemberActions,
+  selectionStyles,
+  useOnBlockUser,
+} from './common'
 import {useTeamSelectionState} from '../../common/selection-state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -30,15 +37,6 @@ export type Props = {
   youCanManageMembers: boolean
 }
 
-const showCrown = {
-  admin: true,
-  bot: false,
-  owner: true,
-  reader: false,
-  restrictedbot: false,
-  writer: false,
-} satisfies T.Teams.BoolTypeMap
-
 // NOTE the controls for reset and deleted users (and the chat button) are
 // duplicated here because the desktop & mobile layouts differ significantly. If
 // you're changing one remember to change the other.
@@ -47,30 +45,11 @@ export const TeamMemberRow = (props: Props) => {
   const {roleType, fullName, username, youCanEditRole, youCanManageMembers} = props
   const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'
-  const crown =
-    active && showCrown[roleType] ? (
-      <Kb.Icon
-        type={('iconfont-crown-' + roleType) as Kb.IconType}
-        color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-        fontSize={10}
-      />
-    ) : null
-
-  const fullNameLabel =
-    fullName && active ? (
-      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
-        {fullName} •
-      </Kb.Text>
-    ) : null
+  const crown = active ? <RoleCrown role={roleType} fontSize={10} /> : null
 
   let resetLabel: string | undefined
   if (!active) {
-    resetLabel = props.youCanManageMembers
-      ? 'Has reset their account'
-      : 'Has reset their account; admins can re-invite'
-    if (props.status === 'deleted') {
-      resetLabel = 'Has deleted their account'
-    }
+    resetLabel = getResetLabel(props.status, youCanManageMembers)
   } else if (props.needsPUK) {
     resetLabel = ' • Needs to update Keybase'
   }
@@ -90,19 +69,10 @@ export const TeamMemberRow = (props: Props) => {
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
   const onClick = anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined
 
-  const checkCircle = (
-    <Kb.CheckCircle
-      checked={selected}
-      onCheck={onSelect}
-      key={`check-${props.username}`}
-      style={selectionStyles.widenClickableArea}
-    />
-  )
-
   const body = (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={props.username} size={32} />
-      <Kb.Box2 direction="vertical" flex={1} style={styles.nameContainer} justifyContent="center">
+      <Kb.Box2 direction="vertical" flex={1} style={selectionStyles.nameContainer} justifyContent="center">
         <Kb.ConnectedUsernames
           type="BodyBold"
           usernames={props.username}
@@ -110,7 +80,7 @@ export const TeamMemberRow = (props: Props) => {
           onUsernameClicked={onClick}
         />
         <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start" gap="xtiny">
-          {fullNameLabel}
+          <FullNameLabel fullName={fullName} active={active} />
           {crown}
           {!active && (
             <Kb.Meta
@@ -127,109 +97,34 @@ export const TeamMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    const menuHeader = (
-      <MenuHeader
-        username={username}
-        fullName={fullName}
-        label={
-          <Kb.Box2 direction="horizontal">
-            <Kb.Text type="BodySmall">{crown}</Kb.Text>
-            <Kb.Text type="BodySmall">{!!active && Teams.typeToLabel[roleType]}</Kb.Text>
-          </Kb.Box2>
-        }
-      />
-    )
-
-    const menuItems: Kb.MenuItems = [
-      'Divider',
-      ...(youCanManageMembers
-        ? ([
-            {
-              icon: 'iconfont-chat',
-              onClick: () =>
-                nav.safeNavigateAppend({
-                  name: 'teamAddToChannels',
-                  params: {teamID, usernames: [username]},
-                }),
-              title: 'Add to channels...',
-            },
-            ...(youCanEditRole
-              ? [{icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'}]
-              : []),
-          ] as Kb.MenuItems)
-        : []),
-      {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
-      {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
-      ...(youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-      ...(youCanManageMembers
-        ? ([
-            {
-              danger: true,
-              icon: 'iconfont-remove',
-              onClick: onRemoveFromTeam,
-              title: 'Remove from team',
-            },
-          ] as Kb.MenuItems)
-        : []),
-      ...(!isYou
-        ? ([
-            {
-              danger: true,
-              icon: 'iconfont-block',
-              onClick: onBlock,
-              title: 'Block',
-            },
-          ] as Kb.MenuItems)
-        : []),
-    ]
-    return (
-      <Kb.FloatingMenu
-        header={menuHeader}
-        attachTo={attachTo}
-        closeOnSelect={true}
-        items={menuItems}
-        onHidden={hidePopup}
-        visible={true}
-      />
-    )
-  }
-  const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
-
   const actions = (
-    <Kb.Box2
-      direction="horizontal"
-      gap="tiny"
-      style={props.youCanManageMembers ? selectionStyles.mobileMarginsHack : undefined}
-    >
-      {popup}
-      <Kb.IconButton
-        icon="iconfont-chat"
-        iconColor={Kb.Styles.globalColors.black_50}
-        mode="Secondary"
-        onClick={props.onChat}
-        small={true}
-        tooltip="Open chat"
-      />
-      <Kb.IconButton
-        icon="iconfont-ellipsis"
-        iconColor={Kb.Styles.globalColors.black_50}
-        mode="Secondary"
-        onClick={showPopup}
-        ref={popupAnchor}
-        small={true}
-        tooltip="More actions"
-      />
-    </Kb.Box2>
+    <MemberActions
+      blockIcon="iconfont-block"
+      canEditRole={youCanEditRole}
+      crown={crown}
+      fullName={fullName}
+      isYou={isYou}
+      onAddToChannels={() =>
+        nav.safeNavigateAppend({
+          name: 'teamAddToChannels',
+          params: {teamID, usernames: [username]},
+        })
+      }
+      onBlock={onBlock}
+      onChat={onChat}
+      onEditRole={props.onClick}
+      onOpenProfile={onOpenProfile}
+      removeItem={
+        youCanManageMembers ? {onClick: onRemoveFromTeam, title: 'Remove from team'} : undefined
+      }
+      roleLabel={!!active && Teams.typeToLabel[roleType]}
+      username={username}
+      youCanManageMembers={youCanManageMembers}
+    />
   )
 
   const massActionsProps = props.youCanManageMembers
-    ? {
-        containerStyleOverride: styles.listItemMargin,
-        icon: checkCircle,
-        iconStyleOverride: selectionStyles.checkCircle,
-      }
+    ? getMassActionsProps(props.username, selected, onSelect)
     : {}
 
   return (
@@ -241,22 +136,12 @@ export const TeamMemberRow = (props: Props) => {
       type="Large"
       body={body}
       firstItem={props.firstItem}
-      style={selected ? styles.selected : styles.unselected}
-      innerStyle={selected ? styles.selected : styles.unselected}
+      style={selected ? selectionStyles.selected : selectionStyles.unselected}
+      innerStyle={selected ? selectionStyles.selected : selectionStyles.unselected}
       onClick={onClick}
     />
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  fullNameLabel: {flexShrink: 1},
-  listItemMargin: {marginLeft: 0},
-  nameContainer: {
-    marginLeft: Kb.Styles.globalMargins.small,
-  },
-  selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
-  unselected: {backgroundColor: Kb.Styles.globalColors.white},
-}))
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -289,16 +174,7 @@ const MemberRow = (ownProps: OwnProps) => {
     role => role !== roleType && disabledReasons[role] === undefined
   )
   const youCanEditRole = youCanManageMembers && status === 'active' && !needsPUK && hasEditableRoleChoice
-  const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
-  const onBlock = () => {
-    if (username) {
-      setUserBlocks(
-        [{blocks: [{setChatBlock: true, setFollowBlock: true, username}]}, C.waitingKeyUsersSetUserBlocks],
-        () => {},
-        () => {}
-      )
-    }
-  }
+  const onBlock = useOnBlockUser(username)
   const onChat = () => {
     if (username) {
       C.Router2.previewConversation({participants: [username], reason: 'teamMember'})
