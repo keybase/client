@@ -48,7 +48,7 @@ const contactRow = (_: number, props: ContactRowProps) => {
   )
 }
 
-export type InviteByContactProps = {
+type InviteByContactProps = {
   selectedRole: T.Teams.TeamRoleType
   onRoleChange: (newRole: T.Teams.TeamRoleType) => void
   teamName: string

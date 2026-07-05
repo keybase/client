@@ -6,10 +6,9 @@ import * as T from '@/constants/types'
 import LastOwnerDialog from './last-owner'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
-export type Props = {
+type Props = {
   error: string
   onBack: () => void
-  onDeleteTeam: () => void
   onLeave: (perm: boolean) => void
   name: string
   open?: boolean
@@ -149,7 +148,6 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
     <ReallyLeaveTeam
       error={error?.message ?? ''}
       onBack={onBack}
-      onDeleteTeam={onDeleteTeam}
       onLeave={onLeave}
       open={open}
       name={teamname}

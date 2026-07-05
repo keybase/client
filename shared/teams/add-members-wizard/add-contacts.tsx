@@ -5,15 +5,7 @@ import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {addMembersToWizard, type AddMembersWizard} from './state'
-
-type Contact = {
-  id: string
-  name: string
-  pictureUri?: string
-  type: 'phone' | 'email'
-  value: string
-  valueFormatted?: string
-}
+import type {Contact} from '../common/use-contacts.native'
 
 type ContactsListProps = {
   onSelect: (contact: Contact, checked: boolean) => void

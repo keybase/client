@@ -3,8 +3,7 @@ export {default as Activity, useActivityLevels, ActivityLevelsProvider, ModalTit
 export {ChannelsWidget} from './channels-widget'
 export {useAllChannelMetas, useChannelParticipants} from './channel-hooks'
 export {default as SelectionPopup} from './selection-popup'
-export {default as EnableContactsPopup} from './enable-contacts'
-export {default as useTeamLinkPopup} from './use-team-link-popup'
+export {useTeamLinkPopup} from './use-team-link-popup'
 
 export const usePhoneNumberList = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])

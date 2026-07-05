@@ -11,7 +11,6 @@ const openSubteamInfo = () => { void openUrl('https://book.keybase.io/docs/teams
 
 type Props = {
   baseTeam?: string // if set we're creating a subteam of this teamname
-  onCancel: () => void
   onSubmit: (fullName: string, joinSubteam: boolean) => void
 }
 
@@ -101,16 +100,11 @@ const Container = (ownProps: OwnProps) => {
     loading,
     teamMeta: {teamname: baseTeam},
   } = useLoadedTeam(subteamOf)
-  const navigateUp = C.Router2.navigateUp
-  const onCancel = () => {
-    navigateUp()
-  }
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
     void createNewTeamAndNavigate(teamname, joinSubteam)
   }
   const props = {
     baseTeam,
-    onCancel,
     onSubmit,
   }
   if (subteamOf !== T.Teams.noTeamID && (loading || !baseTeam)) {
