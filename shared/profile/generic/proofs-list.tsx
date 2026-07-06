@@ -38,7 +38,6 @@ const makeProveGenericParams = (): ProveGenericParams => ({
 })
 
 const toProveGenericParams = (p: T.RPCGen.ProveParameters): ProveGenericParams => ({
-  ...makeProveGenericParams(),
   buttonLabel: p.buttonLabel,
   logoBlack: p.logoBlack || [],
   logoFull: p.logoFull || [],
@@ -275,10 +274,6 @@ const runProofFlow = async (p: {
               platform: service,
               username: currentUsernameRef.current,
             })
-            cancelCurrentRef.current = () => {
-              canceled = true
-              response.error(inputCancelError)
-            }
           } else if (genericService && parameters) {
             currentGenericParamsRef.current = toProveGenericParams(parameters)
             setStepSafe({

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -20,7 +19,6 @@ const Teams = (ownProps: OwnProps) => {
   const isYou = useCurrentUserState(s => s.username === ownProps.username)
   const {teams} = useTeamsList()
   const teamNameToID = useTeamsListNameToIDMap()
-  const teamNames = React.useMemo(() => new Set(teams.map(team => team.teamname)), [teams])
   const youAreInTeams = teams.length > 0
   const teamShowcase = ownProps.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
@@ -49,7 +47,7 @@ const Teams = (ownProps: OwnProps) => {
           {...t}
           onJoinTeam={onJoinTeam}
           onViewTeam={() => onViewTeam(t.name)}
-          inTeam={teamNames.has(t.name)}
+          inTeam={teamNameToID.has(t.name)}
         />
       ))}
     </TeamSection>

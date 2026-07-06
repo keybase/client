@@ -14,8 +14,8 @@ const Friend = (ownProps: OwnProps) => {
   const {username, width} = ownProps
   const fullname = useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
   const onClick = () => navToProfile(username)
-  const following = useFollowerState(s => (username ? s.following.has(username) : false))
-  const followsYou = useFollowerState(s => (username ? s.followers.has(username) : false))
+  const following = useFollowerState(s => s.following.has(username))
+  const followsYou = useFollowerState(s => s.followers.has(username))
   const followIconType =
     followsYou && following
       ? ('icon-mutual-follow-21' as const)
