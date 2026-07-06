@@ -131,7 +131,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           alignSelf="flex-start"
           style={styles.flexShrink}
         >
-          <Kb.Text type="Header" lineClamp={3} style={styles.header} selectable={true}>
+          <Kb.Text type="Header" lineClamp={3} style={styles.flexShrink} selectable={true}>
             {meta.teamname}
           </Kb.Text>
           {!!onRename && <Kb.Icon type="iconfont-edit" onClick={onRename} />}
@@ -181,7 +181,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
           </Kb.Text>
         )}
-        <Activity level={activityLevel} style={styles.activity} />
+        <Activity level={activityLevel} style={styles.alignSelfFlexStart} />
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
           {meta.isMember && <Kb.Button label="Chat" onClick={onChat} small={true} />}
           {yourOperations.editTeamDescription && (
@@ -219,7 +219,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   if (Kb.Styles.isPhone) {
     return (
-      <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
+      <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backgroundWhite}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             {avatar}
@@ -252,7 +252,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         alignItems="flex-start"
         alignSelf="flex-start"
         flex={1}
-        style={styles.flexShrinkGrow}
+        style={styles.flexShrink}
       >
         {topDescriptors}
         {bottomDescriptorsAndButtons}
@@ -300,7 +300,6 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      activity: {alignSelf: 'flex-start'},
       addInviteAndLinkBox: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.border(Kb.Styles.globalColors.black_10),
@@ -358,7 +357,6 @@ const styles = Kb.Styles.styleSheetCreate(
         textDecorationLine: 'underline',
       },
       alignSelfFlexStart: {alignSelf: 'flex-start'},
-      backButton: {backgroundColor: Kb.Styles.globalColors.white},
       backgroundWhite: {backgroundColor: Kb.Styles.globalColors.white},
       clickable: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
@@ -375,10 +373,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       flexShrink: {flexShrink: 1},
-      flexShrinkGrow: {
-        flexShrink: 1,
-      },
-      header: {flexShrink: 1},
       illustration: {borderRadius: Kb.Styles.borderRadius},
       marginBottomRightTiny: {
         marginBottom: Kb.Styles.globalMargins.tiny,

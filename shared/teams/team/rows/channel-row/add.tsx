@@ -12,7 +12,7 @@ const CreateChannelRow = (props: {teamID: T.Teams.TeamID}) => {
   const waitingForGet = C.Waiting.useAnyWaiting(waitingKey)
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true} gap="small" justifyContent="flex-start">
+    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true} gap="small">
       <Kb.Button small={true} mode="Secondary" label="Create channel" onClick={onCreateChannel} />
       {waitingForGet && <Kb.ProgressIndicator type="Small" />}
     </Kb.Box2>

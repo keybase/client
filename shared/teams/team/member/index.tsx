@@ -368,7 +368,7 @@ const NodeInRow = (props: NodeInRowProps) => {
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-            <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.expandIcon])}>
+            <Kb.Box2 direction="horizontal" style={styles.expandIcon}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
             <Kb.Box2

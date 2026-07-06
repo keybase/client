@@ -49,7 +49,7 @@ const ExternalTeam = (props: Props) => {
 
   if (teamInfo) {
     return (
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <ExternalTeamInfo info={teamInfo} />
       </Kb.Box2>
     )

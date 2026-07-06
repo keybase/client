@@ -171,7 +171,7 @@ const RetentionPicker = (p: Props) => {
         alignItems="center"
         style={styles.retentionDropdown}
       >
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label}>
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />

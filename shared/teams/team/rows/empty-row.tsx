@@ -118,7 +118,6 @@ const EmptyRow = (props: Props) => {
       alignItems="center"
       style={styles.container}
       fullWidth={true}
-      justifyContent="flex-start"
     >
       <Kb.ImageIcon type={icon[props.type]} style={styles.iconHeight} />
       <Kb.Text type="BodySmall" center={true} style={styles.text}>

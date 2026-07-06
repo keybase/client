@@ -64,13 +64,12 @@ const InviteByEmail = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2
-        direction="vertical"
-        alignItems="center"
-        fullWidth={true}
-        style={styles.outerBox}
-      >
+    <Kb.Box2
+      direction="vertical"
+      alignItems="center"
+      fullWidth={true}
+      style={styles.outerBox}
+    >
         <Kb.Text style={styles.header} type="Header">
           Invite by email
         </Kb.Text>
@@ -110,10 +109,9 @@ const InviteByEmail = (ownProps: OwnProps) => {
             </Kb.Text>
           )}
         </Kb.Box2>
-        <Kb.ButtonBar>
-          <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
-        </Kb.ButtonBar>
-      </Kb.Box2>
+      <Kb.ButtonBar>
+        <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
+      </Kb.ButtonBar>
     </Kb.Box2>
   )
 }
