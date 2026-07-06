@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import LastOwnerDialog from './last-owner'
+import AvatarBadge from '../avatar-badge'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type Props = {
@@ -17,14 +18,7 @@ type Props = {
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Box2 direction="horizontal" centerChildren={true} overflow="hidden" style={styles.iconContainer}>
-      <Kb.Icon
-        type="iconfont-leave"
-        color={Kb.Styles.globalColors.white}
-        fontSize={14}
-        style={styles.headerIcon}
-      />
-    </Kb.Box2>
+    <AvatarBadge icon="iconfont-leave" style={styles.iconContainer} iconStyle={styles.headerIcon} />
   </>
 )
 
@@ -89,12 +83,6 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 1,
       },
       iconContainer: {
-        ...Kb.Styles.size(24),
-        backgroundColor: Kb.Styles.globalColors.red,
-        borderColor: Kb.Styles.globalColors.white,
-        borderRadius: 12,
-        borderStyle: 'solid',
-        borderWidth: 3,
         marginRight: -46,
         marginTop: -20,
         zIndex: 1,

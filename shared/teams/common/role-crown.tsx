@@ -4,7 +4,7 @@ import type {SizeType} from '@/common-adapters/icon'
 
 // crown icon shown next to admins (grey) and owners (yellow); renders nothing for other roles
 const RoleCrown = (props: {
-  role: T.Teams.TeamRoleType
+  role: T.Teams.MaybeTeamRoleType
   fontSize?: number
   sizeType?: SizeType
   style?: Kb.Styles.StylesCrossPlatform

@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
+import RoleCrown from '../common/role-crown'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -141,15 +142,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       </Kb.Box2>
       {
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-start">
-          {(meta.role === 'admin' || meta.role === 'owner') && (
-            <Kb.Icon
-              color={
-                meta.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35
-              }
-              fontSize={Kb.Styles.isPhone ? 16 : 10}
-              type={meta.role === 'owner' ? 'iconfont-crown-owner' : 'iconfont-crown-admin'}
-            />
-          )}
+          <RoleCrown role={meta.role} fontSize={Kb.Styles.isPhone ? 16 : 10} />
           {!Kb.Styles.isPhone && (
             <>
               <Kb.Text type="BodySmall">
