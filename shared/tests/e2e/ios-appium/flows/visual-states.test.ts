@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, navigateToTeams, goBack} from '../helpers/navigate'
-import {el, els, anyExist, waitForTestID, byText, tab, enterText} from '../helpers/elements'
+import {escapeToTabs, navigateToMore, navigateToTeams, goBack, scrollDownToText} from '../helpers/navigate'
+import {el, els, anyExist, waitForTestID, byText, tab, enterText, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 // Visual-coverage states. The harness screenshots AFTER each test and
@@ -143,6 +143,26 @@ describe('visual states', () => {
     await expect(el(T.CHAT_INFO_PANEL)).toExist()
   })
 
+  it('delete history warning', async () => {
+    await escapeToTabs()
+    if (!(await openFirstConversation())) return
+    const more = el('More')
+    if (!(await more.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return
+    await more.click()
+    await byText('Info').waitForExist({timeout: 4000})
+    await byText('Info').click()
+    await waitForTestID(T.CHAT_INFO_PANEL, 8000)
+    // the tab label text isn't tappable on iOS — the tab carries its own testID
+    if (!(await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).waitForExist({timeout: 4000}).then(() => true).catch(() => false))) {
+      return // no settings tab without admin rights
+    }
+    await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).click()
+    await scrollDownToText('Clear entire conversation')
+    await byText('Clear entire conversation').click()
+    await byText('Yes, clear for everyone').waitForExist({timeout: 5000})
+    await expect(byText('Yes, clear for everyone')).toExist()
+  })
+
   it('mention suggestions popup', async () => {
     await escapeToTabs()
     if (!(await openFirstConversation())) return
@@ -208,6 +228,83 @@ describe('visual states', () => {
     await more.click()
     await browser.pause(800)
     await expect(el(T.FILES_BROWSER)).toExist()
+  })
+
+  it('account switcher', async () => {
+    await escapeToTabs()
+    await tab('People').click()
+    await waitForTestID(T.PEOPLE_FEED, 5000)
+    await el(T.PEOPLE_HEADER_AVATAR).click()
+    await byText('Log in as another user').waitForExist({timeout: 8000})
+    await expect(byText('Log in as another user')).toExist()
+  })
+
+  it('emoji picker', async () => {
+    await escapeToTabs()
+    if (!(await openFirstConversation())) return
+    await waitForTestID(T.CHAT_EMOJI_BUTTON, 5000)
+    await el(T.CHAT_EMOJI_BUTTON).click()
+    await waitForTestID(T.CHAT_EMOJI_PICKER, 8000)
+    await expect(el(T.CHAT_EMOJI_PICKER)).toExist()
+  })
+
+  it('command suggestions popup', async () => {
+    await escapeToTabs()
+    if (!(await openFirstConversation())) return
+    await waitForTestID(T.CHAT_INPUT, 5000)
+    await enterText(T.CHAT_INPUT, '/')
+    await waitForTestID(T.CHAT_SUGGESTION_LIST, 8000)
+    await expect(el(T.CHAT_SUGGESTION_LIST)).toExist()
+  })
+
+  it('command suggestions cleanup', async () => {
+    await escapeToTabs()
+    if (!(await openFirstConversation())) return
+    await waitForTestID(T.CHAT_INPUT, 5000)
+    await el(T.CHAT_INPUT).clearValue()
+    await browser.pause(500)
+    await expect(el(T.CHAT_MESSAGE_LIST)).toExist()
+  })
+
+  it('inbox scrolled to bottom', async () => {
+    await escapeToTabs()
+    await tab('Teams').click()
+    await tab('Chat').click()
+    await waitForTestID(T.CHAT_INBOX_LIST, 5000)
+    await swipeContentUp(5)
+    await expect(el(T.CHAT_INBOX_LIST)).toExist()
+  })
+
+  it('team members scrolled', async () => {
+    await escapeToTabs()
+    await navigateToTeams()
+    await waitForTestID(T.TEAMS_ROW, 8000)
+    await els(T.TEAMS_ROW)[0]!.click()
+    await tapForTestID(T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST, {timeout: 10000})
+    await swipeContentUp(4)
+    await expect(el(T.TEAMS_MEMBER_LIST)).toExist()
+  })
+
+  it('settings notifications scrolled', async () => {
+    await escapeToTabs()
+    await navigateToMore()
+    await scrollDownToText('Notifications')
+    await byText('Notifications').click()
+    await waitForTestID(T.SETTINGS_NOTIFICATIONS, 5000)
+    await swipeContentUp(4)
+    await expect(el(T.SETTINGS_NOTIFICATIONS)).toExist()
+  })
+
+  it('edit team info modal', async () => {
+    await escapeToTabs()
+    await navigateToTeams()
+    await waitForTestID(T.TEAMS_ROW, 8000)
+    await els(T.TEAMS_ROW)[0]!.click()
+    const edit = byText('Edit')
+    if (!(await edit.waitForExist({timeout: 5000}).then(() => true).catch(() => false))) return
+    await edit.click()
+    await byText('Save').waitForExist({timeout: 5000})
+    await expect(byText('Save')).toExist()
   })
 
   it('team add members wizard', async () => {

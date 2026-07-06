@@ -23,6 +23,8 @@ export const CHAT_ATTACHMENT_IMAGE      = 'chat-attachment-image'
 export const CHAT_ATTACHMENT_FULLSCREEN = 'chat-attachment-fullscreen'
 export const CHAT_BOT_ROW               = 'chat-bot-row'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
+export const CHAT_EMOJI_BUTTON          = 'chat-emoji-button'
+export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
@@ -69,6 +71,7 @@ export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
 
 // People
 export const PEOPLE_FEED = 'people-feed'
+export const PEOPLE_HEADER_AVATAR = 'people-header-avatar'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'

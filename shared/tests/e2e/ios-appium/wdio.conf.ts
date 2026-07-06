@@ -61,8 +61,16 @@ export const config: WebdriverIO.Config = {
   // The app restores its last screen on launch and screens leak between specs,
   // so reset to the root tab bar before each test by climbing out of any stack.
   // (Cheaper + more reliable than a cold relaunch, which also restores state.)
-  beforeTest: async () => {
+  beforeTest: async test => {
+    // eslint-disable-next-line no-console
+    console.log(`▶ ${new Date().toLocaleTimeString()} starting: ${test.title}`)
     await escapeToTabs()
+  },
+  // Tests deliberately END on the state they capture (often an open modal), so
+  // park the app back at the tab root when the session closes — otherwise the
+  // last test's modal is what you find on the simulator after a run.
+  after: async () => {
+    await escapeToTabs().catch(() => {})
   },
   // Emit a screenshot + status json per test so generate-appium-report.mts can
   // build the unified HTML report (one card per test).

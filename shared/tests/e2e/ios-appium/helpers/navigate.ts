@@ -96,8 +96,10 @@ async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
 // swipe. Try each, re-checking for the tab bar, until we're home.
 // One predicate for any modal/sheet dismiss control (Done/Close/Cancel), any
 // element type — cheaper than three separate searches.
+// visible == 1: hidden nav-stack screens and keyboard toolbars can carry their
+// own Done/Close/Cancel — clicking one is a silent no-op that loops forever.
 const DISMISS_PRED =
-  '-ios predicate string:label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel"'
+  '-ios predicate string:(label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel") AND visible == 1'
 
 // Wait for a tapped control to take effect — return as soon as the tab bar
 // appears OR the control we clicked is gone (the screen transitioned). No fixed
@@ -129,14 +131,27 @@ export async function escapeToTabs(): Promise<void> {
   }
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
+    // Past the first few hops something is off — narrate each step so a stall
+    // is diagnosable from the console instead of looking like a silent hang.
+    const debug = i >= 3
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
     // also have a back button, and tapping back on it is a no-op that loops —
     // so its Done/Close/Cancel must win.
     if ((await browser.$$(DISMISS_PRED).length) > 0) {
       const ctrl = browser.$$(DISMISS_PRED)[0]!
+      // eslint-disable-next-line no-console
+      if (debug) console.log(`  escapeToTabs[${i}]: dismissing "${await ctrl.getAttribute('label').catch(() => '?')}"`)
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
-      continue
+      // Only loop when the click actually changed something; a dismiss control
+      // whose click no-ops (still present, still not at tabs) must fall through
+      // to the back/pop path or we'd click it forever.
+      if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
+      // eslint-disable-next-line no-console
+      if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
+    } else if (debug) {
+      // eslint-disable-next-line no-console
+      console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
     }
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
       const ctrl = els(T.COMMON_BACK_BUTTON)[0]!
