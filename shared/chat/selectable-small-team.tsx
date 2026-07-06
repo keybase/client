@@ -4,7 +4,7 @@ import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team'
 import {Avatars, TeamAvatar} from './avatars'
 import {useInboxRowSmall} from '@/chat/inbox/rows-state'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -42,8 +42,8 @@ const SelectableSmallTeam = (props: Props) => {
   const {backgroundColor, showBold, usernameColor} = rowStyles
   const isLocked = row.isLocked || row.participantNeedToRekey || row.youNeedToRekey
   const teamname = row.teamDisplayName
-  const snippet = row.snippet
-  const snippetDecoration = row.snippetDecoration
+  const snippet = row.typingSnippet || row.snippet
+  const snippetDecoration = row.typingSnippet ? T.RPCChat.SnippetDecoration.none : row.snippetDecoration
 
   // order participants by hit, if it's set
   const filter = props.filter ?? ''
