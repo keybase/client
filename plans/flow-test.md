@@ -4,11 +4,17 @@
 
 Each bucket is a logical group for one or more PRs. Items are ordered easiest-first within each bucket. Validate after each bucket before moving on.
 
-**Pairing rule:** Do Electron and iOS for each bucket together before moving to the next bucket.
+**Pairing rule:** Buckets 1–15: do Electron and iOS together. Buckets 16+ (visual-coverage expansion): Electron first; iOS gets a follow-up pass once the desktop suite is stable.
 
 **Branch scripts:** `yarn test:e2e:desktop:branch` and `yarn test:e2e:ios:branch` run only the new flows being developed. When a flow is verified working on both platforms, remove it from the branch scripts. When adding a new bucket's test files, add them to both scripts.
 
-Out of scope = screens that create, delete, add, invite, or remove something. Everything else is in scope even if it requires app state to reach.
+**Goal:** 100% visual coverage of the app. Every test's final screenshot is a visual-regression baseline (playwright `screenshot: 'on'` + `yarn test:e2e:desktop:save-baseline`), and the dark-mode project doubles every shot for free. So coverage = one test per distinct visual state: routes, modals, popups, scroll positions, filled inputs.
+
+**Mutations are now IN SCOPE** when the flow is reproducible:
+- **Create → cleanup in the same test.** A test that creates something must delete it before it ends (git repo, channel, email address, paper key). Use fixed `e2e-vis-*` names and delete any leftover at test start so a crashed run self-heals.
+- **Open → cancel is always fine.** Any modal/wizard can be opened and screenshotted as long as the test cancels before the final submit when the mutation isn't cleanly reversible.
+- **Never touch:** account deletion/reset, revoking a real device (paper keys created by the test are OK), logging out, changing the password, verifying a phone number, creating/revoking real proofs, leaving or deleting real teams, blocking real users. See the Forbidden list at the bottom.
+- Avoid visual nondeterminism: created objects use fixed names, message sends go to a dedicated e2e conversation (accept that its history grows — screenshot the input/modal states, not the message list).
 
 **testID rule:** Never wrap existing component content in a new `Kb.Box2` (or any container) just to attach a `testID`. Instead, add the `testID` prop directly to an element that already exists in the component — an input, a scroll view, a pre-existing wrapper, etc.
 
@@ -50,17 +56,17 @@ Open an existing conversation. No sending.
 
 From an open conversation, open each of these. Dismiss/cancel without submitting.
 
-- [ ] Info panel (the ⓘ / conversation info button)
-- [ ] Message popup / context menu (long-press or right-click a message)
-- [ ] Emoji picker (tap emoji button in input area)
-- [ ] Search bots modal (tap bot icon)
-- [ ] Bot info / install preview — open a bot, view, don't install (`chatInstallBot`)
+- [x] Info panel (the ⓘ / conversation info button) (Electron ✓ chat-modals.test.ts)
+- [x] Message popup / context menu (long-press or right-click a message) (Electron ✓)
+- [x] Emoji picker (tap emoji button in input area) (Electron ✓)
+- [x] Search bots modal (info panel → Bots → Add a bot) (Electron ✓)
+- [x] Bot info / install preview — open a bot, view, don't install (`chatInstallBot`) (Electron ✓)
 - [ ] Bot team picker (`chatInstallBotPick`) — view destinations, cancel
-- [ ] Forward message pick (`chatForwardMsgPick`) — view destinations, cancel
-- [ ] Attachment fullscreen (`chatAttachmentFullscreen`) — requires a message with an image
-- [ ] PDF viewer (`chatPDF`) — requires a message with a PDF
+- [x] Forward message pick (`chatForwardMsgPick`) — view destinations, cancel (Electron ✓)
+- [x] Attachment fullscreen (`chatAttachmentFullscreen`) — requires a message with an image (Electron ✓)
+- [ ] PDF viewer (`chatPDF`) — requires a seeded PDF message
 - [ ] Location map popup (`chatUnfurlMapPopup`) — requires a message with a location unfurl
-- [ ] External link warning (`chatConfirmNavigateExternal`) — click an http link in a message
+- [ ] External link warning (`chatConfirmNavigateExternal`) — click an http link in a message (seed via send)
 
 ---
 
@@ -73,7 +79,7 @@ Navigate from the Settings nav. Confirm renders, go back.
 - [x] Display (Electron ✓, iOS written)
 - [x] Notifications (Electron ✓, iOS written)
 - [x] Feedback (Electron ✓, iOS written)
-- [ ] Password (modal: `settingsTabs.password`) — needs Account settings navigation; no testID yet
+- [x] Password (modal: `settingsTabs.password`) (Electron ✓ misc-modals.test.ts)
 
 ---
 
@@ -85,7 +91,7 @@ Same pattern. Devices and Git reuse their main tab screen components.
 - [x] Files (Electron ✓, iOS written via settings-subpages.yaml)
 - [x] Git — reuses git root component (Electron ✓, iOS ✓ via git.yaml)
 - [x] Devices — reuses devices root component (Electron ✓, iOS ✓ via devices-view.yaml)
-- [ ] Wallet
+- [x] Wallet (Electron ✓ misc-modals.test.ts)
 - [x] Archive / Backup (Electron ✓, iOS written via settings-subpages.yaml)
 - [ ] Contacts (mobile only, `settingsTabs.contactsTab`)
 - [x] Screen Protector (mobile only, `settingsTabs.screenprotector`) (Electron ✓, iOS: Android only)
@@ -96,7 +102,7 @@ Same pattern. Devices and Git reuse their main tab screen components.
 
 Settings-adjacent modals that are viewable without mutating.
 
-- [ ] Archive modal (`archiveModal`) — view the backup flow, cancel
+- [x] Archive modal (`archiveModal`) — view the backup flow, cancel (Electron ✓ misc-modals.test.ts)
 - [ ] Contacts joined (`settingsContactsJoined`) — notification screen (hard to trigger naturally; may need investigation)
 - [ ] Push prompt (`settingsPushPrompt`) — mobile only, view and skip
 - [ ] Proxy settings (`proxySettingsModal`) — from the login screen or settings; view and cancel
@@ -140,7 +146,7 @@ From within a team.
 ## Bucket 11 — Profile page and modals
 
 - [x] Profile page renders (Electron ✓ via People tab header; iOS written — conditional on username in feed)
-- [ ] Proofs list modal (`profileProofsList`) — open from a profile, view, close
+- [x] Proofs list modal (`profileProofsList`) — open from a profile, view, close (Electron ✓ profile-modals.test.ts)
 - [ ] Showcase team offer (`profileShowcaseTeamOffer`) — open from own profile, view, cancel
 
 ---
@@ -168,96 +174,143 @@ From the Files root, tap each TLF type then back.
 
 ## Bucket 14 — People and account switcher
 
-- [ ] Account switcher modal (People tab → avatar in header)
+- [x] Account switcher (desktop: "Hi user!" menu in tab bar; mobile: People tab → avatar) (Electron ✓ misc-modals.test.ts)
 
 ---
 
 ## Bucket 15 — Wallets
 
-- [ ] Wallet root screen renders (`walletsRoot`, accessible via Settings → Wallet)
+- [x] Wallet root screen renders (`walletsRoot`, accessible via Settings → Wallet) (Electron ✓ misc-modals.test.ts)
 - [ ] Remove account modal (`removeAccount`) — open, cancel (view-only intent, cancel before submitting)
 
 ---
 
-## Out of scope — mutations
+## Bucket 16 — Scroll depth and list states (desktop)
 
-These create, delete, add, invite, or remove something. All explicitly listed so nothing is accidentally omitted from evaluation.
+Same screen, more of it. Scroll to a deterministic position (bottom, or a fixed element) before the final screenshot.
 
-**Chat:**
-- `chatNewChat` — create new chat / new conversation
-- `chatCreateChannel` — create a channel
-- `chatAddToChannel` — add members to a channel
-- `chatBlockingModal` — block / report / filter a user
-- `chatConfirmRemoveBot` — remove a bot from a conversation
-- `chatDeleteHistoryWarning` — delete conversation history
-- `chatShowNewTeamDialog` — create a new team from a conversation
-- `chatSendToChat` — send a file to a chat (FS share flow)
-- `chatAttachmentGetTitles` — set titles before sending attachments
-- `chatLocationPreview` — send your location (input side, not unfurl view)
+- [x] Chat inbox scrolled to bottom of conversation list (Electron ✓ scroll-states.test.ts)
+- [x] Chat conversation scrolled up into older messages (Electron ✓)
+- [x] Settings → Advanced scrolled to bottom (dev/proxy section) (Electron ✓)
+- [ ] Settings → Notifications scrolled to bottom
+- [x] Team members tab scrolled to bottom of member list (Electron ✓)
+- [x] Files TLF list scrolled to bottom (Electron ✓)
+- [x] Profile page scrolled to proofs/folders section (Electron ✓)
+- [x] People feed scrolled to bottom (Electron ✓)
 
-**Crypto:**
-- `cryptoTeamBuilder` — pick recipients for encrypt (team builder modal)
+---
 
-**Devices:**
-- `deviceRevoke` — revoke a device
-- `deviceAdd` — add a new device
-- `devicePaperKey` — paper key display (only shown during provisioning)
-- All provision sub-routes — device provisioning flow
+## Bucket 17 — Chat compose states
 
-**Files:**
-- `confirmDelete` — delete a file/folder
+Distinct visual states of the input area in the dedicated e2e conversation. No sends needed except where noted.
 
-**Git:**
-- `gitNewRepo` — create a new git repo
-- `gitDeleteRepo` — delete a git repo
+- [x] `@`-mention suggestion popup (type `@` + partial name) (Electron ✓ chat-compose.test.ts)
+- [ ] Channel-mention popup (type `#` in a team conversation)
+- [x] Emoji picker open from input bar (Electron ✓ chat-modals.test.ts)
+- [x] `/`-command suggestion popup (type `/`) (Electron ✓ chat-compose.test.ts)
+- [ ] Giphy preview row (type `/giphy something`)
+- [x] Multiline input grown (type several lines) (Electron ✓ chat-compose.test.ts)
+- [ ] Edit-message mode (up-arrow on own last message; escape to cancel)
+- [ ] Reply-quote state (reply to a message, input shows quote; escape to cancel)
 
-**Login/signup/recover:**
-- All `login`, `signup*`, `recoverPassword*`, `reset*` routes — not relevant while logged in
-- `recoverPasswordSetPassword` — set a new password
-- `proxySettingsModal` moved to Bucket 7 (view + cancel is fine)
+---
 
-**People:**
-- `peopleTeamBuilder` — the team builder launched from People (adds people to something)
+## Bucket 18 — Chat message interactions
 
-**Profile:**
-- `profileEdit` — edit your own profile bio/location
-- `profileEditAvatar` — change avatar
-- `profileImport` — import a PGP key
-- `profilePgp` — start a PGP proof flow
-- `profileProveWebsiteChoice` — start a website proof
-- `profileRevoke` — revoke a proof
-- `profileAddToTeam` — add the viewed user to one of your teams
+From the dedicated e2e conversation.
 
-**Settings:**
-- `settingsAddEmail` — add an email address
-- `settingsAddPhone` — add a phone number
-- `settingsDeleteAddress` — delete an email or phone
-- `settingsVerifyPhone` — verify a phone number
-- `settingsLogOutTab` — log out
-- `checkPassphraseBeforeDeleteAccount` — step in account deletion
-- `deleteConfirm` — delete account
+- [ ] Message context menu (right-click a text message)
+- [ ] Reaction picker (hover toolbar → react)
+- [ ] Reacji tooltip (hover an existing reaction)
+- [ ] Info panel members tab / attachments tab / settings tab (three shots)
+- [ ] Attachment fullscreen (`chatAttachmentFullscreen`) — needs a seeded image message
+- [ ] PDF viewer (`chatPDF`) — needs a seeded PDF message
+- [ ] External link warning (`chatConfirmNavigateExternal`) — click an http link in a seeded message
 
-**Teams:**
-- `teamNewTeamDialog` — create a team
-- `teamsTeamBuilder` — add members to a team
-- `teamAddEmoji` — add a custom emoji
-- `teamAddEmojiAlias` — add an emoji alias
-- `teamAddToChannels` — add a user to channels
-- `teamAddToTeamFromWhere` / `teamAddToTeamConfirm` / `teamAddToTeamContacts` / `teamAddToTeamEmail` / `teamAddToTeamPhone` — add members wizard
-- `teamCreateChannels` — create channels
-- `teamDeleteChannel` — delete a channel
-- `teamDeleteTeam` — delete a team
-- `teamInviteByContact` — invite via contacts
-- `teamInviteByEmail` — invite via email
-- `teamJoinTeamDialog` — join a team (adds self)
-- `teamReallyLeaveTeam` — leave a team
-- `teamReallyRemoveChannelMember` — remove someone from a channel
-- `teamReallyRemoveMember` — kick a member
-- `teamRename` — rename a subteam
-- `teamWizard1TeamPurpose` / `teamWizard2TeamInfo` / `teamWizard4TeamSize` / `teamWizard5Channels` / `teamWizard6Subteams` / `teamWizardSubteamMembers` — new team creation wizard
+---
 
-**Wallets:**
-- `reallyRemoveAccount` — confirm removal of a wallet account
+## Bucket 19 — Chat mutations (reproducible)
 
-**Incoming share:**
-- `incomingShareNew` — triggered by the OS share sheet; not reachable from within the app
+- [x] `chatNewChat` — open new-conversation team builder, screenshot, cancel (Electron ✓ chat-mutations.test.ts)
+- [ ] Send message to dedicated e2e conversation (self-conversation or e2e team channel); history grows — screenshot the send state, not the list
+- [ ] `chatCreateChannel` — create `e2e-vis-chan` in the e2e team → screenshot → delete channel (`teamDeleteChannel` gets covered as the cleanup step)
+- [x] `chatDeleteHistoryWarning` — open, screenshot, cancel (Electron ✓ chat-mutations.test.ts)
+- [x] `chatBlockingModal` — open block dialog, screenshot, cancel (never submit) (Electron ✓ chat-mutations.test.ts)
+- [ ] `chatAttachmentGetTitles` — attach a file, screenshot the titles modal, cancel
+- [ ] `chatShowNewTeamDialog` — open, screenshot, cancel
+
+---
+
+## Bucket 20 — Git mutations (reproducible)
+
+- [x] `gitNewRepo` — new-repo modal screenshot → create `e2e-vis-repo` → repo row renders → `gitDeleteRepo` delete-confirm screenshot → confirm delete (full cycle, self-cleaning) (Electron ✓ git-mutations.test.ts)
+- [ ] `gitSelectChannel` — open from a team repo, screenshot, cancel
+
+---
+
+## Bucket 21 — Team modals and wizards (open → cancel)
+
+All in the dedicated e2e team unless noted.
+
+- [ ] `teamNewTeamDialog` + `teamWizard1TeamPurpose` / `2TeamInfo` / `4TeamSize` / `5Channels` / `6Subteams` — walk the wizard screenshotting each step, cancel before create (team names are permanent — never actually create)
+- [ ] `teamsTeamBuilder` — add-members builder, screenshot, cancel
+- [ ] `teamAddToTeamFromWhere` wizard first screens, cancel
+- [ ] `teamInviteByEmail` — screenshot, cancel
+- [ ] `teamEditChannel` — open, screenshot, cancel
+- [ ] `teamEditTeamDescription` / `teamEditTeamInfo` — open, screenshot, cancel
+- [ ] `teamAddEmoji` / `teamAddEmojiAlias` — open, screenshot, cancel
+- [ ] `retentionWarning` — change retention dropdown to trigger, screenshot, cancel
+- [ ] `openTeamWarning` — toggle open-team setting to trigger, screenshot, cancel
+
+---
+
+## Bucket 22 — Settings mutations (reproducible)
+
+- [ ] `settingsAddEmail` — add `e2e-vis@example.com` → row renders → `settingsDeleteAddress` delete it (full cycle; delete leftover at start)
+- [ ] `settingsAddPhone` — open, screenshot, cancel (never verify)
+- [ ] Password modal (`settingsTabs.password`) — open, screenshot, cancel (never save)
+- [ ] `settingsLogOutTab` — view the screen only, navigate away (never log out)
+- [ ] `archiveModal` — open, screenshot, cancel
+
+---
+
+## Bucket 23 — Devices mutations (careful)
+
+- [ ] `deviceAdd` — add-device chooser + provisioning instructions screens, screenshot, cancel
+- [ ] `devicePaperKey` — create a paper key → screenshot display screen → `deviceRevoke` revoke that same paper key (screenshot revoke page) → confirm (full cycle; only ever revoke the key the test created)
+
+---
+
+## Bucket 24 — Profile and people mutations (open → cancel)
+
+- [x] `profileEdit` — open own-profile edit, screenshot, cancel (Electron ✓ profile-modals.test.ts)
+- [ ] `profileEditAvatar` — open, screenshot, cancel
+- [ ] `peopleTeamBuilder` — open from People, screenshot, cancel
+- [ ] `profileAddToTeam` — open on another user's profile, screenshot, cancel
+- [ ] `cryptoTeamBuilder` — encrypt recipients picker, screenshot, cancel
+- [ ] Proof flows (`profilePgp`, `profileProveWebsiteChoice`) — first screen only, screenshot, cancel (never post a proof)
+
+---
+
+## Bucket 25 — Route audit for 100%
+
+- [ ] Enumerate every route in `shared/router-v2` route maps and cross-check against this file; add missing screens as new checklist items
+- [ ] Verify the dark project produces a shot for every light shot in the report
+
+---
+
+## Forbidden — never automate
+
+Not reproducible or account-damaging. Do not add tests for these.
+
+- Account deletion/reset: `deleteConfirm`, `checkPassphraseBeforeDeleteAccount`, `reset*`
+- Logging out (`settingsLogOutTab` submit), changing the password (`recoverPasswordSetPassword`, password modal save)
+- Revoking any device the test didn't create (paper keys created in Bucket 23 are the only exception)
+- Actually creating a team (names are permanent), leaving/deleting real teams, renaming subteams (`teamRename`), kicking members (`teamReallyRemoveMember`, `teamReallyRemoveChannelMember`)
+- Blocking/reporting real users (submit side of `chatBlockingModal`), removing bots (`chatConfirmRemoveBot`)
+- Verifying a phone number (`settingsVerifyPhone`), posting/revoking real proofs (`profileRevoke`, proof-flow submits), importing PGP keys (`profileImport`)
+- Joining teams (`teamJoinTeamDialog`), wallet account removal submit (`reallyRemoveAccount`)
+- Files `confirmDelete` on real user data (test-created files OK)
+- Login/signup/provision routes — unreachable while logged in
+- `incomingShareNew` — OS share sheet only, unreachable
+- `chatSendToChat`, `chatLocationPreview` — FS-share / location send paths, mobile/OS-dependent

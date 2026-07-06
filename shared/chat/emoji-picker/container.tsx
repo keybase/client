@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as T from '@/constants/types'
 import type {LayoutEvent} from '@/common-adapters/box'
 import {useChatTeam} from '@/chat/conversation/team-hooks'
@@ -119,6 +120,7 @@ const WrapperMobile = (props: Props) => {
       fullWidth={true}
       fullHeight={true}
       style={styles.contain}
+      testID={TestIDs.CHAT_EMOJI_PICKER}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.ClickableBox direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
@@ -197,6 +199,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
         props.small && styles.containerDesktopSmall,
       ])}
       gap="tiny"
+      testID={TestIDs.CHAT_EMOJI_PICKER}
     >
       <Kb.Box2
         direction="horizontal"

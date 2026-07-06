@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useMessagePopup} from '../messages/message-popup'
 import logger from '@/logger'
 
@@ -100,7 +101,7 @@ const DesktopFullscreen = (p: Props) => {
   } as StyleOverride
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={TestIDs.CHAT_ATTACHMENT_FULLSCREEN}>
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
         <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
           {title}

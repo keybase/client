@@ -17,6 +17,12 @@ export const CHAT_INBOX_ROW    = 'chat-inbox-row'
 export const CHAT_MESSAGE_LIST = 'chat-message-list'
 export const CHAT_INPUT        = 'chat-input'
 export const CHAT_SEND_BUTTON  = 'chat-send-button'
+export const CHAT_INFO_PANEL   = 'chat-info-panel'
+export const CHAT_EMOJI_PICKER = 'chat-emoji-picker'
+export const CHAT_ATTACHMENT_IMAGE      = 'chat-attachment-image'
+export const CHAT_ATTACHMENT_FULLSCREEN = 'chat-attachment-fullscreen'
+export const CHAT_BOT_ROW               = 'chat-bot-row'
+export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 
 // Files
 export const FILES_BROWSER = 'files-browser'

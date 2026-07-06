@@ -1,5 +1,6 @@
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -157,7 +158,13 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     )
   } else {
     return (
-      <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true} fullHeight={true}>
+      <Kb.Box2
+        direction="vertical"
+        style={containerStyle}
+        fullWidth={true}
+        fullHeight={true}
+        testID={TestIDs.CHAT_INFO_PANEL}
+      >
         {sectionList}
       </Kb.Box2>
     )
