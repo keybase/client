@@ -170,9 +170,13 @@ export const byText = (text: string): ChainablePromiseElement => {
 // suffix ("Chat, 1 new notification"), hence the anchored regex. Not the label
 // TextViews: each item keeps BOTH a small and large label view (selected vs not)
 // and UiSelector also matches the currently-invisible twin, whose bogus bounds
-// make the click silently no-op. Not bare text either: screen content can carry
-// the same text (the settings root's "Files"/"Chat" rows) and would eat the tap.
+// make the click silently no-op. The className pins it to the NATIVE item
+// (FrameLayout): RN touchables surface as android.view.ViewGroup, and the
+// settings root's "Files"/"Chat" rows carry the same content-desc — without the
+// class filter the row wins the match and the tap opens the settings subpage.
 export const tab = (label: string): ChainablePromiseElement =>
   browser.isAndroid
-    ? browser.$(`android=new UiSelector().descriptionMatches("^${label}(,.*)?$")`)
+    ? browser.$(
+        `android=new UiSelector().className("android.widget.FrameLayout").descriptionMatches("^${label}(,.*)?$")`
+      )
     : browser.$(`~${label}`)
