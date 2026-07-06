@@ -187,9 +187,9 @@ const customGetStateFromPath = (
       break
     }
 
-    // keybase://incoming-share
+    // keybase://incoming-share[/{conversationIDKey}]
     case 'incoming-share':
-      return makeModalState('incomingShareNew')
+      return makeModalState('incomingShareNew', parts[1] ? {selectedConversationIDKey: parts[1]} : undefined)
 
     // keybase://settingsPushPrompt
     case 'settingsPushPrompt':
