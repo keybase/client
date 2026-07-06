@@ -38,7 +38,8 @@ export const config: WebdriverIO.Config = {
   port,
   path: '/',
   // One aggregate file → one session for the whole suite (see all.test.ts).
-  specs: ['./all.test.ts'],
+  // KB_IOS_SPEC overrides for fast single-flow iteration during development.
+  specs: [process.env['KB_IOS_SPEC'] ?? './all.test.ts'],
   maxInstances: 1,
   capabilities: [iosCapabilities(udid, {wdaLocalPort, prebuilt: !isOld, derivedDataPath})],
   logLevel: 'warn',

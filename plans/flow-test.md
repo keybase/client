@@ -79,7 +79,7 @@ Navigate from the Settings nav. Confirm renders, go back.
 - [x] Display (Electron ✓, iOS written)
 - [x] Notifications (Electron ✓, iOS written)
 - [x] Feedback (Electron ✓, iOS written)
-- [x] Password (modal: `settingsTabs.password`) (Electron ✓ misc-modals.test.ts)
+- [x] Password (modal: `settingsTabs.password`) (Electron ✓ misc-modals.test.ts, iOS ✓ visual-states.test.ts)
 
 ---
 
@@ -91,7 +91,7 @@ Same pattern. Devices and Git reuse their main tab screen components.
 - [x] Files (Electron ✓, iOS written via settings-subpages.yaml)
 - [x] Git — reuses git root component (Electron ✓, iOS ✓ via git.yaml)
 - [x] Devices — reuses devices root component (Electron ✓, iOS ✓ via devices-view.yaml)
-- [x] Wallet (Electron ✓ misc-modals.test.ts)
+- [x] Wallet (Electron ✓ misc-modals.test.ts, iOS ✓ visual-states.test.ts)
 - [x] Archive / Backup (Electron ✓, iOS written via settings-subpages.yaml)
 - [ ] Contacts (mobile only, `settingsTabs.contactsTab`)
 - [x] Screen Protector (mobile only, `settingsTabs.screenprotector`) (Electron ✓, iOS: Android only)
@@ -102,7 +102,7 @@ Same pattern. Devices and Git reuse their main tab screen components.
 
 Settings-adjacent modals that are viewable without mutating.
 
-- [x] Archive modal (`archiveModal`) — view the backup flow, cancel (Electron ✓ misc-modals.test.ts)
+- [x] Archive modal (`archiveModal`) — view the backup flow, cancel (Electron ✓ misc-modals.test.ts, iOS ✓ visual-states.test.ts)
 - [ ] Contacts joined (`settingsContactsJoined`) — notification screen (hard to trigger naturally; may need investigation)
 - [ ] Push prompt (`settingsPushPrompt`) — mobile only, view and skip
 - [ ] Proxy settings (`proxySettingsModal`) — from the login screen or settings; view and cancel
@@ -190,7 +190,7 @@ From the Files root, tap each TLF type then back.
 Same screen, more of it. Scroll to a deterministic position (bottom, or a fixed element) before the final screenshot.
 
 - [x] Chat inbox scrolled to bottom of conversation list (Electron ✓ scroll-states.test.ts)
-- [x] Chat conversation scrolled up into older messages (Electron ✓)
+- [x] Chat conversation scrolled up into older messages (Electron ✓, iOS ✓ visual-states.test.ts)
 - [x] Settings → Advanced scrolled to bottom (dev/proxy section) (Electron ✓)
 - [x] Settings → Notifications scrolled to bottom (Electron ✓ scroll-states.test.ts)
 - [x] Team members tab scrolled to bottom of member list (Electron ✓)
@@ -231,7 +231,7 @@ From the dedicated e2e conversation.
 
 ## Bucket 19 — Chat mutations (reproducible)
 
-- [x] `chatNewChat` — open new-conversation team builder, screenshot, cancel (Electron ✓ chat-mutations.test.ts)
+- [x] `chatNewChat` — open new-conversation team builder, screenshot, cancel (Electron ✓ chat-mutations.test.ts, iOS ✓ visual-states.test.ts)
 - [ ] Send message to dedicated e2e conversation (self-conversation or e2e team channel); history grows — screenshot the send state, not the list
 - [x] `chatCreateChannel` — create `e2e-vis-chan` → screenshot → delete channel (`teamDeleteChannel` covered as cleanup) (Electron ✓ team-wizard-channel.test.ts)
 - [x] `chatDeleteHistoryWarning` — open, screenshot, cancel (Electron ✓ chat-mutations.test.ts)
@@ -243,7 +243,7 @@ From the dedicated e2e conversation.
 
 ## Bucket 20 — Git mutations (reproducible)
 
-- [x] `gitNewRepo` — new-repo modal screenshot → create `e2e-vis-repo` → repo row renders → `gitDeleteRepo` delete-confirm screenshot → confirm delete (full cycle, self-cleaning) (Electron ✓ git-mutations.test.ts)
+- [x] `gitNewRepo` — new-repo modal screenshot → create `e2e-vis-repo` → repo row renders → `gitDeleteRepo` delete-confirm screenshot → confirm delete (full cycle, self-cleaning) (Electron ✓ git-mutations.test.ts; iOS ✓ menu-open state only — FloatingMenu bottom-sheet items are a11y-invisible, can't tap through)
 - [ ] `gitSelectChannel` — open from a team repo, screenshot, cancel
 
 ---
@@ -254,7 +254,7 @@ All in the dedicated e2e team unless noted.
 
 - [x] `teamNewTeamDialog` wizard purpose + name screens, cancel before create (Electron ✓ team-wizard-channel.test.ts); deeper wizard steps (size/channels/subteams) still todo
 - [ ] `teamsTeamBuilder` — add-members builder, screenshot, cancel
-- [x] `teamAddToTeamFromWhere` wizard first screens + email screen, cancel (Electron ✓ teams-modals.test.ts)
+- [x] `teamAddToTeamFromWhere` wizard first screens + email screen, cancel (Electron ✓ teams-modals.test.ts, iOS ✓ visual-states.test.ts)
 - [ ] `teamInviteByEmail` — screenshot, cancel
 - [x] `teamEditChannel` — open, screenshot, cancel (Electron ✓ teams-modals.test.ts)
 - [x] `teamEditTeamDescription` / `teamEditTeamInfo` — open, screenshot, cancel (Electron ✓ teams-modals.test.ts)
@@ -276,7 +276,7 @@ All in the dedicated e2e team unless noted.
 
 ## Bucket 23 — Devices mutations (careful)
 
-- [x] `deviceAdd` — add-device chooser, screenshot, cancel (Electron ✓ device-wallet-modals.test.ts); provisioning instruction sub-screens still todo
+- [x] `deviceAdd` — add-device chooser, screenshot, cancel (Electron ✓ device-wallet-modals.test.ts, iOS ✓ visual-states.test.ts); provisioning instruction sub-screens still todo
 - [ ] `devicePaperKey` — create a paper key → screenshot display screen → `deviceRevoke` revoke that same paper key (screenshot revoke page) → confirm (full cycle; only ever revoke the key the test created)
 
 ---
