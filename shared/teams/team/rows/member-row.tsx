@@ -41,7 +41,7 @@ export type Props = {
 // duplicated here because the desktop & mobile layouts differ significantly. If
 // you're changing one remember to change the other.
 
-export const TeamMemberRow = (props: Props) => {
+const TeamMemberRow = (props: Props) => {
   const {roleType, fullName, username, youCanEditRole, youCanManageMembers} = props
   const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'

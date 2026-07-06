@@ -151,10 +151,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       error: {color: Kb.Styles.globalColors.redDark},
       inputContainer: {
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderRadius: Kb.Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
+        ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
         padding: Kb.Styles.globalMargins.tiny,
       },
       inputContainerError: {borderColor: Kb.Styles.globalColors.red},

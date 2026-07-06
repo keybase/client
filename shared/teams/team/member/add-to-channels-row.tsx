@@ -205,9 +205,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
         <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}
         </Kb.Text>
-        <Kb.Box2 direction="vertical">
-          <Common.Activity level={activityLevel} iconOnly={true} />
-        </Kb.Box2>
+        <Common.Activity level={activityLevel} iconOnly={true} />
         <ParticipantMeta numParticipants={participants.length} />
         {selfMode ? (
           <SelfChannelActions
@@ -247,7 +245,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
       action={
         selfMode ? (
           <Kb.Box2 direction="horizontal" gap="tiny" fullHeight={true}>
-            <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
+            <Kb.Box2 direction="horizontal" alignSelf="stretch">
               <Common.Activity level={activityLevel} />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal">

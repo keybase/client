@@ -41,7 +41,7 @@ type RolePickerProps = {
 
 export type Props = {} & RowProps & RolePickerProps
 
-export const TeamRequestRow = (props: Props) => {
+const TeamRequestRow = (props: Props) => {
   const {ctime, fullName, username, onAccept, onOpenProfile, reset} = props
 
   const approveWord = reset ? 'Readmit' : 'Approve'
