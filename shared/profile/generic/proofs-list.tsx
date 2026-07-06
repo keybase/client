@@ -1366,7 +1366,7 @@ const styles = Kb.Styles.styleSheetCreate(
       containerBox: {
         height: rowHeight,
       },
-      description: {...Kb.Styles.textEllipsis},
+      description: Kb.Styles.platformStyles({isElectron: {...Kb.Styles.textEllipsis}}),
       error: {
         backgroundColor: Kb.Styles.globalColors.red,
         borderRadius: Kb.Styles.borderRadius,
@@ -1439,10 +1439,10 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
-      title: {
-        ...Kb.Styles.textEllipsis,
-        color: Kb.Styles.globalColors.black,
-      },
+      title: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black},
+        isElectron: {...Kb.Styles.textEllipsis},
+      }),
       topContainer: {flex: 1},
       unreachableBox: {
         backgroundColor: Kb.Styles.globalColors.black_05,
