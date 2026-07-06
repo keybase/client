@@ -12,6 +12,7 @@ export type Props = {
   membersCount: number
   name: string
   position?: Kb.Styles.Position
+  onChat?: () => void
   onHidden: () => void
   onJoinTeam: (teamname: string) => void
   onViewTeam: () => void
@@ -54,6 +55,14 @@ const TeamInfo = (props: Props) => {
           <Kb.Text type="Body" selectable={true} style={styles.description}>
             {props.description}
           </Kb.Text>
+          {props.onChat && (
+            <Kb.WaitingButton
+              waitingKey={C.waitingKeyTracker}
+              label="Chat"
+              onClick={() => { props.onChat?.(); props.onHidden() }}
+              mode="Secondary"
+            />
+          )}
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTracker}
             label="View team"

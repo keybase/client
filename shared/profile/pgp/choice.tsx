@@ -15,7 +15,7 @@ type GeneratePgpArgs = {
   pgpFullName: string
 }
 
-const validatePgpInfo = (info: GeneratePgpArgs) => {
+export const validatePgpInfo = (info: GeneratePgpArgs) => {
   const email1Error = Validators.isValidEmail(info.pgpEmail1)
   const email2Error = info.pgpEmail2 ? Validators.isValidEmail(info.pgpEmail2) : ''
   const email3Error = info.pgpEmail3 ? Validators.isValidEmail(info.pgpEmail3) : ''
