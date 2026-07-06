@@ -142,9 +142,6 @@ export const newModalRoutes = defineRouteMap({
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
     getOptions: {modalSize: 'wide', title: 'Prove your...'},
   }),
-  profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
-    getOptions: {...Kb.doneModalOptions(''), modalSize: 'wide'},
-  }),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
     getOptions: {modalSize: 'wide'},
   }),
