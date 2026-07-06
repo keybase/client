@@ -350,7 +350,7 @@ const runProofFlow = async (p: {
   }
 }
 
-const Container = ({platform, reason = 'profile'}: Props) => {
+const ProofsList = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const {proofSuggestions} = useProofSuggestions()
   const {loadProfile} = useTrackerProfile(currentUsername)
@@ -664,7 +664,7 @@ const ProviderPicker = ({
 }) => {
   const [filter, setFilter] = React.useState('')
   const itemHeight = {
-    height: isMobile ? 56 : 48,
+    height: rowHeight,
     type: 'fixed',
   } as const
   const filterRegexp = makeInsertMatcher(filter)
@@ -1264,16 +1264,11 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
         type="BodyPrimaryLink"
         center={true}
         {...rootUrlProps}
-        style={{color: Kb.Styles.globalColors.blueDark, marginTop: Kb.Styles.globalMargins.tiny}}
+        style={Kb.Styles.collapseStyles([styles.webLink, styles.webLinkFirst])}
       >
         {root}
       </Kb.Text>
-      <Kb.Text
-        type="BodyPrimaryLink"
-        center={true}
-        {...wellKnownUrlProps}
-        style={{color: Kb.Styles.globalColors.blueDark}}
-      >
+      <Kb.Text type="BodyPrimaryLink" center={true} {...wellKnownUrlProps} style={styles.webLink}>
         {wellKnown}
       </Kb.Text>
     </Kb.Box2>
@@ -1334,11 +1329,7 @@ const normalizeForFiltering = (input: string) => input.toLowerCase().replace(/[.
 const filterProvider = (p: Provider, filter: RegExp) =>
   normalizeForFiltering(p.name).search(filter) !== -1 || normalizeForFiltering(p.desc).search(filter) !== -1
 
-const rightColumnStyle = Kb.Styles.platformStyles({
-  isElectron: {
-    ...Kb.Styles.textEllipsis,
-  },
-})
+const rowHeight = isMobile ? 56 : 48
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -1373,9 +1364,9 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerBox: {
-        height: isMobile ? 56 : 48,
+        height: rowHeight,
       },
-      description: {...rightColumnStyle},
+      description: {...Kb.Styles.textEllipsis},
       error: {
         backgroundColor: Kb.Styles.globalColors.red,
         borderRadius: Kb.Styles.borderRadius,
@@ -1449,7 +1440,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: Kb.Styles.globalMargins.tiny,
       },
       title: {
-        ...rightColumnStyle,
+        ...Kb.Styles.textEllipsis,
         color: Kb.Styles.globalColors.black,
       },
       topContainer: {flex: 1},
@@ -1466,7 +1457,9 @@ const styles = Kb.Styles.styleSheetCreate(
       warningText: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.medium, 0),
       },
+      webLink: {color: Kb.Styles.globalColors.blueDark},
+      webLinkFirst: {marginTop: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 
-export default Container
+export default ProofsList
