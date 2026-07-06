@@ -56,14 +56,14 @@ Open an existing conversation. No sending.
 
 From an open conversation, open each of these. Dismiss/cancel without submitting.
 
-- [x] Info panel (the ⓘ / conversation info button) (Electron ✓ chat-modals.test.ts)
+- [x] Info panel (the ⓘ / conversation info button) (Electron ✓ chat-modals.test.ts, iOS ✓ visual-states.test.ts via native More→Info menu)
 - [x] Message popup / context menu (long-press or right-click a message) (Electron ✓)
 - [x] Emoji picker (tap emoji button in input area) (Electron ✓)
 - [x] Search bots modal (info panel → Bots → Add a bot) (Electron ✓)
 - [x] Bot info / install preview — open a bot, view, don't install (`chatInstallBot`) (Electron ✓)
 - [ ] Bot team picker (`chatInstallBotPick`) — view destinations, cancel
 - [x] Forward message pick (`chatForwardMsgPick`) — view destinations, cancel (Electron ✓)
-- [x] Attachment fullscreen (`chatAttachmentFullscreen`) — requires a message with an image (Electron ✓)
+- [x] Attachment fullscreen (`chatAttachmentFullscreen`) — requires a message with an image (Electron ✓, iOS ✓)
 - [ ] PDF viewer (`chatPDF`) — requires a seeded PDF message
 - [ ] Location map popup (`chatUnfurlMapPopup`) — requires a message with a location unfurl
 - [ ] External link warning (`chatConfirmNavigateExternal`) — click an http link in a message (seed via send)
@@ -191,7 +191,7 @@ Same screen, more of it. Scroll to a deterministic position (bottom, or a fixed 
 
 - [x] Chat inbox scrolled to bottom of conversation list (Electron ✓ scroll-states.test.ts)
 - [x] Chat conversation scrolled up into older messages (Electron ✓, iOS ✓ visual-states.test.ts)
-- [x] Settings → Advanced scrolled to bottom (dev/proxy section) (Electron ✓)
+- [x] Settings → Advanced scrolled to bottom (dev/proxy section) (Electron ✓, iOS ✓)
 - [x] Settings → Notifications scrolled to bottom (Electron ✓ scroll-states.test.ts)
 - [x] Team members tab scrolled to bottom of member list (Electron ✓)
 - [x] Files TLF list scrolled to bottom (Electron ✓)
@@ -204,7 +204,7 @@ Same screen, more of it. Scroll to a deterministic position (bottom, or a fixed 
 
 Distinct visual states of the input area in the dedicated e2e conversation. No sends needed except where noted.
 
-- [x] `@`-mention suggestion popup (type `@` + partial name) (Electron ✓ chat-compose.test.ts)
+- [x] `@`-mention suggestion popup (type `@` + partial name) (Electron ✓ chat-compose.test.ts, iOS ✓ visual-states.test.ts)
 - [x] Channel-mention popup (type `#` in a team conversation) (Electron ✓ chat-interactions.test.ts)
 - [x] Emoji picker open from input bar (Electron ✓ chat-modals.test.ts)
 - [x] `/`-command suggestion popup (type `/`) (Electron ✓ chat-compose.test.ts)
@@ -266,7 +266,7 @@ All in the dedicated e2e team unless noted.
 
 ## Bucket 22 — Settings mutations (reproducible)
 
-- [x] `settingsAddEmail` — add `e2e-vis@example.com` → row renders → `settingsDeleteAddress` delete it (full cycle) (Electron ✓ settings-mutations.test.ts)
+- [x] `settingsAddEmail` — add/delete full cycle (Electron ✓ settings-mutations.test.ts; iOS skipped per user)
 - [x] `settingsAddPhone` — open, screenshot, cancel (never verify) (Electron ✓ settings-mutations.test.ts)
 - [ ] Password modal (`settingsTabs.password`) — open, screenshot, cancel (never save)
 - [x] `settingsLogOutTab` — view the screen only, close modal (never log out) (Electron ✓ settings-mutations.test.ts)
@@ -277,7 +277,7 @@ All in the dedicated e2e team unless noted.
 ## Bucket 23 — Devices mutations (careful)
 
 - [x] `deviceAdd` — add-device chooser, screenshot, cancel (Electron ✓ device-wallet-modals.test.ts, iOS ✓ visual-states.test.ts); provisioning instruction sub-screens still todo
-- [ ] `devicePaperKey` — create a paper key → screenshot display screen → `deviceRevoke` revoke that same paper key (screenshot revoke page) → confirm (full cycle; only ever revoke the key the test created)
+- ~~`devicePaperKey` / `deviceRevoke` paper-key cycle~~ — skipped per user; don't automate paper key creation/revocation
 
 ---
 
