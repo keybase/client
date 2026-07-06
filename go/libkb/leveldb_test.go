@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 type teardowner struct {
@@ -108,6 +109,35 @@ func TestLevelDb(t *testing.T) {
 				_, found, err := db.Get(key)
 				require.NoError(t, err)
 				require.False(t, found)
+			},
+		},
+		{
+			name: "flush", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				// Flush before the lazy open is a no-op.
+				require.NoError(t, db.Flush())
+
+				key, err := testLevelDbPut(db)
+				require.NoError(t, err)
+
+				require.NoError(t, db.Flush())
+				require.NoError(t, db.Flush())
+
+				// Data survives the flush and the sentinel is cleaned up.
+				val, found, err := db.Get(key)
+				require.NoError(t, err)
+				require.True(t, found)
+				require.Equal(t, []byte{1, 2, 3, 4}, val)
+				_, err = db.db.Get(levelDbFlushSentinelKey, nil)
+				require.Equal(t, leveldb.ErrNotFound, err)
+
+				// Writes still work after a flush.
+				_, err = testLevelDbPut(db)
+				require.NoError(t, err)
 			},
 		},
 		{
