@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useLoadedTeam} from './team/use-loaded-team'
+import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -41,14 +42,7 @@ const EditTeamDescription = (props: Props) => {
     )
   }
 
-  const wasWaitingRef = React.useRef(waiting)
-  React.useEffect(() => {
-    if (!waiting && wasWaitingRef.current && !error) C.Router2.navigateUp()
-  }, [waiting, wasWaitingRef, error])
-
-  React.useEffect(() => {
-    wasWaitingRef.current = waiting
-  }, [waiting])
+  useNavUpWhenDone(waiting, error)
 
   return (
     <>

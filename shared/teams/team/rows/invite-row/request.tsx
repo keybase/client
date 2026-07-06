@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import {useIsBigTeam} from '@/teams/common/use-loaded-team-channels'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import {getRolePickerDisabledReasons} from '@/teams/role-picker-utils'
@@ -11,6 +11,7 @@ import MenuHeader from '../menu-header'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {ignoreRequest, removeMember} from '@/teams/actions'
+import {useAddToTeam} from '@/teams/common/use-add-to-team'
 
 const positionFallbacks = ['left center', 'top left'] as const
 
@@ -239,40 +240,18 @@ const RequestRow = (ownProps: OwnProps) => {
     }
   }
 
-  const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
-  const navigateAppend = C.Router2.navigateAppend
+  const addToTeam = useAddToTeam()
   const letIn = (
     sendNotification: boolean,
     role: T.Teams.TeamRoleType,
     onError: (message: string) => void
   ) => {
-    addToTeam(
-      [
-        {
-          sendChatNotification: sendNotification,
-          teamID,
-          users: [{assertion: username, role: T.RPCGen.TeamRole[role]}],
-        },
-        [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddMember(teamID, username)],
-      ],
-      res => {
-        const usernames = res.notAdded?.map(user => user.username) ?? []
-        if (usernames.length) {
-          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddSomeFailed', usernames}})
-        }
-      },
-      err => {
-        if (err.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-          const users = (err.fields as Array<{key?: string; value?: string} | undefined> | undefined)
-            ?.filter(field => field?.key === 'usernames')
-            .map(field => field?.value)
-          const usernames = users?.[0]?.split(',') ?? []
-          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddAllFailed', usernames}})
-          return
-        }
-        onError(err.message)
-      }
-    )
+    addToTeam({
+      onError,
+      sendChatNotification: sendNotification,
+      teamID,
+      users: [{assertion: username, role}],
+    })
   }
   const onChat = () => {
     if (username) {

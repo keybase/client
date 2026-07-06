@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {renameTeam} from './actions'
+import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 
 type OwnProps = {teamname: string}
 
@@ -25,14 +26,7 @@ const Container = (ownProps: OwnProps) => {
   const originalName = teamNameParts.pop() || ''
   const prefix = teamNameParts.join('.')
 
-  const lastWaitingRef = React.useRef(waiting)
-  React.useEffect(() => {
-    if (!waiting && lastWaitingRef.current && !propError) {
-      // finished, go back
-      navigateUp()
-    }
-    lastWaitingRef.current = waiting
-  }, [waiting, propError, navigateUp])
+  useNavUpWhenDone(waiting, propError)
 
   const newFullName = [prefix, newName].join('.')
   const disabled = newName.length < 2

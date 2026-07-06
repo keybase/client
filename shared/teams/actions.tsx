@@ -16,6 +16,34 @@ import {useConfigState} from '@/stores/config'
 const newRequestsGregorPrefix = 'team.request_access:'
 const newRequestsGregorKey = (teamID: T.Teams.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
+// navigate to the contactRestricted screen for members skipped by an add-members RPC
+export const handleNotAdded = (notAdded?: ReadonlyArray<{username: string}>) => {
+  const usernames = notAdded?.map(elem => elem.username) ?? []
+  if (usernames.length) {
+    navigateAppend({
+      name: 'contactRestricted',
+      params: {source: 'teamAddSomeFailed', usernames},
+    })
+  }
+}
+
+// returns true (after navigating) when an add-members RPC failed because of the
+// targets' contact settings; other errors are the caller's to handle
+export const handleContactSettingsBlock = (error: RPCError) => {
+  if (error.code !== T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+    return false
+  }
+  const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+    ?.filter(elem => elem?.key === 'usernames')
+    .map(elem => elem?.value)
+  const usernames = users?.[0]?.split(',') ?? []
+  navigateAppend({
+    name: 'contactRestricted',
+    params: {source: 'teamAddAllFailed', usernames},
+  })
+  return true
+}
+
 export const addToTeam = (
   teamID: T.Teams.TeamID,
   users: Array<{assertion: string; role: T.Teams.TeamRoleType}>,
@@ -37,29 +65,14 @@ export const addToTeam = (
           S.waitingKeyTeamsAddMember(teamID, ...users.map(({assertion}) => assertion)),
         ]
       )
-      if (res.notAdded && res.notAdded.length > 0) {
-        const usernames = res.notAdded.map(elem => elem.username)
-        navigateAppend({
-          name: 'contactRestricted',
-          params: {source: 'teamAddSomeFailed', usernames},
-        })
-      }
+      handleNotAdded(res.notAdded ?? undefined)
     } catch (error) {
       if (!(error instanceof RPCError)) {
         return
       }
-      if (error.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-        const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
-          ?.filter(elem => elem?.key === 'usernames')
-          .map(elem => elem?.value)
-        const usernames = users?.[0]?.split(',') ?? []
-        navigateAppend({
-          name: 'contactRestricted',
-          params: {source: 'teamAddAllFailed', usernames},
-        })
+      if (handleContactSettingsBlock(error)) {
         return
       }
-
       logger.error(`addToTeam failed for ${teamID}: ${error.desc}`)
     }
   }
