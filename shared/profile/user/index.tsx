@@ -26,42 +26,6 @@ type Item =
 
 type Section = Kb.SectionType<Item>
 
-export type Props = {
-  assertions?: ReadonlyArray<T.Tracker.Assertion>
-  bio?: string
-  backgroundColorType: BackgroundColorType
-  blocked: boolean
-  followThem: boolean
-  followers?: ReadonlyArray<string>
-  followersCount?: number
-  following?: ReadonlyArray<string>
-  followingCount?: number
-  followsYou: boolean
-  guiID: string
-  hidFromFollowers: boolean
-  location?: string
-  notAUser: boolean
-  onAddIdentity?: () => void
-  onBack: () => void
-  onReload: () => void
-  onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
-  reason: string
-  sbsAvatarUrl?: string
-  sbsDescription?: string
-  state: T.Tracker.DetailsState
-  stellarHidden: boolean
-  sharedTeams?: ReadonlyArray<T.RPCChat.SharedTeam>
-  suggestions?: ReadonlyArray<T.Tracker.Assertion>
-  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
-  userIsYou: boolean
-  username: string
-  name: string
-  service: string
-  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
-  fullName?: string
-  title: string
-}
-
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   switch (type) {
     case 'red':
@@ -285,7 +249,6 @@ export type BioTeamProofsProps = {
   bio?: string
   blocked: boolean
   followThem: boolean
-  followers?: ReadonlyArray<string>
   followersCount?: number
   followsYou: boolean
   followingCount?: number
@@ -489,7 +452,6 @@ const User = (props: {username: string}) => {
               bio={p.bio}
               blocked={p.blocked}
               followThem={p.followThem}
-              followers={p.followers}
               followersCount={p.followersCount}
               followsYou={p.followsYou}
               followingCount={p.followingCount}
@@ -540,7 +502,6 @@ const User = (props: {username: string}) => {
       p.bio,
       p.blocked,
       p.followThem,
-      p.followers,
       p.followersCount,
       p.followsYou,
       p.followingCount,
@@ -662,12 +623,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   followTabSelected: {
     borderBottomColor: Kb.Styles.globalColors.blue,
   },
-  followTabText: Kb.Styles.platformStyles({
-    common: {color: Kb.Styles.globalColors.black_50},
-  }),
-  followTabTextSelected: Kb.Styles.platformStyles({
-    common: {color: Kb.Styles.globalColors.black},
-  }),
+  followTabText: {color: Kb.Styles.globalColors.black_50},
+  followTabTextSelected: {color: Kb.Styles.globalColors.black},
   friendRow: Kb.Styles.platformStyles({
     common: {
       maxWidth: '100%',
