@@ -200,9 +200,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         {topDescriptors}
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {bottomDescriptorsAndButtons}
-          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.tipBox}>
-            {tip}
-          </Kb.Box2>
+          {tip}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
