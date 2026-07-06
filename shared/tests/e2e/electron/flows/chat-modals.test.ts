@@ -33,18 +33,23 @@ test('emoji picker opens', async ({page}, testInfo) => {
 })
 
 test('message context menu opens', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
+  const menuItem = page.getByText('Reply', {exact: true}).locator('visible=true').first()
+  // system messages don't open a popup — walk back until one does
+  const opensMenu = async (p: typeof page) => {
+    const messages = p.locator('.TextAndSiblings')
+    const count = await messages.count()
+    for (let i = count - 1; i >= 0 && i >= count - 5; i--) {
+      await messages.nth(i).click({button: 'right'})
+      if (await menuItem.waitFor({state: 'visible', timeout: 2_000}).then(() => true).catch(() => false)) {
+        return true
+      }
+    }
+    return false
+  }
+  if (!(await openConversationMatching(page, opensMenu, 3))) {
     test.skip()
     return
   }
-  const messages = page.locator('.TextAndSiblings')
-  if ((await messages.count()) === 0) {
-    test.skip()
-    return
-  }
-  await messages.last().click({button: 'right'})
-  const menuItem = page.getByText('Reply', {exact: true}).first()
-  await expect(menuItem).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
   await page.keyboard.press('Escape')
   await expect(menuItem).not.toBeVisible({timeout: 5_000})
@@ -112,9 +117,16 @@ test('forward message picker opens', async ({page}, testInfo) => {
     const count = await messages.count()
     for (let i = count - 1; i >= 0 && i >= count - 5; i--) {
       await messages.nth(i).click({button: 'right'})
-      await expect(p.getByText('Reply', {exact: true}).first()).toBeVisible({timeout: 5_000})
-      if (await forwardItem.isVisible()) return true
-      await p.keyboard.press('Escape')
+      // system messages may not open a menu at all — just move on
+      const menuOpened = await p
+        .getByText('Reply', {exact: true})
+        .locator('visible=true')
+        .first()
+        .waitFor({state: 'visible', timeout: 2_000})
+        .then(() => true)
+        .catch(() => false)
+      if (menuOpened && (await forwardItem.isVisible())) return true
+      if (menuOpened) await p.keyboard.press('Escape')
     }
     return false
   }

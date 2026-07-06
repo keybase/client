@@ -54,6 +54,16 @@ export async function openConversationMatching(
   return false
 }
 
+// Opens the first team in the teams list; false when there are no teams.
+export async function openFirstTeam(page: Page): Promise<boolean> {
+  await navigateToTeams(page)
+  const rows = page.getByTestId(T.TEAMS_ROW)
+  if ((await rows.count()) === 0) return false
+  await rows.first().click()
+  await rows.first().waitFor({state: 'hidden', timeout: 5_000})
+  return true
+}
+
 // Opens own profile via the "Hi user!" menu and dismisses the menu popup.
 export async function openOwnProfile(page: Page): Promise<void> {
   const smokeUser = process.env['KB_SMOKE_USER']

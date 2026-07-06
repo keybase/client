@@ -29,6 +29,14 @@ test('settings advanced scrolled to bottom', async ({page}, testInfo) => {
   await snap(page, testInfo)
 })
 
+test('settings notifications scrolled to bottom', async ({page}, testInfo) => {
+  await navigateToSettings(page)
+  await page.getByTestId(T.SETTINGS_ACCOUNT).locator('text=Notifications').click()
+  await expect(page.getByTestId(T.SETTINGS_NOTIFICATIONS)).toBeVisible({timeout: 5_000})
+  await wheel(page, `[data-testid="${T.SETTINGS_NOTIFICATIONS}"]`, 10_000)
+  await snap(page, testInfo)
+})
+
 test('chat inbox scrolled to bottom', async ({page}, testInfo) => {
   await navigateToChat(page)
   await wheel(page, `[data-testid="${T.CHAT_INBOX_LIST}"]`, 20_000)
