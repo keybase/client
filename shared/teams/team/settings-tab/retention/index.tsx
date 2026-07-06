@@ -469,7 +469,7 @@ export type OwnProps = {
   teamID: T.Teams.TeamID
 }
 
-const Container = (ownProps: OwnProps) => {
+const RetentionPickerContainer = (ownProps: OwnProps) => {
   const {conversationIDKey: _cid, entityType} = ownProps
   if (!_cid && !entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
@@ -568,4 +568,4 @@ const ContainerWithPolicy = (
   return <RetentionSwitcher {...props} />
 }
 
-export default Container
+export default RetentionPickerContainer

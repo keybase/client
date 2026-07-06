@@ -6,7 +6,7 @@ import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 
 type OwnProps = {teamname: string}
 
-const Container = (ownProps: OwnProps) => {
+const RenameTeam = (ownProps: OwnProps) => {
   const teamname = ownProps.teamname
   const waitingError = C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRename)
@@ -164,4 +164,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default RenameTeam

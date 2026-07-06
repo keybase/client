@@ -7,7 +7,7 @@ type Props = {
   stillLoadingTeam: boolean
 }
 
-const ReallyLeaveTeam = (props: Props) => (
+const LastOwnerDialog = (props: Props) => (
   <>
     {props.stillLoadingTeam ? (
       <Kb.ProgressIndicator type="Huge" />
@@ -98,4 +98,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default ReallyLeaveTeam
+export default LastOwnerDialog

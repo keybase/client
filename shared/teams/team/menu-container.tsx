@@ -74,7 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const Container = (ownProps: OwnProps) => {
+const TeamMenuContainer = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const {teamname, role, memberCount} = teamMeta
@@ -142,4 +142,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default TeamMenuContainer

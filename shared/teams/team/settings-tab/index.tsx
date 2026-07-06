@@ -330,7 +330,7 @@ export type OwnProps = {
   teamID: T.Teams.TeamID
 }
 
-const Container = (ownProps: OwnProps) => {
+const SettingsTabContainer = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {reload, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
@@ -455,4 +455,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default SettingsTabContainer

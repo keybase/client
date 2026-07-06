@@ -13,7 +13,7 @@ const malformedEmailErrorMessage = (malformed: ReadonlyArray<string>) =>
     ? `Error parsing email: ${malformed[0]}`
     : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
 
-const Container = (ownProps: OwnProps) => {
+const InviteByEmail = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const {
     teamMeta: {teamname},
@@ -134,4 +134,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   roleRow: {margin: Kb.Styles.globalMargins.tiny},
 }))
 
-export default Container
+export default InviteByEmail

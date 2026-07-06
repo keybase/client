@@ -94,7 +94,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 type OwnProps = {subteamOf?: T.Teams.TeamID}
 
-const Container = (ownProps: OwnProps) => {
+const CreateNewTeamContainer = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
   const {
     loading,
@@ -113,4 +113,4 @@ const Container = (ownProps: OwnProps) => {
   return <CreateNewTeam {...props} />
 }
 
-export default Container
+export default CreateNewTeamContainer
