@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore} from '../helpers/navigate'
-import {el, waitForTestID, byText} from '../helpers/elements'
+import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {byText, el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('settings navigation', () => {
@@ -11,7 +11,7 @@ describe('settings navigation', () => {
     await expect(el(T.SETTINGS_ACCOUNT)).toExist()
 
     // Maestro: tapOn text: "Account"
-    await byText('Account').click()
+    await tapSettingsRow('Account')
     // Maestro: extendedWaitUntil visible text: "Email & phone"
     await byText('Email & phone').waitForExist({timeout: 3000, timeoutMsg: '"Email & phone" never appeared on Account page'})
     await expect(byText('Email & phone')).toExist()

@@ -25,6 +25,9 @@ export const CHAT_BOT_ROW               = 'chat-bot-row'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 export const CHAT_EMOJI_BUTTON          = 'chat-emoji-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
+// Android only: iOS 26 folds Search/Info into one native "More" header menu,
+// but the Android header keeps the plain info icon — icons have no tappable text
+export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
 
 // Files
 export const FILES_BROWSER = 'files-browser'

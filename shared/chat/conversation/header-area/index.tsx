@@ -15,6 +15,7 @@ import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
 import {useConversationMetadata} from '../data-hooks'
 import {muteConversation} from '../status-actions'
@@ -48,7 +49,7 @@ const HeaderAreaRight = (props: HeaderConversationProps) => {
       style={Kb.Styles.collapseStyles([styles.headerRight, {opacity: pendingWaiting ? 0 : 1}])}
     >
       <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
-      <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
+      <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} testID={TestIDs.CHAT_HEADER_INFO_BUTTON} />
     </Kb.Box2>
   )
 }

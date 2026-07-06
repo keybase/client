@@ -75,6 +75,10 @@ export const config: WebdriverIO.Config = {
   // Emit a screenshot + status json per test so generate-appium-report.mts can
   // build the unified HTML report (one card per test).
   afterTest: async (test, _context, result: {passed: boolean; duration: number; error?: Error}) => {
+    // eslint-disable-next-line no-console
+    console.log(
+      `${result.passed ? '✓' : '✗'} ${new Date().toLocaleTimeString()} ${test.title} (${(result.duration / 1000).toFixed(1)}s)`
+    )
     fs.mkdirSync(debugDir, {recursive: true})
     const slug = `${test.parent} ${test.title}`.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
     const screenshotPath = path.join(debugDir, `${slug}.png`)
