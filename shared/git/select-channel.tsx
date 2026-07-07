@@ -57,7 +57,7 @@ const SelectChannel = (ownProps: OwnProps) => {
       <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
           <Kb.Text type="Header">Select a channel</Kb.Text>
-          {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+          <Kb.ErrorBanner error={error} />
           {channelNames.map(name => (
             <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
               <Kb.RadioButton

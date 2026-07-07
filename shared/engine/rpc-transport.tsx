@@ -17,11 +17,6 @@ export const errors = {
   EOF: 101,
   OK: 0,
   UNKNOWN_METHOD: 100,
-  msg: {
-    0: errorMessages.OK,
-    100: errorMessages.UNKNOWN_METHOD,
-    101: errorMessages.EOF,
-  },
 } as const
 
 export type ErrorType = {
@@ -132,7 +127,9 @@ class FramePacketizer {
     return firstChunk[this._chunkOffset]
   }
 
-  copyBytes(length: number) {
+  // Read-only view (or copy when spanning chunks) of the next `length` bytes;
+  // does not consume. Views stay valid because chunks are never mutated in place.
+  peekBytes(length: number) {
     if (length > this._bufferedBytes) {
       return undefined
     }
@@ -141,7 +138,7 @@ class FramePacketizer {
     if (firstChunk) {
       const available = firstChunk.length - this._chunkOffset
       if (available >= length) {
-        return firstChunk.slice(this._chunkOffset, this._chunkOffset + length)
+        return firstChunk.subarray(this._chunkOffset, this._chunkOffset + length)
       }
     }
 
@@ -300,14 +297,20 @@ export abstract class RPCTransport {
           return
         }
 
-        const header = p.copyBytes(headerLen)
+        const header = p.peekBytes(headerLen)
         if (!header) {
           return
         }
 
-        const payloadLen = decode(header)
-        if (typeof payloadLen !== 'number' || payloadLen < 0) {
-          throw new Error('Bad frame length received')
+        // Frame length is a msgpack uint (fixint/uint8/uint16/uint32); read the
+        // big-endian bytes directly rather than paying a msgpack decode per frame
+        let payloadLen = 0
+        if (headerLen === 1) {
+          payloadLen = header[0] ?? 0
+        } else {
+          for (let i = 1; i < headerLen; i++) {
+            payloadLen = payloadLen * 256 + (header[i] ?? 0)
+          }
         }
         if (payloadLen > maxFrameSize) {
           throw new Error(`Frame too large: ${payloadLen} bytes`)
@@ -317,7 +320,7 @@ export abstract class RPCTransport {
         }
 
         p.consumeBytes(headerLen)
-        const payloadBytes = p.copyBytes(payloadLen)
+        const payloadBytes = p.peekBytes(payloadLen)
         if (!payloadBytes) {
           return
         }

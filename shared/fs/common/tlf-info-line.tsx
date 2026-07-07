@@ -32,15 +32,14 @@ const getOtherResetText = (names: ReadonlyArray<string>): string => {
 const newMetaMaybe = (props: Props) =>
   props.mode === 'row' && props.isNew ? (
     <Kb.Meta
-      title="new"
-      backgroundColor={Kb.Styles.globalColors.orange}
+      variant="new"
       style={Kb.Styles.collapseStyles([styles.meta, {marginRight: Kb.Styles.globalMargins.xtiny}])}
     />
   ) : null
 
 const resetMetaMaybe = (props: Props) =>
   props.mode === 'row' && props.reset === true ? (
-    <Kb.Meta title="reset" backgroundColor={Kb.Styles.globalColors.red} style={styles.meta} />
+    <Kb.Meta variant="reset" style={styles.meta} />
   ) : null
 
 const resetText = (props: Props) => {
@@ -150,7 +149,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       meta: {
-        alignSelf: 'center',
         marginRight: Kb.Styles.globalMargins.xtiny,
       },
       textDefault: {

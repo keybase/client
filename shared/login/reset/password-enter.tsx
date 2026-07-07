@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen} from '@/signup/common'
+import {SignupScreen, errorBanner} from '@/signup/common'
 import {useConfigState} from '@/stores/config'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {enterResetPipeline} from './account-reset'
@@ -29,13 +29,7 @@ const EnterPassword = ({route}: Props) => {
     <SignupScreen
       title={title}
       onBack={onBack}
-      banners={
-        error ? (
-          <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={error} />
-          </Kb.Banner>
-        ) : null
-      }
+      banners={errorBanner(error)}
       buttons={[{label: 'Continue', onClick: onContinue, waiting}]}
     >
       <Kb.Input3

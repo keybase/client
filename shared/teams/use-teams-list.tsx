@@ -61,6 +61,42 @@ export const invalidateLoadedTeams = () => {
   teamsRoleMapInvalidationListeners.forEach(listener => listener())
 }
 
+// reload whenever the service signals a team change or invalidateLoadedTeams fires
+const useReloadOnTeamChanges = (
+  enabled: boolean,
+  reload: () => unknown,
+  invalidationListeners: Set<() => void>,
+  includeMetadataUpdate = false
+) => {
+  const onChange = () => {
+    if (enabled) {
+      void reload()
+    }
+  }
+  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
+    if (includeMetadataUpdate) {
+      onChange()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onChange)
+  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', onChange)
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', onChange)
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', onChange)
+
+  React.useEffect(() => {
+    if (!enabled) {
+      return
+    }
+    const listener = () => {
+      void reload()
+    }
+    invalidationListeners.add(listener)
+    return () => {
+      invalidationListeners.delete(listener)
+    }
+  }, [enabled, reload, invalidationListeners])
+}
+
 const useTeamsListRaw = (enabled = true): TeamsList => {
   const username = useCurrentUserState(s => s.username)
   const loggedIn = useConfigState(s => s.loggedIn)
@@ -86,44 +122,7 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
     staleMs: teamsListReloadStaleMs,
   })
 
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-
-  React.useEffect(() => {
-    if (!enabled) {
-      return
-    }
-    const listener = () => {
-      void reload()
-    }
-    teamsListInvalidationListeners.add(listener)
-    return () => {
-      teamsListInvalidationListeners.delete(listener)
-    }
-  }, [enabled, reload])
+  useReloadOnTeamChanges(enabled, reload, teamsListInvalidationListeners, true)
 
   return React.useMemo(() => ({reload, teams}), [reload, teams])
 }
@@ -157,39 +156,7 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
     staleMs: teamsListReloadStaleMs,
   })
 
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
-
-  React.useEffect(() => {
-    if (!enabled) {
-      return
-    }
-    const listener = () => {
-      void reload()
-    }
-    teamsRoleMapInvalidationListeners.add(listener)
-    return () => {
-      teamsRoleMapInvalidationListeners.delete(listener)
-    }
-  }, [enabled, reload])
+  useReloadOnTeamChanges(enabled, reload, teamsRoleMapInvalidationListeners)
 
   return React.useMemo(() => ({loadIfStale, reload, roleMap}), [loadIfStale, reload, roleMap])
 }
@@ -212,16 +179,24 @@ export const useTeamsList = (): TeamsList => {
   return context
 }
 
+const noopLoad = async () => {}
+
+// useTeamsRoleMap and useTeamsListMap are reachable from mobile popup portals
+// (popup-root and the bottom-sheet host are siblings to the router, outside
+// LoadedTeamsListProvider), so they fall back to the module cache instead of
+// throwing. The cache stays fresh because the provider is mounted elsewhere.
 export const useTeamsRoleMap = (): TeamsRoleMap => {
   const context = React.useContext(TeamsRoleMapContext)
-  if (!context) {
-    throw new Error('useTeamsRoleMap must be used within LoadedTeamsListProvider')
-  }
-  return context
+  const fallback = React.useMemo(
+    () => ({loadIfStale: noopLoad, reload: noopLoad, roleMap: teamsRoleMapCache.getData()}),
+    []
+  )
+  return context ?? fallback
 }
 
 export const useTeamsListMap = () => {
-  const {teams} = useTeamsList()
+  const context = React.useContext(TeamsListContext)
+  const teams = context?.teams ?? teamsListCache.getData()
   return React.useMemo(() => new Map(teams.map(team => [team.id, team] as const)), [teams])
 }
 

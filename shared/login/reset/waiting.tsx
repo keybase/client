@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
+import {QuestionBody} from '../common'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
@@ -70,30 +71,24 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
       }
       buttons={[{label: 'Close', onClick: onClose, type: 'Dim'}]}
     >
-      <Kb.Box2
-        direction="vertical"
-        gap="medium"
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-        style={styles.topGap}
+      <QuestionBody
+        icon={
+          <Kb.Icon
+            type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
+            color={Kb.Styles.globalColors.black}
+            fontSize={24}
+          />
+        }
       >
-        <Kb.Icon
-          type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
-          color={Kb.Styles.globalColors.black}
-          fontSize={24}
-        />
         <Kb.Box2 direction="vertical" centerChildren={true} gap="small">
           <Kb.Text type="Header" center={true}>
             {pipelineStarted ? `Check back in ${formattedTime}` : 'Check your email or phone.'}
           </Kb.Text>
           {pipelineStarted ? (
-            <Kb.Box2 direction="vertical" centerChildren={true}>
-              <Kb.Text type="Body" style={styles.mainText} center={true}>
-                The reset has been initiated. For security reasons, nothing will happen in the next{' '}
-                {formattedTime}. We will notify you once you can proceed with the reset.
-              </Kb.Text>
-            </Kb.Box2>
+            <Kb.Text type="Body" style={styles.mainText} center={true}>
+              The reset has been initiated. For security reasons, nothing will happen in the next{' '}
+              {formattedTime}. We will notify you once you can proceed with the reset.
+            </Kb.Text>
           ) : (
             <Kb.Box2 direction="vertical" centerChildren={true}>
               <Kb.Text type="Body" style={styles.mainText} center={true}>
@@ -112,7 +107,7 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
             </Kb.Box2>
           )}
         </Kb.Box2>
-      </Kb.Box2>
+      </QuestionBody>
     </SignupScreen>
   )
 }
@@ -128,10 +123,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.globalStyles.fillAbsolute,
     backgroundColor: Kb.Styles.globalColors.white_40OrBlack_60,
   },
-  topGap: Kb.Styles.platformStyles({
-    isMobile: {
-      justifyContent: 'flex-start',
-      marginTop: '20%',
-    },
-  }),
 }))

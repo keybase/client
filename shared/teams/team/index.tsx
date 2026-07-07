@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {produce} from 'immer'
 import {SelectionPopup, ActivityLevelsProvider} from '../common'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {TeamSelectionProvider} from '../common/selection-state'
@@ -103,20 +104,22 @@ const TeamBody = (props: Props) => {
   const invitesCollapsed = teamLocalState.invitesCollapsed
   const subteamFilter = teamLocalState.subteamFilter
   const setInvitesCollapsed: React.Dispatch<React.SetStateAction<boolean>> = nextInvitesCollapsed => {
-    setTeamLocalState(prev => ({
-      ...prev,
-      invitesCollapsed:
-        typeof nextInvitesCollapsed === 'function'
-          ? nextInvitesCollapsed(prev.invitesCollapsed)
-          : nextInvitesCollapsed,
-    }))
+    setTeamLocalState(
+      produce(draft => {
+        draft.invitesCollapsed =
+          typeof nextInvitesCollapsed === 'function'
+            ? nextInvitesCollapsed(draft.invitesCollapsed)
+            : nextInvitesCollapsed
+      })
+    )
   }
   const setSubteamFilter: React.Dispatch<React.SetStateAction<string>> = nextSubteamFilter => {
-    setTeamLocalState(prev => ({
-      ...prev,
-      subteamFilter:
-        typeof nextSubteamFilter === 'function' ? nextSubteamFilter(prev.subteamFilter) : nextSubteamFilter,
-    }))
+    setTeamLocalState(
+      produce(draft => {
+        draft.subteamFilter =
+          typeof nextSubteamFilter === 'function' ? nextSubteamFilter(draft.subteamFilter) : nextSubteamFilter
+      })
+    )
   }
   const clearJustFinishedAddWizard = React.useCallback(() => {
     navigation.setParams({justFinishedAddWizard: undefined})
@@ -143,7 +146,11 @@ const TeamBody = (props: Props) => {
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   React.useEffect(() => {
     for (const conversationIDKey of channels.keys()) {
-      refreshParticipants([{convID: T.Chat.keyToConversationID(conversationIDKey)}], () => {}, () => {})
+      refreshParticipants(
+        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+        () => {},
+        () => {}
+      )
     }
   }, [channels, refreshParticipants])
 
@@ -193,7 +200,13 @@ const TeamBody = (props: Props) => {
   const botSections = useBotSections(teamID, loadingTeam, teamMeta, teamDetails, yourOperations)
   const invitesSections = useInvitesSections(teamID, teamDetails, invitesCollapsed, setInvitesCollapsed)
   const channelsSections = useChannelsSections(teamID, yourOperations, channels, loadingChannels)
-  const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations, subteamFilter, setSubteamFilter)
+  const subteamsSections = useSubteamsSections(
+    teamID,
+    teamDetails,
+    yourOperations,
+    subteamFilter,
+    setSubteamFilter
+  )
   const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
 
   switch (selectedTab) {
@@ -247,11 +260,15 @@ const TeamBody = (props: Props) => {
         style={styles.container}
         relative={true}
         testID={
-          selectedTab === 'members' ? TestIDs.TEAMS_MEMBER_LIST :
-          selectedTab === 'channels' ? TestIDs.TEAMS_CHANNEL_LIST :
-          selectedTab === 'settings' ? TestIDs.TEAMS_SETTINGS_TAB :
-          selectedTab === 'bots' ? TestIDs.TEAMS_BOTS_TAB :
-          undefined
+          selectedTab === 'members'
+            ? TestIDs.TEAMS_MEMBER_LIST
+            : selectedTab === 'channels'
+              ? TestIDs.TEAMS_CHANNEL_LIST
+              : selectedTab === 'settings'
+                ? TestIDs.TEAMS_SETTINGS_TAB
+                : selectedTab === 'bots'
+                  ? TestIDs.TEAMS_BOTS_TAB
+                  : undefined
         }
       >
         <Kb.SectionList

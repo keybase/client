@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as React from 'react'
+import {produce} from 'immer'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -11,10 +12,7 @@ import {useInboxLayout, useInboxRetryState} from './layout-state'
 import {buildInboxRows} from './rows'
 import {queueMetaToRequest} from './metadata'
 
-const useInboxBadges = (
-  inboxRows: ReadonlyArray<ChatInboxRowItem>,
-  selectedConversationIDKey: string
-) => {
+const useInboxBadges = (inboxRows: ReadonlyArray<ChatInboxRowItem>, selectedConversationIDKey: string) => {
   const bigConvIds = React.useMemo(() => {
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
@@ -69,8 +67,7 @@ export function useInboxState(
   const loadInboxNumSmallRows = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
   const {hasLoaded: inboxHasLoaded, layout: inboxLayout, refresh: inboxRefresh} = useInboxLayout()
-  const {retriedOnCurrentEmpty: inboxRetriedOnCurrentEmpty, setRetriedOnCurrentEmpty} =
-    useInboxRetryState()
+  const {retriedOnCurrentEmpty: inboxRetriedOnCurrentEmpty, setRetriedOnCurrentEmpty} = useInboxRetryState()
   const [inboxControls, setInboxControls] = React.useState(() => ({
     inboxNumSmallRows: 5,
     inboxNumSmallRowsLoaded: false,
@@ -84,12 +81,13 @@ export function useInboxState(
     if (rows <= 0) {
       return
     }
-    setInboxControls(state => ({
-      ...state,
-      inboxNumSmallRows: rows,
-      inboxNumSmallRowsLoaded: true,
-      inboxNumSmallRowsUserChanged: true,
-    }))
+    setInboxControls(
+      produce(draft => {
+        draft.inboxNumSmallRows = rows
+        draft.inboxNumSmallRowsLoaded = true
+        draft.inboxNumSmallRowsUserChanged = true
+      })
+    )
     if (!persist) {
       return
     }
@@ -104,10 +102,11 @@ export function useInboxState(
     C.ignorePromise(f())
   }, [])
   const toggleSmallTeamsExpanded = React.useCallback(() => {
-    setInboxControls(state => ({
-      ...state,
-      smallTeamsExpanded: !state.smallTeamsExpanded,
-    }))
+    setInboxControls(
+      produce(draft => {
+        draft.smallTeamsExpanded = !draft.smallTeamsExpanded
+      })
+    )
   }, [])
 
   const {
@@ -171,26 +170,27 @@ export function useInboxState(
           return
         }
         const count = rows.i ?? -1
-        setInboxControls(state => {
-          if (state.inboxNumSmallRowsUserChanged) {
-            return state
-          }
-          return {
-            ...state,
-            inboxNumSmallRows: count > 0 ? count : state.inboxNumSmallRows,
-            inboxNumSmallRowsLoaded: true,
-            inboxNumSmallRowsUserChanged: false,
-          }
-        })
+        setInboxControls(
+          produce(draft => {
+            if (draft.inboxNumSmallRowsUserChanged) {
+              return
+            }
+            if (count > 0) {
+              draft.inboxNumSmallRows = count
+            }
+            draft.inboxNumSmallRowsLoaded = true
+          })
+        )
       },
       () => {
         if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
           return
         }
-        setInboxControls(state => ({
-          ...state,
-          inboxNumSmallRowsLoaded: true,
-        }))
+        setInboxControls(
+          produce(draft => {
+            draft.inboxNumSmallRowsLoaded = true
+          })
+        )
       }
     )
     return () => {

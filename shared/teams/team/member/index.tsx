@@ -14,6 +14,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {getRolePickerDisabledReasons, isLastOwnerInTeamMembers} from '@/teams/role-picker-utils'
 import {useLoadedTeam} from '../use-loaded-team'
 import {removeMember} from '@/teams/actions'
+import {useAddToTeam} from '@/teams/common/use-add-to-team'
 import {TeamMemberHeader} from './header'
 import {
   useTeamTreeMemberships,
@@ -156,38 +157,16 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     membersToModify: props.username,
     teamname: teamMeta.teamname,
   })
-  const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const addToTeam = useAddToTeam()
   const [error, setError] = React.useState('')
-  const navigateAppend = C.Router2.navigateAppend
   const onAdd = (role: T.Teams.TeamRoleType) => {
     setError('')
-    addToTeam(
-      [
-        {
-          sendChatNotification: true,
-          teamID: props.node.teamID,
-          users: [{assertion: props.username, role: T.RPCGen.TeamRole[role]}],
-        },
-        [C.waitingKeyTeamsTeam(props.node.teamID), onAddWaitingKey],
-      ],
-      res => {
-        const usernames = res.notAdded?.map(user => user.username) ?? []
-        if (usernames.length) {
-          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddSomeFailed', usernames}})
-        }
-      },
-      err => {
-        if (err.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-          const users = (err.fields as Array<{key?: string; value?: string} | undefined> | undefined)
-            ?.filter(field => field?.key === 'usernames')
-            .map(field => field?.value)
-          const usernames = users?.[0]?.split(',') ?? []
-          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddAllFailed', usernames}})
-          return
-        }
-        setError(err.message)
-      }
-    )
+    addToTeam({
+      onError: setError,
+      sendChatNotification: true,
+      teamID: props.node.teamID,
+      users: [{assertion: props.username, role}],
+    })
   }
   const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
   const [open, setOpen] = React.useState(false)
@@ -389,7 +368,7 @@ const NodeInRow = (props: NodeInRowProps) => {
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-            <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.expandIcon])}>
+            <Kb.Box2 direction="horizontal" style={styles.expandIcon}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
             <Kb.Box2

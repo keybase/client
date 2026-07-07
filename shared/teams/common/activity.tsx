@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
@@ -132,43 +131,6 @@ const Activity = (p: Props) => {
   )
 }
 
-type MTProps = {title: string; teamID: T.Teams.TeamID}
-type ModalTitleProps = MTProps & {newTeamWizard?: T.Teams.NewTeamWizardState}
-export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
-  const {teamMeta} = useLoadedTeam(teamID)
-  const teamname = teamMeta.teamname
-  const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
-  const displayTeamname = isNewTeamWizard ? (newTeamWizard?.name || 'New team') : teamname
-  const avatarFilepath = isNewTeamWizard ? newTeamWizard?.avatarFilename : undefined
-  const avatarCrop = isNewTeamWizard ? newTeamWizard?.avatarCrop : undefined
-
-  return isMobile ? (
-    <Kb.Box2 direction="vertical" alignItems="center">
-      {!!displayTeamname && (
-        <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
-          {displayTeamname}
-        </Kb.Text>
-      )}
-      <Kb.Text type="BodyBig">{title}</Kb.Text>
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
-      <Kb.Avatar
-        size={32}
-        teamname={displayTeamname === 'New team' ? '' : displayTeamname}
-        style={styles.avatar}
-        isTeam={true}
-        imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}
-        crop={isNewTeamWizard ? avatarCrop : undefined}
-      />
-      <Kb.Text type="BodySmall" lineClamp={1}>
-        {displayTeamname}
-      </Kb.Text>
-      <Kb.Text type="Header">{title}</Kb.Text>
-    </Kb.Box2>
-  )
-}
-
 export const useActivityLevels = (): ActivityLevels => {
   const context = React.useContext(ActivityLevelsContext)
   if (!context) {
@@ -180,16 +142,6 @@ export const useActivityLevels = (): ActivityLevels => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   activityActive: {
     color: Kb.Styles.globalColors.greenDark,
-  },
-  avatar: Kb.Styles.platformStyles({
-    isElectron: {
-      height: 16,
-      position: 'relative',
-      top: -16,
-    },
-  }),
-  title: {
-    paddingBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
 

@@ -13,6 +13,7 @@ import {AliasInput, Modal, type AliasRef} from './common'
 import {useEmojiState} from './use-emoji'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import {ensureError} from '@/util/errors'
+import {produce} from 'immer'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -65,15 +66,20 @@ const AddAliasModal = (props: Props) => {
 
   const aliasInputRef = React.useRef<AliasRef>(null)
   const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
-    setSelection(selected => ({
-      ...selected,
-      alias: aliasFromEmojiStr(emojiStr),
-      emoji: {emojiStr, renderableEmoji},
-    }))
+    setSelection(
+      produce(draft => {
+        draft.alias = aliasFromEmojiStr(emojiStr)
+        draft.emoji = {emojiStr, renderableEmoji}
+      })
+    )
     aliasInputRef.current?.focus()
   }
   const onChangeAlias = (alias: string) => {
-    setSelection(selected => ({...selected, alias}))
+    setSelection(
+      produce(draft => {
+        draft.alias = alias
+      })
+    )
   }
 
   React.useEffect(() => {

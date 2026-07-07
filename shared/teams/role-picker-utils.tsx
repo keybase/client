@@ -2,12 +2,13 @@ import type * as T from '@/constants/types'
 
 const msgOnlyOwnersCanChangeOwnerRole = "Only owners can change another owner's role"
 const msgMustBeAdminToChangeRoles = 'You must be at least an admin to make role changes.'
+const msgSubteamsCannotHaveOwners = 'Subteams cannot have owners.'
 
-const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
+const subteamsCannotHaveOwners = {owner: msgSubteamsCannotHaveOwners}
 const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
 const roleChangeSub = {
   admin: msgMustBeAdminToChangeRoles,
-  owner: 'Subteams cannot have owners.',
+  owner: msgSubteamsCannotHaveOwners,
   reader: msgMustBeAdminToChangeRoles,
   writer: msgMustBeAdminToChangeRoles,
 }
@@ -19,7 +20,7 @@ const roleChangeNotSub = {
 }
 const anotherRoleChangeSub = {
   admin: msgOnlyOwnersCanChangeOwnerRole,
-  owner: 'Subteams cannot have owners.',
+  owner: msgSubteamsCannotHaveOwners,
   reader: msgOnlyOwnersCanChangeOwnerRole,
   writer: msgOnlyOwnersCanChangeOwnerRole,
 }
@@ -29,7 +30,7 @@ const anotherRoleChangeNotSub = {
   reader: msgOnlyOwnersCanChangeOwnerRole,
   writer: msgOnlyOwnersCanChangeOwnerRole,
 }
-const notOwnerSub = {owner: 'Subteams cannot have owners.'}
+const notOwnerSub = {owner: msgSubteamsCannotHaveOwners}
 const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
 const noRemoveLastOwner = {
   admin: `You can't demote a team's last owner`,

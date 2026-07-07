@@ -4,7 +4,7 @@ import {makeNewTeamWizard} from './new-team/wizard/state'
 import {useTeamsList} from './use-teams-list'
 import {useRoute, useNavigation} from '@react-navigation/native'
 
-const useHeaderActions = () => {
+export const useHeaderActions = () => {
   const nav = useSafeNavigation()
   return {
     onCreateTeam: () =>
