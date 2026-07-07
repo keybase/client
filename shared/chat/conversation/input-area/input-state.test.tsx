@@ -17,20 +17,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({name: 'chatConversation', params: mockRouteParams}),
 }))
 
-jest.mock('@/chat/inbox/rows-state', () => ({
-  flushInboxRowUpdates: jest.fn(),
-  getInboxRowTrustedState: jest.fn(() => undefined),
-  queueInboxRowUpdate: jest.fn(),
-  setInboxRowTrustedState: jest.fn(),
-  syncInboxRowBadgeState: jest.fn(),
-  syncInboxRowsFromLayout: jest.fn(),
-  syncInboxRowsFromMetaAndParticipants: jest.fn(),
-  syncInboxRowsFromMetas: jest.fn(),
-  syncInboxRowsFromParticipantMap: jest.fn(),
-  syncInboxRowsFromParticipants: jest.fn(),
-  updateInboxRowTyping: jest.fn(),
-}))
-
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 

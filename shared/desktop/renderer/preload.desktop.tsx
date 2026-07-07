@@ -82,6 +82,9 @@ if (isRenderer) {
         getPathForFile: (file: File) => {
           return Electron.webUtils.getPathForFile(file)
         },
+        getRemoteProps: async (windowComponent: string, windowParam: string) => {
+          return invoke<string>({payload: {windowComponent, windowParam}, type: 'getRemoteProps'})
+        },
         getPathType: async (path: string) => {
           return await invoke({
             payload: {path},

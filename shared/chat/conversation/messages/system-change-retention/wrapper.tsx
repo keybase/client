@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import * as dateFns from 'date-fns'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from '../../team-hooks'
-import {useConversationShowInfoPanel, useConversationThreadSelector} from '../../thread-context'
+import {useConversationShowInfoPanel, useThreadMeta} from '../../thread-context'
 import {makeMessageWrapper} from '../wrapper/wrapper'
 
 type OwnProps = {message: T.Chat.MessageSystemChangeRetention}
@@ -14,11 +14,11 @@ function SystemChangeRetentionContainer(p: OwnProps) {
   const {message} = p
   const {isInherit, isTeam, membersType, policy, user} = message
   const you = useCurrentUserState(s => s.username)
-  const {teamID, teamType, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      teamID: s.meta.teamID,
-      teamType: s.meta.teamType,
-      teamname: s.meta.teamname,
+  const {teamID, teamType, teamname} = useThreadMeta(
+    C.useShallow(m => ({
+      teamID: m.teamID,
+      teamType: m.teamType,
+      teamname: m.teamname,
     }))
   )
   const showInfoPanel = useConversationShowInfoPanel()

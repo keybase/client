@@ -21,20 +21,6 @@ jest.mock('./common', () => ({
   },
 }))
 
-jest.mock('@/chat/inbox/rows-state', () => ({
-  flushInboxRowUpdates: jest.fn(),
-  getInboxRowTrustedState: jest.fn(() => undefined),
-  queueInboxRowUpdate: jest.fn(),
-  setInboxRowTrustedState: jest.fn(),
-  syncInboxRowBadgeState: jest.fn(),
-  syncInboxRowsFromLayout: jest.fn(),
-  syncInboxRowsFromMetaAndParticipants: jest.fn(),
-  syncInboxRowsFromMetas: jest.fn(),
-  syncInboxRowsFromParticipantMap: jest.fn(),
-  syncInboxRowsFromParticipants: jest.fn(),
-  updateInboxRowTyping: jest.fn(),
-}))
-
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 const flushPromises = async () => {
@@ -83,15 +69,11 @@ beforeEach(() => {
     teamType: 'adhoc',
   }
   metasReceived([meta])
-  participantInfoReceived(
-    convID,
-    {
-      all: ['alice', 'bob', 'carol'],
-      contactName: new Map(),
-      name: ['alice', 'bob', 'carol'],
-    },
-    meta
-  )
+  participantInfoReceived(convID, {
+    all: ['alice', 'bob', 'carol'],
+    contactName: new Map(),
+    name: ['alice', 'bob', 'carol'],
+  })
   useInboxLayoutState.getState().dispatch.updateLayout(
     JSON.stringify({
       bigTeams: [

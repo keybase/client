@@ -8,8 +8,8 @@ import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useTeamsListNameToIDMap} from '@/teams/use-teams-list'
-
-export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
+import {useIsNew} from '@/util/use-local-badging'
+import {useRPCLoad} from '@/util/use-rpc-load'
 
 type OwnProps = {
   expanded: boolean
@@ -197,10 +197,9 @@ function ConnectedRow(ownProps: OwnProps) {
   const {id} = git
   const teamNameToID = useTeamsListNameToIDMap()
   const teamID = git.teamname ? teamNameToID.get(git.teamname) : undefined
-  const isNew = React.useContext(NewContext).has(id)
+  const isNew = useIsNew(id)
   const you = useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useRPC(T.RPCGen.gitSetTeamRepoSettingsRpcPromise)
-  const getTeamRepoSettings = C.useRPC(T.RPCGen.gitGetTeamRepoSettingsRpcPromise)
   const _onBrowseGitRepo = FS.navToPath
   const navigateAppend = C.Router2.navigateAppend
 
@@ -209,31 +208,24 @@ function ConnectedRow(ownProps: OwnProps) {
 
   // The channel name is resolved lazily (it requires a per-repo chat lookup on
   // the service), so we only fetch it once the row is expanded and chat is
-  // enabled. getAllGitMetadata no longer returns it. `channelLoaded` stays true
+  // enabled. getAllGitMetadata no longer returns it. `loaded` stays true
   // across background refetches so we only show the spinner on the first load,
   // not on every reload.
-  const [channelName, setChannelName] = React.useState<string | undefined>(undefined)
-  const [channelLoaded, setChannelLoaded] = React.useState(false)
+  const {
+    data: channelName,
+    loaded: channelLoaded,
+    reload: loadChannel,
+  } = useRPCLoad(
+    T.RPCGen.gitGetTeamRepoSettingsRpcPromise,
+    [{folder: {created: false, folderType: T.RPCGen.FolderType.team, name: teamname ?? ''}, repoID}],
+    {map: res => res.channelName ?? undefined, when: 'manual'}
+  )
   React.useEffect(() => {
     if (!expanded || !teamname || chatDisabled) {
       return
     }
-    getTeamRepoSettings(
-      [
-        {
-          folder: {created: false, folderType: T.RPCGen.FolderType.team, name: teamname},
-          repoID,
-        },
-      ],
-      res => {
-        setChannelName(res.channelName ?? undefined)
-        setChannelLoaded(true)
-      },
-      () => {
-        setChannelLoaded(true)
-      }
-    )
-  }, [getTeamRepoSettings, expanded, teamname, chatDisabled, repoID, refreshToken])
+    loadChannel()
+  }, [loadChannel, expanded, teamname, chatDisabled, repoID, refreshToken])
   const channelLoading = !!teamname && !chatDisabled && expanded && !channelLoaded
 
   const onArchiveGitRepo = () => {
@@ -323,6 +315,7 @@ function ConnectedRow(ownProps: OwnProps) {
             direction="horizontal"
             fullWidth={true}
             alignItems="center"
+            gap="tiny"
             style={Kb.Styles.collapseStyles([
               expanded ? styles.rowClickExpanded : styles.rowClick,
               styles.rowTop,
@@ -338,14 +331,11 @@ function ConnectedRow(ownProps: OwnProps) {
               isTeam={!!teamname}
               teamname={teamname}
               username={teamname ? undefined : you}
-              style={styles.iconTiny}
             />
             <Kb.Text lineClamp={1} type="BodySemibold" style={styles.repoName}>
               {teamname ? `${teamname}/${name}` : name}
             </Kb.Text>
-            {isNew && (
-              <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
-            )}
+            {isNew && <Kb.Meta variant="new" />}
           </Kb.ClickableBox>
           {expanded && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowBottom}>
@@ -428,12 +418,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {display: 'inline-block'},
       }),
-      iconTiny: {marginRight: Kb.Styles.globalMargins.tiny},
       iconXtiny: {marginRight: Kb.Styles.globalMargins.xtiny},
-      meta: {
-        alignSelf: 'center',
-        marginLeft: 6,
-      },
       rowBottom: {
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingLeft: Kb.Styles.globalMargins.medium,

@@ -4,12 +4,13 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 import logger from '@/logger'
 import {useBotSettings} from '../bot/settings'
-import {getInboxConversationMeta, participantInfoReceived} from '@/chat/inbox/metadata'
+import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMetadata} from '../data-hooks'
 
 type AddToChannelProps = {
@@ -74,8 +75,7 @@ const AddToChannel = (props: AddToChannelProps) => {
                 preview => {
                   participantInfoReceived(
                     conversationIDKey,
-                    ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
-                    getInboxConversationMeta(conversationIDKey)
+                    ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? [])
                   )
                 },
                 () => {}
@@ -157,6 +157,7 @@ export const Bot = (props: BotProps) => {
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
+      testID={TestIDs.CHAT_BOT_ROW}
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
@@ -237,8 +238,7 @@ const BotTab = (props: Props) => {
       preview => {
         participantInfoReceived(
           conversationIDKey,
-          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
-          getInboxConversationMeta(conversationIDKey)
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? [])
         )
       },
       () => {}
@@ -262,8 +262,7 @@ const BotTab = (props: Props) => {
       preview => {
         participantInfoReceived(
           conversationIDKey,
-          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
-          getInboxConversationMeta(conversationIDKey)
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? [])
         )
       },
       () => {}

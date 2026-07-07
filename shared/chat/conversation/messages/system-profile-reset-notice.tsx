@@ -2,10 +2,12 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from './user-notice'
-import {useConversationThreadSelector} from '../thread-context'
+import {useThreadMeta} from '../thread-context'
 
 const SystemProfileResetNotice = () => {
-  const meta = useConversationThreadSelector(s => s.meta)
+  const meta = useThreadMeta(
+    C.useShallow(m => ({supersedes: m.supersedes, wasFinalizedBy: m.wasFinalizedBy}))
+  )
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
   const _onOpenOlderConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {

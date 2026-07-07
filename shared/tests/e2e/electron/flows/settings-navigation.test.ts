@@ -9,6 +9,7 @@ test('settings nav renders', async ({page}) => {
 
 test('can click Account settings', async ({page}) => {
   await navigateToSettings(page)
-  await page.click('text=Your account')
-  await expect(page.getByTestId(SETTINGS_ACCOUNT)).toBeVisible()
+  // earlier tests may leave another settings subpage selected — go to Account first
+  await page.getByTestId(SETTINGS_ACCOUNT).locator('text=Account').first().click()
+  await expect(page.getByText('Your account').first()).toBeVisible({timeout: 5_000})
 })

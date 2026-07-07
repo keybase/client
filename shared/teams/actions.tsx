@@ -1,20 +1,41 @@
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import {
-  clearModals,
-  navigateAppend,
-  navigateUp,
-  navToProfile,
-  navUpToScreen,
-} from '@/constants/router'
+import {clearModals, navigateAppend, navigateUp, navUpToScreen} from '@/constants/router'
 import logger from '@/logger'
 import {RPCError, logError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
-import {useConfigState} from '@/stores/config'
 
 const newRequestsGregorPrefix = 'team.request_access:'
 const newRequestsGregorKey = (teamID: T.Teams.TeamID) => `${newRequestsGregorPrefix}${teamID}`
+
+// navigate to the contactRestricted screen for members skipped by an add-members RPC
+export const handleNotAdded = (notAdded?: ReadonlyArray<{username: string}>) => {
+  const usernames = notAdded?.map(elem => elem.username) ?? []
+  if (usernames.length) {
+    navigateAppend({
+      name: 'contactRestricted',
+      params: {source: 'teamAddSomeFailed', usernames},
+    })
+  }
+}
+
+// returns true (after navigating) when an add-members RPC failed because of the
+// targets' contact settings; other errors are the caller's to handle
+export const handleContactSettingsBlock = (error: RPCError) => {
+  if (error.code !== T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+    return false
+  }
+  const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+    ?.filter(elem => elem?.key === 'usernames')
+    .map(elem => elem?.value)
+  const usernames = users?.[0]?.split(',') ?? []
+  navigateAppend({
+    name: 'contactRestricted',
+    params: {source: 'teamAddAllFailed', usernames},
+  })
+  return true
+}
 
 export const addToTeam = (
   teamID: T.Teams.TeamID,
@@ -37,29 +58,14 @@ export const addToTeam = (
           S.waitingKeyTeamsAddMember(teamID, ...users.map(({assertion}) => assertion)),
         ]
       )
-      if (res.notAdded && res.notAdded.length > 0) {
-        const usernames = res.notAdded.map(elem => elem.username)
-        navigateAppend({
-          name: 'contactRestricted',
-          params: {source: 'teamAddSomeFailed', usernames},
-        })
-      }
+      handleNotAdded(res.notAdded ?? undefined)
     } catch (error) {
       if (!(error instanceof RPCError)) {
         return
       }
-      if (error.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-        const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
-          ?.filter(elem => elem?.key === 'usernames')
-          .map(elem => elem?.value)
-        const usernames = users?.[0]?.split(',') ?? []
-        navigateAppend({
-          name: 'contactRestricted',
-          params: {source: 'teamAddAllFailed', usernames},
-        })
+      if (handleContactSettingsBlock(error)) {
         return
       }
-
       logger.error(`addToTeam failed for ${teamID}: ${error.desc}`)
     }
   }
@@ -128,22 +134,6 @@ export const leaveTeam = (teamname: string, permanent: boolean, context: 'teams'
   ignorePromise(f())
 }
 
-export const reAddToTeam = (teamID: T.Teams.TeamID, username: string) => {
-  const f = async () => {
-    try {
-      await T.RPCGen.teamsTeamReAddMemberAfterResetRpcPromise(
-        {id: teamID, username},
-        S.waitingKeyTeamsAddMember(teamID, username)
-      )
-    } catch (error) {
-      if (error instanceof RPCError && error.code === T.RPCGen.StatusCode.scidentifysummaryerror) {
-        navToProfile(username)
-      }
-    }
-  }
-  ignorePromise(f())
-}
-
 export const removeMember = (teamID: T.Teams.TeamID, username: string) => {
   const f = async () => {
     try {
@@ -188,38 +178,6 @@ export const renameTeam = (oldName: string, newNameString: string) => {
     try {
       await T.RPCGen.teamsTeamRenameRpcPromise({newName, prevName}, S.waitingKeyTeamsRename)
     } catch {}
-  }
-  ignorePromise(f())
-}
-
-export const saveChannelMembership = (
-  teamID: T.Teams.TeamID,
-  oldChannelState: T.Teams.ChannelMembershipState,
-  newChannelState: T.Teams.ChannelMembershipState
-) => {
-  const f = async () => {
-    const waitingKey = S.waitingKeyTeamsTeam(teamID)
-    for (const convIDKeyStr in newChannelState) {
-      const conversationIDKey = T.Chat.stringToConversationIDKey(convIDKeyStr)
-      if (oldChannelState[conversationIDKey] === newChannelState[conversationIDKey]) {
-        continue
-      }
-      if (newChannelState[conversationIDKey]) {
-        try {
-          const convID = T.Chat.keyToConversationID(conversationIDKey)
-          await T.RPCChat.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
-        } catch (error) {
-          useConfigState.getState().dispatch.setGlobalError(error)
-        }
-      } else {
-        try {
-          const convID = T.Chat.keyToConversationID(conversationIDKey)
-          await T.RPCChat.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
-        } catch (error) {
-          useConfigState.getState().dispatch.setGlobalError(error)
-        }
-      }
-    }
   }
   ignorePromise(f())
 }

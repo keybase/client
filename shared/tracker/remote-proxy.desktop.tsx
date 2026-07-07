@@ -5,7 +5,6 @@ import * as T from '@/constants/types'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
-import {useColorScheme} from 'react-native'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -67,7 +66,6 @@ const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: stri
   const following = useFollowerState(s => s.following)
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
-  const isDarkMode = useColorScheme() === 'dark'
 
   const windowComponent = 'tracker'
   const windowParam = trackerUsername
@@ -84,7 +82,6 @@ const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: stri
       assertions: details.assertions ? [...details.assertions.values()] : undefined,
       bio: details.bio,
       blocked: blockMap.get(trackerUsername)?.chatBlocked || false,
-      darkMode: isDarkMode,
       followThem: following.has(trackerUsername),
       followersCount: details.followersCount,
       followingCount: details.followingCount,

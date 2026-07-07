@@ -9,7 +9,7 @@ import {NotifyPopup} from '@/util/misc'
 import {showMain} from '@/util/storeless-actions'
 import {useShellState} from '@/stores/shell'
 import {useUsersState} from '@/stores/users'
-import {updateInboxRowTyping} from '@/chat/inbox/rows-state'
+import {updateInboxTyping} from '@/chat/inbox/typing-state'
 import {
   forceUnboxRowsForService,
   getInboxConversationMeta,
@@ -243,7 +243,7 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
     case 'chat.1.NotifyChat.NewChatActivity':
       return onNewChatActivity(action.payload.params.activity)
     case 'chat.1.NotifyChat.ChatTypingUpdate': {
-      updateInboxRowTyping(action.payload.params.typingUpdates)
+      updateInboxTyping(action.payload.params.typingUpdates)
       return handledConvoEngineIncoming()
     }
     case 'chat.1.NotifyChat.ChatSetConvRetention': {

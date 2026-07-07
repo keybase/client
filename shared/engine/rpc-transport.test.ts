@@ -87,10 +87,7 @@ test('disconnect fails outstanding invocations with EOF', () => {
   transport.invoke('keybase.1.test.hello', [{}], cb)
   transport.dropConnection()
 
-  expect(cb).toHaveBeenCalledWith(
-    expect.objectContaining({code: errors.EOF, desc: errors.msg[errors.EOF]}),
-    {}
-  )
+  expect(cb).toHaveBeenCalledWith(expect.objectContaining({code: errors.EOF, desc: 'EOF from server'}), {})
 })
 
 test('incoming invoke exposes response handlers', () => {
@@ -116,7 +113,7 @@ test('incoming invoke without handler returns unknown method error', () => {
   transport.dispatchDecodedMessage([0, 11, 'keybase.1.test.missing', [{}]])
 
   expect(transport.sent).toEqual([
-    [1, 11, {code: errors.UNKNOWN_METHOD, desc: errors.msg[errors.UNKNOWN_METHOD], name: 'UNKNOWN_METHOD'}, null],
+    [1, 11, {code: errors.UNKNOWN_METHOD, desc: 'No method available', name: 'UNKNOWN_METHOD'}, null],
   ])
 })
 

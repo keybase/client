@@ -18,7 +18,6 @@ export const pinentryOnCancel = 'remote:pinentryOnCancel'
 export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
 export const previewConversation = 'remote:previewConversation'
-export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
 export const setCriticalUpdate = 'remote:setCriticalUpdate'
 export const showMain = 'remote:showMain'
@@ -53,11 +52,6 @@ export const createUpdateWindowState = (payload: {
     y: number
   }
 }) => ({payload, type: updateWindowState}) as const
-/**
- * remote electron window wants props sent
- */
-export const createRemoteWindowWantsProps = (payload: {readonly component: string; readonly param: string}) =>
-  ({payload, type: remoteWindowWantsProps}) as const
 export const createCloseUnlockFolders = (payload?: undefined) =>
   ({payload, type: closeUnlockFolders}) as const
 export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) =>
@@ -124,7 +118,6 @@ export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
 export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
-export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
@@ -156,7 +149,6 @@ export type Actions =
   | PinentryOnSubmitPayload
   | PowerMonitorEventPayload
   | PreviewConversationPayload
-  | RemoteWindowWantsPropsPayload
   | SaltpackFileOpenPayload
   | SetCriticalUpdatePayload
   | ShowMainPayload

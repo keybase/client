@@ -18,7 +18,6 @@ import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
 import * as FSConstants from '@/constants/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import * as Z from '@/util/zustand'
 
 type RemoteActionOwner = 'pinentry' | 'tracker'
 
@@ -31,57 +30,25 @@ type OwnerActionMap = {
     | RemoteGen.TrackerLoadPayload
 }
 
-type OwnerEntry = {
-  handler: (action: OwnerActionMap[RemoteActionOwner]) => void
-  token: number
-}
+type OwnerHandler = (action: OwnerActionMap[RemoteActionOwner]) => void
 
-type RemoteActionHandlerStore = {
-  dispatch: {
-    resetState: () => void
-  }
-  nextOwnerToken: number
-  ownerHandlers: Map<RemoteActionOwner, OwnerEntry>
-}
-
-const useRemoteActionHandlerState = Z.createZustand<RemoteActionHandlerStore>(
-  'desktop-remote-action-handlers',
-  set => {
-    const resetState = () => {
-      set(s => {
-        s.nextOwnerToken = 0
-        s.ownerHandlers = new Map()
-      })
-    }
-    return {
-      dispatch: {resetState},
-      nextOwnerToken: 0,
-      ownerHandlers: new Map(),
-    }
-  }
-)
+// module-level on purpose: these route actions to always-mounted proxy components,
+// so they must survive the store reset that happens at logout
+const ownerHandlers = new Map<RemoteActionOwner, OwnerHandler>()
 
 const dispatchRemoteActionToOwner = <K extends RemoteActionOwner>(owner: K, action: OwnerActionMap[K]) => {
-  const entry = useRemoteActionHandlerState.getState().ownerHandlers.get(owner)
-  ;(entry?.handler as ((action: OwnerActionMap[K]) => void) | undefined)?.(action)
+  ;(ownerHandlers.get(owner) as ((action: OwnerActionMap[K]) => void) | undefined)?.(action)
 }
 
 export const registerRemoteActionHandler = <K extends RemoteActionOwner>(
   owner: K,
   handler: (action: OwnerActionMap[K]) => void
 ) => {
-  let token = 0
-  useRemoteActionHandlerState.setState(s => {
-    s.nextOwnerToken += 1
-    token = s.nextOwnerToken
-    s.ownerHandlers.set(owner, {handler: handler as OwnerEntry['handler'], token})
-  })
+  ownerHandlers.set(owner, handler as OwnerHandler)
   return () => {
-    useRemoteActionHandlerState.setState(s => {
-      if (s.ownerHandlers.get(owner)?.token === token) {
-        s.ownerHandlers.delete(owner)
-      }
-    })
+    if (ownerHandlers.get(owner) === handler) {
+      ownerHandlers.delete(owner)
+    }
   }
 }
 
@@ -234,11 +201,6 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     case RemoteGen.dumpLogs:
       ignorePromise(dumpLogs(action.payload.reason))
-      break
-    case RemoteGen.remoteWindowWantsProps:
-      useConfigState
-        .getState()
-        .dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
       break
     case RemoteGen.updateWindowMaxState:
       useShellState.getState().dispatch.setWindowMaximized(action.payload.max)

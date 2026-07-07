@@ -1,7 +1,7 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
-import {anyExist, el, els, waitForTestID, byText, enterText} from '../helpers/elements'
+import {anyExist, byText, el, els, waitForTestID, enterText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('chat send message', () => {

@@ -88,12 +88,13 @@ test('owner handlers stop after unregister', () => {
   expect(listener).not.toHaveBeenCalled()
 })
 
-test('resetAllStores clears registered owner handlers', () => {
+test('owner handlers survive store resets (proxies stay mounted across logout)', () => {
   const listener = jest.fn()
-  registerRemoteActionHandler('tracker', listener)
+  const unregister = registerRemoteActionHandler('tracker', listener)
 
   resetAllStores()
   eventFromRemoteWindows(RemoteGen.createTrackerIgnore({guiID: 'gui-2'}))
 
-  expect(listener).not.toHaveBeenCalled()
+  expect(listener).toHaveBeenCalledWith(RemoteGen.createTrackerIgnore({guiID: 'gui-2'}))
+  unregister()
 })

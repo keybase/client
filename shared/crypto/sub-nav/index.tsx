@@ -5,15 +5,9 @@ import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import NavRow from './nav-row'
-import {
-  useNavigationBuilder,
-  TabRouter,
-  createNavigatorFactory,
-} from '@react-navigation/core'
-import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
-import {routeMapToScreenElements} from '@/router-v2/routes'
+import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
+import {routeMapToStaticScreens} from '@/router-v2/routes'
 import {makeLayout} from '@/router-v2/screen-layout'
-import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import {defineRouteMap} from '@/constants/types/router'
 import LeftNav from './left-nav.desktop'
 
@@ -86,35 +80,19 @@ function LeftTabNavigator({
   )
 }
 
-type NavType = NavigatorTypeBagBase & {
-  ParamList: {
-    [key in keyof typeof cryptoSubRoutes]: {}
-  }
-}
+// The factory's static-config call signature is hidden by our custom-navigator typing, so
+// re-surface it with a cast. Screens come from the same route-map converter the root uses.
+const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as (config: {
+  backBehavior: 'none'
+  initialRouteName: string
+  screens: ReturnType<typeof routeMapToStaticScreens>
+}) => {getComponent: () => React.ComponentType}
 
-const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
-const TabNavigator = createLeftTabNavigator()
-const makeOptions = (rd: RouteDef) => {
-  return ({route, navigation}: GetOptionsParams) => {
-    const no = rd.getOptions
-    const opt = typeof no === 'function' ? no({navigation, route}) : no
-    return {...opt}
-  }
-}
-const cryptoScreens = routeMapToScreenElements(
-  cryptoSubRoutes,
-  TabNavigator.Screen,
-  makeLayout,
-  makeOptions,
-  false,
-  false,
-  false
-)
-const DesktopCryptoSubNavigator = () => (
-  <TabNavigator.Navigator initialRouteName={Crypto.encryptTab} backBehavior="none">
-    {cryptoScreens}
-  </TabNavigator.Navigator>
-)
+const DesktopCryptoSubNavigator = createLeftTabNavigator({
+  backBehavior: 'none',
+  initialRouteName: Crypto.encryptTab,
+  screens: routeMapToStaticScreens(cryptoSubRoutes, makeLayout, false, false, false),
+}).getComponent()
 
 const NativeCryptoSubNav = () => {
   const {navigate} = C.useNav()

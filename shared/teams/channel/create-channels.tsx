@@ -55,9 +55,7 @@ const CreateChannelsInner = (props: Props) => {
   const [success, setSuccess] = React.useState(false)
 
   const banners = error ? (
-    <Kb.Banner color="red" key="error">
-      {error}
-    </Kb.Banner>
+    <Kb.ErrorBanner key="error" error={error} />
   ) : success ? (
     <Kb.Banner color="green" key="success">
       Successfully created channels.

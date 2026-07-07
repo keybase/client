@@ -45,15 +45,20 @@ const electronWrapStyle = {
   wordBreak: 'break-word',
 } as const
 
+// markdown spans take color/weight from the enclosing message text
+const electronInherit = {
+  color: 'inherit',
+  fontWeight: 'inherit',
+} as const
+
 const _markdownStyles = Styles.styleSheetCreate(
   () =>
     ({
       bigTextBlockStyle: Styles.platformStyles({
         isElectron: {
           ...electronWrapStyle,
-          color: 'inherit',
+          ...electronInherit,
           display: 'block',
-          fontWeight: 'inherit',
         },
         isMobile: {
           fontSize: 32,
@@ -105,11 +110,11 @@ const _markdownStyles = Styles.styleSheetCreate(
       }),
       italicStyle: Styles.platformStyles({
         common: {fontStyle: 'italic'},
-        isElectron: {color: 'inherit', fontWeight: 'inherit', ...electronWrapStyle},
+        isElectron: {...electronInherit, ...electronWrapStyle},
         isMobile: {color: undefined, fontWeight: undefined},
       }),
       neutralPreviewStyle: Styles.platformStyles({
-        isElectron: {color: 'inherit', fontWeight: 'inherit'},
+        isElectron: electronInherit,
         isMobile: {color: Styles.globalColors.black_50, fontWeight: undefined},
       }),
       quoteStyle: Styles.platformStyles({
@@ -137,8 +142,7 @@ const _markdownStyles = Styles.styleSheetCreate(
       strikeStyle: Styles.platformStyles({
         isElectron: {
           ...electronWrapStyle,
-          color: 'inherit',
-          fontWeight: 'inherit',
+          ...electronInherit,
           textDecoration: 'line-through',
         },
         isMobile: {
@@ -148,7 +152,7 @@ const _markdownStyles = Styles.styleSheetCreate(
       }),
       textBlockStyle: Styles.platformStyles({
         isAndroid: {lineHeight: undefined},
-        isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...electronWrapStyle},
+        isElectron: {...electronInherit, display: 'block', ...electronWrapStyle},
       }),
       wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
     }) as const

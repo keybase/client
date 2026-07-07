@@ -7,6 +7,7 @@ import {settingsDevicesTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 import {rpcDeviceDetailToDevice} from './common'
 import {getDeviceRevokeIconType} from './device-icon'
+import {useRPCLoad} from '@/util/use-rpc-load'
 
 type DeviceRevokeProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
@@ -18,8 +19,8 @@ const renderTLFEntry = (index: number, tlf: string) => (
     </Kb.Text>
   </Kb.Box2>
 )
-const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
-  if (!props.endangeredTLFs.length) return null
+const EndangeredTLFList = (props: {endangeredTLFs?: ReadonlyArray<string>}) => {
+  if (!props.endangeredTLFs?.length) return null
   return (
     <>
       <Kb.Text center={true} type="Body">
@@ -30,35 +31,6 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
       </Kb.ScrollView>
     </>
   )
-}
-
-const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: () => void}) => (
-  <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontalReverse'} fullWidth={isMobile} gap="tiny">
-    <Kb.WaitingButton
-      fullWidth={isMobile}
-      type="Danger"
-      label="Yes, delete it"
-      waitingKey={C.waitingKeyDevices}
-      onClick={onSubmit}
-    />
-    <Kb.Button fullWidth={isMobile} type="Dim" onClick={onCancel} label="Cancel" />
-  </Kb.Box2>
-)
-
-const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
-  if (!actingDevice || !targetDevice) {
-    return []
-  }
-  try {
-    const tlfs = await T.RPCGen.rekeyGetRevokeWarningRpcPromise(
-      {actingDevice, targetDevice},
-      C.waitingKeyDevices
-    )
-    return tlfs.endangeredTLFs?.map(t => t.name) ?? []
-  } catch (e) {
-    console.error(e)
-  }
-  return []
 }
 
 const revokeDevice = async (
@@ -95,40 +67,27 @@ const useRevoke = (device: T.Devices.Device) => {
 }
 
 const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
-  const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
   const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
-  const [loadedDevice, setLoadedDevice] = React.useState<T.Devices.Device | undefined>()
-  const device = ownProps.device ?? (loadedDevice?.deviceID === selectedDeviceID ? loadedDevice : undefined)
-  const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
+  const {data: loadedDevice, loaded} = useRPCLoad(
+    T.RPCGen.deviceDeviceHistoryListRpcPromise,
+    [undefined, C.waitingKeyDevices],
+    {
+      enabled: !ownProps.device && !!selectedDeviceID,
+      map: results => results?.map(rpcDeviceDetailToDevice).find(c => c.deviceID === selectedDeviceID),
+    }
+  )
+  const device = ownProps.device ?? loadedDevice
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const onCancel = navigateUp
 
-  C.useOnMountOnce(() => {
-    if (device) {
-      return
-    }
-    if (!selectedDeviceID) {
+  // nothing to revoke: no id given, load failed, or device no longer exists
+  const missing = !device && (!selectedDeviceID || (loaded && !loadedDevice))
+  React.useEffect(() => {
+    if (missing) {
       navigateUp()
-      return
     }
-    loadDeviceHistory(
-      [undefined, C.waitingKeyDevices],
-      results => {
-        const hydratedDevice = results
-          ?.map(rpcDeviceDetailToDevice)
-          .find(candidate => candidate.deviceID === selectedDeviceID)
-        if (hydratedDevice) {
-          setLoadedDevice(hydratedDevice)
-        } else {
-          navigateUp()
-        }
-      },
-      _ => {
-        navigateUp()
-      }
-    )
-  })
+  }, [missing, navigateUp])
 
   const onSubmit = useRevoke(
     device ?? {
@@ -143,23 +102,17 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   )
 
   const actingDevice = useCurrentUserState(s => s.deviceID)
-  C.useOnMountOnce(() => {
-    if (!selectedDeviceID) {
-      return
+  const {data: endangeredTLFs} = useRPCLoad(
+    T.RPCGen.rekeyGetRevokeWarningRpcPromise,
+    [{actingDevice, targetDevice: selectedDeviceID}, C.waitingKeyDevices],
+    {
+      enabled: !!actingDevice && !!selectedDeviceID,
+      map: tlfs => tlfs.endangeredTLFs?.map(t => t.name) ?? [],
     }
-    const f = async () => {
-      const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)
-      setEndangeredTLFs(tlfs)
-    }
-    C.ignorePromise(f())
-  })
+  )
 
   if (!device) {
-    return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true} padding="small">
-        <Kb.ProgressIndicator />
-      </Kb.Box2>
-    )
+    return <Kb.LoadingScreen />
   }
 
   const type = device.type
@@ -194,7 +147,13 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
       <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={isMobile}>
         {!waiting && <EndangeredTLFList endangeredTLFs={endangeredTLFs} />}
       </Kb.Box2>
-      <ActionButtons onCancel={onCancel} onSubmit={onSubmit} />
+      <Kb.ConfirmButtons
+        waitingKey={C.waitingKeyDevices}
+        onCancel={onCancel}
+        onConfirm={onSubmit}
+        confirmLabel="Yes, delete it"
+        confirmType="Danger"
+      />
       {waiting && (
         <Kb.Text center={true} type="BodySmallItalic">
           Calculating any side effects...

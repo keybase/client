@@ -1,5 +1,6 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
+import {normalizeFilePathURL} from '@/util/file-url'
 
 type Props = {
   src: string
@@ -22,22 +23,6 @@ import {View} from 'react-native'
 import {useSharedValue, runOnJS} from 'react-native-reanimated'
 import {fitContainer, ResumableZoom, useImageResolution} from '@/util/zoom-toolkit'
 import ImageNative from './image'
-
-// Desktop: normalize file paths to file:// URLs
-const normalizeSrc = (src: string) => {
-  const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(src)
-  if (src.startsWith('/') || isWindowsPath) {
-    let path = src.replace(/\\/g, '/')
-    if (isWindowsPath && !path.startsWith('/')) {
-      path = '/' + path
-    }
-    return encodeURI(`file://${path}`).replace(/#/g, '%23')
-  }
-  if (src.startsWith('file://') && (src.includes(' ') || src.includes('#'))) {
-    return encodeURI(src).replace(/#/g, '%23')
-  }
-  return src
-}
 
 // Stub types to avoid DOM lib dependency in native tsconfig
 type DivRef = {
@@ -185,7 +170,7 @@ const DesktopZoomableImage = (p: Props) => {
         onError={onError}
         className="fade-anim-enter fade-anim-enter-active"
         ref={imgRef as React.RefObject<HTMLImageElement>}
-        src={src ? normalizeSrc(src) : undefined}
+        src={src ? normalizeFilePathURL(src) : undefined}
         style={imgStyle}
       />
       <Toast visible={showToast} attachTo={containerRef as React.RefObject<never>}>

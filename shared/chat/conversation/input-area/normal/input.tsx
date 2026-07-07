@@ -12,7 +12,7 @@ import type {PlatformInputProps as Props} from './input.shared'
 export type {Selection, RefType, TextInfo, PlatformInputProps} from './input.shared'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
-import {ScrollContext} from '@/chat/conversation/normal/context'
+import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useColorScheme} from 'react-native'
 import {useConversationThreadID} from '../../thread-context'
@@ -646,7 +646,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
-  const {scrollDown, scrollUp} = React.useContext(ScrollContext)
+  const {scrollDown, scrollUp} = React.useContext(ThreadRefsContext)
   const onCancelReply = () => {
     setReplyTo(ChatTypes.numberToOrdinal(0))
   }
@@ -1016,7 +1016,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
       <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && (

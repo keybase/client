@@ -12,6 +12,7 @@ import {pprofDir} from '@/constants/platform'
 import {clearLocalLogs} from '@/util/misc'
 import {useWaitingState} from '@/stores/waiting'
 import {useRandomPWState} from './use-random-pw'
+import {useRPCLoad} from '@/util/use-rpc-load'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -140,7 +141,13 @@ const LockdownCheckbox = (p: {
   )
 }
 
+// app-launch value, module level so a remount keeps showing "(restart required)"
 let disableSpellCheckInitialValue: boolean | undefined
+const stampDisableSpellCheckInitialValue = (value: boolean) => {
+  if (disableSpellCheckInitialValue === undefined) {
+    disableSpellCheckInitialValue = value
+  }
+}
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
@@ -154,48 +161,32 @@ const Advanced = () => {
   )
   const {loadLockdownMode, lockdownModeEnabled, setLockdownMode} = useLockdownMode()
   const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
-  const [rememberPassword, setRememberPassword] = React.useState<boolean | undefined>(undefined)
-
-  const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
-  const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
-  const loadRememberPassword = C.useRPC(T.RPCGen.configGetRememberPassphraseRpcPromise)
   const submitRememberPassword = C.useRPC(T.RPCGen.configSetRememberPassphraseRpcPromise)
 
-  // load it
-  React.useEffect(() => {
-    if (disableSpellCheck === undefined) {
-      loadDisableSpellcheck(
-        [{path: 'ui.disableSpellCheck'}],
-        result => {
-          const res = result.b ?? false
-          setDisableSpellcheck(res)
-          if (disableSpellCheckInitialValue === undefined) {
-            disableSpellCheckInitialValue = res
-          }
-        },
-        () => {
-          setDisableSpellcheck(false)
-          if (disableSpellCheckInitialValue === undefined) {
-            disableSpellCheckInitialValue = false
-          }
-        }
-      )
+  const {data: disableSpellCheck, setData: setDisableSpellcheck} = useRPCLoad(
+    T.RPCGen.configGuiGetValueRpcPromise,
+    [{path: 'ui.disableSpellCheck'}],
+    {
+      map: result => {
+        const res = result.b ?? false
+        stampDisableSpellCheckInitialValue(res)
+        return res
+      },
+      onError: () => {
+        stampDisableSpellCheckInitialValue(false)
+        setDisableSpellcheck(false)
+      },
     }
-  }, [disableSpellCheck, loadDisableSpellcheck])
+  )
 
-  React.useEffect(() => {
-    if (rememberPassword === undefined) {
-      loadRememberPassword(
-        [undefined],
-        remember => {
-          setRememberPassword(remember)
-        },
-        () => {
-          setRememberPassword(true)
-        }
-      )
+  const {data: rememberPassword, setData: setRememberPassword} = useRPCLoad(
+    T.RPCGen.configGetRememberPassphraseRpcPromise,
+    [undefined],
+    {
+      map: remember => remember,
+      onError: () => setRememberPassword(true),
     }
-  }, [loadRememberPassword, rememberPassword])
+  )
 
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
   const onChangeRememberPassword = (remember: boolean) => {

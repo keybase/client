@@ -2,30 +2,6 @@ import * as React from 'react'
 
 type FocusRefType = null | {focus: () => void}
 
-type FocusContextType = {
-  focusInput: () => void
-  setInputRef: (inputRef: FocusRefType) => void
-}
-
-export const FocusContext = React.createContext<FocusContextType>({
-  focusInput: () => {},
-  setInputRef: () => {},
-})
-FocusContext.displayName = 'FocusContext'
-
-export const FocusProvider = function FocusProvider({children}: {children: React.ReactNode}) {
-  const inputRef = React.useRef<FocusRefType>(null)
-  const [value] = React.useState<FocusContextType>(() => ({
-    focusInput: () => {
-      inputRef.current?.focus()
-    },
-    setInputRef: r => {
-      inputRef.current = r
-    },
-  }))
-  return <FocusContext value={value}>{children}</FocusContext>
-}
-
 type ScrollType = {
   scrollUp: () => void
   scrollDown: () => void
@@ -33,21 +9,29 @@ type ScrollType = {
 }
 type ScrollRefType = null | ScrollType
 
-type ScrollContextType = ScrollType & {
+type ThreadRefsType = ScrollType & {
+  focusInput: () => void
+  setInputRef: (inputRef: FocusRefType) => void
   setScrollRef: (scrollRef: ScrollRefType) => void
 }
 
-export const ScrollContext = React.createContext<ScrollContextType>({
+export const ThreadRefsContext = React.createContext<ThreadRefsType>({
+  focusInput: () => {},
   scrollDown: () => {},
   scrollToBottom: () => {},
   scrollUp: () => {},
+  setInputRef: () => {},
   setScrollRef: () => {},
 })
-ScrollContext.displayName = 'ScrollContext'
+ThreadRefsContext.displayName = 'ThreadRefsContext'
 
-export const ScrollProvider = function ScrollProvider({children}: {children: React.ReactNode}) {
+export const ThreadRefsProvider = function ThreadRefsProvider({children}: {children: React.ReactNode}) {
+  const inputRef = React.useRef<FocusRefType>(null)
   const scrollRef = React.useRef<ScrollRefType>(null)
-  const [value] = React.useState<ScrollContextType>(() => ({
+  const [value] = React.useState<ThreadRefsType>(() => ({
+    focusInput: () => {
+      inputRef.current?.focus()
+    },
     scrollDown: () => {
       scrollRef.current?.scrollDown()
     },
@@ -57,9 +41,12 @@ export const ScrollProvider = function ScrollProvider({children}: {children: Rea
     scrollUp: () => {
       scrollRef.current?.scrollUp()
     },
+    setInputRef: r => {
+      inputRef.current = r
+    },
     setScrollRef: r => {
       scrollRef.current = r
     },
   }))
-  return <ScrollContext value={value}>{children}</ScrollContext>
+  return <ThreadRefsContext value={value}>{children}</ThreadRefsContext>
 }

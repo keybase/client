@@ -1,6 +1,7 @@
 import type {Meta, StoryObj} from '@storybook/react'
 import type * as T from '@/constants/types'
-import DeviceRow, {BadgedDeviceIDsContext} from './row'
+import DeviceRow from './row'
+import {NewItemsContext} from '@/util/use-local-badging'
 
 const now = Date.now()
 const weekAgo = now - 7 * 24 * 60 * 60 * 1000
@@ -68,9 +69,9 @@ export const Revoked: Story = {
 export const NewBadge: Story = {
   decorators: [
     Story => (
-      <BadgedDeviceIDsContext value={new Set(['device-new'])}>
+      <NewItemsContext value={new Set(['device-new'])}>
         <Story />
-      </BadgedDeviceIDsContext>
+      </NewItemsContext>
     ),
   ],
   args: {

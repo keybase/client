@@ -2,14 +2,14 @@
 #import "react-native-kb.h"
 #endif
 
-#import <React/RCTEventEmitter.h>
+#import <React/RCTInvalidating.h>
 #import <foundation/Foundation.h>
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTCallInvokerModule.h>
 #import <ReactCommon/RCTTurboModuleWithJSIBindings.h>
-@interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule,RCTTurboModuleWithJSIBindings>
+@interface Kb : NativeKbSpecBase <NativeKbSpec,RCTCallInvokerModule,RCTTurboModuleWithJSIBindings,RCTInvalidating>
 @end
 #else
 #endif // RCT_NEW_ARCH_ENABLED

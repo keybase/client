@@ -11,8 +11,8 @@ import ThreadLoadStatus from '../load-status'
 import {useConversationCenterActions} from '../center-context'
 import {
   useConversationThreadID,
-  useConversationThreadSelector,
   useConversationThreadToggleSearch,
+  useThreadMeta,
 } from '../thread-context'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
@@ -54,9 +54,9 @@ const DesktopConversation = function DesktopConversation() {
     })
   }
   const showThreadSearch = !!useThreadSearchRoute()
-  const meta = useConversationThreadSelector(s => s.meta)
-  const {cannotWrite, minWriterRole} = meta
-  const threadLoadedOffline = meta.offline
+  const {cannotWrite, minWriterRole, offline: threadLoadedOffline} = useThreadMeta(
+    C.useShallow(m => ({cannotWrite: m.cannotWrite, minWriterRole: m.minWriterRole, offline: m.offline}))
+  )
   const dragAndDropRejectReason = cannotWrite
     ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
     : undefined
@@ -133,7 +133,7 @@ const NativeConversation = function NativeConversation() {
 
   const safeStyle = {height, maxHeight: height, minHeight: height}
 
-  const threadLoadedOffline = useConversationThreadSelector(s => s.meta.offline)
+  const threadLoadedOffline = useThreadMeta(m => m.offline)
 
   const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
