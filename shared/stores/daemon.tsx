@@ -56,12 +56,14 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       if (inflightBootstrapStatus) {
         return inflightBootstrapStatus
       }
+      const gen = generation
       const f = async () => {
         const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
         logger.info(
           `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
         )
-        if (isEqual(bs, get().bootstrapStatus)) {
+        // a newer handshake owns the store now; don't write a potentially older status over its load
+        if (gen !== generation || isEqual(bs, get().bootstrapStatus)) {
           return
         }
         set(s => {
