@@ -101,7 +101,15 @@ const DesktopFullscreen = (p: Props) => {
   } as StyleOverride
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={TestIDs.CHAT_ATTACHMENT_FULLSCREEN}>
+    // collapsable={false}: Fabric view-flattening would drop this Box2 (and its
+    // testID) from the native tree, breaking e2e lookup on iOS
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      testID={TestIDs.CHAT_ATTACHMENT_FULLSCREEN}
+      collapsable={false}
+    >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
         <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
           {title}
@@ -355,12 +363,16 @@ const NativeFullscreen = (p: Props) => {
   }
 
   return (
+    // collapsable={false}: Fabric view-flattening would drop this Box2 (and its
+    // testID) from the native tree, breaking e2e lookup on iOS
     <Kb.Box2
       direction="vertical"
       relative={true}
       style={{backgroundColor: Kb.Styles.globalColors.blackOrBlack}}
       fullWidth={true}
       fullHeight={true}
+      testID={TestIDs.CHAT_ATTACHMENT_FULLSCREEN}
+      collapsable={false}
     >
       {spinner}
       <ShowToastAfterSaving transferState={message.transferState} />

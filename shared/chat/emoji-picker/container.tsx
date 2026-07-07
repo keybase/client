@@ -114,6 +114,8 @@ const WrapperMobile = (props: Props) => {
   const canManageEmoji = useCanManageEmoji(conversationIDKey)
 
   return (
+    // collapsable={false}: Fabric view-flattening would drop this Box2 (and its
+    // testID) from the native tree, breaking e2e lookup on iOS
     <Kb.Box2
       direction="vertical"
       onLayout={onLayout}
@@ -121,6 +123,7 @@ const WrapperMobile = (props: Props) => {
       fullHeight={true}
       style={styles.contain}
       testID={TestIDs.CHAT_EMOJI_PICKER}
+      collapsable={false}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.ClickableBox direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
