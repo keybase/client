@@ -23,6 +23,9 @@ export const useRemoteDarkModeSync = (darkMode?: boolean) => {
   React.useEffect(() => {
     if (darkMode !== undefined) {
       setSystemDarkMode(darkMode)
+      // hidden/transparent remote windows don't reliably get prefers-color-scheme
+      // media query updates, so drive the CSS light-dark() resolution explicitly
+      document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light'
     }
   }, [darkMode, setSystemDarkMode])
 }
