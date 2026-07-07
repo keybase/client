@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import {validatePgpInfo} from '@/profile/pgp/validation'
+import {validatePgpInfo} from '@/profile/pgp/choice'
 import {normalizeProofUsername} from '@/profile/proof-utils'
 import {resetAllStores} from '@/util/zustand'
 

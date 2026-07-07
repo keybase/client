@@ -1,15 +1,12 @@
 import {getEngine} from './require'
 import {ensureError, RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
-import type {CommonResponseHandler} from './types'
+import type {CommonResponseHandler, WaitingKey} from './types'
 import {wrapErrors} from '@/util/debug'
 import type {ErrorType} from './rpc-transport'
 
-type WaitingKey = string | ReadonlyArray<string>
-
 // Wraps a response to update the waiting state
-const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: WaitingKey) => {
-  const r = _r
+const makeWaitingResponse = (r?: Partial<CommonResponseHandler>, waitingKey?: WaitingKey) => {
   if (!r || !waitingKey) {
     return r
   }
@@ -19,9 +16,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
   if (r.error) {
     response.error = (e: ErrorType) => {
       // Waiting on the server again
-      if (waitingKey) {
-        getEngine().dispatchWaitingAction(waitingKey, true)
-      }
+      getEngine().dispatchWaitingAction(waitingKey, true)
       r.error?.(e)
     }
   }
@@ -29,9 +24,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
   if (r.result) {
     response.result = (...args: Array<unknown>) => {
       // Waiting on the server again
-      if (waitingKey) {
-        getEngine().dispatchWaitingAction(waitingKey, true)
-      }
+      getEngine().dispatchWaitingAction(waitingKey, true)
       r.result?.(...args)
     }
   }
@@ -53,19 +46,13 @@ async function listener(p: {
     const incomingCallMap = p.incomingCallMap || {}
     const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
 
-    // custom and normal incomingCallMaps
-    const bothCallMaps = [
-      ...Object.keys(incomingCallMap).map(method => ({custom: false, method})),
-      ...Object.keys(customResponseIncomingCallMap).map(method => ({custom: true, method})),
-    ]
-
     // Waiting on the server
     if (waitingKey) {
       getEngine().dispatchWaitingAction(waitingKey, true)
     }
 
-    const callMap = bothCallMaps.reduce((map: {[key: string]: unknown}, {method, custom}) => {
-      map[method] = (params: unknown, _response: CommonResponseHandler) => {
+    const makeHandler = (method: string, custom: boolean) => {
+      return (params: unknown, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
           getEngine().dispatchWaitingAction(waitingKey, false)
@@ -99,13 +86,18 @@ async function listener(p: {
             }
           }, method)
 
-          invokeAndDispatch()
-            .then(() => {})
-            .catch(() => {})
+          invokeAndDispatch().catch(() => {})
         }, 0)
       }
-      return map
-    }, {})
+    }
+
+    const callMap: {[key: string]: unknown} = {}
+    for (const method of Object.keys(incomingCallMap)) {
+      callMap[method] = makeHandler(method, false)
+    }
+    for (const method of Object.keys(customResponseIncomingCallMap)) {
+      callMap[method] = makeHandler(method, true)
+    }
 
     // Make the actual call
     let outstandingIntervalID: ReturnType<typeof setInterval>

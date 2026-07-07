@@ -4,7 +4,7 @@ export type OutOfDate = {
   updating: boolean
   outOfDate: boolean
 }
-export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
+export type DaemonHandshakeState = 'loading' | 'done' | 'failed'
 export type ConfiguredAccount = {
   fullname?: string
   hasStoredSecret: boolean

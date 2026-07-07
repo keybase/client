@@ -77,7 +77,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           {teamMeta.teamname}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Text type="Header" lineClamp={1} style={styles.header}>
+      <Kb.Text type="Header" lineClamp={1} style={styles.flexShrink}>
         {'#' + channelname}
       </Kb.Text>
     </Kb.Box2>
@@ -200,9 +200,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         {topDescriptors}
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {bottomDescriptorsAndButtons}
-          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.tipBox}>
-            {tip}
-          </Kb.Box2>
+          {tip}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -223,9 +221,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
       },
       flexShrink: {
-        flexShrink: 1,
-      },
-      header: {
         flexShrink: 1,
       },
       outerBoxDesktop: {

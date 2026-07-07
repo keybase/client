@@ -33,13 +33,92 @@ using namespace kb;
 
 @end
 
-static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 static __weak Kb *kbSharedInstance = nil;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
+
+// from react-native-localize
+static bool kbUses24HourClockForLocale(NSLocale *_Nonnull locale) {
+  NSDateFormatter *formatter = [NSDateFormatter new];
+
+  [formatter setLocale:locale];
+  [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+  [formatter setDateStyle:NSDateFormatterNoStyle];
+  [formatter setTimeStyle:NSDateFormatterShortStyle];
+
+  NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
+  return [[formatter stringFromDate:date] containsString:@"20"];
+}
+
+static NSString *kbSetupServerConfig(void) {
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+  NSString *cachePath = [paths objectAtIndex:0];
+  NSString *filePath = [cachePath stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
+  NSError *err;
+  NSString *val = [NSString stringWithContentsOfFile:filePath
+                                            encoding:NSUTF8StringEncoding
+                                               error:&err];
+  if (err != nil || val == nil) {
+    return @"";
+  }
+  return val;
+}
+
+static NSString *kbSetupGuiConfig(void) {
+  NSString *filePath = [[[FsPathsHolder sharedFsPathsHolder] fsPaths][@"sharedHome"]
+          stringByAppendingPathComponent: @"/Library/Application Support/Keybase/gui_config.json"];
+  NSError *err;
+  NSString *val = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&err];
+  if (err != nil || val == nil) {
+    return @"";
+  }
+  return val;
+}
+
+// Built once; safe because fsPaths and KeybaseInit are set up in the app
+// delegate before React Native creates this module.
+static NSDictionary *kbConstants(void) {
+  static NSDictionary *constants = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    NSString *serverConfig = kbSetupServerConfig();
+    NSString *guiConfig = kbSetupGuiConfig();
+
+    NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    if (appVersionString == nil) {
+      appVersionString = @"";
+    }
+    NSString *appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    if (appBuildString == nil) {
+      appBuildString = @"";
+    }
+    NSLocale *currentLocale = [NSLocale currentLocale];
+    NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
+
+    NSString *kbVersion = KeybaseVersion();
+    if (kbVersion == nil) {
+      kbVersion = @"";
+    }
+    constants = @{
+      @"androidIsDeviceSecure" : @NO,
+      @"androidIsTestDevice" : @NO,
+      @"appVersionCode" : appBuildString,
+      @"appVersionName" : appVersionString,
+      @"darkModeSupported" : @YES,
+      @"fsCacheDir" : cacheDir,
+      @"fsDownloadDir" : downloadDir,
+      @"guiConfig" : guiConfig,
+      @"serverConfig" : serverConfig,
+      @"uses24HourClock" : @(kbUses24HourClockForLocale(currentLocale)),
+      @"version" : kbVersion
+    };
+  });
+  return constants;
+}
 
 @interface Kb ()
 @property dispatch_queue_t readQueue;
@@ -56,6 +135,12 @@ RCT_EXPORT_MODULE()
   return YES;
 }
 
+// _eventEmitterCallback is only set once JS creates the TurboModule; emitting
+// through the generated helpers before then would call a null std::function.
+- (BOOL)canEmit {
+  return _eventEmitterCallback != nullptr;
+}
+
 - (instancetype)init {
   self = [super init];
   kbSharedInstance = self;
@@ -65,6 +150,11 @@ RCT_EXPORT_MODULE()
                                                name:@"hardwareKeyPressed"
                                              object:nil];
   [Kb swizzleUITextViewPaste];
+  // getTypedConstants is a blocking synchronous JS call that does file I/O;
+  // warm the cache off the main/JS threads so startup doesn't stall on disk.
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    (void)kbConstants();
+  });
   return self;
 }
 
@@ -91,7 +181,7 @@ RCT_EXPORT_MODULE()
   if (!kbSharedInstance || images.count == 0) return;
 
   // Encoding and writing pasted images can be slow for large images; keep it
-  // off the main thread. sendEventWithName is safe to call from any thread.
+  // off the main thread. The emit helpers are safe to call from any thread.
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
     NSMutableArray *uris = [NSMutableArray array];
     for (UIImage *rawImage in images) {
@@ -118,7 +208,10 @@ RCT_EXPORT_MODULE()
     }
 
     if (uris.count > 0) {
-      [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uris": uris}];
+      Kb *instance = kbSharedInstance;
+      if (instance && [instance canEmit]) {
+        [instance emitOnPasteImage:uris];
+      }
     }
   });
 }
@@ -131,14 +224,9 @@ RCT_EXPORT_MODULE()
     kbBridge_->teardown();
     kbBridge_.reset();
   }
-  [super invalidate];
   self.readQueue = nil;
   NSError *error = nil;
   KeybaseReset(&error);
-}
-
-- (NSArray<NSString *> *)supportedEvents {
-return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage", @"onPushNotification", @"onPushToken" ];
 }
 
 RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
@@ -176,81 +264,8 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
                          [[NSDate date] timeIntervalSince1970] * 1000]);
 }
 
-// from react-native-localize
-- (bool)uses24HourClockForLocale:(NSLocale *_Nonnull)locale {
-  NSDateFormatter *formatter = [NSDateFormatter new];
-
-  [formatter setLocale:locale];
-  [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-  [formatter setDateStyle:NSDateFormatterNoStyle];
-  [formatter setTimeStyle:NSDateFormatterShortStyle];
-
-  NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
-  return [[formatter stringFromDate:date] containsString:@"20"];
-}
-
-- (NSString *)setupServerConfig {
-  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-  NSString *cachePath = [paths objectAtIndex:0];
-  NSString *filePath = [cachePath stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
-  NSError *err;
-  NSString *val = [NSString stringWithContentsOfFile:filePath
-                                            encoding:NSUTF8StringEncoding
-                                               error:&err];
-  if (err != nil || val == nil) {
-    return @"";
-  }
-  return val;
-}
-
-- (NSString *)setupGuiConfig {
-  NSString *filePath = [[[FsPathsHolder sharedFsPathsHolder] fsPaths][@"sharedHome"]
-          stringByAppendingPathComponent: @"/Library/Application Support/Keybase/gui_config.json"];
-  NSError *err;
-  NSString *val = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&err];
-  if (err != nil || val == nil) {
-    return @"";
-  }
-  return val;
-}
-
- - (NSDictionary *)getConstants {
-     return @{};
- }
-
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
-  NSString *serverConfig = [self setupServerConfig];
-  NSString *guiConfig = [self setupGuiConfig];
-
-  NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-  if (appVersionString == nil) {
-    appVersionString = @"";
-  }
-  NSString *appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-  if (appBuildString == nil) {
-    appBuildString = @"";
-  }
-  NSLocale *currentLocale = [NSLocale currentLocale];
-  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
-  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
-
-  NSString *kbVersion = KeybaseVersion();
-  if (kbVersion == nil) {
-    kbVersion = @"";
-  }
-  return @{
-    @"androidIsDeviceSecure" : @NO,
-    @"androidIsTestDevice" : @NO,
-    @"appVersionCode" : appBuildString,
-    @"appVersionName" : appVersionString,
-    @"darkModeSupported" : @YES,
-    @"fsCacheDir" : cacheDir,
-    @"fsDownloadDir" : downloadDir,
-    @"guiConfig" : guiConfig,
-    @"serverConfig" : serverConfig,
-    @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
-    @"version" : kbVersion
-  };
+  return kbConstants();
 }
 
 RCT_EXPORT_METHOD(shareListenersRegistered) {
@@ -259,7 +274,9 @@ RCT_EXPORT_METHOD(shareListenersRegistered) {
 RCT_EXPORT_METHOD(engineReset) {
   NSError *error = nil;
   KeybaseReset(&error);
-  [self sendEventWithName:metaEventName body:metaEventEngineReset];
+  if ([self canEmit]) {
+    [self emitOnMetaEvent:metaEventEngineReset];
+  }
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
@@ -465,8 +482,9 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
 + (void)setDeviceToken:(NSString *)token {
   kbStoredDeviceToken = token;
   dispatch_async(dispatch_get_main_queue(), ^{
-    if (kbSharedInstance && token) {
-      [kbSharedInstance sendEventWithName:@"onPushToken" body:@{@"token": token}];
+    Kb *instance = kbSharedInstance;
+    if (instance && token && [instance canEmit]) {
+      [instance emitOnPushToken:token];
     }
   });
 }
@@ -476,38 +494,25 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
 }
 
 + (void)emitPushNotification:(NSDictionary *)notification {
-  if (kbSharedInstance) {
-    [kbSharedInstance sendEventWithName:@"onPushNotification" body:notification];
+  Kb *instance = kbSharedInstance;
+  if (instance && [instance canEmit]) {
+    [instance emitOnPushNotification:notification];
     NSLog(@"Kb.emitPushNotification: sent event 'onPushNotification' to JS");
   } else {
-    NSLog(@"Kb.emitPushNotification: WARNING - kbSharedInstance is nil, event not sent");
+    NSLog(@"Kb.emitPushNotification: WARNING - module not ready, event not sent");
   }
 }
 
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {
   NSString *keyName = notification.userInfo[@"pressedKey"];
-  if (keyName) {
-    NSDictionary *event = @{@"pressedKey": keyName};
-    [self sendEventWithName:@"hardwareKeyPressed" body:event];
+  if (keyName && [self canEmit]) {
+    [self emitOnHardwareKeyPressed:keyName];
   }
 }
 
-RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
-  NSDictionary *event = @{@"pressedKey": keyName};
-  [self sendEventWithName:@"hardwareKeyPressed" body:event];
-}
-
-- (NSNumber *)androidCheckPushPermissions {return @-1;}
-- (NSNumber *)androidRequestPushPermissions {return @-1;}
-- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
-- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
-- (NSString *)androidGetRegistrationToken {return @"";}
+// Android-only spec methods; stubs satisfy the NativeKbSpec protocol
 - (void)androidAddCompleteDownload:(JS::NativeKb::SpecAndroidAddCompleteDownloadO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidAppColorSchemeChanged:(NSString *)mode {}
-- (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidRequestPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{}
-- (void)androidSetApplicationIconBadgeNumber:(double)n {}
 - (void)androidShare:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 @end

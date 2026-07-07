@@ -8,6 +8,7 @@ import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window.desktop'
 import {htmlURL, preloadPath} from './html-root.desktop'
+import {registerRemoteWindow} from './remote-windows.desktop'
 import path from 'path'
 import type {BadgeType} from '@/stores/notifications'
 
@@ -40,7 +41,7 @@ const getIcons = (iconType: BadgeType, badges: number) => {
   }
 }
 
-const htmlFile = htmlURL('menubar', 'param=menubar')
+const htmlFile = htmlURL('remote', 'component=menubar&param=menubar')
 
 let badgeType: BadgeType = 'regular'
 let badges = 0
@@ -130,19 +131,14 @@ const MenuBar = () => {
   })
 
   mb.on('ready', () => {
+    if (mb.window) {
+      registerRemoteWindow('menubar', 'menubar', mb.window)
+    }
     mb.window?.setVisibleOnAllWorkspaces(true, {visibleOnFullScreen: true, skipTransformProcessType: true})
     mb.window
       ?.loadURL(htmlFile)
       .then(() => {})
       .catch(() => {})
-
-    // ask for an update in case we missed one
-    R.remoteDispatch(
-      RemoteGen.createRemoteWindowWantsProps({
-        component: 'menubar',
-        param: '',
-      })
-    )
 
     mb.tray.setIgnoreDoubleClickEvents(true)
 

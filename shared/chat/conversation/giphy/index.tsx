@@ -123,9 +123,7 @@ const NativeGiphySearch = () => {
           mediaPlaybackRequiresUserAction={false}
         />
       ) : (
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
-          <Kb.ProgressIndicator />
-        </Kb.Box2>
+        <Kb.LoadingScreen />
       )}
     </Kb.Box2>
   )

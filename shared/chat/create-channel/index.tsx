@@ -55,14 +55,12 @@ const CreateChannel = (p: Props) => {
               onChangeText={props.onDescriptionChange}
             />
           </Kb.Box2>
-          <Kb.ButtonBar fullWidth={true} style={buttonBarStyle}>
-            <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
-            <Kb.WaitingButton
-              waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
-              onClick={props.onSubmit}
-              label="Save"
-            />
-          </Kb.ButtonBar>
+          <Kb.ConfirmButtons
+            waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
+            onCancel={props.onBack}
+            onConfirm={props.onSubmit}
+            confirmLabel="Save"
+          />
         </Kb.Box2>
       </>
     )

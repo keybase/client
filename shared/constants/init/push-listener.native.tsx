@@ -5,14 +5,14 @@ import {emitDeepLink} from '@/router-v2/linking'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,
-  getNativeEmitter,
+  onPushNotification,
+  onPushToken,
+  onShareData,
   getInitialNotification,
   removeAllPendingNotificationRequests,
-  shareListenersRegistered,
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useLogoutState} from '@/stores/logout'
 import {usePushState} from '@/stores/push'
 import {useShellState} from '@/stores/shell'
 
@@ -240,12 +240,6 @@ export const initPushListener = () => {
       .catch(() => {})
   })
 
-  // Token handling
-  useLogoutState.subscribe((s, old) => {
-    if (s.version === old.version) return
-    usePushState.getState().dispatch.deleteToken(s.version)
-  })
-
   let lastCount = -1
   useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
@@ -305,8 +299,6 @@ export const initPushListener = () => {
   })
 
   const listenNative = async () => {
-    const RNEmitter = getNativeEmitter()
-
     // Set up listener immediately, before waiting for token
     // This ensures notifications aren't lost if they arrive before token is ready
     const onNotification = (n: object) => {
@@ -323,20 +315,17 @@ export const initPushListener = () => {
       // Unified push notification handling for both iOS and Android
       // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
       // Other notification types are handled natively first, then emitted to JS via onPushNotification
-      RNEmitter.addListener('onPushNotification', onNotification)
+      onPushNotification(onNotification)
 
       if (isIOS) {
-        RNEmitter.addListener('onPushToken', (payload?: {token?: string}) => {
-          const token = payload?.token
-          if (token) {
-            logger.debug('[PushToken] received token via onPushToken event: ', token)
-            usePushState.getState().dispatch.setPushToken(token)
-          }
+        onPushToken(token => {
+          logger.debug('[PushToken] received token via onPushToken event: ', token)
+          usePushState.getState().dispatch.setPushToken(token)
         })
       }
 
       if (isAndroid) {
-        RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
+        onShareData(evt => {
           const {setAndroidShare} = useConfigState.getState().dispatch
 
           const text = evt.text
@@ -351,7 +340,9 @@ export const initPushListener = () => {
           }
           emitDeepLink('keybase://incoming-share')
         })
-        shareListenersRegistered()
+        // shareListenersRegistered() is deliberately NOT called here: it makes native flush
+        // pending share intents, and emitDeepLink has no queue. The init/index.tsx router
+        // subscriber calls it once we're logged in with the router mounted.
       }
     } catch (e) {
       logger.error('[Push] failed to set up listeners: ', e)

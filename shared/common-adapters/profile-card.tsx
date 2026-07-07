@@ -15,7 +15,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
-import DelayedMounting from './delayed-mounting'
+import {useTimeout} from './use-timers'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import type ChatButtonType from '../chat/chat-button'
 import type {MeasureRef} from './measure-ref'
@@ -24,6 +24,13 @@ import {useTrackerProfile} from '@/tracker/use-profile'
 import {noAssertion} from '@/tracker/model'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
+
+const DelayedMounting = (props: {delay: number; children: React.ReactNode}) => {
+  const [showing, setShowing] = React.useState(false)
+  const setShowingTrue = useTimeout(() => setShowing(true), props.delay)
+  React.useEffect(setShowingTrue, [setShowingTrue])
+  return <>{showing && props.children}</>
+}
 
 const Kb = {
   Box2,

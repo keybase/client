@@ -1,21 +1,6 @@
 import type * as React from 'react'
-import type {Animated} from 'react-native'
-
-export type SwipeableMethods = {
-  close: () => void
-  reset: () => void
-}
-
-type Props = {
-  children?: React.ReactNode
-  renderRightActions?: (
-    progress: Animated.AnimatedDivision<number>,
-    translation: Animated.Value
-  ) => React.ReactNode
-  onSwipeableOpenStartDrag?: () => void
-  onSwipeableWillOpen?: (direction: 'left') => void
-  containerStyle?: object
-}
+import type {Props, SwipeableMethods} from './swipeable-row.shared'
+export type {SwipeableMethods} from './swipeable-row.shared'
 
 const SwipeableRow = (_p: Props & {ref?: React.Ref<SwipeableMethods>}) => null
 export default SwipeableRow

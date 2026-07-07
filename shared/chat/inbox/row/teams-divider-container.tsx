@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type {ChatInboxRowItem} from '../rowitem'
 import {useConfigState} from '@/stores/config'
-import {useInboxRowsState} from '@/chat/inbox/rows-state'
+import {useInboxBadgeState} from '@/chat/inbox/badge-state'
 import TeamsDivider from './teams-divider'
 
 type Props = Omit<React.ComponentProps<typeof TeamsDivider>, 'badgeCount'> & {
@@ -22,11 +22,11 @@ const TeamsDividerContainer = React.memo(function TeamsDividerContainer(props: P
     return ids
   }, [rows])
 
-  const visibleBadges = useInboxRowsState(
+  const visibleBadges = useInboxBadgeState(
     React.useCallback(s => {
       let total = 0
       for (const conversationIDKey of visibleSmallConvIDs) {
-        total += s.rowsSmall.get(conversationIDKey)?.badgeCount ?? 0
+        total += s.counts.get(conversationIDKey)?.badgeCount ?? 0
       }
       return total
     }, [visibleSmallConvIDs])

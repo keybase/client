@@ -3,7 +3,9 @@ import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as RouterConstants from '@/constants/router'
 import * as T from '@/constants/types'
+import {timeoutPromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
+import {useDaemonState} from '@/stores/daemon'
 import {useRouterState} from '@/stores/router'
 import {afterKbfsDaemonRpcStatusChanged, fsUserIn, fsUserOut} from './lifecycle'
 
@@ -22,6 +24,8 @@ const emptyFsDaemonActions: FsDaemonActions = {
 const FsDaemonStatusContext = React.createContext<T.FS.KbfsDaemonStatus | undefined>(undefined)
 const FsDaemonActionsContext = React.createContext<FsDaemonActions | undefined>(undefined)
 
+const connectedPollIntervalMs = 5000
+
 const waitForKbfsDaemon = async (
   generation: number,
   isCurrentAsyncGeneration: (generation: number) => boolean,
@@ -30,36 +34,40 @@ const waitForKbfsDaemon = async (
   waitForKbfsDaemonInProgressRef: {current: boolean},
   asyncGenerationRef: {current: number}
 ) => {
-  while (isCurrentAsyncGeneration(generation)) {
-    try {
-      const connected = await T.RPCGen.configWaitForClientRpcPromise({
-        clientType: T.RPCGen.ClientType.kbfs,
-        timeout: 0, // Don't wait; just check if it's there.
-      })
-      if (!isCurrentAsyncGeneration(generation)) {
-        return
-      }
-      const newStatus = connected ? T.FS.KbfsDaemonRpcStatus.Connected : T.FS.KbfsDaemonRpcStatus.Waiting
-      if (kbfsDaemonStatusRef.current.rpcStatus !== newStatus) {
-        kbfsDaemonRpcStatusChanged(newStatus)
-      }
-      if (newStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-        return
-      }
-      waitForKbfsDaemonInProgressRef.current = true
+  // The service has no notification for a client detaching, so this loop runs for the whole
+  // login session: it polls while connected to notice kbfs dying, and waits while disconnected.
+  waitForKbfsDaemonInProgressRef.current = true
+  try {
+    while (isCurrentAsyncGeneration(generation)) {
       try {
-        await T.RPCGen.configWaitForClientRpcPromise({
+        const connected = await T.RPCGen.configWaitForClientRpcPromise({
           clientType: T.RPCGen.ClientType.kbfs,
-          timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
+          timeout: 0, // Don't wait; just check if it's there.
         })
-      } catch {
-      } finally {
-        if (generation === asyncGenerationRef.current) {
-          waitForKbfsDaemonInProgressRef.current = false
+        if (!isCurrentAsyncGeneration(generation)) {
+          return
         }
+        const newStatus = connected ? T.FS.KbfsDaemonRpcStatus.Connected : T.FS.KbfsDaemonRpcStatus.Waiting
+        if (kbfsDaemonStatusRef.current.rpcStatus !== newStatus) {
+          kbfsDaemonRpcStatusChanged(newStatus)
+        }
+        if (newStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
+          await timeoutPromise(connectedPollIntervalMs)
+          continue
+        }
+        try {
+          await T.RPCGen.configWaitForClientRpcPromise({
+            clientType: T.RPCGen.ClientType.kbfs,
+            timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
+          })
+        } catch {}
+      } catch {
+        return
       }
-    } catch {
-      return
+    }
+  } finally {
+    if (generation === asyncGenerationRef.current) {
+      waitForKbfsDaemonInProgressRef.current = false
     }
   }
 }
@@ -68,6 +76,9 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const userSwitching = useConfigState(s => s.userSwitching)
   const installerRanCount = useConfigState(s => s.installerRanCount)
+  // Re-kick the watcher when the daemon handshake (re)completes: the watch loop exits
+  // if the service dies, and a new handshake means RPCs work again.
+  const handshakeDone = useDaemonState(s => s.handshakeState === 'done')
   const navState = useRouterState(s => s.navState as RouterConstants.NavState | undefined)
   const [kbfsDaemonStatus, setKbfsDaemonStatus] = React.useState<T.FS.KbfsDaemonStatus>(
     Constants.unknownKbfsDaemonStatus
@@ -151,7 +162,7 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
       return
     }
     checkKbfsDaemonRpcStatus()
-  }, [installerRanCount, shouldRunBackgroundFSRPC])
+  }, [installerRanCount, shouldRunBackgroundFSRPC, handshakeDone])
 
   React.useEffect(() => {
     const previousNavState = previousNavStateRef.current

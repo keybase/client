@@ -5,6 +5,7 @@ import {generateGUIID, ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {produce} from 'immer'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {navigateAppend, navigateUp} from '@/constants/router'
@@ -78,7 +79,10 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     }))
   )
   const [details, setDetails] = React.useState<T.Tracker.Details>(() => makeDetails(username))
-  const [nonUserDetails, setNonUserDetails] = React.useState<{details: T.Tracker.NonUserDetails; username: string}>(() => ({
+  const [nonUserDetails, setNonUserDetails] = React.useState<{
+    details: T.Tracker.NonUserDetails
+    username: string
+  }>(() => ({
     details: {...noNonUserDetails},
     username,
   }))
@@ -109,13 +113,15 @@ export const useTrackerProfile = (username: string, options?: Options) => {
       requestVersionRef.current = version
       const preserveExistingData = detailsRef.current.username === username
 
-      setDetails(prev => ({
-        ...(preserveExistingData ? prev : makeDetails(username)),
-        guiID,
-        reason: preserveExistingData && prev.resetBrokeTrack ? prev.reason : '',
-        resetBrokeTrack: preserveExistingData ? prev.resetBrokeTrack : false,
-        state: 'checking',
-      }))
+      setDetails(prev =>
+        produce(preserveExistingData ? prev : makeDetails(username), draft => {
+          draft.guiID = guiID
+          if (!draft.resetBrokeTrack) {
+            draft.reason = ''
+          }
+          draft.state = 'checking'
+        })
+      )
 
       const load = async () => {
         try {
@@ -129,7 +135,11 @@ export const useTrackerProfile = (username: string, options?: Options) => {
             return
           }
           if (error.code === T.RPCGen.StatusCode.scresolutionfailed) {
-            setDetails(prev => ({...prev, state: 'notAUserYet'}))
+            setDetails(
+              produce(draft => {
+                draft.state = 'notAUserYet'
+              })
+            )
             loadNonUserProfile()
           } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
             navigateUp()
@@ -154,11 +164,12 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           if (requestVersionRef.current !== version) {
             return
           }
-          setDetails(prev => ({
-            ...prev,
-            followers: new Set((fs.users ?? []).map(f => f.username)),
-            followersCount: fs.users?.length ?? 0,
-          }))
+          setDetails(
+            produce(draft => {
+              draft.followers = new Set((fs.users ?? []).map(f => f.username))
+              draft.followersCount = fs.users?.length ?? 0
+            })
+          )
           if (fs.users) {
             useUsersState
               .getState()
@@ -181,11 +192,12 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           if (requestVersionRef.current !== version) {
             return
           }
-          setDetails(prev => ({
-            ...prev,
-            following: new Set((fs.users ?? []).map(f => f.username)),
-            followingCount: fs.users?.length ?? 0,
-          }))
+          setDetails(
+            produce(draft => {
+              draft.following = new Set((fs.users ?? []).map(f => f.username))
+              draft.followingCount = fs.users?.length ?? 0
+            })
+          )
           if (fs.users) {
             useUsersState
               .getState()

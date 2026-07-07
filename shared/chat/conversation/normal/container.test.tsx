@@ -96,6 +96,7 @@ jest.mock('../thread-context', () => ({
   useConversationThreadSelector: (
     selector: (state: {loaded: boolean; meta: T.Chat.ConversationMeta}) => unknown
   ) => selector({loaded: mockLoaded, meta: mockMeta}),
+  useThreadMeta: (selector: (meta: T.Chat.ConversationMeta) => unknown) => selector(mockMeta),
 }))
 
 jest.mock('../team-hooks', () => {

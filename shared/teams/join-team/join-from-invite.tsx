@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {Success} from './container'
+import Success from './success'
 
 type Props = {
   inviteDetails?: T.RPCGen.InviteLinkDetails

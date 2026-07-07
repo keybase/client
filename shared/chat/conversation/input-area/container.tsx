@@ -5,16 +5,16 @@ import Normal from './normal'
 import Preview from './preview'
 import ThreadSearch from '../search'
 import {useThreadSearchRoute} from '../thread-search-route'
-import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
+import {useConversationThreadID, useThreadMeta} from '../thread-context'
 
 const InputAreaContainer = () => {
   const conversationIDKey = useConversationThreadID()
   const showThreadSearch = !!useThreadSearchRoute()
-  const {membershipType, resetParticipants, wasFinalizedBy} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      membershipType: s.meta.membershipType,
-      resetParticipants: s.meta.resetParticipants,
-      wasFinalizedBy: s.meta.wasFinalizedBy,
+  const {membershipType, resetParticipants, wasFinalizedBy} = useThreadMeta(
+    C.useShallow(m => ({
+      membershipType: m.membershipType,
+      resetParticipants: m.resetParticipants,
+      wasFinalizedBy: m.wasFinalizedBy,
     }))
   )
 

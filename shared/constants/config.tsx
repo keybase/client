@@ -5,7 +5,6 @@ export const invalidPasswordErrorString = 'Bad password: Invalid password. Serve
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
-export const noKBFSFailReason = "Can't connect to KBFS"
 const defaultTeamPrefix = '/team/'
 
 export const privateFolderWithUsers = (users: ReadonlyArray<string>) =>

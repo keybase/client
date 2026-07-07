@@ -21,9 +21,8 @@ type Props = {
 }
 
 const CHECKBOX_SIZE = 13
-const CHECKBOX_MARGIN = 8
 
-const Kb = {Box2, ClickableBox, Icon, Styles, Switch, Text}
+const Kb = {Box2, ClickableBox, Icon, Switch, Text}
 
 const Checkbox = (props: Props) => {
   if (!isMobile) {
@@ -32,7 +31,8 @@ const Checkbox = (props: Props) => {
         direction="horizontal"
         alignItems="flex-start"
         alignSelf="flex-start"
-        style={Kb.Styles.collapseStyles([
+        gap="tiny"
+        style={Styles.collapseStyles([
           styles.container,
           !props.disabled && styles.clickable,
           props.style,
@@ -42,8 +42,8 @@ const Checkbox = (props: Props) => {
         }
       >
         <div
-          style={Kb.Styles.castStyleDesktop(
-            Kb.Styles.collapseStyles([
+          style={Styles.castStyleDesktop(
+            Styles.collapseStyles([
               styles.checkbox,
               props.checked && styles.checkboxChecked,
               props.disabled && styles.checkboxInactive,
@@ -54,9 +54,9 @@ const Checkbox = (props: Props) => {
         >
           <Kb.Icon
             type="iconfont-check"
-            style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
-            hoverColor={Kb.Styles.globalColors.white}
-            color={props.checkboxColor ?? Kb.Styles.globalColors.white}
+            style={Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
+            hoverColor={Styles.globalColors.white}
+            color={props.checkboxColor ?? Styles.globalColors.white}
             fontSize={9}
           />
         </div>
@@ -90,42 +90,41 @@ const Checkbox = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  checkbox: Kb.Styles.platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  checkbox: Styles.platformStyles({
     isElectron: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      ...Kb.Styles.transition('background'),
-      backgroundColor: Kb.Styles.globalColors.white,
-      ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, 2),
+      ...Styles.globalStyles.flexBoxColumn,
+      ...Styles.transition('background'),
+      backgroundColor: Styles.globalColors.white,
+      ...Styles.border(Styles.globalColors.black_20, 1, 2),
       flexShrink: 0,
-      ...Kb.Styles.size(CHECKBOX_SIZE),
+      ...Styles.size(CHECKBOX_SIZE),
       justifyContent: 'center',
-      marginRight: CHECKBOX_MARGIN,
       marginTop: 2,
       position: 'relative',
     },
   }),
   checkboxChecked: {
-    backgroundColor: Kb.Styles.globalColors.blue,
-    borderColor: Kb.Styles.globalColors.blue,
+    backgroundColor: Styles.globalColors.blue,
+    borderColor: Styles.globalColors.blue,
   },
-  checkboxInactive: {borderColor: Kb.Styles.globalColors.black_10},
-  clickable: Kb.Styles.platformStyles({
+  checkboxInactive: {borderColor: Styles.globalColors.black_10},
+  clickable: Styles.platformStyles({
     isElectron: {
-      ...Kb.Styles.desktopStyles.clickable,
+      ...Styles.desktopStyles.clickable,
     },
   }),
   container: {
-    ...Kb.Styles.paddingV(2),
+    ...Styles.paddingV(2),
   },
-  icon: Kb.Styles.platformStyles({
+  icon: Styles.platformStyles({
     isElectron: {
-      ...Kb.Styles.transition('opacity'),
+      ...Styles.transition('opacity'),
       alignSelf: 'center',
     },
   }),
   mobileContainer: {
-    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
+    ...Styles.paddingV(Styles.globalMargins.xtiny),
   },
   semiTransparent: {opacity: 0.4},
   transparent: {opacity: 0},

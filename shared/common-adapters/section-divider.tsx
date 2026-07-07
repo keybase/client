@@ -22,8 +22,15 @@ type Props = {
 
 const SectionDivider = (props: Props) => {
   const collapsible = props.collapsed === true || props.collapsed === false
+  const boxProps = {
+    alignItems: 'center',
+    direction: 'horizontal',
+    fullWidth: true,
+    gap: 'xtiny',
+    style: styles.container,
+  } as const
   const children = (
-    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true} style={styles.container}>
+    <>
       {typeof props.label === 'string' ? (
         <Kb.Text type="BodySmallSemibold">{props.label}</Kb.Text>
       ) : (
@@ -37,14 +44,14 @@ const SectionDivider = (props: Props) => {
         />
       )}
       {props.showSpinner && <Kb.ProgressIndicator style={styles.progress} />}
-    </Kb.Box2>
+    </>
   )
   return collapsible ? (
-    <Kb.ClickableBox onClick={props.onToggleCollapsed} direction="horizontal" fullWidth={true}>
+    <Kb.ClickableBox {...boxProps} onClick={props.onToggleCollapsed}>
       {children}
     </Kb.ClickableBox>
   ) : (
-    children
+    <Kb.Box2 {...boxProps}>{children}</Kb.Box2>
   )
 }
 const height = isMobile ? 40 : 32

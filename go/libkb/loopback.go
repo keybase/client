@@ -137,6 +137,31 @@ func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 	return n, nil
 }
 
+// TryRead is a non-blocking Read: it returns immediately with n == 0 when no
+// data is pending. Used by the mobile bridge to coalesce already-pending
+// writes into one delivery, amortizing the per-call native->JS bridge hop.
+func (lc *LoopbackConn) TryRead(b []byte) (n int, err error) {
+	lc.rMutex.Lock()
+	defer lc.rMutex.Unlock()
+
+	if lc.buf.Len() > 0 {
+		return lc.buf.Read(b)
+	}
+	select {
+	case msg, ok := <-lc.partnerCh:
+		if !ok {
+			return 0, io.EOF
+		}
+		n = copy(b, msg)
+		if n < len(msg) {
+			lc.buf.Write(msg[n:])
+		}
+		return n, nil
+	default:
+		return 0, nil
+	}
+}
+
 // Write writes data to the connection.
 func (lc *LoopbackConn) Write(b []byte) (n int, err error) {
 	lc.wMutex.Lock()

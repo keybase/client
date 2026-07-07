@@ -2,24 +2,16 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {handleConvoEngineIncoming} from './engine'
-import {getInboxConversationMeta, getInboxConversationParticipants, syncBadgeState} from './metadata'
+import {getInboxConversationMeta, getInboxConversationParticipants} from './metadata'
 import {useConfigState} from '@/stores/config'
-import {
-  syncInboxRowBadgeState,
-  syncInboxRowsFromParticipantMap,
-  updateInboxRowTyping,
-} from '@/chat/inbox/rows-state'
+import {updateInboxTyping} from '@/chat/inbox/typing-state'
 
-jest.mock('@/chat/inbox/rows-state', () => ({
-  getInboxRowTrustedState: jest.fn(() => undefined),
-  setInboxRowTrustedState: jest.fn(),
-  syncInboxRowBadgeState: jest.fn(),
-  syncInboxRowsFromLayout: jest.fn(),
-  syncInboxRowsFromMetaAndParticipants: jest.fn(),
-  syncInboxRowsFromMetas: jest.fn(),
-  syncInboxRowsFromParticipantMap: jest.fn(),
-  syncInboxRowsFromParticipants: jest.fn(),
-  updateInboxRowTyping: jest.fn(),
+jest.mock('@/chat/inbox/badge-state', () => ({
+  syncInboxBadgeState: jest.fn(),
+}))
+
+jest.mock('@/chat/inbox/typing-state', () => ({
+  updateInboxTyping: jest.fn(),
 }))
 
 afterEach(() => {
@@ -371,7 +363,7 @@ test('global typing and participant updates route to inbox rows', () => {
     type: 'chat.1.NotifyChat.ChatTypingUpdate',
   } as never)
 
-  expect(updateInboxRowTyping).toHaveBeenCalledWith(typingUpdates)
+  expect(updateInboxTyping).toHaveBeenCalledWith(typingUpdates)
 
   const participantMap = {
     [T.Chat.conversationIDKeyToString(convID)]: [
@@ -385,7 +377,7 @@ test('global typing and participant updates route to inbox rows', () => {
     type: 'chat.1.NotifyChat.ChatParticipantsInfo',
   } as never)
 
-  expect(syncInboxRowsFromParticipantMap).toHaveBeenCalledWith(participantMap)
+  expect(getInboxConversationParticipants(convID)?.name).toEqual(['alice', 'bob'])
 })
 
 test('global inbox failure routing stores error metadata and rekey participants', () => {
@@ -416,36 +408,4 @@ test('global inbox failure routing stores error metadata and rekey participants'
   expect(meta?.snippet).toBe('rekey needed')
   expect([...(meta?.rekeyers ?? [])]).toEqual(['bob'])
   expect(getInboxConversationParticipants(convID)?.name).toEqual(['alice', 'bob', 'charlie'])
-})
-
-test('syncBadgeState delegates badge ownership to inbox rows', () => {
-  const badgeState = {
-    bigTeamBadgeCount: 0,
-    conversations: [
-      {
-        badgeCount: 1,
-        convID: T.Chat.keyToConversationID(convID),
-        unreadMessages: 6,
-      },
-    ],
-    homeTodoItems: 0,
-    inboxVers: 0,
-    newDevices: null,
-    newFollowers: 0,
-    newGitRepoGlobalUniqueIDs: [],
-    newTeamAccessRequestCount: 0,
-    newTeams: [],
-    newTlfs: 0,
-    rekeysNeeded: 0,
-    resetState: {active: false, endTime: 0},
-    revokedDevices: null,
-    smallTeamBadgeCount: 1,
-    teamsWithResetUsers: null,
-    unverifiedEmails: 0,
-    unverifiedPhones: 0,
-  } as T.RPCGen.BadgeState
-
-  syncBadgeState(badgeState)
-
-  expect(syncInboxRowBadgeState).toHaveBeenCalledWith(badgeState)
 })

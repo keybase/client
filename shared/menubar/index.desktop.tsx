@@ -15,7 +15,7 @@ import {Loading} from '@/fs/simple-screens'
 import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
-import {useColorScheme} from 'react-native'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -63,7 +63,6 @@ export type Props = {
   showingDiskSpaceBanner: boolean
   totalSyncingBytes: number
   username: string
-  darkMode: boolean
 }
 
 // Simple avatar via httpSrv
@@ -75,7 +74,7 @@ const HttpAvatar = (p: {
   httpSrvToken: string
   style?: React.CSSProperties
 }) => {
-  const isDarkMode = useColorScheme() === 'dark'
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const typ = p.isTeam ? 'team' : 'user'
   const src = `http://${p.httpSrvAddress}/av?typ=${typ}&name=${p.name}&format=square_192&mode=${isDarkMode ? 'dark' : 'light'}&token=${p.httpSrvToken}&count=0`
   return <img src={src} width={p.size} height={p.size} style={{...avatarStyle, ...p.style}} loading="lazy" />
@@ -83,7 +82,7 @@ const HttpAvatar = (p: {
 const avatarStyle = {borderRadius: '50%', flexShrink: 0} satisfies React.CSSProperties
 
 const ArrowTick = () => {
-  const isDarkMode = useColorScheme() === 'dark'
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
   return (
     <Kb.Box2
       direction="vertical"
@@ -413,7 +412,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => (navBadges[val] ?? 0) + acc, 0)
-  const isDarkMode = useColorScheme() === 'dark'
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
   return (
     <Kb.Box2
       direction="horizontal"
@@ -499,7 +498,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
 
   const text = fullyLoggedOut
     ? 'You are logged out of Keybase.'
-    : daemonHandshakeState === 'waitingForWaiters'
+    : daemonHandshakeState === 'loading'
       ? 'Connecting interface to crypto engine... This may take a few seconds.'
       : 'Starting up Keybase...'
 
@@ -585,7 +584,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
   const {tab, countMap, openApp} = p
   const count = countMap[tab]
   const iconType = iconMap[tab]
-  const isDarkMode = useColorScheme() === 'dark'
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
 
   if ((tab === C.Tabs.devicesTab && !count) || !iconType) {
     return null

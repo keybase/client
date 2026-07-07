@@ -9,7 +9,12 @@ import ErrorBoundary from '@/common-adapters/error-boundary'
 import KB2 from '@/util/electron'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
-import {type RemoteComponentName, useRemotePropsReceiver} from './remote-component.desktop'
+import {
+  getRemoteComponentParam,
+  type RemoteComponentName,
+  useRemoteDarkModeSync,
+  useRemotePropsReceiver,
+} from './remote-component.desktop'
 
 setServiceDecoration(ServiceDecoration)
 
@@ -29,6 +34,7 @@ type Props<P> = {
 function RemoteComponentLoader<P>(p: Props<P>) {
   const {Component, component, param, showOnProps} = p
   const value = useRemotePropsReceiver<P>({component, param, showOnProps})
+  useRemoteDarkModeSync(value?.darkMode)
 
   if (!value) return null
 
@@ -66,7 +72,6 @@ const styles = Kb.Styles.styleSheetCreate(
 export default function loadRemoteComponent<P>(options: {
   Component: React.ComponentType<P>
   component: RemoteComponentName
-  param?: string
   style?: Kb.Styles.StylesCrossPlatform
   showOnProps?: boolean
 }) {
@@ -77,7 +82,7 @@ export default function loadRemoteComponent<P>(options: {
       <RemoteComponentLoader<P>
         Component={options.Component}
         component={options.component}
-        param={options.param ?? ''}
+        param={getRemoteComponentParam()}
         style={options.style}
         showOnProps={options.showOnProps ?? true}
       />

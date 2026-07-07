@@ -12,7 +12,7 @@ test('desktop push store reports resettable defaults', async () => {
   await expect(dispatch.checkPermissions()).resolves.toBe(false)
 
   dispatch.clearPendingPushNotification()
-  dispatch.deleteToken(1)
+  await dispatch.deleteTokenForLogout()
   dispatch.initialPermissionsCheck()
   dispatch.rejectPermissions()
   dispatch.requestPermissions()
