@@ -1,9 +1,9 @@
 #!/bin/bash
-# Fetch open (non-hidden) Copilot inline review comments for a PR.
+# Fetch open Copilot inline review comments for a PR.
 # Usage: ./get-copilot-feedback.sh <pr-number>
-# "Hidden" = the review thread is resolved or outdated. Those are ignored.
-# Resolved/outdated state lives on the GraphQL review thread, not the REST
-# comment's `position` field, so a resolved comment can still have position != null.
+# Skips only hidden comments: resolved threads or minimized comments.
+# Outdated threads (diff position moved) are still shown, tagged [OUTDATED] —
+# the issue may still exist in the current code and must be evaluated.
 set -euo pipefail
 
 PR=${1:-$(gh pr view --json number -q .number)}
@@ -19,7 +19,7 @@ query($owner:String!,$repo:String!,$pr:Int!){
           isResolved
           isOutdated
           comments(first:1){
-            nodes{ author{login} path line originalLine body }
+            nodes{ author{login} isMinimized path line originalLine body }
           }
         }
       }
@@ -27,8 +27,9 @@ query($owner:String!,$repo:String!,$pr:Int!){
   }
 }' -F owner="$OWNER" -F repo="$REPO" -F pr="$PR" --jq '
   .data.repository.pullRequest.reviewThreads.nodes[]
-  | select(.isResolved == false and .isOutdated == false)
-  | .comments.nodes[0]
+  | select(.isResolved == false) as $thread
+  | $thread.comments.nodes[0]
+  | select(.isMinimized == false)
   | select(.author.login == "Copilot" or .author.login == "copilot-pull-request-reviewer")
-  | "[\(.path):\(.line // .originalLine)]\n\(.body)\n"
+  | "[\(.path):\(.line // .originalLine)]\(if $thread.isOutdated then " [OUTDATED]" else "" end)\n\(.body)\n"
 '

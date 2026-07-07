@@ -632,9 +632,10 @@ func ReadArr() (data []byte, err error) {
 			}
 		}
 		// Deliver data even if err != nil (allowed by the net.Conn
-		// contract); the error will surface on the next call. Returning a
-		// view of the shared buffer is safe because gomobile copies the
-		// bytes across the boundary and ReadArr is called serially.
+		// contract); a persistent failure is returned by a later call.
+		// Returning a view of the shared buffer is safe because gomobile
+		// copies the bytes across the boundary and ReadArr is called
+		// serially.
 		return buffer[0:n], nil
 	}
 
