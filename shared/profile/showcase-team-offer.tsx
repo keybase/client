@@ -140,7 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
-        isMobile: {minHeight: isMobile ? 64 : 48},
+        isMobile: {minHeight: 64},
       }),
     }) as const
 )

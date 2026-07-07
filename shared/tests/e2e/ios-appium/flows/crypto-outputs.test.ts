@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore} from '../helpers/navigate'
-import {el, waitForTestID, byText, tapForTestID, enterText} from '../helpers/elements'
+import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {el, waitForTestID, tapForTestID, enterText} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 // Two separate tests: the crypto output is shown in its own modal whose "Done"
@@ -10,7 +10,7 @@ describe('crypto outputs', () => {
   it('encrypt produces output', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Crypto').click()
+    await tapSettingsRow('Crypto')
     await waitForTestID(T.CRYPTO_INPUT, 3000)
 
     await tapForTestID(T.CRYPTO_NAV_ENCRYPT, T.CRYPTO_ENCRYPT_INPUT)
@@ -23,7 +23,7 @@ describe('crypto outputs', () => {
   it('sign produces output', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Crypto').click()
+    await tapSettingsRow('Crypto')
     await waitForTestID(T.CRYPTO_INPUT, 3000)
 
     await tapForTestID(T.CRYPTO_NAV_SIGN, T.CRYPTO_SIGN_INPUT)

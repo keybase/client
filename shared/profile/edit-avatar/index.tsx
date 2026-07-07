@@ -1,11 +1,10 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from './index.shared'
+import useEditAvatar, {type Props} from './hooks'
 import {useNavigation} from '@react-navigation/native'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {ModalTitle} from '@/teams/common'
-import useHooks from './hooks'
 import './edit-avatar.css'
 import KB2 from '@/util/electron'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker'
@@ -67,7 +66,7 @@ const getCropCoordinates = (c: Crop) => {
 // Desktop implementation
 type Loading = undefined | 'loading' | 'loaded'
 const DesktopEditAvatar = (_p: Props) => {
-  const p = useHooks(_p)
+  const p = useEditAvatar(_p)
   const {wizard, type, error, createdTeam, teamname} = p
   const [serror, setSerror] = React.useState(false)
   const [dropping, setDropping] = React.useState(false)
@@ -231,7 +230,7 @@ const chooseAvatar = async (
 
 const NativeAvatarUploadWrapper = (p: Props) => {
   const {newTeamWizard} = p
-  const props = useHooks(p)
+  const props = useEditAvatar(p)
   const {image, error: _error, onSave: _onSave, teamID, type, wizard, waitingKey} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')

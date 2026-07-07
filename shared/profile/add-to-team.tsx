@@ -7,7 +7,7 @@ import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import logger from '@/logger'
 import {useRPCLoad} from '@/util/use-rpc-load'
-import {useTeamsList} from '@/teams/use-teams-list'
+import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 
 const getOwnerDisabledReason = (
   selected: Set<string>,
@@ -59,7 +59,7 @@ const noTeamList = new Array<T.Teams.TeamProfileAddList>()
 const AddToTeam = (ownProps: OwnProps) => {
   const {username: them} = ownProps
   const {teams} = useTeamsList()
-  const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+  const teamNameToID = useTeamsListNameToIDMap()
   const teamNameToRole = React.useMemo(
     () => new Map(teams.map(team => [team.teamname, team.role] as const)),
     [teams]
@@ -269,7 +269,6 @@ const AddToTeam = (ownProps: OwnProps) => {
           </Kb.Text>
           <FloatingRolePicker
             presetRole={selectedRole}
-
             footerComponent={footerComponent}
             onConfirm={onConfirmRolePicker}
             onCancel={onCancelRolePicker}

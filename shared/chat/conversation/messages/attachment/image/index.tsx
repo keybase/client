@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showAttachmentPreview} from '../../../attachment-actions'
 import {useConversationThreadID} from '../../../thread-context'
 import ImageImpl from './imageimpl'
@@ -70,6 +71,7 @@ function Image(p: Props) {
             onClick={openFullscreen}
             onLongPress={hasMessageID ? showPopup : undefined}
             ref={toastTargetRef}
+            testID={TestIDs.CHAT_ATTACHMENT_IMAGE}
           >
             <ImageImpl message={message} />
           </Kb.ClickableBox>

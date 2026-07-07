@@ -1,13 +1,13 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore} from '../helpers/navigate'
-import {el, waitForTestID, byText} from '../helpers/elements'
+import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('git', () => {
   it('renders the git repo list with a repo row', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Git').click()
+    await tapSettingsRow('Git')
     await waitForTestID(T.GIT_REPO_LIST, 3000)
     await expect(el(T.GIT_REPO_LIST)).toExist()
 

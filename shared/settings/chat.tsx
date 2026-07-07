@@ -6,6 +6,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
 import SettingsSectionTitle from './section-title'
 import {loadSettings} from './load-settings'
+import {produce} from 'immer'
 import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
 import {useRPCLoad} from '@/util/use-rpc-load'
@@ -20,16 +21,12 @@ type NotificationSettingsState = ReturnType<typeof useNotificationSettings>
 const useContactSettings = () => {
   const saveContactSettingsRPC = C.useRPC(T.RPCGen.accountUserSetContactSettingsRpcPromise)
   const [error, setError] = React.useState('')
-  const {data: settings, reload} = useRPCLoad(
-    T.RPCGen.accountUserGetContactSettingsRpcPromise,
-    [undefined],
-    {
-      map: s => s,
-      onError: () => setError('Unable to load contact settings, please try again.'),
-      onResult: () => setError(''),
-      when: 'manual',
-    }
-  )
+  const {data: settings, reload} = useRPCLoad(T.RPCGen.accountUserGetContactSettingsRpcPromise, [undefined], {
+    map: s => s,
+    onError: () => setError('Unable to load contact settings, please try again.'),
+    onResult: () => setError(''),
+    when: 'manual',
+  })
 
   const contactSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
@@ -263,10 +260,11 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
                       isOpen={teamMeta.isOpen}
                       name={teamMeta.teamname}
                       onCheck={(checked: boolean) =>
-                        setContactSettingsSelectedTeams(s => ({
-                          ...s,
-                          [teamMeta.id]: checked,
-                        }))
+                        setContactSettingsSelectedTeams(
+                          produce(draft => {
+                            draft[teamMeta.id] = checked
+                          })
+                        )
                       }
                     />
                   ))}
@@ -316,10 +314,11 @@ const Links = () => {
   }
 
   const toggleUnfurlWhitelist = (domain: string) => {
-    setUnfurlWhitelistRemoved(prev => ({
-      ...prev,
-      [domain]: !prev[domain],
-    }))
+    setUnfurlWhitelistRemoved(
+      produce(draft => {
+        draft[domain] = !draft[domain]
+      })
+    )
   }
 
   React.useEffect(() => {
@@ -387,10 +386,7 @@ const Links = () => {
                       </Kb.Text>
                     ) : (
                       <Kb.WithTooltip tooltip="Remove">
-                        <Kb.Icon
-                          onClick={() => toggleUnfurlWhitelist(w)}
-                          type="iconfont-trash"
-                        />
+                        <Kb.Icon onClick={() => toggleUnfurlWhitelist(w)} type="iconfont-trash" />
                       </Kb.WithTooltip>
                     )}
                   </Kb.Box2>
@@ -406,12 +402,7 @@ const Links = () => {
           selected={selected === T.RPCChat.UnfurlMode.never}
         />
       </Kb.Box2>
-      <Kb.Box2
-        direction="vertical"
-        gap="tiny"
-        alignSelf="flex-start"
-        style={styles.innerContainer}
-      >
+      <Kb.Box2 direction="vertical" gap="tiny" alignSelf="flex-start" style={styles.innerContainer}>
         <Kb.WaitingButton
           onClick={onSave}
           label="Save"
@@ -509,9 +500,7 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
         <Kb.Text type="BodySemibold" lineClamp={1}>
           {name}
         </Kb.Text>
-        {isOpen && (
-          <Kb.Meta variant="open" style={styles.teamMeta} />
-        )}
+        {isOpen && <Kb.Meta variant="open" style={styles.teamMeta} />}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -554,7 +543,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.xtiny, isMobile ? Kb.Styles.globalMargins.large : 48),
+    ...Kb.Styles.padding(
+      Kb.Styles.globalMargins.xtiny,
+      Kb.Styles.globalMargins.small,
+      Kb.Styles.globalMargins.xtiny,
+      isMobile ? Kb.Styles.globalMargins.large : 48
+    ),
   },
   whitelist: Kb.Styles.platformStyles({
     common: {

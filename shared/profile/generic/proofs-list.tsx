@@ -4,9 +4,10 @@ import PlatformIcon from '../platform-icon'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
+import {produce} from 'immer'
 import {useColorScheme} from 'react-native'
 import Modal from '../modal'
-import {SiteIcon} from './shared'
+import {SiteIcon} from './site-icon'
 import {normalizeProofUsername} from '../proof-utils'
 import {openURL as openUrl} from '@/util/misc'
 import {subtitle} from '@/util/platforms'
@@ -38,7 +39,6 @@ const makeProveGenericParams = (): ProveGenericParams => ({
 })
 
 const toProveGenericParams = (p: T.RPCGen.ProveParameters): ProveGenericParams => ({
-  ...makeProveGenericParams(),
   buttonLabel: p.buttonLabel,
   logoBlack: p.logoBlack || [],
   logoFull: p.logoFull || [],
@@ -275,10 +275,6 @@ const runProofFlow = async (p: {
               platform: service,
               username: currentUsernameRef.current,
             })
-            cancelCurrentRef.current = () => {
-              canceled = true
-              response.error(inputCancelError)
-            }
           } else if (genericService && parameters) {
             currentGenericParamsRef.current = toProveGenericParams(parameters)
             setStepSafe({
@@ -350,7 +346,7 @@ const runProofFlow = async (p: {
   }
 }
 
-const Container = ({platform, reason = 'profile'}: Props) => {
+const ProofsList = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const {proofSuggestions} = useProofSuggestions()
   const {loadProfile} = useTrackerProfile(currentUsername)
@@ -469,7 +465,12 @@ const Container = ({platform, reason = 'profile'}: Props) => {
 
     if (proofPlatform === 'btc') {
       if (!valid) {
-        setStepSafe({error: 'Invalid address format', kind: 'enterUsername', platform: proofPlatform, username: input})
+        setStepSafe({
+          error: 'Invalid address format',
+          kind: 'enterUsername',
+          platform: proofPlatform,
+          username: input,
+        })
         return
       }
       registerCryptoAddress(
@@ -556,7 +557,9 @@ const Container = ({platform, reason = 'profile'}: Props) => {
                   body={
                     <Kb.Box2 direction="vertical" fullWidth={true}>
                       <Kb.Text type="BodyBigLink">Host a TXT file</Kb.Text>
-                      <Kb.Text type="Body">Host a text file on your site, such as yoursite.com/keybase.txt.</Kb.Text>
+                      <Kb.Text type="Body">
+                        Host a text file on your site, such as yoursite.com/keybase.txt.
+                      </Kb.Text>
                     </Kb.Box2>
                   }
                   onClick={() => startProof('web', 'profile')}
@@ -638,7 +641,13 @@ const Container = ({platform, reason = 'profile'}: Props) => {
       case 'genericResult':
         return <GenericResult onClose={closeToProfile} step={step} />
       case 'pick':
-        return <ProviderPicker onCancel={closeModal} onSelect={key => startProof(key, 'profile')} providers={providers} />
+        return (
+          <ProviderPicker
+            onCancel={closeModal}
+            onSelect={key => startProof(key, 'profile')}
+            providers={providers}
+          />
+        )
     }
   })()
 
@@ -664,7 +673,7 @@ const ProviderPicker = ({
 }) => {
   const [filter, setFilter] = React.useState('')
   const itemHeight = {
-    height: isMobile ? 56 : 48,
+    height: rowHeight,
     type: 'fixed',
   } as const
   const filterRegexp = makeInsertMatcher(filter)
@@ -719,7 +728,11 @@ const ProviderPicker = ({
                     {(provider.new || !!provider.desc) && (
                       <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
                         {provider.new && (
-                          <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
+                          <Kb.Meta
+                            title="NEW"
+                            backgroundColor={Kb.Styles.globalColors.blue}
+                            style={styles.new}
+                          />
                         )}
                         <Kb.Text type="BodySmall" style={styles.description}>
                           {provider.desc}
@@ -777,9 +790,19 @@ const EnterUsername = ({
 
   const username =
     usernameState.initialUsername === initialUsername ? usernameState.username : initialUsername
-  const setUsername = (username: string) => setUsernameState(state => ({...state, username}))
+  const setUsername = (username: string) =>
+    setUsernameState(
+      produce(draft => {
+        draft.username = username
+      })
+    )
   const errorText = errorState.error === error ? errorState.errorText : normalizedError
-  const setErrorText = (errorText: string) => setErrorState(state => ({...state, errorText}))
+  const setErrorText = (errorText: string) =>
+    setErrorState(
+      produce(draft => {
+        draft.errorText = errorText
+      })
+    )
   const canSubmit = !!username.length
   const submit = () => {
     if (!canSubmit) {
@@ -848,7 +871,12 @@ const GenericEnterUsername = ({
   }
 
   const username = usernameState.stepUsername === step.username ? usernameState.username : step.username
-  const setUsername = (username: string) => setUsernameState(state => ({...state, username}))
+  const setUsername = (username: string) =>
+    setUsernameState(
+      produce(draft => {
+        draft.username = username
+      })
+    )
   const unreachable = !!step.proofUrl
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -900,9 +928,7 @@ const GenericEnterUsername = ({
               error={!!step.error}
               onChangeText={setUsername}
               onEnterKeyDown={() => onSubmit(username)}
-              placeholder={
-                step.genericParams.suffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
-              }
+              placeholder={step.genericParams.suffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'}
               value={username}
             />
           </Kb.Box2>
@@ -1034,11 +1060,7 @@ const PostProof = ({
           <Kb.Box2 direction={isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
             <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
             {showSubmit ? (
-              <Kb.WaitingButton
-                onClick={onSubmit}
-                label={onCompleteText}
-                waitingKey={C.waitingKeyProfile}
-              />
+              <Kb.WaitingButton onClick={onSubmit} label={onCompleteText} waitingKey={C.waitingKeyProfile} />
             ) : (
               <Kb.Button
                 onClick={() => {
@@ -1057,13 +1079,7 @@ const PostProof = ({
   )
 }
 
-const ConfirmOrPending = ({
-  onClose,
-  step,
-}: {
-  onClose: () => void
-  step: ConfirmOrPendingStep
-}) => {
+const ConfirmOrPending = ({onClose, step}: {onClose: () => void; step: ConfirmOrPendingStep}) => {
   const isGood = step.proofFound && step.proofStatus === T.RPCGen.ProofStatus.ok
   const isPending =
     !isGood &&
@@ -1107,8 +1123,8 @@ const ConfirmOrPending = ({
         </Kb.Text>
         {step.platform === 'http' && (
           <Kb.Text center={true} type="BodySmall">
-            Note: {step.username} doesn&apos;t load over https. If you get a real SSL certificate
-            (not self-signed) in the future, please replace this proof with a fresh one.
+            Note: {step.username} doesn&apos;t load over https. If you get a real SSL certificate (not
+            self-signed) in the future, please replace this proof with a fresh one.
           </Kb.Text>
         )}
         <Kb.Button onClick={onClose} label="Reload profile" />
@@ -1117,13 +1133,7 @@ const ConfirmOrPending = ({
   )
 }
 
-const GenericResult = ({
-  onClose,
-  step,
-}: {
-  onClose: () => void
-  step: GenericResultStep
-}) => {
+const GenericResult = ({onClose, step}: {onClose: () => void; step: GenericResultStep}) => {
   const proofUsername = step.username + step.genericParams.suffix
   const success = !step.error
   const iconType = success ? 'icon-proof-success' : 'icon-proof-broken'
@@ -1264,16 +1274,11 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
         type="BodyPrimaryLink"
         center={true}
         {...rootUrlProps}
-        style={{color: Kb.Styles.globalColors.blueDark, marginTop: Kb.Styles.globalMargins.tiny}}
+        style={Kb.Styles.collapseStyles([styles.webLink, styles.webLinkFirst])}
       >
         {root}
       </Kb.Text>
-      <Kb.Text
-        type="BodyPrimaryLink"
-        center={true}
-        {...wellKnownUrlProps}
-        style={{color: Kb.Styles.globalColors.blueDark}}
-      >
+      <Kb.Text type="BodyPrimaryLink" center={true} {...wellKnownUrlProps} style={styles.webLink}>
         {wellKnown}
       </Kb.Text>
     </Kb.Box2>
@@ -1287,7 +1292,8 @@ const descriptionMap: Partial<
 > = {
   dns: () => (
     <Kb.Text center={true} type="BodySemibold">
-      Enter the following as a TXT entry in your DNS zone, <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>
+      Enter the following as a TXT entry in your DNS zone,{' '}
+      <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>
       {'. If you need a "name" for your entry, give it "@".'}
     </Kb.Text>
   ),
@@ -1300,7 +1306,10 @@ const descriptionMap: Partial<
   ),
   hackernews: () => (
     <Kb.Text center={true} type="BodySemibold">
-      Please add the below text <Kb.Text type="BodySemibold" style={Kb.Styles.globalStyles.italic}>exactly as it appears</Kb.Text>{' '}
+      Please add the below text{' '}
+      <Kb.Text type="BodySemibold" style={Kb.Styles.globalStyles.italic}>
+        exactly as it appears
+      </Kb.Text>{' '}
       to your profile.
     </Kb.Text>
   ),
@@ -1308,7 +1317,8 @@ const descriptionMap: Partial<
   https: WebDescription,
   reddit: () => (
     <Kb.Text center={true} type="BodySemibold">
-      Click the button below and post the form in the subreddit <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
+      Click the button below and post the form in the subreddit{' '}
+      <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
     </Kb.Text>
   ),
   rooter: () => null,
@@ -1334,11 +1344,7 @@ const normalizeForFiltering = (input: string) => input.toLowerCase().replace(/[.
 const filterProvider = (p: Provider, filter: RegExp) =>
   normalizeForFiltering(p.name).search(filter) !== -1 || normalizeForFiltering(p.desc).search(filter) !== -1
 
-const rightColumnStyle = Kb.Styles.platformStyles({
-  isElectron: {
-    ...Kb.Styles.textEllipsis,
-  },
-})
+const rowHeight = isMobile ? 56 : 48
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -1373,9 +1379,9 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerBox: {
-        height: isMobile ? 56 : 48,
+        height: rowHeight,
       },
-      description: {...rightColumnStyle},
+      description: Kb.Styles.platformStyles({isElectron: {...Kb.Styles.textEllipsis}}),
       error: {
         backgroundColor: Kb.Styles.globalColors.red,
         borderRadius: Kb.Styles.borderRadius,
@@ -1448,10 +1454,10 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
-      title: {
-        ...rightColumnStyle,
-        color: Kb.Styles.globalColors.black,
-      },
+      title: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black},
+        isElectron: {...Kb.Styles.textEllipsis},
+      }),
       topContainer: {flex: 1},
       unreachableBox: {
         backgroundColor: Kb.Styles.globalColors.black_05,
@@ -1466,7 +1472,9 @@ const styles = Kb.Styles.styleSheetCreate(
       warningText: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.medium, 0),
       },
+      webLink: {color: Kb.Styles.globalColors.blueDark},
+      webLinkFirst: {marginTop: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 
-export default Container
+export default ProofsList

@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, goBackUntilGone} from '../helpers/navigate'
-import {el, waitForTestID, byText, tapForTestID} from '../helpers/elements'
+import {escapeToTabs, navigateToMore, goBackUntilGone, tapSettingsRow} from '../helpers/navigate'
+import {el, waitForTestID, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('crypto subtabs', () => {
@@ -8,7 +8,7 @@ describe('crypto subtabs', () => {
     await escapeToTabs()
     await navigateToMore()
     // Maestro: tapOn text: ".*Crypto" — label match for the Crypto menu item
-    await byText('Crypto').click()
+    await tapSettingsRow('Crypto')
     await waitForTestID(T.CRYPTO_INPUT, 3000)
 
     // Each sub-nav tap immediately follows a push/pop transition; on slow sims

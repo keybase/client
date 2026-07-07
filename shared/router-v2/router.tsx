@@ -105,12 +105,13 @@ type LeftTabNavigatorType = {
 
 // Sticky: once the handshake finishes we never go back to the splash, even if it
 // restarts later (engine reconnect); the disconnected overlay covers that case.
+// Module-level so it survives the navigator remount on user switch (a ref would
+// reset and flash the splash while the post-switch handshake is still running).
+let handshakeEverDone = false
 const useHandshakeEverDone = () => {
-  const everDoneRef = React.useRef(false)
   return useDaemonState(s => {
-    const done = everDoneRef.current || s.handshakeState === 'done'
-    everDoneRef.current = done
-    return done
+    handshakeEverDone = handshakeEverDone || s.handshakeState === 'done'
+    return handshakeEverDone
   })
 }
 
@@ -194,15 +195,17 @@ if (!isMobile) {
 
   const useIsLoadingDesktop = () => !useHandshakeEverDone()
 
+  // During an account switch loggedIn flaps false between the service's loggedOut and
+  // loggedIn notifications; keep the app (and its left nav) mounted through that gap.
   const useIsLoggedInDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(s => s.loggedIn)
+    const loggedIn = useConfigState(s => s.loggedIn || s.userSwitching)
     return loaded && loggedIn
   }
 
   const useIsLoggedOutDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(s => s.loggedIn)
+    const loggedIn = useConfigState(s => s.loggedIn || s.userSwitching)
     return loaded && !loggedIn
   }
 

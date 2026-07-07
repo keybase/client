@@ -104,7 +104,6 @@ const useUserData = (username: string) => {
     guiID: d.guiID,
     hidFromFollowers: d.hidFromFollowers,
     location: undefined,
-    myName,
     name: '',
     reason: d.reason,
     sbsDescription: undefined,

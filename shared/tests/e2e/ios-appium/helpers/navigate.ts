@@ -22,12 +22,41 @@ async function scrollUpUntil(visible: () => Promise<boolean>, maxSwipes: number)
   }
 }
 
+// Android: uiautomator's tree only contains ON-SCREEN views (unlike XCUITest,
+// which exposes below-the-fold rows), so a byText tap on an off-screen settings
+// row simply never finds it. UiScrollable.scrollIntoView scrolls the first
+// scrollable on screen in BOTH directions until the target is visible — also
+// covering the case where a prior test left the list scrolled down.
+async function androidScrollIntoView(uiSelector: string): Promise<void> {
+  await browser
+    .$(`android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(${uiSelector})`)
+    .waitForExist({timeout: 10000})
+    .catch(() => {})
+}
+
 export async function scrollToTestID(id: string, maxSwipes = 8): Promise<void> {
+  if (browser.isAndroid) {
+    await androidScrollIntoView(`new UiSelector().resourceId("${id}")`)
+    return
+  }
   await scrollUpUntil(async () => el(id).isDisplayed().catch(() => false), maxSwipes)
 }
 
 export async function scrollDownToText(text: string, maxSwipes = 8): Promise<void> {
+  if (browser.isAndroid) {
+    await androidScrollIntoView(`new UiSelector().textContains("${text}")`)
+    return
+  }
   await scrollUpUntil(async () => byText(text).isDisplayed().catch(() => false), maxSwipes)
+}
+
+// Tap a settings-root row by its label, scrolling it into view first: Android's
+// uiautomator tree omits off-screen rows (and a prior test may have left the
+// list scrolled), while on iOS the scroll no-ops when the row is already
+// visible. Use this for every row tap that follows navigateToMore.
+export async function tapSettingsRow(text: string): Promise<void> {
+  await scrollDownToText(text)
+  await byText(text).click()
 }
 
 // True once we're at the root of a tab. The tab bar alone isn't proof: on iPad
@@ -35,10 +64,13 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // button (app-custom or native) is present.
 async function atTabs(): Promise<boolean> {
   if (browser.isAndroid) {
-    // Android tab labels are text/content-desc, not resource-id testIDs, so use
-    // tab() (byText) not els(). At a tab root the People tab shows and there's
-    // no app back button nor a native toolbar up-affordance.
+    // tab() scopes to the native BottomNavigationView's label resource-ids with
+    // EXACT text — a looser contains-match gets fooled by screen content (the
+    // emoji picker's "Smileys & People" category once made atTabs report true
+    // and stranded an entire run on the picker). Require two labels so a single
+    // stray match can't fake a root.
     if (!(await tab('People').isExisting().catch(() => false))) return false
+    if (!(await tab('More').isExisting().catch(() => false))) return false
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
     return (await browser.$$('//*[@content-desc="Navigate up" or @content-desc="Back"]').length) === 0
   }
@@ -96,8 +128,10 @@ async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
 // swipe. Try each, re-checking for the tab bar, until we're home.
 // One predicate for any modal/sheet dismiss control (Done/Close/Cancel), any
 // element type — cheaper than three separate searches.
+// visible == 1: hidden nav-stack screens and keyboard toolbars can carry their
+// own Done/Close/Cancel — clicking one is a silent no-op that loops forever.
 const DISMISS_PRED =
-  '-ios predicate string:label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel"'
+  '-ios predicate string:(label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel") AND visible == 1'
 
 // Wait for a tapped control to take effect — return as soon as the tab bar
 // appears OR the control we clicked is gone (the screen transitioned). No fixed
@@ -121,22 +155,51 @@ export async function escapeToTabs(): Promise<void> {
   // background/exit the app).
   if (browser.isAndroid) {
     for (let i = 0; i < 12; i++) {
+      // A back pressed AT the root exits the app (screens can also settle slower
+      // than the wait below, making the loop overshoot) — if that happened,
+      // bring the existing task back to the foreground instead of pressing
+      // back on the launcher. activateApp moves the running process forward;
+      // it does NOT relaunch it (a relaunch would reload from Metro and can
+      // land on a dead blank RN root).
+      const pkg = await browser.getCurrentPackage().catch(() => '')
+      if (pkg && pkg !== 'io.keybase.ossifrage') {
+        await browser.activateApp('io.keybase.ossifrage').catch(() => {})
+        await browser.waitUntil(async () => atTabs(), {timeout: 5000, interval: 250}).catch(() => {})
+        continue
+      }
       if (await atTabs()) return
       await browser.back()
-      await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
+      // Short fixed settle for the pop animation, then loop back to the atTabs
+      // check (itself a slow full-tree query, adding natural pacing). A back
+      // pressed one screen too early is recovered by the foreground guard above,
+      // so a long per-hop wait would only tax multi-hop resets.
+      await browser.pause(800)
     }
     throw new Error('escapeToTabs(android): root tab bar not reached after 12 attempts')
   }
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
+    // Past the first few hops something is off — narrate each step so a stall
+    // is diagnosable from the console instead of looking like a silent hang.
+    const debug = i >= 3
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
     // also have a back button, and tapping back on it is a no-op that loops —
     // so its Done/Close/Cancel must win.
     if ((await browser.$$(DISMISS_PRED).length) > 0) {
       const ctrl = browser.$$(DISMISS_PRED)[0]!
+      // eslint-disable-next-line no-console
+      if (debug) console.log(`  escapeToTabs[${i}]: dismissing "${await ctrl.getAttribute('label').catch(() => '?')}"`)
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
-      continue
+      // Only loop when the click actually changed something; a dismiss control
+      // whose click no-ops (still present, still not at tabs) must fall through
+      // to the back/pop path or we'd click it forever.
+      if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
+      // eslint-disable-next-line no-console
+      if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
+    } else if (debug) {
+      // eslint-disable-next-line no-console
+      console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
     }
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
       const ctrl = els(T.COMMON_BACK_BUTTON)[0]!
@@ -232,24 +295,35 @@ export async function goBackUntilGone(markerId: string, tries = 3): Promise<void
 // The iOS tab bar is a NATIVE UITabBar: testIDs (nav-tab-*) do not reach the
 // native UITabBarItems, but their titles do (exposed as the accessibility
 // name/label). So tabs are tapped by visible label, not testID.
+// Tab taps aren't idle-synchronized (waitForIdleTimeout is 0), so a tap can
+// land mid tab-switch and silently no-op — verify the destination marker and
+// re-tap when it doesn't show.
+export async function tabTo(label: string, markerId: string, {taps = 3, timeout = 4000} = {}): Promise<void> {
+  for (let i = 0; i < taps; i++) {
+    await tab(label).click().catch(() => {})
+    const ok = await el(markerId)
+      .waitForExist({timeout, interval: 150})
+      .then(() => true)
+      .catch(() => false)
+    if (ok) return
+  }
+  throw new Error(`tabTo: "${markerId}" never appeared after ${taps} taps on tab "${label}"`)
+}
+
 export async function navigateToPeople(): Promise<void> {
-  await tab('People').click()
-  await waitForTestID(T.PEOPLE_FEED, 5000)
+  await tabTo('People', T.PEOPLE_FEED)
 }
 
 export async function navigateToChat(): Promise<void> {
-  await tab('Chat').click()
-  await waitForTestID(T.CHAT_INBOX_LIST, 5000)
+  await tabTo('Chat', T.CHAT_INBOX_LIST)
 }
 
 export async function navigateToFiles(): Promise<void> {
-  await tab('Files').click()
-  await waitForTestID(T.FILES_BROWSER, 5000)
+  await tabTo('Files', T.FILES_BROWSER)
 }
 
 export async function navigateToTeams(): Promise<void> {
-  await tab('Teams').click()
-  await waitForTestID(T.TEAMS_LIST, 3000)
+  await tabTo('Teams', T.TEAMS_LIST)
 }
 
 // The "More" tab surfaces Crypto / Git / Devices / Settings under its stack.
