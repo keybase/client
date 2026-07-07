@@ -128,4 +128,5 @@ declare var document: {
   }
   createElement(tag: string): DOMElement
   createTextNode(text: string): DOMTextNode
+  documentElement: {style: {colorScheme: string}}
 }

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {produce} from 'immer'
 
 export type CachedResourceCache<T, K> = {
   clearInFlight: (request: Promise<T>) => void
@@ -156,7 +157,11 @@ const runLoad = async <T, K>(
       return
     }
     onError?.(error)
-    setState(prev => ({...prev, loading: false}))
+    setState(
+      produce(draft => {
+        draft.loading = false
+      })
+    )
   } finally {
     if (request) {
       cache.clearInFlight(request)
@@ -211,34 +216,32 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     }
   }, [cache, cacheKey, enabled, initialData, load, onError, resetCache, staleMs])
 
-  const loadResource = React.useCallback(
-    async (force: boolean) => {
-      const {cache, cacheKey, enabled, initialData, load, onError, resetCache, staleMs} =
-        latestRef.current
-      if (!Object.is(cache.getKey(), cacheKey)) {
-        requestVersionRef.current += 1
-        resetCache(cacheKey)
-      }
-      if (!enabled) {
-        requestVersionRef.current += 1
-        resetCache(cacheKey)
-        return
-      }
-      const loadedAt = cache.getLoadedAt()
-      if (!force && loadedAt && Date.now() - loadedAt < staleMs) {
-        setState(storedState(cache, cacheKey, initialData, {data: cache.getData(), loaded: true, loading: false}))
-        return
-      }
-      const requestVersion = ++requestVersionRef.current
-      setState(prev =>
-        prev.cache === cache && Object.is(prev.cacheKey, cacheKey) && Object.is(prev.initialData, initialData)
-          ? {...prev, loading: true}
-          : storedState(cache, cacheKey, initialData, {...emptyState(initialData), loading: true})
+  const loadResource = React.useCallback(async (force: boolean) => {
+    const {cache, cacheKey, enabled, initialData, load, onError, resetCache, staleMs} = latestRef.current
+    if (!Object.is(cache.getKey(), cacheKey)) {
+      requestVersionRef.current += 1
+      resetCache(cacheKey)
+    }
+    if (!enabled) {
+      requestVersionRef.current += 1
+      resetCache(cacheKey)
+      return
+    }
+    const loadedAt = cache.getLoadedAt()
+    if (!force && loadedAt && Date.now() - loadedAt < staleMs) {
+      setState(
+        storedState(cache, cacheKey, initialData, {data: cache.getData(), loaded: true, loading: false})
       )
-      await runLoad(cache, cacheKey, initialData, load, onError, requestVersion, requestVersionRef, setState)
-    },
-    []
-  )
+      return
+    }
+    const requestVersion = ++requestVersionRef.current
+    setState(prev =>
+      prev.cache === cache && Object.is(prev.cacheKey, cacheKey) && Object.is(prev.initialData, initialData)
+        ? {...prev, loading: true}
+        : storedState(cache, cacheKey, initialData, {...emptyState(initialData), loading: true})
+    )
+    await runLoad(cache, cacheKey, initialData, load, onError, requestVersion, requestVersionRef, setState)
+  }, [])
 
   const reload = React.useCallback(async () => {
     await loadResource(true)

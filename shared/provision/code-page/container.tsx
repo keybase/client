@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
+import {produce} from 'immer'
 import Troubleshooting from '../troubleshooting'
 import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -73,7 +74,12 @@ const CodePageContainer = (op: OwnProps) => {
   }
 
   const tab = tabState.defaultTab === defaultTab ? tabState.tab : defaultTab
-  const setTab = (tab: Tab) => setTabState(state => ({...state, tab}))
+  const setTab = (tab: Tab) =>
+    setTabState(
+      produce(draft => {
+        draft.tab = tab
+      })
+    )
   const tabBackground = tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green
   const buttonType = tab === 'QR' ? ('Default' as const) : ('Success' as const)
   const buttonLabelStyle = tab === 'QR' ? styles.primaryOnBlueLabel : styles.primaryOnGreenLabel
@@ -136,10 +142,16 @@ const CodePageContainer = (op: OwnProps) => {
             <Kb.Divider />
           </>
         )}
-        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+        <Kb.ErrorBanner error={error} />
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <Kb.Box2 direction="vertical" fullHeight={true} style={Kb.Styles.globalStyles.flexGrow}>
-            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny" justifyContent="space-between">
+            <Kb.Box2
+              direction="vertical"
+              style={styles.container}
+              fullWidth={true}
+              gap="tiny"
+              justifyContent="space-between"
+            >
               <Instructions
                 currentDeviceAlreadyProvisioned={currentDeviceAlreadyProvisioned}
                 currentDevice={currentDevice}
@@ -282,9 +294,7 @@ const SwitchTab = (props: {
   if (props.selected === 'QR') {
     label = 'Type secret instead'
     if (currentDeviceType === 'mobile' && props.otherDevice.type === 'mobile') {
-      tab = (props.currentDeviceAlreadyProvisioned ? isMobile : !isMobile)
-        ? 'viewText'
-        : 'enterText'
+      tab = (props.currentDeviceAlreadyProvisioned ? isMobile : !isMobile) ? 'viewText' : 'enterText'
     } else if (currentDeviceType === 'mobile') {
       tab = 'viewText'
     } else {
@@ -344,7 +354,12 @@ const EnterText = (props: {
     }
   }
   return (
-    <Kb.Box2 direction="vertical" alignItems={isMobile ? 'stretch' : 'center'} alignSelf="stretch" gap="small">
+    <Kb.Box2
+      direction="vertical"
+      alignItems={isMobile ? 'stretch' : 'center'}
+      alignSelf="stretch"
+      gap="small"
+    >
       <Kb.Input3
         autoFocus={true}
         multiline={true}

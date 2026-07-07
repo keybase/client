@@ -1,37 +1,34 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {startAddNewDevice} from '@/provision/flow'
 import * as T from '@/constants/types'
 import {getDeviceIconType} from './device-icon'
+import {useRPCLoad} from '@/util/use-rpc-load'
 
 type AddDeviceProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
 }
 const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
+const defaultIconNumbers = {
+  desktop: 1 as T.Devices.IconNumber,
+  mobile: 1 as T.Devices.IconNumber,
+} as const
 
 export default function AddDevice(ownProps: AddDeviceProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const [iconNumbers, setIconNumbers] = React.useState({
-    desktop: 1 as T.Devices.IconNumber,
-    mobile: 1 as T.Devices.IconNumber,
-  } as const)
-  const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
-
-  C.useOnMountOnce(() => {
-    loadDeviceHistory(
-      [undefined, C.waitingKeyDevices],
-      results => {
-        const devices =
+  const {data: iconNumbers = defaultIconNumbers} = useRPCLoad(
+    T.RPCGen.deviceDeviceHistoryListRpcPromise,
+    [undefined, C.waitingKeyDevices],
+    {
+      map: results =>
+        T.Devices.nextDeviceIconNumbers(
           results?.map(result => ({
             deviceNumberOfType: result.device.deviceNumberOfType,
             type: T.Devices.stringToDeviceType(result.device.type),
           })) ?? []
-        setIconNumbers(T.Devices.nextDeviceIconNumbers(devices))
-      },
-      _ => {}
-    )
-  })
+        ),
+    }
+  )
 
   const onAddComputer = () => {
     startAddNewDevice('desktop')
@@ -39,15 +36,9 @@ export default function AddDevice(ownProps: AddDeviceProps) {
 
   const navigateAppend = C.Router2.navigateAppend
 
-  // don't allow multiple clicks to add paper key
-  const canAddPaperKeyRef = React.useRef(true)
   const onAddPaperKey = () => {
-    if (!canAddPaperKeyRef.current) return
-    canAddPaperKeyRef.current = false
+    // repeat taps are deduped by navigateAppend
     navigateAppend({name: 'devicePaperKey', params: {}})
-    setTimeout(() => {
-      canAddPaperKeyRef.current = true
-    }, 1000)
   }
 
   const onAddPhone = () => {

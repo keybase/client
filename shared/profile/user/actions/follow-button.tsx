@@ -32,12 +32,13 @@ const FollowButton = (props: Props) => {
       return button
     }
     return (
-      <div
+      <Kb.Box2
+        direction="vertical"
         onMouseEnter={() => setMouseover(true)}
         onMouseLeave={() => setMouseover(false)}
       >
         {button}
-      </div>
+      </Kb.Box2>
     )
   } else {
     return (

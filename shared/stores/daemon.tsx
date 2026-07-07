@@ -68,11 +68,14 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
           s.bootstrapStatus = T.castDraft(bs)
         })
       }
-      inflightBootstrapStatus = f()
+      const p = f()
+      inflightBootstrapStatus = p
       try {
-        await inflightBootstrapStatus
+        await p
       } finally {
-        inflightBootstrapStatus = undefined
+        if (inflightBootstrapStatus === p) {
+          inflightBootstrapStatus = undefined
+        }
       }
     },
     resetState: () => {
@@ -93,6 +96,9 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     },
     startHandshake: () => {
       const gen = ++generation
+      // startHandshake follows an engine reset, which drops in-flight RPCs without settling
+      // their promises; reusing one here would stall the handshake forever
+      inflightBootstrapStatus = undefined
       set(s => {
         s.error = undefined
         s.handshakeFailedReason = ''

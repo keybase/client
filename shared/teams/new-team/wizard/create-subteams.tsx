@@ -1,8 +1,8 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
+import {AddRowButton, useStringList, WizardBanner, wizardInputStyle} from './common'
 import {useNavigation} from '@react-navigation/native'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
@@ -17,19 +17,7 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
   const teamname = wizardState.name
   const initialSubteams = wizardState.subteams ?? ['', '', '']
 
-  const [subteams, setSubteams] = React.useState([...initialSubteams])
-
-  const setSubteam = (i: number, value: string) => {
-    setSubteams(prev => prev.map((s, idx) => (idx === i ? value : s)))
-  }
-
-  const onClear = (i: number) => {
-    setSubteams(prev => prev.filter((_, idx) => idx !== i))
-  }
-
-  const onAdd = () => {
-    setSubteams(prev => [...prev, ''])
-  }
+  const {items: subteams, setItem: setSubteam, clearItem: onClear, addItem: onAdd} = useStringList(initialSubteams)
 
   const onContinue = () => {
     const wizard = {...wizardState, subteams: subteams.filter(Boolean)}
@@ -47,9 +35,7 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
 
   return (
     <>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-        <Kb.ImageIcon type="icon-illustration-teams-subteams-460-96" />
-      </Kb.Box2>
+      <WizardBanner icon="icon-illustration-teams-subteams-460-96" />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -72,7 +58,7 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
             key={idx}
           />
         ))}
-        <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
+        <AddRowButton onAdd={onAdd} />
       </Kb.Box2>
       <Kb.ModalFooter>
         <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />
@@ -82,15 +68,6 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  addButton: Kb.Styles.platformStyles({
-    isElectron: {width: 42},
-    isMobile: {width: 47},
-    isTablet: {alignSelf: 'flex-start'},
-  }),
-  banner: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
-    isElectron: {overflowX: 'hidden'},
-  }),
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
@@ -98,7 +75,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {minHeight: 326},
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
+  input: wizardInputStyle,
 }))
 
 export default CreateSubteams

@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {usePhoneNumberList} from '../common'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
-import {addMembersToWizard, type AddMembersWizard} from './state'
+import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard} from './state'
 
 const waitingKey = 'phoneLookup'
 
@@ -18,7 +18,6 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
   const defaultCountry = useDefaultPhoneCountry()
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
-  const navUpToScreen = C.Router2.navUpToScreen
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
@@ -28,21 +27,7 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
           setError('You must enter at least one valid phone number.')
           return
         }
-        const f = async () => {
-          try {
-            const nextWizard = await addMembersToWizard(
-              wizard,
-              r.map(m => ({
-                ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
-                role: 'writer',
-              }))
-            )
-            navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
-          } catch (err) {
-            setError(err instanceof Error ? err.message : String(err))
-          }
-        }
-        C.ignorePromise(f())
+        C.ignorePromise(addMembersToWizardAndNav(wizard, searchResultsToMembers(r), setError))
       },
       err => setError(err.message)
     )
@@ -56,11 +41,7 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="flex-start">

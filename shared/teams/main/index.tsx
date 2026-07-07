@@ -20,7 +20,7 @@ export type Props = {
 }
 
 const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny" justifyContent="flex-start">
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
     <Kb.ClickableBox
       style={styles.bigButton}
       onClick={props.onCreateTeam}

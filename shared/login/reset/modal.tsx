@@ -59,19 +59,10 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
 
   const content = (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-        <Kb.Box2
-          direction="horizontal"
-          alignItems="center"
-          fullHeight={true}
-          flex={1}
-        >
-          <Kb.Box2 direction="horizontal" flex={1} />
-          <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
-            Account reset initiated
-          </Kb.Text>
-          <Kb.Box2 direction="horizontal" flex={1} />
-        </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.header}>
+        <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+          Account reset initiated
+        </Kb.Text>
       </Kb.Box2>
       {error ? (
         <Kb.Banner color="red" key="errors">

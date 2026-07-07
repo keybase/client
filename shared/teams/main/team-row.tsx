@@ -7,6 +7,7 @@ import logger from '@/logger'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
+import RoleCrown from '../common/role-crown'
 
 export type TeamRowItem = {
   activityLevel: T.Teams.ActivityLevel
@@ -41,22 +42,12 @@ const TeamRow = function TeamRow(props: Props) {
   }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
-  const crownIconType: Kb.IconType | undefined =
-    teamMeta.role === 'owner'
-      ? 'iconfont-crown-owner'
-      : teamMeta.role === 'admin'
-        ? 'iconfont-crown-admin'
-        : undefined
-  const crownIcon = crownIconType ? (
-    <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
-      <Kb.Icon
-        type={crownIconType}
-        sizeType="Tiny"
-        color={teamMeta.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-        style={styles.crownIcon}
-      />
-    </Kb.Box2>
-  ) : null
+  const crownIcon =
+    teamMeta.role === 'owner' || teamMeta.role === 'admin' ? (
+      <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
+        <RoleCrown role={teamMeta.role} sizeType="Tiny" style={styles.crownIcon} />
+      </Kb.Box2>
+    ) : null
 
   const avatarBlock = (
     <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
@@ -74,14 +65,10 @@ const TeamRow = function TeamRow(props: Props) {
         <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
           {teamMeta.teamname}
         </Kb.Text>
-        {teamMeta.isOpen && (
-          <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.alignSelfCenter} />
-        )}
+        {teamMeta.isOpen && <Kb.Meta variant="open" />}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
-        {isNew && (
-          <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} style={styles.alignSelfCenter} />
-        )}
+        {isNew && <Kb.Meta variant="new" />}
         <Kb.Text type="BodySmall">
           {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
         </Kb.Text>
@@ -154,9 +141,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   actionMobile: {
     flexShrink: 0,
     marginRight: 8,
-  },
-  alignSelfCenter: {
-    alignSelf: 'center',
   },
   avatarOuter: Kb.Styles.platformStyles({
     common: {

@@ -5,7 +5,6 @@ const meta: Meta<typeof CreateNewTeam> = {
   component: CreateNewTeam,
   title: 'Teams/CreateNewTeam',
   args: {
-    onCancel: () => {},
     onSubmit: () => {},
   },
 }

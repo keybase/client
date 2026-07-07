@@ -4,16 +4,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {addMembersToWizard, type AddMembersWizard} from './state'
-
-type Contact = {
-  id: string
-  name: string
-  pictureUri?: string
-  type: 'phone' | 'email'
-  value: string
-  valueFormatted?: string
-}
+import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard} from './state'
+import type {Contact} from '../common/use-contacts.native'
 
 type ContactsListProps = {
   onSelect: (contact: Contact, checked: boolean) => void
@@ -38,19 +30,6 @@ const {
   useContacts,
   EnableContactsPopup,
 } = (isMobile ? require('../common/contacts-list.native') : {}) as ContactsModule
-
-const addPreparedMembersToWizard = async (
-  wizard: AddMembersWizard,
-  members: Parameters<typeof addMembersToWizard>[1],
-  onError: (message: string) => void
-) => {
-  try {
-    const nextWizard = await addMembersToWizard(wizard, members)
-    C.Router2.navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
-  } catch (err) {
-    onError(err instanceof Error ? err.message : String(err))
-  }
-}
 
 const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
   const onBack = C.Router2.navigateUp
@@ -95,12 +74,8 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
         [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
         r => {
           if (r?.length) {
-            const members = r.map(m => ({
-              ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
-              role: 'writer' as const,
-            }))
             C.ignorePromise(
-              addPreparedMembersToWizard(wizard, members, message => {
+              addMembersToWizardAndNav(wizard, searchResultsToMembers(r), message => {
                 setWaiting(false)
                 setError(message)
               })
@@ -129,11 +104,7 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       <Kb.SearchFilter
         size="small"
         onChange={setSearch}

@@ -1016,7 +1016,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
       <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && (

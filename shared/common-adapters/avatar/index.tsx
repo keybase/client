@@ -18,6 +18,7 @@ type Props = {
   imageOverrideUrl?: string
   isTeam?: boolean
   onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
+  testID?: string
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
   style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
@@ -156,7 +157,7 @@ const borderTeamStyle = {
 // ── Component ────────────────────────────────────────────────────────────────
 
 function Avatar(p: Props) {
-  const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
+  const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children, testID} = p
   const {imageOverrideUrl, crop} = p
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
@@ -190,6 +191,7 @@ function Avatar(p: Props) {
     return (
       <div
         className={Styles.classNames('avatar', avatarSizeClassName)}
+        data-testid={testID}
         onClick={onClick}
         style={Styles.collapseStyles([onClick && clickableStyle, style]) as React.CSSProperties}
       >
@@ -262,10 +264,10 @@ function Avatar(p: Props) {
   )
 
   if (onClick) {
-    return <Pressable onPress={onClick} style={containerStyle}>{content}</Pressable>
+    return <Pressable onPress={onClick} style={containerStyle} testID={testID}>{content}</Pressable>
   }
 
-  return <View style={containerStyle}>{content}</View>
+  return <View style={containerStyle} testID={testID}>{content}</View>
 }
 
 export default Avatar

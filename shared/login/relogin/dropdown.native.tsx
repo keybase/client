@@ -109,7 +109,7 @@ const Dropdown = (props: Props) => {
           >
             <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" flex={1} style={styles.pickerContainer}>
               <TouchableWithoutFeedback onPress={() => showModal(false)}>
-                <View style={{flex: 1}} />
+                <View style={Kb.Styles.globalStyles.flexOne} />
               </TouchableWithoutFeedback>
               {picker}
             </Kb.Box2>
