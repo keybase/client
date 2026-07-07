@@ -51,7 +51,6 @@ const styles = Styles.styleSheetCreate(() => ({
   leftAction: Styles.platformStyles({
     common: {
       flexShrink: 1,
-      justifyContent: 'flex-start',
     },
   }),
   rightAction: Styles.platformStyles({

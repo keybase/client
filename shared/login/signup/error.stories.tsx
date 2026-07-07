@@ -1,12 +1,12 @@
 import type {Meta, StoryObj} from '@storybook/react'
-import ConnectedSignupError from './error'
+import SignupError from './error'
 
-const meta: Meta<typeof ConnectedSignupError> = {
-  component: ConnectedSignupError,
+const meta: Meta<typeof SignupError> = {
+  component: SignupError,
   title: 'Login/SignupError',
 }
 export default meta
-type Story = StoryObj<typeof ConnectedSignupError>
+type Story = StoryObj<typeof SignupError>
 
 export const GenericError: Story = {
   args: {

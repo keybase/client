@@ -25,87 +25,61 @@ function Badge(p: Badge2Props) {
   const height = p.height ?? (isMobile ? 20 : 16)
   const leftRightPadding = p.leftRightPadding ?? (Styles.isPhone ? 5 : 4)
 
-  if (border) {
-    const outerSize = height
-    const innerSize = height - 3
-    return (
-      <Kb.Box2
-        direction="vertical"
-        pointerEvents="none"
-        centerChildren={true}
-        style={Styles.collapseStyles([
-          styles.container,
-          {
-            borderRadius: outerSize,
-            height: outerSize,
-            minWidth: outerSize,
-          },
-          containerStyle,
-        ])}
-      >
-        <Kb.Box2
-          direction="vertical"
-          className={className}
+  // with a border the badge shrinks inside a white ring box of the full height
+  const innerSize = border ? height - 3 : height
+  const badge = (
+    <Kb.Box2
+      direction="vertical"
+      className={className}
+      pointerEvents={border ? undefined : 'none'}
+      style={Styles.collapseStyles([
+        styles.badge,
+        {
+          ...Styles.paddingH(leftRightPadding),
+          borderRadius: innerSize,
+          height: innerSize,
+          minWidth: innerSize,
+        },
+        badgeStyle,
+      ])}
+    >
+      {!!badgeNumber && (
+        <Kb.Text
+          center={true}
+          type="BodyTinyBold"
           style={Styles.collapseStyles([
-            styles.badge,
-            {
-              ...Styles.paddingH(leftRightPadding),
-              borderRadius: innerSize,
-              height: innerSize,
-              minWidth: innerSize,
-            },
-            badgeStyle,
+            styles.text,
+            {fontSize, height, lineHeight: border || isMobile ? height : `${height}px`} as const,
+            badgeNumberStyle,
           ])}
         >
-          {!!badgeNumber && (
-            <Kb.Text
-              center={true}
-              type="BodyTinyBold"
-              style={Styles.collapseStyles([
-                styles.text,
-                {fontSize, height, lineHeight: height} as const,
-                badgeNumberStyle,
-              ])}
-            >
-              {badgeNumber}
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-      </Kb.Box2>
-    )
-  } else {
-    return (
-      <Kb.Box2
-        direction="vertical"
-        className={className}
-        pointerEvents="none"
-        style={Styles.collapseStyles([
-          styles.badge,
-          {
-            ...Styles.paddingH(leftRightPadding),
-            borderRadius: height,
-            height: height,
-            minWidth: height,
-          },
-          badgeStyle,
-        ])}
-      >
-        {!!badgeNumber && (
-          <Kb.Text
-            center={true}
-            type="BodyTinyBold"
-            style={Styles.collapseStyles([
-              styles.text,
-              {fontSize, height, lineHeight: isMobile ? height : `${height}px`} as const,
-              badgeNumberStyle,
-            ])}
-          >
-            {badgeNumber}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
-    )
+          {badgeNumber}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+
+  if (!border) {
+    return badge
   }
+  return (
+    <Kb.Box2
+      direction="vertical"
+      pointerEvents="none"
+      centerChildren={true}
+      style={Styles.collapseStyles([
+        styles.container,
+        {
+          borderRadius: height,
+          height,
+          minWidth: height,
+        },
+        containerStyle,
+      ])}
+    >
+      {badge}
+    </Kb.Box2>
+  )
 }
 export default Badge
 

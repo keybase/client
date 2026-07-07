@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '@/util/string'
 import type * as T from '@/constants/types'
+import RoleCrown from './common/role-crown'
 
 // Controls the ordering of the role picker
 const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']
@@ -160,14 +161,7 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
           `Can write and read in chats and folders`,
         ],
         cants: [`Can't delete the team`],
-        icon: (
-          <Kb.Icon
-            style={styles.roleIcon}
-            type="iconfont-crown-admin"
-            sizeType="Small"
-            color={Kb.Styles.globalColors.black_35}
-          />
-        ),
+        icon: <RoleCrown role="admin" sizeType="Small" style={styles.roleIcon} />,
       }
     case 'owner':
       return {
@@ -181,14 +175,7 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         ],
         cants: [],
         extra: ['A team can have multiple owners'],
-        icon: (
-          <Kb.Icon
-            style={styles.roleIcon}
-            type="iconfont-crown-owner"
-            sizeType="Small"
-            color={Kb.Styles.globalColors.yellowDark}
-          />
-        ),
+        icon: <RoleCrown role="owner" sizeType="Small" style={styles.roleIcon} />,
       }
     case 'reader':
       return {

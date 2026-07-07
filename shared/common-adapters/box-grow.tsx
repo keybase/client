@@ -8,26 +8,35 @@ type Props = {
   onLayout?: (e: LayoutEvent) => void
 }
 
-const BoxGrow = (p: Props) => {
+const BoxGrowImpl = (p: Props & {direction: 'vertical' | 'horizontal'}) => {
+  const {direction, onLayout, style, children} = p
   return (
-    <Box2 direction="vertical" alignSelf="stretch" relative={true} style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
-      <Box2 direction="vertical" style={styles.inner}>
-        {p.children}
+    <Box2
+      direction={direction}
+      alignSelf="stretch"
+      relative={true}
+      style={Styles.collapseStyles([direction === 'vertical' ? styles.outer : styles.outer2, style])}
+      onLayout={onLayout}
+    >
+      <Box2 direction={direction} style={styles.inner}>
+        {children}
       </Box2>
     </Box2>
   )
 }
 
+const BoxGrow = (p: Props) => <BoxGrowImpl {...p} direction="vertical" />
+export const BoxGrow2 = (p: Props) => <BoxGrowImpl {...p} direction="horizontal" />
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
       inner: {...Styles.globalStyles.fillAbsolute, height: '100%', width: '100%'},
-      inner2: {...Styles.globalStyles.fillAbsolute, display: 'flex', height: '100%', width: '100%'},
       outer: {
         flexGrow: 1,
       },
+      // horizontal variant also shrinks so it can't overflow its parent
       outer2: {
-        display: 'flex',
         flexGrow: 1,
         flexShrink: 1,
       },
@@ -35,14 +44,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default BoxGrow
-
-export const BoxGrow2 = (p: Props) => {
-  const {onLayout, style, children} = p
-  return (
-    <Box2 direction="horizontal" alignSelf="stretch" relative={true} style={Styles.collapseStyles([styles.outer2, style])} onLayout={onLayout}>
-      <Box2 direction="horizontal" style={styles.inner2}>
-        {children}
-      </Box2>
-    </Box2>
-  )
-}

@@ -5,25 +5,8 @@ import {getE164} from '@/util/phone-numbers'
 import {openSMS} from '@/util/misc'
 import logger from '@/logger'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {InviteByContact} from './index.native'
-import useContacts from '../common/use-contacts.native'
-
-type Contact = {
-  id: string
-  name: string
-  pictureUri?: string
-  type: 'phone' | 'email'
-  value: string
-  valueFormatted?: string
-}
-
-type ContactRowProps = Contact & {
-  id: string
-  alreadyInvited: boolean
-  loading: boolean
-  onClick: () => void
-}
-
+import {InviteByContact, type ContactRowProps} from './index.native'
+import useContacts, {type Contact} from '../common/use-contacts.native'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.

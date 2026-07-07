@@ -6,7 +6,7 @@ import {Box2} from './box'
 import Popup from './popup'
 import Text from './text'
 
-export type PickerItem<T> = {
+type PickerItem<T> = {
   label: string
   value: T
 }
@@ -58,8 +58,6 @@ function WrapPicker<T>(p: {
     </Picker>
   )
 }
-
-export {Picker}
 
 // NOTE: this doesn't seem to work well when debugging w/ chrome. aka if you scroll and set a value
 // the native component will undo it a bunch and its very finnicky. works fine outside of that it seems

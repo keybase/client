@@ -1,7 +1,7 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
-import {el, waitForTestID, byText} from '../helpers/elements'
+import {byText, el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('people profile', () => {

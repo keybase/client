@@ -71,8 +71,7 @@ const ListItem = (props: Props) => {
           direction="vertical"
           style={getStatusIconStyle(props)}
           alignSelf="flex-start"
-          alignItems="center"
-          justifyContent="center"
+          centerChildren={true}
         >
           {props.statusIcon}
         </Kb.Box2>
@@ -136,12 +135,10 @@ const styles = Styles.styleSheetCreate(() => {
     clickableBoxLarge: {
       flexShrink: 0,
       minHeight: largeHeight,
-      width: '100%',
     } as const,
     clickableBoxSmall: {
       flexShrink: 0,
       minHeight: smallHeight,
-      width: '100%',
     } as const,
     contentContainer: {
       flexGrow: 1,
@@ -338,11 +335,12 @@ const CardListItem = (props: Props) => (
     direction="horizontal"
     alignItems="center"
     fullWidth={true}
+    gap="small"
     overflow="hidden"
     padding="small"
     style={Styles.collapseStyles([cardStyles.card, props.style])}
   >
-    {props.icon && <Kb.Box2 direction="vertical" style={cardStyles.icon}>{props.icon}</Kb.Box2>}
+    {props.icon}
     <Kb.Box2 direction="vertical" flex={1} fullWidth={true}>{props.body}</Kb.Box2>
   </Kb.ClickableBox>
 )
@@ -351,9 +349,6 @@ const cardStyles = Styles.styleSheetCreate(() => ({
   card: {
     ...Styles.border(Styles.globalColors.grey, 1, Styles.borderRadius),
     backgroundColor: Styles.globalColors.white,
-  },
-  icon: {
-    marginRight: Styles.globalMargins.small,
   },
 }))
 

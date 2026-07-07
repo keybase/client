@@ -18,8 +18,7 @@ const Kb = {
   Text,
 }
 
-export const RADIOBUTTON_SIZE = 22
-export const RADIOBUTTON_MARGIN = 8
+const RADIOBUTTON_SIZE = 22
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
   if (!isMobile) {
@@ -41,6 +40,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
     <Kb.ClickableBox
       direction="horizontal"
       alignItems="center"
+      gap="tiny"
       style={Styles.collapseStyles([nativeStyles.container, style])}
       onClick={disabled ? undefined : () => onSelect(!selected)}
     >
@@ -75,6 +75,7 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
+    gap: 8,
   },
   radio: Styles.platformStyles({
     isElectron: {
@@ -106,13 +107,11 @@ const nativeStyles = Styles.styleSheetCreate(
         top: 5,
       },
       outer: {
+        ...Styles.size(RADIOBUTTON_SIZE),
         backgroundColor: Styles.globalColors.white,
         borderRadius: 100,
         borderWidth: 1,
-        height: RADIOBUTTON_SIZE,
-        marginRight: RADIOBUTTON_MARGIN,
         position: 'relative' as const,
-        width: RADIOBUTTON_SIZE,
       },
     }) as const
 )

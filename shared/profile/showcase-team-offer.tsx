@@ -69,7 +69,7 @@ const TeamRow = (p: RowProps) => {
               {name}
             </Kb.Text>
             {isOpen && (
-              <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
+              <Kb.Meta variant="open" style={styles.meta} />
             )}
           </Kb.Box2>
           <Kb.Text type="BodySmall">{String(membercount) + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
@@ -126,7 +126,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {textAlign: 'center'},
       }),
       meta: {
-        alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },
@@ -141,7 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
-        isMobile: {minHeight: isMobile ? 64 : 48},
+        isMobile: {minHeight: 64},
       }),
     }) as const
 )

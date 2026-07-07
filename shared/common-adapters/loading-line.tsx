@@ -22,7 +22,7 @@ function LoadingLine() {
 
   if (!isMobile) {
     return (
-      <Box2 direction="vertical" style={styles.container}>
+      <Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Box2 direction="vertical" fullWidth={true} className="loading-line" style={styles.line} />
       </Box2>
     )
@@ -36,7 +36,6 @@ const styles = Styles.styleSheetCreate(() => ({
     left: 0,
     position: 'absolute',
     top: 0,
-    width: '100%',
   },
   line: {
     backgroundColor: Styles.globalColors.blue,

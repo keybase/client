@@ -25,16 +25,10 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsListMap} from '@/teams/use-teams-list'
 import {metasReceived} from '@/chat/inbox/metadata'
 
-type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
-
 export type Item =
   | {type: 'members-loading'}
   | {type: 'members-none'}
   | {type: 'member-members'; mi: T.Teams.MemberInfo}
-  | {type: 'row'}
-  | {type: 'invite-info'; ii: T.Teams.InviteInfo}
-  | {type: 'requests'; r: Requests}
-  | {type: 'channel-info'; ci: T.Teams.TeamChannelInfo}
   | {type: 'emoji'; e: T.RPCChat.Emoji}
   | {type: 'add-bots'}
   | {type: 'invite-requests'; ctime: number; fullName: string; reset?: boolean; username: string}
