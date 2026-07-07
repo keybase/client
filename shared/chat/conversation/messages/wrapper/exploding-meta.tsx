@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {useIsHighlighted} from '../ids-context'
+import {produce} from 'immer'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
@@ -19,11 +20,7 @@ export type OwnProps = {
 function ExplodingMetaContainer(p: OwnProps) {
   const pending = isPendingSubmitState(p.submitState)
   return (
-    <ExplodingMetaInner
-      {...p}
-      key={`${p.messageKey}:${pending ? 'pending' : 'active'}`}
-      pending={pending}
-    />
+    <ExplodingMetaInner {...p} key={`${p.messageKey}:${pending ? 'pending' : 'active'}`} pending={pending} />
   )
 }
 
@@ -41,11 +38,7 @@ const isPendingSubmitState = (submitState?: T.Chat.Message['submitState']) =>
 
 const cappedLoopInterval = (difference: number) => Math.min(getLoopInterval(difference), 60000)
 
-const makeInitialTimerState = (p: {
-  exploded: boolean
-  explodesAt: number
-  pending: boolean
-}): TimerState => {
+const makeInitialTimerState = (p: {exploded: boolean; explodesAt: number; pending: boolean}): TimerState => {
   const now = Date.now()
   if (p.pending) {
     return {exploded: p.exploded, inter: 0, mode: 'none', now}
@@ -65,12 +58,13 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
 
   let currentTimerState = timerState
   if (timerState.exploded !== exploded) {
-    currentTimerState = {
-      ...timerState,
-      exploded,
-      inter: exploded && !timerState.exploded ? 0 : timerState.inter,
-      mode: exploded && !timerState.exploded ? 'boom' : timerState.mode,
-    }
+    currentTimerState = produce(timerState, draft => {
+      draft.exploded = exploded
+      if (exploded) {
+        draft.inter = 0
+        draft.mode = 'boom'
+      }
+    })
     setTimerState(currentTimerState)
   }
   const {inter, mode, now} = currentTimerState
@@ -87,12 +81,14 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
       const id = addTicker(() => {
         const n = Date.now()
         const difference = explodesAt - n
-        setTimerState(state => {
-          if (difference <= 0 || exploded) {
-            return state.mode === 'countdown' ? {...state, mode: 'boom', now: n} : {...state, now: n}
-          }
-          return {...state, now: n}
-        })
+        setTimerState(
+          produce(draft => {
+            if ((difference <= 0 || exploded) && draft.mode === 'countdown') {
+              draft.mode = 'boom'
+            }
+            draft.now = n
+          })
+        )
       })
       return () => {
         removeTicker(id)
@@ -101,16 +97,32 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
       const id = setTimeout(() => {
         const n = Date.now()
         if (pending) {
-          setTimerState(state => ({...state, inter: 0, now: n}))
+          setTimerState(
+            produce(draft => {
+              draft.inter = 0
+              draft.now = n
+            })
+          )
           return
         }
         const difference = explodesAt - n
         if (difference <= 0 || exploded) {
-          setTimerState(state => ({...state, inter: 0, mode: 'boom', now: n}))
+          setTimerState(
+            produce(draft => {
+              draft.inter = 0
+              draft.mode = 'boom'
+              draft.now = n
+            })
+          )
           return
         }
         // we don't need a timer longer than 60000 (android complains also)
-        setTimerState(state => ({...state, inter: cappedLoopInterval(difference), now: n}))
+        setTimerState(
+          produce(draft => {
+            draft.inter = cappedLoopInterval(difference)
+            draft.now = n
+          })
+        )
       }, inter)
       return () => {
         clearTimeout(id)
@@ -127,7 +139,12 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
     }
     sharedTimerKeyRef.current = messageKey
     sharedTimerIDRef.current = SharedTimer.addObserver(
-      () => setTimerState(state => ({...state, mode: 'hidden'})),
+      () =>
+        setTimerState(
+          produce(draft => {
+            draft.mode = 'hidden'
+          })
+        ),
       {
         key: sharedTimerKeyRef.current,
         ms: animationDuration,

@@ -104,7 +104,7 @@ const Header = () => {
           small={true}
           style={styles.button}
         />
-        <AccountSwitcher />
+        <AccountSwitcher onSelected={hidePopup} />
       </Kb.Box2>
     )
 
@@ -123,10 +123,11 @@ const Header = () => {
   }
   const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
+  // mid account-switch we have no user info yet; keep the bar but suppress the dropdown
   return (
     <>
       <Kb.ClickableBox
-        onClick={togglePopup}
+        onClick={username ? togglePopup : undefined}
         direction="horizontal"
         gap="tiny"
         centerChildren={true}
@@ -140,17 +141,19 @@ const Header = () => {
           username={username}
           style={Kb.Styles.collapseStyles([styles.avatar, styles.avatarBorder])}
         />
-        <>
-          <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
-            Hi {username}!
-          </Kb.Text>
-          <Kb.Icon
-            type="iconfont-arrow-down"
-            color={Kb.Styles.globalColors.blueLighter}
-            fontSize={12}
-            style={styles.caret}
-          />
-        </>
+        {!!username && (
+          <>
+            <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
+              Hi {username}!
+            </Kb.Text>
+            <Kb.Icon
+              type="iconfont-arrow-down"
+              color={Kb.Styles.globalColors.blueLighter}
+              fontSize={12}
+              style={styles.caret}
+            />
+          </>
+        )}
       </Kb.ClickableBox>
       {popup}
     </>
@@ -168,7 +171,6 @@ const hotKeys = Object.keys(keysMap)
 
 function TabBar(props: Props) {
   const {navigation, state} = props
-  const username = useCurrentUserState(s => s.username)
   const onHotKey = (cmd: string) => {
     navigation.dispatch(CommonActions.navigate(keysMap[cmd] as Tabs.Tab))
   }
@@ -177,7 +179,9 @@ function TabBar(props: Props) {
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
   const forceSmallNav = useShellState(s => s.forceSmallNav)
 
-  return username ? (
+  // always render the bar; mid account-switch username is briefly empty and the
+  // header degrades to a placeholder instead of dropping the whole nav
+  return (
     <Kb.Box2
       className={Kb.Styles.classNames('tab-container', {forceSmallNav})}
       direction="vertical"
@@ -199,7 +203,7 @@ function TabBar(props: Props) {
       ))}
       <RuntimeStats />
     </Kb.Box2>
-  ) : null
+  )
 }
 
 type TabProps = {

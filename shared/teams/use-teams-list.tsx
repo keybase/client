@@ -179,16 +179,24 @@ export const useTeamsList = (): TeamsList => {
   return context
 }
 
+const noopLoad = async () => {}
+
+// useTeamsRoleMap and useTeamsListMap are reachable from mobile popup portals
+// (popup-root and the bottom-sheet host are siblings to the router, outside
+// LoadedTeamsListProvider), so they fall back to the module cache instead of
+// throwing. The cache stays fresh because the provider is mounted elsewhere.
 export const useTeamsRoleMap = (): TeamsRoleMap => {
   const context = React.useContext(TeamsRoleMapContext)
-  if (!context) {
-    throw new Error('useTeamsRoleMap must be used within LoadedTeamsListProvider')
-  }
-  return context
+  const fallback = React.useMemo(
+    () => ({loadIfStale: noopLoad, reload: noopLoad, roleMap: teamsRoleMapCache.getData()}),
+    []
+  )
+  return context ?? fallback
 }
 
 export const useTeamsListMap = () => {
-  const {teams} = useTeamsList()
+  const context = React.useContext(TeamsListContext)
+  const teams = context?.teams ?? teamsListCache.getData()
   return React.useMemo(() => new Map(teams.map(team => [team.id, team] as const)), [teams])
 }
 
