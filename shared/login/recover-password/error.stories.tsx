@@ -1,12 +1,12 @@
 import type {Meta, StoryObj} from '@storybook/react'
-import ConnectedError from './error'
+import RecoverPasswordError from './error'
 
-const meta: Meta<typeof ConnectedError> = {
-  component: ConnectedError,
+const meta: Meta<typeof RecoverPasswordError> = {
+  component: RecoverPasswordError,
   title: 'Login/RecoverPasswordError',
 }
 export default meta
-type Story = StoryObj<typeof ConnectedError>
+type Story = StoryObj<typeof RecoverPasswordError>
 
 export const GenericError: Story = {
   args: {

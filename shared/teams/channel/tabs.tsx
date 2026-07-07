@@ -19,17 +19,15 @@ const ChannelTabs = (props: Props) => {
   ]
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        <Kb.Tabs
-          clickableBoxStyle={styles.clickableBox}
-          tabs={tabs}
-          selectedTab={selectedTab}
-          onSelect={setSelectedTab}
-          style={styles.tabContainer}
-          tabStyle={styles.tab}
-        />
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Kb.Tabs
+        clickableBoxStyle={styles.clickableBox}
+        tabs={tabs}
+        selectedTab={selectedTab}
+        onSelect={setSelectedTab}
+        style={styles.tabContainer}
+        tabStyle={styles.tab}
+      />
     </Kb.Box2>
   )
 }

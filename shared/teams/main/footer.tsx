@@ -10,11 +10,15 @@ const TeamsFooter = (props: {empty: boolean}) => {
       ) : (
         <>
           {props.empty && (
-            <Kb.Box2 direction="vertical" alignItems="center" gap="tiny" style={styles.empty}>
-              <Kb.Box2 direction="vertical" flex={1} />
+            <Kb.Box2
+              direction="vertical"
+              alignItems="center"
+              justifyContent="center"
+              gap="tiny"
+              style={styles.empty}
+            >
               <Kb.ImageIcon type="icon-dark-empty-lone-wolf-116-96" />
               <Kb.Text type="BodySmall">You are not a part of any team, lone wolf.</Kb.Text>
-              <Kb.Box2 direction="vertical" flex={1} />
             </Kb.Box2>
           )}
           <Kb.Box2 direction="vertical" flex={1} />

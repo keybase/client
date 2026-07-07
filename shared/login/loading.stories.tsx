@@ -32,7 +32,6 @@ export const Failed: Story = {
 
 export const FailedWithFeedback: Story = {
   args: {
-    allowFeedback: true,
     failed: 'connection refused',
     status: '',
     onRetry: () => {},

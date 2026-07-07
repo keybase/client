@@ -42,7 +42,7 @@ const SharedTeams = ({sharedTeams, username}: Props) => {
   if (sharedTeams === undefined && loading) {
     return (
       <TeamSection title="Teams in common">
-        <Kb.Box2 direction="horizontal" style={styles['loadingRow']} gap="tiny">
+        <Kb.Box2 direction="horizontal" style={styles.loadingRow} gap="tiny">
           <Kb.ProgressIndicator />
         </Kb.Box2>
       </TeamSection>

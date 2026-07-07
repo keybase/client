@@ -42,9 +42,7 @@ const PaperKey = ({route}: Props) => {
           centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
           gap={isMobile ? 'tiny' : 'medium'}
         >
-          <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-            <Kb.ImageIcon type="icon-paper-key-96" />
-          </Kb.Box2>
+          <Kb.ImageIcon type="icon-paper-key-96" style={styles.icon} />
           <Kb.Input3
             autoFocus={true}
             multiline={true}
@@ -67,6 +65,11 @@ const PaperKey = ({route}: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contents: {
     maxWidth: isMobile ? '100%' : 460,
+  },
+  icon: {
+    // parent Box2 is alignItems stretch on android (centerChildren off there)
+    alignSelf: 'center',
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
   inputContainer2: {
     marginTop: 10,

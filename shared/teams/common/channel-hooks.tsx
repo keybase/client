@@ -4,10 +4,13 @@ import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import logger from '@/logger'
 import {ensureError} from '@/util/errors'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
-import {useLoadedTeamChannels} from './use-loaded-team-channels'
+import {
+  teamChannelsRPCParams,
+  useLoadedTeamChannels,
+  useReloadOnTeamChannelChanges,
+} from './use-loaded-team-channels'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
@@ -74,14 +77,7 @@ export const useAllChannelMetas = (
     load: async () =>
       new Promise<ChannelMetasData>((resolve, reject) => {
         getConversations(
-          [
-            {
-              membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamname,
-              topicType: T.RPCChat.TopicType.chat,
-            },
-            C.waitingKeyTeamsGetChannels(teamID),
-          ],
+          [teamChannelsRPCParams(teamname), C.waitingKeyTeamsGetChannels(teamID)],
           ({convs}) => {
             const channelMetas = new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
             const channelParticipants = new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>()
@@ -113,21 +109,7 @@ export const useAllChannelMetas = (
     staleMs: allChannelMetasReloadStaleMs,
   })
 
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (action.payload.params.teamID === teamID) {
-      void reload()
-    }
-  }, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (action.payload.params.teamID === teamID) {
-      clear(teamID)
-    }
-  }, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (action.payload.params.teamID === teamID) {
-      clear(teamID)
-    }
-  }, enabled)
+  useReloadOnTeamChannelChanges(teamID, enabled, reload, () => clear(teamID))
 
   return {
     channelMetas: data.channelMetas,

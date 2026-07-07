@@ -1,8 +1,13 @@
 import {TurboModuleRegistry, type TurboModule} from 'react-native'
+import type {EventEmitter, UnsafeObject} from 'react-native/Libraries/Types/CodegenTypes'
 
 export interface Spec extends TurboModule {
-  addListener: (eventType: string) => void
-  removeListeners: (count: number) => void
+  readonly onMetaEvent: EventEmitter<string>
+  readonly onHardwareKeyPressed: EventEmitter<string>
+  readonly onPasteImage: EventEmitter<Array<string>>
+  readonly onPushNotification: EventEmitter<UnsafeObject>
+  readonly onPushToken: EventEmitter<string>
+  readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
   getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean

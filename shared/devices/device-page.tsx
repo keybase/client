@@ -105,7 +105,7 @@ const DevicePage = (ownProps: DevicePageProps) => {
   const metaOne = device.currentDevice ? (
     'Current device'
   ) : device.revokedAt ? (
-    <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Kb.Styles.globalColors.red} />
+    <Kb.Meta variant="revoked" style={styles.meta} />
   ) : null
 
   const deviceType = device.type
@@ -168,10 +168,7 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.size(circleSize),
       },
       invisible: {opacity: 0},
-      meta: {
-        alignSelf: 'center',
-        marginTop: 4,
-      },
+      meta: {marginTop: 4},
       subDesc: {color: Kb.Styles.globalColors.black},
       timelineLineBottom: {
         backgroundColor: Kb.Styles.globalColors.grey,

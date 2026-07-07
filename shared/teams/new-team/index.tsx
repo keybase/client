@@ -11,7 +11,6 @@ const openSubteamInfo = () => { void openUrl('https://book.keybase.io/docs/teams
 
 type Props = {
   baseTeam?: string // if set we're creating a subteam of this teamname
-  onCancel: () => void
   onSubmit: (fullName: string, joinSubteam: boolean) => void
 }
 
@@ -53,7 +52,7 @@ export const CreateNewTeam = (props: Props) => {
           />
         </Kb.Banner>
       ) : null}
-      {errorText ? <Kb.Banner color="red">{errorText}</Kb.Banner> : null}
+      <Kb.ErrorBanner error={errorText} />
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
           <Kb.Input3
@@ -95,32 +94,23 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 type OwnProps = {subteamOf?: T.Teams.TeamID}
 
-const Container = (ownProps: OwnProps) => {
+const CreateNewTeamContainer = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
   const {
     loading,
     teamMeta: {teamname: baseTeam},
   } = useLoadedTeam(subteamOf)
-  const navigateUp = C.Router2.navigateUp
-  const onCancel = () => {
-    navigateUp()
-  }
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
     void createNewTeamAndNavigate(teamname, joinSubteam)
   }
   const props = {
     baseTeam,
-    onCancel,
     onSubmit,
   }
   if (subteamOf !== T.Teams.noTeamID && (loading || !baseTeam)) {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-        <Kb.ProgressIndicator type="Large" />
-      </Kb.Box2>
-    )
+    return <Kb.LoadingScreen type="Large" />
   }
   return <CreateNewTeam {...props} />
 }
 
-export default Container
+export default CreateNewTeamContainer

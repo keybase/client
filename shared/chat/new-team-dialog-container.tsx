@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import {CreateNewTeam} from '../teams/new-team'
 import {useCurrentUserState} from '@/stores/current-user'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
@@ -9,10 +8,6 @@ type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 
 const NewTeamDialog = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  const navigateUp = C.Router2.navigateUp
-  const onCancel = () => {
-    navigateUp()
-  }
   const participantInfo = useConversationParticipants(conversationIDKey)
   const username = useCurrentUserState(s => s.username)
   const onSubmit = (teamname: string) => {
@@ -21,7 +16,7 @@ const NewTeamDialog = (props: Props) => {
       .map(assertion => ({assertion, role: 'writer' as const}))
     void createNewTeamAndNavigate(teamname, false, {fromChat: true, usersToAdd})
   }
-  return <CreateNewTeam baseTeam="" onCancel={onCancel} onSubmit={onSubmit} />
+  return <CreateNewTeam baseTeam="" onSubmit={onSubmit} />
 }
 
 export default NewTeamDialog

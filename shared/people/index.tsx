@@ -8,7 +8,6 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import Todo from './todo'
 import {clearSignupEmail} from './signup-email'
-import {RefreshControl} from 'react-native'
 
 type Props = {
   dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
@@ -150,11 +149,8 @@ function People(props: WrapProps) {
   return (
     <Kb.ScrollView
       style={styles.container}
-      refreshControl={
-        isMobile
-          ? <RefreshControl refreshing={waiting} onRefresh={() => props.getData(false, true)} />
-          : undefined
-      }
+      refreshing={waiting}
+      onRefresh={() => props.getData(false, true)}
     >
       {!isMobile && waiting && <Kb.ProgressIndicator style={styles.progress} />}
       <PeoplePageList {...rest} />

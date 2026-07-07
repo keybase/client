@@ -1,4 +1,5 @@
 import {isPhone} from '@/constants/platform'
+import {navUpToScreen} from '@/constants/router'
 import * as T from '@/constants/types'
 
 export type AddMembersWizard = Pick<
@@ -78,6 +79,31 @@ export const addMembersToWizard = async (
       .filter(member => assertionsInTeam.has(member.assertion))
       .map(member => member.resolvedFrom ?? member.assertion),
     role: nextRole,
+  }
+}
+
+// map bulk email/phone search results into wizard members, resolving found users
+// to their username
+export const searchResultsToMembers = (
+  results: ReadonlyArray<{foundUser: boolean; username: string; assertion: string}>
+): Array<T.Teams.AddingMember> =>
+  results.map(m => ({
+    ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
+    role: 'writer' as const,
+  }))
+
+// add members to the wizard then jump back to the confirm screen; failures go
+// to onError
+export const addMembersToWizardAndNav = async (
+  wizard: AddMembersWizard,
+  members: ReadonlyArray<T.Teams.AddingMember>,
+  onError: (message: string) => void
+) => {
+  try {
+    const nextWizard = await addMembersToWizard(wizard, members)
+    navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+  } catch (err) {
+    onError(err instanceof Error ? err.message : String(err))
   }
 }
 

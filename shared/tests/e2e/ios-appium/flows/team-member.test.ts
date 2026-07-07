@@ -1,7 +1,7 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToTeams, scrollDownToText} from '../helpers/navigate'
-import {el, els, waitForTestID, byText, tapForTestID} from '../helpers/elements'
+import {byText, el, els, waitForTestID, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('team member', () => {
