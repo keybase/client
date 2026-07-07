@@ -65,7 +65,6 @@ class Session {
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler(method: MethodKey, seqid?: number) {
-    let done = false
     return (waiting: boolean, err?: RPCError) => {
       if (printRPC) {
         rpcLog({
@@ -82,15 +81,6 @@ class Session {
       }
       if (this._waitingKey) {
         getEngine().dispatchWaitingAction(this._waitingKey, waiting, err)
-      }
-
-      // Request is finished, do cleanup
-      if (!waiting && !done) {
-        done = true
-        if (seqid) {
-          // Responded; only unresponded seqids should cancel the session
-          this._seqIDsAwaitingResponse.delete(seqid)
-        }
       }
     }
   }
@@ -177,15 +167,21 @@ class Session {
 
     const updateWaiting = this._makeWaitingHandler(method, response?.seqid)
     updateWaiting(false) // got a call from the server so we're no longer waiting
-    // Cleanup wrapper: after we respond to the server we're waiting on it again
+    // Responded; only unresponded seqids should cancel the session
+    const onResponded = () => {
+      if (response?.seqid) {
+        this._seqIDsAwaitingResponse.delete(response.seqid)
+      }
+      updateWaiting(true) // after we respond to the server we're waiting on it again
+    }
     const request: ResponseType = {
       error: (...args: Array<unknown>) => {
         response?.error?.(...args)
-        updateWaiting(true)
+        onResponded()
       },
       result: (...args: Array<unknown>) => {
         response?.result?.(...args)
-        updateWaiting(true)
+        onResponded()
       },
     }
     handler(param, request)
