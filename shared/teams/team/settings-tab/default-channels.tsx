@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
+import {produce} from 'immer'
 import {ChannelsWidget} from '@/teams/common'
 import {useLoadedTeam} from '../use-loaded-team'
 
@@ -41,7 +42,10 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
         setState({
           defaultChannels: [
             {channelname: 'general', conversationIDKey: 'unused'},
-            ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
+            ...(result.convs || []).map(conv => ({
+              channelname: conv.channel,
+              conversationIDKey: conv.convID,
+            })),
           ],
           error: undefined,
           loadedTeamID: teamID,
@@ -52,13 +56,24 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
         if (requestVersion !== requestVersionRef.current) {
           return
         }
-        setState(prev => ({...prev, error: err, loadedTeamID: teamID, waiting: false}))
+        setState(
+          produce(draft => {
+            draft.error = err
+            draft.loadedTeamID = teamID
+            draft.waiting = false
+          })
+        )
       }
     )
   }, [getDefaultChannelsRPC, teamID])
 
   const reloadDefaultChannels = React.useCallback(() => {
-    setState(prev => ({...prev, error: undefined, waiting: true}))
+    setState(
+      produce(draft => {
+        draft.error = undefined
+        draft.waiting = true
+      })
+    )
     load()
   }, [load])
 
