@@ -314,7 +314,7 @@ const TeamBuilding = ({
     />
   )
 
-  const errorBanner = !!error && <Kb.Banner color="red">{error}</Kb.Banner>
+  const errorBanner = <Kb.ErrorBanner error={error} />
   const showContactsBanner = shouldShowContactsBanner(filterServices)
 
   return (

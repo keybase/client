@@ -1,7 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Common from '@/constants/chat/common'
-import * as Meta from '@/constants/chat/meta'
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -27,20 +26,7 @@ import {
   useConversationThreadSelector,
   useConversationThreadStore,
 } from './thread-context'
-
-jest.mock('@/chat/inbox/rows-state', () => ({
-  flushInboxRowUpdates: jest.fn(),
-  getInboxRowTrustedState: jest.fn(() => undefined),
-  queueInboxRowUpdate: jest.fn(),
-  setInboxRowTrustedState: jest.fn(),
-  syncInboxRowBadgeState: jest.fn(),
-  syncInboxRowsFromLayout: jest.fn(),
-  syncInboxRowsFromMetaAndParticipants: jest.fn(),
-  syncInboxRowsFromMetas: jest.fn(),
-  syncInboxRowsFromParticipantMap: jest.fn(),
-  syncInboxRowsFromParticipants: jest.fn(),
-  updateInboxRowTyping: jest.fn(),
-}))
+import {useConversationParticipants} from './data-hooks'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const emptyStringSet = new Set<string>()
@@ -169,43 +155,6 @@ const makeIncomingOutboxReaction = (
   pagination: null,
 })
 
-const makeUnverifiedInboxUIItem = (): T.RPCChat.UnverifiedInboxUIItem => ({
-  commands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
-  convID: T.Chat.conversationIDKeyToString(convID),
-  convRetention: null,
-  draft: null,
-  finalizeInfo: null,
-  isDefaultConv: false,
-  isPublic: false,
-  localMetadata: {
-    channelName: '',
-    headline: '',
-    headlineDecorated: '',
-    resetParticipants: null,
-    snippet: '',
-    snippetDecoration: T.RPCChat.SnippetDecoration.none,
-    writerNames: null,
-  },
-  localVersion: 1,
-  maxMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(301)),
-  maxVisibleMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(301)),
-  memberStatus: T.RPCChat.ConversationMemberStatus.active,
-  membersType: T.RPCChat.ConversationMembersType.impteamnative,
-  name: 'alice,bob,charlie',
-  notifications: null,
-  readMsgID: 0,
-  status: T.RPCChat.ConversationStatus.unfiled,
-  supersededBy: null,
-  supersedes: null,
-  teamRetention: null,
-  teamType: T.RPCChat.TeamType.simple,
-  time: 1,
-  tlfID: 'tlf-id',
-  topicType: T.RPCChat.TopicType.chat,
-  version: 1,
-  visibility: T.RPCGen.TLFVisibility.private,
-})
-
 const makeFailedOutboxRecord = (
   conversationIDKey: T.Chat.ConversationIDKey,
   outboxID: T.Chat.OutboxID
@@ -331,7 +280,7 @@ test('separate providers do not share thread state', () => {
 })
 
 test('mounted thread syncs participant updates received outside its provider', () => {
-  const {result} = renderHook(() => useConversationThreadSelector(s => s.participants), {wrapper})
+  const {result} = renderHook(() => useConversationParticipants(convID), {wrapper})
   const participantInfo = {
     all: ['alice', 'helperbot'],
     contactName: new Map<string, string>(),
@@ -339,10 +288,7 @@ test('mounted thread syncs participant updates received outside its provider', (
   }
 
   act(() => {
-    participantInfoReceived(convID, participantInfo, {
-      ...Meta.makeConversationMeta(),
-      conversationIDKey: convID,
-    })
+    participantInfoReceived(convID, participantInfo)
   })
 
   expect(result.current.all).toEqual(['alice', 'helperbot'])
@@ -1134,45 +1080,6 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
     decorated: 'server-plus-one',
     users: [{timestamp: 300, username: 'alice'}],
   })
-})
-
-test('mounted thread listener applies inbox failure metadata for the active conversation', () => {
-  const {result} = renderHook(
-    () => ({
-      meta: useConversationThreadSelector(s => s.meta),
-      participants: useConversationThreadSelector(s => s.participants),
-    }),
-    {wrapper}
-  )
-
-  act(() => {
-    notifyEngineActionListeners({
-      payload: {
-        params: {
-          convID: T.Chat.keyToConversationID(convID),
-          error: {
-            message: 'rekey needed',
-            rekeyInfo: {
-              readerNames: ['charlie'],
-              rekeyers: ['bob'],
-              tlfName: 'alice,bob,charlie',
-              tlfPublic: false,
-              writerNames: ['alice', 'bob'],
-            },
-            remoteConv: makeUnverifiedInboxUIItem(),
-            typ: T.RPCChat.ConversationErrorType.otherrekeyneeded,
-            unverifiedTLFName: 'alice,bob,charlie',
-          },
-        },
-      },
-      type: 'chat.1.chatUi.chatInboxFailed',
-    } as never)
-  })
-
-  expect(result.current.meta.trustedState).toBe('error')
-  expect(result.current.meta.snippet).toBe('rekey needed')
-  expect([...result.current.meta.rekeyers]).toEqual(['bob'])
-  expect(result.current.participants.name).toEqual(['alice', 'bob', 'charlie'])
 })
 
 test('mounted thread listener applies request and payment decorators for the active conversation', () => {

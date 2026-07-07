@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useRequestLogout} from './use-request-logout'
 import {useRandomPWState} from './use-random-pw'
+import {useRPCLoad} from '@/util/use-rpc-load'
 
 type Props = {
   error: string
@@ -206,17 +207,9 @@ const Container = () => {
     navigation.setOptions({title})
   }, [navigation, title])
 
-  const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState<boolean | undefined>(undefined)
-  const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
-  React.useEffect(() => {
-    loadPgpSettings(
-      [undefined],
-      ({hasServerKeys}) => {
-        setHasPGPKeyOnServer(hasServerKeys)
-      },
-      () => {}
-    )
-  }, [loadPgpSettings])
+  const {data: hasPGPKeyOnServer} = useRPCLoad(T.RPCGen.accountHasServerKeysRpcPromise, [undefined], {
+    map: ({hasServerKeys}) => hasServerKeys,
+  })
 
   const props = {
     error,

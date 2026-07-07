@@ -61,6 +61,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background) => {
 const flexCommon = isMobile ? {} : ({display: 'flex'} as const)
 const utilBase = {
   fillAbsolute: {inset: 0, position: 'absolute'},
+  largeWidthPercent: '70%',
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
   flexBoxColumnReverse: {...flexCommon, flexDirection: 'column-reverse'},
@@ -242,29 +243,14 @@ const font = isMobile ? (isIOS ? fontNativeIOS : fontNativeAndroid) : fontDeskto
 
 const utilDesktop = {
   ...utilBase,
-  largeWidthPercent: '70%' as const,
-  loadingTextStyle: {
-    // this won't really work with dark mode
-    backgroundColor: colors.greyLight,
-    height: 16,
-    marginBottom: globalMargins.tiny,
-    marginTop: globalMargins.tiny,
-  },
   mediumSubNavWidth: 260,
   mediumWidth: 400,
-  shortSubNavWidth: 160,
 }
 
 const utilNative = {
   ...utilBase,
-  largeWidthPercent: '70%' as const,
-  loadingTextStyle: {
-    backgroundColor: colors.greyLight,
-    height: 16,
-  },
   mediumSubNavWidth: (isTablet ? 270 : '100%') as CSS.DimensionValue,
   mediumWidth: (isTablet ? 460 : '100%') as CSS.DimensionValue,
-  shortSubNavWidth: (isTablet ? 162 : '100%') as CSS.DimensionValue,
 }
 
 const util = isMobile ? utilNative : utilDesktop
@@ -276,13 +262,10 @@ export const globalStyles = {
 
 // ─── Platform-specific style collections ──────────────────────────────────────
 
-export const mobileStyles = {}
 export const desktopStyles = isMobile
   ? {
       boxShadow: {},
       clickable: {},
-      editable: {},
-      fadeOpacity: {},
       noSelect: {},
       scrollable: {},
       windowDragging: {},
@@ -293,8 +276,6 @@ export const desktopStyles = isMobile
         return {boxShadow: `0 2px 5px 0 ${themed.black_20OrBlack}`}
       },
       clickable: {cursor: 'pointer' as const},
-      editable: {cursor: 'text' as const},
-      fadeOpacity: {transition: 'opacity .25s ease-in-out' as const},
       noSelect: {userSelect: 'none' as const},
       scrollable: {overflowY: 'auto' as const},
       windowDragging: {
@@ -311,8 +292,6 @@ export const desktopStyles = isMobile
 
 export const transition = (...properties: Array<string>) =>
   isMobile ? {} : {transition: properties.map(p => `${p} 0.1s ease-out`).join(', ')}
-
-export const transitionColor = () => (isMobile ? {} : {transition: 'background 0.2s linear'})
 
 // ─── Desktop initializer (DOM manipulation — desktop only) ────────────────────
 
@@ -408,6 +387,27 @@ export function styleSheetCreate(styles: () => NamedStyles): NamedStyles {
 
 // ─── collapseStyles ───────────────────────────────────────────────────────────
 
+// Always returns a plain merged object (also used directly with DOM style props on desktop).
+// Fast path for a single style that passes. Often we do stuff like
+// collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
+// case we can just take styles.myStyle and not render thrash
+export const collapseStylesDesktop = (styles: ReadonlyArray<unknown>): object | undefined => {
+  const valid = styles.filter(s => {
+    return !!s && Object.keys(s).length
+  })
+  if (valid.length === 0) {
+    return undefined
+  }
+  if (valid.length === 1) {
+    const s = valid[0]
+    if (typeof s === 'object') {
+      return s as object
+    }
+  }
+  const s = Object.assign({}, ...styles.flat()) as object
+  return Object.keys(s).length ? s : undefined
+}
+
 export const collapseStyles = isMobile
   ? (styles: ReadonlyArray<unknown>): CSS.StylesCrossPlatform => {
       const nonNull = styles.filter(s => {
@@ -430,52 +430,14 @@ export const collapseStyles = isMobile
       }
       return styles as CSS.StylesCrossPlatform
     }
-  : (styles: ReadonlyArray<unknown>): CSS.StylesCrossPlatform => {
-      // fast path for a single style that passes. Often we do stuff like
-      // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
-      // case we can just take styles.myStyle and not render thrash
-      const valid = styles.filter(s => {
-        return !!s && Object.keys(s).length
-      })
-      if (valid.length === 0) {
-        return undefined
-      }
-      if (valid.length === 1) {
-        const s = valid[0]
-        if (typeof s === 'object') {
-          return s as CSS.StylesCrossPlatform
-        }
-      }
-
-      // jenkins doesn't support flat yet
-      const s = Object.assign({}, ...styles.flat()) as CSS.StylesCrossPlatform
-      return s && Object.keys(s).length ? s : undefined
-    }
-
-// Desktop-specific version that always returns a plain object (for use with DOM style props).
-export const collapseStylesDesktop = (styles: ReadonlyArray<unknown>): object | undefined => {
-  const valid = styles.filter(s => {
-    return !!s && Object.keys(s).length
-  })
-  if (valid.length === 0) {
-    return undefined
-  }
-  if (valid.length === 1) {
-    const s = valid[0]
-    if (typeof s === 'object') {
-      return s as object
-    }
-  }
-  const s = Object.assign({}, ...styles.flat()) as object
-  return Object.keys(s).length ? s : undefined
-}
+  : (styles: ReadonlyArray<unknown>): CSS.StylesCrossPlatform =>
+      collapseStylesDesktop(styles) as CSS.StylesCrossPlatform
 
 // ─── Platform constants ───────────────────────────────────────────────────────
 
 export const borderRadius = isMobile ? 6 : 4
 export const dimensionWidth = isMobile ? Dimensions.get('window').width : 0
 export const dimensionHeight = isMobile ? Dimensions.get('window').height : 0
-export const headerExtraHeight = isMobile ? (isTablet ? 16 : 0) : 0
 
 // ─── Path utilities ───────────────────────────────────────────────────────────
 

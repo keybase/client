@@ -100,8 +100,7 @@ function WithTooltip(p: Props) {
         <Kb.Box2
           direction="vertical"
           alignSelf="stretch"
-          alignItems="center"
-          justifyContent="center"
+          centerChildren={true}
           style={containerStyle}
           ref={popupAnchor}
           onMouseOver={IGNORE_FOR_PROFILING ? undefined : onMouseEnter}

@@ -4,7 +4,7 @@ import type {StaticScreenProps} from '@react-navigation/core'
 
 type Props = StaticScreenProps<{errorCode?: number; errorMessage?: string}>
 
-const ConnectedSignupError = (p: Props) => {
+const SignupError = (p: Props) => {
   const errorCode = p.route.params.errorCode
   const errorMessage = p.route.params.errorMessage ?? ''
   let heading = 'Ah Shoot! Something went wrong, try again?'
@@ -16,4 +16,4 @@ const ConnectedSignupError = (p: Props) => {
   return <SimpleErrorScreen heading={heading} message={message} onBack={C.Router2.navigateUp} />
 }
 
-export default ConnectedSignupError
+export default SignupError

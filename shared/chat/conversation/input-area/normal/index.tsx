@@ -12,7 +12,7 @@ import * as T from '@/constants/types'
 import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
-import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
+import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input.shared'
 import {useConversationCenter, useConversationCenterActions} from '../../center-context'
 import {
@@ -21,7 +21,9 @@ import {
   useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
   useConversationThreadToggleSearch,
+  useThreadMeta,
 } from '../../thread-context'
+import {useConversationParticipants} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows} from '@/chat/inbox/metadata'
@@ -34,14 +36,15 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
-  const {channelname, participantInfoName, teamType, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      channelname: s.meta.channelname,
-      participantInfoName: s.participants.name,
-      teamType: s.meta.teamType,
-      teamname: s.meta.teamname,
+  const conversationIDKey = useConversationThreadID()
+  const {channelname, teamType, teamname} = useThreadMeta(
+    C.useShallow(m => ({
+      channelname: m.channelname,
+      teamType: m.teamType,
+      teamname: m.teamname,
     }))
   )
+  const participantInfoName = useConversationParticipants(conversationIDKey).name
   if (isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
@@ -139,9 +142,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   )
   const replyToMessage = useConversationThreadMessage(uiData.replyTo)
   const conversationIDKey = useConversationThreadID()
-  const {explodingMode, meta} = useConversationThreadSelector(
-    C.useShallow(s => ({explodingMode: s.explodingMode, meta: s.meta}))
-  )
+  const explodingMode = useConversationThreadSelector(s => s.explodingMode)
+  const meta = useThreadMeta(m => m)
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
   const {cannotWrite, minWriterRole, tlfname} = meta
   const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)
@@ -181,7 +183,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     doInjectText(inputRef, text, focus)
   }
 
-  const {scrollToBottom} = React.useContext(ScrollContext)
+  const {scrollToBottom} = React.useContext(ThreadRefsContext)
   const onSubmit = (text: string) => {
     if (!text) return
     injectText('', true)
@@ -205,7 +207,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const updateDraftRaw = (text: string) => {
     // Immediately update local meta.draft so switching back to this thread
     // before the async unbox completes won't re-inject the old stale draft.
-    metasReceived([{...meta, draft: text}])
+    // Merges from the current meta (same inbox version), so force past gating.
+    metasReceived([{...meta, draft: text}], undefined, {force: true})
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
         conversationID: convoID,
@@ -274,7 +277,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
   }, [focusInputCounter, updateUnsentText, unsentText])
 
-  const {setInputRef} = React.useContext(FocusContext)
+  const {setInputRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
     setInputRef(inputRef.current)
   }, [setInputRef])

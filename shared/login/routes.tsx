@@ -31,19 +31,13 @@ const LoginHeaderRight = () => {
   const requestAutoInvite = useRequestAutoInvite()
   if (!showRelogin) return null
   return (
-    <Kb.Box2 direction="horizontal" style={loginHeaderStyles.createAccount}>
+    <Kb.Box2 direction="horizontal" style={styles.createAccount}>
       <Kb.Text type="BodyBigLink" onClick={() => requestAutoInvite('')}>
         Create account
       </Kb.Text>
     </Kb.Box2>
   )
 }
-
-const loginHeaderStyles = Kb.Styles.styleSheetCreate(() => ({
-  createAccount: Kb.Styles.platformStyles({
-    isElectron: {paddingRight: Kb.Styles.globalMargins.small},
-  }),
-}))
 
 // Recover-password back affordances must run the flow's back/cancel logic (not a plain pop), so they
 // are wired as the React Navigation headerLeft. They read the current route's params via useRoute.
@@ -81,12 +75,15 @@ const PromptResetAccountLeft = () => {
   )
 }
 
-const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  createAccount: Kb.Styles.platformStyles({
+    isElectron: {paddingRight: Kb.Styles.globalMargins.small},
+  }),
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
 }))
 
 const headerRightActions = () => (
-  <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
+  <Kb.Box2 direction="horizontal" style={styles.questionBox}>
     <InfoIcon />
   </Kb.Box2>
 )

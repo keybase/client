@@ -288,9 +288,7 @@ class MainActivity : ReactActivity() {
                 handledIntentHash = intentHash
                 NativeLogger.info("MainActivity.handleIntent processing notification: $intentHash")
 
-                // If there are any other bundle sources we care about, emit them here
-                rc.emitDeviceEvent("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification))
-                rc.emitDeviceEvent("onPushNotification", Arguments.fromBundle(bundleFromNotification))
+                KbModule.emitPushNotification(bundleFromNotification)
             }
 
             intent.removeExtra("notification")
@@ -314,10 +312,10 @@ class MainActivity : ReactActivity() {
 
             if (isTextMime && textPayload.isNotEmpty()) {
                 // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
-                emitShareText(rc, text ?: textPayload)
+                emitShareText(text ?: textPayload)
             } else if (uris.isEmpty()) {
                 if (textPayload.isNotEmpty()) {
-                    emitShareText(rc, textPayload)
+                    emitShareText(textPayload)
                 }
             } else {
                 // Copying out of the content providers can be slow for big files; don't
@@ -331,12 +329,12 @@ class MainActivity : ReactActivity() {
                         }
                     }
                     if (filePaths.isNotEmpty()) {
-                        emitShareFiles(rc, filePaths)
+                        emitShareFiles(filePaths)
                     } else if (textPayload.isNotEmpty()) {
                         // Fallback: non-text MIME but no files resolved, send text
-                        emitShareText(rc, textPayload)
+                        emitShareText(textPayload)
                     } else {
-                        emitShareFiles(rc, emptyList())
+                        emitShareFiles(emptyList())
                     }
                 }.start()
             }
@@ -346,20 +344,20 @@ class MainActivity : ReactActivity() {
         return true
     }
 
-    private fun emitShareText(rc: ReactContext, text: String) {
+    private fun emitShareText(text: String) {
         val args = Arguments.createMap()
         args.putString("text", text)
-        rc.emitDeviceEvent("onShareData", args)
+        KbModule.emitShareData(args)
     }
 
-    private fun emitShareFiles(rc: ReactContext, paths: List<String>) {
+    private fun emitShareFiles(paths: List<String>) {
         val args = Arguments.createMap()
         val lPaths = Arguments.createArray()
         for (path in paths) {
             lPaths.pushString(path)
         }
         args.putArray("localPaths", lPaths)
-        rc.emitDeviceEvent("onShareData", args)
+        KbModule.emitShareData(args)
     }
 
     override fun getMainComponentName(): String = "Keybase"

@@ -22,13 +22,8 @@ const NewTeamItem = () => (
 )
 
 const TeamItem = (p: {teamname: string}) => (
-  <Kb.Box2 direction="horizontal" alignItems="center" style={styles.avatarBox}>
-    <Kb.Avatar
-      isTeam={true}
-      teamname={p.teamname}
-      size={16}
-      style={styles.teamAvatar}
-    />
+  <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.avatarBox}>
+    <Kb.Avatar isTeam={true} teamname={p.teamname} size={16} />
     <Kb.Text type="Header" style={styles.teamName}>
       {p.teamname}
     </Kb.Text>
@@ -103,16 +98,11 @@ const NewRepo = (ownProps: OwnProps) => {
   }
   return (
     <Kb.ScrollView>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} alignItems="center" style={styles.container}>
-        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
-        <Kb.Text type="Header" style={styles.marginBottom27}>
-          New {isTeam ? 'team' : 'personal'} git repository
-        </Kb.Text>
-        <Kb.IconAuto
-          type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
-          style={styles.marginBottom27}
-        />
-        <Kb.Text type="Body" style={styles.marginBottom27}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} alignItems="center" gap="medium" style={styles.container}>
+        <Kb.ErrorBanner error={error} />
+        <Kb.Text type="Header">New {isTeam ? 'team' : 'personal'} git repository</Kb.Text>
+        <Kb.IconAuto type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'} />
+        <Kb.Text type="Body">
           {isTeam
             ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
             : 'Your repository will be encrypted and only accessible by you.'}
@@ -140,21 +130,13 @@ const NewRepo = (ownProps: OwnProps) => {
             style={styles.checkbox}
           />
         )}
-        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          <Kb.WaitingButton
-            type="Dim"
-            onClick={navigateUp}
-            label="Cancel"
-            waitingKey={C.waitingKeyGitLoading}
-            onlyDisable={true}
-          />
-          <Kb.WaitingButton
-            onClick={onSubmit}
-            label="Create"
-            disabled={!canSubmit()}
-            waitingKey={C.waitingKeyGitLoading}
-          />
-        </Kb.ButtonBar>
+        <Kb.ConfirmButtons
+          waitingKey={C.waitingKeyGitLoading}
+          onCancel={navigateUp}
+          onConfirm={onSubmit}
+          confirmLabel="Create"
+          confirmDisabled={!canSubmit()}
+        />
       </Kb.Box2>
     </Kb.ScrollView>
   )
@@ -168,11 +150,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.small,
         width: '100%',
       },
-      buttonBar: {alignItems: 'center'},
-      checkbox: {
-        alignSelf: 'flex-start',
-        marginTop: Kb.Styles.globalMargins.tiny,
-      },
+      checkbox: {alignSelf: 'flex-start'},
       container: Kb.Styles.platformStyles({
         common: {
           padding: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
@@ -184,13 +162,8 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 500,
         },
       }),
-      dropdown: {
-        marginBottom: Kb.Styles.globalMargins.small,
-        width: '100%',
-      },
-      marginBottom27: {marginBottom: 27},
+      dropdown: {width: '100%'},
       newTeamItem: {paddingLeft: Kb.Styles.globalMargins.small},
-      teamAvatar: {marginRight: Kb.Styles.globalMargins.tiny},
       teamName: Kb.Styles.platformStyles({
         common: {
           overflow: 'hidden',

@@ -1,4 +1,5 @@
-import {Platform, NativeEventEmitter, type EmitterSubscription} from 'react-native'
+import {Platform} from 'react-native'
+import type {EventSubscription} from 'react-native'
 import KbNative from './NativeKb'
 
 const Kb = KbNative
@@ -83,11 +84,10 @@ export const addNotificationRequest = (config: {body: string; id: string}): Prom
 }
 
 // Hardware keyboard events
-const hwKeyPressedListeners: Array<EmitterSubscription> = []
+const hwKeyPressedListeners: Array<EventSubscription> = []
 
 export const onHWKeyPressed = (callback: (event: {pressedKey: string}) => void): void => {
-  const emitter = getNativeEmitter()
-  const listener = emitter.addListener('hardwareKeyPressed', callback)
+  const listener = Kb.onHardwareKeyPressed(pressedKey => callback({pressedKey}))
   hwKeyPressedListeners.push(listener)
 }
 
@@ -101,10 +101,7 @@ let pasteImageListenerCount = 0
 
 export const registerPasteImage = (callback: (uris: Array<string>) => void): (() => void) => {
   if (Platform.OS !== 'ios') return () => {}
-  const emitter = getNativeEmitter()
-  const listener = emitter.addListener('onPasteImage', (event: {uris: Array<string>}) => {
-    callback(event.uris)
-  })
+  const listener = Kb.onPasteImage(uris => callback(uris))
   pasteImageListenerCount++
   Kb.setEnablePasteImage(true)
   return () => {
@@ -112,6 +109,27 @@ export const registerPasteImage = (callback: (uris: Array<string>) => void): (()
     pasteImageListenerCount--
     Kb.setEnablePasteImage(pasteImageListenerCount > 0)
   }
+}
+
+// Engine meta events (e.g. 'kb-engine-reset')
+export const onMetaEvent = (callback: (payload: string) => void): EventSubscription => {
+  return Kb.onMetaEvent(callback)
+}
+
+// Push events
+export const onPushNotification = (callback: (notification: object) => void): EventSubscription => {
+  return Kb.onPushNotification(n => callback(n))
+}
+
+export const onPushToken = (callback: (token: string) => void): EventSubscription => {
+  return Kb.onPushToken(callback)
+}
+
+// Android share-into-app intents
+export const onShareData = (
+  callback: (evt: {text?: string; localPaths?: Array<string>}) => void
+): EventSubscription => {
+  return Kb.onShareData(callback)
 }
 
 export const engineReset = (): void => {
@@ -126,12 +144,6 @@ export const shareListenersRegistered = (): void => {
 
 export const clearLocalLogs = (): Promise<void> => {
   return Kb.clearLocalLogs()
-}
-
-let nativeEmitter: NativeEventEmitter | undefined
-export const getNativeEmitter = () => {
-  nativeEmitter ??= new NativeEventEmitter(Kb as any)
-  return nativeEmitter
 }
 
 const KBC = Kb.getTypedConstants()

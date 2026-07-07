@@ -44,8 +44,8 @@ import {
   onGetInboxUnverifiedConvs,
   onInboxLayoutChanged,
   onIncomingInboxUIItem,
-  syncBadgeState,
 } from '@/chat/inbox/metadata'
+import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
@@ -346,7 +346,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params
-        syncBadgeState(badgeState)
+        syncInboxBadgeState(badgeState)
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }

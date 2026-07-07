@@ -1213,6 +1213,33 @@ export const uiMessageToMessage = (
   }
 }
 
+export const parseUIMessagesJSON = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  threadJSON: string,
+  username: string,
+  devicename: string,
+  getLastOrdinal: () => T.Chat.Ordinal,
+  // called as each message is converted, before the next conversion; callers can use it to keep a
+  // running max feeding getLastOrdinal
+  onMessage?: (m: T.Chat.Message) => void
+): {messages: Array<T.Chat.Message>; pagination?: T.RPCChat.UIPagination} => {
+  try {
+    const uiMessages = JSON.parse(threadJSON) as T.RPCChat.UIMessages
+    const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, uiMessage) => {
+      const message = uiMessageToMessage(conversationIDKey, uiMessage, username, getLastOrdinal, devicename)
+      if (message) {
+        arr.push(message)
+        onMessage?.(message)
+      }
+      return arr
+    }, [])
+    return {messages, pagination: uiMessages.pagination ?? undefined}
+  } catch (error) {
+    logger.warn(`parseUIMessagesJSON: failed for ${conversationIDKey}: ${String(error)}`)
+    return {messages: []}
+  }
+}
+
 const assertNever = (_: never) => undefined
 
 function nextFractionalOrdinal(ord: T.Chat.Ordinal) {

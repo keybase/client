@@ -16,16 +16,6 @@ import * as Z from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
-import {
-  getInboxRowTrustedState,
-  setInboxRowTrustedState,
-  syncInboxRowBadgeState,
-  syncInboxRowsFromMetaAndParticipants,
-  syncInboxRowsFromLayout,
-  syncInboxRowsFromMetas,
-  syncInboxRowsFromParticipantMap,
-  syncInboxRowsFromParticipants,
-} from '@/chat/inbox/rows-state'
 
 type InboxMetadataState = T.Immutable<{
   metas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
@@ -55,16 +45,21 @@ export const updateInboxConversationMeta = (
   if (!oldMeta) {
     return
   }
-  metasReceived([
-    {
-      ...oldMeta,
-      ...partial,
-      rekeyers: partial.rekeyers ? new Set(partial.rekeyers) : oldMeta.rekeyers,
-      resetParticipants: partial.resetParticipants
-        ? new Set(partial.resetParticipants)
-        : oldMeta.resetParticipants,
-    },
-  ])
+  // Already merged from the current meta, so bypass version gating.
+  metasReceived(
+    [
+      {
+        ...oldMeta,
+        ...partial,
+        rekeyers: partial.rekeyers ? new Set(partial.rekeyers) : oldMeta.rekeyers,
+        resetParticipants: partial.resetParticipants
+          ? new Set(partial.resetParticipants)
+          : oldMeta.resetParticipants,
+      },
+    ],
+    undefined,
+    {force: true}
+  )
 }
 
 export const metaReceivedError = (
@@ -75,8 +70,6 @@ export const metaReceivedError = (
     logger.info(
       `metaReceivedError: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
     )
-    // Allow a later unbox to retry; a row left 'requesting' is never re-requested.
-    setInboxRowTrustedState([conversationIDKey], 'untrusted')
     return
   }
   logger.info(
@@ -90,43 +83,49 @@ export const metaReceivedError = (
   if (!meta) {
     return
   }
-  metasReceived([meta])
+  // Error metas share the prior inbox version but flip trustedState to 'error';
+  // gating would swallow that, so force the overwrite.
+  metasReceived([meta], undefined, {force: true})
   if (participants) {
-    participantInfoReceived(conversationIDKey, participants, meta)
+    participantInfoReceived(conversationIDKey, participants)
   }
 }
 
 export const participantInfoReceived = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  participantInfo: T.Chat.ParticipantInfo,
-  meta?: T.Chat.ConversationMeta
+  participantInfo: T.Chat.ParticipantInfo
 ) => {
   useInboxMetadataState.setState(s => {
     s.participants.set(conversationIDKey, T.castDraft(participantInfo))
   })
-  if (meta) {
-    syncInboxRowsFromMetaAndParticipants([{meta, participantInfo}])
-  }
 }
 
 export const metasReceived = (
   metas: ReadonlyArray<T.Chat.ConversationMeta>,
-  removals?: ReadonlyArray<T.Chat.ConversationIDKey>
+  removals?: ReadonlyArray<T.Chat.ConversationIDKey>,
+  options?: {force?: boolean}
 ) => {
+  const force = options?.force ?? false
+  // Version-gate against the currently stored meta so a stale-version update
+  // can't clobber newer data (previously done by the thread store). Compute
+  // against getState() (not the immer draft) so updateMeta never sees a proxy.
+  const current = useInboxMetadataState.getState().metas
+  const nextMetas = metas.map(m => {
+    const old = force ? undefined : current.get(m.conversationIDKey)
+    return old ? Meta.updateMeta(old, m) : m
+  })
   useInboxMetadataState.setState(s => {
     removals?.forEach(r => {
       s.metas.delete(r)
       s.participants.delete(r)
     })
-    metas.forEach(m => {
-      s.metas.set(m.conversationIDKey, T.castDraft(m))
+    nextMetas.forEach(next => {
+      s.metas.set(next.conversationIDKey, T.castDraft(next))
     })
   })
-  syncInboxRowsFromMetas(metas, removals)
 }
 
 const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>) => {
-  syncInboxRowsFromParticipants(inboxUIItems)
   const participantEntries = new Array<{
     conversationIDKey: T.Chat.ConversationIDKey
     participantInfo: T.Chat.ParticipantInfo
@@ -152,7 +151,6 @@ const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIIt
 export const syncInboxParticipantsFromParticipantMap = (
   participantMap?: {[key: string]: ReadonlyArray<T.RPCChat.UIParticipant> | null} | null
 ) => {
-  syncInboxRowsFromParticipantMap(participantMap)
   useInboxMetadataState.setState(s => {
     Object.keys(participantMap ?? {}).forEach(convIDStr => {
       const participants = participantMap?.[convIDStr]
@@ -266,7 +264,6 @@ export const onChatRouteChanged = (
 }
 
 export const hydrateInboxLayout = (layout: T.RPCChat.UIInboxLayout) => {
-  syncInboxRowsFromLayout(layout)
   const missingSnippetIds = (layout.smallTeams ?? [])
     .filter(row => !row.snippet)
     .map(row => T.Chat.stringToConversationIDKey(row.convID))
@@ -296,17 +293,20 @@ export const clearConversationsForInboxSync = () => {
   })
 }
 
-const trustedStateForConversation = (id: T.Chat.ConversationIDKey) =>
-  useInboxMetadataState.getState().metas.get(id)?.trustedState ?? getInboxRowTrustedState(id)
+const inFlightUnboxRows = new Set<T.Chat.ConversationIDKey>()
+const pendingForcedUnboxRows = new Set<T.Chat.ConversationIDKey>()
+
+// Trusted state now lives on the meta itself; a conv with no meta is 'requesting'
+// while its unbox is in flight, otherwise 'untrusted'.
+const trustedStateForConversation = (id: T.Chat.ConversationIDKey): T.Chat.MetaTrustedState =>
+  useInboxMetadataState.getState().metas.get(id)?.trustedState ??
+  (inFlightUnboxRows.has(id) ? 'requesting' : 'untrusted')
 
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => {
     const trustedState = trustedStateForConversation(id)
     return trustedState !== 'requesting' && trustedState !== 'trusted'
   })
-
-const inFlightUnboxRows = new Set<T.Chat.ConversationIDKey>()
-const pendingForcedUnboxRows = new Set<T.Chat.ConversationIDKey>()
 
 type ConvoMetaQueueState = T.Immutable<{
   generation: number
@@ -441,7 +441,6 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
       return
     }
     conversationIDKeys.forEach(id => inFlightUnboxRows.add(id))
-    setInboxRowTrustedState(conversationIDKeys, 'requesting')
     logger.info(
       `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
     )
@@ -453,9 +452,8 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
       if (error instanceof RPCError) {
         logger.info(`unboxRows: failed ${error.desc}`)
       }
-      // No per-conversation results arrived; leaving rows 'requesting' would make
-      // every future non-forced unbox skip them permanently.
-      setInboxRowTrustedState(conversationIDKeys, 'untrusted')
+      // No per-conversation results arrived; the finally block clears the
+      // in-flight marker so these convs fall back to 'untrusted' and can retry.
     } finally {
       conversationIDKeys.forEach(id => inFlightUnboxRows.delete(id))
       const rerunIDs = conversationIDKeys.filter(id => {
@@ -489,12 +487,8 @@ export const queueMetaToRequest = (ids: ReadonlyArray<T.Chat.ConversationIDKey>)
   useConvoMetaQueueState.getState().dispatch.queueMetaToRequest(ids)
 }
 
-const hasKnownMeta = (id: T.Chat.ConversationIDKey) => {
-  if (useInboxMetadataState.getState().metas.has(id)) {
-    return true
-  }
-  return getInboxRowTrustedState(id) === 'trusted'
-}
+const hasKnownMeta = (id: T.Chat.ConversationIDKey) =>
+  useInboxMetadataState.getState().metas.has(id)
 
 export const ensureWidgetMetas = (
   widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | null | undefined
@@ -591,7 +585,8 @@ export const onChatInboxSynced = async (
       }, [])
       const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
       if (metas.length || removals?.length) {
-        metasReceived(metas, removals)
+        // Incremental unverified sync is authoritative for these convs; force past gating.
+        metasReceived(metas, removals, {force: true})
       }
 
       forceUnboxRowsForService(
@@ -604,8 +599,4 @@ export const onChatInboxSynced = async (
     default:
       await refreshInbox('inboxSyncedUnknown')
   }
-}
-
-export const syncBadgeState = (badgeState?: T.RPCGen.BadgeState) => {
-  syncInboxRowBadgeState(badgeState)
 }

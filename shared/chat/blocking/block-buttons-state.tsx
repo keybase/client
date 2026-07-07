@@ -28,11 +28,13 @@ const gregorItemsToBlockButtons = (
 
 type Store = T.Immutable<{
   blockButtonsMap: ReadonlyMap<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo>
+  loadGeneration: number
   loaded: boolean
 }>
 
 const makeInitialStore = (): Store => ({
   blockButtonsMap: new Map(),
+  loadGeneration: 0,
   loaded: false,
 })
 
@@ -46,8 +48,11 @@ type State = Store & {
   }
 }
 
-let loadPromise: Promise<void> | undefined
-let loadGeneration = 0
+// Promises can't live in immer-managed state, so this stays module-level. It's
+// paired with the store's loadGeneration: resetState clears this AND bumps the
+// generation so a load in flight at reset time can't win the race and write
+// into the fresh state after it resolves.
+let activeLoadPromise: Promise<void> | undefined
 
 export const useBlockButtonsState = Z.createZustand<State>('block-buttons', (set, get) => {
   const setFromGregorItems: State['dispatch']['updateFromGregorItems'] = items => {
@@ -59,39 +64,41 @@ export const useBlockButtonsState = Z.createZustand<State>('block-buttons', (set
 
   const dispatch: State['dispatch'] = {
     load: () => {
-      if (get().loaded || loadPromise) {
+      if (get().loaded || activeLoadPromise) {
         return
       }
-      const generation = loadGeneration
+      const generation = get().loadGeneration
       const request = (async () => {
         try {
           const state = await T.RPCGen.gregorGetStateRpcPromise()
-          if (generation === loadGeneration) {
+          if (generation === get().loadGeneration) {
             setFromGregorItems(state.items)
           }
         } catch (error) {
           logger.warn('Failed to load block button state', error)
         }
       })()
-      loadPromise = request
+      activeLoadPromise = request
       ignorePromise(
         request.finally(() => {
-          if (loadPromise === request) {
-            loadPromise = undefined
+          if (activeLoadPromise === request) {
+            activeLoadPromise = undefined
           }
         })
       )
     },
     resetState: () => {
-      loadGeneration++
-      loadPromise = undefined
+      activeLoadPromise = undefined
       set(s => ({
         ...makeInitialStore(),
         dispatch: s.dispatch,
+        loadGeneration: s.loadGeneration + 1,
       }))
     },
     updateFromGregorItems: items => {
-      loadGeneration++
+      set(s => {
+        s.loadGeneration++
+      })
       setFromGregorItems(items)
     },
   }

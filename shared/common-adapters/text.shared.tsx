@@ -36,7 +36,7 @@ const _allTextTypes = {
   BodyTinySemibold: 'BodyTinySemibold',
   BodyTinySemiboldItalic: 'BodyTinySemiboldItalic',
   BodyTinyBold: 'BodyTinyBold',
-  BodyTinyExtrabold: 'BodyTinyBold',
+  BodyTinyExtrabold: 'BodyTinyExtrabold',
   Header: 'Header',
   HeaderItalic: 'HeaderItalic',
   HeaderExtrabold: 'HeaderExtrabold',

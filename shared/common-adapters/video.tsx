@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
+import {normalizeFilePathURL} from '@/util/file-url'
 import {Box2} from './box'
 import Text from './text'
 import {StatusBar} from 'react-native'
@@ -67,22 +68,6 @@ const useCheckURL = (children: React.ReactElement, url: string, allowFile?: bool
   )
 }
 
-// Desktop: normalize file paths to file:// URLs
-const normalizeURL = (url: string) => {
-  const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url)
-  if (url.startsWith('/') || isWindowsPath) {
-    let path = url.replace(/\\/g, '/')
-    if (isWindowsPath && !path.startsWith('/')) {
-      path = '/' + path
-    }
-    return encodeURI(`file://${path}`).replace(/#/g, '%23')
-  }
-  if (url.startsWith('file://') && (url.includes(' ') || url.includes('#'))) {
-    return encodeURI(url).replace(/#/g, '%23')
-  }
-  return url
-}
-
 // Stub type for desktop video element (avoids dom lib dependency in native tsconfig)
 type VideoElementRef = {
   paused?: boolean
@@ -120,7 +105,7 @@ const DesktopVideo = (props: Props) => {
     }
   }
 
-  const url = normalizeURL(props.url)
+  const url = normalizeFilePathURL(props.url)
   const content = (
     <div style={Styles.castStyleDesktop(Styles.collapseStyles([styles.container, props.style]))}>
       <video

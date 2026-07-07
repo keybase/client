@@ -4,7 +4,7 @@ import {useConfigState} from '@/stores/config'
 
 type Props = {route: {params: {error: string}}}
 
-const ConnectedError = ({route}: Props) => {
+const RecoverPasswordError = ({route}: Props) => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const {error} = route.params
   const onBack = () => {
@@ -24,4 +24,4 @@ const ConnectedError = ({route}: Props) => {
   )
 }
 
-export default ConnectedError
+export default RecoverPasswordError

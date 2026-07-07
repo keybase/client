@@ -1,18 +1,16 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import DeviceIcon from './device-icon'
 import type * as T from '@/constants/types'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
+import {useIsNew} from '@/util/use-local-badging'
 
 type OwnProps = {
   canRevoke: boolean
   device: T.Devices.Device
   firstItem: boolean
 }
-
-export const BadgedDeviceIDsContext = React.createContext<ReadonlySet<string>>(new Set())
 
 function DeviceRow(ownProps: OwnProps) {
   const {canRevoke, device, firstItem} = ownProps
@@ -22,7 +20,7 @@ function DeviceRow(ownProps: OwnProps) {
     navigateAppend({name: 'devicePage', params: {canRevoke, device}})
   }
 
-  const isNew = React.useContext(BadgedDeviceIDsContext).has(deviceID)
+  const isNew = useIsNew(deviceID)
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
 
@@ -46,9 +44,7 @@ function DeviceRow(ownProps: OwnProps) {
             <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
               {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
             </Kb.Text>
-            {isNew && !currentDevice && (
-              <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
-            )}
+            {isNew && !currentDevice && <Kb.Meta variant="new" style={styles.meta} />}
           </Kb.Box2>
           <Kb.Text type="BodySmall">
             {isRevoked
@@ -68,7 +64,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       icon: {opacity: 0.3},
       meta: {
-        alignSelf: 'center',
         marginLeft: isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.xtiny,
       },
       text: {

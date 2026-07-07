@@ -1,17 +1,19 @@
 import type * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {formatTimeForChat} from '@/util/timestamp'
-import {useConversationThreadSelector} from '../../thread-context'
+import {useThreadMeta} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemJoined}
 
 function JoinedContainer(p: OwnProps) {
   const {message} = p
   const {joiners, author, leavers, timestamp} = message
-  const meta = useConversationThreadSelector(s => s.meta)
-  const {channelname, teamType, teamname} = meta
+  const {channelname, teamType, teamname} = useThreadMeta(
+    C.useShallow(m => ({channelname: m.channelname, teamType: m.teamType, teamname: m.teamname}))
+  )
   const joiners2 = !joiners?.length && !leavers?.length ? [author] : joiners
   const isBigTeam = teamType === 'big'
   const multiProps = {channelname, isBigTeam, teamname, timestamp}

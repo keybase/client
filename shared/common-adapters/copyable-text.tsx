@@ -45,16 +45,14 @@ const CopyableText = (props: Props) => {
       onPress={() => handleCopy()}
       style={props.style}
     >
-      <Box2 direction="vertical" fullWidth={true} alignItems="flex-start" relative={true} style={styles.base}>
+      <Box2 direction="vertical" fullWidth={true} relative={true} style={styles.base}>
         <Text style={Styles.collapseStyles([styles.text, props.textStyle])} type="BodySmall">
           {props.value}
         </Text>
-        <Box2 direction="vertical" alignItems="center" style={styles.copyToastContainer}>
-          <Box2 direction="horizontal" alignItems="center" style={styles.copyToast}>
-            <Text style={styles.copyToastText} type="Body">
-              {hasCopied ? 'Copied!' : 'Tap to copy'}
-            </Text>
-          </Box2>
+        <Box2 direction="horizontal" alignItems="center" style={styles.copyToast}>
+          <Text style={styles.copyToastText} type="Body">
+            {hasCopied ? 'Copied!' : 'Tap to copy'}
+          </Text>
         </Box2>
       </Box2>
     </TouchableHighlight>
@@ -76,7 +74,7 @@ const styles = Styles.styleSheetCreate(
           textAlign: 'left',
         },
         isElectron: {
-          border: `solid 1px ${Styles.globalColors.black_10}`,
+          ...Styles.border(Styles.globalColors.black_10, 1),
           justifyContent: 'stretch',
           lineHeight: '17px',
           overflowX: 'hidden',
@@ -95,15 +93,12 @@ const styles = Styles.styleSheetCreate(
       }),
       copyToast: {
         ...Styles.paddingH(Styles.globalMargins.medium),
+        // Box2 defaults to alignSelf center, which centers the absolute pill horizontally
         backgroundColor: Styles.globalColors.black_50,
         borderRadius: Styles.globalMargins.large,
-        height: Styles.globalMargins.medium + Styles.globalMargins.tiny,
-      },
-      copyToastContainer: {
         bottom: Styles.globalMargins.small,
-        left: 0,
+        height: Styles.globalMargins.medium + Styles.globalMargins.tiny,
         position: 'absolute',
-        right: 0,
       },
       copyToastText: {
         color: Styles.globalColors.white,

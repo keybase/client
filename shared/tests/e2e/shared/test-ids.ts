@@ -17,6 +17,17 @@ export const CHAT_INBOX_ROW    = 'chat-inbox-row'
 export const CHAT_MESSAGE_LIST = 'chat-message-list'
 export const CHAT_INPUT        = 'chat-input'
 export const CHAT_SEND_BUTTON  = 'chat-send-button'
+export const CHAT_INFO_PANEL   = 'chat-info-panel'
+export const CHAT_EMOJI_PICKER = 'chat-emoji-picker'
+export const CHAT_ATTACHMENT_IMAGE      = 'chat-attachment-image'
+export const CHAT_ATTACHMENT_FULLSCREEN = 'chat-attachment-fullscreen'
+export const CHAT_BOT_ROW               = 'chat-bot-row'
+export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
+export const CHAT_EMOJI_BUTTON          = 'chat-emoji-button'
+export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
+// Android only: iOS 26 folds Search/Info into one native "More" header menu,
+// but the Android header keeps the plain info icon — icons have no tappable text
+export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
@@ -63,6 +74,7 @@ export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
 
 // People
 export const PEOPLE_FEED = 'people-feed'
+export const PEOPLE_HEADER_AVATAR = 'people-header-avatar'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'

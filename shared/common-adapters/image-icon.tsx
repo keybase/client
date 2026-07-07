@@ -1,7 +1,6 @@
 import type * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
-import {typeExtension, getImagesDir} from './icon.shared'
 import type {Image as RNImageType} from 'react-native'
 import type {getAssetPath as getAssetPathType} from '@/constants/platform'
 
@@ -11,6 +10,9 @@ export type ImageIconProps = {
   className?: string
   allowLazy?: boolean
 }
+
+const typeExtension = (type: IconType) => iconMeta[type].extension || 'png'
+const getImagesDir = (type: IconType) => iconMeta[type].imagesDir || 'icons'
 
 const ImageIconDesktop = (props: ImageIconProps) => {
   const {getAssetPath} = require('@/constants/platform') as {getAssetPath: typeof getAssetPathType}

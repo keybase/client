@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import type * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
+import RoleCrown from './common/role-crown'
 
 export type Props = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
@@ -11,25 +12,14 @@ export type Props = {
   loading?: boolean
 }
 
-const roleIconMap = {
-  admin: 'iconfont-crown-admin',
-  bot: undefined,
-  owner: 'iconfont-crown-owner',
-  reader: undefined,
-  restrictedbot: undefined,
-  writer: undefined,
-} as const
-
 const RoleButton = (props: Props) => {
-  const iconType = roleIconMap[props.selectedRole]
-
   return (
     <InlineDropdown
       containerStyle={props.containerStyle}
       textWrapperType={null}
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
-          {iconType ? <Kb.Icon type={iconType} color={props.selectedRole === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35} style={styles.icon} sizeType="Small" /> : null}
+          <RoleCrown role={props.selectedRole} sizeType="Small" style={styles.icon} />
           <Kb.Text type="BodySmallSemibold">{capitalize(props.selectedRole)}</Kb.Text>
         </Kb.Box2>
       }

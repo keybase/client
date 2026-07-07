@@ -14,24 +14,10 @@ const RootLogin = () => {
   // routing should switch us away so lets not draw anything to speed things up
   if (isLoggedIn) return null
 
-  if (showLoading) {
-    return (
-      <React.Suspense>
-        <Loading />
-      </React.Suspense>
-    )
-  }
-  if (showRelogin) {
-    return (
-      <React.Suspense>
-        <Relogin />
-      </React.Suspense>
-    )
-  }
-
+  const Screen = showLoading ? Loading : showRelogin ? Relogin : JoinOrLogin
   return (
     <React.Suspense>
-      <JoinOrLogin />
+      <Screen />
     </React.Suspense>
   )
 }

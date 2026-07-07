@@ -6,7 +6,8 @@ import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import logger from '@/logger'
-import {useTeamsList} from '@/teams/use-teams-list'
+import {useRPCLoad} from '@/util/use-rpc-load'
+import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 
 const getOwnerDisabledReason = (
   selected: Set<string>,
@@ -53,10 +54,12 @@ const makeAddUserToTeamsResult = (
 
 type OwnProps = {username: string}
 
+const noTeamList = new Array<T.Teams.TeamProfileAddList>()
+
 const AddToTeam = (ownProps: OwnProps) => {
   const {username: them} = ownProps
   const {teams} = useTeamsList()
-  const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+  const teamNameToID = useTeamsListNameToIDMap()
   const teamNameToRole = React.useMemo(
     () => new Map(teams.map(team => [team.teamname, team.role] as const)),
     [teams]
@@ -64,14 +67,28 @@ const AddToTeam = (ownProps: OwnProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsProfileAddList)
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
-  const loadTeamProfileAddList = C.useRPC(T.RPCGen.teamsTeamProfileAddListRpcPromise)
   const addUserToTeam = C.useRPC(T.RPCGen.teamsTeamAddMemberRpcPromise)
-  const [teamProfileAddList, setTeamProfileAddList] = React.useState<ReadonlyArray<T.Teams.TeamProfileAddList>>([])
   const [addUserToTeamsResults, setAddUserToTeamsResults] = React.useState('')
   const [addUserToTeamsState, setAddUserToTeamsState] =
     React.useState<T.Teams.AddUserToTeamsState>('notStarted')
-  const teamListRequestID = React.useRef(0)
   const submitRequestID = React.useRef(0)
+
+  const {data: teamProfileAddList = noTeamList, reload: loadTeamList} = useRPCLoad(
+    T.RPCGen.teamsTeamProfileAddListRpcPromise,
+    [{username: them}, C.waitingKeyTeamsProfileAddList],
+    {
+      map: result => {
+        const teamlist = (result ?? []).map(team => ({
+          disabledReason: team.disabledReason,
+          open: team.open,
+          teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
+        }))
+        teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
+        return teamlist
+      },
+      onError: error => logger.info(`Failed to load profile add-to-team list for ${them}: ${error.message}`),
+    }
+  )
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
@@ -80,33 +97,6 @@ const AddToTeam = (ownProps: OwnProps) => {
   const [sendNotification, setSendNotification] = React.useState(true)
 
   const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, teamNameToRole)
-
-  const loadTeamList = React.useEffectEvent(() => {
-    const requestID = teamListRequestID.current + 1
-    teamListRequestID.current = requestID
-    loadTeamProfileAddList(
-      [{username: them}, C.waitingKeyTeamsProfileAddList],
-      result => {
-        if (teamListRequestID.current !== requestID) {
-          return
-        }
-        const teamlist = (result ?? []).map(team => ({
-          disabledReason: team.disabledReason,
-          open: team.open,
-          teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
-        }))
-        teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
-        setTeamProfileAddList(teamlist)
-      },
-      error => {
-        if (teamListRequestID.current !== requestID) {
-          return
-        }
-        logger.info(`Failed to load profile add-to-team list for ${them}: ${error.message}`)
-        setTeamProfileAddList([])
-      }
-    )
-  })
 
   const onAddToTeams = React.useEffectEvent(
     async (role: T.Teams.TeamRoleType, teams: Array<string>, sendChatNotification: boolean) => {
@@ -172,9 +162,7 @@ const AddToTeam = (ownProps: OwnProps) => {
   )
 
   React.useEffect(() => {
-    loadTeamList()
     return () => {
-      teamListRequestID.current += 1
       submitRequestID.current += 1
     }
   }, [])
@@ -281,7 +269,6 @@ const AddToTeam = (ownProps: OwnProps) => {
           </Kb.Text>
           <FloatingRolePicker
             presetRole={selectedRole}
-
             footerComponent={footerComponent}
             onConfirm={onConfirmRolePicker}
             onCancel={onCancelRolePicker}
@@ -340,7 +327,7 @@ const TeamRow = (props: RowProps) => {
               {props.name}
             </Kb.Text>
             {props.isOpen && (
-              <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
+              <Kb.Meta variant="open" style={styles.meta} />
             )}
           </Kb.Box2>
           <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
@@ -402,7 +389,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {marginLeft: Kb.Styles.globalMargins.xxtiny, marginRight: Kb.Styles.globalMargins.tiny},
       }),
       meta: {
-        alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },

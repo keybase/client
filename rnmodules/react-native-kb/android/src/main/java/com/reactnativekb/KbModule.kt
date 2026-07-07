@@ -56,13 +56,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return NAME
     }
 
-    @ReactMethod
-    override fun addListener(eventName: String) {
-    }
-
-    @ReactMethod
-    override fun removeListeners(count: Double) {
-    }
+    // mEventEmitterCallback is only set once JS creates the TurboModule;
+    // the generated emit helpers would NPE before then.
+    private fun canEmit(): Boolean = mEventEmitterCallback != null
 
     @ReactMethod
     override fun clearLocalLogs(promise: Promise) {
@@ -100,10 +96,23 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return GuiConfig.getInstance(reactContext.filesDir)?.asString()
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    override fun getTypedConstants(): WritableMap {
-        val versionCode: String = getBuildConfigValue("VERSION_CODE").toString()
-        val versionName: String = getBuildConfigValue("VERSION_NAME").toString()
+    private data class KbConstants(
+        val isDeviceSecure: Boolean,
+        val versionCode: String,
+        val versionName: String,
+        val cacheDir: String,
+        val downloadDir: String,
+        val guiConfig: String?,
+        val serverConfig: String,
+        val uses24HourClock: Boolean,
+        val version: String,
+    )
+
+    // getTypedConstants is a blocking synchronous JS call that does file I/O
+    // and reflection; built once, prewarmed off the JS thread in init.
+    private val cachedConstants: KbConstants by lazy { buildConstants() }
+
+    private fun buildConstants(): KbConstants {
         var isDeviceSecure = false
         try {
             val keyguardManager: KeyguardManager = reactContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
@@ -117,33 +126,34 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         } catch (e: Exception) {
             NativeLogger.warn(": Error reading server config", e)
         }
-        var cacheDir = ""
-        run {
-            val dir: File? = reactContext.cacheDir
-            if (dir != null) {
-                cacheDir = dir.absolutePath
-            }
-        }
-        var downloadDir = ""
-        run {
-            val dir: File? = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-            if (dir != null) {
-                downloadDir = dir.absolutePath
-            }
-        }
+        return KbConstants(
+            isDeviceSecure = isDeviceSecure,
+            versionCode = getBuildConfigValue("VERSION_CODE").toString(),
+            versionName = getBuildConfigValue("VERSION_NAME").toString(),
+            cacheDir = reactContext.cacheDir?.absolutePath ?: "",
+            downloadDir = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath ?: "",
+            guiConfig = readGuiConfig(),
+            serverConfig = serverConfig,
+            uses24HourClock = DateFormat.is24HourFormat(reactContext),
+            version = version(),
+        )
+    }
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun getTypedConstants(): WritableMap {
+        val c = cachedConstants
         val constants: WritableMap = Arguments.createMap()
-        constants.putBoolean("androidIsDeviceSecure", isDeviceSecure)
+        constants.putBoolean("androidIsDeviceSecure", c.isDeviceSecure)
         constants.putBoolean("androidIsTestDevice", misTestDevice)
-        constants.putString("appVersionCode", versionCode)
-        constants.putString("appVersionName", versionName)
+        constants.putString("appVersionCode", c.versionCode)
+        constants.putString("appVersionName", c.versionName)
         constants.putBoolean("darkModeSupported", false)
-        constants.putString("fsCacheDir", cacheDir)
-        constants.putString("fsDownloadDir", downloadDir)
-        constants.putString("guiConfig", readGuiConfig())
-        constants.putString("serverConfig", serverConfig)
-        constants.putBoolean("uses24HourClock", DateFormat.is24HourFormat(reactContext))
-        constants.putString("version", version())
+        constants.putString("fsCacheDir", c.cacheDir)
+        constants.putString("fsDownloadDir", c.downloadDir)
+        constants.putString("guiConfig", c.guiConfig)
+        constants.putString("serverConfig", c.serverConfig)
+        constants.putBoolean("uses24HourClock", c.uses24HourClock)
+        constants.putString("version", c.version)
         return constants
     }
 
@@ -290,6 +300,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         this.reactContext = reactContext!!
         instance = this
         misTestDevice = isTestDevice(reactContext)
+        Thread { cachedConstants }.start()
     }
 
     private fun normalizePath(path: String): String {
@@ -379,15 +390,27 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     private fun emitPushNotificationInternal(notification: Bundle) {
-        if (reactContext.hasActiveReactInstance()) {
+        if (reactContext.hasActiveReactInstance() && canEmit()) {
             try {
                 val payload = Arguments.fromBundle(notification)
-                reactContext.emitDeviceEvent("onPushNotification", payload)
+                emitOnPushNotification(payload)
             } catch (e: Exception) {
                 NativeLogger.error("emitPushNotificationInternal failed to emit: " + e.message)
             }
         } else {
             NativeLogger.warn("emitPushNotificationInternal no active react instance")
+        }
+    }
+
+    internal fun emitShareDataInternal(data: WritableMap) {
+        if (reactContext.hasActiveReactInstance() && canEmit()) {
+            try {
+                emitOnShareData(data)
+            } catch (e: Exception) {
+                NativeLogger.error("emitShareDataInternal failed to emit: " + e.message)
+            }
+        } else {
+            NativeLogger.warn("emitShareDataInternal no active react instance")
         }
     }
 
@@ -426,11 +449,19 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         promise.resolve(null)
     }
 
+    private fun relayReset() {
+        if (!reactContext.hasActiveReactInstance() || !canEmit()) {
+            NativeLogger.info("$NAME: JS Bridge is dead, Can't send EOF message")
+        } else {
+            emitOnMetaEvent(RPC_META_EVENT_ENGINE_RESET)
+        }
+    }
+
     @ReactMethod
     override fun engineReset() {
         try {
             Keybase.reset()
-            relayReset(reactContext)
+            relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in engineReset", e)
         }
@@ -503,7 +534,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     fun destroy() {
         try {
             Keybase.reset()
-            relayReset(reactContext)
+            relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in KeybaseEngine.destroy", e)
         }
@@ -538,9 +569,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     private fun sendHardwareKeyEvent(keyName: String) {
-        val params = Arguments.createMap()
-        params.putString("pressedKey", keyName)
-        reactContext.emitDeviceEvent(HW_KEY_EVENT, params)
+        if (canEmit()) {
+            emitOnHardwareKeyPressed(keyName)
+        }
     }
 
     companion object {
@@ -549,11 +580,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         const val NAME: String = "Kb"
-        private const val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
-        private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
 
         var instance: KbModule? = null
         @JvmStatic
@@ -585,6 +614,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             module.emitPushNotificationInternal(notification)
         }
 
+        @JvmStatic
+        fun emitShareData(data: WritableMap) {
+            val module = instance
+            if (module == null) {
+                android.util.Log.w("KbModule", "emitShareData called but instance is null (app may not be running)")
+                return
+            }
+            module.emitShareDataInternal(data)
+        }
+
         // Is this a robot controlled test device? (i.e. pre-launch report?)
         private fun isTestDevice(context: ReactApplicationContext): Boolean {
             val testLabSetting: String? = Settings.System.getString(context.contentResolver, "firebase.test.lab")
@@ -592,14 +631,5 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         private const val FILE_PREFIX_BUNDLE_ASSET: String = "bundle-assets://"
-
-        // engine
-        private fun relayReset(reactContext: ReactApplicationContext) {
-            if (!reactContext.hasActiveReactInstance()) {
-                NativeLogger.info("$NAME: JS Bridge is dead, Can't send EOF message")
-            } else {
-                reactContext.emitDeviceEvent(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET)
-            }
-        }
     }
 }

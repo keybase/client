@@ -1,5 +1,10 @@
 import * as React from 'react'
 
+// These never get an explicit logout reset: the ref callback that sets
+// portalNode fires with null on unmount, and the effect that sets
+// portalContent clears it on unmount too. Both owning components live only
+// inside the logged-in chat tree, so logout unmounts them and clears this
+// module state as a side effect - no extra reset wiring needed.
 let portalNode: HTMLElement | null = null
 let portalContent: React.ReactElement | null = null
 const listeners = new Set<() => void>()

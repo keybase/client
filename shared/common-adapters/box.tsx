@@ -65,7 +65,7 @@ const hgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingRight: Styles.
 const vgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingBottom: Styles.globalMargins[gap]}]))
 const paddingStyles = new Map(marginKeys.map(p => [p, {padding: Styles.globalMargins[p]}]))
 
-export const box2SharedProps = (p: Box2Props) => {
+const box2SharedProps = (p: Box2Props) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
   const {flex, justifyContent, overflow, padding, relative} = p
   const {collapsable = true, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = p
@@ -185,7 +185,7 @@ export const box2SharedProps = (p: Box2Props) => {
 }
 
 // Shared className generator used by Box2 and ClickableBox.
-export const box2ClassNames = (p: Box2Props, extra?: string): string => {
+const box2ClassNames = (p: Box2Props, extra?: string): string => {
   const {direction, alignItems, alignSelf, gap, gapStart, gapEnd, justifyContent, overflow} = p
   const {padding, centerChildren, flex, fullHeight, fullWidth, noShrink, pointerEvents, relative, tooltip, className} = p
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'

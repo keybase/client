@@ -619,6 +619,18 @@ func ReadArr() (data []byte, err error) {
 
 	n, err := currentConn.Read(buffer)
 	if n > 0 {
+		// Coalesce already-pending writes into this delivery. Every ReadArr
+		// return costs a full native->JS bridge hop, and the JSI side
+		// batches however many frames arrive in one call.
+		if lb, ok := currentConn.(*libkb.LoopbackConn); ok {
+			for n < len(buffer) {
+				m, terr := lb.TryRead(buffer[n:])
+				if m <= 0 || terr != nil {
+					break
+				}
+				n += m
+			}
+		}
 		// Deliver data even if err != nil (allowed by the net.Conn
 		// contract); the error will surface on the next call. Returning a
 		// view of the shared buffer is safe because gomobile copies the

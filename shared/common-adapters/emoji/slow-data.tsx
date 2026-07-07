@@ -36,7 +36,7 @@ for (const cat in categorized) {
   }
 }
 
-export const categoryOrder = [
+const categoryOrder = [
   'Smileys & People',
   'Animals & Nature',
   'Food & Drink',

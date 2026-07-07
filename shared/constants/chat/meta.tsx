@@ -6,7 +6,9 @@ import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from '@/util/uint8array'
 import {useCurrentUserState} from '@/stores/current-user'
 
-const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
+const conversationMemberStatusToMembershipType = (
+  m: T.RPCChat.ConversationMemberStatus
+): T.Chat.MembershipType => {
   switch (m) {
     case T.RPCChat.ConversationMemberStatus.active:
       return 'active'
@@ -24,6 +26,58 @@ const supersededConversationIDToKey = (id: string | Uint8Array): string => {
   return typeof id === 'string' ? uint8ArrayToHex(base64ToUint8Array(id)) : uint8ArrayToHex(id)
 }
 
+// We only treat implicit adhoc teams as having resetParticipants
+const isImpteamMembersType = (membersType: T.RPCChat.ConversationMembersType) =>
+  membersType === T.RPCChat.ConversationMembersType.impteamnative ||
+  membersType === T.RPCChat.ConversationMembersType.impteamupgrade
+
+// Shared field mappings between InboxUIItem (trusted) and UnverifiedInboxUIItem.
+// `resetParticipants` is passed in explicitly since its source field differs
+// per type (`i.resetParticipants` vs `i.localMetadata?.resetParticipants`).
+const baseMetaFromUIItem = (
+  i: T.RPCChat.InboxUIItem | T.RPCChat.UnverifiedInboxUIItem,
+  isTeam: boolean,
+  resetParticipantsSource: ReadonlyArray<string> | null | undefined
+) => {
+  const resetParticipants: Set<string> = new Set(
+    isImpteamMembersType(i.membersType) && resetParticipantsSource ? resetParticipantsSource : []
+  )
+
+  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy ?? undefined)
+  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes ?? undefined)
+  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
+
+  const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
+    parseNotificationSettings(i.notifications ?? undefined)
+
+  return {
+    commands: i.commands,
+    conversationIDKey: T.Chat.stringToConversationIDKey(i.convID),
+    draft: i.draft || '',
+    inboxLocalVersion: i.localVersion,
+    inboxVersion: i.version,
+    isMuted: i.status === T.RPCChat.ConversationStatus.muted,
+    maxMsgID: T.Chat.numberToMessageID(i.maxMsgID),
+    maxVisibleMsgID: T.Chat.numberToMessageID(i.maxVisibleMsgID),
+    membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
+    notificationsDesktop,
+    notificationsGlobalIgnoreMentions,
+    notificationsMobile,
+    readMsgID: T.Chat.numberToMessageID(i.readMsgID),
+    resetParticipants,
+    retentionPolicy,
+    status: i.status,
+    supersededBy: supersededBy ? T.Chat.stringToConversationIDKey(supersededBy) : T.Chat.noConversationIDKey,
+    supersedes: supersedes ? T.Chat.stringToConversationIDKey(supersedes) : T.Chat.noConversationIDKey,
+    teamID: i.tlfID,
+    teamRetentionPolicy,
+    teamType: getTeamType(i),
+    timestamp: i.time,
+    tlfname: i.name,
+    wasFinalizedBy: i.finalizeInfo ? i.finalizeInfo.resetUser : '',
+  }
+}
+
 export const unverifiedInboxUIItemToConversationMeta = (
   i: T.RPCChat.UnverifiedInboxUIItem
 ): T.Chat.ConversationMeta | undefined => {
@@ -37,62 +91,22 @@ export const unverifiedInboxUIItemToConversationMeta = (
     return undefined
   }
 
-  // We only treat implicit adhoc teams as having resetParticipants
-  const resetParticipants: Set<string> = new Set(
-    i.localMetadata &&
-      (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
-        i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
-      i.localMetadata.resetParticipants
-      ? i.localMetadata.resetParticipants
-      : []
-  )
-
   const isTeam = i.membersType === T.RPCChat.ConversationMembersType.team
   const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
-
-  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy ?? undefined)
-  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes ?? undefined)
   const teamname = isTeam ? i.name : ''
-  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
-
-  const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
-    parseNotificationSettings(i.notifications ?? undefined)
 
   return {
     ...makeConversationMeta(),
+    ...baseMetaFromUIItem(i, isTeam, i.localMetadata?.resetParticipants),
     channelname,
-    commands: i.commands,
-    conversationIDKey: T.Chat.stringToConversationIDKey(i.convID),
     description: i.localMetadata?.headline || '',
     descriptionDecorated: i.localMetadata?.headlineDecorated || '',
-    draft: i.draft || '',
-    inboxLocalVersion: i.localVersion,
-    inboxVersion: i.version,
     isEmpty: false,
-    isMuted: i.status === T.RPCChat.ConversationStatus.muted,
-    maxMsgID: T.Chat.numberToMessageID(i.maxMsgID),
-    maxVisibleMsgID: T.Chat.numberToMessageID(i.maxVisibleMsgID),
-    membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
-    notificationsDesktop,
-    notificationsGlobalIgnoreMentions,
-    notificationsMobile,
-    readMsgID: T.Chat.numberToMessageID(i.readMsgID),
-    resetParticipants,
-    retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : undefined,
     snippetDecorated: undefined,
     snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : T.RPCChat.SnippetDecoration.none,
-    status: i.status,
-    supersededBy: supersededBy ? T.Chat.stringToConversationIDKey(supersededBy) : T.Chat.noConversationIDKey,
-    supersedes: supersedes ? T.Chat.stringToConversationIDKey(supersedes) : T.Chat.noConversationIDKey,
-    teamID: i.tlfID,
-    teamRetentionPolicy,
-    teamType: getTeamType(i),
     teamname,
-    timestamp: i.time,
-    tlfname: i.name,
     trustedState: 'untrusted',
-    wasFinalizedBy: i.finalizeInfo ? i.finalizeInfo.resetUser : '',
   }
 }
 
@@ -285,23 +299,7 @@ export const inboxUIItemToConversationMeta = (
     return
   }
 
-  // We only treat implied adhoc teams as having resetParticipants
-  const resetParticipants = new Set(
-    (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
-      i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
-      i.resetParticipants
-      ? i.resetParticipants
-      : []
-  )
-
-  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy ?? undefined)
-  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes ?? undefined)
-
   const isTeam = i.membersType === T.RPCChat.ConversationMembersType.team
-  const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
-    parseNotificationSettings(i.notifications ?? undefined)
-
-  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   const minWriterRoleEnum = i.convSettings?.minWriterRoleInfo
     ? i.convSettings.minWriterRoleInfo.role
@@ -336,44 +334,21 @@ export const inboxUIItemToConversationMeta = (
 
   return {
     ...makeConversationMeta(),
+    ...baseMetaFromUIItem(i, isTeam, i.resetParticipants),
     botAliases: i.botAliases ?? {},
     botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
-    commands: i.commands,
-    conversationIDKey,
     description: i.headline,
     descriptionDecorated: i.headlineDecorated,
-    draft: i.draft || '',
-    inboxLocalVersion: i.localVersion,
-    inboxVersion: i.version,
     isEmpty: i.isEmpty,
-    isMuted: i.status === T.RPCChat.ConversationStatus.muted,
-    maxMsgID: T.Chat.numberToMessageID(i.maxMsgID),
-    maxVisibleMsgID: T.Chat.numberToMessageID(i.maxVisibleMsgID),
-    membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     minWriterRole,
-    notificationsDesktop,
-    notificationsGlobalIgnoreMentions,
-    notificationsMobile,
     pinnedMsg,
-    readMsgID: T.Chat.numberToMessageID(i.readMsgID),
-    resetParticipants,
-    retentionPolicy,
     snippet: i.snippet,
     snippetDecorated: i.snippetDecorated,
     snippetDecoration: i.snippetDecoration,
-    status: i.status,
-    supersededBy: supersededBy ? T.Chat.stringToConversationIDKey(supersededBy) : T.Chat.noConversationIDKey,
-    supersedes: supersedes ? T.Chat.stringToConversationIDKey(supersedes) : T.Chat.noConversationIDKey,
-    teamID: i.tlfID,
-    teamRetentionPolicy,
-    teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
-    timestamp: i.time,
-    tlfname: i.name,
     trustedState: 'trusted',
-    wasFinalizedBy: i.finalizeInfo ? i.finalizeInfo.resetUser : '',
   }
 }
 
