@@ -4,6 +4,7 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
@@ -156,6 +157,7 @@ export const Bot = (props: BotProps) => {
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
+      testID={TestIDs.CHAT_BOT_ROW}
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}

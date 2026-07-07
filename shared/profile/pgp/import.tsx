@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import Modal from '@/profile/modal'
-import {PgpMobileUnsupported} from '../choice'
+import {PgpMobileUnsupported} from './choice'
 
 export default function Import() {
   const navigateUp = C.Router2.navigateUp

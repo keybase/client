@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {produce} from 'immer'
 import {useColorScheme} from 'react-native'
 
 type AnimationStatus =
@@ -92,7 +93,11 @@ function SendIndicator(p: OwnProps) {
     }
     shownEncryptingSet.add(id)
     const timeoutID = setTimeout(() => {
-      setIndicatorState(state => ({...state, encrypting: false}))
+      setIndicatorState(
+        produce(draft => {
+          draft.encrypting = false
+        })
+      )
     }, 600)
     return () => {
       clearTimeout(timeoutID)
@@ -104,7 +109,13 @@ function SendIndicator(p: OwnProps) {
       return undefined
     }
     const timeoutID = setTimeout(() => {
-      setIndicatorState(state => (state.sent ? {...state, sentHidden: true} : state))
+      setIndicatorState(
+        produce(draft => {
+          if (draft.sent) {
+            draft.sentHidden = true
+          }
+        })
+      )
     }, 400)
     return () => {
       clearTimeout(timeoutID)

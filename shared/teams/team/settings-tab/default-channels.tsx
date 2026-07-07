@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
+import {produce} from 'immer'
 import {ChannelsWidget} from '@/teams/common'
 import {useLoadedTeam} from '../use-loaded-team'
 
@@ -28,11 +29,10 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   const requestVersionRef = React.useRef(0)
   const requestTeamIDRef = React.useRef(teamID)
 
-  const reloadDefaultChannels = React.useCallback((showWaiting = true) => {
+  // no synchronous setState here so the mount effect below can call it directly;
+  // initial/mismatched-team state already shows waiting
+  const load = React.useCallback(() => {
     const requestVersion = ++requestVersionRef.current
-    if (showWaiting) {
-      setState(prev => ({...prev, error: undefined, waiting: true}))
-    }
     getDefaultChannelsRPC(
       [{teamID}],
       result => {
@@ -42,7 +42,10 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
         setState({
           defaultChannels: [
             {channelname: 'general', conversationIDKey: 'unused'},
-            ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
+            ...(result.convs || []).map(conv => ({
+              channelname: conv.channel,
+              conversationIDKey: conv.convID,
+            })),
           ],
           error: undefined,
           loadedTeamID: teamID,
@@ -53,10 +56,26 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
         if (requestVersion !== requestVersionRef.current) {
           return
         }
-        setState(prev => ({...prev, error: err, loadedTeamID: teamID, waiting: false}))
+        setState(
+          produce(draft => {
+            draft.error = err
+            draft.loadedTeamID = teamID
+            draft.waiting = false
+          })
+        )
       }
     )
   }, [getDefaultChannelsRPC, teamID])
+
+  const reloadDefaultChannels = React.useCallback(() => {
+    setState(
+      produce(draft => {
+        draft.error = undefined
+        draft.waiting = true
+      })
+    )
+    load()
+  }, [load])
 
   React.useEffect(() => {
     if (requestTeamIDRef.current !== teamID) {
@@ -66,31 +85,8 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   }, [teamID])
 
   React.useEffect(() => {
-    const requestVersion = ++requestVersionRef.current
-    getDefaultChannelsRPC(
-      [{teamID}],
-      result => {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        setState({
-          defaultChannels: [
-            {channelname: 'general', conversationIDKey: 'unused'},
-            ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
-          ],
-          error: undefined,
-          loadedTeamID: teamID,
-          waiting: false,
-        })
-      },
-      err => {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        setState(prev => ({...prev, error: err, loadedTeamID: teamID, waiting: false}))
-      }
-    )
-  }, [getDefaultChannelsRPC, teamID])
+    load()
+  }, [load])
 
   const visibleState =
     state.loadedTeamID === teamID
