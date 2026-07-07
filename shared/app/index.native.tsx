@@ -6,14 +6,13 @@ import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Keyboard, Platform} from 'react-native'
+import {AppRegistry, AppState, Appearance, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {enableFreeze} from 'react-native-screens'
 import {Image as ExpoImage} from 'expo-image'
-import {setKeyboardUp} from '@/styles/keyboard-state'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
@@ -88,33 +87,9 @@ const useDarkHookup = () => {
   }, [setSystemDarkMode, setMobileAppState])
 }
 
-const useKeyboardHookup = () => {
-  React.useEffect(() => {
-    const kbSubWS = Keyboard.addListener('keyboardWillShow', () => {
-      setKeyboardUp(true)
-    })
-    const kbSubDS = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardUp(true)
-    })
-    const kbSubWH = Keyboard.addListener('keyboardWillHide', () => {
-      setKeyboardUp(false)
-    })
-    const kbSubDH = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardUp(false)
-    })
-    return () => {
-      kbSubWS.remove()
-      kbSubDS.remove()
-      kbSubWH.remove()
-      kbSubDH.remove()
-    }
-  }, [])
-}
-
 const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
   useDarkHookup()
-  useKeyboardHookup()
 
   return children
 }

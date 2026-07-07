@@ -6,6 +6,11 @@ import logger from '@/logger'
  * be kept in sync. Timers are given a key that can be
  * subscribed to. When all observers of a timer are
  * removed the timeout is cancelled and the key deleted
+ *
+ * No explicit logout reset: every observer here is added from a message row's
+ * effect and removed in that effect's cleanup (see exploding-meta.tsx), and
+ * logout unmounts every message row. So _refs/_timers always drain back to
+ * empty on logout without this module needing to know about it.
  */
 
 export type SharedTimerID = number

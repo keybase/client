@@ -8,7 +8,7 @@ import SaveIndicator from '@/common-adapters/save-indicator'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
-import {ConversationThreadProvider, useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {ConversationThreadProvider, useThreadMeta} from '@/chat/conversation/thread-context'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
@@ -171,7 +171,7 @@ const RetentionPicker = (p: Props) => {
         alignItems="center"
         style={styles.retentionDropdown}
       >
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label}>
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
@@ -469,7 +469,7 @@ export type OwnProps = {
   teamID: T.Teams.TeamID
 }
 
-const Container = (ownProps: OwnProps) => {
+const RetentionPickerContainer = (ownProps: OwnProps) => {
   const {conversationIDKey: _cid, entityType} = ownProps
   if (!_cid && !entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
@@ -491,7 +491,7 @@ const Container = (ownProps: OwnProps) => {
 }
 
 const ConversationPolicyContainer = (ownProps: OwnProps & {conversationIDKey: T.Chat.ConversationIDKey}) => {
-  const policy = useConversationThreadSelector(s => s.meta.retentionPolicy)
+  const policy = useThreadMeta(m => m.retentionPolicy)
   return <ContainerWithPolicy {...ownProps} policy={policy} />
 }
 
@@ -568,4 +568,4 @@ const ContainerWithPolicy = (
   return <RetentionSwitcher {...props} />
 }
 
-export default Container
+export default RetentionPickerContainer

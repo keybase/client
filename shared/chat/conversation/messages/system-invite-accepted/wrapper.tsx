@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationThreadSelector} from '../../thread-context'
+import {useThreadMeta} from '../../thread-context'
 import {makeMessageWrapper} from '../wrapper/wrapper'
 
 type OwnProps = {message: T.Chat.MessageSystemInviteAccepted}
@@ -12,7 +12,7 @@ type OwnProps = {message: T.Chat.MessageSystemInviteAccepted}
 function SystemInviteAcceptedContainer(p: OwnProps) {
   const {message} = p
   const {role} = message
-  const teamID = useConversationThreadSelector(s => s.meta.teamID)
+  const teamID = useThreadMeta(m => m.teamID)
   const you = useCurrentUserState(s => s.username)
   const navigateAppend = C.Router2.navigateAppend
   const onViewTeam = () => {

@@ -6,6 +6,7 @@ import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {useLoadedTeam} from './use-loaded-team'
+import RoleCrown from '../common/role-crown'
 import {makeAddMembersWizard} from '../add-members-wizard/state'
 
 type OwnProps = {
@@ -42,13 +43,7 @@ const TeamMenu = (props: Props) => {
       }
       metaTwo={
         <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny">
-          {(role === 'admin' || role === 'owner') && (
-            <Kb.Icon
-              color={role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-              fontSize={10}
-              type="iconfont-crown-owner"
-            />
-          )}
+          <RoleCrown role={role} fontSize={10} />
           <Kb.Text type="BodySmall">{capitalize(role)}</Kb.Text>
         </Kb.Box2>
       }
@@ -79,7 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const Container = (ownProps: OwnProps) => {
+const TeamMenuContainer = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const {teamname, role, memberCount} = teamMeta
@@ -147,4 +142,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default TeamMenuContainer

@@ -44,21 +44,19 @@ export default Mention
 const styles = Styles.styleSheetCreate(() => ({
   follow: {
     backgroundColor: Styles.globalColors.greenLighterOrGreen,
-    borderRadius: 2,
     color: Styles.globalColors.greenDarkOrBlack,
   },
   highlight: {
     backgroundColor: Styles.globalColors.yellowOrYellowAlt,
-    borderRadius: 2,
     color: Styles.globalColors.blackOrBlack,
   },
   nonFollow: {
     backgroundColor: Styles.globalColors.blueLighter2,
-    borderRadius: 2,
     color: Styles.globalColors.blueDark,
   },
   text: Styles.platformStyles({
     common: {
+      borderRadius: 2,
       letterSpacing: 0.3,
       ...Styles.paddingH(2),
     },

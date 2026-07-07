@@ -30,6 +30,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {createPortal} from 'react-dom'
 import SearchRow from './search-row'
 import {useOpenedRowState} from './row/opened-row-state'
+import {useCurrentUserState} from '@/stores/current-user'
 import {Alert} from 'react-native'
 import {SafeAreaView as ScreensSafeAreaView} from 'react-native-screens/experimental'
 
@@ -298,7 +299,15 @@ function InboxWithSearch(props: {
   refreshInbox?: T.Chat.ChatRootInboxRefresh
 }) {
   const search = useInboxSearch()
-  return <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
+  const username = useCurrentUserState(s => s.username)
+  return (
+    <InboxBody
+      key={username}
+      conversationIDKey={props.conversationIDKey}
+      refreshInbox={props.refreshInbox}
+      search={search}
+    />
+  )
 }
 
 // Desktop InboxBody
@@ -595,8 +604,14 @@ function InboxBody(props: ControlledInboxProps) {
 }
 
 function Inbox(props: InboxProps) {
+  const username = useCurrentUserState(s => s.username)
   return props.search ? (
-    <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={props.search} />
+    <InboxBody
+      key={username}
+      conversationIDKey={props.conversationIDKey}
+      refreshInbox={props.refreshInbox}
+      search={props.search}
+    />
   ) : (
     <InboxWithSearch conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} />
   )

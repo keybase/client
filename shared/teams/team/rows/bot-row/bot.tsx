@@ -27,7 +27,7 @@ export type Props = {
 // duplicated here because the desktop & mobile layouts differ significantly. If
 // you're changing one remember to change the other.
 
-export const TeamBotRow = (props: Props) => {
+const TeamBotRow = (props: Props) => {
   let descriptionLabel: React.ReactNode = null
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showMenu, setShowMenu] = React.useState(false)

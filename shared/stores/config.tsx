@@ -38,7 +38,6 @@ type Store = T.Immutable<{
   justRevokedSelf: string
   loggedIn: boolean
   outOfDate: T.Config.OutOfDate
-  remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
   runtimeStats?: T.RPCGen.RuntimeStats
   startup: {
@@ -83,7 +82,6 @@ const initialStore: Store = {
     outOfDate: false,
     updating: false,
   },
-  remoteWindowNeedsProps: new Map(),
   revokedTrigger: 0,
   startup: {
     conversation: noConversationIDKey,
@@ -109,7 +107,6 @@ export type State = Store & {
     onEngineIncoming: (action: EngineGen.Actions) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
-    remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string, wasCurrentDevice: boolean) => void
     refreshAccounts: () => Promise<void>
@@ -324,6 +321,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(f())
     },
     onEngineConnected: () => {
+      // An engine reset drops in-flight RPCs without settling their promises; a refresh
+      // caught by that would poison the dedupe cache forever
+      inflightRefreshAccounts = undefined
       // The startReachability RPC call both starts and returns the current
       // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
       // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
@@ -440,19 +440,15 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         }
         setAccounts(nextConfiguredAccounts)
       }
-      inflightRefreshAccounts = f()
+      const p = f()
+      inflightRefreshAccounts = p
       try {
-        await inflightRefreshAccounts
+        await p
       } finally {
-        inflightRefreshAccounts = undefined
+        if (inflightRefreshAccounts === p) {
+          inflightRefreshAccounts = undefined
+        }
       }
-    },
-    remoteWindowNeedsProps: (component, params) => {
-      set(s => {
-        const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
-        map.set(params, (map.get(params) ?? 0) + 1)
-        s.remoteWindowNeedsProps.set(component, map)
-      })
     },
     resetRevokedSelf: () => {
       set(s => {

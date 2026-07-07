@@ -1,9 +1,8 @@
-import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useTeamsList} from '@/teams/use-teams-list'
+import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 import {showTeamByName} from '@/teams/team-page-actions'
 import TeamRow from './team-row'
 import TeamSection from './team-section'
@@ -19,8 +18,7 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 const Teams = (ownProps: OwnProps) => {
   const isYou = useCurrentUserState(s => s.username === ownProps.username)
   const {teams} = useTeamsList()
-  const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
-  const teamNames = React.useMemo(() => new Set(teams.map(team => team.teamname)), [teams])
+  const teamNameToID = useTeamsListNameToIDMap()
   const youAreInTeams = teams.length > 0
   const teamShowcase = ownProps.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
@@ -49,7 +47,7 @@ const Teams = (ownProps: OwnProps) => {
           {...t}
           onJoinTeam={onJoinTeam}
           onViewTeam={() => onViewTeam(t.name)}
-          inTeam={teamNames.has(t.name)}
+          inTeam={teamNameToID.has(t.name)}
         />
       ))}
     </TeamSection>

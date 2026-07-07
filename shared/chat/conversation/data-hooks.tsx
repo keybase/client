@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
@@ -9,13 +8,13 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
-import {uint8ArrayToString} from '@/util/uint8array'
 import logger from '@/logger'
 import {loadThreadNonblock, markConversationRead} from './thread-rpc'
 import {setConversationOrangeLine} from './orange-line-context'
+import {getExplodingModeFromGregorItems} from './thread-load'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
-const emptyParticipantInfo: T.Chat.ParticipantInfo = {
+export const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   all: [],
   contactName: new Map(),
   name: [],
@@ -129,28 +128,6 @@ export const useConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey)
 export const useConversationParticipants = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConversationMetadata(conversationIDKey).participants
 
-const getExplodingModeFromGregorItems = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  items: ReadonlyArray<{item: T.RPCGen.Gregor1.Item}>
-) => {
-  const explodingItems = items.filter(i => i.item.category.startsWith(Common.explodingModeGregorKeyPrefix))
-  if (!explodingItems.length) {
-    return 0
-  }
-  const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
-  const item = explodingItems.find(i => i.item.category === category)
-  if (!item) {
-    return undefined
-  }
-  const secondsString = uint8ArrayToString(item.item.body)
-  const seconds = parseInt(secondsString, 10)
-  if (isNaN(seconds)) {
-    logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-    return undefined
-  }
-  return seconds
-}
-
 export const useConversationExplodingMode = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConfigState(state => getExplodingModeFromGregorItems(conversationIDKey, state.gregorPushState) ?? 0)
 
@@ -161,31 +138,22 @@ const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread
   if (!thread) {
     return emptyMessages
   }
-  try {
-    const {username, deviceName} = useCurrentUserState.getState()
-    let lastOrdinal = T.Chat.numberToOrdinal(0)
-    const getLastOrdinal = () => lastOrdinal
-    const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
-    return (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, uiMessage) => {
-      const message = Message.uiMessageToMessage(
-        conversationIDKey,
-        uiMessage,
-        username,
-        getLastOrdinal,
-        deviceName
-      )
-      if (message) {
-        arr.push(message)
-        if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinal)) {
-          lastOrdinal = message.ordinal
-        }
+  const {username, deviceName} = useCurrentUserState.getState()
+  let lastOrdinal = T.Chat.numberToOrdinal(0)
+  const getLastOrdinal = () => lastOrdinal
+  const {messages} = Message.parseUIMessagesJSON(
+    conversationIDKey,
+    thread,
+    username,
+    deviceName,
+    getLastOrdinal,
+    message => {
+      if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinal)) {
+        lastOrdinal = message.ordinal
       }
-      return arr
-    }, [])
-  } catch (error) {
-    logger.warn(`parseThreadMessages: failed for ${conversationIDKey}: ${String(error)}`)
-    return emptyMessages
-  }
+    }
+  )
+  return messages
 }
 
 const loadConversationMessagesAroundMessageID = async (

@@ -45,10 +45,8 @@ const resourceAssetDirectories = [
   path.resolve(__dirname, '../images/illustrations'),
   path.resolve(__dirname, '../images/install'),
 ]
-const entryOverride: Record<string, string> = {main: 'desktop/renderer'}
-const viewEntries = debugUnusedChunks
-  ? ['main']
-  : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker']
+const entryOverride: Record<string, string> = {main: 'desktop/renderer', remote: 'desktop/remote'}
+const viewEntries = debugUnusedChunks ? ['main'] : ['main', 'remote']
 
 type DesktopConfiguration = Configuration & {
   devServer?: WebpackDevServerConfiguration

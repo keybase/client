@@ -6,7 +6,6 @@ import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Tabs from '@/constants/tabs'
-import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Common from './common'
 import {CommonActions} from '@react-navigation/core'
 import AccountSwitcher from './account-switcher'
@@ -105,7 +104,7 @@ const Header = () => {
           small={true}
           style={styles.button}
         />
-        <AccountSwitcher />
+        <AccountSwitcher onSelected={hidePopup} />
       </Kb.Box2>
     )
 
@@ -124,10 +123,11 @@ const Header = () => {
   }
   const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
+  // mid account-switch we have no user info yet; keep the bar but suppress the dropdown
   return (
     <>
       <Kb.ClickableBox
-        onClick={togglePopup}
+        onClick={username ? togglePopup : undefined}
         direction="horizontal"
         gap="tiny"
         centerChildren={true}
@@ -141,33 +141,24 @@ const Header = () => {
           username={username}
           style={Kb.Styles.collapseStyles([styles.avatar, styles.avatarBorder])}
         />
-        <>
-          <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
-            Hi {username}!
-          </Kb.Text>
-          <Kb.Icon
-            type="iconfont-arrow-down"
-            color={Kb.Styles.globalColors.blueLighter}
-            fontSize={12}
-            style={styles.caret}
-          />
-        </>
+        {!!username && (
+          <>
+            <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
+              Hi {username}!
+            </Kb.Text>
+            <Kb.Icon
+              type="iconfont-arrow-down"
+              color={Kb.Styles.globalColors.blueLighter}
+              fontSize={12}
+              style={styles.caret}
+            />
+          </>
+        )}
       </Kb.ClickableBox>
       {popup}
     </>
   )
 }
-
-const tabTestIDs = new Map<Tabs.AppTab, string>([
-  [Tabs.peopleTab, TestIDs.NAV_TAB_PEOPLE],
-  [Tabs.chatTab, TestIDs.NAV_TAB_CHAT],
-  [Tabs.fsTab, TestIDs.NAV_TAB_FILES],
-  [Tabs.cryptoTab, TestIDs.NAV_TAB_CRYPTO],
-  [Tabs.teamsTab, TestIDs.NAV_TAB_TEAMS],
-  [Tabs.gitTab, TestIDs.NAV_TAB_GIT],
-  [Tabs.devicesTab, TestIDs.NAV_TAB_DEVICES],
-  [Tabs.settingsTab, TestIDs.NAV_TAB_SETTINGS],
-])
 
 const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs)[number]}>(
   (map, tab, index) => {
@@ -180,7 +171,6 @@ const hotKeys = Object.keys(keysMap)
 
 function TabBar(props: Props) {
   const {navigation, state} = props
-  const username = useCurrentUserState(s => s.username)
   const onHotKey = (cmd: string) => {
     navigation.dispatch(CommonActions.navigate(keysMap[cmd] as Tabs.Tab))
   }
@@ -189,7 +179,9 @@ function TabBar(props: Props) {
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
   const forceSmallNav = useShellState(s => s.forceSmallNav)
 
-  return username ? (
+  // always render the bar; mid account-switch username is briefly empty and the
+  // header degrades to a placeholder instead of dropping the whole nav
+  return (
     <Kb.Box2
       className={Kb.Styles.classNames('tab-container', {forceSmallNav})}
       direction="vertical"
@@ -211,7 +203,7 @@ function TabBar(props: Props) {
       ))}
       <RuntimeStats />
     </Kb.Box2>
-  ) : null
+  )
 }
 
 type TabProps = {
@@ -287,7 +279,7 @@ function Tab(props: TabProps) {
       onMouseLeave={onMouseLeave}
       direction="horizontal"
       fullWidth={true}
-      testID={tabTestIDs.get(tab)}
+      testID={Common.tabToTestID.get(tab)}
       className={Kb.Styles.classNames(
         isSelected ? 'tab-selected' : 'tab',
         'tab-tooltip',

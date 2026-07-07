@@ -3,38 +3,37 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
 type ExplicitOrangeLine = T.Immutable<{
-  conversationIDKey: T.Chat.ConversationIDKey
   ordinal: T.Chat.Ordinal
   version: number
 }>
 
 type ExplicitOrangeLineState = T.Immutable<{
-  update?: ExplicitOrangeLine
+  updates: Map<T.Chat.ConversationIDKey, ExplicitOrangeLine>
   dispatch: {
     resetState: () => void
     setOrangeLine: (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) => void
   }
 }>
 
-let explicitOrangeLineVersion = 0
-
 export const useExplicitOrangeLineState = Z.createZustand<ExplicitOrangeLineState>(
   'chat-explicit-orange-line',
-  set => ({
-    dispatch: {
-      resetState: Z.defaultReset,
-      setOrangeLine: (conversationIDKey, ordinal) => {
-        set(s => {
-          s.update = {
-            conversationIDKey,
-            ordinal,
-            version: ++explicitOrangeLineVersion,
-          }
-        })
+  set => {
+    let explicitOrangeLineVersion = 0
+    return {
+      dispatch: {
+        resetState: Z.defaultReset,
+        setOrangeLine: (conversationIDKey, ordinal) => {
+          set(s => {
+            s.updates.set(conversationIDKey, {
+              ordinal,
+              version: ++explicitOrangeLineVersion,
+            })
+          })
+        },
       },
-    },
-    update: undefined,
-  })
+      updates: new Map(),
+    }
+  }
 )
 
 export const setConversationOrangeLine = (

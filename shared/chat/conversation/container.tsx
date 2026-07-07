@@ -8,7 +8,7 @@ import Rekey from './rekey/container'
 import type {ThreadSearchRouteProps} from './thread-search-route'
 import type * as T from '@/constants/types'
 import {BadgeHeaderUpdater} from './header-area'
-import {LiveConversationThreadProvider, useConversationThreadID, useConversationThreadSelector} from './thread-context'
+import {LiveConversationThreadProvider, useConversationThreadID, useThreadMeta} from './thread-context'
 
 type Props = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -26,7 +26,13 @@ const Conversation = function Conversation(props: Props) {
 
 const ConversationInner = function ConversationInner() {
   const conversationIDKey = useConversationThreadID()
-  const meta = useConversationThreadSelector(s => s.meta)
+  const meta = useThreadMeta(
+    C.useShallow(m => ({
+      membershipType: m.membershipType,
+      rekeyers: m.rekeyers,
+      trustedState: m.trustedState,
+    }))
+  )
   const type = (() => {
     switch (conversationIDKey) {
       case Chat.noConversationIDKey:

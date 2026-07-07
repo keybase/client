@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import UserCard from '../user-card'
+import {produce} from 'immer'
 import sortBy from 'lodash/sortBy'
 import {errorBanner, SignupScreen} from '@/signup/common'
 import {isAndroidNewerThanM} from '@/constants/platform'
@@ -33,7 +34,13 @@ type Props = {
 const other = 'Someone else...'
 
 const UserRow = ({user, hasStoredSecret}: {user: string; hasStoredSecret: boolean}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={desktopStyles.userRow} gap="xtiny">
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    alignItems="center"
+    style={desktopStyles.userRow}
+    gap="xtiny"
+  >
     <Kb.Text type="Header" style={user === other ? desktopStyles.other : desktopStyles.provisioned}>
       {user}
     </Kb.Text>
@@ -63,8 +70,20 @@ const DesktopLogin = (props: Props) => {
   const selectedIdx = props.users.findIndex(u => u.username === props.selectedUser)
   return (
     <SignupScreen banners={errorBanner(props.error)} hideDesktopHeader={!isMobile}>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} alignSelf="center" padding="small" style={desktopStyles.contentBox}>
-        <UserCard username={props.selectedUser} outerStyle={desktopStyles.container} style={desktopStyles.userContainer}>
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        flex={1}
+        alignSelf="center"
+        padding="small"
+        style={desktopStyles.contentBox}
+      >
+        <UserCard
+          username={props.selectedUser}
+          outerStyle={desktopStyles.container}
+          style={desktopStyles.userContainer}
+        >
           <Kb.Dropdown
             onChangedIdx={_onClickUserIdx}
             selected={userRows[selectedIdx]}
@@ -95,13 +114,7 @@ const DesktopLogin = (props: Props) => {
               Forgot password?
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Box2
-            direction="vertical"
-            fullWidth={true}
-            fullHeight={true}
-            justifyContent="flex-end"
-            flex={1}
-          >
+          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="flex-end" flex={1}>
             <Kb.WaitingButton
               disabled={props.needPassword && !props.password}
               fullWidth={true}
@@ -135,7 +148,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.tiny,
       },
       loginSubmitButton: {
-        marginTop: 0,
         maxHeight: 32,
       },
       other: {color: Kb.Styles.globalColors.black},
@@ -173,7 +185,13 @@ const NativeLoginRender = (props: Props) => {
   } as const
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={nativeStyles.container}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      alignItems="center"
+      flex={1}
+      style={nativeStyles.container}
+    >
       {isAndroid && !C.isDeviceSecureAndroid && !isAndroidNewerThanM && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.deviceNotSecureContainer}>
           <Kb.Text center={true} type="Body" negative={true} style={nativeStyles.deviceNotSecureText}>
@@ -181,7 +199,7 @@ const NativeLoginRender = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+      <Kb.ErrorBanner error={props.error} />
       <UserCard username={props.selectedUser} outerStyle={nativeStyles.card} style={nativeStyles.cardInner}>
         <Dropdown
           type="Username"
@@ -204,7 +222,7 @@ const NativeLoginRender = (props: Props) => {
         <Kb.WaitingButton
           disabled={props.needPassword && !props.password}
           waitingKey={C.waitingKeyConfigLogin}
-          style={{marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small}}
+          style={props.needPassword ? undefined : nativeStyles.loginButtonGap}
           fullWidth={true}
           label="Log in"
           onClick={props.onSubmit}
@@ -213,10 +231,7 @@ const NativeLoginRender = (props: Props) => {
           type="BodySmallSecondaryLink"
           center={true}
           onClick={props.onForgotPassword}
-          style={{
-            marginBottom: Kb.Styles.globalMargins.tiny,
-            marginTop: Kb.Styles.globalMargins.medium,
-          }}
+          style={nativeStyles.forgotPassword}
         >
           Forgot password?
         </Kb.Text>
@@ -231,7 +246,7 @@ const NativeLoginRender = (props: Props) => {
           label="Create account"
           mode="Secondary"
           onClick={props.onSignup}
-          style={{flexGrow: 0}}
+          style={nativeStyles.createAccountButton}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -251,21 +266,26 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
+      createAccountButton: {flexGrow: 0},
       createAccountContainer: Kb.Styles.platformStyles({
         common: {padding: Kb.Styles.globalMargins.medium},
         isTablet: {maxWidth: 410, padding: Kb.Styles.globalMargins.small},
       }),
       deviceNotSecureContainer: {
-        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.yellow,
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
       deviceNotSecureText: {
         color: Kb.Styles.globalColors.brown_75,
       },
+      forgotPassword: {
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.medium,
+      },
       formElements: {
         marginBottom: Kb.Styles.globalMargins.tiny,
       },
+      loginButtonGap: {marginTop: Kb.Styles.globalMargins.small},
     }) as const
 )
 
@@ -285,7 +305,9 @@ const ReloginContainer = () => {
   const onSignup = () => requestAutoInvite('')
   const onSomeoneElse = () => startProvision()
   const error = perror?.desc || ''
-  const loggedInMap = new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret]))
+  const loggedInMap = new Map<string, boolean>(
+    _users.map(account => [account.username, account.hasStoredSecret])
+  )
   const users = sortBy(_users, 'username')
 
   const [password, setPassword] = React.useState('')
@@ -321,7 +343,12 @@ const ReloginContainer = () => {
 
   const selectedUser =
     selectedUserState.defaultUsername === pselectedUser ? selectedUserState.username : pselectedUser
-  const setSelectedUser = (username: string) => setSelectedUserState(state => ({...state, username}))
+  const setSelectedUser = (username: string) =>
+    setSelectedUserState(
+      produce(draft => {
+        draft.username = username
+      })
+    )
 
   if (!gotNeedPasswordError && error === needPasswordError) {
     setGotNeedPasswordError(true)

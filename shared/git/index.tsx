@@ -2,10 +2,11 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import Row, {NewContext} from './row'
+import Row from './row'
 import sortBy from 'lodash/sortBy'
 import * as T from '@/constants/types'
-import {useLocalBadging} from '@/util/use-local-badging'
+import {NewItemsContext, useLocalBadging} from '@/util/use-local-badging'
+import {useRPCLoad} from '@/util/use-rpc-load'
 import {useConfigState} from '@/stores/config'
 import * as dateFns from 'date-fns'
 
@@ -92,15 +93,13 @@ type ExpandedState = {
   expandedSet: Set<string>
 }
 
+const noRepos = new Map<string, T.Git.GitInfo>()
+
 const GitRoot = (ownProps: OwnProps) => {
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
-  const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
-  const [error, setError] = React.useState<Error | undefined>()
-  const [idToInfo, setIDToInfo] = React.useState(new Map<string, T.Git.GitInfo>())
-  // Bumped on every (re)load so expanded rows refetch their lazily-loaded
-  // channel name (e.g. after returning from the channel selector).
-  const [refreshToken, setRefreshToken] = React.useState(0)
+  // errors from row actions (toggling chat), load errors come from the hook
+  const [rowError, setRowError] = React.useState<Error | undefined>()
   const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
   const {badged} = useLocalBadging(new Set(isNew ?? []), () => {
     clearGitBadges(
@@ -109,31 +108,28 @@ const GitRoot = (ownProps: OwnProps) => {
       () => {}
     )
   })
+  const {
+    data,
+    error: loadError,
+    // bumped on every (re)load so expanded rows refetch their lazily-loaded
+    // channel name (e.g. after returning from the channel selector)
+    loadCount: refreshToken,
+    reload: load,
+  } = useRPCLoad(T.RPCGen.gitGetAllGitMetadataRpcPromise, [undefined, C.waitingKeyGitLoading], {
+    map: results => parseRepos(results || []),
+    onResult: ({errors}) => {
+      setRowError(undefined)
+      const {setGlobalError} = useConfigState.getState().dispatch
+      errors.forEach(e => setGlobalError(e))
+    },
+    when: 'focus',
+  })
+  const idToInfo = data?.repos ?? noRepos
   const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.Router2.navigateAppend
   const onShowDelete = (git: T.Git.GitInfo) => {
     navigateAppend({name: 'gitDeleteRepo', params: {name: git.name, teamname: git.teamname}})
   }
-  const load = () => {
-    loadGit(
-      [undefined, C.waitingKeyGitLoading],
-      results => {
-        const {errors, repos} = parseRepos(results || [])
-        const {setGlobalError} = useConfigState.getState().dispatch
-        errors.forEach(e => setGlobalError(e))
-        setIDToInfo(repos)
-        setRefreshToken(t => t + 1)
-        setError(undefined)
-      },
-      err => {
-        setError(err)
-      }
-    )
-  }
-
-  C.Router2.useSafeFocusEffect(() => {
-    load()
-  })
 
   const [expandedState, setExpandedState] = React.useState<ExpandedState>(() => ({
     appliedRouteKey: '',
@@ -166,11 +162,11 @@ const GitRoot = (ownProps: OwnProps) => {
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const onNewPersonalRepo = () => {
-      setError(undefined)
+      setRowError(undefined)
       navigateAppend({name: 'gitNewRepo', params: {isTeam: false}})
     }
     const onNewTeamRepo = () => {
-      setError(undefined)
+      setRowError(undefined)
       navigateAppend({name: 'gitNewRepo', params: {isTeam: true}})
     }
     const {attachTo, hidePopup} = p
@@ -195,19 +191,14 @@ const GitRoot = (ownProps: OwnProps) => {
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyGitLoading} onBack={undefined} onReload={load}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} testID={TestIDs.GIT_REPO_LIST}>
-        {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
+        <Kb.ErrorBanner error={rowError ?? loadError} />
         {isMobile && (
-          <Kb.ClickableBox ref={popupAnchor} direction="horizontal" centerChildren={true} noShrink={true} style={styles.header} onClick={showPopup}>
-            <Kb.Icon
-              type="iconfont-new"
-              style={styles.newIcon}
-              color={Kb.Styles.globalColors.blue}
-              fontSize={20}
-            />
+          <Kb.ClickableBox ref={popupAnchor} direction="horizontal" centerChildren={true} noShrink={true} gap="tiny" style={styles.header} onClick={showPopup}>
+            <Kb.Icon type="iconfont-new" color={Kb.Styles.globalColors.blue} fontSize={20} />
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>
         )}
-        <NewContext value={badged}>
+        <NewItemsContext value={badged}>
           <Kb.SectionList
             keyExtractor={item => item}
             extraData={expandedSet}
@@ -219,7 +210,7 @@ const GitRoot = (ownProps: OwnProps) => {
                 onShowDelete={onShowDelete}
                 reload={load}
                 refreshToken={refreshToken}
-                setError={setError}
+                setError={setRowError}
                 onToggleExpand={toggleExpand}
               />
             )}
@@ -231,7 +222,7 @@ const GitRoot = (ownProps: OwnProps) => {
               {data: teams, loading: loading, title: 'Team'},
             ]}
           />
-        </NewContext>
+        </NewItemsContext>
         {popup}
       </Kb.Box2>
     </Kb.Reloadable>
@@ -244,7 +235,6 @@ const styles = Kb.Styles.styleSheetCreate(
       header: {
         height: 48,
       },
-      newIcon: {marginRight: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

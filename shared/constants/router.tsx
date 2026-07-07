@@ -554,7 +554,7 @@ export const createConversation = (
       const participantInfo = uiParticipantsToParticipantInfo(uiConv.participants ?? [])
       if (participantInfo.all.length > 0) {
         const {participantInfoReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
-        participantInfoReceived(conversationIDKey, participantInfo, meta)
+        participantInfoReceived(conversationIDKey, participantInfo)
       }
 
       navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)

@@ -8,7 +8,7 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import {MessageRow} from '../messages/wrapper'
 import {PerfProfiler} from '@/perf/react-profiler'
-import {ScrollContext} from '../normal/context'
+import {ThreadRefsContext} from '../normal/context'
 import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadID,
@@ -24,7 +24,6 @@ import {getMessageRowType} from '../messages/row-metadata'
 import * as InputState from '../input-area/input-state'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {FocusContext} from '../normal/context'
 import noop from 'lodash/noop'
 import {LegendList} from '@legendapp/list/react'
 import type {LegendListRef} from '@/common-adapters'
@@ -196,7 +195,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const getItemType = useGetItemType()
 
-  // Imperative scroll for ScrollContext
+  // Imperative scroll for ThreadRefsContext
   const scrollToBottom = React.useCallback(() => {
     void listRef.current?.scrollToEnd({animated: false})
   }, [])
@@ -219,7 +218,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     })
   }, [])
 
-  const {setScrollRef} = React.useContext(ScrollContext)
+  const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
     setScrollRef({scrollDown, scrollToBottom, scrollUp})
   }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
@@ -343,7 +342,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  const {focusInput} = React.useContext(FocusContext)
+  const {focusInput} = React.useContext(ThreadRefsContext)
   const handleListClick = (ev: React.MouseEvent) => {
     const target = ev.target as {
       closest?: (s: string) => unknown
@@ -510,7 +509,7 @@ const useNativeScrolling = (p: {
     listRef.current?.scrollToOffset({animated: false, offset})
   }, [insetsBottom, keyboardAnimHeight, listRef])
 
-  const {setScrollRef} = React.useContext(ScrollContext)
+  const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
     setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
   }, [setScrollRef, scrollToBottom])

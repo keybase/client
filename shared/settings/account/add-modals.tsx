@@ -78,18 +78,14 @@ export const Email = () => {
         />
       </Kb.Box2>
       <Kb.ModalFooter style={styles.footer}>
-        <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-          {!isMobile && (
-            <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
-          )}
-          <Kb.Button
-            label="Continue"
-            fullWidth={true}
-            onClick={onContinue}
-            disabled={disabled}
-            waiting={waiting}
-          />
-        </Kb.ButtonBar>
+        <Kb.ConfirmButtons
+          split={true}
+          waiting={waiting}
+          onCancel={onClose}
+          onConfirm={onContinue}
+          confirmLabel="Continue"
+          confirmDisabled={disabled}
+        />
       </Kb.ModalFooter>
     </>
   )
@@ -161,18 +157,14 @@ export const Phone = () => {
         />
       </Kb.Box2>
       <Kb.ModalFooter style={styles.footer}>
-        <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-          {!isMobile && (
-            <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
-          )}
-          <Kb.Button
-            label="Continue"
-            fullWidth={true}
-            onClick={onContinue}
-            disabled={disabled}
-            waiting={waiting}
-          />
-        </Kb.ButtonBar>
+        <Kb.ConfirmButtons
+          split={true}
+          waiting={waiting}
+          onCancel={onClose}
+          onConfirm={onContinue}
+          confirmLabel="Continue"
+          confirmDisabled={disabled}
+        />
       </Kb.ModalFooter>
     </>
   )

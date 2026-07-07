@@ -21,6 +21,41 @@ type InputLikeRef = {
   value?: string
 }
 type InputChangeEvent = {target: {value: string}}
+
+// Shared container + icon/prefix/decoration frame around the platform input element
+const InputFrame = (p: {
+  children: React.ReactNode
+  focused: boolean
+  fontSize?: number
+  props: Input3Props
+}) => {
+  const {children, focused, fontSize, props} = p
+  const {containerStyle, decoration, disabled, error, hideBorder, icon, prefix} = props
+  return (
+    <Box2
+      direction="horizontal"
+      alignItems="center"
+      padding="xtiny"
+      style={Styles.collapseStyles([
+        styles.container,
+        focused && styles.focused,
+        error && styles.error,
+        hideBorder && styles.hideBorder,
+        disabled && styles.disabled,
+        containerStyle,
+      ])}
+    >
+      {!!icon && (
+        <Box2 direction="horizontal" style={styles.icon}>
+          <IconAuto color={Styles.globalColors.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
+        </Box2>
+      )}
+      {!!prefix && <Text type="BodySemibold" style={styles.prefix}>{prefix}</Text>}
+      {children}
+      {decoration}
+    </Box2>
+  )
+}
 type InputKeyEvent = {
   key?: string
   shiftKey?: boolean
@@ -30,10 +65,10 @@ type InputKeyEvent = {
 
 const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
   const {
-    autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled, error,
-    growAndScroll, hideBorder, icon, inputStyle, maxLength, multiline, selectTextOnFocus,
+    autoCapitalize, autoCorrect, autoFocus, disabled,
+    growAndScroll, inputStyle, maxLength, multiline, selectTextOnFocus,
     onBlur: onBlurProp, onChangeText, onClick, onEnterKeyDown, onFocus: onFocusProp,
-    onKeyDown: onKeyDownProp, placeholder, prefix, ref, rowsMax, rowsMin,
+    onKeyDown: onKeyDownProp, placeholder, ref, rowsMax, rowsMin,
     secureTextEntry, spellCheck, textType = 'BodySemibold', value,
   } = props
 
@@ -146,36 +181,17 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
   )
 
   return (
-    <Box2
-      direction="horizontal"
-      alignItems="center"
-      padding="xtiny"
-      style={Styles.collapseStyles([
-        styles.container,
-        focused && styles.focused,
-        error && styles.error,
-        hideBorder && styles.hideBorder,
-        disabled && styles.disabled,
-        containerStyle,
-      ])}
-    >
-      {!!icon && (
-        <Box2 direction="horizontal" style={styles.icon}>
-          <IconAuto color={Styles.globalColors.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
-        </Box2>
-      )}
-      {!!prefix && <Text type="BodySemibold" style={styles.prefix}>{prefix}</Text>}
+    <InputFrame focused={focused} fontSize={fontSize} props={props}>
       {inputElement}
-      {decoration}
-    </Box2>
+    </InputFrame>
   )
 }
 
 const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
   const {
-    autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled, error,
-    hideBorder, icon, inputStyle, keyboardType, maxLength, multiline, onEnterKeyDown,
-    onBlur: onBlurProp, onChangeText, onFocus: onFocusProp, placeholder, prefix, ref,
+    autoCapitalize, autoCorrect, autoFocus, disabled,
+    inputStyle, keyboardType, maxLength, multiline, onEnterKeyDown,
+    onBlur: onBlurProp, onChangeText, onFocus: onFocusProp, placeholder, ref,
     returnKeyType, rowsMax, rowsMin, secureTextEntry, selectTextOnFocus,
     textContentType, textType = 'BodySemibold', value,
   } = props
@@ -220,25 +236,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
   const rows = rowsMin || Math.min(2, rowsMax || 2)
 
   return (
-    <Box2
-      direction="horizontal"
-      alignItems="center"
-      padding="xtiny"
-      style={Styles.collapseStyles([
-        styles.container,
-        focused && styles.focused,
-        error && styles.error,
-        hideBorder && styles.hideBorder,
-        disabled && styles.disabled,
-        containerStyle,
-      ])}
-    >
-      {!!icon && (
-        <Box2 direction="horizontal" style={styles.icon}>
-          <IconAuto color={Styles.globalColors.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
-        </Box2>
-      )}
-      {!!prefix && <Text type="BodySemibold" style={styles.prefix}>{prefix}</Text>}
+    <InputFrame focused={focused} fontSize={fontSize} props={props}>
       <NativeTextInput
         autoCapitalize={autoCapitalize ?? 'none'}
         autoCorrect={autoCorrect ?? false}
@@ -270,8 +268,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
         underlineColorAndroid="transparent"
         value={value}
       />
-      {decoration}
-    </Box2>
+    </InputFrame>
   )
 }
 

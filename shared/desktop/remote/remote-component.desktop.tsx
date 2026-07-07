@@ -1,11 +1,9 @@
 import * as React from 'react'
 import logger from '@/logger'
-import * as R from '@/constants/remote'
-import * as RemoteGen from '@/constants/remote-actions'
 import {useDarkModeState} from '@/stores/darkmode'
 import KB2 from '@/util/electron'
 
-const {ipcRendererOn, showInactive} = KB2.functions
+const {getRemoteProps, ipcRendererOn, showInactive} = KB2.functions
 
 export const remoteComponentNames = ['unlock-folders', 'menubar', 'pinentry', 'tracker'] as const
 export type RemoteComponentName = (typeof remoteComponentNames)[number]
@@ -16,56 +14,44 @@ type UseRemotePropsReceiverOptions = {
   showOnProps?: boolean
 }
 
-type RemotePropsReceiverState<P> = {
-  component: RemoteComponentName
-  param: string
-  value: P | null
-}
-
 export const getRemoteComponentParam = () => new URLSearchParams(window!.location.search).get('param') ?? ''
 
-export const useRemoteDarkModeSync = (darkMode: boolean) => {
+// darkMode rides along in the serialized props envelope; undefined until props arrive
+export const useRemoteDarkModeSync = (darkMode?: boolean) => {
   const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   React.useEffect(() => {
-    setSystemDarkMode(darkMode)
+    if (darkMode !== undefined) {
+      setSystemDarkMode(darkMode)
+      // hidden/transparent remote windows don't reliably get prefers-color-scheme
+      // media query updates, so drive the CSS light-dark() resolution explicitly
+      document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light'
+    }
   }, [darkMode, setSystemDarkMode])
-}
-
-export const RemoteDarkModeSync = (p: {children: React.ReactNode; darkMode: boolean}) => {
-  useRemoteDarkModeSync(p.darkMode)
-  return <>{p.children}</>
 }
 
 export const useRemotePropsReceiver = <P,>(options: UseRemotePropsReceiverOptions) => {
   const {component, param, showOnProps = true} = options
-  const [propsState, setPropsState] = React.useState<RemotePropsReceiverState<P>>(() => ({
-    component,
-    param,
-    value: null,
-  }))
-  const currentPropsState =
-    propsState.component === component && propsState.param === param
-      ? propsState
-      : {component, param, value: null}
-  if (currentPropsState !== propsState) {
-    setPropsState(currentPropsState)
-  }
-  const value = currentPropsState.value
+  const [value, setValue] = React.useState<(P & {darkMode: boolean}) | null>(null)
   const hasShownWindow = React.useRef(false)
 
   React.useEffect(() => {
-    hasShownWindow.current = false
-
-    const unsubscribe = ipcRendererOn?.('KBprops', (_event: unknown, raw: unknown) => {
+    const onProps = (raw: string) => {
+      if (!raw) return
       try {
-        setPropsState({component, param, value: JSON.parse(raw as string) as P})
+        setValue(JSON.parse(raw) as P & {darkMode: boolean})
       } catch (error) {
         logger.error('remote props parse failed', component, param, error)
       }
-    })
+    }
 
-    R.remoteDispatch(RemoteGen.createRemoteWindowWantsProps({component, param}))
+    // subscribe before pulling so an update can't slip between the two
+    const unsubscribe = ipcRendererOn?.('KBprops', (_event: unknown, raw: unknown) => {
+      onProps(raw as string)
+    })
+    getRemoteProps?.(component, param)
+      .then(onProps)
+      .catch(() => {})
 
     return () => unsubscribe?.()
   }, [component, param])

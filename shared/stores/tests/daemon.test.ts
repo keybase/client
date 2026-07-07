@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import {ignorePromise} from '@/constants/utils'
 import {maxHandshakeTries} from '@/constants/values'
 import {resetAllStores} from '@/util/zustand'
 import {FatalHandshakeError, useDaemonState} from '../daemon'
@@ -102,6 +103,27 @@ describe('daemon store', () => {
 
     expect(spy).toHaveBeenCalledTimes(1)
     expect(store.getState().bootstrapStatus?.uid).toBe('u1')
+  })
+
+  test('startHandshake does not reuse a load orphaned by an engine reset', async () => {
+    // engine.reset() drops in-flight RPCs without settling their promises (user switch does
+    // this twice); a later handshake must start a fresh load instead of awaiting the dead one
+    const spy = jest
+      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
+      .mockImplementationOnce(async () => new Promise<never>(() => {}))
+      .mockResolvedValue(bootstrapStatus)
+    const store = useDaemonState
+    store.getState().dispatch.initBootstrapSteps([])
+
+    ignorePromise(store.getState().dispatch.loadDaemonBootstrapStatus())
+    await jest.advanceTimersByTimeAsync(0)
+
+    store.getState().dispatch.startHandshake()
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(store.getState().handshakeState).toBe('done')
+    expect(store.getState().bootstrapStatus?.username).toBe('testuser')
   })
 
   test('resetState preserves the handshake state but clears transient values', () => {

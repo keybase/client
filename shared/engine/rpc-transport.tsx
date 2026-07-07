@@ -6,7 +6,6 @@ const MESSAGE_TYPE_NOTIFY = 2
 const MESSAGE_TYPE_CANCEL = 3
 
 type ErrorName = 'OK' | 'UNKNOWN_METHOD' | 'EOF'
-type ErrorCode = 0 | 100 | 101
 
 const errorMessages: Record<ErrorName, string> = {
   EOF: 'EOF from server',
@@ -14,37 +13,10 @@ const errorMessages: Record<ErrorName, string> = {
   UNKNOWN_METHOD: 'No method available',
 }
 
-const errorCodes: Record<ErrorName, ErrorCode> = {
+export const errors = {
   EOF: 101,
   OK: 0,
   UNKNOWN_METHOD: 100,
-}
-
-export const errors = {
-  EOF: errorCodes.EOF,
-  OK: errorCodes.OK,
-  UNKNOWN_METHOD: errorCodes.UNKNOWN_METHOD,
-  code: {
-    EOF: errorCodes.EOF,
-    OK: errorCodes.OK,
-    UNKNOWN_METHOD: errorCodes.UNKNOWN_METHOD,
-  },
-  msg: {
-    0: errorMessages.OK,
-    100: errorMessages.UNKNOWN_METHOD,
-    101: errorMessages.EOF,
-    EOF: errorMessages.EOF,
-    OK: errorMessages.OK,
-    UNKNOWN_METHOD: errorMessages.UNKNOWN_METHOD,
-  },
-  name: {
-    0: 'OK',
-    100: 'UNKNOWN_METHOD',
-    101: 'EOF',
-    EOF: 'EOF',
-    OK: 'OK',
-    UNKNOWN_METHOD: 'UNKNOWN_METHOD',
-  },
 } as const
 
 export type ErrorType = {
@@ -81,7 +53,7 @@ const maxFrameSize = 64 * 1024 * 1024 // 64 MB; rejects oversized frames before 
 
 const makeTransportError = (name: ErrorName): ErrorType => ({
   code: errors[name],
-  desc: errors.msg[errors[name]],
+  desc: errorMessages[name],
   name,
 })
 
@@ -120,11 +92,108 @@ const encodeFrame = (message: RPCMessage) => {
 const isRPCMessage = (message: unknown): message is RPCMessage =>
   Array.isArray(message) && typeof message[0] === 'number'
 
-export abstract class RPCTransport {
-  needsConnect = false
+// Reassembles length-prefixed msgpack frames from an arbitrary byte-chunk
+// stream. Only byte-stream transports use this (desktop socket / renderer
+// IPC); mobile JSI hands over already-decoded messages.
+class FramePacketizer {
   private _bufferedBytes = 0
   private _chunks = new Array<Uint8Array>()
   private _chunkOffset = 0
+
+  get bufferedBytes() {
+    return this._bufferedBytes
+  }
+
+  reset() {
+    this._bufferedBytes = 0
+    this._chunks = []
+    this._chunkOffset = 0
+  }
+
+  append(data: Uint8Array) {
+    const chunk = toUint8Array(data)
+    if (!chunk.length) {
+      return
+    }
+    this._chunks.push(chunk)
+    this._bufferedBytes += chunk.length
+  }
+
+  peekByte() {
+    const firstChunk = this._chunks[0]
+    if (!firstChunk) {
+      return undefined
+    }
+    return firstChunk[this._chunkOffset]
+  }
+
+  // Read-only view (or copy when spanning chunks) of the next `length` bytes;
+  // does not consume. Views stay valid because chunks are never mutated in place.
+  peekBytes(length: number) {
+    if (length > this._bufferedBytes) {
+      return undefined
+    }
+
+    const firstChunk = this._chunks[0]
+    if (firstChunk) {
+      const available = firstChunk.length - this._chunkOffset
+      if (available >= length) {
+        return firstChunk.subarray(this._chunkOffset, this._chunkOffset + length)
+      }
+    }
+
+    const out = new Uint8Array(length)
+    let outOffset = 0
+    let remaining = length
+    let chunkIndex = 0
+    let chunkOffset = this._chunkOffset
+
+    while (remaining > 0) {
+      const chunk = this._chunks[chunkIndex]
+      if (!chunk) {
+        return undefined
+      }
+
+      const available = chunk.length - chunkOffset
+      const toCopy = Math.min(remaining, available)
+      out.set(chunk.subarray(chunkOffset, chunkOffset + toCopy), outOffset)
+      outOffset += toCopy
+      remaining -= toCopy
+      chunkIndex += 1
+      chunkOffset = 0
+    }
+
+    return out
+  }
+
+  consumeBytes(length: number) {
+    let remaining = length
+    while (remaining > 0) {
+      const chunk = this._chunks[0]
+      if (!chunk) {
+        this._chunkOffset = 0
+        this._bufferedBytes = 0
+        return
+      }
+
+      const available = chunk.length - this._chunkOffset
+      if (remaining < available) {
+        this._chunkOffset += remaining
+        this._bufferedBytes -= length
+        return
+      }
+
+      remaining -= available
+      this._chunks.shift()
+      this._chunkOffset = 0
+    }
+    this._bufferedBytes -= length
+  }
+}
+
+export abstract class RPCTransport {
+  needsConnect = false
+  private _packetizer = new FramePacketizer()
   private _explicitClose = false
   private _incomingRPCCallback?: IncomingRPCCallbackType
   private _connectCallback?: ConnectDisconnectCB
@@ -168,7 +237,7 @@ export abstract class RPCTransport {
   }
 
   protected onDisconnected() {
-    this.resetPacketizer()
+    this._packetizer.reset()
     this.failOutstanding(makeEOFError(), {})
     this._disconnectCallback?.()
   }
@@ -210,11 +279,12 @@ export abstract class RPCTransport {
   }
 
   packetizeData(data: Uint8Array) {
+    const p = this._packetizer
     try {
-      this.appendChunk(data)
+      p.append(data)
 
-      while (this._bufferedBytes > 0) {
-        const firstByte = this.peekByte()
+      while (p.bufferedBytes > 0) {
+        const firstByte = p.peekByte()
         if (firstByte === undefined) {
           return
         }
@@ -223,37 +293,43 @@ export abstract class RPCTransport {
         if (!headerLen) {
           throw new Error('Bad frame header received')
         }
-        if (this._bufferedBytes < headerLen) {
+        if (p.bufferedBytes < headerLen) {
           return
         }
 
-        const header = this.copyBufferedBytes(headerLen)
+        const header = p.peekBytes(headerLen)
         if (!header) {
           return
         }
 
-        const payloadLen = decode(header)
-        if (typeof payloadLen !== 'number' || payloadLen < 0) {
-          throw new Error('Bad frame length received')
+        // Frame length is a msgpack uint (fixint/uint8/uint16/uint32); read the
+        // big-endian bytes directly rather than paying a msgpack decode per frame
+        let payloadLen = 0
+        if (headerLen === 1) {
+          payloadLen = header[0] ?? 0
+        } else {
+          for (let i = 1; i < headerLen; i++) {
+            payloadLen = payloadLen * 256 + (header[i] ?? 0)
+          }
         }
         if (payloadLen > maxFrameSize) {
           throw new Error(`Frame too large: ${payloadLen} bytes`)
         }
-        if (this._bufferedBytes < headerLen + payloadLen) {
+        if (p.bufferedBytes < headerLen + payloadLen) {
           return
         }
 
-        this.consumeBufferedBytes(headerLen)
-        const payloadBytes = this.copyBufferedBytes(payloadLen)
+        p.consumeBytes(headerLen)
+        const payloadBytes = p.peekBytes(payloadLen)
         if (!payloadBytes) {
           return
         }
         const payload = decode(payloadBytes)
-        this.consumeBufferedBytes(payloadLen)
+        p.consumeBytes(payloadLen)
         this.dispatchDecodedMessage(payload)
       }
     } catch (err) {
-      this.resetPacketizer()
+      p.reset()
       this.onPacketizeError(err)
     }
   }
@@ -375,7 +451,7 @@ export abstract class RPCTransport {
   close() {
     this.markExplicitClose()
     this._pending = []
-    this.resetPacketizer()
+    this._packetizer.reset()
     this.failOutstanding(makeEOFError(), {})
   }
 
@@ -403,89 +479,6 @@ export abstract class RPCTransport {
     }
   }
 
-  private resetPacketizer() {
-    this._bufferedBytes = 0
-    this._chunks = []
-    this._chunkOffset = 0
-  }
-
-  private appendChunk(data: Uint8Array) {
-    const chunk = toUint8Array(data)
-    if (!chunk.length) {
-      return
-    }
-    this._chunks.push(chunk)
-    this._bufferedBytes += chunk.length
-  }
-
-  private peekByte() {
-    const firstChunk = this._chunks[0]
-    if (!firstChunk) {
-      return undefined
-    }
-    return firstChunk[this._chunkOffset]
-  }
-
-  private copyBufferedBytes(length: number) {
-    if (length > this._bufferedBytes) {
-      return undefined
-    }
-
-    const firstChunk = this._chunks[0]
-    if (firstChunk) {
-      const available = firstChunk.length - this._chunkOffset
-      if (available >= length) {
-        return firstChunk.slice(this._chunkOffset, this._chunkOffset + length)
-      }
-    }
-
-    const out = new Uint8Array(length)
-    let outOffset = 0
-    let remaining = length
-    let chunkIndex = 0
-    let chunkOffset = this._chunkOffset
-
-    while (remaining > 0) {
-      const chunk = this._chunks[chunkIndex]
-      if (!chunk) {
-        return undefined
-      }
-
-      const available = chunk.length - chunkOffset
-      const toCopy = Math.min(remaining, available)
-      out.set(chunk.subarray(chunkOffset, chunkOffset + toCopy), outOffset)
-      outOffset += toCopy
-      remaining -= toCopy
-      chunkIndex += 1
-      chunkOffset = 0
-    }
-
-    return out
-  }
-
-  private consumeBufferedBytes(length: number) {
-    let remaining = length
-    while (remaining > 0) {
-      const chunk = this._chunks[0]
-      if (!chunk) {
-        this._chunkOffset = 0
-        this._bufferedBytes = 0
-        return
-      }
-
-      const available = chunk.length - this._chunkOffset
-      if (remaining < available) {
-        this._chunkOffset += remaining
-        this._bufferedBytes -= length
-        return
-      }
-
-      remaining -= available
-      this._chunks.shift()
-      this._chunkOffset = 0
-    }
-    this._bufferedBytes -= length
-  }
 }
 
 export {encodeFrame, makeEOFError, makeTransportError}

@@ -65,10 +65,8 @@ const secondaryContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
   common: baseContainer,
   isElectron: {backgroundColor: Styles.globalColors.white},
   isMobile: {
+    ...Styles.border(Styles.globalColors.black_20, 1),
     backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_20,
-    borderStyle: 'solid' as const,
-    borderWidth: 1,
   },
 })
 
@@ -147,8 +145,9 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
 
 type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null>}
 
-const ButtonDesktop = (props: FullProps) => {
-  const {children, label, onClick, ref: measureRef, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style, labelStyle: labelStyleOverride, testID} = props
+// Style/state derivation shared by the desktop and native renderers
+const buttonShared = (props: FullProps) => {
+  const {children, label, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style} = props
   const unclickable = disabled || waiting
   const isPrimary = mode === 'Primary'
   const hasChildrenOnly = !!children && !label
@@ -169,6 +168,15 @@ const ButtonDesktop = (props: FullProps) => {
       ])
     : (container as Styles.StylesCrossPlatform)
 
+  const whiteSpinner = isPrimary && type !== 'Dim'
+
+  return {containerStyle, isPrimary, labelStyle, type, unclickable, whiteSpinner}
+}
+
+const ButtonDesktop = (props: FullProps) => {
+  const {onClick, ref: measureRef, small, waiting, tooltip, labelStyle: labelStyleOverride, testID, children, label} = props
+  const {containerStyle, isPrimary, labelStyle, type, unclickable, whiteSpinner} = buttonShared(props)
+
   const className = Styles.classNames(
     isPrimary ? 'button--primary' : 'button--secondary',
     `button--type-${type}`,
@@ -183,8 +191,6 @@ const ButtonDesktop = (props: FullProps) => {
           onClick(e)
         }
       : undefined
-
-  const whiteSpinner = isPrimary && type !== 'Dim'
 
   const btn = (
     <div className={className} style={Styles.castStyleDesktop(containerStyle)} onClick={handleClick} ref={measureRef as React.Ref<HTMLDivElement>} data-testid={testID}>
@@ -207,30 +213,11 @@ const ButtonDesktop = (props: FullProps) => {
 
 const ButtonNative = (props: FullProps) => {
   const {Pressable, Text: RNText, View} = require('react-native') as {Pressable: typeof PressableType; Text: typeof RNTextType; View: typeof ViewType}
-  const {children, label, onClick, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style, labelStyle: labelStyleOverride, testID} = props
-  const unclickable = disabled || waiting
-  const isPrimary = mode === 'Primary'
-  const hasChildrenOnly = !!children && !label
-
-  const container = isPrimary ? primaryContainers[type] : secondaryContainer
-  const labelStyle = isPrimary ? primaryLabelStyles[type] : secondaryLabelStyles[type]
-
-  const needsCollapse = small || fullWidth || unclickable || hasChildrenOnly || style
-  const containerStyle = needsCollapse
-    ? Styles.collapseStyles([
-        container,
-        small && smallStyle,
-        hasChildrenOnly && childrenOnlyStyle,
-        hasChildrenOnly && small && childrenOnlySmallStyle,
-        fullWidth && fullWidthStyle,
-        unclickable && opacity30Style,
-        style,
-      ])
-    : (container as Styles.StylesCrossPlatform)
+  const {children, label, onClick, small, waiting, labelStyle: labelStyleOverride, testID} = props
+  const {containerStyle, labelStyle, unclickable, whiteSpinner} = buttonShared(props)
 
   const handlePress = unclickable ? undefined : onClick
 
-  const whiteSpinner = isPrimary && type !== 'Dim'
   const fontStyle = {...Styles.globalStyles.fontSemibold, fontSize: 16}
 
   const inner = (

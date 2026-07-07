@@ -13,7 +13,7 @@ import {
   useConversationThreadDismissJourneycard,
   useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadSelector,
+  useThreadMeta,
 } from '../../../thread-context'
 
 type Action = {label: string; onClick: () => void} | 'wave'
@@ -25,7 +25,15 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
   const m = useConversationThreadMessage(ordinal)
   const message = m?.type === 'journeycard' ? m : emptyJourney
-  const conv = useConversationThreadSelector(s => s.meta)
+  const conv = useThreadMeta(
+    C.useShallow(m => ({
+      cannotWrite: m.cannotWrite,
+      channelname: m.channelname,
+      teamID: m.teamID,
+      teamname: m.teamname,
+      tlfname: m.tlfname,
+    }))
+  )
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const teamMetaByID = useTeamsListMap()

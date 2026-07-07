@@ -2,37 +2,40 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {Props} from './index.shared'
 import type {ImageInfo} from '@/util/expo-image-picker'
 import {fixCrop} from '@/util/crop'
 import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {uploadTeamAvatar} from '@/teams/actions'
 
+export type Props = {
+  image?: ImageInfo
+  sendChatNotification?: boolean
+  showBack?: boolean
+  teamID?: string
+  createdTeam?: boolean
+  wizard?: boolean
+  newTeamWizard?: T.Teams.NewTeamWizardState
+}
+
 type TeamProps = {
   createdTeam?: boolean
-  showBack?: boolean
   teamID: T.Teams.TeamID
   teamname: string
   type: 'team'
   wizard: boolean
-  onSkip: () => void
 }
 type ProfileProps = {
   createdTeam?: false
-  onSkip?: undefined
   teamname?: string
   teamID?: T.Teams.TeamID
   type: 'profile'
-  showBack?: false
   wizard?: false
 }
 
 type Ret = {
   error: string
   image?: ImageInfo
-  onBack: () => void
-  onClose: () => void
   onSave: (
     filename: string,
     crop?: T.RPCGen.ImageCropRect,
@@ -40,18 +43,15 @@ type Ret = {
     offsetLeft?: number,
     offsetTop?: number
   ) => void
-  sendChatNotification?: boolean
-  submitting: boolean
   waitingKey: string
 } & (TeamProps | ProfileProps)
 
-export default (ownProps: Props): Ret => {
+const useEditAvatar = (ownProps: Props): Ret => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
   const sperror = C.Waiting.useAnyErrors(C.waitingKeyProfileUploadAvatar)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = C.Waiting.useAnyWaiting(C.waitingKeyProfileUploadAvatar)
   const {teamMeta} = useLoadedTeam(teamID ?? T.Teams.noTeamID, !!teamID)
   const teamname = teamMeta.teamname
   const parentTeamID = ownProps.newTeamWizard?.parentTeamID ?? T.Teams.noTeamID
@@ -63,15 +63,6 @@ export default (ownProps: Props): Ret => {
   }, [dispatchClearWaiting])
   const navigateUp = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
-  const onBack = () => {
-    dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
-    navigateUp()
-  }
-  const clearModals = C.Router2.clearModals
-  const onClose = () => {
-    dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
-    clearModals()
-  }
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,
@@ -108,20 +99,6 @@ export default (ownProps: Props): Ret => {
     )
     navigateAppend(getNextRouteAfterAvatar(wizard, parentTeamMemberCount))
   }
-  const onSkip = () => {
-    const wizard = ownProps.newTeamWizard
-    if (!wizard) {
-      return
-    }
-    navigateAppend(
-      {
-        name: 'profileEditAvatar',
-        params: {...ownProps, newTeamWizard: wizard},
-      },
-      true
-    )
-    navigateAppend(getNextRouteAfterAvatar(wizard, parentTeamMemberCount))
-  }
 
   let error = ''
   if (sperror) {
@@ -136,10 +113,6 @@ export default (ownProps: Props): Ret => {
   const bothProps = {
     error,
     image,
-    onBack,
-    onClose,
-    sendChatNotification,
-    submitting,
     waitingKey: C.waitingKeyProfileUploadAvatar,
   }
   return teamID
@@ -159,8 +132,6 @@ export default (ownProps: Props): Ret => {
             onSaveTeamAvatar(filename, teamname, sendChatNotification, crop)
           }
         },
-        onSkip,
-        showBack: ownProps.showBack ?? false,
         teamID,
         teamname,
         type: 'team' as const,
@@ -172,3 +143,5 @@ export default (ownProps: Props): Ret => {
         type: 'profile' as const,
       }
 }
+
+export default useEditAvatar

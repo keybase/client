@@ -24,9 +24,13 @@ import {
   getConversationThreadDisplayMessage,
   ShownUsernameCacheContext,
   useConversationThreadActions,
+  useConversationThreadID,
   useConversationThreadMessageActions,
   useConversationThreadSelector,
+  useThreadMeta,
 } from '../../thread-context'
+import {emptyParticipantInfo} from '../../data-hooks'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
 
@@ -202,7 +206,7 @@ function AuthorSection(p: AuthorProps) {
 
 const getAuthorData = (
   message: T.Chat.Message,
-  meta: T.Chat.ConversationMeta,
+  meta: Pick<T.Chat.ConversationMeta, 'botAliases' | 'teamID' | 'teamType' | 'teamname'>,
   participants: T.Chat.ParticipantInfo,
   showUsername: string
 ): FlatAuthorData => {
@@ -372,6 +376,18 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
   const shownCache = React.useContext(ShownUsernameCacheContext)
+  const conversationIDKey = useConversationThreadID()
+  // Reload-free read: avoid useConversationParticipants' per-mount unboxRows + engine
+  // listener registration, which is too expensive to pay per message row.
+  const participantInfo = useInboxMetadataState(s => s.participants.get(conversationIDKey)) ?? emptyParticipantInfo
+  const authorMeta = useThreadMeta(
+    C.useShallow(m => ({
+      botAliases: m.botAliases,
+      teamID: m.teamID,
+      teamType: m.teamType,
+      teamname: m.teamname,
+    }))
+  )
 
   return useConversationThreadSelector(
     C.useShallow(s => {
@@ -397,7 +413,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(messageActions, uiDispatch, retryMessage),
-        ...getAuthorData(message, s.meta, s.participants, showUsername),
+        ...getAuthorData(message, authorMeta, participantInfo, showUsername),
         message,
       }
     })

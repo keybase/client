@@ -7,7 +7,6 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {useColorScheme} from 'react-native'
 import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import type {ProxyProps} from './main2.desktop'
@@ -117,12 +116,10 @@ const PinentryProxy = () => {
   }
   const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = currentPopupState
   const show = type !== T.RPCGen.PassphraseType.none
-  const darkMode = useColorScheme() === 'dark'
   if (show) {
     return (
       <Pinentry
         cancelLabel={cancelLabel}
-        darkMode={darkMode}
         prompt={prompt}
         retryLabel={retryLabel}
         showTyping={showTyping}
