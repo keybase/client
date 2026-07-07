@@ -188,7 +188,7 @@ const MenuRow = (props: MenuRowProps) => (
         gap={props.icon ? 'small' : undefined}
       >
         {props.icon || props.isSelected ? (
-          <Box2 direction="horizontal" fullHeight={true} alignItems="center" justifyContent="center" style={nativeStyles.iconContainer}>
+          <Box2 direction="horizontal" fullHeight={true} centerChildren={true} style={nativeStyles.iconContainer}>
             {props.isSelected && (
               <Icon
                 type="iconfont-check"
@@ -215,13 +215,7 @@ const MenuRow = (props: MenuRowProps) => (
           </Box2>
         ) : null}
         <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-          <Box2
-            direction="vertical"
-            fullHeight={true}
-            fullWidth={true}
-            alignItems="center"
-            justifyContent="center"
-          >
+          <Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
             <Box2 direction="horizontal" fullWidth={true}>
               <Text type="Body" style={Styles.collapseStyles([styleRowText(props), props.style])}>
                 {props.title}
@@ -388,7 +382,6 @@ const desktopStyles = Styles.styleSheetCreate(
       iconBadge: sharedIconBadgeStyle,
       itemBodyText: {color: undefined},
       itemContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
         ...Styles.padding(7, Styles.globalMargins.small),
       },
       menuContainer: Styles.platformStyles({

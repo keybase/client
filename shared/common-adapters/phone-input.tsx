@@ -393,8 +393,9 @@ const PhoneInput = (p: Props) => {
     return (
       <Kb.Box2
         direction={isSmall ? 'horizontal' : 'vertical'}
+        fullWidth={true}
         style={Styles.collapseStyles([
-          isSmall ? styles.containerSmall : styles.containerBig,
+          isSmall ? styles.containerSmall : undefined,
           styles.containerLoading,
         ])}
       >
@@ -512,7 +513,7 @@ const PhoneInput = (p: Props) => {
       return (
         <Kb.Text
           type="BodySemibold"
-          style={Styles.collapseStyles([styles.countrySelector, styles.countrySelectorBig])}
+          style={styles.countrySelectorBig}
         >
           {!country
             ? !prefix
@@ -525,12 +526,8 @@ const PhoneInput = (p: Props) => {
 
     return (
       <>
-        <Kb.Text type="Body" style={styles.countrySelector}>
-          {getCountryEmoji(country)}
-        </Kb.Text>
-        <Kb.Text type="BodySemibold" style={styles.countrySelector}>
-          {'+' + String(prefix)}
-        </Kb.Text>
+        <Kb.Text type="Body">{getCountryEmoji(country)}</Kb.Text>
+        <Kb.Text type="BodySemibold">{'+' + String(prefix)}</Kb.Text>
       </>
     )
   }
@@ -538,8 +535,9 @@ const PhoneInput = (p: Props) => {
   return (
     <Kb.Box2
       direction={isSmall ? 'horizontal' : 'vertical'}
+      fullWidth={true}
       style={Styles.collapseStyles([
-        isSmall ? styles.containerSmall : styles.containerBig,
+        isSmall ? styles.containerSmall : undefined,
         isSmall && focused && styles.highlight,
       ])}
     >
@@ -553,8 +551,9 @@ const PhoneInput = (p: Props) => {
         <Kb.ClickableBox
           onClick={toggleShowingMenu}
           direction="horizontal"
+          fullWidth={!isSmall}
           style={Styles.collapseStyles([
-            isSmall ? styles.fullWidthDesktopOnly : styles.fullWidth,
+            isSmall && styles.fullWidthDesktopOnly,
             styles.countrySelectorContainer,
           ])}
           alignItems="center"
@@ -651,21 +650,14 @@ const styles = Styles.styleSheetCreate(
       clearIcon: {
         marginRight: Styles.globalMargins.tiny,
       },
-      containerBig: {
-        width: '100%',
-      },
       containerLoading: {
         ...Styles.centered(),
         display: 'flex',
       },
       containerSmall: {
+        ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
         backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
         height: 38,
-        width: '100%',
       },
       countryLayout: {
         maxHeight: 200,
@@ -682,7 +674,6 @@ const styles = Styles.styleSheetCreate(
           ...Styles.paddingV(0),
         },
       }),
-      countrySelector: {marginRight: Styles.globalMargins.xtiny},
       countrySelectorBig: {
         flexGrow: 1,
       },
@@ -697,14 +688,10 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
       },
       fakeInputBig: {
+        ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
         backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
         height: 48,
       },
-      fullWidth: {width: '100%'},
       fullWidthDesktopOnly: Styles.platformStyles({isElectron: {width: '100%'}}),
       highlight: {borderColor: Styles.globalColors.blue, borderWidth: 1},
       menuItem: {

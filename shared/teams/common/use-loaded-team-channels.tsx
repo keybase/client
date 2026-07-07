@@ -55,6 +55,37 @@ const useLoadedTeamChannelsCacheMap = (
   return providedCacheMap ?? contextCacheMap ?? localCacheMap
 }
 
+export const teamChannelsRPCParams = (teamname: string) => ({
+  membersType: T.RPCChat.ConversationMembersType.team,
+  tlfName: teamname,
+  topicType: T.RPCChat.TopicType.chat,
+})
+
+// keep a team's channel list fresh: reload on team changes, drop it when the
+// team is deleted or left
+export const useReloadOnTeamChannelChanges = (
+  teamID: T.Teams.TeamID | undefined,
+  enabled: boolean,
+  reload: () => unknown,
+  clear: () => void
+) => {
+  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
+    if (enabled && action.payload.params.teamID === teamID) {
+      void reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+    if (enabled && action.payload.params.teamID === teamID) {
+      clear()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
+    if (enabled && action.payload.params.teamID === teamID) {
+      clear()
+    }
+  })
+}
+
 const useLoadedTeamChannelsRaw = (
   teamID: T.Teams.TeamID,
   providedTeamname?: string,
@@ -84,11 +115,7 @@ const useLoadedTeamChannelsRaw = (
       const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
       const teamname = teamnameToLoad
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
-        {
-          membersType: T.RPCChat.ConversationMembersType.team,
-          tlfName: teamname,
-          topicType: T.RPCChat.TopicType.chat,
-        },
+        teamChannelsRPCParams(teamname),
         C.waitingKeyTeamsGetChannels(teamIDToLoad)
       )
       const channelParticipants = new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>()
@@ -120,21 +147,7 @@ const useLoadedTeamChannelsRaw = (
     staleMs: loadedTeamChannelsReloadStaleMs,
   })
 
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clear(validTeamID)
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clear(validTeamID)
-    }
-  })
+  useReloadOnTeamChannelChanges(validTeamID, enabled, reload, () => clear(validTeamID))
 
   return {...data, loading, reload}
 }

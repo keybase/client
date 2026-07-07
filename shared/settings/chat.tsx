@@ -6,8 +6,10 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
 import SettingsSectionTitle from './section-title'
 import {loadSettings} from './load-settings'
+import {produce} from 'immer'
 import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
+import {useRPCLoad} from '@/util/use-rpc-load'
 import {useShellState} from '@/stores/shell'
 import {useTeamsList} from '@/teams/use-teams-list'
 
@@ -17,26 +19,21 @@ type ContactSettingsTeamsList = {[k in T.RPCGen.TeamID]: boolean}
 type NotificationSettingsState = ReturnType<typeof useNotificationSettings>
 
 const useContactSettings = () => {
-  const loadContactSettingsRPC = C.useRPC(T.RPCGen.accountUserGetContactSettingsRpcPromise)
   const saveContactSettingsRPC = C.useRPC(T.RPCGen.accountUserSetContactSettingsRpcPromise)
   const [error, setError] = React.useState('')
-  const [settings, setSettings] = React.useState<T.RPCGen.ContactSettings>()
+  const {data: settings, reload} = useRPCLoad(T.RPCGen.accountUserGetContactSettingsRpcPromise, [undefined], {
+    map: s => s,
+    onError: () => setError('Unable to load contact settings, please try again.'),
+    onResult: () => setError(''),
+    when: 'manual',
+  })
 
   const contactSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
       return
     }
-    loadContactSettingsRPC(
-      [undefined],
-      nextSettings => {
-        setError('')
-        setSettings(nextSettings)
-      },
-      () => {
-        setError('Unable to load contact settings, please try again.')
-      }
-    )
-  }, [loadContactSettingsRPC])
+    reload()
+  }, [reload])
 
   const contactSettingsSaved = React.useCallback(
     (
@@ -79,34 +76,33 @@ const useContactSettings = () => {
 }
 
 const useUnfurlSettings = () => {
-  const loadUnfurlSettingsRPC = C.useRPC(T.RPCChat.localGetUnfurlSettingsRpcPromise)
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
   const [error, setError] = React.useState('')
-  const [mode, setMode] = React.useState<T.RPCChat.UnfurlMode>()
-  const [whitelist, setWhitelist] = React.useState<ReadonlyArray<string>>(emptyList)
+  const {data, reload, setData} = useRPCLoad(
+    T.RPCChat.localGetUnfurlSettingsRpcPromise,
+    [undefined, C.waitingKeySettingsChatUnfurl],
+    {
+      map: result => ({mode: result.mode, whitelist: result.whitelist ?? emptyList}),
+      onError: () => setError('Unable to load link preview settings, please try again.'),
+      onResult: () => setError(''),
+      when: 'manual',
+    }
+  )
+  const mode = data?.mode
+  const whitelist = data?.whitelist ?? emptyList
 
   const unfurlSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
       return
     }
-    loadUnfurlSettingsRPC(
-      [undefined, C.waitingKeySettingsChatUnfurl],
-      result => {
-        setError('')
-        setMode(result.mode)
-        setWhitelist(result.whitelist ?? emptyList)
-      },
-      () => {
-        setError('Unable to load link preview settings, please try again.')
-      }
-    )
-  }, [loadUnfurlSettingsRPC])
+    reload()
+  }, [reload])
 
   const unfurlSettingsSaved = React.useCallback(
     (unfurlMode: T.RPCChat.UnfurlMode, unfurlWhitelist: ReadonlyArray<string>) => {
       setError('')
-      setMode(unfurlMode)
-      setWhitelist(unfurlWhitelist)
+      // optimistic, the post-save refresh has the final say
+      setData({mode: unfurlMode, whitelist: unfurlWhitelist})
       if (!useConfigState.getState().loggedIn) {
         return
       }
@@ -120,7 +116,7 @@ const useUnfurlSettings = () => {
         }
       )
     },
-    [saveUnfurlSettingsRPC, unfurlSettingsRefresh]
+    [saveUnfurlSettingsRPC, setData, unfurlSettingsRefresh]
   )
 
   return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
@@ -264,10 +260,11 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
                       isOpen={teamMeta.isOpen}
                       name={teamMeta.teamname}
                       onCheck={(checked: boolean) =>
-                        setContactSettingsSelectedTeams(s => ({
-                          ...s,
-                          [teamMeta.id]: checked,
-                        }))
+                        setContactSettingsSelectedTeams(
+                          produce(draft => {
+                            draft[teamMeta.id] = checked
+                          })
+                        )
                       }
                     />
                   ))}
@@ -317,10 +314,11 @@ const Links = () => {
   }
 
   const toggleUnfurlWhitelist = (domain: string) => {
-    setUnfurlWhitelistRemoved(prev => ({
-      ...prev,
-      [domain]: !prev[domain],
-    }))
+    setUnfurlWhitelistRemoved(
+      produce(draft => {
+        draft[domain] = !draft[domain]
+      })
+    )
   }
 
   React.useEffect(() => {
@@ -388,10 +386,7 @@ const Links = () => {
                       </Kb.Text>
                     ) : (
                       <Kb.WithTooltip tooltip="Remove">
-                        <Kb.Icon
-                          onClick={() => toggleUnfurlWhitelist(w)}
-                          type="iconfont-trash"
-                        />
+                        <Kb.Icon onClick={() => toggleUnfurlWhitelist(w)} type="iconfont-trash" />
                       </Kb.WithTooltip>
                     )}
                   </Kb.Box2>
@@ -407,12 +402,7 @@ const Links = () => {
           selected={selected === T.RPCChat.UnfurlMode.never}
         />
       </Kb.Box2>
-      <Kb.Box2
-        direction="vertical"
-        gap="tiny"
-        alignSelf="flex-start"
-        style={styles.innerContainer}
-      >
+      <Kb.Box2 direction="vertical" gap="tiny" alignSelf="flex-start" style={styles.innerContainer}>
         <Kb.WaitingButton
           onClick={onSave}
           label="Save"
@@ -510,9 +500,7 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
         <Kb.Text type="BodySemibold" lineClamp={1}>
           {name}
         </Kb.Text>
-        {isOpen && (
-          <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
-        )}
+        {isOpen && <Kb.Meta variant="open" style={styles.teamMeta} />}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -546,7 +534,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {marginRight: Kb.Styles.globalMargins.medium},
   }),
   teamMeta: {
-    alignSelf: 'center',
     marginLeft: Kb.Styles.globalMargins.xtiny,
     marginTop: 2,
   },
@@ -556,7 +543,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.xtiny, isMobile ? Kb.Styles.globalMargins.large : 48),
+    ...Kb.Styles.padding(
+      Kb.Styles.globalMargins.xtiny,
+      Kb.Styles.globalMargins.small,
+      Kb.Styles.globalMargins.xtiny,
+      isMobile ? Kb.Styles.globalMargins.large : 48
+    ),
   },
   whitelist: Kb.Styles.platformStyles({
     common: {

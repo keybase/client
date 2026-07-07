@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import * as React from 'react'
+import Success from './success'
 import {useNavigation} from '@react-navigation/native'
 
 type OwnProps = {initialTeamname?: string; success?: boolean}
@@ -20,9 +21,10 @@ const getJoinTeamError = (error: unknown) => {
   return error instanceof Error ? error.message : 'Something went wrong.'
 }
 
-const Container = (props: OwnProps) => <ContainerInner key={props.initialTeamname ?? ''} {...props} />
+// keyed so a different initial teamname starts the dialog fresh
+const JoinTeam = (props: OwnProps) => <JoinTeamInner key={props.initialTeamname ?? ''} {...props} />
 
-const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
+const JoinTeamInner = ({initialTeamname, success: successParam}: OwnProps) => {
   const [errorText, setErrorText] = React.useState('')
   const [open, setOpen] = React.useState(false)
   const [successTeamName, setSuccessTeamName] = React.useState('')
@@ -137,20 +139,6 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
   )
 }
 
-export const Success = (props: {teamname: string}) => (
-  <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" fullWidth={true} style={styles.container}>
-    <Kb.ImageIcon type="icon-illustration-welcome-96" />
-    {!!props.teamname && (
-      <Kb.Text center={true} type="Header">
-        You’ve joined {props.teamname}!
-      </Kb.Text>
-    )}
-    <Kb.Text center={true} type="Body">
-      The team may take a tiny while to appear as an admin needs to come online. But you’re in.
-    </Kb.Text>
-  </Kb.Box2>
-)
-
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -162,4 +150,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default JoinTeam

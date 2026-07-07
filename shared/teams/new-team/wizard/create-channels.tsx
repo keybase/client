@@ -1,9 +1,10 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {type NewTeamWizard} from './state'
+import {AddRowButton, useStringList, WizardBanner, wizardInputStyle} from './common'
 import {useNavigation} from '@react-navigation/native'
 
 type Props = {
@@ -20,18 +21,7 @@ export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const initialChannels = props.initialChannels ?? ['hellos', 'random', '']
 
-  const [channels, setChannels] = React.useState([...initialChannels])
-  const setChannel = (i: number, value: string) => {
-    setChannels(prev => prev.map((channel, idx) => (idx === i ? value : channel)))
-  }
-
-  const onClear = (i: number) => {
-    setChannels(prev => prev.filter((_, idx) => idx !== i))
-  }
-
-  const onAdd = () => {
-    setChannels(prev => [...prev, ''])
-  }
+  const {items: channels, setItem: setChannel, clearItem: onClear, addItem: onAdd} = useStringList(initialChannels)
 
   const filteredChannels = channels.filter(c => c.trim())
   const onContinue = () => onSubmitChannels?.(filteredChannels)
@@ -55,9 +45,7 @@ export const CreateChannelsModal = (props: Props) => {
   return (
     <>
       {props.banners}
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-        <Kb.ImageIcon type="icon-illustration-teams-channels-460-96" />
-      </Kb.Box2>
+      <WizardBanner icon="icon-illustration-teams-channels-460-96" />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -75,7 +63,7 @@ export const CreateChannelsModal = (props: Props) => {
             onClear={() => onClear(idx)}
           />
         ))}
-        <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
+        <AddRowButton onAdd={onAdd} />
         {numChannels === 0 && !props.onSubmitChannels && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
@@ -136,20 +124,11 @@ const ChannelInput = (props: ChannelInputProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      addButton: Kb.Styles.platformStyles({
-        isElectron: {width: 42},
-        isMobile: {width: 47},
-        isTablet: {alignSelf: 'flex-start'},
-      }),
-      banner: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
-        isElectron: {overflowX: 'hidden'},
-      }),
       body: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
-      input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
-      inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},
+      input: wizardInputStyle,
+      inputGeneral: {...wizardInputStyle, opacity: 0.4},
       noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},
     }) as const
 )

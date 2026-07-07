@@ -96,7 +96,7 @@ interface SectionFooter {
 
 type ListElement = SectionHeader | Row | SectionFooter
 
-export interface Parameters<ItemT> {
+interface Parameters<ItemT> {
   getItemHeight: (rowData: ItemT | undefined, sectionIndex: number, rowIndex: number) => number
   getSeparatorHeight?: (sectionIndex: number, rowIndex: number) => number
   getSectionHeaderHeight?: (sectionIndex: number) => number

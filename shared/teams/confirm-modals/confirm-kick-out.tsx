@@ -8,6 +8,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import setRouteParamsIfPresent from './set-route-params-if-present'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {useTeamsListMap} from '../use-teams-list'
+import AvatarBadge from './avatar-badge'
 
 type Props = {
   members: string[]
@@ -27,10 +28,12 @@ const ConfirmKickOut = (props: Props) => {
     [subteamIDs, teamMetaByID]
   )
   const teamname = teamMeta.teamname
-  const waitingKeys = ([] as string[]).concat.apply(
-    members.map(member => C.waitingKeyTeamsRemoveMember(teamID, member)),
-    members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
-  )
+  const waitingKeys = [
+    ...members.map(member => C.waitingKeyTeamsRemoveMember(teamID, member)),
+    ...members.flatMap(member =>
+      subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member))
+    ),
+  ]
   const waiting = C.Waiting.useAnyWaiting(waitingKeys)
   const waitingError = C.Waiting.useAnyErrors(waitingKeys)
   const navigation = useNavigation()
@@ -95,22 +98,14 @@ const ConfirmKickOut = (props: Props) => {
   const header = (
     <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
-      <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        overflow="hidden"
+      <AvatarBadge
+        icon="iconfont-block"
         style={Kb.Styles.collapseStyles([
           styles.iconContainer,
           members.length > 5 && styles.iconContainerMany,
         ])}
-      >
-        <Kb.Icon
-          type="iconfont-block"
-          color={Kb.Styles.globalColors.white}
-          fontSize={14}
-          style={styles.headerIcon}
-        />
-      </Kb.Box2>
+        iconStyle={styles.headerIcon}
+      />
     </Kb.Box2>
   )
   return (
@@ -156,10 +151,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {right: -0.5, top: 0.5},
   }),
   iconContainer: {
-    backgroundColor: Kb.Styles.globalColors.red,
-    ...Kb.Styles.border(Kb.Styles.globalColors.white, 3, 12),
     bottom: -3,
-    ...Kb.Styles.size(24),
     position: 'absolute',
     right: isMobile ? -24 : 0,
   },

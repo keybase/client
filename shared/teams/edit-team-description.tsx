@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useLoadedTeam} from './team/use-loaded-team'
+import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -41,24 +42,13 @@ const EditTeamDescription = (props: Props) => {
     )
   }
 
-  const wasWaitingRef = React.useRef(waiting)
-  React.useEffect(() => {
-    if (!waiting && wasWaitingRef.current && !error) C.Router2.navigateUp()
-  }, [waiting, wasWaitingRef, error])
-
-  React.useEffect(() => {
-    wasWaitingRef.current = waiting
-  }, [waiting])
+  useNavUpWhenDone(waiting, error)
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
+      <Kb.ErrorBanner error={error} />
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} padding="small">
           <Kb.Input3
             placeholder="Team description"
             onChangeText={value => {
@@ -75,25 +65,16 @@ const EditTeamDescription = (props: Props) => {
         </Kb.Box2>
       </Kb.ScrollView>
       <Kb.ModalFooter>
-        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />
-          <Kb.Button
-            disabled={description === origDescription}
-            label="Save"
-            onClick={onSave}
-            waiting={waiting}
-          />
-        </Kb.ButtonBar>
+        <Kb.ConfirmButtons
+          waiting={waiting}
+          onCancel={C.Router2.navigateUp}
+          onConfirm={onSave}
+          confirmLabel="Save"
+          confirmDisabled={description === origDescription}
+        />
       </Kb.ModalFooter>
     </>
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  buttonBar: {alignItems: 'center'},
-  container: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-  },
-}))
 
 export default EditTeamDescription

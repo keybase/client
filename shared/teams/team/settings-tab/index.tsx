@@ -231,8 +231,8 @@ const Settings = (p: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
-      <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.main} justifyContent="flex-start">
-        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+      <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.main}>
+        <Kb.ErrorBanner error={error} />
         <SetMemberShowcase
           yourOperationsJoinTeam={yourOperations.joinTeam}
           canShowcase={canShowcase}
@@ -330,7 +330,7 @@ export type OwnProps = {
   teamID: T.Teams.TeamID
 }
 
-const Container = (ownProps: OwnProps) => {
+const SettingsTabContainer = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {reload, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
@@ -455,4 +455,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default SettingsTabContainer

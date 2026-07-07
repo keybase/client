@@ -6,8 +6,7 @@ import type * as T from '@/constants/types'
 import Main from './main'
 import {ActivityLevelsProvider, useActivityLevels} from './common'
 import {useTeamsList} from './use-teams-list'
-import {useSafeNavigation} from '@/util/safe-navigation'
-import {makeNewTeamWizard} from './new-team/wizard/state'
+import {useHeaderActions} from './get-options'
 import {useNavigation} from '@react-navigation/native'
 
 const orderTeams = (
@@ -50,7 +49,7 @@ type Props = {
   sort?: T.Teams.TeamListSort
 }
 
-const Connected = ({filter = '', sort = 'role'}: Props) => {
+const TeamsRoot = ({filter = '', sort = 'role'}: Props) => {
   const {reload, teams} = useTeamsList()
   const activityLevels = useActivityLevels()
   const {deletedTeams, newTeamRequests, newTeams, teamIDToResetUsers} = useNotifState(
@@ -73,11 +72,8 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
     teamMeta,
   }))
 
-  const nav = useSafeNavigation()
   const navigation = useNavigation('teamsRoot')
-  const onCreateTeam = () =>
-    nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
-  const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
+  const {onCreateTeam, onJoinTeam} = useHeaderActions()
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={reload}>
@@ -93,10 +89,10 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
   )
 }
 
-const Container = (props: Props) => (
+const TeamsRootContainer = (props: Props) => (
   <ActivityLevelsProvider>
-    <Connected {...props} />
+    <TeamsRoot {...props} />
   </ActivityLevelsProvider>
 )
 
-export default Container
+export default TeamsRootContainer

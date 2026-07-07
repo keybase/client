@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import {useTeamLinkPopup} from './common'
+import RoleCrown from './common/role-crown'
 import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -48,7 +49,7 @@ const ExternalTeam = (props: Props) => {
 
   if (teamInfo) {
     return (
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <ExternalTeamInfo info={teamInfo} />
       </Kb.Box2>
     )
@@ -205,14 +206,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
                 •
               </Kb.Text>
             )}
-            {[T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner].includes(member.role) && (
-              <Kb.Icon
-                type={`iconfont-crown-${roleString}` as Kb.IconType}
-                color={roleString === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-                sizeType="Small"
-                style={styles.crownIcon}
-              />
-            )}
+            <RoleCrown role={roleString} sizeType="Small" style={styles.crownIcon} />
             <Kb.Text type="BodySmall">{capitalize(roleString)}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>

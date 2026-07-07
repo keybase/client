@@ -1,22 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Animated, PanResponder, View, type GestureResponderEvent, type PanResponderGestureState, type ViewStyle} from 'react-native'
-
-export type SwipeableMethods = {
-  close: () => void
-  reset: () => void
-}
-
-type Props = {
-  children?: React.ReactNode
-  renderRightActions?: (
-    progress: Animated.AnimatedDivision<number>,
-    translation: Animated.Value
-  ) => React.ReactNode
-  onSwipeableOpenStartDrag?: () => void
-  onSwipeableWillOpen?: (direction: 'left') => void
-  containerStyle?: ViewStyle
-}
+import type {Props, SwipeableMethods} from './swipeable-row.shared'
+export type {SwipeableMethods} from './swipeable-row.shared'
 
 const springConfig = {friction: 20, tension: 150, useNativeDriver: false} as const
 

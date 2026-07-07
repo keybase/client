@@ -4,11 +4,11 @@ import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import {navToProfile} from '@/constants/router'
-import {useConversationThreadSelector} from '../thread-context'
+import {useThreadMeta} from '../thread-context'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
-  const rekeyers = useConversationThreadSelector(s => s.meta.rekeyers)
+  const rekeyers = useThreadMeta(m => m.rekeyers)
   const onBack = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
   const onEnterPaperkey = () => {

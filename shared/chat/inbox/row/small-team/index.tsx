@@ -302,7 +302,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={isMobile ? {backgroundColor} : undefined}>
       {hasResetUsers && (
-        <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
+        <Kb.Meta variant="reset" style={styles.alertMeta} />
       )}
       {youNeedToRekey && (
         <Kb.Meta
@@ -449,7 +449,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       alertMeta: Kb.Styles.platformStyles({
-        common: {alignSelf: 'center', marginRight: 6},
+        common: {marginRight: 6},
         isMobile: {marginTop: 2},
       }),
       bold: {...Kb.Styles.globalStyles.fontBold},

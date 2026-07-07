@@ -1,15 +1,12 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
-import {routeMapToScreenElements} from '@/router-v2/routes'
+import {routeMapToStaticScreens} from '@/router-v2/routes'
 import {makeLayout} from '@/router-v2/screen-layout'
-import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import {settingsDesktopTabRoutes} from './routes'
 import {settingsAccountTab} from '@/constants/settings'
-import type {SettingsAccountRouteParams} from './routes'
 
 function LeftTabNavigator({
   initialRouteName,
@@ -72,40 +69,21 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   nav: {width: Kb.Styles.isTablet ? 200 : 180},
 }))
 
-type NavType = NavigatorTypeBagBase & {
-  ParamList: {
-    [K in keyof typeof settingsDesktopTabRoutes]: K extends typeof settingsAccountTab
-      ? SettingsAccountRouteParams | undefined
-      : undefined
-  }
-}
-
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
-const TabNavigator = createLeftTabNavigator()
-const makeOptions = (rd: RouteDef) => {
-  return ({route, navigation}: GetOptionsParams) => {
-    const no = rd.getOptions
-    const opt = typeof no === 'function' ? no({navigation, route}) : no
-    return {...opt}
-  }
-}
-const settingsScreens = routeMapToScreenElements(
-  settingsDesktopTabRoutes,
-  TabNavigator.Screen,
-  makeLayout,
-  makeOptions,
-  false,
-  false,
-  false
-)
+// The factory's static-config call signature is hidden by our custom-navigator typing, so
+// re-surface it with a cast. Screens come from the same route-map converter the root uses.
+const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as (config: {
+  backBehavior: 'none'
+  initialRouteName: string
+  screens: ReturnType<typeof routeMapToStaticScreens>
+}) => {getComponent: () => React.ComponentType}
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
 // a push from the parent stack. If we care just make a generic left nav / right stack
 // that the global app / etc could use and put it here also. not worth it now
-const SettingsSubNavigator = () => (
-  <TabNavigator.Navigator initialRouteName={settingsAccountTab} backBehavior="none">
-    {settingsScreens}
-  </TabNavigator.Navigator>
-)
+const SettingsSubNavigator = createLeftTabNavigator({
+  backBehavior: 'none',
+  initialRouteName: settingsAccountTab,
+  screens: routeMapToStaticScreens(settingsDesktopTabRoutes, makeLayout, false, false, false),
+}).getComponent()
 
 export default SettingsSubNavigator

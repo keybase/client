@@ -3,13 +3,13 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationThreadSelector} from '../../thread-context'
+import {useThreadMeta} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemUsersAddedToConversation}
 
 function UsersAddedToConversationContainer(p: OwnProps) {
   const {usernames} = p.message
-  const channelname = useConversationThreadSelector(s => s.meta.channelname)
+  const channelname = useThreadMeta(m => m.channelname)
   const you = useCurrentUserState(s => s.username)
   let otherUsers: Array<string> | undefined
   if (usernames.includes(you)) {

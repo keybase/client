@@ -27,7 +27,7 @@ const unifiedToNative = (unified: string) =>
 
 const nameReg = /^(?::([^:]+):)(?::skin-tone-(\d):)?$/
 
-function EmojiWrapper(props: Props) {
+function NativeEmoji(props: Props) {
   const {emojiName, size} = props
 
   if (isMobile) {
@@ -115,4 +115,4 @@ function EmojiWrapper(props: Props) {
   )
 }
 
-export default EmojiWrapper
+export default NativeEmoji

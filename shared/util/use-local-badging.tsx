@@ -5,6 +5,12 @@ import * as C from '@/constants'
 // On click: clear the badges on the server and remove from things like tabs
 // Keep a local version of this which is only cleared on navigation blur
 const noBadges = new Set<string>()
+
+// share the badged set with rows without prop drilling. Provide `badged` from
+// useLocalBadging at the list level, read with useIsNew in rows
+export const NewItemsContext = React.createContext<ReadonlySet<string>>(noBadges)
+export const useIsNew = (id: string) => React.useContext(NewItemsContext).has(id)
+
 export const useLocalBadging = (storeSet: ReadonlySet<string> | undefined, clearStoreBadges: () => void) => {
   const [badged, setBadged] = React.useState(storeSet?.size ? storeSet : noBadges)
 

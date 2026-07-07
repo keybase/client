@@ -9,7 +9,7 @@ import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from '@/chat/inbo
 import {useChatTeam} from '@/chat/conversation/team-hooks'
 import {useRoute} from '@react-navigation/native'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
-import {useInboxRowsState} from '@/chat/inbox/rows-state'
+import {useInboxRowBig, useInboxRowSmall} from '@/chat/inbox/rows-state'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToPath} from '@/constants/fs'
@@ -33,17 +33,13 @@ const Header = () => {
       participantInfo: s.participants.get(conversationIDKey) ?? emptyParticipantInfo,
     }))
   )
-  const inboxRow = useInboxRowsState(
-    C.useShallow(s => {
-      const big = s.rowsBig.get(conversationIDKey)
-      const small = s.rowsSmall.get(conversationIDKey)
-      return {
-        rowChannelname: big?.channelname ?? '',
-        rowParticipants: small?.participants ?? emptyParticipants,
-        rowTeamname: big?.teamname || small?.teamDisplayName || '',
-      }
-    })
-  )
+  const bigRow = useInboxRowBig(conversationIDKey)
+  const smallRow = useInboxRowSmall(conversationIDKey)
+  const inboxRow = {
+    rowChannelname: bigRow.channelname,
+    rowParticipants: smallRow.participants.length ? smallRow.participants : emptyParticipants,
+    rowTeamname: bigRow.teamname || smallRow.teamDisplayName,
+  }
   const {
     channelname: metaChannelname,
     descriptionDecorated,

@@ -3,7 +3,6 @@ import * as Styles from '@/styles'
 import {Box2} from '../box'
 import FloatingBox from './floating-box'
 import {EscapeHandler} from '../key-event-handler'
-import {Keyboard} from 'react-native'
 import {Portal} from '../portal'
 import {
   BottomSheetModal,
@@ -52,30 +51,9 @@ function DesktopPopupPositioned(props: PopupProps) {
   )
 }
 
-function NativePopupPositioned(props: PopupProps) {
-  const {hideKeyboard, children, containerStyle} = props
-  const [lastHK, setLastHK] = React.useState(hideKeyboard)
-  if (lastHK !== hideKeyboard) {
-    setLastHK(hideKeyboard)
-    if (hideKeyboard) {
-      Keyboard.dismiss()
-    }
-  }
-  return (
-    <Portal hostName="popup-root">
-      <Box2
-        direction="vertical"
-        pointerEvents="box-none"
-        style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, containerStyle])}
-      >
-        {children}
-      </Box2>
-    </Portal>
-  )
-}
-
 function PopupPositioned(props: PopupProps) {
-  return isMobile ? <NativePopupPositioned {...props} /> : <DesktopPopupPositioned {...props} />
+  // on mobile FloatingBox is the same portal + keyboard-dismiss overlay this needs
+  return isMobile ? <FloatingBox {...props} /> : <DesktopPopupPositioned {...props} />
 }
 
 function PopupCentered(props: PopupProps) {
@@ -84,6 +62,7 @@ function PopupCentered(props: PopupProps) {
     <EscapeHandler onESC={props.onHidden ?? (() => {})}>
       <Box2
         direction="vertical"
+        centerChildren={true}
         style={Styles.collapseStyles([desktopStyles.cover, props.style])}
         onMouseUp={() => {
           if (mouseDownOnCover) {
@@ -95,7 +74,7 @@ function PopupCentered(props: PopupProps) {
         }}
       >
         <Box2
-          direction="vertical"
+          direction="horizontal"
           relative={true}
           style={desktopStyles.centeredContainer}
           onMouseDown={(e: React.BaseSyntheticEvent) => {
@@ -169,7 +148,6 @@ function Popup(props: PopupProps) {
 
 const desktopStyles = Styles.styleSheetCreate(() => ({
   centeredContainer: {
-    ...Styles.globalStyles.flexBoxRow,
     maxHeight: '100%',
     maxWidth: '100%',
   },
@@ -185,9 +163,7 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
     },
   }),
   cover: {
-    ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
-    ...Styles.centered(),
     alignSelf: 'stretch',
     ...Styles.padding(Styles.globalMargins.large, Styles.globalMargins.large, Styles.globalMargins.small),
   },

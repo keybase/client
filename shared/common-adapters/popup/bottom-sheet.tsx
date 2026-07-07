@@ -1,17 +1,15 @@
 import * as React from 'react'
-import type {BottomSheetModalProps, BottomSheetBackdropProps, BottomSheetHandleProps} from '@gorhom/bottom-sheet'
+import type {BottomSheetModalProps, BottomSheetBackdropProps} from '@gorhom/bottom-sheet'
 import * as _gorhomRaw from '@gorhom/bottom-sheet'
 
 type NativeMethods = {present: () => void; forceClose: () => void}
 type BackdropProps = BottomSheetBackdropProps & {disappearsOnIndex?: number; appearsOnIndex?: number; opacity?: number}
-type HandleProps = BottomSheetHandleProps & {style?: object; indicatorStyle?: object; children?: React.ReactNode}
 type ScrollViewProps = {style?: object; children?: React.ReactNode}
 type GorhomModule = {
   BottomSheetModal: React.ForwardRefExoticComponent<BottomSheetModalProps & React.RefAttributes<NativeMethods>>
   BottomSheetView: React.ComponentType<{children?: React.ReactNode}>
   BottomSheetBackdrop: React.ComponentType<BackdropProps>
   BottomSheetScrollView: React.ComponentType<ScrollViewProps>
-  BottomSheetHandle: React.ComponentType<HandleProps>
 }
 
 const _gorhom: GorhomModule | null = isMobile ? (_gorhomRaw as unknown as GorhomModule) : null
@@ -57,12 +55,6 @@ export const BottomSheetScrollView = (_p: ScrollViewProps) => {
   if (!isMobile) return null
   const {BottomSheetScrollView: NativeScrollView} = _gorhom!
   return <NativeScrollView {..._p} />
-}
-
-export const BottomSheetHandle = (_p: HandleProps) => {
-  if (!isMobile) return null
-  const {BottomSheetHandle: NativeHandle} = _gorhom!
-  return <NativeHandle {..._p} />
 }
 
 export type {BottomSheetBackdropProps} from '@gorhom/bottom-sheet'

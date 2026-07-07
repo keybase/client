@@ -1,26 +1,19 @@
 import logger from '@/logger'
 import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
-import type {RPCMessage} from './rpc-transport'
-import type {RPCTransport, InvokeType, PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType} from '@/engine/rpc-transport'
+import {makeEOFError, type RPCMessage} from './rpc-transport'
+import type {InvokeType, PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType} from '@/engine/rpc-transport'
 
 export type {PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType, InvokeType}
 
 export type CreateClientType = {
-  transport: RPCTransport & {
-    needsConnect: boolean
-    reset: () => void
-    close?: () => void
-    send: (message: unknown) => boolean
-    packetizeData: (data: Uint8Array) => void
-    dispatchDecodedMessage: (message: unknown) => void
-  }
+  transport: TransportShared
   invoke: InvokeType
 }
 import KB2 from '@/util/electron'
 import type {Socket} from 'net'
 import {printRPCBytes} from '@/local-debug'
 import {socketPath} from '@/constants/platform'
-import {getNativeEmitter, notifyJSReady, engineReset} from 'react-native-kb'
+import {onMetaEvent, notifyJSReady} from 'react-native-kb'
 
 // used by node
 // Desktop transport — only instantiated when !isMobile
@@ -152,6 +145,11 @@ class ProxyNativeTransport extends LocalTransport {
     const {engineSend} = KB2.functions
     engineSend?.(message)
   }
+  // On account-switch reset fail outstanding invocations so pre-switch RPC
+  // callbacks can't fire later against post-switch state
+  override reset() {
+    this.failOutstanding(makeEOFError(), {})
+  }
 }
 
 // Mobile transport — only instantiated when isMobile
@@ -193,8 +191,7 @@ function createClient(
       }
     }
 
-    const RNEmitter = getNativeEmitter()
-    RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
+    onMetaEvent((payload: string) => {
       try {
         switch (payload) {
           case 'kb-engine-reset':
@@ -236,18 +233,13 @@ function createClient(
   }
 }
 
+// Desktop only; Engine.reset() is a no-op on mobile
 function resetClient(
   client: CreateClientType,
   incomingRPCCallback: IncomingRPCCallbackType,
   connectCallback: ConnectDisconnectCB,
   disconnectCallback: ConnectDisconnectCB
 ) {
-  if (isMobile) {
-    // Tell the RN bridge to reset itself
-    engineReset()
-    return client
-  }
-
   const {isRenderer} = KB2.constants
 
   if (isRenderer) {

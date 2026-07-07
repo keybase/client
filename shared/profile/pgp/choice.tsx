@@ -4,15 +4,30 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
+import {produce} from 'immer'
 import {RPCError} from '@/util/errors'
 import Modal from '@/profile/modal'
-import {validatePgpInfo} from '../validation'
+import * as Validators from '@/util/simple-validators'
 
 type GeneratePgpArgs = {
   pgpEmail1: string
   pgpEmail2: string
   pgpEmail3: string
   pgpFullName: string
+}
+
+export const validatePgpInfo = (info: GeneratePgpArgs) => {
+  const email1Error = Validators.isValidEmail(info.pgpEmail1)
+  const email2Error = info.pgpEmail2 ? Validators.isValidEmail(info.pgpEmail2) : ''
+  const email3Error = info.pgpEmail3 ? Validators.isValidEmail(info.pgpEmail3) : ''
+  const nameError = Validators.isValidName(info.pgpFullName)
+
+  return {
+    pgpErrorEmail1: !!email1Error,
+    pgpErrorEmail2: !!email2Error,
+    pgpErrorEmail3: !!email3Error,
+    pgpErrorText: nameError || email1Error || email2Error || email3Error,
+  }
 }
 
 type Step =
@@ -150,7 +165,11 @@ export default function Choice() {
   }
 
   const onUpdate = (next: Partial<GeneratePgpArgs>) => {
-    setForm(s => ({...s, ...next}))
+    setForm(
+      produce(draft => {
+        Object.assign(draft, next)
+      })
+    )
   }
 
   const data = {...form, ...validatePgpInfo(form)}
@@ -180,7 +199,9 @@ export default function Choice() {
                 body={
                   <Kb.Box2 direction="vertical" fullWidth={true}>
                     <Kb.Text type="BodyBigLink">Get a new PGP key</Kb.Text>
-                    <Kb.Text type="Body">Keybase will generate a new PGP key and add it to your profile.</Kb.Text>
+                    <Kb.Text type="Body">
+                      Keybase will generate a new PGP key and add it to your profile.
+                    </Kb.Text>
                   </Kb.Box2>
                 }
                 onClick={onShowGetNew}
@@ -299,10 +320,16 @@ const Finished = (props: {
       <PlatformIcon platform="pgp" overlay="icon-proof-success" />
       <Kb.Text type="Header">Here is your unique public key!</Kb.Text>
       <Kb.Text type="Body">
-        {'Your private key has been written to Keybase\'s local keychain. You can learn to use it with `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to GPG\'s keychain.'}
+        {
+          "Your private key has been written to Keybase's local keychain. You can learn to use it with `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to GPG's keychain."
+        }
       </Kb.Text>
       {isMobile ? null : (
-        <textarea style={Kb.Styles.castStyleDesktop(styles.pgpKeyString)} readOnly={true} value={props.pgpKeyString} />
+        <textarea
+          style={Kb.Styles.castStyleDesktop(styles.pgpKeyString)}
+          readOnly={true}
+          value={props.pgpKeyString}
+        />
       )}
       {props.promptShouldStoreKeyOnServer && (
         <Kb.Box2 direction="vertical">

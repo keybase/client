@@ -3,11 +3,12 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
+import {QuestionBody} from '../common'
 import {startRecoverPassword} from './flow'
 
 type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
 
-const ConnectedExplainDevice = ({route}: Props) => {
+const ExplainDevice = ({route}: Props) => {
   const {deviceName, deviceType, username} = route.params
   const onBack = () => {
     startRecoverPassword({
@@ -34,8 +35,12 @@ const ConnectedExplainDevice = ({route}: Props) => {
       onBack={onBack}
       title="Recover password"
     >
-      <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="small">
-        <Kb.ImageIcon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+      <QuestionBody
+        centered={false}
+        gap="small"
+        topGap={false}
+        icon={<Kb.ImageIcon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />}
+      >
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body">
             On <Kb.Text type="BodySemiboldItalic">{deviceName}</Kb.Text>, go to
@@ -50,9 +55,9 @@ const ConnectedExplainDevice = ({route}: Props) => {
           </Kb.Box2>
           <Kb.Text type="Body">password.</Kb.Text>
         </Kb.Box2>
-      </Kb.Box2>
+      </QuestionBody>
     </SignupScreen>
   )
 }
 
-export default ConnectedExplainDevice
+export default ExplainDevice

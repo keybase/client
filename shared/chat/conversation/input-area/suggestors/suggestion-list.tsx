@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import noop from 'lodash/noop'
 import {BotCommandUpdateStatus} from './shared'
 
@@ -50,6 +51,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
         direction="vertical"
         fullWidth={true}
         style={Kb.Styles.collapseStyles([desktopStyles.listContainer, {height: listHeight}, props.style])}
+        testID={TestIDs.CHAT_SUGGESTION_LIST}
       >
         <Kb.List
           ref={listRef}
@@ -79,6 +81,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
       direction="vertical"
       fullWidth={true}
       style={Kb.Styles.collapseStyles([nativeStyles.listContainer, props.style])}
+      testID={TestIDs.CHAT_SUGGESTION_LIST}
     >
       <FlatList
         alwaysBounceVertical={false}
