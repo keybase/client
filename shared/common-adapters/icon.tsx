@@ -18,6 +18,7 @@ export type IconProps = {
   hint?: string
   onClick?: () => void
   padding?: keyof typeof Styles.globalMargins
+  testID?: string
 }
 
 const sizeToFontDesktop = {Big: 24, Bigger: 36, Default: 16, Huge: 48, Small: 12, Tiny: 8} as const
@@ -63,7 +64,7 @@ const IconDesktop = (props: IconProps) => {
     ? ({...inlineStyle, cursor: 'pointer'} as React.CSSProperties)
     : inlineStyle
 
-  return <span className={cn} style={finalStyle} onClick={handleClick} title={hint} />
+  return <span className={cn} style={finalStyle} onClick={handleClick} title={hint} data-testid={props.testID} />
 }
 
 const nativeBaseStyle: Styles._StylesCrossPlatform = {
@@ -95,6 +96,7 @@ const IconNative = (props: IconProps) => {
       allowFontScaling={false}
       suppressHighlighting={true}
       onPress={onClick}
+      testID={props.testID}
     >
       {code}
     </RNText>

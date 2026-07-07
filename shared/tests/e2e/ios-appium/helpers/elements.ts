@@ -165,7 +165,18 @@ export const byText = (text: string): ChainablePromiseElement => {
 }
 
 // Tab-bar buttons. iOS exposes the native UITabBarItem by its title as the
-// accessibility id; Android's RN tab bar exposes the label as visible text /
-// content-desc, so reuse byText there.
+// accessibility id. Android's tab bar is a native Material BottomNavigationView:
+// target the ITEM view via its content-desc — the label, plus an optional badge
+// suffix ("Chat, 1 new notification"), hence the anchored regex. Not the label
+// TextViews: each item keeps BOTH a small and large label view (selected vs not)
+// and UiSelector also matches the currently-invisible twin, whose bogus bounds
+// make the click silently no-op. The className pins it to the NATIVE item
+// (FrameLayout): RN touchables surface as android.view.ViewGroup, and the
+// settings root's "Files"/"Chat" rows carry the same content-desc — without the
+// class filter the row wins the match and the tap opens the settings subpage.
 export const tab = (label: string): ChainablePromiseElement =>
-  browser.isAndroid ? byText(label) : browser.$(`~${label}`)
+  browser.isAndroid
+    ? browser.$(
+        `android=new UiSelector().className("android.widget.FrameLayout").descriptionMatches("^${label}(,.*)?$")`
+      )
+    : browser.$(`~${label}`)

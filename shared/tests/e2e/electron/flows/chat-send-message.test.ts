@@ -11,10 +11,10 @@ test('send a message to KB_SMOKE_USER', async ({page}, testInfo) => {
     await navigateToChat(page)
   })
 
-  await test.step('open conversation with KB_SMOKE_USER (must be most recent)', async () => {
-    const firstRow = page.getByTestId(CHAT_INBOX_ROW).first()
-    await expect(firstRow).toContainText(smokeUser, {timeout: 3_000})
-    await firstRow.click()
+  await test.step('open conversation with KB_SMOKE_USER', async () => {
+    const row = page.getByTestId(CHAT_INBOX_ROW).filter({hasText: smokeUser}).first()
+    await expect(row).toBeVisible({timeout: 3_000})
+    await row.click()
     await page.waitForSelector(`[data-testid="${CHAT_MESSAGE_LIST}"]`, {timeout: 3_000})
   })
 
