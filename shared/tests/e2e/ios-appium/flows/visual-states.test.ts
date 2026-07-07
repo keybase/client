@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, navigateToTeams, goBack, scrollDownToText} from '../helpers/navigate'
-import {el, els, anyExist, waitForTestID, byText, tab, enterText, tapForTestID} from '../helpers/elements'
+import {escapeToTabs, navigateToMore, navigateToTeams, navigateToFiles, navigateToPeople, goBack, scrollDownToText, tapSettingsRow, tabTo} from '../helpers/navigate'
+import {byText, el, els, anyExist, waitForTestID, tab, enterText, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 // Visual-coverage states. The harness screenshots AFTER each test and
@@ -37,11 +37,30 @@ async function swipeContentUp(times: number): Promise<void> {
   }
 }
 
+// Open the conversation info panel from inside a conversation. iOS 26 folds
+// Search/Info into one native "More" header menu (native UIMenu items ARE
+// accessible); Android keeps the plain info icon in the RN header, reached by
+// its testID. Returns false when the affordance isn't there (e.g. pending conv).
+async function openInfoPanel(): Promise<boolean> {
+  if (browser.isAndroid) {
+    const info = el(T.CHAT_HEADER_INFO_BUTTON)
+    if (!(await info.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return false
+    await info.click()
+  } else {
+    const more = el('More')
+    if (!(await more.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return false
+    await more.click()
+    const info = byText('Info')
+    if (!(await info.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return false
+    await info.click()
+  }
+  return true
+}
+
 async function openFirstConversation(): Promise<boolean> {
   // Two-tap idiom: sidestep the ambiguous "Chat" label in the More stack.
-  await tab('Teams').click()
-  await tab('Chat').click()
-  await waitForTestID(T.CHAT_INBOX_LIST, 5000)
+  await tab('Teams').click().catch(() => {})
+  await tabTo('Chat', T.CHAT_INBOX_LIST)
   if (!(await anyExist(T.CHAT_INBOX_ROW))) return false
   await els(T.CHAT_INBOX_ROW)[0]!.click()
   await waitForTestID(T.CHAT_MESSAGE_LIST, 5000)
@@ -51,9 +70,8 @@ async function openFirstConversation(): Promise<boolean> {
 describe('visual states', () => {
   it('new chat team builder', async () => {
     await escapeToTabs()
-    await tab('Teams').click()
-    await tab('Chat').click()
-    await waitForTestID(T.CHAT_INBOX_LIST, 5000)
+    await tab('Teams').click().catch(() => {})
+    await tabTo('Chat', T.CHAT_INBOX_LIST)
     await byText('New chat').click()
     // phone builder has no "Recommendations" header and the service-tab labels
     // are comma-merged (", A phone, number") — anchor on the self row instead
@@ -71,7 +89,7 @@ describe('visual states', () => {
   it('archive backup modal', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Backup').click()
+    await tapSettingsRow('Backup')
     await waitForTestID(T.SETTINGS_ARCHIVE, 5000)
     await byText('Backup all chat').click()
     await byText('Share a copy of your content to another app').waitForExist({timeout: 5000})
@@ -81,7 +99,7 @@ describe('visual states', () => {
   it('wallet screen', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Wallet').click()
+    await tapSettingsRow('Wallet')
     await byText('Secret key').waitForExist({timeout: 8000})
     await expect(byText('Secret key')).toExist()
   })
@@ -89,7 +107,7 @@ describe('visual states', () => {
   it('password screen', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Account').click()
+    await tapSettingsRow('Account')
     await byText('Email & phone').waitForExist({timeout: 5000})
     // mobile label is just "Change" (desktop says "Change password")
     const change = byText('Change')
@@ -107,7 +125,7 @@ describe('visual states', () => {
   it('add device chooser', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Devices').click()
+    await tapSettingsRow('Devices')
     await waitForTestID(T.DEVICES_LIST, 5000)
     await byText('Add a device or paper key').click()
     await byText('Protect your account by having more devices and paper keys.').waitForExist({
@@ -119,7 +137,7 @@ describe('visual states', () => {
   it('git new repo menu', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Git').click()
+    await tapSettingsRow('Git')
     await waitForTestID(T.GIT_REPO_LIST, 5000)
     await byText('New encrypted git repository...').click()
     // The sheet's menu items are NOT in the accessibility tree (FloatingMenu
@@ -132,13 +150,7 @@ describe('visual states', () => {
   it('conversation info panel', async () => {
     await escapeToTabs()
     if (!(await openFirstConversation())) return
-    // iOS chat header = one native "More" menu housing Search + Info
-    const more = el('More')
-    if (!(await more.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return
-    await more.click()
-    const info = byText('Info')
-    if (!(await info.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return
-    await info.click()
+    if (!(await openInfoPanel())) return
     await waitForTestID(T.CHAT_INFO_PANEL, 8000)
     await expect(el(T.CHAT_INFO_PANEL)).toExist()
   })
@@ -146,11 +158,7 @@ describe('visual states', () => {
   it('delete history warning', async () => {
     await escapeToTabs()
     if (!(await openFirstConversation())) return
-    const more = el('More')
-    if (!(await more.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return
-    await more.click()
-    await byText('Info').waitForExist({timeout: 4000})
-    await byText('Info').click()
+    if (!(await openInfoPanel())) return
     await waitForTestID(T.CHAT_INFO_PANEL, 8000)
     // the tab label text isn't tappable on iOS — the tab carries its own testID
     if (!(await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).waitForExist({timeout: 4000}).then(() => true).catch(() => false))) {
@@ -185,9 +193,8 @@ describe('visual states', () => {
 
   it('attachment fullscreen', async () => {
     await escapeToTabs()
-    await tab('Teams').click()
-    await tab('Chat').click()
-    await waitForTestID(T.CHAT_INBOX_LIST, 5000)
+    await tab('Teams').click().catch(() => {})
+    await tabTo('Chat', T.CHAT_INBOX_LIST)
     // hunt inbox rows for a conversation with an image attachment
     for (let i = 0; i < 6; i++) {
       const rows = els(T.CHAT_INBOX_ROW)
@@ -209,7 +216,7 @@ describe('visual states', () => {
   it('settings advanced scrolled', async () => {
     await escapeToTabs()
     await navigateToMore()
-    await byText('Advanced').click()
+    await tapSettingsRow('Advanced')
     await waitForTestID(T.SETTINGS_ADVANCED, 5000)
     await swipeContentUp(4)
     await expect(el(T.SETTINGS_ADVANCED)).toExist()
@@ -217,8 +224,7 @@ describe('visual states', () => {
 
   it('files folder overflow menu', async () => {
     await escapeToTabs()
-    await tab('Files').click()
-    await waitForTestID(T.FILES_BROWSER, 5000)
+    await navigateToFiles()
     // the native More menu only exists inside a TLF (hidden at the files root)
     if (!(await anyExist(T.FILES_TLF_ROW, 5000))) return
     await els(T.FILES_TLF_ROW)[0]!.click()
@@ -232,8 +238,7 @@ describe('visual states', () => {
 
   it('account switcher', async () => {
     await escapeToTabs()
-    await tab('People').click()
-    await waitForTestID(T.PEOPLE_FEED, 5000)
+    await navigateToPeople()
     await el(T.PEOPLE_HEADER_AVATAR).click()
     await byText('Log in as another user').waitForExist({timeout: 8000})
     await expect(byText('Log in as another user')).toExist()
@@ -268,9 +273,8 @@ describe('visual states', () => {
 
   it('inbox scrolled to bottom', async () => {
     await escapeToTabs()
-    await tab('Teams').click()
-    await tab('Chat').click()
-    await waitForTestID(T.CHAT_INBOX_LIST, 5000)
+    await tab('Teams').click().catch(() => {})
+    await tabTo('Chat', T.CHAT_INBOX_LIST)
     await swipeContentUp(5)
     await expect(el(T.CHAT_INBOX_LIST)).toExist()
   })
