@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {addMembersToWizard, type AddMembersWizard} from './state'
+import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard} from './state'
 
 type Props = {
   wizard: AddMembersWizard
@@ -16,7 +16,6 @@ const AddEmail = (props: Props) => {
   const [error, setError] = React.useState('')
   const disabled = invitees.length < 1
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const navUpToScreen = C.Router2.navUpToScreen
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {
@@ -28,21 +27,7 @@ const AddEmail = (props: Props) => {
           setError('You must enter at least one valid email address.')
           return
         }
-        const f = async () => {
-          try {
-            const wizard = await addMembersToWizard(
-              props.wizard,
-              r.map(m => ({
-                ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
-                role: 'writer',
-              }))
-            )
-            navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
-          } catch (err) {
-            setError(err instanceof Error ? err.message : String(err))
-          }
-        }
-        C.ignorePromise(f())
+        C.ignorePromise(addMembersToWizardAndNav(props.wizard, searchResultsToMembers(r), setError))
       },
       err => setError(err.message)
     )

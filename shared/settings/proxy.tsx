@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
+import {produce} from 'immer'
 import type {RPCError} from '@/util/errors'
 
 const useConnect = () => {
@@ -161,7 +162,11 @@ const ProxySettingsComponent = (props: Props) => {
   }
 
   const proxyTypeSelected = (newProxyType: ProxyType) => {
-    setProxyForm(s => ({...s, proxyType: newProxyType}))
+    setProxyForm(
+      produce(draft => {
+        draft.proxyType = newProxyType
+      })
+    )
     if (newProxyType === 'noProxy') {
       saveProxySettings(newProxyType)
     }
@@ -212,13 +217,25 @@ const ProxySettingsComponent = (props: Props) => {
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
           <Kb.Input3
             placeholder="127.0.0.1"
-            onChangeText={address => setProxyForm(s => ({...s, address}))}
+            onChangeText={address =>
+              setProxyForm(
+                produce(draft => {
+                  draft.address = address
+                })
+              )
+            }
             value={address}
           />
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
           <Kb.Input3
             placeholder="8080"
-            onChangeText={port => setProxyForm(s => ({...s, port}))}
+            onChangeText={port =>
+              setProxyForm(
+                produce(draft => {
+                  draft.port = port
+                })
+              )
+            }
             value={port}
           />
         </>

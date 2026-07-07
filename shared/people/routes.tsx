@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import peopleTeamBuilder from '../team-building/page'
 import ProfileSearch from '../profile/search'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -11,7 +12,7 @@ const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => navigateAppend({name: 'accountSwitcher', params: {}})
-  return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
+  return <Kb.Avatar size={32} username={myUsername} onClick={onClick} testID={TestIDs.PEOPLE_HEADER_AVATAR} />
 }
 
 export const newRoutes = defineRouteMap({

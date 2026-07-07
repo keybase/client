@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {makeNewTeamWizard, type NewTeamWizard} from './state'
+import CardChoice from '../../common/card-choice'
 import * as C from '@/constants'
 import {useNavigation} from '@react-navigation/native'
 
@@ -27,32 +28,28 @@ const TeamPurpose = ({wizard: wizardParam}: Props) => {
         gap={isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
-        <Kb.ListItem
-          type="Card"
-          firstItem={true}
-          icon={<Kb.IconAuto type="icon-teams-type-squad-64" />}
-          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">Friends, family, or squad</Kb.Text><Kb.Text type="BodySmall">A small group of people, with no initial need for channels.</Kb.Text></Kb.Box2>}
+        <CardChoice
+          icon="icon-teams-type-squad-64"
+          title="Friends, family, or squad"
+          subtitle="A small group of people, with no initial need for channels."
           onClick={() => onSubmit('friends')}
         />
-        <Kb.ListItem
-          type="Card"
-          firstItem={true}
-          icon={<Kb.IconAuto type="icon-teams-type-business-64" />}
-          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A project, business or organization</Kb.Text><Kb.Text type="BodySmall">With multiple roles and channels.</Kb.Text></Kb.Box2>}
+        <CardChoice
+          icon="icon-teams-type-business-64"
+          title="A project, business or organization"
+          subtitle="With multiple roles and channels."
           onClick={() => onSubmit('project')}
         />
-        <Kb.ListItem
-          type="Card"
-          firstItem={true}
-          icon={<Kb.IconAuto type="icon-teams-type-community-64" />}
-          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A community</Kb.Text><Kb.Text type="BodySmall">A forum for people who share an interest or cause.</Kb.Text></Kb.Box2>}
+        <CardChoice
+          icon="icon-teams-type-community-64"
+          title="A community"
+          subtitle="A forum for people who share an interest or cause."
           onClick={() => onSubmit('community')}
         />
-        <Kb.ListItem
-          type="Card"
-          firstItem={true}
-          icon={<Kb.IconAuto type="icon-teams-type-notsure-64" />}
-          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">{"Other/You're not sure"}</Kb.Text><Kb.Text type="BodySmall">Start simple and go from there.</Kb.Text></Kb.Box2>}
+        <CardChoice
+          icon="icon-teams-type-notsure-64"
+          title="Other/You're not sure"
+          subtitle="Start simple and go from there."
           onClick={() => onSubmit('other')}
         />
       </Kb.Box2>

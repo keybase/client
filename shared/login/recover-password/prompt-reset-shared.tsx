@@ -3,7 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
-import {SignupScreen} from '@/signup/common'
+import {SignupScreen, errorBanner} from '@/signup/common'
+import {QuestionBody} from '../common'
 import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
 import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
@@ -53,26 +54,15 @@ const PromptReset = (props: Props) => {
           waitingKey: C.waitingKeyAutoresetEnterPipeline,
         },
       ]}
-      banners={
-        error ? (
-          <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={error} />
-          </Kb.Banner>
-        ) : null
-      }
+      banners={errorBanner(error)}
       onBack={onBack}
       noBackground={true}
       title={title}
     >
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        fullHeight={true}
-        fullWidth={true}
-        gap="medium"
-        style={styles.topGap}
+      <QuestionBody
+        centered={false}
+        icon={<Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         {props.resetPassword ? (
           <Kb.Text type="Body" center={true} style={styles.main}>
             If you have forgotten your password you can reset it here. You will keep your username, but{' '}
@@ -96,7 +86,7 @@ const PromptReset = (props: Props) => {
             </Kb.Text>
           </>
         )}
-      </Kb.Box2>
+      </QuestionBody>
     </SignupScreen>
   )
 }
@@ -106,12 +96,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     maxWidth: 500,
   },
-  topGap: Kb.Styles.platformStyles({
-    isMobile: {
-      justifyContent: 'flex-start',
-      marginTop: '20%',
-    },
-  }),
 }))
 
 export default PromptReset

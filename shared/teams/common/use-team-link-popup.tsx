@@ -38,5 +38,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   overlay: {backgroundColor: Kb.Styles.globalColors.white, marginTop: Kb.Styles.globalMargins.tiny},
 }))
-
-export default useTeamLinkPopup

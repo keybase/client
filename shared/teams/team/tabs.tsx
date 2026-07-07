@@ -86,7 +86,7 @@ type OwnProps = {
   setSelectedTab: (tab: T.Teams.TabKey) => void
 }
 
-const Container = (ownProps: OwnProps) => {
+const TeamTabsContainer = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
   const {teamDetails, yourOperations} = useLoadedTeam(teamID)
   const resetUserCount = [...teamDetails.members.values()].filter(member => member.status === 'reset').length
@@ -104,4 +104,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default TeamTabsContainer

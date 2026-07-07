@@ -1,6 +1,6 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import ConfirmWarning from './confirm-warning'
 import {useSettingsTabState} from './use-settings'
 
 type Props = {
@@ -11,7 +11,6 @@ type Props = {
 const OpenTeamWarning = (props: Props) => {
   const isOpenTeam = props.isOpenTeam
   const teamname = props.teamname
-  const [enabled, setEnabled] = React.useState(false)
   const onConfirmCallback = useSettingsTabState(s => s.dispatch.triggerAllowOpen)
 
   const clearModals = C.Router2.clearModals
@@ -23,73 +22,31 @@ const OpenTeamWarning = (props: Props) => {
   const onCancel = () => clearModals()
 
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
-      <Kb.ImageIcon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
-      <Kb.Text center={true} type="Header" style={styles.headerStyle}>
-        Make {teamname} into {isOpenTeam ? 'an open' : 'a closed'} team?
-      </Kb.Text>
-      <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
-        You are about to make this team{' '}
-        {isOpenTeam ? 'publicly visible. Anyone will be able to join this team.' : 'private.'}
-      </Kb.Text>
-      <Kb.Checkbox
-        checked={enabled}
-        onCheck={setEnabled}
-        style={styles.checkboxStyle}
-        label=""
-        labelComponent={
-          <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
-            <Kb.Text type="Body">
-              I understand that{' '}
-              {isOpenTeam
-                ? 'anyone will be able to join this team.'
-                : 'members will only be able to join through adds or invites.'}
-            </Kb.Text>
-            <Kb.Text type="BodySmall">Subteams will not be affected.</Kb.Text>
-          </Kb.Box2>
-        }
-      />
-      <Kb.ConfirmButtons
-        onCancel={onCancel}
-        onConfirm={onConfirm}
-        confirmLabel={isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
-        confirmType="Danger"
-        confirmDisabled={!enabled}
-      />
-    </Kb.Box2>
+    <ConfirmWarning
+      icon={<Kb.ImageIcon type={'icon-illustration-teams-216'} />}
+      header={`Make ${teamname} into ${isOpenTeam ? 'an open' : 'a closed'} team?`}
+      body={
+        <>
+          You are about to make this team{' '}
+          {isOpenTeam ? 'publicly visible. Anyone will be able to join this team.' : 'private.'}
+        </>
+      }
+      checkboxLabel={
+        <>
+          <Kb.Text type="Body">
+            I understand that{' '}
+            {isOpenTeam
+              ? 'anyone will be able to join this team.'
+              : 'members will only be able to join through adds or invites.'}
+          </Kb.Text>
+          <Kb.Text type="BodySmall">Subteams will not be affected.</Kb.Text>
+        </>
+      }
+      confirmLabel={`Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  bodyStyle: {marginBottom: Kb.Styles.globalMargins.small},
-  checkboxStyle: Kb.Styles.platformStyles({
-    isElectron: {
-      marginBottom: Kb.Styles.globalMargins.xlarge,
-    },
-    isMobile: {
-      marginBottom: Kb.Styles.globalMargins.small,
-    },
-  }),
-  container: Kb.Styles.platformStyles({
-    common: {
-      paddingBottom: Kb.Styles.globalMargins.large,
-    },
-    isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.xlarge,
-      paddingRight: Kb.Styles.globalMargins.xlarge,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
-    },
-    isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
-    },
-  }),
-  headerStyle: {marginBottom: Kb.Styles.globalMargins.small},
-  iconStyle: {marginBottom: 20},
-  label: {flexShrink: 1},
-}))
-
 export default OpenTeamWarning
-
-
