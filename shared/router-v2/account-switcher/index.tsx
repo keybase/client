@@ -8,7 +8,8 @@ import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
-const AccountSwitcher = () => {
+const AccountSwitcher = (p: {onSelected?: () => void}) => {
+  const {onSelected} = p
   const _fullnames = useUsersState(s => s.infoMap)
   const _accountRows = useConfigState(s => s.configuredAccounts)
   const you = useCurrentUserState(s => s.username)
@@ -34,6 +35,7 @@ const AccountSwitcher = () => {
     onLoginAsAnotherUser,
     onProfileClick: () => navToProfile(you),
     onSelectAccount: (username: string) => {
+      onSelected?.()
       const rows = accountRows.filter(account => account.username === username)
       const loggedIn = (rows.length && rows[0]?.hasStoredSecret) ?? false
       return loggedIn ? onSelectAccountLoggedIn(username) : onSelectAccountLoggedOut(username)

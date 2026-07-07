@@ -64,9 +64,8 @@ export const TeamMemberHeader = (props: Props) => {
   )
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.headerContainer}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.headerContent}>
           <Kb.Box2
             direction="horizontal"
             alignItems="center"
@@ -106,7 +105,6 @@ export const TeamMemberHeader = (props: Props) => {
             {!Kb.Styles.isPhone && buttons}
           </Kb.Box2>
           {Kb.Styles.isPhone && buttons}
-        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )

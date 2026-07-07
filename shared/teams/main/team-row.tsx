@@ -7,6 +7,7 @@ import logger from '@/logger'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
+import RoleCrown from '../common/role-crown'
 
 export type TeamRowItem = {
   activityLevel: T.Teams.ActivityLevel
@@ -41,22 +42,12 @@ const TeamRow = function TeamRow(props: Props) {
   }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
-  const crownIconType: Kb.IconType | undefined =
-    teamMeta.role === 'owner'
-      ? 'iconfont-crown-owner'
-      : teamMeta.role === 'admin'
-        ? 'iconfont-crown-admin'
-        : undefined
-  const crownIcon = crownIconType ? (
-    <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
-      <Kb.Icon
-        type={crownIconType}
-        sizeType="Tiny"
-        color={teamMeta.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-        style={styles.crownIcon}
-      />
-    </Kb.Box2>
-  ) : null
+  const crownIcon =
+    teamMeta.role === 'owner' || teamMeta.role === 'admin' ? (
+      <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
+        <RoleCrown role={teamMeta.role} sizeType="Tiny" style={styles.crownIcon} />
+      </Kb.Box2>
+    ) : null
 
   const avatarBlock = (
     <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>

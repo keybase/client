@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -8,6 +8,7 @@ import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useLoadedTeam} from '../use-loaded-team'
 import {joinConversation} from '@/chat/conversation/status-actions'
+import {useAddToTeam} from '../../common/use-add-to-team'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -91,46 +92,19 @@ const EmptyRow = (props: Props) => {
   const notIn = teamMeta.role === 'none' || props.notChannelMember
   const you = useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
-  const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const addToTeam = useAddToTeam()
   const [error, setError] = React.useState('')
   const onAddSelf = () => {
     if (conversationIDKey) {
       joinConversation(conversationIDKey)
     } else {
       setError('')
-      addToTeam(
-        [
-          {
-            sendChatNotification: false,
-            teamID,
-            users: [{assertion: you, role: T.RPCGen.TeamRole.admin}],
-          },
-          [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddMember(teamID, you)],
-        ],
-        res => {
-          const usernames = res.notAdded?.map(user => user.username) ?? []
-          if (usernames.length) {
-            C.Router2.navigateAppend({
-              name: 'contactRestricted',
-              params: {source: 'teamAddSomeFailed', usernames},
-            })
-          }
-        },
-        err => {
-          if (err.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-            const users = (err.fields as Array<{key?: string; value?: string} | undefined> | undefined)
-              ?.filter(field => field?.key === 'usernames')
-              .map(field => field?.value)
-            const usernames = users?.[0]?.split(',') ?? []
-            C.Router2.navigateAppend({
-              name: 'contactRestricted',
-              params: {source: 'teamAddAllFailed', usernames},
-            })
-            return
-          }
-          setError(err.message)
-        }
-      )
+      addToTeam({
+        onError: setError,
+        sendChatNotification: false,
+        teamID,
+        users: [{assertion: you, role: 'admin'}],
+      })
     }
   }
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, you))
@@ -144,7 +118,6 @@ const EmptyRow = (props: Props) => {
       alignItems="center"
       style={styles.container}
       fullWidth={true}
-      justifyContent="flex-start"
     >
       <Kb.ImageIcon type={icon[props.type]} style={styles.iconHeight} />
       <Kb.Text type="BodySmall" center={true} style={styles.text}>

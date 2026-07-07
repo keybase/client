@@ -18,37 +18,33 @@ const contactRow = (_: number, props: ContactRowProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.contactRowBox}>
       <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
-        <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
-          {!!hasThumbnail && !!props.pictureUri && (
-            <Kb.Image style={styles.thumbnail} src={props.pictureUri} />
-          )}
-          {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
-          <Kb.Box2 direction="vertical">
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="BodySmall">{props.valueFormatted || props.value}</Kb.Text>
-            </Kb.Box2>
+        {!!hasThumbnail && !!props.pictureUri && (
+          <Kb.Image style={styles.thumbnail} src={props.pictureUri} />
+        )}
+        {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
+        <Kb.Box2 direction="vertical" flex={1}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Text type="BodySmall">{props.valueFormatted || props.value}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical">
-          <Kb.Button
-            type="Success"
-            mode={props.alreadyInvited ? 'Secondary' : 'Primary'}
-            label={props.alreadyInvited ? 'Invited!' : 'Invite'}
-            waiting={props.loading}
-            small={true}
-            onClick={props.onClick}
-            style={styles.inviteButton}
-          />
-        </Kb.Box2>
+        <Kb.Button
+          type="Success"
+          mode={props.alreadyInvited ? 'Secondary' : 'Primary'}
+          label={props.alreadyInvited ? 'Invited!' : 'Invite'}
+          waiting={props.loading}
+          small={true}
+          onClick={props.onClick}
+          style={styles.inviteButton}
+        />
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-export type InviteByContactProps = {
+type InviteByContactProps = {
   selectedRole: T.Teams.TeamRoleType
   onRoleChange: (newRole: T.Teams.TeamRoleType) => void
   teamName: string

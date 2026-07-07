@@ -20,10 +20,6 @@ type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
   teamID: T.Teams.TeamID // not supported yet
 }
-type RoutableProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  teamID: T.Teams.TeamID // not supported yet
-}
 
 // don't prefill on mobile since it's always a long random string.
 const filePathToDefaultAlias = isMobile
@@ -156,7 +152,7 @@ const useEmojiUpload = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: 
   }
 }
 
-export const AddEmojiModal = (props: Props) => {
+const AddEmojiModal = (props: Props) => {
   const onChange = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const {addFiles, bannerError, clearErrors, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} =
     useEmojiUpload(props.conversationIDKey, onChange)
@@ -210,12 +206,6 @@ export const AddEmojiModal = (props: Props) => {
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>
   )
-}
-
-const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
-  const conversationIDKey = routableProps.conversationIDKey
-  const teamID = routableProps.teamID
-  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
 }
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
@@ -485,4 +475,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default AddEmojiModalWrapper
+export default AddEmojiModal

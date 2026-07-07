@@ -2,22 +2,22 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {renameTeam} from './actions'
+import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 
 type OwnProps = {teamname: string}
 
-const Container = (ownProps: OwnProps) => {
+const RenameTeam = (ownProps: OwnProps) => {
   const teamname = ownProps.teamname
-  const _error = C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)
+  const waitingError = C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRename)
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
-  const _onRename = renameTeam
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     dispatchClearWaiting(C.waitingKeyTeamsRename)
     navigateUp()
   }
-  const propError = (!_error ? undefined : _error.message) || ''
-  const onRename = (newName: string) => _onRename(teamname, newName)
+  const propError = waitingError?.message || ''
+  const onRename = (newName: string) => renameTeam(teamname, newName)
 
   const [error, setError] = React.useState('')
   const [newName, setNewName] = React.useState('')
@@ -26,14 +26,7 @@ const Container = (ownProps: OwnProps) => {
   const originalName = teamNameParts.pop() || ''
   const prefix = teamNameParts.join('.')
 
-  const lastWaitingRef = React.useRef(waiting)
-  React.useEffect(() => {
-    if (!waiting && lastWaitingRef.current && !propError) {
-      // finished, go back
-      navigateUp()
-    }
-    lastWaitingRef.current = waiting
-  }, [waiting, propError, navigateUp])
+  useNavUpWhenDone(waiting, propError)
 
   const newFullName = [prefix, newName].join('.')
   const disabled = newName.length < 2
@@ -158,10 +151,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       error: {color: Kb.Styles.globalColors.redDark},
       inputContainer: {
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderRadius: Kb.Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
+        ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
         padding: Kb.Styles.globalMargins.tiny,
       },
       inputContainerError: {borderColor: Kb.Styles.globalColors.red},
@@ -171,4 +161,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default RenameTeam
