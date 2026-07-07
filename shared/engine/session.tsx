@@ -161,7 +161,7 @@ class Session {
       return false
     }
 
-    if (response?.seqid) {
+    if (response?.seqid !== undefined) {
       this._seqIDsAwaitingResponse.add(response.seqid)
     }
 
@@ -169,7 +169,7 @@ class Session {
     updateWaiting(false) // got a call from the server so we're no longer waiting
     // Responded; only unresponded seqids should cancel the session
     const onResponded = () => {
-      if (response?.seqid) {
+      if (response?.seqid !== undefined) {
         this._seqIDsAwaitingResponse.delete(response.seqid)
       }
       updateWaiting(true) // after we respond to the server we're waiting on it again
