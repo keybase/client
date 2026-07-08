@@ -2,6 +2,7 @@ import debounce from 'lodash/debounce'
 import logger from '@/logger'
 import {navigateAppend} from '@/constants/router'
 import KB2Default from './electron'
+import * as docPickerMod from './expo-document-picker.native'
 import type {OpenDialogOptions, SaveDialogOptions} from './electron'
 import type {ImageInfo} from './expo-image-picker'
 import {Linking} from 'react-native'
@@ -95,7 +96,6 @@ export const pickImages = async (title: string): Promise<Array<string>> => {
 
 export const pickFiles = async (options: OpenDialogOptions): Promise<Array<string>> => {
   if (isMobile) {
-    const docPickerMod = require('./expo-document-picker.native') as {pickDocumentsAsync: (multiple: boolean) => Promise<{canceled: boolean; assets: Array<{uri: string}>}>}
     const result = await docPickerMod.pickDocumentsAsync(true)
     return result.canceled ? [] : result.assets.map(a => a.uri)
   } else {

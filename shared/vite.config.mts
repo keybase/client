@@ -225,71 +225,13 @@ const htmlPlugin = (isDev: boolean): Plugin => ({
   },
 })
 
-// Babel plugin: rewrite a runtime `require('literal')` in an ESM module to a
-// hoisted namespace import. The desktop build's rolldown does this automatically,
-// but the Vite dev server leaves require() as-is → `require is not defined` at
-// runtime. The codebase accesses require() results via `.default`/named/
-// destructure, which `import * as ns` satisfies (hoisting is safe on desktop:
-// dead-branch requires just pull a nulled/real desktop module). Only runs on
-// modules that already use ESM syntax (transformMixedEsModules), so pure-CJS .js
-// files (e.g. common-adapters/index-impl.js's lazy require barrel) are left for
-// Vite's own CJS handling.
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const requireToImportBabelPlugin = ({types: t}: {types: any}) => ({
-  name: 'kb-require-to-import',
-  visitor: {
-    Program(path: any, state: any) {
-      state.isEsm = path.node.body.some(
-        (n: any) =>
-          t.isImportDeclaration(n) ||
-          t.isExportNamedDeclaration(n) ||
-          t.isExportDefaultDeclaration(n) ||
-          t.isExportAllDeclaration(n)
-      )
-    },
-    CallExpression(path: any, state: any) {
-      if (!state.isEsm) return
-      const {node} = path
-      if (
-        t.isIdentifier(node.callee, {name: 'require'}) &&
-        node.arguments.length === 1 &&
-        t.isStringLiteral(node.arguments[0]) &&
-        !path.scope.getBinding('require')
-      ) {
-        const source = node.arguments[0].value
-        const program = path.scope.getProgramParent().path
-        // Asset requires (images/fonts) are used as the URL value directly, like
-        // webpack's `require('x.png')` returning the url — use a DEFAULT import so
-        // the binding IS the url. Module requires access `.default`/named on the
-        // result, so use a NAMESPACE import (interop-equivalent to require()).
-        const isAsset = /\.(png|jpe?g|gif|svg|webp|avif|bmp|ico|ttf|woff2?|otf|eot|mp4|webm|mov|wav|mp3|m4a)$/i.test(
-          source
-        )
-        const id = program.scope.generateUidIdentifier(isAsset ? 'kbasset' : 'kbreq')
-        program.unshiftContainer(
-          'body',
-          t.importDeclaration(
-            [isAsset ? t.importDefaultSpecifier(id) : t.importNamespaceSpecifier(id)],
-            t.stringLiteral(source)
-          )
-        )
-        path.replaceWith(t.cloneNode(id))
-      }
-    },
-  },
-})
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
 // @vitejs/plugin-react@6 uses oxc (not babel) for JSX/fast-refresh and has no
 // babel option, so react-compiler (babel-only) runs as a separate
 // @rolldown/plugin-babel pass with the exported reactCompilerPreset — the
 // react.dev-documented setup. Without it, un-memoized values cause effect loops
 // (e.g. GlobalKeyEventHandler). Platform globals come from the Vite `define`,
-// '@' from resolve.alias. The require->import plugin runs in the same pass.
-export const makeReactPlugins = () => [
-  react(),
-  babel({presets: [reactCompilerPreset()], plugins: [requireToImportBabelPlugin]}),
-]
+// '@' from resolve.alias.
+export const makeReactPlugins = () => [react(), babel({presets: [reactCompilerPreset()]})]
 
 export const sharedResolve = {
   alias: makeAlias(),

@@ -4,6 +4,10 @@ import * as C from '@/constants'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import colors, {darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
+// Mobile: static ash tile images (a url on desktop, a Metro asset number on native;
+// only used in the native renderer).
+import explodedIllustrationURLraw from '../../../../../images/icons/pattern-ashes-mobile-400-80.png'
+import explodedIllustrationDarkURLraw from '../../../../../images/icons/dark-pattern-ashes-mobile-400-80.png'
 
 type Props = {
   children?: React.ReactElement
@@ -16,11 +20,8 @@ type Props = {
 
 export const animationDuration = isMobile ? 1500 : 2000
 
-// Mobile: static ash tile images
-const explodedIllustrationURL =
-  require('../../../../../images/icons/pattern-ashes-mobile-400-80.png') as number
-const explodedIllustrationDarkURL =
-  require('../../../../../images/icons/dark-pattern-ashes-mobile-400-80.png') as number
+const explodedIllustrationURL = explodedIllustrationURLraw as unknown as number
+const explodedIllustrationDarkURL = explodedIllustrationDarkURLraw as unknown as number
 
 // Desktop implementation
 const DesktopExplodingHeightRetainer = (p: Props) => {

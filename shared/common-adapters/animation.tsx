@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {Box2} from './box'
+import LottieView from 'lottie-react-native'
 import type * as Styles from '@/styles'
 import animationDataRaw from './animation-data.json'
 
@@ -87,17 +88,6 @@ function Animation(props: Props) {
       </Box2>
     )
   }
-
-  const LottieView = (
-    require('lottie-react-native') as {
-      default: React.ComponentType<{
-        autoPlay?: boolean
-        loop?: boolean
-        source: AnimationObject
-        style?: Styles.StylesCrossPlatform
-      }>
-    }
-  ).default
 
   const source = animationData[animationType]
   return (

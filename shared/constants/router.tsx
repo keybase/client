@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as T from './types'
-import type * as ChatInboxMetadataType from '@/chat/inbox/metadata'
-import type * as InboxLayoutStateType from '@/chat/inbox/layout-state'
-import type * as UseCurrentUserStateType from '@/stores/current-user'
+import {metasReceived, participantInfoReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useCurrentUserState} from '@/stores/current-user'
 import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
 import * as Tabs from './tabs'
 import {
@@ -539,7 +539,6 @@ export const createConversation = (
   // only one pending conversation state.
   // The fix involves being able to make multiple pending conversations.
   const f = async () => {
-    const {useCurrentUserState} = require('@/stores/current-user') as typeof UseCurrentUserStateType
     const username = useCurrentUserState.getState().username
     if (!username) {
       logger.error('Making a convo while logged out?')
@@ -564,7 +563,6 @@ export const createConversation = (
         return
       }
 
-      const {metasReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
       const meta = Meta.inboxUIItemToConversationMeta(uiConv)
       if (meta) {
         metasReceived([meta])
@@ -572,13 +570,11 @@ export const createConversation = (
 
       const participantInfo = uiParticipantsToParticipantInfo(uiConv.participants ?? [])
       if (participantInfo.all.length > 0) {
-        const {participantInfoReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
         participantInfoReceived(conversationIDKey, participantInfo)
       }
 
       navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
 
-      const {useInboxLayoutState} = require('@/chat/inbox/layout-state') as typeof InboxLayoutStateType
       ignorePromise(useInboxLayoutState.getState().dispatch.refresh('joinedAConversation'))
     } catch (error) {
       if (error instanceof RPCError) {
@@ -610,7 +606,6 @@ export const previewConversation = (p: PreviewConversationParams) => {
     const {participants, teamname, highlightMessageID} = p
     if (teamname || !participants) return
 
-    const {useInboxMetadataState} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
     const toFind = [...participants].sort().join(',')
     const toFindN = participants.length
     for (const [conversationIDKey, participantInfo] of useInboxMetadataState.getState().participants) {
@@ -683,7 +678,6 @@ export const previewConversation = (p: PreviewConversationParams) => {
       })
       const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
       if (meta) {
-        const {metasReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
         metasReceived([meta])
       }
 

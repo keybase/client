@@ -6,30 +6,9 @@ import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard} from './state'
 import type {Contact} from '../common/use-contacts.native'
-
-type ContactsListProps = {
-  onSelect: (contact: Contact, checked: boolean) => void
-  search: string
-  selectedEmails: Set<string>
-  selectedPhones: Set<string>
-}
-
-type ContactsModule = {
-  default: React.ComponentType<ContactsListProps>
-  useContacts: () => {contacts: Array<Contact>; loading: boolean; noAccessPermanent: boolean}
-  EnableContactsPopup: React.ComponentType<{noAccess: boolean; onClose: () => void}>
-}
-
-// Hoisted: resolving useContacts from require() during render makes the react
-// compiler bail (hooks must be the same function on every render). The require is
-// guarded so it never executes on desktop.
-// On desktop nothing here renders (AddContacts bails on !isMobile) so the empty
-// fallback is never dereferenced.
-const {
-  default: ContactsList,
-  useContacts,
-  EnableContactsPopup,
-} = (isMobile ? require('../common/contacts-list.native') : {}) as ContactsModule
+// contacts-list.native resolves to a desktop stub on desktop (contacts-list.desktop),
+// used only in the isMobile branch below.
+import ContactsList, {useContacts, EnableContactsPopup} from '../common/contacts-list.native'
 
 const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
   const onBack = C.Router2.navigateUp

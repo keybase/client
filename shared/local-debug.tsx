@@ -2,6 +2,7 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 import noop from 'lodash/noop'
+import KB2 from '@/util/electron'
 
 // Mobile-only side effects (disabled yellow box warnings)
 if (isMobile) {
@@ -48,10 +49,7 @@ if (__DEV__) {
 }
 
 if (!isMobile) {
-  const KB2 = require('./util/electron').default as {
-    constants: {configOverload?: Partial<typeof config>}
-  }
-  config = {...config, ...KB2.constants.configOverload}
+  config = {...config, ...(KB2.constants.configOverload as Partial<typeof config>)}
 }
 
 if (isMobile) {

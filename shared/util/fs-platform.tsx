@@ -8,6 +8,7 @@ import {join} from '@/util/path'
 import {ExitCodeFuseKextPermissionError} from '@/constants/values'
 import {unnormalizePath} from '@/styles'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker'
+import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '@/util/platform-specific'
 import {fsCacheDir, fsDownloadDir, androidAddCompleteDownload} from 'react-native-kb'
 
@@ -258,9 +259,6 @@ export const pickDocumentsMobile = async (
 ) => {
   if (!isMobile) {
     return
-  }
-  const {pickDocumentsAsync} = require('@/util/expo-document-picker.native') as {
-    pickDocumentsAsync: (multiple: boolean) => Promise<{canceled: boolean; assets: Array<{uri: string}>}>
   }
   const result = await pickDocumentsAsync(true)
   if (result.canceled) {

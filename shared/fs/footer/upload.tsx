@@ -2,6 +2,12 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
+// url on desktop, Metro asset number on native; only used in the native footer.
+import uploadPatternRaw from '../../images/upload-pattern-80.png'
+import darkUploadPatternRaw from '../../images/dark-upload-pattern-80.png'
+
+const uploadPattern = uploadPatternRaw as unknown as number
+const darkUploadPattern = darkUploadPatternRaw as unknown as number
 
 type UploadProps = {
   showing: boolean
@@ -197,9 +203,7 @@ const Upload = (props: UploadProps) => {
           <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.backgroundBox}>
             <NativeAnimated.Image
               resizeMode="repeat"
-              source={isDarkMode
-                ? (require('../../images/dark-upload-pattern-80.png') as number)
-                : (require('../../images/upload-pattern-80.png') as number)}
+              source={isDarkMode ? darkUploadPattern : uploadPattern}
               style={{...styles.backgroundImage, marginTop: backgroundTop}}
             />
           </Kb.Box2>

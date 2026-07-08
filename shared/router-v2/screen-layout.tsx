@@ -1,19 +1,13 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {isTablet} from '@/constants/platform'
+import {ModalWrapper} from './screen-layout-modal'
 import {SafeAreaProvider, initialWindowMetrics, useSafeAreaInsets} from 'react-native-safe-area-context'
 import {HeaderHeightContext} from '@react-navigation/elements'
 import {useKeyboardState} from 'react-native-keyboard-controller'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-import type {ParamListBase} from '@react-navigation/native'
 import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
 
-type ModalWrapperProps = {
-  children: React.ReactNode
-  navigationOptions?: GetOptionsRet
-  navigation: NativeStackNavigationProp<ParamListBase>
-}
 
 type LayoutProps = {
   children: React.ReactNode
@@ -83,9 +77,6 @@ const desktopMakeLayout = (
   getOptions?: GetOptions
 ) => {
   return ({children, route, navigation}: LayoutProps) => {
-    const {ModalWrapper} = require('./screen-layout-modal.desktop') as {
-      ModalWrapper: React.ComponentType<ModalWrapperProps>
-    }
     const navigationOptions: GetOptionsRet | undefined =
       typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
 

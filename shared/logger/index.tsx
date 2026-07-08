@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import Logger from './ring-logger'
 import noop from 'lodash/noop'
-import type {hasEngine as HasEngineType} from '../engine/require'
+import {hasEngine} from '../engine/require'
 import {requestIdleCallback} from '@/util/idle-callback'
 
 export type Timestamp = number
@@ -120,7 +120,6 @@ class AggregateLoggerImpl {
         if (typeof process !== 'undefined' && process['type'] !== 'renderer') {
           return await Promise.resolve()
         }
-        const {hasEngine} = require('../engine/require') as {hasEngine: typeof HasEngineType}
         if (!hasEngine()) {
           return await Promise.resolve()
         }

@@ -3,7 +3,7 @@ import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import type * as UsePushStateType from '@/stores/push'
+import {usePushState} from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
 import {Linking} from 'react-native'
@@ -273,8 +273,6 @@ export const createLinkingConfig = (
         startupConversation = ''
       }
 
-      // Lazy-require to break require cycle: linking.tsx → push.native.tsx → linking.tsx
-      const {usePushState} = require('@/stores/push') as typeof UsePushStateType
       const pushState = usePushState.getState()
       const showMonster =
         !pushState.justSignedUp && pushState.showPushPrompt && !pushState.hasPermissions

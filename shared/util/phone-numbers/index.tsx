@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {emojiIndexByChar} from '@/common-adapters/markdown/emoji-gen'
 import libphonenumber from 'google-libphonenumber'
 import countriesRaw from './country-data/countries.json'
 import supportedCodesRaw from './sms-support/data.json'
@@ -37,9 +38,6 @@ const load = () => {
     name: string
     countryCallingCodes: Array<string>
   }>
-  const {emojiIndexByChar} = require('@/common-adapters/markdown/emoji-gen') as {
-    emojiIndexByChar: {[key: string | number]: string}
-  }
   const supportedCodes = supportedCodesRaw as {[key: string]: boolean}
 
   countries.forEach(curr => {

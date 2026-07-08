@@ -13,9 +13,8 @@ declare global {
 
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
-import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-state'
-import type * as UseNotificationsStateType from '@/stores/notifications'
-import type * as UseUsersStateType from '@/stores/users'
+import {useBlockButtonsState} from '@/chat/blocking/block-buttons-state'
+import {useNotifState} from '@/stores/notifications'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
@@ -176,9 +175,6 @@ const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   } else {
     clearSignupEmail()
     clearSignupDeviceNameDraft()
-    const {useBlockButtonsState} = require(
-      '@/chat/blocking/block-buttons-state'
-    ) as typeof UseBlockButtonsStateType
     useBlockButtonsState.getState().dispatch.resetState()
   }
   ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
@@ -347,7 +343,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {badgeState} = action.payload.params
         syncInboxBadgeState(badgeState)
-        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
@@ -366,12 +361,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       if (goodState.length !== items.length) {
         logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
-      const {useBlockButtonsState} = require(
-        '@/chat/blocking/block-buttons-state'
-      ) as typeof UseBlockButtonsStateType
       useBlockButtonsState.getState().dispatch.updateFromGregorItems(state.items)
 
-      const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
       useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
@@ -495,13 +486,11 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     case 'keybase.1.NotifyTracking.notifyUserBlocked':
       {
-        const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyUsers.identifyUpdate':
       {
-        const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break

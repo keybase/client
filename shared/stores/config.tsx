@@ -12,6 +12,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
 import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
+import {usePushState} from '@/stores/push'
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
@@ -562,12 +563,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       })
       if (error) {
         get().dispatch.setUserSwitching(false)
-        const push = require('@/stores/push') as {
-          usePushState?: {
-            getState: () => {dispatch: {clearPendingPushNotification: () => void}}
-          }
-        }
-        push.usePushState?.getState().dispatch.clearPendingPushNotification()
+        usePushState.getState().dispatch.clearPendingPushNotification()
       }
     },
     setOutOfDate: outOfDate => {
