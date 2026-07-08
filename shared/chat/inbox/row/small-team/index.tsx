@@ -28,6 +28,7 @@ const SmallTeam = (p: Props) => {
   const {hasResetUsers, youNeedToRekey, youAreReset, participantNeedToRekey, participants} = row
   const {snippet, snippetDecoration, typingSnippet, timestamp, isDecryptingSnippet} = row
   const displaySnippet = typingSnippet || snippet
+  const displayDecoration = typingSnippet ? T.RPCChat.SnippetDecoration.none : snippetDecoration
   const draft = (!isSelected && !hasUnread && rawDraft) || ''
   const onSelectConversation = isSelected
     ? undefined
@@ -78,7 +79,7 @@ const SmallTeam = (p: Props) => {
         </Kb.Box2>
         <BottomLineDisplay
           snippet={displaySnippet}
-          snippetDecoration={snippetDecoration}
+          snippetDecoration={displayDecoration}
           backgroundColor={backgroundColor}
           isSelected={isSelected}
           hasUnread={hasUnread}

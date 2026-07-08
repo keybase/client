@@ -231,8 +231,8 @@ func (l *LevelDb) ForceOpen() error {
 }
 
 // levelDbFlushSentinelKey lives in the "pm" table so the db cleaner ignores
-// it. CompactRange only rotates the memtable when the given range overlaps
-// it, so Flush writes this key immediately before compacting its range.
+// it. Written before CompactRange so the memtable contains at least one key
+// and isMemOverlaps returns true for the full-range compaction.
 var levelDbFlushSentinelKey = []byte(levelDbTablePerm + ":ff:flush-sentinel")
 
 // Flush writes the current memtable to disk and rotates the journal. An
@@ -249,11 +249,15 @@ func (l *LevelDb) Flush() (err error) {
 	if l.db == nil {
 		return nil
 	}
+	// Write the sentinel so the memtable is non-empty; then compact the full
+	// key space (util.Range{} with nil Start/Limit) so isMemOverlaps always
+	// returns true regardless of what other keys are live. A narrow range
+	// keyed only on the sentinel could miss the memtable flush if a concurrent
+	// write rotated the memtable between the Put and CompactRange.
 	if err = l.db.Put(levelDbFlushSentinelKey, nil, nil); err != nil {
 		return err
 	}
-	limit := append(append([]byte{}, levelDbFlushSentinelKey...), 0x00)
-	if err = l.db.CompactRange(util.Range{Start: levelDbFlushSentinelKey, Limit: limit}); err != nil {
+	if err = l.db.CompactRange(util.Range{}); err != nil {
 		return err
 	}
 	return l.db.Delete(levelDbFlushSentinelKey, nil)
