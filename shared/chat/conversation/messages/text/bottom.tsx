@@ -1,6 +1,6 @@
-import type CoinFlipType from './coinflip'
-import type UnfurlListType from './unfurl/unfurl-list'
-import type UnfurlPromptListType from './unfurl/prompt-list/container'
+import CoinFlip from './coinflip'
+import UnfurlList from './unfurl/unfurl-list'
+import UnfurlPromptList from './unfurl/prompt-list/container'
 import type * as T from '@/constants/types'
 
 type Props = {
@@ -32,9 +32,6 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
 
   const unfurlPrompts = (() => {
     if (hasUnfurlPrompts) {
-      const {default: UnfurlPromptList} = require('./unfurl/prompt-list/container') as {
-        default: typeof UnfurlPromptListType
-      }
       return <UnfurlPromptList messageID={messageID} />
     }
     return null
@@ -42,7 +39,6 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
 
   const unfurlList = (() => {
     if (hasUnfurlList) {
-      const {default: UnfurlList} = require('./unfurl/unfurl-list') as {default: typeof UnfurlListType}
       return <UnfurlList author={author} conversationIDKey={conversationIDKey} key="UnfurlList" unfurls={unfurls} />
     }
     return null
@@ -50,7 +46,6 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
 
   const coinflip = (() => {
     if (hasCoinFlip) {
-      const {default: CoinFlip} = require('./coinflip') as {default: typeof CoinFlipType}
       return <CoinFlip key="CoinFlip" />
     }
     return null

@@ -16,7 +16,12 @@ if (_pathSep !== '/' && _pathSep !== '\\') {
 }
 
 const kb2: KB2['constants'] = {
-  assetRoot: path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
+  // In hot dev the renderer is served over http from the Vite root, so images must
+  // be root-relative (Vite serves /images/... from the shared dir). Cold dev + prod
+  // load from file://, where an absolute filesystem path is correct.
+  assetRoot: __HOT__
+    ? '/'
+    : path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
   configOverload: {}, // filled in later
   dokanPath: path.resolve(
     (env['LOCALAPPDATA'] as string | undefined) ?? '',

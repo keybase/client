@@ -2,9 +2,8 @@ import fs from 'node:fs'
 import os from 'os'
 import {packager, type Options} from '@electron/packager'
 import path from 'path'
-import webpack from 'webpack'
-import type {Configuration} from 'webpack'
-import rootConfig from './webpack.config.mts'
+import {build} from 'vite'
+import {makeNodeConfig} from './vite.node.mts'
 import {readdir} from 'node:fs/promises'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
@@ -188,29 +187,19 @@ async function main() {
 }
 
 async function startPack() {
-  console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
+  console.log('Starting vite build\nInjecting __VERSION__: ', appVersion)
   process.env['APP_VERSION'] = appVersion
-  const webpackConfig: Array<Configuration> = rootConfig(null, {mode: 'production'})
+  const isProfile = process.env['PROFILE'] === 'true'
   try {
     if (!TEMP_SKIP_BUILD) {
-      const stats = await new Promise<webpack.MultiStats | undefined>((resolve, reject) => {
-        webpack(webpackConfig, (err: Error | null, stats: webpack.MultiStats | undefined) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(stats)
-          }
-        })
-      })
-
-      if (stats?.hasErrors()) {
-        console.error(stats.toJson('errors-only').errors)
-        process.exit(1)
-      }
+      // Renderer first (its config wipes dist), then the node + preload bundles.
+      await build({mode: 'production'})
+      await build(makeNodeConfig('node', {isDev: false, isHot: false, isProfile, watch: false}))
+      await build(makeNodeConfig('preload', {isDev: false, isHot: false, isProfile, watch: false}))
     }
 
     await copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
-    await copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
+    await copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.css', '.ttf', '.png', '.gif', '.html'])
     fs.rmSync(desktopPath('build/desktop/dist/fonts'), {force: true, recursive: true})
 
     fs.rmSync(desktopPath('release'), {force: true, recursive: true})
@@ -270,10 +259,13 @@ function postPack(appPaths: Array<string>, plat: string, arch: string) {
   }
   const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
   const dir = path.join(appPaths[0]!, subdir, 'app/desktop/dist')
-  const modules = ['node', 'main', 'remote']
+  // Vite emits node/preload as *.bundle.js at dist root, and the renderer shells
+  // at their source paths (their hashed js/css live under assets/).
   const files = [
-    ...modules.map(p => p + '.bundle.js'),
-    ...modules.filter(p => p !== 'node').map(p => p + '.html'),
+    'node.bundle.js',
+    'preload.bundle.js',
+    'desktop/renderer/main.html',
+    'desktop/remote/remote.html',
   ]
   files.forEach(file => {
     try {

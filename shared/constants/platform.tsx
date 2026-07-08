@@ -1,5 +1,10 @@
 import capitalize from 'lodash/capitalize'
 import KB2 from '@/util/electron'
+// Native-only modules — nulled to empty on desktop (native-only-modules.js), so the
+// isMobile-guarded uses below are dead code there.
+import * as RNKBmod from 'react-native-kb'
+import ExpoConstants from 'expo-constants'
+import {Platform as RNPlatform, Dimensions as RNDimensions} from 'react-native'
 
 // ─── Mobile runtime imports ────────────────────────────────────────────────
 // These are all guarded with isMobile so they won't execute on desktop.
@@ -13,8 +18,7 @@ type RNKBModule = {
   fsDownloadDir?: string
 }
 
-const _getRNKB = (): RNKBModule =>
-  require('react-native-kb') as RNKBModule
+const _getRNKB = (): RNKBModule => RNKBmod as unknown as RNKBModule
 
 // ─── Platform detection ────────────────────────────────────────────────────
 
@@ -40,7 +44,7 @@ export const fileUIName: string = isMobile
 export const shortcutSymbol: string = isMobile ? '' : isDarwin ? '⌘' : 'Ctrl-'
 export const realDeviceName: string = isMobile
   ? (() => {
-      const Constants = require('expo-constants').default as {deviceName?: string | null}
+      const Constants = ExpoConstants as unknown as {deviceName?: string | null}
       return Constants.deviceName ?? ''
     })()
   : ''
@@ -49,7 +53,7 @@ export const realDeviceName: string = isMobile
 
 export const isTablet: boolean = isMobile
   ? (() => {
-      const {Platform} = require('react-native') as {Platform: {OS: string; isPad?: boolean}}
+      const Platform = RNPlatform as unknown as {OS: string; isPad?: boolean}
       return Platform.OS === 'ios' && !!Platform.isPad
     })()
   : false
@@ -59,7 +63,7 @@ export const isDebuggingInChrome: boolean = isMobile ? typeof location !== 'unde
 
 export const mobileOsVersion: string | number = isMobile
   ? (() => {
-      const {Platform} = require('react-native') as {Platform: {Version: string | number}}
+      const Platform = RNPlatform as unknown as {Version: string | number}
       return Platform.Version
     })()
   : ''
@@ -82,7 +86,9 @@ export const isNewArch: boolean = isMobile ? !!global.__turboModuleProxy : false
 // See https://material.io/devices/
 export const isLargeScreen: boolean = isMobile
   ? (() => {
-      const {Dimensions} = require('react-native') as {Dimensions: {get: (name: string) => {height: number; width: number}}}
+      const Dimensions = RNDimensions as unknown as {
+        get: (name: string) => {height: number; width: number}
+      }
       return Dimensions.get('window').height >= 667
     })()
   : true

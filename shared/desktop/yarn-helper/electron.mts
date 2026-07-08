@@ -2,10 +2,17 @@ import path from 'path'
 import {spawn, type ChildProcess} from 'child_process'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
-import webpack from 'webpack'
-import WebpackDevServer from 'webpack-dev-server'
-import type {Configuration, MultiStats, Stats} from 'webpack'
-import rootConfig from '../webpack.config.mts'
+import {createServer, build, type ViteDevServer} from 'vite'
+import {makeNodeConfig} from '../vite.node.mts'
+
+type WatchEvent =
+  | {code: 'START' | 'END' | 'BUNDLE_START'}
+  | {code: 'BUNDLE_END'; result?: {close: () => Promise<void>}}
+  | {code: 'ERROR'; error: unknown}
+type RollupWatcherLike = {
+  on: (event: 'event', cb: (e: WatchEvent) => void) => void
+  close: () => Promise<void>
+}
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -13,11 +20,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const isLinux = process.platform === 'linux'
 const debugInNode = (false as boolean) ? '--inspect-brk' : ''
 const remoteDebug = process.env['KB_ENABLE_REMOTE_DEBUG'] === '1' ? '--remote-debugging-port=9222' : ''
-const hotServerURL = 'http://localhost:4000'
-
-type RendererConfig = Configuration & {
-  devServer?: ConstructorParameters<typeof WebpackDevServer>[0]
-}
+const devServerPort = 4000
+const hotServerURL = `http://localhost:${devServerPort}`
 
 const commands = {
   profile: {
@@ -49,24 +53,6 @@ const commands = {
   },
 } as const
 
-function findConfig(configs: Array<Configuration>, name: string): Configuration {
-  const config = configs.find(c => c.name === name)
-  if (!config) {
-    throw new Error(`Missing webpack config: ${name}`)
-  }
-  return config
-}
-
-function statsOutput(stats: Stats | MultiStats) {
-  return stats.toString({
-    assets: false,
-    chunks: false,
-    colors: true,
-    entrypoints: false,
-    modules: false,
-  })
-}
-
 function startElectron(): ChildProcess {
   const electron = require('electron') as unknown as string
   const appEntry = path.join(__dirname, '..', 'dist', 'node.dev.bundle.js')
@@ -91,34 +77,23 @@ function startHot() {
 }
 
 async function startHotLoop() {
-  const prevHot = process.env['HOT']
   process.env['HOT'] = 'true'
-  const configs = rootConfig(null, {mode: 'development'})
-  if (prevHot === undefined) {
-    delete process.env['HOT']
-  } else {
-    process.env['HOT'] = prevHot
-  }
-  const nodeConfig = findConfig(configs, 'node')
-  const preloadConfig = findConfig(configs, 'preload')
-  const rendererConfig = findConfig(configs, 'renderer') as RendererConfig
-  const {devServer, ...rendererWebpackConfig} = rendererConfig
 
-  if (!devServer) {
-    throw new Error('Missing devServer options for renderer config')
-  }
-
-  const rendererCompiler = webpack(rendererWebpackConfig)
-  const mainCompiler = webpack([nodeConfig, preloadConfig])
-
+  const watchers: Array<RollupWatcherLike> = []
   let electronProcess: ChildProcess | undefined
   let mainReady = false
-  let rendererReady = false
   let restartingElectron = false
   let shuttingDown = false
 
+  // Renderer: Vite ESM dev server with HMR. The main/remote windows load their
+  // documents from this http origin (see html-root.desktop.tsx). Ready once
+  // listen() resolves, so there is no separate rendererReady gate.
+  const server: ViteDevServer = await createServer({mode: 'development'})
+  await server.listen()
+  console.log(`Renderer dev server ready at ${hotServerURL}`)
+
   const maybeLaunchElectron = () => {
-    if (shuttingDown || !mainReady || !rendererReady || electronProcess) {
+    if (shuttingDown || !mainReady || electronProcess) {
       return
     }
 
@@ -138,7 +113,7 @@ async function startHotLoop() {
   }
 
   const restartElectron = () => {
-    if (shuttingDown || !mainReady || !rendererReady) {
+    if (shuttingDown || !mainReady) {
       return
     }
     if (!electronProcess) {
@@ -151,28 +126,6 @@ async function startHotLoop() {
     electronProcess.kill()
   }
 
-  rendererCompiler.hooks.done.tap('desktop-hot-renderer', stats => {
-    if (stats.hasErrors()) {
-      console.log(statsOutput(stats))
-      return
-    }
-
-    if (!rendererReady) {
-      console.log(`Renderer dev server ready at ${hotServerURL}`)
-    }
-    rendererReady = true
-    maybeLaunchElectron()
-  })
-
-  const server = new WebpackDevServer(devServer, rendererCompiler)
-
-  process.once('SIGINT', () => {
-    void stop(0)
-  })
-  process.once('SIGTERM', () => {
-    void stop(0)
-  })
-
   async function stop(code: number) {
     if (shuttingDown) {
       return
@@ -184,41 +137,48 @@ async function startHotLoop() {
       electronProcess = undefined
     }
 
-    if (watching) {
-      await new Promise<void>(resolve => watching.close(() => resolve()))
-    }
-
-    await server.stop().catch(() => {})
+    await Promise.all(watchers.map(async w => w.close().catch(() => {})))
+    await server.close().catch(() => {})
     process.exit(code)
   }
 
-  const watching = mainCompiler.watch({}, (error, stats) => {
-    if (error) {
-      console.error(error)
-      return
-    }
-    if (!stats) {
-      return
-    }
-    if (stats.hasErrors()) {
-      console.log(statsOutput(stats))
-      return
-    }
+  process.once('SIGINT', () => void stop(0))
+  process.once('SIGTERM', () => void stop(0))
 
-    console.log('Main/preload build complete')
-    mainReady = true
-    if (electronProcess) {
+  // Main + preload: watch-mode node builds. Restart electron whenever either
+  // rebuilds (renderer changes are hot-reloaded by Vite, no restart needed).
+  const builtOnce = {node: false, preload: false}
+  const makeHandler = (target: 'node' | 'preload') => (event: WatchEvent) => {
+    if (event.code === 'ERROR') {
+      console.error(`${target} build error`, event.error)
+      return
+    }
+    if (event.code === 'BUNDLE_END') {
+      void event.result?.close()
+    }
+    if (event.code !== 'END') {
+      return
+    }
+    const wasBuilt = builtOnce[target]
+    builtOnce[target] = true
+    if (!builtOnce.node || !builtOnce.preload) {
+      return
+    }
+    if (!mainReady) {
+      mainReady = true
+      console.log('Main/preload build complete')
+      maybeLaunchElectron()
+    } else if (wasBuilt) {
       restartElectron()
-      return
     }
-    maybeLaunchElectron()
-  })
+  }
 
-  try {
-    await server.start()
-  } catch (error) {
-    console.error(error)
-    await stop(1)
+  for (const target of ['node', 'preload'] as const) {
+    const watcher = (await build(
+      makeNodeConfig(target, {isDev: true, isHot: true, isProfile: false, watch: true})
+    )) as unknown as RollupWatcherLike
+    watchers.push(watcher)
+    watcher.on('event', makeHandler(target))
   }
 }
 

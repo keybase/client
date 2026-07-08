@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import libphonenumber from 'google-libphonenumber'
+import countriesRaw from './country-data/countries.json'
+import supportedCodesRaw from './sms-support/data.json'
 
 const PNF = libphonenumber.PhoneNumberFormat
 
@@ -28,7 +30,7 @@ const load = () => {
   if (_countryDataLoaded) return
   _countryDataLoaded = true
 
-  const countries = require('./country-data/countries.json') as Array<{
+  const countries = countriesRaw as Array<{
     alpha2: string
     status: string
     emoji: string
@@ -38,7 +40,7 @@ const load = () => {
   const {emojiIndexByChar} = require('@/common-adapters/markdown/emoji-gen') as {
     emojiIndexByChar: {[key: string | number]: string}
   }
-  const supportedCodes = require('./sms-support/data.json') as {[key: string]: boolean}
+  const supportedCodes = supportedCodesRaw as {[key: string]: boolean}
 
   countries.forEach(curr => {
     if (

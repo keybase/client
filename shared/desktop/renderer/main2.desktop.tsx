@@ -1,4 +1,4 @@
-/// <reference types="webpack-env" />
+/// <reference types="vite/client" />
 // Entry point to the chrome part of the app
 import Main from '@/app/main'
 // order of the above must NOT change. needed for patching / hot loading to be correct
@@ -43,8 +43,8 @@ if (darkModeFromNode) {
 }
 
 // Top level HMR accept
-if (module.hot) {
-  module.hot.accept()
+if (import.meta.hot) {
+  import.meta.hot.accept()
 }
 
 const setupApp = async () => {
@@ -161,19 +161,20 @@ const render = (Component = Main) => {
 }
 
 const setupHMR = () => {
-  if (!module.hot?.accept) {
+  if (!import.meta.hot) {
     return
   }
 
-  const refreshMain = () => {
-    try {
-      const {default: NewMain} = require('../../app/main') as {default: typeof NewMainType}
-      render(NewMain)
-    } catch {}
-  }
-
-  module.hot.accept(['../../app/main'], refreshMain)
-  module.hot.accept(['../../common-adapters/index'], () => {})
+  // Re-render with the new Main on hot update. Component-level edits are handled
+  // by react-refresh (@vitejs/plugin-react); this covers a full Main swap.
+  import.meta.hot.accept('@/app/main', newModule => {
+    const NewMain = (newModule as {default?: typeof NewMainType} | undefined)?.default
+    if (NewMain) {
+      try {
+        render(NewMain)
+      } catch {}
+    }
+  })
 }
 
 const load = async () => {

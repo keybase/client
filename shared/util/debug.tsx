@@ -1,4 +1,4 @@
-import type Logger from '@/logger'
+import logger from '@/logger'
 
 const debugClearCBs = new Array<() => void>()
 const debugUnClearCBs = new Array<() => void>()
@@ -74,7 +74,6 @@ export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: st
       if (result instanceof Promise) {
          
         return result.catch((e: unknown) => {
-          const {default: logger} = require('@/logger') as {default: typeof Logger}
           if (__DEV__) {
             logger.error('Error in wrapped call', logExtra, e)
           } else {
@@ -86,7 +85,6 @@ export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: st
        
       return result as ReturnType<T>
     } catch (e) {
-      const {default: logger} = require('@/logger') as {default: typeof Logger}
       if (__DEV__) {
         logger.error('Error in wrapped call', logExtra, e)
       } else {

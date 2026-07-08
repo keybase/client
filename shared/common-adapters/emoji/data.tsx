@@ -1,28 +1,22 @@
-import type * as ED from './slow-data'
+import * as ED from './slow-data'
 
 export const emojiData = {
   get categories() {
-    const ed = require('./slow-data') as typeof ED
-    return ed.categories
+    return ED.categories
   },
   get categoryIcons() {
-    const ed = require('./slow-data') as typeof ED
-    return ed.categoryIcons
+    return ED.categoryIcons
   },
   get defaultHoverEmoji() {
-    const ed = require('./slow-data') as typeof ED
-    return ed.defaultHoverEmoji
+    return ED.defaultHoverEmoji
   },
   get emojiNameMap() {
-    const ed = require('./slow-data') as typeof ED
-    return ed.emojiNameMap
+    return ED.emojiNameMap
   },
   get emojiSearch() {
-    const ed = require('./slow-data') as typeof ED
-    return ed.emojiSearch
+    return ED.emojiSearch
   },
   get skinTones() {
-    const ed = require('./slow-data') as typeof ED
-    return ed.skinTones
+    return ED.skinTones
   },
 }

@@ -1,7 +1,7 @@
-import type AudioAttachmentType from './audio'
-import type FileAttachmentType from './file'
-import type ImageAttachmentType from './image'
-import type VideoAttachmentType from './video'
+import AudioAttachment from './audio'
+import FileAttachment from './file'
+import ImageAttachment from './image'
+import VideoAttachment from './video'
 import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 
 export function WrapperAttachmentAudio(p: Props) {
@@ -11,7 +11,6 @@ export function WrapperAttachmentAudio(p: Props) {
   if (message.type !== 'attachment') {
     return null
   }
-  const {default: AudioAttachment} = require('./audio') as {default: typeof AudioAttachmentType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <AudioAttachment message={message} ordinal={ordinal} />
@@ -27,8 +26,6 @@ export function WrapperAttachmentFile(p: Props) {
     return null
   }
 
-  const {default: FileAttachment} = require('./file') as {default: typeof FileAttachmentType}
-
   return (
     <WrapperMessage {...p} {...wrapper}>
       <FileAttachment isEditing={isEditing} message={message} ordinal={ordinal} showPopup={showPopup} />
@@ -43,8 +40,6 @@ export function WrapperAttachmentVideo(p: Props) {
   if (message.type !== 'attachment') {
     return null
   }
-  const {default: VideoAttachment} = require('./video') as {default: typeof VideoAttachmentType}
-
   return (
     <WrapperMessage {...p} {...wrapper}>
       <VideoAttachment message={message} ordinal={ordinal} showPopup={showPopup} />
@@ -59,8 +54,6 @@ export function WrapperAttachmentImage(p: Props) {
   if (message.type !== 'attachment') {
     return null
   }
-  const {default: ImageAttachment} = require('./image') as {default: typeof ImageAttachmentType}
-
   return (
     <WrapperMessage {...p} {...wrapper}>
       <ImageAttachment message={message} ordinal={ordinal} showPopup={showPopup} />

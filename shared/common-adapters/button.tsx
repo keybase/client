@@ -1,12 +1,12 @@
 import './button.css'
 import type * as React from 'react'
-import type {Pressable as PressableType, Text as RNTextType, View as ViewType} from 'react-native'
+import {Pressable, Text as RNText, View} from 'react-native'
 import * as Styles from '@/styles'
-import type AnimationType from './animation'
+import Animation from './animation'
+import WithTooltip from './with-tooltip'
+import Icon from './icon'
 import type {MeasureRef} from './measure-ref'
 import type {IconType} from './icon.constants-gen'
-import type {default as WithTooltipType} from './with-tooltip'
-import type {default as IconComp} from './icon'
 
 export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Dim'
 
@@ -126,10 +126,8 @@ const progressNormal = Styles.size(isMobile ? 32 : 24)
 const progressSmall = Styles.size(isMobile ? 28 : 20)
 
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
-  const {default: Animation} = require('./animation') as {default: typeof AnimationType}
   const animStyle = small ? progressSmall : progressNormal
   if (isMobile) {
-    const {View} = require('react-native') as {View: typeof ViewType}
     return (
       <View style={Styles.castStyleNative(progressContainerStyle)}>
         <Animation animationType={white ? 'spinnerWhite' : 'spinner'} style={animStyle} />
@@ -205,14 +203,12 @@ const ButtonDesktop = (props: FullProps) => {
   )
 
   if (tooltip) {
-    const WithTooltip = (require('./with-tooltip') as {default: typeof WithTooltipType}).default
     return <WithTooltip tooltip={tooltip}>{btn}</WithTooltip>
   }
   return btn
 }
 
 const ButtonNative = (props: FullProps) => {
-  const {Pressable, Text: RNText, View} = require('react-native') as {Pressable: typeof PressableType; Text: typeof RNTextType; View: typeof ViewType}
   const {children, label, onClick, small, waiting, labelStyle: labelStyleOverride, testID} = props
   const {containerStyle, labelStyle, unclickable, whiteSpinner} = buttonShared(props)
 
@@ -259,7 +255,6 @@ type IconButtonProps = Omit<ButtonProps, 'label' | 'children'> & {
 
 export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef | null>}) => {
   const {icon, iconColor, ref, ...rest} = props
-  const Icon = (require('./icon') as {default: typeof IconComp}).default
   const isPrimary = (rest.mode ?? 'Primary') === 'Primary'
   const type = rest.type ?? 'Default'
   const defaultColor = isPrimary
