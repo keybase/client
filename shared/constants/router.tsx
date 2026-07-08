@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as T from './types'
 import {metasReceived, participantInfoReceived, useInboxMetadataState} from '@/chat/inbox/metadata-store'
-import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
 import * as Tabs from './tabs'
@@ -575,7 +575,7 @@ export const createConversation = (
 
       navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
 
-      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('joinedAConversation'))
+      refreshInboxLayout('joinedAConversation')
     } catch (error) {
       if (error instanceof RPCError) {
         const fields = error.fields as Array<{key?: string}> | undefined
