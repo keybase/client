@@ -1,37 +1,20 @@
-/// <reference types="webpack-env" />
-import type {
-  DesktopModules,
-  ExpoLocationModule,
-  ExpoTaskManagerModule,
-  NativeModules,
-  NativeSyncModules,
-  NetInfoModule,
-} from './platform-types'
+import * as ExpoLocation from 'expo-location'
+import * as ExpoTaskManager from 'expo-task-manager'
+import NetInfo from '@react-native-community/netinfo'
+import {Linking} from 'react-native'
+import {setupAudioMode} from '@/util/audio.native'
+import {requestLocationPermission} from '@/util/platform-specific'
+import {
+  fsCacheDir,
+  fsDownloadDir,
+  androidAppColorSchemeChanged,
+  guiConfig,
+  shareListenersRegistered,
+} from 'react-native-kb'
+import type {DesktopModules, NativeModules, NativeSyncModules} from './platform-types'
 
-type RNKB = {
-  fsCacheDir: string
-  fsDownloadDir: string
-  androidAppColorSchemeChanged: (mode: string) => void
-  guiConfig: string
-  shareListenersRegistered: () => void
-}
-
-// Use require() instead of import so Metro doesn't trigger importAll (which iterates
-// all lazy getters, including native modules, before they're registered).
-export const getNative = (): NativeModules => {
-  const ExpoLocation = require('expo-location') as ExpoLocationModule
-  const ExpoTaskManager = require('expo-task-manager') as ExpoTaskManagerModule
-  const NetInfo = require('@react-native-community/netinfo') as NetInfoModule
-  const {Linking} = require('react-native') as {Linking: {getInitialURL: () => Promise<string | null>}}
-  const {setupAudioMode} = require('@/util/audio.native') as {
-    setupAudioMode: (allowRecord: boolean) => Promise<void>
-  }
-  const {requestLocationPermission} = require('@/util/platform-specific') as {
-    requestLocationPermission: (perm?: unknown) => Promise<void>
-  }
-  const {fsCacheDir, fsDownloadDir, androidAppColorSchemeChanged, guiConfig, shareListenersRegistered} =
-    require('react-native-kb') as RNKB
-  return {
+export const getNative = (): NativeModules =>
+  ({
     ExpoLocation,
     ExpoTaskManager,
     Linking,
@@ -43,14 +26,16 @@ export const getNative = (): NativeModules => {
     requestLocationPermission,
     setupAudioMode,
     shareListenersRegistered,
-  }
-}
+  }) as unknown as NativeModules
 
-export const getNativeSync = (): NativeSyncModules => {
-  const {fsCacheDir, fsDownloadDir, androidAppColorSchemeChanged, guiConfig, shareListenersRegistered} =
-    require('react-native-kb') as RNKB
-  return {androidAppColorSchemeChanged, fsCacheDir, fsDownloadDir, guiConfig, shareListenersRegistered}
-}
+export const getNativeSync = (): NativeSyncModules =>
+  ({
+    androidAppColorSchemeChanged,
+    fsCacheDir,
+    fsDownloadDir,
+    guiConfig,
+    shareListenersRegistered,
+  }) as unknown as NativeSyncModules
 
 export {initPushListener} from './push-listener.native'
 // DOM helpers are desktop-only.

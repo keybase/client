@@ -3,10 +3,11 @@
  */
 import noop from 'lodash/noop'
 import KB2 from '@/util/electron'
+import {LogBox} from 'react-native'
+import * as rnkb from 'react-native-kb'
 
 // Mobile-only side effects (disabled yellow box warnings)
 if (isMobile) {
-  const {LogBox} = require('react-native') as {LogBox: {ignoreAllLogs: () => void}}
   LogBox.ignoreAllLogs()
 }
 
@@ -53,10 +54,10 @@ if (!isMobile) {
 }
 
 if (isMobile) {
-  const rnkb = require('react-native-kb') as {serverConfig?: string}
-  if (rnkb.serverConfig) {
+  const serverConfig = (rnkb as {serverConfig?: string}).serverConfig
+  if (serverConfig) {
     try {
-      const sc = JSON.parse(rnkb.serverConfig) as undefined | {[key: string]: unknown}
+      const sc = JSON.parse(serverConfig) as undefined | {[key: string]: unknown}
       if (sc?.['lastLoggedInUser']) {
         const lastLoggedInUser = sc['lastLoggedInUser']
         if (typeof lastLoggedInUser === 'string') {

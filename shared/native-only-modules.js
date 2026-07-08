@@ -41,4 +41,5 @@ module.exports = [
   '@gorhom/portal',
   'expo-document-picker',
   'expo-haptics',
+  'expo-camera',
 ]
