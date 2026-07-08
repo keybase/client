@@ -133,7 +133,7 @@ ${sharedCss(allPassed)}
 <header>
   <div class="hdr-top"><h1>${title}</h1><button id="slideshow-btn" title="Slideshow">▶</button></div>
   <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ` <span>· ${diffCount} with diffs vs baseline</span>` : ''}${navLinks ? `<span class="sec-links">${navLinks}</span>` : ''}<span class="ts">${timestamp}</span></div>
-  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"><label class="diff-only-label${hasDiff ? '' : ' disabled'}"${hasDiff ? '' : ' title="No baseline diffs in this run"'}><input type="checkbox" id="diff-only"${hasDiff ? '' : ' disabled'}> Pixel diff only</label></div>
+  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"><label class="diff-only-label${failed > 0 ? '' : ' disabled'}"${failed > 0 ? '' : ' title="No failing tests in this run"'}><input type="checkbox" id="fail-only"${failed > 0 ? '' : ' disabled'}> Failing only</label><label class="diff-only-label${hasDiff ? '' : ' disabled'}"${hasDiff ? '' : ' title="No baseline diffs in this run"'}><input type="checkbox" id="diff-only"${hasDiff ? '' : ' disabled'}> Pixel diff only</label></div>
 </header>
 <div class="grid">${cards}</div>
 ${sliderScript()}
@@ -359,6 +359,7 @@ slideshowBtn.addEventListener('click', () => {
 // ── filter ───────────────────────────────────────────────────────────────────
 const filterInput = document.getElementById('filter-input')
 const diffOnlyCheck = document.getElementById('diff-only')
+const failOnlyCheck = document.getElementById('fail-only')
 
 // Sort cards by pixel-diff desc when diff-only is on; restore authored order when off.
 // Sorts within each section group so cards stay under their own header.
@@ -386,12 +387,14 @@ function reorderCards(byDiff) {
 function applyFilter(q) {
   const lq = q.toLowerCase()
   const diffOnly = diffOnlyCheck?.checked ?? false
+  const failOnly = failOnlyCheck?.checked ?? false
   reorderCards(diffOnly)
   document.querySelectorAll('.grid .card').forEach(card => {
     const name = card.querySelector('.name')?.textContent?.toLowerCase() ?? ''
     const nameMatch = lq.length === 0 || name.includes(lq)
     const diffMatch = !diffOnly || card.dataset.hasDiff === '1'
-    card.classList.toggle('hidden', !nameMatch || !diffMatch)
+    const failMatch = !failOnly || card.classList.contains('fail')
+    card.classList.toggle('hidden', !nameMatch || !diffMatch || !failMatch)
   })
   document.querySelectorAll('.section-hdr').forEach(hdr => {
     let el = hdr.nextElementSibling
@@ -417,6 +420,7 @@ filterInput.addEventListener('input', () => {
 })
 
 diffOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
+failOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
 
 const initQ = new URL(location.href).searchParams.get('q') ?? ''
 if (initQ) { filterInput.value = initQ; applyFilter(initQ) }
