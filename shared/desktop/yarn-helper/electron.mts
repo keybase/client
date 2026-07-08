@@ -2,9 +2,9 @@ import path from 'path'
 import {spawn, type ChildProcess} from 'child_process'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
-import webpack from 'webpack'
-import WebpackDevServer from 'webpack-dev-server'
-import type {Configuration, MultiStats, Stats} from 'webpack'
+import {rspack} from '@rspack/core'
+import {RspackDevServer} from '@rspack/dev-server'
+import type {Configuration, MultiStats, Stats} from '@rspack/core'
 import rootConfig from '../webpack.config.mts'
 
 const require = createRequire(import.meta.url)
@@ -16,7 +16,7 @@ const remoteDebug = process.env['KB_ENABLE_REMOTE_DEBUG'] === '1' ? '--remote-de
 const hotServerURL = 'http://localhost:4000'
 
 type RendererConfig = Configuration & {
-  devServer?: ConstructorParameters<typeof WebpackDevServer>[0]
+  devServer?: ConstructorParameters<typeof RspackDevServer>[0]
 }
 
 const commands = {
@@ -108,8 +108,8 @@ async function startHotLoop() {
     throw new Error('Missing devServer options for renderer config')
   }
 
-  const rendererCompiler = webpack(rendererWebpackConfig)
-  const mainCompiler = webpack([nodeConfig, preloadConfig])
+  const rendererCompiler = rspack(rendererWebpackConfig)
+  const mainCompiler = rspack([nodeConfig, preloadConfig])
 
   let electronProcess: ChildProcess | undefined
   let mainReady = false
@@ -151,7 +151,7 @@ async function startHotLoop() {
     electronProcess.kill()
   }
 
-  rendererCompiler.hooks.done.tap('desktop-hot-renderer', stats => {
+  rendererCompiler.hooks.done.tap('desktop-hot-renderer', (stats: Stats) => {
     if (stats.hasErrors()) {
       console.log(statsOutput(stats))
       return
@@ -164,35 +164,9 @@ async function startHotLoop() {
     maybeLaunchElectron()
   })
 
-  const server = new WebpackDevServer(devServer, rendererCompiler)
+  const server = new RspackDevServer(devServer, rendererCompiler)
 
-  process.once('SIGINT', () => {
-    void stop(0)
-  })
-  process.once('SIGTERM', () => {
-    void stop(0)
-  })
-
-  async function stop(code: number) {
-    if (shuttingDown) {
-      return
-    }
-    shuttingDown = true
-
-    if (electronProcess) {
-      electronProcess.kill()
-      electronProcess = undefined
-    }
-
-    if (watching) {
-      await new Promise<void>(resolve => watching.close(() => resolve()))
-    }
-
-    await server.stop().catch(() => {})
-    process.exit(code)
-  }
-
-  const watching = mainCompiler.watch({}, (error, stats) => {
+  const watching = mainCompiler.watch({}, (error: Error | null, stats?: MultiStats) => {
     if (error) {
       console.error(error)
       return
@@ -213,6 +187,30 @@ async function startHotLoop() {
     }
     maybeLaunchElectron()
   })
+
+  process.once('SIGINT', () => {
+    void stop(0)
+  })
+  process.once('SIGTERM', () => {
+    void stop(0)
+  })
+
+  async function stop(code: number) {
+    if (shuttingDown) {
+      return
+    }
+    shuttingDown = true
+
+    if (electronProcess) {
+      electronProcess.kill()
+      electronProcess = undefined
+    }
+
+    await new Promise<void>(resolve => watching.close(() => resolve()))
+
+    await server.stop().catch(() => {})
+    process.exit(code)
+  }
 
   try {
     await server.start()

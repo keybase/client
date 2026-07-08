@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import os from 'os'
 import {packager, type Options} from '@electron/packager'
 import path from 'path'
-import webpack from 'webpack'
-import type {Configuration} from 'webpack'
+import {rspack} from '@rspack/core'
+import type {Configuration, MultiStats} from '@rspack/core'
 import rootConfig from './webpack.config.mts'
 import {readdir} from 'node:fs/promises'
 import {createRequire} from 'node:module'
@@ -188,13 +188,13 @@ async function main() {
 }
 
 async function startPack() {
-  console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
+  console.log('Starting rspack build\nInjecting __VERSION__: ', appVersion)
   process.env['APP_VERSION'] = appVersion
-  const webpackConfig: Array<Configuration> = rootConfig(null, {mode: 'production'})
+  const rspackConfig: Array<Configuration> = rootConfig(null, {mode: 'production'})
   try {
     if (!TEMP_SKIP_BUILD) {
-      const stats = await new Promise<webpack.MultiStats | undefined>((resolve, reject) => {
-        webpack(webpackConfig, (err: Error | null, stats: webpack.MultiStats | undefined) => {
+      const stats = await new Promise<MultiStats | undefined>((resolve, reject) => {
+        rspack(rspackConfig, (err: Error | null, stats: MultiStats | undefined) => {
           if (err) {
             reject(err)
           } else {

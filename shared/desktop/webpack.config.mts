@@ -2,16 +2,14 @@
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
  */
-import TerserPlugin from 'terser-webpack-plugin'
 import {merge} from 'webpack-merge'
 import path from 'path'
-import webpack from 'webpack'
+import {rspack} from '@rspack/core'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
+import {ReactRefreshRspackPlugin} from '@rspack/plugin-react-refresh'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
-import type {Configuration, RuleSetRule, WebpackPluginInstance} from 'webpack'
-import type {Configuration as WebpackDevServerConfiguration} from 'webpack-dev-server'
+import type {Configuration, RuleSetRule, RspackPluginInstance, DevServer} from '@rspack/core'
 
 const require = createRequire(import.meta.url)
 const configPath = fileURLToPath(import.meta.url)
@@ -49,7 +47,7 @@ const entryOverride: Record<string, string> = {main: 'desktop/renderer', remote:
 const viewEntries = debugUnusedChunks ? ['main'] : ['main', 'remote']
 
 type DesktopConfiguration = Configuration & {
-  devServer?: WebpackDevServerConfiguration
+  devServer?: DevServer
 }
 
 const logWebpackDebug = (...args: Array<unknown>) => {
@@ -102,7 +100,11 @@ const makeDefineValues = (isDev: boolean, isHot: boolean, isProfile: boolean, fi
   isIOS: JSON.stringify(false),
 })
 
-const makeBabelLoader = (isDev: boolean, isHot: boolean, nodeThread: boolean): RuleSetRule['use'] => [
+const makeBabelLoader = (
+  isDev: boolean,
+  isHot: boolean,
+  nodeThread: boolean
+): NonNullable<RuleSetRule['use']> => [
   {
     loader: 'babel-loader',
     options: {
@@ -191,18 +193,19 @@ const makeRules = ({
   },
 ]
 
-const makeTerserPlugin = (isProfile: boolean) =>
-  new TerserPlugin({
-    parallel: true,
-    terserOptions: {
-      parse: {ecma: 2020},
+// Rspack's built-in SWC-based minifier (replaces terser-webpack-plugin). This only
+// minifies — react-compiler still runs in babel-loader, never here.
+const makeMinimizer = (isProfile: boolean) =>
+  new rspack.SwcJsMinimizerRspackPlugin({
+    minimizerOptions: {
       compress: {
         comparisons: false,
         ecma: 2020,
         inline: 2,
+        ...(isProfile ? {keep_fnames: true, keep_classnames: true} : {}),
       },
-      ...(isProfile ? {keep_fnames: true, keep_classnames: true, mangle: false} : {}),
-      output: {comments: false},
+      ...(isProfile ? {mangle: false} : {}),
+      format: {comments: false},
     },
   })
 
@@ -210,7 +213,7 @@ const makeCommonOptimization = (isDev: boolean, isProfile: boolean): Configurati
   isDev
     ? undefined
     : {
-        minimizer: [makeTerserPlugin(isProfile)],
+        minimizer: [makeMinimizer(isProfile)],
       }
 
 const makeRendererOptimization = (
@@ -291,21 +294,24 @@ const makeViewPlugins = ({
   isDev: boolean
   isHot: boolean
   names: Array<string>
-}): Array<WebpackPluginInstance> => [
+}): Array<RspackPluginInstance> => [
   ...(debugUnusedChunks
     ? [
-        new webpack.optimize.LimitChunkCountPlugin({
+        new rspack.optimize.LimitChunkCountPlugin({
           maxChunks: 1,
         }),
       ]
     : []),
-  new webpack.DefinePlugin({
+  new rspack.DefinePlugin({
     global: 'globalThis',
     'process.env.NODE_DEBUG': JSON.stringify(process.env['NODE_DEBUG']),
   }),
-  ...(isHot ? [new ReactRefreshWebpackPlugin({forceEnable: true})] : []),
+  ...(isHot ? [new ReactRefreshRspackPlugin({forceEnable: true})] : []),
   ...names.map(
     (name: string) =>
+      // html-webpack-plugin runs fine under Rspack, but its types reference webpack's
+      // Compiler, so cast to Rspack's plugin instance type. HtmlRspackPlugin isn't a
+      // drop-in here — it doesn't expose the templateContent files/options callback below.
       new HtmlWebpackPlugin({
         chunks: [name],
         filename: `${name}${fileSuffix}.html`,
@@ -318,7 +324,7 @@ const makeViewPlugins = ({
             isDev: htmlWebpackPlugin.options.isDev,
             name,
           }),
-      })
+      }) as unknown as RspackPluginInstance
   ),
 ]
 
@@ -342,16 +348,14 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
   const commonConfig: Configuration = {
     bail: true,
     cache: {
-      type: 'filesystem',
-      buildDependencies: {
-        config: [
-          configPath,
-          babelConfigPath,
-          path.resolve(rootDir, 'ignored-modules.js'),
-          path.resolve(rootDir, 'native-only-modules.js'),
-        ],
-        fonts: [path.resolve(__dirname, '../fonts/.font-build-stamp')],
-      },
+      type: 'persistent',
+      buildDependencies: [
+        configPath,
+        babelConfigPath,
+        path.resolve(rootDir, 'ignored-modules.js'),
+        path.resolve(rootDir, 'native-only-modules.js'),
+        path.resolve(__dirname, '../fonts/.font-build-stamp'),
+      ],
     },
     context: rootDir,
     devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
@@ -364,9 +368,9 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
       publicPath,
     },
     plugins: [
-      new webpack.DefinePlugin(defines),
-      new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}),
-      new webpack.IgnorePlugin({resourceRegExp: /^lodash$/}),
+      new rspack.DefinePlugin(defines),
+      new rspack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}),
+      new rspack.IgnorePlugin({resourceRegExp: /^lodash$/}),
     ],
     resolve: {
       alias,
@@ -380,7 +384,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
     name: 'node',
     plugins: [
       // Ensure the view layer doesn't bleed into the node layer
-      new webpack.IgnorePlugin({resourceRegExp: /^react$/}),
+      new rspack.IgnorePlugin({resourceRegExp: /^react$/}),
     ],
     stats: {
       usedExports: isDev ? undefined : false,
@@ -390,6 +394,10 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
 
   const viewConfig: DesktopConfiguration = merge<DesktopConfiguration>(commonConfig as DesktopConfiguration, {
     devServer: {
+      // The renderer HTML is loaded from disk over file://, so its <script> request
+      // for the bundle is cross-origin/no-cors. Rspack's dev-server host + cross-origin
+      // checks 403 that by default (webpack-dev-server did not); 'all' disables them.
+      allowedHosts: 'all',
       compress: false,
       hot: isHot,
       liveReload: false,
