@@ -2,8 +2,7 @@ import path from 'path'
 import {spawn, type ChildProcess} from 'child_process'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
-import {createServer, build, type ViteDevServer} from 'vite'
-import {makeNodeConfig} from '../vite.node.mts'
+import type {ViteDevServer} from 'vite'
 
 type WatchEvent =
   | {code: 'START' | 'END' | 'BUNDLE_START'}
@@ -78,6 +77,13 @@ function startHot() {
 
 async function startHotLoop() {
   process.env['HOT'] = 'true'
+
+  // Imported lazily: pulling vite in at module load would load its rolldown
+  // native binding, which CI (jenkins_test.sh) skips via `yarn --ignore-optional`.
+  // This module is imported by the postinstall helper, so an eager import breaks
+  // `yarn install` on CI. Only the hot dev loop actually needs the bundler.
+  const {createServer, build} = await import('vite')
+  const {makeNodeConfig} = await import('../vite.node.mts')
 
   const watchers: Array<RollupWatcherLike> = []
   let electronProcess: ChildProcess | undefined
