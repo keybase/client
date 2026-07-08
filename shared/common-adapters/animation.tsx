@@ -45,6 +45,12 @@ const noStyle = {flexGrow: 1, flexShrink: 1}
 
 const animationData = animationDataRaw as {[key in AnimationType]: AnimationObject}
 
+// lottie-web is desktop-only and ESM-imported lazily: the Vite renderer graph
+// has no runtime require(), and native (where this branch is compiled out) must
+// not bundle it. Hoisted out of the component body so the react-compiler can
+// memoize Animation (it bails on Import expressions in a component/hook body).
+const loadLottieWeb = async () => import('lottie-web')
+
 function Animation(props: Props) {
   const {animationType} = props
   const elementRef = React.useRef<HTMLDivElement | null>(null)
@@ -55,10 +61,7 @@ function Animation(props: Props) {
     if (!el) return
     let instance: {destroy: () => void} | undefined
     let cancelled = false
-    // lottie-web is desktop-only and ESM-imported lazily: the Vite renderer graph
-    // has no runtime require(), and native (where this branch is compiled out)
-    // must not bundle it.
-    import('lottie-web')
+    loadLottieWeb()
       .then(mod => {
         if (cancelled) return
         const lottie = (mod as {default: {loadAnimation: (o: {animationData: unknown; container: Element}) => {destroy: () => void}}}).default
