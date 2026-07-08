@@ -100,19 +100,20 @@ const config: StorybookConfig = {
 
     // Platform globals — same as desktop/webpack.config.mts makeDefineValues
     webpackConfig.plugins = webpackConfig.plugins ?? []
-    webpackConfig.plugins.push(
-      new webpack.DefinePlugin({
-        isMobile: JSON.stringify(false),
-        isElectron: JSON.stringify(true),
-        isAndroid: JSON.stringify(false),
-        isIOS: JSON.stringify(false),
-        __DEV__: JSON.stringify(true),
-        __HOT__: JSON.stringify(false),
-        __PROFILE__: JSON.stringify(false),
-        __VERSION__: JSON.stringify('storybook'),
-        __FILE_SUFFIX__: JSON.stringify(''),
-      })
-    )
+    const definePlugin = new webpack.DefinePlugin({
+      isMobile: JSON.stringify(false),
+      isElectron: JSON.stringify(true),
+      isAndroid: JSON.stringify(false),
+      isIOS: JSON.stringify(false),
+      __DEV__: JSON.stringify(true),
+      __HOT__: JSON.stringify(false),
+      __PROFILE__: JSON.stringify(false),
+      __VERSION__: JSON.stringify('storybook'),
+      __FILE_SUFFIX__: JSON.stringify(''),
+    })
+    // Push through a widened array: pushing DefinePlugin directly trips a tsgo
+    // "Excessive stack depth" bug comparing it to the plugins element union (webpack 5.108.4)
+    ;(webpackConfig.plugins as unknown[]).push(definePlugin)
 
     return webpackConfig
   },
