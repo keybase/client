@@ -172,7 +172,6 @@
     "@types/mocha": "10.0.10",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "@types/webpack-env": "1.18.8",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "@vitejs/plugin-react": "6.0.3",
     "@wdio/appium-service": "9.29.1",

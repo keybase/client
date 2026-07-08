@@ -1,4 +1,3 @@
-/// <reference types="webpack-env" />
 import * as C from '@/constants'
 import * as CChat from '@/constants/chat'
 import {registerDebugClear} from '@/util/debug-registry'
