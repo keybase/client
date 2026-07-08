@@ -15,6 +15,8 @@ These are pinned to the Expo SDK version — do not touch:
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.
 
+**`webpack-dev-server`: do NOT go past `5.x`.** v6 deleted the SockJS client, but `@pmmmwh/react-refresh-webpack-plugin` (latest 0.6.2, peer range `^4.8.0 || 5.x`) still hard-`require`s `webpack-dev-server/client/clients/SockJSClient` in `sockets/WDSSocket.js` — so wds6 breaks desktop hot mode at compile time (`ModuleNotFoundError`). Stay on the latest `5.x` (currently 5.2.6). Only move to wds6 once @pmmmwh ships a release whose peer range includes `6.x`, or after migrating the bundler off webpack (see Rspack notes elsewhere). See memory [[project_wds6_react_refresh_sockjs]].
+
 ## Process
 
 ### 1. Check what's outdated
@@ -51,10 +53,33 @@ Take the `(in-major)` bump as the safe routine upgrade; treat the `↳ MAJOR jum
 cd shared && yarn
 yarn lint
 yarn tsc
-yarn ios:pod:install
 ```
 
 **Lint/tsc failures after a dep update are caused by the update** — do not try to prove they are pre-existing. The branch is clean before the update starts, so any new errors are ours to fix. Fix them before proceeding. If the failures are large or unclear, stop and ask for guidance rather than guessing.
+
+### 4d. iOS pods — clean when native deps changed
+
+Plain `pod install` only re-integrates the Pods project; it leaves `ios/build/` (stale `.o`, `.pcm` module cache, generated headers) and `ios/Pods/` framework/header caches from the *previous* versions. Xcode's incremental build trusts those by timestamp and then compiles/links against headers and symbols that moved when a pod's source was swapped underneath it → build fails out of the box. This bites almost every time a **native** dependency version changes.
+
+A native dep = anything with an iOS pod: any `expo`/`expo-*`, `react-native`, `react-native-*`, `@react-native-*`, `lottie-react-native`, `react-native-kb`, etc. Pure JS/tooling bumps (webpack, babel, eslint, typescript, immer, lodash, zustand, `@types/*`) do **not** need a pod clean.
+
+**If any native dep changed**, do the targeted clean instead of a plain install:
+
+```bash
+cd shared/ios && rm -rf build Pods && cd .. && yarn ios:pod:install
+```
+
+This drops both stale caches without nuking the global CocoaPods cache or re-resolving from scratch — it's the reliable fix for the "Xcode won't compile after a bump" case. Keep `Podfile.lock` (don't delete it) so resolution stays stable.
+
+**Escalate to a full clean only if the targeted clean still fails to build** (e.g. `react-native-kb` codegen went stale, or a corrupted global pod cache):
+
+```bash
+cd shared && yarn ios:pod:clean && yarn ios:pod:install
+```
+
+`ios:pod:clean` additionally runs `pod cache clean --all` (global re-fetch of pod source) and wipes `react-native-kb/node_modules` — heavier and rarely the actual fix, so it's the fallback, not the default.
+
+**If only JS/tooling deps changed**, a plain `yarn ios:pod:install` (or skipping pods entirely) is fine.
 
 ### 4a. Check for duplicate package installs
 
