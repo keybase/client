@@ -1,7 +1,7 @@
 /// <reference types="webpack-env" />
 import * as C from '@/constants'
 import * as CChat from '@/constants/chat'
-import {registerDebugClear} from '@/util/debug'
+import {registerDebugClear} from '@/util/debug-registry'
 import {createLeftTabNavigator} from './left-tab-navigator'
 import DesktopHeader from './header'
 import * as Common from './common'

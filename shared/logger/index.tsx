@@ -137,31 +137,5 @@ class AggregateLoggerImpl {
   }
 }
 
-// Lazily construct the logger on first use. Constructing it eagerly builds
-// RingLoggers whose constructors call registerDebugClear() from '@/util/debug';
-// under Vite's unbundled ESM dev server that runs during a circular import
-// (util/debug -> logger) before util/debug has initialized, throwing a TDZ error.
-// Deferring construction to first access sidesteps the cycle (util/debug is fully
-// initialized by the time anything actually logs).
-let _theOnlyLogger: AggregateLoggerImpl | undefined
-const getImpl = () => (_theOnlyLogger ??= new AggregateLoggerImpl())
-// Forward get/set/defineProperty/descriptor to the real instance so the lazy proxy
-// stays transparent — in particular jest.spyOn(logger, 'warn') must be able to read
-// and redefine properties on it.
-const theOnlyLogger = new Proxy({} as AggregateLoggerImpl, {
-  get(_target, prop) {
-    return (getImpl() as unknown as Record<string | symbol, unknown>)[prop]
-  },
-  set(_target, prop, value) {
-    ;(getImpl() as unknown as Record<string | symbol, unknown>)[prop] = value
-    return true
-  },
-  defineProperty(_target, prop, descriptor) {
-    Object.defineProperty(getImpl(), prop, descriptor)
-    return true
-  },
-  getOwnPropertyDescriptor(_target, prop) {
-    return Object.getOwnPropertyDescriptor(getImpl(), prop)
-  },
-})
+const theOnlyLogger = new AggregateLoggerImpl()
 export default theOnlyLogger

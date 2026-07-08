@@ -5,7 +5,7 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
 import {navUpToScreen, switchTab, getRootState} from '@/constants/router'
-import {emitDeepLink} from '@/router-v2/linking'
+import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -424,5 +424,14 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
   return {
     ...initialStore,
     dispatch,
+  }
+})
+
+// A login error used to clear the pending push notification via a direct call
+// from config's setLoginError. Subscribing here instead keeps config from
+// importing push (breaks the config <-> push require cycle).
+useConfigState.subscribe((s, p) => {
+  if (s.loginError && s.loginError !== p.loginError) {
+    usePushState.getState().dispatch.clearPendingPushNotification()
   }
 })

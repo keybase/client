@@ -12,7 +12,6 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
 import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
-import {usePushState} from '@/stores/push'
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
@@ -563,7 +562,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       })
       if (error) {
         get().dispatch.setUserSwitching(false)
-        usePushState.getState().dispatch.clearPendingPushNotification()
+        // push store clears its own pendingPushNotification by subscribing to
+        // loginError (see stores/push) — keeps config from importing push.
       }
     },
     setOutOfDate: outOfDate => {

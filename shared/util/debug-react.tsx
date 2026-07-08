@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {type LayoutChangeEvent, View, Pressable, Text} from 'react-native'
-import {debugClear} from './debug'
+import {debugClear} from './debug-registry'
 
 const ENABLE_UNMOUNT_ALL = __DEV__ && (false as boolean)
 
