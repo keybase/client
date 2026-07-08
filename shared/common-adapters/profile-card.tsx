@@ -16,8 +16,8 @@ import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
 import {useTimeout} from './use-timers'
-import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
-import type ChatButtonType from '../chat/chat-button'
+import FollowButton from '../profile/user/actions/follow-button'
+import ChatButton from '../chat/chat-button'
 import type {MeasureRef} from './measure-ref'
 import {navToProfile} from '@/constants/router'
 import {useTrackerProfile} from '@/tracker/use-profile'
@@ -140,7 +140,6 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
-  const {default: ChatButton} = require('../chat/chat-button') as {default: typeof ChatButtonType}
   const {details: userDetails, loadProfile} = useTrackerProfile(username)
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
@@ -180,10 +179,6 @@ const ProfileCard = ({
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
   const _changeFollow = (follow: boolean) =>
     followUser([{follow, guiID: userDetails.guiID}, C.waitingKeyTracker], () => loadProfile(false), () => {})
-
-  const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
-    default: typeof FollowButtonType
-  }
 
   const openProfile = () => {
     navToProfile(username)

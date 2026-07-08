@@ -1,5 +1,7 @@
 import * as Common from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
+import {useInboxMetadataState, metasReceived, participantInfoReceived} from './metadata-store'
+export {useInboxMetadataState, metasReceived, participantInfoReceived} from './metadata-store'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {
@@ -16,20 +18,6 @@ import * as Z from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
-
-type InboxMetadataState = T.Immutable<{
-  metas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
-  participants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
-  dispatch: {
-    resetState: () => void
-  }
-}>
-
-export const useInboxMetadataState = Z.createZustand<InboxMetadataState>('inbox-metadata', () => ({
-  dispatch: {resetState: Z.defaultReset},
-  metas: new Map(),
-  participants: new Map(),
-}))
 
 export const getInboxConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useInboxMetadataState.getState().metas.get(conversationIDKey)
@@ -89,40 +77,6 @@ export const metaReceivedError = (
   if (participants) {
     participantInfoReceived(conversationIDKey, participants)
   }
-}
-
-export const participantInfoReceived = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  participantInfo: T.Chat.ParticipantInfo
-) => {
-  useInboxMetadataState.setState(s => {
-    s.participants.set(conversationIDKey, T.castDraft(participantInfo))
-  })
-}
-
-export const metasReceived = (
-  metas: ReadonlyArray<T.Chat.ConversationMeta>,
-  removals?: ReadonlyArray<T.Chat.ConversationIDKey>,
-  options?: {force?: boolean}
-) => {
-  const force = options?.force ?? false
-  // Version-gate against the currently stored meta so a stale-version update
-  // can't clobber newer data (previously done by the thread store). Compute
-  // against getState() (not the immer draft) so updateMeta never sees a proxy.
-  const current = useInboxMetadataState.getState().metas
-  const nextMetas = metas.map(m => {
-    const old = force ? undefined : current.get(m.conversationIDKey)
-    return old ? Meta.updateMeta(old, m) : m
-  })
-  useInboxMetadataState.setState(s => {
-    removals?.forEach(r => {
-      s.metas.delete(r)
-      s.participants.delete(r)
-    })
-    nextMetas.forEach(next => {
-      s.metas.set(next.conversationIDKey, T.castDraft(next))
-    })
-  })
 }
 
 const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>) => {

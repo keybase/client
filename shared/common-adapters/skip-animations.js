@@ -1,8 +1,8 @@
-/* global console, module */
+/* global console */
 
-// used by babel.config so has to be a js file. restart packager if you change this
+// restart packager if you change this
 const skipAnimations = false
-module.exports = skipAnimations
+export default skipAnimations
 
 if (skipAnimations) {
   console.log(

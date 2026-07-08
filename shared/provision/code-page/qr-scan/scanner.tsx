@@ -1,20 +1,14 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+// expo-camera resolves to an empty nulled module on desktop; only used in the
+// isMobile QRScannerMobile below.
+import {CameraView, useCameraPermissions} from 'expo-camera'
 
 type Props = {
   onBarCodeRead: (code: string) => void
   notAuthorizedView: React.ReactElement | null
   style: Kb.Styles.StylesCrossPlatform
 }
-
-// Hoisted: resolving useCameraPermissions from require() during render makes the react
-// compiler bail (hooks must be the same function on every render). The require is
-// guarded so it never executes on desktop.
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type ExpoCamera = typeof import('expo-camera')
-const {CameraView, useCameraPermissions} = isMobile
-  ? (require('expo-camera') as ExpoCamera)
-  : ({} as Partial<ExpoCamera>)
 
 const QRScannerMobile = (p: Props): React.ReactElement | null => {
   const [scanned, setScanned] = React.useState(false)
@@ -36,7 +30,6 @@ const QRScannerMobile = (p: Props): React.ReactElement | null => {
   if (!permission.granted) {
     return p.notAuthorizedView || null
   }
-  if (!CameraView) return null
 
   return (
     <CameraView

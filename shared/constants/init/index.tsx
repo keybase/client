@@ -4,7 +4,7 @@ import {ignorePromise, neverThrowPromiseFunc} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {FatalHandshakeError, useDaemonState} from '@/stores/daemon'
 import {useRouterState} from '@/stores/router'
-import {useShellState, type ConnectionType} from '@/stores/shell'
+import {useShellState} from '@/stores/shell'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
@@ -18,80 +18,24 @@ import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onShare
 import {noConversationIDKey} from '../types/chat/common'
 import {dumpLogs, persistRoute} from '@/util/storeless-actions'
 
-// ─── Desktop-only imports (runtime-guarded) ──────────────────────────────────
-import type {KB2} from '@/util/electron'
+// ─── Platform-specific init helpers (resolved per platform: platform.desktop /
+// platform.native — native keeps require() for Metro importAll ordering) ─────
+import {
+  getDesktop as _getDesktop,
+  getNative as _getNative,
+  getNativeSync as _getNativeSync,
+  initPushListener,
+  maybePauseVideos,
+  setupWindowEventListeners,
+} from './platform'
+import type {ExpoLocationObject, ExpoTaskManagerModule} from './platform-types'
+import {openAtLoginKey} from '@/stores/shell'
+import {useDarkModeState} from '@/stores/darkmode'
+import * as ScreenCapture from 'expo-screen-capture'
 
-const _getDesktop = () => {
-  const KB2default = (require('@/util/electron') as {default: KB2}).default
-  const InputMonitor = (require('@/util/platform-specific/input-monitor.desktop') as {default: new () => {notifyActive: (userActive: boolean) => void}}).default
-  const {kbfsNotification} = require('@/util/platform-specific/kbfs-notifications') as {kbfsNotification: (notification: unknown, np: (title: string, opts?: {body?: string; sound?: boolean}, onClick?: () => void) => void) => void}
-  const {skipAppFocusActions} = require('@/local-debug') as {skipAppFocusActions: boolean}
-  const {isLinux, isWindows} = require('@/constants/platform') as {isLinux: boolean; isWindows: boolean}
-  return {InputMonitor, KB2: KB2default, isLinux, isWindows, kbfsNotification, skipAppFocusActions}
-}
-
-const _getOpenAtLoginKey = () =>
-  (require('@/stores/shell') as {openAtLoginKey: string}).openAtLoginKey
-
-// ─── Native-only imports (runtime-guarded) ────────────────────────────────────
-
-// Use require() instead of await import() to avoid triggering Metro's importAll,
-// which iterates all lazy getters (including PushNotificationIOS) before native modules are registered.
-const _getNative = () => {
-  const ExpoLocation = require('expo-location') as ExpoLocationModule
-  const ExpoTaskManager = require('expo-task-manager') as ExpoTaskManagerModule
-  const NetInfo = require('@react-native-community/netinfo') as NetInfoModule
-  const {Linking} = require('react-native') as {Linking: {getInitialURL: () => Promise<string | null>}}
-  const {setupAudioMode} = require('@/util/audio.native') as {setupAudioMode: (allowRecord: boolean) => Promise<void>}
-  const {requestLocationPermission} = require('@/util/platform-specific') as {requestLocationPermission: (perm?: unknown) => Promise<void>}
-  const {
-    fsCacheDir,
-    fsDownloadDir,
-    androidAppColorSchemeChanged,
-    guiConfig,
-    shareListenersRegistered,
-  } = require('react-native-kb') as {
-    fsCacheDir: string
-    fsDownloadDir: string
-    androidAppColorSchemeChanged: (mode: string) => void
-    guiConfig: string
-    shareListenersRegistered: () => void
-  }
-  return {ExpoLocation, ExpoTaskManager, Linking, NetInfo, androidAppColorSchemeChanged, fsCacheDir, fsDownloadDir, guiConfig, requestLocationPermission, setupAudioMode, shareListenersRegistered}
-}
-
-const _getNativeSync = () => {
-  const {
-    fsCacheDir,
-    fsDownloadDir,
-    androidAppColorSchemeChanged,
-    guiConfig,
-    shareListenersRegistered,
-  } = require('react-native-kb') as {
-    fsCacheDir: string
-    fsDownloadDir: string
-    androidAppColorSchemeChanged: (mode: string) => void
-    guiConfig: string
-    shareListenersRegistered: () => void
-  }
-  return {androidAppColorSchemeChanged, fsCacheDir, fsDownloadDir, guiConfig, shareListenersRegistered}
-}
+const _getOpenAtLoginKey = () => openAtLoginKey
 
 // ─── Location tracking (native only) ─────────────────────────────────────────
-
-type ExpoLocationObject = {coords: {accuracy: number | null; latitude: number; longitude: number}}
-type ExpoLocationModule = {
-  startLocationUpdatesAsync: (taskName: string, options: object) => Promise<void>
-  stopLocationUpdatesAsync: (taskName: string) => Promise<void>
-}
-type NetInfoModule = {
-  fetch: () => Promise<{type: ConnectionType}>
-  addEventListener: (cb: (state: {type: ConnectionType}) => void) => () => void
-  NetInfoStateType: {none: ConnectionType}
-}
-type ExpoTaskManagerModule = {
-  defineTask: (taskName: string, cb: (params: {data: unknown; error: unknown}) => Promise<void>) => void
-}
 
 const locationTaskName = 'background-location-task'
 let locationRefs = 0
@@ -484,7 +428,6 @@ const _initNativePlatformListener = () => {
   })
 
   if (isAndroid) {
-    const {useDarkModeState} = require('@/stores/darkmode') as {useDarkModeState: {subscribe: (cb: (s: {darkModePreference: string}, old: {darkModePreference: string}) => void) => void}}
     useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
       const {androidAppColorSchemeChanged} = _getNativeSync()
@@ -510,7 +453,6 @@ const _initNativePlatformListener = () => {
   // Default to screen capture prevention on Android (matches native default of secure).
   // Once daemon is ready, sync with the user's saved preference.
   if (isAndroid) {
-    const ScreenCapture = require('expo-screen-capture') as {preventScreenCaptureAsync: (tag: string) => Promise<void>}
     ignorePromise(ScreenCapture.preventScreenCaptureAsync('screenprotector'))
     useDaemonState.subscribe((s, old) => {
       if (s.handshakeState !== 'done' || old.handshakeState === 'done') return
@@ -529,7 +471,6 @@ const _initNativePlatformListener = () => {
   // Start this immediately instead of waiting so we can do more things in parallel
   ignorePromise(loadStartupDetails())
 
-  const {initPushListener} = require('./push-listener.native') as {initPushListener: () => void}
   initPushListener()
 
   const {NetInfo} = _getNative()
@@ -566,11 +507,6 @@ const _initDesktopPlatformListener = () => {
   _platformUnsubs.length = 0
 
   const {isLinux, isWindows} = _getDesktop()
-
-  const {maybePauseVideos, setupWindowEventListeners} = require('./desktop-dom-helpers.desktop') as {
-    maybePauseVideos: () => void
-    setupWindowEventListeners: (onFocus: () => void, onBlur: () => void, onOnline: () => void, onOffline: () => void) => void
-  }
 
   const openAtLoginKey = _getOpenAtLoginKey()
   const {KB2, skipAppFocusActions, InputMonitor} = _getDesktop()

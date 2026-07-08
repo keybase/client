@@ -1,6 +1,6 @@
 import type * as Types from '.'
 import {toStringForLog} from '@/util/string'
-import {registerDebugClear} from '@/util/debug'
+import {registerDebugClear} from '@/util/debug-registry'
 
 const levelToFunction = {
   Action: 'log',

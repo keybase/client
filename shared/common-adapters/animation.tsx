@@ -1,6 +1,8 @@
 import * as React from 'react'
 import {Box2} from './box'
+import LottieView from 'lottie-react-native'
 import type * as Styles from '@/styles'
+import animationDataRaw from './animation-data.json'
 
 export type AnimationType =
   | 'darkMessageStatusEncrypting'
@@ -41,31 +43,36 @@ type AnimationObject = {
 const defaultDimension = 16
 const noStyle = {flexGrow: 1, flexShrink: 1}
 
+const animationData = animationDataRaw as {[key in AnimationType]: AnimationObject}
+
+// lottie-web is desktop-only and ESM-imported lazily: the Vite renderer graph
+// has no runtime require(), and native (where this branch is compiled out) must
+// not bundle it. Hoisted out of the component body so the react-compiler can
+// memoize Animation (it bails on Import expressions in a component/hook body).
+const loadLottieWeb = async () => import('lottie-web')
+
 function Animation(props: Props) {
   const {animationType} = props
   const elementRef = React.useRef<HTMLDivElement | null>(null)
-  const [data] = React.useState(
-    () => require('./animation-data.json') as {[key in AnimationType]: AnimationObject}
-  )
 
   React.useEffect(() => {
     if (isMobile) return
     const el = elementRef.current
-    if (el) {
-      // lottie-web is a CJS UMD module; require() returns module.exports directly (no .default wrapper)
-      const lottie = require('lottie-web') as {
-        loadAnimation: (opts: {animationData: unknown; container: Element}) => {destroy: () => void}
-      }
-      const instance = lottie.loadAnimation({
-        animationData: data[animationType],
-        container: el,
+    if (!el) return
+    let instance: {destroy: () => void} | undefined
+    let cancelled = false
+    loadLottieWeb()
+      .then(mod => {
+        if (cancelled) return
+        const lottie = (mod as {default: {loadAnimation: (o: {animationData: unknown; container: Element}) => {destroy: () => void}}}).default
+        instance = lottie.loadAnimation({animationData: animationData[animationType], container: el})
       })
-      return () => {
-        instance.destroy()
-      }
+      .catch(() => {})
+    return () => {
+      cancelled = true
+      instance?.destroy()
     }
-    return undefined
-  }, [animationType, data])
+  }, [animationType])
 
   if (!isMobile) {
     const {style, width, height} = props
@@ -85,18 +92,7 @@ function Animation(props: Props) {
     )
   }
 
-  const LottieView = (
-    require('lottie-react-native') as {
-      default: React.ComponentType<{
-        autoPlay?: boolean
-        loop?: boolean
-        source: AnimationObject
-        style?: Styles.StylesCrossPlatform
-      }>
-    }
-  ).default
-
-  const source = data[animationType]
+  const source = animationData[animationType]
   return (
     <Box2 direction="vertical" style={props.containerStyle}>
       <LottieView autoPlay={true} loop={true} source={source} style={props.style ?? noStyle} />

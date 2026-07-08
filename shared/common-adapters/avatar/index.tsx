@@ -8,7 +8,7 @@ import {navToProfile} from '@/constants/router'
 import {normalizeFilePathURL} from '@/util/file-url'
 import {Image} from 'expo-image'
 import {iconMeta, type IconType} from '../icon.constants-gen'
-import type {getAssetPath as getAssetPathType} from '@/constants/platform'
+import {getAssetPath} from '@/constants/platform'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 
@@ -85,7 +85,6 @@ function getMultsMap(imgMap: {[size: string]: unknown}, targetSize: number): Mul
 }
 
 function iconTypeToImgSetDesktop(imgMap: {[key: string]: IconType}, targetSize: number) {
-  const {getAssetPath} = require('@/constants/platform') as {getAssetPath: typeof getAssetPathType}
   const multsMap = getMultsMap(imgMap, targetSize)
   const keys = Object.keys(multsMap) as unknown as Array<keyof typeof multsMap>
   const sets = keys

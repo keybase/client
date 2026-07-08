@@ -1,28 +1,4 @@
-import type Logger from '@/logger'
-
-const debugClearCBs = new Array<() => void>()
-const debugUnClearCBs = new Array<() => void>()
-
-export const registerDebugUnClear = (cb: () => void) => {
-  debugUnClearCBs.push(cb)
-}
-export const registerDebugClear = (cb: () => void) => {
-  debugClearCBs.push(cb)
-}
-export const debugClear = __DEV__
-  ? () => {
-      for (const cb of debugClearCBs) {
-        cb()
-      }
-    }
-  : () => {}
-export const debugUnClear = __DEV__
-  ? () => {
-      for (const cb of debugUnClearCBs) {
-        cb()
-      }
-    }
-  : () => {}
+import logger from '@/logger'
 
 // helper to debug method calls into an object
 export function createLoggingProxy<T extends {[key: string]: unknown}>(
@@ -74,7 +50,6 @@ export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: st
       if (result instanceof Promise) {
          
         return result.catch((e: unknown) => {
-          const {default: logger} = require('@/logger') as {default: typeof Logger}
           if (__DEV__) {
             logger.error('Error in wrapped call', logExtra, e)
           } else {
@@ -86,7 +61,6 @@ export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: st
        
       return result as ReturnType<T>
     } catch (e) {
-      const {default: logger} = require('@/logger') as {default: typeof Logger}
       if (__DEV__) {
         logger.error('Error in wrapped call', logExtra, e)
       } else {

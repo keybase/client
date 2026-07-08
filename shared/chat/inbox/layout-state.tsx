@@ -5,6 +5,8 @@ import logger from '@/logger'
 import {isPhone} from '@/constants/platform'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {ignorePromise} from '@/constants/utils'
+import {registerInboxRefresh} from './inbox-refresh'
 
 type Store = T.Immutable<{
   hasLoaded: boolean
@@ -96,6 +98,12 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
     ...initialStore,
     dispatch,
   }
+})
+
+// Let constants/router trigger a refresh without importing this store (breaks
+// the router -> layout-state -> config -> router require cycle).
+registerInboxRefresh(reason => {
+  ignorePromise(useInboxLayoutState.getState().dispatch.refresh(reason))
 })
 
 // Per-conversation index over the current layout so row hooks can do a cheap

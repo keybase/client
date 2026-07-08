@@ -1,5 +1,8 @@
-/// <reference types="webpack-env" />
 import * as C from '@/constants'
+import * as CChat from '@/constants/chat'
+import {registerDebugClear} from '@/util/debug-registry'
+import {createLeftTabNavigator} from './left-tab-navigator'
+import DesktopHeader from './header'
 import * as Common from './common'
 import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -89,20 +92,6 @@ if (!isMobile) {
   createLinkingConfig(handleAppLink)
 }
 
-// Inline structural type for the left-tab navigator (avoids importing from .desktop.tsx)
-type LeftTabNavigatorType = {
-  Navigator: React.ComponentType<{
-    backBehavior?: string
-    screenOptions?: object
-    children?: React.ReactNode
-  }>
-  Screen: React.ComponentType<{
-    name: string
-    component: React.ComponentType
-    key?: string
-  }>
-}
-
 // Sticky: once the handshake finishes we never go back to the splash, even if it
 // restarts later (engine reconnect); the disconnected overlay covers that case.
 // Module-level so it survives the navigator remount on user switch (a ref would
@@ -118,9 +107,6 @@ const useHandshakeEverDone = () => {
 let DesktopRootComponent: React.ComponentType
 
 if (!isMobile) {
-  const {createLeftTabNavigator} = require('./left-tab-navigator.desktop') as {
-    createLeftTabNavigator: () => LeftTabNavigatorType
-  }
   const desktopTab = createLeftTabNavigator()
   const desktopTabComponents: Record<string, React.ComponentType> = {}
 
@@ -157,9 +143,7 @@ if (!isMobile) {
   }
 
   type DesktopHeaderProps = Record<string, unknown> & {options: Record<string, unknown>}
-  const DesktopHeaderComponent = (
-    require('./header/index.desktop') as {default: React.ComponentType<DesktopHeaderProps>}
-  ).default
+  const DesktopHeaderComponent = DesktopHeader as React.ComponentType<DesktopHeaderProps>
 
   const desktopLoggedOutScreensConfig = routeMapToStaticScreens(
     loggedOutRoutes,
@@ -250,9 +234,8 @@ const useConnectNavToState = () => {
           if (w) {
             w['DEBUGNavigator'] = C.Router2.navigationRef.current
             w['DEBUGRouter2'] = C.Router2
-            w['KBCONSTANTS'] = require('@/constants')
-            w['KBINBOX'] = require('@/constants/chat')
-            const {registerDebugClear} = require('@/util/debug') as {registerDebugClear: (cb: () => void) => void}
+            w['KBCONSTANTS'] = C
+            w['KBINBOX'] = CChat
             registerDebugClear(() => {
               w['DEBUGNavigator'] = undefined
               w['DEBUGRouter2'] = undefined

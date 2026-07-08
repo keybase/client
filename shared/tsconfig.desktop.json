@@ -3,7 +3,7 @@
   "compilerOptions": {
     "moduleSuffixes": [".desktop", ""],
     "lib": ["ESNext", "dom"],
-    "types": ["jest", "node", "webpack-env"],
+    "types": ["jest", "node"],
     "outDir": "./.tsOuts/.tsOut-desktop/emit",
     "tsBuildInfoFile": "./.tsOuts/.tsOut-desktop/cache"
   },

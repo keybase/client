@@ -1,4 +1,4 @@
-/// <reference types="webpack-env" />
+/// <reference types="vite/client" />
 // Loads a remote component. Receives props from the main window via IPC.
 import type * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
@@ -21,7 +21,7 @@ setServiceDecoration(ServiceDecoration)
 const {closeWindow} = KB2.functions
 
 disableDragDrop()
-module.hot?.accept()
+import.meta.hot?.accept()
 
 type Props<P> = {
   Component: React.ComponentType<P>

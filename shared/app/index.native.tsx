@@ -1,4 +1,3 @@
-/// <reference types="webpack-env" />
 import * as C from '@/constants'
 import {useShellState} from '@/stores/shell'
 import * as Kb from '@/common-adapters'

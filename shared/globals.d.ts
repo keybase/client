@@ -47,4 +47,11 @@ declare global {
   var isElectron: boolean
   var isAndroid: boolean
   var isIOS: boolean
+  // Metro's HMR runtime exposes webpack-compatible `module.hot` (mobile only).
+  // Augments @types/node's NodeJS.Module so we don't depend on @types/webpack-env.
+  namespace NodeJS {
+    interface Module {
+      hot?: {accept: (cb?: () => void) => void}
+    }
+  }
 }

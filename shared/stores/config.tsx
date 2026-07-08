@@ -562,12 +562,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       })
       if (error) {
         get().dispatch.setUserSwitching(false)
-        const push = require('@/stores/push') as {
-          usePushState?: {
-            getState: () => {dispatch: {clearPendingPushNotification: () => void}}
-          }
-        }
-        push.usePushState?.getState().dispatch.clearPendingPushNotification()
+        // push store clears its own pendingPushNotification by subscribing to
+        // loginError (see stores/push) — keeps config from importing push.
       }
     },
     setOutOfDate: outOfDate => {

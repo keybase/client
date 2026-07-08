@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'
-import {registerDebugClear} from '@/util/debug'
+import {registerDebugClear} from '@/util/debug-registry'
 
 export const chatDebugEnabled = false as boolean
 

@@ -34,4 +34,12 @@ module.exports = [
   'react-native-screens/experimental',
   '@react-navigation/bottom-tabs',
   'react-native-gesture-handler',
+  'expo-constants',
+  'expo-screen-capture',
+  'expo-task-manager',
+  '@react-native-community/netinfo',
+  '@gorhom/portal',
+  'expo-document-picker',
+  'expo-haptics',
+  'expo-camera',
 ]

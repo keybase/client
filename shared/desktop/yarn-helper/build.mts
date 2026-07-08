@@ -1,36 +1,27 @@
-import os from 'os'
-
-const webpackCmd =
-  'node --trace-deprecation node_modules/webpack/bin/webpack.js --disable-interpret --config ./desktop/webpack.config.mts'
-const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
-// set to true if you want to analyze the webpack output
-const outputStats = false as boolean
+// Builds all three desktop targets (renderer + node + preload) via the Vite JS
+// API (desktop/vite-build.mts). Node runs the .mts script directly (type-strip).
+const viteBuildCmd = 'node desktop/vite-build.mts'
 
 const commands = {
   'build:dev': {
     env: {NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
-    shell: `${webpackCmd} --mode development --progress --profile`,
+    shell: `${viteBuildCmd} --mode development`,
   },
   'build:prod': {
-    env: {
-      NO_SERVER: 'true',
-      STATS: outputStats ? 'true' : 'false',
-    },
+    env: {NO_SERVER: 'true'},
     help: 'Make a production build of the js code',
-    shell: `${webpackCmd} --mode production --progress ${
-      outputStats ? '--profile --json > webpack-stats.json' : ''
-    }`,
+    shell: `${viteBuildCmd} --mode production`,
   },
   'build:profile': {
     env: {NO_SERVER: 'true', PROFILE: 'true'},
     help: 'Make a profile build of the js code',
-    shell: `${webpackCmd} --mode production --progress --profile`,
+    shell: `${viteBuildCmd} --mode production`,
   },
   package: {
     help: 'Package up the production js code',
     nodeEnv: 'production',
-    shell: `node ${spaceArg} desktop/package.desktop.mts`,
+    shell: `node desktop/package.desktop.mts`,
   },
 } as const
 

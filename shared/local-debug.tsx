@@ -2,10 +2,12 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 import noop from 'lodash/noop'
+import KB2 from '@/util/electron'
+import {LogBox} from 'react-native'
+import * as rnkb from 'react-native-kb'
 
 // Mobile-only side effects (disabled yellow box warnings)
 if (isMobile) {
-  const {LogBox} = require('react-native') as {LogBox: {ignoreAllLogs: () => void}}
   LogBox.ignoreAllLogs()
 }
 
@@ -48,17 +50,14 @@ if (__DEV__) {
 }
 
 if (!isMobile) {
-  const KB2 = require('./util/electron').default as {
-    constants: {configOverload?: Partial<typeof config>}
-  }
-  config = {...config, ...KB2.constants.configOverload}
+  config = {...config, ...(KB2.constants.configOverload as Partial<typeof config>)}
 }
 
 if (isMobile) {
-  const rnkb = require('react-native-kb') as {serverConfig?: string}
-  if (rnkb.serverConfig) {
+  const serverConfig = (rnkb as {serverConfig?: string}).serverConfig
+  if (serverConfig) {
     try {
-      const sc = JSON.parse(rnkb.serverConfig) as undefined | {[key: string]: unknown}
+      const sc = JSON.parse(serverConfig) as undefined | {[key: string]: unknown}
       if (sc?.['lastLoggedInUser']) {
         const lastLoggedInUser = sc['lastLoggedInUser']
         if (typeof lastLoggedInUser === 'string') {

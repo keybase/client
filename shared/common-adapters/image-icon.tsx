@@ -1,8 +1,8 @@
 import type * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
-import type {Image as RNImageType} from 'react-native'
-import type {getAssetPath as getAssetPathType} from '@/constants/platform'
+import {Image as RNImage, useColorScheme} from 'react-native'
+import {getAssetPath} from '@/constants/platform'
 
 export type ImageIconProps = {
   type: IconType
@@ -15,7 +15,6 @@ const typeExtension = (type: IconType) => iconMeta[type].extension || 'png'
 const getImagesDir = (type: IconType) => iconMeta[type].imagesDir || 'icons'
 
 const ImageIconDesktop = (props: ImageIconProps) => {
-  const {getAssetPath} = require('@/constants/platform') as {getAssetPath: typeof getAssetPathType}
   const {type, style, className, allowLazy = true} = props
   const hasDarkVariant = !!iconMeta[type].nameDark
   const ext = typeExtension(type)
@@ -59,25 +58,15 @@ const ImageIconDesktop = (props: ImageIconProps) => {
   return img
 }
 
-// Hoisted: resolving useColorScheme from require() during render makes the react
-// compiler bail (hooks must be the same function on every render). The require is
-// guarded so it never executes on desktop.
-const {Image: RNImage, useColorScheme} = isMobile
-  ? (require('react-native') as {
-      Image: typeof RNImageType
-      useColorScheme: () => 'light' | 'dark' | null | undefined
-    })
-  : {Image: undefined, useColorScheme: undefined}
-
 const ImageIconNative = (props: ImageIconProps) => {
   const {type, style} = props
-  const isDarkMode = useColorScheme!() === 'dark'
+  const isDarkMode = useColorScheme() === 'dark'
 
   let source = (isDarkMode && iconMeta[type].requireDark) || iconMeta[type].require
   if (typeof source !== 'number') {
     source = undefined
   }
-  if (!source || !RNImage) return null
+  if (!source) return null
 
   return <RNImage source={source} style={style} />
 }
