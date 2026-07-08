@@ -430,8 +430,17 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
 // A login error used to clear the pending push notification via a direct call
 // from config's setLoginError. Subscribing here instead keeps config from
 // importing push (breaks the config <-> push require cycle).
-useConfigState.subscribe((s, p) => {
-  if (s.loginError && s.loginError !== p.loginError) {
-    usePushState.getState().dispatch.clearPendingPushNotification()
-  }
-})
+//
+// Guard against HMR: the config store instance (and its subscribers) survive
+// hot reloads via Z.createZustand's registry, but this module re-evaluates, so
+// an unguarded subscribe would register a duplicate every reload.
+// eslint-disable-next-line
+const _g = globalThis as any
+if (!__DEV__ || !_g.__pushLoginErrorSubscribed) {
+  if (__DEV__) _g.__pushLoginErrorSubscribed = true
+  useConfigState.subscribe((s, p) => {
+    if (s.loginError && s.loginError !== p.loginError) {
+      usePushState.getState().dispatch.clearPendingPushNotification()
+    }
+  })
+}
