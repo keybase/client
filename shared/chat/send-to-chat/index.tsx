@@ -133,10 +133,12 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
           onChangeText={props.setTitle}
         />
       </Kb.Box2>
-      <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
-        <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
-        <Kb.Button label="Send in conversation" onClick={props.onSend} disabled={!props.enabled} />
-      </Kb.ButtonBar>
+      <Kb.ConfirmButtons
+        onCancel={props.onCancel}
+        onConfirm={props.onSend}
+        confirmLabel="Send in conversation"
+        confirmDisabled={!props.enabled}
+      />
     </Kb.Box2>
   )
 }
@@ -153,7 +155,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.small,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
       },
-      buttonBar: {alignItems: 'center'},
       container: Kb.Styles.platformStyles({
         isElectron: {
           maxHeight: 560,

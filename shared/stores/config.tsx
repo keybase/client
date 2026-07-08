@@ -37,15 +37,7 @@ type Store = T.Immutable<{
   justDeletedSelf: string
   justRevokedSelf: string
   loggedIn: boolean
-  loggedInCausedbyStartup: boolean
-  loadOnStartPhase:
-    | 'notStarted'
-    | 'initialStartupAsEarlyAsPossible'
-    | 'connectedToDaemonForFirstTime'
-    | 'reloggedIn'
-    | 'startupOrReloginButNotInARush'
   outOfDate: T.Config.OutOfDate
-  remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
   runtimeStats?: T.RPCGen.RuntimeStats
   startup: {
@@ -82,9 +74,7 @@ const initialStore: Store = {
   isOnline: true,
   justDeletedSelf: '',
   justRevokedSelf: '',
-  loadOnStartPhase: 'notStarted',
   loggedIn: false,
-  loggedInCausedbyStartup: false,
   loginError: undefined,
   outOfDate: {
     critical: false,
@@ -92,7 +82,6 @@ const initialStore: Store = {
     outOfDate: false,
     updating: false,
   },
-  remoteWindowNeedsProps: new Map(),
   revokedTrigger: 0,
   startup: {
     conversation: noConversationIDKey,
@@ -110,7 +99,6 @@ export type State = Store & {
     initAppUpdateLoop: () => void
     installerRan: () => void
     loadIsOnline: () => void
-    loadOnStart: (phase: State['loadOnStartPhase']) => void
     login: (username: string, password: string) => void
     setLoginError: (error?: RPCError) => void
     logoutToLoggedOutFlow: () => void
@@ -119,7 +107,6 @@ export type State = Store & {
     onEngineIncoming: (action: EngineGen.Actions) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
-    remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string, wasCurrentDevice: boolean) => void
     refreshAccounts: () => Promise<void>
@@ -133,7 +120,7 @@ export type State = Store & {
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
-    setLoggedIn: (l: boolean, causedByStartup: boolean, fromMenubar?: boolean) => void
+    setLoggedIn: (l: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUpdating: () => void
@@ -144,6 +131,8 @@ export type State = Store & {
 }
 
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
+  let inflightRefreshAccounts: Promise<void> | undefined
+
   const _checkForUpdate = async () => {
     try {
       const {status, message} = await T.RPCGen.configGetUpdateInfoRpcPromise()
@@ -237,12 +226,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadOnStart: phase => {
-      if (phase === get().loadOnStartPhase) return
-      set(s => {
-        s.loadOnStartPhase = phase
-      })
-    },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
       const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
@@ -300,13 +283,13 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
             waitingKey: waitingKeyConfigLogin,
           })
           logger.info('login call succeeded')
-          get().dispatch.setLoggedIn(true, false)
+          get().dispatch.setLoggedIn(true)
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
           }
           if (error.code === T.RPCGen.StatusCode.scalreadyloggedin) {
-            get().dispatch.setLoggedIn(true, false)
+            get().dispatch.setLoggedIn(true)
           } else if (error.desc !== cancelDesc) {
             // If we're canceling then ignore the error
             error.desc = niceError(error)
@@ -338,6 +321,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(f())
     },
     onEngineConnected: () => {
+      // An engine reset drops in-flight RPCs without settling their promises; a refresh
+      // caught by that would poison the dedupe cache forever
+      inflightRefreshAccounts = undefined
       // The startReachability RPC call both starts and returns the current
       // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
       // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
@@ -363,7 +349,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(registerForGregorNotifications())
 
       onEngineConnectedInPlatform()
-      get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -400,7 +385,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           // only send this if we think we're not logged in
           const {loggedIn, dispatch} = get()
           if (!loggedIn) {
-            dispatch.setLoggedIn(true, false)
+            dispatch.setLoggedIn(true)
           }
           break
         }
@@ -409,7 +394,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           const {loggedIn, dispatch} = get()
           // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
           if (loggedIn) {
-            dispatch.setLoggedIn(false, false)
+            dispatch.setLoggedIn(false)
           }
           break
         }
@@ -428,35 +413,42 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(f())
     },
     refreshAccounts: async () => {
-      const defaultUsername = get().defaultUsername
-      const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
-      const {setAccounts, setDefaultUsername} = get().dispatch
-
-      let existingDefaultFound = false as boolean
-      let currentName = ''
-      const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
-
-      configuredAccounts.forEach(account => {
-        const {username, isCurrent, fullname, hasStoredSecret, uid} = account
-        if (username === defaultUsername) {
-          existingDefaultFound = true
-        }
-        if (isCurrent) {
-          currentName = account.username
-        }
-        nextConfiguredAccounts.push({fullname, hasStoredSecret, uid, username})
-      })
-      if (!existingDefaultFound) {
-        setDefaultUsername(currentName)
+      if (inflightRefreshAccounts) {
+        return inflightRefreshAccounts
       }
-      setAccounts(nextConfiguredAccounts)
-    },
-    remoteWindowNeedsProps: (component, params) => {
-      set(s => {
-        const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
-        map.set(params, (map.get(params) ?? 0) + 1)
-        s.remoteWindowNeedsProps.set(component, map)
-      })
+      const f = async () => {
+        const defaultUsername = get().defaultUsername
+        const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
+        const {setAccounts, setDefaultUsername} = get().dispatch
+
+        let existingDefaultFound = false as boolean
+        let currentName = ''
+        const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
+
+        configuredAccounts.forEach(account => {
+          const {username, isCurrent, fullname, hasStoredSecret, uid} = account
+          if (username === defaultUsername) {
+            existingDefaultFound = true
+          }
+          if (isCurrent) {
+            currentName = account.username
+          }
+          nextConfiguredAccounts.push({fullname, hasStoredSecret, uid, username})
+        })
+        if (!existingDefaultFound) {
+          setDefaultUsername(currentName)
+        }
+        setAccounts(nextConfiguredAccounts)
+      }
+      const p = f()
+      inflightRefreshAccounts = p
+      try {
+        await p
+      } finally {
+        if (inflightRefreshAccounts === p) {
+          inflightRefreshAccounts = undefined
+        }
+      }
     },
     resetRevokedSelf: () => {
       set(s => {
@@ -555,30 +547,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (loggedIn, causedByStartup, fromMenubar = false) => {
+    setLoggedIn: loggedIn => {
       const changed = get().loggedIn !== loggedIn
       set(s => {
         s.loggedIn = loggedIn
-        s.loggedInCausedbyStartup = causedByStartup
       })
-
-      if (fromMenubar) return
-
-      if (!changed) return
-
-      const {loadOnStart} = get().dispatch
-      if (loggedIn) {
-        if (!causedByStartup) {
-          loadOnStart('reloggedIn')
-          const f = async () => {
-            await timeoutPromise(1000)
-            requestAnimationFrame(() => {
-              loadOnStart('startupOrReloginButNotInARush')
-            })
-          }
-          ignorePromise(f())
-        }
-      } else {
+      if (changed && !loggedIn) {
         Z.resetAllStores()
       }
     },

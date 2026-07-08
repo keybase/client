@@ -1,45 +1,51 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as T from '@/constants/types'
 import * as Meta from '@/constants/chat/meta'
+import * as T from '@/constants/types'
+import {act, cleanup, renderHook} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {
-  syncInboxRowBadgeState,
-  syncInboxRowsFromLayout,
-  syncInboxRowsFromMetaAndParticipants,
-  syncInboxRowsFromMetas,
-  syncInboxRowsFromParticipantMap,
-  syncInboxRowsFromParticipants,
-  updateInboxRowTyping,
-  useInboxRowsState,
-} from './rows-state'
+import {metasReceived, participantInfoReceived} from './metadata'
+import {syncInboxBadgeState} from './badge-state'
+import {updateInboxTyping} from './typing-state'
+import {useInboxLayoutState} from './layout-state'
+import {useInboxRowBig, useInboxRowSmall} from './rows-state'
 
-afterEach(() => {
-  resetAllStores()
-})
+const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
-test('explicit meta and participant updates merge into the row caches', () => {
-  const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+const setLayout = (layout: Partial<T.RPCChat.UIInboxLayout>) => {
+  useInboxLayoutState.getState().dispatch.updateLayout(
+    JSON.stringify({bigTeams: null, smallTeams: null, totalSmallTeams: 0, ...layout})
+  )
+}
+
+beforeEach(() => {
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'device-name',
     uid: 'uid',
     username: 'alice',
   })
+})
 
-  syncInboxRowBadgeState({
-    conversations: [{badgeCount: 2, convID: T.Chat.keyToConversationID(convID), unreadMessages: 1}],
-  } as unknown as T.RPCGen.BadgeState)
-  updateInboxRowTyping([
-    {
-      convID: T.Chat.keyToConversationID(convID),
-      typers: [{deviceID: 'device-id', uid: 'uid', username: 'carol'}],
-    },
-  ])
+afterEach(() => {
+  cleanup()
+  resetAllStores()
+})
 
-  syncInboxRowsFromMetaAndParticipants([
-    {
-      meta: {
+test('meta, participant, badge and typing stores merge into the computed small/big rows', () => {
+  act(() => {
+    syncInboxBadgeState({
+      conversations: [{badgeCount: 2, convID: T.Chat.keyToConversationID(convID), unreadMessages: 1}],
+    } as unknown as T.RPCGen.BadgeState)
+    updateInboxTyping([
+      {
+        convID: T.Chat.keyToConversationID(convID),
+        typers: [{deviceID: 'device-id', uid: 'uid', username: 'carol'}],
+      },
+    ] as ReadonlyArray<T.RPCChat.ConvTypingUpdate>)
+    metasReceived([
+      {
         ...Meta.makeConversationMeta(),
         channelname: 'general',
         conversationIDKey: convID,
@@ -53,21 +59,12 @@ test('explicit meta and participant updates merge into the row caches', () => {
         timestamp: 1234,
         trustedState: 'requesting',
       },
-      participantInfo: {all: ['alice', 'bob'], contactName: new Map(), name: ['alice', 'bob']},
-    },
-  ])
-  expect(useInboxRowsState.getState().rowsBig.get(convID)?.badgeCount).toBe(2)
-
-  expect(useInboxRowsState.getState().rowsBig.get(convID)).toMatchObject({
-    badgeCount: 2,
-    channelname: 'general',
-    hasBadge: true,
-    hasDraft: true,
-    hasUnread: true,
-    snippetDecoration: T.RPCChat.SnippetDecoration.pendingMessage,
-    unreadCount: 1,
+    ])
+    participantInfoReceived(convID, {all: ['alice', 'bob'], contactName: new Map(), name: ['alice', 'bob']})
   })
-  expect(useInboxRowsState.getState().rowsSmall.get(convID)).toMatchObject({
+
+  const {result: small} = renderHook(() => useInboxRowSmall(convID))
+  expect(small.current).toMatchObject({
     badgeCount: 2,
     draft: 'draft text',
     hasBadge: true,
@@ -87,82 +84,84 @@ test('explicit meta and participant updates merge into the row caches', () => {
     youAreReset: false,
     youNeedToRekey: true,
   })
+
+  const {result: big} = renderHook(() => useInboxRowBig(convID))
+  expect(big.current).toMatchObject({
+    badgeCount: 2,
+    channelname: 'general',
+    hasBadge: true,
+    hasDraft: true,
+    hasUnread: true,
+    snippetDecoration: T.RPCChat.SnippetDecoration.pendingMessage,
+    unreadCount: 1,
+  })
 })
 
-test('layout and meta sync populate inbox rows without a convo store lookup', () => {
-  const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-  useCurrentUserState.getState().dispatch.setBootstrap({
-    deviceID: 'device-id',
-    deviceName: 'device-name',
-    uid: 'uid',
-    username: 'alice',
-  })
+test('layout fills gaps until a trusted meta wins; participant store overrides name-split', () => {
+  const {result: small} = renderHook(() => useInboxRowSmall(convID))
+  const {result: big} = renderHook(() => useInboxRowBig(convID))
 
-  syncInboxRowsFromLayout({
-    bigTeams: [
-      {
-        channel: {
-          channelname: 'general',
-          convID: T.Chat.conversationIDKeyToString(convID),
-          draft: 'big draft',
-          isMuted: false,
-          teamname: 'team',
+  // layout only: untrusted, so the layout row supplies snippet/time/muted/participants
+  act(() => {
+    setLayout({
+      bigTeams: [
+        {
+          channel: {
+            channelname: 'general',
+            convID: T.Chat.conversationIDKeyToString(convID),
+            draft: 'big draft',
+            isMuted: false,
+            teamname: 'team',
+          },
+          state: T.RPCChat.UIInboxBigTeamRowTyp.channel,
         },
-        state: T.RPCChat.UIInboxBigTeamRowTyp.channel,
-      },
-    ],
-    smallTeams: [
-      {
-        convID: T.Chat.conversationIDKeyToString(convID),
-        draft: '',
-        isMuted: true,
-        isTeam: false,
-        lastSendTime: 0,
-        name: 'alice,bob',
-        snippet: 'layout snippet',
-        snippetDecoration: T.RPCChat.SnippetDecoration.none,
-        time: 123,
-      },
-    ],
-    totalSmallTeams: 1,
+      ],
+      smallTeams: [
+        {
+          convID: T.Chat.conversationIDKeyToString(convID),
+          draft: '',
+          isMuted: true,
+          isTeam: false,
+          lastSendTime: 0,
+          name: 'alice,bob',
+          snippet: 'layout snippet',
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
+          time: 123,
+        },
+      ],
+      totalSmallTeams: 1,
+    })
   })
-
-  expect(useInboxRowsState.getState().rowsSmall.get(convID)).toMatchObject({
+  expect(small.current).toMatchObject({
     isMuted: true,
     participants: ['bob'],
     snippet: 'layout snippet',
     timestamp: 123,
   })
-  expect(useInboxRowsState.getState().rowsBig.get(convID)).toMatchObject({
-    channelname: 'general',
-    hasDraft: true,
-    teamname: 'team',
+  expect(big.current).toMatchObject({channelname: 'general', hasDraft: true, teamname: 'team'})
+
+  // participant store wins over the layout name-split
+  act(() => {
+    participantInfoReceived(convID, {all: ['alice', 'carol'], contactName: new Map(), name: ['alice', 'carol']})
   })
+  expect(small.current.participants).toEqual(['carol'])
 
-  syncInboxRowsFromParticipants([
-    {
-      convID: T.Chat.conversationIDKeyToString(convID),
-      participants: [
-        {assertion: 'alice', inConvName: true, type: T.RPCChat.UIParticipantType.user},
-        {assertion: 'carol', inConvName: true, type: T.RPCChat.UIParticipantType.user},
-      ],
-    } as unknown as T.RPCChat.InboxUIItem,
-  ])
-  expect(useInboxRowsState.getState().rowsSmall.get(convID)?.participants).toEqual(['carol'])
-
-  syncInboxRowsFromMetas([
-    {
-      ...Meta.makeConversationMeta(),
-      conversationIDKey: convID,
-      draft: 'meta draft',
-      isMuted: false,
-      snippetDecorated: 'meta snippet',
-      teamname: 'meta-team',
-      timestamp: 456,
-      trustedState: 'trusted',
-    },
-  ])
-  expect(useInboxRowsState.getState().rowsSmall.get(convID)).toMatchObject({
+  // a trusted meta takes precedence over the layout row for the gap fields
+  act(() => {
+    metasReceived([
+      {
+        ...Meta.makeConversationMeta(),
+        conversationIDKey: convID,
+        draft: 'meta draft',
+        isMuted: false,
+        snippetDecorated: 'meta snippet',
+        teamname: 'meta-team',
+        timestamp: 456,
+        trustedState: 'trusted',
+      },
+    ])
+  })
+  expect(small.current).toMatchObject({
     draft: 'meta draft',
     isMuted: false,
     snippet: 'meta snippet',
@@ -170,11 +169,9 @@ test('layout and meta sync populate inbox rows without a convo store lookup', ()
     timestamp: 456,
   })
 
-  syncInboxRowsFromParticipantMap({
-    [convID]: [
-      {assertion: 'alice', inConvName: true, type: T.RPCChat.UIParticipantType.user},
-      {assertion: 'dave', inConvName: true, type: T.RPCChat.UIParticipantType.user},
-    ],
+  // later participant updates still flow through
+  act(() => {
+    participantInfoReceived(convID, {all: ['alice', 'dave'], contactName: new Map(), name: ['alice', 'dave']})
   })
-  expect(useInboxRowsState.getState().rowsSmall.get(convID)?.participants).toEqual(['dave'])
+  expect(small.current.participants).toEqual(['dave'])
 })

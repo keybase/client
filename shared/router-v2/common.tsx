@@ -1,11 +1,14 @@
-import type * as React from 'react'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as Tabs from '@/constants/tabs'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
 import type {ParamListBase} from '@react-navigation/native'
 import type {HeaderOptions} from '@react-navigation/elements'
 import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import type {NavState} from '@/constants/router'
+import {useCurrentUserState} from '@/stores/current-user'
 import Header from './header/index'
 
 export const headerDefaultStyle = isMobile
@@ -25,6 +28,33 @@ export const tabBarStyle = {
 
 export const tabBarBlurEffect = isMobile ? ('systemDefault' as const) : undefined
 export const tabBarMinimizeBehavior = undefined
+
+export const tabToTestID = new Map<Tabs.Tab, string>([
+  [Tabs.peopleTab, TestIDs.NAV_TAB_PEOPLE],
+  [Tabs.chatTab, TestIDs.NAV_TAB_CHAT],
+  [Tabs.fsTab, TestIDs.NAV_TAB_FILES],
+  [Tabs.cryptoTab, TestIDs.NAV_TAB_CRYPTO],
+  [Tabs.teamsTab, TestIDs.NAV_TAB_TEAMS],
+  [Tabs.gitTab, TestIDs.NAV_TAB_GIT],
+  [Tabs.devicesTab, TestIDs.NAV_TAB_DEVICES],
+  [Tabs.settingsTab, TestIDs.NAV_TAB_SETTINGS],
+])
+
+// Remount the navigator when switching between two logged-in users.
+// Ignore '' → username (initial login) so in-flight unbox requests aren't interrupted.
+export const useUserSwitchNavKey = () => {
+  const username = useCurrentUserState(s => s.username)
+  const [navKey, setNavKey] = React.useState('')
+  const prevUsernameRef = React.useRef(username)
+  React.useEffect(() => {
+    const prev = prevUsernameRef.current
+    prevUsernameRef.current = username
+    if (prev && username && prev !== username) {
+      setNavKey(username)
+    }
+  }, [username])
+  return navKey
+}
 
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
@@ -119,43 +149,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 type SubnavNavigation = Pick<NavigationContainerRef<ParamListBase>, 'dispatch' | 'emit'>
 
 export const useSubnavTabAction = (navigation: SubnavNavigation, state: NavState) => {
-  if (!isMobile) {
-    const routesRef = {current: state?.routes}
-    const stateKeyRef = {current: state?.key}
-    const navRef = {current: navigation}
-
-    const onSelectTab = (tab: string) => {
-      const r = routesRef.current?.find((r: {name?: string; key?: string}) => {
-        return r.name === tab
-      })
-
-      const key = r?.key ?? ''
-      const event = key
-        ? navRef.current.emit({
-            canPreventDefault: true,
-            target: key,
-            // @ts-expect-error tabPress is valid but not in the emit type
-            type: 'tabPress',
-          })
-        : {defaultPrevented: false}
-
-      if (!event.defaultPrevented) {
-        navRef.current.dispatch({
-          ...TabActions.jumpTo(tab),
-          target: stateKeyRef.current,
-        })
-      }
-    }
-    return onSelectTab
-  }
-
   const onSelectTab = (tab: string) => {
     const routes = state && 'routes' in state ? state.routes : undefined
     const route = routes?.find((r: {name?: string; key?: string}) => r.name === tab)
-    const event = route
+    const key = route?.key
+    const event = key
       ? navigation.emit({
           canPreventDefault: true,
-          target: route.key,
+          target: key,
           // @ts-expect-error tabPress is valid but not in the emit type
           type: 'tabPress',
         })

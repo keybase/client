@@ -2,7 +2,7 @@
 import * as Chat from '@/constants/chat'
 import {ignorePromise, neverThrowPromiseFunc} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
-import {useDaemonState} from '@/stores/daemon'
+import {FatalHandshakeError, useDaemonState} from '@/stores/daemon'
 import {useRouterState} from '@/stores/router'
 import {useShellState, type ConnectionType} from '@/stores/shell'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -16,7 +16,6 @@ import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
 import {logState, setThreadInputCommandStatus} from '@/constants/router'
 import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
-import {noKBFSFailReason} from '@/constants/config'
 import {dumpLogs, persistRoute} from '@/util/storeless-actions'
 
 // ─── Desktop-only imports (runtime-guarded) ──────────────────────────────────
@@ -190,15 +189,13 @@ const loadStartupDetails = async () => {
   const {guiConfig, Linking} = _getNative()
   const {getStartupDetailsFromInitialPush} = await import('./push-listener.native')
 
-  const [routeState, initialUrl, push] = await Promise.all([
-    neverThrowPromiseFunc(async () => {
-      try {
-        const config = JSON.parse(guiConfig) as {ui?: {routeState2?: string}} | undefined
-        return Promise.resolve(config?.ui?.routeState2 ?? '')
-      } catch {
-        return Promise.resolve('')
-      }
-    }),
+  let routeState = ''
+  try {
+    const config = JSON.parse(guiConfig) as {ui?: {routeState2?: string}} | undefined
+    routeState = config?.ui?.routeState2 ?? ''
+  } catch {}
+
+  const [initialUrl, push] = await Promise.all([
     neverThrowPromiseFunc(async () => {
       const linkingStart = Date.now()
       logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
@@ -450,16 +447,6 @@ const _initNativePlatformListener = () => {
     }
   }
 
-  useDaemonState.subscribe((s, old) => {
-    const versionChanged = s.handshakeVersion !== old.handshakeVersion
-    const stateChanged = s.handshakeState !== old.handshakeState
-    const justBecameReady = stateChanged && s.handshakeState === 'done' && old.handshakeState !== 'done'
-
-    if (versionChanged || justBecameReady) {
-      configureAndroidCacheDir()
-    }
-  })
-
   useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
@@ -554,14 +541,23 @@ const _initNativePlatformListener = () => {
   ignorePromise(setupAudioMode(false))
 
   if (isAndroid) {
-    const daemonState = useDaemonState.getState()
-    if (daemonState.handshakeState === 'done' || daemonState.handshakeVersion > 0) {
+    // HMR re-init after the handshake already finished: the bootstrap step won't run again
+    if (useDaemonState.getState().handshakeState === 'done') {
       configureAndroidCacheDir()
     }
     afterKbfsDaemonRpcStatusChanged()
   }
 
-  initSharedSubscriptions()
+  initSharedSubscriptions(
+    isAndroid
+      ? [
+          async () => {
+            configureAndroidCacheDir()
+            return Promise.resolve()
+          },
+        ]
+      : []
+  )
 }
 
 const _initDesktopPlatformListener = () => {
@@ -660,30 +656,6 @@ const _initDesktopPlatformListener = () => {
   }
 
   _platformUnsubs.push(useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion !== old.handshakeVersion) {
-      if (!isWindows) return
-
-      const f = async () => {
-        const waitKey = 'pipeCheckFail'
-        const version = s.handshakeVersion
-        const {wait} = s.dispatch
-        wait(waitKey, version, true)
-        try {
-          logger.info('Checking RPC ownership')
-          if (KB2.functions.winCheckRPCOwnership) {
-            await KB2.functions.winCheckRPCOwnership()
-          }
-          wait(waitKey, version, false)
-        } catch (error_) {
-          // error will be logged in bootstrap check
-          getEngine().reset()
-          const error = error_ as {message?: string}
-          wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
-        }
-      }
-      ignorePromise(f())
-    }
-
     if (s.handshakeState !== old.handshakeState && s.handshakeState === 'done') {
       useConfigState.getState().dispatch.setStartupDetails({
         conversation: Chat.noConversationIDKey,
@@ -694,20 +666,24 @@ const _initDesktopPlatformListener = () => {
     }
   }))
 
-  useDaemonState.setState(s => {
-    s.dispatch.onRestartHandshakeNative = () => {
-      const {handshakeFailedReason} = useDaemonState.getState()
-      if (isWindows && handshakeFailedReason === noKBFSFailReason) {
-        KB2.functions.requestWindowsStartService?.()
+  const winPipeCheckStep = async () => {
+    try {
+      logger.info('Checking RPC ownership')
+      if (KB2.functions.winCheckRPCOwnership) {
+        await KB2.functions.winCheckRPCOwnership()
       }
+    } catch (error_) {
+      getEngine().reset()
+      const error = error_ as {message?: string}
+      throw new FatalHandshakeError(error.message || 'windows pipe owner fail')
     }
-  })
+  }
 
   if (!isLinux) {
     afterKbfsDaemonRpcStatusChanged()
   }
 
-  initSharedSubscriptions()
+  initSharedSubscriptions(isWindows ? [winPipeCheckStep] : [])
 }
 
 export {onEngineConnected, onEngineDisconnected} from './shared'

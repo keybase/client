@@ -5,8 +5,6 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
 declare global {
-  var __hmr_startupOnce: boolean | undefined
-
   var __hmr_sharedUnsubs: Array<() => void> | undefined
 
   var __hmr_platformUnsubs: Array<() => void> | undefined
@@ -21,13 +19,13 @@ import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
-import {ignorePromise} from '../utils'
+import {ignorePromise, timeoutPromise} from '../utils'
 import {isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDaemonState} from '@/stores/daemon'
+import {useDaemonState, type BootstrapStep} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
 import {useShellState} from '@/stores/shell'
@@ -46,16 +44,13 @@ import {
   onGetInboxUnverifiedConvs,
   onInboxLayoutChanged,
   onIncomingInboxUIItem,
-  syncBadgeState,
 } from '@/chat/inbox/metadata'
+import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
 
-let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
-
 const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
-const getAccountsWaitKey = 'config.getAccounts'
 
 type SubscribeStore<State> = {
   subscribe: (listener: (state: State, previousState: State) => void) => () => void
@@ -78,51 +73,40 @@ type ConfigState = ReturnType<typeof useConfigState.getState>
 type DaemonState = ReturnType<typeof useDaemonState.getState>
 type RouterState = ReturnType<typeof useRouterState.getState>
 
-const bootstrapStatusKey = (bootstrap?: DaemonState['bootstrapStatus']) =>
-  bootstrap
-    ? [
-        bootstrap.registered ? '1' : '0',
-        bootstrap.loggedIn ? '1' : '0',
-        bootstrap.uid,
-        bootstrap.username,
-        bootstrap.deviceID,
-        bootstrap.deviceName,
-        bootstrap.fullname,
-        bootstrap.httpSrvInfo?.address ?? '',
-        bootstrap.httpSrvInfo?.token ?? '',
-      ].join('\x00')
-    : ''
+// ─── Bootstrap steps ──────────────────────────────────────────────────────────
+// Gating steps for the daemon handshake, run by useDaemonState.dispatch.startHandshake after
+// bootstrapStatus loads. Throwing fails the attempt and triggers a retry.
 
-const loadConfiguredAccountsForBootstrap = () => {
-  const configState = useConfigState.getState()
-  if (configState.configuredAccounts.length) {
+const loadDarkPrefsStep = async () => {
+  useDarkModeState.getState().dispatch.loadDarkPrefs()
+  return Promise.resolve()
+}
+
+const loadChatStaticConfigStep = async () => {
+  const {chatBuiltinCommands, chatDeletableByDeleteHistory} = useConfigState.getState()
+  if (chatBuiltinCommands && chatDeletableByDeleteHistory) {
     return
   }
-
-  const version = useDaemonState.getState().handshakeVersion
-  const handshakeWait = !configState.loggedIn
-  const refreshAccounts = configState.dispatch.refreshAccounts
-  const {wait} = useDaemonState.getState().dispatch
-
-  const f = async () => {
-    try {
-      if (handshakeWait) {
-        wait(getAccountsWaitKey, version, true)
-      }
-
-      await refreshAccounts()
-
-      if (handshakeWait && useDaemonState.getState().handshakeWaiters.get(getAccountsWaitKey)) {
-        wait(getAccountsWaitKey, version, false)
-      }
-    } catch {
-      if (handshakeWait && useDaemonState.getState().handshakeWaiters.get(getAccountsWaitKey)) {
-        wait(getAccountsWaitKey, version, false, "Can't get accounts")
-      }
-    }
+  const staticConfig = serviceStaticConfigToStaticConfig(await T.RPCChat.localGetStaticConfigRpcPromise())
+  if (!staticConfig) {
+    logger.error('chat.loadStaticConfig: missing required static config')
+    return
   }
+  useConfigState.getState().dispatch.setChatStaticConfig(staticConfig)
+}
 
-  ignorePromise(f())
+const loadAccountsStep = async () => {
+  const refreshAccounts = useConfigState.getState().dispatch.refreshAccounts
+  if (useDaemonState.getState().bootstrapStatus?.loggedIn) {
+    // logged in: the account list only feeds the switcher, don't gate startup on it
+    ignorePromise(refreshAccounts().catch(() => {}))
+    return
+  }
+  try {
+    await refreshAccounts()
+  } catch {
+    throw new Error("Can't get accounts")
+  }
 }
 
 const requestFollowerInfoForStartup = () => {
@@ -158,22 +142,25 @@ const refreshStartupChat = () => {
   }
 }
 
-const onLoadOnStartPhaseChanged = (loadOnStartPhase: ConfigState['loadOnStartPhase']) => {
-  if (loadOnStartPhase !== 'startupOrReloginButNotInARush') {
-    return
+// Loads that want a logged-in user but shouldn't compete with first paint
+const scheduleStartupOrReloginWork = () => {
+  const f = async () => {
+    await timeoutPromise(1000)
+    requestAnimationFrame(() => {
+      requestFollowerInfoForStartup()
+      ignorePromise(updateServerConfigForStartup())
+      loadStartupSettings()
+      refreshStartupChat()
+    })
   }
-
-  requestFollowerInfoForStartup()
-  ignorePromise(updateServerConfigForStartup())
-  loadStartupSettings()
-  refreshStartupChat()
+  ignorePromise(f())
 }
 
 const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   if (
     gregorReachable === T.RPCGen.Reachable.yes &&
-    useDaemonState.getState().handshakeWaiters.size === 0 &&
+    useDaemonState.getState().handshakeState === 'done' &&
     !useConfigState.getState().userSwitching
   ) {
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
@@ -182,7 +169,10 @@ const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable'
 
 const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   if (loggedIn) {
+    // runtime login: refresh bootstrap status. During the handshake this is already in
+    // flight, and the store dedupes it.
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+    scheduleStartupOrReloginWork()
   } else {
     clearSignupEmail()
     clearSignupDeviceNameDraft()
@@ -191,14 +181,11 @@ const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
     ) as typeof UseBlockButtonsStateType
     useBlockButtonsState.getState().dispatch.resetState()
   }
-  loadConfiguredAccountsForBootstrap()
-  if (!useConfigState.getState().loggedInCausedbyStartup) {
-    ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
-  }
+  ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
 }
 
 const onRevokedTriggerChanged = () => {
-  loadConfiguredAccountsForBootstrap()
+  ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
 }
 
 const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configuredAccounts']) => {
@@ -209,35 +196,6 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   if (updates.length > 0) {
     useUsersState.getState().dispatch.updates(updates)
   }
-}
-
-const loadChatStaticConfig = () => {
-  const {chatBuiltinCommands, chatDeletableByDeleteHistory} = useConfigState.getState()
-  if (chatBuiltinCommands && chatDeletableByDeleteHistory) {
-    return
-  }
-  const {handshakeVersion, dispatch} = useDaemonState.getState()
-  const f = async () => {
-    const name = 'chat.loadStatic'
-    dispatch.wait(name, handshakeVersion, true)
-    try {
-      const staticConfig = serviceStaticConfigToStaticConfig(await T.RPCChat.localGetStaticConfigRpcPromise())
-      if (!staticConfig) {
-        logger.error('chat.loadStaticConfig: missing required static config')
-        return
-      }
-      useConfigState.getState().dispatch.setChatStaticConfig(staticConfig)
-    } finally {
-      dispatch.wait(name, handshakeVersion, false)
-    }
-  }
-  ignorePromise(f())
-}
-
-const onHandshakeVersionChanged = () => {
-  useDarkModeState.getState().dispatch.loadDarkPrefs()
-  loadChatStaticConfig()
-  loadConfiguredAccountsForBootstrap()
 }
 
 const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
@@ -259,19 +217,10 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
     logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
     return
   }
-  configDispatch.setLoggedIn(loggedIn, false)
+  configDispatch.setLoggedIn(loggedIn)
 
   if (bootstrap.httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
-  }
-
-}
-
-const onHandshakeStateChanged = (handshakeState: DaemonState['handshakeState']) => {
-  if (handshakeState === 'done' && !_emitStartupOnLoadDaemonConnectedOnce) {
-    _emitStartupOnLoadDaemonConnectedOnce = true
-    if (__DEV__) globalThis.__hmr_startupOnce = true
-    useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
   }
 }
 
@@ -354,25 +303,27 @@ export const onEngineDisconnected = () => {
   useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
 }
 
-export const initSharedSubscriptions = () => {
+export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapStep> = []) => {
+  useDaemonState
+    .getState()
+    .dispatch.initBootstrapSteps([
+      loadDarkPrefsStep,
+      loadChatStaticConfigStep,
+      loadAccountsStep,
+      ...platformBootstrapSteps,
+    ])
+
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
-    subscribeValue(useConfigState, s => s.loadOnStartPhase, onLoadOnStartPhaseChanged),
     subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
   )
 
-  _sharedUnsubs.push(
-    subscribeValue(useDaemonState, s => s.handshakeVersion, onHandshakeVersionChanged),
-    subscribeValue(useDaemonState, s => bootstrapStatusKey(s.bootstrapStatus), () =>
-      onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
-    ),
-    subscribeValue(useDaemonState, s => s.handshakeState, onHandshakeStateChanged)
-  )
+  _sharedUnsubs.push(subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged))
 
   _sharedUnsubs.push(
     subscribeValue(useRouterState, s => s.navState, onNavStateChanged)
@@ -395,7 +346,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params
-        syncBadgeState(badgeState)
+        syncInboxBadgeState(badgeState)
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }

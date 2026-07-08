@@ -13,7 +13,7 @@ const malformedEmailErrorMessage = (malformed: ReadonlyArray<string>) =>
     ? `Error parsing email: ${malformed[0]}`
     : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
 
-const Container = (ownProps: OwnProps) => {
+const InviteByEmail = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const {
     teamMeta: {teamname},
@@ -64,13 +64,12 @@ const Container = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2
-        direction="vertical"
-        alignItems="center"
-        fullWidth={true}
-        style={styles.outerBox}
-      >
+    <Kb.Box2
+      direction="vertical"
+      alignItems="center"
+      fullWidth={true}
+      style={styles.outerBox}
+    >
         <Kb.Text style={styles.header} type="Header">
           Invite by email
         </Kb.Text>
@@ -110,10 +109,9 @@ const Container = (ownProps: OwnProps) => {
             </Kb.Text>
           )}
         </Kb.Box2>
-        <Kb.ButtonBar>
-          <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
-        </Kb.ButtonBar>
-      </Kb.Box2>
+      <Kb.ButtonBar>
+        <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
+      </Kb.ButtonBar>
     </Kb.Box2>
   )
 }
@@ -134,4 +132,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   roleRow: {margin: Kb.Styles.globalMargins.tiny},
 }))
 
-export default Container
+export default InviteByEmail

@@ -8,6 +8,9 @@ import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {pickFiles} from '@/util/misc'
 import {KeyboardStickyView, useKeyboardState} from 'react-native-keyboard-controller'
 import {SafeAreaView as ScreensSafeAreaView} from 'react-native-screens/experimental'
+import {useNavigation} from '@react-navigation/native'
+import type {ParamListBase} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type CommonProps = {
@@ -90,6 +93,20 @@ const TextInput = (props: TextProps) => {
     }
   }, [setBlurCB])
 
+  // On mobile, autoFocus fires during the push transition, so the keyboard animates up
+  // while the screen is still sliding in — the content visibly thrashes. Instead wait for
+  // the native-stack transition to finish, then focus so the keyboard raises cleanly over
+  // a settled screen. Desktop has no keyboard, so it keeps instant autoFocus.
+  const navigation = useNavigation() as unknown as NativeStackNavigationProp<ParamListBase>
+  React.useEffect(() => {
+    if (!isMobile) return
+    return navigation.addListener('transitionEnd', e => {
+      if (!e.data.closing) {
+        inputRef.current?.focus()
+      }
+    })
+  }, [navigation])
+
   const onOpenFile = () => {
     const f = async () => {
       const filePaths = await pickFiles({
@@ -145,7 +162,7 @@ const TextInput = (props: TextProps) => {
           value={value}
           placeholder={inputPlaceholder}
           multiline={true}
-          autoFocus={true}
+          autoFocus={!isMobile}
           hideBorder={true}
           rowsMax={rowsMax}
           growAndScroll={growAndScroll}

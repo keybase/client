@@ -8,8 +8,9 @@ import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
 import {ensureError} from '@/util/errors'
+import {useRPCLoad} from '@/util/use-rpc-load'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
-import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {IncomingShareHeaderTitle} from './routes'
 
 export const getIncomingShareSizes = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -25,20 +26,14 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   const setUseOriginalInStore = useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
 
   const setUseOriginalInService = (useOriginal: boolean) => {
-    T.RPCGen.incomingShareSetPreferenceRpcPromise({
-      preference: useOriginal
-        ? {compressPreference: T.RPCGen.IncomingShareCompressPreference.original}
-        : {compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed},
-    })
-      .then(() => {})
-      .catch(() => {})
+    C.ignorePromise(
+      T.RPCGen.incomingShareSetPreferenceRpcPromise({
+        preference: useOriginal
+          ? {compressPreference: T.RPCGen.IncomingShareCompressPreference.original}
+          : {compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed},
+      }).catch(() => {})
+    )
   }
-
-  React.useEffect(() => {
-    if (originalOnly) {
-      setUseOriginalInStore(true)
-    }
-  }, [originalOnly, setUseOriginalInStore])
 
   const getRPC = C.useRPC(T.RPCGen.incomingShareGetPreferenceRpcPromise)
   React.useEffect(() => {
@@ -120,7 +115,7 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
   if (items.length > 1) {
     return items.some(({type}) => type !== items[0]?.type)
       ? `${items.length} items`
-      : `${items.length} ${incomingShareTypeToString(items[0]!.type, false, true)}`
+      : `${items.length} ${incomingShareTypeToString(items[0]!.type, true)}`
   }
 
   const item = items[0]
@@ -131,25 +126,7 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
   }
 
   const name = item.originalPath && T.FS.getLocalPathName(item.originalPath)
-  return name || `1 ${incomingShareTypeToString(item.type, false, false)}`
-}
-
-// Content-sized so the native header centers it in the bar; fullWidth would fill
-// the asymmetric space between the Cancel pill and the right item and center
-// within that instead. maxWidth keeps long filenames clear of both sides — same
-// trick as fs/nav-header/ios-header.
-const IncomingShareHeaderTitle = ({title}: {title?: string}) => {
-  const {width} = useSafeAreaFrame()
-  return (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: width - 240}}>
-      {title ? (
-        <Kb.Text type="BodyTiny" lineClamp={1}>
-          {title}
-        </Kb.Text>
-      ) : null}
-      <Kb.Text type="BodyBig">Share to...</Kb.Text>
-    </Kb.Box2>
-  )
+  return name || `1 ${incomingShareTypeToString(item.type, false)}`
 }
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
@@ -163,27 +140,23 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
       },
     })
   }
-  return isChatOnly(incomingShareItems)
-    ? undefined
-    : {
-        content: (
-          <Kb.ClickableBox direction="horizontal" centerChildren={true} fullWidth={true} onClick={saveInFiles}>
-            <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
-            <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
-          </Kb.ClickableBox>
-        ),
-      }
+  return isChatOnly(incomingShareItems) ? undefined : (
+    <Kb.ClickableBox direction="horizontal" centerChildren={true} fullWidth={true} onClick={saveInFiles}>
+      <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
+      <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
+    </Kb.ClickableBox>
+  )
 }
 
 type IncomingShareProps = {
   incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
 }
 
-type IncomingShareWithSelectionProps = IncomingShareProps & {
+type SelectedConversationProps = {
   selectedConversationIDKey?: T.Chat.ConversationIDKey
 }
 
-const IncomingShare = (props: IncomingShareWithSelectionProps) => {
+const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) => {
   const navigateAppend = C.Router2.navigateAppend
   const navigation = useNavigation()
   const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
@@ -262,11 +235,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   }, [contentDescription, navigation, originalOnly, props.incomingShareItems])
 
   if (canDirectNav) {
-    return (
-      <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-        <Kb.ProgressIndicator type="Large" />
-      </Kb.Box2>
-    )
+    return <LoadingSpinner />
   }
 
   return (
@@ -274,7 +243,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
         <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
       </Kb.Box2>
-      {footer ? <Kb.ModalFooter>{footer.content}</Kb.ModalFooter> : null}
+      {footer ? <Kb.ModalFooter>{footer}</Kb.ModalFooter> : null}
     </>
   )
 }
@@ -298,24 +267,14 @@ const IncomingShareError = () => {
   )
 }
 
+const noShareItems = new Array<T.RPCGen.IncomingShareItem>()
+
 const useIncomingShareItems = () => {
-  const [incomingShareItems, setIncomingShareItems] = React.useState<
-    ReadonlyArray<T.RPCGen.IncomingShareItem>
-  >([])
-  const [incomingShareError, setIncomingShareError] = React.useState<unknown>(undefined)
-
-  const rpc = C.useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
-  React.useEffect(() => {
-    if (!isIOS) {
-      return
-    }
-
-    rpc(
-      [undefined],
-      items => setIncomingShareItems(items || []),
-      err => setIncomingShareError(err)
-    )
-  }, [rpc, setIncomingShareError, setIncomingShareItems])
+  const {data: incomingShareItems = noShareItems, error: incomingShareError} = useRPCLoad(
+    T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise,
+    [undefined],
+    {enabled: isIOS, map: items => items || noShareItems}
+  )
 
   const androidShare = useConfigState(s => s.androidShare)
   const androidShareItems =
@@ -325,14 +284,23 @@ const useIncomingShareItems = () => {
         : [{content: androidShare.text, type: T.RPCGen.IncomingShareType.text}]
       : undefined
 
+  // The share is consumed by this screen; clear it so a later cold-path
+  // getInitialURL doesn't resurface a stale share (see router-v2/linking.tsx).
+  const setAndroidShare = useConfigState(s => s.dispatch.setAndroidShare)
+  React.useEffect(() => {
+    return () => {
+      if (isAndroid) {
+        setAndroidShare(undefined)
+      }
+    }
+  }, [setAndroidShare])
+
   return {incomingShareError, incomingShareItems: androidShareItems ?? incomingShareItems}
 }
 
-type IncomingShareMainProps = {
-  selectedConversationIDKey?: T.Chat.ConversationIDKey
-}
+const LoadingSpinner = () => <Kb.LoadingScreen type="Large" />
 
-const IncomingShareMain = (props: IncomingShareMainProps) => {
+const IncomingShareMain = (props: SelectedConversationProps) => {
   const {incomingShareError, incomingShareItems} = useIncomingShareItems()
   return incomingShareError ? (
     <IncomingShareError />
@@ -342,9 +310,7 @@ const IncomingShareMain = (props: IncomingShareMainProps) => {
       selectedConversationIDKey={props.selectedConversationIDKey}
     />
   ) : (
-    <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-      <Kb.ProgressIndicator type="Large" />
-    </Kb.Box2>
+    <LoadingSpinner />
   )
 }
 
@@ -354,25 +320,21 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const incomingShareTypeToString = (
-  type: T.RPCGen.IncomingShareType,
-  capitalize: boolean,
-  plural: boolean
-): string => {
+const incomingShareTypeToString = (type: T.RPCGen.IncomingShareType, plural: boolean): string => {
   switch (type) {
     case T.RPCGen.IncomingShareType.file:
-      return (capitalize ? 'File' : 'file') + (plural ? 's' : '')
+      return 'file' + (plural ? 's' : '')
     case T.RPCGen.IncomingShareType.text:
-      return (capitalize ? 'Text snippet' : 'text snippet') + (plural ? 's' : '')
+      return 'text snippet' + (plural ? 's' : '')
     case T.RPCGen.IncomingShareType.image:
-      return (capitalize ? 'Image' : 'image') + (plural ? 's' : '')
+      return 'image' + (plural ? 's' : '')
     case T.RPCGen.IncomingShareType.video:
-      return (capitalize ? 'Video' : 'video') + (plural ? 's' : '')
+      return 'video' + (plural ? 's' : '')
   }
 }
 
-const isChatOnly = (items?: ReadonlyArray<T.RPCGen.IncomingShareItem>): boolean =>
-  items?.length === 1 &&
+const isChatOnly = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): boolean =>
+  items.length === 1 &&
   items[0]!.type === T.RPCGen.IncomingShareType.text &&
   !!items[0]!.content &&
   !items[0]!.originalPath

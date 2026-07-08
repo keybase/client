@@ -4,7 +4,7 @@ import {clearModals, navigateAppend, navigateToInbox, previewConversation} from 
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {addToTeam} from './actions'
-import {onTeamCreated} from './create-team-effects'
+import {invalidateLoadedTeams} from './use-teams-list'
 
 type UsersToAdd = Array<{assertion: string; role: T.Teams.TeamRoleType}>
 
@@ -24,7 +24,7 @@ export const createNewTeamAndNavigate = async (
       {joinSubteam, name: teamname},
       S.waitingKeyTeamsCreation
     )
-    onTeamCreated(teamID)
+    invalidateLoadedTeams()
     if (options?.usersToAdd?.length) {
       addToTeam(teamID, options.usersToAdd, false)
     }

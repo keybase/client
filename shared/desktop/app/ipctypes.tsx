@@ -39,6 +39,13 @@ export type Action =
         windowParam: string
       }
     }
+  | {
+      type: 'getRemoteProps'
+      payload: {
+        windowComponent: string
+        windowParam: string
+      }
+    }
   | {type: 'showMainWindow'}
   | {type: 'showContextMenu'; payload: {url: string}}
   | {type: 'setupPreloadKB2'}

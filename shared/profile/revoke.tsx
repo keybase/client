@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '@/util/platforms'
-import {SiteIcon} from './generic/shared'
+import {SiteIcon} from './generic/site-icon'
 import * as T from '@/constants/types'
 import Modal from './modal'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -86,15 +86,13 @@ const RevokeProof = (ownProps: OwnProps) => {
         <Kb.Text center={!isMobile} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
-        <Kb.ButtonBar>
-          <Kb.WaitingButton type="Dim" onClick={onCancel} label="Cancel" waitingKey={C.waitingKeyProfile} />
-          <Kb.WaitingButton
-            type="Danger"
-            onClick={onRevoke}
-            label={platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
-            waitingKey={C.waitingKeyProfile}
-          />
-        </Kb.ButtonBar>
+        <Kb.ConfirmButtons
+          waitingKey={C.waitingKeyProfile}
+          onCancel={onCancel}
+          onConfirm={onRevoke}
+          confirmLabel={platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
+          confirmType="Danger"
+        />
       </Kb.Box2>
     </Modal>
   )

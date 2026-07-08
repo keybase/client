@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {clientID as fsClientID} from '@/fs/common/client'
+import {produce} from 'immer'
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
@@ -22,7 +23,11 @@ const useFiles = () => {
   const readSettings = React.useCallback(async () => T.RPCGen.SimpleFSSimpleFSSettingsRpcPromise(), [])
   const loadSettings = React.useEffectEvent(async (showLoading: boolean) => {
     if (showLoading) {
-      setSettings(s => ({...s, isLoading: true}))
+      setSettings(
+        produce(draft => {
+          draft.isLoading = true
+        })
+      )
     }
     try {
       const next = await readSettings()
@@ -32,7 +37,11 @@ const useFiles = () => {
         syncOnCellular: next.syncOnCellular,
       })
     } catch {
-      setSettings(s => ({...s, isLoading: false}))
+      setSettings(
+        produce(draft => {
+          draft.isLoading = false
+        })
+      )
     }
   })
   React.useEffect(() => {
@@ -49,7 +58,11 @@ const useFiles = () => {
         }
       } catch {
         if (!canceled) {
-          setSettings(s => ({...s, isLoading: false}))
+          setSettings(
+            produce(draft => {
+              draft.isLoading = false
+            })
+          )
         }
       }
     }
@@ -68,12 +81,20 @@ const useFiles = () => {
 
   const setSpaceAvailableNotificationThreshold = (threshold: number) => {
     const f = async () => {
-      setSettings(s => ({...s, isLoading: true}))
+      setSettings(
+        produce(draft => {
+          draft.isLoading = true
+        })
+      )
       try {
         await T.RPCGen.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold})
         await loadSettings(true)
       } catch {
-        setSettings(s => ({...s, isLoading: false}))
+        setSettings(
+          produce(draft => {
+            draft.isLoading = false
+          })
+        )
       }
     }
     C.ignorePromise(f())

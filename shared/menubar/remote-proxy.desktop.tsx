@@ -8,7 +8,6 @@ import * as React from 'react'
 import KB2 from '@/util/electron'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import type {Props, Conversation, RemoteTlfUpdates} from './index.desktop'
-import {useColorScheme} from 'react-native'
 import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFollowerState} from '@/stores/followers'
@@ -359,7 +358,6 @@ function useMenubarRemoteProps(): Props {
   )
   useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh)
   const conversationsToSend = useWidgetConversationList(widgetList, badgeState)
-  const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const menuWindowShownCount = windowShownCount.get('menu') ?? 0
   const kbfsEnabled = useMenubarSfmiEnabled(
@@ -398,7 +396,6 @@ function useMenubarRemoteProps(): Props {
     ...upDown,
     conversationsToSend,
     daemonHandshakeState,
-    darkMode: isDarkMode,
     diskSpaceStatus,
     following,
     httpSrvAddress: httpSrv.address,

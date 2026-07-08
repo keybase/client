@@ -132,7 +132,7 @@ type Props = {
   fallbackStyle?: Styles.StylesCrossPlatform
 }
 
-const EB = (p: Props) => {
+const ErrorBoundary = (p: Props) => {
   const {children, fallbackStyle, closeOnClick} = p
   const [componentStack, setComponentStack] = React.useState('')
 
@@ -166,4 +166,4 @@ const styles = Styles.styleSheetCreate(
     }) as const
 )
 
-export default EB
+export default ErrorBoundary

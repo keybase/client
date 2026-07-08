@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadHighlightMessageID} from '@/constants/router'
+import {produce} from 'immer'
 import {useChatThreadRouteParams} from './thread-search-route'
 import {useThreadLoadStatusOptionsGetter} from './thread-load-status-context'
 import {
@@ -21,10 +22,7 @@ type CenterStateContextType = {
 }
 
 type CenterActionsContextType = {
-  centerOnMessage: (
-    messageID: T.Chat.MessageID,
-    highlightMode: T.Chat.CenterOrdinalHighlightMode
-  ) => void
+  centerOnMessage: (messageID: T.Chat.MessageID, highlightMode: T.Chat.CenterOrdinalHighlightMode) => void
   clearCenter: () => void
   jumpToRecent: () => void
 }
@@ -53,19 +51,18 @@ CenterActionsContext.displayName = 'ConversationCenterActionsContext'
 export const useConversationCenter = () => React.useContext(CenterStateContext)
 export const useConversationCenterActions = () => React.useContext(CenterActionsContext)
 
-const stateForThreadSearchVisible = (state: CenterState, threadSearchVisible: boolean): CenterState => {
-  if (state.threadSearchVisible === threadSearchVisible) {
-    return state
-  }
-  return {
-    center: threadSearchVisible
-      ? state.center
-        ? {...state.center, highlightMode: 'none'}
-        : undefined
-      : undefined,
-    threadSearchVisible,
-  }
-}
+const stateForThreadSearchVisible = (state: CenterState, threadSearchVisible: boolean): CenterState =>
+  produce(state, draft => {
+    if (draft.threadSearchVisible === threadSearchVisible) {
+      return
+    }
+    draft.threadSearchVisible = threadSearchVisible
+    if (threadSearchVisible && draft.center) {
+      draft.center.highlightMode = 'none'
+    } else {
+      draft.center = undefined
+    }
+  })
 
 export const ConversationCenterProvider = function ConversationCenterProvider(p: {
   children: React.ReactNode
@@ -91,23 +88,22 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     highlightMode: T.Chat.CenterOrdinalHighlightMode
   ) => {
     const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
-    setCenterState(state => ({
-      ...stateForThreadSearchVisible(state, threadSearchVisible),
-      center: {highlightMode, ordinal},
-    }))
+    setCenterState(state =>
+      produce(stateForThreadSearchVisible(state, threadSearchVisible), draft => {
+        draft.center = {highlightMode, ordinal}
+      })
+    )
   }
 
   const clearCenter = () => {
-    setCenterState(state => {
-      const current = stateForThreadSearchVisible(state, threadSearchVisible)
-      return current.center ? {...current, center: undefined} : current
-    })
+    setCenterState(state =>
+      produce(stateForThreadSearchVisible(state, threadSearchVisible), draft => {
+        draft.center = undefined
+      })
+    )
   }
 
-  const centerOnMessage = (
-    messageID: T.Chat.MessageID,
-    highlightMode: T.Chat.CenterOrdinalHighlightMode
-  ) => {
+  const centerOnMessage = (messageID: T.Chat.MessageID, highlightMode: T.Chat.CenterOrdinalHighlightMode) => {
     setCenterForMessage(messageID, highlightMode)
     loadMessagesCentered(messageID, highlightMode, {
       ...getThreadLoadStatusOptions(),

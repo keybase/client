@@ -1,6 +1,7 @@
 ## Rules
 - No `Co-Authored-By` in commits. Ever.
 - Never interact with the Electron app or iOS simulator (screenshots, driving UI, debug ports) without asking first. The user drives and takes screenshots.
+- Use `--no-ext-diff` with `git diff` (and `git show`/`git log -p`) so external diff tools don't hijack output.
 - "Was working before" = base branch, not previous commit. Base branch is almost always `nojima/HOTPOT-next-670-clean-2` (not `master`). Always run `gh pr view --json baseRefName` to confirm before any `git diff` or `git log` comparison.
 - Never use `npm`. Always `yarn`.
 - Never silently drop features/behavior — ask first, present options.

@@ -1,18 +1,9 @@
 import * as Common from '@/constants/chat/common'
-import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
-import * as TeamsUtil from '@/constants/teams'
 import * as React from 'react'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
-import {
-  getVisibleScreen,
-  navigateAppend,
-  navigateToInbox,
-  navigateToThread,
-  navigateUp,
-  setChatRootParams,
-} from '@/constants/router'
+import {getVisibleScreen, navigateAppend, navigateToThread, navigateUp, setChatRootParams} from '@/constants/router'
 import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
@@ -20,9 +11,6 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
-import {persistRoute} from '@/util/storeless-actions'
-import {uint8ArrayToString} from '@/util/uint8array'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {useConfigState} from '@/stores/config'
@@ -41,7 +29,6 @@ import {
   explodeMessagesInThreadState,
   failAttachmentDownloadInThreadState,
   finishAttachmentDownloadInThreadState,
-  getOrdinalForMessageID,
   type OptimisticReaction,
   retryMessageInThreadState,
   setMessageSubmitStateInThreadState,
@@ -56,16 +43,10 @@ import {
   getInboxConversationMeta,
   getInboxConversationParticipants,
   metasReceived,
-  participantInfoReceived,
   unboxRows,
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
-import {
-  loadThreadMessageIDAtIndex,
-  loadThreadNonblock,
-  markConversationRead,
-  threadLoadReasonToRPCReason,
-} from './thread-rpc'
+import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
 import {
   cancelConversationPost,
   createAdhocConversation,
@@ -74,9 +55,17 @@ import {
   postConversationReaction,
 } from './message-rpc'
 import {cancelActiveThreadSearchRPC} from '../search-rpc'
-
-const numMessagesOnInitialLoad = isMobile ? 20 : 100
-const numMessagesOnScrollback = 100
+import {
+  emptyConversationMeta,
+  getClientPrevFromSnapshot,
+  getExplodingModeFromConfig,
+  getMeta,
+  loadConversationThreadMessages,
+  numMessagesOnInitialLoad,
+  numMessagesOnScrollback,
+  persistExplodingMode,
+} from './thread-load'
+import {useThreadEngineListeners} from './thread-engine'
 
 const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
   if (a.size !== b.size) {
@@ -90,84 +79,10 @@ const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
   return true
 }
 
-const ignoreErrors = [
-  T.RPCGen.StatusCode.scgenericapierror,
-  T.RPCGen.StatusCode.scapinetworkerror,
-  T.RPCGen.StatusCode.sctimeout,
-]
-
-const makeEmptyParticipantInfo = (): T.Chat.ParticipantInfo => ({
+const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   all: [],
   contactName: new Map(),
   name: [],
-})
-
-const getExplodingModeFromGregorItems = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  items: ReadonlyArray<{item: T.RPCGen.Gregor1.Item}>
-) => {
-  const explodingItems = items.filter(i => i.item.category.startsWith(Common.explodingModeGregorKeyPrefix))
-  if (!explodingItems.length) {
-    return 0
-  }
-  const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
-  const item = explodingItems.find(i => i.item.category === category)
-  if (!item) {
-    // Other conversations have exploding modes but this one's category is absent,
-    // meaning it was dismissed: the mode is off.
-    return 0
-  }
-  const secondsString = uint8ArrayToString(item.item.body)
-  const seconds = parseInt(secondsString, 10)
-  if (isNaN(seconds)) {
-    logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-    return undefined
-  }
-  return seconds
-}
-
-const getExplodingModeFromConfig = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getExplodingModeFromGregorItems(conversationIDKey, useConfigState.getState().gregorPushState) ?? 0
-
-const persistExplodingMode = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  meta: T.Chat.ConversationMeta,
-  seconds: number
-) => {
-  const f = async () => {
-    logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-    const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
-    const convRetention = Meta.getEffectiveRetentionPolicy(meta)
-    try {
-      if (seconds === 0 || seconds === convRetention.seconds) {
-        await T.RPCGen.gregorDismissCategoryRpcPromise({category})
-      } else {
-        await T.RPCGen.gregorUpdateCategoryRpcPromise({
-          body: seconds.toString(),
-          category,
-          dtime: {offset: 0, time: 0},
-        })
-        logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-      }
-    } catch (error) {
-      if (error instanceof RPCError) {
-        if (seconds !== 0) {
-          logger.error(
-            `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${error.message}`
-          )
-        } else {
-          logger.error(
-            `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${error.message}`
-          )
-        }
-        if (ignoreErrors.includes(error.code)) {
-          return
-        }
-      }
-      throw error
-    }
-  }
-  ignorePromise(f())
 }
 
 const formatTextForQuoting = (text: string) =>
@@ -175,15 +90,6 @@ const formatTextForQuoting = (text: string) =>
     .split('\n')
     .map(line => `> ${line}\n`)
     .join('')
-
-const getClientPrevFromSnapshot = (snapshot: ConversationThreadState): T.Chat.MessageID => {
-  const ordinal = findLast(snapshot.messageOrdinals ?? [], o => {
-    const m = snapshot.messageMap.get(o)
-    return !!m?.id
-  })
-  const message = ordinal ? snapshot.messageMap.get(ordinal) : undefined
-  return message?.id || T.Chat.numberToMessageID(0)
-}
 
 const ConversationThreadIDContext = React.createContext<T.Chat.ConversationIDKey | undefined>(undefined)
 ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
@@ -194,7 +100,6 @@ export type ConversationThreadState = {
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean
   liveUpdateVersion: number
-  meta: T.Chat.ConversationMeta
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
@@ -203,7 +108,6 @@ export type ConversationThreadState = {
   moreToLoadForward: boolean
   optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
-  participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   typing: Set<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
@@ -234,11 +138,9 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>(),
       messageOrdinals: undefined as ReadonlyArray<T.Chat.Ordinal> | undefined,
       messageTypeMap: new Map<T.Chat.Ordinal, T.Chat.RenderMessageType>(),
-      meta: Meta.makeConversationMeta(),
       moreToLoadBack: false,
       moreToLoadForward: false,
       optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
-      participants: makeEmptyParticipantInfo(),
       paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       typing: new Set<string>(),
@@ -249,15 +151,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
   )
 
 const makeInitialThreadState = (id: T.Chat.ConversationIDKey) => {
-  const meta = getInboxConversationMeta(id)
-  const participants = getInboxConversationParticipants(id)
   return produce(makeEmptyThreadState(), s => {
-    if (meta) {
-      s.meta = T.castDraft(meta)
-    }
-    if (participants) {
-      s.participants = T.castDraft(participants)
-    }
     s.explodingMode = getExplodingModeFromConfig(id)
   })
 }
@@ -275,8 +169,8 @@ type SelectedConversationOptions = ThreadLoadStatusOptions & {
   skipThreadLoad?: boolean
 }
 
-type ScrollDirection = 'none' | 'back' | 'forward'
-type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
+export type ScrollDirection = 'none' | 'back' | 'forward'
+export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   allowMarkAsRead?: boolean
   centeredMessageID?: {
     conversationIDKey: T.Chat.ConversationIDKey
@@ -307,7 +201,7 @@ type LoadNewerMessagesDueToScroll = (
 type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
 type MessagesClear = () => void
 type SelectedConversation = (options?: SelectedConversationOptions) => void
-type ConversationThreadActions = {
+export type ConversationThreadActions = {
   addMessages: (
     messages: ReadonlyArray<T.Chat.Message>,
     opt?: {
@@ -351,11 +245,9 @@ type ConversationThreadActions = {
   receiveRequestInfo: (messageID: T.Chat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => void
   retryMessage: (outboxID: T.Chat.OutboxID) => void
   setExplodingMode: (seconds: number, incoming?: boolean) => void
-  setMeta: (meta?: T.Chat.ConversationMeta) => void
   setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
   setMessageSubmitState: (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => void
   setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
-  setParticipants: (participants: T.Chat.ParticipantInfo) => void
   setTyping: (typing: ReadonlySet<string>) => void
   showUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   addOptimisticReaction: (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => void
@@ -379,7 +271,6 @@ type ConversationThreadActions = {
     bytesComplete?: number,
     bytesTotal?: number
   ) => void
-  updateMeta: (meta: Partial<T.Chat.ConversationMeta>) => void
 }
 
 const ConversationThreadActionsContext = React.createContext<ConversationThreadActions | undefined>(
@@ -428,463 +319,6 @@ const useScrollLoadGate = () => {
   }
 }
 
-const scrollDirectionToPagination = (
-  scrollDirection: ScrollDirection,
-  numberOfMessagesToLoad: number
-) => {
-  const pagination = {
-    last: false,
-    next: '',
-    num: numberOfMessagesToLoad,
-    previous: '',
-  }
-  switch (scrollDirection) {
-    case 'none':
-      break
-    case 'back':
-      pagination.next = 'deadbeef'
-      break
-    case 'forward':
-      pagination.previous = 'deadbeef'
-  }
-  return pagination
-}
-
-const getCurrentUser = () => {
-  const s = useCurrentUserState.getState()
-  return {devicename: s.deviceName, username: s.username}
-}
-
-const getLastOrdinalFromSnapshot = (snapshot: ConversationThreadState) =>
-  snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-
-const getOrdinalForMessageIDInSnapshot = (
-  snapshot: ConversationThreadState,
-  messageID: T.Chat.MessageID
-) =>
-  getOrdinalForMessageID(
-    snapshot.messageMap,
-    snapshot.pendingOutboxToOrdinal,
-    messageID,
-    snapshot.messageIDToOrdinal
-  )
-
-const applyMessagesUpdatedToThread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  messagesUpdated: T.RPCChat.MessagesUpdated,
-  actions: ConversationThreadActions
-) => {
-  if (!messagesUpdated.updates) return
-  const snapshot = actions.getSnapshot()
-  const activelyLookingAtThread = Common.isUserActivelyLookingAtThisThread(conversationIDKey)
-  if (!snapshot.loaded && !activelyLookingAtThread) {
-    return
-  }
-
-  const {username, devicename} = getCurrentUser()
-  const messages = messagesUpdated.updates.flatMap(uimsg => {
-    if (!Message.getMessageID(uimsg)) return []
-    const message = Message.uiMessageToMessage(
-      conversationIDKey,
-      uimsg,
-      username,
-      () => getLastOrdinalFromSnapshot(actions.getSnapshot()),
-      devicename
-    )
-    return message ? [message] : []
-  })
-  if (messages.length === 0) {
-    return
-  }
-  actions.addMessages(messages, {liveUpdate: true, markAsRead: activelyLookingAtThread})
-}
-
-const applyIncomingMutationToThread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  valid: T.RPCChat.UIMessageValid,
-  modifiedMessage: T.RPCChat.UIMessage | null | undefined,
-  actions: ConversationThreadActions
-) => {
-  const body = valid.messageBody
-  logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
-  const mutationOrdinal = T.Chat.numberToOrdinal(valid.messageID)
-  if (actions.getSnapshot().messageMap.has(mutationOrdinal)) {
-    actions.deleteMessages({liveUpdate: true, ordinals: [mutationOrdinal]})
-  }
-
-  switch (body.messageType) {
-    case T.RPCChat.MessageType.edit:
-      if (modifiedMessage) {
-        const {username, devicename} = getCurrentUser()
-        const modMessage = Message.uiMessageToMessage(
-          conversationIDKey,
-          modifiedMessage,
-          username,
-          () => getLastOrdinalFromSnapshot(actions.getSnapshot()),
-          devicename
-        )
-        if (modMessage) {
-          actions.addMessages([modMessage], {liveUpdate: true})
-        }
-      }
-      return true
-    case T.RPCChat.MessageType.delete: {
-      const {delete: d} = body
-      if (d.messageIDs) {
-        const messageIDs = T.Chat.numbersToMessageIDs(d.messageIDs)
-        const snapshot = actions.getSnapshot()
-        const isExplodeNow = messageIDs.some(id => {
-          const ordinal = getOrdinalForMessageIDInSnapshot(snapshot, id)
-          const message = ordinal ? snapshot.messageMap.get(ordinal) : undefined
-          return !!((message?.type === 'text' || message?.type === 'attachment') && message.exploding)
-        })
-
-        if (isExplodeNow) {
-          actions.explodeMessages(messageIDs, valid.senderUsername, true)
-        } else {
-          actions.deleteMessages({liveUpdate: true, messageIDs})
-        }
-      }
-      return true
-    }
-    default:
-      return false
-  }
-}
-
-const applyIncomingMessageToThread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  incomingMessage: T.RPCChat.IncomingMessage,
-  actions: ConversationThreadActions
-) => {
-  const snapshot = actions.getSnapshot()
-  const activelyLookingAtThread = Common.isUserActivelyLookingAtThisThread(conversationIDKey)
-  if (!snapshot.loaded && !activelyLookingAtThread) {
-    return
-  }
-  const {message: cMsg, modifiedMessage} = incomingMessage
-  const {username, devicename} = getCurrentUser()
-
-  if (
-    cMsg.state === T.RPCChat.MessageUnboxedState.outbox &&
-    cMsg.outbox.messageType === T.RPCChat.MessageType.reaction
-  ) {
-    actions.updateOptimisticReactionDecorated(
-      T.Chat.stringToOutboxID(cMsg.outbox.outboxID),
-      cMsg.outbox.decoratedTextBody ?? cMsg.outbox.body
-    )
-    return
-  }
-
-  if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
-    const {valid} = cMsg
-    const {messageType} = valid.messageBody
-    if (
-      (messageType === T.RPCChat.MessageType.edit || messageType === T.RPCChat.MessageType.delete) &&
-      applyIncomingMutationToThread(conversationIDKey, valid, modifiedMessage, actions)
-    ) {
-      return
-    }
-  }
-
-  const message = Message.uiMessageToMessage(
-    conversationIDKey,
-    cMsg,
-    username,
-    () => getLastOrdinalFromSnapshot(actions.getSnapshot()),
-    devicename
-  )
-  if (!message) return
-
-  if (
-    cMsg.state === T.RPCChat.MessageUnboxedState.valid &&
-    cMsg.valid.messageBody.messageType === T.RPCChat.MessageType.attachmentuploaded &&
-    message.type === 'attachment'
-  ) {
-    const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
-    const snapshot = actions.getSnapshot()
-    const ordinal = getOrdinalForMessageIDInSnapshot(snapshot, T.Chat.numberToMessageID(placeholderID))
-    const existing = ordinal ? snapshot.messageMap.get(ordinal) : undefined
-    if (ordinal && existing) {
-      actions.addMessages([Message.upgradeMessage(existing, {...message, ordinal})], {
-        liveUpdate: true,
-        markAsRead: activelyLookingAtThread,
-      })
-    } else {
-      if (snapshot.moreToLoadForward) {
-        return
-      }
-      actions.addMessages([message], {liveUpdate: true, markAsRead: activelyLookingAtThread})
-    }
-  } else {
-    if (actions.getSnapshot().moreToLoadForward) {
-      return
-    }
-    actions.addMessages([message], {liveUpdate: true, markAsRead: activelyLookingAtThread})
-  }
-}
-
-const applyFailedMessageToThread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  failedMessage: T.RPCChat.FailedMessageInfo,
-  actions: ConversationThreadActions
-) => {
-  const {outboxRecords} = failedMessage
-  if (!outboxRecords) return
-  for (const outboxRecord of outboxRecords) {
-    if (T.Chat.conversationIDToKey(outboxRecord.convID) !== conversationIDKey) {
-      continue
-    }
-    const s = outboxRecord.state
-    if (s.state !== T.RPCChat.OutboxStateType.error) {
-      continue
-    }
-    const {error} = s
-    const outboxID = T.Chat.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
-    actions.setMessageErrored(outboxID, Message.rpcErrorToString(error), error.typ)
-  }
-}
-
-const applyReactionUpdateToThread = (
-  reactionUpdate: T.RPCChat.ReactionUpdateNotif,
-  actions: ConversationThreadActions
-) => {
-  if (!reactionUpdate.reactionUpdates || reactionUpdate.reactionUpdates.length === 0) {
-    return
-  }
-  const updates = reactionUpdate.reactionUpdates.map(ru => ({
-    reactions: Message.reactionMapToReactions(ru.reactions),
-    targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
-  }))
-  actions.updateReactions(updates)
-}
-
-const applyExpungeToThread = (expunge: T.RPCChat.ExpungeInfo, actions: ConversationThreadActions) => {
-  const deletableMessageTypes =
-    useConfigState.getState().chatDeletableByDeleteHistory || Common.allMessageTypes
-  actions.deleteMessages({
-    deletableMessageTypes,
-    liveUpdate: true,
-    upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
-  })
-}
-
-const applyEphemeralPurgeToThread = (
-  ephemeralPurge: T.RPCChat.EphemeralPurgeNotifInfo,
-  actions: ConversationThreadActions
-) => {
-  const messageIDs = ephemeralPurge.msgs?.reduce<Array<T.Chat.MessageID>>((arr, msg) => {
-    const msgID = Message.getMessageID(msg)
-    if (msgID) {
-      arr.push(msgID)
-    }
-    return arr
-  }, [])
-  if (messageIDs) {
-    actions.explodeMessages(messageIDs, undefined, true)
-  }
-}
-
-const applyConversationMetaToThread = (
-  meta: T.Chat.ConversationMeta | undefined,
-  actions: ConversationThreadActions
-) => {
-  if (!meta) {
-    return
-  }
-  const oldMeta = actions.getSnapshot().meta
-  if (oldMeta.conversationIDKey === meta.conversationIDKey) {
-    actions.setMeta(Meta.updateMeta(oldMeta, meta))
-  } else {
-    actions.setMeta(meta)
-  }
-}
-
-const applyInboxUIItemToThread = (
-  conv: T.RPCChat.InboxUIItem | null | undefined,
-  actions: ConversationThreadActions
-) => {
-  if (conv) {
-    applyConversationMetaToThread(Meta.inboxUIItemToConversationMeta(conv), actions)
-  }
-}
-
-const loadConversationThreadMessages = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  p: LoadMoreMessagesParams,
-  actions: ConversationThreadActions
-) => {
-  if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
-    return
-  }
-  const {scrollDirection = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
-  const {
-    allowMarkAsRead = true,
-    reason,
-    forceContainsLatestCalc,
-    messageIDControl,
-    knownRemotes,
-    centeredMessageID,
-    isThreadLoadCurrent,
-    onThreadLoadStatus,
-  } = p
-  const isCurrentThreadLoad = () => isThreadLoadCurrent?.() ?? true
-
-  const f = async () => {
-    if (!isCurrentThreadLoad()) {
-      logger.info('loadMoreMessages: bail: stale mounted thread load')
-      return
-    }
-
-    if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-      logger.info('loadMoreMessages: bail: no conversationIDKey')
-      return
-    }
-
-    const loadStartedSnapshot = actions.getSnapshot()
-    const currentMeta = loadStartedSnapshot.meta
-    if (currentMeta.membershipType === 'youAreReset' || currentMeta.rekeyers.size > 0) {
-      logger.info('loadMoreMessages: bail: we are reset')
-      return
-    }
-    const loadStartedLiveUpdateVersion = loadStartedSnapshot.liveUpdateVersion
-    const protectLoadedFocusRefresh =
-      loadStartedSnapshot.loaded &&
-      scrollDirection === 'none' &&
-      !centeredMessageID &&
-      !messageIDControl &&
-      (reason === 'focused' || reason === 'tab selected')
-    logger.info(
-      `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
-    )
-
-    const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-    let reconciled = false
-    const onGotThread = (thread: string, why: string) => {
-      if (!thread) {
-        return
-      }
-      if (!isCurrentThreadLoad()) {
-        logger.info(`loadMoreMessages: stale response ignored: ${why}`)
-        return
-      }
-      if (
-        protectLoadedFocusRefresh &&
-        actions.getSnapshot().liveUpdateVersion !== loadStartedLiveUpdateVersion
-      ) {
-        logger.info(
-          `loadMoreMessages: stale response ignored after live update: ${why} reason=${reason} convID=${conversationIDKey}`
-        )
-        return
-      }
-
-      const {username, devicename} = getCurrentUser()
-      const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
-
-      const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
-        const message = Message.uiMessageToMessage(
-          conversationIDKey,
-          m,
-          username,
-          () => getLastOrdinalFromSnapshot(actions.getSnapshot()),
-          devicename
-        )
-        if (message) {
-          arr.push(message)
-        }
-        return arr
-      }, [])
-
-      const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-      const canMarkReadForThreadWindow =
-        allowMarkAsRead &&
-        !centeredMessageID &&
-        !messageIDControl &&
-        scrollDirection !== 'back' &&
-        reason !== 'findNewestConversation' &&
-        reason !== 'findNewestConversationFromLayout'
-      let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
-      if (messages.length) {
-        if (scrollDirection === 'none' && !reconciled) {
-          const ords = messages
-            .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
-            .map(m => m.ordinal)
-          if (ords.length > 0) {
-            validatedRange = {
-              from: Math.min(...ords) as T.Chat.Ordinal,
-              to: Math.max(...ords) as T.Chat.Ordinal,
-            }
-          }
-          reconciled = true
-        }
-      }
-      actions.applyThreadLoad({
-        centered: !!centeredMessageID,
-        disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
-        enableActiveMarkRead: canMarkReadForThreadWindow,
-        forceContainsLatestCalc,
-        messages,
-        moreToLoad,
-        scrollDirection,
-        validatedRange,
-      })
-
-      if (canMarkReadForThreadWindow) {
-        actions.markThreadAsRead()
-      }
-    }
-
-    const pagination = messageIDControl
-      ? null
-      : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
-    try {
-      const results = await loadThreadNonblock({
-        conversationIDKey,
-        knownRemotes,
-        messageIDControl,
-        onCachedThread: thread => onGotThread(thread, 'cached'),
-        onFullThread: thread => onGotThread(thread, 'full'),
-        onThreadStatus: status => {
-          logger.info(
-            `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${status.typ}`
-          )
-          if (isCurrentThreadLoad()) {
-            onThreadLoadStatus?.(conversationIDKey, status.typ)
-          }
-        },
-        pagination,
-        reason: threadLoadReasonToRPCReason(reason),
-        waitingKey: loadingKey,
-      })
-      if (!isCurrentThreadLoad()) {
-        return
-      }
-      if (actions.getSnapshot().meta.conversationIDKey === conversationIDKey) {
-        actions.updateMeta({offline: results.offline})
-      }
-    } catch (error) {
-      if (!isCurrentThreadLoad()) {
-        return
-      }
-      if (error instanceof RPCError) {
-        logger.warn(`loadMoreMessages: error: ${error.desc}`)
-        if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-          // We're no longer in this conv's team. Clear the persisted last-route
-          // (ui.routeState2) so app startup doesn't keep restoring and reloading
-          // this conv, which would re-trigger this error on every launch.
-          persistRoute(true, true, () => useConfigState.getState().startup.loaded)
-          navigateToInbox(true, 'maybeKickedFromTeam')
-        }
-        if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
-          throw error
-        }
-      }
-    }
-  }
-
-  ignorePromise(f())
-}
-
 export const useConversationThreadSelector = <TValue,>(
   selector: (snapshot: ConversationThreadState) => TValue
 ) => {
@@ -901,6 +335,16 @@ export const useConversationThreadStore = () => {
     throw new Error('Missing ConversationThreadProvider state in the tree')
   }
   return store
+}
+
+// Reads the meta for the current thread from its single owner (the inbox metadata
+// store). Pass a narrow selector (wrap object results in C.useShallow) so render-hot
+// callers don't re-render on unrelated meta churn (e.g. draft updates).
+export const useThreadMeta = <TValue,>(
+  selector: (meta: T.Immutable<T.Chat.ConversationMeta>) => TValue
+): TValue => {
+  const id = useConversationThreadID()
+  return useInboxMetadataState(s => selector(s.metas.get(id) ?? emptyConversationMeta))
 }
 
 type ConversationThreadProviderProps = React.PropsWithChildren<{
@@ -993,7 +437,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         logger.info(`marking read messages ${id} failed due to no id`)
         return
       }
-      if (snapshot.meta.conversationIDKey === id && readMsgID === snapshot.meta.readMsgID) {
+      if (readMsgID === getInboxConversationMeta(id)?.readMsgID) {
         logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
         return
       }
@@ -1066,7 +510,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
             // moreToLoadForward true would drop live incoming messages and block mark-read.
             let containsLatest = false
             if (p.centered && p.forceContainsLatestCalc) {
-              const {maxVisibleMsgID} = s.meta
+              const {maxVisibleMsgID} = getMeta(id)
               const ordinal = findLast(s.messageOrdinals ?? [], o => !!s.messageMap.get(o)?.id)
               const message = ordinal ? s.messageMap.get(ordinal) : undefined
               containsLatest = !!message?.id && maxVisibleMsgID > 0 && message.id >= maxVisibleMsgID
@@ -1141,31 +585,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       s.explodingMode = seconds
     })
     if (!incoming) {
-      persistExplodingMode(id, getSnapshot().meta, seconds)
+      persistExplodingMode(id, getMeta(id), seconds)
     }
-  })
-  const setMeta = React.useEffectEvent((meta?: T.Chat.ConversationMeta) => {
-    updateThreadState(s => {
-      s.meta = T.castDraft(meta ?? Meta.makeConversationMeta())
-    })
-    if (meta) {
-      metasReceived([getSnapshot().meta])
-    }
-  })
-  const updateMeta = React.useEffectEvent((meta: Partial<T.Chat.ConversationMeta>) => {
-    updateThreadState(s => {
-      Object.assign(s.meta, meta)
-    })
-    const nextMeta = getSnapshot().meta
-    if (nextMeta.conversationIDKey === id) {
-      metasReceived([nextMeta])
-    }
-  })
-  const setParticipants = React.useEffectEvent((participants: T.Chat.ParticipantInfo) => {
-    updateThreadState(s => {
-      s.participants = T.castDraft(participants)
-    })
-    participantInfoReceived(id, participants, getSnapshot().meta)
   })
   const setMarkAsUnread = React.useEffectEvent((readMsgID?: T.Chat.MessageID | false) => {
     if (readMsgID === false) {
@@ -1177,7 +598,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         return
       }
       const snapshot = getSnapshot()
-      const unreadLineID = readMsgID ? readMsgID : snapshot.meta.maxVisibleMsgID
+      const unreadLineID = readMsgID ? readMsgID : getMeta(id).maxVisibleMsgID
       let msgID = unreadLineID
 
       if (snapshot.messageMap.size) {
@@ -1234,7 +655,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         revertDeleting()
         return
       }
-      if (snapshot.meta.conversationIDKey !== id) {
+      if (!getInboxConversationMeta(id)) {
         logger.warn('Deleting message w/ no meta')
         revertDeleting()
         return
@@ -1253,7 +674,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         await postConversationDelete({
           conversationIDKey: id,
           messageID: message.id,
-          tlfName: snapshot.meta.tlfname,
+          tlfName: getMeta(id).tlfname,
         })
       } catch (error) {
         revertDeleting()
@@ -1390,7 +811,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
           conversationIDKey: id,
           messageID,
           outboxID,
-          tlfName: snapshot.meta.tlfname,
+          tlfName: getMeta(id).tlfname,
         })
       } catch (error) {
         removeOptimisticReaction(localOutboxID)
@@ -1403,15 +824,14 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
   const unfurlRemove = React.useEffectEvent((messageID: T.Chat.MessageID) => {
     const f = async () => {
-      const snapshot = getSnapshot()
-      if (snapshot.meta.conversationIDKey !== id) {
+      if (!getInboxConversationMeta(id)) {
         logger.debug('unfurl remove no meta found, aborting!')
         return
       }
       await postConversationDelete({
         conversationIDKey: id,
         messageID,
-        tlfName: snapshot.meta.tlfname,
+        tlfName: getMeta(id).tlfname,
       })
     }
     ignorePromise(f())
@@ -1550,29 +970,23 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
   )
   const [threadActions] = React.useState<ConversationThreadActions>(() => {
-    const threadActionsHolder: {current?: ConversationThreadActions} = {}
-    const loadMoreMessagesImpl = (p: LoadMoreMessagesParams) => {
-      const actions = threadActionsHolder.current
-      if (actions) {
-        loadConversationThreadMessages(id, p, actions)
-      }
-    }
-    const throttledLoadMoreMessages = throttle(loadMoreMessagesImpl, 500)
+    const impl = (p: LoadMoreMessagesParams) => loadConversationThreadMessages(id, p, threadActions)
+    const throttled = throttle(impl, 500)
     // The throttle keeps only the last trailing call, so a centered or jump-to-recent
     // load issued between two other loads would be silently dropped — after
     // loadMessagesCentered already cleared the thread. Run those immediately instead.
     const loadMoreMessages: LoadMoreMessages = Object.assign(
       (p: LoadMoreMessagesParams) => {
         if (p.centeredMessageID || p.messageIDControl || p.reason === 'jump to recent') {
-          throttledLoadMoreMessages.cancel()
-          loadMoreMessagesImpl(p)
+          throttled.cancel()
+          impl(p)
         } else {
-          throttledLoadMoreMessages(p)
+          throttled(p)
         }
       },
       {
         cancel: () => {
-          throttledLoadMoreMessages.cancel()
+          throttled.cancel()
         },
       }
     )
@@ -1603,8 +1017,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       setMarkReadBlocked,
       setMessageErrored,
       setMessageSubmitState,
-      setMeta,
-      setParticipants,
       setTyping,
       showUnfurlPrompt,
       startAttachmentDownload,
@@ -1614,11 +1026,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       updateAttachmentDownloadProgress,
       updateAttachmentUploadProgress,
       updateCoinFlipStatuses,
-      updateMeta,
       updateOptimisticReactionDecorated,
       updateReactions,
     }
-    threadActionsHolder.current = threadActions
     return threadActions
   })
   React.useEffect(() => {
@@ -1626,270 +1036,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       threadActions.loadMoreMessages.cancel()
     }
   }, [threadActions])
-  const inboxParticipants = useInboxMetadataState(s => s.participants.get(id))
-  React.useEffect(() => {
-    if (!inboxParticipants) {
-      return
-    }
-    updateThreadState(s => {
-      s.participants = T.castDraft(inboxParticipants)
-    })
-  }, [inboxParticipants])
-  useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
-    const {activity} = action.payload.params
-    switch (activity.activityType) {
-      case T.RPCChat.ChatActivityType.incomingMessage: {
-        const {incomingMessage} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
-        if (conversationIDKey === id) {
-          applyInboxUIItemToThread(incomingMessage.conv, threadActions)
-          applyIncomingMessageToThread(conversationIDKey, incomingMessage, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.setStatus: {
-        const {setStatus} = activity
-        const conversationIDKey = setStatus.conv
-          ? T.Chat.stringToConversationIDKey(setStatus.conv.convID)
-          : T.Chat.noConversationIDKey
-        if (conversationIDKey === id) {
-          applyInboxUIItemToThread(setStatus.conv, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.readMessage: {
-        const {readMessage} = activity
-        const conversationIDKey = readMessage.conv
-          ? T.Chat.stringToConversationIDKey(readMessage.conv.convID)
-          : T.Chat.noConversationIDKey
-        if (conversationIDKey === id) {
-          applyInboxUIItemToThread(readMessage.conv, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.newConversation: {
-        const {newConversation} = activity
-        const conversationIDKey = newConversation.conv
-          ? T.Chat.stringToConversationIDKey(newConversation.conv.convID)
-          : T.Chat.noConversationIDKey
-        if (conversationIDKey === id) {
-          applyInboxUIItemToThread(newConversation.conv, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
-        const {setAppNotificationSettings} = activity
-        if (T.Chat.conversationIDToKey(setAppNotificationSettings.convID) === id) {
-          threadActions.updateMeta(Meta.parseNotificationSettings(setAppNotificationSettings.settings))
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.messagesUpdated: {
-        const {messagesUpdated} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)
-        if (conversationIDKey === id) {
-          applyMessagesUpdatedToThread(conversationIDKey, messagesUpdated, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.failedMessage: {
-        const {failedMessage} = activity
-        applyInboxUIItemToThread(failedMessage.conv, threadActions)
-        applyFailedMessageToThread(id, failedMessage, threadActions)
-        break
-      }
-      case T.RPCChat.ChatActivityType.reactionUpdate: {
-        const {reactionUpdate} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(reactionUpdate.convID)
-        if (conversationIDKey === id) {
-          applyReactionUpdateToThread(reactionUpdate, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.expunge: {
-        const {expunge} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(expunge.convID)
-        if (conversationIDKey === id) {
-          applyExpungeToThread(expunge, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.ephemeralPurge: {
-        const {ephemeralPurge} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(ephemeralPurge.convID)
-        if (conversationIDKey === id) {
-          applyEphemeralPurgeToThread(ephemeralPurge, threadActions)
-        }
-        break
-      }
-      default:
-    }
-  })
-  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
-    const items = (action.payload.params.state.items ?? []).reduce<
-      Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
-    >((arr, {md, item}) => {
-      if (md && item) {
-        arr.push({item, md})
-      }
-      return arr
-    }, [])
-    const seconds = getExplodingModeFromGregorItems(id, items)
-    if (seconds !== undefined) {
-      threadActions.setExplodingMode(seconds, true)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatConvUpdate', action => {
-    const {conv} = action.payload.params
-    const conversationIDKey = conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
-    if (conversationIDKey === id) {
-      applyInboxUIItemToThread(conv, threadActions)
-    }
-  })
-  useEngineActionListener('chat.1.chatUi.chatInboxFailed', action => {
-    const {convID, error} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const {meta, participants} = Meta.inboxUIItemErrorToConversationMetaAndParticipants(
-      error,
-      useCurrentUserState.getState().username,
-      threadActions.getSnapshot().meta
-    )
-    if (meta) {
-      threadActions.setMeta(meta)
-    }
-    if (participants) {
-      threadActions.setParticipants(participants)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvSettings', action => {
-    const {conv, convID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const newRole = conv?.convSettings?.minWriterRoleInfo?.role
-    const role = newRole && TeamsUtil.teamRoleByEnum[newRole]
-    const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
-    if (role) {
-      threadActions.updateMeta({cannotWrite, minWriterRole: role})
-    } else {
-      logger.warn(
-        `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${id}. The local version may be out of date.`
-      )
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvRetention', action => {
-    const {conv, convID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    if (!conv) {
-      logger.warn('onChatSetConvRetention: no conv given')
-      return
-    }
-    const meta = Meta.inboxUIItemToConversationMeta(conv)
-    if (!meta) {
-      logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
-      return
-    }
-    applyConversationMetaToThread(meta, threadActions)
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
-    const meta = (action.payload.params.convs ?? []).reduce<T.Chat.ConversationMeta | undefined>(
-      (found, conv) => {
-        if (found) {
-          return found
-        }
-        const meta = Meta.inboxUIItemToConversationMeta(conv)
-        return meta?.conversationIDKey === id ? meta : undefined
-      },
-      undefined
-    )
-    if (meta) {
-      applyConversationMetaToThread(meta, threadActions)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatParticipantsInfo', action => {
-    const participants = action.payload.params.participants?.[id]
-    if (participants) {
-      threadActions.setParticipants(Common.uiParticipantsToParticipantInfo(participants))
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatRequestInfo', action => {
-    const {convID, info, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
-    if (!requestInfo) {
-      logger.error(
-        `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-      )
-      return
-    }
-    threadActions.receiveRequestInfo(T.Chat.numberToMessageID(msgID), requestInfo)
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatPaymentInfo', action => {
-    const {convID, info, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
-    if (!paymentInfo) {
-      logger.error(
-        `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-      )
-      return
-    }
-    threadActions.receivePaymentInfo(T.Chat.numberToMessageID(msgID), paymentInfo)
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatPromptUnfurl', action => {
-    const {convID, domain, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    threadActions.showUnfurlPrompt(T.Chat.numberToMessageID(msgID), domain)
-  })
-  useEngineActionListener('chat.1.chatUi.chatCoinFlipStatus', action => {
-    const statuses = action.payload.params.statuses?.filter(status => {
-      return T.Chat.stringToConversationIDKey(status.convID) === id
-    })
-    if (statuses?.length) {
-      threadActions.updateCoinFlipStatuses(statuses)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatTypingUpdate', action => {
-    action.payload.params.typingUpdates?.forEach(update => {
-      if (T.Chat.conversationIDToKey(update.convID) === id) {
-        threadActions.setTyping(new Set(update.typers?.map(typer => typer.username)))
-      }
-    })
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentDownloadProgress', action => {
-    const {bytesComplete, bytesTotal, convID, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.updateAttachmentDownloadProgress(msgID, bytesComplete, bytesTotal)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentDownloadComplete', action => {
-    const {convID, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.completeAttachmentDownload(msgID)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentUploadStart', action => {
-    const {convID, outboxID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.updateAttachmentUploadProgress(outboxID)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentUploadProgress', action => {
-    const {bytesComplete, bytesTotal, convID, outboxID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.updateAttachmentUploadProgress(outboxID, bytesComplete, bytesTotal)
-    }
-  })
+  useThreadEngineListeners(id, threadActions)
 
   return (
     <ConversationThreadContextProvider
@@ -2057,7 +1204,6 @@ export const useConversationThreadMessageActions = () => {
 export const useConversationThreadSelectedConversation = () => {
   const conversationIDKey = useConversationThreadID()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const participantInfo = useConversationThreadSelector(s => s.participants)
 
   const selectedConversation: SelectedConversation = (options?: SelectedConversationOptions) => {
     const {skipThreadLoad, ...loadStatusOptions} = options ?? {}
@@ -2066,6 +1212,7 @@ export const useConversationThreadSelectedConversation = () => {
     unboxRows([conversationIDKey])
 
     const username = useCurrentUserState.getState().username
+    const participantInfo = getInboxConversationParticipants(conversationIDKey) ?? emptyParticipantInfo
     const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
     if (otherParticipants.length === 1) {
       const otherUsername = otherParticipants[0] || ''

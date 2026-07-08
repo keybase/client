@@ -1,6 +1,6 @@
 import * as Tabs from '@/constants/tabs'
 import {isSplit} from '@/constants/chat/layout'
-import {isValidConversationIDKey} from '@/constants/types/chat/common'
+import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import type * as UsePushStateType from '@/stores/push'
@@ -187,9 +187,13 @@ const customGetStateFromPath = (
       break
     }
 
-    // keybase://incoming-share[/{conversationIDKey}]
+    // keybase://incoming-share/{conversationIDKey?} — convID present when the user
+    // picked a donated conversation directly in the share sheet
     case 'incoming-share':
-      return makeModalState('incomingShareNew', parts[1] ? {selectedConversationIDKey: parts[1]} : undefined)
+      return makeModalState(
+        'incomingShareNew',
+        parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : undefined
+      )
 
     // keybase://settingsPushPrompt
     case 'settingsPushPrompt':

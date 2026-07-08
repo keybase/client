@@ -38,7 +38,8 @@ export const config: WebdriverIO.Config = {
   port,
   path: '/',
   // One aggregate file → one session for the whole suite (see all.test.ts).
-  specs: ['./all.test.ts'],
+  // KB_IOS_SPEC overrides for fast single-flow iteration during development.
+  specs: [process.env['KB_IOS_SPEC'] ?? './all.test.ts'],
   maxInstances: 1,
   capabilities: [iosCapabilities(udid, {wdaLocalPort, prebuilt: !isOld, derivedDataPath})],
   logLevel: 'warn',
@@ -60,12 +61,24 @@ export const config: WebdriverIO.Config = {
   // The app restores its last screen on launch and screens leak between specs,
   // so reset to the root tab bar before each test by climbing out of any stack.
   // (Cheaper + more reliable than a cold relaunch, which also restores state.)
-  beforeTest: async () => {
+  beforeTest: async test => {
+    // eslint-disable-next-line no-console
+    console.log(`▶ ${new Date().toLocaleTimeString()} starting: ${test.title}`)
     await escapeToTabs()
+  },
+  // Tests deliberately END on the state they capture (often an open modal), so
+  // park the app back at the tab root when the session closes — otherwise the
+  // last test's modal is what you find on the simulator after a run.
+  after: async () => {
+    await escapeToTabs().catch(() => {})
   },
   // Emit a screenshot + status json per test so generate-appium-report.mts can
   // build the unified HTML report (one card per test).
   afterTest: async (test, _context, result: {passed: boolean; duration: number; error?: Error}) => {
+    // eslint-disable-next-line no-console
+    console.log(
+      `${result.passed ? '✓' : '✗'} ${new Date().toLocaleTimeString()} ${test.title} (${(result.duration / 1000).toFixed(1)}s)`
+    )
     fs.mkdirSync(debugDir, {recursive: true})
     const slug = `${test.parent} ${test.title}`.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
     const screenshotPath = path.join(debugDir, `${slug}.png`)

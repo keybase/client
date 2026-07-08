@@ -1,8 +1,8 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import type {RetentionEntityType} from '.'
+import ConfirmWarning from '../confirm-warning'
 import {useConfirm} from './use-confirm'
 
 type Props = {
@@ -14,59 +14,42 @@ type Props = {
 }
 
 const RetentionWarning = (props: Props) => {
-  const [enabled, setEnabled] = React.useState(false)
-
-  let showChannelWarnings = false
-  if (props.entityType === 'big team') {
-    showChannelWarnings = true
-  }
+  const showChannelWarnings = props.entityType === 'big team'
   const convType: string = getConvType(props.entityType)
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
-      <Kb.Box2 direction="vertical" style={styles.iconBoxStyle}>
+    <ConfirmWarning
+      icon={
         <Kb.Icon
           color={props.exploding ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_20}
           fontSize={48}
           type={props.exploding ? 'iconfont-bomb-solid' : 'iconfont-timer-solid'}
         />
-      </Kb.Box2>
-      <Kb.Text center={true} type="Header" style={styles.headerStyle}>
-        {props.exploding ? 'Explode' : 'Auto-delete'} chat messages after {props.timePeriod}?
-      </Kb.Text>
-      <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
-        You are about to set the messages in this {convType} to{' '}
-        {props.exploding ? 'explode after ' : 'be automatically deleted after '}
-        <Kb.Text type="BodyBold">{props.timePeriod}.</Kb.Text>{' '}
-        {showChannelWarnings &&
-          "This will affect all the team's channels, except the ones you've set manually."}
-      </Kb.Text>
-      <Kb.Checkbox
-        checked={enabled}
-        onCheck={setEnabled}
-        style={styles.checkboxStyle}
-        label=""
-        labelComponent={
-          <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
-            <Kb.Text type="Body">
-              I understand that existing messages older than {props.timePeriod} will be deleted now, for
-              everyone.
-            </Kb.Text>
-            {showChannelWarnings && (
-              <Kb.Text type="BodySmall">{"Channels you've set manually will not be affected."}</Kb.Text>
-            )}
-          </Kb.Box2>
-        }
-      />
-      <Kb.ButtonBar>
-        <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
-        <Kb.Button
-          type="Danger"
-          onClick={props.onConfirm}
-          label={isMobile ? 'Confirm' : `Yes, set to ${props.timePeriod}`}
-          disabled={!enabled}
-        />
-      </Kb.ButtonBar>
-    </Kb.Box2>
+      }
+      header={`${props.exploding ? 'Explode' : 'Auto-delete'} chat messages after ${props.timePeriod}?`}
+      body={
+        <>
+          You are about to set the messages in this {convType} to{' '}
+          {props.exploding ? 'explode after ' : 'be automatically deleted after '}
+          <Kb.Text type="BodyBold">{props.timePeriod}.</Kb.Text>{' '}
+          {showChannelWarnings &&
+            "This will affect all the team's channels, except the ones you've set manually."}
+        </>
+      }
+      checkboxLabel={
+        <>
+          <Kb.Text type="Body">
+            I understand that existing messages older than {props.timePeriod} will be deleted now, for
+            everyone.
+          </Kb.Text>
+          {showChannelWarnings && (
+            <Kb.Text type="BodySmall">{"Channels you've set manually will not be affected."}</Kb.Text>
+          )}
+        </>
+      }
+      confirmLabel={`Yes, set to ${props.timePeriod}`}
+      onCancel={props.onBack}
+      onConfirm={props.onConfirm}
+    />
   )
 }
 
@@ -92,42 +75,12 @@ const getConvType = (entityType: RetentionEntityType) => {
   return convType
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  bodyStyle: {marginBottom: Kb.Styles.globalMargins.small},
-  checkboxStyle: Kb.Styles.platformStyles({
-    isElectron: {
-      marginBottom: Kb.Styles.globalMargins.xlarge,
-    },
-    isMobile: {
-      marginBottom: Kb.Styles.globalMargins.small,
-    },
-  }),
-  container: Kb.Styles.platformStyles({
-    common: {
-      paddingBottom: Kb.Styles.globalMargins.large,
-    },
-    isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.xlarge,
-      paddingRight: Kb.Styles.globalMargins.xlarge,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
-    },
-    isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
-    },
-  }),
-  headerStyle: {marginBottom: Kb.Styles.globalMargins.small},
-  iconBoxStyle: {marginBottom: 20},
-  label: {flexShrink: 1},
-}))
-
 type OwnProps = {
   policy: T.Retention.RetentionPolicy
   entityType: RetentionEntityType
 }
 
-const Container = (ownProps: OwnProps) => {
+const RetentionWarningContainer = (ownProps: OwnProps) => {
   const navigateUp = C.Router2.navigateUp
   const openModal = useConfirm(s => s.dispatch.openModal)
   const closeModal = useConfirm(s => s.dispatch.closeModal)
@@ -157,4 +110,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default RetentionWarningContainer

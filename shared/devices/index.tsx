@@ -2,12 +2,13 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import DeviceRow, {BadgedDeviceIDsContext} from './row'
+import DeviceRow from './row'
 import partition from 'lodash/partition'
 import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {settingsDevicesTab} from '@/constants/settings'
-import {useLocalBadging} from '@/util/use-local-badging'
+import {NewItemsContext, useLocalBadging} from '@/util/use-local-badging'
+import {useRPCLoad} from '@/util/use-rpc-load'
 import {useNotifState} from '@/stores/notifications'
 import {useNavigation} from '@react-navigation/native'
 import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
@@ -29,26 +30,23 @@ const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
   partition([...devices].sort(sortDevices), d => d.revokedAt)
 
 const itemHeight = {height: 48, type: 'fixed'} as const
+const noDevices = new Array<T.Devices.Device>()
 
 function ReloadableDevices() {
   // mounts as its own tab on desktop but under settings on mobile/tablet
   const navigation = useNavigation(isMobile ? settingsDevicesTab : 'devicesRoot')
-  const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
-  const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
   const clearBadges = useNotifState(s => s.dispatch.clearDeviceBadges)
   const storeSet = useNotifState(s => s.deviceBadges)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
-  const loadDevices = React.useEffectEvent(() => {
-    loadDevicesRPC(
-      [undefined, C.waitingKeyDevices],
-      results => {
-        setDevices(results?.map(rpcDeviceDetailToDevice) ?? [])
-      },
-      _ => {}
-    )
-  })
+  // Reloadable's reloadOnMount drives the initial load
+  const {data, reload: loadDevices} = useRPCLoad(
+    T.RPCGen.deviceDeviceHistoryListRpcPromise,
+    [undefined, C.waitingKeyDevices],
+    {map: results => results?.map(rpcDeviceDetailToDevice) ?? [], when: 'manual'}
+  )
+  const devices = data ?? noDevices
 
   useEngineActionListener('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', () => {
     loadDevices()
@@ -124,16 +122,12 @@ function ReloadableDevices() {
       reloadOnMount={true}
       title=""
     >
-      <BadgedDeviceIDsContext value={badged}>
+      <NewItemsContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
-              {waiting ? (
-                <Kb.Box2 direction="vertical" centerChildren={true} style={styles.progressContainer}>
-                  <Kb.ProgressIndicator />
-                </Kb.Box2>
-              ) : null}
+              <Kb.LoadingOverlay show={waiting} />
             </Kb.ClickableBox>
           ) : null}
           {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
@@ -141,7 +135,7 @@ function ReloadableDevices() {
             <Kb.List bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" />
           </Kb.BoxGrow2>
         </Kb.Box2>
-      </BadgedDeviceIDsContext>
+      </NewItemsContext>
     </Kb.Reloadable>
   )
 }
@@ -175,9 +169,6 @@ const styles = Kb.Styles.styleSheetCreate(
           maxWidth: 450,
         },
       }),
-      progressContainer: {
-        ...Kb.Styles.globalStyles.fillAbsolute,
-      },
       revokedNote: {
         padding: Kb.Styles.globalMargins.medium,
         width: '100%',

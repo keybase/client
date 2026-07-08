@@ -145,7 +145,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   ) : undefined
   const massActionsProps = canPerform.deleteChannel
     ? {
-        containerStyleOverride: styles.listItemMargin,
+        containerStyleOverride: selectionStyles.listItemMargin,
         icon: checkCircle,
         iconStyleOverride: styles.checkCircle,
       }
@@ -159,7 +159,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       type="Large"
       body={body}
       firstItem={isGeneral}
-      style={selected ? styles.selected : styles.unselected}
+      style={selected ? selectionStyles.selected : selectionStyles.unselected}
       onClick={onNavToChannel}
     />
   )
@@ -171,13 +171,11 @@ const styles = Kb.Styles.styleSheetCreate(
       actionButtons: {
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
+      // like selectionStyles.checkCircle but deliberately not centered in the taller row
       checkCircle: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-      listItemMargin: {marginLeft: 0},
       row: {
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },
-      selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
-      unselected: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
 )
 

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
+import {produce} from 'immer'
 import logger from '@/logger'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useTeamsList} from '@/teams/use-teams-list'
@@ -39,7 +40,7 @@ const makeEmptyTeamTreeMembershipState = (
 })
 
 const matchesTeamTreeMembershipState = (
-  state: TeamTreeMembershipState,
+  state: {targetTeamID: T.Teams.TeamID; username: string},
   targetTeamID: T.Teams.TeamID,
   username: string
 ) => state.targetTeamID === targetTeamID && state.username === username
@@ -70,16 +71,16 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
         C.waitingKeyTeamsLoadTeamTreeActivity(teamID, username)
       )
         .then(activityMap => {
-          setState(prev => {
-            if (!matchesTeamTreeMembershipState(prev, targetTeamID, username)) {
-              return prev
-            }
-            const nextLastActivity = new Map(prev.lastActivity)
-            Object.entries(activityMap ?? {}).forEach(([activityTeamID, lastActivity]) => {
-              nextLastActivity.set(activityTeamID, lastActivity)
+          setState(
+            produce(draft => {
+              if (!matchesTeamTreeMembershipState(draft, targetTeamID, username)) {
+                return
+              }
+              Object.entries(activityMap ?? {}).forEach(([activityTeamID, lastActivity]) => {
+                draft.lastActivity.set(activityTeamID, lastActivity)
+              })
             })
-            return {...prev, lastActivity: nextLastActivity}
-          })
+          )
           return undefined
         })
         .catch(error => {
@@ -130,13 +131,14 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
         return base
       }
       if (base.guid === undefined || result.guid > base.guid) {
-        return {
-          ...makeEmptyTeamTreeMembershipState(targetTeamID, username),
-          expectedCount: result.expectedCount,
-          guid: result.guid,
-        }
+        const next = makeEmptyTeamTreeMembershipState(targetTeamID, username)
+        next.expectedCount = result.expectedCount
+        next.guid = result.guid
+        return next
       }
-      return {...base, expectedCount: result.expectedCount}
+      return produce(base, draft => {
+        draft.expectedCount = result.expectedCount
+      })
     })
   })
 
@@ -152,24 +154,22 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
       if (base.guid !== undefined && membership.guid < base.guid) {
         return base
       }
-      const nextMemberships =
-        base.guid === undefined || membership.guid > base.guid
-          ? [membership]
-          : [...base.memberships, membership]
-      const nextSparseMemberInfos =
-        base.guid === undefined || membership.guid > base.guid ? new Map() : new Map(base.sparseMemberInfos)
-      if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
-        nextSparseMemberInfos.set(
-          membership.result.ok.teamID,
-          consumeTeamTreeMembershipValue(membership.result.ok)
-        )
-      }
-      return {
-        ...base,
-        guid: membership.guid,
-        memberships: nextMemberships,
-        sparseMemberInfos: nextSparseMemberInfos,
-      }
+      const reset = base.guid === undefined || membership.guid > base.guid
+      return produce(base, draft => {
+        draft.guid = membership.guid
+        if (reset) {
+          draft.memberships = [membership]
+          draft.sparseMemberInfos = new Map()
+        } else {
+          draft.memberships.push(membership)
+        }
+        if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
+          draft.sparseMemberInfos.set(
+            membership.result.ok.teamID,
+            consumeTeamTreeMembershipValue(membership.result.ok)
+          )
+        }
+      })
     })
     if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
       loadLastActivity(membership.result.ok.teamID)
@@ -221,7 +221,8 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
   return {
     errors,
     loading:
-      visibleState.expectedCount === undefined || visibleState.memberships.length < visibleState.expectedCount,
+      visibleState.expectedCount === undefined ||
+      visibleState.memberships.length < visibleState.expectedCount,
     nodesIn,
     nodesNotIn,
     reload,

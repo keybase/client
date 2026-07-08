@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import EmailPhoneRow from './email-phone-row'
 import logger from '@/logger'
+import {produce} from 'immer'
 import {openURL} from '@/util/misc'
 import {loadSettings} from '../load-settings'
 import {useNavigation} from '@react-navigation/native'
@@ -248,9 +249,24 @@ const AccountSettings = ({route}: Props) => {
     }
     navigation.setParams({addedPhoneBanner: undefined})
   }, [addedPhoneFromRoute, navigation])
-  const onEmailVerificationSuccess = (email: string) => setAddedBannerState(s => ({...s, email}))
-  const onClearAddedEmail = () => setAddedBannerState(s => ({...s, email: ''}))
-  const onClearAddedPhone = () => setAddedBannerState(s => ({...s, phone: false}))
+  const onEmailVerificationSuccess = (email: string) =>
+    setAddedBannerState(
+      produce(draft => {
+        draft.email = email
+      })
+    )
+  const onClearAddedEmail = () =>
+    setAddedBannerState(
+      produce(draft => {
+        draft.email = ''
+      })
+    )
+  const onClearAddedPhone = () =>
+    setAddedBannerState(
+      produce(draft => {
+        draft.phone = false
+      })
+    )
   const onReload = () => {
     loadSettings()
     reloadRandomPW()
@@ -258,7 +274,11 @@ const AccountSettings = ({route}: Props) => {
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
     navigateAppend({name: 'chatNewChat', params: {namespace: 'chat'}})
-    setAddedBannerState(s => ({...s, phone: false}))
+    setAddedBannerState(
+      produce(draft => {
+        draft.phone = false
+      })
+    )
   }
   const _supersededPhoneNumber = phones && [...phones.values()].find(p => p.superseded)
   const supersededKey = _supersededPhoneNumber?.e164

@@ -112,14 +112,8 @@ const GlobalError = () => {
   const {daemonError, error, onDismiss, onFeedback} = d
   const {cachedDetails, cachedSummary, size, onExpandClick} = d
 
-  if (size === 'Closed') {
-    return null
-  }
-
-  if (!daemonError && !error) {
-    return null
-  }
-
+  // daemonError first: size only tracks globalError, so checking it before this
+  // branch would hide the disconnect overlay
   if (daemonError) {
     if (isMobile) {
       return null
@@ -131,17 +125,21 @@ const GlobalError = () => {
 
     const message = daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
-      <Kb.Box2 direction="vertical" style={styles.containerOverlay}>
-        <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.overlayRow}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.containerOverlay}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.overlayRow}>
           <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
             {message}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" flex={1} centerChildren={true} style={styles.overlayFill}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} centerChildren={true} style={styles.overlayFill}>
           <Kb.Animation animationType="disconnected" height={175} width={600} />
         </Kb.Box2>
       </Kb.Box2>
     )
+  }
+
+  if (size === 'Closed') {
+    return null
   }
 
   if (isMobile) {

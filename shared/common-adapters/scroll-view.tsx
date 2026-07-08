@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {ScrollView as NativeScrollView} from 'react-native'
+import {RefreshControl, ScrollView as NativeScrollView} from 'react-native'
 import type {ScrollViewProps, RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
 
@@ -43,6 +43,9 @@ type Props = {
   horizontal?: boolean
   snapToInterval?: number
   refreshControl?: React.ReactElement<RefreshControlProps>
+  // convenience for pull-to-refresh, mobile only. Ignored if refreshControl is passed
+  onRefresh?: () => void
+  refreshing?: boolean
   onTouchStart?: (e: GestureResponderEvent) => void
   onTouchEnd?: (e: GestureResponderEvent) => void
   testID?: string
@@ -54,7 +57,7 @@ type DivScrollable = {
 }
 
 function ScrollView(props: Props) {
-  const {ref: outerRef, ...rest} = props
+  const {ref: outerRef, onRefresh, refreshing, ...rest} = props
 
   const divRef = React.useRef<DivScrollable | null>(null)
   const innerRef = React.useRef<NativeScrollView | null>(null)
@@ -103,6 +106,9 @@ function ScrollView(props: Props) {
   }
 
   const nativeProps = rest as ScrollViewProps
+  const refreshControl =
+    nativeProps.refreshControl ??
+    (onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} /> : undefined)
   const keyboardShouldPersistTaps = nativeProps.keyboardShouldPersistTaps ?? 'handled'
   const contentInsetAdjustmentBehavior =
     nativeProps.contentInsetAdjustmentBehavior ?? 'automatic'
@@ -110,6 +116,7 @@ function ScrollView(props: Props) {
     <NativeScrollView
       ref={innerRef}
       {...nativeProps}
+      refreshControl={refreshControl}
       contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       overScrollMode="never"

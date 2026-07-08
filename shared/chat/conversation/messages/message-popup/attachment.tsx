@@ -12,10 +12,11 @@ import {
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {
   showConversationInfoPanel,
+  useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadSelector,
+  useThreadMeta,
 } from '../../thread-context'
-import {useConversationMetadata} from '../../data-hooks'
+import {useConversationMetadata, useConversationParticipants} from '../../data-hooks'
 import {useRoute} from '@react-navigation/native'
 import type {MessagePopupItems} from './hooks'
 import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
@@ -157,6 +158,7 @@ const PopAttachLoaded = (ownProps: OwnProps & {
 
 const PopAttachThread = (ownProps: OwnProps) => {
   const {ordinal, onHidden} = ownProps
+  const conversationIDKey = useConversationThreadID()
   const loadedMessage = useConversationThreadMessage(ordinal)
   const message = loadedMessage?.type === 'attachment' ? loadedMessage : emptyMessage
   const {attachmentDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} =
@@ -167,9 +169,8 @@ const PopAttachThread = (ownProps: OwnProps) => {
   // infoPanel only exists on the desktop/tablet split-view chatRoot route
   const infoPanelShowing =
     route.name === 'chatRoot' && 'infoPanel' in route.params && !!route.params.infoPanel
-  const {meta, participantInfo} = useConversationThreadSelector(
-    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
-  )
+  const meta = useThreadMeta(m => m)
+  const participantInfo = useConversationParticipants(conversationIDKey)
   return (
     <PopAttachLoaded
       {...ownProps}

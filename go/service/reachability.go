@@ -16,14 +16,14 @@ import (
 type reachabilityHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	reachability *reachability
+	service *Service
 }
 
-func newReachabilityHandler(xp rpc.Transporter, g *libkb.GlobalContext, reachability *reachability) *reachabilityHandler {
+func newReachabilityHandler(xp rpc.Transporter, g *libkb.GlobalContext, service *Service) *reachabilityHandler {
 	return &reachabilityHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
-		reachability: reachability,
+		service:      service,
 	}
 }
 
@@ -41,7 +41,15 @@ func (h *reachabilityHandler) StartReachability(_ context.Context) (res keybase1
 
 func (h *reachabilityHandler) CheckReachability(ctx context.Context) (res keybase1.Reachability, err error) {
 	h.G().Trace("CheckReachability", &err)()
-	return h.reachability.check(ctx), nil
+	// reachability is wired up during startupGregor, which can lag behind the
+	// first client connection (e.g. an online tryLogin blocking ahead of it on
+	// mobile). Guard against a nil reachability so an early call returns UNKNOWN
+	// instead of panicking.
+	r := h.service.reachability
+	if r == nil {
+		return keybase1.Reachability{Reachable: keybase1.Reachable_UNKNOWN}, nil
+	}
+	return r.check(ctx), nil
 }
 
 type reachability struct {

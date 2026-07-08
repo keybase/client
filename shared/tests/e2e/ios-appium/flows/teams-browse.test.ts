@@ -1,6 +1,6 @@
 import {expect} from '@wdio/globals'
 import {escapeToTabs, navigateToTeams} from '../helpers/navigate'
-import {el, els, waitForTestID, byText} from '../helpers/elements'
+import {byText, el, els, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('teams browse', () => {

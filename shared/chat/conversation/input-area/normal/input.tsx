@@ -12,7 +12,7 @@ import type {PlatformInputProps as Props} from './input.shared'
 export type {Selection, RefType, TextInfo, PlatformInputProps} from './input.shared'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
-import {ScrollContext} from '@/chat/conversation/normal/context'
+import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useColorScheme} from 'react-native'
 import {useConversationThreadID} from '../../thread-context'
@@ -305,14 +305,16 @@ function NativeInput(p: InputLowLevelProps) {
   } = p
 
   const isDarkMode = useColorScheme() === 'dark'
-  const [autoFocus, setAutoFocus] = React.useState(_autoFocus)
+  const [autoFocus] = React.useState(_autoFocus)
   const [value, setValue] = React.useState('')
   const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
     undefined
   )
   // iOS multiline TextInput doesn't shrink its content height when value is
-  // reset programmatically (only on manual deletion), so remount to collapse.
-  const [resetKey, setResetKey] = React.useState(0)
+  // reset programmatically (only on manual deletion). Rather than remount to
+  // collapse (which drops the keyboard on send), force a one-line height on
+  // clear and release it on the next keystroke so native auto-grow resumes.
+  const [collapse, setCollapse] = React.useState(false)
   const inputRef = React.useRef<RNTextInput | null>(null)
 
   const setInputRef = (ti: RNTextInput | null) => {
@@ -325,6 +327,8 @@ function NativeInput(p: InputLowLevelProps) {
   })
   const [onChangeText] = React.useState(() => (s: string) => {
     setValue(s)
+    // any real input releases the post-send collapse so auto-grow resumes
+    if (s) setCollapse(false)
     onChangeTextRef.current?.(s)
   })
   const onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
@@ -342,9 +346,9 @@ function NativeInput(p: InputLowLevelProps) {
         setValue('')
         onChangeText('')
         setSelection(undefined)
-        setAutoFocus(true)
+        // force back to one line; released on next keystroke (see onChangeText)
         if (isIOS) {
-          setResetKey(k => k + 1)
+          setCollapse(true)
         }
       },
       focus: () => {
@@ -386,6 +390,8 @@ function NativeInput(p: InputLowLevelProps) {
           minHeight: (rowsMin || defaultRowsToShow) * (lineHeight ?? 0),
         },
         !!rowsMax && {maxHeight: rowsMax * (lineHeight ?? 0)},
+        // iOS: collapse to one line after send; minHeight floors 0 to one row
+        isIOS && collapse && {height: 0},
         paddingStyles,
       ]
     } else {
@@ -411,7 +417,6 @@ function NativeInput(p: InputLowLevelProps) {
 
   return (
     <TextInput
-      key={resetKey}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       autoFocus={autoFocus}
@@ -646,7 +651,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
-  const {scrollDown, scrollUp} = React.useContext(ScrollContext)
+  const {scrollDown, scrollUp} = React.useContext(ThreadRefsContext)
   const onCancelReply = () => {
     setReplyTo(ChatTypes.numberToOrdinal(0))
   }
@@ -1016,7 +1021,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
       <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && (

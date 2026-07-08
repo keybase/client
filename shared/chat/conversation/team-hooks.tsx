@@ -4,11 +4,12 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
+import {produce} from 'immer'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
-import {useConversationThreadSelector} from './thread-context'
+import {useThreadMeta} from './thread-context'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -141,7 +142,14 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
       return
     }
     const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true, teamname: prev.teamname || knownTeamname}))
+    setState(
+      produce(draft => {
+        draft.loading = true
+        if (!draft.teamname) {
+          draft.teamname = knownTeamname
+        }
+      })
+    )
     try {
       const [annotatedTeam] = await Promise.all([
         T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID}),
@@ -159,7 +167,14 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
         return
       }
       logger.warn(`Failed to load chat team metadata for ${validTeamID}`, error)
-      setState(prev => ({...prev, loading: false, teamname: prev.teamname || knownTeamname}))
+      setState(
+        produce(draft => {
+          draft.loading = false
+          if (!draft.teamname) {
+            draft.teamname = knownTeamname
+          }
+        })
+      )
     }
   }, [clearState, enabled, knownTeamname, loadRoleMapIfStale, validTeamID])
 
@@ -250,7 +265,12 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
         return
       }
       logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
-      setState(prev => ({...prev, loadedTeamID: validTeamID, loading: false}))
+      setState(
+        produce(draft => {
+          draft.loadedTeamID = validTeamID
+          draft.loading = false
+        })
+      )
     }
   }, [enabled, loadMemberInfos, validTeamID])
 
@@ -259,7 +279,12 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
       clearState()
       return
     }
-    setState(prev => ({...prev, loadedTeamID: validTeamID, loading: true}))
+    setState(
+      produce(draft => {
+        draft.loadedTeamID = validTeamID
+        draft.loading = true
+      })
+    )
     await loadMembers()
   }, [clearState, enabled, loadMembers, validTeamID])
 
@@ -294,7 +319,12 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
           return
         }
         logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
-        setState(prev => ({...prev, loadedTeamID: validTeamID, loading: false}))
+        setState(
+          produce(draft => {
+            draft.loadedTeamID = validTeamID
+            draft.loading = false
+          })
+        )
       }
     }
     C.ignorePromise(f())
@@ -390,11 +420,15 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
         return
       }
       logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
-      setState(prev => ({
-        loadedTeamIDsKey: teamIDsKey,
-        loading: false,
-        teamnames: prev.loadedTeamIDsKey === teamIDsKey ? new Map(prev.teamnames) : new Map(),
-      }))
+      setState(
+        produce(draft => {
+          if (draft.loadedTeamIDsKey !== teamIDsKey) {
+            draft.teamnames = new Map()
+          }
+          draft.loadedTeamIDsKey = teamIDsKey
+          draft.loading = false
+        })
+      )
     }
   }, [enabled, loadTeamNamesForIDs, teamIDsKey, username, validTeamIDs])
 
@@ -403,11 +437,15 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
       clearState()
       return
     }
-    setState(prev => ({
-      loadedTeamIDsKey: teamIDsKey,
-      loading: true,
-      teamnames: prev.loadedTeamIDsKey === teamIDsKey ? new Map(prev.teamnames) : new Map(),
-    }))
+    setState(
+      produce(draft => {
+        if (draft.loadedTeamIDsKey !== teamIDsKey) {
+          draft.teamnames = new Map()
+        }
+        draft.loadedTeamIDsKey = teamIDsKey
+        draft.loading = true
+      })
+    )
     await loadTeamNames()
   }, [clearState, enabled, loadTeamNames, teamIDsKey, username])
 
@@ -472,21 +510,23 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
       requestVersionRef.current++
-      setState(prev => {
-        const teamnames = new Map(prev.teamnames)
-        teamnames.delete(action.payload.params.teamID)
-        return {loadedTeamIDsKey: prev.loadedTeamIDsKey, loading: false, teamnames}
-      })
+      setState(
+        produce(draft => {
+          draft.teamnames.delete(action.payload.params.teamID)
+          draft.loading = false
+        })
+      )
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
       requestVersionRef.current++
-      setState(prev => {
-        const teamnames = new Map(prev.teamnames)
-        teamnames.delete(action.payload.params.teamID)
-        return {loadedTeamIDsKey: prev.loadedTeamIDsKey, loading: false, teamnames}
-      })
+      setState(
+        produce(draft => {
+          draft.teamnames.delete(action.payload.params.teamID)
+          draft.loading = false
+        })
+      )
     }
   })
 
@@ -504,11 +544,11 @@ ChatTeamContext.displayName = 'ChatTeamContext'
 
 export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const {children} = props
-  const {teamID, teamType, teamname} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      teamID: s.meta.teamID,
-      teamType: s.meta.teamType,
-      teamname: s.meta.teamname,
+  const {teamID, teamType, teamname} = useThreadMeta(
+    C.useShallow(m => ({
+      teamID: m.teamID,
+      teamType: m.teamType,
+      teamname: m.teamname,
     }))
   )
   const outer = React.useContext(ChatTeamContext)

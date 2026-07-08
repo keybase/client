@@ -150,16 +150,14 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
       </Kb.Box2>
       {isMobile ? null : (
         <Kb.ModalFooter>
-          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.Button type="Dim" label="Cancel" onClick={onClose} style={Kb.Styles.globalStyles.flexOne} />
-            <Kb.Button
-              label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
-              onClick={onAdd}
-              disabled={!toAdd.size}
-              style={Kb.Styles.globalStyles.flexOne}
-              waiting={waiting}
-            />
-          </Kb.Box2>
+          <Kb.ConfirmButtons
+            split={true}
+            waiting={waiting}
+            onCancel={onClose}
+            onConfirm={onAdd}
+            confirmLabel={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
+            confirmDisabled={!toAdd.size}
+          />
         </Kb.ModalFooter>
       )}
     </>

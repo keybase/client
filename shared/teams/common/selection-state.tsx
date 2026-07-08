@@ -55,44 +55,43 @@ const updateSelection = <T,>(
   return nextItems.size ? [...nextItems] : undefined
 }
 
+// one selectable collection (members or channels): current set + set/clear that
+// report the next selection through onChange, reading the latest value via a ref
+// so rapid updates don't act on stale props
+const useSelectionSlice = <Item,>(
+  items: ReadonlyArray<Item> | undefined,
+  onChange: (next?: Array<Item>) => void
+) => {
+  const itemsRef = React.useRef(items)
+  React.useEffect(() => {
+    itemsRef.current = items
+  }, [items])
+  const selected: ReadonlySet<Item> = new Set(items ?? [])
+  return {
+    clear: () => {
+      itemsRef.current = undefined
+      onChange(undefined)
+    },
+    selected,
+    set: (item: Item, selected: boolean, clearAll?: boolean) => {
+      const next = updateSelection(itemsRef.current, item, selected, clearAll)
+      itemsRef.current = next
+      onChange(next)
+    },
+  }
+}
+
 export const TeamSelectionProvider = (props: TeamSelectionProviderProps) => {
-  const selectedMembersRef = React.useRef(props.selectedMembers)
-  const selectedChannelsRef = React.useRef(props.selectedChannels)
-  React.useEffect(() => {
-    selectedMembersRef.current = props.selectedMembers
-  }, [props.selectedMembers])
-  React.useEffect(() => {
-    selectedChannelsRef.current = props.selectedChannels
-  }, [props.selectedChannels])
-  const selectedMembers = new Set(props.selectedMembers ?? [])
-  const selectedChannels = new Set(props.selectedChannels ?? [])
+  const members = useSelectionSlice(props.selectedMembers, props.onSelectedMembersChange)
+  const channels = useSelectionSlice(props.selectedChannels, props.onSelectedChannelsChange)
 
   const value: TeamSelectionState = {
-    clearSelectedChannels: () => {
-      selectedChannelsRef.current = undefined
-      props.onSelectedChannelsChange(undefined)
-    },
-    clearSelectedMembers: () => {
-      selectedMembersRef.current = undefined
-      props.onSelectedMembersChange(undefined)
-    },
-    selectedChannels,
-    selectedMembers,
-    setChannelSelected: (conversationIDKey, selected, clearAll) => {
-      const nextSelectedChannels = updateSelection(
-        selectedChannelsRef.current,
-        conversationIDKey,
-        selected,
-        clearAll
-      )
-      selectedChannelsRef.current = nextSelectedChannels
-      props.onSelectedChannelsChange(nextSelectedChannels)
-    },
-    setMemberSelected: (username, selected, clearAll) => {
-      const nextSelectedMembers = updateSelection(selectedMembersRef.current, username, selected, clearAll)
-      selectedMembersRef.current = nextSelectedMembers
-      props.onSelectedMembersChange(nextSelectedMembers)
-    },
+    clearSelectedChannels: channels.clear,
+    clearSelectedMembers: members.clear,
+    selectedChannels: channels.selected,
+    selectedMembers: members.selected,
+    setChannelSelected: channels.set,
+    setMemberSelected: members.set,
   }
 
   return <TeamSelectionContext.Provider value={value}>{props.children}</TeamSelectionContext.Provider>
@@ -107,23 +106,12 @@ export const useTeamSelectionState = () => {
 }
 
 export const ChannelSelectionProvider = (props: ChannelSelectionProviderProps) => {
-  const selectedMembersRef = React.useRef(props.selectedMembers)
-  React.useEffect(() => {
-    selectedMembersRef.current = props.selectedMembers
-  }, [props.selectedMembers])
-  const selectedMembers = new Set(props.selectedMembers ?? [])
+  const members = useSelectionSlice(props.selectedMembers, props.onSelectedMembersChange)
 
   const value: ChannelSelectionState = {
-    clearSelectedMembers: () => {
-      selectedMembersRef.current = undefined
-      props.onSelectedMembersChange(undefined)
-    },
-    selectedMembers,
-    setMemberSelected: (username, selected, clearAll) => {
-      const nextSelectedMembers = updateSelection(selectedMembersRef.current, username, selected, clearAll)
-      selectedMembersRef.current = nextSelectedMembers
-      props.onSelectedMembersChange(nextSelectedMembers)
-    },
+    clearSelectedMembers: members.clear,
+    selectedMembers: members.selected,
+    setMemberSelected: members.set,
   }
 
   return <ChannelSelectionContext.Provider value={value}>{props.children}</ChannelSelectionContext.Provider>

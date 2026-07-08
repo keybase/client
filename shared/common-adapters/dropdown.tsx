@@ -39,7 +39,9 @@ export const DropdownButton = (props: DropdownButtonProps) => {
   return (
     <Kb.ClickableBox
       onClick={!disabled ? toggleOpen : undefined}
-      direction="vertical"
+      direction="horizontal"
+      alignItems="center"
+      fullWidth={!inline}
       ref={popupAnchor}
       className={Styles.classNames('dropdown_border', {
         hover: !disabled,
@@ -56,7 +58,6 @@ export const DropdownButton = (props: DropdownButtonProps) => {
         },
         disabled ? {opacity: 0.3} : {},
         {cursor: !disabled ? 'pointer' : undefined},
-        {width: inline ? undefined : '100%'},
         style,
       ])}
     >
@@ -223,8 +224,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       measureBox: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         ...(isMobile
           ? {
               borderColor: Styles.globalColors.black_10,

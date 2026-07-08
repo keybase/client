@@ -33,14 +33,8 @@ module.exports = {
   get BottomSheetScrollView() {
     return require('./popup/bottom-sheet').BottomSheetScrollView
   },
-  get Box() {
-    return require('./box').default
-  },
   get Box2() {
     return require('./box').Box2
-  },
-  get Box2Animated() {
-    return require('./box').Box2Animated
   },
   get BoxGrow() {
     return require('./box-grow').default
@@ -59,9 +53,6 @@ module.exports = {
   },
   get Checkbox() {
     return require('./checkbox').default
-  },
-  get ChoiceList() {
-    return require('./choice-list').default
   },
   get ConfirmModal() {
     return require('./confirm-modal').default
@@ -85,9 +76,6 @@ module.exports = {
   },
   get CopyableText() {
     return require('./copyable-text').default
-  },
-  get DelayedMounting() {
-    return require('./delayed-mounting').default
   },
   get Divider() {
     return require('./divider').default
@@ -170,9 +158,6 @@ module.exports = {
   get Placeholder() {
     return require('./placeholder').default
   },
-  get PlatformIcon() {
-    return require('./platform-icon').default
-  },
   get Popup() {
     return require('./popup/index').default
   },
@@ -193,9 +178,6 @@ module.exports = {
   },
   get Reloadable() {
     return require('./reload').default
-  },
-  get RichButton() {
-    return require('./rich-button').default
   },
   get RoundedBox() {
     return require('./rounded-box').default
@@ -233,14 +215,8 @@ module.exports = {
   get Tabs() {
     return require('./tabs').default
   },
-  get TeamWithPopup() {
-    return require('./team-with-popup').default
-  },
   get Text() {
     return require('./text').default
-  },
-  get TimelineMarker() {
-    return require('./timeline-marker').default
   },
   get Toast() {
     return require('./toast').default

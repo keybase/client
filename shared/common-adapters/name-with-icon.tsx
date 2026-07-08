@@ -229,23 +229,19 @@ export const NameWithIcon = (props: NameWithIconProps) => {
     </>
   )
 
+  const boxProps = {
+    alignItems: 'center',
+    direction: props.horizontal ? 'horizontal' : 'vertical',
+    style: containerStyle,
+  } as const
+
+  // ClickableBox only when clickable: it renders Pressable/clickable-box2 with different semantics
   return _onClickWrapper ? (
-    <ClickableBox
-      onClick={e => e && _onClickWrapper(e)}
-      direction={props.horizontal ? 'horizontal' : 'vertical'}
-      alignItems="center"
-      style={containerStyle}
-    >
+    <ClickableBox {...boxProps} onClick={e => e && _onClickWrapper(e)}>
       {children}
     </ClickableBox>
   ) : (
-    <Box2
-      direction={props.horizontal ? 'horizontal' : 'vertical'}
-      alignItems="center"
-      style={containerStyle}
-    >
-      {children}
-    </Box2>
+    <Box2 {...boxProps}>{children}</Box2>
   )
 }
 

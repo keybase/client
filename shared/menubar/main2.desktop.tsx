@@ -1,13 +1,6 @@
 import Menubar from './index.desktop'
 import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
-import {RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
 import type {Props} from './index.desktop'
-
-const RemoteMenubar = (p: Props) => (
-  <RemoteDarkModeSync darkMode={p.darkMode}>
-    <Menubar {...p} />
-  </RemoteDarkModeSync>
-)
 
 // This is to keep that arrow and gap on top w/ transparency
 const style = {
@@ -21,7 +14,7 @@ const style = {
 } as const
 
 loadRemoteComponent<Props>({
-  Component: RemoteMenubar,
+  Component: Menubar,
   component: 'menubar',
   showOnProps: false,
   style,

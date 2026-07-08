@@ -243,6 +243,7 @@ var levelDbFlushSentinelKey = []byte(levelDbTablePerm + ":ff:flush-sentinel")
 // opens fast. No-op if the DB is not currently open; does not trigger a lazy
 // open.
 func (l *LevelDb) Flush() (err error) {
+	defer convertNoSpaceError(&err)
 	l.RLock()
 	defer l.RUnlock()
 	if l.db == nil {
