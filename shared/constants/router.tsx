@@ -393,6 +393,12 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
   n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
 }
 
+// A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
+// visible-route dupe check below misses repeat taps that land before the commit (e.g. a janky JS
+// thread queueing both). Track the in-flight push until the next state event; the time bound is a
+// backstop in case the container tears down before the listener fires.
+let _pendingAppend: {name: string; params?: object; time: number} | undefined
+
 export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
   if (DEBUG_NAV) {
     console.log('[Nav] navigateAppend', {path})
@@ -433,6 +439,19 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
     }
   }
 
+  if (
+    _pendingAppend?.name === routeName &&
+    shallowEqual(_pendingAppend.params, params) &&
+    Date.now() - _pendingAppend.time < 1000
+  ) {
+    console.log('Skipping append dupe (uncommitted)')
+    return
+  }
+  _pendingAppend = {name: routeName, params, time: Date.now()}
+  const unsub = n.addListener('state', () => {
+    _pendingAppend = undefined
+    unsub()
+  })
   n.dispatch(StackActions.push(routeName, params))
 }
 
