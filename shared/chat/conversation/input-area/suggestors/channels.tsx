@@ -23,6 +23,9 @@ export const transformer = (
 const keyExtractor = ({channelname, teamname}: ChannelType) =>
   teamname ? `${teamname}#${channelname}` : channelname
 
+// a bare channel row is a single line of BodySemibold, whose desktop line-height is 18
+const bareChannelRowHeight = Common.desktopRowHeight(18)
+
 const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
   const {item, selected} = p
   const {channelname, teamname} = item
@@ -166,6 +169,10 @@ type ListProps = Pick<
 export const List = (p: ListProps) => {
   const {conversationIDKey, filter, ...rest} = p
   const {items, loading} = useDataSource(conversationIDKey, filter)
+  // suggestions are either all mutual-team channels or all bare channels, never mixed
+  const rowHeight = items.some(i => 'teamname' in i && i.teamname)
+    ? Common.avatarRowHeight
+    : bareChannelRowHeight
   return (
     <Common.List
       {...rest}
@@ -173,6 +180,7 @@ export const List = (p: ListProps) => {
       items={items}
       ItemRenderer={ItemRenderer}
       loading={loading}
+      rowHeight={rowHeight}
     />
   )
 }

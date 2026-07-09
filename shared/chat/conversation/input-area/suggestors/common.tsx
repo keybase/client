@@ -23,6 +23,13 @@ export const standardTransformer = (
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
+// rows have no explicit height on desktop, so each suggestor derives its row
+// height from its tallest child plus the padding `suggestionBase` adds
+export const desktopRowHeight = (contentHeight: number) => contentHeight + Kb.Styles.globalMargins.xtiny * 2
+export const avatarSize = 32
+// rows leading with an avatar (users, teams, channels-of-a-team)
+export const avatarRowHeight = desktopRowHeight(avatarSize)
+
 export const TeamSuggestion = (p: {teamname: string; channelname: string | undefined; selected: boolean}) => (
   <Kb.Box2
     direction="horizontal"
@@ -36,7 +43,7 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
     ])}
     gap="tiny"
   >
-    <Kb.Avatar teamname={p.teamname} size={32} />
+    <Kb.Avatar teamname={p.teamname} size={avatarSize} />
     <Kb.Text type="BodyBold">{p.channelname ? p.teamname + ' #' + p.channelname : p.teamname}</Kb.Text>
   </Kb.Box2>
 )
@@ -49,6 +56,8 @@ export type ListProps<L> = {
   listStyle: Kb.Styles.StylesCrossPlatform
   spinnerStyle: Kb.Styles.StylesCrossPlatform
   loading: boolean
+  // desktop only, see SuggestionList
+  rowHeight: number
   onSelected: (item: L, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
@@ -56,7 +65,7 @@ export type ListProps<L> = {
 }
 
 export function List<T>(p: ListProps<T>) {
-  const {items, ItemRenderer, loading, keyExtractor, onSelected} = p
+  const {items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
@@ -105,6 +114,7 @@ export function List<T>(p: ListProps<T>) {
         items={items}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
+        rowHeight={rowHeight}
         selectedIndex={selectedIndex}
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       />
