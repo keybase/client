@@ -1631,7 +1631,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller (1.21.14):
+  - react-native-keyboard-controller (1.22.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1643,7 +1643,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.21.14)
+    - react-native-keyboard-controller/common (= 1.22.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1654,7 +1654,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller/common (1.21.14):
+  - react-native-keyboard-controller/common (1.22.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2186,7 +2186,7 @@ PODS:
     - React-utils (= 0.86.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.86.0)
-  - ReactNavigation (8.0.0-alpha.34):
+  - ReactNavigation (8.0.0-alpha.35):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2966,7 +2966,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 354ab193a7ed66e42869c8a0c2c0d844e8e22f67
   React-mutationobservernativemodule: f53ad06cbe4b44d2a33df6aa3f01ca8e9b57e83b
   react-native-kb: 71289be80d93678d5abff5805cb638cd36d9e08e
-  react-native-keyboard-controller: 1ae58e1dc917b82e87c602a5108f8ab02de92654
+  react-native-keyboard-controller: 7035cde04633689d349fa197e755ad0111d7c26d
   react-native-netinfo: a05f9b897e76ad24b53f615fed1cbb731932363d
   react-native-safe-area-context: 0bbcdfba5c4a1b3203276f1ed9128e3239fdf199
   react-native-webview: da05bfc1780bcf7adb992de2976b09b559489d76
@@ -3005,7 +3005,7 @@ SPEC CHECKSUMS:
   ReactCodegen: cd296de5e1c422deebafff34134d1721b5c29704
   ReactCommon: d5c1bb4427bf51c443de5926aac332c89ddd9363
   ReactNativeDependencies: fa0a54b3f5319ae0e3b9aff32bfee7a424b88e66
-  ReactNavigation: 91c5ab38bc3725c73ea2399bf2bf9d0a38ca935a
+  ReactNavigation: a37921f7c7ac12ad91d4f69ceb43b5b456ff058d
   RNCMaskedView: 8069b4d4e23b3d28b4fcac70bf266be43ffc3d2e
   RNCPicker: a3921be99ae291e420e3e8940e5b2b53e572c543
   RNGestureHandler: 7ade813d6efb2b650e01afdd54d699bc435843fb
