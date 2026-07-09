@@ -17,6 +17,12 @@ These are pinned to the Expo SDK version — do not touch:
 
 **`webpack-dev-server`: do NOT go past `5.x`.** v6 deleted the SockJS client, but `@pmmmwh/react-refresh-webpack-plugin` (latest 0.6.2, peer range `^4.8.0 || 5.x`) still hard-`require`s `webpack-dev-server/client/clients/SockJSClient` in `sockets/WDSSocket.js` — so wds6 breaks desktop hot mode at compile time (`ModuleNotFoundError`). Stay on the latest `5.x` (currently 5.2.6). Only move to wds6 once @pmmmwh ships a release whose peer range includes `6.x`, or after migrating the bundler off webpack (see Rspack notes elsewhere). See memory [[project_wds6_react_refresh_sockjs]].
 
+**`typescript` is intentionally split into two packages — do NOT collapse them yet.** TypeScript 7.x is the native (Go) rewrite: fast, but it does NOT ship the classic JS compiler API (`ts.isCallExpression`, `ts.forEachChild`, `ts.Extension.*`, etc.). Two consumers here still require that classic API: `typescript-eslint` (its `@typescript-eslint/typescript-estree` crashes at module-load on TS7 with `Cannot read properties of undefined (reading 'Cjs')`, and its peer range is `>=4.8.4 <6.1.0` even on canary), and `scripts/analyze-styles.mts` (imports `typescript` and walks the AST). So:
+- `"typescript": "6.0.3"` — the classic-API package. Bare `import 'typescript'` resolves here (eslint parser + analyze-styles). Keep on the latest `6.x`; do NOT bump to `7.x`.
+- `"typescript-native": "npm:typescript@7.0.2"` — TS7 native, aliased so it doesn't take the bare `typescript` name. Used ONLY as the `tsc` CLI, invoked by explicit path in the `tsc` script (`./node_modules/typescript-native/bin/tsc`). This replaced the old `@typescript/native-preview` (`tsgo`) dependency. Bump this to the latest stable `typescript@7.x` on each pass.
+
+When `typescript-eslint` ships a release that accepts TS7 (peer range includes `>=7`, and typescript-estree no longer reads the classic API off the `typescript` module): bump `typescript-eslint`, set `"typescript": "<that 7.x>"`, delete the `typescript-native` alias, and repoint the `tsc` script back to `./node_modules/.bin/tsc`. Verify `analyze-styles.mts` still type-checks (it may need porting to the TS7 API). Until then the split stays.
+
 ## Process
 
 ### 1. Check what's outdated

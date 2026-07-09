@@ -19,10 +19,12 @@ const makePlatformPlugin = defines => babel => {
   }
 }
 
-const makeElectronConfig = (isTest, platformPlugin) => ({
+// Electron only reaches Babel through jest (BABEL_ENV=test) — the Vite desktop
+// build does not load this config. React-native covers Metro builds.
+const makeElectronConfig = platformPlugin => ({
   presets: [
     ['@babel/preset-env', {targets: {node: 'current'}}],
-    ...(isTest ? [['@babel/preset-react', {runtime: 'automatic'}]] : []),
+    ['@babel/preset-react', {runtime: 'automatic'}],
     '@babel/preset-typescript',
   ],
   plugins: [
@@ -41,43 +43,19 @@ const makeReactNativeConfig = platformPlugin => ({
   sourceMaps: true,
 })
 
-const detectPlatform = (apiEnv, callerName) => {
-  if (apiEnv === 'test') {
-    return 'electron'
-  }
-  if (apiEnv === 'test-rn') {
-    return 'react-native'
-  }
-  return !callerName || callerName === 'metro' ? 'react-native' : 'electron'
-}
-
 module.exports = function (api /*: any */) {
   const apiEnv = api.env()
-  const callerName = api.caller(c => c?.name ?? null)
   const metroPlatform = api.caller(c => c?.platform ?? null) // 'ios' | 'android' | null
-  const platform = detectPlatform(apiEnv, callerName)
-  const isTest = apiEnv === 'test' || apiEnv === 'test-rn'
+  const isElectron = apiEnv === 'test'
 
-  api.cache.using(() => `${apiEnv}:${callerName ?? 'unknown'}:${platform}:${metroPlatform ?? 'none'}`)
+  api.cache.using(() => `${apiEnv}:${metroPlatform ?? 'none'}`)
 
-  const isRN = platform === 'react-native'
   const platformPlugin = makePlatformPlugin({
-    isMobile: isRN,
-    isElectron: !isRN,
+    isMobile: !isElectron,
+    isElectron,
     isAndroid: metroPlatform === 'android',
     isIOS: metroPlatform === 'ios',
   })
 
-  // console.error('KB babel.config.js ', {apiEnv, callerName, platform, metroPlatform})
-
-  if (platform === 'electron') {
-    // console.error('KB babel.config.js for Electron')
-    return makeElectronConfig(isTest, platformPlugin)
-  }
-  if (platform === 'react-native') {
-    // console.error('KB babel.config.js for ReactNative')
-    return makeReactNativeConfig(platformPlugin)
-  }
-
-  throw new Error(`Unable to determine Babel platform from env/caller: ${apiEnv}/${callerName ?? 'unknown'}`)
+  return isElectron ? makeElectronConfig(platformPlugin) : makeReactNativeConfig(platformPlugin)
 }

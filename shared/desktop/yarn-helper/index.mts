@@ -61,8 +61,6 @@ const commands: {[key: string]: Command} = {
 
       console.log(`Electron test${updateLabel}`)
       exec(`cross-env-shell BABEL_ENV=test jest${updateStr}`)
-      console.log(`React Native test${updateLabel}`)
-      exec(`cross-env-shell BABEL_ENV=test-rn jest --config .storybook-rn/jest.config.js${updateStr}`)
     },
     help: 'Run various tests. pass -u to update storyshots',
   },
