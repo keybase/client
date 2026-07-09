@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	keychain "github.com/keybase/go-keychain"
@@ -127,89 +126,6 @@ func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(mctx MetaContex
 func (k KeychainSecretStore) RetrieveSecret(mctx MetaContext, accountName NormalizedUsername) (secret LKSecFullSecret, err error) {
 	defer mctx.Trace(fmt.Sprintf("KeychainSecretStore.RetrieveSecret(%s)", accountName), &err)()
 
-	// Read all slots with a single keychain query; the slot scan issues one
-	// SecItemCopyMatching per slot (50 in production), which can add seconds
-	// to cold start when securityd is slow.
-	secret, err = k.retrieveSecretBatch(mctx, accountName)
-	if err == nil {
-		return secret, nil
-	}
-	if _, notFound := err.(SecretStoreError); notFound {
-		return LKSecFullSecret{}, err
-	}
-	mctx.Debug("KeychainSecretStore.RetrieveSecret(%s): batch keychain query failed (%v), falling back to slot scan", accountName, err)
-	return k.retrieveSecretSlotScan(mctx, accountName)
-}
-
-// parseAccountSlot returns the slot number encoded in a keychain account
-// string for the given username, mirroring keychainSlottedAccount.String
-// (slot 0 is the bare username).
-func parseAccountSlot(account string, name NormalizedUsername) (slot int, ok bool) {
-	if account == name.String() {
-		return 0, true
-	}
-	rest, ok := strings.CutPrefix(account, name.String()+slotSep)
-	if !ok {
-		return 0, false
-	}
-	slot, err := strconv.Atoi(rest)
-	if err != nil || slot <= 0 {
-		return 0, false
-	}
-	return slot, true
-}
-
-// retrieveSecretBatch fetches every slot for accountName in one
-// SecItemCopyMatching call and picks the same slot the scan in
-// retrieveSecretSlotScan would: the last filled slot before the first gap.
-func (k KeychainSecretStore) retrieveSecretBatch(mctx MetaContext, accountName NormalizedUsername) (LKSecFullSecret, error) {
-	query := keychain.NewItem()
-	query.SetSecClass(keychain.SecClassGenericPassword)
-	query.SetService(k.serviceName(mctx))
-	query.SetAccessGroup(k.accessGroup(mctx))
-	query.SetMatchLimit(keychain.MatchLimitAll)
-	query.SetReturnAttributes(true)
-	query.SetReturnData(true)
-	results, err := keychain.QueryItem(query)
-	if err != nil {
-		k.mobileKeychainPermissionDeniedCheck(mctx, err)
-		return LKSecFullSecret{}, err
-	}
-
-	bySlot := make(map[int][]byte, len(results))
-	for _, r := range results {
-		if slot, ok := parseAccountSlot(r.Account, accountName); ok {
-			bySlot[slot] = r.Data
-		}
-	}
-
-	var secret LKSecFullSecret
-	found := false
-	for i := range maxKeychainItemSlots {
-		encodedSecret, ok := bySlot[i]
-		if !ok {
-			break
-		}
-		decoded, err := base64.StdEncoding.DecodeString(string(encodedSecret))
-		if err != nil {
-			mctx.Debug("retrieveSecretBatch: undecodable secret in slot %d: %v", i, err)
-			continue
-		}
-		s, err := newLKSecFullSecretFromBytes(decoded)
-		if err != nil {
-			mctx.Debug("retrieveSecretBatch: invalid secret in slot %d: %v", i, err)
-			continue
-		}
-		secret = s
-		found = true
-	}
-	if !found {
-		return LKSecFullSecret{}, NewErrSecretForUserNotFound(accountName)
-	}
-	return secret, nil
-}
-
-func (k KeychainSecretStore) retrieveSecretSlotScan(mctx MetaContext, accountName NormalizedUsername) (secret LKSecFullSecret, err error) {
 	// find the last valid item we have stored in the keychain
 	var previousSecret LKSecFullSecret
 	for i := range maxKeychainItemSlots {
