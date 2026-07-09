@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Tabs from '@/constants/tabs'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
@@ -8,7 +8,6 @@ import type {HeaderOptions} from '@react-navigation/elements'
 import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import type {NavState} from '@/constants/router'
-import {useCurrentUserState} from '@/stores/current-user'
 import Header from './header/index'
 
 export const headerDefaultStyle = isMobile
@@ -40,21 +39,7 @@ export const tabToTestID = new Map<Tabs.Tab, string>([
   [Tabs.settingsTab, TestIDs.NAV_TAB_SETTINGS],
 ])
 
-// Remount the navigator when switching between two logged-in users.
-// Ignore '' → username (initial login) so in-flight unbox requests aren't interrupted.
-export const useUserSwitchNavKey = () => {
-  const username = useCurrentUserState(s => s.username)
-  const [navKey, setNavKey] = React.useState('')
-  const prevUsernameRef = React.useRef(username)
-  React.useEffect(() => {
-    const prev = prevUsernameRef.current
-    prevUsernameRef.current = username
-    if (prev && username && prev !== username) {
-      setNavKey(username)
-    }
-  }, [username])
-  return navKey
-}
+export {useUserSwitchNavKey} from './use-user-switch-nav-key'
 
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
