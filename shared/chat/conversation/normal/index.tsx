@@ -26,6 +26,7 @@ import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {useSharedValue} from 'react-native-reanimated'
+import {HeaderHeightContext} from '@react-navigation/elements'
 import logger from '@/logger'
 
 const Offline = () => (
@@ -127,9 +128,12 @@ const NativeConversation = function NativeConversation() {
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
 
   const insets = useSafeAreaInsets()
-  const headerHeight = Kb.Styles.isTablet ? 115 : 44
+  // the navigator reports the header's real measured height (top inset included); guessing it
+  // sizes this box wrong, which drags the composer off the bottom of its screen slot and leaves
+  // a gap under the suggestion popup (that popup anchors to the window, not to this box)
+  const headerHeight = React.useContext(HeaderHeightContext) ?? insets.top + (Kb.Styles.isTablet ? 115 : 44)
   const windowHeight = useSafeAreaFrame().height
-  const height = windowHeight - insets.top - headerHeight
+  const height = windowHeight - headerHeight
 
   const safeStyle = {height, maxHeight: height, minHeight: height}
 
