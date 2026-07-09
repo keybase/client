@@ -96,6 +96,10 @@ ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
 
 export type ConversationThreadState = {
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
+  // Bumped on every messagesClear. The desktop list remounts on it: LegendList cannot recover
+  // from a non-empty -> empty -> non-empty data transition (it resets its layout state and waits
+  // for a container layout event that never comes), so the thread renders blank forever.
+  clearVersion: number
   explodingMode: number
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean
@@ -130,6 +134,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
   produce(
     {
       accountsInfoMap: new Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>(),
+      clearVersion: 0,
       explodingMode: 0,
       flipStatusMap: new Map<string, T.RPCChat.UICoinFlipStatus>(),
       liveUpdateVersion: 0,
@@ -870,6 +875,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     activeMarkReadEnabledRef.current = false
     shownUsernameCache.clear()
     updateThreadState(s => {
+      s.clearVersion += 1
       s.pendingOutboxToOrdinal.clear()
       s.loaded = false
       s.messageIDToOrdinal.clear()
