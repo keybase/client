@@ -5,7 +5,7 @@ import IconAuto from './icon-auto'
 import Text from './text'
 import {getTextStyle} from './text.styles'
 import {useColorScheme, TextInput as _TextInputReal} from 'react-native'
-const NativeTextInput = _TextInputReal as unknown as React.ComponentType<{autoCapitalize?: string; autoCorrect?: boolean; autoFocus?: boolean; blurOnSubmit?: boolean; editable?: boolean; keyboardType?: string; maxLength?: number; multiline?: boolean; onBlur?: () => void; onChangeText?: (text: string) => void; onFocus?: () => void; onSubmitEditing?: () => void; placeholder?: string; placeholderTextColor?: string; ref?: React.Ref<InputLikeRef>; returnKeyType?: string; secureTextEntry?: boolean; selectTextOnFocus?: boolean; style?: Styles.StylesCrossPlatform; textContentType?: string; underlineColorAndroid?: string; value?: string}>
+const NativeTextInput = _TextInputReal as unknown as React.ComponentType<{autoCapitalize?: string; autoCorrect?: boolean; autoFocus?: boolean; editable?: boolean; keyboardType?: string; maxLength?: number; multiline?: boolean; onBlur?: () => void; onChangeText?: (text: string) => void; onFocus?: () => void; onSubmitEditing?: () => void; placeholder?: string; placeholderTextColor?: string; ref?: React.Ref<InputLikeRef>; returnKeyType?: string; secureTextEntry?: boolean; selectTextOnFocus?: boolean; style?: Styles.StylesCrossPlatform; submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline'; textContentType?: string; underlineColorAndroid?: string; value?: string}>
 import type {Input3Props, Input3Ref} from './input3.shared'
 export type {Input3Props, Input3Ref} from './input3.shared'
 
@@ -241,7 +241,6 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
         autoCapitalize={autoCapitalize ?? 'none'}
         autoCorrect={autoCorrect ?? false}
         autoFocus={autoFocus}
-        blurOnSubmit={!multiline}
         editable={!disabled}
         keyboardType={keyboardType ?? 'default'}
         maxLength={maxLength}
@@ -264,6 +263,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
           multiline && rowsMax && {maxHeight: rowsMax * lineHeight},
           inputStyle,
         ])}
+        submitBehavior={multiline ? 'newline' : 'blurAndSubmit'}
         textContentType={textContentType}
         underlineColorAndroid="transparent"
         value={value}

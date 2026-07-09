@@ -420,7 +420,6 @@ function NativeInput(p: InputLowLevelProps) {
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       autoFocus={autoFocus}
-      blurOnSubmit={false}
       multiline={multiline}
       onBlur={onBlur as ((e: unknown) => void) | undefined}
       onChangeText={onChangeText}
@@ -431,6 +430,7 @@ function NativeInput(p: InputLowLevelProps) {
       ref={setInputRef}
       selection={selection}
       style={style as object | null | undefined}
+      submitBehavior={multiline ? 'newline' : 'submit'}
       testID={TestIDs.CHAT_INPUT}
       value={value}
     />
