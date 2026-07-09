@@ -4,10 +4,14 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
-import {produce} from 'immer'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
+import {
+  type CachedResourceCache,
+  getCachedResourceCache,
+  useCachedResource,
+} from '@/teams/use-cached-resource'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
 
@@ -25,23 +29,6 @@ type ChatTeamMembersState = {
   members: ReadonlyMap<string, T.Teams.MemberInfo>
 }
 
-type ChatTeamNamesState = {
-  loading: boolean
-  teamnames: ReadonlyMap<T.Teams.TeamID, string>
-}
-
-type ChatTeamNamesStateInternal = ChatTeamNamesState & {
-  loadedTeamIDsKey?: string
-}
-
-type ChatTeamStateInternal = ChatTeamState & {
-  loadedTeamID?: T.Teams.TeamID
-}
-
-type ChatTeamMembersStateInternal = ChatTeamMembersState & {
-  loadedTeamID?: T.Teams.TeamID
-}
-
 type ChatManageChannelsBadgeState = {
   loading: boolean
   showBadge: boolean
@@ -55,41 +42,42 @@ export type ChatTeamMembers = ChatTeamMembersState & {
   reload: () => Promise<void>
 }
 
-export type ChatTeamNames = ChatTeamNamesState & {
-  reload: () => Promise<void>
-}
-
 export type ChatManageChannelsBadge = ChatManageChannelsBadgeState & {
   dismiss: () => Promise<void>
 }
 
-const emptyChatTeamState: ChatTeamStateInternal = {
-  allowPromote: false,
-  description: '',
-  loadedTeamID: undefined,
-  loading: false,
-  role: 'none',
-  teamname: '',
-  yourOperations: Teams.initialCanUserPerform,
+// The cached slice of a team: everything the annotated-team RPC tells us that
+// isn't derived from the (separately cached) role map. Team-global, so the
+// cache is keyed by team ID alone and shared by every conversation in the team.
+type ChatTeamData = {
+  allowPromote: boolean
+  description: string
+  teamname: string
 }
+type ChatTeamMembersData = ReadonlyMap<string, T.Teams.MemberInfo>
+type TeamCacheKey = T.Teams.TeamID | undefined
+type TeamCacheMap<D> = Map<TeamCacheKey, CachedResourceCache<D, TeamCacheKey>>
 
-const makeEmptyChatTeamMembersState = (): ChatTeamMembersStateInternal => ({
-  loadedTeamID: undefined,
-  loading: false,
-  members: new Map<string, T.Teams.MemberInfo>(),
-})
+const emptyChatTeamData: ChatTeamData = {allowPromote: false, description: '', teamname: ''}
+const emptyChatTeamMembersData: ChatTeamMembersData = new Map<string, T.Teams.MemberInfo>()
 
-const makeEmptyChatTeamNamesState = (): ChatTeamNamesStateInternal => ({
-  loadedTeamIDsKey: undefined,
-  loading: false,
-  teamnames: new Map<T.Teams.TeamID, string>(),
-})
+// Module level so switching conversations (or channels within a team) reuses
+// the loaded team instead of refetching. teamChangedByID & friends invalidate.
+const chatTeamCacheMap: TeamCacheMap<ChatTeamData> = new Map()
+const chatTeamMembersCacheMap: TeamCacheMap<ChatTeamMembersData> = new Map()
+const chatTeamReloadStaleMs = 5 * 60_000
+
+// A disabled "shadow" instance (one that returns the context value instead of
+// its own) must NOT share the loader's cache: with enabled=false
+// useCachedResource resets the cache, which would clobber the loader's data.
+// Give shadows a private throwaway map so their resets are harmless.
+const useTeamCacheMap = <D,>(sharedCacheMap: TeamCacheMap<D>, forceLocalCache: boolean) => {
+  const [localCacheMap] = React.useState<TeamCacheMap<D>>(() => new Map())
+  return forceLocalCache ? localCacheMap : sharedCacheMap
+}
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
-
-const parseTeamIDsKey = (teamIDsKey: string): Array<T.Teams.TeamID> =>
-  teamIDsKey ? teamIDsKey.split(',').map(teamID => teamID as T.Teams.TeamID) : []
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -106,431 +94,165 @@ const roleAndDetailsFromMap = (
   }
 }
 
-const annotatedTeamToChatTeamState = (
-  annotatedTeam: T.RPCGen.AnnotatedTeam,
-  roleAndDetails: T.Teams.TeamRoleAndDetails | undefined
-): ChatTeamState => ({
+const annotatedTeamToChatTeamData = (annotatedTeam: T.RPCGen.AnnotatedTeam): ChatTeamData => ({
   allowPromote: annotatedTeam.showcase.anyMemberShowcase,
   description: annotatedTeam.showcase.description ?? '',
-  loading: false,
-  role: roleAndDetails?.role ?? 'none',
   teamname: annotatedTeam.name,
-  yourOperations: Teams.deriveCanPerform(roleAndDetails),
 })
 
-const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = true): ChatTeam => {
+const useChatTeamRaw = (
+  teamID: T.Teams.TeamID,
+  teamname?: string,
+  enabled = true,
+  subscribeToUpdates = enabled,
+  forceLocalCache = false
+): ChatTeam => {
   const validTeamID = loadableTeamID(teamID)
   const teamMetaByID = useTeamsListMap()
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
-  const [state, setState] = React.useState<ChatTeamStateInternal>(() => ({
-    ...emptyChatTeamState,
-    loadedTeamID: validTeamID,
-    teamname: teamname ?? '',
-  }))
-  const requestVersionRef = React.useRef(0)
-  const clearState = React.useCallback(() => {
-    requestVersionRef.current++
-    setState({...emptyChatTeamState, loadedTeamID: validTeamID, teamname: teamname ?? ''})
-  }, [teamname, validTeamID])
+  const cacheMap = useTeamCacheMap(chatTeamCacheMap, forceLocalCache)
+  const cache = React.useMemo(
+    () => getCachedResourceCache(cacheMap, emptyChatTeamData, validTeamID),
+    [cacheMap, validTeamID]
+  )
 
   const teamMeta = validTeamID ? teamMetaByID.get(validTeamID) : undefined
   const knownTeamname = teamname || teamMeta?.teamname || ''
 
-  const reload = React.useCallback(async () => {
-    if (!enabled || !validTeamID) {
-      clearState()
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    setState(
-      produce(draft => {
-        draft.loading = true
-        if (!draft.teamname) {
-          draft.teamname = knownTeamname
-        }
-      })
-    )
-    try {
+  const {clear, data, loaded, loading, reload} = useCachedResource({
+    cache,
+    cacheKey: validTeamID,
+    enabled: enabled && !!validTeamID,
+    initialData: emptyChatTeamData,
+    load: async () => {
       const [annotatedTeam] = await Promise.all([
-        T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID}),
+        T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID ?? T.Teams.noTeamID}),
         loadRoleMapIfStale(),
       ])
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setState({
-        ...annotatedTeamToChatTeamState(annotatedTeam, undefined),
-        loadedTeamID: validTeamID,
-      })
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
+      return annotatedTeamToChatTeamData(annotatedTeam)
+    },
+    onError: error => {
       logger.warn(`Failed to load chat team metadata for ${validTeamID}`, error)
-      setState(
-        produce(draft => {
-          draft.loading = false
-          if (!draft.teamname) {
-            draft.teamname = knownTeamname
-          }
-        })
-      )
-    }
-  }, [clearState, enabled, knownTeamname, loadRoleMapIfStale, validTeamID])
+    },
+    staleMs: chatTeamReloadStaleMs,
+  })
 
-  const visibleState =
-    enabled && state.loadedTeamID !== validTeamID
-      ? {...emptyChatTeamState, loadedTeamID: validTeamID, teamname: teamname ?? ''}
-      : state
   const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID)
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
-    if (enabled) {
-      clearState()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
-    if (enabled) {
-      clearState()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState()
-    }
-  })
+
+  useEngineActionListener(
+    'keybase.1.NotifyTeam.teamMetadataUpdate',
+    () => {
+      void reload()
+    },
+    subscribeToUpdates
+  )
+  useEngineActionListener(
+    'keybase.1.NotifyTeam.teamChangedByID',
+    action => {
+      if (action.payload.params.teamID === validTeamID) {
+        void reload()
+      }
+    },
+    subscribeToUpdates
+  )
+  useEngineActionListener(
+    'keybase.1.NotifyTeam.teamDeleted',
+    action => {
+      if (action.payload.params.teamID === validTeamID) {
+        clear(validTeamID)
+      }
+    },
+    subscribeToUpdates
+  )
+  useEngineActionListener(
+    'keybase.1.NotifyTeam.teamExit',
+    action => {
+      if (action.payload.params.teamID === validTeamID) {
+        clear(validTeamID)
+      }
+    },
+    subscribeToUpdates
+  )
 
   return {
-    ...visibleState,
-    allowPromote: teamMeta?.allowPromote ?? visibleState.allowPromote,
+    allowPromote: teamMeta?.allowPromote ?? data.allowPromote,
+    description: data.description,
+    loading: loading && !loaded,
     reload,
     role: roleAndDetails?.role ?? teamMeta?.role ?? 'none',
-    teamname: knownTeamname || visibleState.teamname,
+    teamname: knownTeamname || data.teamname,
     yourOperations,
   }
 }
 
-const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeamMembers => {
+const useChatTeamMembersRaw = (
+  teamID: T.Teams.TeamID,
+  enabled = true,
+  subscribeToUpdates = enabled,
+  forceLocalCache = false
+): ChatTeamMembers => {
   const validTeamID = loadableTeamID(teamID)
-  const [state, setState] = React.useState<ChatTeamMembersStateInternal>(() =>
-    makeEmptyChatTeamMembersState()
-  )
-  const requestVersionRef = React.useRef(0)
-  const clearState = React.useCallback(() => {
-    requestVersionRef.current++
-    setState({...makeEmptyChatTeamMembersState(), loadedTeamID: validTeamID})
-  }, [validTeamID])
-  if (
-    (!enabled || !validTeamID) &&
-    (state.loadedTeamID !== undefined || state.loading || state.members.size)
-  ) {
-    setState(makeEmptyChatTeamMembersState())
-  }
-
-  const loadMemberInfos = React.useCallback(
-    async (teamID: T.Teams.TeamID) =>
-      Teams.rpcDetailsToMemberInfos((await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({id: teamID})) ?? []),
-    []
+  const cacheMap = useTeamCacheMap(chatTeamMembersCacheMap, forceLocalCache)
+  const cache = React.useMemo(
+    () => getCachedResourceCache(cacheMap, emptyChatTeamMembersData, validTeamID),
+    [cacheMap, validTeamID]
   )
 
-  const loadMembers = React.useCallback(async () => {
-    if (!enabled || !validTeamID) {
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    try {
-      const members = await loadMemberInfos(validTeamID)
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
+  const {clear, data, loaded, loading, reload} = useCachedResource({
+    cache,
+    cacheKey: validTeamID,
+    enabled: enabled && !!validTeamID,
+    initialData: emptyChatTeamMembersData,
+    load: async () => {
+      const members = Teams.rpcDetailsToMemberInfos(
+        (await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({id: validTeamID ?? T.Teams.noTeamID})) ?? []
+      )
       useUsersState.getState().dispatch.updates(
         [...members.values()].map(member => ({
           info: {fullname: member.fullName},
           name: member.username,
         }))
       )
-      setState({loadedTeamID: validTeamID, loading: false, members})
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
+      return members
+    },
+    onError: error => {
       logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
-      setState(
-        produce(draft => {
-          draft.loadedTeamID = validTeamID
-          draft.loading = false
-        })
-      )
-    }
-  }, [enabled, loadMemberInfos, validTeamID])
+    },
+    staleMs: chatTeamReloadStaleMs,
+  })
 
-  const reload = React.useCallback(async () => {
-    if (!enabled || !validTeamID) {
-      clearState()
-      return
-    }
-    setState(
-      produce(draft => {
-        draft.loadedTeamID = validTeamID
-        draft.loading = true
-      })
-    )
-    await loadMembers()
-  }, [clearState, enabled, loadMembers, validTeamID])
-
-  const visibleState =
-    !enabled || !validTeamID
-      ? {...makeEmptyChatTeamMembersState(), loadedTeamID: validTeamID}
-      : state.loadedTeamID !== validTeamID
-        ? {...makeEmptyChatTeamMembersState(), loadedTeamID: validTeamID, loading: true}
-        : state
-
-  React.useEffect(() => {
-    if (!enabled || !validTeamID) {
-      requestVersionRef.current += 1
-      return undefined
-    }
-    const requestVersion = ++requestVersionRef.current
-    const f = async () => {
-      try {
-        const members = await loadMemberInfos(validTeamID)
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        useUsersState.getState().dispatch.updates(
-          [...members.values()].map(member => ({
-            info: {fullname: member.fullName},
-            name: member.username,
-          }))
-        )
-        setState({loadedTeamID: validTeamID, loading: false, members})
-      } catch (error) {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
-        setState(
-          produce(draft => {
-            draft.loadedTeamID = validTeamID
-            draft.loading = false
-          })
-        )
+  useEngineActionListener(
+    'keybase.1.NotifyTeam.teamChangedByID',
+    action => {
+      if (action.payload.params.teamID === validTeamID) {
+        void reload()
       }
-    }
-    C.ignorePromise(f())
-    return () => {
-      if (requestVersionRef.current === requestVersion) {
-        requestVersionRef.current += 1
-      }
-    }
-  }, [enabled, loadMemberInfos, validTeamID])
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      void loadMembers()
-    }, [loadMembers])
+    },
+    subscribeToUpdates
   )
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState()
-    }
-  })
-
-  return {...visibleState, reload}
-}
-
-const loadTeamNameForID = async (teamID: T.Teams.TeamID) => {
-  try {
-    const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
-    return teamname ? ([teamID, teamname] as const) : undefined
-  } catch (error) {
-    logger.warn(`Failed to load chat team name for ${teamID}`, error)
-    return undefined
-  }
-}
-
-const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = true): ChatTeamNames => {
-  const username = useCurrentUserState(s => s.username)
-  const teamIDsKey = [
-    ...new Set(teamIDs.map(loadableTeamID).filter((teamID): teamID is T.Teams.TeamID => !!teamID)),
-  ]
-    .sort()
-    .join(',')
-  const validTeamIDs = React.useMemo(() => parseTeamIDsKey(teamIDsKey), [teamIDsKey])
-  const [state, setState] = React.useState<ChatTeamNamesStateInternal>(() => makeEmptyChatTeamNamesState())
-  const requestVersionRef = React.useRef(0)
-  const clearState = React.useCallback(() => {
-    requestVersionRef.current++
-    setState(makeEmptyChatTeamNamesState())
-  }, [])
-  if (
-    (!enabled || !teamIDsKey || !username) &&
-    (state.loadedTeamIDsKey || state.loading || state.teamnames.size)
-  ) {
-    setState(makeEmptyChatTeamNamesState())
-  }
-
-  const loadTeamNamesForIDs = React.useCallback(async (teamIDs: ReadonlyArray<T.Teams.TeamID>) => {
-    const resolvedTeamnames = await Promise.all(teamIDs.map(loadTeamNameForID))
-    const teamnames = new Map<T.Teams.TeamID, string>()
-    resolvedTeamnames.forEach(entry => {
-      if (entry) {
-        teamnames.set(entry[0], entry[1])
+  useEngineActionListener(
+    'keybase.1.NotifyTeam.teamDeleted',
+    action => {
+      if (action.payload.params.teamID === validTeamID) {
+        clear(validTeamID)
       }
-    })
-    return teamnames
-  }, [])
-
-  const loadTeamNames = React.useCallback(async () => {
-    if (!enabled || !teamIDsKey || !username) {
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    try {
-      const teamnames = await loadTeamNamesForIDs(validTeamIDs)
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setState({
-        loadedTeamIDsKey: teamIDsKey,
-        loading: false,
-        teamnames,
-      })
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
-      setState(
-        produce(draft => {
-          if (draft.loadedTeamIDsKey !== teamIDsKey) {
-            draft.teamnames = new Map()
-          }
-          draft.loadedTeamIDsKey = teamIDsKey
-          draft.loading = false
-        })
-      )
-    }
-  }, [enabled, loadTeamNamesForIDs, teamIDsKey, username, validTeamIDs])
-
-  const reload = React.useCallback(async () => {
-    if (!enabled || !teamIDsKey || !username) {
-      clearState()
-      return
-    }
-    setState(
-      produce(draft => {
-        if (draft.loadedTeamIDsKey !== teamIDsKey) {
-          draft.teamnames = new Map()
-        }
-        draft.loadedTeamIDsKey = teamIDsKey
-        draft.loading = true
-      })
-    )
-    await loadTeamNames()
-  }, [clearState, enabled, loadTeamNames, teamIDsKey, username])
-
-  const visibleState =
-    !enabled || !teamIDsKey || !username
-      ? makeEmptyChatTeamNamesState()
-      : state.loadedTeamIDsKey !== teamIDsKey
-        ? {...makeEmptyChatTeamNamesState(), loadedTeamIDsKey: teamIDsKey, loading: true}
-        : state
-
-  React.useEffect(() => {
-    if (!enabled || !teamIDsKey || !username) {
-      requestVersionRef.current += 1
-      return undefined
-    }
-    const requestVersion = ++requestVersionRef.current
-    const f = async () => {
-      try {
-        const teamnames = await loadTeamNamesForIDs(validTeamIDs)
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        setState({
-          loadedTeamIDsKey: teamIDsKey,
-          loading: false,
-          teamnames,
-        })
-      } catch (error) {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
-        setState(prev => ({
-          loadedTeamIDsKey: teamIDsKey,
-          loading: false,
-          teamnames: prev.loadedTeamIDsKey === teamIDsKey ? new Map(prev.teamnames) : new Map(),
-        }))
-      }
-    }
-    C.ignorePromise(f())
-    return () => {
-      if (requestVersionRef.current === requestVersion) {
-        requestVersionRef.current += 1
-      }
-    }
-  }, [enabled, loadTeamNamesForIDs, teamIDsKey, username, validTeamIDs])
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      void loadTeamNames()
-    }, [loadTeamNames])
+    },
+    subscribeToUpdates
   )
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
-    if (enabled && teamIDsKey) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
-      requestVersionRef.current++
-      setState(
-        produce(draft => {
-          draft.teamnames.delete(action.payload.params.teamID)
-          draft.loading = false
-        })
-      )
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
-      requestVersionRef.current++
-      setState(
-        produce(draft => {
-          draft.teamnames.delete(action.payload.params.teamID)
-          draft.loading = false
-        })
-      )
-    }
-  })
+  useEngineActionListener(
+    'keybase.1.NotifyTeam.teamExit',
+    action => {
+      if (action.payload.params.teamID === validTeamID) {
+        clear(validTeamID)
+      }
+    },
+    subscribeToUpdates
+  )
 
-  return {...visibleState, reload}
+  // `loading` means "nothing to show yet" - a background revalidation of cached
+  // data must not flip callers back to their empty/spinner state.
+  return {loading: loading && !loaded, members: data, reload}
 }
 
 type ChatTeamContextValue = {
@@ -554,8 +276,13 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const outer = React.useContext(ChatTeamContext)
   const enabled = teamType !== 'adhoc' && !!loadableTeamID(teamID)
   const sameAsOuter = outer?.teamID === teamID
-  const team = useChatTeamRaw(teamID, teamname, enabled && !sameAsOuter)
-  const members = useChatTeamMembersRaw(teamID, enabled && !sameAsOuter)
+  const team = useChatTeamRaw(teamID, teamname, enabled && !sameAsOuter, enabled && !sameAsOuter, sameAsOuter)
+  const members = useChatTeamMembersRaw(
+    teamID,
+    enabled && !sameAsOuter,
+    enabled && !sameAsOuter,
+    sameAsOuter
+  )
   const value: ChatTeamContextValue = sameAsOuter ? outer! : {members, team, teamID}
   return <ChatTeamContext.Provider value={value}>{children}</ChatTeamContext.Provider>
 }
@@ -563,14 +290,14 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
 export const useChatTeam = (teamID: T.Teams.TeamID, teamname?: string): ChatTeam => {
   const context = React.useContext(ChatTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useChatTeamRaw(teamID, teamname, !useContextValue)
+  const raw = useChatTeamRaw(teamID, teamname, !useContextValue, !useContextValue, useContextValue)
   return useContextValue ? context.team : raw
 }
 
 export const useChatTeamMembers = (teamID: T.Teams.TeamID): ChatTeamMembers => {
   const context = React.useContext(ChatTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useChatTeamMembersRaw(teamID, !useContextValue)
+  const raw = useChatTeamMembersRaw(teamID, !useContextValue, !useContextValue, useContextValue)
   return useContextValue ? context.members : raw
 }
 
@@ -585,9 +312,6 @@ export const useChatTeamMemberRole = (
   const context = React.useContext(ChatTeamContext)
   return context?.teamID === teamID ? context.members.members.get(username)?.type : undefined
 }
-
-export const useChatTeamNames = (teamIDs: ReadonlyArray<T.Teams.TeamID>): ChatTeamNames =>
-  useChatTeamNamesRaw(teamIDs)
 
 export const useChatManageChannelsBadge = (
   teamID: T.Teams.TeamID,
