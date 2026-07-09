@@ -110,7 +110,9 @@ test('showUsername is derived from the previous ordinal and current message data
   ).toBe('bob')
 })
 
-test('row type preserves native recycle distinctions', () => {
+test('row type only uses suffixes that are stable for the message lifetime', () => {
+  // pending flips to confirmed after every send; reactions toggle. Both would leave stale
+  // recycling-pool labels behind, so they must NOT affect the row type.
   const pending = makeTextMessage({
     id: T.Chat.numberToMessageID(401),
     ordinal: T.Chat.numberToOrdinal(401),
@@ -140,10 +142,10 @@ test('row type preserves native recycle distinctions', () => {
     reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
   })
 
-  expect(getMessageRowType(pending)).toBe('text:pending')
-  expect(getMessageRowType(failed)).toBe('text:pending')
+  expect(getMessageRowType(pending)).toBe('text')
+  expect(getMessageRowType(failed)).toBe('text:failed')
   expect(getMessageRowType(reply)).toBe('text:reply')
-  expect(getMessageRowType(reaction)).toBe('text:reactions')
+  expect(getMessageRowType(reaction)).toBe('text')
 })
 
 test('showUsername recomputes from the current neighboring ordinal after inserts and deletes', () => {
@@ -211,7 +213,7 @@ test('showUsername recomputes from the current neighboring ordinal after inserts
   ).toBe('bob')
 })
 
-test('row type combines pending, reply, and reaction suffixes after row edits', () => {
+test('row type combines stable suffixes and is unchanged by send confirmation', () => {
   const reply = makeTextMessage({
     id: T.Chat.numberToMessageID(600),
     ordinal: T.Chat.numberToOrdinal(600),
@@ -223,6 +225,13 @@ test('row type combines pending, reply, and reaction suffixes after row edits', 
     replyTo: reply,
     submitState: 'pending',
   })
+  const failedReply = makeTextMessage({
+    errorReason: 'send failed',
+    id: T.Chat.numberToMessageID(603),
+    ordinal: T.Chat.numberToOrdinal(603),
+    replyTo: reply,
+    submitState: 'failed',
+  })
   const failedAttachment = makeAttachmentMessage({
     errorReason: 'upload failed',
     id: T.Chat.numberToMessageID(602),
@@ -230,14 +239,19 @@ test('row type combines pending, reply, and reaction suffixes after row edits', 
     submitState: 'failed',
   })
 
-  expect(getMessageRowType(pendingReplyWithReaction)).toBe('text:pending:reply:reactions')
-  expect(getMessageRowType(failedAttachment)).toBe('attachment:pending')
+  expect(getMessageRowType(pendingReplyWithReaction)).toBe('text:reply')
+  expect(getMessageRowType(failedReply)).toBe('text:failed:reply')
+  expect(getMessageRowType(failedAttachment)).toBe('attachment:failed')
 
-  const edited = makeTextMessage({
+  // confirmation (pending → sent) must not change the type: the recycling pool label was recorded
+  // at allocation and is never updated in place
+  const confirmed = makeTextMessage({
     id: T.Chat.numberToMessageID(601),
     ordinal: T.Chat.numberToOrdinal(601),
+    reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
+    replyTo: reply,
     submitState: undefined,
   })
 
-  expect(getMessageRowType(edited)).toBe('text')
+  expect(getMessageRowType(confirmed)).toBe('text:reply')
 })

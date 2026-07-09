@@ -15,4 +15,7 @@ export type Props = {
   onSwipeableOpenStartDrag?: () => void
   onSwipeableWillOpen?: (direction: 'left') => void
   containerStyle?: ViewStyle
+  // When false, the swipe pan handlers are not attached (children stay mounted, so toggling this
+  // does NOT remount the row). Used to shed per-row touch evaluation during fast scroll.
+  enabled?: boolean
 }

@@ -31,7 +31,13 @@ const DesktopExplodingHeightRetainer = (p: Props) => {
     doneKey: retainHeight ? messageKey : undefined,
     retainHeight,
   }))
-  const [height, setHeight] = React.useState(17)
+  // keyed to the message: with list recycling this instance is reused for other messages, and a
+  // stale measured height would be retained as the wrong row height
+  const [heightState, setHeightState] = React.useState(() => ({height: 17, key: messageKey}))
+  if (heightState.key !== messageKey) {
+    setHeightState({height: 17, key: messageKey})
+  }
+  const height = heightState.height
 
   let currentAnimationState = animationState
   if (animationState.retainHeight !== retainHeight) {
@@ -64,7 +70,7 @@ const DesktopExplodingHeightRetainer = (p: Props) => {
   const setBoxRef = React.useCallback((ref: Kb.MeasureRef | null) => {
     const measuredHeight = ref?.getBoundingClientRect().height
     if (measuredHeight) {
-      setHeight(lastHeight => (lastHeight === measuredHeight ? lastHeight : measuredHeight))
+      setHeightState(prev => (prev.height === measuredHeight ? prev : {...prev, height: measuredHeight}))
     }
   }, [])
 
@@ -162,9 +168,18 @@ function FlameFront(props: {height: number; stop: boolean}) {
 // Native implementation
 const NativeExplodingHeightRetainer = (p: Props) => {
   const {retainHeight, explodedBy, messageKey, style, children} = p
-  const [height, setHeight] = React.useState(20)
+  // keyed to the message: with recycleItems this instance is reused for other messages, and a
+  // stale measured height would be applied as the retained height of the wrong row — and since
+  // retainHeight forces the style height, onLayout would only ever report the forced value back,
+  // so it could never self-correct
+  const [heightState, setHeightState] = React.useState(() => ({height: 20, key: messageKey}))
+  if (heightState.key !== messageKey) {
+    setHeightState({height: 20, key: messageKey})
+  }
+  const height = heightState.height
   const onLayout = (evt: Kb.LayoutEvent) => {
-    setHeight(evt.nativeEvent.layout.height)
+    const h = evt.nativeEvent.layout.height
+    setHeightState(prev => (prev.height === h ? prev : {...prev, height: h}))
   }
   const numImages = Math.ceil(height / 80)
 
@@ -181,10 +196,12 @@ const NativeExplodingHeightRetainer = (p: Props) => {
       ])}
     >
       {retainHeight ? null : children}
+      {/* keyed so recycling to a different message remounts the tower — its animation state
+          (slider value, exploded tag) is per-message */}
       <AnimatedAshTower
+        key={messageKey}
         exploded={retainHeight}
         explodedBy={explodedBy}
-        messageKey={messageKey}
         numImages={numImages}
       />
     </Kb.Box2>
@@ -194,7 +211,6 @@ const NativeExplodingHeightRetainer = (p: Props) => {
 type AshTowerProps = {
   exploded: boolean
   explodedBy?: string
-  messageKey: string
   numImages: number
 }
 

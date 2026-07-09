@@ -12,6 +12,7 @@ import ExplodingMeta from './exploding-meta'
 import LongPressable from './long-pressable'
 import {useMessagePopup} from '../message-popup'
 import ReactionsRow from '../reactions-rows'
+import {useSyncRowLayout} from '../use-sync-row-layout'
 import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
@@ -560,6 +561,9 @@ function TextAndSiblings(p: TSProps) {
   const {hasReactions, popupAnchor, reactions, sendIndicatorFailed, sendIndicatorID} = p
   const {sendIndicatorSent, type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
+  // Reactions appearing and an unfurl card loading both grow the row after first paint; flush the
+  // measure so the list re-pins to the newest message instead of parking above it.
+  useSyncRowLayout(`${reactions?.size ?? 0}|${hasUnfurlList ? 1 : 0}`)
   const pressableProps = isMobile
     ? {
         onLongPress: decorate && shouldShowPopup ? showPopup : undefined,
@@ -913,7 +917,6 @@ function RightSide(p: RProps) {
 export function WrapperMessage(p: WrapperMessageProps) {
   const {ordinal, bottomChildren, children, messageData: mdata} = p
   const {showPopup, showingPopup, popup, popupAnchor} = p
-  const [showingPicker, setShowingPicker] = React.useState(false)
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {canShowReactionsPopup, ecrType, exploded, explodesAt, forceExplodingRetainer, messageKey} = mdata
@@ -924,9 +927,23 @@ export function WrapperMessage(p: WrapperMessageProps) {
   const {setEditing, setReplyTo, toggleMessageReaction} = mdata
   const {author, botAlias, isAdhocBot, showUsername, teamID, teamType, teamname, timestamp} = mdata
 
-  // captured at mount: only the row created by your send animates, and the tree
-  // shape stays stable when the message is later confirmed (youSent flips false)
-  const [animateSent] = React.useState(isMobile && mdata.youSent)
+  // Both pieces of per-row state are keyed to messageKey and reset when it changes: with
+  // recycleItems the component instance is REUSED for a different message, so plain mount-captured
+  // state would leak across rows (picker open on the wrong row, sent-animation wrapper stuck on).
+  // Same-message updates keep the captured value, so the tree stays stable when the message is
+  // later confirmed (youSent flips false).
+  const [rowState, setRowState] = React.useState(() => ({
+    animateSent: isMobile && mdata.youSent,
+    key: messageKey,
+    showingPicker: false,
+  }))
+  if (rowState.key !== messageKey) {
+    setRowState({animateSent: isMobile && mdata.youSent, key: messageKey, showingPicker: false})
+  }
+  const {animateSent, showingPicker} = rowState
+  const setShowingPicker = React.useCallback((s: boolean) => {
+    setRowState(prev => (prev.showingPicker === s ? prev : {...prev, showingPicker: s}))
+  }, [])
 
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
@@ -992,7 +1009,9 @@ export function WrapperMessage(p: WrapperMessageProps) {
 
   return (
     <MessageContext value={messageContext}>
-      {animateSent ? <Sent>{row}</Sent> : row}
+      {/* keyed so a recycled container going straight from one of your sends to another remounts
+          the Animated.View — the entering animation only plays on mount */}
+      {animateSent ? <Sent key={messageKey}>{row}</Sent> : row}
       {popup}
     </MessageContext>
   )
