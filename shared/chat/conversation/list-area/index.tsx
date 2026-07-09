@@ -527,7 +527,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         ref={wrapperRef}
       >
         <LegendList
-          dataKey={listKey}
+          key={listKey}
           ref={listRef as React.Ref<LegendListRef>}
           data={(layoutReady ? messageOrdinals : noOrdinals) as unknown as T.Chat.Ordinal[]}
           renderItem={renderItem}
