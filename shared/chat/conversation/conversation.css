@@ -7,6 +7,22 @@
       animation: highlightAnimation 0.3s ease-in forwards running;
     }
   }
+
+  /* Once the fade has played, swap to the static end state and drop the animation. LegendList
+     reorders container elements in the DOM (useDOMOrder, debounced 500ms) to keep DOM order
+     matching visual order, and a DOM move restarts CSS animations on the moved subtree — which
+     replays this fade from transparent, reading as a blink. Nothing to restart, nothing to blink. */
+  &.highlighted.highlight-settled {
+    &,
+    &:hover,
+    &.WrapperMessage-hoverColor,
+    &.WrapperMessage-hoverColor:hover {
+      animation: none;
+      background-color: var(--color-yellowOrYellowAlt);
+      border-radius: 4px;
+      box-shadow: 4px 4px 5px 1px rgb(0 0 0 / 38%);
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {

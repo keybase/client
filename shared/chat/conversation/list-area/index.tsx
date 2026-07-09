@@ -71,6 +71,7 @@ const useGetItemType = () => {
 const useThreadListData = () =>
   useConversationThreadSelector(
     C.useShallow(s => ({
+      clearVersion: s.clearVersion,
       containsLatestMessage: !s.moreToLoadForward,
       loaded: s.loaded,
       messageOrdinals: s.messageOrdinals ?? noOrdinals,
@@ -117,6 +118,8 @@ const usePagination = (p: {
   return {onEndReached, onStartReached}
 }
 
+const centerTolerancePx = 8
+
 // When a centeredOrdinal is set at mount, start there; otherwise start at the end (newest).
 const useInitialScrollIndex = (
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>,
@@ -137,16 +140,36 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
   // derived boolean: raw s.editing would re-render every row on edit start/stop
   const isEditing = InputState.useConversationInput(s => s.editing === ordinal)
   const isHighlighted = centeredHighlightOrdinal === ordinal || isEditing
+
+  // Freeze the highlight into its end state once the fade has played, so a later DOM move cannot
+  // restart it (see .highlight-settled in conversation.css). Keyed on the highlighted ordinal
+  // because rows are recycled: the same node renders a different message over time.
+  const [settledFor, setSettledFor] = React.useState<T.Chat.Ordinal | undefined>(undefined)
+  const isSettled = isHighlighted && settledFor === ordinal
+  const onAnimationEnd = React.useCallback(
+    (e: React.AnimationEvent) => {
+      // animationend bubbles; only this row's own fade should freeze it.
+      if (e.animationName === 'highlightAnimation' && e.target === e.currentTarget) {
+        setSettledFor(ordinal)
+      }
+    },
+    [ordinal]
+  )
+  if (settledFor !== undefined && !isHighlighted) {
+    setSettledFor(undefined)
+  }
+
   return (
     <div
       data-ordinal={ordinal}
+      onAnimationEnd={onAnimationEnd}
       className={Kb.Styles.classNames(
         'hover-container',
         'WrapperMessage',
         'WrapperMessage-hoverBox',
         'WrapperMessage-decorated',
         'WrapperMessage-hoverColor',
-        {highlighted: isHighlighted}
+        {highlighted: isHighlighted, 'highlight-settled': isSettled}
       )}
     >
       <Separator trailingItem={ordinal} />
@@ -161,24 +184,31 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const conversationIDKey = useConversationThreadID()
   const data = useThreadListData()
   const {centeredOrdinal} = useConversationCenter()
-  const {containsLatestMessage, messageOrdinals, loaded} = data
+  const {clearVersion, containsLatestMessage, messageOrdinals, loaded} = data
+
+  // LegendList cannot recover from a non-empty -> empty -> non-empty data transition: it resets
+  // its layout state and then waits on a container layout event that never arrives, so
+  // readyToRender stays false and the thread renders blank forever. Centered loads (search hit,
+  // reply-quote jump, pinned message) clear the thread before refetching, so remount the list on
+  // every clear and let it take its fresh-mount path instead.
+  const listKey = `${conversationIDKey}:${clearVersion}`
 
   // LegendList deadlock fix: when initialScrollAtEnd=true, data must not arrive
   // before LegendList's internal ResizeObserver fires (sets queuedInitialLayout).
   // If data arrives first, handleInitialScrollDataChange returns early and
   // didFinishInitialScroll never becomes true, leaving readyToRender=false forever.
   // Delaying data by one rAF ensures layout fires before data is fed in.
-  // We track which conversationIDKey has had its layout settle rather than using
-  // a boolean state, so the reset on conversation change is derived (no synchronous
+  // We track which list instance has had its layout settle rather than using
+  // a boolean state, so the reset on remount is derived (no synchronous
   // setState inside an effect).
   const [layoutReadyKey, setLayoutReadyKey] = React.useState('')
-  const layoutReady = layoutReadyKey === conversationIDKey || centeredOrdinal !== undefined
+  const layoutReady = layoutReadyKey === listKey
   React.useEffect(() => {
     const id = requestAnimationFrame(() => {
-      setLayoutReadyKey(conversationIDKey)
+      setLayoutReadyKey(listKey)
     })
     return () => cancelAnimationFrame(id)
-  }, [conversationIDKey])
+  }, [listKey])
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
@@ -259,10 +289,88 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   // Scroll to centered ordinal when it changes (search / thread navigation).
   // Use a "last scrolled to" ref rather than a "did it change" ref so we still
   // scroll when loaded becomes true after centeredOrdinal was already set.
+  // Reset per list instance, not per conversation: re-centering on the ordinal we
+  // are already parked on still remounts the list, so it has to scroll again.
   const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
   React.useLayoutEffect(() => {
     lastScrolledCenteredRef.current = undefined
-  }, [conversationIDKey])
+  }, [listKey])
+
+  // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
+  // centering accurate arrive after it starts, so the loop must not be torn down by an effect
+  // cleanup when messageOrdinals changes. Only a new target or unmount stops it.
+  const centerLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
+  // The loop re-centers for up to ~3s; a user scrolling in that window must win.
+  const abortCentering = React.useCallback(() => {
+    if (centerLoopRef.current) centerLoopRef.current.cancelled = true
+  }, [])
+  React.useEffect(() => abortCentering, [abortCentering])
+
+  // Closed loop, not one shot: rows enter at estimatedItemSize and only settle as they measure, so
+  // the first scroll lands off by however wrong the estimates above the target were. Measure the
+  // row's real offset from the viewport center and correct until it holds still, then get out of
+  // the way: maintainVisibleContentPosition owns the offset from then on. Two controllers fighting
+  // over the same scroll offset would oscillate.
+  //
+  // Correct via LegendList's own scrollToOffset, never scrollIntoView: touching scrollTop directly
+  // desyncs LegendList's internal scroll state, and the next time it recomputes item positions it
+  // snaps somewhere unrelated.
+  const scrollToCentered = React.useEffectEvent((target: T.Chat.Ordinal) => {
+    abortCentering()
+    const loop = {cancelled: false}
+    centerLoopRef.current = loop
+    const run = async () => {
+      let settled = 0
+      let pinnedChecks = 0
+      let scrollAtLastRequest: number | undefined
+      for (let elapsed = 0; elapsed < 3000 && !loop.cancelled; ) {
+        const wrapper = wrapperRef.current as unknown as {
+          getBoundingClientRect: () => {height: number; top: number}
+          querySelector: (s: string) => {getBoundingClientRect: () => {height: number; top: number}} | null
+        } | null
+        const el = wrapper ? wrapper.querySelector(`[data-ordinal="${target}"]`) : null
+        if (!wrapper || !el) {
+          // Target is outside the rendered window; get it mounted first.
+          const idx = sortedIndexOf(
+            messageOrdinalsRef.current as unknown as number[],
+            target as unknown as number
+          )
+          if (idx >= 0) {
+            void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
+          }
+          settled = 0
+          pinnedChecks = 0
+          await new Promise<void>(resolve => setTimeout(resolve, 100))
+          elapsed += 100
+          continue
+        }
+        const elRect = el.getBoundingClientRect()
+        const wrapRect = wrapper.getBoundingClientRect()
+        const offBy = elRect.top + elRect.height / 2 - (wrapRect.top + wrapRect.height / 2)
+        const scroll = listRef.current?.getState().scroll
+        // Deadband, not exact centering: below this the row reads as centered, and chasing the
+        // remainder only fights maintainVisibleContentPosition's own sub-pixel adjustments.
+        if (Math.abs(offBy) <= centerTolerancePx || scroll === undefined) {
+          pinnedChecks = 0
+          // Only the iteration right after a correction can diagnose a clamp.
+          scrollAtLastRequest = undefined
+          if (++settled >= 3) return
+        } else if (scroll === scrollAtLastRequest) {
+          // A hit near either end of the thread cannot be centered: the offset we ask for gets
+          // clamped and the row never reaches the middle. Our last correction moved the scroll
+          // position not at all, so we are pinned against an edge — stop rather than spin.
+          if (++pinnedChecks >= 3) return
+        } else {
+          pinnedChecks = 0
+          scrollAtLastRequest = scroll
+          void listRef.current?.scrollToOffset({animated: false, offset: scroll + offBy})
+        }
+        await new Promise<void>(resolve => setTimeout(resolve, 50))
+        elapsed += 50
+      }
+    }
+    void run()
+  })
 
   React.useEffect(() => {
     if (!loaded) return
@@ -274,34 +382,15 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       )
       if (idx < 0) return
       lastScrolledCenteredRef.current = centeredOrdinal
-      const target = centeredOrdinal
-      const doScrollToCenter = async () => {
-        for (let attempt = 0; attempt < 4; attempt++) {
-          const el = (
-            wrapperRef.current as unknown as {
-              querySelector: (s: string) => {scrollIntoView: (o: object) => void} | null
-            } | null
-          )?.querySelector(`[data-ordinal="${target}"]`)
-          if (el) {
-            el.scrollIntoView({behavior: 'instant', block: 'center'})
-            return
-          }
-          void listRef.current?.scrollToIndex({
-            animated: false,
-            index: idx,
-            viewPosition: 0.5,
-          })
-          await new Promise<void>(resolve => setTimeout(resolve, 100))
-        }
-      }
-      void doScrollToCenter()
+      scrollToCentered(centeredOrdinal)
     } else if (lastScrolledCenteredRef.current !== undefined) {
       lastScrolledCenteredRef.current = undefined
+      abortCentering()
       if (containsLatestMessage) {
         void listRef.current?.scrollToEnd({animated: false})
       }
     }
-  }, [centeredOrdinal, loaded, containsLatestMessage, messageOrdinals])
+  }, [abortCentering, centeredOrdinal, loaded, containsLatestMessage, messageOrdinals])
 
   // Scroll to the message being edited
   const lastEditingOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
@@ -413,10 +502,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
+        onWheel={abortCentering}
         ref={wrapperRef}
       >
         <LegendList
-          key={conversationIDKey}
+          key={listKey}
           ref={listRef as React.Ref<LegendListRef>}
           data={(layoutReady ? messageOrdinals : noOrdinals) as unknown as T.Chat.Ordinal[]}
           renderItem={renderItem}
@@ -433,7 +523,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           maintainScrollAtEnd={
             centeredOrdinal !== undefined ? false : {on: {dataChange: true, itemLayout: true}}
           }
-          maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true}}
+          // Stays on while centered: the full thread response lands after the cached one and
+          // re-measures rows above the target, which slides it out of view unless anchored.
+          maintainVisibleContentPosition={{data: true}}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
           onStartReached={onStartReached}
