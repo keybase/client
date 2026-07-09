@@ -9,12 +9,17 @@ type Props<I> = {
   items: Array<I>
   keyExtractor?: (item: I, idx: number) => string
   renderItem: (index: number, item: I) => React.ReactElement
+  // desktop only: height of a single rendered row, so the popup can be sized to
+  // a whole number of rows instead of clipping the last one into a scroll area
+  rowHeight: number
   selectedIndex: number
   style?: Kb.Styles.StylesCrossPlatform
   suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
 }
 import type {LegendListRef} from '@/common-adapters'
 import {FlatList} from 'react-native'
+
+const maxHeight = 224
 
 const SuggestionList = <I,>(props: Props<I>) => {
   const listRef = React.useRef<LegendListRef>(null)
@@ -42,25 +47,27 @@ const SuggestionList = <I,>(props: Props<I>) => {
       return i ? (props.renderItem(index, i) as React.JSX.Element) : <></>
     }
     const itemHeight = {type: 'trueVariable' as const}
-    const maxHeight = 224
-    const estimatedItemHeight = 24
-    const listHeight = Math.min(props.items.length * estimatedItemHeight, maxHeight)
+    const {rowHeight} = props
+    const maxRows = Math.max(1, Math.floor(maxHeight / rowHeight))
+    const listHeight = Math.min(props.items.length, maxRows) * rowHeight
 
     return (
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Kb.Styles.collapseStyles([desktopStyles.listContainer, {height: listHeight}, props.style])}
+        style={Kb.Styles.collapseStyles([desktopStyles.listContainer, props.style])}
         testID={TestIDs.CHAT_SUGGESTION_LIST}
       >
-        <Kb.List
-          ref={listRef}
-          renderItem={itemRenderer}
-          items={props.items}
-          itemHeight={itemHeight}
-          estimatedItemHeight={estimatedItemHeight}
-          extraData={selectedIndex}
-        />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{height: listHeight}}>
+          <Kb.List
+            ref={listRef}
+            renderItem={itemRenderer}
+            items={props.items}
+            itemHeight={itemHeight}
+            estimatedItemHeight={rowHeight}
+            extraData={selectedIndex}
+          />
+        </Kb.Box2>
         {props.suggestBotCommandsUpdateStatus &&
         props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
           <Kb.Box2

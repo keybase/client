@@ -96,6 +96,10 @@ const getBotRestrictBlockMap = (
 }
 const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
+// two stacked lines, whose desktop line-heights are 18 (Body) and 17 (BodySmall); this is
+// taller than the optional leading avatar. Long descriptions can wrap and exceed this.
+const rowHeight = Common.desktopRowHeight(18 + 17)
+
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
@@ -129,7 +133,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
       ])}
     >
-      {!!command.username && <Kb.Avatar size={32} username={command.username} />}
+      {!!command.username && <Kb.Avatar size={Common.avatarSize} username={command.username} />}
       <Kb.Box2
         fullWidth={true}
         direction="vertical"
@@ -239,6 +243,7 @@ export const List = (p: ListProps) => {
           items={items}
           ItemRenderer={ItemRenderer}
           loading={false}
+          rowHeight={rowHeight}
         />
       </BotCommandConversationContext.Provider>
     </BotCommandSettingsContext.Provider>

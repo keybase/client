@@ -15,6 +15,9 @@ export const transformer = (
 
 const keyExtractor = (_item: EmojiData, idx: number) => String(idx) // emojis can have conflicts on the names
 
+const emojiSize = 24
+const rowHeight = Common.desktopRowHeight(emojiSize)
+
 const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
   const {item, selected} = p
   return (
@@ -27,7 +30,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
       ])}
       gap="small"
     >
-      <Kb.Emoji emojiData={item} showTooltip={false} size={24} />
+      <Kb.Emoji emojiData={item} showTooltip={false} size={emojiSize} />
       <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
     </Kb.Box2>
   )
@@ -81,6 +84,7 @@ export const List = (p: ListProps) => {
       items={items}
       ItemRenderer={ItemRenderer}
       loading={loading}
+      rowHeight={rowHeight}
     />
   )
 }
