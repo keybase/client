@@ -3,7 +3,6 @@ import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as RouterConstants from '@/constants/router'
 import * as T from '@/constants/types'
-import {timeoutPromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useRouterState} from '@/stores/router'
@@ -24,8 +23,6 @@ const emptyFsDaemonActions: FsDaemonActions = {
 const FsDaemonStatusContext = React.createContext<T.FS.KbfsDaemonStatus | undefined>(undefined)
 const FsDaemonActionsContext = React.createContext<FsDaemonActions | undefined>(undefined)
 
-const connectedPollIntervalMs = 5000
-
 const waitForKbfsDaemon = async (
   generation: number,
   isCurrentAsyncGeneration: (generation: number) => boolean,
@@ -34,8 +31,8 @@ const waitForKbfsDaemon = async (
   waitForKbfsDaemonInProgressRef: {current: boolean},
   asyncGenerationRef: {current: number}
 ) => {
-  // The service has no notification for a client detaching, so this loop runs for the whole
-  // login session: it polls while connected to notice kbfs dying, and waits while disconnected.
+  // Only loops while kbfs is absent. Once connected we stop; a dying kbfs is noticed by the
+  // FS RPCs that start failing, which call back into checkKbfsDaemonRpcStatus.
   waitForKbfsDaemonInProgressRef.current = true
   try {
     while (isCurrentAsyncGeneration(generation)) {
@@ -52,8 +49,7 @@ const waitForKbfsDaemon = async (
           kbfsDaemonRpcStatusChanged(newStatus)
         }
         if (newStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          await timeoutPromise(connectedPollIntervalMs)
-          continue
+          return
         }
         try {
           await T.RPCGen.configWaitForClientRpcPromise({
