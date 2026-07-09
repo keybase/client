@@ -17,3 +17,9 @@ MessageContext.displayName = 'MessageContext'
 // Convenience hooks for accessing individual values
 export const useOrdinal = () => React.useContext(MessageContext).ordinal
 export const useIsHighlighted = () => React.useContext(MessageContext).isHighlighted
+
+// Whether the pointer has entered this row, so hover-only UI (the emoji row) can skip
+// mounting until it could actually be seen. Defaults true so rows rendered without a
+// provider keep the always-mounted behavior.
+export const RowHoveredContext = React.createContext(true)
+RowHoveredContext.displayName = 'RowHoveredContext'

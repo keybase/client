@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../input-area/input-state'
 import * as RowMetadata from '../row-metadata'
-import {MessageContext, useOrdinal} from '../ids-context'
+import {MessageContext, RowHoveredContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta'
@@ -768,9 +768,12 @@ function BottomSide(p: BProps) {
     />
   ) : null
 
+  // EmojiRow is a heavy subtree that's display:none until the row is hovered (CSS
+  // hover-visible), so don't mount it until the pointer has actually entered the row.
+  const rowHovered = React.useContext(RowHoveredContext)
   const canShowDesktopReactionsPopup = !isMobile && !hasReactions && canShowReactionsPopup
   const desktopReactionsPopup =
-    canShowDesktopReactionsPopup && !showingPopup ? (
+    canShowDesktopReactionsPopup && rowHovered && !showingPopup ? (
       <EmojiRow
         className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         hasUnfurls={hasUnfurlList}
