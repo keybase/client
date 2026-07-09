@@ -23,6 +23,9 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
     Animated.divide(Animated.multiply(translationX, -1), openWidthAnim) as Animated.AnimatedDivision<number>
   ).current
 
+  // actions subtree is deferred until the first drag so idle rows don't pay for it
+  const [actionsMounted, setActionsMounted] = React.useState(false)
+
   const startTranslationRef = React.useRef(0)
   const wasClosedOnGrantRef = React.useRef(true)
   const hasFiredOpenStartDragRef = React.useRef(false)
@@ -70,6 +73,7 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
     cbRef.current = {onSwipeableOpenStartDrag, onSwipeableWillOpen}
     ctx.set(
       () => {
+        setActionsMounted(true)
         startTranslationRef.current = translationXRef.current
         wasClosedOnGrantRef.current = translationXRef.current > -5
         hasFiredOpenStartDragRef.current = false
@@ -115,7 +119,7 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
 
   return (
     <View style={[styles.outerOverflow as ViewStyle, containerStyle]}>
-      {renderRightActions && (
+      {renderRightActions && actionsMounted && (
         <View style={styles.actionsContainer as ViewStyle}>
           <View
             style={{flexDirection: 'row'}}

@@ -7,6 +7,7 @@ import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import {MessageRow} from '../messages/wrapper'
+import {RowHoveredContext} from '../messages/ids-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ThreadRefsContext} from '../normal/context'
 import {useConversationCenter} from '../center-context'
@@ -180,10 +181,19 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
     setSettledFor(undefined)
   }
 
+  // Defer hover-only UI (emoji row) until the pointer has entered this row. Keyed on the
+  // ordinal because rows are recycled: a recycled row must not inherit the old hover.
+  const [hoveredFor, setHoveredFor] = React.useState<T.Chat.Ordinal | undefined>(undefined)
+  if (hoveredFor !== undefined && hoveredFor !== ordinal) {
+    setHoveredFor(undefined)
+  }
+  const hovered = hoveredFor === ordinal
+
   return (
     <div
       data-ordinal={ordinal}
       onAnimationEnd={onAnimationEnd}
+      onMouseEnter={hovered ? undefined : () => setHoveredFor(ordinal)}
       className={Kb.Styles.classNames(
         'hover-container',
         'WrapperMessage',
@@ -193,8 +203,10 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
         {highlighted: isHighlighted, 'highlight-settled': isSettled}
       )}
     >
-      <Separator trailingItem={ordinal} />
-      <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+      <RowHoveredContext value={hovered}>
+        <Separator trailingItem={ordinal} />
+        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+      </RowHoveredContext>
     </div>
   )
 })
