@@ -310,7 +310,7 @@ const nativeStyles = {
 } as const
 
 export type ClickableBoxProps = Box2Props & {
-  onClick?: (e?: React.SyntheticEvent) => void
+  onClick?: (e?: React.BaseSyntheticEvent) => void
   onLongPress?: () => void
   hitSlop?: number
 }
@@ -352,7 +352,7 @@ export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef 
       hitSlop={hitSlop}
       onLayout={onLayout}
       onLongPress={onLongPress}
-      onPress={onClick ? () => { onClick() } : undefined}
+      onPress={onClick ? e => { onClick(e) } : undefined}
       pointerEvents={pointerEvents}
       style={s}
       testID={box2p.testID}

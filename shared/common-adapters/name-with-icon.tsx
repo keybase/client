@@ -63,11 +63,9 @@ export type NameWithIconProps = {
 export const NameWithIcon = (props: NameWithIconProps) => {
   const {onClick, username = '', teamname, size} = props
   const _onClickWrapper = onClick
-    ? (event: React.BaseSyntheticEvent) => {
-        if (!event.defaultPrevented) {
-          if (username) {
-            onClick(username)
-          }
+    ? (event?: React.BaseSyntheticEvent) => {
+        if (!event?.defaultPrevented && username) {
+          onClick(username)
         }
       }
     : undefined
@@ -237,7 +235,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
 
   // ClickableBox only when clickable: it renders Pressable/clickable-box2 with different semantics
   return _onClickWrapper ? (
-    <ClickableBox {...boxProps} onClick={e => e && _onClickWrapper(e)}>
+    <ClickableBox {...boxProps} onClick={_onClickWrapper}>
       {children}
     </ClickableBox>
   ) : (
