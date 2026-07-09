@@ -3321,17 +3321,17 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@8.0.0-alpha.40":
-  version "8.0.0-alpha.40"
-  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-8.0.0-alpha.40.tgz#a8b887d40c0b1f216a1d2b566c839fc11ade9e73"
-  integrity sha512-DohwmZyoVrXpCzFIVkuwgMFHpRCaY/srtL50sc/PFya4CW7nYfNr0GF6LE8NCjzsUNnX8uT33Xzpc5MlFWeINQ==
+"@react-navigation/bottom-tabs@8.0.0-alpha.41":
+  version "8.0.0-alpha.41"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-8.0.0-alpha.41.tgz#918d5b0edbdcd0ac93ace3384a3e5382a2226083"
+  integrity sha512-LyYEZnpRyg5Nt9aXQ+QCtZh7ghLoeajWlpB+4OwwPNniTf1mh05ft0ObZd2kis4pJevz0pg0vBBXrPUwXHo2Aw==
   dependencies:
-    "@react-navigation/elements" "^3.0.0-alpha.38"
+    "@react-navigation/elements" "^3.0.0-alpha.39"
 
-"@react-navigation/core@8.0.0-alpha.25", "@react-navigation/core@^8.0.0-alpha.25":
-  version "8.0.0-alpha.25"
-  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-8.0.0-alpha.25.tgz#441f6edab4190a97b947039c49510281f772102d"
-  integrity sha512-jKdcOtgAwE2Jvhbrsee3xFU3yUK3AT/jRW7h1zTLjoDyQYqmQLHeAskqPPrfniSw9BcqyhdxgWxjIZSJRTcleQ==
+"@react-navigation/core@8.0.0-alpha.26", "@react-navigation/core@^8.0.0-alpha.26":
+  version "8.0.0-alpha.26"
+  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-8.0.0-alpha.26.tgz#e73d5801d6630cd361eea37f86b8e9574856e780"
+  integrity sha512-/I1VVYPZ9a1a9jI3g21Mkd1qwfCcC0oLo2jZqz2GlG6m5iWaNCOwTa5T9eURTboos7/ilB4XFhquHgG4t9YAUg==
   dependencies:
     "@react-navigation/routers" "^8.0.0-alpha.13"
     escape-string-regexp "^5.0.0"
@@ -3341,29 +3341,29 @@
     react-is "^19.2.6"
     use-latest-callback "^0.3.4"
 
-"@react-navigation/elements@^3.0.0-alpha.38":
-  version "3.0.0-alpha.38"
-  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-3.0.0-alpha.38.tgz#5141e974d4a9d74723a3ce421f01d0600eca6cc8"
-  integrity sha512-eG2MV6CaYJg27GTMIoMPzuUtmqdKTzdo6y4JixtAMYq6hKCBFLyIOGW2c2ClkiF00r5zv/gtjOICEeJX+54veA==
+"@react-navigation/elements@^3.0.0-alpha.39":
+  version "3.0.0-alpha.39"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-3.0.0-alpha.39.tgz#6d1e31e772b990d3cfa8f57c19f6e3b17ead0d8d"
+  integrity sha512-eODT8M1XjkYnqBCx0c8o38e9dXgSNIMVCBS4tZKWs0GsVwcOuJT8s8JjTKBDW28R1rXdtMLRtaB6Fh77bzkfWw==
   dependencies:
     sf-symbols-typescript "^2.2.0"
     use-latest-callback "^0.3.4"
     use-sync-external-store "^1.6.0"
 
-"@react-navigation/native-stack@8.0.0-alpha.41":
-  version "8.0.0-alpha.41"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-8.0.0-alpha.41.tgz#0c15cc2eacca6ffe9965ee85ccb9c5eefa4d3a9a"
-  integrity sha512-weWD/HJ4Q2AmLvYMG3+XaQs0qtvFkENnKt+S8M7gy4rHMtOppDyXUWikXjsGmNekfdY0C3gEFlxhArpx3Q0Cgg==
+"@react-navigation/native-stack@8.0.0-alpha.42":
+  version "8.0.0-alpha.42"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-8.0.0-alpha.42.tgz#22c7ac1205d57e907d3ee55656ead7bf890985ef"
+  integrity sha512-XB4vsDs2CPEeVjusOj3kTcjurnRJeOpnirJAqDfqyz/jAeKo0IlY0GokloQZvsR6H9FAlwM69eqxrBDHC47IOg==
   dependencies:
-    "@react-navigation/elements" "^3.0.0-alpha.38"
+    "@react-navigation/elements" "^3.0.0-alpha.39"
     warn-once "^0.1.1"
 
-"@react-navigation/native@8.0.0-alpha.34":
-  version "8.0.0-alpha.34"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-8.0.0-alpha.34.tgz#18e9ab213ad52e1461dcc69cbae916063beb2c18"
-  integrity sha512-j4gwFbhMBkFntmgt17o72TgMIGxu+RfkOC61x7kqNsGysLIfRrA66AUEYdWNWTtahRQcX8T+M7dD/R0io/jpuA==
+"@react-navigation/native@8.0.0-alpha.35":
+  version "8.0.0-alpha.35"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-8.0.0-alpha.35.tgz#927ec79da7c85d3e716da33cdc87e75cacd1be55"
+  integrity sha512-7k6qGCJdAm6eNbfbVOu6QlUUTudoDGYjSdSZ+v3d9La3x0n+O37uUYEt5GzwcJi60YbVZuuXRpyqqOB+jE7sCA==
   dependencies:
-    "@react-navigation/core" "^8.0.0-alpha.25"
+    "@react-navigation/core" "^8.0.0-alpha.26"
     escape-string-regexp "^5.0.0"
     fast-deep-equal "^3.1.3"
     nanoid "^5.1.11"
@@ -4128,53 +4128,105 @@
     "@typescript-eslint/types" "8.63.0"
     eslint-visitor-keys "^5.0.0"
 
-"@typescript/native-preview-darwin-arm64@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview-darwin-arm64/-/native-preview-darwin-arm64-7.0.0-dev.20260707.2.tgz#2a15a65cf2d4701225ec0f94453e126407d57a2e"
-  integrity sha512-wny2pgKjGbiZtnOIHVa3tXC1UfDqxNEFzyPGmiqybedG8hipG2Nfp0l5UxbaKCjkLacUpH/W5bP2hBOMVhCOzg==
+"@typescript/typescript-aix-ppc64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-aix-ppc64/-/typescript-aix-ppc64-7.0.2.tgz#cdc7ce81d60f1e09034960ddfb1fb880d7a776b6"
+  integrity sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==
 
-"@typescript/native-preview-darwin-x64@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview-darwin-x64/-/native-preview-darwin-x64-7.0.0-dev.20260707.2.tgz#468bc5a3697925d757091d8f2314b2c1d08573a6"
-  integrity sha512-Afc7M5zOwo+GpfcYwz5Z8HMB2tPVsui7nNIqEuuFB73MPdVqNn/Wmpe4tP4MRri0AtJnJknoHBaTJ/VDAp/Jhw==
+"@typescript/typescript-darwin-arm64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.0.2.tgz#a55fdfcfa58df58d27db2237cde6a5c1e35a7235"
+  integrity sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==
 
-"@typescript/native-preview-linux-arm64@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview-linux-arm64/-/native-preview-linux-arm64-7.0.0-dev.20260707.2.tgz#702cdd2775ee98692dd368c3602bc1e25da88737"
-  integrity sha512-iITBa2WjjTI5N9t5l7Z4KoOSI+2zBlhbvFzsD/f8qX8QoKjz/Y4DPyBDgezYi8nkqjjksbgSOJ3/ykzhwrB9cg==
+"@typescript/typescript-darwin-x64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-x64/-/typescript-darwin-x64-7.0.2.tgz#38d1c9172800a91d707bec64d2a370a016634db4"
+  integrity sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==
 
-"@typescript/native-preview-linux-arm@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview-linux-arm/-/native-preview-linux-arm-7.0.0-dev.20260707.2.tgz#602fc487e9fc13d007aa8850470ae317830c8169"
-  integrity sha512-hJm/UOqZTr9FHmR7uNm8VGX4oKtfWk0Jem0zPeJFNC8ckGUfSBueyiEYMZB+XmRc1aG4x1E46y3CplP4CLHvGQ==
+"@typescript/typescript-freebsd-arm64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-freebsd-arm64/-/typescript-freebsd-arm64-7.0.2.tgz#f1ff8810030b35d2b5be0db6a2dc650460ea94fa"
+  integrity sha512-W5NH4y/J0plIIS5b2xvTEkU7JFxyqdMAOgf+Ilhl0vHQXKO5dZoxd+C/jEtq56c4F3wk71RB4BMRQ2XdI+bwYQ==
 
-"@typescript/native-preview-linux-x64@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview-linux-x64/-/native-preview-linux-x64-7.0.0-dev.20260707.2.tgz#ae20d54c927cdf3658d7fa7ad390239e1baf7ce3"
-  integrity sha512-du0dzi6y97Po5vDNdPJTyyijHCpaS22JLRnKZEJXBDaO9gCIymOv/5QQokFRuOlQm0bWl3i9PF4OVdGP6uAOQA==
+"@typescript/typescript-freebsd-x64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-freebsd-x64/-/typescript-freebsd-x64-7.0.2.tgz#3d86b03f353c5b1ba95162eb6ce35533bfc294bd"
+  integrity sha512-UMGDx5sTpzNw3WiPebH7l90IWfJggEd+egHt/q6p7/Cm3zqoV7VxkGXt+3DxPIw8CcmvAB0j3sVVfbhX+M4Tpw==
 
-"@typescript/native-preview-win32-arm64@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview-win32-arm64/-/native-preview-win32-arm64-7.0.0-dev.20260707.2.tgz#649e2bd865d10601b87611f511b4fdb7754cb306"
-  integrity sha512-SsAwfhyHJ1akgBc+99z4+hwdbHsdWaKB8EwCNIMA6JfSLMeUjffrYvxu+vfMyxVtOVOz7RrRXRoiDiu4a2sCtg==
+"@typescript/typescript-linux-arm64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm64/-/typescript-linux-arm64-7.0.2.tgz#d9334d96d6dac6ff85da9c865588948de939e91f"
+  integrity sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==
 
-"@typescript/native-preview-win32-x64@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview-win32-x64/-/native-preview-win32-x64-7.0.0-dev.20260707.2.tgz#111929ee3876a759e10eb5da7e26ba24d8de423e"
-  integrity sha512-DL4u27stv0fo71sVhOzHSwE+YMZsbBijVI+kg5dLDLilSH79WFTJ8RSQ46vJrCMt+Gjlv/JOZP1PuLJDfioYeQ==
+"@typescript/typescript-linux-arm@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm/-/typescript-linux-arm-7.0.2.tgz#ad94b41e1aee2a4dcc6a298c7b67c43345fde32e"
+  integrity sha512-gffT3xPz9sR7j/YJExkyPntrI0P2EP9XbOyWzth2/Gs0RstK+90RBcO0ncXoXy/beYll1SXw846Nf2zdnEz0QQ==
 
-"@typescript/native-preview@7.0.0-dev.20260707.2":
-  version "7.0.0-dev.20260707.2"
-  resolved "https://registry.yarnpkg.com/@typescript/native-preview/-/native-preview-7.0.0-dev.20260707.2.tgz#1e7c9a6f4706baad83f28676f5f08ca4ca0b9b33"
-  integrity sha512-oUGp+Rep/hqMhPunyinsALUwSlzHINSxitifPiSaeqoKOKD2OlR9NE3TaPqwsl4NlGslsOSUXI1JotWQzpYCPg==
-  optionalDependencies:
-    "@typescript/native-preview-darwin-arm64" "7.0.0-dev.20260707.2"
-    "@typescript/native-preview-darwin-x64" "7.0.0-dev.20260707.2"
-    "@typescript/native-preview-linux-arm" "7.0.0-dev.20260707.2"
-    "@typescript/native-preview-linux-arm64" "7.0.0-dev.20260707.2"
-    "@typescript/native-preview-linux-x64" "7.0.0-dev.20260707.2"
-    "@typescript/native-preview-win32-arm64" "7.0.0-dev.20260707.2"
-    "@typescript/native-preview-win32-x64" "7.0.0-dev.20260707.2"
+"@typescript/typescript-linux-loong64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-loong64/-/typescript-linux-loong64-7.0.2.tgz#2965aee4fc873360139d893daafe6397a29138ad"
+  integrity sha512-uEHck9i8hoAzXPiYRib1O7miOnz23SxIeVl6F4LXox+qov1K35jHcEW6VHKvZI+pyvl7fZEP4MCU5LYvIq1GuQ==
+
+"@typescript/typescript-linux-mips64el@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-mips64el/-/typescript-linux-mips64el-7.0.2.tgz#1a887a311bed3a833f80bfd4a9ed37c271936cf0"
+  integrity sha512-R4KvAMnE43W5Qeqb0Ly56O3mWMWIAgsMyz36DCaycd5nbg/9kzm0liw3JocfRqyJY0KPmzFjbswozXyW0DnIYA==
+
+"@typescript/typescript-linux-ppc64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-ppc64/-/typescript-linux-ppc64-7.0.2.tgz#8b63c9b2f445b393eb4e43ec21da225dade3577d"
+  integrity sha512-DORx5b3sd/4S7eayxm4FQv+A7CrkUIGRaHiwI8oiHTAI1fAPWhF4J0vAlkC8biAlHSVVwxMQ3tjZ2/DVbnQiiA==
+
+"@typescript/typescript-linux-riscv64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-riscv64/-/typescript-linux-riscv64-7.0.2.tgz#b6e8a35c289b3ea97a92a41d461aaeed0d3b36e1"
+  integrity sha512-wf0jqEDOjrPRnKwYRyyJDRo11KMbvMFrU+q4zqKyChODBzvlkbhNQfKvLxQCcwTpdDaXSHZTVuh0JoCrKCUMHQ==
+
+"@typescript/typescript-linux-s390x@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-s390x/-/typescript-linux-s390x-7.0.2.tgz#2ef96693be4861f6d17965427e5b009cbbed1a3e"
+  integrity sha512-IkwJc3L7yhytWd/ewjyxNDfOmswCm9GWMJT/ue/dU4aZNbwZeYAetq42VyLmsmSjvoX7z74X6ZaYCtzAr0EuGw==
+
+"@typescript/typescript-linux-x64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.0.2.tgz#73269cb0baba50aea0ca060445a6b88e583f1ce2"
+  integrity sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==
+
+"@typescript/typescript-netbsd-arm64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-netbsd-arm64/-/typescript-netbsd-arm64-7.0.2.tgz#3a3649f97fafa210b4e6e3798c15e06605c8a901"
+  integrity sha512-+polYF4MF04aPpO5FTkHran9yUQDSXqy5GiSDKpsll5jy3l3+g9QLhpf39T+ePtefhXLOGrLl0QIjkQP6VnelA==
+
+"@typescript/typescript-netbsd-x64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-netbsd-x64/-/typescript-netbsd-x64-7.0.2.tgz#47ec59491a40c470d2807dc4d2b825528fd979ab"
+  integrity sha512-8YIT0EHM/3dq10ZOVF/A7pc/YSMtbcecct4rWtexrnSCHOPcpC2KTLXfTCR6vDpnSiY12heNb1GiN/wu+T/FyA==
+
+"@typescript/typescript-openbsd-arm64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-openbsd-arm64/-/typescript-openbsd-arm64-7.0.2.tgz#796be8da0bd989d8a3fb96f2801e38a8365b4baf"
+  integrity sha512-APT8+ClYnuYm1u9+kgGXoMj2VzWzcymwh2gNSQVySHfkRDGOTVkoWLjCmOQSaO+PoqQ57B0flRp9SA+7GnnkzQ==
+
+"@typescript/typescript-openbsd-x64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-openbsd-x64/-/typescript-openbsd-x64-7.0.2.tgz#d37fe2a729eb942c076c454ee7f1815faf7d560f"
+  integrity sha512-yX7s+Q0Dln0Dt9tEzZsAjXXR/+ytBM7AlglaqyeMPxQszJ1JhlJdZ6jLA+IzldHtflX81em7lDao1xXu+aRRkg==
+
+"@typescript/typescript-sunos-x64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-sunos-x64/-/typescript-sunos-x64-7.0.2.tgz#aba8d3464c3565a7044789baba96916bd4ab2c88"
+  integrity sha512-dLJDGaLZ1D4HPQn62u1n8mBDkJREwMsAkCdkwd4Ieqw+x3TUyTsqY0YiBCtE6H6OzzgGk3iuZ3vFWRS+E8/d1g==
+
+"@typescript/typescript-win32-arm64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-arm64/-/typescript-win32-arm64-7.0.2.tgz#b9de50a17196383f62620b5f9d0a2f34ad3b60d7"
+  integrity sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==
+
+"@typescript/typescript-win32-x64@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-x64/-/typescript-win32-x64-7.0.2.tgz#cf3b7b0d6ce5635daca4c8e01c189cdcde47ec3c"
+  integrity sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==
 
 "@ungap/structured-clone@^1.3.0":
   version "1.3.1"
@@ -5049,13 +5101,6 @@ babel-jest@30.4.1:
     chalk "^4.1.2"
     graceful-fs "^4.2.11"
     slash "^3.0.0"
-
-babel-loader@10.1.1:
-  version "10.1.1"
-  resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-10.1.1.tgz#ce9748e85b7071eb88006e3cfa9e6cf14eeb97c5"
-  integrity sha512-JwKSzk2kjIe7mgPK+/lyZ2QAaJcpahNAdM+hgR2HI8D0OJVkdj8Rl6J3kaLYki9pwF7P2iWnD8qVv80Lq1ABtg==
-  dependencies:
-    find-up "^5.0.0"
 
 babel-plugin-istanbul@^7.0.1:
   version "7.0.1"
@@ -12873,6 +12918,32 @@ typescript-eslint@8.63.0:
     "@typescript-eslint/parser" "8.63.0"
     "@typescript-eslint/typescript-estree" "8.63.0"
     "@typescript-eslint/utils" "8.63.0"
+
+"typescript-native@npm:typescript@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-7.0.2.tgz#9ec773d7954a8c182c17cc5bbd575aa28bc51582"
+  integrity sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==
+  optionalDependencies:
+    "@typescript/typescript-aix-ppc64" "7.0.2"
+    "@typescript/typescript-darwin-arm64" "7.0.2"
+    "@typescript/typescript-darwin-x64" "7.0.2"
+    "@typescript/typescript-freebsd-arm64" "7.0.2"
+    "@typescript/typescript-freebsd-x64" "7.0.2"
+    "@typescript/typescript-linux-arm" "7.0.2"
+    "@typescript/typescript-linux-arm64" "7.0.2"
+    "@typescript/typescript-linux-loong64" "7.0.2"
+    "@typescript/typescript-linux-mips64el" "7.0.2"
+    "@typescript/typescript-linux-ppc64" "7.0.2"
+    "@typescript/typescript-linux-riscv64" "7.0.2"
+    "@typescript/typescript-linux-s390x" "7.0.2"
+    "@typescript/typescript-linux-x64" "7.0.2"
+    "@typescript/typescript-netbsd-arm64" "7.0.2"
+    "@typescript/typescript-netbsd-x64" "7.0.2"
+    "@typescript/typescript-openbsd-arm64" "7.0.2"
+    "@typescript/typescript-openbsd-x64" "7.0.2"
+    "@typescript/typescript-sunos-x64" "7.0.2"
+    "@typescript/typescript-win32-arm64" "7.0.2"
+    "@typescript/typescript-win32-x64" "7.0.2"
 
 typescript@6.0.3:
   version "6.0.3"
