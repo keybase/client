@@ -11,6 +11,7 @@ import {PerfProfiler} from '@/perf/react-profiler'
 import {ThreadRefsContext} from '../normal/context'
 import {useConversationCenter} from '../center-context'
 import {
+  ShownUsernameCacheContext,
   useConversationThreadID,
   useConversationThreadLoadNewerMessagesDueToScroll,
   useConversationThreadLoadOlderMessagesDueToScroll,
@@ -20,7 +21,8 @@ import {
 } from '../thread-context'
 import {useJumpToRecent} from './jump-to-recent'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
-import {getMessageRowType} from '../messages/row-metadata'
+import {getMessageRowType, getMessageShowUsername} from '../messages/row-metadata'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as InputState from '../input-area/input-state'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import {copyToClipboard} from '@/util/storeless-actions'
@@ -47,21 +49,40 @@ const keyExtractor = (ordinal: ItemType) => String(ordinal)
 // trim off the search-bar lift so the jump button rests ~40px above the bar
 const jumpAboveBarTrim = 40
 
-// Item type for list recycling pool separation
+// Item type for list recycling pool separation. A message that leads its author group renders an
+// avatar + username header (~40px taller) than a grouped follow-on of the same render type. Without
+// splitting the pool, recycleItems reuses one container across both heights, so a recycled view
+// paints at the wrong height for a frame before re-measure — visible as rows overlapping during
+// scroll. Append ':hdr' so header and grouped rows pool separately.
 const useGetItemType = () => {
   const threadStore = useConversationThreadStore()
+  const you = useCurrentUserState(s => s.username)
+  // Must be the same sticky cache the rows render with (wrapper.tsx): without it, a row that keeps
+  // its sticky header after a scroll-back load would be typed headerless here, mixing tall headered
+  // rows into the headerless pool and poisoning that pool's height average.
+  const shownCache = React.useContext(ShownUsernameCacheContext)
   return React.useCallback(
     (ordinal: T.Chat.Ordinal) => {
       if (!ordinal) {
         return 'null'
       }
-      const {messageMap, messageTypeMap} = threadStore.getState()
+      const {messageMap, messageTypeMap, messageOrdinals} = threadStore.getState()
       const message = messageMap.get(ordinal)
-      return message
-        ? getMessageRowType(message, messageTypeMap.get(ordinal))
-        : (messageTypeMap.get(ordinal) ?? 'text')
+      if (!message) {
+        return messageTypeMap.get(ordinal) ?? 'text'
+      }
+      const base = getMessageRowType(message, messageTypeMap.get(ordinal))
+      const showUsername = getMessageShowUsername({
+        message,
+        messageMap,
+        messageOrdinals: messageOrdinals ?? noOrdinals,
+        ordinal,
+        shownCache,
+        you,
+      })
+      return showUsername ? `${base}:hdr` : base
     },
-    [threadStore]
+    [threadStore, you, shownCache]
   )
 }
 
@@ -521,7 +542,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
           maintainScrollAtEnd={
-            centeredOrdinal !== undefined ? false : {on: {dataChange: true, itemLayout: true}}
+            centeredOrdinal !== undefined
+              ? false
+              : {on: {dataChange: true, footerLayout: true, itemLayout: true}}
           }
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.

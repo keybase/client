@@ -9,6 +9,7 @@ const springConfig = {friction: 20, tension: 150, useNativeDriver: false} as con
 const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function SwipeableRow(props, ref) {
   'use no memo'
   const {children, renderRightActions, onSwipeableOpenStartDrag, onSwipeableWillOpen, containerStyle} = props
+  const {enabled = true} = props
 
   const translationX = React.useRef(new Animated.Value(0)).current
   // Separate ref for current value since Animated.Value has no sync .value read
@@ -128,7 +129,7 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
           </View>
         </View>
       )}
-      <Animated.View style={animStyle} {...ctx.panHandlers}>
+      <Animated.View style={animStyle} {...(enabled ? ctx.panHandlers : undefined)}>
         {children}
       </Animated.View>
     </View>

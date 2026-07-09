@@ -4,6 +4,7 @@ import {clampImageSize} from '@/constants/chat/helpers'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 import {Video} from './video'
 import {openURL} from '@/util/misc'
+import {useSyncRowLayout} from '@/chat/conversation/messages/use-sync-row-layout'
 
 export type Props = {
   autoplayVideo: boolean
@@ -27,6 +28,10 @@ const UnfurlImage = (p: Props) => {
   }
   const maxSize = Math.min(maxWidth, 320) - (widthPadding || 0)
   const {height, width} = clampImageSize(p.width, p.height, maxSize, 320)
+
+  // Usually the metadata dimensions are known at first paint, but if they arrive in a later update
+  // the image grows; flush the row measure so the list re-pins instead of parking above newest.
+  useSyncRowLayout(`${width}x${height}`)
 
   return isVideo ? (
     <Video

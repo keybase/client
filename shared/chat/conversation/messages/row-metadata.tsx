@@ -70,20 +70,18 @@ export const getMessageRowRecycleType = (
   let rowRecycleType = baseType
   let needsSpecificRecycleType = false
 
-  if (
-    (message.type === 'text' || message.type === 'attachment') &&
-    (message.submitState === 'pending' || message.submitState === 'failed')
-  ) {
-    rowRecycleType += ':pending'
+  // Only suffixes that are stable for the message's lifetime: the recycling pool label is recorded
+  // when a container is allocated and never updated on in-place changes, so a suffix that can flip
+  // (pending → confirmed after every send, reactions toggling on and off) leaves stale pool labels
+  // behind and recycled containers paint at the wrong pooled height. 'failed' is sticky until an
+  // explicit retry and 'reply' never changes.
+  if ((message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed') {
+    rowRecycleType += ':failed'
     needsSpecificRecycleType = true
   }
 
   if (message.type === 'text' && message.replyTo) {
     rowRecycleType += ':reply'
-    needsSpecificRecycleType = true
-  }
-  if (message.reactions?.size) {
-    rowRecycleType += ':reactions'
     needsSpecificRecycleType = true
   }
 
