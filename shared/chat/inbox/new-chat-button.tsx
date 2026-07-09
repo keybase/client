@@ -4,7 +4,13 @@ import {LiquidGlassView, isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
 
 const rainbowHeight = isElectron ? 32 : 36
-const rainbowWidth = isElectron ? 80 : 96
+const rainbowWidth = 80
+// the button's margin is the rainbow rim; it must be equal on all sides or the
+// container radius can't stay concentric with the button's and the corners wobble
+const rainbowRim = 2
+const rainbowRadius = Kb.Styles.borderRadius + rainbowRim
+const glassRim = 4
+const glassRadius = rainbowRadius + glassRim
 const colorBarCommon = {
   height: rainbowHeight / 4,
   position: 'absolute',
@@ -47,18 +53,7 @@ const HeaderNewChatButton = () => {
   // eslint-disable-next-line
   if (isIOS && isLiquidGlassSupported) {
     return (
-      <LiquidGlassView
-        interactive={true}
-        effect={'regular'}
-        style={{
-          alignContent: 'center',
-          borderRadius: 8,
-          height: rainbowHeight,
-          justifyContent: 'center',
-          padding: 8,
-          width: rainbowWidth,
-        }}
-      >
+      <LiquidGlassView interactive={true} effect="regular" style={styles.glass}>
         {rainbowButton}
       </LiquidGlassView>
     )
@@ -72,6 +67,14 @@ const calcBarTop = (index: number) => index * colorBarCommon.height
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      glass: {
+        alignItems: 'center',
+        alignSelf: 'center',
+        borderRadius: glassRadius,
+        height: rainbowHeight + glassRim * 2,
+        justifyContent: 'center',
+        padding: glassRim,
+      },
       gradientGreen: {
         ...colorBarCommon,
         backgroundColor: '#3AFFAC',
@@ -93,17 +96,21 @@ const styles = Kb.Styles.styleSheetCreate(
         top: calcBarTop(2),
       },
       rainbowButton: {
-        margin: 2,
+        margin: rainbowRim,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
       },
       rainbowButtonContainer: Kb.Styles.platformStyles({
         common: {
           borderRadius: Kb.Styles.borderRadius,
           height: rainbowHeight,
-          width: rainbowWidth,
         },
         isElectron: {
           ...Kb.Styles.desktopStyles.windowDraggingClickable,
+          width: rainbowWidth,
+        },
+        isMobile: {
+          alignSelf: 'center',
+          borderRadius: rainbowRadius,
         },
       }),
     }) as const
