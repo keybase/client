@@ -51,7 +51,7 @@ js_tests() {
 	rm -rf node_modules
 
 	echo 'yarn install'
-	yarn install --network-concurrency 1 --prefer-offline --pure-lockfile --ignore-optional --ignore-engines
+	yarn install --network-concurrency 1 --prefer-offline --pure-lockfile --ignore-engines
 	yarn modules --ignore-engines
 	check_rc $? 'yarn install fail' 1
 
@@ -65,7 +65,7 @@ js_tests() {
 	check_rc $? 'unexpected generated emoji changes, did you forget to yarn gen:emoji?' 1
 
 	echo 'yarn tsc'
-	yarn tsc --project ./tsconfig.json
+	yarn tsc
 	check_rc $? 'tsc failed!' 1
 
 	echo 'yarn test:unit'
