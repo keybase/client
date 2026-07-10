@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
-index 15c0da5..7ca135b 100644
+index add33c4..ca97311 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
-@@ -282,6 +282,11 @@ - (void)configureBarButtonItem
+@@ -277,6 +277,11 @@ - (void)configureBarButtonItem
    if (@available(iOS 26.0, *)) {
      if (_barButtonItem != nil) {
        [_barButtonItem setHidesSharedBackground:_hidesSharedBackground];

@@ -6,7 +6,7 @@ import * as T from '@/constants/types'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {useNavigation} from '@react-navigation/native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
-import {Keyboard} from 'react-native'
+import {Keyboard, Platform} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import type {SFSymbol} from 'sf-symbols-typescript'
 // import {DebugChatDumpContext} from '@/constants/chat/debug'
@@ -163,10 +163,15 @@ const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
   return badgeNumber
 }
 
+// UIBarButtonItem.badge (and the glass pill bar items) need iOS 26.
+const isIOS26Plus = isIOS && parseInt(Platform.Version as string, 10) >= 26
+
 // iOS only: screen options functions aren't reactive to store state, so a mounted null
 // component pushes the unread badge into the header via setOptions as badge counts change.
-// The badge can't overlay the native chevron, so while badged we swap the native back button
-// for our own back button (arrow + badge as one pressable, same as the Android header).
+// While badged we swap the native back button for a bar button item (SFSymbol chevron) carrying
+// a native UIBarButtonItem badge (iOS 26+), so the glass pill look is preserved. Pre-26 has no
+// bar item badge, so we fall back to our own back button (arrow + badge as one pressable, same
+// as the Android header).
 // Android renders the badge through headerLeft (BadgeHeaderLeftArray) instead.
 export const BadgeHeaderUpdater = isIOS
   ? function BadgeHeaderUpdater(props: HeaderConversationProps) {
@@ -179,10 +184,24 @@ export const BadgeHeaderUpdater = isIOS
             ? {
                 headerBackVisible: false,
                 unstable_headerLeftItems: () => [
-                  {
-                    element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
-                    type: 'custom' as const,
-                  },
+                  isIOS26Plus
+                    ? {
+                        badge: {
+                          style: {
+                            backgroundColor: Kb.Styles.globalColors.orange,
+                            color: Kb.Styles.globalColors.white,
+                          },
+                          value: badgeNumber,
+                        },
+                        icon: sfIcon('chevron.backward'),
+                        label: 'Back',
+                        onPress: () => navigation.goBack(),
+                        type: 'button' as const,
+                      }
+                    : {
+                        element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
+                        type: 'custom' as const,
+                      },
                 ],
               }
             : {headerBackVisible: true, unstable_headerLeftItems: undefined}

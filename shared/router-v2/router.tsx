@@ -415,7 +415,7 @@ const appTabsScreenOptions = (
     overrideScrollViewContentInsetAdjustmentBehavior: true,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {
-      backgroundColor: isLiquidGlassSupported ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.orange,
+      backgroundColor: Kb.Styles.globalColors.orange,
     },
     ...(isIOS
       ? {

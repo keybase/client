@@ -11,6 +11,7 @@
   "exclude": [
     "**/node_modules",
     "./desktop",
+    "./**/*.stories.tsx",
     "./**/*.desktop.tsx",
     "./**/*.desktop.ts",
     "./common-adapters/icon.constants-gen.desktop.tsx",
