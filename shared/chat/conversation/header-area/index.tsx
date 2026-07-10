@@ -114,13 +114,48 @@ const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps
 
 const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})
 
+// iOS: back-button options for a given badge count. Badged = custom bar item carrying a native
+// UIBarButtonItem badge (iOS 26+) or our own back button (pre-26); unbadged = native back button.
+const iosBackOptions = (badgeNumber: number) =>
+  badgeNumber > 0
+    ? {
+        headerBackVisible: false,
+        unstable_headerLeftItems: () => [
+          isIOS26Plus
+            ? {
+                badge: {
+                  style: {
+                    backgroundColor: Kb.Styles.globalColors.orange,
+                    color: Kb.Styles.globalColors.white,
+                  },
+                  value: badgeNumber,
+                },
+                icon: sfIcon('chevron.backward'),
+                label: 'Back',
+                // void wrapper: navigateUp's inferred return type references the nav state
+                // (RootParamList), which circularly depends on this options function's type
+                onPress: () => {
+                  C.Router2.navigateUp()
+                },
+                type: 'button' as const,
+              }
+            : {
+                element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
+                type: 'custom' as const,
+              },
+        ],
+      }
+    : {headerBackVisible: true, unstable_headerLeftItems: undefined}
+
 export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.Chat.ConversationIDKey}}) => {
   if (!isMobile) return {}
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
-    // iOS 26: headerLeft omitted — the native back button is used by default. When unreads exist
-    // elsewhere, BadgeHeaderUpdater (mounted in container.tsx) swaps it for a custom back button
-    // carrying the badge via setOptions (headerBackVisible: false + unstable_headerLeftItems).
+    // iOS 26: the back button (badged or not) is decided synchronously here so the header is
+    // complete in the screen's initial options — swapping bar items via setOptions while the
+    // push animation runs restarts the UINavigationBar item transition (header freezes, then
+    // jumps to catch up with the screen slide). BadgeHeaderUpdater only applies later badge
+    // changes, after the transition ends.
     ...(!isIOS
       ? {
           headerBackVisible: false,
@@ -129,7 +164,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
             return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
           },
         }
-      : {headerBackVisible: true}),
+      : iosBackOptions(getBackBadge(conversationIDKey))),
     // iOS 26: single overflow menu (one glass pill) housing search + info actions.
     ...(isIOS
       ? {
@@ -172,16 +207,30 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
   }
 }
 
-const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
+const badgeCountExcluding = (
+  badgeState: ReturnType<typeof useConfigState.getState>['badgeState'],
+  conversationIDKey: T.Chat.ConversationIDKey
+) =>
+  badgeState?.conversations?.reduce((count, conversation) => {
+    const id = T.Chat.conversationIDToKey(conversation.convID)
+    return id === conversationIDKey ? count : count + conversation.badgeCount
+  }, 0) ?? 0
+
+// explicit return types: getVisiblePath's type references the nav state (RootParamList), which
+// circularly depends on this options function's type if left to inference
+const onTopOfInbox = (): boolean => {
   const visiblePath = C.Router2.getVisiblePath()
-  const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
+  return visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
+}
+
+// non-reactive read for options-evaluation time
+const getBackBadge = (conversationIDKey: T.Chat.ConversationIDKey): number =>
+  onTopOfInbox() ? badgeCountExcluding(useConfigState.getState().badgeState, conversationIDKey) : 0
+
+const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const badgeState = useConfigState(s => s.badgeState)
-  const badgeNumber =
-    badgeState?.conversations?.reduce((count, conversation) => {
-      const id = T.Chat.conversationIDToKey(conversation.convID)
-      return id === conversationIDKey ? count : count + conversation.badgeCount
-    }, 0) ?? 0
-  if (!onTopOfInbox) return 0
+  const badgeNumber = badgeCountExcluding(badgeState, conversationIDKey)
+  if (!onTopOfInbox()) return 0
   return badgeNumber
 }
 
@@ -189,46 +238,35 @@ const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
 const isIOS26Plus = isIOS && parseInt(Platform.Version as string, 10) >= 26
 
 // iOS only: screen options functions aren't reactive to store state, so a mounted null
-// component pushes the unread badge into the header via setOptions as badge counts change.
-// While badged we swap the native back button for a bar button item (SFSymbol chevron) carrying
-// a native UIBarButtonItem badge (iOS 26+), so the glass pill look is preserved. Pre-26 has no
-// bar item badge, so we fall back to our own back button (arrow + badge as one pressable, same
-// as the Android header).
+// component pushes badge-count changes into the header via setOptions. The initial value is
+// already in the screen options (headerNavigationOptions), and any setOptions while the push
+// animation runs restarts the bar item transition (header desyncs from the screen slide), so
+// updates are held until transitionEnd and skipped when the count hasn't changed.
 // Android renders the badge through headerLeft (BadgeHeaderLeftArray) instead.
 export const BadgeHeaderUpdater = isIOS
   ? function BadgeHeaderUpdater(props: HeaderConversationProps) {
       const {conversationIDKey} = props
       const badgeNumber = useBackBadge(conversationIDKey)
       const navigation = useNavigation()
+      const [transitionDone, setTransitionDone] = React.useState(false)
+      // headerNavigationOptions computed this synchronously when the screen was configured
+      const lastAppliedRef = React.useRef(getBackBadge(conversationIDKey))
       React.useEffect(() => {
-        navigation.setOptions(
-          badgeNumber > 0
-            ? {
-                headerBackVisible: false,
-                unstable_headerLeftItems: () => [
-                  isIOS26Plus
-                    ? {
-                        badge: {
-                          style: {
-                            backgroundColor: Kb.Styles.globalColors.orange,
-                            color: Kb.Styles.globalColors.white,
-                          },
-                          value: badgeNumber,
-                        },
-                        icon: sfIcon('chevron.backward'),
-                        label: 'Back',
-                        onPress: () => navigation.goBack(),
-                        type: 'button' as const,
-                      }
-                    : {
-                        element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
-                        type: 'custom' as const,
-                      },
-                ],
-              }
-            : {headerBackVisible: true, unstable_headerLeftItems: undefined}
-        )
-      }, [navigation, badgeNumber])
+        const unsubscribe = (
+          navigation.addListener as (event: string, cb: () => void) => () => void
+        )('transitionEnd', () => setTransitionDone(true))
+        // safety net in case the transition event never fires (e.g. no-animation navigation)
+        const timeout = setTimeout(() => setTransitionDone(true), 1000)
+        return () => {
+          clearTimeout(timeout)
+          unsubscribe()
+        }
+      }, [navigation])
+      React.useEffect(() => {
+        if (!transitionDone || lastAppliedRef.current === badgeNumber) return
+        lastAppliedRef.current = badgeNumber
+        navigation.setOptions(iosBackOptions(badgeNumber))
+      }, [navigation, badgeNumber, transitionDone])
       return null
     }
   : (_props: HeaderConversationProps) => null
