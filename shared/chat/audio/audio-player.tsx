@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
+// The non-iOS module throws when rendered, so usage is gated on isIOS.
+import {SFSymbol} from '@react-navigation/native'
 
 type VisProps = {
   amps: undefined | ReadonlyArray<number>
@@ -99,11 +101,20 @@ const AudioPlayer = (props: Props) => {
       gap="tiny"
     >
       <Kb.ClickableBox direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
-        <Kb.Icon
-          type={!paused ? 'iconfont-pause' : 'iconfont-play'}
-          fontSize={32}
-          color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
-        />
+        {isIOS ? (
+          <SFSymbol
+            name={paused ? 'play.fill' : 'pause.fill'}
+            size={32}
+            color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
+            contentTransition={{magic: true, type: 'replace'}}
+          />
+        ) : (
+          <Kb.Icon
+            type={!paused ? 'iconfont-pause' : 'iconfont-play'}
+            fontSize={32}
+            color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
+          />
+        )}
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.visContainer} gap="xxtiny" fullHeight={true} justifyContent="flex-end">
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
