@@ -18,6 +18,7 @@ import {navToProfile} from '@/constants/router'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
 import {useConversationMetadata} from '../data-hooks'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {muteConversation} from '../status-actions'
 import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from '@/chat/inbox/layout-state'
 
@@ -237,6 +238,20 @@ const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
 // UIBarButtonItem.badge (and the glass pill bar items) need iOS 26.
 const isIOS26Plus = isIOS && parseInt(Platform.Version as string, 10) >= 26
 
+// Whether the title component has any text to render right now — mirrors
+// HeaderBranchContainerInner's data sources (meta, participants, inbox-layout fallback).
+const hasTitleFromMetadataSelector =
+  (conversationIDKey: T.Chat.ConversationIDKey) =>
+  (s: ReturnType<typeof useInboxMetadataState.getState>) =>
+    !!(s.metas.get(conversationIDKey)?.teamname || s.participants.get(conversationIDKey)?.name.length)
+const hasTitleFromLayoutSelector =
+  (conversationIDKey: T.Chat.ConversationIDKey) =>
+  (s: ReturnType<typeof useInboxLayoutState.getState>) =>
+    !!(
+      getSmallLayoutRow(s, conversationIDKey)?.name ||
+      getBigLayoutChannelRow(s, conversationIDKey)?.teamname
+    )
+
 // iOS only: screen options functions aren't reactive to store state, so a mounted null
 // component pushes badge-count changes into the header via setOptions. The initial value is
 // already in the screen options (headerNavigationOptions), and any setOptions while the push
@@ -252,14 +267,24 @@ export const BadgeHeaderUpdater = isIOS
       // headerNavigationOptions computed this synchronously when the screen was configured
       const lastAppliedRef = React.useRef(getBackBadge(conversationIDKey))
       React.useEffect(() => {
-        const unsubscribe = (
-          navigation.addListener as (event: string, cb: () => void) => () => void
-        )('transitionEnd', () => setTransitionDone(true))
-        // safety net in case the transition event never fires (e.g. no-animation navigation)
-        const timeout = setTimeout(() => setTransitionDone(true), 1000)
+        const addListener = navigation.addListener as (event: string, cb: () => void) => () => void
+        let transitionStarted = false
+        const unsubscribeStart = addListener('transitionStart', () => {
+          transitionStarted = true
+        })
+        const unsubscribeEnd = addListener('transitionEnd', () => setTransitionDone(true))
+        // no transitionStart shortly after mount = no animation to protect (cold start directly
+        // into a thread mounts via initial nav state and never gets transition events)
+        const noTransitionTimeout = setTimeout(() => {
+          if (!transitionStarted) setTransitionDone(true)
+        }, 100)
+        // safety net in case a started transition never reports its end
+        const fallbackTimeout = setTimeout(() => setTransitionDone(true), 1000)
         return () => {
-          clearTimeout(timeout)
-          unsubscribe()
+          clearTimeout(noTransitionTimeout)
+          clearTimeout(fallbackTimeout)
+          unsubscribeStart()
+          unsubscribeEnd()
         }
       }, [navigation])
       React.useEffect(() => {
@@ -267,6 +292,22 @@ export const BadgeHeaderUpdater = isIOS
         lastAppliedRef.current = badgeNumber
         navigation.setOptions(iosBackOptions(badgeNumber))
       }, [navigation, badgeNumber, transitionDone])
+      // If the title component had no text when the screen was first configured (cold start
+      // directly into a thread: the store fills after the header's initial native layout),
+      // UINavigationBar never re-measures the title subview when its content later grows — it
+      // stays blank until something reconfigures the bar (e.g. a pop transition). Once the
+      // data lands, swap in a fresh headerTitle via setOptions to force that reconfigure.
+      const hasTitleFromMetadata = useInboxMetadataState(hasTitleFromMetadataSelector(conversationIDKey))
+      const hasTitleFromLayout = useInboxLayoutState(hasTitleFromLayoutSelector(conversationIDKey))
+      const hasTitleContent = hasTitleFromMetadata || hasTitleFromLayout
+      const titleWasEmptyRef = React.useRef(!hasTitleContent)
+      React.useEffect(() => {
+        if (!transitionDone || !titleWasEmptyRef.current || !hasTitleContent) return
+        titleWasEmptyRef.current = false
+        navigation.setOptions({
+          headerTitle: () => <HeaderBranchContainerInner conversationIDKey={conversationIDKey} />,
+        })
+      }, [navigation, conversationIDKey, hasTitleContent, transitionDone])
       return null
     }
   : (_props: HeaderConversationProps) => null
