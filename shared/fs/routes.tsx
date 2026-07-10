@@ -141,7 +141,14 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./browser/destination-picker')),
     {
       getOptions: ({route}) => ({
-        headerLeft: () => <DestPickerHeaderLeft source={route.params.source} />,
+        ...(isIOS
+          ? {
+              unstable_headerLeftItems: () =>
+                route.params.source.type === T.FS.DestinationPickerSource.IncomingShare
+                  ? [Kb.nativeBackHeaderItem()]
+                  : [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
+            }
+          : {headerLeft: () => <DestPickerHeaderLeft source={route.params.source} />}),
         headerRight: destPickerHeaderRight(route.params.source),
         headerTitle: () => (
           <DestPickerHeaderTitle parentPath={route.params.parentPath} source={route.params.source} />

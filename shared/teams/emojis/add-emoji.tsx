@@ -167,16 +167,18 @@ const AddEmojiModal = (props: Props) => {
   const navigation = useNavigation()
   React.useEffect(() => {
     if (!isMobile) return
-    if (hasEmojis) {
+    const onBack = () => {
+      clearErrors()
+      clearFiles()
+    }
+    if (isIOS) {
       navigation.setOptions({
-        headerLeft: () => (
-          <HeaderLeftButton
-            onPress={() => {
-              clearErrors()
-              clearFiles()
-            }}
-          />
-        ),
+        unstable_headerLeftItems: () =>
+          hasEmojis ? [Kb.nativeBackHeaderItem(onBack)] : [Kb.nativeCancelHeaderItem()],
+      } as object)
+    } else if (hasEmojis) {
+      navigation.setOptions({
+        headerLeft: () => <HeaderLeftButton onPress={onBack} />,
       })
     } else {
       navigation.setOptions({

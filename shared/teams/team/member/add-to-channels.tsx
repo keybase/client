@@ -9,7 +9,6 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useModalHeaderState} from '@/stores/modal-header'
 import {LoadedTeamProvider, useLoadedTeam} from '../use-loaded-team'
 import ChannelRow, {itemStyle} from './add-to-channels-row'
 
@@ -202,41 +201,13 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
       </Kb.ModalFooter>
     ) : null
 
-  React.useEffect(() => {
-    if (mode !== 'others') return
-    const handleFinish = () => {
-      if (!selected.size) {
-        nav.safeNavigateUp()
-        return
-      }
-      setWaiting(true)
-      submit(
-        [{conversations: [...selected].map(T.Chat.keyToConversationID), usernames}],
-        () => {
-          setWaiting(false)
-          nav.safeNavigateUp()
-        },
-        error => {
-          console.error(error)
-          setWaiting(false)
-        }
-      )
-    }
-    useModalHeaderState.setState({
-      actionEnabled: numSelected > 0,
-      actionWaiting: waiting,
-      onAction: handleFinish,
-      title,
-    })
-    return () => {
-      useModalHeaderState.setState({
-        actionEnabled: false,
-        actionWaiting: false,
-        onAction: undefined,
-        title: '',
-      })
-    }
-  }, [mode, waiting, selected, submit, usernames, nav, numSelected, title])
+  Kb.useModalHeaderAction({
+    enabled: numSelected > 0,
+    label: 'Add',
+    onAction: mode === 'others' ? onFinish : undefined,
+    title,
+    waiting,
+  })
 
   return (
     <Common.ActivityLevelsProvider>

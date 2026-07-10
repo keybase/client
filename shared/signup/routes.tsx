@@ -18,40 +18,31 @@ const UsernameHeaderLeft = () => (
   />
 )
 
-const EmailSkipButton = () => {
-  const showPushPrompt = usePushState(s => isMobile && !s.hasPermissions && s.showPushPrompt)
-  const clearModals = C.Router2.clearModals
-  const navigateAppend = C.Router2.navigateAppend
-  return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={() => {
-        setSignupEmail(C.noEmail)
-        if (showPushPrompt) {
-          navigateAppend({name: 'settingsPushPrompt', params: {}}, true)
-        } else {
-          clearModals()
-        }
-      }}
-    >
-      Skip
-    </Kb.Text>
-  )
+const onEmailSkip = () => {
+  setSignupEmail(C.noEmail)
+  const {hasPermissions, showPushPrompt} = usePushState.getState()
+  if (isMobile && !hasPermissions && showPushPrompt) {
+    C.Router2.navigateAppend({name: 'settingsPushPrompt', params: {}}, true)
+  } else {
+    C.Router2.clearModals()
+  }
 }
 
-const PhoneSkipButton = () => {
-  const navigateAppend = C.Router2.navigateAppend
-  return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={() => {
-        navigateAppend({name: 'signupEnterEmail', params: {}}, true)
-      }}
-    >
-      Skip
-    </Kb.Text>
-  )
+const onPhoneSkip = () => {
+  C.Router2.navigateAppend({name: 'signupEnterEmail', params: {}}, true)
 }
+
+const EmailSkipButton = () => (
+  <Kb.Text type="BodyBigLink" onClick={onEmailSkip}>
+    Skip
+  </Kb.Text>
+)
+
+const PhoneSkipButton = () => (
+  <Kb.Text type="BodyBigLink" onClick={onPhoneSkip}>
+    Skip
+  </Kb.Text>
+)
 
 export const newRoutes = defineRouteMap({
   signupEnterDevicename: {
@@ -82,11 +73,27 @@ export const newRoutes = defineRouteMap({
 // Some screens in signup show up after we've actually signed up
 export const newModalRoutes = defineRouteMap({
   signupEnterEmail: {
-    getOptions: {headerLeft: () => null, headerRight: () => <EmailSkipButton />, title: 'Your email address'},
+    getOptions: {
+      ...(isIOS
+        ? {
+            unstable_headerLeftItems: () => [],
+            unstable_headerRightItems: () => [Kb.nativeTextHeaderItem('Skip', onEmailSkip)],
+          }
+        : {headerLeft: () => null, headerRight: () => <EmailSkipButton />}),
+      title: 'Your email address',
+    },
     screen: React.lazy(async () => import('./email')),
   },
   signupEnterPhoneNumber: {
-    getOptions: {headerLeft: () => null, headerRight: () => <PhoneSkipButton />, title: 'Your phone number'},
+    getOptions: {
+      ...(isIOS
+        ? {
+            unstable_headerLeftItems: () => [],
+            unstable_headerRightItems: () => [Kb.nativeTextHeaderItem('Skip', onPhoneSkip)],
+          }
+        : {headerLeft: () => null, headerRight: () => <PhoneSkipButton />}),
+      title: 'Your phone number',
+    },
     screen: React.lazy(async () => import('./phone-number')),
   },
   signupSendFeedbackLoggedIn: {
