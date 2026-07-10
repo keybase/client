@@ -222,14 +222,21 @@ function Avatar(p: Props) {
 
   const cached = styleCache.get(`${size}-${isTeam}`)!
 
-  let source: {uri: string} | null = null
+  let source: {uri: string; cacheKey?: string} | null = null
   if (imageOverrideUrl) {
     source = {uri: imageOverrideUrl}
   } else if (address && name) {
     const typ = isTeam ? 'team' : 'user'
     const mode = isDarkMode ? 'dark' : 'light'
     const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
-    source = {uri: `http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=${mode}&token=${token}&count=${counter}`}
+    // cacheKey must not include address/token: the local http srv restarts with a new
+    // token on every iOS foreground, and keying the cache on the uri would refetch every
+    // avatar each cycle. counter bumps only on the server's avatar-changed notification,
+    // which is what evicts this cache.
+    source = {
+      cacheKey: `av-${typ}-${name}-${imgSize}-${mode}-${counter}`,
+      uri: `http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=${mode}&token=${token}&count=${counter}`,
+    }
   }
 
   const placeholderSource = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size) as unknown as number
