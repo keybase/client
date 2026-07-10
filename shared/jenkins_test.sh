@@ -51,8 +51,9 @@ js_tests() {
 	rm -rf node_modules
 
 	echo 'yarn install'
+	# no `yarn modules` here: its --ignore-optional prunes the platform-specific
+	# @typescript/typescript-* binaries that typescript-native (tsc) needs
 	yarn install --network-concurrency 1 --prefer-offline --pure-lockfile --ignore-engines
-	yarn modules --ignore-engines
 	check_rc $? 'yarn install fail' 1
 
 	echo 'checking no mutated yarn.lock file'
