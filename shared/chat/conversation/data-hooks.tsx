@@ -3,7 +3,12 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {getInboxConversationMeta, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {
+  ensureConversationMetaLoaded,
+  getInboxConversationMeta,
+  unboxRows,
+  useInboxMetadataState,
+} from '@/chat/inbox/metadata'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -64,9 +69,14 @@ const useConversationMetadataReload = (conversationIDKey: T.Chat.ConversationIDK
     reloadConversationMetadata(conversationIDKey)
   })
 
+  // loggedIn is a dep so a conv opened before login (push-notification cold start) re-arms
+  // the self-heal loop once the unbox can actually run.
+  const loggedIn = useConfigState(s => s.loggedIn)
   React.useEffect(() => {
-    reloadConversationMetadata(conversationIDKey)
-  }, [conversationIDKey])
+    if (loggedIn) {
+      ensureConversationMetaLoaded(conversationIDKey)
+    }
+  }, [conversationIDKey, loggedIn])
 
   useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
     if (activityConversationIDKey(action.payload.params.activity) === conversationIDKey) {

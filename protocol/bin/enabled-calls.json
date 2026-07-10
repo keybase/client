@@ -90,6 +90,7 @@
   "chat.1.local.getNextAttachmentMessageLocal": {"promise":true},
   "chat.1.local.getRecentJoinsLocal": {"promise":true},
   "chat.1.local.getStaticConfig": {"promise":true},
+  "chat.1.local.getInboxAndUnboxUILocal": {"promise":true},
   "chat.1.local.getTLFConversationsLocal": {"promise":true},
   "chat.1.local.getTeamRetentionLocal": {"promise":true},
   "chat.1.local.getTeamRoleInConversation": {"promise":true},

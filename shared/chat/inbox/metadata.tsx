@@ -247,14 +247,30 @@ export const clearConversationsForInboxSync = () => {
   })
 }
 
-const inFlightUnboxRows = new Set<T.Chat.ConversationIDKey>()
+// Values are start timestamps: an engine reset orphans the RPC promise, so the finally
+// that clears the marker never runs. Markers past the stale window are treated as dead
+// so later unboxes (and the self-heal retries below) aren't blocked forever.
+const inFlightUnboxRows = new Map<T.Chat.ConversationIDKey, number>()
 const pendingForcedUnboxRows = new Set<T.Chat.ConversationIDKey>()
+const unboxInFlightStaleMs = 20 * 1000
+
+const isUnboxInFlight = (id: T.Chat.ConversationIDKey) => {
+  const started = inFlightUnboxRows.get(id)
+  if (started === undefined) {
+    return false
+  }
+  if (Date.now() - started > unboxInFlightStaleMs) {
+    inFlightUnboxRows.delete(id)
+    return false
+  }
+  return true
+}
 
 // Trusted state now lives on the meta itself; a conv with no meta is 'requesting'
 // while its unbox is in flight, otherwise 'untrusted'.
 const trustedStateForConversation = (id: T.Chat.ConversationIDKey): T.Chat.MetaTrustedState =>
   useInboxMetadataState.getState().metas.get(id)?.trustedState ??
-  (inFlightUnboxRows.has(id) ? 'requesting' : 'untrusted')
+  (isUnboxInFlight(id) ? 'requesting' : 'untrusted')
 
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => {
@@ -306,6 +322,8 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
     resetState: () => {
       inFlightUnboxRows.clear()
       pendingForcedUnboxRows.clear()
+      metaLoadRetries.forEach(entry => clearTimeout(entry.timer))
+      metaLoadRetries.clear()
       set(s => {
         s.generation += 1
         s.inFlight = false
@@ -380,7 +398,7 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
     const conversationIDKeys = ids.reduce<Array<string>>((arr, id) => {
       if (id && T.Chat.isValidConversationIDKey(id)) {
         const trustedState = trustedStateForConversation(id)
-        if (inFlightUnboxRows.has(id)) {
+        if (isUnboxInFlight(id)) {
           if (force) {
             pendingForcedUnboxRows.add(id)
           }
@@ -394,7 +412,7 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
     if (!conversationIDKeys.length) {
       return
     }
-    conversationIDKeys.forEach(id => inFlightUnboxRows.add(id))
+    conversationIDKeys.forEach(id => inFlightUnboxRows.set(id, Date.now()))
     logger.info(
       `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
     )
@@ -427,6 +445,93 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
 
 export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
   requestInboxUnboxRows(ids, false)
+}
+
+// Self-heal for screens that render straight from this store (the thread header): a conv
+// opened before its data lands would otherwise show blank with no recovery path — the
+// requestInboxUnbox flow is fire-and-forget (data rides back on chatInboxConversation /
+// ChatParticipantsInfo notifications), so a client-side skip or a missed notification is a
+// permanent, silent miss. Fetch the conv directly instead: getInboxAndUnboxUILocal returns
+// the unboxed conversation in its response, which we write into the store ourselves. Backoff
+// retries only remain for the response-didn't-satisfy cases (offline, hung engine).
+const metaLoadBackoffsMs = [2000, 4000, 8000, 16000, 32000]
+const metaLoadRetries = new Map<
+  T.Chat.ConversationIDKey,
+  {attempt: number; timer?: ReturnType<typeof setTimeout>}
+>()
+
+const conversationMetaIncomplete = (id: T.Chat.ConversationIDKey) => {
+  const s = useInboxMetadataState.getState()
+  const meta = s.metas.get(id)
+  if (!meta) {
+    return true
+  }
+  if (meta.trustedState === 'error') {
+    // the error screen owns recovery; retrying would fight it
+    return false
+  }
+  if (meta.trustedState !== 'trusted') {
+    return true
+  }
+  // adhoc convs render the header from participants, which can lag the trusted meta
+  return !meta.teamname && !s.participants.get(id)?.name.length
+}
+
+const fetchConversationData = async (id: T.Chat.ConversationIDKey) => {
+  const res = await T.RPCChat.localGetInboxAndUnboxUILocalRpcPromise({
+    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+    query: {
+      computeActiveList: false,
+      convIDs: [T.Chat.keyToConversationID(id)],
+      readOnly: false,
+      unreadOnly: false,
+    },
+  })
+  res.conversations?.forEach(conv => {
+    onIncomingInboxUIItem(conv)
+  })
+}
+
+export const ensureConversationMetaLoaded = (id: T.Chat.ConversationIDKey) => {
+  if (!T.Chat.isValidConversationIDKey(id) || metaLoadRetries.has(id)) {
+    return
+  }
+  if (!conversationMetaIncomplete(id)) {
+    return
+  }
+  const entry: {attempt: number; timer?: ReturnType<typeof setTimeout>} = {attempt: 0}
+  metaLoadRetries.set(id, entry)
+  const tick = () => {
+    const f = async () => {
+      if (!conversationMetaIncomplete(id) || !useConfigState.getState().loggedIn) {
+        // done, or logged out; callers re-arm on login
+        metaLoadRetries.delete(id)
+        return
+      }
+      try {
+        // race a timeout so an engine reset (which orphans in-flight promises) can't wedge the loop
+        await Promise.race([fetchConversationData(id), timeoutPromise(10000)])
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info(`ensureConversationMetaLoaded: load failed for ${id}: ${error.desc}`)
+        }
+      }
+      if (!conversationMetaIncomplete(id)) {
+        metaLoadRetries.delete(id)
+        return
+      }
+      const delay = metaLoadBackoffsMs[entry.attempt]
+      entry.attempt++
+      if (delay === undefined) {
+        // exhausted; deleting lets a later mount of the conv start over
+        metaLoadRetries.delete(id)
+        return
+      }
+      entry.timer = setTimeout(tick, delay)
+    }
+    ignorePromise(f())
+  }
+  tick()
 }
 
 export const forceUnboxRowsForService = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {

@@ -19,6 +19,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
 import {useConversationMetadata} from '../data-hooks'
 import {muteConversation} from '../status-actions'
+import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from '@/chat/inbox/layout-state'
 
 type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
 
@@ -53,35 +54,56 @@ const HeaderAreaRight = (props: HeaderConversationProps) => {
     </Kb.Box2>
   )
 }
-enum HeaderType {
-  Team,
-  PhoneEmail,
-  User,
-}
+// The title renders from the metas/participants maps, which fill via the unbox flow and can
+// lag (or entirely miss) a conv the inbox layout already knows about. The layout row is what
+// the inbox list renders from and effectively always has display names, so fall back to it:
+// the header paints immediately and upgrades when ensureConversationMetaLoaded lands.
+const useLayoutFallbackNames = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  useInboxLayoutState(
+    C.useShallow(s => {
+      const small = getSmallLayoutRow(s, conversationIDKey)
+      const big = getBigLayoutChannelRow(s, conversationIDKey)
+      return {
+        bigChannelname: big?.channelname ?? '',
+        bigTeamname: big?.teamname ?? '',
+        smallIsTeam: small?.isTeam ?? false,
+        smallName: small?.name ?? '',
+      }
+    })
+  )
 
 const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
   const {conversationIDKey} = props
   const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
-  const type = (() => {
-    const teamName = meta.teamname
-    if (teamName) {
-      return HeaderType.Team
-    }
-    const participants = participantInfo.name
-    const isPhoneOrEmail = participants.some(
-      participant => participant.endsWith('@phone') || participant.endsWith('@email')
+  const fallback = useLayoutFallbackNames(conversationIDKey)
+  const teamname = meta.teamname || fallback.bigTeamname || (fallback.smallIsTeam ? fallback.smallName : '')
+  if (teamname) {
+    return (
+      <ChannelHeader
+        conversationIDKey={conversationIDKey}
+        teamname={teamname}
+        channelname={meta.channelname || fallback.bigChannelname}
+      />
     )
-    return isPhoneOrEmail ? HeaderType.PhoneEmail : HeaderType.User
-  })()
-
-  switch (type) {
-    case HeaderType.Team:
-      return <ChannelHeader conversationIDKey={conversationIDKey} />
-    case HeaderType.PhoneEmail:
-      return <PhoneOrEmailHeader conversationIDKey={conversationIDKey} />
-    case HeaderType.User:
-      return <UsernameHeader conversationIDKey={conversationIDKey} />
   }
+  // the small-row name is the tlf name (comma-joined usernames, includes you), matching
+  // participants.name semantics
+  const participants = participantInfo.name.length
+    ? participantInfo.name
+    : fallback.smallName
+      ? fallback.smallName
+          .split(',')
+          .map(username => username.trim())
+          .filter(Boolean)
+      : emptyArray
+  const isPhoneOrEmail = participants.some(
+    participant => participant.endsWith('@phone') || participant.endsWith('@email')
+  )
+  return isPhoneOrEmail ? (
+    <PhoneOrEmailHeader conversationIDKey={conversationIDKey} participants={participants} />
+  ) : (
+    <UsernameHeader conversationIDKey={conversationIDKey} participants={participants} />
+  )
 }
 
 const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps) => {
@@ -243,15 +265,19 @@ const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
   return {maxWidth: width - 140 - (hasBadge ? 40 : 0)}
 }
 
-const ChannelHeader = (props: HeaderConversationProps) => {
-  const {conversationIDKey} = props
-  const {channelname, teamname, teamType, teamID} = useConversationMetadata(conversationIDKey).meta
-  const smallTeam = teamType !== 'big'
+const ChannelHeader = (props: HeaderConversationProps & {teamname: string; channelname: string}) => {
+  const {conversationIDKey, teamname, channelname} = props
+  const {teamType, teamID} = useConversationMetadata(conversationIDKey).meta
+  // teamType is 'adhoc' when the meta hasn't loaded yet (we only render on layout-fallback
+  // names then); a big-team layout row is the only fallback that carries a channelname
+  const smallTeam = teamType !== 'adhoc' ? teamType !== 'big' : !channelname
   const textType = smallTeam ? 'BodyBig' : isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.Router2.navigateAppend
-  const onClick = () => {
-    navigateAppend({name: 'team', params: {teamID}})
-  }
+  const onClick = teamID
+    ? () => {
+        navigateAppend({name: 'team', params: {teamID}})
+      }
+    : undefined
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
@@ -286,12 +312,11 @@ const ChannelHeader = (props: HeaderConversationProps) => {
 }
 
 const emptyArray = new Array<string>()
-const UsernameHeader = (props: HeaderConversationProps) => {
-  const {conversationIDKey} = props
+type HeaderParticipantsProps = HeaderConversationProps & {participants: ReadonlyArray<string>}
+const UsernameHeader = (props: HeaderParticipantsProps) => {
+  const {conversationIDKey, participants} = props
   const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
-  const participants = meta.teamname ? emptyArray : participantInfo.name
   const theirFullname =
     participants.length === 2
       ? participants.filter(username => username !== you).map(username => infoMap.get(username)?.fullname)[0]
@@ -330,10 +355,9 @@ const UsernameHeader = (props: HeaderConversationProps) => {
   )
 }
 
-const PhoneOrEmailHeader = (props: HeaderConversationProps) => {
-  const {conversationIDKey} = props
-  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
-  const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
+const PhoneOrEmailHeader = (props: HeaderParticipantsProps) => {
+  const {conversationIDKey, participants} = props
+  const {participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = participantInfo.contactName.get(phoneOrEmail)
