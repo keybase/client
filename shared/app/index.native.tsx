@@ -17,6 +17,7 @@ import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import * as DarkMode from '@/stores/darkmode'
+import {colors, darkColors} from '@/styles/colors'
 import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import logger from '@/logger'
 
@@ -131,11 +132,18 @@ const Keybase = () => {
 
   const {unmountAll, show} = useUnmountAll()
 
+  // The gap between screens during iOS 26 push transitions (the outgoing screen is inset) shows
+  // the first opaque ancestor of the navigator. Nothing in react-navigation paints that region,
+  // so this root view fills it with the themed app background instead of the black root view.
+  const backgroundColor = DarkMode.useDarkModeState(s =>
+    s.isDarkMode() ? darkColors.white : colors.white
+  )
+
   return show ? (
     <WRAP>
       <KeyboardProvider statusBarTranslucent={true} navigationBarTranslucent={true}>
         <ReducedMotionConfig mode={ReduceMotion.Never} />
-        <GestureHandlerRootView style={styles.gesture}>
+        <GestureHandlerRootView style={[styles.gesture, {backgroundColor}]}>
           <PortalProvider>
             <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
               <StoreHelper>

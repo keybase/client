@@ -54,9 +54,10 @@ function SimpleLoading() {
 
 const makeTheme = (palette: {white: string; black: string; black_10: string}, dark: boolean): Theme => ({
   colors: {
-    background: palette.white,
+    // DEBUGCOLORS: blue = theme background (screen bg), magenta = theme card (native bar bg)
+    background: Common.DEBUGCOLORS ? 'blue' : palette.white,
     border: palette.black_10,
-    card: palette.white,
+    card: Common.DEBUGCOLORS ? 'magenta' : palette.white,
     notification: palette.black,
     primary: palette.black,
     text: palette.black,
