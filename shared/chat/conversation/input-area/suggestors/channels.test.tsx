@@ -13,6 +13,7 @@ const mockCommonList = jest.fn((_p: unknown) => null)
 
 jest.mock('./common', () => ({
   List: (p: unknown) => mockCommonList(p),
+  desktopRowHeight: (contentHeight: number) => contentHeight,
   TeamSuggestion: () => null,
   standardTransformer: jest.fn(),
   styles: {
