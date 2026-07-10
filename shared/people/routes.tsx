@@ -18,25 +18,29 @@ const HeaderAvatar = () => {
 export const newRoutes = defineRouteMap({
   peopleRoot: {
     getOptions: {
-      headerRight: isMobile ? () => <HeaderAvatar /> : undefined,
+      // iOS 26: hidesSharedBackground prevents the glass circle around the avatar
+      ...(isIOS
+        ? {
+            unstable_headerRightItems: () => [
+              {element: <HeaderAvatar />, hidesSharedBackground: true, type: 'custom' as const},
+            ],
+          }
+        : {headerRight: isMobile ? () => <HeaderAvatar /> : undefined}),
       headerTitle: () => <ProfileSearch />,
     },
     screen: React.lazy(async () => import('./container')),
   },
 })
 
-const AccountSignOutButton = () => {
-  const navigateAppend = C.Router2.navigateAppend
-  return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={() => navigateAppend({name: settingsLogOutTab, params: {}})}
-      style={styles.signOut}
-    >
-      Sign out
-    </Kb.Text>
-  )
+const onSignOut = () => {
+  C.Router2.navigateAppend({name: settingsLogOutTab, params: {}})
 }
+
+const AccountSignOutButton = () => (
+  <Kb.Text type="BodyBigLink" onClick={onSignOut} style={styles.signOut}>
+    Sign out
+  </Kb.Text>
+)
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   signOut: {color: Kb.Styles.globalColors.red, padding: 8},
@@ -44,7 +48,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 export const newModalRoutes = defineRouteMap({
   accountSwitcher: {
-    getOptions: {headerRight: () => <AccountSignOutButton />},
+    getOptions: isIOS
+      ? {
+          unstable_headerRightItems: () => [
+            Kb.nativeTextHeaderItem('Sign out', onSignOut, {
+              labelStyle: {...Kb.nativeHeaderItemLabelStyle(), color: Kb.Styles.globalColors.red},
+            }),
+          ],
+        }
+      : {headerRight: () => <AccountSignOutButton />},
     screen: React.lazy(async () => import('../router-v2/account-switcher')),
   },
   peopleTeamBuilder,

@@ -174,7 +174,8 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./conversation/info-panel/add-to-channel')),
     {
       getOptions: ({route}) => ({
-        headerRight: () => <AddToChannelHeaderRight />,
+        // iOS: the screen drives unstable_headerRightItems via useModalHeaderAction
+        ...(isIOS ? {} : {headerRight: () => <AddToChannelHeaderRight />}),
         headerTitle: () => <AddToChannelHeaderTitle teamID={route.params.teamID} />,
       }),
     }
@@ -277,7 +278,15 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./pdf')),
     {
       getOptions: p => ({
-        headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
+        ...(isIOS
+          ? {
+              unstable_headerRightItems: () => [
+                Kb.nativeIconHeaderItem('square.and.arrow.up', 'Share', () =>
+                  showShareActionSheet(p.route.params.url ?? '', '', 'application/pdf')
+                ),
+              ],
+            }
+          : {headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined}),
         modalSize: 'fullscreen',
         title: 'PDF',
       }),
@@ -297,7 +306,14 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./send-to-chat')),
     {
       getOptions: ({route}) => ({
-        headerLeft: () => <SendToChatHeaderLeft canBack={route.params.canBack} />,
+        ...(isIOS
+          ? {
+              unstable_headerLeftItems: () =>
+                route.params.canBack
+                  ? [Kb.nativeBackHeaderItem()]
+                  : [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
+            }
+          : {headerLeft: () => <SendToChatHeaderLeft canBack={route.params.canBack} />}),
         title: FS.getSharePathArrayDescription(route.params.sendPaths || []),
       }),
       skipProvider: true,

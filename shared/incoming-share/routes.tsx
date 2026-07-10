@@ -34,7 +34,9 @@ export const IncomingShareHeaderTitle = ({title}: {title?: string}) => {
 export const newModalRoutes = defineRouteMap({
   incomingShareNew: C.makeScreen(React.lazy(async () => import('.')), {
     getOptions: {
-      headerLeft: () => <IncomingShareHeaderLeft />,
+      ...(isIOS
+        ? {unstable_headerLeftItems: () => [Kb.nativeCancelHeaderItem(C.Router2.clearModals)]}
+        : {headerLeft: () => <IncomingShareHeaderLeft />}),
       headerTitle: () => <IncomingShareHeaderTitle />,
     },
   }),

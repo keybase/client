@@ -53,13 +53,20 @@ export const defaultNavigationOptions = isMobile
       orientation: 'portrait',
       headerBackButtonDisplayMode: 'minimal',
       headerBackTitle: '',
-      headerBackVisible: false,
+      // iOS uses the real system back button: its liquid glass container stays put and
+      // morphs across pushes, while a custom headerLeft view is recreated per screen and
+      // slides in with it. Android keeps the custom button (badge support, no glass).
+      ...(isIOS
+        ? {headerBackVisible: true}
+        : {
+            headerBackVisible: false,
+            headerLeft: ({tintColor}: HeaderLeftProps) => {
+              return <HeaderLeftButton autoDetectCanGoBack={true} tintColor={tintColor} />
+            },
+          }),
       headerBackgroundContainerStyle: {
         flexShrink: 0,
         ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
-      },
-      headerLeft: ({tintColor}: HeaderLeftProps) => {
-        return <HeaderLeftButton autoDetectCanGoBack={true} tintColor={tintColor} />
       },
       headerLeftContainerStyle: {
         flexGrow: 0,

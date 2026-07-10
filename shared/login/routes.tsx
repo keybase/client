@@ -75,6 +75,13 @@ const PromptResetAccountLeft = () => {
   )
 }
 
+// iOS: the flow-aware back action as a native bar button item so its glass container
+// stays stable across pushes.
+const recoverBackItems = (onPress: () => void) => ({
+  unstable_headerLeftItems: ({canGoBack}: {canGoBack?: boolean}) =>
+    canGoBack ? [Kb.nativeBackHeaderItem(onPress)] : [],
+})
+
 const styles = Kb.Styles.styleSheetCreate(() => ({
   createAccount: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.small},
@@ -107,32 +114,61 @@ export const newRoutes = defineRouteMap({
     screen: React.lazy(async () => import('.')),
   },
   recoverPasswordDeviceSelector: {
-    getOptions: {headerLeft: () => <RecoverCancelLeft />, title: 'Recover password'},
+    getOptions: {
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+      title: 'Recover password',
+    },
     screen: React.lazy(async () => import('./recover-password/device-selector')),
   },
   recoverPasswordError: {
     getOptions: {
       gestureEnabled: false,
-      headerLeft: () => <RecoverPopLeft />,
+      ...(isIOS ? recoverBackItems(C.Router2.popStack) : {headerLeft: () => <RecoverPopLeft />}),
       headerRightActions,
       title: 'Recover password',
     },
     screen: React.lazy(async () => import('./recover-password/error')),
   },
   recoverPasswordExplainDevice: {
-    getOptions: {...recoverPasswordGetOptions, headerLeft: () => <RecoverRestartLeft />},
+    getOptions: (p: {route: {params: {username: string}}}) => ({
+      ...recoverPasswordGetOptions,
+      ...(isIOS
+        ? recoverBackItems(() =>
+            startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+          )
+        : {headerLeft: () => <RecoverRestartLeft />}),
+    }),
     screen: React.lazy(async () => import('./recover-password/explain-device')),
   },
   recoverPasswordPaperKey: {
-    getOptions: {...recoverPasswordGetOptions, headerLeft: () => <RecoverCancelLeft />},
+    getOptions: {
+      ...recoverPasswordGetOptions,
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+    },
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
   recoverPasswordPromptResetAccount: {
-    getOptions: {...recoverPasswordGetOptions, headerLeft: () => <PromptResetAccountLeft />},
+    getOptions: (p: {route: {params: {skipPassword: boolean; username: string}}}) => ({
+      ...recoverPasswordGetOptions,
+      ...(isIOS
+        ? recoverBackItems(() =>
+            p.route.params.skipPassword
+              ? startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+              : C.Router2.navigateUp()
+          )
+        : {headerLeft: () => <PromptResetAccountLeft />}),
+    }),
     screen: React.lazy(async () => import('./recover-password/prompt-reset-account')),
   },
   recoverPasswordPromptResetPassword: {
-    getOptions: {...recoverPasswordGetOptions, headerLeft: () => <RecoverRestartLeft />},
+    getOptions: (p: {route: {params: {username: string}}}) => ({
+      ...recoverPasswordGetOptions,
+      ...(isIOS
+        ? recoverBackItems(() =>
+            startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+          )
+        : {headerLeft: () => <RecoverRestartLeft />}),
+    }),
     screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
   },
   resetConfirm: {

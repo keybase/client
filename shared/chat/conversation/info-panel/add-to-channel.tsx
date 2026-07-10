@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {pluralize} from '@/util/string'
-import {useModalHeaderState} from '@/stores/modal-header'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
 
@@ -58,27 +57,13 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
 
   const loading = loadingMembers && !allMembers.length
 
-  React.useEffect(() => {
-    useModalHeaderState.setState({
-      actionEnabled: toAdd.size > 0,
-      actionWaiting: waiting,
-      onAction: onAdd,
-      title: `Add to #${channelname}`,
-    })
-    return () => {
-      useModalHeaderState.setState({
-        actionEnabled: false,
-        actionWaiting: false,
-        onAction: undefined,
-        title: '',
-      })
-    }
-  }, [
-    channelname,
-    toAdd.size,
+  Kb.useModalHeaderAction({
+    enabled: toAdd.size > 0,
+    label: 'Add',
+    onAction: onAdd,
+    title: `Add to #${channelname}`,
     waiting,
-    onAdd,
-  ])
+  })
 
   return (
     <>

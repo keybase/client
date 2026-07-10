@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import {useModalHeaderState} from '@/stores/modal-header'
 import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard} from './state'
 import type {Contact} from '../common/use-contacts.native'
 // contacts-list.native resolves to a desktop stub on desktop (contacts-list.desktop),
@@ -42,44 +41,41 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
 
   const noneSelected = selectedPhones.size + selectedEmails.size === 0
 
-  React.useEffect(() => {
-    const onDone = () => {
-      if (waiting) {
-        return
-      }
-      setError('')
-      setWaiting(true)
-      toAssertionsRPC(
-        [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
-        r => {
-          if (r?.length) {
-            C.ignorePromise(
-              addMembersToWizardAndNav(wizard, searchResultsToMembers(r), message => {
-                setWaiting(false)
-                setError(message)
-              })
-            )
-          } else {
-            setWaiting(false)
-            setError('Could not add any of the selected contacts. Try another contact or method.')
-          }
-        },
-        err => {
+  const onDone = () => {
+    if (waiting) {
+      return
+    }
+    setError('')
+    setWaiting(true)
+    toAssertionsRPC(
+      [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
+      r => {
+        if (r?.length) {
+          C.ignorePromise(
+            addMembersToWizardAndNav(wizard, searchResultsToMembers(r), message => {
+              setWaiting(false)
+              setError(message)
+            })
+          )
+        } else {
           setWaiting(false)
-          setError(err.message)
+          setError('Could not add any of the selected contacts. Try another contact or method.')
         }
-      )
-    }
-    useModalHeaderState.setState({
-      actionEnabled: !noneSelected,
-      actionWaiting: waiting,
-      onAction: onDone,
-      title: 'Add members',
-    })
-    return () => {
-      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
-    }
-  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, noneSelected, wizard])
+      },
+      err => {
+        setWaiting(false)
+        setError(err.message)
+      }
+    )
+  }
+
+  Kb.useModalHeaderAction({
+    enabled: !noneSelected,
+    label: 'Done',
+    onAction: onDone,
+    title: 'Add members',
+    waiting,
+  })
 
   return (
     <>

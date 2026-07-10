@@ -15,23 +15,18 @@ export type SettingsAccountRouteParams = {
   addedPhoneBanner?: boolean
 }
 
-const PushPromptSkipButton = () => {
-  const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
-  const clearModals = C.Router2.clearModals
-  return (
-    <Kb.ClickableBox
-      onClick={() => {
-        rejectPermissions()
-        clearModals()
-      }}
-      direction="vertical"
-    >
-      <Kb.Text type="BodyBig" negative={true}>
-        Skip
-      </Kb.Text>
-    </Kb.ClickableBox>
-  )
+const onPushPromptSkip = () => {
+  usePushState.getState().dispatch.rejectPermissions()
+  C.Router2.clearModals()
 }
+
+const PushPromptSkipButton = () => (
+  <Kb.ClickableBox onClick={onPushPromptSkip} direction="vertical">
+    <Kb.Text type="BodyBig" negative={true}>
+      Skip
+    </Kb.Text>
+  </Kb.ClickableBox>
+)
 
 const CheckPassphraseCancelButton = () => {
   const navigateUp = C.Router2.navigateUp
@@ -208,7 +203,15 @@ const sharedNewModalRoutes = {
     }),
     {
       getOptions: ({route}) => ({
-        headerLeft: isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined,
+        ...(isIOS
+          ? {
+              unstable_headerLeftItems: () => [
+                Kb.nativeIconHeaderItem('chevron.backward', 'Back', C.Router2.clearModals, {
+                  tintColor: Kb.Styles.globalColors.white,
+                }),
+              ],
+            }
+          : {headerLeft: isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined}),
         headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
         headerTitle: () => <VerifyPhoneHeaderTitle phoneNumber={route.params.phoneNumber} />,
       }),
@@ -241,7 +244,11 @@ export const newModalRoutes = defineRouteMap({
   ...sharedNewModalRoutes,
   checkPassphraseBeforeDeleteAccount: C.makeScreen(
     React.lazy(async () => import('./delete-confirm/check-passphrase')),
-    {getOptions: {headerLeft: () => <CheckPassphraseCancelButton />}}
+    {
+      getOptions: isIOS
+        ? {unstable_headerLeftItems: () => [Kb.nativeTextHeaderItem('Cancel', C.Router2.navigateUp)]}
+        : {headerLeft: () => <CheckPassphraseCancelButton />},
+    }
   ),
   modalFeedback: feedback,
   settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined')), {
@@ -250,8 +257,16 @@ export const newModalRoutes = defineRouteMap({
   settingsPushPrompt: isMobile
     ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
         getOptions: {
-          headerLeft: () => null,
-          headerRight: () => <PushPromptSkipButton />,
+          ...(isIOS
+            ? {
+                unstable_headerLeftItems: () => [],
+                unstable_headerRightItems: () => [
+                  Kb.nativeTextHeaderItem('Skip', onPushPromptSkip, {
+                    labelStyle: {...Kb.nativeHeaderItemLabelStyle(), color: Kb.Styles.globalColors.white},
+                  }),
+                ],
+              }
+            : {headerLeft: () => null, headerRight: () => <PushPromptSkipButton />}),
           headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
           headerTitle: () => (
             <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>

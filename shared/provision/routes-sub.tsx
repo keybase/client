@@ -30,7 +30,15 @@ const UsernameHeaderRight = ({username}: {username: string}) => {
 export const newRoutes = {
   codePage: C.makeScreen(React.lazy(async () => import('./code-page/container')), {
     getOptions: {
-      headerLeft: () => <CodePageHeaderLeft />,
+      ...(isIOS
+        ? {
+            unstable_headerLeftItems: () => [
+              useCurrentUserState.getState().deviceName
+                ? Kb.nativeBackHeaderItem()
+                : Kb.nativeCancelHeaderItem(),
+            ],
+          }
+        : {headerLeft: () => <CodePageHeaderLeft />}),
       title: '',
     },
   }),

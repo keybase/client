@@ -23,15 +23,14 @@ const ConfirmReset = ({route}: Props) => {
   )
 
   React.useEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <Kb.HeaderLeftButton
-          onPress={() => {
-            resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-          }}
-        />
-      ),
-    })
+    const onBack = () => {
+      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
+    }
+    navigation.setOptions(
+      isIOS
+        ? ({unstable_headerLeftItems: () => [Kb.nativeBackHeaderItem(onBack)]} as object)
+        : {headerLeft: () => <Kb.HeaderLeftButton onPress={onBack} />}
+    )
   }, [navigation, resolvePrompt])
 
   React.useEffect(() => {

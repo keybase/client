@@ -119,9 +119,18 @@ export const newModalRoutes = defineRouteMap({
   }),
   profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar')), {
     getOptions: ({route}) => ({
-      headerLeft: () => (
-        <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
-      ),
+      ...(isIOS
+        ? {
+            unstable_headerLeftItems: () =>
+              route.params.wizard || route.params.showBack
+                ? [Kb.nativeBackHeaderItem()]
+                : [Kb.nativeCancelHeaderItem()],
+          }
+        : {
+            headerLeft: () => (
+              <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
+            ),
+          }),
       headerRight: () => <EditAvatarWizardHeaderRight route={route} />,
       headerTitle: () => (
         <EditAvatarHeaderTitle

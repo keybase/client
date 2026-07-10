@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useModalHeaderState} from '@/stores/modal-header'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
 import {useNavigation} from '@react-navigation/native'
@@ -86,16 +85,11 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
     )
   }
 
-  React.useEffect(() => {
-    useModalHeaderState.setState({
-      actionEnabled: true,
-      onAction: onContinue,
-      title: doneLabel,
-    })
-    return () => {
-      useModalHeaderState.setState({actionEnabled: false, onAction: undefined, title: ''})
-    }
-  }, [doneLabel, onContinue])
+  Kb.useModalHeaderAction({
+    label: doneLabel,
+    onAction: onContinue,
+    title: doneLabel,
+  })
 
   const desktopFooter = !isMobile ? (
     <Kb.ModalFooter>
