@@ -39,8 +39,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
-	billy "gopkg.in/src-d/go-billy.v4"
-	"gopkg.in/src-d/go-billy.v4/memfs"
+	billy "github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-billy/v5/memfs"
 )
 
 type CheckBlockOps struct {

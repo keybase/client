@@ -26,13 +26,14 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	billy "gopkg.in/src-d/go-billy.v4"
-	gogit "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	"gopkg.in/src-d/go-git.v4/plumbing/storer"
-	"gopkg.in/src-d/go-git.v4/storage"
-	"gopkg.in/src-d/go-git.v4/storage/filesystem"
+	billy "github.com/go-git/go-billy/v5"
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/cache"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/go-git/go-git/v5/storage"
+	"github.com/go-git/go-git/v5/storage/filesystem"
 )
 
 const (
@@ -1004,10 +1005,7 @@ func GCRepo(
 		}
 	}()
 
-	fsStorer, err := filesystem.NewStorage(fs)
-	if err != nil {
-		return err
-	}
+	fsStorer := filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
 	var fsStorage storage.Storer = fsStorer
 
 	// Wrap it in an on-demand storer, so we don't try to read all the

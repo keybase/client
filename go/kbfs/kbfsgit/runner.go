@@ -31,15 +31,16 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	billy "gopkg.in/src-d/go-billy.v4"
-	"gopkg.in/src-d/go-billy.v4/osfs"
-	gogit "gopkg.in/src-d/go-git.v4"
-	gogitcfg "gopkg.in/src-d/go-git.v4/config"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	gogitobj "gopkg.in/src-d/go-git.v4/plumbing/object"
-	gogitstor "gopkg.in/src-d/go-git.v4/plumbing/storer"
-	"gopkg.in/src-d/go-git.v4/storage"
-	"gopkg.in/src-d/go-git.v4/storage/filesystem"
+	billy "github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-billy/v5/osfs"
+	gogit "github.com/go-git/go-git/v5"
+	gogitcfg "github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/cache"
+	gogitobj "github.com/go-git/go-git/v5/plumbing/object"
+	gogitstor "github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/go-git/go-git/v5/storage"
+	"github.com/go-git/go-git/v5/storage/filesystem"
 )
 
 const (
@@ -1515,10 +1516,7 @@ func (r *runner) canPushAll(
 	}
 
 	localGit := osfs.New(r.gitDir)
-	localStorer, err := filesystem.NewStorage(localGit)
-	if err != nil {
-		return false, false, err
-	}
+	localStorer := filesystem.NewStorage(localGit, cache.NewObjectLRUDefault())
 	localRefs, err := localStorer.IterReferences()
 	if err != nil {
 		return false, false, err
@@ -1845,10 +1843,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	localGit := osfs.New(r.gitDir)
-	localStorer, err := filesystem.NewStorage(localGit)
-	if err != nil {
-		return nil, err
-	}
+	localStorer := filesystem.NewStorage(localGit, cache.NewObjectLRUDefault())
 
 	refspecs := make(map[gogitcfg.RefSpec]bool, len(args))
 	for _, push := range args {

@@ -13,7 +13,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
-	billy "gopkg.in/src-d/go-billy.v4"
+	billy "github.com/go-git/go-billy/v5"
 )
 
 // nodeCore holds info shared among one or more nodeStandard objects.

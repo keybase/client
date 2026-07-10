@@ -6,11 +6,12 @@ package libgit
 
 import (
 	"github.com/keybase/client/go/kbfs/libfs"
-	gogitcfg "gopkg.in/src-d/go-git.v4/config"
-	format "gopkg.in/src-d/go-git.v4/plumbing/format/config"
-	"gopkg.in/src-d/go-git.v4/plumbing/storer"
-	"gopkg.in/src-d/go-git.v4/storage"
-	"gopkg.in/src-d/go-git.v4/storage/filesystem"
+	gogitcfg "github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing/cache"
+	format "github.com/go-git/go-git/v5/plumbing/format/config"
+	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/go-git/go-git/v5/storage"
+	"github.com/go-git/go-git/v5/storage/filesystem"
 )
 
 // GitConfigWithoutRemotesStorer strips remotes from the config before
@@ -29,10 +30,7 @@ type GitConfigWithoutRemotesStorer struct {
 func NewGitConfigWithoutRemotesStorer(fs *libfs.FS) (
 	*GitConfigWithoutRemotesStorer, error,
 ) {
-	fsStorer, err := filesystem.NewStorage(fs)
-	if err != nil {
-		return nil, err
-	}
+	fsStorer := filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
 	cfg, err := fsStorer.Config()
 	if err != nil {
 		return nil, err

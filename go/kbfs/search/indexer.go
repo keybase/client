@@ -32,7 +32,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/shirou/gopsutil/mem"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
-	billy "gopkg.in/src-d/go-billy.v4"
+	billy "github.com/go-git/go-billy/v5"
 )
 
 const (

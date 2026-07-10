@@ -27,7 +27,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	metrics "github.com/rcrowley/go-metrics"
-	billy "gopkg.in/src-d/go-billy.v4"
+	billy "github.com/go-git/go-billy/v5"
 )
 
 type logMaker interface {

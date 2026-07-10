@@ -15,8 +15,8 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
-	billy "gopkg.in/src-d/go-billy.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
+	billy "github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 // This file contains libkbfs.Node wrappers for implementing the

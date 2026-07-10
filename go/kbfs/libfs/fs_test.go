@@ -23,7 +23,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	billy "gopkg.in/src-d/go-billy.v4"
+	billy "github.com/go-git/go-billy/v5"
 )
 
 func makeFSWithBranch(t *testing.T, branch data.BranchName, subdir string) (

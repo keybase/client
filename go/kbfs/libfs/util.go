@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	billy "gopkg.in/src-d/go-billy.v4"
+	billy "github.com/go-git/go-billy/v5"
 )
 
 // RecursiveDelete deletes the given entry from the given filesystem.

@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	billy "gopkg.in/src-d/go-billy.v4"
+	billy "github.com/go-git/go-billy/v5"
 )
 
 // DocDb is a database that holds metadata about indexed documents.

@@ -24,7 +24,7 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
-	billy "gopkg.in/src-d/go-billy.v4"
+	billy "github.com/go-git/go-billy/v5"
 )
 
 // MockBlockOps is a mock of BlockOps interface.
