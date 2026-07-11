@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-screens/ios/RNSScreen.mm b/node_modules/react-native-screens/ios/RNSScreen.mm
-index 9b66012..efe1b29 100644
+index 9b66012..6dce63e 100644
 --- a/node_modules/react-native-screens/ios/RNSScreen.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreen.mm
-@@ -1541,6 +1541,19 @@ - (void)viewDidDisappear:(BOOL)animated
+@@ -1541,6 +1541,21 @@ - (void)viewDidDisappear:(BOOL)animated
  - (void)viewDidLayoutSubviews
  {
    [super viewDidLayoutSubviews];
@@ -16,7 +16,9 @@ index 9b66012..efe1b29 100644
 +  if ([emptyBarCfg.backTitle isEqualToString:@"RNS_EMPTY_BAR"]) {
 +    CGFloat emptyBarHeight = self.navigationController.navigationBar.frame.size.height;
 +    if (emptyBarHeight > 0 && self.additionalSafeAreaInsets.top != -emptyBarHeight) {
-+      self.additionalSafeAreaInsets = UIEdgeInsetsMake(-emptyBarHeight, 0, 0, 0);
++      UIEdgeInsets insets = self.additionalSafeAreaInsets;
++      insets.top = -emptyBarHeight;
++      self.additionalSafeAreaInsets = insets;
 +    }
 +  }
  
