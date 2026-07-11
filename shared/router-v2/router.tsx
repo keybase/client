@@ -54,9 +54,10 @@ function SimpleLoading() {
 
 const makeTheme = (palette: {white: string; black: string; black_10: string}, dark: boolean): Theme => ({
   colors: {
-    background: palette.white,
+    // DEBUGCOLORS: blue = theme background (screen bg), magenta = theme card (native bar bg)
+    background: Common.DEBUGCOLORS ? 'blue' : palette.white,
     border: palette.black_10,
-    card: palette.white,
+    card: Common.DEBUGCOLORS ? 'magenta' : palette.white,
     notification: palette.black,
     primary: palette.black,
     text: palette.black,
@@ -532,7 +533,24 @@ if (isMobile) {
       loggedIn: {
         if: useIsLoggedInNative,
         screens: {
-          loggedIn: {options: {headerShown: false}, screen: AppTabsNative},
+          // iOS: keep the bar visible (empty + transparent) instead of hidden. Unhiding a
+          // hidden bar during a push makes iOS 26 slide the whole UINavigationBar in from the
+          // right as its own animated plane, desynced from the screen slide — the header
+          // judders against the thread (RNS issue #3773). A visible bar stays put and only its
+          // contents transition. headerBackTitle is a marker for our react-native-screens
+          // patch, which cancels this bar's safe-area contribution so tab screens' own
+          // headers don't shift down by the bar height.
+          loggedIn: {
+            options: isIOS
+              ? {
+                  headerBackTitle: 'RNS_EMPTY_BAR',
+                  headerShown: true,
+                  headerTransparent: true,
+                  title: '',
+                }
+              : {headerShown: false},
+            screen: AppTabsNative,
+          },
           ...nativePhoneRootScreensConfig,
         },
       },

@@ -10,7 +10,12 @@ import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import type {NavState} from '@/constants/router'
 import Header from './header/index'
 
-export const headerDefaultStyle = isMobile
+// iOS: no opaque backgroundColor/border — screens using native bar items (unstable_header*Items)
+// render through the native appearance path which ignores headerStyle, so styling the others
+// creates two different bar types; pushing between them slides two opaque slabs (visible seam
+// riding the header during the transition) instead of morphing one native bar. The native
+// appearance already draws the theme card color (same palette value as globalColors.white).
+export const headerDefaultStyle = isAndroid
   ? {
       backgroundColor: Kb.Styles.globalColors.white,
       borderBottomColor: Kb.Styles.globalColors.black_10,
@@ -42,7 +47,7 @@ export const tabToTestID = new Map<Tabs.Tab, string>([
 export {useUserSwitchNavKey} from './use-user-switch-nav-key'
 
 const actionWidth = 64
-const DEBUGCOLORS = __DEV__ && (false as boolean)
+export const DEBUGCOLORS = __DEV__ && (false as boolean)
 
 type HeaderLeftProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
 

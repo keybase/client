@@ -18,7 +18,9 @@ import {navToProfile} from '@/constants/router'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
 import {useConversationMetadata} from '../data-hooks'
+import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {muteConversation} from '../status-actions'
+import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from '@/chat/inbox/layout-state'
 
 type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
 
@@ -53,35 +55,56 @@ const HeaderAreaRight = (props: HeaderConversationProps) => {
     </Kb.Box2>
   )
 }
-enum HeaderType {
-  Team,
-  PhoneEmail,
-  User,
-}
+// The title renders from the metas/participants maps, which fill via the unbox flow and can
+// lag (or entirely miss) a conv the inbox layout already knows about. The layout row is what
+// the inbox list renders from and effectively always has display names, so fall back to it:
+// the header paints immediately and upgrades when ensureConversationMetaLoaded lands.
+const useLayoutFallbackNames = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  useInboxLayoutState(
+    C.useShallow(s => {
+      const small = getSmallLayoutRow(s, conversationIDKey)
+      const big = getBigLayoutChannelRow(s, conversationIDKey)
+      return {
+        bigChannelname: big?.channelname ?? '',
+        bigTeamname: big?.teamname ?? '',
+        smallIsTeam: small?.isTeam ?? false,
+        smallName: small?.name ?? '',
+      }
+    })
+  )
 
 const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
   const {conversationIDKey} = props
   const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
-  const type = (() => {
-    const teamName = meta.teamname
-    if (teamName) {
-      return HeaderType.Team
-    }
-    const participants = participantInfo.name
-    const isPhoneOrEmail = participants.some(
-      participant => participant.endsWith('@phone') || participant.endsWith('@email')
+  const fallback = useLayoutFallbackNames(conversationIDKey)
+  const teamname = meta.teamname || fallback.bigTeamname || (fallback.smallIsTeam ? fallback.smallName : '')
+  if (teamname) {
+    return (
+      <ChannelHeader
+        conversationIDKey={conversationIDKey}
+        teamname={teamname}
+        channelname={meta.channelname || fallback.bigChannelname}
+      />
     )
-    return isPhoneOrEmail ? HeaderType.PhoneEmail : HeaderType.User
-  })()
-
-  switch (type) {
-    case HeaderType.Team:
-      return <ChannelHeader conversationIDKey={conversationIDKey} />
-    case HeaderType.PhoneEmail:
-      return <PhoneOrEmailHeader conversationIDKey={conversationIDKey} />
-    case HeaderType.User:
-      return <UsernameHeader conversationIDKey={conversationIDKey} />
   }
+  // the small-row name is the tlf name (comma-joined usernames, includes you), matching
+  // participants.name semantics
+  const participants = participantInfo.name.length
+    ? participantInfo.name
+    : fallback.smallName
+      ? fallback.smallName
+          .split(',')
+          .map(username => username.trim())
+          .filter(Boolean)
+      : emptyArray
+  const isPhoneOrEmail = participants.some(
+    participant => participant.endsWith('@phone') || participant.endsWith('@email')
+  )
+  return isPhoneOrEmail ? (
+    <PhoneOrEmailHeader conversationIDKey={conversationIDKey} participants={participants} />
+  ) : (
+    <UsernameHeader conversationIDKey={conversationIDKey} participants={participants} />
+  )
 }
 
 const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps) => {
@@ -92,13 +115,48 @@ const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps
 
 const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})
 
+// iOS: back-button options for a given badge count. Badged = custom bar item carrying a native
+// UIBarButtonItem badge (iOS 26+) or our own back button (pre-26); unbadged = native back button.
+const iosBackOptions = (badgeNumber: number) =>
+  badgeNumber > 0
+    ? {
+        headerBackVisible: false,
+        unstable_headerLeftItems: () => [
+          isIOS26Plus
+            ? {
+                badge: {
+                  style: {
+                    backgroundColor: Kb.Styles.globalColors.orange,
+                    color: Kb.Styles.globalColors.white,
+                  },
+                  value: badgeNumber,
+                },
+                icon: sfIcon('chevron.backward'),
+                label: 'Back',
+                // void wrapper: navigateUp's inferred return type references the nav state
+                // (RootParamList), which circularly depends on this options function's type
+                onPress: () => {
+                  C.Router2.navigateUp()
+                },
+                type: 'button' as const,
+              }
+            : {
+                element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
+                type: 'custom' as const,
+              },
+        ],
+      }
+    : {headerBackVisible: true, unstable_headerLeftItems: undefined}
+
 export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.Chat.ConversationIDKey}}) => {
   if (!isMobile) return {}
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
-    // iOS 26: headerLeft omitted — the native back button is used by default. When unreads exist
-    // elsewhere, BadgeHeaderUpdater (mounted in container.tsx) swaps it for a custom back button
-    // carrying the badge via setOptions (headerBackVisible: false + unstable_headerLeftItems).
+    // iOS 26: the back button (badged or not) is decided synchronously here so the header is
+    // complete in the screen's initial options — swapping bar items via setOptions while the
+    // push animation runs restarts the UINavigationBar item transition (header freezes, then
+    // jumps to catch up with the screen slide). BadgeHeaderUpdater only applies later badge
+    // changes, after the transition ends.
     ...(!isIOS
       ? {
           headerBackVisible: false,
@@ -107,7 +165,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
             return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
           },
         }
-      : {headerBackVisible: true}),
+      : iosBackOptions(getBackBadge(conversationIDKey))),
     // iOS 26: single overflow menu (one glass pill) housing search + info actions.
     ...(isIOS
       ? {
@@ -150,63 +208,106 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
   }
 }
 
-const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
+const badgeCountExcluding = (
+  badgeState: ReturnType<typeof useConfigState.getState>['badgeState'],
+  conversationIDKey: T.Chat.ConversationIDKey
+) =>
+  badgeState?.conversations?.reduce((count, conversation) => {
+    const id = T.Chat.conversationIDToKey(conversation.convID)
+    return id === conversationIDKey ? count : count + conversation.badgeCount
+  }, 0) ?? 0
+
+// explicit return types: getVisiblePath's type references the nav state (RootParamList), which
+// circularly depends on this options function's type if left to inference
+const onTopOfInbox = (): boolean => {
   const visiblePath = C.Router2.getVisiblePath()
-  const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
+  return visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
+}
+
+// non-reactive read for options-evaluation time
+const getBackBadge = (conversationIDKey: T.Chat.ConversationIDKey): number =>
+  onTopOfInbox() ? badgeCountExcluding(useConfigState.getState().badgeState, conversationIDKey) : 0
+
+const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const badgeState = useConfigState(s => s.badgeState)
-  const badgeNumber =
-    badgeState?.conversations?.reduce((count, conversation) => {
-      const id = T.Chat.conversationIDToKey(conversation.convID)
-      return id === conversationIDKey ? count : count + conversation.badgeCount
-    }, 0) ?? 0
-  if (!onTopOfInbox) return 0
+  const badgeNumber = badgeCountExcluding(badgeState, conversationIDKey)
+  if (!onTopOfInbox()) return 0
   return badgeNumber
 }
 
 // UIBarButtonItem.badge (and the glass pill bar items) need iOS 26.
 const isIOS26Plus = isIOS && parseInt(Platform.Version as string, 10) >= 26
 
+// Whether the title component has any text to render right now — mirrors
+// HeaderBranchContainerInner's data sources (meta, participants, inbox-layout fallback).
+const hasTitleFromMetadataSelector =
+  (conversationIDKey: T.Chat.ConversationIDKey) =>
+  (s: ReturnType<typeof useInboxMetadataState.getState>) =>
+    !!(s.metas.get(conversationIDKey)?.teamname || s.participants.get(conversationIDKey)?.name.length)
+const hasTitleFromLayoutSelector =
+  (conversationIDKey: T.Chat.ConversationIDKey) =>
+  (s: ReturnType<typeof useInboxLayoutState.getState>) =>
+    !!(
+      getSmallLayoutRow(s, conversationIDKey)?.name ||
+      getBigLayoutChannelRow(s, conversationIDKey)?.teamname
+    )
+
 // iOS only: screen options functions aren't reactive to store state, so a mounted null
-// component pushes the unread badge into the header via setOptions as badge counts change.
-// While badged we swap the native back button for a bar button item (SFSymbol chevron) carrying
-// a native UIBarButtonItem badge (iOS 26+), so the glass pill look is preserved. Pre-26 has no
-// bar item badge, so we fall back to our own back button (arrow + badge as one pressable, same
-// as the Android header).
+// component pushes badge-count changes into the header via setOptions. The initial value is
+// already in the screen options (headerNavigationOptions), and any setOptions while the push
+// animation runs restarts the bar item transition (header desyncs from the screen slide), so
+// updates are held until transitionEnd and skipped when the count hasn't changed.
 // Android renders the badge through headerLeft (BadgeHeaderLeftArray) instead.
 export const BadgeHeaderUpdater = isIOS
   ? function BadgeHeaderUpdater(props: HeaderConversationProps) {
       const {conversationIDKey} = props
       const badgeNumber = useBackBadge(conversationIDKey)
       const navigation = useNavigation()
+      const [transitionDone, setTransitionDone] = React.useState(false)
+      // headerNavigationOptions computed this synchronously when the screen was configured
+      const lastAppliedRef = React.useRef(getBackBadge(conversationIDKey))
       React.useEffect(() => {
-        navigation.setOptions(
-          badgeNumber > 0
-            ? {
-                headerBackVisible: false,
-                unstable_headerLeftItems: () => [
-                  isIOS26Plus
-                    ? {
-                        badge: {
-                          style: {
-                            backgroundColor: Kb.Styles.globalColors.orange,
-                            color: Kb.Styles.globalColors.white,
-                          },
-                          value: badgeNumber,
-                        },
-                        icon: sfIcon('chevron.backward'),
-                        label: 'Back',
-                        onPress: () => navigation.goBack(),
-                        type: 'button' as const,
-                      }
-                    : {
-                        element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
-                        type: 'custom' as const,
-                      },
-                ],
-              }
-            : {headerBackVisible: true, unstable_headerLeftItems: undefined}
-        )
-      }, [navigation, badgeNumber])
+        const addListener = navigation.addListener as (event: string, cb: () => void) => () => void
+        let transitionStarted = false
+        const unsubscribeStart = addListener('transitionStart', () => {
+          transitionStarted = true
+        })
+        const unsubscribeEnd = addListener('transitionEnd', () => setTransitionDone(true))
+        // no transitionStart shortly after mount = no animation to protect (cold start directly
+        // into a thread mounts via initial nav state and never gets transition events)
+        const noTransitionTimeout = setTimeout(() => {
+          if (!transitionStarted) setTransitionDone(true)
+        }, 100)
+        // safety net in case a started transition never reports its end
+        const fallbackTimeout = setTimeout(() => setTransitionDone(true), 1000)
+        return () => {
+          clearTimeout(noTransitionTimeout)
+          clearTimeout(fallbackTimeout)
+          unsubscribeStart()
+          unsubscribeEnd()
+        }
+      }, [navigation])
+      React.useEffect(() => {
+        if (!transitionDone || lastAppliedRef.current === badgeNumber) return
+        lastAppliedRef.current = badgeNumber
+        navigation.setOptions(iosBackOptions(badgeNumber))
+      }, [navigation, badgeNumber, transitionDone])
+      // If the title component had no text when the screen was first configured (cold start
+      // directly into a thread: the store fills after the header's initial native layout),
+      // UINavigationBar never re-measures the title subview when its content later grows — it
+      // stays blank until something reconfigures the bar (e.g. a pop transition). Once the
+      // data lands, swap in a fresh headerTitle via setOptions to force that reconfigure.
+      const hasTitleFromMetadata = useInboxMetadataState(hasTitleFromMetadataSelector(conversationIDKey))
+      const hasTitleFromLayout = useInboxLayoutState(hasTitleFromLayoutSelector(conversationIDKey))
+      const hasTitleContent = hasTitleFromMetadata || hasTitleFromLayout
+      const titleWasEmptyRef = React.useRef(!hasTitleContent)
+      React.useEffect(() => {
+        if (!transitionDone || !titleWasEmptyRef.current || !hasTitleContent) return
+        titleWasEmptyRef.current = false
+        navigation.setOptions({
+          headerTitle: () => <HeaderBranchContainerInner conversationIDKey={conversationIDKey} />,
+        })
+      }, [navigation, conversationIDKey, hasTitleContent, transitionDone])
       return null
     }
   : (_props: HeaderConversationProps) => null
@@ -243,15 +344,19 @@ const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
   return {maxWidth: width - 140 - (hasBadge ? 40 : 0)}
 }
 
-const ChannelHeader = (props: HeaderConversationProps) => {
-  const {conversationIDKey} = props
-  const {channelname, teamname, teamType, teamID} = useConversationMetadata(conversationIDKey).meta
-  const smallTeam = teamType !== 'big'
+const ChannelHeader = (props: HeaderConversationProps & {teamname: string; channelname: string}) => {
+  const {conversationIDKey, teamname, channelname} = props
+  const {teamType, teamID} = useConversationMetadata(conversationIDKey).meta
+  // teamType is 'adhoc' when the meta hasn't loaded yet (we only render on layout-fallback
+  // names then); a big-team layout row is the only fallback that carries a channelname
+  const smallTeam = teamType !== 'adhoc' ? teamType !== 'big' : !channelname
   const textType = smallTeam ? 'BodyBig' : isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.Router2.navigateAppend
-  const onClick = () => {
-    navigateAppend({name: 'team', params: {teamID}})
-  }
+  const onClick = teamID
+    ? () => {
+        navigateAppend({name: 'team', params: {teamID}})
+      }
+    : undefined
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
@@ -286,12 +391,11 @@ const ChannelHeader = (props: HeaderConversationProps) => {
 }
 
 const emptyArray = new Array<string>()
-const UsernameHeader = (props: HeaderConversationProps) => {
-  const {conversationIDKey} = props
+type HeaderParticipantsProps = HeaderConversationProps & {participants: ReadonlyArray<string>}
+const UsernameHeader = (props: HeaderParticipantsProps) => {
+  const {conversationIDKey, participants} = props
   const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
-  const participants = meta.teamname ? emptyArray : participantInfo.name
   const theirFullname =
     participants.length === 2
       ? participants.filter(username => username !== you).map(username => infoMap.get(username)?.fullname)[0]
@@ -330,10 +434,9 @@ const UsernameHeader = (props: HeaderConversationProps) => {
   )
 }
 
-const PhoneOrEmailHeader = (props: HeaderConversationProps) => {
-  const {conversationIDKey} = props
-  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
-  const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
+const PhoneOrEmailHeader = (props: HeaderParticipantsProps) => {
+  const {conversationIDKey, participants} = props
+  const {participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = participantInfo.contactName.get(phoneOrEmail)
