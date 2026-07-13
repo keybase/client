@@ -17,6 +17,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/index/store"
 	"github.com/blevesearch/bleve/registry"
+	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
@@ -32,7 +33,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/shirou/gopsutil/mem"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
-	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 const (

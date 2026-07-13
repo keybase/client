@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -24,7 +25,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 // FSEventType is FS event type.
@@ -656,7 +656,7 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 
 // Create implements the billy.Filesystem interface for FS.
 func (fs *FS) Create(filename string) (billy.File, error) {
-	return fs.OpenFile(filename, os.O_CREATE, 0o600)
+	return fs.OpenFile(filename, os.O_CREATE|os.O_TRUNC, 0o600)
 }
 
 // Open implements the billy.Filesystem interface for FS.

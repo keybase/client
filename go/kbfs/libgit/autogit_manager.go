@@ -10,6 +10,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/go-git/go-git/v5/plumbing"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -19,7 +20,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 const (
