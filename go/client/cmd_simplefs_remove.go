@@ -18,6 +18,7 @@ type CmdSimpleFSRemove struct {
 	libkb.Contextified
 	paths   []keybase1.Path
 	recurse bool
+	noglob  bool
 }
 
 // NewCmdSimpleFSRemove creates a new cli.Command.
@@ -35,6 +36,10 @@ func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 				Name:  "r, recursive",
 				Usage: "Recursively delete everything in a directory",
 			},
+			cli.BoolFlag{
+				Name:  "G, no-glob",
+				Usage: "Do not perform glob expansion",
+			},
 		},
 	}
 }
@@ -48,9 +53,13 @@ func (c *CmdSimpleFSRemove) Run() error {
 
 	ctx := context.TODO()
 
-	paths, err := doSimpleFSGlob(ctx, c.G(), cli, c.paths)
-	if err != nil {
-		return err
+	paths := c.paths
+
+	if ! c.noglob {
+		paths, err = doSimpleFSGlob(ctx, c.G(), cli, c.paths)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, path := range paths {
@@ -79,6 +88,7 @@ func (c *CmdSimpleFSRemove) Run() error {
 // ParseArgv gets the required path argument for this command.
 func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	c.recurse = ctx.Bool("recursive")
+	c.noglob = ctx.Bool("no-glob")
 
 	nargs := len(ctx.Args())
 	var err error
