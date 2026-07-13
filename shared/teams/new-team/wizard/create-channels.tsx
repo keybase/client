@@ -21,7 +21,12 @@ export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const initialChannels = props.initialChannels ?? ['hellos', 'random', '']
 
-  const {items: channels, setItem: setChannel, clearItem: onClear, addItem: onAdd} = useStringList(initialChannels)
+  const {
+    items: channels,
+    setItem: setChannel,
+    clearItem: onClear,
+    addItem: onAdd,
+  } = useStringList(initialChannels)
 
   const filteredChannels = channels.filter(c => c.trim())
   const onContinue = () => onSubmitChannels?.(filteredChannels)
@@ -108,11 +113,12 @@ const ChannelInput = (props: ChannelInputProps) => {
   if (props.isGeneral) {
     return <Kb.Input3 value="#general" disabled={true} containerStyle={styles.inputGeneral} />
   }
+  const {value, onChange, onClear} = props
   return (
     <Kb.Input3
-      value={props.value}
-      onChangeText={(text: string) => props.onChange(cleanChannelname(text))}
-      decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
+      value={value}
+      onChangeText={(text: string) => onChange(cleanChannelname(text))}
+      decoration={<Kb.Icon type="iconfont-remove" onClick={onClear} />}
       placeholder="channel"
       prefix="#"
       containerStyle={styles.input}

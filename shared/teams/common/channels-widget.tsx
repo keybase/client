@@ -15,28 +15,31 @@ type Props = {
 }
 
 // always shows #general
-export const ChannelsWidget = (props: Props) => (
-  <Kb.Box2 direction="vertical" gap="tiny" style={styles.container} fullWidth={true}>
-    <ChannelInput
-      onAdd={props.onAddChannel}
-      teamID={props.teamID}
-      selected={props.channels}
-      disableGeneral={props.disableGeneral}
-      disabledChannels={props.disabledChannels}
-    />
-    {!!props.channels.length && (
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
-        {props.channels.map(channel => (
-          <ChannelPill
-            key={channel.channelname}
-            channelname={channel.channelname}
-            onRemove={channel.channelname === 'general' ? undefined : () => props.onRemoveChannel(channel)}
-          />
-        ))}
-      </Kb.Box2>
-    )}
-  </Kb.Box2>
-)
+export const ChannelsWidget = (props: Props) => {
+  const {onRemoveChannel} = props
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny" style={styles.container} fullWidth={true}>
+      <ChannelInput
+        onAdd={props.onAddChannel}
+        teamID={props.teamID}
+        selected={props.channels}
+        disableGeneral={props.disableGeneral}
+        disabledChannels={props.disabledChannels}
+      />
+      {!!props.channels.length && (
+        <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
+          {props.channels.map(channel => (
+            <ChannelPill
+              key={channel.channelname}
+              channelname={channel.channelname}
+              onRemove={channel.channelname === 'general' ? undefined : () => onRemoveChannel(channel)}
+            />
+          ))}
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+}
 
 type ChannelInputProps = {
   disableGeneral?: boolean

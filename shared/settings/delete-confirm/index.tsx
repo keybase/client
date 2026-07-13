@@ -15,25 +15,28 @@ type CheckboxesProps = {
   onCheckUsername: (checked: boolean) => void
 }
 
-const Checkboxes = (props: CheckboxesProps) => (
-  <Kb.Box2 direction="vertical" style={styles.checkbox} fullWidth={true} gap="tiny">
-    <Kb.Checkbox
-      checked={props.checkUsername}
-      label="No one will be able to use this username ever, including yourself."
-      onCheck={checked => props.onCheckUsername(checked)}
-    />
-    <Kb.Checkbox
-      checked={props.checkData}
-      label="You will lose your personal chats, files and git data."
-      onCheck={checked => props.onCheckData(checked)}
-    />
-    <Kb.Checkbox
-      checked={props.checkTeams}
-      label="You will be removed from teams. If you were the last owner or admin of a team, it'll be orphaned and unrecoverable."
-      onCheck={checked => props.onCheckTeams(checked)}
-    />
-  </Kb.Box2>
-)
+const Checkboxes = (props: CheckboxesProps) => {
+  const {onCheckUsername, onCheckData, onCheckTeams} = props
+  return (
+    <Kb.Box2 direction="vertical" style={styles.checkbox} fullWidth={true} gap="tiny">
+      <Kb.Checkbox
+        checked={props.checkUsername}
+        label="No one will be able to use this username ever, including yourself."
+        onCheck={checked => onCheckUsername(checked)}
+      />
+      <Kb.Checkbox
+        checked={props.checkData}
+        label="You will lose your personal chats, files and git data."
+        onCheck={checked => onCheckData(checked)}
+      />
+      <Kb.Checkbox
+        checked={props.checkTeams}
+        label="You will be removed from teams. If you were the last owner or admin of a team, it'll be orphaned and unrecoverable."
+        onCheck={checked => onCheckTeams(checked)}
+      />
+    </Kb.Box2>
+  )
+}
 
 const DeleteConfirm = () => {
   const {randomPW, reload} = useRandomPWState()

@@ -23,7 +23,20 @@ type Row = {
 const _itemRenderer = (index: number, row: Row) => {
   const item = row.item
   return (
-    <Kb.ClickableBox key={index} onClick={row.onSelect} direction="horizontal" fullWidth={true} gap="tiny" style={Kb.Styles.collapseStyles([styles.results, {backgroundColor: !isMobile && row.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}])}>
+    <Kb.ClickableBox
+      key={index}
+      onClick={row.onSelect}
+      direction="horizontal"
+      fullWidth={true}
+      gap="tiny"
+      style={Kb.Styles.collapseStyles([
+        styles.results,
+        {
+          backgroundColor:
+            !isMobile && row.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+        },
+      ])}
+    >
       {item.isTeam ? (
         <TeamAvatar isHovered={false} isMuted={false} isSelected={row.isSelected} teamname={item.tlfName} />
       ) : (
@@ -89,6 +102,7 @@ type ConversationListRenderProps = {
 }
 
 const ConversationListRender = (props: ConversationListRenderProps) => {
+  const {selected, setSelected, results, onSelect} = props
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
@@ -102,19 +116,19 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
           onKeyDown={(e: React.KeyboardEvent) => {
             switch (e.key) {
               case 'ArrowDown':
-                if (props.selected < props.results.length - 1) {
-                  props.setSelected(props.selected + 1)
+                if (selected < results.length - 1) {
+                  setSelected(selected + 1)
                 }
                 break
               case 'ArrowUp':
-                if (props.selected > 0) {
-                  props.setSelected(props.selected - 1)
+                if (selected > 0) {
+                  setSelected(selected - 1)
                 }
                 break
               case 'Enter':
-                if (props.results.length > 0) {
-                  const result = props.results[props.selected]
-                  props.onSelect(
+                if (results.length > 0) {
+                  const result = results[selected]
+                  onSelect(
                     result?.convID ? T.Chat.conversationIDToKey(result.convID) : '',
                     result?.name ?? ''
                   )
@@ -126,10 +140,10 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
       </Kb.Box2>
       <Kb.List
         itemHeight={{height: 65, type: 'fixed'}}
-        items={props.results.map((r, index) => ({
-          isSelected: index === props.selected,
+        items={results.map((r, index) => ({
+          isSelected: index === selected,
           item: r,
-          onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
+          onSelect: () => onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
         }))}
         renderItem={_itemRenderer}
         indexAsKey={true}

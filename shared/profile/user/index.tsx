@@ -167,12 +167,7 @@ const TeamSections = (props: {
   username: string
 }) => (
   <LoadedTeamsListProvider>
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      gap="small"
-      alignItems="flex-start"
-    >
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start">
       <Teams username={props.username} teamShowcase={props.teamShowcase} />
       {!props.notAUser && <SharedTeams sharedTeams={props.sharedTeams} username={props.username} />}
     </Kb.Box2>
@@ -189,8 +184,9 @@ type TabsProps = {
 }
 
 const Tabs = (p: TabsProps) => {
-  const onClickFollowing = () => p.onSelectTab('following')
-  const onClickFollowers = () => p.onSelectTab('followers')
+  const {onSelectTab} = p
+  const onClickFollowing = () => onSelectTab('following')
+  const onClickFollowers = () => onSelectTab('followers')
   const tab = (tab: Tab) => (
     <Kb.ClickableBox
       direction="horizontal"
@@ -306,7 +302,13 @@ const TeamsAndProofs = (props: BioTeamProofsProps) => (
 
 const BioTeamProofs = (props: BioTeamProofsProps) =>
   isMobile ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="space-around" relative={true} style={styles.bioAndProofs}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      justifyContent="space-around"
+      relative={true}
+      style={styles.bioAndProofs}
+    >
       {!!props.reason && (
         <Kb.Text
           type="BodySmallSemibold"
@@ -484,7 +486,11 @@ const User = (props: {username: string}) => {
             if (item.type === 'bioTeamProofs') return null
             if (item.type === 'friend') {
               return (
-                <FriendRow key={'friend' + String(index)} usernames={item.usernames} itemWidth={item.itemWidth} />
+                <FriendRow
+                  key={'friend' + String(index)}
+                  usernames={item.usernames}
+                  itemWidth={item.itemWidth}
+                />
               )
             }
             return p.notAUser ? null : (

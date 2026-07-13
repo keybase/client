@@ -42,23 +42,19 @@ const Item = (props: ItemProps) => {
 }
 
 const PromptNative = () => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    gap="xtiny"
-    centerChildren={true}
-  >
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
     <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>
   </Kb.Box2>
 )
 
 const SetExplodePopup = (p: Props) => {
   const props = useHooks(p)
+  const onSelect = props.onSelect
 
   if (!isMobile) {
     const listItems: Kb.MenuItems = props.items.map(it => ({
       disabled: false,
-      onClick: () => props.onSelect(it.seconds),
+      onClick: () => onSelect(it.seconds),
       title: it.text,
       view: <Item desc={it} selected={props.selected === it.seconds} />,
     }))
@@ -83,7 +79,7 @@ const SetExplodePopup = (p: Props) => {
 
   const items = props.items.map(item => ({
     onClick: () => {
-      props.onSelect(item.seconds)
+      onSelect(item.seconds)
     },
     title: item.text,
     value: item.seconds,

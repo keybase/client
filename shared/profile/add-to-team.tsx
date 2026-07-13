@@ -208,7 +208,15 @@ const AddToTeam = (ownProps: OwnProps) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true} style={styles.container} gap="xsmall" gapStart={true}>
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        fullWidth={true}
+        fullHeight={true}
+        style={styles.container}
+        gap="xsmall"
+        gapStart={true}
+      >
         {addUserToTeamsState === 'failed' && (
           <Kb.Box2
             direction="horizontal"
@@ -308,8 +316,13 @@ type RowProps = {
 }
 
 const TeamRow = (props: RowProps) => {
+  const {canAddThem, onCheck, checked} = props
   return (
-    <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
+    <Kb.ClickableBox
+      direction="vertical"
+      fullWidth={true}
+      onClick={canAddThem ? () => onCheck(!checked) : undefined}
+    >
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
         <Kb.Avatar
@@ -326,9 +339,7 @@ const TeamRow = (props: RowProps) => {
             >
               {props.name}
             </Kb.Text>
-            {props.isOpen && (
-              <Kb.Meta variant="open" style={styles.meta} />
-            )}
+            {props.isOpen && <Kb.Meta variant="open" style={styles.meta} />}
           </Kb.Box2>
           <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
         </Kb.Box2>

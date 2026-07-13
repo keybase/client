@@ -307,11 +307,12 @@ const MoreNetworksButton = (props: {
 const ServiceIconDesktop = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
   const isDarkMode = useColorScheme() === 'dark'
+  const {onClick, service} = props
   const color =
-    props.isActive || hover ? serviceIdToAccentColor(props.service, isDarkMode) : Kb.Styles.globalColors.black
+    props.isActive || hover ? serviceIdToAccentColor(service, isDarkMode) : Kb.Styles.globalColors.black
   return (
     <Kb.ClickableBox
-      onClick={() => props.onClick(props.service)}
+      onClick={() => onClick(service)}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       direction="vertical"
@@ -326,7 +327,7 @@ const ServiceIconDesktop = (props: IconProps) => {
         style={desktopStyles.serviceIconContainer}
       >
         <Kb.Box2 direction="vertical" relative={true}>
-          {serviceIdToBadge(props.service) && (
+          {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}
               height={9}
@@ -336,7 +337,7 @@ const ServiceIconDesktop = (props: IconProps) => {
             />
           )}
           <Kb.Box2 direction="vertical" style={desktopStyles.serviceIconBox}>
-            <Kb.Icon color={color} fontSize={16} type={serviceIdToIconFont(props.service)} />
+            <Kb.Icon color={color} fontSize={16} type={serviceIdToIconFont(service)} />
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={desktopStyles.label}>
@@ -353,8 +354,11 @@ const ServiceIconDesktop = (props: IconProps) => {
         style={Kb.Styles.collapseStyles([
           props.isActive
             ? desktopStyles.activeTabBar
-            : {...desktopStyles.inactiveTabBar, ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined)},
-          props.isActive && {backgroundColor: serviceIdToAccentColor(props.service, isDarkMode)},
+            : {
+                ...desktopStyles.inactiveTabBar,
+                ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined),
+              },
+          props.isActive && {backgroundColor: serviceIdToAccentColor(service, isDarkMode)},
         ])}
       />
     </Kb.ClickableBox>

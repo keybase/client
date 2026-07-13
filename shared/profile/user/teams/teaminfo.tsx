@@ -22,6 +22,7 @@ export type Props = {
 
 const TeamInfo = (props: Props) => {
   const [requested, setRequested] = React.useState(false)
+  const {onChat, onHidden, onViewTeam, onJoinTeam, name} = props
 
   const isPrivate = props.membersCount === 0 && props.description.length === 0
   const memberText = isPrivate
@@ -59,21 +60,34 @@ const TeamInfo = (props: Props) => {
             <Kb.WaitingButton
               waitingKey={C.waitingKeyTracker}
               label="Chat"
-              onClick={() => { props.onChat?.(); props.onHidden() }}
+              onClick={() => {
+                onChat?.()
+                onHidden()
+              }}
               mode="Secondary"
             />
           )}
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTracker}
             label="View team"
-            onClick={() => { props.onViewTeam(); props.onHidden() }}
+            onClick={() => {
+              onViewTeam()
+              onHidden()
+            }}
             mode="Secondary"
           />
           {!props.inTeam && (
             <Kb.WaitingButton
               waitingKey={C.waitingKeyTracker}
               label={requested ? 'Requested!' : props.isOpen ? 'Join team' : 'Request to join'}
-              onClick={requested ? undefined : () => { props.onJoinTeam(props.name); setRequested(true) }}
+              onClick={
+                requested
+                  ? undefined
+                  : () => {
+                      onJoinTeam(name)
+                      setRequested(true)
+                    }
+              }
               type={props.isOpen ? 'Success' : 'Default'}
               mode={requested ? 'Secondary' : 'Primary'}
             />

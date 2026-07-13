@@ -174,12 +174,14 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 // Native login
 
 const NativeLoginRender = (props: Props) => {
+  const {passwordChange, onSubmit} = props
+
   const inputProps = {
     autoFocus: true,
     error: !!props.error,
     keyboardType: props.showTyping && isAndroid ? 'visible-password' : 'default',
-    onChangeText: (password: string) => props.passwordChange(password),
-    onEnterKeyDown: () => props.onSubmit(),
+    onChangeText: (password: string) => passwordChange(password),
+    onEnterKeyDown: () => onSubmit(),
     placeholder: 'Password',
     secureTextEntry: !props.showTyping,
   } as const

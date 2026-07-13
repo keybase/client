@@ -72,12 +72,7 @@ const RoleRow = (p: RoleRowProps) => {
           {p.title}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2
-        style={styles.rowBody}
-        direction="vertical"
-        gap="xxtiny"
-        gapStart={true}
-      >
+      <Kb.Box2 style={styles.rowBody} direction="vertical" gap="xxtiny" gapStart={true}>
         {!p.disabledReason && p.body}
       </Kb.Box2>
     </Kb.Box2>
@@ -247,7 +242,7 @@ const Header = () => (
 )
 
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
-  const {presetRole} = props
+  const {presetRole, onConfirm} = props
   const filteredRole = filterRole(presetRole)
   const presetSelectedRole = filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
   const [selectedRole, setSelectedRole] = React.useState(presetSelectedRole)
@@ -262,12 +257,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
     Role<IncludeSetIndividually>
   >
   return (
-    <Kb.Box2
-      direction="vertical"
-      alignItems="stretch"
-      style={styles.container}
-      fullHeight={isMobile}
-    >
+    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={isMobile}>
       {!isMobile && <Header />}
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {
@@ -294,7 +284,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
             disabled={selectedRole === presetRole}
             waiting={props.waiting}
             label={selectedRole === 'setIndividually' ? 'Set Individually' : `Save`}
-            onClick={selectedRole === presetRole ? () => {} : () => props.onConfirm(selectedRole)}
+            onClick={selectedRole === presetRole ? () => {} : () => onConfirm(selectedRole)}
           />
         </Kb.ButtonBar>
       </Kb.Box2>
@@ -400,9 +390,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
 ) {
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const {position, children, open, onCancel, ...rest} = props
-  const picker = (
-    <RolePicker<IncludeSetIndividually> {...rest} onCancel={isMobile ? undefined : onCancel} />
-  )
+  const picker = <RolePicker<IncludeSetIndividually> {...rest} onCancel={isMobile ? undefined : onCancel} />
   return (
     <>
       {children}
@@ -415,13 +403,14 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
           hideKeyboard={true}
         >
           <Kb.SafeAreaView>
-            <Kb.Box2
-              direction="vertical"
-              fullHeight={isMobile}
-              style={styles.opaqueContainer}
-            >
+            <Kb.Box2 direction="vertical" fullHeight={isMobile} style={styles.opaqueContainer}>
               {isMobile && (
-                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.popupHeader}>
+                <Kb.Box2
+                  direction="horizontal"
+                  fullWidth={true}
+                  alignItems="center"
+                  style={styles.popupHeader}
+                >
                   <Kb.Text type="BodyBigLink" onClick={onCancel} style={styles.popupHeaderSide}>
                     Cancel
                   </Kb.Text>

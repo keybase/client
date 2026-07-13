@@ -44,31 +44,34 @@ type CheckboxRowProps = {
   onCheck: (c: boolean) => void
   text: React.ReactNode
 }
-const CheckboxRow = (props: CheckboxRowProps) => (
-  <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
-    <Kb.Switch
-      allowLabelClick={!props.disabled}
-      color="red"
-      disabled={props.disabled}
-      gapSize={Kb.Styles.globalMargins.tiny}
-      label={props.text}
-      on={props.checked}
-      onClick={() => props.onCheck(!props.checked)}
-      style={styles.shrink}
-    />
-    <Kb.Box2 direction="vertical" flex={1} style={styles.iconBox} />
-    {props.info && (
-      <Kb.WithTooltip
-        tooltip={props.info}
-        showOnPressMobile={true}
-        position={isMobile ? 'bottom center' : 'top center'}
-        multiline={true}
-      >
-        <Kb.Icon type="iconfont-question-mark" color="grey" />
-      </Kb.WithTooltip>
-    )}
-  </Kb.Box2>
-)
+const CheckboxRow = (props: CheckboxRowProps) => {
+  const {onCheck, checked} = props
+  return (
+    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
+      <Kb.Switch
+        allowLabelClick={!props.disabled}
+        color="red"
+        disabled={props.disabled}
+        gapSize={Kb.Styles.globalMargins.tiny}
+        label={props.text}
+        on={props.checked}
+        onClick={() => onCheck(!checked)}
+        style={styles.shrink}
+      />
+      <Kb.Box2 direction="vertical" flex={1} style={styles.iconBox} />
+      {props.info && (
+        <Kb.WithTooltip
+          tooltip={props.info}
+          showOnPressMobile={true}
+          position={isMobile ? 'bottom center' : 'top center'}
+          multiline={true}
+        >
+          <Kb.Icon type="iconfont-question-mark" color="grey" />
+        </Kb.WithTooltip>
+      )}
+    </Kb.Box2>
+  )
+}
 
 type ReportOptionsProps = {
   extraNotes: string
@@ -86,14 +89,14 @@ const defaultReport = {
   reason: reasons[0],
 } satisfies ReportSettings
 const ReportOptions = (props: ReportOptionsProps) => {
-  const {showIncludeTranscript} = props
+  const {showIncludeTranscript, setReason} = props
   return (
     <>
       {reasons.map(reason => (
         <Kb.RadioButton
           key={reason}
           label={reason}
-          onSelect={() => props.setReason(reason)}
+          onSelect={() => setReason(reason)}
           selected={props.reason === reason}
           style={styles.radioButton}
         />
@@ -193,7 +196,11 @@ const BlockModal = (ownProps: OwnProps) => {
         username,
       }))
     if (blocks.length) {
-      setUserBlocksRPC([{blocks}, S.waitingKeyUsersSetUserBlocks], () => {}, () => {})
+      setUserBlocksRPC(
+        [{blocks}, S.waitingKeyUsersSetUserBlocks],
+        () => {},
+        () => {}
+      )
     }
   }
 
@@ -483,7 +490,12 @@ export default BlockModal
 // fine — the modal clamps and the list scrolls.
 const itemHeightTrueVariable = {type: 'trueVariable'} as const
 const checkboxRowHeight = 40
-const getListHeightStyle = (hasLeaveRow: boolean, hasAdder: boolean, expanded: boolean, numOthers: number) => ({
+const getListHeightStyle = (
+  hasLeaveRow: boolean,
+  hasAdder: boolean,
+  expanded: boolean,
+  numOthers: number
+) => ({
   height:
     (hasLeaveRow ? checkboxRowHeight + 1 : 0) +
     // Adder gets block + hide + report checkboxes.

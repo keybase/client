@@ -313,6 +313,7 @@ const Finished = (props: {
   promptShouldStoreKeyOnServer: boolean
   pgpKeyString: string
 }) => {
+  const {onDone} = props
   const [shouldStoreKeyOnServer, setShouldStoreKeyOnServer] = React.useState(false)
 
   return (
@@ -345,7 +346,7 @@ const Finished = (props: {
         </Kb.Box2>
       )}
       <Kb.Button
-        onClick={() => props.onDone(shouldStoreKeyOnServer)}
+        onClick={() => onDone(shouldStoreKeyOnServer)}
         label={shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'}
       />
     </Kb.Box2>

@@ -231,7 +231,14 @@ const DocViewRow = (props: DocViewRowProps) => {
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny" onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
+      <Kb.ClickableBox
+        direction="horizontal"
+        fullWidth={true}
+        style={styles.docRowContainer}
+        gap="xtiny"
+        onClick={item.onClick}
+        onLongPress={hasMessageID ? showPopup : undefined}
+      >
         <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
           <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
@@ -269,55 +276,64 @@ const getBkgColor = (selected: boolean) =>
 const getColor = (selected: boolean) =>
   selected ? {color: Kb.Styles.globalColors.white} : {color: Kb.Styles.globalColors.blueDark}
 
-const AttachmentTypeSelector = (props: SelectorProps) => (
-  <Kb.Box2 alignSelf="center" direction="horizontal" padding="small" style={styles.selectorContainer} fullWidth={true}>
-    <Kb.ClickableBox
-      direction="vertical"
-      centerChildren={true}
-      flex={1}
-      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.media)}
-      style={Kb.Styles.collapseStyles([
-        styles.selectorItemContainer,
-        styles.selectorMediaContainer,
-        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
-      ])}
+const AttachmentTypeSelector = (props: SelectorProps) => {
+  const {onSelectView} = props
+  return (
+    <Kb.Box2
+      alignSelf="center"
+      direction="horizontal"
+      padding="small"
+      style={styles.selectorContainer}
+      fullWidth={true}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
-        Media
-      </Kb.Text>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
-      direction="vertical"
-      centerChildren={true}
-      flex={1}
-      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.doc)}
-      style={Kb.Styles.collapseStyles([
-        styles.selectorDocContainer,
-        styles.selectorItemContainer,
-        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
-      ])}
-    >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
-        Docs
-      </Kb.Text>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
-      direction="vertical"
-      centerChildren={true}
-      flex={1}
-      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.link)}
-      style={Kb.Styles.collapseStyles([
-        styles.selectorItemContainer,
-        styles.selectorLinkContainer,
-        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
-      ])}
-    >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
-        Links
-      </Kb.Text>
-    </Kb.ClickableBox>
-  </Kb.Box2>
-)
+      <Kb.ClickableBox
+        direction="vertical"
+        centerChildren={true}
+        flex={1}
+        onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.media)}
+        style={Kb.Styles.collapseStyles([
+          styles.selectorItemContainer,
+          styles.selectorMediaContainer,
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
+        ])}
+      >
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
+          Media
+        </Kb.Text>
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
+        direction="vertical"
+        centerChildren={true}
+        flex={1}
+        onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.doc)}
+        style={Kb.Styles.collapseStyles([
+          styles.selectorDocContainer,
+          styles.selectorItemContainer,
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
+        ])}
+      >
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
+          Docs
+        </Kb.Text>
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
+        direction="vertical"
+        centerChildren={true}
+        flex={1}
+        onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.link)}
+        style={Kb.Styles.collapseStyles([
+          styles.selectorItemContainer,
+          styles.selectorLinkContainer,
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
+        ])}
+      >
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
+          Links
+        </Kb.Text>
+      </Kb.ClickableBox>
+    </Kb.Box2>
+  )
+}
 
 const LinkTitle = (p: {title: string; url?: string}) => {
   const urlProps = Kb.useClickURL(p.url ?? '')
@@ -735,7 +751,8 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView, undefined, 'retry')
   }
 
-  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(conversationIDKey, message)
+  const onMediaClick = (message: T.Chat.MessageAttachment) =>
+    showAttachmentPreview(conversationIDKey, message)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (isMobile) {
