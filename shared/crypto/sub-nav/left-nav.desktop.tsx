@@ -14,6 +14,7 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
+  const {onClick} = props
   const rows = Crypto.Tabs.map(t => ({
     ...t,
     isSelected: props.selected === t.tab,
@@ -28,13 +29,19 @@ const LeftNav = (props: Props) => {
         title={row.title}
         tab={row.tab}
         icon={row.icon}
-        onClick={() => props.onClick(row.tab)}
+        onClick={() => onClick(row.tab)}
       />
     )
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} noShrink={true} style={styles.listContainer} testID={TestIDs.CRYPTO_INPUT}>
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      noShrink={true}
+      style={styles.listContainer}
+      testID={TestIDs.CRYPTO_INPUT}
+    >
       <Kb.BoxGrow>
         <Kb.List
           items={rows}

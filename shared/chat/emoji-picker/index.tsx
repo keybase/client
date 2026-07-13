@@ -211,7 +211,13 @@ function EmojiRow(p: {
 }) {
   const {row, emojisPerLine, mapper} = p
   return (
-    <Kb.Box2 key={row.key} fullWidth={true} centerChildren={true} style={styles.emojiRowContainer} direction="horizontal">
+    <Kb.Box2
+      key={row.key}
+      fullWidth={true}
+      centerChildren={true}
+      style={styles.emojiRowContainer}
+      direction="horizontal"
+    >
       {row.emojis.map(mapper)}
       {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
     </Kb.Box2>
@@ -220,6 +226,7 @@ function EmojiRow(p: {
 
 function EmojiPicker(props: Props) {
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
+  const {onChoose, onHover, skinTone} = props
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     return (
@@ -227,12 +234,12 @@ function EmojiPicker(props: Props) {
         direction="vertical"
         className="emoji-picker-emoji-box"
         onClick={() => {
-          props.onChoose(
+          onChoose(
             getEmojiStr(emoji, skinToneModifier),
             emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
           )
         }}
-        onMouseOver={props.onHover && (() => props.onHover?.(emoji))}
+        onMouseOver={onHover && (() => onHover(emoji))}
         style={styles.emoji}
         key={emoji.short_name}
       >
@@ -247,7 +254,7 @@ function EmojiPicker(props: Props) {
     )
   }
 
-  const mapper = (e: Row['emojis'][number]) => getEmojiSingle(e, props.skinTone)
+  const mapper = (e: Row['emojis'][number]) => getEmojiSingle(e, skinTone)
   const getEmojiRow = (row: Row, emojisPerLine: number) =>
     // This is possible when we have the cached sections, and we just got mounted
     // and haven't received width yet.
@@ -308,7 +315,13 @@ function EmojiPicker(props: Props) {
   const onSectionChange = C.useDebouncedCallback((section: Section) => setActiveSectionKey(section.key), 100)
 
   const makeNotFound = () => (
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} justifyContent="space-between" style={styles.notFoundContainer}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      centerChildren={true}
+      justifyContent="space-between"
+      style={styles.notFoundContainer}
+    >
       <Kb.ImageIcon type="icon-empty-emoji-126-96" />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall" center={true}>
@@ -365,7 +378,7 @@ function EmojiPicker(props: Props) {
           style={Kb.Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
         >
           {getSectionHeader('Search results')}
-          {results.map(e => getEmojiSingle(e, props.skinTone))}
+          {results.map(e => getEmojiSingle(e, skinTone))}
           {[...Array<unknown>(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
             makeEmojiPlaceholder(index)
           )}

@@ -45,39 +45,52 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
   </Kb.Box2>
 )
 
-const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
-  <Kb.Box2
-    direction="horizontal"
-    flex={1}
-    style={Styles.collapseStyles([styles.container, props.style])}
-    alignItems="flex-start"
-    fullWidth={true}
-  >
-    {props.tabs.map((tab: Tab<TitleT>) => {
-      const selected = props.selectedTab === tab.title
-      return (
-        <Kb.ClickableBox
-          onClick={() => props.onSelect(tab.title)}
-          key={tab.title}
-          testID={tab.testID}
-          direction="vertical"
-          style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle, props.clickableTabStyle])}
-        >
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
-            {tab.icon ? (
-              <Kb.IconAuto type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
-            ) : (
-              <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
-            )}
-            {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
-          </Kb.Box2>
-          <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
-        </Kb.ClickableBox>
-      )
-    })}
-    {props.showProgressIndicator && <Kb.ProgressIndicator style={styles.progressIndicator} />}
-  </Kb.Box2>
-)
+const Tabs = <TitleT extends string>(props: Props<TitleT>) => {
+  const {onSelect} = props
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      flex={1}
+      style={Styles.collapseStyles([styles.container, props.style])}
+      alignItems="flex-start"
+      fullWidth={true}
+    >
+      {props.tabs.map((tab: Tab<TitleT>) => {
+        const selected = props.selectedTab === tab.title
+        return (
+          <Kb.ClickableBox
+            onClick={() => onSelect(tab.title)}
+            key={tab.title}
+            testID={tab.testID}
+            direction="vertical"
+            style={Styles.collapseStyles([
+              styles.tabContainer,
+              props.clickableBoxStyle,
+              props.clickableTabStyle,
+            ])}
+          >
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              alignItems="center"
+              justifyContent="center"
+              style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}
+            >
+              {tab.icon ? (
+                <Kb.IconAuto type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
+              ) : (
+                <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
+              )}
+              {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
+            </Kb.Box2>
+            <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
+          </Kb.ClickableBox>
+        )
+      })}
+      {props.showProgressIndicator && <Kb.ProgressIndicator style={styles.progressIndicator} />}
+    </Kb.Box2>
+  )
+}
 
 const dividerBase = {
   ...Styles.globalStyles.flexBoxRow,

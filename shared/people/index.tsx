@@ -80,12 +80,11 @@ const shouldRenderNewItem = (item: T.Immutable<T.People.PeopleScreenItem>, signu
 function EmailVerificationBanner(props: {signupEmail: string}) {
   const {signupEmail} = props
   React.useEffect(
-    () =>
-      () => {
-        if (signupEmail) {
-          clearSignupEmail()
-        }
-      },
+    () => () => {
+      if (signupEmail) {
+        clearSignupEmail()
+      }
+    },
     [signupEmail]
   )
 
@@ -107,12 +106,11 @@ function ResentEmailVerificationBanner(props: {
 }) {
   const {resentEmail, setResentEmail} = props
   React.useEffect(
-    () =>
-      () => {
-        if (resentEmail) {
-          setResentEmail('')
-        }
-      },
+    () => () => {
+      if (resentEmail) {
+        setResentEmail('')
+      }
+    },
     [setResentEmail, resentEmail]
   )
 
@@ -146,12 +144,11 @@ function PeoplePageList(props: Props) {
 
 function People(props: WrapProps) {
   const {waiting, ...rest} = props
+  // destructure so the compiler keys onRefresh on getData, not the whole props object
+  const {getData} = props
+  const onRefresh = () => getData(false, true)
   return (
-    <Kb.ScrollView
-      style={styles.container}
-      refreshing={waiting}
-      onRefresh={() => props.getData(false, true)}
-    >
+    <Kb.ScrollView style={styles.container} refreshing={waiting} onRefresh={onRefresh}>
       {!isMobile && waiting && <Kb.ProgressIndicator style={styles.progress} />}
       <PeoplePageList {...rest} />
     </Kb.ScrollView>

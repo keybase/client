@@ -17,6 +17,30 @@ type Props = {
   usernames?: Array<string> // undefined means the user themself
 }
 
+type ChannelItem = {
+  channelMeta: T.Chat.ConversationMeta
+  numMembers: number
+  participants: Array<string>
+  type: 'channel'
+}
+// items are rebuilt per filter keystroke; reuse identities (keyed on the
+// stable meta) so the memoized rows can bail
+const channelItemCache = new WeakMap<T.Chat.ConversationMeta, ChannelItem>()
+const canonChannelItem = (channelMeta: T.Chat.ConversationMeta, participants: Array<string>) => {
+  const old = channelItemCache.get(channelMeta)
+  if (old) {
+    if (
+      old.participants.length === participants.length &&
+      old.participants.every((u, i) => u === participants[i])
+    ) {
+      return old
+    }
+  }
+  const next: ChannelItem = {channelMeta, numMembers: participants.length, participants, type: 'channel'}
+  channelItemCache.set(channelMeta, next)
+  return next
+}
+
 const getChannelsForList = (
   channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
   channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>,
@@ -80,12 +104,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
         const m = teamDetails.members.get(u)
         return !m || (m.type !== 'bot' && m.type !== 'restrictedbot')
       })
-      return {
-        channelMeta: c,
-        numMembers: participants.length,
-        participants,
-        type: 'channel' as const,
-      }
+      return canonChannelItem(c, participants)
     }),
   ]
 
@@ -95,7 +114,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   }
 
   const [selected, setSelected] = React.useState(new Set<T.Chat.ConversationIDKey>())
-  const onSelect = (convIDKey: T.Chat.ConversationIDKey) => {
+  const onSelect = React.useEffectEvent((convIDKey: T.Chat.ConversationIDKey) => {
     if (convIDKey === channelMetaGeneral.conversationIDKey) return
     if (selected.has(convIDKey)) {
       selected.delete(convIDKey)
@@ -104,7 +123,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
       selected.add(convIDKey)
       setSelected(new Set(selected))
     }
-  }
+  })
   const onSelectAll = () => setSelected(new Set(convIDKeysAvailable))
   const onSelectNone = convIDKeysAvailable.length === 0 ? undefined : () => setSelected(new Set())
   const onCancel = () => nav.safeNavigateUp()

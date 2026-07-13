@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
@@ -164,4 +165,6 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default ChannelMemberRow
+// memo: the channel screen rebuilds section data per render; props are
+// stable/primitive so rows bail
+export default React.memo(ChannelMemberRow)

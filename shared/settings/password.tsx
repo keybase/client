@@ -28,6 +28,7 @@ export const UpdatePassword = (props: Props) => {
   const [passwordConfirm, setPasswordConfirm] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(!!props.showTyping)
   const [errorSaving, setErrorSaving] = React.useState('')
+  const {onSave} = props
 
   const handlePasswordChange = (password: string) => {
     setPassword(password)
@@ -102,7 +103,7 @@ export const UpdatePassword = (props: Props) => {
               onChangeText={handlePasswordConfirmChange}
               onEnterKeyDown={() => {
                 if (canSubmit()) {
-                  props.onSave(password)
+                  onSave(password)
                 }
               }}
               hideBorder={true}
@@ -129,7 +130,7 @@ export const UpdatePassword = (props: Props) => {
             fullWidth={true}
             label={props.saveLabel || 'Save'}
             disabled={!canSubmit()}
-            onClick={() => props.onSave(password)}
+            onClick={() => onSave(password)}
             waiting={props.waitingForResponse}
           />
         </Kb.ButtonBar>

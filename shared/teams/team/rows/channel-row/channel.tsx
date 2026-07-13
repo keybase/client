@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
@@ -179,4 +180,6 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default ChannelRow
+// memo: the team screen's section hooks rebuild data arrays per render
+// (e.g. while typing filters); rows have stable/primitive props so they bail
+export default React.memo(ChannelRow)

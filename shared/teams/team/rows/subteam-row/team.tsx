@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import TeamRow from '@/teams/main/team-row'
@@ -33,4 +34,6 @@ const SubteamTeamRow = ({teamID, teamMeta: providedTeamMeta}: Props) => {
   )
 }
 
-export default SubteamTeamRow
+// memo: the team screen's section hooks rebuild data arrays per render
+// (e.g. while typing filters); rows have stable/primitive props so they bail
+export default React.memo(SubteamTeamRow)

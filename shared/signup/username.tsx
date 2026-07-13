@@ -56,7 +56,18 @@ const ConnectedEnterUsername = (p: Props) => {
   }
 
   const onLogin = (username: string) => startProvision(username)
-  return <EnterUsername error={error} initialUsername={initialUsername} onBack={onBack} onContinue={onContinue} onLogin={onLogin} onUsernameChange={onUsernameChange} usernameTaken={usernameTaken} waiting={waiting} />
+  return (
+    <EnterUsername
+      error={error}
+      initialUsername={initialUsername}
+      onBack={onBack}
+      onContinue={onContinue}
+      onLogin={onLogin}
+      onUsernameChange={onUsernameChange}
+      usernameTaken={usernameTaken}
+      waiting={waiting}
+    />
+  )
 }
 
 type EnterUsernameProps = {
@@ -74,8 +85,9 @@ const EnterUsername = (props: EnterUsernameProps) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
   const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
+  const {onLogin, usernameTaken} = props
   const usernameTrimmed = username.trim()
-  const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken || !acceptedEULA
+  const disabled = !usernameTrimmed || usernameTrimmed === usernameTaken || !acceptedEULA
   const _onChangeUsername = (username: string) => {
     onChangeUsername(username)
     props.onUsernameChange()
@@ -90,10 +102,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
   const eulaLabel = (
     <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.eulaText}>
       I accept the{' '}
-      <Kb.Text
-        type={isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
-        {...eulaUrlProps}
-      >
+      <Kb.Text type={isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'} {...eulaUrlProps}>
         Keybase Acceptable Use Policy
       </Kb.Text>
     </Kb.Text>
@@ -105,15 +114,15 @@ const EnterUsername = (props: EnterUsernameProps) => {
     <SignupScreen
       banners={
         <>
-          {props.usernameTaken ? (
+          {usernameTaken ? (
             <Kb.Banner key="usernameTaken" color="blue">
               <Kb.BannerParagraph
                 bannerColor="blue"
                 content={[
                   'Sorry, this username is already taken. Did you mean to ',
                   {
-                    onClick: () => props.usernameTaken && props.onLogin(props.usernameTaken),
-                    text: `log in as ${props.usernameTaken}`,
+                    onClick: () => usernameTaken && onLogin(usernameTaken),
+                    text: `log in as ${usernameTaken}`,
                   },
                   '?',
                 ]}

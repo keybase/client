@@ -37,8 +37,9 @@ type Props = {
 }
 
 export const PaperKey = (props: Props) => {
+  const {onSubmit: onSubmitFunc} = props
   const [paperKey, setPaperKey] = React.useState('')
-  const onSubmit = () => props.onSubmit(paperKey)
+  const onSubmit = () => onSubmitFunc(paperKey)
 
   return (
     <SignupScreen

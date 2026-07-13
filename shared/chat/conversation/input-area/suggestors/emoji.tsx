@@ -40,6 +40,18 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const empty = new Array<EmojiData>()
 
+// converting per keystroke makes fresh objects; keep identities stable so
+// memoized rows can bail (keyed on the store's emoji object, GCs with it)
+const emojiDataCache = new WeakMap<T.RPCChat.Emoji, EmojiData>()
+const cachedEmojiData = (emoji: T.RPCChat.Emoji) => {
+  let data = emojiDataCache.get(emoji)
+  if (!data) {
+    data = RPCToEmojiData(emoji, false)
+    emojiDataCache.set(emoji, data)
+  }
+  return data
+}
+
 const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
   const {emojis: userEmojis, loading: userEmojisLoading} = useUserEmoji({conversationIDKey})
 
@@ -55,7 +67,7 @@ const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: stri
 
   const userEmoji = userEmojis
     .filter(emoji => emoji.alias.toLowerCase().includes(filter))
-    .map(emoji => RPCToEmojiData(emoji, false))
+    .map(emoji => cachedEmojiData(emoji))
   results = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(results)
 
   return {

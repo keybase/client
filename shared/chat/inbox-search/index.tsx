@@ -50,14 +50,93 @@ type OpenTeamResult = {
 
 type Item = NameResult | TextResult | BotResult | OpenTeamResult
 
+// section derivation rebuilds these small descriptors every render; keep
+// identities stable so the memoized rows can bail
+const nameResultCache = new Map<string, NameResult>()
+const textResultCache = new Map<string, TextResult>()
+const openTeamItemCache = new WeakMap<T.Chat.InboxSearchOpenTeamHit, OpenTeamResult>()
+const botItemCache = new WeakMap<T.RPCGen.FeaturedBot, BotResult>()
+
+const canonNameResult = (next: NameResult) => {
+  if (nameResultCache.size > 4096) {
+    nameResultCache.clear()
+  }
+  const old = nameResultCache.get(next.conversationIDKey)
+  if (old) {
+    if (old.name === next.name && old.sizeType === next.sizeType) {
+      return old
+    }
+  }
+  nameResultCache.set(next.conversationIDKey, next)
+  return next
+}
+
+const canonTextResult = (next: TextResult) => {
+  if (textResultCache.size > 4096) {
+    textResultCache.clear()
+  }
+  const old = textResultCache.get(next.conversationIDKey)
+  if (old) {
+    if (old.name === next.name && old.sizeType === next.sizeType && old.numHits === next.numHits && old.query === next.query) {
+      return old
+    }
+  }
+  textResultCache.set(next.conversationIDKey, next)
+  return next
+}
+
+const canonOpenTeamItem = (hit: T.Chat.InboxSearchOpenTeamHit): OpenTeamResult => {
+  let item = openTeamItemCache.get(hit)
+  if (!item) {
+    item = {hit, type: 'openTeam'}
+    openTeamItemCache.set(hit, item)
+  }
+  return item
+}
+
+const canonBotItem = (bot: T.RPCGen.FeaturedBot): BotResult => {
+  let item = botItemCache.get(bot)
+  if (!item) {
+    item = {bot, type: 'bot'}
+    botItemCache.set(bot, item)
+  }
+  return item
+}
+
+type HitRowProps = {
+  isSelected: boolean
+  item: NameResult | TextResult
+  onSelectHit: (item: NameResult | TextResult, realIndex: number) => void
+  realIndex: number
+}
+
+// React.memo, not just compiler memo: the section list calls renderItem outside
+// the compiler's memo graph, so the shallow prop bail here is what lets rows
+// skip on each search keystroke
+const HitRow = React.memo(function HitRow(p: HitRowProps) {
+  const {isSelected, item, onSelectHit, realIndex} = p
+  const numHits = item.type === 'text' ? item.numHits : undefined
+  const Component = item.sizeType === 'big' ? SelectableBigTeamChannel : SelectableSmallTeam
+  return (
+    <Component
+      conversationIDKey={item.conversationIDKey}
+      isSelected={isSelected}
+      name={item.name}
+      numSearchHits={numHits}
+      maxSearchHits={inboxSearchMaxTextMessages}
+      onSelectConversation={() => onSelectHit(item, realIndex)}
+    />
+  )
+})
+
 export default function InboxSearchContainer(ownProps: OwnProps) {
   const {
     search: {searchInfo: _inboxSearch, selectResult, setVisibleResultCounts},
   } = ownProps
   const navigateAppend = C.Router2.navigateAppend
-  const onInstallBot = (username: string) => {
+  const onInstallBot = React.useEffectEvent((username: string) => {
     navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
-  }
+  })
   const onSelectConversation = (
     conversationIDKey: T.Chat.ConversationIDKey,
     selectedIndex: number,
@@ -226,25 +305,13 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     if (h.item.type !== 'text' && h.item.type !== 'name') return null
 
     const {item, section, index} = h
-    const numHits = item.type === 'text' ? item.numHits : undefined
     const realIndex = index + section.indexOffset
-    return item.sizeType === 'big' ? (
-      <SelectableBigTeamChannel
-        conversationIDKey={item.conversationIDKey}
+    return (
+      <HitRow
+        item={item}
         isSelected={!isMobile && selectedIndex === realIndex}
-        name={item.name}
-        numSearchHits={numHits}
-        maxSearchHits={inboxSearchMaxTextMessages}
-        onSelectConversation={() => section.onSelect(item, realIndex)}
-      />
-    ) : (
-      <SelectableSmallTeam
-        conversationIDKey={item.conversationIDKey}
-        isSelected={!isMobile && selectedIndex === realIndex}
-        name={item.name}
-        numSearchHits={numHits}
-        maxSearchHits={inboxSearchMaxTextMessages}
-        onSelectConversation={() => section.onSelect(item, realIndex)}
+        onSelectHit={onSelectHit}
+        realIndex={realIndex}
       />
     )
   }
@@ -254,17 +321,24 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     onSelectConversation(item.conversationIDKey, index, '')
   }
 
+  const onSelectHit = React.useEffectEvent((item: NameResult | TextResult, realIndex: number) => {
+    if (item.type === 'name') {
+      selectName(item, realIndex)
+    } else {
+      selectText(item, realIndex)
+    }
+  })
+
   const nameResults: Array<NameResult> = nameCollapsed
     ? []
     : _nameResults.length
-      ? _nameResults.map(
-          r =>
-            ({
-              conversationIDKey: r.conversationIDKey,
-              name: r.name,
-              sizeType: r.teamType,
-              type: 'name',
-            }) as const
+      ? _nameResults.map(r =>
+          canonNameResult({
+            conversationIDKey: r.conversationIDKey,
+            name: r.name,
+            sizeType: r.teamType,
+            type: 'name',
+          })
         )
       : nameResultsUnread
         ? [emptyUnreadPlaceholder]
@@ -272,16 +346,15 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
 
   const textResults: Array<TextResult> = textCollapsed
     ? []
-    : _textResults.map(
-        r =>
-          ({
-            conversationIDKey: r.conversationIDKey,
-            name: r.name,
-            numHits: r.numHits,
-            query: r.query,
-            sizeType: r.teamType,
-            type: 'text',
-          }) as const
+    : _textResults.map(r =>
+        canonTextResult({
+          conversationIDKey: r.conversationIDKey,
+          name: r.name,
+          numHits: r.numHits,
+          query: r.query,
+          sizeType: r.teamType,
+          type: 'text',
+        })
       )
 
   const openTeamsResults = openTeamsCollapsed
@@ -327,7 +400,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     title: nameResultsUnread ? 'Unread' : 'Chats',
   }
   const openTeamsSection: Section = {
-    data: openTeamsResults.map(hit => ({hit, type: 'openTeam'})),
+    data: openTeamsResults.map(canonOpenTeamItem),
     indexOffset: nameResults.length,
     isCollapsed: openTeamsCollapsed,
     onCollapse: toggleCollapseOpenTeams,
@@ -338,7 +411,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     title: openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
   }
   const botsSection: Section = {
-    data: botsResults.map(bot => ({bot, type: 'bot'})),
+    data: botsResults.map(canonBotItem),
     indexOffset: openTeamsResults.length + nameResults.length,
     isCollapsed: botsCollapsed,
     onCollapse: toggleCollapseBots,
@@ -402,7 +475,8 @@ const emptyUnreadPlaceholder = {
 
 const rowHeight = isMobile ? 64 : 56
 type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {isSelected: boolean}
-const OpenTeamRow = (p: OpenTeamProps) => {
+// memo so identity-stable open-team hits bail when other sections update
+const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
@@ -491,7 +565,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
       {popup}
     </Kb.ClickableBox>
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

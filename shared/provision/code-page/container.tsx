@@ -284,6 +284,7 @@ const SwitchTab = (props: {
   otherDevice: Device
   currentDeviceAlreadyProvisioned: boolean
 }) => {
+  const {onSelect} = props
   if (currentDeviceType === 'desktop' && props.otherDevice.type === 'desktop') {
     return null
   }
@@ -310,7 +311,7 @@ const SwitchTab = (props: {
       <Kb.Text
         type="BodySmallPrimaryLink"
         negative={true}
-        onClick={() => props.onSelect(tab)}
+        onClick={() => onSelect(tab)}
         style={styles.switchTab}
       >
         {label}

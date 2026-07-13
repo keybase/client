@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
@@ -108,4 +109,6 @@ const InviteRow = (ownProps: OwnProps) => {
   return <TeamInviteRow firstItem={ownProps.firstItem} isKeybaseUser={isKeybaseUser} label={label} onCancelInvite={onCancelInvite} role={role} subLabel={subLabel} />
 }
 
-export default InviteRow
+// memo: the team screen's section hooks rebuild data arrays per render
+// (e.g. while typing filters); rows have stable/primitive props so they bail
+export default React.memo(InviteRow)

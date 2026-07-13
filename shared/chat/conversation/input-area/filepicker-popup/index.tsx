@@ -9,7 +9,13 @@ type Props = {
 }
 
 const Prompt = () => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny" style={styles.promptContainer}>
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    centerChildren={true}
+    gap="xtiny"
+    style={styles.promptContainer}
+  >
     <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
   </Kb.Box2>
 )
@@ -24,49 +30,50 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const FilePickerPopupImpl = (p: Props) => {
+  const onSelect = p.onSelect
   const items = isIOS
     ? ([
         {
           icon: 'iconfont-camera',
-          onClick: () => p.onSelect('mixed', 'camera'),
+          onClick: () => onSelect('mixed', 'camera'),
           title: 'Take photo or video',
         },
         {
           icon: 'iconfont-video-library',
-          onClick: () => p.onSelect('video', 'library'),
+          onClick: () => onSelect('video', 'library'),
           title: 'Choose video from library',
         },
         {
           icon: 'iconfont-photo-library',
-          onClick: () => p.onSelect('photo', 'library'),
+          onClick: () => onSelect('photo', 'library'),
           title: 'Choose photos from library',
         },
         {
           icon: 'iconfont-attachment',
-          onClick: () => p.onSelect('file', 'file'),
+          onClick: () => onSelect('file', 'file'),
           title: 'Choose a file',
         },
       ] as const)
     : ([
         {
           icon: 'iconfont-camera',
-          onClick: () => p.onSelect('photo', 'camera'),
+          onClick: () => onSelect('photo', 'camera'),
           title: 'Take photo',
         },
-        {icon: 'iconfont-film', onClick: () => p.onSelect('video', 'camera'), title: 'Take video'},
+        {icon: 'iconfont-film', onClick: () => onSelect('video', 'camera'), title: 'Take video'},
         {
           icon: 'iconfont-photo-library',
-          onClick: () => p.onSelect('photo', 'library'),
+          onClick: () => onSelect('photo', 'library'),
           title: 'Photo from library',
         },
         {
           icon: 'iconfont-video-library',
-          onClick: () => p.onSelect('video', 'library'),
+          onClick: () => onSelect('video', 'library'),
           title: 'Video from library',
         },
         {
           icon: 'iconfont-attachment',
-          onClick: () => p.onSelect('file', 'file'),
+          onClick: () => onSelect('file', 'file'),
           title: 'Choose a file',
         },
       ] as const)

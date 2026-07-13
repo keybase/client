@@ -36,6 +36,7 @@ type ReloadProps = {
 
 function Reload(props: ReloadProps) {
   const [expanded, setExpanded] = React.useState(false)
+  const {onReload, onFeedback} = props
   const toggle = () => setExpanded(e => !e)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.style}>
@@ -72,8 +73,8 @@ function Reload(props: ReloadProps) {
             {expanded ? 'Hide details' : 'Show details'}
           </Kb.Text>
           <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Button label="Retry" mode="Secondary" onClick={() => props.onReload(true)} />
-            <Kb.Button label="Feedback" mode="Primary" onClick={props.onFeedback} />
+            <Kb.Button label="Retry" mode="Secondary" onClick={() => onReload(true)} />
+            <Kb.Button label="Feedback" mode="Primary" onClick={onFeedback} />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ScrollView>

@@ -1,4 +1,6 @@
 import * as C from '@/constants'
+import type {DebouncedFunc} from 'lodash'
+import debounce from 'lodash/debounce'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
@@ -86,10 +88,26 @@ const useReloadOnTeamChanges = (
   invalidationListeners: Set<() => void>,
   includeMetadataUpdate = false
 ) => {
-  const onChange = () => {
+  const reloadNow = React.useEffectEvent(() => {
     if (enabled) {
       void reload()
     }
+  })
+  // service notifications arrive in bursts (one logical change can fire metadata,
+  // role map, and changedByID); coalesce so a burst costs at most a leading and
+  // a trailing reload instead of one per event. Lazy ref init is the sanctioned
+  // create-once exception: a restarted render just recreates the debouncer.
+  const debouncedReloadRef = React.useRef<DebouncedFunc<() => void> | null>(null)
+  if (debouncedReloadRef.current == null) {
+    debouncedReloadRef.current = debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
+  }
+  React.useEffect(() => {
+    return () => {
+      debouncedReloadRef.current?.cancel()
+    }
+  }, [])
+  const onChange = () => {
+    debouncedReloadRef.current?.()
   }
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (includeMetadataUpdate) {
@@ -189,15 +207,20 @@ export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
   )
 }
 
+const noopLoad = async () => {}
+
+// Fall back to the module cache instead of throwing: fast refresh re-evaluates
+// this module and briefly splits the context identity between the mounted
+// provider and refreshed consumers, and popup portals render outside the
+// provider (see useTeamsRoleMap below).
 export const useTeamsList = (): TeamsList => {
   const context = React.useContext(TeamsListContext)
-  if (!context) {
-    throw new Error('useTeamsList must be used within LoadedTeamsListProvider')
-  }
-  return context
+  // read the cache every render (not a one-time snapshot) so provider-less
+  // consumers still see fresh data; identity stays stable while data does
+  const teams = teamsListCache.getData()
+  const fallback = React.useMemo(() => ({reload: noopLoad, teams}), [teams])
+  return context ?? fallback
 }
-
-const noopLoad = async () => {}
 
 // useTeamsRoleMap and useTeamsListMap are reachable from mobile popup portals
 // (popup-root and the bottom-sheet host are siblings to the router, outside
@@ -205,10 +228,8 @@ const noopLoad = async () => {}
 // throwing. The cache stays fresh because the provider is mounted elsewhere.
 export const useTeamsRoleMap = (): TeamsRoleMap => {
   const context = React.useContext(TeamsRoleMapContext)
-  const fallback = React.useMemo(
-    () => ({loadIfStale: noopLoad, reload: noopLoad, roleMap: teamsRoleMapCache.getData()}),
-    []
-  )
+  const roleMap = teamsRoleMapCache.getData()
+  const fallback = React.useMemo(() => ({loadIfStale: noopLoad, reload: noopLoad, roleMap}), [roleMap])
   return context ?? fallback
 }
 

@@ -197,4 +197,6 @@ const BotRow = (ownProps: OwnProps) => {
   )
 }
 
-export default BotRow
+// memo: the team screen's section hooks rebuild data arrays per render
+// (e.g. while typing filters); rows have stable/primitive props so they bail
+export default React.memo(BotRow)

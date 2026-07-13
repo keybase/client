@@ -117,25 +117,28 @@ type CheckboxesProps = {
   onSetCheckNotify: (checked: boolean) => void
 }
 
-const Checkboxes = (props: CheckboxesProps) => (
-  <Kb.Box2 direction="vertical">
-    <Kb.Checkbox
-      checked={props.checkChats}
-      label="Team chats will be lost"
-      onCheck={checked => props.onSetCheckChats(checked)}
-    />
-    <Kb.Checkbox
-      checked={props.checkFolder}
-      label="Data in the team folder will be lost"
-      onCheck={checked => props.onSetCheckFolder(checked)}
-    />
-    <Kb.Checkbox
-      checked={props.checkNotify}
-      label="Team members will be notified"
-      onCheck={checked => props.onSetCheckNotify(checked)}
-    />
-  </Kb.Box2>
-)
+const Checkboxes = (props: CheckboxesProps) => {
+  const {onSetCheckChats, onSetCheckFolder, onSetCheckNotify} = props
+  return (
+    <Kb.Box2 direction="vertical">
+      <Kb.Checkbox
+        checked={props.checkChats}
+        label="Team chats will be lost"
+        onCheck={checked => onSetCheckChats(checked)}
+      />
+      <Kb.Checkbox
+        checked={props.checkFolder}
+        label="Data in the team folder will be lost"
+        onCheck={checked => onSetCheckFolder(checked)}
+      />
+      <Kb.Checkbox
+        checked={props.checkNotify}
+        label="Team members will be notified"
+        onCheck={checked => onSetCheckNotify(checked)}
+      />
+    </Kb.Box2>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   deleteIcon: {marginRight: -60, marginTop: -20, zIndex: 1},

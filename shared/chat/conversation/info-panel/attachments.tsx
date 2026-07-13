@@ -119,6 +119,14 @@ export type Item =
 
 type Section = Kb.SectionType<Item>
 
+// page loads append messages but keep prior message identities; reuse each
+// message's cell so already-mounted MediaThumbs bail instead of re-rendering
+// the whole grid per page
+const mediaCellCache = new WeakMap<
+  T.Chat.MessageAttachment,
+  {cell: ThumbData['images'][number]; size: number}
+>()
+
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)
   return {
@@ -184,7 +192,10 @@ type MediaThumbProps = {
   sizing: Sizing
 }
 
-const MediaThumb = (props: MediaThumbProps) => {
+// React.memo (not just compiler memo): the grid's renderItem closures run outside
+// the compiler's memo graph, so elements are recreated per row render; the shallow
+// prop bail here is what lets unchanged thumbs skip when new pages arrive
+const MediaThumb = React.memo(function MediaThumb(props: MediaThumbProps) {
   const {sizing, thumb} = props
   return (
     <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
@@ -214,7 +225,7 @@ const MediaThumb = (props: MediaThumbProps) => {
       )}
     </Kb.Box2>
   )
-}
+})
 
 type DocViewRowProps = {item: Doc}
 
@@ -231,7 +242,14 @@ const DocViewRow = (props: DocViewRowProps) => {
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny" onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
+      <Kb.ClickableBox
+        direction="horizontal"
+        fullWidth={true}
+        style={styles.docRowContainer}
+        gap="xtiny"
+        onClick={item.onClick}
+        onLongPress={hasMessageID ? showPopup : undefined}
+      >
         <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
           <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
@@ -269,55 +287,64 @@ const getBkgColor = (selected: boolean) =>
 const getColor = (selected: boolean) =>
   selected ? {color: Kb.Styles.globalColors.white} : {color: Kb.Styles.globalColors.blueDark}
 
-const AttachmentTypeSelector = (props: SelectorProps) => (
-  <Kb.Box2 alignSelf="center" direction="horizontal" padding="small" style={styles.selectorContainer} fullWidth={true}>
-    <Kb.ClickableBox
-      direction="vertical"
-      centerChildren={true}
-      flex={1}
-      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.media)}
-      style={Kb.Styles.collapseStyles([
-        styles.selectorItemContainer,
-        styles.selectorMediaContainer,
-        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
-      ])}
+const AttachmentTypeSelector = (props: SelectorProps) => {
+  const {onSelectView} = props
+  return (
+    <Kb.Box2
+      alignSelf="center"
+      direction="horizontal"
+      padding="small"
+      style={styles.selectorContainer}
+      fullWidth={true}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
-        Media
-      </Kb.Text>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
-      direction="vertical"
-      centerChildren={true}
-      flex={1}
-      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.doc)}
-      style={Kb.Styles.collapseStyles([
-        styles.selectorDocContainer,
-        styles.selectorItemContainer,
-        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
-      ])}
-    >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
-        Docs
-      </Kb.Text>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
-      direction="vertical"
-      centerChildren={true}
-      flex={1}
-      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.link)}
-      style={Kb.Styles.collapseStyles([
-        styles.selectorItemContainer,
-        styles.selectorLinkContainer,
-        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
-      ])}
-    >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
-        Links
-      </Kb.Text>
-    </Kb.ClickableBox>
-  </Kb.Box2>
-)
+      <Kb.ClickableBox
+        direction="vertical"
+        centerChildren={true}
+        flex={1}
+        onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.media)}
+        style={Kb.Styles.collapseStyles([
+          styles.selectorItemContainer,
+          styles.selectorMediaContainer,
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
+        ])}
+      >
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
+          Media
+        </Kb.Text>
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
+        direction="vertical"
+        centerChildren={true}
+        flex={1}
+        onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.doc)}
+        style={Kb.Styles.collapseStyles([
+          styles.selectorDocContainer,
+          styles.selectorItemContainer,
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
+        ])}
+      >
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
+          Docs
+        </Kb.Text>
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
+        direction="vertical"
+        centerChildren={true}
+        flex={1}
+        onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.link)}
+        style={Kb.Styles.collapseStyles([
+          styles.selectorItemContainer,
+          styles.selectorLinkContainer,
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
+        ])}
+      >
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
+          Links
+        </Kb.Text>
+      </Kb.ClickableBox>
+    </Kb.Box2>
+  )
+}
 
 const LinkTitle = (p: {title: string; url?: string}) => {
   const urlProps = Kb.useClickURL(p.url ?? '')
@@ -735,7 +762,8 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView, undefined, 'retry')
   }
 
-  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(conversationIDKey, message)
+  const onMediaClick = (message: T.Chat.MessageAttachment) =>
+    showAttachmentPreview(conversationIDKey, message)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (isMobile) {
@@ -805,28 +833,28 @@ export const useAttachmentSections = (
         {
           const rowSize = 4 // count of images in each row
           const maxMediaThumbSize = infoPanelWidth() / rowSize
-          const s: Array<Section> = formMonths(
-            (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(
-              m =>
-                ({
-                  audioDuration: m.audioDuration,
-                  ctime: m.timestamp,
-                  height: m.previewHeight,
-                  id: m.id,
-                  key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
-                  onClick: () => onMediaClick(m),
-                  previewURL: m.previewURL,
-                  typ:
-                    (m.audioAmps?.length ?? 0) > 0
-                      ? ThumbTyp.AUDIO
-                      : m.videoDuration
-                        ? ThumbTyp.VIDEO
-                        : ThumbTyp.IMAGE,
-                  width: m.previewWidth,
-                }) as Thumb
-            )
-          ).map(month => {
-            const dataUnchunked = month.data.map(thumb => ({
+          const getMediaCell = (m: T.Chat.MessageAttachment) => {
+            const cached = mediaCellCache.get(m)
+            if (cached?.size === maxMediaThumbSize) {
+              return cached.cell
+            }
+            const thumb = {
+              audioDuration: m.audioDuration,
+              ctime: m.timestamp,
+              height: m.previewHeight,
+              id: m.id,
+              key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
+              onClick: () => onMediaClick(m),
+              previewURL: m.previewURL,
+              typ:
+                (m.audioAmps?.length ?? 0) > 0
+                  ? ThumbTyp.AUDIO
+                  : m.videoDuration
+                    ? ThumbTyp.VIDEO
+                    : ThumbTyp.IMAGE,
+              width: m.previewWidth,
+            } as Thumb
+            const cell = {
               debug: {
                 height: thumb.height,
                 maxMediaThumbSize,
@@ -834,7 +862,14 @@ export const useAttachmentSections = (
               },
               sizing: zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
               thumb,
-            }))
+            }
+            mediaCellCache.set(m, {cell, size: maxMediaThumbSize})
+            return cell
+          }
+          const cells = (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(getMediaCell)
+          const cellByThumb = new Map(cells.map(cell => [cell.thumb, cell] as const))
+          const s: Array<Section> = formMonths(cells.map(cell => cell.thumb)).map(month => {
+            const dataUnchunked = month.data.map(thumb => cellByThumb.get(thumb)!)
             const dataChunked = useFlexWrap ? [dataUnchunked] : chunk(dataUnchunked, rowSize)
             const data: ReadonlyArray<ThumbData> = dataChunked.map((images, i) => ({
               images,

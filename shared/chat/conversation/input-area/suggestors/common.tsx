@@ -64,15 +64,40 @@ export type ListProps<L> = {
   ItemRenderer: (p: ItemRendererProps<L>) => React.JSX.Element
 }
 
+type RowProps<T> = {
+  ItemRenderer: (p: ItemRendererProps<T>) => React.JSX.Element
+  item: T
+  onSelected: (item: T, final: boolean) => void
+  selected: boolean
+}
+
+const RowImpl = <T,>(p: RowProps<T>) => {
+  const {ItemRenderer, item, onSelected, selected} = p
+  return (
+    <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={() => onSelected(item, true)}>
+      <ItemRenderer selected={selected} item={item} />
+    </Kb.ClickableBox>
+  )
+}
+// React.memo, not just compiler memo: the list calls renderItem outside the
+// compiler's memo graph, so the shallow prop bail here is what lets unchanged
+// rows skip on each filter keystroke
+const Row = React.memo(RowImpl) as typeof RowImpl
+
 export function List<T>(p: ListProps<T>) {
   const {items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
+  const onSelectedEvent = React.useEffectEvent((item: T, final: boolean) => onSelected(item, final))
   const renderItem = (idx: number, item: T) => (
-    <Kb.ClickableBox direction="vertical" fullWidth={true} key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
-      <ItemRenderer selected={idx === selectedIndex} item={item} />
-    </Kb.ClickableBox>
+    <Row
+      key={keyExtractor(item, idx)}
+      ItemRenderer={ItemRenderer}
+      item={item}
+      onSelected={onSelectedEvent}
+      selected={idx === selectedIndex}
+    />
   )
 
   const lastSelectedIndex = React.useRef(selectedIndex)

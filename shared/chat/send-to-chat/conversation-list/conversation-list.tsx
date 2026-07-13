@@ -14,31 +14,42 @@ type Props = {
   onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
-type Row = {
+type RowProps = {
   isSelected: boolean
   item: T.RPCChat.SimpleSearchInboxConvNamesHit
-  onSelect: () => void
+  onSelectItem: (item: T.RPCChat.SimpleSearchInboxConvNamesHit) => void
 }
 
-const _itemRenderer = (index: number, row: Row) => {
-  const item = row.item
+// React.memo, not just compiler memo: the list calls renderItem outside the
+// compiler's memo graph, so the shallow prop bail is what lets rows skip when
+// only the selection or result batch changes
+const Row = React.memo(function Row(p: RowProps) {
+  const {isSelected, item, onSelectItem} = p
   return (
-    <Kb.ClickableBox key={index} onClick={row.onSelect} direction="horizontal" fullWidth={true} gap="tiny" style={Kb.Styles.collapseStyles([styles.results, {backgroundColor: !isMobile && row.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}])}>
+    <Kb.ClickableBox
+      onClick={() => onSelectItem(item)}
+      direction="horizontal"
+      fullWidth={true}
+      gap="tiny"
+      style={Kb.Styles.collapseStyles([
+        styles.results,
+        {
+          backgroundColor:
+            !isMobile && isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+        },
+      ])}
+    >
       {item.isTeam ? (
-        <TeamAvatar isHovered={false} isMuted={false} isSelected={row.isSelected} teamname={item.tlfName} />
+        <TeamAvatar isHovered={false} isMuted={false} isSelected={isSelected} teamname={item.tlfName} />
       ) : (
-        <Avatars
-          isSelected={row.isSelected}
-          participantOne={item.parts?.[0]}
-          participantTwo={item.parts?.[1]}
-        />
+        <Avatars isSelected={isSelected} participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
       )}
       <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
         {item.name}
       </Kb.Text>
     </Kb.ClickableBox>
   )
-}
+})
 
 const ConversationList = (props: Props) => {
   const [query, setQuery] = React.useState('')
@@ -89,6 +100,13 @@ type ConversationListRenderProps = {
 }
 
 const ConversationListRender = (props: ConversationListRenderProps) => {
+  const {selected, setSelected, results, onSelect} = props
+  const onSelectItem = React.useEffectEvent((item: T.RPCChat.SimpleSearchInboxConvNamesHit) =>
+    onSelect(T.Chat.conversationIDToKey(item.convID), item.tlfName)
+  )
+  const renderItem = (index: number, item: T.RPCChat.SimpleSearchInboxConvNamesHit) => (
+    <Row key={index} item={item} isSelected={index === selected} onSelectItem={onSelectItem} />
+  )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
@@ -102,21 +120,22 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
           onKeyDown={(e: React.KeyboardEvent) => {
             switch (e.key) {
               case 'ArrowDown':
-                if (props.selected < props.results.length - 1) {
-                  props.setSelected(props.selected + 1)
+                if (selected < results.length - 1) {
+                  setSelected(selected + 1)
                 }
                 break
               case 'ArrowUp':
-                if (props.selected > 0) {
-                  props.setSelected(props.selected - 1)
+                if (selected > 0) {
+                  setSelected(selected - 1)
                 }
                 break
               case 'Enter':
-                if (props.results.length > 0) {
-                  const result = props.results[props.selected]
-                  props.onSelect(
+                if (results.length > 0) {
+                  const result = results[selected]
+                  // consumers use this as the tlf name (upload tlfName), not the display name
+                  onSelect(
                     result?.convID ? T.Chat.conversationIDToKey(result.convID) : '',
-                    result?.name ?? ''
+                    result?.tlfName ?? ''
                   )
                 }
                 break
@@ -126,12 +145,8 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
       </Kb.Box2>
       <Kb.List
         itemHeight={{height: 65, type: 'fixed'}}
-        items={props.results.map((r, index) => ({
-          isSelected: index === props.selected,
-          item: r,
-          onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
-        }))}
-        renderItem={_itemRenderer}
+        items={results as Array<T.RPCChat.SimpleSearchInboxConvNamesHit>}
+        renderItem={renderItem}
         indexAsKey={true}
       />
     </Kb.Box2>

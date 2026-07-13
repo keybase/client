@@ -23,7 +23,7 @@ const Header = (props: Props) => (
 )
 
 const ReallyLeaveTeam = (props: Props) => {
-  const {name} = props
+  const {name, onLeave: propOnLeave} = props
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(
     () => () => {
@@ -32,7 +32,7 @@ const ReallyLeaveTeam = (props: Props) => {
     [dispatchClearWaiting, name]
   )
   const [leavePermanently, setLeavePermanently] = React.useState(false)
-  const onLeave = () => props.onLeave(leavePermanently)
+  const onLeave = () => propOnLeave(leavePermanently)
   return (
     <Kb.ConfirmModal
       error={props.error}
@@ -99,7 +99,8 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const teamname = teamMeta.teamname
   const open = teamDetails.settings.open
   const lastOwner =
-    teamMeta.role === 'owner' && [...teamDetails.members.values()].filter(member => member.type === 'owner').length < 2
+    teamMeta.role === 'owner' &&
+    [...teamDetails.members.values()].filter(member => member.type === 'owner').length < 2
   const leaveTeamRPC = C.useRPC(T.RPCGen.teamsTeamLeaveRpcPromise)
   const stillLoadingTeam = loading
   const waitingKey = C.waitingKeyTeamsLeaveTeam(teamname)

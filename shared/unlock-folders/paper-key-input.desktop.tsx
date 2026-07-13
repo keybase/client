@@ -10,6 +10,7 @@ export type Props = {
 
 const PaperKeyInput = (props: Props) => {
   const [paperkey, setPaperkey] = React.useState('')
+  const {onContinue} = props
 
   return (
     <Kb.Box2 alignItems="center" direction="vertical" padding="small">
@@ -27,7 +28,7 @@ const PaperKeyInput = (props: Props) => {
         label="Continue"
         style={styles.button}
         waiting={props.waiting}
-        onClick={() => props.onContinue(paperkey)}
+        onClick={() => onContinue(paperkey)}
       />
     </Kb.Box2>
   )

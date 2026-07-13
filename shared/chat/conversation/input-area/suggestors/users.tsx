@@ -255,9 +255,34 @@ const keyExtractor = (item: ListItem) => {
   return item.username ?? ''
 }
 
+// filtering rebuilds item objects every keystroke; reuse prior identities so
+// the memoized suggestion rows can bail. Bounded by users/channels ever
+// suggested; the size guard is a backstop for pathological accounts.
+const listItemCache = new Map<string, ListItem>()
+const canonicalizeItems = (items: Array<ListItem>) => {
+  if (listItemCache.size > 8192) {
+    listItemCache.clear()
+  }
+  return items.map(item => {
+    const key = keyExtractor(item)
+    const old = listItemCache.get(key)
+    if (
+      old &&
+      old.username === item.username &&
+      old.fullName === item.fullName &&
+      old.teamname === item.teamname &&
+      old.channelname === item.channelname
+    ) {
+      return old
+    }
+    listItemCache.set(key, item)
+    return item
+  })
+}
+
 export const UsersList = (p: ListProps) => {
   const {conversationIDKey, filter, ...rest} = p
-  const items = useDataSource(conversationIDKey, filter)
+  const items = canonicalizeItems(useDataSource(conversationIDKey, filter))
   return (
     <Common.List
       {...rest}

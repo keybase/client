@@ -3,9 +3,12 @@ import * as Kb from '@/common-adapters'
 
 const TeamsFooter = (props: {empty: boolean}) => {
   const isLoadingTeams = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
+  // only show the spinner when there's nothing to look at yet; background
+  // refreshes with teams loaded shouldn't flash the footer
+  const showSpinner = isLoadingTeams && props.empty
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
-      {isLoadingTeams ? (
+      {showSpinner ? (
         <Kb.ProgressIndicator type="Large" />
       ) : (
         <>
