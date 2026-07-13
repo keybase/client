@@ -156,11 +156,26 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
           if (currentBadgeVersion > badgeState.inboxVers) {
             break
           }
-          set(s => {
-            s.deletedTeams = T.castDraft(badgeState.deletedTeams ?? [])
-            s.newTeams = new Set(badgeState.newTeams ?? [])
-            s.teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
-          })
+          // badgeState fires on every incoming message; keep identities stable when the
+          // team data didn't change so subscribers (TeamsRoot etc) can bail. Compare
+          // against committed state, not the draft (immer 11 breaks lodash isEqual on drafts).
+          {
+            const prev = get()
+            const deletedTeams = badgeState.deletedTeams ?? []
+            const newTeams = new Set(badgeState.newTeams ?? [])
+            const teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
+            set(s => {
+              if (!isEqual(prev.deletedTeams, deletedTeams)) {
+                s.deletedTeams = T.castDraft(deletedTeams)
+              }
+              if (!isEqual(prev.newTeams, newTeams)) {
+                s.newTeams = newTeams
+              }
+              if (!isEqual(prev.teamIDToResetUsers, teamIDToResetUsers)) {
+                s.teamIDToResetUsers = teamIDToResetUsers
+              }
+            })
+          }
           if (currentBadgeVersion === badgeState.inboxVers) {
             // Teams badge detail can change without advancing inboxVers, so keep the
             // Teams tab badge in sync with the latest server-owned badge state.
@@ -191,9 +206,14 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
           if (goodState.length !== items.length) {
             logger.warn('Lost some messages in filtering out nonNull gregor items')
           }
-          set(s => {
-            s.newTeamRequests = gregorItemsToNewTeamRequests(goodState)
-          })
+          {
+            const newTeamRequests = gregorItemsToNewTeamRequests(goodState)
+            if (!isEqual(get().newTeamRequests, newTeamRequests)) {
+              set(s => {
+                s.newTeamRequests = newTeamRequests
+              })
+            }
+          }
           break
         }
         default:
