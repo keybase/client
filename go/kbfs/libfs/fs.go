@@ -656,7 +656,7 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 
 // Create implements the billy.Filesystem interface for FS.
 func (fs *FS) Create(filename string) (billy.File, error) {
-	return fs.OpenFile(filename, os.O_CREATE, 0o600)
+	return fs.OpenFile(filename, os.O_CREATE|os.O_TRUNC, 0o600)
 }
 
 // Open implements the billy.Filesystem interface for FS.
