@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
@@ -14,7 +13,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {
   useConversationThreadActions,
   useConversationThreadID,
-  useConversationThreadSelector,
+  useConversationThreadStore,
 } from './thread-context'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
@@ -314,16 +313,13 @@ export const loadNextAttachmentMessage = async (
 export const useConversationAttachmentActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
-  const {messageMap, messageOrdinals, pendingOutboxToOrdinal} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      messageMap: s.messageMap,
-      messageOrdinals: s.messageOrdinals,
-      pendingOutboxToOrdinal: s.pendingOutboxToOrdinal,
-    }))
-  )
+  // Read thread state lazily at call time. Callers (TransferIcon etc) render per
+  // message row, so subscribing to messageMap here would re-render every one of
+  // them on every thread change.
+  const threadStore = useConversationThreadStore()
 
   const downloadAttachment = async (downloadToCache: boolean, ordinal: T.Chat.Ordinal) => {
-    const messageID = messageMap.get(ordinal)?.id
+    const messageID = threadStore.getState().messageMap.get(ordinal)?.id
     if (!messageID) {
       return false
     }
@@ -352,7 +348,7 @@ export const useConversationAttachmentActions = () => {
   }
 
   const attachmentDownload = (ordinal: T.Chat.Ordinal) => {
-    const old = messageMap.get(ordinal)
+    const old = threadStore.getState().messageMap.get(ordinal)
     if (!old) {
       return
     }
@@ -378,7 +374,7 @@ export const useConversationAttachmentActions = () => {
     if (!isMobile) {
       return
     }
-    const existing = messageMap.get(ordinal)
+    const existing = threadStore.getState().messageMap.get(ordinal)
     if (existing?.type !== 'attachment') {
       throw new Error('Invalid share message')
     }
@@ -405,7 +401,7 @@ export const useConversationAttachmentActions = () => {
   }
 
   const messageAttachmentNativeShare = (ordinal: T.Chat.Ordinal, fromDownload = false) => {
-    const message = messageMap.get(ordinal)
+    const message = threadStore.getState().messageMap.get(ordinal)
     if (message?.type !== 'attachment') {
       throw new Error('Invalid share message')
     }
@@ -432,12 +428,12 @@ export const useConversationAttachmentActions = () => {
   }
 
   const loadNextAttachment = async (from: T.Chat.Ordinal, backInTime: boolean) => {
-    const fromMsg = messageMap.get(from)
+    const fromMsg = threadStore.getState().messageMap.get(from)
     if (!fromMsg) {
       return Promise.reject(new Error('Incorrect from'))
     }
     const {deviceName, username} = useCurrentUserState.getState()
-    const getLastOrdinal = () => messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+    const getLastOrdinal = () => threadStore.getState().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const result = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
       assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
       backInTime,
@@ -457,8 +453,8 @@ export const useConversationAttachmentActions = () => {
       if (goodMessage?.type === 'attachment') {
         actions.addMessages([goodMessage])
         let ordinal = goodMessage.ordinal
-        if (goodMessage.outboxID && !messageMap.get(ordinal)) {
-          const pendingOrdinal = pendingOutboxToOrdinal.get(goodMessage.outboxID)
+        if (goodMessage.outboxID && !threadStore.getState().messageMap.get(ordinal)) {
+          const pendingOrdinal = threadStore.getState().pendingOutboxToOrdinal.get(goodMessage.outboxID)
           if (pendingOrdinal) {
             ordinal = pendingOrdinal
           }
@@ -475,7 +471,7 @@ export const useConversationAttachmentActions = () => {
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
     showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
-      const existing = messageMap.get(ordinal)
+      const existing = threadStore.getState().messageMap.get(ordinal)
       const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)
       if (initialMessage) {
         showAttachmentPreview(conversationIDKey, initialMessage)

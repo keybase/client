@@ -58,7 +58,14 @@ type Item = {
 type Section = {title: string; data: ReadonlyArray<Item>}
 
 function SettingsNav() {
-  const badgeNumbers = useNotifState(s => s.navBadges)
+  // Narrow to the three tabs shown here so chat/team badge churn doesn't re-render settings
+  const badgeNumbers = useNotifState(
+    C.useShallow(s => ({
+      devices: s.navBadges.get(C.Tabs.devicesTab),
+      git: s.navBadges.get(C.Tabs.gitTab),
+      settings: s.navBadges.get(C.Tabs.settingsTab),
+    }))
+  )
   const badgeNotifications = usePushState(s => !s.hasPermissions)
   const statsShown = useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.Router2.navigateAppend
@@ -78,7 +85,7 @@ function SettingsNav() {
           text: 'Crypto',
         },
         {
-          badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
+          badgeNumber: badgeNumbers.devices,
           icon: 'iconfont-nav-2-devices',
           onClick: () => {
             navigateAppend({name: Settings.settingsDevicesTab, params: {}})
@@ -86,7 +93,7 @@ function SettingsNav() {
           text: 'Devices',
         },
         {
-          badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
+          badgeNumber: badgeNumbers.git,
           icon: 'iconfont-nav-2-git',
           onClick: () => {
             navigateAppend({name: Settings.settingsGitTab, params: {}})
@@ -106,7 +113,7 @@ function SettingsNav() {
     {
       data: [
         {
-          badgeNumber: badgeNumbers.get(C.Tabs.settingsTab),
+          badgeNumber: badgeNumbers.settings,
           onClick: () => {
             navigateAppend({name: Settings.settingsAccountTab, params: {}})
           },

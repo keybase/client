@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import CommandMarkdown from '../../command-markdown'
@@ -23,10 +22,10 @@ import {
   useConversationThreadToggleSearch,
   useThreadMeta,
 } from '../../thread-context'
-import {useConversationParticipants} from '../../data-hooks'
+import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
-import {metasReceived, unboxRows} from '@/chat/inbox/metadata'
+import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -44,7 +43,7 @@ const useHintText = (p: {
       teamname: m.teamname,
     }))
   )
-  const participantInfoName = useConversationParticipants(conversationIDKey).name
+  const participantInfoName = useConversationParticipantsSelector(conversationIDKey, p => p.name)
   if (isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
@@ -143,7 +142,17 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const replyToMessage = useConversationThreadMessage(uiData.replyTo)
   const conversationIDKey = useConversationThreadID()
   const explodingMode = useConversationThreadSelector(s => s.explodingMode)
-  const meta = useThreadMeta(m => m)
+  const meta = useThreadMeta(
+    C.useShallow(m => ({
+      cannotWrite: m.cannotWrite,
+      conversationIDKey: m.conversationIDKey,
+      draft: m.draft,
+      minWriterRole: m.minWriterRole,
+      retentionPolicy: m.retentionPolicy,
+      teamRetentionPolicy: m.teamRetentionPolicy,
+      tlfname: m.tlfname,
+    }))
+  )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
   const {cannotWrite, minWriterRole, tlfname} = meta
   const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)
@@ -151,7 +160,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     : new Uint8Array(0)
   const metaGood = meta.conversationIDKey === conversationIDKey
   const storeDraft = metaGood ? meta.draft : undefined
-  const convRetention = Chat.getEffectiveRetentionPolicy(meta)
+  const convRetention =
+    meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
   const explodingModeSecondsRaw =
     convRetention.type === 'explode' ? Math.min(explodingMode || Infinity, convRetention.seconds) : explodingMode
   const showReplyPreview = !!replyToMessage?.id
@@ -208,7 +218,10 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     // Immediately update local meta.draft so switching back to this thread
     // before the async unbox completes won't re-inject the old stale draft.
     // Merges from the current meta (same inbox version), so force past gating.
-    metasReceived([{...meta, draft: text}], undefined, {force: true})
+    const currentMeta = useInboxMetadataState.getState().metas.get(conversationIDKey)
+    if (currentMeta) {
+      metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
+    }
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
         conversationID: convoID,

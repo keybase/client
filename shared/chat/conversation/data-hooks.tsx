@@ -64,7 +64,10 @@ const activityConversationIDKey = (activity: T.RPCChat.ChatActivity) => {
   }
 }
 
-const useConversationMetadataReload = (conversationIDKey: T.Chat.ConversationIDKey) => {
+// Arms the meta/participants reload listeners for a conversation. The conversation
+// screen root (ConversationInner) owns this; narrow readers should use the reload-free
+// selector hooks below instead of useConversationMetadata.
+export const useConversationMetadataReload = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const reload = React.useEffectEvent(() => {
     reloadConversationMetadata(conversationIDKey)
   })
@@ -137,6 +140,20 @@ export const useConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey)
 
 export const useConversationParticipants = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConversationMetadata(conversationIDKey).participants
+
+// Reload-free narrow reads. Unlike useConversationMetadata these neither subscribe to
+// the whole meta/participants objects (whose identity changes on every send) nor arm
+// a per-mount copy of the reload listeners. Wrap object results in C.useShallow.
+export const useConversationMetaSelector = <TValue,>(
+  conversationIDKey: T.Chat.ConversationIDKey,
+  selector: (meta: T.Immutable<T.Chat.ConversationMeta>) => TValue
+): TValue => useInboxMetadataState(s => selector(s.metas.get(conversationIDKey) ?? emptyConversationMeta))
+
+export const useConversationParticipantsSelector = <TValue,>(
+  conversationIDKey: T.Chat.ConversationIDKey,
+  selector: (participants: T.Chat.ParticipantInfo) => TValue
+): TValue =>
+  useInboxMetadataState(s => selector(s.participants.get(conversationIDKey) ?? emptyParticipantInfo))
 
 export const useConversationExplodingMode = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConfigState(state => getExplodingModeFromGregorItems(conversationIDKey, state.gregorPushState) ?? 0)

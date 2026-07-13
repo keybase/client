@@ -79,13 +79,14 @@ static NSString *kbSetupGuiConfig(void) {
 }
 
 // Built once; safe because fsPaths and KeybaseInit are set up in the app
-// delegate before React Native creates this module.
+// delegate before React Native creates this module. guiConfig is NOT cached
+// here: it changes at runtime (route persistence), so getTypedConstants
+// re-reads it per call.
 static NSDictionary *kbConstants(void) {
   static NSDictionary *constants = nil;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     NSString *serverConfig = kbSetupServerConfig();
-    NSString *guiConfig = kbSetupGuiConfig();
 
     NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     if (appVersionString == nil) {
@@ -111,7 +112,6 @@ static NSDictionary *kbConstants(void) {
       @"darkModeSupported" : @YES,
       @"fsCacheDir" : cacheDir,
       @"fsDownloadDir" : downloadDir,
-      @"guiConfig" : guiConfig,
       @"serverConfig" : serverConfig,
       @"uses24HourClock" : @(kbUses24HourClockForLocale(currentLocale)),
       @"version" : kbVersion
@@ -265,7 +265,12 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
-  return kbConstants();
+  // gui_config.json changes at runtime (route persistence), and JS re-reads
+  // these constants on a dev reload; a launch-time snapshot would restore a
+  // stale route, so read it fresh on every call.
+  NSMutableDictionary *constants = [kbConstants() mutableCopy];
+  constants[@"guiConfig"] = kbSetupGuiConfig();
+  return constants;
 }
 
 RCT_EXPORT_METHOD(shareListenersRegistered) {

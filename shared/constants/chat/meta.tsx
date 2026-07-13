@@ -1,5 +1,5 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
-import {shallowEqual} from '../utils'
+import isEqual from 'lodash/isEqual'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as Message from './message'
@@ -186,24 +186,23 @@ export const getEffectiveRetentionPolicy = (meta: T.Immutable<T.Chat.Conversatio
   return meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
 }
 
+// Incoming metas are freshly unmarshaled from RPC data, so fields with unchanged
+// content still arrive with new identities (botAliases, commands, pinnedMsg, ...).
+// Reuse the old value for any deep-equal field so subscriber selectors can bail on
+// reference checks instead of re-rendering.
 const copyOverOldValuesIfEqual = (
   oldMeta: T.Immutable<T.Chat.ConversationMeta>,
   newMeta: T.Immutable<T.Chat.ConversationMeta>
-) => {
-  const merged = {...newMeta}
-  if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
-    merged.rekeyers = oldMeta.rekeyers
+): T.Immutable<T.Chat.ConversationMeta> => {
+  const merged: Record<string, unknown> = {...newMeta}
+  for (const key of Object.keys(merged)) {
+    const oldValue = (oldMeta as Record<string, unknown>)[key]
+    const newValue = merged[key]
+    if (newValue !== oldValue && isEqual(newValue, oldValue)) {
+      merged[key] = oldValue
+    }
   }
-  if (shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
-    merged.resetParticipants = oldMeta.resetParticipants
-  }
-  if (shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
-    merged.retentionPolicy = oldMeta.retentionPolicy
-  }
-  if (shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
-    merged.teamRetentionPolicy = oldMeta.teamRetentionPolicy
-  }
-  return merged
+  return merged as T.Immutable<T.Chat.ConversationMeta>
 }
 
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components

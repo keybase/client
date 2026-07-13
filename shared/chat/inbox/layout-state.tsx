@@ -37,6 +37,32 @@ const hasInboxRows = (layout: T.RPCChat.UIInboxLayout) =>
 export const isEmptyInboxLayout = (layout: T.RPCChat.UIInboxLayout | undefined) =>
   !!layout && (layout.smallTeams || []).length === 0 && (layout.bigTeams || []).length === 0
 
+// A fresh layout arrives on every incoming message, usually with most rows unchanged.
+// Reuse the prior row objects that deep-equal their replacements so per-row selectors
+// (getSmallLayoutRow / getBigLayoutChannelRow) keep identity and visible rows can bail.
+const bigRowKey = (r: T.Immutable<T.RPCChat.UIInboxBigTeamRow>) =>
+  r.state === T.RPCChat.UIInboxBigTeamRowTyp.channel ? `c:${r.channel.convID}` : `l:${r.label.id}`
+
+const recycleLayoutRows = (
+  old: T.Immutable<T.RPCChat.UIInboxLayout> | undefined,
+  next: T.RPCChat.UIInboxLayout
+): T.RPCChat.UIInboxLayout => {
+  if (!old) {
+    return next
+  }
+  const oldSmall = new Map(old.smallTeams?.map(r => [r.convID, r]) ?? [])
+  const smallTeams = next.smallTeams?.map(r => {
+    const o = oldSmall.get(r.convID)
+    return o && isEqual(o, r) ? (o as T.RPCChat.UIInboxSmallTeamRow) : r
+  })
+  const oldBig = new Map(old.bigTeams?.map(r => [bigRowKey(r), r]) ?? [])
+  const bigTeams = next.bigTeams?.map(r => {
+    const o = oldBig.get(bigRowKey(r))
+    return o && isEqual(o, r) ? (o as T.RPCChat.UIInboxBigTeamRow) : r
+  })
+  return {...next, bigTeams, smallTeams}
+}
+
 export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (set, get) => {
   const requestInboxLayout = async (reason: T.Chat.RefreshReason) => {
     const {username} = useCurrentUserState.getState()
@@ -68,30 +94,32 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
       })
     },
     updateLayout: str => {
-      set(s => {
-        try {
-          const _layout = JSON.parse(str) as unknown
-          if (!_layout || typeof _layout !== 'object') {
-            logger.warn(
-              `Invalid inbox layout JSON: expected object, got ${_layout === null ? 'null' : typeof _layout}`
-            )
-            return
-          }
-          const layout = _layout as T.RPCChat.UIInboxLayout
-          // Compare against committed state, not the draft: immer 11.1.9 sanitizes
-          // constructor/prototype access on drafts (prototype-pollution fix),
-          // making lodash isEqual throw a proxy-invariant TypeError.
-          if (!isEqual(get().layout, layout)) {
-            s.layout = T.castDraft(layout)
+      try {
+        const _layout = JSON.parse(str) as unknown
+        if (!_layout || typeof _layout !== 'object') {
+          logger.warn(
+            `Invalid inbox layout JSON: expected object, got ${_layout === null ? 'null' : typeof _layout}`
+          )
+          return
+        }
+        const layout = _layout as T.RPCChat.UIInboxLayout
+        // Compare against committed state, not the draft: immer 11.1.9 sanitizes
+        // constructor/prototype access on drafts (prototype-pollution fix),
+        // making lodash isEqual throw a proxy-invariant TypeError.
+        const prev = get().layout
+        const changed = !isEqual(prev, layout)
+        set(s => {
+          if (changed) {
+            s.layout = T.castDraft(recycleLayoutRows(prev, layout))
           }
           s.hasLoaded = !!layout
           if (hasInboxRows(layout)) {
             s.retriedOnCurrentEmpty = false
           }
-        } catch (e) {
-          logger.warn('failed to JSON parse inbox layout', e)
-        }
-      })
+        })
+      } catch (e) {
+        logger.warn('failed to JSON parse inbox layout', e)
+      }
     },
   }
   return {

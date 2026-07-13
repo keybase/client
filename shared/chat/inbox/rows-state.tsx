@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {useShallow} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {
@@ -52,6 +53,40 @@ export type InboxRowSmall = {
 type Meta = T.Immutable<T.Chat.ConversationMeta> | undefined
 type ParticipantInfo = T.Immutable<T.Chat.ParticipantInfo> | undefined
 
+// The row computations read a subset of meta. Subscribing to just these fields (not
+// the meta object, whose identity changes on every version bump / send) lets visible
+// rows bail unless something they show actually changed.
+type SmallRowMeta =
+  | Pick<
+      NonNullable<Meta>,
+      | 'draft'
+      | 'isMuted'
+      | 'membershipType'
+      | 'rekeyers'
+      | 'resetParticipants'
+      | 'snippet'
+      | 'snippetDecorated'
+      | 'snippetDecoration'
+      | 'teamname'
+      | 'timestamp'
+      | 'trustedState'
+      | 'wasFinalizedBy'
+    >
+  | undefined
+type BigRowMeta =
+  | Pick<
+      NonNullable<Meta>,
+      | 'channelname'
+      | 'draft'
+      | 'isMuted'
+      | 'snippet'
+      | 'snippetDecorated'
+      | 'snippetDecoration'
+      | 'teamname'
+      | 'trustedState'
+    >
+  | undefined
+
 const buildTypingSnippet = (typing?: ReadonlySet<string>): string => {
   if (!typing?.size) {
     return ''
@@ -82,7 +117,7 @@ const isMetaTrusted = (trustedState: T.Chat.MetaTrustedState) =>
 const computeSmallRow = (
   id: string,
   you: string,
-  meta: Meta,
+  meta: SmallRowMeta,
   participantInfo: ParticipantInfo,
   layoutRow: SmallLayoutRow | undefined,
   counts: BadgeCounts | undefined,
@@ -147,7 +182,7 @@ const computeSmallRow = (
 }
 
 const computeBigRow = (
-  meta: Meta,
+  meta: BigRowMeta,
   layoutChannel: BigLayoutChannelRow | undefined,
   counts: BadgeCounts | undefined
 ): InboxRowBig => {
@@ -175,7 +210,27 @@ const computeBigRow = (
 
 export const useInboxRowSmall = (id: string): InboxRowSmall => {
   const you = useCurrentUserState(s => s.username)
-  const meta = useInboxMetadataState(s => s.metas.get(id))
+  const meta = useInboxMetadataState(
+    useShallow((s): SmallRowMeta => {
+      const m = s.metas.get(id)
+      return (
+        m && {
+          draft: m.draft,
+          isMuted: m.isMuted,
+          membershipType: m.membershipType,
+          rekeyers: m.rekeyers,
+          resetParticipants: m.resetParticipants,
+          snippet: m.snippet,
+          snippetDecorated: m.snippetDecorated,
+          snippetDecoration: m.snippetDecoration,
+          teamname: m.teamname,
+          timestamp: m.timestamp,
+          trustedState: m.trustedState,
+          wasFinalizedBy: m.wasFinalizedBy,
+        }
+      )
+    })
+  )
   const participantInfo = useInboxMetadataState(s => s.participants.get(id))
   const layoutRow = useInboxLayoutState(s => getSmallLayoutRow(s, id))
   const counts = useInboxBadgeState(s => s.counts.get(id))
@@ -186,8 +241,35 @@ export const useInboxRowSmall = (id: string): InboxRowSmall => {
   )
 }
 
+// Narrow muted read for callers (swipe actions) that don't need the full row —
+// three primitive subscriptions instead of the six-slice computeSmallRow.
+export const useInboxRowIsMuted = (id: string): boolean => {
+  const metaIsMuted = useInboxMetadataState(s => s.metas.get(id)?.isMuted ?? false)
+  const metaTrusted = useInboxMetadataState(s =>
+    isMetaTrusted(s.metas.get(id)?.trustedState ?? 'untrusted')
+  )
+  const layoutIsMuted = useInboxLayoutState(s => getSmallLayoutRow(s, id)?.isMuted)
+  return !metaTrusted && layoutIsMuted !== undefined ? layoutIsMuted : metaIsMuted
+}
+
 export const useInboxRowBig = (id: string): InboxRowBig => {
-  const meta = useInboxMetadataState(s => s.metas.get(id))
+  const meta = useInboxMetadataState(
+    useShallow((s): BigRowMeta => {
+      const m = s.metas.get(id)
+      return (
+        m && {
+          channelname: m.channelname,
+          draft: m.draft,
+          isMuted: m.isMuted,
+          snippet: m.snippet,
+          snippetDecorated: m.snippetDecorated,
+          snippetDecoration: m.snippetDecoration,
+          teamname: m.teamname,
+          trustedState: m.trustedState,
+        }
+      )
+    })
+  )
   const layoutChannel = useInboxLayoutState(s => getBigLayoutChannelRow(s, id))
   const counts = useInboxBadgeState(s => s.counts.get(id))
   return React.useMemo(() => computeBigRow(meta, layoutChannel, counts), [meta, layoutChannel, counts])

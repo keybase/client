@@ -309,12 +309,6 @@ const usePeoplePageState = () => {
   const [newItems, setNewItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
   const [oldItems, setOldItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
   const [resentEmail, setResentEmail] = React.useState('')
-  const {followers, following} = useFollowerState(
-    C.useShallow(s => ({
-      followers: s.followers,
-      following: s.following,
-    }))
-  )
   const dismissAnnouncementRPC = C.useRPC(T.RPCGen.homeHomeDismissAnnouncementRpcPromise)
   const skipTodoRPC = C.useRPC(T.RPCGen.homeHomeSkipTodoTypeRpcPromise)
   const mountedRef = React.useRef(true)
@@ -334,6 +328,7 @@ const usePeoplePageState = () => {
             return
           }
 
+          const {followers, following} = useFollowerState.getState()
           const nextState = reducePeopleScreenData(data, followers, following)
           setFollowSuggestions(s =>
             isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions

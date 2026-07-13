@@ -12,7 +12,7 @@ import {
   useConversationThreadSelector,
   useThreadMeta,
 } from '../thread-context'
-import {useConversationParticipants} from '../data-hooks'
+import {useConversationParticipantsSelector} from '../data-hooks'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -126,7 +126,7 @@ function SpecialTopMessage() {
       teamType: m.teamType,
     }))
   )
-  const participants = useConversationParticipants(conversationIDKey)
+  const partAll = useConversationParticipantsSelector(conversationIDKey, p => p.all)
   const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
   const pendingState =
     conversationIDKey === T.Chat.pendingWaitingConversationIDKey
@@ -135,7 +135,6 @@ function SpecialTopMessage() {
         ? 'error'
         : 'done'
 
-  const partAll = participants.all
   const partNum = partAll.length
   const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
   const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)

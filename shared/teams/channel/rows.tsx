@@ -33,13 +33,13 @@ type Props = {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, participantInfo, teamID, username} = props
-  const infoMap = useUsersState(s => s.infoMap)
+  const userFullname = useUsersState(s => s.infoMap.get(username)?.fullname)
   const {selectedMembers: channelSelectedMembers, setMemberSelected: channelSetMemberSelected} =
     useChannelSelectionState()
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const teamMemberInfo = teamDetails.members.get(username) ?? Teams.initialMemberInfo
   const you = useCurrentUserState(s => s.username)
-  const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
+  const fullname = userFullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
   const disabledReasons = getRolePickerDisabledReasons({

@@ -8,6 +8,7 @@ import Rekey from './rekey/container'
 import type {ThreadSearchRouteProps} from './thread-search-route'
 import type * as T from '@/constants/types'
 import {BadgeHeaderUpdater} from './header-area'
+import {useConversationMetadataReload} from './data-hooks'
 import {LiveConversationThreadProvider, useConversationThreadID, useThreadMeta} from './thread-context'
 
 type Props = ThreadSearchRouteProps & {
@@ -26,6 +27,9 @@ const Conversation = function Conversation(props: Props) {
 
 const ConversationInner = function ConversationInner() {
   const conversationIDKey = useConversationThreadID()
+  // Single owner of the meta/participants reload listeners for this screen; the
+  // header/banner/input consumers read via the reload-free selector hooks.
+  useConversationMetadataReload(conversationIDKey)
   const meta = useThreadMeta(
     C.useShallow(m => ({
       membershipType: m.membershipType,
