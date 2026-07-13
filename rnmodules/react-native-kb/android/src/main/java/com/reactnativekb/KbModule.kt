@@ -102,7 +102,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         val versionName: String,
         val cacheDir: String,
         val downloadDir: String,
-        val guiConfig: String?,
         val serverConfig: String,
         val uses24HourClock: Boolean,
         val version: String,
@@ -132,7 +131,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             versionName = getBuildConfigValue("VERSION_NAME").toString(),
             cacheDir = reactContext.cacheDir?.absolutePath ?: "",
             downloadDir = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath ?: "",
-            guiConfig = readGuiConfig(),
             serverConfig = serverConfig,
             uses24HourClock = DateFormat.is24HourFormat(reactContext),
             version = version(),
@@ -150,7 +148,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         constants.putBoolean("darkModeSupported", false)
         constants.putString("fsCacheDir", c.cacheDir)
         constants.putString("fsDownloadDir", c.downloadDir)
-        constants.putString("guiConfig", c.guiConfig)
+        // gui_config.json changes at runtime (route persistence), and JS re-reads
+        // these constants on a dev reload; read it fresh so a reload doesn't
+        // restore a stale launch-time route.
+        constants.putString("guiConfig", readGuiConfig())
         constants.putString("serverConfig", c.serverConfig)
         constants.putBoolean("uses24HourClock", c.uses24HourClock)
         constants.putString("version", c.version)
