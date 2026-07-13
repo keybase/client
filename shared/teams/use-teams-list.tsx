@@ -1,4 +1,6 @@
 import * as C from '@/constants'
+import type {DebouncedFunc} from 'lodash'
+import debounce from 'lodash/debounce'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
@@ -86,10 +88,25 @@ const useReloadOnTeamChanges = (
   invalidationListeners: Set<() => void>,
   includeMetadataUpdate = false
 ) => {
-  const onChange = () => {
+  const reloadNow = React.useEffectEvent(() => {
     if (enabled) {
       void reload()
     }
+  })
+  // service notifications arrive in bursts (one logical change can fire metadata,
+  // role map, and changedByID); coalesce so a burst costs one reload + one
+  // waiting-key flip instead of one per event
+  const debouncedReloadRef = React.useRef<DebouncedFunc<() => void> | null>(null)
+  if (debouncedReloadRef.current == null) {
+    debouncedReloadRef.current = debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
+  }
+  React.useEffect(() => {
+    return () => {
+      debouncedReloadRef.current?.cancel()
+    }
+  }, [])
+  const onChange = () => {
+    debouncedReloadRef.current?.()
   }
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (includeMetadataUpdate) {
