@@ -413,6 +413,9 @@ const appTabsScreenOptions = (
 ) => {
   return {
     headerShown: false,
+    // native bottom-tabs defaults lazy to false and background-mounts every
+    // hidden tab shortly after startup; only mount tabs on first focus
+    lazy: true,
     overrideScrollViewContentInsetAdjustmentBehavior: true,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {

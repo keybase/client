@@ -206,15 +206,17 @@ export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
   )
 }
 
+const noopLoad = async () => {}
+
+// Fall back to the module cache instead of throwing: fast refresh re-evaluates
+// this module and briefly splits the context identity between the mounted
+// provider and refreshed consumers, and popup portals render outside the
+// provider (see useTeamsRoleMap below).
 export const useTeamsList = (): TeamsList => {
   const context = React.useContext(TeamsListContext)
-  if (!context) {
-    throw new Error('useTeamsList must be used within LoadedTeamsListProvider')
-  }
-  return context
+  const fallback = React.useMemo(() => ({reload: noopLoad, teams: teamsListCache.getData()}), [])
+  return context ?? fallback
 }
-
-const noopLoad = async () => {}
 
 // useTeamsRoleMap and useTeamsListMap are reachable from mobile popup portals
 // (popup-root and the bottom-sheet host are siblings to the router, outside
