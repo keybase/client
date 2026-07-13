@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -43,6 +44,23 @@ const teamsRoleMapCache = createCachedResourceCache<T.RPCGen.TeamRoleMapAndVersi
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]
+}
+
+// Incoming team chat messages fire teamMetadataUpdate, which reloads this list; the
+// result is usually deep-equal to what we have. Reuse prior identities (the whole
+// array when nothing changed) so context consumers like TeamsRoot can bail.
+const recycleTeamList = (
+  old: ReadonlyArray<T.Teams.TeamMeta>,
+  next: Array<T.Teams.TeamMeta>
+): ReadonlyArray<T.Teams.TeamMeta> => {
+  if (old.length === next.length && next.every((t, i) => isEqual(t, old[i]))) {
+    return old
+  }
+  const oldByID = new Map(old.map(t => [t.id, t]))
+  return next.map(t => {
+    const o = oldByID.get(t.id)
+    return o && isEqual(o, t) ? o : t
+  })
 }
 
 const invalidateCachedResource = <T, K>(cache: CachedResourceCache<T, K>, nextKey: K) => {
@@ -110,7 +128,7 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
       new Promise<ReadonlyArray<T.Teams.TeamMeta>>((resolve, reject) => {
         loadTeamsRPC(
           [{includeImplicitTeams: false, userAssertion: username}, C.waitingKeyTeamsLoaded],
-          result => resolve(teamListToArray(result.teams ?? [])),
+          result => resolve(recycleTeamList(teamsListCache.getData(), teamListToArray(result.teams ?? []))),
           error => reject(ensureError(error))
         )
       }),
