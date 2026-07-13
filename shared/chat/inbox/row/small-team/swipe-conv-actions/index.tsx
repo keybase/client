@@ -13,7 +13,7 @@ type Props = {
 }
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {useOpenedRowState} from '../../opened-row-state'
-import {useInboxRowSmall} from '@/chat/inbox/rows-state'
+import {useInboxRowIsMuted} from '@/chat/inbox/rows-state'
 import {hideConversation, markConversationUnread, muteConversation} from '@/chat/conversation/status-actions'
 
 const actionWidth = 64
@@ -52,7 +52,7 @@ function SwipeConvActions(p: Props) {
   const wasOpenRef = React.useRef(isOpened)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
   const swipeableRef = React.useRef<SwipeableMethods | null>(null)
-  const isMuted = useInboxRowSmall(conversationIDKey).isMuted
+  const isMuted = useInboxRowIsMuted(conversationIDKey)
 
   React.useLayoutEffect(() => {
     swipeableRef.current?.reset()

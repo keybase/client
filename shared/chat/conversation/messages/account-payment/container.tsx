@@ -65,13 +65,19 @@ const getRequestMessageInfo = (
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = useCurrentUserState(s => s.username)
-  const accountsInfoMap = useConversationThreadSelector(s => s.accountsInfoMap)
+  // Derive this message's info inside the selector so the row only re-renders when
+  // its own entry changes, not on any accountsInfoMap identity churn.
+  const messageInfo = useConversationThreadSelector(s =>
+    ownProps.message.type === 'sendPayment'
+      ? Chat.getPaymentMessageInfo(s.accountsInfoMap, ownProps.message)
+      : getRequestMessageInfo(s.accountsInfoMap, ownProps.message)
+  )
 
   const stateProps = (() => {
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
-        const paymentInfo = Chat.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
+        const paymentInfo = messageInfo as T.Chat.ChatPaymentInfo | undefined
         if (!paymentInfo) {
           // waiting for service to load it (missed service cache on loading thread)
           return loadingProps
@@ -103,7 +109,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       }
       case 'requestPayment': {
         const message = ownProps.message
-        const requestInfo = getRequestMessageInfo(accountsInfoMap, message)
+        const requestInfo = messageInfo as T.Chat.ChatRequestInfo | undefined
         if (!requestInfo) {
           // waiting for service to load it
           return loadingProps

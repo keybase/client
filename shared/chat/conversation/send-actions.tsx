@@ -1,15 +1,14 @@
-import * as C from '@/constants'
 import * as Common from '@/constants/chat/common'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './attachment-actions'
+import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
   useConversationThreadActions,
   useConversationThreadID,
-  useConversationThreadSelector,
-  useThreadMeta,
+  useConversationThreadStore,
 } from './thread-context'
 
 type SendTextParams = {
@@ -83,18 +82,17 @@ export const sendTextToConversation = (
 export const useConversationSendActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
-  const {explodingMode, messageMap, messageOrdinals} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      explodingMode: s.explodingMode,
-      messageMap: s.messageMap,
-      messageOrdinals: s.messageOrdinals,
-    }))
-  )
-  const meta = useThreadMeta(C.useShallow(m => ({tlfname: m.tlfname})))
-  const clientPrev = getClientPrevFromThread(messageMap, messageOrdinals)
+  // Callbacks-only hook: read thread/meta state lazily so per-row callers
+  // (coinflip rows, the input provider) don't re-render on thread churn.
+  const threadStore = useConversationThreadStore()
+  const getTlfName = () => useInboxMetadataState.getState().metas.get(conversationIDKey)?.tlfname ?? ''
+  const getClientPrev = () => {
+    const {messageMap, messageOrdinals} = threadStore.getState()
+    return getClientPrevFromThread(messageMap, messageOrdinals)
+  }
 
   const editMessage = (ordinal: T.Chat.Ordinal, text: string) => {
-    const message = messageMap.get(ordinal)
+    const message = threadStore.getState().messageMap.get(ordinal)
     if (message?.type !== 'text' && message?.type !== 'attachment') {
       return
     }
@@ -108,7 +106,7 @@ export const useConversationSendActions = () => {
     const f = async () => {
       await T.RPCChat.localPostEditNonblockRpcPromise({
         body: text,
-        clientPrev,
+        clientPrev: getClientPrev(),
         conversationID: T.Chat.keyToConversationID(conversationIDKey),
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
         outboxID: Common.generateOutboxID(),
@@ -116,7 +114,7 @@ export const useConversationSendActions = () => {
           messageID: message.id,
           outboxID: message.outboxID ? T.Chat.outboxIDToRpcOutboxID(message.outboxID) : undefined,
         },
-        tlfName: meta.tlfname,
+        tlfName: getTlfName(),
         tlfPublic: false,
       })
     }
@@ -137,15 +135,15 @@ export const useConversationSendActions = () => {
       return
     }
     const replyToOrdinal = context?.replyToOrdinal
-    const replyTo = messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
+    const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
     sendTextMessageStoreless({
-      clientPrev,
+      clientPrev: getClientPrev(),
       conversationIDKey,
-      ephemeralLifetime: explodingMode,
+      ephemeralLifetime: threadStore.getState().explodingMode,
       onRestoreText: context?.onRestoreText,
       replyTo,
       text,
-      tlfName: meta.tlfname,
+      tlfName: getTlfName(),
     })
   }
 
@@ -154,14 +152,14 @@ export const useConversationSendActions = () => {
       try {
         await T.RPCChat.localTrackGiphySelectRpcPromise({result})
       } catch {}
-      const replyTo = messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
+      const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
       sendTextMessageStoreless({
-        clientPrev,
+        clientPrev: getClientPrev(),
         conversationIDKey,
-        ephemeralLifetime: explodingMode,
+        ephemeralLifetime: threadStore.getState().explodingMode,
         replyTo,
         text: result.targetUrl,
-        tlfName: meta.tlfname,
+        tlfName: getTlfName(),
       })
     }
     ignorePromise(f())
@@ -169,12 +167,14 @@ export const useConversationSendActions = () => {
 
   const sendAudioRecording = async (path: string, duration: number, amps: ReadonlyArray<number>) => {
     const outboxID = Common.generateOutboxID()
-    if (!meta.tlfname) {
+    const tlfName = getTlfName()
+    if (!tlfName) {
       logger.warn('sendAudioRecording: no meta for send')
       return
     }
 
     const callerPreview = await T.RPCChat.localMakeAudioPreviewRpcPromise({amps, duration})
+    const explodingMode = threadStore.getState().explodingMode
     const ephemeralData = explodingMode !== 0 ? {ephemeralLifetime: explodingMode} : {}
     try {
       await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
@@ -187,10 +187,10 @@ export const useConversationSendActions = () => {
           metadata: new Uint8Array(),
           outboxID,
           title: '',
-          tlfName: meta.tlfname,
+          tlfName,
           visibility: T.RPCGen.TLFVisibility.private,
         },
-        clientPrev,
+        clientPrev: getClientPrev(),
       })
     } catch (error) {
       if (error instanceof RPCError) {

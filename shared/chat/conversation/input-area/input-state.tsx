@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadInputAction} from '@/constants/router'
@@ -6,7 +5,7 @@ import {findLast} from '@/util/arrays'
 import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search-route'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useConversationThreadSelector} from '../thread-context'
+import {useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 
 type ConversationInputStore = T.Immutable<{
@@ -114,9 +113,9 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const {children, id} = p
   const routeInputAction = useChatThreadRouteParams()?.inputAction
   const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
-  const {messageMap, messageOrdinals} = useConversationThreadSelector(
-    C.useShallow(s => ({messageMap: s.messageMap, messageOrdinals: s.messageOrdinals}))
-  )
+  // Only setEditing reads thread state, so read it lazily instead of subscribing —
+  // a subscription here re-renders the whole input subtree on every thread change.
+  const threadStore = useConversationThreadStore()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
 
   const injectIntoInput = React.useEffectEvent((text?: string, focus?: boolean) => {
@@ -146,6 +145,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       return
     }
 
+    const {messageMap, messageOrdinals} = threadStore.getState()
     let ordinal: T.Chat.Ordinal | undefined
     if (e === 'last') {
       const editLastUser = useCurrentUserState.getState().username

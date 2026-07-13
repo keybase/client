@@ -5,7 +5,6 @@ import {useTeamsList} from '@/teams/use-teams-list'
 import {useConfigState} from '@/stores/config'
 
 const ShowcaseTeamOffer = () => {
-  const waiting = C.useWaitingState(s => s.counts)
   const {reload, teams} = useTeamsList()
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
   const setMemberPublicity = C.useRPC(T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise)
@@ -38,7 +37,7 @@ const ShowcaseTeamOffer = () => {
             membercount={teamMeta.memberCount}
             onPromote={promoted => onPromote(teamMeta.id, promoted)}
             showcased={teamMeta.showcasing}
-            waiting={!!waiting.get(C.waitingKeyTeamsTeam(teamMeta.id))}
+            teamID={teamMeta.id}
           />
         ))}
       </Kb.ScrollView>
@@ -53,12 +52,13 @@ type RowProps = {
   membercount: number
   onPromote: (promote: boolean) => void
   showcased: boolean
-  waiting: boolean
+  teamID: T.Teams.TeamID
   isExplicitMember: boolean
 }
 
 const TeamRow = (p: RowProps) => {
-  const {canShowcase, name, isOpen, membercount, onPromote, showcased, waiting, isExplicitMember} = p
+  const {canShowcase, name, isOpen, membercount, onPromote, showcased, teamID, isExplicitMember} = p
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsTeam(teamID))
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" style={styles.teamRowShowcaseTeamOffer}>

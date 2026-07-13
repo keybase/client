@@ -186,6 +186,17 @@ export const useInboxRowSmall = (id: string): InboxRowSmall => {
   )
 }
 
+// Narrow muted read for callers (swipe actions) that don't need the full row —
+// three primitive subscriptions instead of the six-slice computeSmallRow.
+export const useInboxRowIsMuted = (id: string): boolean => {
+  const metaIsMuted = useInboxMetadataState(s => s.metas.get(id)?.isMuted ?? false)
+  const metaTrusted = useInboxMetadataState(s =>
+    isMetaTrusted(s.metas.get(id)?.trustedState ?? 'untrusted')
+  )
+  const layoutIsMuted = useInboxLayoutState(s => getSmallLayoutRow(s, id)?.isMuted)
+  return !metaTrusted && layoutIsMuted !== undefined ? layoutIsMuted : metaIsMuted
+}
+
 export const useInboxRowBig = (id: string): InboxRowBig => {
   const meta = useInboxMetadataState(s => s.metas.get(id))
   const layoutChannel = useInboxLayoutState(s => getBigLayoutChannelRow(s, id))
