@@ -17,7 +17,7 @@ import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
-import {useConversationMetadata} from '../data-hooks'
+import {useConversationMetaSelector, useConversationParticipantsSelector} from '../data-hooks'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {muteConversation} from '../status-actions'
 import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from '@/chat/inbox/layout-state'
@@ -75,7 +75,11 @@ const useLayoutFallbackNames = (conversationIDKey: T.Chat.ConversationIDKey) =>
 
 const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
   const {conversationIDKey} = props
-  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const meta = useConversationMetaSelector(
+    conversationIDKey,
+    C.useShallow(m => ({channelname: m.channelname, teamname: m.teamname}))
+  )
+  const participantNames = useConversationParticipantsSelector(conversationIDKey, p => p.name)
   const fallback = useLayoutFallbackNames(conversationIDKey)
   const teamname = meta.teamname || fallback.bigTeamname || (fallback.smallIsTeam ? fallback.smallName : '')
   if (teamname) {
@@ -89,8 +93,8 @@ const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: He
   }
   // the small-row name is the tlf name (comma-joined usernames, includes you), matching
   // participants.name semantics
-  const participants = participantInfo.name.length
-    ? participantInfo.name
+  const participants = participantNames.length
+    ? participantNames
     : fallback.smallName
       ? fallback.smallName
           .split(',')
@@ -317,7 +321,7 @@ const shhIconFontSize = 24
 
 const ShhIcon = function ShhIcon(props: HeaderConversationProps) {
   const {conversationIDKey} = props
-  const isMuted = useConversationMetadata(conversationIDKey).meta.isMuted
+  const isMuted = useConversationMetaSelector(conversationIDKey, m => m.isMuted)
   const unMuteConversation = () => {
     muteConversation(conversationIDKey, false)
   }
@@ -346,7 +350,10 @@ const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
 
 const ChannelHeader = (props: HeaderConversationProps & {teamname: string; channelname: string}) => {
   const {conversationIDKey, teamname, channelname} = props
-  const {teamType, teamID} = useConversationMetadata(conversationIDKey).meta
+  const {teamType, teamID} = useConversationMetaSelector(
+    conversationIDKey,
+    C.useShallow(m => ({teamID: m.teamID, teamType: m.teamType}))
+  )
   // teamType is 'adhoc' when the meta hasn't loaded yet (we only render on layout-fallback
   // names then); a big-team layout row is the only fallback that carries a channelname
   const smallTeam = teamType !== 'adhoc' ? teamType !== 'big' : !channelname
@@ -395,11 +402,10 @@ type HeaderParticipantsProps = HeaderConversationProps & {participants: Readonly
 const UsernameHeader = (props: HeaderParticipantsProps) => {
   const {conversationIDKey, participants} = props
   const you = useCurrentUserState(s => s.username)
-  const infoMap = useUsersState(s => s.infoMap)
-  const theirFullname =
-    participants.length === 2
-      ? participants.filter(username => username !== you).map(username => infoMap.get(username)?.fullname)[0]
-      : undefined
+  const theirUsername = participants.length === 2 ? participants.find(username => username !== you) : undefined
+  const theirFullname = useUsersState(s =>
+    theirUsername ? s.infoMap.get(theirUsername)?.fullname : undefined
+  )
   const onShowProfile = (username: string) => {
     navToProfile(username)
   }
@@ -436,10 +442,9 @@ const UsernameHeader = (props: HeaderParticipantsProps) => {
 
 const PhoneOrEmailHeader = (props: HeaderParticipantsProps) => {
   const {conversationIDKey, participants} = props
-  const {participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
-  const name = participantInfo.contactName.get(phoneOrEmail)
+  const name = useConversationParticipantsSelector(conversationIDKey, p => p.contactName.get(phoneOrEmail))
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
   return (
     <Kb.Box2

@@ -13,7 +13,7 @@ import {
   useConversationThreadSelector,
   useThreadMeta,
 } from '../conversation/thread-context'
-import {useConversationParticipants} from '../conversation/data-hooks'
+import {useConversationParticipantsSelector} from '../conversation/data-hooks'
 
 const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
   const f = async () => {
@@ -31,21 +31,23 @@ const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
 const BlockButtons = () => {
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
-  const {messageMap, messageOrdinals} = useConversationThreadSelector(
-    C.useShallow(s => ({
-      messageMap: s.messageMap,
-      messageOrdinals: s.messageOrdinals,
-    }))
-  )
   const {team, teamID, tlfname} = useThreadMeta(
     C.useShallow(m => ({team: m.teamname, teamID: m.teamID, tlfname: m.tlfname}))
   )
-  const participantInfo = useConversationParticipants(conversationIDKey)
+  const participantInfo = useConversationParticipantsSelector(
+    conversationIDKey,
+    C.useShallow(p => ({all: p.all, name: p.name}))
+  )
   const blockButtonInfo = useBlockButtonsInfo(teamID)
   const currentUser = useCurrentUserState(s => s.username)
-  const hasOwnMessage =
-    !!currentUser &&
-    [...(messageOrdinals ?? [])].some(ordinal => messageMap.get(ordinal)?.author === currentUser)
+  // Derive the boolean in the selector so thread churn only re-renders this when the
+  // answer flips; skip the scan entirely for the common no-block-buttons case.
+  const hasOwnMessage = useConversationThreadSelector(
+    s =>
+      !!blockButtonInfo &&
+      !!currentUser &&
+      (s.messageOrdinals ?? []).some(ordinal => s.messageMap.get(ordinal)?.author === currentUser)
+  )
 
   React.useEffect(() => {
     if (hasOwnMessage && blockButtonInfo && teamID) {

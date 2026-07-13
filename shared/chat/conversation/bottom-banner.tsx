@@ -9,7 +9,7 @@ import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
 import {useConversationThreadID, useThreadMeta} from './thread-context'
-import {useConversationParticipants} from './data-hooks'
+import {useConversationParticipantsSelector} from './data-hooks'
 
 type Store = T.Immutable<{
   inviteBannerDismissed: Set<T.Chat.ConversationIDKey>
@@ -47,8 +47,10 @@ const installMessage = `I sent you encrypted messages on Keybase. You can instal
 const Invite = (props: {onDismiss: () => void}) => {
   const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
   const conversationIDKey = useConversationThreadID()
-  const participantInfo = useConversationParticipants(conversationIDKey)
-  const participantInfoAll = participantInfo.all
+  const {all: participantInfoAll, contactName: usernameToContactName} = useConversationParticipantsSelector(
+    conversationIDKey,
+    C.useShallow(p => ({all: p.all, contactName: p.contactName}))
+  )
   const users = participantInfoAll.filter(p => p.includes('@'))
 
   const openShareSheet = () => {
@@ -65,8 +67,6 @@ const Invite = (props: {onDismiss: () => void}) => {
       .then(() => {})
       .catch(() => {})
   }
-
-  const usernameToContactName = participantInfo.contactName
 
   const theirName =
     users.length === 1
@@ -145,11 +145,10 @@ const BannerContainerInner = function BannerContainerInner(props: {
     }))
   )
   const meta = useThreadMeta(C.useShallow(m => ({isEmpty: m.isEmpty, teamType: m.teamType})))
-  const participantInfo = useConversationParticipants(conversationIDKey)
+  const participantInfoAll = useConversationParticipantsSelector(conversationIDKey, p => p.all)
   if (meta.teamType !== 'adhoc') {
     return null
   }
-  const participantInfoAll = participantInfo.all
   const brokenUsers = participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
   if (brokenUsers.length > 0) {
     return <Kb.ProofBrokenBanner users={brokenUsers} />

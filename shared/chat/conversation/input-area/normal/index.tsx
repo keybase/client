@@ -23,7 +23,7 @@ import {
   useConversationThreadToggleSearch,
   useThreadMeta,
 } from '../../thread-context'
-import {useConversationParticipants} from '../../data-hooks'
+import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows} from '@/chat/inbox/metadata'
@@ -44,7 +44,7 @@ const useHintText = (p: {
       teamname: m.teamname,
     }))
   )
-  const participantInfoName = useConversationParticipants(conversationIDKey).name
+  const participantInfoName = useConversationParticipantsSelector(conversationIDKey, p => p.name)
   if (isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
