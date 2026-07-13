@@ -40,16 +40,23 @@ export const metasReceived = (
   // can't clobber newer data (previously done by the thread store). Compute
   // against getState() (not the immer draft) so updateMeta never sees a proxy.
   const current = useInboxMetadataState.getState().metas
-  const nextMetas = metas.map(m => {
-    const old = force ? undefined : current.get(m.conversationIDKey)
-    return old ? Meta.updateMeta(old, m) : m
-  })
+  // Drop metas updateMeta resolved to the existing object so we don't wake
+  // subscribers when nothing changed.
+  const changedMetas = metas
+    .map(m => {
+      const old = force ? undefined : current.get(m.conversationIDKey)
+      return old ? Meta.updateMeta(old, m) : m
+    })
+    .filter(next => current.get(next.conversationIDKey) !== next)
+  if (!changedMetas.length && !removals?.length) {
+    return
+  }
   useInboxMetadataState.setState(s => {
     removals?.forEach(r => {
       s.metas.delete(r)
       s.participants.delete(r)
     })
-    nextMetas.forEach(next => {
+    changedMetas.forEach(next => {
       s.metas.set(next.conversationIDKey, T.castDraft(next))
     })
   })
