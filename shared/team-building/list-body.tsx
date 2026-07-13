@@ -475,7 +475,6 @@ export const ListBody = ({
         itemHeight={{height: isMobile ? 64 : 48, type: 'fixed'}}
         renderItem={(index: number, result: (typeof searchResults)[number]) => (
           <ResultRow
-            key={result.username}
             resultForService={selectedService}
             username={result.username}
             prettyName={result.prettyName}
