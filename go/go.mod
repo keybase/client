@@ -207,7 +207,7 @@ replace (
 	//   2. dotgit setref recovery: restore original ref file on lock/close
 	//      failure, hardening for KBFS networked filesystem (KBFS-3703).
 	// Fork also preserves FetchOptions.PackRefs from the v4 Keybase fork.
-	github.com/go-git/go-git/v5 => github.com/keybase/go-git/v5 v5.19.1-keybase.1
+	github.com/go-git/go-git/v5 => github.com/keybase/go-git/v5 v5.19.1-keybase.2
 	github.com/stellar/go => github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7
 	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20221007195407-9881c0c26e65
 	mvdan.cc/xurls/v2 => github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c

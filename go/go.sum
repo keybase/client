@@ -280,8 +280,8 @@ github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4 h1:cTxwSmnaqLoo+
 github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4/go.mod h1:ghbZscTyKdM07+Fw3KSi0hcJm+AlEUWj8QLlPtijN/M=
 github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260106202536-6fa26d73bebe h1:mRTYEeU5q0A50JOD96wiEoMa5PV4pgxXUY0wfyZtkYA=
 github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260106202536-6fa26d73bebe/go.mod h1:igAKryvRYOzFLczzsJayMErJr76ZljHMsiaib9DW2Y8=
-github.com/keybase/go-git/v5 v5.19.1-keybase.1 h1:jWq57IVdB7oQERAFR8VsNi3L4GaoG68d6i1BwrKJiQI=
-github.com/keybase/go-git/v5 v5.19.1-keybase.1/go.mod h1:Pb1v0c7/g8aGQJwx9Us09W85yGoyvSwuhEGMH7zjDKQ=
+github.com/keybase/go-git/v5 v5.19.1-keybase.2 h1:eWORcZumhf16zgVfTwZnG574jPyMaFZjq8AhYk7Xd90=
+github.com/keybase/go-git/v5 v5.19.1-keybase.2/go.mod h1:Pb1v0c7/g8aGQJwx9Us09W85yGoyvSwuhEGMH7zjDKQ=
 github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233 h1:zLk+cB/0ShMCBcgBOXYgellLZiZahXFicJleKyrlqiM=
 github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233/go.mod h1:lofKQwj13L0/7ji5VYaY0257JDlQE2BRRf+rI2Vk1rU=
 github.com/keybase/go-kext v0.0.0-20251211195321-cdcb1aed632b h1:it7gUfUrDrx3WQ65IbDcO4PD8tSUw51bT1Qd4i2OoFk=
