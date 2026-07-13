@@ -94,8 +94,9 @@ const useReloadOnTeamChanges = (
     }
   })
   // service notifications arrive in bursts (one logical change can fire metadata,
-  // role map, and changedByID); coalesce so a burst costs one reload + one
-  // waiting-key flip instead of one per event
+  // role map, and changedByID); coalesce so a burst costs at most a leading and
+  // a trailing reload instead of one per event. Lazy ref init is the sanctioned
+  // create-once exception: a restarted render just recreates the debouncer.
   const debouncedReloadRef = React.useRef<DebouncedFunc<() => void> | null>(null)
   if (debouncedReloadRef.current == null) {
     debouncedReloadRef.current = debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
@@ -214,7 +215,10 @@ const noopLoad = async () => {}
 // provider (see useTeamsRoleMap below).
 export const useTeamsList = (): TeamsList => {
   const context = React.useContext(TeamsListContext)
-  const fallback = React.useMemo(() => ({reload: noopLoad, teams: teamsListCache.getData()}), [])
+  // read the cache every render (not a one-time snapshot) so provider-less
+  // consumers still see fresh data; identity stays stable while data does
+  const teams = teamsListCache.getData()
+  const fallback = React.useMemo(() => ({reload: noopLoad, teams}), [teams])
   return context ?? fallback
 }
 
@@ -224,10 +228,8 @@ export const useTeamsList = (): TeamsList => {
 // throwing. The cache stays fresh because the provider is mounted elsewhere.
 export const useTeamsRoleMap = (): TeamsRoleMap => {
   const context = React.useContext(TeamsRoleMapContext)
-  const fallback = React.useMemo(
-    () => ({loadIfStale: noopLoad, reload: noopLoad, roleMap: teamsRoleMapCache.getData()}),
-    []
-  )
+  const roleMap = teamsRoleMapCache.getData()
+  const fallback = React.useMemo(() => ({loadIfStale: noopLoad, reload: noopLoad, roleMap}), [roleMap])
   return context ?? fallback
 }
 
