@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
@@ -89,4 +90,6 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default TLFContainer
+// memo: fs root rebuilds section data on every FsDataContext write; props are
+// primitives so rows bail
+export default React.memo(TLFContainer)

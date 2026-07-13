@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import * as FS from '@/constants/fs'
@@ -35,4 +36,6 @@ const TLFTypeContainer = (p: OwnProps) => {
   )
 }
 
-export default TLFTypeContainer
+// memo: fs root rebuilds section data on every FsDataContext write; props are
+// primitives so rows bail
+export default React.memo(TLFTypeContainer)

@@ -321,4 +321,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   participantMeta: {...Kb.Styles.padding(3, 6)},
 }))
 
-export default ChannelRow
+// memo: the add-to-channels list rebuilds items per filter keystroke; with
+// canonicalized items and stable handlers the row can bail
+export default React.memo(ChannelRow)

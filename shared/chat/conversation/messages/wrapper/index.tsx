@@ -1,7 +1,7 @@
 import {chatDebugEnabled} from '@/constants/chat/debug'
 import logger from '@/logger'
 import {PerfProfiler} from '@/perf/react-profiler'
-import type * as React from 'react'
+import * as React from 'react'
 import {useConversationThreadSelector} from '../../thread-context'
 import Text from '../text/wrapper'
 import {
@@ -90,7 +90,10 @@ const renderMessageRow = (type: T.Chat.RenderMessageType, p: Props): React.React
   }
 }
 
-export const MessageRow = function MessageRow(p: Props) {
+// React.memo: the thread list calls renderItem outside the compiler's memo
+// graph, so without this every list commit re-renders every visible row.
+// Props are primitives; message content updates arrive via row subscriptions.
+export const MessageRow = React.memo(function MessageRow(p: Props) {
   const {ordinal} = p
   const type = useConversationThreadSelector(s => s.messageTypeMap.get(ordinal) ?? 'text')
   const content = renderMessageRow(type, p)
@@ -104,4 +107,4 @@ export const MessageRow = function MessageRow(p: Props) {
     return null
   }
   return <PerfProfiler id={`Msg-${type}`}>{content}</PerfProfiler>
-}
+})

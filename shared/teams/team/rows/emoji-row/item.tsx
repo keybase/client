@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -153,4 +154,6 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default ItemRow
+// memo: the team screen's section hooks rebuild data arrays per render
+// (e.g. while typing filters); rows have stable/primitive props so they bail
+export default React.memo(ItemRow)

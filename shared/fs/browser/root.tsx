@@ -54,6 +54,22 @@ const getRenderItem = (destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.In
 const renderSectionHeader = ({section}: {section: {key: string; title: string}}) =>
   section.key === 'banner-sfmi' ? <SfmiBanner /> : <Kb.SectionDivider label={section.title} />
 
+// recents are re-derived on every FsDataContext write; reuse item identities
+// so the memoized rows can bail
+const recentItemCache = new Map<string, SectionListItem>()
+const canonRecentItem = (name: string, tlfType: T.FS.TlfType): SectionListItem => {
+  const key = `${tlfType}-${name}`
+  let item = recentItemCache.get(key)
+  if (!item) {
+    if (recentItemCache.size > 4096) {
+      recentItemCache.clear()
+    }
+    item = {name, tlfType}
+    recentItemCache.set(key, item)
+  }
+  return item
+}
+
 const useTopNTlfs = (
   tlfType: T.FS.TlfType,
   tlfs: T.FS.TlfList,
@@ -85,7 +101,7 @@ const useRecentTlfs = (
   const teamTopN = useTopNTlfs(T.FS.TlfType.Team, tlfs.team, n)
   const recent = [...privateTopN, ...publicTopN, ...teamTopN]
     .sort(({tlfMtime: t1}, {tlfMtime: t2}) => t2 - t1)
-    .map(({name, tlfType}) => ({name, tlfType}))
+    .map(({name, tlfType}) => canonRecentItem(name, tlfType))
   const afterFilter =
     // This isn't perfect since it doesn't cover the case where a team TLF
     // could be readonly. But to do that we'd need some new caching in KBFS

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
@@ -209,4 +210,6 @@ const MemberRow = (ownProps: OwnProps) => {
   )
 }
 
-export default MemberRow
+// memo: the team screen's section hooks rebuild data arrays per render
+// (e.g. while typing filters); rows have stable/primitive props so they bail
+export default React.memo(MemberRow)
