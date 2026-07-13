@@ -5,11 +5,11 @@
 package libgit
 
 import (
-	lru "github.com/hashicorp/golang-lru"
-	"github.com/pkg/errors"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/go-git/go-git/v5/storage"
+	lru "github.com/hashicorp/golang-lru"
+	"github.com/pkg/errors"
 )
 
 // OnDemandStorer is a wrapper around a storage.Storer that reads

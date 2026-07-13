@@ -7,10 +7,10 @@ package libgit
 import (
 	"io"
 
-	lru "github.com/hashicorp/golang-lru"
-	"github.com/pkg/errors"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	lru "github.com/hashicorp/golang-lru"
+	"github.com/pkg/errors"
 )
 
 type onDemandObject struct {

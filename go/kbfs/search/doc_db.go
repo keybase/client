@@ -9,13 +9,13 @@ import (
 	"io"
 	"sync"
 
+	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	billy "github.com/go-git/go-billy/v5"
 )
 
 // DocDb is a database that holds metadata about indexed documents.

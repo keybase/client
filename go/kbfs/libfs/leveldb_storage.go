@@ -25,8 +25,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/syndtr/goleveldb/leveldb/storage"
 	billy "github.com/go-git/go-billy/v5"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
 var errReadOnly = errors.New("leveldb/storage: storage is read-only")

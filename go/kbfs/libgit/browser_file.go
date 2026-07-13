@@ -7,9 +7,9 @@ package libgit
 import (
 	"io"
 
-	"github.com/pkg/errors"
 	billy "github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/pkg/errors"
 )
 
 const (

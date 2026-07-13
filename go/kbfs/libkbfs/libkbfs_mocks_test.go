@@ -10,6 +10,7 @@ import (
 	reflect "reflect"
 	time "time"
 
+	billy "github.com/go-git/go-billy/v5"
 	gomock "github.com/golang/mock/gomock"
 	data "github.com/keybase/client/go/kbfs/data"
 	favorites "github.com/keybase/client/go/kbfs/favorites"
@@ -24,7 +25,6 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
-	billy "github.com/go-git/go-billy/v5"
 )
 
 // MockBlockOps is a mock of BlockOps interface.

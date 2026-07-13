@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -24,7 +25,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	billy "github.com/go-git/go-billy/v5"
 )
 
 // FSEventType is FS event type.

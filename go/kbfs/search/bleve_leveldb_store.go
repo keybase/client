@@ -6,6 +6,7 @@ package search
 
 import (
 	"github.com/blevesearch/bleve/index/store"
+	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -13,7 +14,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	billy "github.com/go-git/go-billy/v5"
 )
 
 type bleveLevelDBIterator struct {

@@ -7,8 +7,8 @@ package libgit
 import (
 	"os"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/go-git/go-git/v5/plumbing"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 type browserCacheEntryType int

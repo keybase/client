@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -23,7 +24,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	billy "github.com/go-git/go-billy/v5"
 )
 
 func makeFSWithBranch(t *testing.T, branch data.BranchName, subdir string) (

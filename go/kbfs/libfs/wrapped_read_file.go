@@ -9,10 +9,10 @@ import (
 	"io"
 	"time"
 
+	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
-	billy "github.com/go-git/go-billy/v5"
 )
 
 const (

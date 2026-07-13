@@ -5,13 +5,13 @@
 package libgit
 
 import (
-	"github.com/keybase/client/go/kbfs/libfs"
 	gogitcfg "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/cache"
 	format "github.com/go-git/go-git/v5/plumbing/format/config"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
+	"github.com/keybase/client/go/kbfs/libfs"
 )
 
 // GitConfigWithoutRemotesStorer strips remotes from the config before

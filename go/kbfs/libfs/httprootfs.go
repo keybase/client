@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
 	billy "github.com/go-git/go-billy/v5"
+	"github.com/pkg/errors"
 )
 
 type httpRootFileSystem struct {
