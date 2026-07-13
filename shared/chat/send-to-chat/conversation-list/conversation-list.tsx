@@ -132,9 +132,10 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
               case 'Enter':
                 if (results.length > 0) {
                   const result = results[selected]
+                  // consumers use this as the tlf name (upload tlfName), not the display name
                   onSelect(
                     result?.convID ? T.Chat.conversationIDToKey(result.convID) : '',
-                    result?.name ?? ''
+                    result?.tlfName ?? ''
                   )
                 }
                 break
