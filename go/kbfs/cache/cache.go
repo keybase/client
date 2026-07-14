@@ -93,8 +93,13 @@ func (c *randomEvictedCache) Add(key Measurable, data Measurable) {
 	for c.cachedBytes > c.maxBytes {
 		c.evictOneLocked()
 	}
+	// Check before writing so we know whether to add a c.keys slot.
+	// The key survives if it was already present and not randomly evicted above.
+	_, survived := c.data[key]
 	c.data[key] = memoizedData
-	c.keys = append(c.keys, memoizedKey)
+	if !survived {
+		c.keys = append(c.keys, memoizedKey)
+	}
 }
 
 // lruEvictedCache is a thin layer wrapped around
