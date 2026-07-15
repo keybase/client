@@ -28,15 +28,6 @@ if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
 	s3host="https://s3.amazonaws.com/$bucket_name"
 fi
 
-echo "Cleaning up packaging dir from previous runs"
-rm -rf "$dir/node_modules"
-
-# Ensure we have packaging tools
-yarn install --pure-lockfile --ignore-engines --ignore-scripts
-npm rebuild macos-alias
-npm rebuild fs-xattr
-node_bin="$dir/node_modules/.bin"
-
 app_name=Keybase
 keybase_version=${KEYBASE_VERSION:-}
 kbnm_version=${KBNM_VERSION:-}
@@ -280,15 +271,8 @@ sign() { (
 package_dmg() { (
 	cd "$out_dir"
 	echo "Packaging dmg in $out_dir"
-	appdmg="appdmg.json"
-
-	osx_scripts="$client_dir/osx/Scripts"
-	cp "$osx_scripts/appdmg/$appdmg" .
-	cp "$osx_scripts/appdmg/Background.png" .
-	cp "$icon_path" .
-
 	rm -rf "$dmg_name"
-	"$node_bin/appdmg" "$appdmg" "$dmg_name"
+	"$dir/make_dmg.sh" "$app_name.app" "$dmg_name" "$dir/dmg" "$icon_path"
 ); }
 
 # Notarize the dmg

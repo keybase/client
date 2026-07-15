@@ -3,7 +3,6 @@
 ### Pre-requisites
 
 * cocoapods (`sudo gem install cocoapods -v 1.8.4`)
-* appdmg (`npm install -g appdmg`)
 * xcpretty (`gem install xcpretty`)
 * Xcode command line tools
 
