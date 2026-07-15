@@ -55,23 +55,67 @@ func NewMobilePush(g *globals.Context) *MobilePush {
 
 func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []string) {
 	defer h.Trace(ctx, nil, "AckNotificationSuccess: pushID: %v", pushIDs)()
-	conn, token, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler,
+	ack := NewPushAck(ctx, h.G())
+	defer ack.Shutdown()
+	ack.Ack(ctx, pushIDs)
+}
+
+// PushAck acks push notifications over an ad hoc gregor connection. The ack
+// is what stops the server from delivering its generic fallback notification,
+// so it races the server's timeout: rpc.Connection dials eagerly at
+// construction, so create the PushAck as early as possible to overlap the
+// TLS/auth handshake with unboxing work, then call Ack once the notification
+// has actually been displayed. Always Shutdown when done.
+type PushAck struct {
+	globals.Contextified
+	utils.DebugLabeler
+	conn  *rpc.Connection
+	token gregor1.SessionToken
+	err   error
+}
+
+func NewPushAck(ctx context.Context, g *globals.Context) *PushAck {
+	a := &PushAck{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "PushAck", false),
+	}
+	a.conn, a.token, a.err = utils.GetGregorConn(ctx, g, a.DebugLabeler,
 		func(nist *libkb.NIST) rpc.ConnectionHandler {
 			return &remoteNotificationSuccessHandler{}
 		})
-	if err != nil {
+	return a
+}
+
+func (a *PushAck) Ack(ctx context.Context, pushIDs []string) {
+	defer a.Trace(ctx, nil, "Ack: pushID: %v", pushIDs)()
+	if a.err != nil {
+		a.Debug(ctx, "Ack: no gregor connection: %s", a.err)
 		return
 	}
-	defer conn.Shutdown()
+	cli := chat1.RemoteClient{Cli: NewRemoteClient(a.G(), a.conn.GetClient())}
+	arg := chat1.RemoteNotificationSuccessfulArg{
+		AuthToken:        a.token,
+		CompanionPushIDs: pushIDs,
+	}
+	// Acking is idempotent server-side; retry since a lost ack means the user
+	// gets a duplicate generic notification.
+	for attempt := 0; attempt < 3; attempt++ {
+		err := cli.RemoteNotificationSuccessful(ctx, arg)
+		if err == nil {
+			return
+		}
+		a.Debug(ctx, "Ack: attempt %d failed: %s", attempt, err)
+		select {
+		case <-time.After(time.Second):
+		case <-ctx.Done():
+			return
+		}
+	}
+}
 
-	// Make remote successful call on our ad hoc conn
-	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
-	if err = cli.RemoteNotificationSuccessful(ctx,
-		chat1.RemoteNotificationSuccessfulArg{
-			AuthToken:        token,
-			CompanionPushIDs: pushIDs,
-		}); err != nil {
-		h.Debug(ctx, "AckNotificationSuccess: failed to invoke remote notification success: %s", err)
+func (a *PushAck) Shutdown() {
+	if a.conn != nil {
+		a.conn.Shutdown()
 	}
 }
 

@@ -16,7 +16,6 @@ import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 import com.reactnativekb.KbModule
-import org.json.JSONArray
 import org.json.JSONObject
 
 class KeybasePushNotificationListenerService : FirebaseMessagingService() {
@@ -379,11 +378,11 @@ internal class NotificationData(type: String, bundle: Bundle) {
         } else if (type == "chat.newmessageSilent_2") {
             messageId = bundle.getString("d", "").toIntOrNull() ?: 0
             convID = bundle.getString("c")
-            val pushId: String = try {
-                bundle.getString("p")?.let { JSONArray(it).getString(0) } ?: ""
-            } catch (e: Exception) {
-                ""
-            }
+            // Deliberately don't extract the companion pushId ("p") here: Android
+            // never displays from the silent push (it waits for the visible
+            // chat.newmessage), and acking the pushId would tell the server to
+            // cancel that visible push, so nothing would ever be shown.
+            pushId = ""
         } else {
             throw Error("Tried to parse notification of unhandled type: $type")
         }
