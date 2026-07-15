@@ -98,6 +98,17 @@ if [ -n "$clean" ]; then
 	xcodebuild clean -workspace "Keybase.xcworkspace" -scheme "Keybase"
 fi
 
+# Stale cached profiles shadow the fresh ones sigh downloads when Xcode
+# matches profiles by name (e.g. after annual renewal); park them so only
+# freshly-downloaded profiles are visible.
+profile_backup="$HOME/old-provisioning-profiles/$(date +%Y%m%d-%H%M%S)"
+for profile_dir in "$HOME/Library/MobileDevice/Provisioning Profiles" "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"; do
+	if compgen -G "$profile_dir/*.mobileprovision" >/dev/null; then
+		mkdir -p "$profile_backup"
+		mv "$profile_dir"/*.mobileprovision "$profile_backup/"
+	fi
+done
+
 # fastlane wants these set
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
