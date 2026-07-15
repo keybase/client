@@ -180,7 +180,13 @@ func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 	if err := fs.favs.Shutdown(); err != nil {
 		errors = append(errors, err)
 	}
+	fs.opsLock.RLock()
+	opsList := make([]*folderBranchOps, 0, len(fs.ops))
 	for _, ops := range fs.ops {
+		opsList = append(opsList, ops)
+	}
+	fs.opsLock.RUnlock()
+	for _, ops := range opsList {
 		if err := ops.Shutdown(ctx); err != nil {
 			errors = append(errors, err)
 			// Continue on and try to shut down the other FBOs.

@@ -26,13 +26,14 @@ type UIThreadLoader struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	clock          clockwork.Clock
-	convPageStatus map[chat1.ConvIDStr]chat1.Pagination
-	validatedDelay time.Duration
-	offlineMu      sync.Mutex
-	offline        bool
-	connectedCh    chan struct{}
-	ri             func() chat1.RemoteInterface
+	clock            clockwork.Clock
+	convPageStatusMu sync.Mutex
+	convPageStatus   map[chat1.ConvIDStr]chat1.Pagination
+	validatedDelay   time.Duration
+	offlineMu        sync.Mutex
+	offline          bool
+	connectedCh      chan struct{}
+	ri               func() chat1.RemoteInterface
 
 	activeConvLoadsMu sync.Mutex
 	activeConvLoads   map[chat1.ConvIDStr]context.CancelFunc
@@ -116,6 +117,8 @@ func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat
 		if pagination == nil {
 			return nil
 		}
+		t.convPageStatusMu.Lock()
+		defer t.convPageStatusMu.Unlock()
 		oldStored := t.convPageStatus[convID.ConvIDStr()]
 		if len(pagination.Next) > 0 {
 			return &chat1.Pagination{
@@ -143,6 +146,8 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 		if pagination == nil {
 			return
 		}
+		t.convPageStatusMu.Lock()
+		defer t.convPageStatusMu.Unlock()
 		if incoming.FirstPage() {
 			t.Debug(ctx, "applyPagerModeOutgoing: resetting pagination: convID: %s p: %s", convID, pagination)
 			t.convPageStatus[convID.ConvIDStr()] = *pagination

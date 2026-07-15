@@ -76,6 +76,8 @@ func (i *CachingIdentifyNotifier) ResetOnGUIConnect() {
 }
 
 func (i *CachingIdentifyNotifier) Reset() {
+	i.Lock()
+	defer i.Unlock()
 	i.identCache = make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks)
 }
 

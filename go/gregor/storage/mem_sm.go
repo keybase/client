@@ -351,6 +351,8 @@ func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (gre
 }
 
 func (m *MemEngine) ConsumeLocalDismissal(ctx context.Context, u gregor.UID, msgID gregor.MsgID) error {
+	m.Lock()
+	defer m.Unlock()
 	user := m.getUser(u)
 	user.removeLocalDismissal(msgID)
 	user.localDismissals = append(user.localDismissals, msgID)
@@ -358,12 +360,16 @@ func (m *MemEngine) ConsumeLocalDismissal(ctx context.Context, u gregor.UID, msg
 }
 
 func (m *MemEngine) InitLocalDismissals(ctx context.Context, u gregor.UID, msgIDs []gregor.MsgID) error {
+	m.Lock()
+	defer m.Unlock()
 	user := m.getUser(u)
 	user.localDismissals = msgIDs
 	return nil
 }
 
 func (m *MemEngine) LocalDismissals(ctx context.Context, u gregor.UID) (res []gregor.MsgID, err error) {
+	m.Lock()
+	defer m.Unlock()
 	user := m.getUser(u)
 	return user.localDismissals, nil
 }
@@ -436,6 +442,8 @@ func (m *MemEngine) StateByCategoryPrefix(ctx context.Context, u gregor.UID, d g
 }
 
 func (m *MemEngine) Clear() error {
+	m.Lock()
+	defer m.Unlock()
 	m.users = make(map[string](*user))
 	return nil
 }
