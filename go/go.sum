@@ -312,8 +312,8 @@ github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d h1
 github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d/go.mod h1:X9vCtvYYyA79MN7GvnlYKjIUkxlo5e0uZ+dYL5kTBqg=
 github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef h1:L2+CaOtclKc0vCsSnPVWZVyUaDTQdf1a1oAwqhgVMP8=
 github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef/go.mod h1:fsoZSh32mLpZxN6dpbk+3DiMqMsACDxj7q6ZS381EnQ=
-github.com/keybase/pipeliner v0.0.0-20251211202808-9c182e569d71 h1:jbCo0ZhQI4QoIXSrBalYKb+Hrk6d5CvkV2UCEJrXpA8=
-github.com/keybase/pipeliner v0.0.0-20251211202808-9c182e569d71/go.mod h1:YT8b13LS9QDe45OyX1BFgXD0BRANHm0xauB+LNfV6WM=
+github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee h1:HU7N6AMnAXACmaPuPfV6zFmyC0aE2In2/YtVDIJwYGo=
+github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee/go.mod h1:YT8b13LS9QDe45OyX1BFgXD0BRANHm0xauB+LNfV6WM=
 github.com/keybase/saltpack v0.0.0-20251212154201-989135827042 h1:vtUfBctFZHc3yvvtYVzsZ0ISAKniOJPSoNhJdhEWWuU=
 github.com/keybase/saltpack v0.0.0-20251212154201-989135827042/go.mod h1:/pasLsId9ytjNdOmDknh4TXBv+h1q+xTWgHlP9FdN5A=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7 h1:wOqDICze0HpgV4PfV6m4fWvHV5XZteSgFHrT6KVDOkg=
