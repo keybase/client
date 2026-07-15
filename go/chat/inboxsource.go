@@ -536,7 +536,8 @@ type HybridInboxSource struct {
 	searchStatusMap       map[chat1.ConversationStatus]bool
 	searchMemberStatusMap map[chat1.ConversationMemberStatus]bool
 	// It is sufficient to clear caches once per conversation. Track what conversations we've already cleared for.
-	deleteConvErrCache map[chat1.ConvIDStr]bool
+	deleteConvErrCacheMu sync.Mutex
+	deleteConvErrCache   map[chat1.ConvIDStr]bool
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -579,6 +580,17 @@ func extractConvIDFromError(err error) *chat1.ConversationID {
 	return nil
 }
 
+// markDeleteConvErr records that convID's caches were purged; returns false if already recorded.
+func (s *HybridInboxSource) markDeleteConvErr(cid chat1.ConvIDStr) bool {
+	s.deleteConvErrCacheMu.Lock()
+	defer s.deleteConvErrCacheMu.Unlock()
+	if s.deleteConvErrCache[cid] {
+		return false
+	}
+	s.deleteConvErrCache[cid] = true
+	return true
+}
+
 func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, err *error) {
 	if err != nil && utils.IsDeletedConvError(*err) {
 		cid := convID
@@ -589,11 +601,10 @@ func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, conv
 			cid = extractConvIDFromError(*err)
 		}
 		if cid != nil {
-			if s.deleteConvErrCache[cid.ConvIDStr()] {
+			if !s.markDeleteConvErr(cid.ConvIDStr()) {
 				s.Debug(ctx, "skipping cache purge on: %v for convID: %v, uid: %v", *err, cid, uid)
 				return
 			}
-			s.deleteConvErrCache[cid.ConvIDStr()] = true
 		}
 		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", *err, convID, uid)
 		if ierr := s.G().InboxSource.Clear(ctx, uid, &types.ClearOpts{
