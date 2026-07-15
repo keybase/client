@@ -54,7 +54,7 @@
     "lint:daemon": "eslint_d --cache .",
     "lint:specific": "eslint --cache --quiet ",
     "lint:warn": "eslint .",
-    "modules": "yarn install --pure-lockfile --ignore-optional --ignore-scripts && yarn postinstall",
+    "modules": "yarn install --pure-lockfile --ignore-scripts && yarn postinstall",
     "perf:compare": "node perf/compare-perf.js",
     "perf:inbox:desktop": "node perf/run-desktop-perf.js --flow inbox",
     "perf:inbox:ios": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-inbox-scroll.yaml",
