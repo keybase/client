@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
@@ -443,6 +444,7 @@ func (s *RemoteConversationSource) EphemeralPurge(ctx context.Context, convID ch
 }
 
 type HybridConversationSource struct {
+	sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 	*baseConversationSource
@@ -520,11 +522,17 @@ func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1
 
 func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, err *error) {
 	if err != nil && utils.IsDeletedConvError(*err) {
-		if s.deleteConvErrCache[convID.ConvIDStr()] {
+		s.Lock()
+		alreadyCached := s.deleteConvErrCache[convID.ConvIDStr()]
+		if !alreadyCached {
+			s.deleteConvErrCache[convID.ConvIDStr()] = true
+		}
+		s.Unlock()
+
+		if alreadyCached {
 			s.Debug(ctx, "skipping cache purge on: %v for convID: %v, uid: %v", *err, convID, uid)
 			return
 		}
-		s.deleteConvErrCache[convID.ConvIDStr()] = true
 
 		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", *err, convID, uid)
 		if ierr := s.Clear(ctx, convID, uid, &types.ClearOpts{

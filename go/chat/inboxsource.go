@@ -589,11 +589,17 @@ func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, conv
 			cid = extractConvIDFromError(*err)
 		}
 		if cid != nil {
-			if s.deleteConvErrCache[cid.ConvIDStr()] {
+			s.Lock()
+			alreadyCached := s.deleteConvErrCache[cid.ConvIDStr()]
+			if !alreadyCached {
+				s.deleteConvErrCache[cid.ConvIDStr()] = true
+			}
+			s.Unlock()
+
+			if alreadyCached {
 				s.Debug(ctx, "skipping cache purge on: %v for convID: %v, uid: %v", *err, cid, uid)
 				return
 			}
-			s.deleteConvErrCache[cid.ConvIDStr()] = true
 		}
 		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", *err, convID, uid)
 		if ierr := s.G().InboxSource.Clear(ctx, uid, &types.ClearOpts{
