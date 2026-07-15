@@ -79,9 +79,9 @@ async function startHotLoop() {
   process.env['HOT'] = 'true'
 
   // Imported lazily: pulling vite in at module load would load its rolldown
-  // native binding, which CI (jenkins_test.sh) skips via `yarn --ignore-optional`.
-  // This module is imported by the postinstall helper, so an eager import breaks
-  // `yarn install` on CI. Only the hot dev loop actually needs the bundler.
+  // native binding, which may be absent (installs that prune optional deps).
+  // This module is imported by the postinstall helper, so an eager import would
+  // break `yarn install` there. Only the hot dev loop actually needs the bundler.
   const {createServer, build} = await import('vite')
   const {makeNodeConfig} = await import('../vite.node.mts')
 
