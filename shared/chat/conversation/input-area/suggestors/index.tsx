@@ -8,6 +8,8 @@ import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
 import {useConversationThreadID} from '../../thread-context'
+import {KeyboardStickyView} from 'react-native-keyboard-controller'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -431,6 +433,12 @@ const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
 
   const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
+  const insets = useSafeAreaInsets()
+  // this overlay is portaled to the window root, but the input bar sits
+  // insets.bottom above the window bottom while the keyboard is closed (the
+  // KeyboardStickyView in conversation/normal), so mirror its offsets or the
+  // list covers the input when no keyboard is up
+  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
   return (
     <Kb.Popup
@@ -444,7 +452,17 @@ const Popup = (p: PopupProps) => {
       containerStyle={suggestionOverlayStyle}
       style={suggestionOverlayStyle}
     >
-      {isMobile ? <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2> : children}
+      {isMobile ? (
+        <KeyboardStickyView offset={stickyOffset} pointerEvents="box-none" style={styles.sticky}>
+          {children}
+        </KeyboardStickyView>
+      ) : (
+        children
+      )}
     </Kb.Popup>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  sticky: {flexGrow: 1, flexShrink: 1},
+}))
