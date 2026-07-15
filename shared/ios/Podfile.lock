@@ -1,7 +1,7 @@
 PODS:
-  - EXConstants (57.0.3):
+  - EXConstants (57.0.5):
     - ExpoModulesCore
-  - Expo (57.0.4):
+  - Expo (57.0.6):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -27,53 +27,53 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoAsset (57.0.3):
+  - ExpoAsset (57.0.5):
     - ExpoModulesCore
-  - ExpoAudio (57.0.0):
+  - ExpoAudio (57.0.2):
     - ExpoModulesCore
-  - ExpoCamera (57.0.1):
+  - ExpoCamera (57.0.2):
     - ExpoModulesCore
-  - ExpoCameraBarcodeScanning (57.0.1):
+  - ExpoCameraBarcodeScanning (57.0.2):
     - ExpoCamera
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
-  - ExpoClipboard (57.0.0):
+  - ExpoClipboard (57.0.1):
     - ExpoModulesCore
-  - ExpoContacts (57.0.0):
+  - ExpoContacts (57.0.1):
     - ExpoModulesCore
-  - ExpoDocumentPicker (57.0.0):
+  - ExpoDocumentPicker (57.0.1):
     - ExpoModulesCore
-  - ExpoDomWebView (57.0.0):
+  - ExpoDomWebView (57.0.1):
     - ExpoModulesCore
-  - ExpoFileSystem (57.0.0):
+  - ExpoFileSystem (57.0.1):
     - ExpoModulesCore
-  - ExpoFont (57.0.0):
+  - ExpoFont (57.0.1):
     - ExpoModulesCore
-  - ExpoHaptics (57.0.0):
+  - ExpoHaptics (57.0.1):
     - ExpoModulesCore
-  - ExpoImage (57.0.0):
+  - ExpoImage (57.0.1):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14.6)
-  - ExpoImagePicker (57.0.2):
+  - ExpoImagePicker (57.0.4):
     - ExpoModulesCore
-  - ExpoKeepAwake (57.0.0):
+  - ExpoKeepAwake (57.0.1):
     - ExpoModulesCore
-  - ExpoLocalization (57.0.0):
+  - ExpoLocalization (57.0.1):
     - ExpoModulesCore
-  - ExpoLocation (57.0.2):
+  - ExpoLocation (57.0.4):
     - ExpoModulesCore
-  - ExpoLogBox (57.0.0):
+  - ExpoLogBox (57.0.1):
     - React-Core
-  - ExpoMailComposer (57.0.0):
+  - ExpoMailComposer (57.0.1):
     - ExpoModulesCore
-  - ExpoMediaLibrary (57.0.1):
+  - ExpoMediaLibrary (57.0.2):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (57.0.3):
+  - ExpoModulesCore (57.0.5):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -97,25 +97,25 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoModulesJSI (57.0.1):
+  - ExpoModulesJSI (57.0.3):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (57.0.3):
+  - ExpoModulesWorklets (57.0.5):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (57.0.3):
+  - ExpoModulesWorkletsAdapter (57.0.5):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
     - RNWorklets
-  - ExpoScreenCapture (57.0.0):
+  - ExpoScreenCapture (57.0.1):
     - ExpoModulesCore
-  - ExpoSMS (57.0.0):
+  - ExpoSMS (57.0.1):
     - ExpoModulesCore
-  - ExpoTaskManager (57.0.2):
+  - ExpoTaskManager (57.0.4):
     - ExpoModulesCore
     - UMAppLoader
-  - ExpoVideo (57.0.0):
+  - ExpoVideo (57.0.1):
     - ExpoModulesCore
   - FBLazyVector (0.86.0)
   - hermes-engine (250829098.0.14):
@@ -2503,7 +2503,7 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
-  - UMAppLoader (57.0.0)
+  - UMAppLoader (57.0.1)
   - Yoga (0.0.0)
   - ZXingObjC/Core (3.6.9)
   - ZXingObjC/OneD (3.6.9):
@@ -2890,35 +2890,35 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXConstants: d069b4a2dd469d5a3a4d3d7b09757e708fda8f64
-  Expo: 2e34f4d355050f070fa35720371e15292f574155
-  ExpoAsset: 586e89aeaab2e23bfa90b9dce4d7d5e36815c039
-  ExpoAudio: 4f27c2bc1cc08f003c2af070cedf25fefd9da5bb
-  ExpoCamera: d30fb3af6f5e97d1567c3b2d84413707a78d9005
-  ExpoCameraBarcodeScanning: 0cd97b138b31f7534201816611dd164543429b37
-  ExpoClipboard: 67d46a8be4a50ec610c7b2f4966c0475aec6d969
-  ExpoContacts: 4e010b7cff209604c962f6897678448dc9f0763f
-  ExpoDocumentPicker: 1160f4221c6ed4fed906aad0761549ea163b7a01
-  ExpoDomWebView: 73ba90107a5acc0017a09b06e66d8eb238e089b8
-  ExpoFileSystem: ffcd56066188802f263254b6b2e60f74b6a0bdae
-  ExpoFont: 35fd7ad72f697d3a9656545909972d8b9f60d5da
-  ExpoHaptics: c6d063c3bfda1c1d6d7fdf237ffb612c4fc09954
-  ExpoImage: 65b2a2279aab4791eb242156a4bd9b891fab8d12
-  ExpoImagePicker: 27f4e9a5d797abc31c75237362f90ac012d1a8fe
-  ExpoKeepAwake: 8a96e2075b75641001f55393d7e6600a5b808f09
-  ExpoLocalization: 543cb852ec9d4a6c732344f94ebd96d18897eaab
-  ExpoLocation: f0127974a6e1edfb1ea255f55604addb51d020b5
-  ExpoLogBox: b39a76aab749833d58111c3be1264bb90f3b92d4
-  ExpoMailComposer: 93f4d65c12dd45331f69e0906773aa0e7b74344c
-  ExpoMediaLibrary: 2fa3d1b3a7681a010602c36c547819e0e83970b9
-  ExpoModulesCore: eb922febf780be514adcd27bebfde9553177dd81
-  ExpoModulesJSI: f87a4c062180ad858523df636ecc7bee1261926a
-  ExpoModulesWorklets: f6b71b8ddeb8dceb2ce3504544ecfbd708ba79a2
-  ExpoModulesWorkletsAdapter: 186d0ad02a6c6b8ffc948ddb16a6fd79858f2015
-  ExpoScreenCapture: e57406cb4c4bd0f492d3856d4afaaefae3e22ffa
-  ExpoSMS: a9a72f0704eaf5084dc091d270edaf93eb019bc6
-  ExpoTaskManager: 1314e194160dc3a2b5142342c7b30e92d1abcfa0
-  ExpoVideo: 11cd8703a21fbeb87980017f6912c1f3145dad52
+  EXConstants: 12c2e6c69e21f3469f78f102072320fef2af46e3
+  Expo: e49f1653acab5dca03b45b8915c35a5df665457a
+  ExpoAsset: 05797403b7ab18f56ea9ab1026ef8475f8457ed4
+  ExpoAudio: c306e13ec127338d78b85899d5c22af875921eb7
+  ExpoCamera: 53ac7eb0a13e6b8eb0f65d48ac0568457ffda8e4
+  ExpoCameraBarcodeScanning: 1e39ba647f7360870fa6cec2cc5863acd362f74a
+  ExpoClipboard: 95055b11758f339b61d4d8064dd799df1cf03b7f
+  ExpoContacts: 12cee0514b3e89c32d6f646575efaf2f18614462
+  ExpoDocumentPicker: 6fb67a6f39ba9beb53a4b4a3f2949e0b5e9bc3bf
+  ExpoDomWebView: beaec034e51bd028428b98bb1f2633ab79c6d095
+  ExpoFileSystem: e441dae0ae671fc451640517550973d9e024fdf0
+  ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
+  ExpoHaptics: 4503d2da51ff7109712ccdfe0e4939f66818183e
+  ExpoImage: 4c1e7634db6033185a98959fb028d8d4b1c89695
+  ExpoImagePicker: 8b7c5b39c8e5b268ee12339a811c7b2bcbe71c54
+  ExpoKeepAwake: c26f14275017370cc8a4b7b43a0e23361f2053a5
+  ExpoLocalization: 659243b03b3a3e9589793cee2f728a899e181329
+  ExpoLocation: 795a56c2220390baeeaeb9ce9d0bcef6395d0dec
+  ExpoLogBox: 8a3cfa2897e088083cd49fc1ff7fdb2de4385547
+  ExpoMailComposer: 101933dc6bdb4d7a46495d1dd87420365325adb9
+  ExpoMediaLibrary: 971b91aca41f14072517074bf3ce29078311d167
+  ExpoModulesCore: d8d32807df2c58d4bdebc36968f501cd38cd8182
+  ExpoModulesJSI: 1abe88b923f2233ea75be46693611add7136b3a9
+  ExpoModulesWorklets: 18419b65da3b14a8df484baccec7dd6dad15387a
+  ExpoModulesWorkletsAdapter: 6f1b45802dc6def919dc409f284fb1fd13c936e4
+  ExpoScreenCapture: 1728376b2a32a05dc1f6bae6a8d19b1bd33926f9
+  ExpoSMS: ac35f6c85b72ee5b18a7c6bb06550fbd4a683775
+  ExpoTaskManager: b81cf71cc9b043ca23dc37e2d505d8d702ffc4c2
+  ExpoVideo: 50bc4d4739c754ce05d551a96bd39a2ca0a73a9d
   FBLazyVector: b3e7ad108f0d882e30445c5527d774e3fd432f3d
   hermes-engine: 2b837c67b75a68d60d0bc14cf21df1ae9c6c315e
   KBCommon: bd1f35bb07924f4cc57417b00dab6734747b6423
@@ -3016,7 +3016,7 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
-  UMAppLoader: 6cb9f7f40f458bab7fbf7d8a4a4c95aa8016ce0b
+  UMAppLoader: 173cb90a3039aa9c1b84bace4487e1907a4a5a39
   Yoga: c30c859b7e9b75e547b600b486fe33165f60de00
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
