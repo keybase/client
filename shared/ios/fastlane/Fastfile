@@ -36,9 +36,30 @@ platform :ios do
       in_house: false # optional but may be required if using match/sigh
     )
 
-    sigh(app_identifier: "keybase.ios")
-    sigh(app_identifier: "keybase.ios.KeybaseShare")
-    gym(scheme: "Keybase") # Build your app - more options available
+    # Profile names must match PROVISIONING_PROFILE_SPECIFIER in
+    # Keybase.xcodeproj: Release archives use manual distribution signing,
+    # so nothing here depends on development profiles or a signed-in Xcode.
+    sigh(
+      app_identifier: "keybase.ios",
+      provisioning_name: "keybase.ios AppStore",
+      ignore_profiles_with_different_name: true
+    )
+    sigh(
+      app_identifier: "keybase.ios.KeybaseShare",
+      provisioning_name: "keybase.ios.KeybaseShare AppStore",
+      ignore_profiles_with_different_name: true
+    )
+    gym(
+      scheme: "Keybase",
+      export_method: "app-store",
+      export_options: {
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "keybase.ios" => "keybase.ios AppStore",
+          "keybase.ios.KeybaseShare" => "keybase.ios.KeybaseShare AppStore"
+        }
+      }
+    )
     pilot(
         api_key: api_key,
         changelog: changelog_from_git_commits(
