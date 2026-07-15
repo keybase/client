@@ -414,6 +414,26 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 		wg.Add(1)
 		tlfID := tlfID
 		tj := tj
+		// Compute the branch here while j.lock is still held; the
+		// goroutine below outlives it.
+		branch := data.MasterBranch
+		if tj.overrideTlfID != tlf.NullID {
+			// Find the conflict key.
+			for k, v := range j.clearedConflictTlfs {
+				if tj.overrideTlfID != v.fakeTlfID {
+					continue
+				}
+
+				ext, err := tlf.NewHandleExtension(
+					tlf.HandleExtensionLocalConflict, k.num, "", k.date)
+				if err != nil {
+					j.log.CWarningf(ctx, "Error making extension: %+v", err)
+					continue
+				}
+
+				branch = data.MakeConflictBranchNameFromExtension(ext)
+			}
+		}
 		go func() {
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, j.log)
@@ -428,25 +448,6 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 			defer wg.Done()
 			j.log.CDebugf(ctx,
 				"Initializing FBO for non-empty journal: %s", tlfID)
-
-			branch := data.MasterBranch
-			if tj.overrideTlfID != tlf.NullID {
-				// Find the conflict key.
-				for k, v := range j.clearedConflictTlfs {
-					if tj.overrideTlfID != v.fakeTlfID {
-						continue
-					}
-
-					ext, err := tlf.NewHandleExtension(
-						tlf.HandleExtensionLocalConflict, k.num, "", k.date)
-					if err != nil {
-						j.log.CWarningf(ctx, "Error making extension: %+v", err)
-						continue
-					}
-
-					branch = data.MakeConflictBranchNameFromExtension(ext)
-				}
-			}
 
 			err = j.makeFBOForJournal(ctx, tj, tlfID, branch)
 			if err != nil {
