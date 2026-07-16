@@ -36,7 +36,7 @@ require (
 	github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260106202536-6fa26d73bebe
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260716172057-7ea9dea1ac39
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
 	github.com/keybase/go-kext v0.0.0-20251211195321-cdcb1aed632b
 	github.com/keybase/go-keychain v0.0.2-0.20251211175755-d1c5bf371db7
@@ -152,7 +152,7 @@ require (
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/keybase/msgpackzip v0.0.0-20251211192551-92e2da32c96f // indirect
+	github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef // indirect
 	github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
