@@ -1,4 +1,5 @@
 const {getDefaultConfig} = require('expo/metro-config')
+const {getBundleModeMetroConfig} = require('react-native-worklets/bundleMode')
 const path = require('path')
 const ignoredModules = require('./ignored-modules')
 const desktopOnlyModules = require('./desktop-only-modules')
@@ -48,4 +49,18 @@ config.resolver.blockList = [
   new RegExp(`^${rootRe}/tools/`),
 ]
 
-module.exports = config
+// Worklets Bundle Mode needs every runtime to share one complete bundle, but
+// RCTBundleURLProvider hardcodes lazy=true for dev requests and the worklet
+// runtimes never receive lazy chunk deltas. Force non-lazy serving here.
+const prevRewriteRequestUrl = config.server.rewriteRequestUrl
+config.server = {
+  ...config.server,
+  rewriteRequestUrl: url => {
+    const rewritten = prevRewriteRequestUrl ? prevRewriteRequestUrl(url) : url
+    return rewritten.replace(/([?&])lazy=true/, '$1lazy=false')
+  },
+}
+
+// Bundle Mode: chains our resolveRequest behind the worklets shims, pre-loads
+// worklet entry points, and pins module ids so all runtimes share the bundle.
+module.exports = getBundleModeMetroConfig(config)

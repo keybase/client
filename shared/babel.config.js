@@ -33,13 +33,28 @@ const makeElectronConfig = platformPlugin => ({
   ],
 })
 
+// Worklets Bundle Mode: we pass options to the worklets plugin ourselves, so the
+// preset's auto-added (optionless) copy must be disabled via worklets/reanimated: false.
+const workletsPlugin = ['react-native-worklets/plugin', {bundleMode: true, strictGlobal: true}]
+
 const makeReactNativeConfig = platformPlugin => ({
   plugins: [
     reactCompilerPlugin, // must run first!
     moduleResolverPlugin,
     platformPlugin,
+    workletsPlugin,
   ],
-  presets: [['babel-preset-expo', {unstable_transformImportMeta: true, jsxRuntime: 'automatic'}]],
+  presets: [
+    [
+      'babel-preset-expo',
+      {
+        jsxRuntime: 'automatic',
+        reanimated: false,
+        unstable_transformImportMeta: true,
+        worklets: false,
+      },
+    ],
+  ],
   sourceMaps: true,
 })
 
