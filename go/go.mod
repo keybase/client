@@ -50,7 +50,7 @@ require (
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
-	github.com/keybase/pipeliner v0.0.0-20251211202808-9c182e569d71
+	github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee
 	github.com/keybase/saltpack v0.0.0-20251212154201-989135827042
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
