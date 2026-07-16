@@ -278,8 +278,8 @@ github.com/keybase/go-codec v0.0.0-20180928230036-164397562123 h1:yg56lYPqh9suJe
 github.com/keybase/go-codec v0.0.0-20180928230036-164397562123/go.mod h1:r/eVVWCngg6TsFV/3HuS9sWhDkAzGG8mXhiuYA+Z/20=
 github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4 h1:cTxwSmnaqLoo+4tLukHoB9iqHOu3LmLhRmgUxZo6Vp4=
 github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4/go.mod h1:ghbZscTyKdM07+Fw3KSi0hcJm+AlEUWj8QLlPtijN/M=
-github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260106202536-6fa26d73bebe h1:mRTYEeU5q0A50JOD96wiEoMa5PV4pgxXUY0wfyZtkYA=
-github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260106202536-6fa26d73bebe/go.mod h1:igAKryvRYOzFLczzsJayMErJr76ZljHMsiaib9DW2Y8=
+github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260716172057-7ea9dea1ac39 h1:44rJN2wGCD9Rg/EyCaqCOkMUKBtTQwpwvO+0q0kbmcY=
+github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260716172057-7ea9dea1ac39/go.mod h1:u20rnJvcex2+HAgMNGvFIBRTWbG8qAgjHcA8u60Wz2Q=
 github.com/keybase/go-git/v5 v5.19.1-keybase.2 h1:eWORcZumhf16zgVfTwZnG574jPyMaFZjq8AhYk7Xd90=
 github.com/keybase/go-git/v5 v5.19.1-keybase.2/go.mod h1:Pb1v0c7/g8aGQJwx9Us09W85yGoyvSwuhEGMH7zjDKQ=
 github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233 h1:zLk+cB/0ShMCBcgBOXYgellLZiZahXFicJleKyrlqiM=
@@ -310,8 +310,8 @@ github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353 h1:7+JGi0kc98ugL6
 github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353/go.mod h1:LJNWKEO+J6j4hj9xQWPWnNT8344YyuGKiSCjyJAAmbI=
 github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d h1:AuV96cODzV3oEHhMcNr+7t2RxfxkAV6WpCWlKLP4mOo=
 github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d/go.mod h1:X9vCtvYYyA79MN7GvnlYKjIUkxlo5e0uZ+dYL5kTBqg=
-github.com/keybase/msgpackzip v0.0.0-20251211192551-92e2da32c96f h1:UVXvoLUzoklPpid3WlHsm/nnITJCt53dYbKP1/4XHnw=
-github.com/keybase/msgpackzip v0.0.0-20251211192551-92e2da32c96f/go.mod h1:fsoZSh32mLpZxN6dpbk+3DiMqMsACDxj7q6ZS381EnQ=
+github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef h1:L2+CaOtclKc0vCsSnPVWZVyUaDTQdf1a1oAwqhgVMP8=
+github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef/go.mod h1:fsoZSh32mLpZxN6dpbk+3DiMqMsACDxj7q6ZS381EnQ=
 github.com/keybase/pipeliner v0.0.0-20251211202808-9c182e569d71 h1:jbCo0ZhQI4QoIXSrBalYKb+Hrk6d5CvkV2UCEJrXpA8=
 github.com/keybase/pipeliner v0.0.0-20251211202808-9c182e569d71/go.mod h1:YT8b13LS9QDe45OyX1BFgXD0BRANHm0xauB+LNfV6WM=
 github.com/keybase/saltpack v0.0.0-20251212154201-989135827042 h1:vtUfBctFZHc3yvvtYVzsZ0ISAKniOJPSoNhJdhEWWuU=
