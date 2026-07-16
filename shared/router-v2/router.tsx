@@ -451,10 +451,25 @@ const appTabsScreenOptions = (
 
 let NativeRootComponent: React.ComponentType
 
+// State for fast account switching via tab long press
+let _pendingFastSwitchTab: string | undefined
+
 if (isMobile) {
   // Created inside the isMobile guard: on desktop @react-navigation/bottom-tabs is
   // aliased to the null module, so calling it at module scope would crash startup.
   const NativeTab = createBottomTabNavigator()
+
+  const handleTabLongPress = (tab: Tabs.Tab) => {
+    if (tab !== Tabs.peopleTab) return
+    const accountRows = useConfigState.getState().configuredAccounts
+    const current = C.useCurrentUserState.getState().username
+    const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+    if (row) {
+      _pendingFastSwitchTab = C.Router2.getTab() ?? undefined
+      useConfigState.getState().dispatch.setUserSwitching(true)
+      useConfigState.getState().dispatch.login(row.username, '')
+    }
+  }
 
   function AppTabsNative() {
     const navBadges = useNotifState(s => s.navBadges)
@@ -469,6 +484,9 @@ if (isMobile) {
             name={tab}
             component={nativeTabComponents[tab]!}
             options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
+            listeners={{
+              tabLongPress: () => handleTabLongPress(tab),
+            }}
           />
         ))}
       </NativeTab.Navigator>
@@ -597,6 +615,25 @@ function NativeRouter() {
       return {barStyle, isDarkMode}
     })
   )
+
+  // Restore tab after account switch via long press
+  React.useEffect(() => {
+    if (!loggedIn) return
+    const tab = _pendingFastSwitchTab
+    if (!tab) return
+    _pendingFastSwitchTab = undefined
+    let attempts = 0
+    const trySwitch = () => {
+      if (attempts++ > 20) return
+      if (C.Router2.getTab()) {
+        C.Router2.switchTab(tab as Tabs.AppTab)
+      } else {
+        setTimeout(trySwitch, 100)
+      }
+    }
+    trySwitch()
+  }, [loggedIn])
+
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   // Android also remounts on dark mode changes
   const nativeIsDarkMode = useColorScheme() === 'dark'
