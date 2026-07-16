@@ -1,6 +1,6 @@
 ---
 name: update-dependencies
-description: Use when updating npm/yarn dependencies in shared/package.json. Use for routine dep bumps, security updates, or keeping packages current.
+description: Use when updating npm/yarn dependencies in shared/package.json, protocol/, or rnmodules/react-native-kb/. Use for routine dep bumps, security updates, or keeping packages current.
 ---
 
 # Updating Dependencies
@@ -114,6 +114,8 @@ This runs `yarn audit --json`, dedupes the advisories, and cross-references `yar
 - **DIRECT** — the vulnerable package is in our `package.json`. Bump it there (exact version), run `yarn`.
 - **LOCKFILE** — transitive, and the patched version satisfies every range that requires it. Delete the listed entry block(s) from `yarn.lock` (the entry key line plus its indented lines), then run `yarn` — it re-resolves to the patched version with no `package.json` change.
 - **RESOLUTION** — transitive, but the patched version is outside the range the parent accepts. Bumping the **direct dependency that pulls it in** (first segment of the `via:` path) is the better fix when possible — but if you already brought direct deps current in steps 1–4, a still-flagged advisory means no released parent fixes it yet (confirm with `npm view <parent> dependencies` only if you skipped updating that parent). Then add the suggested `resolutions` entry. Prefer scoping it to the vulnerable parent (e.g. `"xcode/uuid"`) over a blanket `"**/uuid"` when some installed copies are already on a safe version — forcing a major-version jump on every consumer risks breaking ones that were fine. If ALL installed versions are vulnerable (the `installed:` line lists every copy), a blanket `**/` resolution is correct and covers them all with one entry. If multiple advisories suggest different versions for the same module, add ONE resolution entry with the highest version.
+
+  Yarn 1 gotchas for scoped resolutions: write the scope as `"**/xcode/uuid"` — the documented bare `"xcode/uuid"` form is silently ignored. And a resolution alone does NOT rewrite an existing lockfile entry: delete the stale entry block (e.g. `uuid@^7.0.3:`) from `yarn.lock` and re-run `yarn` so the range re-resolves through the resolution. Verify by checking the nested install (`node_modules/<parent>/node_modules/<pkg>/package.json`), not just the lockfile.
 - **NO-FIX** — no patched version published. Don't work around it; report it to the user with the advisory link.
 
 After applying fixes: re-run `yarn`, re-run this script to confirm clean, and re-run the dupes check (4a) — resolutions can change the dedupe picture. A forced major bump via `resolutions` runs code the parent package never tested with. "Verify" means: `yarn lint` + `yarn tsc` always; if the forced package sits under runtime app code, also build/run the app; if it sits under tooling (test runners, bundler, patch-package), run that tool once if cheap. Either way, explicitly tell the user which packages were force-bumped so they can watch for fallout.
@@ -149,6 +151,26 @@ cd shared && ./desktop/extract-electron-shasums.sh <new-version>
 ```
 
 This regenerates `shared/desktop/electron-sums.mts` with the correct SHA256 checksums for all platforms.
+
+## Other manifests: protocol/ and rnmodules/react-native-kb/
+
+Dependabot also watches `protocol/yarn.lock` and `rnmodules/react-native-kb/yarn.lock`. Cover them on each pass — the same scripts work there (`check-outdated.py` reads the cwd's `package.json` and skips `file:`/`link:`/`github:` deps automatically).
+
+### protocol/
+
+- Direct deps are tiny; the real tree comes from `avdl-compiler` (pinned to `github:keybase/node-avdl-compiler#master`), which exact-pins transitives (e.g. `lodash "4.17.15"`) — LOCKFILE deletion can't help, so vulnerable transitives need `resolutions`. Current block: `"**/lodash"`, `"**/underscore"` (underscore is pulled via jison → nomnom, which pins `1.1.x`).
+- **Verify** any forced bump by running the codegen end-to-end: `cd protocol && make clean && make` must exit 0 AND leave `git status` clean outside `protocol/package.json`+`yarn.lock` — the generated output (json/, go/protocol/, shared TS) must be byte-identical.
+
+### rnmodules/react-native-kb/
+
+- Only one real (non-`file:`) devDep: `react-native-builder-bob`. Bob ≥0.43 validates entry fields with `require.resolve`, which needs an explicit extension — that's why `"main"` is `"src/index.tsx"` (not `"src/index"`); don't "clean it up" back to extensionless or the `prepare` script (`bob build`) fails with `Found incorrect path in 'main' field`. The `"react-native"`/`"source"` fields stay extensionless for metro.
+- Bob's tsc run uses the module's own `tsconfig.json` — keep it free of TS-6-deprecated options (no `baseUrl`, `moduleResolution: "bundler"`).
+- The app consumes the module's `src/` directly via the `file:` dep + postinstall sync; bob's `lib/` output is gitignored and unused. After changing the module's `package.json`, run `yarn sync:kb-modules` from `shared/` then `yarn lint` + `yarn tsc`.
+- Everything vulnerable here is transitive dev tooling (babel/metro chain). Fix by deleting the vulnerable entry blocks from `yarn.lock` and re-running `yarn` — the ranges are loose (`^`), so they re-resolve to patched versions with no `package.json` change.
+
+### go/chat/flip/
+
+Has a `package.json` solely so `make` can `npm i` the avdl compiler for one-off codegen. Its `package-lock.json` was deliberately deleted (2026-07) to kill stale dependabot alerts — don't recreate it; if `npm i` regenerates one during codegen, don't commit it.
 
 ## Notes
 

@@ -50,7 +50,7 @@ def _is_prerelease(v):
     return bool(parsed and parsed[3])
 
 def get_latest(name, current):
-    if name in SKIP or current.startswith('file:'):
+    if name in SKIP or current.startswith(('file:', 'link:', 'github:')):
         return name, current, current, 'skip', current
     is_pre = _is_prerelease(current)
     try:

@@ -22,7 +22,11 @@
     "json5": "2.2.3"
   },
   "devDependencies": {
-    "@types/node": "24.10.15",
-    "typescript": "6.0.0-beta"
+    "@types/node": "24.13.3",
+    "typescript": "6.0.3"
+  },
+  "resolutions": {
+    "**/lodash": "4.18.1",
+    "**/underscore": "1.13.8"
   }
 }

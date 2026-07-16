@@ -2,7 +2,7 @@
   "name": "react-native-kb",
   "version": "0.1.1",
   "description": "misc kb",
-  "main": "src/index",
+  "main": "src/index.tsx",
   "types": "src/index.tsx",
   "react-native": "src/index",
   "source": "src/index",
@@ -32,7 +32,7 @@
     "react-native": "file:../../shared/node_modules/react-native",
     "@types/react": "file:../../shared/node_modules/@types/react",
     "typescript": "file:../../shared/node_modules/typescript",
-    "react-native-builder-bob": "0.40.11"
+    "react-native-builder-bob": "0.43.0"
   },
   "peerDependencies": {
     "react": "*",
