@@ -205,7 +205,8 @@
     "webdriverio": "9.29.1"
   },
   "resolutions": {
-    "**/@types/react": "19.2.17"
+    "**/@types/react": "19.2.17",
+    "**/xcode/uuid": "11.1.1"
   },
   "typecoverage": {
     "detail": true,
@@ -214,6 +215,11 @@
   "expo": {
     "autolinking": {
       "exclude": []
+    }
+  },
+  "worklets": {
+    "staticFeatureFlags": {
+      "BUNDLE_MODE_ENABLED": true
     }
   }
 }

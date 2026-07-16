@@ -3011,7 +3011,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7ade813d6efb2b650e01afdd54d699bc435843fb
   RNReanimated: 3baf1720bee67a3d8633fd3df07fb21f421c454c
   RNScreens: 383b47cd73f32bbb5ef6c4381bf82a8ed3f4889c
-  RNWorklets: 110467c6a831aed93c013a36d7fc37892881967b
+  RNWorklets: c1dac02d98e9d9fd42fda836b89bb67fc26efc4a
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
