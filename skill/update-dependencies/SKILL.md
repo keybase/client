@@ -163,9 +163,10 @@ Dependabot also watches `protocol/yarn.lock` and `rnmodules/react-native-kb/yarn
 
 ### rnmodules/react-native-kb/
 
-- Only one real (non-`file:`) devDep: `react-native-builder-bob`. **Do NOT bump past 0.40.x** — 0.43+ validates the `main` field with `require.resolve` and fails on this module's source-pointing layout (`"main": "src/index"` → `src/index.tsx`). Fixing that means repackaging the module; out of scope for a dep pass.
-- `yarn` in this directory fails at the `prepare` script (`bob build`) with `Error: Found incorrect path in 'main' field` — this is pre-existing (fails on a clean checkout too) and harmless: the app consumes the module's `src/` directly via the `file:` dep + sync, so bob's `lib/` output is unused. Use `yarn --ignore-scripts` to install/re-resolve the lockfile.
-- Everything vulnerable here is transitive dev tooling (babel/metro chain). Fix by deleting the vulnerable entry blocks from `yarn.lock` and re-running `yarn --ignore-scripts` — the ranges are loose (`^`), so they re-resolve to patched versions with no `package.json` change.
+- Only one real (non-`file:`) devDep: `react-native-builder-bob`. Bob ≥0.43 validates entry fields with `require.resolve`, which needs an explicit extension — that's why `"main"` is `"src/index.tsx"` (not `"src/index"`); don't "clean it up" back to extensionless or the `prepare` script (`bob build`) fails with `Found incorrect path in 'main' field`. The `"react-native"`/`"source"` fields stay extensionless for metro.
+- Bob's tsc run uses the module's own `tsconfig.json` — keep it free of TS-6-deprecated options (no `baseUrl`, `moduleResolution: "bundler"`).
+- The app consumes the module's `src/` directly via the `file:` dep + postinstall sync; bob's `lib/` output is gitignored and unused. After changing the module's `package.json`, run `yarn sync:kb-modules` from `shared/` then `yarn lint` + `yarn tsc`.
+- Everything vulnerable here is transitive dev tooling (babel/metro chain). Fix by deleting the vulnerable entry blocks from `yarn.lock` and re-running `yarn` — the ranges are loose (`^`), so they re-resolve to patched versions with no `package.json` change.
 
 ### go/chat/flip/
 
