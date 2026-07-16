@@ -1787,10 +1787,17 @@ func (r *runner) pushSome(
 			RemoteName: localRepoRemoteName,
 			RefSpecs:   refspecs,
 			StatusChan: statusChan,
-			PackRefs:   kbfsRepoEmpty,
 		})
 		if err == gogit.NoErrAlreadyUpToDate {
 			err = nil
+		}
+
+		// Pack refs for empty repos (KBFS performance optimization)
+		if err == nil && kbfsRepoEmpty {
+			if packErr := repo.Storer.PackRefs(); packErr != nil {
+				r.log.CDebugf(ctx, "PackRefs failed (non-fatal): %+v", packErr)
+				// Don't fail the fetch - loose refs work fine
+			}
 		}
 
 		// All non-deleted refspecs in the batch get the same error.
