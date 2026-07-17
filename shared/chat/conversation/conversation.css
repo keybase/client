@@ -57,7 +57,9 @@
   }
 }
 
-.chat-message-list [data-index]:has(.WrapperMessage-hoverBox:hover) {
+/* LegendList 3.3.3 dropped the data-index attribute from its item containers, so target the
+   container as the div whose direct child is the WrapperMessage instead */
+.chat-message-list div:has(> .WrapperMessage-hoverBox:hover) {
   contain: layout style !important;
   overflow: visible !important;
   z-index: 1;
