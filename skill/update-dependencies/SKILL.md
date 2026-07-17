@@ -126,11 +126,16 @@ Keep the `resolutions` block as small as possible — every entry overrides yarn
 
 On every dep-update pass, audit each entry (except `**/@types/react`, which is permanent — see Notes):
 
-1. Remove the candidate entries from `package.json`, run `yarn`, then re-run the audit script (4b) and dupes script (4a).
-2. If both come back clean, the entries were redundant — leave them removed.
-3. If an advisory returns, that entry is still needed: restore it, bumped to the **latest** patched version (not just the minimum the advisory names).
+1. Remove the candidate entries from `package.json`.
+2. **Delete the forced entries from `yarn.lock` too** — find each entry whose resolved version was pinned by the resolution (e.g. `serialize-javascript@7.0.7, serialize-javascript@^6.0.2:`) and delete the block. This is the mirror of the "resolution alone does not rewrite the lockfile" gotcha in 4b: removing a resolution does NOT make yarn re-resolve either. The forced version lingers in `yarn.lock`, so the audit still sees the patched version and comes back **falsely clean** — then some later pass re-resolves the range down to the vulnerable version and the advisory "mysteriously" returns. This exact false negative caused the serialize-javascript/uuid resolutions to be dropped in PR #29417 (audit "clean" against lingering 7.0.7/11.1.1 lock entries) and re-added one day later when the entries re-resolved to 6.0.2/7.0.3.
+3. Run `yarn`, then **confirm the installed version actually changed** (`grep -A1 '^<pkg>@' yarn.lock` or check `node_modules/<pkg>/package.json`) — if it still shows the previously-forced version, the removal test hasn't actually run yet.
+4. Re-run the audit script (4b) and dupes script (4a).
+5. If both come back clean, the entries were redundant — leave them removed.
+6. If an advisory returns, that entry is still needed: restore it, bumped to the **latest** patched version (not just the minimum the advisory names — `npm view <pkg> version`), and remember to delete the now-stale unforced lockfile entry again so the resolution takes effect (4b gotcha).
 
-Testing removal is one `yarn` run — always do it empirically rather than reasoning from lockfile ranges.
+Testing removal is one `yarn` run — always do it empirically rather than reasoning from lockfile ranges. But "empirically" means verifying the lockfile actually re-resolved (step 3), not just that `yarn` exited 0.
+
+Known still-needed entries (as of 2026-07): `**/serialize-javascript` (mocha, via @wdio/mocha-framework, still pins `^6.0.2` — GHSA-5c6j-r48x-rmvq, GHSA-qj8w-gfj5-8c6v) and `**/xcode/uuid` (xcode pins `^7.0.3`, no release since 2021 — GHSA-w5hq-g745-h8pq). Still run the removal test each pass (a parent may finally ship a fix), but expect these to survive it.
 
 ### 5. Evaluate existing patches
 
