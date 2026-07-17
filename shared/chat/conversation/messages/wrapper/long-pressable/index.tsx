@@ -16,6 +16,7 @@ type Props = {
 import {useConversationThreadToggleSearch} from '../../../thread-context'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
+import {useAdaptiveRender} from '@legendapp/list/react-native'
 
 function ReplyIcon({progress}: {progress: Animated.Value}) {
   const opacity = progress.interpolate({inputRange: [-20, 0], outputRange: [1, 0], extrapolate: 'clamp'})
@@ -27,15 +28,22 @@ function ReplyIcon({progress}: {progress: Animated.Value}) {
 }
 
 function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
+  if (!isMobile) {
+    return <Kb.Box2 direction="horizontal" fullWidth={true} {...props} />
+  }
+  return <LongPressableMobile {...props} />
+}
+
+function LongPressableMobile(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   const toggleThreadSearch = useConversationThreadToggleSearch()
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(ThreadRefsContext)
   const swipeRef = React.useRef<SwipeableMethods | null>(null)
-
-  if (!isMobile) {
-    return <Kb.Box2 direction="horizontal" fullWidth={true} {...props} />
-  }
+  // Velocity-driven signal from LegendList: during fast scroll it flips to "light". We keep the
+  // Swipeable mounted (toggling its tree would remount children and flash images) and instead just
+  // disable its pan handlers in light mode, shedding the per-row touch evaluation during the fling.
+  const adaptiveMode = useAdaptiveRender()
 
   const {children, onLongPress, style} = props
 
@@ -66,6 +74,7 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   return (
     <Swipeable
       ref={swipeRef}
+      enabled={adaptiveMode !== 'light'}
       renderRightActions={makeAction}
       onSwipeableWillOpen={onSwipeableWillOpen}
     >
