@@ -35,11 +35,11 @@ platform :ios do
 
     increment_build_number(build_number: latest_testflight_build_number(api_key: api_key) + 1)
 
-    # Release archives use manual distribution signing. Portal profile
-    # names aren't stable (sigh appends a timestamp when it has to create
-    # one), so stamp whatever valid App Store profile sigh installs into
-    # the project before building. The checked-in PROVISIONING_PROFILE_SPECIFIER
-    # values are only local-archive defaults; this overwrites them.
+    # The checked-in project uses automatic development signing so local
+    # archives work; bot archives need manual distribution signing, so this
+    # lane flips the Release configs before building. Portal profile names
+    # aren't stable (sigh appends a timestamp when it has to create one),
+    # so stamp whatever valid App Store profile sigh installs.
     sigh(app_identifier: "keybase.ios")
     main_profile = lane_context[SharedValues::SIGH_NAME]
     update_code_signing_settings(
