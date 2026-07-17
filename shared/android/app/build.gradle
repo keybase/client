@@ -6,15 +6,15 @@ apply plugin: 'com.github.triplet.play'
 // KB: app version
 def VERSION_NAME = "6.7.0"
 
-// KB: Number of commits, like ios
-Integer getVersionCode() {
-    def result = providers.exec {
-        commandLine 'git', 'rev-list', 'HEAD', '--count'
-    }
-    return Integer.parseInt(result.standardOutput.asText.get().trim()) + 10517785 // plus bump it so its above the old version code
-}
+// KB: Number of commits, like ios.
+// Computed into a script-level variable: inside the defaultConfig closure a
+// getVersionCode() call resolves to ProductFlavor's own getter (delegate-first),
+// which returns null and silently drops versionCode from the manifest.
+def kbVersionCode = Integer.parseInt(providers.exec {
+    commandLine 'git', 'rev-list', 'HEAD', '--count'
+}.standardOutput.asText.get().trim()) + 10517785 // plus bump it so its above the old version code
 
-project.logger.lifecycle('Version code: ' + getVersionCode().toString())
+project.logger.lifecycle('Version code: ' + kbVersionCode.toString())
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -101,7 +101,7 @@ android {
         applicationId "io.keybase.ossifrage"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode getVersionCode()
+        versionCode kbVersionCode
         versionName VERSION_NAME
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
         // KB added
