@@ -1,3 +1,5 @@
+import com.github.triplet.gradle.androidpublisher.ResolutionStrategy
+
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
@@ -6,15 +8,9 @@ apply plugin: 'com.github.triplet.play'
 // KB: app version
 def VERSION_NAME = "6.7.0"
 
-// KB: Number of commits, like ios
-Integer getVersionCode() {
-    def result = providers.exec {
-        commandLine 'git', 'rev-list', 'HEAD', '--count'
-    }
-    return Integer.parseInt(result.standardOutput.asText.get().trim()) + 10517785 // plus bump it so its above the old version code
-}
-
-project.logger.lifecycle('Version code: ' + getVersionCode().toString())
+// KB: local-build fallback only. Publishing via the play plugin (ResolutionStrategy.AUTO)
+// fetches the live version code from Play and increments it.
+def kbVersionCode = 10555519
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -101,7 +97,7 @@ android {
         applicationId "io.keybase.ossifrage"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode getVersionCode()
+        versionCode kbVersionCode
         versionName VERSION_NAME
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
         // KB added
@@ -152,6 +148,7 @@ android {
    play {
        track = 'internal'
        serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
+       resolutionStrategy = ResolutionStrategy.AUTO
    }
 }
 
