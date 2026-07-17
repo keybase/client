@@ -37,7 +37,7 @@ import {
   useKeyboardChatComposerInset,
   useKeyboardScrollToEnd,
 } from '@legendapp/list/keyboard'
-import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
+import {KeyboardEvents, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import Animated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated'
 import {scheduleOnRN} from 'react-native-worklets'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
@@ -907,6 +907,62 @@ const NativeConversationList = function NativeConversationList() {
     },
     [conversationIDKey, messageOrdinals]
   )
+  // Keyboard-dismiss re-pin: the hide unwind (KeyboardChatScrollView writes the compensating
+  // contentOffset) shifts LegendList's draw window, so rows that only had estimatedItemSize
+  // measure in at their real (smaller) sizes mid-dismiss. LegendList's JS MVCP compensates
+  // against that moving target and settles short of the end, with nothing to re-pin it
+  // (maintainScrollAtEnd only fires on data changes). If we were pinned at the end when the
+  // hide started, keep re-pinning frame-by-frame while the keyboard animates down. The
+  // still-near-end guard keeps an on-drag dismissal that continues scrolling up into history
+  // from being yanked back down.
+  // The loop runs from hide start until shortly after the keyboard is fully down (sizes have
+  // settled by then), so the list visually stays pinned through the whole dismissal instead of
+  // snapping once at the end. It only issues a scroll when a gap has actually opened.
+  React.useEffect(() => {
+    let raf = 0
+    let stopId: ReturnType<typeof setTimeout> | undefined
+    const cancel = () => {
+      cancelAnimationFrame(raf)
+      raf = 0
+      clearTimeout(stopId)
+      stopId = undefined
+    }
+    const getListState = () =>
+      listRef.current?.getState() as
+        | {isAtEnd?: boolean; scroll?: number; scrollLength?: number; contentLength?: number}
+        | undefined
+    const tick = () => {
+      const s = getListState()
+      if (s) {
+        const gap = (s.contentLength ?? 0) - (s.scroll ?? 0) - (s.scrollLength ?? 0)
+        const stillNearEnd = gap > 1 && gap <= (s.scrollLength ?? 0)
+        if (stillNearEnd) {
+          void listRef.current?.scrollToEnd({animated: false})
+        }
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    const subs = [
+      KeyboardEvents.addListener('keyboardWillHide', () => {
+        if (!getListState()?.isAtEnd) return
+        cancel()
+        // 1s cap in case keyboardDidHide never fires (e.g. interrupted dismissal)
+        stopId = setTimeout(cancel, 1000)
+        raf = requestAnimationFrame(tick)
+      }),
+      KeyboardEvents.addListener('keyboardDidHide', () => {
+        if (!raf) return
+        clearTimeout(stopId)
+        // let the last post-dismissal measurements land, then stop tracking
+        stopId = setTimeout(cancel, 150)
+      }),
+    ]
+    return () => {
+      cancel()
+      subs.forEach(sub => sub.remove())
+    }
+  }, [])
+
   const dbgLoadedRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
     if (!loaded) return undefined
