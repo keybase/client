@@ -704,16 +704,25 @@ const useNativeScrolling = (p: {
   }
 }
 
-// When the keyboard is open, KeyboardChatScrollView sets contentOffset.y = -(K-insets.bottom)
-// (negative, inside contentInset.top). Two problems arise without special handling:
-// 1. autoscrollToTopThreshold=1 fires (because -(K-I) <= 1) and scrolls to y=0, stripping the
-//    keyboard offset and hiding new messages behind the keyboard.
-// 2. maintainVisibleContentPosition adjusts contentOffset by the new message's height when it is
-//    inserted, creating a visible gap between the newest message and the input area.
-// Solution: disable MPV entirely when keyboard is visible. New messages appear naturally at the
-// content-inset boundary (already in view), and a layout effect re-scrolls as a safety net.
+// The maintainVisibleContentPosition prop must ALWAYS be set (never toggled to undefined):
+// RN Fabric only re-snapshots the MVP anchor while the prop is set, so an unset->set
+// transition adjusts contentOffset against a stale anchor frame from before the prop was
+// unset — a spurious jump + autoscroll animation of the whole list (seen after dismissing
+// the keyboard following a send). Instead we swap between two configs:
+// - closed (keyboard hidden): autoscrollToTopThreshold=1 so new messages at the bottom
+//   auto-reveal when the user is pinned there.
+// - noAutoscroll (keyboard open, or centered on a search hit, or empty list): MVP still
+//   anchors content, but autoscroll-to-top is off because:
+//   1. with the keyboard open contentOffset.y = -(K-insets.bottom) <= 1, so the threshold
+//      would fire on insert and scroll to y=0, hiding new messages behind the keyboard.
+//   2. while centered on a search hit, autoscroll yanks the centered row.
+//   With the keyboard open, MVP's insert adjustment briefly holds old content in place;
+//   the deferred scrollToBottom layout effect below re-pins the newest message.
 const maintainVisibleContentPositionClosed = {
   autoscrollToTopThreshold: 1,
+  minIndexForVisible: 0,
+}
+const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
@@ -960,6 +969,8 @@ const NativeConversationList = function NativeConversationList() {
     [insets.bottom, searchOverlayHeight]
   )
 
+  const mvpAutoscroll = !(centeredOrdinalOrNone > 0 || !numOrdinals || isKeyboardVisible)
+
   const nativeContentContainerStyle = React.useMemo(
     () => ({
       paddingBottom: 0,
@@ -998,14 +1009,9 @@ const NativeConversationList = function NativeConversationList() {
             renderScrollComponent={renderScrollComponent}
             windowSize={3}
             maintainVisibleContentPosition={
-              // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
-              // Disable MPV entirely when keyboard is visible: MPV's offset adjustment for newly
-              // inserted messages conflicts with the keyboard-driven contentOffset.
-              // Also disable while centered on a search hit: MPV's autoscroll-to-top yanks the
-              // centered row, making the highlight land inconsistently.
-              centeredOrdinalOrNone > 0 || !numOrdinals || isKeyboardVisible
-                ? undefined
-                : maintainVisibleContentPositionClosed
+              mvpAutoscroll
+                ? maintainVisibleContentPositionClosed
+                : maintainVisibleContentPositionNoAutoscroll
             }
           />
           {jumpToRecent && (
