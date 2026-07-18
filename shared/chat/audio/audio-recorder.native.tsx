@@ -16,9 +16,10 @@ import * as Haptics from 'expo-haptics'
 import {File} from 'expo-file-system'
 import AudioSend from './audio-send.native'
 import {useConversationSendActions} from '@/chat/conversation/send-actions'
+import {scheduleOnRN} from 'react-native-worklets'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
-const {interpolate, withSequence, withSpring, runOnJS} = Reanimated
+const {interpolate, withSequence, withSpring} = Reanimated
 const {useAnimatedReaction, withDelay, withTiming, interpolateColor, default: Animated} = Reanimated
 const AnimatedBox2 = Animated.createAnimatedComponent(Kb.Box2)
 type SVN = Reanimated.SharedValue<number>
@@ -75,7 +76,7 @@ const useTooltip = () => {
 
   const flashTip = () => {
     'worklet'
-    runOnJS(setShowTooltip)(true)
+    scheduleOnRN(setShowTooltip, true)
   }
 
   return {flashTip, tooltip}
@@ -217,11 +218,11 @@ const useIconAndOverlay = (p: {
       if (f === 0) {
         if (fadeSyncedSV.value !== 0) {
           fadeSyncedSV.set(0)
-          runOnJS(setVisible)(Visible.HIDDEN)
+          scheduleOnRN(setVisible, Visible.HIDDEN)
         }
       } else if (fadeSyncedSV.value !== 1) {
         fadeSyncedSV.set(1)
-        runOnJS(setVisible)(Visible.SHOW)
+        scheduleOnRN(setVisible, Visible.SHOW)
       }
     }
   )

@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
-import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
+import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
 import {AppRegistry, AppState, Appearance, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
@@ -106,7 +106,6 @@ const useInit = () => {
     if (inited) return
     inited = true
     initDarkMode()
-    Animated.addWhitelistedNativeProps({text: true})
     const {batch} = C.useWaitingState.getState().dispatch
     const eng = makeEngine(batch, c => {
       if (c) {

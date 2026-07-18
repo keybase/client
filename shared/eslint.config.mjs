@@ -52,6 +52,7 @@ const rules = {
   '@typescript-eslint/no-dupe-class-members': 'error',
   '@typescript-eslint/no-dynamic-delete': 'error',
   '@typescript-eslint/no-empty-object-type': 'warn',
+  '@typescript-eslint/no-deprecated': 'error',
   '@typescript-eslint/no-explicit-any': 'warn',
   '@typescript-eslint/no-extra-non-null-assertion': 'error',
   '@typescript-eslint/no-extraneous-class': 'error',
@@ -69,7 +70,21 @@ const rules = {
   '@typescript-eslint/no-redeclare': 'error',
   '@typescript-eslint/no-redundant-type-constituents': 'error',
   '@typescript-eslint/no-require-imports': 'off',
-  '@typescript-eslint/no-restricted-imports': 'error',
+  '@typescript-eslint/no-restricted-imports': [
+    'error',
+    {
+      paths: [
+        {
+          message: 'Deprecated legacy API; use the class-based API from expo-media-library',
+          name: 'expo-media-library/legacy',
+        },
+        {
+          message: 'Deprecated legacy API; use File/Directory from expo-file-system',
+          name: 'expo-file-system/legacy',
+        },
+      ],
+    },
+  ],
   '@typescript-eslint/no-this-alias': 'error',
   '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
   '@typescript-eslint/no-unnecessary-condition': ['error', {allowConstantLoopConditions: true}],
@@ -252,6 +267,14 @@ export default [
       'prefer-const': 'error',
       'sort-keys': ['error', 'asc', {caseSensitive: true, natural: false}],
       strict: ['error', 'global'],
+    },
+  },
+  {
+    // vendored from react-native-zoom-toolkit; tracks upstream, don't hold it to our deprecation rule
+    files: ['util/zoom-toolkit/**'],
+    name: 'zoom-toolkit-vendored',
+    rules: {
+      '@typescript-eslint/no-deprecated': 'off',
     },
   },
 ]

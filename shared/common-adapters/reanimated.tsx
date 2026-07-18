@@ -9,6 +9,9 @@ let useAnimatedStyle: <T extends () => Record<string, unknown>>(arg: T) => Retur
 let withTiming: typeof R.withTiming
 let withDelay: typeof R.withDelay
 let useAnimatedScrollHandler: typeof R.useAnimatedScrollHandler
+// reanimated only deprecates manual wrapping of built-ins (Animated.FlatList etc); it's still the
+// only API for animating custom components like Kb.Box2
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 let createAnimatedComponent: typeof R.default.createAnimatedComponent
 let Animated: typeof R.default
 let interpolate: typeof R.interpolate
@@ -19,6 +22,7 @@ let useReducedMotion: typeof R.useReducedMotion
 if (isMobile && !skipAnimations) {
   const rnr = ReanimatedRT as typeof R
   Animated = rnr.default
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   createAnimatedComponent = rnr.default.createAnimatedComponent
   useAnimatedStyle = rnr.useAnimatedStyle as typeof useAnimatedStyle
   useSharedValue = rnr.useSharedValue

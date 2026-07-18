@@ -20,7 +20,8 @@ type Props = {
 import Toast from './toast'
 import Text from './text'
 import {View} from 'react-native'
-import {useSharedValue, runOnJS} from 'react-native-reanimated'
+import {useSharedValue} from 'react-native-reanimated'
+import {scheduleOnRN} from 'react-native-worklets'
 import {fitContainer, ResumableZoom, useImageResolution} from '@/util/zoom-toolkit'
 import ImageNative from './image'
 
@@ -221,7 +222,7 @@ const NativeZoomableImage = (p: Props) => {
         x: left,
         y: top,
       }
-      runOnJS(onZoom)(z)
+      scheduleOnRN(onZoom, z)
     }
   }
 
