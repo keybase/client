@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import * as MediaLibrary from 'expo-media-library'
+import * as MediaLibrary from 'expo-media-library/legacy'
 import * as ExpoLocation from 'expo-location'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import {addNotificationRequest, androidShare, androidShareText} from 'react-native-kb'
 import {ActionSheetIOS} from 'react-native'
 
