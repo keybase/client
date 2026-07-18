@@ -27,7 +27,6 @@ module.exports = [
   'expo-clipboard',
   'expo-image',
   'expo-contacts',
-  'expo-contacts/legacy',
   'expo-localization',
   'expo-media-library',
   'expo-file-system',

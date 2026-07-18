@@ -1,4 +1,4 @@
-import * as Contacts from 'expo-contacts/legacy'
+import * as Contacts from 'expo-contacts'
 import * as React from 'react'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import logger from '@/logger'
@@ -26,15 +26,12 @@ const compareContacts = (a: Contact, b: Contact): number => {
 }
 
 const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, string]> => {
-  const contacts = await Contacts.getContactsAsync({
-    fields: [
-      Contacts.Fields.Name,
-      Contacts.Fields.PhoneNumbers,
-      Contacts.Fields.Emails,
-      Contacts.Fields.ImageAvailable,
-      Contacts.Fields.Image,
-    ],
-  })
+  const contacts = await Contacts.Contact.getAllDetails([
+    Contacts.ContactField.FULL_NAME,
+    Contacts.ContactField.PHONES,
+    Contacts.ContactField.EMAILS,
+    Contacts.ContactField.IMAGE,
+  ] as const)
 
   let region = ''
   if (regionFromState) {
@@ -52,24 +49,24 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
     }
   }
 
-  const mapped = contacts.data.reduce<Array<Contact>>((ret, contact) => {
-    const {name = '', phoneNumbers = [], emails = []} = contact
+  const mapped = contacts.reduce<Array<Contact>>((ret, contact) => {
+    const name = contact.fullName ?? ''
     let pictureUri: string | undefined
-    if (contact.imageAvailable && contact.image?.uri) {
-      pictureUri = contact.image.uri
+    if (contact.image) {
+      pictureUri = contact.image
     }
-    phoneNumbers.forEach(pn => {
+    contact.phones.forEach(pn => {
       if (pn.number && pn.id) {
-        const value = getE164(pn.number, pn.countryCode || region)
+        const value = getE164(pn.number, region)
         if (value) {
           const valueFormatted = e164ToDisplay(value)
           ret.push({id: pn.id, name, pictureUri, type: 'phone', value, valueFormatted})
         }
       }
     })
-    emails.forEach(em => {
-      if (em.email && em.id) {
-        ret.push({id: em.id, name, pictureUri, type: 'email', value: em.email})
+    contact.emails.forEach(em => {
+      if (em.address && em.id) {
+        ret.push({id: em.id, name, pictureUri, type: 'email', value: em.address})
       }
     })
     return ret

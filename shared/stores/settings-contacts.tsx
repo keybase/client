@@ -33,7 +33,7 @@ type State = Store & {
     resetState: () => void
   }
 }
-import * as Contacts from 'expo-contacts/legacy'
+import * as Contacts from 'expo-contacts'
 import {getLocales} from 'expo-localization'
 import {addNotificationRequest} from 'react-native-kb'
 
@@ -66,20 +66,18 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
   const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
   const nativeContactsToContacts = (
-    contacts: {
-      data: Array<{
-        name?: string
-        phoneNumbers?: Array<{number?: string; countryCode?: string; label?: string}>
-        emails?: Array<{email?: string; label?: string}>
-      }>
-    },
+    contacts: Array<{
+      fullName?: string | null
+      phones?: Array<{number?: string; label?: string}>
+      emails?: Array<{address?: string; label?: string}>
+    }>,
     countryCode: string
   ) => {
-    return contacts.data.reduce<Array<T.RPCGen.Contact>>((ret, contact) => {
-      const {name, phoneNumbers = [], emails = []} = contact
+    return contacts.reduce<Array<T.RPCGen.Contact>>((ret, contact) => {
+      const {fullName, phones = [], emails = []} = contact
 
-      const components = phoneNumbers.reduce<T.RPCGen.ContactComponent[]>((res, pn) => {
-        const formatted = getE164(pn.number || '', pn.countryCode || countryCode)
+      const components = phones.reduce<T.RPCGen.ContactComponent[]>((res, pn) => {
+        const formatted = getE164(pn.number || '', countryCode)
         if (formatted) {
           res.push({
             label: pn.label ?? '',
@@ -88,9 +86,9 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         }
         return res
       }, [])
-      components.push(...emails.map(e => ({email: e.email ?? '', label: e.label ?? ''})))
+      components.push(...emails.map(e => ({email: e.address ?? '', label: e.label ?? ''})))
       if (components.length) {
-        ret.push({components, name: name ?? ''})
+        ret.push({components, name: fullName ?? ''})
       }
 
       return ret
@@ -220,9 +218,11 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         let mapped: T.RPCChat.Keybase1.Contact[]
         let defaultCountryCode = ''
         try {
-          const _contacts = await Contacts.getContactsAsync({
-            fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
-          })
+          const _contacts = await Contacts.Contact.getAllDetails([
+            Contacts.ContactField.FULL_NAME,
+            Contacts.ContactField.PHONES,
+            Contacts.ContactField.EMAILS,
+          ] as const)
 
           defaultCountryCode = (getLocales()[0].regionCode ?? '').toLowerCase()
           if (__DEV__ && !defaultCountryCode) {

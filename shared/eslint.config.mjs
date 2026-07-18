@@ -75,6 +75,10 @@ const rules = {
     {
       paths: [
         {
+          message: 'Deprecated legacy API; use the class-based API from expo-contacts',
+          name: 'expo-contacts/legacy',
+        },
+        {
           message: 'Deprecated legacy API; use the class-based API from expo-media-library',
           name: 'expo-media-library/legacy',
         },
