@@ -246,9 +246,13 @@ const fixWindowsScalingIssue = (win: Electron.BrowserWindow) => {
 
 const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
   const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
-  // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
+  // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows.
+  // restoreState/wasOpenedAsHidden are deprecated with no replacement for the pre-13 macOS login
+  // item mechanism we still use
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   const isRestore = !!env.KEYBASE_RESTORE_UI || Electron.app.getLoginItemSettings().restoreState || isWindows
   const hideWindowOnStart = env.KEYBASE_AUTOSTART === '1'
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
   logger.info('KEYBASE_AUTOSTART =', env.KEYBASE_AUTOSTART)
   logger.info('KEYBASE_START_UI =', env.KEYBASE_START_UI)

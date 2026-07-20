@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import * as MediaLibrary from 'expo-media-library/legacy'
+import * as MediaLibrary from 'expo-media-library'
 import * as ExpoLocation from 'expo-location'
-import * as FileSystem from 'expo-file-system/legacy'
+import {File} from 'expo-file-system'
 import {addNotificationRequest, androidShare, androidShareText} from 'react-native-kb'
 import {ActionSheetIOS} from 'react-native'
 
@@ -60,12 +60,22 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
   try {
-    try {
-      // see it we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
-      await requestPermissionsToWrite()
-    } catch {}
+    if (isIOS) {
+      // Asset.create only checks permission and never prompts, so request add-only access first
+      const p = await MediaLibrary.requestPermissionsAsync(true)
+      if (!p.granted) {
+        throw new Error('Please allow Keybase to add to your Photos in the phone settings.')
+      }
+    } else {
+      try {
+        // see if we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
+        await requestPermissionsToWrite()
+      } catch (e) {
+        logger.warn(logPrefix + 'write permission denied, attempting save anyway: ' + String(e))
+      }
+    }
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await MediaLibrary.saveToLibraryAsync(fileURL)
+    await MediaLibrary.Asset.create(fileURL)
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
@@ -78,7 +88,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      await FileSystem.deleteAsync(filePath, {idempotent: true})
+      new File(fileURL).delete()
     } catch {
       logger.warn('failed to unlink')
     }

@@ -246,9 +246,8 @@ export const messageAttachmentNativeSaveMessage = (
       logger.info('Trying to save chat attachment to camera roll')
       await PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
     } catch (err) {
-      const errString = String(err)
-      logger.error('Failed to save attachment: ' + errString)
-      throw new Error('Failed to save attachment: ' + errString, {cause: err})
+      // saveAttachmentToCameraRoll already fired a local notification for this failure
+      logger.error('Failed to save attachment: ' + String(err))
     }
   }
   ignorePromise(f())
@@ -392,9 +391,9 @@ export const useConversationAttachmentActions = () => {
         await PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
         actions.setAttachmentMobileSaving(ordinal, false)
       } catch (err) {
-        const errString = String(err)
+        const errString = err instanceof Error ? err.message : String(err)
         logger.error('Failed to save attachment: ' + errString)
-        throw new Error('Failed to save attachment: ' + errString, {cause: err})
+        actions.failAttachmentDownload(ordinal, 'Failed to save attachment: ' + errString)
       }
     }
     ignorePromise(f())
