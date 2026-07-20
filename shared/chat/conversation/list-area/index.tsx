@@ -38,7 +38,7 @@ import {
   useKeyboardState,
   useReanimatedKeyboardAnimation,
 } from 'react-native-keyboard-controller'
-import Animated, {useAnimatedStyle} from 'react-native-reanimated'
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 type ItemType = T.Chat.Ordinal
@@ -46,9 +46,6 @@ type ItemType = T.Chat.Ordinal
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
 const keyExtractor = (ordinal: ItemType) => String(ordinal)
-
-// trim off the search-bar lift so the jump button rests ~40px above the bar
-const jumpAboveBarTrim = 40
 
 // Item type for list recycling pool separation. A message that leads its author group renders an
 // avatar + username header (~40px taller) than a grouped follow-on of the same render type. Without
@@ -769,20 +766,19 @@ const NativeConversationList = function NativeConversationList() {
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
   // While the thread-search bar is open it overlays the bottom of the list. Reserve
-  // that height as extra content padding (so centered/newest messages clear it) and
-  // lift the jump-to-recent button above both the keyboard and the bar.
+  // that height as extra content padding so centered/newest messages clear it.
   const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
-  const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
+  const {height: keyboardAnimHeight, progress: keyboardProgress} = useReanimatedKeyboardAnimation()
   const insetsBottom = insets.bottom
-  // The search bar overlays the list bottom (keyboard closed) or rides the keyboard
-  // top (keyboard open) via KeyboardStickyView; either way it sits above the list, so
-  // always clear it. The keyboard term lifts past the keyboard, the bar term past the bar.
+  // The input/search bar lives in a KeyboardStickyView with offset
+  // {closed: -insets.bottom, opened: 0}, so it's translated above the list's layout
+  // bottom even when the keyboard is closed. Mirror that exact translation here so the
+  // jump button always rests on the bar's visual top edge instead of being clipped by it.
   const jumpLiftStyle = useAnimatedStyle(() => ({
     transform: [
       {
         translateY:
-          Math.min(keyboardAnimHeight.value + insetsBottom, 0) -
-          Math.max((searchOverlayHeight?.value ?? 0) - jumpAboveBarTrim, 0),
+          keyboardAnimHeight.value + interpolate(keyboardProgress.value, [0, 1], [-insetsBottom, 0]),
       },
     ],
   }))
