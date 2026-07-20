@@ -70,10 +70,20 @@ export const makeChatConversationState = (conversationIDKey: string): PartialNav
   }
 }
 
-// Build state for a modal screen at root level
-const makeModalState = (modalName: string, params?: Record<string, unknown>): PartialNavState => ({
+// Build state for a modal screen at root level. underTab selects which tab sits
+// beneath the modal; without it loggedIn falls back to the initial (people) tab.
+const makeModalState = (
+  modalName: string,
+  params?: Record<string, unknown>,
+  underTab?: string
+): PartialNavState => ({
   index: 1,
-  routes: [{name: 'loggedIn'}, {name: modalName, ...(params ? {params} : {})}],
+  routes: [
+    underTab
+      ? {name: 'loggedIn', state: {index: 0, routes: [{name: underTab}]}}
+      : {name: 'loggedIn'},
+    {name: modalName, ...(params ? {params} : {})},
+  ],
 })
 
 // ---- URL pattern handling ----
@@ -148,9 +158,12 @@ const customGetStateFromPath = (
     // keybase://incoming-share/{conversationIDKey?} — convID present when the user
     // picked a donated conversation directly in the share sheet
     case 'incoming-share':
+      // Share always ends in chat, so park the chat tab (inbox) beneath the modal;
+      // otherwise dismissing/back lands on the initial people tab.
       return makeModalState(
         'incomingShareNew',
-        parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : undefined
+        parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : undefined,
+        Tabs.chatTab
       )
 
     // keybase://settingsPushPrompt
