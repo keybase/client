@@ -84,10 +84,11 @@ const ReactionTooltip = (p: OwnProps) => {
   const renderItem = React.useCallback(
     ({item}: {item: ListItem}) => (
       <Kb.NameWithIcon
+        avatarSize={isMobile ? 32 : undefined}
         colorFollowing={true}
         containerStyle={styles.userContainer}
         horizontal={true}
-        metaOne={item.fullName}
+        metaOne={isMobile ? undefined : item.fullName}
         onClick={onClickUser}
         clickType="onClick"
         withProfileCardPopup={false}
@@ -223,12 +224,17 @@ const styles = Kb.Styles.styleSheetCreate(
         ),
       },
       addReactionButtonIcon: {marginRight: Kb.Styles.globalMargins.tiny},
-      buttonContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        borderTopLeftRadius: 3,
-        borderTopRightRadius: 3,
-        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
-      },
+      buttonContainer: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
+        },
+        isElectron: {
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderTopLeftRadius: 3,
+          borderTopRightRadius: 3,
+        },
+        isMobile: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+      }),
       emojiText: {
         color: Kb.Styles.globalColors.black_50,
         flex: -1,
@@ -256,13 +262,16 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
         borderRadius: Kb.Styles.borderRadius,
       },
-      userContainer: {
-        alignSelf: 'stretch',
-        backgroundColor: Kb.Styles.globalColors.white,
-        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
-        width: '100%',
-      },
+      userContainer: Kb.Styles.platformStyles({
+        common: {
+          alignSelf: 'stretch',
+          backgroundColor: Kb.Styles.globalColors.white,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
+          width: '100%',
+        },
+        isMobile: {paddingLeft: Kb.Styles.globalMargins.small + 8},
+      }),
     }) as const
 )
 
