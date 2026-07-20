@@ -3,7 +3,7 @@ import * as Meta from '@/constants/chat/meta'
 import * as TeamsUtil from '@/constants/teams'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
-import {navigateToInbox, navigateToThread as routerNavigateToThread} from '@/constants/router'
+import {navigateToThread as routerNavigateToThread} from '@/constants/router'
 import logger from '@/logger'
 import {NotifyPopup} from '@/util/misc'
 import {showMain} from '@/util/storeless-actions'
@@ -96,7 +96,9 @@ const maybeShowIncomingMessageDesktopNotification = (incomingMessage: T.RPCChat.
   }
   const onClick = () => {
     showMain()
-    navigateToInbox()
+    // No navigateToInbox here: its deferred navUpToScreen('chatRoot') pops to chatRoot with no
+    // params, wiping the conversationIDKey we just set and auto-selecting the first inbox row.
+    // navigateToThread alone switches to the chat tab and selects the conversation.
     routerNavigateToThread(conversationIDKey, 'desktopNotification')
   }
   const onClose = () => {}

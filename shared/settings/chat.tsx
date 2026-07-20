@@ -194,11 +194,17 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
     setContactSettingsSelectedTeams(_contactSettingsSelectedTeams)
   }
 
-  React.useEffect(() => {
+  // load once per mount. Not keyed on the refresh fns: their identities change with
+  // every load result (compiler memo groups them with the loaded data), which turned
+  // this effect into an infinite reload loop
+  const loadOnMount = React.useEffectEvent(() => {
     loadSettings()
     refresh()
     contactSettingsRefresh()
-  }, [contactSettingsRefresh, refresh])
+  })
+  React.useEffect(() => {
+    loadOnMount()
+  }, [])
 
   return (
     <>
@@ -321,9 +327,13 @@ const Links = () => {
     )
   }
 
-  React.useEffect(() => {
+  // not keyed on unfurlSettingsRefresh: its identity changes with every load result
+  const refreshOnMount = React.useEffectEvent(() => {
     unfurlSettingsRefresh()
-  }, [unfurlSettingsRefresh])
+  })
+  React.useEffect(() => {
+    refreshOnMount()
+  }, [])
 
   const lastModeRef = React.useRef(mode)
   React.useEffect(() => {

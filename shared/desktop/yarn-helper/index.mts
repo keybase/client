@@ -44,6 +44,7 @@ const commands: {[key: string]: Command} = {
       clearAndroidBuild()
       getMsgPack()
       patch()
+      resignDevElectron()
     },
     help: '',
   },
@@ -68,6 +69,33 @@ const commands: {[key: string]: Command} = {
 
 const patch = () => {
   exec('patch-package')
+}
+
+// macOS requires the code-sign identifier to match the claimed bundle id
+// (com.github.Electron) or usernotificationsd rejects every notification
+// request. The npm-shipped Electron.app loses its signature during extraction
+// and ends up linker-signed as just "Electron", so re-sign it ad-hoc.
+const resignDevElectron = () => {
+  if (process.platform !== 'darwin') {
+    return
+  }
+  const app = path.resolve(__dirname, '..', '..', 'node_modules', 'electron', 'dist', 'Electron.app')
+  if (!fs.existsSync(app)) {
+    return
+  }
+  const identifier = 'com.github.Electron'
+  try {
+    const current = execSync(`codesign -dv "${app}" 2>&1`, {encoding: 'utf8'})
+    if (current.includes(`Identifier=${identifier}`)) {
+      return
+    }
+  } catch {}
+  console.log('Re-signing dev Electron.app so macOS notifications work')
+  try {
+    exec(`codesign --force --sign - --identifier ${identifier} "${app}"`)
+  } catch {
+    console.log('⚠️: codesign of dev Electron.app failed; system notifications may not show in dev')
+  }
 }
 
 const checkFSEvents = () => {
