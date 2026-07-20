@@ -115,13 +115,22 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
     ? state.dataKey === key || (state.error !== undefined && state.errorKey === key)
     : state.loaded
 
+  // useEffectEvent returns a NEW wrapper identity every render (only its inner ref is
+  // stable), so handing load/setData out directly poisons consumers' dep arrays and can
+  // loop effects. Freeze the first wrapper; it stays valid because all wrappers share
+  // the same ref.
+  const [stableApi] = React.useState(() => ({
+    reload: () => load(),
+    setData: (next: Parameters<typeof setData>[0]) => setData(next),
+  }))
+
   return {
     data,
     error,
     loadCount: state.loadCount,
     loaded,
     loading: enabled && !loaded,
-    reload: load,
-    setData,
+    reload: stableApi.reload,
+    setData: stableApi.setData,
   }
 }

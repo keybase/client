@@ -33,28 +33,32 @@ const useArchiveJobs = () => {
   const chatLoadVersionRef = React.useRef(0)
   const kbfsLoadVersionRef = React.useRef(0)
 
-  const loadChat = React.useEffectEvent(async () => {
-    const loadVersion = ++chatLoadVersionRef.current
-    const nextChatJobs = await loadChatJobs()
-    if (loadVersion !== chatLoadVersionRef.current) {
-      return
+  // plain frozen closures, not useEffectEvent: the bodies only touch refs and
+  // setState setters (all stable), and these identities feed dep arrays / focus
+  // effects so they must be stable too
+  const [{load, loadChat}] = React.useState(() => {
+    const loadChat = async () => {
+      const loadVersion = ++chatLoadVersionRef.current
+      const nextChatJobs = await loadChatJobs()
+      if (loadVersion !== chatLoadVersionRef.current) {
+        return
+      }
+      chatJobsRef.current = nextChatJobs
+      setChatJobs(nextChatJobs)
     }
-    chatJobsRef.current = nextChatJobs
-    setChatJobs(nextChatJobs)
-  })
-
-  const loadKBFS = React.useEffectEvent(async () => {
-    const loadVersion = ++kbfsLoadVersionRef.current
-    const nextKBFSJobs = await loadKBFSJobs()
-    if (loadVersion !== kbfsLoadVersionRef.current) {
-      return
+    const loadKBFS = async () => {
+      const loadVersion = ++kbfsLoadVersionRef.current
+      const nextKBFSJobs = await loadKBFSJobs()
+      if (loadVersion !== kbfsLoadVersionRef.current) {
+        return
+      }
+      setKBFSJobs(nextKBFSJobs)
     }
-    setKBFSJobs(nextKBFSJobs)
-  })
-
-  const load = React.useEffectEvent(() => {
-    C.ignorePromise(loadChat())
-    C.ignorePromise(loadKBFS())
+    const load = () => {
+      C.ignorePromise(loadChat())
+      C.ignorePromise(loadKBFS())
+    }
+    return {load, loadChat}
   })
 
   useEngineActionListener('keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged', action => {
@@ -414,9 +418,9 @@ const Archive = () => {
   const {chatJobs, kbfsJobs, load, loadChat} = useArchiveJobs()
   const navigateAppend = C.Router2.navigateAppend
 
-  C.Router2.useSafeFocusEffect(() => {
-    load()
-  })
+  // pass the stable fn directly: an inline closure re-runs the focus effect every
+  // render while focused, and load() setStates fresh maps -> infinite RPC loop
+  C.Router2.useSafeFocusEffect(load)
 
   let showClear = false
   for (const job of chatJobs.values()) {

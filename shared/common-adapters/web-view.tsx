@@ -93,11 +93,14 @@ const WebView = (props: WebViewProps) => {
   }
 
   const [forceReload, setForceReload] = React.useState(1)
-  C.Router2.useSafeFocusEffect(() => {
+  // stable fn: an inline closure re-runs the focus effect every render while
+  // focused, and the setState here re-renders -> infinite loop on mobile
+  const [onFocusReload] = React.useState(() => () => {
     if (isMobile) {
       setForceReload(a => a + 1)
     }
   })
+  C.Router2.useSafeFocusEffect(onFocusReload)
 
   if (!isMobile) {
     return (
