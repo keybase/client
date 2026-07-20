@@ -48,6 +48,7 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
         </Kb.Text>
         {subteams.map((value, idx) => (
           <Kb.Input3
+            textType="BodySemibold"
             value={value}
             onChangeText={(text: string) => setSubteam(idx, cleanSubteamName(text))}
             decoration={<Kb.Icon type="iconfont-remove" onClick={() => onClear(idx)} />}

@@ -116,6 +116,7 @@ const NewRepo = (ownProps: OwnProps) => {
           />
         )}
         <Kb.Input3
+          textType="BodySemibold"
           value={name}
           autoFocus={true}
           onChangeText={setName}

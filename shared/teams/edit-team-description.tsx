@@ -50,6 +50,7 @@ const EditTeamDescription = (props: Props) => {
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} padding="small">
           <Kb.Input3
+            textType="BodySemibold"
             placeholder="Team description"
             onChangeText={value => {
               userEditedRef.current = true

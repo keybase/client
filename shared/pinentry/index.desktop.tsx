@@ -51,6 +51,7 @@ const Pinentry = (props: Props) => {
           style={styles.inputContainer}
         >
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             error={!!props.retryLabel}
             onChangeText={setPassword}

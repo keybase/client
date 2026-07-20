@@ -35,6 +35,7 @@ const CreateChannel = (p: Props) => {
           </Kb.ClickableBox>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
             <Kb.Input3
+              textType="BodySemibold"
               autoFocus={true}
               placeholder="Channel name"
               value={props.channelname}
@@ -42,6 +43,7 @@ const CreateChannel = (p: Props) => {
               onChangeText={props.onChannelnameChange}
             />
             <Kb.Input3
+              textType="BodySemibold"
               autoFocus={false}
               autoCorrect={true}
               autoCapitalize="sentences"
@@ -76,12 +78,14 @@ const CreateChannel = (p: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.box}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             placeholder="Channel name"
             value={props.channelname}
             onChangeText={props.onChannelnameChange}
           />
           <Kb.Input3
+            textType="BodySemibold"
             autoCorrect={true}
             autoFocus={false}
             autoCapitalize="sentences"

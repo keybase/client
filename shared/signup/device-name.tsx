@@ -164,6 +164,7 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
         />
         <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             selectTextOnFocus={true}
             containerStyle={styles.input}

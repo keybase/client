@@ -113,6 +113,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
           We will review this report within 24 hours and take an action
         </Kb.Text>
         <Kb.Input3
+          textType="BodySemibold"
           multiline={true}
           placeholder="Extra notes"
           onChangeText={props.setExtraNotes}

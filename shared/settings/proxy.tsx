@@ -216,6 +216,7 @@ const ProxySettingsComponent = (props: Props) => {
         <>
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
           <Kb.Input3
+            textType="BodySemibold"
             placeholder="127.0.0.1"
             onChangeText={address =>
               setProxyForm(
@@ -228,6 +229,7 @@ const ProxySettingsComponent = (props: Props) => {
           />
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
           <Kb.Input3
+            textType="BodySemibold"
             placeholder="8080"
             onChangeText={port =>
               setProxyForm(

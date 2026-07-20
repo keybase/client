@@ -78,6 +78,7 @@ const DeleteRepo = (ownProps: OwnProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <Kb.Text type="BodySemibold">Enter the name of the repository to&nbsp;confirm:</Kb.Text>
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             value={name}
             onChangeText={setName}

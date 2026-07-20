@@ -111,6 +111,7 @@ const TeamInfo = (props: Props) => {
         </Kb.Avatar>
         {isSubteam ? (
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             maxLength={16}
             onChangeText={setName}
@@ -121,6 +122,7 @@ const TeamInfo = (props: Props) => {
           />
         ) : (
           <Kb.Input3
+            textType="BodySemibold"
             containerStyle={styles.faded}
             maxLength={16}
             onChangeText={setName}
@@ -133,6 +135,7 @@ const TeamInfo = (props: Props) => {
           {isSubteam ? `Subteam names are private.` : `Team names can't be changed.`}
         </Kb.Text>
         <Kb.Input3
+          textType="BodySemibold"
           placeholder="Description"
           value={description}
           autoFocus={!isSubteam}

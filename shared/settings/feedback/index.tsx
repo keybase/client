@@ -65,6 +65,7 @@ const Feedback = (props: Props) => {
         )}
         <Kb.Box2 direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
           <Kb.Input3
+            textType="BodySemibold"
             autoCapitalize="sentences"
             autoCorrect={true}
             autoFocus={true}
@@ -92,6 +93,7 @@ const Feedback = (props: Props) => {
           </Kb.ClickableBox>
           {props.loggedOut && (
             <Kb.Input3
+              textType="BodySemibold"
               containerStyle={styles.input}
               placeholder="Your email address"
               onChangeText={setEmail}

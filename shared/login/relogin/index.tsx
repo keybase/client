@@ -95,6 +95,7 @@ const DesktopLogin = (props: Props) => {
           {props.needPassword && (
             <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={desktopStyles.inputRow}>
               <Kb.Input3
+                textType="BodySemibold"
                 autoFocus={true}
                 placeholder="Password"
                 onChangeText={props.passwordChange}
@@ -212,7 +213,7 @@ const NativeLoginRender = (props: Props) => {
         />
         {props.needPassword && (
           <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
-            <Kb.Input3 {...inputProps} />
+            <Kb.Input3 textType="BodySemibold" {...inputProps} />
             <Kb.Checkbox
               checked={props.showTyping}
               label="Show typing"

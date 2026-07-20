@@ -51,6 +51,7 @@ const AddEmail = (props: Props) => {
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             error={!!props.errorMessage}
             multiline={true}
