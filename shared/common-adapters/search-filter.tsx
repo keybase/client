@@ -177,6 +177,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
         : ''
     return (
       <Kb.Input3
+        textType="BodySemibold"
         autoFocus={props.focusOnMount}
         value={currentText()}
         placeholder={props.placeholderText + hotkeyText}

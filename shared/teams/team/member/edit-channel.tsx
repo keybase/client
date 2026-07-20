@@ -83,6 +83,7 @@ const EditChannel = (props: Props) => {
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         <Kb.Input3
+          textType="BodySemibold"
           autoFocus={true}
           maxLength={16}
           onChangeText={setName}
@@ -96,6 +97,7 @@ const EditChannel = (props: Props) => {
           <Kb.Text type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text>
         )}
         <Kb.Input3
+          textType="BodySemibold"
           placeholder="Description"
           value={description}
           rowsMin={3}

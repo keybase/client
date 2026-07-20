@@ -160,6 +160,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
               </Kb.Text>
             ) : (
               <Kb.Input3
+                textType="BodySemibold"
                 autoFocus={true}
                 maxLength={250}
                 multiline={true}

@@ -122,6 +122,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         {parentName ? (
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             disabled={waitingOnParentTeam}
             maxLength={16}
@@ -133,6 +134,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
           />
         ) : (
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             disabled={waitingOnParentTeam}
             maxLength={16}
@@ -157,6 +159,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
           )}
         </Kb.Box2>
         <Kb.Input3
+          textType="BodySemibold"
           disabled={waitingOnParentTeam}
           placeholder="Description"
           value={description}

@@ -111,11 +111,12 @@ type ChannelInputProps =
 
 const ChannelInput = (props: ChannelInputProps) => {
   if (props.isGeneral) {
-    return <Kb.Input3 value="#general" disabled={true} containerStyle={styles.inputGeneral} />
+    return <Kb.Input3 textType="BodySemibold" value="#general" disabled={true} containerStyle={styles.inputGeneral} />
   }
   const {value, onChange, onClear} = props
   return (
     <Kb.Input3
+      textType="BodySemibold"
       value={value}
       onChangeText={(text: string) => onChange(cleanChannelname(text))}
       decoration={<Kb.Icon type="iconfont-remove" onClick={onClear} />}

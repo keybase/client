@@ -77,6 +77,7 @@ const SetPublicName = ({route}: Props) => {
         <Kb.ImageIcon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             error={showDisabled}
             maxLength={64}

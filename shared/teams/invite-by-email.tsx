@@ -94,6 +94,7 @@ const InviteByEmail = (ownProps: OwnProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
           <Kb.Input3
+            textType="BodySemibold"
             autoFocus={true}
             error={!!errorMessage}
             multiline={true}

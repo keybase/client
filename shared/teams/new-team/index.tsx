@@ -56,6 +56,7 @@ export const CreateNewTeam = (props: Props) => {
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
           <Kb.Input3
+            textType="BodySemibold"
             placeholder="Name your team"
             value={name}
             onChangeText={setName}

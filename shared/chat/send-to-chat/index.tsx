@@ -128,6 +128,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
           onSelect={props.onSelect}
         />
         <Kb.Input3
+          textType="BodySemibold"
           placeholder="Title"
           value={props.title}
           onChangeText={props.setTitle}

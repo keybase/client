@@ -230,12 +230,14 @@ export default function Choice() {
                 Fill in your public info.
               </Kb.Text>
               <Kb.Input3
+                textType="BodySemibold"
                 autoFocus={true}
                 placeholder="Your full name"
                 value={data.pgpFullName}
                 onChangeText={pgpFullName => onUpdate({pgpFullName})}
               />
               <Kb.Input3
+                textType="BodySemibold"
                 placeholder="Email 1"
                 onChangeText={pgpEmail1 => onUpdate({pgpEmail1})}
                 onEnterKeyDown={onGenerate}
@@ -243,6 +245,7 @@ export default function Choice() {
                 error={data.pgpErrorEmail1}
               />
               <Kb.Input3
+                textType="BodySemibold"
                 placeholder="Email 2 (optional)"
                 onChangeText={pgpEmail2 => onUpdate({pgpEmail2})}
                 onEnterKeyDown={onGenerate}
@@ -250,6 +253,7 @@ export default function Choice() {
                 error={data.pgpErrorEmail2}
               />
               <Kb.Input3
+                textType="BodySemibold"
                 placeholder="Email 3 (optional)"
                 onChangeText={pgpEmail3 => onUpdate({pgpEmail3})}
                 onEnterKeyDown={onGenerate}

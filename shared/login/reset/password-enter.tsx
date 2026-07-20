@@ -33,6 +33,7 @@ const EnterPassword = ({route}: Props) => {
       buttons={[{label: 'Continue', onClick: onContinue, waiting}]}
     >
       <Kb.Input3
+        textType="BodySemibold"
         placeholder="Enter your password"
         containerStyle={styles.input}
         secureTextEntry={true}

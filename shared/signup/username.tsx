@@ -157,6 +157,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
           <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
           <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
             <Kb.Input3
+              textType="BodySemibold"
               autoFocus={true}
               containerStyle={styles.input}
               placeholder="Pick a username"

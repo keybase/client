@@ -92,6 +92,7 @@ export const EnterEmailBody = (props: BodyProps) => (
       <Kb.ImageIcon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.Input3
+          textType="BodySemibold"
           autoFocus={true}
           containerStyle={styles.input}
           keyboardType="email-address"

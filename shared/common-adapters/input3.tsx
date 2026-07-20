@@ -69,7 +69,7 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     growAndScroll, inputStyle, maxLength, multiline, selectTextOnFocus,
     onBlur: onBlurProp, onChangeText, onClick, onEnterKeyDown, onFocus: onFocusProp,
     onKeyDown: onKeyDownProp, placeholder, ref, rowsMax, rowsMin,
-    secureTextEntry, spellCheck, textType = 'BodySemibold', value,
+    secureTextEntry, spellCheck, textType = 'Body', value,
   } = props
 
   const [focused, setFocused] = React.useState(false)
@@ -193,7 +193,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     inputStyle, keyboardType, maxLength, multiline, onEnterKeyDown,
     onBlur: onBlurProp, onChangeText, onFocus: onFocusProp, placeholder, ref,
     returnKeyType, rowsMax, rowsMin, secureTextEntry, selectTextOnFocus,
-    textContentType, textType = 'BodySemibold', value,
+    textContentType, textType = 'Body', value,
   } = props
 
   const [focused, setFocused] = React.useState(false)
