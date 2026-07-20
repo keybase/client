@@ -19,13 +19,23 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
         {recipients.length ? (
           <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (
-          <Kb.Input3
-            disabled={inProgress}
-            placeholder={placeholder}
-            onFocus={onAddRecipients}
-            hideBorder={true}
-            containerStyle={styles.input}
-          />
+          <Kb.ClickableBox
+            direction="horizontal"
+            style={styles.input}
+            onClick={inProgress ? undefined : onAddRecipients}
+          >
+            {/* Display-only input; block it from taking focus so opening the
+                builder needs a real click — a focused input would refire
+                onFocus on window refocus and reopen the modal. */}
+            <Kb.Box2 direction="horizontal" fullWidth={true} pointerEvents="none">
+              <Kb.Input3
+                disabled={inProgress}
+                placeholder={placeholder}
+                hideBorder={true}
+                containerStyle={styles.inputInner}
+              />
+            </Kb.Box2>
+          </Kb.ClickableBox>
         )}
         {recipients.length ? (
           <Kb.Box2 direction="horizontal" style={styles.removeRecipients}>
@@ -50,8 +60,11 @@ const styles = Kb.Styles.styleSheetCreate(
       input: {
         ...Kb.Styles.globalStyles.flexGrow,
         alignSelf: 'center',
-        backgroundColor: Kb.Styles.globalColors.transparent,
         marginLeft: Kb.Styles.globalMargins.xtiny,
+      },
+      inputInner: {
+        ...Kb.Styles.globalStyles.flexGrow,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         padding: 0,
       },
       recipientsContainer: {
