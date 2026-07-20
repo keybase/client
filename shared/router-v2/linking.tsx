@@ -75,7 +75,7 @@ export const makeChatConversationState = (conversationIDKey: string): PartialNav
 const makeModalState = (
   modalName: string,
   params?: Record<string, unknown>,
-  underTab?: string
+  underTab?: Tabs.AppTab
 ): PartialNavState => ({
   index: 1,
   routes: [
