@@ -103,6 +103,11 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     ? () => {
         moveOrCopy('copy')
         clearModals()
+        if (isShare) {
+          // Share flow parks the chat tab beneath its modal (see router-v2/linking.tsx);
+          // saving into Files should land on the Files tab instead.
+          C.Router2.switchTab(C.Tabs.fsTab)
+        }
         nav.safeNavigateAppend({name: 'fsBrowse', params: {path: parentPath}})
       }
     : undefined
