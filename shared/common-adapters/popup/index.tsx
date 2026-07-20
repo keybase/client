@@ -134,7 +134,7 @@ function PopupSheet(props: PopupProps) {
 }
 
 function Popup(props: PopupProps) {
-  if (props.attachTo) {
+  if (props.attachTo && (!isMobile || props.mobileAnchored)) {
     return <PopupPositioned {...props} />
   }
   if (isMobile) {

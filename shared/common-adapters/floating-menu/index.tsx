@@ -50,7 +50,9 @@ function FloatingMenu(props: Props) {
     return unsub
   }, [navigation, onHidden])
 
-  if (!visible && !mode) {
+  // modal mode callers control mounting themselves; sheets present on mount so
+  // they must unmount when not visible
+  if (!visible && mode !== 'modal') {
     return null
   }
 
@@ -75,7 +77,9 @@ function FloatingMenu(props: Props) {
 
   return (
     <Popup
-      attachTo={mode === 'bottomsheet' && isMobile ? undefined : props.attachTo}
+      attachTo={props.attachTo}
+      // legacy fullscreen menus (no mode) still use the anchored portal on mobile
+      mobileAnchored={mode !== 'bottomsheet'}
       onHidden={onHidden}
       visible={props.visible}
       position={props.position}

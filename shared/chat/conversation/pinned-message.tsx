@@ -122,7 +122,7 @@ const PinnedMessage = function PinnedMessage() {
   )
   const popup = (
     <UnpinPrompt
-      attachTo={isMobile ? undefined : closeref}
+      attachTo={closeref}
       onHidden={() => setShowPopup(false)}
       onUnpin={onDismiss}
       visible={showPopup}
@@ -157,6 +157,7 @@ const UnpinPrompt = (props: UnpinProps) => {
     <Kb.FloatingMenu
       attachTo={props.attachTo}
       closeOnSelect={false}
+      mode="bottomsheet"
       onHidden={props.onHidden}
       visible={props.visible}
       propagateOutsideClicks={true}
