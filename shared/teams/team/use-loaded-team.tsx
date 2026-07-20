@@ -3,7 +3,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
-import {useTeamsRoleMap} from '../use-teams-list'
+import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
 import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 type LoadedTeam = {
@@ -94,7 +94,14 @@ const useLoadedTeamRaw = (
     () => getCachedResourceCache(cacheMap, emptyLoadedTeamData(validTeamID), validTeamID),
     [cacheMap, validTeamID]
   )
-  const initialData = React.useMemo(() => emptyLoadedTeamData(validTeamID), [validTeamID])
+  // Seed from the teams-list cache so the header (teamname, avatar, member count)
+  // renders immediately instead of waiting for getAnnotatedTeam to round-trip.
+  const teamsListMap = useTeamsListMap()
+  const initialData = React.useMemo(() => {
+    const data = emptyLoadedTeamData(validTeamID)
+    const listMeta = validTeamID ? teamsListMap.get(validTeamID) : undefined
+    return listMeta ? {...data, teamMeta: listMeta} : data
+  }, [validTeamID, teamsListMap])
   const {data, loaded, loading, reload, clear} = useCachedResource({
     cache,
     cacheKey: validTeamID,

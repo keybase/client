@@ -107,7 +107,7 @@ const TeamInfo = (props: Props) => {
           size={96}
           style={styles.avatar}
         >
-          <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />
+          {!!teamname && <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />}
         </Kb.Avatar>
         {isSubteam ? (
           <Kb.Input3

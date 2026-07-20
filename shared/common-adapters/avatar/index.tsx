@@ -262,9 +262,9 @@ function Avatar(p: Props) {
             onLoad={() => setErrorUri(undefined)}
           />
         </>
-      ) : (
-        <Image source={placeholderSource} style={cached.image} />
-      )}
+      ) : // no source yet (name/httpSrv not loaded): keep the sized box blank instead of
+      // flashing a placeholder that may be the wrong type (user vs team)
+      null}
       {children}
     </>
   )

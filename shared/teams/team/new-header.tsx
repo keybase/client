@@ -112,7 +112,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         onEditAvatar && styles.clickable,
       ])}
     >
-      {!!onEditAvatar && <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />}
+      {!!onEditAvatar && !!meta.teamname && <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />}
     </Kb.Avatar>
   )
 
