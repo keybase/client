@@ -20,4 +20,6 @@ export type PopupProps = {
   visible?: boolean
   hideKeyboard?: boolean
   snapPoints?: Array<string | number>
+  // mobile sheet only: pinned below the scrolling content, always visible
+  footer?: React.ReactNode
 }

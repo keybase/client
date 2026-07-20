@@ -6,10 +6,13 @@ import {EscapeHandler} from '../key-event-handler'
 import {Portal} from '../portal'
 import {
   BottomSheetModal,
-  BottomSheetView,
+  BottomSheetScrollView,
   BottomSheetBackdrop,
+  BottomSheetFooter,
   type BottomSheetBackdropProps,
+  type BottomSheetFooterProps,
 } from './bottom-sheet'
+import {useSafeAreaInsets} from '../safe-area-view'
 import {FullWindowOverlay} from 'react-native-screens'
 import type {PopupProps} from './index.shared'
 export type {PopupProps} from './index.shared'
@@ -97,8 +100,16 @@ function stopBubbling(ev: React.MouseEvent<HTMLDivElement>) {
 }
 
 function PopupSheet(props: PopupProps) {
-  const {children, onHidden, snapPoints} = props
+  const {children, footer, onHidden, snapPoints} = props
+  const {top: safeTop} = useSafeAreaInsets()
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
+
+  // the footer floats over the scrolled content down to the screen edge, so the
+  // caller's node must bring its own background and bottom safe-area padding
+  const renderFooter = React.useCallback(
+    (fp: BottomSheetFooterProps) => <BottomSheetFooter {...fp}>{footer}</BottomSheetFooter>,
+    [footer]
+  )
 
   React.useEffect(() => {
     bottomRef.current?.present()
@@ -124,8 +135,14 @@ function PopupSheet(props: PopupProps) {
       style={nativeStyles.modalStyle}
       backdropComponent={Backdrop}
       onDismiss={onHidden}
+      // dynamic sizing clamps to the container (full window via FullWindowOverlay),
+      // so without this tall sheets cover the status bar
+      topInset={safeTop}
+      footerComponent={footer ? renderFooter : undefined}
     >
-      <BottomSheetView>{children}</BottomSheetView>
+      {/* a scrollable must be the sheet's direct child: nesting one inside
+          BottomSheetView measures unbounded, so tall content clips instead of scrolling */}
+      <BottomSheetScrollView enableFooterMarginAdjustment={!!footer}>{children}</BottomSheetScrollView>
     </BottomSheetModal>
   )
 }

@@ -12,7 +12,6 @@ import Badge from '@/common-adapters/badge'
 import ProgressIndicator from '@/common-adapters/progress-indicator'
 import SafeAreaView, {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import ScrollView from '@/common-adapters/scroll-view'
-import {BottomSheetScrollView} from '@/common-adapters/popup/bottom-sheet'
 import {TouchableOpacity, Keyboard} from 'react-native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {useOnMountOnce} from '@/constants/react'
@@ -288,12 +287,15 @@ const NativeMenuLayout = (props: MenuLayoutProps & {safeBottom: number}) => {
   )
 
   if (isModal === 'bottomsheet') {
+    // Popup's sheet provides the scroll view; this is just the content
     return (
-      <BottomSheetScrollView
-        style={[
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([
           {backgroundColor: Styles.undynamicColor(Styles.globalColors.black_05OrBlack)},
-          nativeStyles.bottomSheetScrollView,
-        ]}
+          nativeStyles.bottomSheetOuter,
+        ])}
       >
         <Box2
           style={Styles.collapseStyles([nativeStyles.bottomSheetContainer, {marginBottom: 20 + safeBottom}])}
@@ -304,7 +306,7 @@ const NativeMenuLayout = (props: MenuLayoutProps & {safeBottom: number}) => {
           {items}
           {close}
         </Box2>
-      </BottomSheetScrollView>
+      </Box2>
     )
   }
 
@@ -419,7 +421,7 @@ const nativeStyles = Styles.styleSheetCreate(
         borderRadius: Styles.borderRadius,
         marginBottom: 20,
       },
-      bottomSheetScrollView: {
+      bottomSheetOuter: {
         padding: 8,
       },
       divider: {marginBottom: Styles.globalMargins.tiny},
