@@ -1,24 +1,19 @@
 import * as React from 'react'
-import type {BottomSheetModalProps, BottomSheetBackdropProps} from '@gorhom/bottom-sheet'
+import type {BottomSheetModalProps, BottomSheetBackdropProps, BottomSheetFooterProps} from '@gorhom/bottom-sheet'
 import * as _gorhomRaw from '@gorhom/bottom-sheet'
 
 type NativeMethods = {present: () => void; forceClose: () => void}
 type BackdropProps = BottomSheetBackdropProps & {disappearsOnIndex?: number; appearsOnIndex?: number; opacity?: number}
-type ScrollViewProps = {style?: object; children?: React.ReactNode}
+type ScrollViewProps = {style?: object; children?: React.ReactNode; enableFooterMarginAdjustment?: boolean}
+type FooterProps = BottomSheetFooterProps & {bottomInset?: number; children?: React.ReactNode}
 type GorhomModule = {
   BottomSheetModal: React.ForwardRefExoticComponent<BottomSheetModalProps & React.RefAttributes<NativeMethods>>
-  BottomSheetView: React.ComponentType<{children?: React.ReactNode}>
   BottomSheetBackdrop: React.ComponentType<BackdropProps>
   BottomSheetScrollView: React.ComponentType<ScrollViewProps>
+  BottomSheetFooter: React.ComponentType<FooterProps>
 }
 
 const _gorhom: GorhomModule | null = isMobile ? (_gorhomRaw as unknown as GorhomModule) : null
-
-export const BottomSheetView = (_p: {children?: React.ReactNode}) => {
-  if (!isMobile) return null
-  const {BottomSheetView: NativeView} = _gorhom!
-  return <NativeView>{_p.children}</NativeView>
-}
 
 export class BottomSheetModal extends React.Component<BottomSheetModalProps> {
   private _native: NativeMethods | null = null
@@ -57,4 +52,10 @@ export const BottomSheetScrollView = (_p: ScrollViewProps) => {
   return <NativeScrollView {..._p} />
 }
 
-export type {BottomSheetBackdropProps} from '@gorhom/bottom-sheet'
+export const BottomSheetFooter = (_p: FooterProps) => {
+  if (!isMobile) return null
+  const {BottomSheetFooter: NativeFooter} = _gorhom!
+  return <NativeFooter {..._p} />
+}
+
+export type {BottomSheetBackdropProps, BottomSheetFooterProps} from '@gorhom/bottom-sheet'

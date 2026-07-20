@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button'
 import * as T from '@/constants/types'
-import {BottomSheetScrollView} from '@/common-adapters/popup/bottom-sheet'
 import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
 import {useConversationThreadID, useConversationThreadMessage, useConversationThreadMessageActions} from '../thread-context'
@@ -85,10 +84,11 @@ const ReactionTooltip = (p: OwnProps) => {
   const renderItem = React.useCallback(
     ({item}: {item: ListItem}) => (
       <Kb.NameWithIcon
+        avatarSize={isMobile ? 32 : undefined}
         colorFollowing={true}
         containerStyle={styles.userContainer}
         horizontal={true}
-        metaOne={item.fullName}
+        metaOne={isMobile ? undefined : item.fullName}
         onClick={onClickUser}
         clickType="onClick"
         withProfileCardPopup={false}
@@ -116,7 +116,7 @@ const ReactionTooltip = (p: OwnProps) => {
       gapStart={true}
       gapEnd={true}
       fullWidth={true}
-      centerChildren={true}
+      alignItems="center"
       noShrink={true}
       style={styles.buttonContainer}
     >
@@ -133,39 +133,42 @@ const ReactionTooltip = (p: OwnProps) => {
 
   if (isMobile) {
     return (
-      <Kb.Popup onHidden={onHidden}>
-        <MessageContext value={messageContext}>
-          <BottomSheetScrollView>
-            <Kb.Box2
-              direction="vertical"
+      <Kb.Popup
+        onHidden={onHidden}
+        footer={
+          <Kb.ButtonBar
+            style={Kb.Styles.collapseStyles([
+              styles.addReactionButtonBar,
+              {paddingBottom: Kb.Styles.globalMargins.medium + insets.bottom},
+            ])}
+          >
+            <Kb.Button
+              disabled={!hasMessageID}
+              mode="Secondary"
               fullWidth={true}
-              style={Kb.Styles.collapseStyles([styles.sheetContainer, {paddingBottom: insets.bottom}])}
+              onClick={hasMessageID ? onAddReaction : undefined}
+              label="Add a reaction"
             >
-              {sections.map(section => (
-                <React.Fragment key={section.key}>
-                  {renderSectionHeader({section})}
-                  {section.data.map(item => (
-                    <React.Fragment key={item.key}>{renderItem({item})}</React.Fragment>
-                  ))}
-                </React.Fragment>
-              ))}
-              <Kb.ButtonBar style={styles.addReactionButtonBar}>
-                <Kb.Button
-                  disabled={!hasMessageID}
-                  mode="Secondary"
-                  fullWidth={true}
-                  onClick={hasMessageID ? onAddReaction : undefined}
-                  label="Add a reaction"
-                >
-                  <Kb.Icon
-                    type="iconfont-reacji"
-                    color={Kb.Styles.globalColors.blue}
-                    style={styles.addReactionButtonIcon}
-                  />
-                </Kb.Button>
-              </Kb.ButtonBar>
-            </Kb.Box2>
-          </BottomSheetScrollView>
+              <Kb.Icon
+                type="iconfont-reacji"
+                color={Kb.Styles.globalColors.blue}
+                style={styles.addReactionButtonIcon}
+              />
+            </Kb.Button>
+          </Kb.ButtonBar>
+        }
+      >
+        <MessageContext value={messageContext}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.sheetContainer}>
+            {sections.map(section => (
+              <React.Fragment key={section.key}>
+                {renderSectionHeader({section})}
+                {section.data.map(item => (
+                  <React.Fragment key={item.key}>{renderItem({item})}</React.Fragment>
+                ))}
+              </React.Fragment>
+            ))}
+          </Kb.Box2>
         </MessageContext>
       </Kb.Popup>
     )
@@ -213,6 +216,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addReactionButtonBar: {
+        backgroundColor: Kb.Styles.globalColors.white,
         ...Kb.Styles.padding(
           Kb.Styles.globalMargins.small,
           Kb.Styles.globalMargins.small,
@@ -220,12 +224,17 @@ const styles = Kb.Styles.styleSheetCreate(
         ),
       },
       addReactionButtonIcon: {marginRight: Kb.Styles.globalMargins.tiny},
-      buttonContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        borderTopLeftRadius: 3,
-        borderTopRightRadius: 3,
-        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
-      },
+      buttonContainer: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
+        },
+        isElectron: {
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderTopLeftRadius: 3,
+          borderTopRightRadius: 3,
+        },
+        isMobile: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+      }),
       emojiText: {
         color: Kb.Styles.globalColors.black_50,
         flex: -1,
@@ -253,13 +262,16 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
         borderRadius: Kb.Styles.borderRadius,
       },
-      userContainer: {
-        alignSelf: 'stretch',
-        backgroundColor: Kb.Styles.globalColors.white,
-        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-        ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
-        width: '100%',
-      },
+      userContainer: Kb.Styles.platformStyles({
+        common: {
+          alignSelf: 'stretch',
+          backgroundColor: Kb.Styles.globalColors.white,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
+          width: '100%',
+        },
+        isMobile: {paddingLeft: Kb.Styles.globalMargins.small + 8},
+      }),
     }) as const
 )
 
