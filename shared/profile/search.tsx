@@ -3,13 +3,11 @@ import * as Kb from '@/common-adapters'
 
 const ProfileSearch = () => {
   const appendPeopleBuilder = C.Router2.appendPeopleBuilder
-  const onSearch = appendPeopleBuilder
   return (
     <Kb.SearchFilter
       hotkey="k"
       icon="iconfont-search"
-      onFocus={isMobile ? undefined : onSearch}
-      onClick={!isMobile ? undefined : onSearch}
+      onClick={appendPeopleBuilder}
       placeholderText={isMobile ? 'Search' : 'Search people'}
       size="full-width"
       style={styles.filter}

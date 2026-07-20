@@ -44,10 +44,9 @@ type Props = {
   onCancel?: () => void
   // If onClick is provided, this component won't focus on click. User is
   // expected to handle actual filter/search in a separate component, perhaps
-  // in a popup.
+  // in a popup. The hotkey triggers onClick instead of focusing.
   onClick?: () => void
   onFocus?: () => void
-  // following props are ignored when onClick is provided
   hotkey?: 'f' | 'k' // desktop only,
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
@@ -132,12 +131,16 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   const mouseLeave = () => setHover(false)
 
   const onHotkey = (cmd: string) => {
-    if (hotkey && !props.onClick && cmd.endsWith('+' + hotkey)) {
-      focus()
+    if (hotkey && cmd.endsWith('+' + hotkey)) {
+      if (props.onClick) {
+        props.onClick()
+      } else {
+        focus()
+      }
     }
   }
 
-  Kb.useHotKey(props.hotkey && !props.onClick ? `mod+${props.hotkey}` : '', onHotkey)
+  Kb.useHotKey(props.hotkey ? `mod+${props.hotkey}` : '', onHotkey)
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -172,7 +175,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
   const input = () => {
     const hotkeyText =
-      props.hotkey && !props.onClick && !focused && !isMobile
+      props.hotkey && !focused && !isMobile
         ? ` (${Platforms.shortcutSymbol}${props.hotkey.toUpperCase()})`
         : ''
     return (
@@ -255,7 +258,9 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       direction="horizontal"
       alignItems="center"
       fullWidth={!isMobile}
-      pointerEvents={isMobile && props.onClick ? 'none' : undefined}
+      // With onClick the input is display-only; block it from taking focus so
+      // clicks hit the ClickableBox and window refocus can't refire onFocus.
+      pointerEvents={props.onClick ? 'none' : undefined}
     >
       {leftIcon()}
       {input()}
