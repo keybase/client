@@ -302,6 +302,14 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={onShow}
       onMouseLeave={onHide}
+      onMouseDown={e => {
+        // clicking the username navigates to the profile; cancel any pending/visible popup.
+        // portal children bubble through the React tree, so only hide when the click is on
+        // the anchor itself and not inside the floating card (follow/chat buttons).
+        // loose typing since tsconfig.native compiles this file without DOM lib
+        const anchor = e.currentTarget as unknown as {contains?: (t: unknown) => boolean}
+        if (anchor.contains?.(e.target)) onHide()
+      }}
       ref={popupAnchor}
     >
       {children()}
