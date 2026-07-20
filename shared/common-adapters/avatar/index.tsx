@@ -141,6 +141,7 @@ for (const size of allSizes) {
 
 const bgColor = Styles.globalColors.greyLight
 const errorUnderlay = {backgroundColor: bgColor, position: 'absolute'} as const
+const blankBg = {backgroundColor: bgColor} as const
 
 // ── Desktop-only ─────────────────────────────────────────────────────────────
 
@@ -262,9 +263,14 @@ function Avatar(p: Props) {
             onLoad={() => setErrorUri(undefined)}
           />
         </>
-      ) : // no source yet (name/httpSrv not loaded): keep the sized box blank instead of
-      // flashing a placeholder that may be the wrong type (user vs team)
-      null}
+      ) : name ? (
+        // name known, just waiting on httpSrv address: the placeholder type is correct
+        <Image source={placeholderSource} style={cached.image} />
+      ) : (
+        // no name yet (e.g. team meta still loading): a placeholder could be the wrong
+        // type (user vs team), so hold the shape with a blank background instead
+        <View style={[cached.image, blankBg]} />
+      )}
       {children}
     </>
   )
