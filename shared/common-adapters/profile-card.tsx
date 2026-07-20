@@ -268,8 +268,9 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const popup = showing && (
     <DelayedMounting delay={isMobile ? 0 : 300}>
       <Kb.FloatingMenu
-        attachTo={isMobile ? undefined : popupAnchor}
+        attachTo={popupAnchor}
         closeOnSelect={true}
+        mode="bottomsheet"
         onHidden={onHide}
         position="top center"
         offset={isMobile ? 0 : 10}

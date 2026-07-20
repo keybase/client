@@ -25,9 +25,6 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
 }
 
 function DesktopPopupPositioned(props: PopupProps) {
-  if (Object.hasOwn(props, 'visible') && !props.visible) {
-    return null
-  }
   return (
     <FloatingBox
       attachTo={props.attachTo}
@@ -134,7 +131,11 @@ function PopupSheet(props: PopupProps) {
 }
 
 function Popup(props: PopupProps) {
-  if (props.attachTo) {
+  // sheets present on mount, so an explicitly hidden popup must not render
+  if (Object.hasOwn(props, 'visible') && !props.visible) {
+    return null
+  }
+  if (props.attachTo && (!isMobile || props.mobileAnchored)) {
     return <PopupPositioned {...props} />
   }
   if (isMobile) {

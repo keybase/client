@@ -89,7 +89,7 @@ const TeamMention = (ownProps: OwnProps) => {
 
   const popups = (
     <TeamInfo
-      attachTo={isMobile ? undefined : mentionRef}
+      attachTo={mentionRef}
       description={description}
       inTeam={inTeam}
       isOpen={isOpen}

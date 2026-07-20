@@ -26,6 +26,7 @@ const BotMenu = (props: Props) => {
       attachTo={props.attachTo}
       closeOnSelect={true}
       items={items}
+      mode="bottomsheet"
       onHidden={props.onHidden}
       visible={props.visible}
     />

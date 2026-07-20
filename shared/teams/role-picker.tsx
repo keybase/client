@@ -398,6 +398,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
       {open && (
         <Kb.Popup
           attachTo={popupAnchor}
+          mobileAnchored={true}
           position={position || 'top center'}
           onHidden={onCancel ?? (() => {})}
           hideKeyboard={true}

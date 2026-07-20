@@ -6,6 +6,9 @@ export type PopupProps = {
   children: React.ReactNode
   onHidden?: () => void
   attachTo?: React.RefObject<MeasureRef | null>
+  // mobile ignores attachTo and presents a bottom sheet by default; set this
+  // to keep the raw anchored portal on mobile (e.g. positioned over an input)
+  mobileAnchored?: boolean
   position?: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   propagateOutsideClicks?: boolean

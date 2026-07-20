@@ -35,6 +35,7 @@ const UnknownMentionPopup = (props: PopupProps) => {
       closeOnSelect={true}
       header={header}
       items={items}
+      mode="bottomsheet"
       onHidden={props.onHidden}
       visible={props.visible}
     />
@@ -82,7 +83,7 @@ const UnknownMention = (props: Props) => {
 
   const popups = (
     <UnknownMentionPopup
-      attachTo={isMobile ? undefined : mentionRef}
+      attachTo={mentionRef}
       onHidden={handleMouseLeave}
       onResolve={onResolve}
       text={text}

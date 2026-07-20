@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button'
 import * as T from '@/constants/types'
+import {BottomSheetScrollView} from '@/common-adapters/popup/bottom-sheet'
 import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
 import {useConversationThreadID, useConversationThreadMessage, useConversationThreadMessageActions} from '../thread-context'
@@ -130,6 +131,46 @@ const ReactionTooltip = (p: OwnProps) => {
     </Kb.Box2>
   )
 
+  if (isMobile) {
+    return (
+      <Kb.Popup onHidden={onHidden}>
+        <MessageContext value={messageContext}>
+          <BottomSheetScrollView>
+            <Kb.Box2
+              direction="vertical"
+              fullWidth={true}
+              style={Kb.Styles.collapseStyles([styles.sheetContainer, {paddingBottom: insets.bottom}])}
+            >
+              {sections.map(section => (
+                <React.Fragment key={section.key}>
+                  {renderSectionHeader({section})}
+                  {section.data.map(item => (
+                    <React.Fragment key={item.key}>{renderItem({item})}</React.Fragment>
+                  ))}
+                </React.Fragment>
+              ))}
+              <Kb.ButtonBar style={styles.addReactionButtonBar}>
+                <Kb.Button
+                  disabled={!hasMessageID}
+                  mode="Secondary"
+                  fullWidth={true}
+                  onClick={hasMessageID ? onAddReaction : undefined}
+                  label="Add a reaction"
+                >
+                  <Kb.Icon
+                    type="iconfont-reacji"
+                    color={Kb.Styles.globalColors.blue}
+                    style={styles.addReactionButtonIcon}
+                  />
+                </Kb.Button>
+              </Kb.ButtonBar>
+            </Kb.Box2>
+          </BottomSheetScrollView>
+        </MessageContext>
+      </Kb.Popup>
+    )
+  }
+
   return (
     <Kb.Popup
       attachTo={attachmentRef}
@@ -145,42 +186,17 @@ const ReactionTooltip = (p: OwnProps) => {
           onMouseOver={onMouseOver}
           direction="vertical"
           gap="tiny"
-          style={Kb.Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
+          style={styles.listContainer}
         >
-          {isMobile && (
-            <Kb.Box2 direction="horizontal">
-              <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
-                Close
-              </Kb.Text>
-              <Kb.Box2 direction="horizontal" flex={1} />
-            </Kb.Box2>
-          )}
           <Kb.SectionList
             alwaysBounceVertical={false}
-            initialNumToRender={19} // Keeps height from trashing on mobile
+            initialNumToRender={19}
             sections={sections}
             stickySectionHeadersEnabled={true}
             contentContainerStyle={styles.list}
             renderItem={renderItem}
             renderSectionHeader={renderSectionHeader}
           />
-          {isMobile && (
-            <Kb.ButtonBar style={styles.addReactionButtonBar}>
-              <Kb.Button
-                disabled={!hasMessageID}
-                mode="Secondary"
-                fullWidth={true}
-                onClick={hasMessageID ? onAddReaction : undefined}
-                label="Add a reaction"
-              >
-                <Kb.Icon
-                  type="iconfont-reacji"
-                  color={Kb.Styles.globalColors.blue}
-                  style={styles.addReactionButtonIcon}
-                />
-              </Kb.Button>
-            </Kb.ButtonBar>
-          )}
         </Kb.Box2>
       </MessageContext>
     </Kb.Popup>
@@ -210,7 +226,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderTopRightRadius: 3,
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
-      closeButton: {padding: Kb.Styles.globalMargins.small},
       emojiText: {
         color: Kb.Styles.globalColors.black_50,
         flex: -1,
@@ -222,14 +237,10 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       listContainer: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: {
+          backgroundColor: Kb.Styles.globalColors.white,
           maxHeight: 320,
           width: 240,
-        },
-        isMobile: {
-          maxHeight: '90%',
-          width: '100%',
         },
       }),
       overlay: Kb.Styles.platformStyles({
@@ -238,6 +249,10 @@ const styles = Kb.Styles.styleSheetCreate(
           margin: Kb.Styles.globalMargins.tiny,
         },
       }),
+      sheetContainer: {
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderRadius: Kb.Styles.borderRadius,
+      },
       userContainer: {
         alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,

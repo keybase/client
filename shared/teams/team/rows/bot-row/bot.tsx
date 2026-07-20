@@ -105,7 +105,7 @@ const TeamBotRow = (props: Props) => {
             />
           )}
           <BotMenu
-            attachTo={isMobile ? undefined : popupAnchor}
+            attachTo={popupAnchor}
             canManageBots={props.canManageBots}
             visible={showMenu}
             onEdit={props.onEdit}

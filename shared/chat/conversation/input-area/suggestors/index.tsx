@@ -443,6 +443,7 @@ const Popup = (p: PopupProps) => {
   return (
     <Kb.Popup
       attachTo={attachRef}
+      mobileAnchored={true}
       matchDimension={true}
       position="top center"
       positionFallbacks={positionFallbacks}
