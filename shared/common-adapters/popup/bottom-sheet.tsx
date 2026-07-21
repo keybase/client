@@ -9,6 +9,8 @@ type ScrollViewProps = {
   style?: StylesCrossPlatform
   children?: React.ReactNode
   enableFooterMarginAdjustment?: boolean
+  alwaysBounceVertical?: boolean
+  overScrollMode?: 'auto' | 'always' | 'never'
 }
 type FooterProps = BottomSheetFooterProps & {bottomInset?: number; children?: React.ReactNode}
 type GorhomModule = {
