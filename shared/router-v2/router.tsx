@@ -33,6 +33,7 @@ import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liqu
 import {Platform, StatusBar, View, useColorScheme} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
+import {useCurrentUserState} from '@/stores/current-user'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
@@ -604,7 +605,7 @@ function NativeRouter() {
       userSwitching: s.userSwitching,
     }))
   )
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
 
   const {barStyle, isDarkMode} = useDarkModeState(
     C.useShallow(s => {
