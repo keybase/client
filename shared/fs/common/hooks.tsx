@@ -95,6 +95,20 @@ type FsDataContextType = {
 
 const FsDataContext = React.createContext<FsDataContextType | null>(null)
 
+// The mobile bottom sheet teleports popup children to the app root (gorhom
+// portal), outside this per-screen provider. Content rendered inside a sheet
+// must capture the value in the source tree with useFsDataContextValue and
+// re-provide it across the portal with FsDataContextBridge.
+export const useFsDataContextValue = () => React.useContext(FsDataContext)
+
+export const FsDataContextBridge = ({
+  children,
+  value,
+}: {
+  children: React.ReactNode
+  value: FsDataContextType | null
+}) => <FsDataContext.Provider value={value}>{children}</FsDataContext.Provider>
+
 type DownloadStartType = 'download' | 'share' | 'saveMedia'
 
 const downloadIntentFromStartType = (type: DownloadStartType): T.FS.DownloadIntent | undefined =>
@@ -965,6 +979,26 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   useFsLoadOnMountAndFocus({
     enabled: pathIsItem && !!routeData,
     load: () => routeData?.loadPathMetadata(path),
+    reloadKey: path,
+  })
+}
+
+// The path-item-action menu shows stat info and children counts for its target
+// path, which the screen coordinator may never load (e.g. a TLF row at the
+// Files tab root), so the menu triggers its own loads while open.
+export const useFsLoadPathItemInfoOnMount = (path: T.FS.Path) => {
+  const routeData = React.useContext(FsDataContext)
+  const pathItem = useFsPathItem(path)
+  const pathIsItem = isPathItem(path)
+  const isMaybeFolder = pathItem.type !== T.FS.PathType.File
+  useFsLoadOnMountAndFocus({
+    enabled: pathIsItem && !!routeData,
+    load: () => routeData?.loadPathMetadata(path),
+    reloadKey: path,
+  })
+  useFsLoadOnMountAndFocus({
+    enabled: pathIsItem && isMaybeFolder && !!routeData,
+    load: () => routeData?.loadFolderChildren(path, false),
     reloadKey: path,
   })
 }

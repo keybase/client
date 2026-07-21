@@ -7,12 +7,15 @@ import Header from './header'
 import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
-import {useFsErrorActionOrThrow} from '../error-state'
+import {FsErrorContextBridge, useFsErrorActionOrThrow, useFsErrorContextValue} from '../error-state'
 import {
+  FsDataContextBridge,
   useFsCancelDownload,
+  useFsDataContextValue,
   useFsDismissDownload,
   useFsDownload,
   useFsFileContext,
+  useFsLoadPathItemInfoOnMount,
   useFsReloadTlfs,
   useFsWatchDownloadForMobile,
 } from '../hooks'
@@ -61,6 +64,9 @@ const Container = (op: OwnProps) => {
   const {downloadID, downloadIntent, path, mode, floatingMenuProps, onDownloadStarted, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   const {fileContext, pathItem} = useFsFileContext(path)
+  useFsLoadPathItemInfoOnMount(path)
+  const fsData = useFsDataContextValue()
+  const fsErrors = useFsErrorContextValue()
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const reloadTlfs = useFsReloadTlfs()
   const browserEdits = useFsBrowserEdits()
@@ -367,7 +373,16 @@ const Container = (op: OwnProps) => {
       visible={visible}
       onHidden={userInitiatedHide}
       position="left center"
-      header={<Header path={path} />}
+      header={
+        // on mobile the sheet portals the header out of the fs providers'
+        // subtree; bridge the captured context values across so the header's
+        // path info and children counts can read them
+        <FsDataContextBridge value={fsData}>
+          <FsErrorContextBridge value={fsErrors}>
+            <Header path={path} />
+          </FsErrorContextBridge>
+        </FsDataContextBridge>
+      }
       items={items.length ? ['Divider' as const, ...items] : items}
       safeProviderStyle={safeProviderStyle}
     />
