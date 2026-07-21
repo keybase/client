@@ -100,7 +100,7 @@ function stopBubbling(ev: React.MouseEvent<HTMLDivElement>) {
 }
 
 function PopupSheet(props: PopupProps) {
-  const {children, footer, onHidden, snapPoints} = props
+  const {children, footer, onHidden, snapPoints, style} = props
   const {top: safeTop} = useSafeAreaInsets()
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
 
@@ -142,7 +142,9 @@ function PopupSheet(props: PopupProps) {
     >
       {/* a scrollable must be the sheet's direct child: nesting one inside
           BottomSheetView measures unbounded, so tall content clips instead of scrolling */}
-      <BottomSheetScrollView enableFooterMarginAdjustment={!!footer}>{children}</BottomSheetScrollView>
+      <BottomSheetScrollView enableFooterMarginAdjustment={!!footer} style={style}>
+        {children}
+      </BottomSheetScrollView>
     </BottomSheetModal>
   )
 }

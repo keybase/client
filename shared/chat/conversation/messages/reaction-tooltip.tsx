@@ -135,6 +135,7 @@ const ReactionTooltip = (p: OwnProps) => {
     return (
       <Kb.Popup
         onHidden={onHidden}
+        style={styles.sheet}
         footer={
           <Kb.ButtonBar
             style={Kb.Styles.collapseStyles([
@@ -258,6 +259,8 @@ const styles = Kb.Styles.styleSheetCreate(
           margin: Kb.Styles.globalMargins.tiny,
         },
       }),
+      // fills the sheet's empty area below the reactions so it matches the rows
+      sheet: {backgroundColor: Kb.Styles.globalColors.white},
       sheetContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderRadius: Kb.Styles.borderRadius,
