@@ -114,7 +114,8 @@ const Activity = (p: Props) => {
       direction="horizontal"
       gap="xtiny"
       alignItems="center"
-      fullWidth={isMobile}
+      // iconOnly renders inline in horizontal rows; fullWidth would starve siblings
+      fullWidth={isMobile && !iconOnly}
       style={style}
     >
       <Kb.Icon
