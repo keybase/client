@@ -111,12 +111,6 @@ const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: He
           .map(username => username.trim())
           .filter(Boolean)
       : emptyArray
-  console.log('[HDR] title render', {
-    conversationIDKey,
-    fallbackSmallName: fallback.smallName,
-    participantCount: participants.length,
-    teamname,
-  })
   const isPhoneOrEmail = participants.some(
     participant => participant.endsWith('@phone') || participant.endsWith('@email')
   )
@@ -322,24 +316,8 @@ export const BadgeHeaderUpdater = isIOS
       const hasTitleContent = hasTitleFromMetadata || hasTitleFromLayout
       const titleWasEmptyRef = React.useRef(!hasTitleContent)
       React.useEffect(() => {
-        console.log('[HDR] updater mount', {
-          conversationIDKey,
-          hasTitleFromLayout,
-          hasTitleFromMetadata,
-          titleWasEmpty: titleWasEmptyRef.current,
-        })
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [])
-      React.useEffect(() => {
-        console.log('[HDR] one-shot check', {
-          conversationIDKey,
-          hasTitleContent,
-          titleWasEmpty: titleWasEmptyRef.current,
-          transitionDone,
-        })
         if (!transitionDone || !titleWasEmptyRef.current || !hasTitleContent) return
         titleWasEmptyRef.current = false
-        console.log('[HDR] one-shot FIRING setOptions headerTitle', {conversationIDKey})
         navigation.setOptions({
           headerTitle: () => <HeaderBranchContainerInner conversationIDKey={conversationIDKey} />,
         })
@@ -399,13 +377,7 @@ const ChannelHeader = (props: HeaderConversationProps & {teamname: string; chann
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      style={maxWidthStyle}
-      onLayout={e => {
-        console.log('[HDR] channel title onLayout', {conversationIDKey, ...e.nativeEvent.layout})
-      }}
-    >
+    <Kb.Box2 direction="vertical" style={maxWidthStyle}>
       <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="center" style={styles.channelHeaderContainer}>
         <Kb.Avatar
           teamname={teamname || undefined}
@@ -454,9 +426,6 @@ const UsernameHeader = (props: HeaderParticipantsProps) => {
     <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
-      onLayout={e => {
-        console.log('[HDR] username title onLayout', {conversationIDKey, ...e.nativeEvent.layout})
-      }}
     >
       {!!theirFullname && (
         <Kb.Text lineClamp={1} type="BodyBig">
