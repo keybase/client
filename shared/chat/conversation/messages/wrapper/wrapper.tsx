@@ -777,6 +777,7 @@ function BottomSide(p: BProps) {
       <EmojiRow
         className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         hasUnfurls={hasUnfurlList}
+        keepWithinList={true}
         messageType={messageType}
         onReact={onReact}
         onReply={onReply}
