@@ -479,6 +479,11 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationWillEnterForeground: hiding keyz screen.")
     PerfFPSMonitor.appWillEnterForeground()
     hideCover()
+    // Tell Go we're foregrounding now instead of waiting for didBecomeActive: the service's
+    // local http server restarts on this signal, and doing it here gives it a head start
+    // before React Native resumes and image loads race the restart. Can't use
+    // notifyAppState here since applicationState is still .background at this point.
+    Keybasego.KeybaseSetAppStateForeground()
     NSLog("applicationWillEnterForeground: done")
   }
 
