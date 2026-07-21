@@ -1,10 +1,15 @@
 import * as React from 'react'
+import type {StylesCrossPlatform} from '@/styles'
 import type {BottomSheetModalProps, BottomSheetBackdropProps, BottomSheetFooterProps} from '@gorhom/bottom-sheet'
 import * as _gorhomRaw from '@gorhom/bottom-sheet'
 
 type NativeMethods = {present: () => void; forceClose: () => void}
 type BackdropProps = BottomSheetBackdropProps & {disappearsOnIndex?: number; appearsOnIndex?: number; opacity?: number}
-type ScrollViewProps = {style?: object; children?: React.ReactNode; enableFooterMarginAdjustment?: boolean}
+type ScrollViewProps = {
+  style?: StylesCrossPlatform
+  children?: React.ReactNode
+  enableFooterMarginAdjustment?: boolean
+}
 type FooterProps = BottomSheetFooterProps & {bottomInset?: number; children?: React.ReactNode}
 type GorhomModule = {
   BottomSheetModal: React.ForwardRefExoticComponent<BottomSheetModalProps & React.RefAttributes<NativeMethods>>
