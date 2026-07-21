@@ -17,8 +17,6 @@ import {FullWindowOverlay} from 'react-native-screens'
 import type {PopupProps} from './index.shared'
 export type {PopupProps} from './index.shared'
 
-const defaultSnapPoints = ['75%']
-
 function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 }
@@ -127,7 +125,8 @@ function PopupSheet(props: PopupProps) {
     <BottomSheetModal
       ref={setBottomSheetRef}
       enableDynamicSizing={true}
-      snapPoints={snapPoints ?? defaultSnapPoints}
+      // no snapPoints -> dynamic sizing only: sheet hugs content and can't be dragged taller
+      snapPoints={snapPoints}
       backgroundStyle={nativeStyles.modalBackground}
       containerComponent={FullWindow}
       handleStyle={nativeStyles.handleStyle}
@@ -142,7 +141,12 @@ function PopupSheet(props: PopupProps) {
     >
       {/* a scrollable must be the sheet's direct child: nesting one inside
           BottomSheetView measures unbounded, so tall content clips instead of scrolling */}
-      <BottomSheetScrollView enableFooterMarginAdjustment={!!footer} style={style}>
+      <BottomSheetScrollView
+        alwaysBounceVertical={false}
+        overScrollMode="never"
+        enableFooterMarginAdjustment={!!footer}
+        style={style}
+      >
         {children}
       </BottomSheetScrollView>
     </BottomSheetModal>

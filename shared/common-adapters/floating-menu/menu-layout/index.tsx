@@ -286,8 +286,10 @@ const NativeMenuLayout = (props: MenuLayoutProps & {safeBottom: number}) => {
     </>
   )
 
-  if (isModal === 'bottomsheet') {
-    // Popup's sheet provides the scroll view; this is just the content
+  if (isModal !== 'modal') {
+    // every mobile menu presents as Popup's bottom sheet; the sheet provides the
+    // scroll view, this is just the content. Only 'modal' (a nav modal screen)
+    // still uses the fullscreen layout below.
     return (
       <Box2
         direction="vertical"

@@ -78,8 +78,6 @@ function FloatingMenu(props: Props) {
   return (
     <Popup
       attachTo={props.attachTo}
-      // legacy fullscreen menus (no mode) still use the anchored portal on mobile
-      mobileAnchored={mode !== 'bottomsheet'}
       onHidden={onHidden}
       visible={props.visible}
       position={props.position}

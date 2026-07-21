@@ -148,6 +148,20 @@ export const FsErrorProvider = ({children}: {children: React.ReactNode}) => {
   )
 }
 
+// The mobile bottom sheet teleports popup children to the app root (gorhom
+// portal), outside this per-screen provider. Content rendered inside a sheet
+// must capture the value in the source tree with useFsErrorContextValue and
+// re-provide it across the portal with FsErrorContextBridge.
+export const useFsErrorContextValue = () => React.useContext(FsErrorContext)
+
+export const FsErrorContextBridge = ({
+  children,
+  value,
+}: {
+  children: React.ReactNode
+  value: FsErrorContextType | null
+}) => <FsErrorContext.Provider value={value}>{children}</FsErrorContext.Provider>
+
 export const useFsErrors = () => {
   const routeErrors = React.useContext(FsErrorContext)
   return routeErrors?.errors ?? emptyErrors

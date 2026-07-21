@@ -1070,7 +1070,10 @@ const styles = Kb.Styles.styleSheetCreate(
       fail: {color: Kb.Styles.globalColors.redDark},
       failExploding: {color: Kb.Styles.globalColors.black_50},
       failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
+      // desktop anchored menu offset; on mobile this would shift the bottom sheet's content left
+      messagePopupContainer: Kb.Styles.platformStyles({
+        isElectron: {marginRight: Kb.Styles.globalMargins.small},
+      }),
       middle: {
         flexShrink: 1,
         paddingLeft: isMobile ? 48 : 56,
