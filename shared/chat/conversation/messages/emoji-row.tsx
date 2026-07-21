@@ -15,6 +15,10 @@ import {
 type OwnProps = {
   className?: string
   hasUnfurls: boolean
+  // desktop hover overlay only: after mounting, measure how far we stick out past the bottom of
+  // the message list and shift ourselves up by that much, so the lowest on-screen row's emoji
+  // row doesn't end up under the input box
+  keepWithinList?: boolean
   messageType: T.Chat.MessageType
   onReact?: (emoji: string) => void
   onReply?: () => void
@@ -26,6 +30,7 @@ function EmojiRowContainer(p: OwnProps) {
   const {
     className,
     hasUnfurls,
+    keepWithinList,
     messageType,
     onReact: onReactProp,
     onReply: onReplyProp,
@@ -62,6 +67,48 @@ function EmojiRowContainer(p: OwnProps) {
 
   const [showingPicker, setShowingPicker] = React.useState(false)
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
+
+  // We mount mid-hover and then STAY mounted while the row shows/hides us with CSS alone, so a
+  // single mount-time measurement goes stale as soon as the list scrolls: measure now and again
+  // on every pointer re-entry into the row. Typed structurally since the native tsconfig has no
+  // DOM lib; on desktop Box2's MeasureRef is the backing div.
+  const [raiseBy, setRaiseBy] = React.useState(0)
+  const raiseByRef = React.useRef(0)
+  React.useLayoutEffect(() => {
+    if (isMobile || !keepWithinList) {
+      return
+    }
+    type ElLike = {
+      addEventListener: (t: string, cb: () => void) => void
+      removeEventListener: (t: string, cb: () => void) => void
+      getBoundingClientRect: () => {bottom: number; height: number}
+    }
+    const el = popupAnchor.current as null | (ElLike & {closest?: (sel: string) => ElLike | null})
+    const row = el?.closest?.('.WrapperMessage-hoverBox')
+    const list = el?.closest?.('.chat-message-list')
+    if (!el || !row || !list) {
+      return
+    }
+    const measure = () => {
+      const rect = el.getBoundingClientRect()
+      // zero height means we're display:none and the rect is meaningless
+      if (rect.height === 0) {
+        return
+      }
+      // add back the raise we're currently applying so overflow is computed from our natural spot
+      const overflow = rect.bottom + raiseByRef.current - list.getBoundingClientRect().bottom
+      const next = Math.max(0, overflow)
+      raiseByRef.current = next
+      setRaiseBy(next)
+    }
+    // the enter event that mounted us already fired, so measure directly too
+    measure()
+    row.addEventListener('mouseenter', measure)
+    return () => {
+      row.removeEventListener('mouseenter', measure)
+    }
+  }, [keepWithinList])
+
   const _setShowingPicker = (showingPicker: boolean) => {
     onShowingEmojiPicker?.(showingPicker)
     setShowingPicker(showingPicker)
@@ -72,7 +119,13 @@ function EmojiRowContainer(p: OwnProps) {
     <Kb.Box2
       direction="horizontal"
       ref={popupAnchor}
-      style={Kb.Styles.collapseStyles([styles.container, style])}
+      style={Kb.Styles.collapseStyles([
+        styles.container,
+        style,
+        raiseBy > 0
+          ? Kb.Styles.platformStyles({isElectron: {transform: `translateY(-${raiseBy}px)`}})
+          : undefined,
+      ])}
       className={className}
     >
       <Kb.Box2 direction="horizontal" gap="tiny">
