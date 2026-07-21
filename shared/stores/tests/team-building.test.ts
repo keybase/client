@@ -45,6 +45,20 @@ test('local setters update role, notifications, and error state', () => {
   expect(store.getState().error).toBe('boom')
 })
 
+test('finishedTeamBuilding clears the selection outside the teams namespace', () => {
+  const store = createTBStore('chat')
+  const alice = makeUser('alice')
+
+  store.getState().dispatch.addUsersToTeamSoFar([alice])
+  store.getState().dispatch.setError('boom')
+
+  store.getState().dispatch.finishedTeamBuilding()
+
+  expect(store.getState().namespace).toBe('chat')
+  expect(store.getState().teamSoFar.size).toBe(0)
+  expect(store.getState().error).toBe('')
+})
+
 test('finishedTeamBuilding clears transient state but preserves namespace and selections', () => {
   const store = createTBStore('teams')
   const alice = makeUser('alice')

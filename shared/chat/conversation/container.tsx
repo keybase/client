@@ -17,11 +17,18 @@ type Props = ThreadSearchRouteProps & {
 
 const Conversation = function Conversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
+  // BadgeHeaderUpdater stays outside the keyed provider: the pendingWaiting →
+  // real-conv switch is a setParams on this same screen, and the updater's
+  // title-was-empty tracking must survive that switch to repaint the native
+  // header (a remounted instance would see the title content as already
+  // present and never fire).
   return (
-    <LiveConversationThreadProvider key={conversationIDKey} id={conversationIDKey}>
+    <>
       <BadgeHeaderUpdater conversationIDKey={conversationIDKey} />
-      <ConversationInner />
-    </LiveConversationThreadProvider>
+      <LiveConversationThreadProvider key={conversationIDKey} id={conversationIDKey}>
+        <ConversationInner />
+      </LiveConversationThreadProvider>
+    </>
   )
 }
 
