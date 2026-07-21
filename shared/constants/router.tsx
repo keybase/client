@@ -975,19 +975,24 @@ export const navigateToThread = (
       clearModals()
     }
 
-    navigateAppend(
-      {
-        name: threadRouteName,
-        params: {
-          conversationIDKey,
-          createConversationError,
-          highlightMessageID,
-          inputAction,
-          threadSearch,
-        },
-      },
-      replace
-    )
+    const params = {
+      conversationIDKey,
+      createConversationError,
+      highlightMessageID,
+      inputAction,
+      threadSearch,
+    }
+    if (replace) {
+      // pendingWaiting -> real conversation. Must be a real replace, not
+      // navigateAppend's replace (which degrades to setParams for the same route
+      // name): setParams keeps the native screen alive, and its header title was
+      // measured while pendingWaiting rendered it empty — iOS never re-measures
+      // an initially-empty title subview, leaving the header blank. A fresh
+      // screen measures the title with its content already present.
+      _getNavigator()?.dispatch(StackActions.replace(threadRouteName, params))
+    } else {
+      navigateAppend({name: threadRouteName, params})
+    }
   }
 }
 
