@@ -13,24 +13,9 @@ type Props = {
 
 type Item = {type: 'header'} | {device: Device; type: 'device'} | {type: 'reset'}
 
-const deviceSmallHeight = isMobile ? 56 : 48
-// "or" text with padding (~36) + ListItem Small
-const resetHeight = 36 + deviceSmallHeight
-// Header text with padding
-const headerHeight = isMobile ? 80 : 90
-
-const getItemHeight = (item: Item | undefined): number => {
-  switch (item?.type) {
-    case 'header':
-      return headerHeight
-    case 'device':
-      return deviceSmallHeight
-    case 'reset':
-      return resetHeight
-    default:
-      return deviceSmallHeight
-  }
-}
+// The header wraps to a device-dependent number of lines, so let the list measure real
+// heights; declaring stale fixed sizes makes containers overlap and eat taps on iOS.
+const itemHeight = {type: 'trueVariable'} as const
 
 const SelectOtherDevice = (props: Props) => {
   const {passwordRecovery, devices, onBack, onSelect, onResetAccount} = props
@@ -40,18 +25,6 @@ const SelectOtherDevice = (props: Props) => {
     ...devices.map(device => ({device, type: 'device'}) as const),
     {type: 'reset'},
   ]
-
-  const itemHeight = {
-    getItemLayout: (index: number, item?: Item) => {
-      const length = getItemHeight(item)
-      let offset = 0
-      for (let i = 0; i < index; i++) {
-        offset += getItemHeight(items[i])
-      }
-      return {index, length, offset}
-    },
-    type: 'variable' as const,
-  }
 
   const renderItem = (index: number, item: Item) => {
     switch (item.type) {
@@ -130,6 +103,7 @@ const SelectOtherDevice = (props: Props) => {
           renderItem={renderItem}
           indexAsKey={true}
           itemHeight={itemHeight}
+          estimatedItemHeight={56}
         />
       </Kb.Box2>
     </SignupScreen>
