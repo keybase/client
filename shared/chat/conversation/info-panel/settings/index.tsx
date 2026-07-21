@@ -72,15 +72,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
+  // No ScrollView here: this renders as a row inside the tab's SectionList, which
+  // owns scrolling; a nested bounded ScrollView would capture the pan gesture on iOS.
   return (
-    <Kb.ScrollView>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        alignItems="flex-start"
-        padding="small"
-        gap="small"
-      >
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      alignItems="flex-start"
+      padding="small"
+      gap="small"
+    >
         {isPreview ? (
           <>
             <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
@@ -158,8 +159,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             )}
           </>
         ) : null}
-      </Kb.Box2>
-    </Kb.ScrollView>
+    </Kb.Box2>
   )
 }
 

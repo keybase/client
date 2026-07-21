@@ -469,7 +469,7 @@ const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
   return (
     <>
       <Kb.Divider style={styles.divider} />
-      <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.innerContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.innerContainer}>
         <Kb.Text type="Header">Misc</Kb.Text>
         {!!groups.get('misc')?.settings && (
           <Group
@@ -489,7 +489,8 @@ const Chat = () => {
   const notificationSettings = useNotificationSettings()
   return (
     <Kb.ScrollView testID={TestIDs.SETTINGS_CHAT}>
-      <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
+      {/* fullHeight would cap the ScrollView's contentSize at the viewport, cutting off scrolling */}
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.container}>
         <Security {...notificationSettings} />
         <Kb.Divider style={styles.divider} />
         <Links />
