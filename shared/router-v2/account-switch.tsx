@@ -10,7 +10,7 @@ export const getMostRecentlyUsedAccount = (
 ) => accounts.find(account => account.username !== currentUsername && account.hasStoredSecret)
 
 type PendingAccountSwitch = {
-  sourceUsername: string
+  targetUsername: string
   tab: Tabs.AppTab
 }
 
@@ -19,19 +19,26 @@ let pendingAccountSwitch: PendingAccountSwitch | undefined
 const isAppTab = (tab: Tabs.Tab | undefined): tab is Tabs.AppTab =>
   tab !== undefined && Tabs.desktopTabs.some(appTab => appTab === tab)
 
-export const rememberAccountSwitchTab = (sourceUsername: string, tab: Tabs.Tab | undefined) => {
-  pendingAccountSwitch = sourceUsername && isAppTab(tab) ? {sourceUsername, tab} : undefined
+export const rememberAccountSwitchTab = (
+  sourceUsername: string,
+  targetUsername: string,
+  tab: Tabs.Tab | undefined
+) => {
+  pendingAccountSwitch =
+    sourceUsername && targetUsername && sourceUsername !== targetUsername && isAppTab(tab)
+      ? {tab, targetUsername}
+      : undefined
 }
 
 export const consumePendingAccountSwitchTab = (currentUsername: string) => {
   const pending = pendingAccountSwitch
-  if (!pending || !currentUsername || pending.sourceUsername === currentUsername) return
+  if (pending?.targetUsername !== currentUsername) return
   pendingAccountSwitch = undefined
   return pending.tab
 }
 
 export const clearPendingAccountSwitch = (currentUsername: string) => {
-  if (pendingAccountSwitch?.sourceUsername === currentUsername) {
+  if (pendingAccountSwitch?.targetUsername !== currentUsername) {
     pendingAccountSwitch = undefined
   }
 }

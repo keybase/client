@@ -13,21 +13,23 @@ const openAccountSwitcher = () => {
 
 const AccountSwitchHeaderAvatar = () => {
   const username = useCurrentUserState(s => s.username)
-  const {configuredAccounts, userSwitching} = useConfigState(
-    C.useShallow(s => ({configuredAccounts: s.configuredAccounts, userSwitching: s.userSwitching}))
+  const {configuredAccounts, login, setUserSwitching, userSwitching} = useConfigState(
+    C.useShallow(s => ({
+      configuredAccounts: s.configuredAccounts,
+      login: s.dispatch.login,
+      setUserSwitching: s.dispatch.setUserSwitching,
+      userSwitching: s.userSwitching,
+    }))
   )
   const recentAccount = getMostRecentlyUsedAccount(configuredAccounts, username)
 
   const switchToRecentAccount = () => {
     if (userSwitching || !recentAccount) return
 
-    Haptics.selectionAsync()
-      .then(() => {})
-      .catch(() => {})
-    rememberAccountSwitchTab(username, C.Router2.getTab())
-    const {dispatch} = useConfigState.getState()
-    dispatch.setUserSwitching(true)
-    dispatch.login(recentAccount.username, '')
+    C.ignorePromise(Haptics.selectionAsync())
+    rememberAccountSwitchTab(username, recentAccount.username, C.Router2.getTab())
+    setUserSwitching(true)
+    login(recentAccount.username, '')
   }
 
   return (
@@ -37,7 +39,6 @@ const AccountSwitchHeaderAvatar = () => {
       }
       accessibilityLabel={`${username} account menu`}
       accessibilityRole="button"
-      accessible={true}
       onLongPress={recentAccount && !userSwitching ? switchToRecentAccount : undefined}
       onPress={openAccountSwitcher}
       style={Kb.Styles.castStyleNative(styles.container)}
