@@ -111,8 +111,20 @@ class Engine {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
+    this._cancelOutstandingSessions()
     // tell renderer we're disconnected
     this._onConnectedCB(false)
+  }
+
+  // The transport died, so the service has forgotten every in-flight RPC. Cancel the sessions so
+  // their promises reject and flows can react, instead of hanging forever on answers that will
+  // never come (e.g. a provision prompt screen left up across a service restart).
+  _cancelOutstandingSessions() {
+    for (const session of [...this._sessionsMap.values()]) {
+      if (!session.getDangling()) {
+        session.cancel()
+      }
+    }
   }
 
   // We want to dispatch the connect action but only after listeners boot up
@@ -287,6 +299,7 @@ class Engine {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
+    this._cancelOutstandingSessions()
     this._sessionsMap.clear()
     this._queuedChanges = []
     this._hasConnected = false
