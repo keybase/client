@@ -7,6 +7,7 @@ import type * as T from '@/constants/types'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {rememberAccountSwitchTab} from '../account-switch'
 
 const AccountSwitcher = (p: {onSelected?: () => void}) => {
   const {onSelected} = p
@@ -20,6 +21,9 @@ const AccountSwitcher = (p: {onSelected?: () => void}) => {
   const setUserSwitching = useConfigState(s => s.dispatch.setUserSwitching)
   const login = useConfigState(s => s.dispatch.login)
   const onSelectAccountLoggedIn = (username: string) => {
+    if (isMobile) {
+      rememberAccountSwitchTab(you, C.Router2.getTab())
+    }
     setUserSwitching(true)
     login(username, '')
   }
