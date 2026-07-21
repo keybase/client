@@ -7,23 +7,37 @@ import type * as T from '@/constants/types'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {rememberAccountSwitchTab} from '../account-switch'
 
 const AccountSwitcher = (p: {onSelected?: () => void}) => {
   const {onSelected} = p
   const _fullnames = useUsersState(s => s.infoMap)
-  const _accountRows = useConfigState(s => s.configuredAccounts)
+  const {
+    accountRows: _accountRows,
+    login,
+    logoutAndTryToLogInAs: onSelectAccountLoggedOut,
+    logoutToLoggedOutFlow: onLoginAsAnotherUser,
+    setUserSwitching,
+  } = useConfigState(
+    C.useShallow(s => ({
+      accountRows: s.configuredAccounts,
+      login: s.dispatch.login,
+      logoutAndTryToLogInAs: s.dispatch.logoutAndTryToLogInAs,
+      logoutToLoggedOutFlow: s.dispatch.logoutToLoggedOutFlow,
+      setUserSwitching: s.dispatch.setUserSwitching,
+    }))
+  )
   const you = useCurrentUserState(s => s.username)
   const fullname = _fullnames.get(you)?.fullname ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
-  const onLoginAsAnotherUser = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
 
-  const setUserSwitching = useConfigState(s => s.dispatch.setUserSwitching)
-  const login = useConfigState(s => s.dispatch.login)
   const onSelectAccountLoggedIn = (username: string) => {
+    if (isMobile) {
+      rememberAccountSwitchTab(you, username, C.Router2.getTab())
+    }
     setUserSwitching(true)
     login(username, '')
   }
-  const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
 
   const accountRows = _accountRows.filter(account => account.username !== you)
   const props = {

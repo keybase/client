@@ -31,6 +31,9 @@ import {colors, darkColors} from '@/styles/colors'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {Platform, StatusBar, View, useColorScheme} from 'react-native'
+import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
+import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
+import {useCurrentUserState} from '@/stores/current-user'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
@@ -304,13 +307,27 @@ const tabStackOptions = ({
   navigation,
 }: {
   navigation: {canGoBack: () => boolean}
-}): NativeStackNavigationOptions => ({
-  ...Common.defaultNavigationOptions,
-  // Use the native back button (liquid glass pill on iOS 26) for non-root screens;
-  // omit headerLeft entirely on root screens so no empty glass circle appears.
-  headerBackVisible: navigation.canGoBack(),
-  headerLeft: undefined,
-})
+}): NativeStackNavigationOptions => {
+  const canGoBack = navigation.canGoBack()
+  return {
+    ...Common.defaultNavigationOptions,
+    // Root screens show the account switcher avatar. Pushed screens use the
+    // native back button (liquid glass pill on iOS 26).
+    headerBackVisible: canGoBack,
+    headerLeft: isAndroid && !canGoBack ? () => <AccountSwitchHeaderAvatar /> : undefined,
+    ...(isIOS && !canGoBack
+      ? {
+          unstable_headerLeftItems: () => [
+            {
+              element: <AccountSwitchHeaderAvatar />,
+              hidesSharedBackground: true,
+              type: 'custom' as const,
+            },
+          ],
+        }
+      : {}),
+  }
+}
 
 // On phones, each tab stack only contains its root screen. All other routes live in
 // the root stack (alongside chatConversation) so they render above the tab bar.
@@ -581,9 +598,14 @@ const nativeLinkingConfig = isMobile ? createLinkingConfig(handleAppLink) : unde
 function NativeRouter() {
   const loggedInLoaded = useHandshakeEverDone()
 
-  const {loggedIn, startupLoaded} = useConfigState(
-    C.useShallow(s => ({loggedIn: s.loggedIn, startupLoaded: s.startup.loaded}))
+  const {loggedIn, startupLoaded, userSwitching} = useConfigState(
+    C.useShallow(s => ({
+      loggedIn: s.loggedIn,
+      startupLoaded: s.startup.loaded,
+      userSwitching: s.userSwitching,
+    }))
   )
+  const username = useCurrentUserState(s => s.username)
 
   const {barStyle, isDarkMode} = useDarkModeState(
     C.useShallow(s => {
@@ -597,12 +619,27 @@ function NativeRouter() {
       return {barStyle, isDarkMode}
     })
   )
+
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   // Android also remounts on dark mode changes
   const nativeIsDarkMode = useColorScheme() === 'dark'
   const navKey = Common.useUserSwitchNavKey()
   const nativeDarkSuffix = isAndroid ? (nativeIsDarkMode ? '-dark' : '-light') : ''
   const rootKey = navKey ? `${navKey}${nativeDarkSuffix}` : ''
+
+  React.useEffect(() => {
+    if (!userSwitching) {
+      clearPendingAccountSwitch(username)
+    }
+  }, [userSwitching, username])
+
+  const onNativeReady = () => {
+    onStateChange()
+    const tab = consumePendingAccountSwitchTab(username)
+    if (tab) {
+      C.Router2.switchTab(tab)
+    }
+  }
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (
@@ -621,7 +658,7 @@ function NativeRouter() {
         // Sync the initial state from the linking config into the router store.
         // onStateChange doesn't fire for the initial state, so this ensures
         // onRouteChanged runs and conversation data gets loaded on startup.
-        onReady={onStateChange}
+        onReady={onNativeReady}
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}
         ref={setNavRef}
