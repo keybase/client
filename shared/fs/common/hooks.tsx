@@ -990,14 +990,17 @@ export const useFsLoadPathItemInfoOnMount = (path: T.FS.Path) => {
   const routeData = React.useContext(FsDataContext)
   const pathItem = useFsPathItem(path)
   const pathIsItem = isPathItem(path)
-  const isMaybeFolder = pathItem.type !== T.FS.PathType.File
+  // Only load children once the item is known to be a folder (TLF-level paths
+  // are always folders); the metadata load above flips the type and re-enables
+  // this. Loading eagerly on Unknown would fire a bogus list RPC on files.
+  const isFolder = FS.isFolder(path, pathItem)
   useFsLoadOnMountAndFocus({
     enabled: pathIsItem && !!routeData,
     load: () => routeData?.loadPathMetadata(path),
     reloadKey: path,
   })
   useFsLoadOnMountAndFocus({
-    enabled: pathIsItem && isMaybeFolder && !!routeData,
+    enabled: pathIsItem && isFolder && !!routeData,
     load: () => routeData?.loadFolderChildren(path, false),
     reloadKey: path,
   })
