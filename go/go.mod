@@ -36,7 +36,7 @@ require (
 	github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260716172057-7ea9dea1ac39
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260721184639-b53150efbe46
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
 	github.com/keybase/go-kext v0.0.0-20251211195321-cdcb1aed632b
 	github.com/keybase/go-keychain v0.0.2-0.20251211175755-d1c5bf371db7
