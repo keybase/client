@@ -326,7 +326,16 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       ignorePromise(f())
     },
     finishedTeamBuilding: () => {
-      resetStatePreservingSelection()
+      // teams keeps the selection: its onComplete re-opens the builder with the
+      // chips intact when adding to the wizard fails. Other namespaces are done
+      // with the selection once finished; the store outlives the screen
+      // (per-namespace singleton), so leaving it would show stale chips on the
+      // next open.
+      if (get().namespace === 'teams') {
+        resetStatePreservingSelection()
+      } else {
+        get().dispatch.resetState()
+      }
     },
     removeUsersFromTeamSoFar: users => {
       set(s => {

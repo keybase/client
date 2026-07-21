@@ -167,6 +167,17 @@ const ScreenBody = ({
   const closeTeamBuilding = useTBContext(s => s.dispatch.closeTeamBuilding)
   const finishedTeamBuilding = useTBContext(s => s.dispatch.finishedTeamBuilding)
   const setError = useTBContext(s => s.dispatch.setError)
+  const resetState = useTBContext(s => s.dispatch.resetState)
+
+  // The store is a per-namespace singleton that outlives this screen; a
+  // selection left behind by a previous session (blur can miss when the modal
+  // is removed) would show stale chips. teams intentionally carries the
+  // selection across re-opens for the add-members error path.
+  C.useOnMountOnce(() => {
+    if (namespace !== 'teams') {
+      resetState()
+    }
+  })
 
   React.useEffect(() => {
     if (initialError) {

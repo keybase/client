@@ -18,7 +18,7 @@ import {navToProfile} from '@/constants/router'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
 import {useConversationMetaSelector, useConversationParticipantsSelector} from '../data-hooks'
-import {useInboxMetadataState} from '@/chat/inbox/metadata'
+import {ensureConversationMetaLoaded, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {muteConversation} from '../status-actions'
 import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from '@/chat/inbox/layout-state'
 
@@ -75,6 +75,16 @@ const useLayoutFallbackNames = (conversationIDKey: T.Chat.ConversationIDKey) =>
 
 const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
   const {conversationIDKey} = props
+  // self-heal: the header lives in the navigation bar, outside ConversationInner's
+  // data ownership, and can render for a conv whose meta never loaded (e.g. a conv
+  // reached without going through the inbox). The ensure call dedups and no-ops
+  // when the meta is already complete.
+  const loggedIn = useConfigState(s => s.loggedIn)
+  React.useEffect(() => {
+    if (loggedIn) {
+      ensureConversationMetaLoaded(conversationIDKey)
+    }
+  }, [conversationIDKey, loggedIn])
   const meta = useConversationMetaSelector(
     conversationIDKey,
     C.useShallow(m => ({channelname: m.channelname, teamname: m.teamname}))
