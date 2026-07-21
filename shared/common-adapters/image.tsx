@@ -102,6 +102,7 @@ const NativeImage = (p: Props) => {
   // after retries are exhausted, a server restart (new address/token) or returning to the
   // foreground means the server is likely back: start the retry cycle over
   React.useEffect(() => {
+    if (!retryable) return
     const maybeHeal = () => {
       if (!failedRef.current) return
       // server is stopped while inactive/backgrounded; the active flip will land here again
@@ -126,7 +127,7 @@ const NativeImage = (p: Props) => {
       unsubShell()
       clearTimeout(timerRef.current)
     }
-  }, [])
+  }, [retryable])
 
   // cache-buster forces expo-image to actually refetch; recyclingKey stays on the original
   // src so the view isn't blanked by retries
