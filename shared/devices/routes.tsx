@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import {cancelProvision} from '@/provision/flow'
 import {defineRouteMap} from '@/constants/types/router'
@@ -48,15 +47,6 @@ export const newRoutes = defineRouteMap({
     React.lazy(async () => import('./device-page')),
     {getOptions: {title: ''}}
   ),
-  deviceRevoke: C.makeScreen(
-    React.lazy(async () => import('./device-revoke')),
-    {
-      getOptions: {
-        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
-        title: '',
-      },
-    }
-  ),
   devicesRoot: {
     getOptions: isMobile
       ? {title: 'Devices'}
@@ -82,4 +72,7 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {gestureEnabled: false, overlayNoClose: true},
     screen: React.lazy(async () => import('./paper-key')),
   },
+  deviceRevoke: C.makeScreen(React.lazy(async () => import('./device-revoke')), {
+    getOptions: {modalSize: 'wide'},
+  }),
 })
