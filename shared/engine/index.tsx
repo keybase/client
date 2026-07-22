@@ -43,6 +43,12 @@ class Engine {
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
     this._queuedChanges.push({error, increment: waiting, key})
     this._throttledDispatchWaitingAction()
+    // Screens mount right after a prompt arrives and gate interaction/overlays on the waiting
+    // state, so a "no longer waiting" change must land immediately — a throttled flush leaves
+    // freshly pushed screens stuck seeing waiting=true for up to the throttle window.
+    if (!waiting) {
+      this._throttledDispatchWaitingAction.flush()
+    }
   }
 
   _throttledDispatchWaitingAction = throttle(() => {

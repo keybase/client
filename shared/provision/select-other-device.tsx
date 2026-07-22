@@ -109,6 +109,9 @@ const SelectOtherDevice = (props: Props) => {
           indexAsKey={true}
           itemHeight={itemHeight}
           estimatedItemHeight={56}
+          // rows only re-render on data/extraData change, and they must pick up the
+          // spinner + disabled state when the waiting tap lands
+          extraData={waitingDeviceName ?? ''}
         />
       </Kb.Box2>
     </SignupScreen>

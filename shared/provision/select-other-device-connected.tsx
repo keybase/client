@@ -26,7 +26,11 @@ const SelectOtherDeviceContainer = ({route}: Props) => {
   }
 
   const onSelect = (name: string) => {
-    if (!waiting) {
+    // Read waiting at tap time, not render time: the row's onClick closure can outlive a
+    // re-render (list rows only refresh on data/extraData change), and the screen mounts
+    // inside the window where the throttled waiting decrement hasn't flushed yet.
+    const stillWaiting = (C.useWaitingState.getState().counts.get(C.waitingKeyProvision) ?? 0) > 0
+    if (!stillWaiting) {
       setSelectedName(name)
       submitProvisionDeviceSelect(name)
     }
