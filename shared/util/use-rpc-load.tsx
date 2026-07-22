@@ -93,7 +93,9 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
         adopt(store.getData())
         return
       }
-      const inFlight = store.getInFlight()
+      // force skips in-flight adoption: an engine reset orphans in-flight rpcs without
+      // settling them, and a forced (reload/reconnect) load must not stall on one
+      const inFlight = !force && store.getInFlight()
       if (inFlight) {
         inFlight
           .then(data => {

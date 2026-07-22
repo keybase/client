@@ -132,7 +132,68 @@ test('reloads when the daemon reconnects', async () => {
   })
   await flush()
   expect(call).toHaveBeenCalledTimes(2)
+})
+
+test('cache: reload() bypasses an orphaned in-flight request', async () => {
+  const store = createCachedResourceCache<string, string | undefined>('', 'k')
+  let resolveSecond: ((n: number) => void) | undefined
+  const call = jest
+    .fn<() => Promise<number>>()
+    .mockImplementationOnce(async () => new Promise<number>(() => {}))
+    .mockImplementationOnce(
+      async () =>
+        new Promise<number>(resolve => {
+          resolveSecond = resolve
+        })
+    )
+  const opts = {cache: {staleMs: 10_000, store}, key: 'k', map: (r: number) => `got:${r}`}
+  const {result} = renderHook(() => useRPCLoad(call, [], opts))
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+  expect(result.current.loading).toBe(true)
+
   act(() => {
-    useDaemonState.setState({handshakeState: 'loading'})
+    result.current.reload()
   })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+
+  await act(async () => {
+    resolveSecond?.(9)
+    await Promise.resolve()
+  })
+  expect(result.current.data).toBe('got:9')
+})
+
+test('cache: a rejected load surfaces the error to all sharers', async () => {
+  const store = createCachedResourceCache<string, string | undefined>('', 'k')
+  let rejectCall: ((error: Error) => void) | undefined
+  const call = jest.fn(
+    async () =>
+      new Promise<number>((_resolve, reject) => {
+        rejectCall = reject
+      })
+  )
+  const onErrorA = jest.fn()
+  const onErrorB = jest.fn()
+  const opts = (onError: (e: unknown) => void) => ({
+    cache: {staleMs: 10_000, store},
+    key: 'k',
+    map: (r: number) => `got:${r}`,
+    onError,
+  })
+  const a = renderHook(() => useRPCLoad(call, [], opts(onErrorA)))
+  const b = renderHook(() => useRPCLoad(call, [], opts(onErrorB)))
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+
+  const error = new Error('boom')
+  await act(async () => {
+    rejectCall?.(error)
+    await Promise.resolve()
+  })
+  expect(a.result.current.error).toBe(error)
+  expect(b.result.current.error).toBe(error)
+  expect(onErrorA).toHaveBeenCalledWith(error)
+  expect(onErrorB).toHaveBeenCalledWith(error)
 })

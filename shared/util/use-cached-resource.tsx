@@ -131,11 +131,14 @@ const runLoad = async <T, K>(
   onError: ((error: unknown) => void) | undefined,
   requestVersion: number,
   requestVersionRef: React.RefObject<number>,
-  setState: React.Dispatch<React.SetStateAction<StoredCachedResourceState<T, K>>>
+  setState: React.Dispatch<React.SetStateAction<StoredCachedResourceState<T, K>>>,
+  force: boolean
 ) => {
   let request: Promise<T> | undefined
   try {
-    const inFlight = cache.getInFlight()
+    // force skips in-flight adoption: an engine reset orphans in-flight rpcs without
+    // settling them, and a forced (reload/reconnect) load must not stall on one
+    const inFlight = !force && cache.getInFlight()
     if (inFlight) {
       const data = await inFlight
       if (requestVersion === requestVersionRef.current) {
@@ -241,7 +244,17 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
         ? {...prev, loading: true}
         : storedState(cache, cacheKey, initialData, {...emptyState(initialData), loading: true})
     )
-    await runLoad(cache, cacheKey, initialData, load, onError, requestVersion, requestVersionRef, setState)
+    await runLoad(
+      cache,
+      cacheKey,
+      initialData,
+      load,
+      onError,
+      requestVersion,
+      requestVersionRef,
+      setState,
+      force
+    )
   }, [])
 
   const reload = React.useCallback(async () => {
