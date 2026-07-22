@@ -149,7 +149,6 @@ const Header = () => {
         onClick={username ? togglePopup : undefined}
         direction="horizontal"
         gap="tiny"
-        centerChildren={true}
         fullWidth={true}
         style={styles.nameContainer}
         alignItems="center"
