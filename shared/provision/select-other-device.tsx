@@ -93,7 +93,7 @@ const SelectOtherDevice = (props: Props) => {
   return (
     <SignupScreen
       hideDesktopHeader={!isMobile}
-      waitingOverlay={true}
+      waitingOverlay={!passwordRecovery}
       noBackground={true}
       onBack={onBack}
       title={

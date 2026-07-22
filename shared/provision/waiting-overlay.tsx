@@ -33,9 +33,14 @@ const ProvisionWaitingOverlay = () => {
   }, [waiting])
 
   React.useEffect(() => {
-    return navigation.addListener('beforeRemove', () => {
-      // Popped (back button / gesture) while the RPC is mid-work: park the flow so late
-      // responses can't yank the user forward.
+    return navigation.addListener('beforeRemove', e => {
+      // Only a genuine back-out parks the flow. beforeRemove also fires when the router removes
+      // screens on state changes (e.g. login success unmounting the logged-out stack) and pausing
+      // there would cancel an RPC that is about to resolve.
+      const {type} = e.data.action
+      if (type !== 'POP' && type !== 'GO_BACK') {
+        return
+      }
       if ((useWaitingState.getState().counts.get(waitingKeyProvision) ?? 0) > 0) {
         pauseProvision()
       }

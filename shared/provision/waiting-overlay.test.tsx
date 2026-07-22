@@ -41,13 +41,15 @@ jest.mock('./flow', () => ({
 
 import ProvisionWaitingOverlay from './waiting-overlay'
 
+type BeforeRemoveEvent = {data: {action: {type: string}}}
+
 describe('ProvisionWaitingOverlay', () => {
-  let beforeRemove: undefined | (() => void)
+  let beforeRemove: undefined | ((e: BeforeRemoveEvent) => void)
 
   beforeEach(() => {
     jest.useFakeTimers()
     beforeRemove = undefined
-    mockAddListener.mockImplementation((event: string, callback: () => void) => {
+    mockAddListener.mockImplementation((event: string, callback: (e: BeforeRemoveEvent) => void) => {
       if (event === 'beforeRemove') {
         beforeRemove = callback
       }
@@ -107,7 +109,7 @@ describe('ProvisionWaitingOverlay', () => {
     startWaiting()
     act(() => jest.advanceTimersByTime(10300))
 
-    void act(() => screen.getByText('Cancel').click())
+    act(() => screen.getByText('Cancel').click())
     expect(mockPauseProvision).toHaveBeenCalled()
     expect(mockNavigateUp).toHaveBeenCalled()
   })
@@ -116,11 +118,20 @@ describe('ProvisionWaitingOverlay', () => {
     render(<ProvisionWaitingOverlay />)
     expect(beforeRemove).toBeDefined()
 
-    beforeRemove?.()
+    beforeRemove?.({data: {action: {type: 'POP'}}})
     expect(mockPauseProvision).not.toHaveBeenCalled()
 
     startWaiting()
-    beforeRemove?.()
+    beforeRemove?.({data: {action: {type: 'POP'}}})
     expect(mockPauseProvision).toHaveBeenCalled()
+  })
+
+  test('a non-back removal (e.g. login success unmounting the stack) does not pause', () => {
+    render(<ProvisionWaitingOverlay />)
+    expect(beforeRemove).toBeDefined()
+
+    startWaiting()
+    beforeRemove?.({data: {action: {type: 'RESET'}}})
+    expect(mockPauseProvision).not.toHaveBeenCalled()
   })
 })

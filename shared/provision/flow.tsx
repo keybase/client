@@ -227,134 +227,134 @@ const runProvision = (initialUsername: string) => {
     try {
       await T.RPCGen.loginLoginRpcListener({
         customResponseIncomingCallMap: {
-        'keybase.1.gpgUi.selectKey': cancelOnCallback,
-        'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-        'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
-          if (isCanceled(response)) return
-          const {phrase, previousErr} = params
-          setPendingResponse(response)
-          handles.set(
-            slots.submitTextCode,
-            wrapErrors((code: string) => {
-              pendingResponse = undefined
-              setIdleHandlers()
-              const good = code.replace(/\W+/g, ' ').trim()
-              response.result({phrase: good, secret: null as unknown as Uint8Array})
-            })
-          )
-          // we ignore the return as we never autosubmit, but we want things to increment
-          shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
-          navigateAppend(
-            {
-              name: 'codePage',
-              params: {
-                deviceName: answers.deviceName,
-                error: previousErr || undefined,
-                otherDevice: answers.selectedDevice,
-                textCode: phrase,
-              },
-            },
-            !!previousErr
-          )
-        },
-        'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
-          if (isCanceled(response)) return
-          const {errorMessage} = params
-          setPendingResponse(response)
-          handles.set(
-            slots.submitDeviceName,
-            wrapErrors((name: string) => {
-              pendingResponse = undefined
-              answers.deviceName = name
-              updateAutoSubmit({type: 'deviceName'})
-              setIdleHandlers()
-              response.result(name)
-            })
-          )
-          if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
-            console.log('Provision: auto submit device name')
-            submitProvisionDeviceName(answers.deviceName)
-          } else {
+          'keybase.1.gpgUi.selectKey': cancelOnCallback,
+          'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+          'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
+            if (isCanceled(response)) return
+            const {phrase, previousErr} = params
+            setPendingResponse(response)
+            handles.set(
+              slots.submitTextCode,
+              wrapErrors((code: string) => {
+                pendingResponse = undefined
+                setIdleHandlers()
+                const good = code.replace(/\W+/g, ' ').trim()
+                response.result({phrase: good, secret: null as unknown as Uint8Array})
+              })
+            )
+            // we ignore the return as we never autosubmit, but we want things to increment
+            shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
             navigateAppend(
               {
-                name: 'setPublicName',
-                params: {devices: knownDevices, error: errorMessage || undefined},
+                name: 'codePage',
+                params: {
+                  deviceName: answers.deviceName,
+                  error: previousErr || undefined,
+                  otherDevice: answers.selectedDevice,
+                  textCode: phrase,
+                },
               },
-              !!errorMessage
+              !!previousErr
             )
-          }
-        },
-        'keybase.1.provisionUi.chooseDevice': (params, response) => {
-          if (isCanceled(response)) return
-          const devices = params.devices?.map(d => rpcDeviceToDevice(d)) ?? []
-          knownDevices = devices
-          setPendingResponse(response)
-          handles.set(
-            slots.submitDeviceSelect,
-            wrapErrors((name: string) => {
-              const selectedDevice = devices.find(d => d.name === name)
-              if (!selectedDevice) {
-                throw new Error('Selected a non existant device?')
-              }
-              pendingResponse = undefined
-              answers.selectedDevice = selectedDevice
-              updateAutoSubmit({devices, type: 'chooseDevice'})
-              setIdleHandlers()
-              response.result(selectedDevice.id)
-            })
-          )
-          if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
-            console.log('Provision: auto submit device select')
-            submitProvisionDeviceSelect(answers.selectedDevice.name)
-          } else {
-            navigateAppend({name: 'selectOtherDevice', params: {devices, username}})
-          }
-        },
-        'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-        'keybase.1.provisionUi.switchToGPGSignOK': cancelOnCallback,
-        'keybase.1.secretUi.getPassphrase': (params, response) => {
-          if (isCanceled(response)) return
-          const {pinentry} = params
-          const {retryLabel, type} = pinentry
-          setPendingResponse(response)
-          // Service asking us again due to an error?
-          const error = retryLabel === invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
-          handles.set(
-            slots.submitPassphrase,
-            wrapErrors((passphrase: string) => {
-              pendingResponse = undefined
-              answers.passphrase = passphrase
-              updateAutoSubmit({type: 'passphrase'})
-              setIdleHandlers()
-              response.result({passphrase, storeSecret: false})
-            })
-          )
-          if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
-            console.log('Provision: auto submit passphrase')
-            submitProvisionPassphrase(answers.passphrase)
-          } else {
-            switch (type) {
-              case T.RPCGen.PassphraseType.passPhrase:
-                navigateAppend(
-                  {name: 'password', params: {error: error || undefined, username}},
-                  !!retryLabel
-                )
-                break
-              case T.RPCGen.PassphraseType.paperKey:
-                navigateAppend(
-                  {
-                    name: 'paperkey',
-                    params: {deviceName: answers.selectedDevice.name, error: error || undefined},
-                  },
-                  !!retryLabel
-                )
-                break
-              default:
-                throw new Error('Got confused about password entry. Please send a log to us!')
+          },
+          'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
+            if (isCanceled(response)) return
+            const {errorMessage} = params
+            setPendingResponse(response)
+            handles.set(
+              slots.submitDeviceName,
+              wrapErrors((name: string) => {
+                pendingResponse = undefined
+                answers.deviceName = name
+                updateAutoSubmit({type: 'deviceName'})
+                setIdleHandlers()
+                response.result(name)
+              })
+            )
+            if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
+              console.log('Provision: auto submit device name')
+              submitProvisionDeviceName(answers.deviceName)
+            } else {
+              navigateAppend(
+                {
+                  name: 'setPublicName',
+                  params: {devices: knownDevices, error: errorMessage || undefined},
+                },
+                !!errorMessage
+              )
             }
-          }
+          },
+          'keybase.1.provisionUi.chooseDevice': (params, response) => {
+            if (isCanceled(response)) return
+            const devices = params.devices?.map(d => rpcDeviceToDevice(d)) ?? []
+            knownDevices = devices
+            setPendingResponse(response)
+            handles.set(
+              slots.submitDeviceSelect,
+              wrapErrors((name: string) => {
+                const selectedDevice = devices.find(d => d.name === name)
+                if (!selectedDevice) {
+                  throw new Error('Selected a non existant device?')
+                }
+                pendingResponse = undefined
+                answers.selectedDevice = selectedDevice
+                updateAutoSubmit({devices, type: 'chooseDevice'})
+                setIdleHandlers()
+                response.result(selectedDevice.id)
+              })
+            )
+            if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
+              console.log('Provision: auto submit device select')
+              submitProvisionDeviceSelect(answers.selectedDevice.name)
+            } else {
+              navigateAppend({name: 'selectOtherDevice', params: {devices, username}})
+            }
+          },
+          'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+          'keybase.1.provisionUi.switchToGPGSignOK': cancelOnCallback,
+          'keybase.1.secretUi.getPassphrase': (params, response) => {
+            if (isCanceled(response)) return
+            const {pinentry} = params
+            const {retryLabel, type} = pinentry
+            setPendingResponse(response)
+            // Service asking us again due to an error?
+            const error = retryLabel === invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
+            handles.set(
+              slots.submitPassphrase,
+              wrapErrors((passphrase: string) => {
+                pendingResponse = undefined
+                answers.passphrase = passphrase
+                updateAutoSubmit({type: 'passphrase'})
+                setIdleHandlers()
+                response.result({passphrase, storeSecret: false})
+              })
+            )
+            if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
+              console.log('Provision: auto submit passphrase')
+              submitProvisionPassphrase(answers.passphrase)
+            } else {
+              switch (type) {
+                case T.RPCGen.PassphraseType.passPhrase:
+                  navigateAppend(
+                    {name: 'password', params: {error: error || undefined, username}},
+                    !!retryLabel
+                  )
+                  break
+                case T.RPCGen.PassphraseType.paperKey:
+                  navigateAppend(
+                    {
+                      name: 'paperkey',
+                      params: {deviceName: answers.selectedDevice.name, error: error || undefined},
+                    },
+                    !!retryLabel
+                  )
+                  break
+                default:
+                  throw new Error('Got confused about password entry. Please send a log to us!')
+              }
+            }
+          },
         },
-      },
         incomingCallMap: {
           'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
           'keybase.1.provisionUi.DisplaySecretExchanged': () => {

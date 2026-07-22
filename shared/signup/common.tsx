@@ -159,6 +159,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
       fullWidth={true}
       fullHeight={true}
       alignItems="center"
+      relative={true}
       style={styles.whiteBackground}
     >
       {showDesktopHeader && (
