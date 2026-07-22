@@ -5,7 +5,7 @@ import * as React from 'react'
 import logger from '@/logger'
 import {ensureError} from '@/util/errors'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
 import {
   teamChannelsRPCParams,
   useLoadedTeamChannels,

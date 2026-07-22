@@ -4,7 +4,7 @@ import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
 
 type LoadedTeam = {
   loaded: boolean

@@ -5,7 +5,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as React from 'react'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>

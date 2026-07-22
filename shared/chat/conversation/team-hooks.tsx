@@ -11,7 +11,7 @@ import {
   type CachedResourceCache,
   getCachedResourceCache,
   useCachedResource,
-} from '@/teams/use-cached-resource'
+} from '@/util/use-cached-resource'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
 
