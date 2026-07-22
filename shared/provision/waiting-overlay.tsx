@@ -57,7 +57,16 @@ const ProvisionWaitingOverlay = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.overlay} centerChildren={true} gap="small">
+    // fullWidth/fullHeight required: without them desktop Box2 adds align-self:center, which
+    // collapses this absolutely-positioned box to a content-height band instead of filling.
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      style={styles.overlay}
+      centerChildren={true}
+      gap="small"
+    >
       <Kb.ProgressIndicator type="Large" />
       {phase === 'stillTrying' && (
         <>

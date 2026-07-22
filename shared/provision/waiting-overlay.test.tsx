@@ -14,7 +14,8 @@ const mockAddListener = jest.fn()
 jest.mock('@/common-adapters', () => {
   const React = require('react')
   return {
-    Box2: ({children}: {children?: React.ReactNode}) => React.createElement('div', null, children),
+    Box2: ({children, fullHeight, fullWidth}: {children?: React.ReactNode; fullHeight?: boolean; fullWidth?: boolean}) =>
+      React.createElement('div', {'data-fullheight': fullHeight, 'data-fullwidth': fullWidth, 'data-testid': 'box2'}, children),
     Button: ({label, onClick}: {label?: string; onClick?: () => void}) =>
       React.createElement('button', {onClick, type: 'button'}, label),
     ProgressIndicator: () => React.createElement('div', {'data-testid': 'spinner'}),
@@ -83,6 +84,15 @@ describe('ProvisionWaitingOverlay', () => {
 
     act(() => jest.advanceTimersByTime(10000))
     expect(screen.queryByText('Cancel')).not.toBeNull()
+  })
+
+  test('overlay box fills its container (desktop Box2 centers abspos children otherwise)', () => {
+    render(<ProvisionWaitingOverlay />)
+    startWaiting()
+    act(() => jest.advanceTimersByTime(400))
+    const box = screen.getByTestId('box2')
+    expect(box.getAttribute('data-fullheight')).toBe('true')
+    expect(box.getAttribute('data-fullwidth')).toBe('true')
   })
 
   test('hides and resets when waiting stops', () => {
