@@ -5,33 +5,6 @@ import type {CommonResponseHandler, WaitingKey} from './types'
 import {wrapErrors} from '@/util/debug'
 import type {ErrorType} from './rpc-transport'
 
-// Wraps a response to update the waiting state
-const makeWaitingResponse = (r?: Partial<CommonResponseHandler>, waitingKey?: WaitingKey) => {
-  if (!r || !waitingKey) {
-    return r
-  }
-
-  const response: Partial<CommonResponseHandler> = {}
-
-  if (r.error) {
-    response.error = (e: ErrorType) => {
-      // Waiting on the server again
-      getEngine().dispatchWaitingAction(waitingKey, true)
-      r.error?.(e)
-    }
-  }
-
-  if (r.result) {
-    response.result = (...args: Array<unknown>) => {
-      // Waiting on the server again
-      getEngine().dispatchWaitingAction(waitingKey, true)
-      r.result?.(...args)
-    }
-  }
-
-  return response
-}
-
 async function listener(p: {
   method: string
   params?: object
@@ -47,19 +20,54 @@ async function listener(p: {
     const incomingCallMap = p.incomingCallMap || {}
     const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
 
-    // Waiting on the server
-    if (waitingKey) {
-      getEngine().dispatchWaitingAction(waitingKey, true)
+    // Whether we've told the waiting store the server is working (vs. parked on a GUI prompt).
+    // Dispatches are deduped through this flag so a client-side cancel arriving while a prompt is
+    // up can't dispatch a second waiting=false and decrement the count below zero.
+    let waitingOnServer = false
+    const setWaitingOnServer = (waiting: boolean, error?: RPCError) => {
+      if (!waitingKey || waitingOnServer === waiting) {
+        return
+      }
+      waitingOnServer = waiting
+      getEngine().dispatchWaitingAction(waitingKey, waiting, error)
     }
+
+    // Wraps a response to update the waiting state
+    const makeWaitingResponse = (r?: Partial<CommonResponseHandler>) => {
+      if (!r || !waitingKey) {
+        return r
+      }
+
+      const response: Partial<CommonResponseHandler> = {}
+
+      if (r.error) {
+        response.error = (e: ErrorType) => {
+          // Waiting on the server again
+          setWaitingOnServer(true)
+          r.error?.(e)
+        }
+      }
+
+      if (r.result) {
+        response.result = (...args: Array<unknown>) => {
+          // Waiting on the server again
+          setWaitingOnServer(true)
+          r.result?.(...args)
+        }
+      }
+
+      return response
+    }
+
+    // Waiting on the server
+    setWaitingOnServer(true)
 
     const makeHandler = (method: string, custom: boolean) => {
       return (params: unknown, _response: CommonResponseHandler) => {
         // No longer waiting on the server
-        if (waitingKey) {
-          getEngine().dispatchWaitingAction(waitingKey, false)
-        }
+        setWaitingOnServer(false)
 
-        let response = makeWaitingResponse(_response, waitingKey)
+        let response = makeWaitingResponse(_response)
 
         if (__DEV__) {
           if (incomingCallMap[method] && customResponseIncomingCallMap[method]) {
@@ -114,10 +122,8 @@ async function listener(p: {
           clearInterval(outstandingIntervalID)
         }
 
-        if (waitingKey) {
-          // No longer waiting
-          getEngine().dispatchWaitingAction(waitingKey, false, error instanceof RPCError ? error : undefined)
-        }
+        // No longer waiting
+        setWaitingOnServer(false, error instanceof RPCError ? error : undefined)
 
         if (error) {
           reject(ensureError(error))

@@ -175,7 +175,7 @@ const runProvision = (initialUsername: string) => {
       wrapErrors((name: string) => {
         const selectedDevice = knownDevices.find(d => d.name === name)
         if (!selectedDevice) {
-          throw new Error('Selected a non existant device?')
+          throw new Error('Selected a non-existent device?')
         }
         answers.selectedDevice = selectedDevice
         updateAutoSubmit({devices: knownDevices, type: 'chooseDevice'})
@@ -224,6 +224,7 @@ const runProvision = (initialUsername: string) => {
     }
 
     let exchangedIncrements = 0
+    let attemptEnded = false
     try {
       await T.RPCGen.loginLoginRpcListener({
         customResponseIncomingCallMap: {
@@ -294,7 +295,7 @@ const runProvision = (initialUsername: string) => {
               wrapErrors((name: string) => {
                 const selectedDevice = devices.find(d => d.name === name)
                 if (!selectedDevice) {
-                  throw new Error('Selected a non existant device?')
+                  throw new Error('Selected a non-existent device?')
                 }
                 pendingResponse = undefined
                 answers.selectedDevice = selectedDevice
@@ -358,6 +359,9 @@ const runProvision = (initialUsername: string) => {
         incomingCallMap: {
           'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
           'keybase.1.provisionUi.DisplaySecretExchanged': () => {
+            // Incoming calls are dispatched via setTimeout, so this can land after the finally
+            // below already ran its decrements; don't add a count nothing will release.
+            if (attemptEnded) return
             ++exchangedIncrements
             useWaitingState.getState().dispatch.increment(waitingKeyProvision)
           },
@@ -378,6 +382,7 @@ const runProvision = (initialUsername: string) => {
         waitingKey: waitingKeyProvision,
       })
     } finally {
+      attemptEnded = true
       cancelAttempt = undefined
       for (let i = 0; i < exchangedIncrements; ++i) {
         useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
@@ -392,7 +397,6 @@ const runProvision = (initialUsername: string) => {
       slots.cancel,
       wrapErrors(() => {
         userCancelled = true
-        useWaitingState.getState().dispatch.clear(waitingKeyProvision)
         cancelPendingResponse()
         cancelAttempt?.()
         resumeParked?.()
@@ -493,7 +497,6 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
     // There's nothing to replay in this flow, so pause is a full cancel too.
     const doCancel = wrapErrors(() => {
       userCancelled = true
-      useWaitingState.getState().dispatch.clear(waitingKeyProvision)
       const pending = pendingResponse
       pendingResponse = undefined
       if (pending) {
@@ -504,6 +507,7 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
     handles.set(slots.cancel, doCancel)
     handles.set(slots.pause, doCancel)
     let exchangedIncrements = 0
+    let attemptEnded = false
     try {
       await T.RPCGen.deviceDeviceAddRpcListener({
         customResponseIncomingCallMap: {
@@ -543,6 +547,9 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
         },
         incomingCallMap: {
           'keybase.1.provisionUi.DisplaySecretExchanged': () => {
+            // Incoming calls are dispatched via setTimeout, so this can land after the finally
+            // below already ran its decrements; don't add a count nothing will release.
+            if (attemptEnded) return
             ++exchangedIncrements
             useWaitingState.getState().dispatch.increment(waitingKeyProvision)
           },
@@ -557,6 +564,7 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
       })
     } catch {
     } finally {
+      attemptEnded = true
       cancelAttempt = undefined
       for (let i = 0; i < exchangedIncrements; ++i) {
         useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
