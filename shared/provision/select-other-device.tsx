@@ -9,6 +9,7 @@ type Props = {
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
+  waitingDeviceName?: string
 }
 
 type Item = {type: 'header'} | {device: Device; type: 'device'} | {type: 'reset'}
@@ -18,7 +19,7 @@ type Item = {type: 'header'} | {device: Device; type: 'device'} | {type: 'reset'
 const itemHeight = {type: 'trueVariable'} as const
 
 const SelectOtherDevice = (props: Props) => {
-  const {passwordRecovery, devices, onBack, onSelect, onResetAccount} = props
+  const {passwordRecovery, devices, onBack, onSelect, onResetAccount, waitingDeviceName} = props
 
   const items: Item[] = [
     {type: 'header'},
@@ -72,12 +73,15 @@ const SelectOtherDevice = (props: Props) => {
           <Kb.ListItem
             type="Small"
             firstItem={index === 1}
-            onClick={() => onSelect(item.device.name)}
+            onClick={waitingDeviceName ? undefined : () => onSelect(item.device.name)}
             icon={<DeviceIcon device={item.device} size={32} />}
             body={
-              <Kb.Box2 direction="vertical" fullWidth={true}>
-                <Kb.Text type="BodySemibold">{item.device.name}</Kb.Text>
-                <Kb.Text type="BodySmall">{descriptions[item.device.type]}</Kb.Text>
+              <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+                  <Kb.Text type="BodySemibold">{item.device.name}</Kb.Text>
+                  <Kb.Text type="BodySmall">{descriptions[item.device.type]}</Kb.Text>
+                </Kb.Box2>
+                {item.device.name === waitingDeviceName && <Kb.ProgressIndicator />}
               </Kb.Box2>
             }
           />

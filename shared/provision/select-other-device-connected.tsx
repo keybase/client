@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as React from 'react'
 import {useSafeSubmit} from '@/util/safe-submit'
 import SelectOtherDevice from './select-other-device'
 import type {Device} from '@/constants/provision'
@@ -18,13 +19,17 @@ const SelectOtherDeviceContainer = ({route}: Props) => {
   const {devices, username} = route.params
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const onBack = useSafeSubmit(C.Router2.navigateUp, false)
+  const [selectedName, setSelectedName] = React.useState('')
 
   const onResetAccount = () => {
     startAccountReset(false, username)
   }
 
   const onSelect = (name: string) => {
-    if (!waiting) submitProvisionDeviceSelect(name)
+    if (!waiting) {
+      setSelectedName(name)
+      submitProvisionDeviceSelect(name)
+    }
   }
 
   return (
@@ -33,6 +38,7 @@ const SelectOtherDeviceContainer = ({route}: Props) => {
       onBack={onBack}
       onSelect={onSelect}
       onResetAccount={onResetAccount}
+      waitingDeviceName={waiting ? selectedName : undefined}
     />
   )
 }
