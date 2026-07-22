@@ -34,7 +34,7 @@ const SelectOtherDeviceContainer = ({route}: Props) => {
 
   // waitingKeyProvision is flow-global: clear the tap so a later step's waiting can't resurrect a stale row spinner
   React.useEffect(() => {
-    if (waiting) {
+    if (!waiting) {
       return
     }
     return () => {
