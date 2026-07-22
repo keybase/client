@@ -1,8 +1,17 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import type {CachedResourceCache} from './use-cached-resource'
 import type {RPCError} from './errors'
 
 type Options<RESULT, DATA> = {
+  /**
+   * share results across components: serve cached data when fresh (staleMs),
+   * piggyback on an in-flight load, populate on success. The store's key must
+   * match the `key` option (use one store per key via getCachedResourceCache).
+   * The in-flight promise resolves to mapped DATA, so hooks sharing a store
+   * must use equivalent `map` fns.
+   */
+  cache?: {staleMs: number; store: CachedResourceCache<DATA, string | undefined>}
   /** skips the mount/focus/key auto-load when false, checked when the trigger fires. reload() ignores this */
   enabled?: boolean
   /**
@@ -30,15 +39,16 @@ type Options<RESULT, DATA> = {
  * @returns loaded: true once a load attempt finished (success or error; for the current key, if keyed)
  * @returns loading: enabled and no finished attempt yet, spinner-friendly
  * @returns loadCount: number of successful loads, useful as a refresh token
- * @returns reload: kick off a load manually
- * @returns setData: overwrite data locally, for optimistic updates; the next load result wins
+ * @returns reload: kick off a load manually, always firing the rpc even if the cache is fresh
+ * @returns setData: overwrite data locally, for optimistic updates; the next load result wins.
+ *   Local-only: shared caches are invalidated via their own invalidate/reset
  */
 export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   call: F,
   args: Parameters<F>,
   opts: Options<Awaited<ReturnType<F>>, DATA>
 ) {
-  const {enabled = true, key, map, onError, onResult, when = 'mount'} = opts
+  const {cache, enabled = true, key, map, onError, onResult, when = 'mount'} = opts
   const [state, setState] = React.useState<{
     data?: DATA
     dataKey?: string
@@ -46,31 +56,78 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
     errorKey?: string
     loadCount: number
     loaded: boolean
-  }>({loadCount: 0, loaded: false})
+  }>(() => {
+    const store = cache?.store
+    if (store && Object.is(store.getKey(), key) && store.getLoadedAt()) {
+      return {data: store.getData(), dataKey: key, loadCount: 0, loaded: true}
+    }
+    return {loadCount: 0, loaded: false}
+  })
 
   // ignore out-of-order responses when reload fires while a load is in flight
   const requestID = React.useRef(0)
-  const load = React.useEffectEvent(() => {
+  const load = React.useEffectEvent((force: boolean) => {
     const id = ++requestID.current
     const keyAtCall = key
-    call(...args)
-      .then((result: Awaited<ReturnType<F>>) => {
-        if (requestID.current !== id) return
-        const data = map(result)
-        setState(s => ({
-          data,
-          dataKey: keyAtCall,
-          error: undefined,
-          errorKey: undefined,
-          loadCount: s.loadCount + 1,
-          loaded: true,
-        }))
-        onResult?.(data)
+    const adopt = (data: DATA) => {
+      setState(s => ({
+        data,
+        dataKey: keyAtCall,
+        error: undefined,
+        errorKey: undefined,
+        loadCount: s.loadCount + 1,
+        loaded: true,
+      }))
+      onResult?.(data)
+    }
+    const fail = (error: RPCError) => {
+      setState(s => ({...s, error, errorKey: keyAtCall, loaded: true}))
+      onError?.(error)
+    }
+
+    const store = cache?.store
+    if (store && Object.is(store.getKey(), keyAtCall)) {
+      const loadedAt = store.getLoadedAt()
+      if (!force && loadedAt && Date.now() - loadedAt < cache.staleMs) {
+        adopt(store.getData())
+        return
+      }
+      const inFlight = store.getInFlight()
+      if (inFlight) {
+        inFlight
+          .then(data => {
+            if (requestID.current === id) adopt(data)
+          })
+          .catch((error: RPCError) => {
+            if (requestID.current === id) fail(error)
+          })
+        return
+      }
+    }
+    if (store && !Object.is(store.getKey(), keyAtCall)) {
+      store.invalidate(keyAtCall)
+    }
+
+    const generation = store?.getGeneration()
+    const request: Promise<DATA> = call(...args).then((result: Awaited<ReturnType<F>>) => {
+      const data = map(result)
+      if (store && generation !== undefined) {
+        store.setDataLoaded(data, generation)
+      }
+      return data
+    })
+    if (store) {
+      store.setInFlight(request)
+    }
+    const clearInFlight = () => store?.clearInFlight(request)
+    request
+      .then(data => {
+        clearInFlight()
+        if (requestID.current === id) adopt(data)
       })
       .catch((error: RPCError) => {
-        if (requestID.current !== id) return
-        setState(s => ({...s, error, errorKey: keyAtCall, loaded: true}))
-        onError?.(error)
+        clearInFlight()
+        if (requestID.current === id) fail(error)
       })
   })
 
@@ -89,7 +146,7 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   )
 
   const autoLoad = React.useEffectEvent(() => {
-    if (enabled) load()
+    if (enabled) load(false)
   })
   // `when` and key-presence are locked at mount so the subscriptions stay stable
   const [onMountOrFocus] = React.useState(() => ({
@@ -120,7 +177,7 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   // loop effects. Freeze the first wrapper; it stays valid because all wrappers share
   // the same ref.
   const [stableApi] = React.useState(() => ({
-    reload: () => load(),
+    reload: () => load(true),
     setData: (next: Parameters<typeof setData>[0]) => setData(next),
   }))
 
