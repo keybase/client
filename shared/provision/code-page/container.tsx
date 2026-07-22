@@ -9,6 +9,7 @@ import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {Device} from '@/constants/provision'
 import {submitProvisionTextCode} from '../flow'
+import ProvisionWaitingOverlay from '../waiting-overlay'
 
 type OwnProps = {
   deviceName?: string
@@ -176,6 +177,7 @@ const CodePageContainer = (op: OwnProps) => {
             {troubleshootingContent()}
           </Kb.Popup>
         )}
+        <ProvisionWaitingOverlay />
       </Kb.Box2>
     )
   }

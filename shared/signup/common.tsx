@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import {type ButtonProps} from '@/common-adapters/button'
 import {openURL} from '@/util/misc'
 import {useConfigState} from '@/stores/config'
+import ProvisionWaitingOverlay from '@/provision/waiting-overlay'
 
 export const desktopInputWidth = Kb.Styles.platformStyles({
   isElectron: {width: 368},
@@ -142,6 +143,7 @@ type SignupScreenProps = {
   showHeaderInfoIcon?: boolean
   showHeaderInfoIconRow?: boolean
   hideDesktopHeader?: boolean
+  waitingOverlay?: boolean
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)
@@ -223,6 +225,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
           </Kb.ButtonBar>
         )}
       </Kb.Box2>
+      {props.waitingOverlay && <ProvisionWaitingOverlay />}
     </Kb.Box2>
   )
 }
