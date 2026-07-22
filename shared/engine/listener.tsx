@@ -40,6 +40,7 @@ async function listener(p: {
     [K in string]: (params: unknown, response: Partial<CommonResponseHandler>) => Promise<void>
   }
   waitingKey?: WaitingKey
+  onSessionCreated?: (cancel: () => void) => void
 }) {
   return new Promise((resolve, reject) => {
     const {method, params, waitingKey} = p
@@ -107,7 +108,7 @@ async function listener(p: {
       }, 2000)
     }
 
-    getEngine()._rpcOutgoing({
+    const sessionID = getEngine()._rpcOutgoing({
       callback: (error?: RPCError, params?: unknown) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
@@ -128,6 +129,7 @@ async function listener(p: {
       method,
       params,
     })
+    p.onSessionCreated?.(() => getEngine().cancelSession(sessionID))
   })
 }
 

@@ -289,6 +289,12 @@ class Engine {
     this._sessionsMap.delete(session.getId())
   }
 
+  // Client-side cancel of one outstanding session: rejects its start callback
+  // (sccanceled) and ends it. The service is not told; its side dies on its own.
+  cancelSession(sessionID: number) {
+    this._sessionsMap.get(sessionID)?.cancel()
+  }
+
   // Reset the engine
   reset() {
     if (isMobile) {

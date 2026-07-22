@@ -1299,6 +1299,7 @@ type ListenerArgs<M extends ListenerMethod> = {
   incomingCallMap: IncomingCallMapType,
   customResponseIncomingCallMap?: CustomResponseIncomingCallMap,
   waitingKey?: WaitingKey,
+  onSessionCreated?: (cancel: () => void) => void,
 }
 export type ListenerFn<M extends ListenerMethod> = (p: ListenerArgs<M>) => Promise<RpcOut<M>>
 const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
@@ -1309,6 +1310,7 @@ const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
       incomingCallMap: p.incomingCallMap,
       customResponseIncomingCallMap: p.customResponseIncomingCallMap,
       waitingKey: p.waitingKey,
+      onSessionCreated: p.onSessionCreated,
     })) as ListenerFn<M>
 
 export enum AppLinkType {
