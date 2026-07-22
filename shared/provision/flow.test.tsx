@@ -358,3 +358,48 @@ test('a prompt arriving after pause is rejected and does not navigate', async ()
   expect(response.error).toHaveBeenCalled()
   expect(mockNavigateAppend).not.toHaveBeenCalled()
 })
+
+test('pause with a pending prompt still resumes when the same step is resubmitted', async () => {
+  const attempts = mockLoginAttempts()
+
+  submitProvisionUsername('alice')
+  await flush()
+  expect(attempts.length).toBe(1)
+  const attempt1 = attempts[0]!
+
+  // the service prompts for a device name and the user is looking at it (unanswered)
+  // when they back out mid-prompt
+  const nameResponse = {
+    error: jest.fn(() => {
+      attempt1.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.scinputcanceled))
+    }),
+    result: jest.fn(),
+  }
+  attempt1.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.PromptNewDeviceName']?.(
+    {errorMessage: ''} as any,
+    nameResponse as any
+  )
+
+  pauseProvision()
+  expect(nameResponse.error).toHaveBeenCalled()
+  await flush()
+  expect(attempts.length).toBe(1)
+
+  // user resubmits the same step that was pending at pause time
+  submitProvisionDeviceName('dev1')
+  await flush()
+  expect(attempts.length).toBe(2)
+  const attempt2 = attempts[1]!
+
+  // the new attempt auto-submits the replayed answer without navigating
+  mockNavigateAppend.mockClear()
+  const nameResponse2 = {error: jest.fn(), result: jest.fn()}
+  attempt2.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.PromptNewDeviceName']?.(
+    {errorMessage: ''} as any,
+    nameResponse2 as any
+  )
+  expect(nameResponse2.result).toHaveBeenCalledWith('dev1')
+
+  attempt2.resolve()
+  await flush()
+})

@@ -405,6 +405,9 @@ const runProvision = (initialUsername: string) => {
         pauseRequested = true
         cancelPendingResponse()
         cancelAttempt?.()
+        // The rejected response's slot still holds a direct handler (calls response.result, no
+        // requestRestart). Reset to idle handlers so a resubmit of that same step wakes the park.
+        setIdleHandlers()
       })
     )
     setIdleHandlers()
