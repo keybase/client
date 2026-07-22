@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import {produce} from 'immer'
+import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 export type CachedResourceCache<T, K> = {
   clearInFlight: (request: Promise<T>) => void
@@ -250,6 +251,15 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
   const loadIfStale = React.useCallback(async () => {
     await loadResource(false)
   }, [loadResource])
+
+  // reconnects orphan any in-flight load; force so cached data from before the
+  // restart doesn't mask post-restart changes. Disabled hooks must not touch the
+  // shared cache (loadResource resets it when disabled)
+  useReloadOnReconnect(() => {
+    if (latestRef.current.enabled) {
+      void loadResource(true)
+    }
+  })
 
   React.useEffect(() => {
     if (!Object.is(cache.getKey(), cacheKey) || !enabled) {

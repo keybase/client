@@ -3,6 +3,7 @@
 
 import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
+import {useDaemonState} from '@/stores/daemon'
 import {createCachedResourceCache} from './use-cached-resource'
 import {useRPCLoad} from './use-rpc-load'
 
@@ -18,6 +19,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  useDaemonState.setState({handshakeState: 'loading'})
   jest.useRealTimers()
   jest.restoreAllMocks()
 })
@@ -105,4 +107,32 @@ test('cache: reload() forces the rpc even when fresh', async () => {
   })
   await flush()
   expect(call).toHaveBeenCalledTimes(2)
+})
+
+test('reloads when the daemon reconnects', async () => {
+  act(() => {
+    useDaemonState.setState({handshakeState: 'done'})
+  })
+  const call = jest.fn(async () => {
+    await Promise.resolve()
+    return 1
+  })
+  renderHook(() => useRPCLoad(call, [], {map: (r: number) => r}))
+  // useOnMountOnce fires the mount load via a 1ms setTimeout; advance fake timers past it.
+  act(() => {
+    jest.advanceTimersByTime(1)
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+  act(() => {
+    useDaemonState.setState({handshakeState: 'loading'})
+  })
+  act(() => {
+    useDaemonState.setState({handshakeState: 'done'})
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  act(() => {
+    useDaemonState.setState({handshakeState: 'loading'})
+  })
 })

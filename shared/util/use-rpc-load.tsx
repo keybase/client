@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import type {CachedResourceCache} from './use-cached-resource'
 import type {RPCError} from './errors'
+import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 type Options<RESULT, DATA> = {
   /**
@@ -165,6 +166,12 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   React.useEffect(() => {
     if (keyed && when !== 'manual') autoLoad()
   }, [keyed, when, key])
+
+  // reconnects orphan any in-flight load; force so a fresh-looking cache from
+  // before the restart doesn't mask post-restart changes
+  useReloadOnReconnect(() => {
+    if (enabled && when !== 'manual') load(true)
+  })
 
   const data = keyed ? (state.dataKey === key ? state.data : undefined) : state.data
   const error = keyed ? (state.errorKey === key ? state.error : undefined) : state.error
