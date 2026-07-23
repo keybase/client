@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useIsFocused} from '@react-navigation/core'
 import {useSafeSubmit} from '@/util/safe-submit'
 import SelectOtherDevice from './select-other-device'
 import type {Device} from '@/constants/provision'
@@ -46,13 +47,25 @@ const SelectOtherDeviceContainer = ({route}: Props) => {
     }
   }, [waiting])
 
+  // Waiting increments are throttled, so a fast attempt can end without `waiting` ever rendering
+  // true and the effect above never arms. Clear the tap when the user navigates back here so the
+  // rows can't stay disabled by a stale selection.
+  const isFocused = useIsFocused()
+  const wasFocusedRef = React.useRef(isFocused)
+  React.useEffect(() => {
+    if (isFocused && !wasFocusedRef.current) {
+      setSelectedName('')
+    }
+    wasFocusedRef.current = isFocused
+  }, [isFocused])
+
   return (
     <SelectOtherDevice
       devices={devices}
       onBack={onBack}
       onSelect={onSelect}
       onResetAccount={onResetAccount}
-      waitingDeviceName={waiting ? selectedName : undefined}
+      waitingDeviceName={selectedName || undefined}
     />
   )
 }
