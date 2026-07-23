@@ -43,6 +43,12 @@ class Engine {
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
     this._queuedChanges.push({error, increment: waiting, key})
     this._throttledDispatchWaitingAction()
+    // Screens mount right after a prompt arrives and gate interaction/overlays on the waiting
+    // state, so a "no longer waiting" change must land immediately — a throttled flush leaves
+    // freshly pushed screens stuck seeing waiting=true for up to the throttle window.
+    if (!waiting) {
+      this._throttledDispatchWaitingAction.flush()
+    }
   }
 
   _throttledDispatchWaitingAction = throttle(() => {
@@ -111,8 +117,20 @@ class Engine {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
+    this._cancelOutstandingSessions()
     // tell renderer we're disconnected
     this._onConnectedCB(false)
+  }
+
+  // The transport died, so the service has forgotten every in-flight RPC. Cancel the sessions so
+  // their promises reject and flows can react, instead of hanging forever on answers that will
+  // never come (e.g. a provision prompt screen left up across a service restart).
+  _cancelOutstandingSessions() {
+    for (const session of [...this._sessionsMap.values()]) {
+      if (!session.getDangling()) {
+        session.cancel()
+      }
+    }
   }
 
   // We want to dispatch the connect action but only after listeners boot up
@@ -277,6 +295,12 @@ class Engine {
     this._sessionsMap.delete(session.getId())
   }
 
+  // Client-side cancel of one outstanding session: rejects its start callback
+  // (sccanceled) and ends it. The service is not told; its side dies on its own.
+  cancelSession(sessionID: number) {
+    this._sessionsMap.get(sessionID)?.cancel()
+  }
+
   // Reset the engine
   reset() {
     if (isMobile) {
@@ -287,6 +311,7 @@ class Engine {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
+    this._cancelOutstandingSessions()
     this._sessionsMap.clear()
     this._queuedChanges = []
     this._hasConnected = false

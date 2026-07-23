@@ -18,8 +18,7 @@ type Props = {
   confirmType?: ButtonProps['type']
   onCancel: () => void
   onConfirm: () => void
-  // modal-footer variant: buttons share the row 50/50, cancel is desktop-only
-  // (mobile modals close from the header)
+  // modal-footer variant: buttons share the row 50/50
   split?: boolean
   style?: Styles.StylesCrossPlatform
   // either follow keys in the waiting store, or drive directly with a boolean
@@ -30,12 +29,14 @@ type Props = {
 /**
  * The standard cancel + confirm footer for form/confirmation screens. Both
  * buttons follow the same waiting state: confirm shows the spinner, cancel
- * just disables. Desktop: row with confirm on the right. Mobile: stacked
- * full width with confirm on top.
+ * just disables. The cancel button is desktop-only: confirm screens are
+ * modals, and on mobile the modal header's Cancel is the single cancel
+ * affordance. Desktop: row with confirm on the right. Mobile: single full
+ * width confirm button.
  */
 const ConfirmButtons = (props: Props) => {
   const splitStyle = props.split ? styles.split : undefined
-  const cancel = props.waitingKey ? (
+  const cancel = isMobile ? null : props.waitingKey ? (
     <Kb.WaitingButton
       key="cancel"
       type="Dim"
@@ -43,7 +44,6 @@ const ConfirmButtons = (props: Props) => {
       label={props.cancelLabel ?? 'Cancel'}
       waitingKey={props.waitingKey}
       onlyDisable={true}
-      fullWidth={isMobile}
       style={splitStyle}
     />
   ) : (
@@ -53,7 +53,6 @@ const ConfirmButtons = (props: Props) => {
       onClick={props.onCancel}
       label={props.cancelLabel ?? 'Cancel'}
       disabled={props.waiting}
-      fullWidth={isMobile}
       style={splitStyle}
     />
   )
@@ -83,15 +82,15 @@ const ConfirmButtons = (props: Props) => {
   if (props.split) {
     return (
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={props.style}>
-        {!isMobile && cancel}
+        {cancel}
         {confirm}
       </Kb.Box2>
     )
   }
   return (
     <Kb.ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile} style={props.style}>
-      {isMobile ? confirm : cancel}
-      {isMobile ? cancel : confirm}
+      {cancel}
+      {confirm}
     </Kb.ButtonBar>
   )
 }

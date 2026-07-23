@@ -123,16 +123,21 @@ const Root = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-const preloadFonts = () => {
-  void document.fonts.load('400 16px "kb"')
-  void document.fonts.load('500 16px "Source Code Pro"')
-  void document.fonts.load('600 16px "Source Code Pro"')
-  void document.fonts.load('400 16px "Keybase"')
-  void document.fonts.load('italic 400 16px "Keybase"')
-  void document.fonts.load('600 16px "Keybase"')
-  void document.fonts.load('italic 600 16px "Keybase"')
-  void document.fonts.load('700 16px "Keybase"')
-  void document.fonts.load('italic 700 16px "Keybase"')
+// awaited before first render so text (and canvas measurements of it) always uses real fonts
+const preloadFonts = async () => {
+  await Promise.all(
+    [
+      '400 16px "kb"',
+      '500 16px "Source Code Pro"',
+      '600 16px "Source Code Pro"',
+      '400 16px "Keybase"',
+      'italic 400 16px "Keybase"',
+      '600 16px "Keybase"',
+      'italic 600 16px "Keybase"',
+      '700 16px "Keybase"',
+      'italic 700 16px "Keybase"',
+    ].map(async f => document.fonts.load(f).catch(() => {}))
+  )
 }
 
 // Cache React root across HMR to avoid remounting the entire tree
@@ -196,8 +201,9 @@ const load = async () => {
   }
   global.DEBUGLoaded = true
   initDesktopStyles()
-  preloadFonts()
+  const fontsLoaded = preloadFonts()
   await setupApp()
+  await fontsLoaded
   setupHMR()
   render()
 }

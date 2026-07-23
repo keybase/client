@@ -30,6 +30,7 @@ const Password = ({route}: Props) => {
   return (
     <SignupScreen
       hideDesktopHeader={!isMobile}
+      waitingOverlay={true}
       banners={
         <>
           {resetEmailSent ? (

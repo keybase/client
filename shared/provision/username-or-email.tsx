@@ -60,6 +60,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   return (
     <SignupScreen
       hideDesktopHeader={!isMobile}
+      waitingOverlay={true}
       onRightAction={onGoToSignup}
       rightActionLabel="Create account"
       banners={

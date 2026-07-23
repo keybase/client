@@ -121,6 +121,9 @@ export const nativeIconHeaderItem = (
   ...opts,
 })
 
+// Setting non-empty unstable_headerLeftItems automatically hides the native back button
+// (patches/@react-navigation+native-stack) — no need to pair with headerBackVisible: false,
+// and doubled back/cancel buttons are impossible. An empty items array keeps the native back.
 export const nativeBackHeaderItem = (onPress?: () => void): NativeStackHeaderItem =>
   nativeIconHeaderItem('chevron.backward', 'Back', onPress ?? navigateUp)
 

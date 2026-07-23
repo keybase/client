@@ -9,49 +9,23 @@ type Props = {
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
+  waitingDeviceName?: string
 }
 
 type Item = {type: 'header'} | {device: Device; type: 'device'} | {type: 'reset'}
 
-const deviceSmallHeight = isMobile ? 56 : 48
-// "or" text with padding (~36) + ListItem Small
-const resetHeight = 36 + deviceSmallHeight
-// Header text with padding
-const headerHeight = isMobile ? 80 : 90
-
-const getItemHeight = (item: Item | undefined): number => {
-  switch (item?.type) {
-    case 'header':
-      return headerHeight
-    case 'device':
-      return deviceSmallHeight
-    case 'reset':
-      return resetHeight
-    default:
-      return deviceSmallHeight
-  }
-}
+// The header wraps to a device-dependent number of lines, so let the list measure real
+// heights; declaring stale fixed sizes makes containers overlap and eat taps on iOS.
+const itemHeight = {type: 'trueVariable'} as const
 
 const SelectOtherDevice = (props: Props) => {
-  const {passwordRecovery, devices, onBack, onSelect, onResetAccount} = props
+  const {passwordRecovery, devices, onBack, onSelect, onResetAccount, waitingDeviceName} = props
 
   const items: Item[] = [
     {type: 'header'},
     ...devices.map(device => ({device, type: 'device'}) as const),
     {type: 'reset'},
   ]
-
-  const itemHeight = {
-    getItemLayout: (index: number, item?: Item) => {
-      const length = getItemHeight(item)
-      let offset = 0
-      for (let i = 0; i < index; i++) {
-        offset += getItemHeight(items[i])
-      }
-      return {index, length, offset}
-    },
-    type: 'variable' as const,
-  }
 
   const renderItem = (index: number, item: Item) => {
     switch (item.type) {
@@ -99,12 +73,15 @@ const SelectOtherDevice = (props: Props) => {
           <Kb.ListItem
             type="Small"
             firstItem={index === 1}
-            onClick={() => onSelect(item.device.name)}
+            onClick={waitingDeviceName ? undefined : () => onSelect(item.device.name)}
             icon={<DeviceIcon device={item.device} size={32} />}
             body={
-              <Kb.Box2 direction="vertical" fullWidth={true}>
-                <Kb.Text type="BodySemibold">{item.device.name}</Kb.Text>
-                <Kb.Text type="BodySmall">{descriptions[item.device.type]}</Kb.Text>
+              <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+                  <Kb.Text type="BodySemibold">{item.device.name}</Kb.Text>
+                  <Kb.Text type="BodySmall">{descriptions[item.device.type]}</Kb.Text>
+                </Kb.Box2>
+                {item.device.name === waitingDeviceName && <Kb.ProgressIndicator />}
               </Kb.Box2>
             }
           />
@@ -116,6 +93,7 @@ const SelectOtherDevice = (props: Props) => {
   return (
     <SignupScreen
       hideDesktopHeader={!isMobile}
+      waitingOverlay={!passwordRecovery}
       noBackground={true}
       onBack={onBack}
       title={
@@ -130,6 +108,10 @@ const SelectOtherDevice = (props: Props) => {
           renderItem={renderItem}
           indexAsKey={true}
           itemHeight={itemHeight}
+          estimatedItemHeight={56}
+          // rows only re-render on data/extraData change, and they must pick up the
+          // spinner + disabled state when the waiting tap lands
+          extraData={waitingDeviceName ?? ''}
         />
       </Kb.Box2>
     </SignupScreen>

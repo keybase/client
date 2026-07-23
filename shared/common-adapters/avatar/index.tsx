@@ -263,12 +263,13 @@ function Avatar(p: Props) {
             onLoad={() => setErrorUri(undefined)}
           />
         </>
-      ) : name ? (
-        // name known, just waiting on httpSrv address: the placeholder type is correct
+      ) : name || !isTeam ? (
+        // with a name the placeholder type is known correct; with no name at all, team
+        // callsites pass isTeam so anything else is a user (e.g. signup's empty avatar)
         <Image source={placeholderSource} style={cached.image} />
       ) : (
-        // no name yet (e.g. team meta still loading): a placeholder could be the wrong
-        // type (user vs team), so hold the shape with a blank background instead
+        // team with meta still loading: a user placeholder would be the wrong type, so
+        // hold the shape with a blank background until the teamname arrives
         <View style={[cached.image, blankBg]} />
       )}
       {children}

@@ -21,7 +21,9 @@ const makePlatformPlugin = defines => babel => {
 
 // Electron only reaches Babel through jest (BABEL_ENV=test) — the Vite desktop
 // build does not load this config. React-native covers Metro builds.
-const makeElectronConfig = platformPlugin => ({
+// No platformPlugin here: tests read the platform globals from jest.setup.js at
+// runtime (and may flip them per-test); inlining would bake them in at transform time.
+const makeElectronConfig = () => ({
   presets: [
     ['@babel/preset-env', {targets: {node: 'current'}}],
     ['@babel/preset-react', {runtime: 'automatic'}],
@@ -29,7 +31,6 @@ const makeElectronConfig = platformPlugin => ({
   ],
   plugins: [
     reactCompilerPlugin, // must run first!
-    platformPlugin,
   ],
 })
 
@@ -65,6 +66,8 @@ module.exports = function (api /*: any */) {
 
   api.cache.using(() => `${apiEnv}:${metroPlatform ?? 'none'}`)
 
+  if (isElectron) return makeElectronConfig()
+
   const platformPlugin = makePlatformPlugin({
     isMobile: !isElectron,
     isElectron,
@@ -72,5 +75,5 @@ module.exports = function (api /*: any */) {
     isIOS: metroPlatform === 'ios',
   })
 
-  return isElectron ? makeElectronConfig(platformPlugin) : makeReactNativeConfig(platformPlugin)
+  return makeReactNativeConfig(platformPlugin)
 }
