@@ -139,6 +139,7 @@ func (u *UIDMap) findFullNameLocally(ctx context.Context, g libkb.UIDMapperConte
 	}
 
 	u.fullNameCache.Add(uid, tmp)
+	ret = &tmp
 	return ret, foundOnDisk
 }
 
