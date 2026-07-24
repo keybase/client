@@ -716,6 +716,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	hcs := tc.Context().ConvSource.(*HybridConversationSource)
 	if hcs == nil {
 		t.Skip()
+		return
 	}
 	conv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username,
 		chat1.ConversationMembersType_KBFS)

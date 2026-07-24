@@ -974,6 +974,7 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("no result on id2 w/ no sigchain")
+		return
 	}
 	if result.Upk.GetName() != u {
 		t.Errorf("result username: %q, expected %q", result.Upk.GetName(), u)

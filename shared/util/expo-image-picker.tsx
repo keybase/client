@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker'
 
-const defaultOptions = {
+const getDefaultOptions = () => ({
   allowsEditing: false,
   exif: false,
   quality: 0.4,
@@ -9,7 +9,7 @@ const defaultOptions = {
   videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
   // camera recordings + legacy editing picker only
   videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
-} as const
+}) as const
 
 const mediaTypeToImagePickerMediaType = (
   mediaType: 'photo' | 'video' | 'mixed'
@@ -36,7 +36,7 @@ export const launchCameraAsync = async (
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchCameraAsync({
-      ...defaultOptions,
+      ...getDefaultOptions(),
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
   } catch (e) {
@@ -63,7 +63,7 @@ export const launchImageLibraryAsync = async (
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchImageLibraryAsync({
-      ...defaultOptions,
+      ...getDefaultOptions(),
       allowsMultipleSelection,
       ...(mediaType === 'video' ? {allowsEditing: true, allowsMultipleSelection: false} : {}),
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
