@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import type * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useGeneralConvIDKey} from '@/teams/common/general-conv'
 import EmptyRow from './empty-row'
 import LoadingRow from './loading'
 import MemberRow from './member-row'
@@ -23,7 +23,6 @@ import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers
 import {useEmojiState} from '../../emojis/use-emoji'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsListMap} from '@/teams/use-teams-list'
-import {metasReceived} from '@/chat/inbox/metadata'
 
 export type Item =
   | {type: 'members-loading'}
@@ -287,49 +286,8 @@ export const useSubteamsSections = (
   return sections
 }
 
-const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
-  const [conversationIDKeyResult, setConversationIDKeyResult] = React.useState<
-    {conversationIDKey: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID} | undefined
-  >()
-  const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
-  const requestIDRef = React.useRef(0)
-  const conversationIDKey =
-    conversationIDKeyResult && conversationIDKeyResult.teamID === teamID
-      ? conversationIDKeyResult.conversationIDKey
-      : undefined
-
-  React.useEffect(() => {
-    if (conversationIDKey || !teamID) {
-      return
-    }
-    requestIDRef.current += 1
-    const requestID = requestIDRef.current
-    findGeneralConvIDFromTeamID(
-      [{teamID}],
-      conv => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        const meta = Meta.inboxUIItemToConversationMeta(conv)
-        if (!meta) {
-          return
-        }
-        metasReceived([meta])
-        setConversationIDKeyResult({conversationIDKey: meta.conversationIDKey, teamID})
-      },
-      () => {}
-    )
-    return () => {
-      if (requestIDRef.current === requestID) {
-        requestIDRef.current += 1
-      }
-    }
-  }, [conversationIDKey, findGeneralConvIDFromTeamID, teamID])
-  return conversationIDKey
-}
-
 export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
-  const convID = useGeneralConversationIDKey(teamID)
+  const convID = useGeneralConvIDKey(teamID)
   const getUserEmoji = C.useRPC(T.RPCChat.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')

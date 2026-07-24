@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as ChatCommon from '@/constants/chat/common'
-import * as Meta from '@/constants/chat/meta'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -11,12 +10,13 @@ import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useGeneralConvIDKey} from '@/teams/common/general-conv'
 import {useFeaturedBot} from '@/util/featured-bots'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useBotSettings} from './settings'
-import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMeta} from '../data-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
@@ -67,22 +67,7 @@ export const useRefreshBotMembershipOnSuccess = (
 
 export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
   const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
-  const {data: generalConvIDKey} = useRPCLoad(
-    T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise,
-    [{teamID: teamID ?? T.Teams.noTeamID}],
-    {
-      enabled: !cleanInConvIDKey && !!teamID,
-      key: teamID ?? T.Teams.noTeamID,
-      map: conv => {
-        const meta = Meta.inboxUIItemToConversationMeta(conv)
-        if (!meta) {
-          return undefined
-        }
-        metasReceived([meta])
-        return meta.conversationIDKey
-      },
-    }
-  )
+  const generalConvIDKey = useGeneralConvIDKey(teamID, !cleanInConvIDKey)
   return cleanInConvIDKey ?? generalConvIDKey
 }
 
