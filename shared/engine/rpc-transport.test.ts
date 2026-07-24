@@ -10,11 +10,13 @@ import {
 
 class TestTransport extends RPCTransport {
   private _connected = true
+  private _writeError: Error | undefined
   sent = new Array<RPCMessage>()
 
-  constructor(p?: {connected?: boolean; incomingRPCCallback?: IncomingRPCCallbackType}) {
+  constructor(p?: {connected?: boolean; incomingRPCCallback?: IncomingRPCCallbackType; writeError?: Error}) {
     super({incomingRPCCallback: p?.incomingRPCCallback})
     this._connected = p?.connected ?? true
+    this._writeError = p?.writeError
   }
 
   protected override isConnected() {
@@ -22,7 +24,14 @@ class TestTransport extends RPCTransport {
   }
 
   protected writeMessage(message: RPCMessage) {
+    if (this._writeError !== undefined) {
+      throw this._writeError
+    }
     this.sent.push(message)
+  }
+
+  setWriteError(err: Error | undefined) {
+    this._writeError = err
   }
 
   setConnected(connected: boolean) {
@@ -115,6 +124,55 @@ test('incoming invoke without handler returns unknown method error', () => {
   expect(transport.sent).toEqual([
     [1, 11, {code: errors.UNKNOWN_METHOD, desc: 'No method available', name: 'UNKNOWN_METHOD'}, null],
   ])
+})
+
+test('invoke fails the caller when the native write throws', () => {
+  const writeError = new Error('native write failed')
+  const transport = new TestTransport({writeError})
+  const cb = jest.fn()
+
+  transport.invoke('keybase.1.test.hello', [{}], cb)
+
+  expect(cb).toHaveBeenCalledWith(writeError, {})
+})
+
+test('a failed write leaves no outstanding invocation', () => {
+  const transport = new TestTransport({writeError: new Error('native write failed')})
+  const cb = jest.fn()
+
+  transport.invoke('keybase.1.test.hello', [{}], cb)
+  expect(cb).toHaveBeenCalledTimes(1)
+
+  // If the seqid were still outstanding, this would fail the same callback
+  // a second time with EOF.
+  transport.failAllOutstanding()
+  expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('a failed write does not consume the response for a later invoke', () => {
+  const transport = new TestTransport({writeError: new Error('native write failed')})
+  const failed = jest.fn()
+  transport.invoke('keybase.1.test.hello', [{}], failed)
+
+  transport.setWriteError(undefined)
+  const ok = jest.fn()
+  transport.invoke('keybase.1.test.hello', [{}], ok)
+
+  const [, seqid] = transport.sent[0] as [number, number, string, [object]]
+  transport.dispatchDecodedMessage([1, seqid, null, {ok: true}])
+
+  expect(ok).toHaveBeenCalledWith(null, {ok: true})
+  expect(failed).toHaveBeenCalledTimes(1)
+})
+
+test('send reports failure when the native write throws', () => {
+  const transport = new TestTransport({writeError: new Error('native write failed')})
+
+  expect(transport.send([1, 3, null, {ok: true}])).toBe(false)
+
+  transport.setWriteError(undefined)
+  expect(transport.send([1, 3, null, {ok: true}])).toBe(true)
+  expect(transport.sent).toEqual([[1, 3, null, {ok: true}]])
 })
 
 test('cancel packets surface a cancelled response payload', () => {
