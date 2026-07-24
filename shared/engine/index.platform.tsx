@@ -1,6 +1,6 @@
 import logger from '@/logger'
 import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
-import {makeEOFError, type RPCMessage} from './rpc-transport'
+import type {RPCMessage} from './rpc-transport'
 import type {InvokeType, PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType} from '@/engine/rpc-transport'
 
 export type {PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType, InvokeType}
@@ -148,21 +148,29 @@ class ProxyNativeTransport extends LocalTransport {
   // On account-switch reset fail outstanding invocations so pre-switch RPC
   // callbacks can't fire later against post-switch state
   override reset() {
-    this.failOutstanding(makeEOFError(), {})
+    this.failAllOutstanding()
   }
 }
 
 // Mobile transport — only instantiated when isMobile
 class NativeTransportMobile extends LocalTransport {
   protected writeMessage(message: RPCMessage) {
-    try {
-      if (!global.rpcOnGo) {
-        logger.error('>>>> rpcOnGo send before rpcOnGo global?')
-      }
-      global.rpcOnGo?.(message)
-    } catch (e) {
-      logger.error('>>>> rpcOnGo JS thrown!', e)
+    if (!global.rpcOnGo) {
+      throw new Error('rpcOnGo send before rpcOnGo global')
     }
+    // Throwing rather than swallowing is load-bearing: the transport catches
+    // it and fails that invocation, instead of leaving the caller waiting on
+    // a reply that can never arrive. rpcOnGo returns false when the native
+    // write to Go failed.
+    if (!global.rpcOnGo(message)) {
+      throw new Error('native rpc write failed')
+    }
+  }
+  // The Go connection can be reset underneath us (engine reset, or a stream
+  // desync detected natively). Nothing will answer the in-flight RPCs after
+  // that, so fail them rather than hang every caller.
+  override reset() {
+    this.failAllOutstanding()
   }
 }
 
@@ -176,18 +184,23 @@ function createClient(
       new NativeTransportMobile(incomingRPCCallback, connectCallback, disconnectCallback)
     )
 
-    global.rpcOnJs = (objs: unknown, count: number) => {
+    // Per-message try/catch: one bad message must not drop the rest of the
+    // batch the native side handed over.
+    const dispatchOne = (obj: unknown) => {
       try {
-        if (count > 1) {
-          const arr = objs as Array<unknown>
-          for (const obj of arr) {
-            client.transport.dispatchDecodedMessage(obj)
-          }
-        } else {
-          client.transport.dispatchDecodedMessage(objs)
-        }
+        client.transport.dispatchDecodedMessage(obj)
       } catch (e) {
         logger.error('>>>> rpcOnJs JS thrown!', e)
+      }
+    }
+
+    global.rpcOnJs = (objs: unknown, count: number) => {
+      if (count > 1) {
+        for (const obj of objs as Array<unknown>) {
+          dispatchOne(obj)
+        }
+      } else {
+        dispatchOne(objs)
       }
     }
 
@@ -195,6 +208,8 @@ function createClient(
       try {
         switch (payload) {
           case 'kb-engine-reset':
+            // Go dropped the loopback connection; anything in flight is dead.
+            client.transport.reset()
             connectCallback()
         }
       } catch (e) {
