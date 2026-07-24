@@ -12,6 +12,7 @@ func ServiceInit(g *libkb.GlobalContext) {
 	NewBoxAuditorAndInstall(g)
 	NewImplicitTeamConflictInfoCacheAndInstall(g)
 	NewImplicitTeamCacheAndInstall(g)
+	NewAnnotatedTeamCacheAndInstall(g)
 	hidden.NewChainManagerAndInstall(g)
 	NewTeamRoleMapManagerAndInstall(g)
 }
