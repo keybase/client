@@ -309,6 +309,7 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	}
 	if pps == nil {
 		t.Fatal("failed to get passphrase stream")
+		return
 	}
 	clientHalfExpected := pps.LksClientHalf()
 	if !clientHalf.Equal(clientHalfExpected) {
