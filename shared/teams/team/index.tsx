@@ -24,6 +24,7 @@ import {
 } from './rows'
 import {teamSeen} from '@/teams/actions'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -37,6 +38,13 @@ type Props = {
 const lastSelectedTabs = new Map<string, T.Teams.TabKey>()
 const primedParticipantConvs = new Set<T.Chat.ConversationIDKey>()
 const defaultTab: T.Teams.TabKey = 'members'
+
+// module scope outlives sign-out; both are keyed by team/conversation, so the
+// next user would inherit the previous user's tab choices and priming state
+registerExternalResetter('teams-team-index', () => {
+  lastSelectedTabs.clear()
+  primedParticipantConvs.clear()
+})
 
 const getSettingsErrorWaitingKeys = (teamID: T.Teams.TeamID) =>
   [

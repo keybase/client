@@ -16,6 +16,7 @@ import {
   useLoadedTeamChannels,
   useReloadOnTeamChannelChanges,
 } from './use-loaded-team-channels'
+import {registerExternalResetter} from '@/util/zustand'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
@@ -39,6 +40,12 @@ const allChannelMetasCaches = new Map<
   T.Teams.TeamID,
   CachedResourceCache<ChannelMetasData, T.Teams.TeamID>
 >()
+
+// module scope outlives sign-out, so the next user would be served the previous
+// user's channel metas for any team they happen to share
+registerExternalResetter('teams-all-channel-metas-caches', () => {
+  allChannelMetasCaches.clear()
+})
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (

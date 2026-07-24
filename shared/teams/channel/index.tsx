@@ -23,6 +23,7 @@ import {LoadedTeamChannelsProvider} from '../common/use-loaded-team-channels'
 import {useUsersState} from '@/stores/users'
 import {LoadedTeamProvider, useLoadedTeam} from '../team/use-loaded-team'
 import {unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {registerExternalResetter} from '@/util/zustand'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -75,18 +76,24 @@ const useLoadDataForChannelPage = (
 }
 
 // keep track during session
-const lastSelectedTabs: {[T: string]: TabKey} = {}
+const lastSelectedTabs = new Map<T.Chat.ConversationIDKey, TabKey>()
 const defaultTab: TabKey = 'members'
+
+// module scope outlives sign-out; keyed by conversation, so the next user would
+// inherit the previous user's tab choices
+registerExternalResetter('teams-channel-index', () => {
+  lastSelectedTabs.clear()
+})
 
 const useTabsState = (
   conversationIDKey: T.Chat.ConversationIDKey,
   providedTab?: TabKey
 ): [TabKey, (t: TabKey) => void] => {
-  const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
+  const defaultSelectedTab = lastSelectedTabs.get(conversationIDKey) ?? providedTab ?? defaultTab
   const [selectedTab, setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
 
   React.useEffect(() => {
-    lastSelectedTabs[conversationIDKey] = selectedTab
+    lastSelectedTabs.set(conversationIDKey, selectedTab)
   }, [conversationIDKey, selectedTab])
 
   const prevConvIDRef = React.useRef(conversationIDKey)

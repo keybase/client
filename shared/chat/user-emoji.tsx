@@ -7,6 +7,7 @@ import {
   getCachedResourceCache,
   useCachedResource,
 } from '@/teams/use-cached-resource'
+import {registerExternalResetter} from '@/util/zustand'
 
 const emptyEmojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup> = []
 const emptyEmojis: ReadonlyArray<T.RPCChat.Emoji> = []
@@ -24,6 +25,12 @@ const emptyUserEmojiData: UserEmojiData = {emojiGroups: emptyEmojiGroups, emojis
 // shared cache also collapses concurrent mounts onto a single in-flight request.
 const userEmojiCaches = new Map<string, CachedResourceCache<UserEmojiData, string>>()
 const userEmojiStaleMs = 60_000
+
+// module scope outlives sign-out, so the next user would be served the previous
+// user's custom emoji until the entries went stale
+registerExternalResetter('chat-user-emoji-caches', () => {
+  userEmojiCaches.clear()
+})
 
 const flattenUserEmojis = (groups: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
   const emojis = new Array<T.RPCChat.Emoji>()

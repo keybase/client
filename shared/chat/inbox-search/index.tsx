@@ -16,6 +16,7 @@ import {
   type InboxSearchVisibleResultCounts,
 } from '../inbox/use-inbox-search'
 import {showTeamByName} from '@/teams/team-page-actions'
+import {registerExternalResetter} from '@/util/zustand'
 
 type OwnProps = {
   header?: React.ReactElement | null
@@ -56,6 +57,12 @@ const nameResultCache = new Map<string, NameResult>()
 const textResultCache = new Map<string, TextResult>()
 const openTeamItemCache = new WeakMap<T.Chat.InboxSearchOpenTeamHit, OpenTeamResult>()
 const botItemCache = new WeakMap<T.RPCGen.FeaturedBot, BotResult>()
+
+// module scope outlives sign-out; these hold conversation and username hits
+registerExternalResetter('chat-inbox-search-item-caches', () => {
+  nameResultCache.clear()
+  textResultCache.clear()
+})
 
 const canonNameResult = (next: NameResult) => {
   if (nameResultCache.size > 4096) {

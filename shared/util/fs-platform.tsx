@@ -11,6 +11,7 @@ import {launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '@/util/platform-specific'
 import {fsCacheDir, fsDownloadDir, androidAddCompleteDownload} from 'react-native-kb'
+import {registerExternalResetter} from '@/util/zustand'
 
 // Desktop-only exports (stubs on mobile)
 export const fuseStatusToDriverStatus = (status?: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
@@ -300,6 +301,11 @@ export const afterKbfsDaemonRpcStatusChangedMobile = async () => {
 }
 
 const finishedRegularDownloadIDs = new Set<string>()
+
+// module scope outlives sign-out; holds the previous user's download ids
+registerExternalResetter('fs-finished-regular-downloads', () => {
+  finishedRegularDownloadIDs.clear()
+})
 
 export const finishedRegularDownloadMobile = async (
   downloadID: string,
