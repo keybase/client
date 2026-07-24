@@ -26,12 +26,16 @@ export const useLocalBadging = (storeSet: ReadonlySet<string> | undefined, clear
     })
   }
 
-  C.Router2.useSafeFocusEffect(() => {
-    clearStoreBadges()
-    return () => {
-      setBadged(noBadges)
-    }
-  })
+  // clearStoreBadges must be stable in the caller: an unstable identity re-runs
+  // this focus effect every render, clearing the badges on the server repeatedly
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      clearStoreBadges()
+      return () => {
+        setBadged(noBadges)
+      }
+    }, [clearStoreBadges])
+  )
 
   return {badged}
 }
