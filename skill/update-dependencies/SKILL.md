@@ -11,7 +11,9 @@ These are pinned to the Expo SDK version — do not touch:
 
 - `react`, `react-dom`, `react-is`, `react-test-renderer` — must match Expo SDK
 - `react-native` — must stay on the minor version Expo SDK expects (e.g., Expo 56 → react-native 0.85.x). Do NOT update across minor versions.
-- `@react-native/babel-preset`, `@react-native/eslint-config`, `@react-native/metro-config` — must match the `react-native` version (e.g., react-native 0.85.x → these stay at 0.85.x). Do NOT update across minor versions.
+- `@react-native/babel-preset`, `@react-native/eslint-config`, `@react-native/metro-config` — must stay on `react-native`'s major version line (react-native 0.86.x → these stay 0.86.x), but minor bumps within it ARE fine (0.86.0 → 0.86.1) — take them on routine passes. Never cross to 0.87.x while react-native is 0.86.x. The check script caps these automatically.
+
+> Version terminology in this project (all packages, not just react-native): a version-line change like 0.86 → 0.87 is a **major**; the last number (0.86.0 → 0.86.1) is a **minor**.
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.
 

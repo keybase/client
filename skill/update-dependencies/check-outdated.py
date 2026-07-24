@@ -11,8 +11,11 @@ deps.update(pkg.get('dependencies', {}))
 deps.update(pkg.get('devDependencies', {}))
 
 SKIP = {'react-native-kb'}
-PINNED = {'react', 'react-dom', 'react-is', 'react-test-renderer',
-          'react-native', '@react-native/babel-preset', '@react-native/eslint-config', '@react-native/metro-config'}
+PINNED = {'react', 'react-dom', 'react-is', 'react-test-renderer', 'react-native'}
+# Project terminology: a version-line change (0.86 -> 0.87) is a MAJOR, the
+# last number (.1, .2) is minor. These must stay on react-native's major
+# (0.86), but minor bumps within it are allowed (0.86.0 -> 0.86.1, never 0.87.x).
+RN_MAJOR_PINNED = {'@react-native/babel-preset', '@react-native/eslint-config', '@react-native/metro-config'}
 
 import re as _re
 
@@ -52,9 +55,14 @@ def _is_prerelease(v):
 def get_latest(name, current):
     if name in SKIP or current.startswith(('file:', 'link:', 'github:')):
         return name, current, current, 'skip', current
+    # npm: alias (e.g. typescript-native -> "npm:typescript@7.0.2"): query the
+    # real package; report under the alias name with the real version.
+    query_name = name
+    if current.startswith('npm:'):
+        query_name, current = current[4:].rsplit('@', 1)
     is_pre = _is_prerelease(current)
     try:
-        r = subprocess.run(['yarn', 'info', name, 'versions', '--json'],
+        r = subprocess.run(['yarn', 'info', query_name, 'versions', '--json'],
                           capture_output=True, text=True, timeout=15)
         if r.returncode != 0:
             raise RuntimeError(f'yarn info exited {r.returncode}: {r.stderr.strip() or r.stdout.strip()}')
@@ -64,6 +72,17 @@ def get_latest(name, current):
         parsed = json.loads(raw)
         all_versions = parsed.get('data', [])
         cur_major = _parse_semver(current)[0]
+        if name in RN_MAJOR_PINNED:
+            # Cap at react-native's major (0.86) — minor bumps only.
+            cur_rn_major = _parse_semver(current)[1]
+            candidates = [v for v in all_versions if not _is_prerelease(v)
+                          and _parse_semver(v)
+                          and _parse_semver(v)[0] == cur_major
+                          and _parse_semver(v)[1] == cur_rn_major]
+            latest = max(candidates, key=semver_key) if candidates else current
+            if semver_key(latest) < semver_key(current):
+                latest = current
+            return name, current, latest, 'rn-major-pinned', latest
         if is_pre:
             # Consider all versions on the same major — pre or stable.
             # This handles graduation (e.g. 56.0.0-preview.x → 56.0.5 stable).

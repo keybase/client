@@ -1,5 +1,7 @@
 import * as ImagePicker from 'expo-image-picker'
 
+// built lazily: on desktop expo-image-picker is nulled out by the bundler, so
+// dereferencing its enums at module scope crashes at import time
 const getDefaultOptions = () => ({
   allowsEditing: false,
   exif: false,
