@@ -2,107 +2,65 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {RPCError} from '@/util/errors'
-import {produce} from 'immer'
+import logger from '@/logger'
+import {registerExternalResetter} from '@/util/zustand'
 import {ChannelsWidget} from '@/teams/common'
 import {useLoadedTeam} from '../use-loaded-team'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../../use-cached-resource'
 
 type Props = {
   teamID: T.Teams.TeamID
 }
 
+type DefaultChannelsData = ReadonlyArray<T.Teams.ChannelNameID>
+
+const defaultChannelsStaleMs = 5_000
+const emptyDefaultChannels: DefaultChannelsData = []
+
+// One cache per team, shared by every consumer: each load is a remote
+// chat.1.remote.getDefaultTeamChannels round trip, so a per-instance cache turns
+// every extra mount of the settings tab into another hit on the chat rate limit.
+const defaultChannelsCaches = new Map<
+  T.Teams.TeamID,
+  CachedResourceCache<DefaultChannelsData, T.Teams.TeamID>
+>()
+
+// module scope outlives sign-out, so the next user would inherit this user's channels
+registerExternalResetter('teams-default-channels-caches', () => {
+  defaultChannelsCaches.clear()
+})
+
 export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
-  type DefaultChannelsState = {
-    defaultChannels: Array<T.Teams.ChannelNameID>
-    error?: RPCError
-    loadedTeamID?: T.Teams.TeamID
-    waiting: boolean
-  }
-
-  const getDefaultChannelsRPC = C.useRPC(T.RPCChat.localGetDefaultTeamChannelsLocalRpcPromise)
-  const [state, setState] = React.useState<DefaultChannelsState>({
-    defaultChannels: [],
-    error: undefined,
-    loadedTeamID: teamID,
-    waiting: true,
-  })
-  const requestVersionRef = React.useRef(0)
-  const requestTeamIDRef = React.useRef(teamID)
-
-  // no synchronous setState here so the mount effect below can call it directly;
-  // initial/mismatched-team state already shows waiting
-  const load = React.useCallback(() => {
-    const requestVersion = ++requestVersionRef.current
-    getDefaultChannelsRPC(
-      [{teamID}],
-      result => {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        setState({
-          defaultChannels: [
-            {channelname: 'general', conversationIDKey: 'unused'},
-            ...(result.convs || []).map(conv => ({
-              channelname: conv.channel,
-              conversationIDKey: conv.convID,
-            })),
-          ],
-          error: undefined,
-          loadedTeamID: teamID,
-          waiting: false,
-        })
-      },
-      err => {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        setState(
-          produce(draft => {
-            draft.error = err
-            draft.loadedTeamID = teamID
-            draft.waiting = false
-          })
-        )
+  const cache = React.useMemo(
+    () => getCachedResourceCache(defaultChannelsCaches, emptyDefaultChannels, teamID),
+    [teamID]
+  )
+  const {data, loaded, loading, reload} = useCachedResource({
+    cache,
+    cacheKey: teamID,
+    initialData: emptyDefaultChannels,
+    // resolve rather than reject on failure: consumers render an empty list (and no
+    // spinner) on error, and a cached failure keeps a broken team from re-requesting
+    // on every render
+    load: async () => {
+      try {
+        const {convs} = await T.RPCChat.localGetDefaultTeamChannelsLocalRpcPromise({teamID})
+        return [
+          {channelname: 'general', conversationIDKey: 'unused'},
+          ...(convs ?? []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
+        ]
+      } catch (error) {
+        logger.warn(`Failed to load default channels for ${teamID}`, error)
+        return emptyDefaultChannels
       }
-    )
-  }, [getDefaultChannelsRPC, teamID])
-
-  const reloadDefaultChannels = React.useCallback(() => {
-    setState(
-      produce(draft => {
-        draft.error = undefined
-        draft.waiting = true
-      })
-    )
-    load()
-  }, [load])
-
-  React.useEffect(() => {
-    if (requestTeamIDRef.current !== teamID) {
-      requestTeamIDRef.current = teamID
-      requestVersionRef.current++
-    }
-  }, [teamID])
-
-  React.useEffect(() => {
-    load()
-  }, [load])
-
-  const visibleState =
-    state.loadedTeamID === teamID
-      ? state
-      : {
-          defaultChannels: [] as Array<T.Teams.ChannelNameID>,
-          error: undefined,
-          loadedTeamID: teamID,
-          waiting: true,
-        }
+    },
+    staleMs: defaultChannelsStaleMs,
+  })
 
   return {
-    defaultChannels: visibleState.defaultChannels,
-    defaultChannelsWaiting: visibleState.waiting,
-    error: visibleState.error,
-    reloadDefaultChannels,
+    defaultChannels: data,
+    defaultChannelsWaiting: loading || !loaded,
+    reloadDefaultChannels: reload,
   }
 }
 
@@ -125,7 +83,7 @@ const DefaultChannels = (props: Props) => {
       [{convs, teamID}],
       () => {
         setWaiting(false)
-        reloadDefaultChannels()
+        void reloadDefaultChannels()
       },
       error => {
         setWaiting(false)
@@ -145,7 +103,7 @@ const DefaultChannels = (props: Props) => {
         [{convs, teamID}],
         () => {
           setWaiting(false)
-          reloadDefaultChannels()
+          void reloadDefaultChannels()
         },
         error => {
           setWaiting(false)
