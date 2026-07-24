@@ -18,9 +18,18 @@ import (
 )
 
 type partDiskStorage struct {
-	Uids []gregor1.UID
-	Hash string
+	Uids     []gregor1.UID
+	Hash     string
+	CachedAt time.Time
 }
+
+// How long a cached participant list is served without asking the server. Every
+// localization of a team conversation asks for participants, so a team screen
+// with N channels used to mean N remote round trips every time it loaded, even
+// when nothing had changed and the server only answered HashMatch. Membership
+// changes still arrive promptly: the server pushes them, and callers that need
+// certainty pass InboxSourceDataSourceRemoteOnly, which skips this entirely.
+const participantsCacheFreshness = 5 * time.Minute
 
 type CachingParticipantSource struct {
 	globals.Contextified
@@ -130,6 +139,10 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 			if found {
 				resCh <- types.ParticipantResult{Uids: local.Uids}
 				localHash = local.Hash
+				if !local.CachedAt.IsZero() &&
+					s.G().GetClock().Since(local.CachedAt) < participantsCacheFreshness {
+					return
+				}
 			}
 		default:
 		}
@@ -147,12 +160,23 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 			}
 			if partRes.HashMatch {
 				s.Debug(ctx, "GetNonblock: hash match on remote, all done")
+				// nothing changed, but record that we just checked so the next
+				// localization of this conv can be served from disk
+				var local partDiskStorage
+				found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
+				if err == nil && found {
+					local.CachedAt = s.G().GetClock().Now()
+					if err := s.encryptedDB.Put(ctx, s.dbKey(uid, conv.GetConvID()), local); err != nil {
+						s.Debug(ctx, "GetNonblock: failed to record refresh time: %s", err)
+					}
+				}
 				return
 			}
 
 			if err := s.encryptedDB.Put(ctx, s.dbKey(uid, conv.GetConvID()), partDiskStorage{
-				Uids: partRes.Uids,
-				Hash: partRes.Hash,
+				Uids:     partRes.Uids,
+				Hash:     partRes.Hash,
+				CachedAt: s.G().GetClock().Now(),
 			}); err != nil {
 				s.Debug(ctx, "GetNonblock: failed to store participants: %s", err)
 			}
