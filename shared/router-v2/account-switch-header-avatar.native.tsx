@@ -5,6 +5,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getMostRecentlyUsedAccount, rememberAccountSwitchTab} from './account-switch'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import * as React from 'react'
 import {Pressable} from 'react-native'
 
 const openAccountSwitcher = () => {
@@ -22,14 +23,28 @@ const AccountSwitchHeaderAvatar = () => {
     }))
   )
   const recentAccount = getMostRecentlyUsedAccount(configuredAccounts, username)
+  const handledLongPressRef = React.useRef(false)
 
   const switchToRecentAccount = () => {
     if (userSwitching || !recentAccount) return
 
+    handledLongPressRef.current = true
     C.ignorePromise(Haptics.selectionAsync())
     rememberAccountSwitchTab(username, recentAccount.username, C.Router2.getTab())
     setUserSwitching(true)
     login(recentAccount.username, '')
+  }
+
+  const onPressIn = () => {
+    handledLongPressRef.current = false
+  }
+
+  const onPress = () => {
+    if (handledLongPressRef.current) {
+      handledLongPressRef.current = false
+      return
+    }
+    openAccountSwitcher()
   }
 
   return (
@@ -40,7 +55,8 @@ const AccountSwitchHeaderAvatar = () => {
       accessibilityLabel={`${username} account menu`}
       accessibilityRole="button"
       onLongPress={recentAccount && !userSwitching ? switchToRecentAccount : undefined}
-      onPress={openAccountSwitcher}
+      onPress={onPress}
+      onPressIn={onPressIn}
       style={Kb.Styles.castStyleNative(styles.container)}
       testID={TestIDs.PEOPLE_HEADER_AVATAR}
     >
