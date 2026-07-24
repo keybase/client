@@ -60,5 +60,12 @@ fi
 
 : > "$LOGFILE"
 echo "logging to $LOGFILE"
+echo
+echo "NOTE: a newly built binary has a new code signature, so macOS will prompt"
+echo "  for keychain access on first run. Until someone clicks Allow the service"
+echo "  cannot finish bootstrapping, the app sits on its splash screen, and every"
+echo "  test fails for a reason that has nothing to do with the code. Watch for the"
+echo "  prompt before walking away."
+echo
 echo "leave this running; start the app in another terminal"
 exec "$BIN" -d --log-file="$LOGFILE" service

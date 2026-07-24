@@ -14,7 +14,7 @@ import kblog
 
 
 def counts(path):
-    app, remote = collections.Counter(), collections.Counter()
+    app, remote, http = collections.Counter(), collections.Counter(), collections.Counter()
     for line in kblog.iter_lines([path]):
         m = kblog.SERVER_RE.search(line)
         if m:
@@ -22,7 +22,12 @@ def counts(path):
         m = kblog.REMOTE_RE.search(line)
         if m:
             remote[m.group(1)] += 1
-    return app, remote
+        # HTTP matters as much as the RPC counts: a lot of server work - team
+        # loads, proof checks, merkle lookups - shows up only here.
+        m = kblog.HTTP_RE.search(line)
+        if m:
+            http[m.group(2)[:70]] += 1
+    return app, remote, http
 
 
 def show(title, before, after, top):
@@ -48,10 +53,11 @@ def main():
     ap.add_argument("--top", type=int, default=30)
     args = ap.parse_args()
 
-    ba, br = counts(args.before)
-    aa, ar = counts(args.after)
+    ba, br, bh = counts(args.before)
+    aa, ar, ah = counts(args.after)
     show("REMOTE  service -> keybase servers", br, ar, args.top)
     show("APP  app -> service", ba, aa, args.top)
+    show("HTTP", bh, ah, args.top)
 
 
 if __name__ == "__main__":
