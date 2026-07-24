@@ -35,6 +35,7 @@ type Props = {
 
 // keep track during session
 const lastSelectedTabs = new Map<string, T.Teams.TabKey>()
+const primedParticipantConvs = new Set<T.Chat.ConversationIDKey>()
 const defaultTab: T.Teams.TabKey = 'members'
 
 const getSettingsErrorWaitingKeys = (teamID: T.Teams.TeamID) =>
@@ -143,13 +144,26 @@ const TeamBody = (props: Props) => {
   // getTLFConversations leaves team channel participants empty; ask the service to
   // refresh them, which pushes ChatParticipantsInfo into useInboxMetadataState (read
   // by the channel rows). Without this the member counts render 0.
+  //
+  // This only primes them: later membership changes arrive on their own as
+  // ChatParticipantsInfo. `channels` gets a new identity on every reload of the
+  // channel list (stale refresh, team change, refocus), and each request costs a
+  // remote round trip, so a big team re-primed on every reload was enough to trip
+  // the server's chat rate limit. Ask once per conversation per session.
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   React.useEffect(() => {
     for (const conversationIDKey of channels.keys()) {
+      if (primedParticipantConvs.has(conversationIDKey)) {
+        continue
+      }
+      primedParticipantConvs.add(conversationIDKey)
       refreshParticipants(
         [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
         () => {},
-        () => {}
+        () => {
+          // let a later render retry a conversation whose refresh failed
+          primedParticipantConvs.delete(conversationIDKey)
+        }
       )
     }
   }, [channels, refreshParticipants])
