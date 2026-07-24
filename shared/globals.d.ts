@@ -37,7 +37,8 @@ declare global {
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean
-  var rpcOnGo: undefined | ((msg: unknown) => void)
+  // Returns false if the native write to Go failed
+  var rpcOnGo: undefined | ((msg: unknown) => boolean)
   var rpcOnJs: undefined | ((objs: unknown, count: number) => void)
   // RN
   var __turboModuleProxy: unknown

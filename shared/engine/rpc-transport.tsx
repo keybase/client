@@ -411,7 +411,12 @@ export abstract class RPCTransport {
     }
 
     if (this.isConnected()) {
-      this.writeMessage(message)
+      try {
+        this.writeMessage(message)
+      } catch (err) {
+        console.warn('Failed to write RPC message', err)
+        return false
+      }
       return true
     }
     if (this._explicitClose) {
@@ -459,11 +464,26 @@ export abstract class RPCTransport {
     return encodeFrame(message)
   }
 
+  // Fails every outstanding invocation. Transports that sit on a connection
+  // which can die underneath them (mobile JSI, renderer IPC) call this when
+  // the engine resets; without it the callbacks are never invoked and every
+  // in-flight RPC hangs forever.
+  failAllOutstanding(err: unknown = makeEOFError()) {
+    this.failOutstanding(err, {})
+  }
+
   private invokeNow(method: string, args: [object], cb: InvocationCallback) {
     const seqid = this._seqid
     this._seqid += 1
     this._invocations.set(seqid, cb)
-    this.writeMessage([MESSAGE_TYPE_INVOKE, seqid, method, args])
+    try {
+      this.writeMessage([MESSAGE_TYPE_INVOKE, seqid, method, args])
+    } catch (err) {
+      // The message never left, so no response is coming. Fail the caller
+      // rather than leaving the seqid outstanding for the rest of the session.
+      this._invocations.delete(seqid)
+      cb(err, {})
+    }
   }
 
   private makeResponse(seqid: number): ResponseType {

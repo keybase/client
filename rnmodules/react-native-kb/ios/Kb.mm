@@ -8,6 +8,8 @@
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
 #import <jsi/jsi.h>
+#import <memory>
+#import <mutex>
 #import <sys/utsname.h>
 #import <objc/runtime.h>
 #import "RNKbSpec.h"
@@ -39,6 +41,37 @@ static __weak Kb *kbSharedInstance = nil;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
+
+// The bridge is created on the JS thread and consumed by the reader thread,
+// so every access goes through this lock — a plain shared_ptr member would be
+// a data race between installJSIBindings/invalidate and the reader.
+static std::mutex kbBridgeMutex;
+static std::shared_ptr<kb::KBBridge> kbCurrentBridge;
+
+static std::shared_ptr<kb::KBBridge> kbGetBridge(void) {
+  std::lock_guard<std::mutex> lock(kbBridgeMutex);
+  return kbCurrentBridge;
+}
+
+static void kbSetBridge(std::shared_ptr<kb::KBBridge> bridge) {
+  std::shared_ptr<kb::KBBridge> old;
+  {
+    std::lock_guard<std::mutex> lock(kbBridgeMutex);
+    old = std::move(kbCurrentBridge);
+    kbCurrentBridge = std::move(bridge);
+  }
+  // markTornDown only flips an atomic; releasing the old bridge's jsi handles
+  // is the JS runtime's job (see the kbTeardown host object).
+  if (old) {
+    old->markTornDown();
+  }
+}
+
+static void kbLogToService(NSString *message) {
+  KeybaseLogToService([NSString
+      stringWithFormat:@"dNativeLogger: [%f,\"%@\"]",
+                       [[NSDate date] timeIntervalSince1970] * 1000, message]);
+}
 
 // from react-native-localize
 static bool kbUses24HourClockForLocale(NSLocale *_Nonnull locale) {
@@ -120,14 +153,7 @@ static NSDictionary *kbConstants(void) {
   return constants;
 }
 
-@interface Kb ()
-@property dispatch_queue_t readQueue;
-@end
-
-@implementation Kb {
-  std::shared_ptr<kb::KBBridge> kbBridge_;
-  BOOL isInvalidated_;
-}
+@implementation Kb
 
 RCT_EXPORT_MODULE()
 
@@ -144,7 +170,6 @@ RCT_EXPORT_MODULE()
 - (instancetype)init {
   self = [super init];
   kbSharedInstance = self;
-  isInvalidated_ = NO;
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(handleHardwareKeyPressed:)
                                                name:@"hardwareKeyPressed"
@@ -218,13 +243,12 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
-  isInvalidated_ = YES;
   kbPasteImageEnabled = NO;
-  if (kbBridge_) {
-    kbBridge_->teardown();
-    kbBridge_.reset();
-  }
-  self.readQueue = nil;
+  // Drop the bridge so the (permanent) reader thread stops delivering into a
+  // runtime that is going away. Only the atomic flag is touched here: this
+  // runs on the main thread, and releasing jsi handles off the JS thread is
+  // undefined behavior.
+  kbSetBridge(nullptr);
   NSError *error = nil;
   KeybaseReset(&error);
 }
@@ -241,27 +265,46 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
 // RCTTurboModuleWithJSIBindings — called automatically by RN when the module loads
 - (void)installJSIBindingsWithRuntime:(jsi::Runtime &)runtime
                           callInvoker:(const std::shared_ptr<facebook::react::CallInvoker> &)callInvoker {
-    kbBridge_ = std::make_shared<kb::KBBridge>();
-    kbBridge_->install(runtime, callInvoker,
-        // writeToGo callback
-        [](void *ptr, size_t size) {
+    auto bridge = std::make_shared<kb::KBBridge>();
+    bridge->install(runtime, callInvoker,
+        // writeToGo callback; false means the RPC never reached Go, so the
+        // caller fails that invocation instead of waiting forever.
+        [](void *ptr, size_t size) -> bool {
             NSData *data = [NSData dataWithBytesNoCopy:ptr length:size freeWhenDone:NO];
             NSError *error = nil;
             KeybaseWriteArr(data, &error);
             if (error) {
-                NSLog(@"Error writing data: %@", error);
+                kbLogToService([NSString stringWithFormat:@"rpc write failed: %@",
+                                                          error.localizedDescription]);
+                return false;
             }
+            return true;
         },
         // error callback
         [](const std::string &err) {
-            KeybaseLogToService([NSString
-                stringWithFormat:@"dNativeLogger: [%f,\"jsi error: %s\"]",
-                                [[NSDate date] timeIntervalSince1970] * 1000,
-                                err.c_str()]);
+            kbLogToService([NSString stringWithFormat:@"jsi error: %s", err.c_str()]);
+        },
+        // fatal callback: the incoming stream desynced. Reset the Go
+        // connection and tell JS, so it fails outstanding RPCs rather than
+        // leaving every caller hanging on a channel that can't recover.
+        []() {
+            kbLogToService(@"rpc stream desync, resetting connection");
+            NSError *error = nil;
+            KeybaseReset(&error);
+            if (error) {
+                kbLogToService([NSString stringWithFormat:@"reset after desync failed: %@",
+                                                          error.localizedDescription]);
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                Kb *instance = kbSharedInstance;
+                if (instance && [instance canEmit]) {
+                    [instance emitOnMetaEvent:metaEventEngineReset];
+                }
+            });
         });
 
-    KeybaseLogToService([NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success (via installJSIBindings)\"]",
-                         [[NSDate date] timeIntervalSince1970] * 1000]);
+    kbSetBridge(bridge);
+    kbLogToService(@"jsi install success (via installJSIBindings)");
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
@@ -288,41 +331,45 @@ RCT_EXPORT_METHOD(engineReset) {
 }
 
 RCT_EXPORT_METHOD(notifyJSReady) {
-  __weak __typeof__(self) weakSelf = self;
+  // KeybaseNotifyJSReady is a sync.Once on the Go side, so repeat calls after
+  // a reload are free. It must not run on the JS thread — do it on the reader
+  // queue, which is also where ReadArr is serviced.
+  //
+  // Exactly one reader exists for the life of the process. Go's ReadArr hands
+  // back a view of a single shared buffer and is documented as "called
+  // serially by the mobile run loops": a second concurrent reader corrupts
+  // both deliveries. It can't be stopped either, because a parked ReadArr
+  // ignores cancellation and would swallow the next message on its way out.
+  // So the loop outlives any individual module instance and simply forwards
+  // to whichever bridge is currently installed.
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    dispatch_queue_t readQueue =
+        dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
+    dispatch_async(readQueue, ^{
+      KeybaseNotifyJSReady();
+      NSLog(@"Notified Go that JS is ready, starting ReadArr loop");
 
-  NSLog(@"notifyJSReady: called from JS, queuing main thread block");
-  dispatch_async(dispatch_get_main_queue(), ^{
-    if (self.readQueue) {
-      NSLog(@"notifyJSReady: read loop already running, ignoring");
-      return;
-    }
-
-    self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-
-    // Signal to Go that JS is ready
-    KeybaseNotifyJSReady();
-    NSLog(@"Notified Go that JS is ready, starting ReadArr loop");
-
-    // Start the read loop
-    dispatch_async(self.readQueue, ^{
       while (true) {
-        {
-          __typeof__(self) strongSelf = weakSelf;
-          if (!strongSelf || strongSelf->isInvalidated_) {
-            NSLog(@"Module invalidated, bailing from ReadArr loop");
-            return;
+        // The block never returns, so the queue's pool never drains on its
+        // own — each iteration needs its own.
+        @autoreleasepool {
+          NSError *error = nil;
+          NSData *data = KeybaseReadArr(&error);
+          if (error) {
+            NSLog(@"Error reading data: %@", error);
+            [NSThread sleepForTimeInterval:0.1];
+            continue;
           }
-        }
-
-        NSError *error = nil;
-        NSData *data = KeybaseReadArr(&error);
-        if (error) {
-          NSLog(@"Error reading data: %@", error);
-          [NSThread sleepForTimeInterval:0.1];
-        } else if (data) {
-          __typeof__(self) strongSelf = weakSelf;
-          if (strongSelf && strongSelf->kbBridge_) {
-            strongSelf->kbBridge_->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);
+          if (data.length == 0) {
+            // ReadArr returns (nil, nil) when the connection had nothing for
+            // us; without a pause this spins a core at full speed.
+            [NSThread sleepForTimeInterval:0.01];
+            continue;
+          }
+          auto bridge = kbGetBridge();
+          if (bridge) {
+            bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);
           }
         }
       }

@@ -33,9 +33,7 @@ import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.IOException
 import java.lang.reflect.Method
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import keybase.Keybase
 import keybase.Keybase.readArr
 import keybase.Keybase.version
@@ -49,7 +47,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     external override fun getBindingsInstaller(): BindingsInstallerHolder
     private external fun nativeOnDataFromGo(data: ByteArray)
 
-    private var executor: ExecutorService? = null
     private var lifecycleListenerRegistered = false
 
     override fun getName(): String {
@@ -472,17 +469,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     override fun notifyJSReady() {
         NativeLogger.info("JS signaled ready, starting ReadFromKBLib loop")
         try {
-            // Signal to Go that JS is ready
+            // Signal to Go that JS is ready. This is a sync.Once on the Go
+            // side, so calling it again after a reload is free.
             Keybase.notifyJSReady()
 
             startReadLoop()
 
-            // Register once; restart the read loop on resume, tear down on destroy.
+            // Register once; tear down the Go connection on destroy. The read
+            // loop itself is never restarted — see startReadLoop.
             if (!lifecycleListenerRegistered) {
                 lifecycleListenerRegistered = true
                 reactContext.addLifecycleEventListener(object : LifecycleEventListener {
                     override fun onHostResume() {
-                        startReadLoop()
                     }
 
                     override fun onHostPause() {
@@ -498,26 +496,42 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
+    // Exactly one reader exists for the life of the process. Go's readArr
+    // hands back a view of a single shared buffer and is documented as
+    // "called serially by the mobile run loops": a second concurrent reader
+    // corrupts both deliveries and the (not thread safe) msgpack unpacker
+    // behind nativeOnDataFromGo. Stopping it isn't possible either — a thread
+    // parked in the JNI readArr call ignores interrupts, so shutdownNow()
+    // returns while the old reader is still live and about to swallow one
+    // more message. So the loop outlives any module instance and forwards to
+    // whichever bridge is currently installed.
     private fun startReadLoop() {
-        if (executor == null) {
-            val ex = Executors.newSingleThreadExecutor()
-            executor = ex
-            ex.execute(ReadFromKBLib(reactContext))
+        if (readLoopStarted.compareAndSet(false, true)) {
+            Thread(ReadFromKBLib(), "ReadFromKBLib").apply {
+                isDaemon = true
+                start()
+            }
         }
     }
 
-    // JSI
-    private inner class ReadFromKBLib(private val reactContext: ReactApplicationContext) : Runnable {
+    // JSI. Deliberately not an inner class: the thread outlives every module
+    // instance, so capturing one would pin its ReactContext (and Activity) for
+    // the life of the process. It forwards to whichever module is current.
+    private class ReadFromKBLib : Runnable {
         override fun run() {
-            do {
+            while (true) {
                 try {
-                    Thread.currentThread().name = "ReadFromKBLib"
-                    val data: ByteArray = readArr()
-                    if (!reactContext.hasActiveReactInstance()) {
-                        NativeLogger.info("$NAME: JS Bridge is dead, dropping engine message")
+                    val data: ByteArray? = readArr()
+                    if (data == null || data.isEmpty()) {
+                        // readArr yields nothing when the connection had
+                        // nothing for us; without a pause this spins a core.
+                        Thread.sleep(10)
                         continue
                     }
-                    nativeOnDataFromGo(data)
+                    instance?.nativeOnDataFromGo(data)
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    return
                 } catch (e: Exception) {
                     if (e.message != null && e.message.equals("Read error: EOF")) {
                         NativeLogger.info("Got EOF from read. Likely because of reset.")
@@ -526,42 +540,56 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     }
                     // Back off on error to avoid spinning at full CPU speed when Go is
                     // unavailable (e.g. during init or loopback restart).
-                    try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt() }
+                    try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt(); return }
                 }
-            } while (!Thread.currentThread().isInterrupted && reactContext.hasActiveReactInstance())
+            }
         }
     }
 
     fun destroy() {
+        // The read loop outlives us and forwards to whatever `instance` holds,
+        // so drop ourselves from it: otherwise a torn-down module (and the
+        // ReactContext/Activity it pins) keeps receiving deliveries. Only clear
+        // if we're still the current one — a reload may have installed a newer
+        // module before our onHostDestroy runs.
+        if (instance === this) {
+            instance = null
+        }
         try {
             Keybase.reset()
             relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in KeybaseEngine.destroy", e)
         }
-        try {
-            executor?.shutdownNow()
-
-            // We often hit this timeout during app resume, e.g. hit the back
-            // button to go to home screen and then tap Keybase app icon again.
-            if (executor?.awaitTermination(3, TimeUnit.SECONDS)== false) {
-                NativeLogger.warn("$NAME: Executor pool didn't shut down cleanly")
-            }
-            executor = null
-        } catch (e: Exception) {
-            NativeLogger.error("Exception in JSI.destroy", e)
-        }
     }
 
     // Called from JNI (cpp-adapter writeToGo), not from JS. DoNotStrip keeps it
     // from being removed/renamed by ProGuard since the only caller is reflective.
+    // Returns false when the payload never reached Go, so the caller can fail
+    // that RPC instead of leaving it outstanding forever.
     @DoNotStrip
-    fun rpcOnGo(arr: ByteArray) {
-        try {
+    fun rpcOnGo(arr: ByteArray): Boolean {
+        return try {
             writeArr(arr)
+            true
         } catch (e: Exception) {
             NativeLogger.error("Exception in GoJSIBridge.rpcOnGo", e)
+            false
         }
+    }
+
+    // Called from JNI when the incoming byte stream desyncs. Resetting the Go
+    // connection and relaying the meta event lets JS fail its outstanding RPCs
+    // instead of waiting on a channel that can no longer deliver.
+    @DoNotStrip
+    fun onRpcStreamFatal() {
+        NativeLogger.warn("$NAME: rpc stream desync, resetting connection")
+        try {
+            Keybase.reset()
+        } catch (e: Exception) {
+            NativeLogger.error("Exception resetting after rpc desync", e)
+        }
+        reactContext.runOnUiQueueThread { relayReset() }
     }
 
     @ReactMethod
@@ -582,6 +610,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
         const val NAME: String = "Kb"
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
+
+        // Process-wide, not per-instance: a reload creates a new KbModule but
+        // must not create a second reader for the one shared Go connection.
+        private val readLoopStarted = AtomicBoolean(false)
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
 
