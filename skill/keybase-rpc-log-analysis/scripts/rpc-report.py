@@ -44,8 +44,11 @@ def main():
         total += 1
         ts = kblog.stamp(line)
         if ts and ts.startswith("2"):
-            first = first or ts
-            last = ts
+            # min/max, not first/last seen: rotated files are often concatenated
+            # or globbed out of order, and stream order would report a range of
+            # zero width
+            first = ts if first is None or ts < first else first
+            last = ts if last is None or ts > last else last
         floods[kblog.normalize(line)] += 1
 
         if uid is None:

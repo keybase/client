@@ -39,11 +39,23 @@ if [ ! -x "$(dirname "$BIN")/kbfs" ]; then
   echo
 fi
 
-# The installed service and this one cannot share the socket.
-if pgrep -f "keybase.*service" >/dev/null 2>&1; then
+# The installed service and this one cannot share the socket. --include takes a
+# comma separated component list; an unknown flag here just prints usage and
+# leaves the old service running, which then quietly wins the socket.
+# pgrep -x matches the process NAME. Do not use pgrep -f here: the pattern would
+# also match any shell whose command line happens to contain it, including the
+# one running this check.
+if pgrep -x keybase >/dev/null 2>&1; then
   echo "stopping the running service"
-  "$BIN" ctl stop --exclude-kbfs 2>/dev/null || true
-  sleep 2
+  "$BIN" ctl stop --include service || true
+  for _ in $(seq 10); do
+    pgrep -x keybase >/dev/null 2>&1 || break
+    sleep 1
+  done
+  if pgrep -x keybase >/dev/null 2>&1; then
+    echo "service still running; kill it before rerunning"
+    exit 1
+  fi
 fi
 
 : > "$LOGFILE"
