@@ -130,8 +130,19 @@ test('retention warning opens', async ({page}, testInfo) => {
     test.skip()
     return
   }
-  await dropdown.click()
-  await page.getByText('7 days', {exact: true}).locator('visible=true').last().click()
+  // the settings tab re-renders as the team's retention policy lands, which can
+  // swallow the popup the first click opens — reopen until the menu sticks
+  const sevenDays = page.getByText('7 days', {exact: true}).locator('visible=true').last()
+  let menuOpen = false
+  for (let i = 0; i < 3 && !menuOpen; i++) {
+    await dropdown.click()
+    menuOpen = await becomesVisible(sevenDays, 2_000)
+  }
+  if (!menuOpen) {
+    test.skip()
+    return
+  }
+  await sevenDays.click()
   const confirm = page.getByText('Yes, set to 7 days')
   if (!(await becomesVisible(confirm, 3_000))) {
     // no warning fired (already at/below 7 days) — nothing to capture

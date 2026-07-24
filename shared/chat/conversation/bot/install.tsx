@@ -9,6 +9,7 @@ import ChannelPicker from './channel-picker'
 import {useChatTeam} from '../team-hooks'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useFeaturedBot} from '@/util/featured-bots'
 import {useRPCLoad} from '@/util/use-rpc-load'
@@ -622,7 +623,13 @@ const InstallBotPopup = (props: Props) => {
     )
   return (
     <>
-      <Kb.Box2 direction="vertical" flex={1} style={styles.outerContainer} fullWidth={true}>
+      <Kb.Box2
+        direction="vertical"
+        flex={1}
+        style={styles.outerContainer}
+        fullWidth={true}
+        testID={TestIDs.CHAT_BOT_INSTALL}
+      >
         {bodyContent}
       </Kb.Box2>
       {enabled && (!readOnly || showReviewButton) ? (
