@@ -351,22 +351,26 @@ RCT_EXPORT_METHOD(notifyJSReady) {
       NSLog(@"Notified Go that JS is ready, starting ReadArr loop");
 
       while (true) {
-        NSError *error = nil;
-        NSData *data = KeybaseReadArr(&error);
-        if (error) {
-          NSLog(@"Error reading data: %@", error);
-          [NSThread sleepForTimeInterval:0.1];
-          continue;
-        }
-        if (data.length == 0) {
-          // ReadArr returns (nil, nil) when the connection had nothing for
-          // us; without a pause this spins a core at full speed.
-          [NSThread sleepForTimeInterval:0.01];
-          continue;
-        }
-        auto bridge = kbGetBridge();
-        if (bridge) {
-          bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);
+        // The block never returns, so the queue's pool never drains on its
+        // own — each iteration needs its own.
+        @autoreleasepool {
+          NSError *error = nil;
+          NSData *data = KeybaseReadArr(&error);
+          if (error) {
+            NSLog(@"Error reading data: %@", error);
+            [NSThread sleepForTimeInterval:0.1];
+            continue;
+          }
+          if (data.length == 0) {
+            // ReadArr returns (nil, nil) when the connection had nothing for
+            // us; without a pause this spins a core at full speed.
+            [NSThread sleepForTimeInterval:0.01];
+            continue;
+          }
+          auto bridge = kbGetBridge();
+          if (bridge) {
+            bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);
+          }
         }
       }
     });
