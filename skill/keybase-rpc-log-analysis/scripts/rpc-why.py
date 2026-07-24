@@ -60,11 +60,15 @@ def main():
             ts = kblog.stamp(line)
             if ts:
                 per_second[ts] += 1
-            # only attribute when this is the outermost hit on the trace, else the
-            # driver is just our own previous frame
+            # Every hit gets attributed to its trace's originating RPC. Do NOT gate
+            # this on nesting depth: the service fans out concurrent goroutines
+            # under a single chat-trace, so most hits are "inside" an earlier one
+            # and gating would attribute only a handful of thousands of calls.
+            roots[root_rpc.get(tr, "<no app RPC on this trace>")] += 1
+            # DRIVERS stays gated - the nearest preceding span is only meaningful
+            # for a hit that is not nested inside another of our own
             if not inside[tr]:
                 drivers[last_enter.get(tr, "<nothing preceding on this trace>")] += 1
-                roots[root_rpc.get(tr, "<no app RPC on this trace>")] += 1
             c = COUNT_RE.search(text)
             if c:
                 batches[int(c.group(2))] += 1

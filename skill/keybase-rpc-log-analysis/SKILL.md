@@ -21,8 +21,20 @@ cd shared && yarn test:e2e:desktop                               # or drive the 
 
 `start-service.sh` builds from this checkout, stops the running service, and logs
 with `-d --log-file` to `/tmp/kb-analysis/service.log`. Its own file matters: the
-default log rotates at 128MB, and a real flood rotates the evidence away in under
-two minutes.
+default log is shared with everything else and a flood rotates the evidence away
+in under two minutes.
+
+`--log-file` **still rotates at 128MB** — a full e2e run produces ~220MB. Nothing
+is lost, but the analysis must include the siblings, so always pass them all:
+
+```bash
+python3 scripts/rpc-report.py /tmp/kb-analysis/service.log-* /tmp/kb-analysis/service.log
+```
+
+The service forks kbfs from its own bin directory, and a plain `go install` of
+the service does not build it. Without kbfs the Files tab is empty and git
+fails with `KBFS client not found`, which fails every `files-*` and `git-*` e2e
+test for reasons unrelated to the change under test. `start-service.sh` warns.
 
 Ask before stopping the service or launching the app — both are the user's.
 

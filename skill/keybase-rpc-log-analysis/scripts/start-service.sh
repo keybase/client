@@ -26,6 +26,19 @@ BIN="$(go env GOPATH)/bin/keybase"
 [ -x "$BIN" ] || { echo "no binary at $BIN"; exit 1; }
 echo "built $("$BIN" version -S 2>/dev/null || echo '?')"
 
+# The service does not provide the filesystem itself; it forks kbfs from the same
+# bin directory. Without it the Files tab is empty and `keybase git` fails with
+# "KBFS client not found", which fails every files-* and git-* e2e test for
+# reasons that have nothing to do with the code under test.
+if [ ! -x "$(dirname "$BIN")/kbfs" ]; then
+  echo
+  echo "WARNING: no kbfs binary next to $BIN."
+  echo "  Files and git e2e tests will fail with 'KBFS client not found'."
+  echo "  To include them:  go install github.com/keybase/client/go/kbfs/kbfsfuse"
+  echo "  Otherwise ignore those failures - they are not regressions."
+  echo
+fi
+
 # The installed service and this one cannot share the socket.
 if pgrep -f "keybase.*service" >/dev/null 2>&1; then
   echo "stopping the running service"
