@@ -547,6 +547,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     fun destroy() {
+        // The read loop outlives us and forwards to whatever `instance` holds,
+        // so drop ourselves from it: otherwise a torn-down module (and the
+        // ReactContext/Activity it pins) keeps receiving deliveries. Only clear
+        // if we're still the current one — a reload may have installed a newer
+        // module before our onHostDestroy runs.
+        if (instance === this) {
+            instance = null
+        }
         try {
             Keybase.reset()
             relayReset()
