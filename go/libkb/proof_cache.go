@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -111,6 +112,85 @@ type ProofCache struct {
 	lru   *lru.Cache
 	sync.RWMutex
 	noDisk bool
+
+	flightMu sync.Mutex
+	flights  *lru.Cache
+}
+
+// proofCheckFlightCapacity bounds the singleflight table. It is a memory bound
+// only: sharing is gated on when a check started, never on how long an entry has
+// been kept around, so retention can't make a shared answer any staler.
+const proofCheckFlightCapacity = 500
+
+// proofCheckFlight is one outbound remote proof check that other identify
+// sessions may share instead of issuing a duplicate request of their own.
+type proofCheckFlight struct {
+	startedAt time.Time
+	doneCh    chan struct{}
+
+	// Only valid once doneCh is closed.
+	hint   *SigHint
+	err    ProofError
+	usable bool
+}
+
+func (f *proofCheckFlight) finish(hint *SigHint, err ProofError, usable bool) {
+	f.hint = hint
+	f.err = err
+	f.usable = usable
+	close(f.doneCh)
+}
+
+// wait blocks until the shared check finishes. usable is false when the result
+// can't stand in for the caller's own check (the owning goroutine was canceled),
+// in which case the caller must do its own check.
+func (f *proofCheckFlight) wait(ctx context.Context) (hint *SigHint, err ProofError, usable bool) {
+	select {
+	case <-f.doneCh:
+		return f.hint, f.err, f.usable
+	case <-ctx.Done():
+		return nil, nil, false
+	}
+}
+
+// CheckFlightBegin either registers the caller as the one that will perform the
+// outbound proof check for key (returning mine), or hands back a check another
+// session already has going that can answer for the caller (returning theirs).
+//
+// requestedAt is when the caller asked for this check. A check may only be
+// shared if it *started* at or after that moment, so the shared answer is never
+// older than one the caller would have produced by doing the work itself. That
+// makes this a pure singleflight: it collapses duplicate concurrent work without
+// letting any result outlive the freshness its requester asked for.
+func (pc *ProofCache) CheckFlightBegin(key string, requestedAt, now time.Time) (mine, theirs *proofCheckFlight) {
+	if pc == nil {
+		return nil, nil
+	}
+
+	pc.flightMu.Lock()
+	defer pc.flightMu.Unlock()
+
+	if pc.flights == nil {
+		l, err := lru.New(proofCheckFlightCapacity)
+		if err != nil {
+			return nil, nil
+		}
+		pc.flights = l
+	}
+
+	// A zero requestedAt would make every entry look eligible, so callers that
+	// can't say when they asked never share.
+	if !requestedAt.IsZero() {
+		if tmp, found := pc.flights.Get(key); found {
+			if f, ok := tmp.(*proofCheckFlight); ok && !f.startedAt.Before(requestedAt) {
+				return nil, f
+			}
+		}
+	}
+
+	f := &proofCheckFlight{startedAt: now, doneCh: make(chan struct{})}
+	pc.flights.Add(key, f)
+	return f, nil
 }
 
 func NewProofCache(g *GlobalContext, capac int) *ProofCache {
@@ -124,6 +204,12 @@ func (pc *ProofCache) DisableDisk() {
 }
 
 func (pc *ProofCache) Reset() error {
+	pc.flightMu.Lock()
+	if pc.flights != nil {
+		pc.flights.Purge()
+	}
+	pc.flightMu.Unlock()
+
 	pc.Lock()
 	defer pc.Unlock()
 	return pc.initCache()

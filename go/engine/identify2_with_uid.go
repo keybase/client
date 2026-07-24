@@ -252,6 +252,10 @@ type Identify2WithUID struct {
 
 	resultCh chan<- error
 
+	// When this identify was asked for; bounds which in-flight remote proof
+	// checks it may share with concurrent identifies of the same user.
+	requestedAt time.Time
+
 	// For eagerly checking remote Assertions as they come in, these
 	// member variables maintain state, protected by the remotesMutex.
 	remotesMutex     sync.Mutex
@@ -329,6 +333,10 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 	if e.arg.Uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
+
+	// Remote proof checks started from here on may be shared with other identify
+	// sessions, but only if they started after this point.
+	e.requestedAt = m.G().Clock().Now()
 
 	// Only the first send matters, but we don't want to block the subsequent no-op
 	// sends. This code will break when we have more than 100 unblocking opportunities.
@@ -884,7 +892,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	e.metaContext = m
 	if them.IDTable() == nil {
 		m.Debug("| No IDTable for user")
-	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), iui, e, identifyTableMode); err != nil {
+	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), e.requestedAt, iui, e, identifyTableMode); err != nil {
 		m.Debug("| Failure in running IDTable")
 		return err
 	}
