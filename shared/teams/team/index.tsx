@@ -136,16 +136,24 @@ const TeamBody = (props: Props) => {
 
   const {loading: loadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
 
-  C.Router2.useSafeFocusEffect(() => {
-    return () => teamSeen(teamID)
-  })
-  C.Router2.useSafeFocusEffect(() => {
-    return () => {
-      if (props.justFinishedAddWizard) {
-        clearJustFinishedAddWizard()
+  // useSafeFocusEffect re-runs (and so runs its cleanup) whenever the callback
+  // identity changes, so an inline callback here would fire the gregor dismiss
+  // RPC on every render of this screen
+  const justFinishedAddWizard = props.justFinishedAddWizard
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      return () => teamSeen(teamID)
+    }, [teamID])
+  )
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        if (justFinishedAddWizard) {
+          clearJustFinishedAddWizard()
+        }
       }
-    }
-  })
+    }, [justFinishedAddWizard, clearJustFinishedAddWizard])
+  )
 
   const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
 

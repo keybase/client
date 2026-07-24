@@ -149,7 +149,11 @@ const useLoadedTeamChannelsRaw = (
 
   useReloadOnTeamChannelChanges(validTeamID, enabled, reload, () => clear(validTeamID))
 
-  return {...data, loading, reload}
+  const {channelParticipants, channels} = data
+  return React.useMemo(
+    () => ({channelParticipants, channels, loading, reload}),
+    [channelParticipants, channels, loading, reload]
+  )
 }
 
 export const LoadedTeamChannelsProvider = (
@@ -158,7 +162,10 @@ export const LoadedTeamChannelsProvider = (
   const {children, teamID, teamname} = props
   const [cacheMap] = React.useState<LoadedTeamChannelsCacheMap>(() => new Map())
   const loadedTeamChannels = useLoadedTeamChannelsRaw(teamID, teamname, true, cacheMap)
-  const value = {...loadedTeamChannels, teamID}
+  const value = React.useMemo(
+    () => ({...loadedTeamChannels, teamID}),
+    [loadedTeamChannels, teamID]
+  )
   return (
     <LoadedTeamChannelsCacheContext.Provider value={cacheMap}>
       <LoadedTeamChannelsContext.Provider value={value}>{children}</LoadedTeamChannelsContext.Provider>
