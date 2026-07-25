@@ -510,9 +510,11 @@ function NativeInboxBody(p: ControlledInboxProps) {
 
   const setOpenRow = useOpenedRowState(s => s.dispatch.setOpenRow)
 
-  C.Router2.useSafeFocusEffect(() => {
-    setOpenRow(Chat.noConversationIDKey)
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      setOpenRow(Chat.noConversationIDKey)
+    }, [setOpenRow])
+  )
 
   const promptSmallTeamsNum = React.useCallback(() => {
     if (isIOS) {

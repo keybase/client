@@ -5,12 +5,18 @@ import * as React from 'react'
 import logger from '@/logger'
 import {ensureError} from '@/util/errors'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {
+  createCachedResourceCache,
+  type CachedResourceCache,
+  getCachedResourceCache,
+  useCachedResource,
+} from '../use-cached-resource'
 import {
   teamChannelsRPCParams,
   useLoadedTeamChannels,
   useReloadOnTeamChannelChanges,
 } from './use-loaded-team-channels'
+import {registerExternalResetter} from '@/util/zustand'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
@@ -18,6 +24,28 @@ type ChannelMetasData = {
 }
 
 const allChannelMetasReloadStaleMs = 5_000
+
+const emptyChannelMetas = new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
+const emptyChannelParticipants = new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>()
+const emptyChannelMetasData: ChannelMetasData = {
+  channelMetas: emptyChannelMetas,
+  channelParticipants: emptyChannelParticipants,
+}
+
+// One cache per team, shared by every consumer: getTLFConversations makes the
+// service localize (and remotely refresh participants for) every channel in the
+// team, so a per-instance cache turns each extra mount into a full refetch —
+// enough of them trips the server's chat rate limit on a big team.
+const allChannelMetasCaches = new Map<
+  T.Teams.TeamID,
+  CachedResourceCache<ChannelMetasData, T.Teams.TeamID>
+>()
+
+// module scope outlives sign-out, so the next user would be served the previous
+// user's channel metas for any team they happen to share
+registerExternalResetter('teams-all-channel-metas-caches', () => {
+  allChannelMetasCaches.clear()
+})
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
@@ -54,21 +82,18 @@ export const useAllChannelMetas = (
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
   const enabled = !dontCallRPC && !!teamname
-  const emptyChannelMetas = React.useMemo(
-    () => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(),
-    []
+  const initialData = emptyChannelMetasData
+  // a dontCallRPC instance is disabled, and useCachedResource resets the cache it
+  // holds when disabled — give those their own throwaway cache so they can't wipe
+  // the shared one out from under a real loader
+  const [localCache] = React.useState<CachedResourceCache<ChannelMetasData, T.Teams.TeamID>>(() =>
+    createCachedResourceCache(initialData, teamID)
   )
-  const emptyChannelParticipants = React.useMemo(
-    () => new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>(),
-    []
+  const sharedCache = React.useMemo(
+    () => getCachedResourceCache(allChannelMetasCaches, initialData, teamID),
+    [initialData, teamID]
   )
-  const initialData = React.useMemo(
-    () => ({channelMetas: emptyChannelMetas, channelParticipants: emptyChannelParticipants}),
-    [emptyChannelMetas, emptyChannelParticipants]
-  )
-  const [channelMetasCache] = React.useState<CachedResourceCache<ChannelMetasData, T.Teams.TeamID>>(
-    () => createCachedResourceCache(initialData, teamID)
-  )
+  const channelMetasCache = dontCallRPC ? localCache : sharedCache
   const {data, loading, reload, clear} = useCachedResource({
     cache: channelMetasCache,
     cacheKey: teamID,

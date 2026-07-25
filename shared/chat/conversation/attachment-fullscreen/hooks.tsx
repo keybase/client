@@ -12,6 +12,7 @@ import {
 } from '../attachment-actions'
 import {showConversationInfoPanel} from '../thread-context'
 import {useConversationMessage} from '../data-hooks'
+import {registerExternalResetter} from '@/util/zustand'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (
@@ -116,6 +117,11 @@ export const useData = (
 
 // if we've seen it its likely cached so lets just always just show it and never fallback
 const seenPaths = new Set<string>()
+
+// module scope outlives sign-out; holds the previous user's attachment cache paths
+registerExternalResetter('chat-attachment-seen-paths', () => {
+  seenPaths.clear()
+})
 // preload full and return ''. If too much time passes show preview. Show full when loaded
 export const usePreviewFallback = (
   path: string,

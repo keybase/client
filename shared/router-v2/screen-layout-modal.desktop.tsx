@@ -86,12 +86,14 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
 
   const [topMostModal, setTopMostModal] = React.useState(true)
 
-  C.Router2.useSafeFocusEffect(() => {
-    setTopMostModal(true)
-    return () => {
-      setTopMostModal(false)
-    }
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      setTopMostModal(true)
+      return () => {
+        setTopMostModal(false)
+      }
+    }, [])
+  )
 
   React.useEffect(() => {
     if (!topMostModal || overlayNoClose) return

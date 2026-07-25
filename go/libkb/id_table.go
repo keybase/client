@@ -1668,11 +1668,13 @@ const (
 	IdentifyTableModeActive  IdentifyTableMode = iota
 )
 
-func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
+// requestedAt is when the identify this table walk belongs to was asked for. It
+// bounds which in-flight remote proof checks this walk is allowed to share.
+func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteCheck bool, requestedAt time.Time, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
 	errs := make(chan error, len(is.res.ProofChecks))
 	for _, lcr := range is.res.ProofChecks {
 		go func(l *LinkCheckResult) {
-			errs <- idt.identifyActiveProof(m, l, is, forceRemoteCheck, ui, ccl, itm)
+			errs <- idt.identifyActiveProof(m, l, is, forceRemoteCheck, requestedAt, ui, ccl, itm)
 		}(lcr)
 	}
 
@@ -1701,8 +1703,8 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 
 // =========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
-	idt.proofRemoteCheck(m, is.HasPreviousTrack(), forceRemoteCheck, lcr, itm)
+func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, requestedAt time.Time, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
+	idt.proofRemoteCheck(m, is.HasPreviousTrack(), forceRemoteCheck, requestedAt, lcr, itm)
 	if ccl != nil {
 		ccl.CCLCheckCompleted(lcr)
 	}
@@ -1763,7 +1765,7 @@ func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybas
 	return ret
 }
 
-func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult, itm IdentifyTableMode) {
+func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forceRemoteCheck bool, requestedAt time.Time, res *LinkCheckResult, itm IdentifyTableMode) {
 	p := res.link
 
 	m.Debug("+ RemoteCheckProof %s", p.ToDebugString())
@@ -1854,7 +1856,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	if res.hint != nil {
 		hint = *res.hint
 	}
-	res.verifiedHint, res.err = pc.CheckStatus(m, hint, pcm, pvlU)
+	res.verifiedHint, res.err = idt.checkStatusShared(m, pc, hint, pcm, pvlU, sid, requestedAt)
 
 	// If no error than all good
 	if res.err == nil {
@@ -1875,6 +1877,43 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	}
 
 	m.Debug("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
+}
+
+// checkStatusShared performs the outbound check of a remote proof, collapsing it
+// with an identical check that another identify session already started after
+// this one was requested. Several UI surfaces routinely identify the same user at
+// the same moment (profile screen, tracker popup, profile card), and each one
+// used to send its own request to the third-party service; those services rate
+// limit, and a throttled fetch shows up to the user as a broken proof.
+//
+// This only shares work, never results: a check is eligible only if it began at
+// or after requestedAt, so what the caller gets back is a live check that ran
+// during its own request. Nothing is remembered past the check, so this neither
+// lengthens any cache lifetime nor lets a stale answer stand in for a new one.
+func (idt *IdentityTable) checkStatusShared(m MetaContext, pc ProofChecker, hint SigHint,
+	pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry, sid keybase1.SigID,
+	requestedAt time.Time,
+) (*SigHint, ProofError) {
+	// Everything that can change the outcome of the check has to be in the key:
+	// which proof, which pvl script, which checker mode (passive checks skip
+	// self-hosted services), and which hint we're checking against.
+	key := fmt.Sprintf("%s|%s|%d|%s|%s", sid, pvlU.Hash, pcm, hint.GetAPIURL(), hint.GetCheckText())
+
+	mine, theirs := m.G().ProofCache.CheckFlightBegin(key, requestedAt, m.G().Clock().Now())
+
+	if theirs != nil {
+		if verifiedHint, perr, usable := theirs.wait(m.Ctx()); usable {
+			m.Debug("| Shared an in-flight remote proof check for %s (started %s)", sid, theirs.startedAt)
+			return verifiedHint, perr
+		}
+		return pc.CheckStatus(m, hint, pcm, pvlU)
+	}
+
+	verifiedHint, perr := pc.CheckStatus(m, hint, pcm, pvlU)
+	if mine != nil {
+		mine.finish(verifiedHint, perr, m.Ctx().Err() == nil)
+	}
+	return verifiedHint, perr
 }
 
 // VerifyReverseSig checks reverse signature using the key provided.

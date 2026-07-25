@@ -96,12 +96,15 @@ const useLoadedTeamRaw = (
   )
   // Seed from the teams-list cache so the header (teamname, avatar, member count)
   // renders immediately instead of waiting for getAnnotatedTeam to round-trip.
+  // key the memo on this team's meta, not on the map: the map gets a new
+  // identity on every teams-list reload, and a fresh initialData object churns
+  // the whole useCachedResource state/effect chain for no reason
   const teamsListMap = useTeamsListMap()
+  const listMeta = validTeamID ? teamsListMap.get(validTeamID) : undefined
   const initialData = React.useMemo(() => {
     const data = emptyLoadedTeamData(validTeamID)
-    const listMeta = validTeamID ? teamsListMap.get(validTeamID) : undefined
     return listMeta ? {...data, teamMeta: listMeta} : data
-  }, [validTeamID, teamsListMap])
+  }, [validTeamID, listMeta])
   const {data, loaded, loading, reload, clear} = useCachedResource({
     cache,
     cacheKey: validTeamID,
@@ -160,14 +163,18 @@ const useLoadedTeamRaw = (
     }
   }, subscribeToUpdates)
 
-  return {...data, loaded, loading, reload, teamMeta, yourOperations}
+  const teamDetails = data.teamDetails
+  return React.useMemo(
+    () => ({loaded, loading, reload, teamDetails, teamMeta, yourOperations}),
+    [loaded, loading, reload, teamDetails, teamMeta, yourOperations]
+  )
 }
 
 export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Teams.TeamID}>) => {
   const {children, teamID} = props
   const [cacheMap] = React.useState<LoadedTeamCacheMap>(() => new Map())
   const loadedTeam = useLoadedTeamRaw(teamID, true, cacheMap)
-  const value = {...loadedTeam, teamID}
+  const value = React.useMemo(() => ({...loadedTeam, teamID}), [loadedTeam, teamID])
   return (
     <LoadedTeamCacheContext.Provider value={cacheMap}>
       <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>

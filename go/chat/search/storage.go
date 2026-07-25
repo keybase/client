@@ -758,6 +758,14 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	}
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	superseded := make(map[chat1.MessageID]supersededFetch, len(msgs))
+
+	// Collect what every message in this batch supersedes, then fetch the whole
+	// set in one call. Asking per message meant one GetMessages round trip per
+	// edit or attachment upload: a backfill of a large conversation issued tens
+	// of thousands of single-message fetches.
+	superIDsByMsg := make(map[chat1.MessageID][]chat1.MessageID, len(msgs))
+	var allSuperIDs []chat1.MessageID
+	seenSuperID := make(map[chat1.MessageID]bool)
 	for _, msg := range msgs {
 		switch msg.GetMessageType() {
 		case chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_EDIT:
@@ -766,18 +774,60 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 				s.Debug(ctx, "Add: unable to get supersedes: %v", err)
 				continue
 			}
-			supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, superIDs,
-				false /* resolveSupersedes */, &reason)
-			if err != nil {
-				s.Debug(ctx, "Add: unable to fetch superseded messages: %v", err)
-				continue
+			superIDsByMsg[msg.GetMessageID()] = superIDs
+			for _, superID := range superIDs {
+				if !seenSuperID[superID] {
+					seenSuperID[superID] = true
+					allSuperIDs = append(allSuperIDs, superID)
+				}
 			}
-			fetch := supersededFetch{msgs: supersededMsgs}
-			if msg.GetMessageType() == chat1.MessageType_EDIT {
-				fetch.tokens = tokensFromMsg(msg)
-			}
-			superseded[msg.GetMessageID()] = fetch
 		}
+	}
+
+	supersededByID := make(map[chat1.MessageID]chat1.MessageUnboxed, len(allSuperIDs))
+	if len(allSuperIDs) > 0 {
+		supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, allSuperIDs,
+			false /* resolveSupersedes */, &reason)
+		if err != nil {
+			// the batch tells us nothing about which ID was at fault, so fall back
+			// to the per-message fetches and let each one fail on its own
+			s.Debug(ctx, "Add: unable to fetch superseded messages in bulk: %v", err)
+			for _, superIDs := range superIDsByMsg {
+				single, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, superIDs,
+					false /* resolveSupersedes */, &reason)
+				if err != nil {
+					s.Debug(ctx, "Add: unable to fetch superseded messages: %v", err)
+					continue
+				}
+				for _, sm := range single {
+					supersededByID[sm.GetMessageID()] = sm
+				}
+			}
+		} else {
+			for _, sm := range supersededMsgs {
+				supersededByID[sm.GetMessageID()] = sm
+			}
+		}
+	}
+
+	for _, msg := range msgs {
+		superIDs, ok := superIDsByMsg[msg.GetMessageID()]
+		if !ok {
+			continue
+		}
+		fetch := supersededFetch{}
+		for _, superID := range superIDs {
+			if sm, ok := supersededByID[superID]; ok {
+				fetch.msgs = append(fetch.msgs, sm)
+			}
+		}
+		if len(fetch.msgs) == 0 {
+			continue
+		}
+		if msg.GetMessageType() == chat1.MessageType_EDIT {
+			fetch.tokens = tokensFromMsg(msg)
+		}
+		superseded[msg.GetMessageID()] = fetch
 	}
 
 	s.Lock()

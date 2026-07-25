@@ -23,6 +23,9 @@ test('members tab renders', async ({page}) => {
     test.skip()
     return
   }
+  // the team page remembers the last tab per team for the life of the app, so an
+  // earlier test can leave it on Channels/Settings — select Members explicitly
+  await page.getByTestId(T.TEAMS_TAB_MEMBERS_BUTTON).locator('visible=true').first().click()
   await expect(page.getByTestId(T.TEAMS_MEMBER_LIST).first()).toBeVisible({timeout: 5_000})
 })
 
