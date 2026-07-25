@@ -44,13 +44,17 @@ test('unstable initialData does not loop', async () => {
 test('a failed load backs off instead of retrying on every render', async () => {
   const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
   let calls = 0
+  let loadIfStale: (() => Promise<void>) | undefined
   const load = jest.fn(async () => {
     calls++
     await Promise.resolve()
     throw new Error('nope')
   })
   const Comp = () => {
-    const {data} = useCachedResource({
+    // drives loadIfStale from the test; the mount effect only ever fires once,
+    // so without this the assertion below holds even with no backoff at all
+    'use no memo'
+    const resource = useCachedResource({
       cache,
       cacheKey: 'k',
       initialData: {v: 0},
@@ -58,11 +62,33 @@ test('a failed load backs off instead of retrying on every render', async () => 
       onError: () => {},
       staleMs: 5000,
     })
-    return <div>{data.v}</div>
+    loadIfStale = resource.loadIfStale
+    return <div>{resource.data.v}</div>
   }
   render(<Comp />)
   await flush()
   expect(calls).toBe(1)
+
+  // inside the backoff window: further attempts must not reach `load`
+  await act(async () => {
+    await loadIfStale?.()
+    await loadIfStale?.()
+  })
+  await flush()
+  expect(calls).toBe(1)
+
+  // past it: the next attempt goes through
+  const realNow = Date.now
+  Date.now = () => realNow() + 5_001
+  try {
+    await act(async () => {
+      await loadIfStale?.()
+    })
+    await flush()
+  } finally {
+    Date.now = realNow
+  }
+  expect(calls).toBe(2)
 })
 
 test('reload bypasses the failure backoff', async () => {
@@ -105,14 +131,60 @@ test('a successful load is served from cache while fresh', async () => {
     await Promise.resolve()
     return {v: calls}
   })
-  const Comp = () => {
-    const {data, loaded} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+  const Comp = ({staleMs}: {staleMs: number}) => {
+    const {data, loaded} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs})
     return <div>{loaded ? data.v : 'x'}</div>
   }
-  const {rerender} = render(<Comp />)
+  const first = render(<Comp staleMs={5000} />)
   await flush()
-  rerender(<Comp />)
+  expect(calls).toBe(1)
+
+  // a re-render of the same fiber proves nothing: the effect deps are stable so
+  // it never re-runs. The window only matters to a NEW consumer of this cache.
+  first.unmount()
+  const second = render(<Comp staleMs={5000} />)
   await flush()
   expect(calls).toBe(1)
   expect(cache.getData()).toEqual({v: 1})
+
+  // and a consumer that considers it stale does reload it
+  second.unmount()
+  render(<Comp staleMs={-1} />)
+  await flush()
+  expect(calls).toBe(2)
+})
+
+// Two consumers mounting together must share one request, not race two. This is
+// the property the module-level caches depend on: without it, sharing a cache
+// across screens still issues an RPC per screen.
+test('concurrent consumers of one cache share a single load', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  let release: ((v: Data) => void) | undefined
+  const load = jest.fn(async () => {
+    calls++
+    return await new Promise<Data>(resolve => {
+      release = resolve
+    })
+  })
+  const Comp = () => {
+    const {data, loaded} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    return <div>{loaded ? `v${data.v}` : 'pending'}</div>
+  }
+  const view = render(
+    <>
+      <Comp />
+      <Comp />
+    </>
+  )
+  await flush()
+  expect(calls).toBe(1)
+
+  act(() => {
+    release?.({v: 7})
+  })
+  await flush()
+  expect(calls).toBe(1)
+  // both consumers got the single load's result
+  expect(view.getAllByText('v7')).toHaveLength(2)
 })

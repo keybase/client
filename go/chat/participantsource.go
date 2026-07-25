@@ -27,8 +27,13 @@ type partDiskStorage struct {
 // localization of a team conversation asks for participants, so a team screen
 // with N channels used to mean N remote round trips every time it loaded, even
 // when nothing had changed and the server only answered HashMatch. Membership
-// changes still arrive promptly: the server pushes them, and callers that need
-// certainty pass InboxSourceDataSourceRemoteOnly, which skips this entirely.
+// changes arrive by server push for anything that re-localizes the conversation.
+//
+// Known gap: nothing deletes the cached entry, and every production caller
+// passes DataSourceAll (the RemoteOnly path exists but is unused), so a
+// membership change that does not re-localize can take up to this long to show
+// up in a participant list or @-mention completion. Before the cache that was
+// one cheap HashMatch round trip per localization instead.
 const participantsCacheFreshness = 5 * time.Minute
 
 type CachingParticipantSource struct {

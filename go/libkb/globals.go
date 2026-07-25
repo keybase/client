@@ -778,8 +778,11 @@ func (g *GlobalContext) GetAnnotatedTeamCacher() AnnotatedTeamCacher {
 }
 
 func (g *GlobalContext) SetAnnotatedTeamCacher(c AnnotatedTeamCacher) {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
+	// a write needs the write lock: GetAnnotatedTeamCacher runs from
+	// NotifyRouter.HandleTeamChangedByID on every team notification. The
+	// neighbouring setters take RLock here too, and are equally wrong.
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.annotatedTeamCacher = c
 }
 

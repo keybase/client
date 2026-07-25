@@ -136,20 +136,29 @@ func (c *annotatedTeamCache) load(mctx libkb.MetaContext, teamID keybase1.TeamID
 		}
 		c.Unlock()
 
+		// The leader must release its slot even if loader panics: the RPC
+		// handler recovers, but a populated inflight entry whose channel is
+		// never closed would make every later load of this team block until its
+		// ctx dies, for the life of the process. Deferred rather than inline for
+		// that reason; this path always returns below, so despite the enclosing
+		// loop it is registered at most once.
+		if hasLead {
+			defer func() {
+				c.Lock()
+				delete(c.inflight, teamID)
+				c.Unlock()
+				close(ch)
+			}()
+		}
+
 		startedAt := mctx.G().Clock().Now()
 		res, err = loader(mctx.Ctx(), mctx.G(), teamID)
 
 		c.Lock()
-		if hasLead {
-			delete(c.inflight, teamID)
-		}
 		if err == nil && c.gen[teamID] == startedGen {
 			c.entries[teamID] = annotatedTeamCacheEntry{team: res, cachedAt: startedAt}
 		}
 		c.Unlock()
-		if hasLead {
-			close(ch)
-		}
 		return res, err
 	}
 }

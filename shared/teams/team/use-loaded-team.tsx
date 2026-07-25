@@ -126,7 +126,13 @@ const useLoadedTeamRaw = (
     },
     staleMs: loadedTeamReloadStaleMs,
   })
-  const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID)
+  // builds a fresh object whenever the team is in the map, so without this the
+  // memos below (and the context value built from them) never hit and every
+  // consumer re-renders on every render of the provider
+  const roleAndDetails = React.useMemo(
+    () => roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID),
+    [roleMap, validTeamID]
+  )
   const teamMeta = React.useMemo(
     () => ({
       ...data.teamMeta,

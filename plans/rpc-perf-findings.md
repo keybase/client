@@ -99,6 +99,21 @@ JS:
    unmeasured here. `untrack(username)` needs no identify, so unfollow could
    skip it entirely; follow genuinely needs a session outcome.
 
+## Known gaps left open
+
+- **`participantsource.go` has no invalidation.** Nothing deletes the cached
+  entry and every production caller passes `DataSourceAll` (the `RemoteOnly`
+  path exists but is unused), so a membership change that does not re-localize
+  the conversation can take up to 5 min to appear in a participant list or
+  @-mention completion. The pre-cache behaviour was one cheap `HashMatch` round
+  trip per localization. Fix is to drop the disk key on team-change
+  notification; the comment in that file now states the gap instead of claiming
+  an escape hatch nobody uses.
+- **The e2e suite does not prove channel-list invalidation works.**
+  `team-wizard-channel.test.ts` still re-enters the tab after creating a
+  channel, so a regression back to the stale-cache behaviour would stay green.
+  Asserting the list updates in place is what would actually pin it.
+
 ## Measured and deliberately not fixed
 
 - **UIDMap lookups** — 15,767 calls, 0.16s total, zero network. Its own tracing
