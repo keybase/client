@@ -560,67 +560,59 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 		utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	if len(missingIDs) < idx.pageSize {
-		msgs, err := idx.G().ConvSource.GetMessages(ctx, rconv.GetConvID(), idx.uid, missingIDs, &reason,
-			nil, false)
+	// Page over the MISSING ids, not over the raw min..max range. Paging the
+	// range re-fetched everything already indexed (measured: 57,648 already-seen
+	// messages re-added in a single pass) and, because each pass restarts at the
+	// lowest missing id and stops once the inbox-wide budget is spent, the top of
+	// a large conv was never reachable at all.
+	for start := 0; start < len(missingIDs); start += idx.pageSize {
+		select {
+		case <-ctx.Done():
+			return completedJobs, ctx.Err()
+		default:
+		}
+		end := start + idx.pageSize
+		if end > len(missingIDs) {
+			end = len(missingIDs)
+		}
+		chunk := missingIDs[start:end]
+		msgs, err := idx.G().ConvSource.GetMessages(ctx, convID, idx.uid, chunk, &reason, nil, false)
 		if err != nil {
 			if utils.IsPermanentErr(err) {
-				return 0, err
+				return completedJobs, err
 			}
-			return 0, nil
+			// transient: leave these ids missing so a later pass retries them
+			continue
 		}
 		cb, err := idx.add(ctx, convID, msgs, true)
 		if err != nil {
-			return 0, err
+			return completedJobs, err
 		}
 		<-cb
-		completedJobs++
-	} else {
-		query := &chat1.GetThreadQuery{
-			DisablePostProcessThread: true,
-			MarkAsRead:               false,
+		// The fetch succeeded, so every id we asked for is now accounted for:
+		// the ones that came back were indexed by add(), and the ones that did
+		// not are ids the source will never produce. Without this the latter
+		// keep the conv permanently "not fully indexed".
+		if err := idx.store.MarkSeen(ctx, convID, chunk); err != nil {
+			idx.Debug(ctx, "reindexConv: unable to mark ids seen: %v", err)
 		}
-		for i := minIdxID; i < maxIdxID; i += chat1.MessageID(idx.pageSize) { //nolint:gosec // G115: pageSize is a small positive config value, safe to convert
-			select {
-			case <-ctx.Done():
-				return 0, ctx.Err()
-			default:
-			}
-			pagination := utils.MessageIDControlToPagination(ctx, idx.DebugLabeler, &chat1.MessageIDControl{
-				Num:   idx.pageSize,
-				Pivot: &i,
-				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
-			}, nil)
-			tv, err := idx.G().ConvSource.Pull(ctx, convID, idx.uid, reason, nil, query, pagination)
+		completedJobs++
+		if numJobs > 0 && completedJobs >= numJobs {
+			break
+		}
+		if inboxIndexStatus != nil {
+			status, err := idx.store.IndexStatus(ctx, conv)
 			if err != nil {
-				if utils.IsPermanentErr(err) {
-					return 0, err
-				}
+				idx.Debug(ctx, "updateInboxIndex: unable to get index status %v", err)
 				continue
 			}
-			cb, err := idx.add(ctx, convID, tv.Messages, true)
+			inboxIndexStatus.addConv(status, conv)
+			percentIndexed, err := inboxIndexStatus.updateUI(ctx)
 			if err != nil {
-				return 0, err
-			}
-			<-cb
-			completedJobs++
-			if numJobs > 0 && completedJobs >= numJobs {
-				break
-			}
-			if inboxIndexStatus != nil {
-				status, err := idx.store.IndexStatus(ctx, conv)
-				if err != nil {
-					idx.Debug(ctx, "updateInboxIndex: unable to get index status %v", err)
-					continue
-				}
-				inboxIndexStatus.addConv(status, conv)
-				percentIndexed, err := inboxIndexStatus.updateUI(ctx)
-				if err != nil {
-					idx.Debug(ctx, "unable to update ui %v", err)
-				} else {
-					idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
-						utils.GetRemoteConvDisplayName(rconv), status.percentIndexed(), percentIndexed)
-				}
+				idx.Debug(ctx, "unable to update ui %v", err)
+			} else {
+				idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
+					utils.GetRemoteConvDisplayName(rconv), status.percentIndexed(), percentIndexed)
 			}
 		}
 	}
@@ -741,10 +733,18 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
-// maxStallSkips caps the backoff at 12 sync intervals, i.e. roughly an hour on
-// desktop. Even a permanently stuck conv is retried occasionally, so nothing is
-// suppressed forever on the strength of an inference.
+// A stalled conv is retried after 2, then 4, then 8, then every 12 skipped
+// intervals - so on desktop it settles to one attempt per 13 passes, a bit over
+// an hour, reached after ~90 minutes. Even a permanently stuck conv is retried
+// occasionally: nothing is suppressed forever on the strength of an inference.
+//
+// With reindexConv now marking fetched-but-unreturned ids as seen, a conv should
+// converge on its own and never reach here. This is the backstop for whatever
+// still cannot converge, not the mechanism.
 const maxStallSkips = 12
+
+// the largest exponent used for the backoff; see recordIndexProgress
+const maxStallStreak = 4
 
 type stalledConv struct {
 	numMissing uint
@@ -799,7 +799,13 @@ func (idx *Indexer) recordIndexProgress(ctx context.Context, conv chat1.Conversa
 		delete(idx.stalledConvs, convIDStr)
 		return
 	}
+	// Clamp the EXPONENT, not the result: streak is unbounded, and a large
+	// enough shift overflows int negative (then to 0), which reads as "no skips"
+	// and silently turns the backoff off for good.
 	streak := idx.stalledConvs[convIDStr].streak + 1
+	if streak > maxStallStreak {
+		streak = maxStallStreak
+	}
 	skips := 1 << streak
 	if skips > maxStallSkips {
 		skips = maxStallSkips

@@ -716,6 +716,39 @@ func (s *store) ConvIndexStats(ctx context.Context, conv chat1.Conversation) (re
 	}, nil
 }
 
+// MarkSeen records IDs as accounted for without indexing anything for them.
+//
+// A conv is "fully indexed" only when every ID between its min and max is in
+// SeenIDs, but an ID the server will not return for us can never get there by
+// being indexed: deleted messages, and gaps that never existed. Before this,
+// those IDs kept numMissing above zero forever, so the conv was never fully
+// indexed and SelectiveSync re-fetched the same already-indexed messages every
+// interval, permanently. Callers mark the IDs they asked for after a fetch that
+// succeeded - the source affirmatively answered for that range, so anything
+// absent from the reply is not coming.
+func (s *store) MarkSeen(ctx context.Context, convID chat1.ConversationID, ids []chat1.MessageID) (err error) {
+	if len(ids) == 0 {
+		return nil
+	}
+	s.Lock()
+	defer s.Unlock()
+	md, err := s.getMetadataLocked(ctx, convID)
+	if err != nil {
+		return err
+	}
+	modified := false
+	for _, id := range ids {
+		if _, ok := md.SeenIDs[id]; !ok {
+			md.SeenIDs[id] = chat1.EmptyStruct{}
+			modified = true
+		}
+	}
+	if !modified {
+		return nil
+	}
+	return s.putMetadata(ctx, convID, md)
+}
+
 // getMetadataLocked returns the live cached metadata for convID, populating the
 // cache from disk on a miss. The returned *indexMetadata is shared and its
 // SeenIDs map may be mutated, so callers must hold s.RLock for read-only access

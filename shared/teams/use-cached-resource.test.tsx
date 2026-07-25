@@ -154,6 +154,52 @@ test('a successful load is served from cache while fresh', async () => {
   expect(calls).toBe(2)
 })
 
+// A reload() fired because something changed must not settle to data that was
+// already on the wire before the change: joining it would serve pre-change data
+// AND stamp loadedAt on it, pinning the stale value for the whole window.
+test('a forced reload supersedes a request that predates it', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  const releases: Array<(v: Data) => void> = []
+  const load = jest.fn(async () => {
+    calls++
+    return await new Promise<Data>(resolve => {
+      releases.push(resolve)
+    })
+  })
+  let reload: (() => Promise<void>) | undefined
+  const Comp = () => {
+    'use no memo'
+    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    reload = resource.reload
+    return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
+  }
+  const view = render(<Comp />)
+  await flush()
+  expect(calls).toBe(1)
+
+  // the mutation happens here, while request 1 is still outstanding
+  let forced: Promise<void> | undefined
+  act(() => {
+    forced = reload?.()
+  })
+  await flush()
+  expect(calls).toBe(2)
+
+  // request 1 lands with pre-change data and must not win
+  act(() => {
+    releases[0]?.({v: 1})
+  })
+  await flush()
+  act(() => {
+    releases[1]?.({v: 2})
+  })
+  await forced
+  await flush()
+  expect(view.getAllByText('v2')).toHaveLength(1)
+  expect(cache.getData()).toEqual({v: 2})
+})
+
 // Two consumers mounting together must share one request, not race two. This is
 // the property the module-level caches depend on: without it, sharing a cache
 // across screens still issues an RPC per screen.

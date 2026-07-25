@@ -8,6 +8,7 @@ export type CachedResourceCache<T, K> = {
   getFailedAt: () => number
   getGeneration: () => number
   getInFlight: () => Promise<T> | undefined
+  getInFlightStartedAt: () => number
   getKey: () => K
   getLoadedAt: () => number
   invalidate: (key: K) => void
@@ -95,6 +96,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
   let failedAt = 0
   let generation = 0
   let inFlight: Promise<T> | undefined
+  let inFlightStartedAt = 0
   let loadedAt = 0
   let storedKey = key
 
@@ -108,6 +110,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
     getFailedAt: () => failedAt,
     getGeneration: () => generation,
     getInFlight: (): Promise<T> | undefined => inFlight,
+    getInFlightStartedAt: () => inFlightStartedAt,
     getKey: () => storedKey,
     getLoadedAt: () => loadedAt,
     invalidate: nextKey => {
@@ -134,6 +137,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
     },
     setInFlight: request => {
       inFlight = request
+      inFlightStartedAt = Date.now()
     },
     setLoadFailed: requestGeneration => {
       if (generation === requestGeneration) {
@@ -165,12 +169,24 @@ const runLoad = async <T, K>(
   onError: ((error: unknown) => void) | undefined,
   requestVersion: number,
   requestVersionRef: React.RefObject<number>,
-  setState: React.Dispatch<React.SetStateAction<StoredCachedResourceState<T, K>>>
+  setState: React.Dispatch<React.SetStateAction<StoredCachedResourceState<T, K>>>,
+  force: boolean,
+  requestedAt: number
 ) => {
   let request: Promise<T> | undefined
+  // A forced load exists because something changed, so joining a request that
+  // was already on the wire before we asked would settle to pre-change data -
+  // and stamp loadedAt on it, holding it stale for the whole window. Only join a
+  // request that started at or after this one was asked for, which still
+  // collapses the N-mounted-consumers-reload-together case to one RPC.
+  const staleInFlight = force && cache.getInFlightStartedAt() < requestedAt
+  if (staleInFlight) {
+    cache.invalidate(cacheKey)
+  }
+  // after the invalidate above, which bumps it
   const generation = cache.getGeneration()
   try {
-    const inFlight = cache.getInFlight()
+    const inFlight = staleInFlight ? undefined : cache.getInFlight()
     if (inFlight) {
       const data = await inFlight
       if (requestVersion === requestVersionRef.current) {
@@ -256,6 +272,9 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
   )
 
   const loadResource = React.useCallback(async (force: boolean) => {
+    // stamped before any await so a forced load can tell an in-flight request
+    // that predates it from one issued in response to the same change
+    const requestedAt = Date.now()
     const {cache, cacheKey, enabled, initialData, load, onError, staleMs} = latestRef.current
     const resetCache = (nextKey: K) => {
       cache.reset(initialData, nextKey)
@@ -286,7 +305,18 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
           : {...prev, loading: true}
         : storedState(cache, cacheKey, initialData, {...emptyState(initialData), loading: true})
     )
-    await runLoad(cache, cacheKey, initialData, load, onError, requestVersion, requestVersionRef, setState)
+    await runLoad(
+      cache,
+      cacheKey,
+      initialData,
+      load,
+      onError,
+      requestVersion,
+      requestVersionRef,
+      setState,
+      force,
+      requestedAt
+    )
   }, [])
 
   const reload = React.useCallback(async () => {
