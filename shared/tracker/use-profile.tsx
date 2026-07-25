@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import {makeDetails, noNonUserDetails} from './model'
 import {
@@ -18,7 +17,6 @@ type Options = {
   // surfaces that only want loadProfile() to call after an action, and never
   // read details, can skip the identify their mount would otherwise trigger
   loadOnMount?: boolean
-  reloadOnFocus?: boolean
   // Opening a profile means "check this identity now", so it forces a remote
   // check of every proof. Incidental surfaces - a hover card, a follow button in
   // a list - do not: they still need an identify session, but the cached proof
@@ -28,7 +26,6 @@ type Options = {
 }
 
 export const useTrackerProfile = (username: string, options?: Options) => {
-  const hasSeenFocusRef = React.useRef(false)
   const emptyDetails = React.useMemo(() => makeDetails(username), [username])
 
   const subscribe = React.useCallback((cb: () => void) => subscribeToProfile(username, cb), [username])
@@ -68,23 +65,6 @@ export const useTrackerProfile = (username: string, options?: Options) => {
       })
     }
   }, [cachedOnMount, loadOnMount, username])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (!options?.reloadOnFocus) {
-        return
-      }
-      // The initial mount path already loads once. Skip the first focus callback
-      // so entering the screen does not immediately trigger a second hard reload.
-      if (!hasSeenFocusRef.current) {
-        hasSeenFocusRef.current = true
-        return
-      }
-      // Refocus happens every time a modal over the profile closes, so this is
-      // the path that re-checked a user we had just checked.
-      loadProfileIdentify(username, {freshAfter: 0, ignoreCache: false, maxAgeMs: profileRecheckMs})
-    }, [options?.reloadOnFocus, username])
-  )
 
   return {
     details,

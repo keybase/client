@@ -62,9 +62,7 @@ const useUserData = (username: string) => {
     loadNonUserProfile,
     loadProfile,
     nonUserDetails,
-  } = useTrackerProfile(username, {
-    reloadOnFocus: true,
-  })
+  } = useTrackerProfile(username)
   const requestIDRef = React.useRef(0)
   const [sharedTeamsState, setSharedTeamsState] = React.useState<{
     teams?: ReadonlyArray<T.RPCChat.SharedTeam>
