@@ -115,7 +115,12 @@ const useLoadedTeamChannelsRaw = (
     teamMeta: {teamname: loadedTeamname},
   } = useLoadedTeam(teamID, enabled)
   const teamnameToLoad = providedTeamname || loadedTeamname
-  const cacheMap = useLoadedTeamChannelsCacheMap(forceLocalCache)
+  // useCachedResource resets whatever cache it holds while disabled, so a
+  // disabled instance must never hold the shared one — including the ordinary
+  // consumer whose teamname has not resolved yet, which would otherwise wipe a
+  // real loader's data mid-flight. Gate the cache on exactly the load condition.
+  const canLoad = enabled && !!validTeamID && !!teamnameToLoad
+  const cacheMap = useLoadedTeamChannelsCacheMap(forceLocalCache || !canLoad)
   const cache = React.useMemo(
     () => getCachedResourceCache(cacheMap, emptyLoadedTeamChannelsData, validTeamID),
     [cacheMap, validTeamID]
@@ -123,7 +128,7 @@ const useLoadedTeamChannelsRaw = (
   const {data, loading, reload, clear} = useCachedResource({
     cache,
     cacheKey: validTeamID,
-    enabled: enabled && !!validTeamID && !!teamnameToLoad,
+    enabled: canLoad,
     initialData: emptyLoadedTeamChannelsData,
     load: async () => {
       if (!teamnameToLoad) {

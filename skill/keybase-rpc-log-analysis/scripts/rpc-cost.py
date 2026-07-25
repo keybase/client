@@ -20,9 +20,34 @@ import re
 
 import kblog
 
-# "- SomeOp(args) -> ok [time=1.234ms]", optionally behind a "++Chat: " prefix
-EXIT_RE = re.compile(r"\]\s+\w+\s+(?:\+\+\w+:\s+)?-\s+(.{3,60}?)(?:\(|:| ->).*\[time=([0-9.]+)(ms|s|µs|ns)\]")
+# "- Namespace: Op(args) -> ok [time=1.234ms]", optionally behind a "++Chat: "
+# prefix. Keep the whole "Namespace: Op": stopping the name at the first colon
+# collapsed every "Server: X" and "RemoteClient: X" into one row, which hid the
+# per-operation breakdown this script exists to produce. A colon only ends the
+# name when it is not followed by a space.
+EXIT_RE = re.compile(
+    r"\]\s+\w+\s+(?:\+\+\w+:\s+)?-\s+((?:[^\s(:]|:(?= )|(?<=:) )+?)\s*(?:\(| ->).*\[time=([^\]]+)\]"
+)
+# Go durations are compound once they pass a minute ("1m28.867s", "1h2m3s").
+# Matching only a single number+unit silently dropped exactly the slowest spans.
+DUR_RE = re.compile(r"(?:([\d.]+)h)?(?:([\d.]+)m(?!s))?(?:([\d.]+)(ms|s|µs|ns))?$")
 UNIT_MS = {"ms": 1.0, "s": 1000.0, "µs": 0.001, "ns": 1e-6}
+
+
+def parse_duration_ms(text):
+    """Return milliseconds for a Go duration string, or None if unparseable."""
+    m = DUR_RE.match(text.strip())
+    if not m:
+        return None
+    hours, minutes, value, unit = m.groups()
+    total = 0.0
+    if hours:
+        total += float(hours) * 3_600_000
+    if minutes:
+        total += float(minutes) * 60_000
+    if value:
+        total += float(value) * UNIT_MS[unit]
+    return total if (hours or minutes or value) else None
 
 
 def main():
@@ -42,8 +67,13 @@ def main():
         m = EXIT_RE.search(line)
         if not m:
             continue
-        name = m.group(1).strip()[:45]
-        ms = float(m.group(2)) * UNIT_MS[m.group(3)]
+        # "Namespace: Op" is the useful grouping; anything past that is an
+        # argument ("localizerPipeline: localizeConversation: TLF: foo") and
+        # would split one operation into a row per argument value.
+        name = ": ".join(m.group(1).strip().split(": ")[:2])[:45]
+        ms = parse_duration_ms(m.group(2))
+        if ms is None:
+            continue
         total[name] += ms
         calls[name] += 1
         if ms > worst.get(name, 0):

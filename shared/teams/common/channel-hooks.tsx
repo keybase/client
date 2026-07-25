@@ -17,6 +17,7 @@ import {
   useReloadOnTeamChannelChanges,
 } from './use-loaded-team-channels'
 import {registerExternalResetter} from '@/util/zustand'
+import {registerTeamChannelsInvalidator} from './team-channels-invalidation'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
@@ -45,6 +46,18 @@ const allChannelMetasCaches = new Map<
 // user's channel metas for any team they happen to share
 registerExternalResetter('teams-all-channel-metas-caches', () => {
   allChannelMetasCaches.clear()
+})
+
+const allChannelMetasInvalidationListeners = new Set<(teamID: T.Teams.TeamID) => void>()
+
+// This is the second shared cache of a team's channels, and channel create and
+// delete fire no teamChangedByID, so it needs the same explicit drop as
+// use-loaded-team-channels. Without it a create/delete leaves every
+// useAllChannelMetas consumer - the browse-channels modal, the channels widget,
+// the delete confirm itself - serving the pre-change list for the stale window.
+registerTeamChannelsInvalidator((teamID: T.Teams.TeamID) => {
+  allChannelMetasCaches.get(teamID)?.invalidate(teamID)
+  allChannelMetasInvalidationListeners.forEach(listener => listener(teamID))
 })
 
 // Filter bots out using team role info, isolate to only when related state changes
@@ -93,7 +106,9 @@ export const useAllChannelMetas = (
     () => getCachedResourceCache(allChannelMetasCaches, initialData, teamID),
     [initialData, teamID]
   )
-  const channelMetasCache = dontCallRPC ? localCache : sharedCache
+  // gate on `enabled`, not just dontCallRPC: an instance whose teamname has not
+  // resolved yet is also disabled, and would otherwise reset the shared cache
+  const channelMetasCache = enabled ? sharedCache : localCache
   const {data, loading, reload, clear} = useCachedResource({
     cache: channelMetasCache,
     cacheKey: teamID,
@@ -135,6 +150,22 @@ export const useAllChannelMetas = (
   })
 
   useReloadOnTeamChannelChanges(teamID, enabled, reload, () => clear(teamID))
+
+  // a mounted list must pick up a create/delete too, not just the next mount
+  React.useEffect(() => {
+    if (!enabled) {
+      return
+    }
+    const listener = (invalidatedTeamID: T.Teams.TeamID) => {
+      if (invalidatedTeamID === teamID) {
+        void reload()
+      }
+    }
+    allChannelMetasInvalidationListeners.add(listener)
+    return () => {
+      allChannelMetasInvalidationListeners.delete(listener)
+    }
+  }, [enabled, teamID, reload])
 
   return {
     channelMetas: data.channelMetas,

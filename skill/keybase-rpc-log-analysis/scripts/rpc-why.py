@@ -48,11 +48,16 @@ def main():
         if not m:
             continue
         marker, text = m.group(1), kblog.TAGS_RE.sub("", m.group(2)).strip()
-        tr = kblog.trace(line) or "-"
+        # Lines with no chat-trace tag are unrelated to each other. Sharing one
+        # bucket for them latched every untraced hit onto whichever "+ Server:"
+        # line happened to come first in the file and reported it as the root -
+        # a confident, wrong answer, in the section SKILL.md says to trust most.
+        tr = kblog.trace(line)
+        untraced = tr is None
         mine = args.match in text
 
         srv = kblog.SERVER_RE.search(line)
-        if srv and tr not in root_rpc:
+        if srv and not untraced and tr not in root_rpc:
             root_rpc[tr] = srv.group(1)
 
         if mine and marker == "+":
@@ -64,10 +69,13 @@ def main():
             # this on nesting depth: the service fans out concurrent goroutines
             # under a single chat-trace, so most hits are "inside" an earlier one
             # and gating would attribute only a handful of thousands of calls.
-            roots[root_rpc.get(tr, "<no app RPC on this trace>")] += 1
+            if untraced:
+                roots["<untraced: no chat-trace tag>"] += 1
+            else:
+                roots[root_rpc.get(tr, "<no app RPC on this trace>")] += 1
             # DRIVERS stays gated - the nearest preceding span is only meaningful
             # for a hit that is not nested inside another of our own
-            if not inside[tr]:
+            if not untraced and not inside[tr]:
                 drivers[last_enter.get(tr, "<nothing preceding on this trace>")] += 1
             c = COUNT_RE.search(text)
             if c:

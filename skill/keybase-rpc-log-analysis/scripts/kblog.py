@@ -75,7 +75,9 @@ def iter_lines(paths, start=None, end=None):
                         continue
                     if start and ts < start:
                         continue
-                    if end and ts > end:
+                    # end is a prefix, so compare only that many chars: a bare
+                    # '...T19:12' must include all of 19:12, not exclude it
+                    if end and ts[: len(end)] > end:
                         continue
                 yield line
 

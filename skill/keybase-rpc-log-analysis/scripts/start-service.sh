@@ -16,7 +16,9 @@ set -euo pipefail
 LOGFILE="${1:-/tmp/kb-analysis/service.log}"
 mkdir -p "$(dirname "$LOGFILE")"
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+# -P resolves symlinks before collapsing "..": this script is normally reached
+# through .claude/skills -> skill, and a logical cd would land in .claude/
+REPO="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$REPO/go"
 
 echo "building from $REPO/go"

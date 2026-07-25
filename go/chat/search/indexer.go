@@ -62,11 +62,11 @@ type Indexer struct {
 	selectiveSyncActive   bool
 	flushDelay            time.Duration
 
-	// convID -> numMissing as of the end of the last reindex attempt. A conv
-	// whose missing count did not move is not retried until something changes
-	// it. See stalledConvs in SelectiveSync.
+	// convID -> how a conv's last reindex attempt went. A conv whose missing
+	// count did not move is backed off rather than retried every interval.
+	// See stalledConvs in SelectiveSync.
 	stalledMu    sync.Mutex
-	stalledConvs map[chat1.ConvIDStr]uint
+	stalledConvs map[chat1.ConvIDStr]stalledConv
 
 	// for testing
 	consumeCh                            chan chat1.ConversationID
@@ -88,7 +88,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
 		storageCh:    make(chan any, 100),
-		stalledConvs: make(map[chat1.ConvIDStr]uint),
+		stalledConvs: make(map[chat1.ConvIDStr]stalledConv),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -305,6 +305,12 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if idx.started {
 		idx.store.ClearMemory()
+		// entries are keyed by convID only, and team convs are shared between
+		// users on this device: a count left by the previous user must not
+		// decide anything for the next one
+		idx.stalledMu.Lock()
+		idx.stalledConvs = make(map[chat1.ConvIDStr]stalledConv)
+		idx.stalledMu.Unlock()
 		idx.started = false
 		close(idx.stopCh)
 		go func() {
@@ -735,14 +741,45 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
-// convStalled reports whether the last reindex attempt for this conv left
-// numMissing exactly where it found it. Such a conv has missing IDs that cannot
-// be fetched, and retrying only re-reads messages that are already indexed.
+// maxStallSkips caps the backoff at 12 sync intervals, i.e. roughly an hour on
+// desktop. Even a permanently stuck conv is retried occasionally, so nothing is
+// suppressed forever on the strength of an inference.
+const maxStallSkips = 12
+
+type stalledConv struct {
+	numMissing uint
+	// intervals still to skip before the next attempt
+	skips int
+	// consecutive no-progress attempts, doubling the backoff each time
+	streak uint
+}
+
+// convStalled reports whether to skip this conv on this pass, and consumes one
+// of its backoff intervals if so.
+//
+// The backoff is deliberately bounded rather than permanent. "numMissing did not
+// move" is strong evidence that the missing IDs cannot be fetched, but it is not
+// proof: reindexConv restarts at the lowest missing ID and stops once it has
+// spent the pass budget, so a conv whose budgeted pages happened to cover only
+// unfetchable IDs looks identical to a stuck one while still having real work
+// further up its range. Backing off instead of suppressing means that conv
+// resumes on its own, and a genuinely stuck one still costs ~1/12th of what it
+// did.
 func (idx *Indexer) convStalled(convID chat1.ConversationID, numMissing uint) bool {
 	idx.stalledMu.Lock()
 	defer idx.stalledMu.Unlock()
-	prev, ok := idx.stalledConvs[convID.ConvIDStr()]
-	return ok && prev == numMissing
+	convIDStr := convID.ConvIDStr()
+	prev, ok := idx.stalledConvs[convIDStr]
+	if !ok || prev.numMissing != numMissing {
+		// never seen, or something changed the conv since: give it an attempt
+		return false
+	}
+	if prev.skips <= 0 {
+		return false
+	}
+	prev.skips--
+	idx.stalledConvs[convIDStr] = prev
+	return true
 }
 
 // recordIndexProgress stores the missing count after an attempt, so the next
@@ -757,16 +794,21 @@ func (idx *Indexer) recordIndexProgress(ctx context.Context, conv chat1.Conversa
 	convIDStr := conv.GetConvID().ConvIDStr()
 	idx.stalledMu.Lock()
 	defer idx.stalledMu.Unlock()
-	if status.fullyIndexed() {
+	if status.fullyIndexed() || status.numMissing != before {
+		// done, or made progress: clear any marker so it keeps getting attempts
 		delete(idx.stalledConvs, convIDStr)
 		return
 	}
-	if status.numMissing != before {
-		// made progress; clear any stall marker so it keeps getting attempts
-		delete(idx.stalledConvs, convIDStr)
-		return
+	streak := idx.stalledConvs[convIDStr].streak + 1
+	skips := 1 << streak
+	if skips > maxStallSkips {
+		skips = maxStallSkips
 	}
-	idx.stalledConvs[convIDStr] = status.numMissing
+	idx.stalledConvs[convIDStr] = stalledConv{
+		numMissing: status.numMissing,
+		skips:      skips,
+		streak:     streak,
+	}
 }
 
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
@@ -791,12 +833,14 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 		default:
 		}
 		convID := conv.GetConvID()
-		fullyIndexed, err := idx.store.FullyIndexed(ctx, conv.Conv)
+		// one status read, not one per question: each is an O(maxID-minID) scan
+		// of SeenIDs under the store lock
+		status, err := idx.store.IndexStatus(ctx, conv.Conv)
 		if err != nil {
 			idx.Debug(ctx, "SelectiveSync: Unable to get md for conv: %v, %v", convID, err)
 			continue
 		}
-		if fullyIndexed {
+		if status.fullyIndexed() {
 			continue
 		}
 
@@ -814,11 +858,6 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 		// Anything that actually changes the conv - a new message, a delete,
 		// clearing the index - changes the count and lets it back in, so this
 		// only suppresses the provably unproductive case.
-		status, err := idx.store.IndexStatus(ctx, conv.Conv)
-		if err != nil {
-			idx.Debug(ctx, "SelectiveSync: unable to get index status for conv: %v, %v", convID, err)
-			continue
-		}
 		if idx.convStalled(convID, status.numMissing) {
 			continue
 		}
@@ -946,7 +985,7 @@ func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
 		return nil
 	}
 	idx.stalledMu.Lock()
-	idx.stalledConvs = make(map[chat1.ConvIDStr]uint)
+	idx.stalledConvs = make(map[chat1.ConvIDStr]stalledConv)
 	idx.stalledMu.Unlock()
 	idx.store.ClearMemory()
 	return nil
