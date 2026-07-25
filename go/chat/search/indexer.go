@@ -431,6 +431,11 @@ func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
 		case <-stopCh:
 			idx.Debug(ctx, "flushLoop: shutting down")
 			return nil
+		case <-idx.store.flushNeeded():
+			// too much pending to wait out the interval
+			if err := idx.store.Flush(); err != nil {
+				idx.Debug(ctx, "flushLoop: failed to flush: %s", err)
+			}
 		case <-idx.clock.After(idx.flushDelay):
 			if err := idx.store.Flush(); err != nil {
 				idx.Debug(ctx, "flushLoop: failed to flush: %s", err)
@@ -594,7 +599,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 		// not are ids the source will never produce. Without this the latter
 		// keep the conv permanently "not fully indexed".
 		if err := idx.store.MarkSeen(ctx, convID, chunk); err != nil {
-			idx.Debug(ctx, "reindexConv: unable to mark ids seen: %v", err)
+			// The store is failing, not the conv. Give up on this conv rather
+			// than paging on: without the mark these ids stay missing, so
+			// counting the job would make a storage failure look like a stalled
+			// conv and back it off for a reason that has nothing to do with it.
+			return completedJobs, err
 		}
 		completedJobs++
 		if numJobs > 0 && completedJobs >= numJobs {

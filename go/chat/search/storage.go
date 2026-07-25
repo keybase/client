@@ -29,6 +29,19 @@ const (
 	aliasDiskVersion = 1
 )
 
+// Pending entries are held until the next flush, so a long flush interval and a
+// fast writer together decide how much lives in memory. An index pass writes
+// thousands of tokens a second, which would otherwise sit there for the whole
+// flushDelay. This bounds the pending set instead of the clock: cross it and a
+// flush is asked for immediately.
+//
+// It is a trigger, not a ceiling. The flush cannot run until the writer releases
+// s.Lock, and one Add writes a whole batch of tokens and aliases under a single
+// hold, so the set peaks at roughly this plus one batch - measured at 1.1k-2.5k
+// against a 1000 bound while reindexing. That is the number to reason about;
+// what matters is that it does not track the writer's total volume.
+const maxDirtyEntries = 1000
+
 type tokenEntry struct {
 	Version string                                `codec:"v"`
 	MsgIDs  map[chat1.MessageID]chat1.EmptyStruct `codec:"m"`
@@ -256,10 +269,21 @@ type store struct {
 	mdCache     *lru.Cache
 	diskStorage diskStorage
 
-	// Track dirty entries that need to be flushed to disk
-	dirtyTokens   map[chat1.ConvIDStr]map[string]struct{} // map[convIDStr][token]
-	dirtyAliases  map[string]struct{}                     // map[alias]
-	dirtyMetadata map[chat1.ConvIDStr]struct{}            // map[convIDStr]
+	// Entries written but not yet on disk. These hold the entry itself, not just
+	// its key: the caches above are bounded LRUs, so a dirty entry can be evicted
+	// before the next flush. Keying alone meant such an entry was skipped by
+	// Flush and lost, while a subsequent read fell through to the stale copy on
+	// disk and built further updates on top of it. Reads therefore consult these
+	// before disk, and Flush writes from these rather than from the caches.
+	dirtyTokens   map[chat1.ConvIDStr]map[string]*tokenEntry // map[convIDStr][token]
+	dirtyAliases  map[string]*aliasEntry                     // map[alias]
+	dirtyMetadata map[chat1.ConvIDStr]*indexMetadata         // map[convIDStr]
+
+	// how many entries are pending across all three maps above, and a one-slot
+	// nudge to the flush loop for when that gets big. Buffered and sent to
+	// without blocking: a signal already waiting is the same request.
+	dirtyCount    int
+	flushNeededCh chan struct{}
 
 	flushMtx sync.Mutex // Synchronizes flush operations to disk
 }
@@ -283,9 +307,10 @@ func newStore(g *globals.Context, uid gregor1.UID) *store {
 		tokenCache:    tc,
 		mdCache:       mc,
 		diskStorage:   newDiskStore(g, uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn), g.LocalChatDb),
-		dirtyTokens:   make(map[chat1.ConvIDStr]map[string]struct{}),
-		dirtyAliases:  make(map[string]struct{}),
-		dirtyMetadata: make(map[chat1.ConvIDStr]struct{}),
+		dirtyTokens:   make(map[chat1.ConvIDStr]map[string]*tokenEntry),
+		dirtyAliases:  make(map[string]*aliasEntry),
+		dirtyMetadata: make(map[chat1.ConvIDStr]*indexMetadata),
+		flushNeededCh: make(chan struct{}, 1),
 	}
 }
 
@@ -471,6 +496,11 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 	if te, ok := s.tokenCache.Get(cacheKey); ok {
 		return te.(*tokenEntry), nil
 	}
+	// evicted from the cache but not yet flushed: the copy on disk is stale
+	if te, ok := s.dirtyTokens[convID.ConvIDStr()][token]; ok {
+		s.tokenCache.Add(cacheKey, te)
+		return te, nil
+	}
 	if res, err = s.diskStorage.GetTokenEntry(ctx, convID, token); err != nil {
 		return nil, err
 	}
@@ -488,6 +518,11 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
 	if dat, ok := s.aliasCache.Get(alias); ok {
 		return dat.(*aliasEntry), nil
+	}
+	// evicted from the cache but not yet flushed: the copy on disk is stale
+	if ae, ok := s.dirtyAliases[alias]; ok {
+		s.aliasCache.Add(alias, ae)
+		return ae, nil
 	}
 	if res, err = s.diskStorage.GetAliasEntry(ctx, alias); err != nil {
 		return nil, err
@@ -511,16 +546,42 @@ func (s *store) putTokenEntry(ctx context.Context, convID chat1.ConversationID,
 
 	convIDStr := convID.ConvIDStr()
 	if s.dirtyTokens[convIDStr] == nil {
-		s.dirtyTokens[convIDStr] = make(map[string]struct{})
+		s.dirtyTokens[convIDStr] = make(map[string]*tokenEntry)
 	}
-	s.dirtyTokens[convIDStr][token] = struct{}{}
+	if _, ok := s.dirtyTokens[convIDStr][token]; !ok {
+		s.dirtyCount++
+	}
+	s.dirtyTokens[convIDStr][token] = te
+	s.signalFlushIfFullLocked()
 
 	return nil
 }
 
+// signalFlushIfFullLocked asks the flush loop to run early once enough entries
+// are pending. Callers hold s.Lock; the send never blocks, so it cannot deadlock
+// against the flush it is asking for.
+func (s *store) signalFlushIfFullLocked() {
+	if s.dirtyCount < maxDirtyEntries {
+		return
+	}
+	select {
+	case s.flushNeededCh <- struct{}{}:
+	default:
+	}
+}
+
+// flushNeeded fires when the pending set has grown past maxDirtyEntries.
+func (s *store) flushNeeded() <-chan struct{} {
+	return s.flushNeededCh
+}
+
 func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
 	s.aliasCache.Add(alias, ae)
-	s.dirtyAliases[alias] = struct{}{}
+	if _, ok := s.dirtyAliases[alias]; !ok {
+		s.dirtyCount++
+	}
+	s.dirtyAliases[alias] = ae
+	s.signalFlushIfFullLocked()
 
 	return nil
 }
@@ -528,7 +589,11 @@ func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry)
 func (s *store) putMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) (err error) {
 	convIDStr := convID.ConvIDStr()
 	s.mdCache.Add(convIDStr, md)
-	s.dirtyMetadata[convIDStr] = struct{}{}
+	if _, ok := s.dirtyMetadata[convIDStr]; !ok {
+		s.dirtyCount++
+	}
+	s.dirtyMetadata[convIDStr] = md
+	s.signalFlushIfFullLocked()
 
 	return nil
 }
@@ -542,6 +607,9 @@ func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationI
 
 	convIDStr := convID.ConvIDStr()
 	if tokens, ok := s.dirtyTokens[convIDStr]; ok {
+		if _, pending := tokens[token]; pending {
+			s.dirtyCount--
+		}
 		delete(tokens, token)
 		// Clean up empty map
 		if len(tokens) == 0 {
@@ -555,6 +623,9 @@ func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationI
 
 func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
 	s.aliasCache.Remove(alias)
+	if _, pending := s.dirtyAliases[alias]; pending {
+		s.dirtyCount--
+	}
 	delete(s.dirtyAliases, alias)
 	// Delete from disk immediately
 	s.diskStorage.RemoveAliasEntry(ctx, alias)
@@ -757,6 +828,12 @@ func (s *store) getMetadataLocked(ctx context.Context, convID chat1.Conversation
 	convIDStr := convID.ConvIDStr()
 	if cached, ok := s.mdCache.Get(convIDStr); ok {
 		return cached.(*indexMetadata), nil
+	}
+	// evicted from the cache but not yet flushed: the copy on disk is stale, and
+	// for metadata that means losing SeenIDs and re-indexing what it recorded
+	if md, ok := s.dirtyMetadata[convIDStr]; ok {
+		s.mdCache.Add(convIDStr, md)
+		return md, nil
 	}
 
 	if res, err = s.diskStorage.GetMetadata(ctx, convID); err != nil {
@@ -964,9 +1041,14 @@ func (s *store) ClearMemory() {
 	s.tokenCache.Purge()
 	s.mdCache.Purge()
 
-	s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]struct{})
-	s.dirtyAliases = make(map[string]struct{})
-	s.dirtyMetadata = make(map[chat1.ConvIDStr]struct{})
+	s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]*tokenEntry)
+	s.dirtyAliases = make(map[string]*aliasEntry)
+	s.dirtyMetadata = make(map[chat1.ConvIDStr]*indexMetadata)
+	s.dirtyCount = 0
+	select {
+	case <-s.flushNeededCh:
+	default:
+	}
 }
 
 func (s *store) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
@@ -1005,37 +1087,33 @@ func (s *store) Flush() error {
 				s.Debug(ctx, "Flush: invalid convID %s: %s", convIDStr, err)
 				continue
 			}
-			for token := range tokens {
-				cacheKey := s.tokenCacheKey(convID, token)
-				if cachedVal, ok := s.tokenCache.Get(cacheKey); ok {
-					te := cachedVal.(*tokenEntry)
-					tokenSnapshots = append(tokenSnapshots, tokenSnapshot{
-						convID: convID,
-						token:  token,
-						entry:  te.dup(),
-					})
-				}
+			for token, te := range tokens {
+				tokenSnapshots = append(tokenSnapshots, tokenSnapshot{
+					convID: convID,
+					token:  token,
+					entry:  te.dup(),
+				})
 			}
 		}
 
-		for alias := range s.dirtyAliases {
-			if cachedVal, ok := s.aliasCache.Get(alias); ok {
-				ae := cachedVal.(*aliasEntry)
-				aliasSnapshots[alias] = ae.dup()
-			}
+		for alias, ae := range s.dirtyAliases {
+			aliasSnapshots[alias] = ae.dup()
 		}
 
-		for convIDStr := range s.dirtyMetadata {
-			if cachedVal, ok := s.mdCache.Get(convIDStr); ok {
-				md := cachedVal.(*indexMetadata)
-				mdSnapshots[convIDStr] = md.dup()
-			}
+		for convIDStr, md := range s.dirtyMetadata {
+			mdSnapshots[convIDStr] = md.dup()
 		}
 
 		// Clear dirty tracking
-		s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]struct{})
-		s.dirtyAliases = make(map[string]struct{})
-		s.dirtyMetadata = make(map[chat1.ConvIDStr]struct{})
+		s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]*tokenEntry)
+		s.dirtyAliases = make(map[string]*aliasEntry)
+		s.dirtyMetadata = make(map[chat1.ConvIDStr]*indexMetadata)
+		s.dirtyCount = 0
+		// drop a signal raised before this flush: it has just been answered
+		select {
+		case <-s.flushNeededCh:
+		default:
+		}
 
 		s.Unlock()
 	}
