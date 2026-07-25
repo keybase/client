@@ -66,7 +66,7 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
   }
 
   return BindingsInstallerHolder::newObjectCxxArgs(
-      [weakAdapter = std::weak_ptr(adapter)](
+      [weakAdapter = std::weak_ptr<KbNativeAdapter>(adapter)](
           jsi::Runtime &runtime,
           const std::shared_ptr<CallInvoker> &callInvoker) {
         auto bridge = std::make_shared<kb::KBBridge>();
