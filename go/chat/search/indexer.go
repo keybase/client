@@ -62,6 +62,12 @@ type Indexer struct {
 	selectiveSyncActive   bool
 	flushDelay            time.Duration
 
+	// convID -> numMissing as of the end of the last reindex attempt. A conv
+	// whose missing count did not move is not retried until something changes
+	// it. See stalledConvs in SelectiveSync.
+	stalledMu    sync.Mutex
+	stalledConvs map[chat1.ConvIDStr]uint
+
 	// for testing
 	consumeCh                            chan chat1.ConversationID
 	reindexCh                            chan chat1.ConversationID
@@ -82,6 +88,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
 		storageCh:    make(chan any, 100),
+		stalledConvs: make(map[chat1.ConvIDStr]uint),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -728,6 +735,40 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
+// convStalled reports whether the last reindex attempt for this conv left
+// numMissing exactly where it found it. Such a conv has missing IDs that cannot
+// be fetched, and retrying only re-reads messages that are already indexed.
+func (idx *Indexer) convStalled(convID chat1.ConversationID, numMissing uint) bool {
+	idx.stalledMu.Lock()
+	defer idx.stalledMu.Unlock()
+	prev, ok := idx.stalledConvs[convID.ConvIDStr()]
+	return ok && prev == numMissing
+}
+
+// recordIndexProgress stores the missing count after an attempt, so the next
+// pass can tell whether that attempt accomplished anything. A conv that has
+// reached 0 needs no entry: FullyIndexed already skips it.
+func (idx *Indexer) recordIndexProgress(ctx context.Context, conv chat1.Conversation, before uint) {
+	status, err := idx.store.IndexStatus(ctx, conv)
+	if err != nil {
+		idx.Debug(ctx, "recordIndexProgress: unable to get index status: %v", err)
+		return
+	}
+	convIDStr := conv.GetConvID().ConvIDStr()
+	idx.stalledMu.Lock()
+	defer idx.stalledMu.Unlock()
+	if status.fullyIndexed() {
+		delete(idx.stalledConvs, convIDStr)
+		return
+	}
+	if status.numMissing != before {
+		// made progress; clear any stall marker so it keeps getting attempts
+		delete(idx.stalledConvs, convIDStr)
+		return
+	}
+	idx.stalledConvs[convIDStr] = status.numMissing
+}
+
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 	defer idx.Trace(ctx, &err, "SelectiveSync")()
 	defer idx.PerfTrace(ctx, &err, "SelectiveSync")()
@@ -759,13 +800,41 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 			continue
 		}
 
+		// A conv is "fully indexed" only when numMissing hits 0, and numMissing
+		// counts every ID in the min..max range. IDs the server will never
+		// return - deleted, or never delivered to us - therefore stay missing
+		// forever, so such a conv is never fully indexed and SelectiveSync
+		// re-queues it every syncInterval. Each pass re-fetches thousands of
+		// messages that are already indexed, marks nothing new, and burns the
+		// whole maxSyncConvs budget: measured at ~1800 remote getMessages every
+		// 5 minutes, indefinitely, on an idle desktop client, with numMissing
+		// byte-identical across 7 consecutive cycles.
+		//
+		// So skip a conv whose missing count did not move on its last attempt.
+		// Anything that actually changes the conv - a new message, a delete,
+		// clearing the index - changes the count and lets it back in, so this
+		// only suppresses the provably unproductive case.
+		status, err := idx.store.IndexStatus(ctx, conv.Conv)
+		if err != nil {
+			idx.Debug(ctx, "SelectiveSync: unable to get index status for conv: %v, %v", convID, err)
+			continue
+		}
+		if idx.convStalled(convID, status.numMissing) {
+			continue
+		}
+
 		completedJobs, err := idx.reindexConv(ctx, conv, numJobs, nil)
 		if err != nil {
 			idx.Debug(ctx, "Unable to reindex conv: %v, %v", convID, err)
 			continue
-		} else if completedJobs == 0 {
+		}
+		if completedJobs == 0 {
+			// also the transient-fetch-failure path in reindexConv, which is
+			// indistinguishable from no progress here. Don't record a stall for
+			// it: a network blip would suppress the conv until it next changes.
 			continue
 		}
+		idx.recordIndexProgress(ctx, conv.Conv, status.numMissing)
 		idx.Debug(ctx, "SelectiveSync: Indexed completed jobs %d", completedJobs)
 		numJobs -= completedJobs
 		if numJobs <= 0 {
@@ -861,6 +930,11 @@ func (idx *Indexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if store == nil {
 		return nil
 	}
+	// clearing the index resets what is missing, so this conv gets fresh
+	// attempts rather than staying suppressed at its old count
+	idx.stalledMu.Lock()
+	delete(idx.stalledConvs, convID.ConvIDStr())
+	idx.stalledMu.Unlock()
 	return store.Clear(ctx, uid, convID)
 }
 
@@ -871,6 +945,9 @@ func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
 	if !idx.started {
 		return nil
 	}
+	idx.stalledMu.Lock()
+	idx.stalledConvs = make(map[chat1.ConvIDStr]uint)
+	idx.stalledMu.Unlock()
 	idx.store.ClearMemory()
 	return nil
 }
