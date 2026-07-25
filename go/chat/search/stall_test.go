@@ -3,8 +3,10 @@ package search
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -16,10 +18,18 @@ import (
 // skips it thereafter. These paths are therefore unreachable from an end-to-end
 // run and can only be covered here.
 
+// add() converts its context with globals.BackgroundChatCtx, which reaches for
+// the context factory. Nothing on the paths under test uses what it returns, so
+// a stub keeps these tests from needing the whole chat harness.
+type stubCtxFactory struct{}
+
+func (stubCtxFactory) NewKeyFinder() types.KeyFinder   { return nil }
+func (stubCtxFactory) NewUPAKFinder() types.UPAKFinder { return nil }
+
 func setupStallTestIndexer(t *testing.T, label string) (*Indexer, chat1.Conversation) {
 	tc := externalstest.SetupTest(t, label, 2)
 	t.Cleanup(tc.Cleanup)
-	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	g := globals.NewContext(tc.G, &globals.ChatContext{CtxFactory: stubCtxFactory{}})
 	idx := NewIndexer(g)
 	idx.SetUID(gregor1.UID([]byte{1, 2, 3, 4}))
 
@@ -145,4 +155,48 @@ func TestClearResetsStalledConv(t *testing.T) {
 	// the conv suppressed
 	require.False(t, idx.convStalled(convID, 100),
 		"Clear must drop the backoff for that conv")
+}
+
+// A dropped storage op used to leave its callback unclosed, and reindexConv
+// waits on that callback. The waiter parked forever, which leaked SelectiveSync's
+// cancel func and left every later pass reporting "already running" - background
+// indexing dead until the process restarted.
+func TestDroppedStorageOpDoesNotStrandCaller(t *testing.T) {
+	ctx := context.TODO()
+	idx, conv := setupStallTestIndexer(t, "dispatch-full")
+	convID := conv.GetConvID()
+
+	// fill the dispatch queue so the next op cannot be accepted
+	for len(idx.storageCh) < cap(idx.storageCh) {
+		idx.storageCh <- storageAdd{}
+	}
+
+	msgs := []chat1.MessageUnboxed{textMsgForTest(1, "hello world")}
+	cb, err := idx.add(ctx, convID, msgs, true)
+	require.ErrorIs(t, err, errStorageQueueFull,
+		"a dropped op must be reported, or the caller marks unindexed messages as seen")
+
+	select {
+	case <-cb:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "callback of a dropped op was never closed; caller would hang forever")
+	}
+}
+
+// Ops still queued when the loop shuts down have nobody left to run them, so
+// their callbacks have to be released too.
+func TestStorageLoopReleasesQueuedCallbacksOnShutdown(t *testing.T) {
+	idx, _ := setupStallTestIndexer(t, "dispatch-shutdown")
+	stopCh := make(chan struct{})
+	cb := make(chan struct{})
+	idx.storageCh <- storageAdd{cb: cb}
+
+	close(stopCh)
+	require.NoError(t, idx.storageLoop(stopCh))
+
+	select {
+	case <-cb:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "a queued op's callback was abandoned at shutdown")
+	}
 }

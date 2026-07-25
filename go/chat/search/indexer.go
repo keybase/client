@@ -2,6 +2,7 @@ package search
 
 import (
 	"context"
+	"errors"
 	"sort"
 	"sync"
 	"time"
@@ -304,6 +305,13 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	defer idx.Unlock()
 	ch := make(chan struct{})
 	if idx.started {
+		// Write out what is pending before dropping it. ClearMemory discards the
+		// overlay, and the flush loop is about to stop, so anything not written
+		// here is simply lost - work that has to be done again at best, and at
+		// worst tokens whose metadata already reached disk.
+		if err := idx.store.Flush(); err != nil {
+			idx.Debug(ctx, "Stop: final flush failed: %s", err)
+		}
 		idx.store.ClearMemory()
 		// entries are keyed by convID only, and team convs are shared between
 		// users on this device: a count left by the previous user must not
@@ -386,11 +394,19 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
-func (idx *Indexer) storageDispatch(op any) {
+// storageDispatch queues op, reporting whether it was accepted. A caller that
+// waits on the op's callback must close it itself when this returns false:
+// dropping the op silently left that callback with nobody to close it, and the
+// waiter - reindexConv does an unconditional receive - parked forever. In
+// SelectiveSync that leaks the sync's cancel func, so every later attempt sees
+// "already running" and background indexing is done until the process restarts.
+func (idx *Indexer) storageDispatch(op any) bool {
 	select {
 	case idx.storageCh <- op:
+		return true
 	default:
 		idx.Debug(context.Background(), "storageDispatch: failed to dispatch storage operation")
+		return false
 	}
 }
 
@@ -401,7 +417,21 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 		select {
 		case <-stopCh:
 			idx.Debug(ctx, "storageLoop: shutting down")
-			return nil
+			// Release anything still queued. These ops will not run, but a
+			// caller blocked on one's callback would never wake up otherwise.
+			for {
+				select {
+				case iop := <-idx.storageCh:
+					switch op := iop.(type) {
+					case storageAdd:
+						close(op.cb)
+					case storageRemove:
+						close(op.cb)
+					}
+				default:
+					return nil
+				}
+			}
 		case iop := <-idx.storageCh:
 			switch op := iop.(type) {
 			case storageAdd:
@@ -490,12 +520,16 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 	defer idx.Trace(ctx, &err,
 		"Indexer.Add conv: %v, msgs: %d, force: %v",
 		convID, len(msgs), force)()
-	idx.storageDispatch(storageAdd{
+	if !idx.storageDispatch(storageAdd{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
 		msgs:   msgs,
 		cb:     cb,
-	})
+	}) {
+		// nothing will run this op, so nothing will close cb
+		close(cb)
+		return cb, errStorageQueueFull
+	}
 	return cb, nil
 }
 
@@ -532,12 +566,16 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	defer idx.Trace(ctx, &err,
 		"Indexer.Remove conv: %v, msgs: %d, force: %v",
 		convID, len(msgs), force)()
-	idx.storageDispatch(storageRemove{
+	if !idx.storageDispatch(storageRemove{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
 		msgs:   msgs,
 		cb:     cb,
-	})
+	}) {
+		// nothing will run this op, so nothing will close cb
+		close(cb)
+		return cb, errStorageQueueFull
+	}
 	return cb, nil
 }
 
@@ -593,7 +631,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 		if err != nil {
 			return completedJobs, err
 		}
-		<-cb
+		select {
+		case <-cb:
+		case <-ctx.Done():
+			return completedJobs, ctx.Err()
+		}
 		// The fetch succeeded, so every id we asked for is now accounted for:
 		// the ones that came back were indexed by add(), and the ones that did
 		// not are ids the source will never produce. Without this the latter
@@ -750,6 +792,11 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // With reindexConv now marking fetched-but-unreturned ids as seen, a conv should
 // converge on its own and never reach here. This is the backstop for whatever
 // still cannot converge, not the mechanism.
+// errStorageQueueFull reports that a storage op was never queued. Callers that
+// mark work as done once the op completes must not do so on this error: the op
+// did not run, so nothing was indexed.
+var errStorageQueueFull = errors.New("search storage queue full, operation dropped")
+
 const maxStallSkips = 12
 
 // the largest exponent used for the backoff; see recordIndexProgress
@@ -880,6 +927,11 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 		completedJobs, err := idx.reindexConv(ctx, conv, numJobs, nil)
 		if err != nil {
 			idx.Debug(ctx, "Unable to reindex conv: %v, %v", convID, err)
+			// the pages it did finish still spent budget
+			numJobs -= completedJobs
+			if numJobs <= 0 {
+				break
+			}
 			continue
 		}
 		if completedJobs == 0 {

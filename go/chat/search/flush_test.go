@@ -27,6 +27,13 @@ type memDiskStorage struct {
 	tokens  map[string]*tokenEntry
 	aliases map[string]*aliasEntry
 	md      map[chat1.ConvIDStr]*indexMetadata
+
+	// set to make the corresponding call fail, so the error paths - which are
+	// where entries get lost - are reachable from a test
+	failTokenPut error
+	failAliasPut error
+	failMdPut    error
+	failTokenGet error
 }
 
 func newMemDiskStorage() *memDiskStorage {
@@ -46,6 +53,9 @@ func (m *memDiskStorage) GetTokenEntry(ctx context.Context, convID chat1.Convers
 ) (*tokenEntry, error) {
 	m.Lock()
 	defer m.Unlock()
+	if m.failTokenGet != nil {
+		return nil, m.failTokenGet
+	}
 	return m.tokens[m.key(convID, token)], nil
 }
 
@@ -54,6 +64,9 @@ func (m *memDiskStorage) PutTokenEntry(ctx context.Context, convID chat1.Convers
 ) error {
 	m.Lock()
 	defer m.Unlock()
+	if m.failTokenPut != nil {
+		return m.failTokenPut
+	}
 	m.tokens[m.key(convID, token)] = te
 	return nil
 }
@@ -73,6 +86,9 @@ func (m *memDiskStorage) GetAliasEntry(ctx context.Context, alias string) (*alia
 func (m *memDiskStorage) PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error {
 	m.Lock()
 	defer m.Unlock()
+	if m.failAliasPut != nil {
+		return m.failAliasPut
+	}
 	m.aliases[alias] = ae
 	return nil
 }
@@ -92,6 +108,9 @@ func (m *memDiskStorage) GetMetadata(ctx context.Context, convID chat1.Conversat
 func (m *memDiskStorage) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error {
 	m.Lock()
 	defer m.Unlock()
+	if m.failMdPut != nil {
+		return m.failMdPut
+	}
 	m.md[convID.ConvIDStr()] = md
 	return nil
 }
@@ -302,4 +321,133 @@ func TestMetadataReadAfterEvictionKeepsSeenIDs(t *testing.T) {
 	onDisk, err := disk.GetMetadata(ctx, convID)
 	require.NoError(t, err)
 	require.Contains(t, onDisk.SeenIDs, chat1.MessageID(2))
+}
+
+// A write that never reached disk must go back into the pending set. Before
+// this, Flush cleared dirty tracking before writing, so a failed write was
+// dropped: nothing marks a token entry dirty again once its message is indexed,
+// while the live metadata keeps its SeenIDs. The next successful flush then
+// recorded those messages as indexed with no tokens behind them.
+func TestFlushRequeuesUnwrittenEntriesOnFailure(t *testing.T) {
+	ctx, s, disk, convID := setupFlushTestStore(t, "flush-requeue")
+
+	te := newTokenEntry()
+	te.MsgIDs[7] = chat1.EmptyStruct{}
+	s.Lock()
+	require.NoError(t, s.putTokenEntry(ctx, convID, "alpha", te))
+	s.Unlock()
+	require.NoError(t, s.MarkSeen(ctx, convID, []chat1.MessageID{7}))
+
+	disk.Lock()
+	disk.failTokenPut = fmt.Errorf("disk is full")
+	disk.Unlock()
+
+	require.Error(t, s.Flush(), "a failed write must surface")
+
+	// metadata must not have landed while its token did not
+	onDisk, err := disk.GetMetadata(ctx, convID)
+	require.NoError(t, err)
+	require.Nil(t, onDisk, "metadata was published without the tokens behind it")
+
+	s.Lock()
+	pending := s.dirtyCount
+	_, tokenPending := s.dirtyTokens[convID.ConvIDStr()]["alpha"]
+	_, mdPending := s.dirtyMetadata[convID.ConvIDStr()]
+	s.Unlock()
+	require.True(t, tokenPending, "the token that failed to write was dropped")
+	require.True(t, mdPending, "the metadata that was never attempted was dropped")
+	require.Equal(t, 2, pending, "dirtyCount must match what was put back")
+
+	// once the disk recovers, the retry writes everything
+	disk.Lock()
+	disk.failTokenPut = nil
+	disk.Unlock()
+	require.NoError(t, s.Flush())
+
+	gotToken, err := disk.GetTokenEntry(ctx, convID, "alpha")
+	require.NoError(t, err)
+	require.NotNil(t, gotToken, "the retry did not write the token")
+	require.Contains(t, gotToken.MsgIDs, chat1.MessageID(7))
+	gotMd, err := disk.GetMetadata(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, gotMd)
+	require.Contains(t, gotMd.SeenIDs, chat1.MessageID(7))
+}
+
+// Requeueing must not clobber a write that happened after the snapshot was
+// taken - that value is newer than the one that failed.
+func TestRequeueKeepsNewerPendingWrite(t *testing.T) {
+	ctx, s, _, convID := setupFlushTestStore(t, "flush-requeue-newer")
+
+	stale := newTokenEntry()
+	stale.MsgIDs[1] = chat1.EmptyStruct{}
+	newer := newTokenEntry()
+	newer.MsgIDs[2] = chat1.EmptyStruct{}
+
+	s.Lock()
+	require.NoError(t, s.putTokenEntry(ctx, convID, "alpha", newer))
+	s.Unlock()
+
+	s.requeue([]tokenSnapshot{{convID: convID, token: "alpha", entry: stale}}, nil, nil)
+
+	s.Lock()
+	got := s.dirtyTokens[convID.ConvIDStr()]["alpha"]
+	count := s.dirtyCount
+	s.Unlock()
+	require.Contains(t, got.MsgIDs, chat1.MessageID(2), "requeue overwrote a newer pending write")
+	require.Equal(t, 1, count, "requeue double-counted an entry that was already pending")
+}
+
+// Remove used to write metadata straight to disk, ahead of the tokens for any
+// SeenIDs an in-flight Add had put on the same live object.
+func TestRemoveRoutesMetadataThroughOverlay(t *testing.T) {
+	ctx, s, disk, convID := setupFlushTestStore(t, "remove-ordering")
+
+	msg := textMsgForTest(3, "hello world")
+	require.NoError(t, s.Add(ctx, convID, []chat1.MessageUnboxed{msg}))
+
+	require.NoError(t, s.Remove(ctx, convID, []chat1.MessageUnboxed{msg}))
+
+	onDisk, err := disk.GetMetadata(ctx, convID)
+	require.NoError(t, err)
+	require.Nil(t, onDisk,
+		"Remove published metadata to disk directly, ahead of the pending tokens")
+
+	s.Lock()
+	_, mdPending := s.dirtyMetadata[convID.ConvIDStr()]
+	s.Unlock()
+	require.True(t, mdPending, "Remove must leave metadata pending like every other writer")
+}
+
+// Add marked a message seen before indexing it, so an indexing failure left the
+// message recorded as indexed with no tokens - and nothing re-indexes a message
+// the metadata already accounts for.
+func TestAddDoesNotMarkSeenWhenIndexingFails(t *testing.T) {
+	ctx, s, disk, convID := setupFlushTestStore(t, "add-mark-after-work")
+
+	disk.Lock()
+	disk.failTokenGet = fmt.Errorf("cannot read token entry")
+	disk.Unlock()
+
+	msg := textMsgForTest(5, "hello world")
+	require.Error(t, s.Add(ctx, convID, []chat1.MessageUnboxed{msg}),
+		"the indexing failure must surface")
+
+	s.RLock()
+	md, err := s.getMetadataLocked(ctx, convID)
+	s.RUnlock()
+	require.NoError(t, err)
+	require.NotContains(t, md.SeenIDs, chat1.MessageID(5),
+		"message was marked indexed even though indexing it failed")
+}
+
+func textMsgForTest(id chat1.MessageID, body string) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+		ClientHeader: chat1.MessageClientHeaderVerified{
+			MessageType: chat1.MessageType_TEXT,
+			Conv:        chat1.ConversationIDTriple{TopicType: chat1.TopicType_CHAT},
+		},
+		MessageBody:  chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
+		ServerHeader: chat1.MessageServerHeader{MessageID: id},
+	})
 }
