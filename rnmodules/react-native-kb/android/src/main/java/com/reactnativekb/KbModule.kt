@@ -631,6 +631,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
 
+        // Written on init/destroy, read on the permanent reader thread; needs a
+        // visibility guarantee so the reader never sees a stale instance.
+        @Volatile
         var instance: KbModule? = null
         @JvmStatic
         internal var initialNotificationBundle: Bundle? = null

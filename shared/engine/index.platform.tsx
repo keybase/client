@@ -194,13 +194,19 @@ function createClient(
       }
     }
 
+    // Outer guard: this is called from native, so throwing here would abort the
+    // whole batch delivery and unwind into native code.
     global.rpcOnJs = (objs: unknown, count: number) => {
-      if (count > 1) {
-        for (const obj of objs as Array<unknown>) {
-          dispatchOne(obj)
+      try {
+        if (count > 1 && Array.isArray(objs)) {
+          for (const obj of objs) {
+            dispatchOne(obj)
+          }
+        } else {
+          dispatchOne(objs)
         }
-      } else {
-        dispatchOne(objs)
+      } catch (e) {
+        logger.error('>>>> rpcOnJs JS thrown!', e)
       }
     }
 
