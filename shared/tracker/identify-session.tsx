@@ -46,9 +46,16 @@ export type IdentifyLoadOptions = {
   // Infinity: never join, always a fresh identify (explicit user reload).
   freshAfter: number
   ignoreCache: boolean
+  // Skip entirely if an identify at least this strong finished less than this
+  // long ago. Only the mount path sets it: reopening a profile you just looked
+  // at should not re-run every proof check. An explicit reload leaves it unset.
+  maxAgeMs?: number
 }
 
 const sessions = new Map<string, Session>()
+// Survives the session being dropped when it goes idle: closing a profile and
+// reopening it should still count as "we just checked this user".
+const lastCompleted = new Map<string, {at: number; ignoreCache: boolean}>()
 // Kept outside of Session so a subscriber stays attached to its username even
 // if the session object behind it is replaced.
 const subscribersByUsername = new Map<string, Set<() => void>>()
@@ -189,6 +196,7 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
   } finally {
     if (s.generation === generation) {
       s.inFlight = false
+      lastCompleted.set(s.username, {at: Date.now(), ignoreCache: s.ignoreCache})
       dropSessionIfIdle(s)
     }
   }
@@ -261,6 +269,13 @@ export const loadProfileIdentify = (username: string, options: IdentifyLoadOptio
   // cannot stand in for a caller that asked for a forced remote check.
   const strongEnough = s.ignoreCache || !ignoreCache
   if (s.inFlight && strongEnough && s.startedAt >= freshAfter) {
+    return
+  }
+  // A recent finished identify counts too, so long as it was at least as strong
+  // as what is being asked for now.
+  const {maxAgeMs} = options
+  const done = lastCompleted.get(username)
+  if (maxAgeMs !== undefined && done && (done.ignoreCache || !ignoreCache) && Date.now() - done.at < maxAgeMs) {
     return
   }
 
@@ -350,6 +365,7 @@ const ensureEngineSubscriptions = () => {
     if (!s?.details.guiID) {
       return
     }
+    lastCompleted.delete(s.username)
     loadProfileIdentify(s.username, {freshAfter: Date.now(), ignoreCache: true})
   })
 
@@ -358,6 +374,7 @@ const ensureEngineSubscriptions = () => {
     if (!username || uid !== action.payload.params.uid || !sessions.has(username)) {
       return
     }
+    lastCompleted.delete(username)
     loadProfileIdentify(username, {freshAfter: Date.now(), ignoreCache: false})
   })
 }
@@ -387,5 +404,6 @@ export const getProfileNonUserDetails = (username: string) => sessions.get(usern
 
 registerExternalResetter('tracker-identify-sessions', () => {
   sessions.clear()
+  lastCompleted.clear()
   engineSubscribed = false
 })

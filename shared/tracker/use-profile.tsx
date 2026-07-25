@@ -9,6 +9,11 @@ import {
   subscribeToProfile,
 } from './identify-session'
 
+// Reopening a profile you were just looking at re-runs every proof check, and
+// each one is an outbound request to a third-party host. Opening it again within
+// this window reuses the check that just ran; an explicit reload always forces.
+const profileRecheckMs = 30_000
+
 type Options = {
   // surfaces that only want loadProfile() to call after an action, and never
   // read details, can skip the identify their mount would otherwise trigger
@@ -56,7 +61,11 @@ export const useTrackerProfile = (username: string, options?: Options) => {
   const cachedOnMount = options?.cachedOnMount ?? false
   React.useEffect(() => {
     if (loadOnMount) {
-      loadProfileIdentify(username, {freshAfter: 0, ignoreCache: !cachedOnMount})
+      loadProfileIdentify(username, {
+        freshAfter: 0,
+        ignoreCache: !cachedOnMount,
+        maxAgeMs: profileRecheckMs,
+      })
     }
   }, [cachedOnMount, loadOnMount, username])
 
@@ -71,7 +80,9 @@ export const useTrackerProfile = (username: string, options?: Options) => {
         hasSeenFocusRef.current = true
         return
       }
-      loadProfileIdentify(username, {freshAfter: 0, ignoreCache: false})
+      // Refocus happens every time a modal over the profile closes, so this is
+      // the path that re-checked a user we had just checked.
+      loadProfileIdentify(username, {freshAfter: 0, ignoreCache: false, maxAgeMs: profileRecheckMs})
     }, [options?.reloadOnFocus, username])
   )
 

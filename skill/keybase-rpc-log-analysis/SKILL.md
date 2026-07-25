@@ -87,8 +87,22 @@ not `getMessagesRemote`. The script says so when it finds no counts.
 
 ## Mistakes
 
+- **Guessing the trigger from neighbouring lines.** A burst surrounded by
+  startup-looking work is not necessarily startup. Correlate against something
+  independent: the mtimes of `shared/tests/results/test-results/*/test-finished-1.png`
+  give you a timestamped list of which test ran when, and `app.log` records
+  renderer reloads. One burst-per-profile-open and one burst-per-bootstrap look
+  identical in the service log until you check.
 - **Attributing to the child call.** The line directly above a flood is often
   something the flood itself invoked. Trust ROOT over DRIVERS.
+- **Reading a fix as failed because the totals did not move.** If the app's
+  request volume changed between runs, a working cache can show flat server
+  counts. Count what the cache actually did — a hit rate, a log line — before
+  concluding anything. One cache here looked useless in one capture and turned
+  out to be a 79% reduction once the volume feeding it was fixed.
+- **Fixing what you have not measured.** Two of the loudest floods in this
+  log — 15,767 username lookups and 7,284 chain-storage misses — were worth
+  0.16s and 0.24s. Both were correctly left alone. `rpc-cost.py` first.
 - **Blaming the biggest number.** Service-side background work — the search
   indexer especially — can dwarf the real bug. An empty ROOT means nothing asked
   for it. Check whether it recurs on a timer before spending time on it.
@@ -110,3 +124,16 @@ Each of these was a real bug, and each is what its section looks like:
 - FLOODS dominated by one span whose BATCHES are almost all size 1.
 - An APP row whose count is a multiple of the number of times a screen was
   opened — a component keyed on data that arrives in stages, remounting.
+- **A list row eagerly loading what only its hover popup needs.** The single
+  biggest win here was one `loadOnDemand` flag: a profile rendered a row per
+  team and each row annotated its team up front, for a popup nobody opened.
+- **A hook that subscribes to a broadcast per component instance.** One
+  notification then does N times the work, and if the work itself emits that
+  notification it compounds. Subscribe once at module scope and fan out.
+- **The same expensive load repeated because each surface holds its own copy.**
+  Two or three components asking for the same user or team at the same instant
+  is the common case, not the rare one.
+
+Where the money actually is in this client: identify/proof checks and team
+loads. Both are hundreds of milliseconds each and both fan out to several HTTP
+calls. Chat localization is cheap per call but runs over every channel.
