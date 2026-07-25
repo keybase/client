@@ -5,6 +5,12 @@ description: Use when hunting redundant, duplicated or looping RPCs in the Keyba
 
 # Keybase RPC log analysis
 
+**Picking up an in-progress effort?** `plans/rpc-perf-findings.md` holds the
+current state: the baseline numbers, what has already been fixed, what is still
+open and in what order, and what was measured and deliberately left alone. Read
+it before re-deriving any of that. This file is the method; that one is where
+things stand.
+
 The Go service logs every RPC it serves and every call it makes. That log is the
 only place the client's real network behaviour is visible — the JS side shows
 intent, the log shows what actually went out. A quiet minute is ~45 lines; a
