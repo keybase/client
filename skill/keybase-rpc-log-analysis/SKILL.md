@@ -43,8 +43,15 @@ Ask before stopping the service or launching the app — both are the user's.
 | Question | Command |
 |---|---|
 | What did this run do? | `rpc-report.py <log> [--start 2026-07-24T17:23] [--end ...]` |
+| What was actually slow? | `rpc-cost.py <log> [--min-mean-ms 50]` |
 | Why is X called so much? | `rpc-why.py <log> --match 'AttachmentHTTPSrv: GetURL'` |
 | Did my fix work? | `rpc-diff.py before.log after.log` |
+
+**Run `rpc-cost.py` early.** Count and cost answer different questions, and the
+loudest line in the log is usually not the expensive one. In one capture the top
+line by count was an in-memory map lookup — 15,767 calls for 0.16s total, not
+worth touching — while the real cost was 469 team loads at 292ms each, 186
+seconds, sitting 30th by count.
 
 Analysing an already-rotated log is the same — pass
 `~/Library/Logs/keybase.service.log-<start>-<end>` directly. The filename carries
