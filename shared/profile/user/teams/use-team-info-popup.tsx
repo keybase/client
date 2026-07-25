@@ -27,11 +27,12 @@ const useTeamInfoPopup = ({loadOnDemand = false, popupInfo, teamID: initialTeamI
   const teamID = initialTeamID ?? teamNameToID.get(teamname) ?? T.Teams.noTeamID
   const teamLoadEnabled = !loadOnDemand || hasRequestedLoad
   const {loaded, loading: loadingTeam, teamDetails, teamMeta} = useLoadedTeam(teamID, teamLoadEnabled)
-  const hasLoadedTeam = teamMeta.teamname.length > 0
+  // `loaded`, not a non-empty teamname: useLoadedTeam seeds teamMeta from the cheap
+  // teams-list, so a team you're in looks named long before its details exist.
   const inTeam = teamMeta.role !== 'none'
-  const description = hasLoadedTeam ? teamDetails.description : (popupInfo?.description ?? '')
-  const isOpen = hasLoadedTeam ? teamDetails.settings.open : (popupInfo?.isOpen ?? false)
-  const membersCount = hasLoadedTeam ? teamDetails.members.size : (popupInfo?.membersCount ?? 0)
+  const description = loaded ? teamDetails.description : (popupInfo?.description ?? '')
+  const isOpen = loaded ? teamDetails.settings.open : (popupInfo?.isOpen ?? false)
+  const membersCount = loaded ? teamDetails.members.size : (popupInfo?.membersCount ?? 0)
 
   const onJoinTeam = React.useCallback(
     (teamname: string) => {
@@ -89,17 +90,23 @@ const useTeamInfoPopup = ({loadOnDemand = false, popupInfo, teamID: initialTeamI
   }, [loaded, loadingTeam, pendingOpen, showPopup])
 
   const onClick = React.useCallback(() => {
-    if (!loadOnDemand || teamID === T.Teams.noTeamID || hasLoadedTeam) {
+    if (!loadOnDemand || teamID === T.Teams.noTeamID || loaded) {
+      showPopup()
+      return
+    }
+    setHasRequestedLoad(true)
+    // popupInfo already carries everything the popup shows (it comes from the
+    // profile's showcase payload), so open now and let the load refine it
+    if (popupInfo) {
       showPopup()
       return
     }
     if (loadingTeam || pendingOpen) {
       return
     }
-    setHasRequestedLoad(true)
     hasSeenPendingLoadRef.current = false
     setPendingOpen(true)
-  }, [hasLoadedTeam, loadOnDemand, loadingTeam, pendingOpen, showPopup, teamID])
+  }, [loaded, loadOnDemand, loadingTeam, pendingOpen, popupInfo, showPopup, teamID])
 
   return {loadingTeam, onClick, pendingOpen, popup, popupAnchor}
 }
