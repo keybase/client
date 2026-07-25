@@ -451,3 +451,35 @@ func textMsgForTest(id chat1.MessageID, body string) chat1.MessageUnboxed {
 		ServerHeader: chat1.MessageServerHeader{MessageID: id},
 	})
 }
+
+// Bumping indexVersion is how a damaged index gets rebuilt: a conv whose
+// metadata claims messages are indexed reads as complete, so nothing revisits
+// it and only a version change discards it. That makes the mismatch check
+// load-bearing rather than incidental.
+func TestStaleVersionEntriesAreDiscarded(t *testing.T) {
+	ctx, s, disk, convID := setupFlushTestStore(t, "stale-version")
+
+	staleToken := newTokenEntry()
+	staleToken.Version = "1:1"
+	staleToken.MsgIDs[7] = chat1.EmptyStruct{}
+	require.NoError(t, disk.PutTokenEntry(ctx, convID, "alpha", staleToken))
+
+	staleMd := newIndexMetadata()
+	staleMd.Version = "1:1"
+	staleMd.SeenIDs[7] = chat1.EmptyStruct{}
+	require.NoError(t, disk.PutMetadata(ctx, convID, staleMd))
+
+	s.Lock()
+	gotToken, err := s.getTokenEntry(ctx, convID, "alpha")
+	s.Unlock()
+	require.NoError(t, err)
+	require.NotContains(t, gotToken.MsgIDs, chat1.MessageID(7),
+		"an entry written by an older index version was served instead of discarded")
+
+	s.RLock()
+	gotMd, err := s.getMetadataLocked(ctx, convID)
+	s.RUnlock()
+	require.NoError(t, err)
+	require.NotContains(t, gotMd.SeenIDs, chat1.MessageID(7),
+		"stale metadata was kept, so the conv would still read as indexed")
+}

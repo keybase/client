@@ -20,7 +20,18 @@ import (
 )
 
 const (
-	indexVersion      = 16
+	// 16 -> 17 discards every existing index. Several bugs could leave a
+	// conversation's metadata recording messages as indexed while the tokens
+	// making them findable never reached disk: writes evicted from the cache
+	// before a flush, a flush that failed partway, Remove publishing metadata
+	// ahead of its tokens, and Add marking a message before indexing it. Such a
+	// conversation reads as fully indexed, so nothing revisits it and the
+	// messages stay unsearchable - repairing it in place is not possible. The
+	// same rebuild also resets alias refcounts, which were inflated by the
+	// re-indexing loop that ran before this branch (measured at 57,648
+	// already-indexed messages re-added in a single pass) and which never
+	// decrement back to zero.
+	indexVersion      = 17
 	tokenEntryVersion = 2
 	aliasEntryVersion = 3
 
