@@ -48,10 +48,22 @@ const (
 //
 // It is a trigger, not a ceiling. The flush cannot run until the writer releases
 // s.Lock, and one Add writes a whole batch of tokens and aliases under a single
-// hold, so the set peaks at roughly this plus one batch - measured at 1.1k-2.5k
-// against a 1000 bound while reindexing. That is the number to reason about;
-// what matters is that it does not track the writer's total volume.
-const maxDirtyEntries = 1000
+// hold, so the set peaks at roughly this plus one batch.
+//
+// It therefore has to sit well above one batch. A page of 300 messages produces
+// ~2600 entries, so a 1000 bound was crossed by every single batch and turned
+// into "flush after every batch": measured at 65 flushes in 2.9s, a 0.04s median
+// gap, rewriting hot tokens to disk - each one re-encrypted whole, not as a
+// delta - on every pass instead of once an interval. Raising it to 20000 cut
+// that to 7 flushes over a comparable window.
+//
+// Note this counts entries, not bytes, and the two differ by a lot: an entry
+// holding one message id and one holding ten thousand both count as 1. A fresh
+// index is a few MB at this bound, but a mature conversation's entries are much
+// larger - the pending set is biased towards hot tokens, whose posting lists are
+// the longest - so 35-40MB is the realistic ceiling there. A byte-based bound
+// would measure the thing that actually matters.
+const maxDirtyEntries = 20000
 
 type tokenEntry struct {
 	Version string                                `codec:"v"`
@@ -509,6 +521,10 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 	}
 	// evicted from the cache but not yet flushed: the copy on disk is stale
 	if te, ok := s.dirtyTokens[convID.ConvIDStr()][token]; ok {
+		if te == nil {
+			// pending delete: the copy still on disk is about to go
+			return newTokenEntry(), nil
+		}
 		s.tokenCache.Add(cacheKey, te)
 		return te, nil
 	}
@@ -532,6 +548,10 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 	}
 	// evicted from the cache but not yet flushed: the copy on disk is stale
 	if ae, ok := s.dirtyAliases[alias]; ok {
+		if ae == nil {
+			// pending delete: the copy still on disk is about to go
+			return newAliasEntry(), nil
+		}
 		s.aliasCache.Add(alias, ae)
 		return ae, nil
 	}
@@ -616,30 +636,30 @@ func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationI
 
 	s.tokenCache.Remove(cacheKey)
 
+	// Queue the delete rather than writing it through. Flush snapshots under the
+	// lock but writes outside it, so a delete applied straight to disk in that
+	// window was undone by the write that followed, and requeueing a failed
+	// write could put a deleted entry back. Ordering both through the pending
+	// set keeps the last operation the one that lands.
 	convIDStr := convID.ConvIDStr()
-	if tokens, ok := s.dirtyTokens[convIDStr]; ok {
-		if _, pending := tokens[token]; pending {
-			s.dirtyCount--
-		}
-		delete(tokens, token)
-		// Clean up empty map
-		if len(tokens) == 0 {
-			delete(s.dirtyTokens, convIDStr)
-		}
+	if s.dirtyTokens[convIDStr] == nil {
+		s.dirtyTokens[convIDStr] = make(map[string]*tokenEntry)
 	}
-
-	// Delete from disk immediately
-	s.diskStorage.RemoveTokenEntry(ctx, convID, token)
+	if _, pending := s.dirtyTokens[convIDStr][token]; !pending {
+		s.dirtyCount++
+	}
+	s.dirtyTokens[convIDStr][token] = nil
+	s.signalFlushIfFullLocked()
 }
 
 func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
 	s.aliasCache.Remove(alias)
-	if _, pending := s.dirtyAliases[alias]; pending {
-		s.dirtyCount--
+	// queued, not written through - see deleteTokenEntry
+	if _, pending := s.dirtyAliases[alias]; !pending {
+		s.dirtyCount++
 	}
-	delete(s.dirtyAliases, alias)
-	// Delete from disk immediately
-	s.diskStorage.RemoveAliasEntry(ctx, alias)
+	s.dirtyAliases[alias] = nil
+	s.signalFlushIfFullLocked()
 }
 
 // addTokens add the given tokens to the index under the given message
@@ -1151,6 +1171,11 @@ func (s *store) Flush() error {
 		len(tokenSnapshots), len(aliasSnapshots), len(mdSnapshots))
 
 	for i, snapshot := range tokenSnapshots {
+		// a nil entry is a queued delete, not a value to write
+		if snapshot.entry == nil {
+			s.diskStorage.RemoveTokenEntry(ctx, snapshot.convID, snapshot.token)
+			continue
+		}
 		if err := s.diskStorage.PutTokenEntry(ctx, snapshot.convID, snapshot.token, snapshot.entry); err != nil {
 			s.Debug(ctx, "Flush: failed to write token: %s", err)
 			s.requeue(tokenSnapshots[i:], aliasSnapshots, mdSnapshots)
@@ -1160,6 +1185,11 @@ func (s *store) Flush() error {
 	tokenSnapshots = nil
 
 	for alias, ae := range aliasSnapshots {
+		if ae == nil {
+			s.diskStorage.RemoveAliasEntry(ctx, alias)
+			delete(aliasSnapshots, alias)
+			continue
+		}
 		if err := s.diskStorage.PutAliasEntry(ctx, alias, ae); err != nil {
 			s.Debug(ctx, "Flush: failed to write alias: %s", err)
 			s.requeue(nil, aliasSnapshots, mdSnapshots)

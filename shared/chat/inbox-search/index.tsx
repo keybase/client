@@ -265,7 +265,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     renderHeaderWithMore(section, _botsResults.length, botsCollapsed, botsAll, toggleBotsAll)
 
   const renderTextHeader = (section: Section) => {
-    const ratio = indexPercent / 100.0
+    const ratio = (indexPercent ?? 0) / 100.0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
         <Kb.SectionDivider
@@ -280,7 +280,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
               Search failed, please try again, or contact Keybase describing the problem.
             </Kb.Text>
           </Kb.Box2>
-        ) : indexPercent > 0 && indexPercent < 100 ? (
+        ) : indexPercent !== undefined && indexPercent < 100 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
             <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
             {isMobile ? (

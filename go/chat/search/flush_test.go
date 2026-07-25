@@ -34,6 +34,10 @@ type memDiskStorage struct {
 	failAliasPut error
 	failMdPut    error
 	failTokenGet error
+
+	// runs once, during a PutTokenEntry, to interleave an operation with a
+	// flush's disk writes - which happen outside the store lock
+	onPutToken func()
 }
 
 func newMemDiskStorage() *memDiskStorage {
@@ -67,6 +71,16 @@ func (m *memDiskStorage) PutTokenEntry(ctx context.Context, convID chat1.Convers
 	if m.failTokenPut != nil {
 		return m.failTokenPut
 	}
+	if te == nil {
+		return fmt.Errorf("PutTokenEntry called with a nil entry: a delete must not be written as a value")
+	}
+	if m.onPutToken != nil {
+		hook := m.onPutToken
+		m.onPutToken = nil
+		m.Unlock()
+		hook()
+		m.Lock()
+	}
 	m.tokens[m.key(convID, token)] = te
 	return nil
 }
@@ -88,6 +102,9 @@ func (m *memDiskStorage) PutAliasEntry(ctx context.Context, alias string, ae *al
 	defer m.Unlock()
 	if m.failAliasPut != nil {
 		return m.failAliasPut
+	}
+	if ae == nil {
+		return fmt.Errorf("PutAliasEntry called with a nil entry: a delete must not be written as a value")
 	}
 	m.aliases[alias] = ae
 	return nil
@@ -482,4 +499,98 @@ func TestStaleVersionEntriesAreDiscarded(t *testing.T) {
 	require.NoError(t, err)
 	require.NotContains(t, gotMd.SeenIDs, chat1.MessageID(7),
 		"stale metadata was kept, so the conv would still read as indexed")
+}
+
+// A delete that lands while a flush is writing must survive that flush. Flush
+// snapshots under the lock but writes outside it, so a delete applied straight
+// to disk in that window was immediately undone by the write that followed and
+// the entry stayed searchable forever. Queuing the delete instead orders it
+// after the write.
+func TestDeleteDuringFlushIsNotResurrected(t *testing.T) {
+	ctx, s, disk, convID := setupFlushTestStore(t, "delete-during-flush")
+
+	te := newTokenEntry()
+	te.MsgIDs[7] = chat1.EmptyStruct{}
+	s.Lock()
+	require.NoError(t, s.putTokenEntry(ctx, convID, "alpha", te))
+	s.Unlock()
+
+	// delete the entry midway through the flush that is writing it
+	disk.Lock()
+	disk.onPutToken = func() {
+		s.Lock()
+		s.deleteTokenEntry(ctx, convID, "alpha")
+		s.Unlock()
+	}
+	disk.Unlock()
+
+	require.NoError(t, s.Flush())
+	// that flush wrote the value it had already snapshotted; the delete is
+	// pending behind it and must be applied by the next one
+	require.NoError(t, s.Flush())
+
+	onDisk, err := disk.GetTokenEntry(ctx, convID, "alpha")
+	require.NoError(t, err)
+	require.Nil(t, onDisk,
+		"a delete issued during a flush was undone by that flush's write")
+
+	s.Lock()
+	got, err := s.getTokenEntry(ctx, convID, "alpha")
+	s.Unlock()
+	require.NoError(t, err)
+	require.NotContains(t, got.MsgIDs, chat1.MessageID(7),
+		"the resurrected entry is still readable")
+}
+
+// A queued delete must be visible to readers immediately, rather than reading
+// back the copy that is still on disk until the next flush.
+func TestPendingDeleteIsNotReadFromDisk(t *testing.T) {
+	ctx, s, disk, convID := setupFlushTestStore(t, "pending-delete-read")
+
+	te := newTokenEntry()
+	te.MsgIDs[7] = chat1.EmptyStruct{}
+	s.Lock()
+	require.NoError(t, s.putTokenEntry(ctx, convID, "alpha", te))
+	s.Unlock()
+	require.NoError(t, s.Flush())
+
+	onDisk, err := disk.GetTokenEntry(ctx, convID, "alpha")
+	require.NoError(t, err)
+	require.NotNil(t, onDisk, "precondition: the entry is on disk")
+
+	s.Lock()
+	s.deleteTokenEntry(ctx, convID, "alpha")
+	got, err := s.getTokenEntry(ctx, convID, "alpha")
+	s.Unlock()
+	require.NoError(t, err)
+	require.NotContains(t, got.MsgIDs, chat1.MessageID(7),
+		"a pending delete must not read back the copy still on disk")
+
+	require.NoError(t, s.Flush())
+	onDisk, err = disk.GetTokenEntry(ctx, convID, "alpha")
+	require.NoError(t, err)
+	require.Nil(t, onDisk, "the queued delete never reached disk")
+}
+
+// The failure path must not undo a delete: requeue puts unwritten snapshots
+// back, and a delete that happened since the snapshot has to win.
+func TestRequeueDoesNotResurrectDeletedEntry(t *testing.T) {
+	ctx, s, _, convID := setupFlushTestStore(t, "requeue-delete")
+
+	stale := newTokenEntry()
+	stale.MsgIDs[7] = chat1.EmptyStruct{}
+
+	// the delete lands after the snapshot was taken
+	s.Lock()
+	s.deleteTokenEntry(ctx, convID, "alpha")
+	s.Unlock()
+
+	s.requeue([]tokenSnapshot{{convID: convID, token: "alpha", entry: stale}}, nil, nil)
+
+	s.Lock()
+	entry, ok := s.dirtyTokens[convID.ConvIDStr()]["alpha"]
+	s.Unlock()
+	require.True(t, ok, "the delete should still be pending")
+	require.Nil(t, entry,
+		"requeue resurrected an entry that was deleted after the snapshot")
 }
