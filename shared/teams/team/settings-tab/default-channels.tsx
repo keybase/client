@@ -30,6 +30,23 @@ registerExternalResetter('teams-default-channels-caches', () => {
   defaultChannelsCaches.clear()
 })
 
+// resolve rather than reject on failure: consumers render an empty list (and no
+// spinner) on error, and a cached failure keeps a broken team from re-requesting
+// on every render. Module scope, not inline in the hook: a try/catch wrapping a
+// value block is a react-compiler bailout.
+const loadDefaultChannels = async (teamID: T.Teams.TeamID): Promise<DefaultChannelsData> => {
+  try {
+    const {convs} = await T.RPCChat.localGetDefaultTeamChannelsLocalRpcPromise({teamID})
+    return [
+      {channelname: 'general', conversationIDKey: 'unused'},
+      ...(convs ?? []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
+    ]
+  } catch (error) {
+    logger.warn(`Failed to load default channels for ${teamID}`, error)
+    return emptyDefaultChannels
+  }
+}
+
 export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   const cache = React.useMemo(
     () => getCachedResourceCache(defaultChannelsCaches, emptyDefaultChannels, teamID),
@@ -39,21 +56,7 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
     cache,
     cacheKey: teamID,
     initialData: emptyDefaultChannels,
-    // resolve rather than reject on failure: consumers render an empty list (and no
-    // spinner) on error, and a cached failure keeps a broken team from re-requesting
-    // on every render
-    load: async () => {
-      try {
-        const {convs} = await T.RPCChat.localGetDefaultTeamChannelsLocalRpcPromise({teamID})
-        return [
-          {channelname: 'general', conversationIDKey: 'unused'},
-          ...(convs ?? []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
-        ]
-      } catch (error) {
-        logger.warn(`Failed to load default channels for ${teamID}`, error)
-        return emptyDefaultChannels
-      }
-    },
+    load: async () => await loadDefaultChannels(teamID),
     staleMs: defaultChannelsStaleMs,
   })
 

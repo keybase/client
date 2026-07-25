@@ -26,6 +26,8 @@ test('unstable initialData does not loop', async () => {
     return {v: calls}
   })
   const Comp = () => {
+    // counts real renders: compiling this away is exactly what the test measures
+    'use no memo'
     renders++
     const {data} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     return <div>{data.v}</div>
@@ -73,6 +75,8 @@ test('reload bypasses the failure backoff', async () => {
     throw new Error('nope')
   })
   const Comp = () => {
+    // hoists reload out to the test body; the compiler rejects the assignment
+    'use no memo'
     const resource = useCachedResource({
       cache,
       cacheKey: 'k',

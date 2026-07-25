@@ -56,6 +56,8 @@ jest.spyOn(T.RPCGen, 'teamsGetTeamRoleMapRpcPromise').mockImplementation(async (
 
 let bodyRenders = 0
 const Body = () => {
+  // counts real renders: compiling this away is exactly what the test measures
+  'use no memo'
   bodyRenders++
   const {teamMeta} = useLoadedTeam(teamID)
   const {channels} = useLoadedTeamChannels(teamID)
