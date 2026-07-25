@@ -31,7 +31,11 @@ export const subscribeToEngineAction = <T extends EngineGen.ActionType>(
   listeners.add(untypedListener)
   return () => {
     listeners.delete(untypedListener)
-    if (!listeners.size) {
+    // Only drop the entry if the map still holds THIS set. A reset replaces the
+    // set for a type, so an unsubscribe left over from before the reset would
+    // otherwise see its own detached, now-empty set and delete the live one,
+    // silently unsubscribing everybody who registered after the reset.
+    if (!listeners.size && listenersByType.get(type) === listeners) {
       listenersByType.delete(type)
     }
   }

@@ -14,6 +14,12 @@ type Options = {
   // read details, can skip the identify their mount would otherwise trigger
   loadOnMount?: boolean
   reloadOnFocus?: boolean
+  // Opening a profile means "check this identity now", so it forces a remote
+  // check of every proof. Incidental surfaces - a hover card, a follow button in
+  // a list - do not: they still need an identify session, but the cached proof
+  // results answer them, and forcing one re-fetches every proof from its
+  // third-party host, which those hosts rate limit.
+  cachedOnMount?: boolean
 }
 
 export const useTrackerProfile = (username: string, options?: Options) => {
@@ -47,11 +53,12 @@ export const useTrackerProfile = (username: string, options?: Options) => {
   )
 
   const loadOnMount = options?.loadOnMount ?? true
+  const cachedOnMount = options?.cachedOnMount ?? false
   React.useEffect(() => {
     if (loadOnMount) {
-      loadProfileIdentify(username, {freshAfter: 0, ignoreCache: true})
+      loadProfileIdentify(username, {freshAfter: 0, ignoreCache: !cachedOnMount})
     }
-  }, [loadOnMount, username])
+  }, [cachedOnMount, loadOnMount, username])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {

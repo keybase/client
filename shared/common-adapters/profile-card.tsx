@@ -140,7 +140,10 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
-  const {details: userDetails, loadProfile} = useTrackerProfile(username)
+  // a hover card is incidental, not "check this identity now" - the cached proof
+  // results are what it should show, and forcing a check re-fetches every proof
+  // from its third-party host
+  const {details: userDetails, loadProfile} = useTrackerProfile(username, {cachedOnMount: true})
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
   const isSelf = useCurrentUserState(s => s.username === username)
