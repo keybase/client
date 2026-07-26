@@ -8,7 +8,7 @@ export type CachedResourceCache<T, K> = {
   getFailedAt: () => number
   getGeneration: () => number
   getInFlight: () => Promise<T> | undefined
-  getInFlightStartedAt: () => number
+  getInFlightSeq: () => number
   getKey: () => K
   getLoadedAt: () => number
   invalidate: (key: K) => void
@@ -24,6 +24,14 @@ export type CachedResourceCache<T, K> = {
 // request the instant the previous one settled - an unbounded retry loop at RPC
 // speed. An explicit reload()/invalidate() still retries immediately.
 const loadFailureBackoffMs = 5_000
+
+// Ordering of "was this request already on the wire when I asked?" cannot use
+// Date.now(): a mutation and the reload it triggers routinely land in the same
+// millisecond, and the two timestamps then compare equal, so the forced load
+// joins the very request it must supersede. A counter is exact.
+let inFlightSequence = 0
+const nextInFlightSeq = () => ++inFlightSequence
+const currentInFlightSeq = () => inFlightSequence
 
 type CachedResourceState<T> = {
   data: T
@@ -96,7 +104,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
   let failedAt = 0
   let generation = 0
   let inFlight: Promise<T> | undefined
-  let inFlightStartedAt = 0
+  let inFlightSeq = 0
   let loadedAt = 0
   let storedKey = key
 
@@ -110,7 +118,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
     getFailedAt: () => failedAt,
     getGeneration: () => generation,
     getInFlight: (): Promise<T> | undefined => inFlight,
-    getInFlightStartedAt: () => inFlightStartedAt,
+    getInFlightSeq: () => inFlightSeq,
     getKey: () => storedKey,
     getLoadedAt: () => loadedAt,
     invalidate: nextKey => {
@@ -137,7 +145,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
     },
     setInFlight: request => {
       inFlight = request
-      inFlightStartedAt = Date.now()
+      inFlightSeq = nextInFlightSeq()
     },
     setLoadFailed: requestGeneration => {
       if (generation === requestGeneration) {
@@ -171,15 +179,15 @@ const runLoad = async <T, K>(
   requestVersionRef: React.RefObject<number>,
   setState: React.Dispatch<React.SetStateAction<StoredCachedResourceState<T, K>>>,
   force: boolean,
-  requestedAt: number
+  requestedSeq: number
 ) => {
   let request: Promise<T> | undefined
   // A forced load exists because something changed, so joining a request that
   // was already on the wire before we asked would settle to pre-change data -
   // and stamp loadedAt on it, holding it stale for the whole window. Only join a
-  // request that started at or after this one was asked for, which still
-  // collapses the N-mounted-consumers-reload-together case to one RPC.
-  const staleInFlight = force && cache.getInFlightStartedAt() < requestedAt
+  // request that started after this one was asked for, which still collapses the
+  // N-mounted-consumers-reload-together case to one RPC.
+  const staleInFlight = force && !!cache.getInFlight() && cache.getInFlightSeq() <= requestedSeq
   if (staleInFlight) {
     cache.invalidate(cacheKey)
   }
@@ -274,7 +282,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
   const loadResource = React.useCallback(async (force: boolean) => {
     // stamped before any await so a forced load can tell an in-flight request
     // that predates it from one issued in response to the same change
-    const requestedAt = Date.now()
+    const requestedSeq = currentInFlightSeq()
     const {cache, cacheKey, enabled, initialData, load, onError, staleMs} = latestRef.current
     const resetCache = (nextKey: K) => {
       cache.reset(initialData, nextKey)
@@ -315,7 +323,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
       requestVersionRef,
       setState,
       force,
-      requestedAt
+      requestedSeq
     )
   }, [])
 
