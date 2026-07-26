@@ -4,10 +4,14 @@ import {expect, jest, test} from '@jest/globals'
 import {act, render} from '@testing-library/react'
 import {createCachedResourceCache, useCachedResource} from './use-cached-resource'
 
+// A setState that lands outside act() - every load settling on its own - is
+// scheduled on React's MessageChannel, i.e. a macrotask. A flush built only from
+// awaited microtasks never lets the event loop reach it, so the commit lands (or
+// not) depending on how the runtime happens to interleave: use a real timer.
 const flush = async (turns = 40) => {
   for (let i = 0; i < turns; i++) {
     await act(async () => {
-      await Promise.resolve()
+      await new Promise(resolve => setTimeout(resolve, 0))
     })
   }
 }
@@ -198,6 +202,43 @@ test('a forced reload supersedes a request that predates it', async () => {
   await flush()
   expect(view.getAllByText('v2')).toHaveLength(1)
   expect(cache.getData()).toEqual({v: 2})
+})
+
+// The mutation and the reload it triggers routinely fall inside one millisecond,
+// so ordering the two by Date.now() compares them equal and the forced load
+// joins the very request it exists to supersede.
+test('a forced reload supersedes a same-millisecond request', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  const releases: Array<(v: Data) => void> = []
+  const load = jest.fn(async () => {
+    calls++
+    return await new Promise<Data>(resolve => {
+      releases.push(resolve)
+    })
+  })
+  let reload: (() => Promise<void>) | undefined
+  const Comp = () => {
+    'use no memo'
+    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    reload = resource.reload
+    return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
+  }
+  const realNow = Date.now
+  const frozen = realNow()
+  Date.now = () => frozen
+  try {
+    render(<Comp />)
+    await flush()
+    expect(calls).toBe(1)
+    act(() => {
+      void reload?.()
+    })
+    await flush()
+    expect(calls).toBe(2)
+  } finally {
+    Date.now = realNow
+  }
 })
 
 // Two consumers mounting together must share one request, not race two. This is
