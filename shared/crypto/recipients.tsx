@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   inProgress: boolean
@@ -22,6 +23,7 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
           <Kb.ClickableBox
             direction="horizontal"
             style={styles.input}
+            testID={TestIDs.CRYPTO_RECIPIENTS}
             onClick={inProgress ? undefined : onAddRecipients}
           >
             {/* Display-only input; block it from taking focus so opening the

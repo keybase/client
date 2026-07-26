@@ -62,11 +62,16 @@ function WithTooltip(p: Props) {
   }, 3000)
   const {width: screenWidth, height: screenHeight} = useSafeAreaFrame()
 
-  C.Router2.useSafeFocusEffect(() => {
-    return () => {
-      setNativeVisible(false)
-    }
-  })
+  // must be stable: an unstable callback re-runs the focus effect (and so its
+  // cleanup) on every render, which would hide the tooltip as soon as showing it
+  // re-renders us
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setNativeVisible(false)
+      }
+    }, [])
+  )
 
   if (!isMobile) {
     const onMouseEnter = () => setDesktopVisible(true)

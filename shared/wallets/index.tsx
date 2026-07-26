@@ -118,7 +118,7 @@ const WalletsScreen = () => {
   const loadAccounts = C.useRPC(T.RPCStellar.localGetWalletAccountsLocalRpcPromise)
 
   C.Router2.useSafeFocusEffect(
-    () => {
+    React.useCallback(() => {
       loadAccounts(
         [undefined, loadAccountsWaitingKey],
         res => {
@@ -138,7 +138,7 @@ const WalletsScreen = () => {
         }
       )
       return () => {}
-    }
+    }, [loadAccounts, checkDisclaimer])
   )
 
   const loading = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
