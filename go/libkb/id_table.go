@@ -1909,10 +1909,15 @@ func (idt *IdentityTable) checkStatusShared(m MetaContext, pc ProofChecker, hint
 		return pc.CheckStatus(m, hint, pcm, pvlU)
 	}
 
-	verifiedHint, perr := pc.CheckStatus(m, hint, pcm, pvlU)
+	var verifiedHint *SigHint
+	var perr ProofError
 	if mine != nil {
-		mine.finish(verifiedHint, perr, m.Ctx().Err() == nil)
+		// Deferred so a panic in the checker still closes the flight. Otherwise
+		// the entry sits in the LRU with an open channel and every session that
+		// shares it blocks until its own context is canceled.
+		defer func() { mine.finish(verifiedHint, perr, m.Ctx().Err() == nil) }()
 	}
+	verifiedHint, perr = pc.CheckStatus(m, hint, pcm, pvlU)
 	return verifiedHint, perr
 }
 
