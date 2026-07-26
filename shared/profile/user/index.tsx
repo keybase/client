@@ -15,6 +15,7 @@ import {SiteIcon} from '../generic/site-icon'
 import useUserData from './hooks'
 import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {registerExternalResetter} from '@/util/zustand'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -565,6 +566,11 @@ const User = (props: {username: string}) => {
 }
 
 const usernameSelectedTab = new Map<string, Tab>()
+
+// module scope outlives sign-out; keyed by username
+registerExternalResetter('profile-user-selected-tab', () => {
+  usernameSelectedTab.clear()
+})
 
 const avatarSize = 128
 
