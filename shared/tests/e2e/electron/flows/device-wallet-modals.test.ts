@@ -20,7 +20,8 @@ test('add device chooser opens', async ({page}, testInfo) => {
 test('crypto recipients team builder opens', async ({page}, testInfo) => {
   await navigateToCrypto(page)
   await page.getByTestId(T.CRYPTO_NAV_ENCRYPT).click()
-  await page.getByPlaceholder('Search people').locator('visible=true').first().click()
+  // the "Search people" input itself is pointerEvents:none — click its wrapper
+  await page.getByTestId(T.CRYPTO_RECIPIENTS).locator('visible=true').first().click()
   const search = page.getByPlaceholder('Search Keybase').locator('visible=true')
   await expect(search.first()).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)

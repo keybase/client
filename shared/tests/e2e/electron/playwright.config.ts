@@ -2,7 +2,9 @@ import {defineConfig} from '@playwright/test'
 
 export default defineConfig({
   testDir: './',
-  timeout: 15_000,
+  // several flows chain 3-4 five-second waits against a live service, so the
+  // per-test budget has to clear the sum of their step timeouts
+  timeout: 30_000,
   retries: 1,
   workers: 1,
   outputDir: '../../results/test-results',

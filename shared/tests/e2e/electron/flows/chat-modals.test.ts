@@ -79,13 +79,16 @@ test('bot install preview opens', async ({page}, testInfo) => {
   await page.getByTestId(T.CHAT_INFO_PANEL).getByText('Bots', {exact: true}).click()
   const botRows = page.getByTestId(T.CHAT_BOT_ROW)
   await expect(botRows.first()).toBeVisible({timeout: 10_000})
-  await botRows.first().click()
-  // installed bot: Edit settings; new bot: Install; restricted bot: Review
-  const installButton = page.getByText(/^(Install|Edit settings|Review)$/).first()
-  await expect(installButton).toBeVisible({timeout: 10_000})
+  // the row center sits on the "by <owner>" username link, which navigates to
+  // that user's profile instead — click the avatar column on the left
+  await botRows.first().click({position: {x: 20, y: 28}})
+  // the footer button depends on the bot's state (Install / Review / Edit
+  // settings / Uninstall), so assert on the modal instead of a label
+  const installModal = page.getByTestId(T.CHAT_BOT_INSTALL).first()
+  await expect(installModal).toBeVisible({timeout: 10_000})
   await snap(page, testInfo)
   await page.locator('.icon-gen-iconfont-close:visible').first().click()
-  await expect(installButton).not.toBeVisible({timeout: 5_000})
+  await expect(installModal).not.toBeVisible({timeout: 5_000})
   // close the info panel again
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).not.toBeVisible({timeout: 5_000})

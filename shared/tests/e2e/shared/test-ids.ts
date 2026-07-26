@@ -22,6 +22,9 @@ export const CHAT_EMOJI_PICKER = 'chat-emoji-picker'
 export const CHAT_ATTACHMENT_IMAGE      = 'chat-attachment-image'
 export const CHAT_ATTACHMENT_FULLSCREEN = 'chat-attachment-fullscreen'
 export const CHAT_BOT_ROW               = 'chat-bot-row'
+// the install modal's footer button varies with the bot's state (Install /
+// Review / Edit settings / Uninstall), so tests key off the modal itself
+export const CHAT_BOT_INSTALL           = 'chat-bot-install'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 export const CHAT_EMOJI_BUTTON          = 'chat-emoji-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
@@ -95,6 +98,9 @@ export const CRYPTO_DECRYPT_INPUT = 'crypto-decrypt-input'
 export const CRYPTO_SIGN_INPUT    = 'crypto-sign-input'
 export const CRYPTO_VERIFY_INPUT  = 'crypto-verify-input'
 export const CRYPTO_RUN_BUTTON    = 'crypto-run-button'
+// The recipients field is a display-only input inside a pointerEvents="none"
+// wrapper, so only this outer clickable can receive a click.
+export const CRYPTO_RECIPIENTS    = 'crypto-recipients'
 
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
