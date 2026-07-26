@@ -435,7 +435,14 @@ const PeopleReloadable = () => {
 
   const onClickUser = (username: string) => navToProfile(username)
 
-  const onReload = (isRetry?: boolean) => getData(false, isRetry === true || !followSuggestions.length)
+  const reload = React.useEffectEvent((isRetry?: boolean) => {
+    getData(false, isRetry === true || !followSuggestions.length)
+  })
+  // frozen wrapper: effect-event identities change every render, and an unstable
+  // fn makes useSafeFocusEffect re-run (so re-reload) on every render while focused
+  const [onReload] = React.useState(() => (isRetry?: boolean) => {
+    reload(isRetry)
+  })
 
   C.Router2.useSafeFocusEffect(onReload)
   useEngineActionListener('keybase.1.homeUI.homeUIRefresh', () => {
