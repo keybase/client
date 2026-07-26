@@ -151,6 +151,9 @@ func (c *annotatedTeamCache) load(mctx libkb.MetaContext, teamID keybase1.TeamID
 			}()
 		}
 
+		// Age the entry from when the load started, not when it finished: the
+		// data describes the server state as of the request, so a slow loader
+		// must not buy the result extra TTL it has already spent being stale.
 		startedAt := mctx.G().Clock().Now()
 		res, err = loader(mctx.Ctx(), mctx.G(), teamID)
 

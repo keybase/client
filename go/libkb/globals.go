@@ -754,8 +754,8 @@ func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
 }
 
 func (g *GlobalContext) SetImplicitTeamConflictInfoCacher(l LRUer) {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.itciCacher = l
 }
 
@@ -766,8 +766,8 @@ func (g *GlobalContext) GetImplicitTeamCacher() MemLRUer {
 }
 
 func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.iteamCacher = l
 }
 
@@ -778,9 +778,6 @@ func (g *GlobalContext) GetAnnotatedTeamCacher() AnnotatedTeamCacher {
 }
 
 func (g *GlobalContext) SetAnnotatedTeamCacher(c AnnotatedTeamCacher) {
-	// a write needs the write lock: GetAnnotatedTeamCacher runs from
-	// NotifyRouter.HandleTeamChangedByID on every team notification. The
-	// neighbouring setters take RLock here too, and are equally wrong.
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.annotatedTeamCacher = c
@@ -793,8 +790,8 @@ func (g *GlobalContext) GetKVRevisionCache() KVRevisionCacher {
 }
 
 func (g *GlobalContext) SetKVRevisionCache(kvr KVRevisionCacher) {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.kvRevisionCache = kvr
 }
 
