@@ -24,6 +24,7 @@ import {
 } from './rows'
 import {teamSeen} from '@/teams/actions'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -35,7 +36,15 @@ type Props = {
 
 // keep track during session
 const lastSelectedTabs = new Map<string, T.Teams.TabKey>()
+const primedParticipantConvs = new Set<T.Chat.ConversationIDKey>()
 const defaultTab: T.Teams.TabKey = 'members'
+
+// module scope outlives sign-out; both are keyed by team/conversation, so the
+// next user would inherit the previous user's tab choices and priming state
+registerExternalResetter('teams-team-index', () => {
+  lastSelectedTabs.clear()
+  primedParticipantConvs.clear()
+})
 
 const getSettingsErrorWaitingKeys = (teamID: T.Teams.TeamID) =>
   [
@@ -127,29 +136,50 @@ const TeamBody = (props: Props) => {
 
   const {loading: loadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
 
-  C.Router2.useSafeFocusEffect(() => {
-    return () => teamSeen(teamID)
-  })
-  C.Router2.useSafeFocusEffect(() => {
-    return () => {
-      if (props.justFinishedAddWizard) {
-        clearJustFinishedAddWizard()
+  // useSafeFocusEffect re-runs (and so runs its cleanup) whenever the callback
+  // identity changes, so an inline callback here would fire the gregor dismiss
+  // RPC on every render of this screen
+  const justFinishedAddWizard = props.justFinishedAddWizard
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      return () => teamSeen(teamID)
+    }, [teamID])
+  )
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        if (justFinishedAddWizard) {
+          clearJustFinishedAddWizard()
+        }
       }
-    }
-  })
+    }, [justFinishedAddWizard, clearJustFinishedAddWizard])
+  )
 
   const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
 
   // getTLFConversations leaves team channel participants empty; ask the service to
   // refresh them, which pushes ChatParticipantsInfo into useInboxMetadataState (read
   // by the channel rows). Without this the member counts render 0.
+  //
+  // This only primes them: later membership changes arrive on their own as
+  // ChatParticipantsInfo. `channels` gets a new identity on every reload of the
+  // channel list (stale refresh, team change, refocus), and each request costs a
+  // remote round trip, so a big team re-primed on every reload was enough to trip
+  // the server's chat rate limit. Ask once per conversation per session.
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   React.useEffect(() => {
     for (const conversationIDKey of channels.keys()) {
+      if (primedParticipantConvs.has(conversationIDKey)) {
+        continue
+      }
+      primedParticipantConvs.add(conversationIDKey)
       refreshParticipants(
         [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
         () => {},
-        () => {}
+        () => {
+          // let a later render retry a conversation whose refresh failed
+          primedParticipantConvs.delete(conversationIDKey)
+        }
       )
     }
   }, [channels, refreshParticipants])

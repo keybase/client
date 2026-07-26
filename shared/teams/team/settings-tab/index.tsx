@@ -8,7 +8,6 @@ import {pluralize} from '@/util/string'
 import type {RPCError} from '@/util/errors'
 import RetentionPicker from './retention'
 import DefaultChannels from './default-channels'
-import isEqual from 'lodash/isEqual'
 import {useLoadedTeam} from '../use-loaded-team'
 import {useIsBigTeam} from '../../common/use-loaded-team-channels'
 import {useSettingsTabState} from './use-settings'
@@ -138,7 +137,6 @@ const OpenTeam = (props: {
                 Anyone will be able to join immediately. Users will join as
               </Kb.Text>
               <FloatingRolePicker
-
                 onConfirm={props.onConfirmRolePicker}
                 onCancel={props.onCancelRolePicker}
                 position="bottom center"
@@ -189,45 +187,69 @@ const Settings = (p: Props) => {
   const {error, savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
   const {canShowcase, allowOpenTrigger} = p
 
-  const [newPublicityAnyMember, setNewPublicityAnyMember] = React.useState(p.publicityAnyMember)
-  const [newPublicityTeam, setNewPublicityTeam] = React.useState(p.publicityTeam)
-  const [newIgnoreAccessRequests, setNewIgnoreAccessRequests] = React.useState(p.ignoreAccessRequests)
-  const [newPublicityMember, setNewPublicityMember] = React.useState(p.publicityMember)
+  const serverSettings = {
+    ignoreAccessRequests: p.ignoreAccessRequests,
+    openTeam: p.openTeam,
+    openTeamRole: p.openTeamRole,
+    publicityAnyMember: p.publicityAnyMember,
+    publicityMember: p.publicityMember,
+    publicityTeam: p.publicityTeam,
+  }
+  // resync the checkboxes whenever the server-side values change. Doing this in
+  // render instead of with a key on this component matters: a key would remount the
+  // whole subtree, and RetentionPicker / DefaultChannels each load over RPC on mount.
+  const serverKey = `${p.ignoreAccessRequests}:${p.openTeam}:${p.openTeamRole}:${p.publicityAnyMember}:${p.publicityMember}:${p.publicityTeam}`
+  const [local, setLocal] = React.useState({...serverSettings, serverKey})
   const [isRolePickerOpen, setIsRolePickerOpen] = React.useState(false)
-  const [newOpenTeam, setNewOpenTeam] = React.useState(p.openTeam)
-  const [newOpenTeamRole, setNewOpenTeamRole] = React.useState<T.Teams.TeamRoleType>(p.openTeamRole)
 
   const lastAllowOpenTriggerRef = React.useRef(allowOpenTrigger)
 
-  React.useEffect(() => {
-    if (lastAllowOpenTriggerRef.current !== allowOpenTrigger) {
-      lastAllowOpenTriggerRef.current = allowOpenTrigger
-      setNewOpenTeam(o => !o)
-    }
-  }, [allowOpenTrigger])
+  if (local.serverKey !== serverKey) {
+    setLocal({...serverSettings, serverKey})
+  }
 
-  const lastSave = React.useRef({
+  const {
     ignoreAccessRequests: newIgnoreAccessRequests,
     openTeam: newOpenTeam,
     openTeamRole: newOpenTeamRole,
     publicityAnyMember: newPublicityAnyMember,
     publicityMember: newPublicityMember,
     publicityTeam: newPublicityTeam,
-  })
-  React.useEffect(() => {
-    const next = {
-      ignoreAccessRequests: newIgnoreAccessRequests,
-      openTeam: newOpenTeam,
-      openTeamRole: newOpenTeamRole,
-      publicityAnyMember: newPublicityAnyMember,
-      publicityMember: newPublicityMember,
-      publicityTeam: newPublicityTeam,
-    }
-    if (!isEqual(next, lastSave.current)) {
-      lastSave.current = next
+    serverKey: localServerKey,
+  } = local
+
+  const applySettings = React.useCallback(
+    (changes: Partial<T.Teams.PublicitySettings>) => {
+      const next: T.Teams.PublicitySettings = {
+        ignoreAccessRequests: newIgnoreAccessRequests,
+        openTeam: newOpenTeam,
+        openTeamRole: newOpenTeamRole,
+        publicityAnyMember: newPublicityAnyMember,
+        publicityMember: newPublicityMember,
+        publicityTeam: newPublicityTeam,
+        ...changes,
+      }
+      setLocal({...next, serverKey: localServerKey})
       savePublicity(next)
+    },
+    [
+      localServerKey,
+      newIgnoreAccessRequests,
+      newOpenTeam,
+      newOpenTeamRole,
+      newPublicityAnyMember,
+      newPublicityMember,
+      newPublicityTeam,
+      savePublicity,
+    ]
+  )
+
+  React.useEffect(() => {
+    if (lastAllowOpenTriggerRef.current !== allowOpenTrigger) {
+      lastAllowOpenTriggerRef.current = allowOpenTrigger
+      applySettings({openTeam: !newOpenTeam})
     }
-  }, [savePublicity, newIgnoreAccessRequests, newOpenTeam, newOpenTeamRole, newPublicityAnyMember, newPublicityMember, newPublicityTeam])
+  }, [allowOpenTrigger, applySettings, newOpenTeam])
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
@@ -237,7 +259,7 @@ const Settings = (p: Props) => {
           yourOperationsJoinTeam={yourOperations.joinTeam}
           canShowcase={canShowcase}
           newPublicityMember={newPublicityMember}
-          setNewPublicityMember={setNewPublicityMember}
+          setNewPublicityMember={publicityMember => applySettings({publicityMember})}
         />
         {(yourOperations.changeOpenTeam ||
           yourOperations.setTeamShowcase ||
@@ -249,11 +271,14 @@ const Settings = (p: Props) => {
             {yourOperations.setPublicityAny ? (
               <PublicityAnyMember
                 newPublicityAnyMember={newPublicityAnyMember}
-                setNewPublicityAnyMember={setNewPublicityAnyMember}
+                setNewPublicityAnyMember={publicityAnyMember => applySettings({publicityAnyMember})}
               />
             ) : null}
             {yourOperations.setTeamShowcase ? (
-              <PublicityTeam newPublicityTeam={newPublicityTeam} setNewPublicityTeam={setNewPublicityTeam} />
+              <PublicityTeam
+                newPublicityTeam={newPublicityTeam}
+                setNewPublicityTeam={publicityTeam => applySettings({publicityTeam})}
+              />
             ) : null}
             {yourOperations.changeOpenTeam ? (
               <OpenTeam
@@ -264,7 +289,7 @@ const Settings = (p: Props) => {
                 onCancelRolePicker={() => setIsRolePickerOpen(false)}
                 onConfirmRolePicker={(role: T.Teams.TeamRoleType) => {
                   setIsRolePickerOpen(false)
-                  setNewOpenTeamRole(role)
+                  applySettings({openTeamRole: role})
                 }}
                 onOpenRolePicker={() => setIsRolePickerOpen(true)}
               />
@@ -272,7 +297,7 @@ const Settings = (p: Props) => {
             {!newOpenTeam && yourOperations.changeTarsDisabled ? (
               <IgnoreAccessRequests
                 newIgnoreAccessRequests={newIgnoreAccessRequests}
-                setNewIgnoreAccessRequests={setNewIgnoreAccessRequests}
+                setNewIgnoreAccessRequests={ignoreAccessRequests => applySettings({ignoreAccessRequests})}
               />
             ) : null}
           </>
@@ -431,11 +456,8 @@ const SettingsTabContainer = (ownProps: OwnProps) => {
     ]
   )
 
-  const settingsKey = `${ignoreAccessRequests}:${openTeam}:${openTeamRole}:${publicityAnyMember}:${publicityMember}:${publicityTeam}`
-
   return (
     <Settings
-      key={settingsKey}
       allowOpenTrigger={allowOpenTrigger}
       canShowcase={canShowcase}
       error={error}
