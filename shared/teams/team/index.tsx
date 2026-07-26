@@ -24,6 +24,7 @@ import {
 } from './rows'
 import {teamSeen} from '@/teams/actions'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -36,6 +37,12 @@ type Props = {
 // keep track during session
 const lastSelectedTabs = new Map<string, T.Teams.TabKey>()
 const defaultTab: T.Teams.TabKey = 'members'
+
+// module scope outlives sign-out; keyed by team, so the next user would inherit
+// the previous user's tab choices
+registerExternalResetter('teams-team-index', () => {
+  lastSelectedTabs.clear()
+})
 
 const getSettingsErrorWaitingKeys = (teamID: T.Teams.TeamID) =>
   [
@@ -127,16 +134,24 @@ const TeamBody = (props: Props) => {
 
   const {loading: loadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
 
-  C.Router2.useSafeFocusEffect(() => {
-    return () => teamSeen(teamID)
-  })
-  C.Router2.useSafeFocusEffect(() => {
-    return () => {
-      if (props.justFinishedAddWizard) {
-        clearJustFinishedAddWizard()
+  // useSafeFocusEffect re-runs (and so runs its cleanup) whenever the callback
+  // identity changes, so an inline callback here would fire the gregor dismiss
+  // RPC on every render of this screen
+  const justFinishedAddWizard = props.justFinishedAddWizard
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      return () => teamSeen(teamID)
+    }, [teamID])
+  )
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        if (justFinishedAddWizard) {
+          clearJustFinishedAddWizard()
+        }
       }
-    }
-  })
+    }, [justFinishedAddWizard, clearJustFinishedAddWizard])
+  )
 
   const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
 

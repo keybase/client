@@ -15,6 +15,7 @@ import {
   createCachedResourceCache,
   useCachedResource,
 } from './use-cached-resource'
+import {registerExternalResetter} from '@/util/zustand'
 
 type TeamsList = {
   reload: () => void
@@ -43,6 +44,13 @@ const teamsRoleMapCache = createCachedResourceCache<T.RPCGen.TeamRoleMapAndVersi
   emptyTeamRoleMap,
   undefined
 )
+
+// module scope outlives sign-out; both are keyed by username, so the next user
+// would briefly render the previous user's team list and role map
+registerExternalResetter('teams-list-caches', () => {
+  teamsListCache.reset(emptyTeams, undefined)
+  teamsRoleMapCache.reset(emptyTeamRoleMap, undefined)
+})
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]

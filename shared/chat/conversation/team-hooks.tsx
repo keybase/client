@@ -14,6 +14,7 @@ import {
 } from '@/teams/use-cached-resource'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
+import {registerExternalResetter} from '@/util/zustand'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -66,6 +67,13 @@ const emptyChatTeamMembersData: ChatTeamMembersData = new Map<string, T.Teams.Me
 const chatTeamCacheMap: TeamCacheMap<ChatTeamData> = new Map()
 const chatTeamMembersCacheMap: TeamCacheMap<ChatTeamMembersData> = new Map()
 const chatTeamReloadStaleMs = 5 * 60_000
+
+// module scope outlives sign-out, so the next user would be served the previous
+// user's team data and member lists
+registerExternalResetter('chat-team-hooks-caches', () => {
+  chatTeamCacheMap.clear()
+  chatTeamMembersCacheMap.clear()
+})
 
 // A disabled "shadow" instance (one that returns the context value instead of
 // its own) must NOT share the loader's cache: with enabled=false
