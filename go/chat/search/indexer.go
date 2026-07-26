@@ -2,6 +2,7 @@ package search
 
 import (
 	"context"
+	"errors"
 	"sort"
 	"sync"
 	"time"
@@ -26,14 +27,14 @@ type storageAdd struct {
 	ctx    context.Context
 	convID chat1.ConversationID
 	msgs   []chat1.MessageUnboxed
-	cb     chan struct{}
+	cb     chan error
 }
 
 type storageRemove struct {
 	ctx    context.Context
 	convID chat1.ConversationID
 	msgs   []chat1.MessageUnboxed
-	cb     chan struct{}
+	cb     chan error
 }
 
 type Indexer struct {
@@ -62,6 +63,12 @@ type Indexer struct {
 	selectiveSyncActive   bool
 	flushDelay            time.Duration
 
+	// convID -> how a conv's last reindex attempt went. A conv whose missing
+	// count did not move is backed off rather than retried every interval.
+	// See stalledConvs in SelectiveSync.
+	stalledMu    sync.Mutex
+	stalledConvs map[chat1.ConvIDStr]stalledConv
+
 	// for testing
 	consumeCh                            chan chat1.ConversationID
 	reindexCh                            chan chat1.ConversationID
@@ -82,6 +89,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
 		storageCh:    make(chan any, 100),
+		stalledConvs: make(map[chat1.ConvIDStr]stalledConv),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -297,7 +305,20 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	defer idx.Unlock()
 	ch := make(chan struct{})
 	if idx.started {
+		// Write out what is pending before dropping it. ClearMemory discards the
+		// overlay, and the flush loop is about to stop, so anything not written
+		// here is simply lost - work that has to be done again at best, and at
+		// worst tokens whose metadata already reached disk.
+		if err := idx.store.Flush(); err != nil {
+			idx.Debug(ctx, "Stop: final flush failed: %s", err)
+		}
 		idx.store.ClearMemory()
+		// entries are keyed by convID only, and team convs are shared between
+		// users on this device: a count left by the previous user must not
+		// decide anything for the next one
+		idx.stalledMu.Lock()
+		idx.stalledConvs = make(map[chat1.ConvIDStr]stalledConv)
+		idx.stalledMu.Unlock()
 		idx.started = false
 		close(idx.stopCh)
 		go func() {
@@ -373,12 +394,33 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
-func (idx *Indexer) storageDispatch(op any) {
+// storageDispatch queues op, reporting whether it was accepted. A caller that
+// waits on the op's callback must close it itself when this returns false:
+// dropping the op silently left that callback with nobody to close it, and the
+// waiter - reindexConv does an unconditional receive - parked forever. In
+// SelectiveSync that leaks the sync's cancel func, so every later attempt sees
+// "already running" and background indexing is done until the process restarts.
+func (idx *Indexer) storageDispatch(op any) bool {
 	select {
 	case idx.storageCh <- op:
+		return true
 	default:
 		idx.Debug(context.Background(), "storageDispatch: failed to dispatch storage operation")
+		return false
 	}
+}
+
+// releaseStorageCB wakes an op's waiter, reporting whether the op actually ran.
+// The channel is buffered, so the send never blocks even with nobody waiting,
+// and a waiter that receives from a closed channel reads nil - success.
+func releaseStorageCB(cb chan error, err error) {
+	if cb == nil {
+		return
+	}
+	if err != nil {
+		cb <- err
+	}
+	close(cb)
 }
 
 func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
@@ -388,7 +430,21 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 		select {
 		case <-stopCh:
 			idx.Debug(ctx, "storageLoop: shutting down")
-			return nil
+			// Release anything still queued. These ops will not run, but a
+			// caller blocked on one's callback would never wake up otherwise.
+			for {
+				select {
+				case iop := <-idx.storageCh:
+					switch op := iop.(type) {
+					case storageAdd:
+						releaseStorageCB(op.cb, errStorageStopped)
+					case storageRemove:
+						releaseStorageCB(op.cb, errStorageStopped)
+					}
+				default:
+					return nil
+				}
+			}
 		case iop := <-idx.storageCh:
 			switch op := iop.(type) {
 			case storageAdd:
@@ -397,14 +453,14 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 					idx.Debug(op.ctx, "storageLoop: add failed: %s", err)
 				}
 				idx.consumeResultsForTest(op.convID, err)
-				close(op.cb)
+				releaseStorageCB(op.cb, err)
 			case storageRemove:
 				err := idx.store.Remove(op.ctx, op.convID, op.msgs)
 				if err != nil {
 					idx.Debug(op.ctx, "storageLoop: remove failed: %s", err)
 				}
 				idx.consumeResultsForTest(op.convID, err)
-				close(op.cb)
+				releaseStorageCB(op.cb, err)
 			}
 		}
 	}
@@ -418,6 +474,11 @@ func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
 		case <-stopCh:
 			idx.Debug(ctx, "flushLoop: shutting down")
 			return nil
+		case <-idx.store.flushNeeded():
+			// too much pending to wait out the interval
+			if err := idx.store.Flush(); err != nil {
+				idx.Debug(ctx, "flushLoop: failed to flush: %s", err)
+			}
 		case <-idx.clock.After(idx.flushDelay):
 			if err := idx.store.Flush(); err != nil {
 				idx.Debug(ctx, "flushLoop: failed to flush: %s", err)
@@ -454,8 +515,8 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 
 func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool,
-) (cb chan struct{}, err error) {
-	cb = make(chan struct{})
+) (cb chan error, err error) {
+	cb = make(chan error, 1)
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		close(cb)
 		return cb, nil
@@ -472,12 +533,16 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 	defer idx.Trace(ctx, &err,
 		"Indexer.Add conv: %v, msgs: %d, force: %v",
 		convID, len(msgs), force)()
-	idx.storageDispatch(storageAdd{
+	if !idx.storageDispatch(storageAdd{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
 		msgs:   msgs,
 		cb:     cb,
-	})
+	}) {
+		// nothing will run this op, so nothing will close cb
+		close(cb)
+		return cb, errStorageQueueFull
+	}
 	return cb, nil
 }
 
@@ -496,8 +561,8 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 
 func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool,
-) (cb chan struct{}, err error) {
-	cb = make(chan struct{})
+) (cb chan error, err error) {
+	cb = make(chan error, 1)
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		close(cb)
 		return cb, nil
@@ -514,12 +579,16 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	defer idx.Trace(ctx, &err,
 		"Indexer.Remove conv: %v, msgs: %d, force: %v",
 		convID, len(msgs), force)()
-	idx.storageDispatch(storageRemove{
+	if !idx.storageDispatch(storageRemove{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
 		msgs:   msgs,
 		cb:     cb,
-	})
+	}) {
+		// nothing will run this op, so nothing will close cb
+		close(cb)
+		return cb, errStorageQueueFull
+	}
 	return cb, nil
 }
 
@@ -547,67 +616,74 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 		utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	if len(missingIDs) < idx.pageSize {
-		msgs, err := idx.G().ConvSource.GetMessages(ctx, rconv.GetConvID(), idx.uid, missingIDs, &reason,
-			nil, false)
+	// Page over the MISSING ids, not over the raw min..max range. Paging the
+	// range re-fetched everything already indexed (measured: 57,648 already-seen
+	// messages re-added in a single pass) and, because each pass restarts at the
+	// lowest missing id and stops once the inbox-wide budget is spent, the top of
+	// a large conv was never reachable at all.
+	for start := 0; start < len(missingIDs); start += idx.pageSize {
+		select {
+		case <-ctx.Done():
+			return completedJobs, ctx.Err()
+		default:
+		}
+		end := start + idx.pageSize
+		if end > len(missingIDs) {
+			end = len(missingIDs)
+		}
+		chunk := missingIDs[start:end]
+		msgs, err := idx.G().ConvSource.GetMessages(ctx, convID, idx.uid, chunk, &reason, nil, false)
 		if err != nil {
 			if utils.IsPermanentErr(err) {
-				return 0, err
+				return completedJobs, err
 			}
-			return 0, nil
+			// transient: leave these ids missing so a later pass retries them
+			continue
 		}
 		cb, err := idx.add(ctx, convID, msgs, true)
 		if err != nil {
-			return 0, err
+			return completedJobs, err
 		}
-		<-cb
-		completedJobs++
-	} else {
-		query := &chat1.GetThreadQuery{
-			DisablePostProcessThread: true,
-			MarkAsRead:               false,
-		}
-		for i := minIdxID; i < maxIdxID; i += chat1.MessageID(idx.pageSize) { //nolint:gosec // G115: pageSize is a small positive config value, safe to convert
-			select {
-			case <-ctx.Done():
-				return 0, ctx.Err()
-			default:
+		select {
+		case addErr := <-cb:
+			if addErr != nil {
+				// The op failed or never ran, so nothing in this chunk was
+				// indexed. Marking it seen here would record those messages as
+				// indexed with no tokens behind them, and the conv would never
+				// be revisited to fix it.
+				return completedJobs, addErr
 			}
-			pagination := utils.MessageIDControlToPagination(ctx, idx.DebugLabeler, &chat1.MessageIDControl{
-				Num:   idx.pageSize,
-				Pivot: &i,
-				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
-			}, nil)
-			tv, err := idx.G().ConvSource.Pull(ctx, convID, idx.uid, reason, nil, query, pagination)
+		case <-ctx.Done():
+			return completedJobs, ctx.Err()
+		}
+		// The fetch succeeded, so every id we asked for is now accounted for:
+		// the ones that came back were indexed by add(), and the ones that did
+		// not are ids the source will never produce. Without this the latter
+		// keep the conv permanently "not fully indexed".
+		if err := idx.store.MarkSeen(ctx, convID, chunk); err != nil {
+			// The store is failing, not the conv. Give up on this conv rather
+			// than paging on: without the mark these ids stay missing, so
+			// counting the job would make a storage failure look like a stalled
+			// conv and back it off for a reason that has nothing to do with it.
+			return completedJobs, err
+		}
+		completedJobs++
+		if numJobs > 0 && completedJobs >= numJobs {
+			break
+		}
+		if inboxIndexStatus != nil {
+			status, err := idx.store.IndexStatus(ctx, conv)
 			if err != nil {
-				if utils.IsPermanentErr(err) {
-					return 0, err
-				}
+				idx.Debug(ctx, "updateInboxIndex: unable to get index status %v", err)
 				continue
 			}
-			cb, err := idx.add(ctx, convID, tv.Messages, true)
+			inboxIndexStatus.addConv(status, conv)
+			percentIndexed, err := inboxIndexStatus.updateUI(ctx)
 			if err != nil {
-				return 0, err
-			}
-			<-cb
-			completedJobs++
-			if numJobs > 0 && completedJobs >= numJobs {
-				break
-			}
-			if inboxIndexStatus != nil {
-				status, err := idx.store.IndexStatus(ctx, conv)
-				if err != nil {
-					idx.Debug(ctx, "updateInboxIndex: unable to get index status %v", err)
-					continue
-				}
-				inboxIndexStatus.addConv(status, conv)
-				percentIndexed, err := inboxIndexStatus.updateUI(ctx)
-				if err != nil {
-					idx.Debug(ctx, "unable to update ui %v", err)
-				} else {
-					idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
-						utils.GetRemoteConvDisplayName(rconv), status.percentIndexed(), percentIndexed)
-				}
+				idx.Debug(ctx, "unable to update ui %v", err)
+			} else {
+				idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
+					utils.GetRemoteConvDisplayName(rconv), status.percentIndexed(), percentIndexed)
 			}
 		}
 	}
@@ -728,6 +804,99 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
+// A stalled conv is retried after 2, then 4, then 8, then every 12 skipped
+// intervals - so on desktop it settles to one attempt per 13 passes, a bit over
+// an hour, reached after ~90 minutes. Even a permanently stuck conv is retried
+// occasionally: nothing is suppressed forever on the strength of an inference.
+//
+// With reindexConv now marking fetched-but-unreturned ids as seen, a conv should
+// converge on its own and never reach here. This is the backstop for whatever
+// still cannot converge, not the mechanism.
+// errStorageQueueFull reports that a storage op was never queued. Callers that
+// mark work as done once the op completes must not do so on this error: the op
+// did not run, so nothing was indexed.
+var errStorageQueueFull = errors.New("search storage queue full, operation dropped")
+
+// errStorageStopped reports that a queued op was released by shutdown rather
+// than run. Same contract as errStorageQueueFull: the op did not run.
+var errStorageStopped = errors.New("search storage loop stopped, operation dropped")
+
+const maxStallSkips = 12
+
+// the largest exponent used for the backoff; see recordIndexProgress
+const maxStallStreak = 4
+
+type stalledConv struct {
+	numMissing uint
+	// intervals still to skip before the next attempt
+	skips int
+	// consecutive no-progress attempts, doubling the backoff each time
+	streak uint
+}
+
+// convStalled reports whether to skip this conv on this pass, and consumes one
+// of its backoff intervals if so.
+//
+// The backoff is deliberately bounded rather than permanent. "numMissing did not
+// move" is strong evidence that the missing IDs cannot be fetched, but it is not
+// proof: reindexConv restarts at the lowest missing ID and stops once it has
+// spent the pass budget, so a conv whose budgeted pages happened to cover only
+// unfetchable IDs looks identical to a stuck one while still having real work
+// further up its range. Backing off instead of suppressing means that conv
+// resumes on its own, and a genuinely stuck one still costs ~1/12th of what it
+// did.
+func (idx *Indexer) convStalled(convID chat1.ConversationID, numMissing uint) bool {
+	idx.stalledMu.Lock()
+	defer idx.stalledMu.Unlock()
+	convIDStr := convID.ConvIDStr()
+	prev, ok := idx.stalledConvs[convIDStr]
+	if !ok || prev.numMissing != numMissing {
+		// never seen, or something changed the conv since: give it an attempt
+		return false
+	}
+	if prev.skips <= 0 {
+		return false
+	}
+	prev.skips--
+	idx.stalledConvs[convIDStr] = prev
+	return true
+}
+
+// recordIndexProgress stores the missing count after an attempt, so the next
+// pass can tell whether that attempt accomplished anything. A conv that has
+// reached 0 needs no entry: FullyIndexed already skips it.
+func (idx *Indexer) recordIndexProgress(ctx context.Context, conv chat1.Conversation, before uint) {
+	status, err := idx.store.IndexStatus(ctx, conv)
+	if err != nil {
+		idx.Debug(ctx, "recordIndexProgress: unable to get index status: %v", err)
+		return
+	}
+	convIDStr := conv.GetConvID().ConvIDStr()
+	idx.stalledMu.Lock()
+	defer idx.stalledMu.Unlock()
+	if status.fullyIndexed() || status.numMissing != before {
+		// done, or made progress: clear any marker so it keeps getting attempts
+		delete(idx.stalledConvs, convIDStr)
+		return
+	}
+	// Clamp the EXPONENT, not the result: streak is unbounded, and a large
+	// enough shift overflows int negative (then to 0), which reads as "no skips"
+	// and silently turns the backoff off for good.
+	streak := idx.stalledConvs[convIDStr].streak + 1
+	if streak > maxStallStreak {
+		streak = maxStallStreak
+	}
+	skips := 1 << streak
+	if skips > maxStallSkips {
+		skips = maxStallSkips
+	}
+	idx.stalledConvs[convIDStr] = stalledConv{
+		numMissing: status.numMissing,
+		skips:      skips,
+		streak:     streak,
+	}
+}
+
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 	defer idx.Trace(ctx, &err, "SelectiveSync")()
 	defer idx.PerfTrace(ctx, &err, "SelectiveSync")()
@@ -750,22 +919,52 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 		default:
 		}
 		convID := conv.GetConvID()
-		fullyIndexed, err := idx.store.FullyIndexed(ctx, conv.Conv)
+		// one status read, not one per question: each is an O(maxID-minID) scan
+		// of SeenIDs under the store lock
+		status, err := idx.store.IndexStatus(ctx, conv.Conv)
 		if err != nil {
 			idx.Debug(ctx, "SelectiveSync: Unable to get md for conv: %v, %v", convID, err)
 			continue
 		}
-		if fullyIndexed {
+		if status.fullyIndexed() {
+			continue
+		}
+
+		// A conv is "fully indexed" only when numMissing hits 0, and numMissing
+		// counts every ID in the min..max range. IDs the server will never
+		// return - deleted, or never delivered to us - therefore stay missing
+		// forever, so such a conv is never fully indexed and SelectiveSync
+		// re-queues it every syncInterval. Each pass re-fetches thousands of
+		// messages that are already indexed, marks nothing new, and burns the
+		// whole maxSyncConvs budget: measured at ~1800 remote getMessages every
+		// 5 minutes, indefinitely, on an idle desktop client, with numMissing
+		// byte-identical across 7 consecutive cycles.
+		//
+		// So skip a conv whose missing count did not move on its last attempt.
+		// Anything that actually changes the conv - a new message, a delete,
+		// clearing the index - changes the count and lets it back in, so this
+		// only suppresses the provably unproductive case.
+		if idx.convStalled(convID, status.numMissing) {
 			continue
 		}
 
 		completedJobs, err := idx.reindexConv(ctx, conv, numJobs, nil)
 		if err != nil {
 			idx.Debug(ctx, "Unable to reindex conv: %v, %v", convID, err)
-			continue
-		} else if completedJobs == 0 {
+			// the pages it did finish still spent budget
+			numJobs -= completedJobs
+			if numJobs <= 0 {
+				break
+			}
 			continue
 		}
+		if completedJobs == 0 {
+			// also the transient-fetch-failure path in reindexConv, which is
+			// indistinguishable from no progress here. Don't record a stall for
+			// it: a network blip would suppress the conv until it next changes.
+			continue
+		}
+		idx.recordIndexProgress(ctx, conv.Conv, status.numMissing)
 		idx.Debug(ctx, "SelectiveSync: Indexed completed jobs %d", completedJobs)
 		numJobs -= completedJobs
 		if numJobs <= 0 {
@@ -861,6 +1060,11 @@ func (idx *Indexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if store == nil {
 		return nil
 	}
+	// clearing the index resets what is missing, so this conv gets fresh
+	// attempts rather than staying suppressed at its old count
+	idx.stalledMu.Lock()
+	delete(idx.stalledConvs, convID.ConvIDStr())
+	idx.stalledMu.Unlock()
 	return store.Clear(ctx, uid, convID)
 }
 
@@ -871,6 +1075,9 @@ func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
 	if !idx.started {
 		return nil
 	}
+	idx.stalledMu.Lock()
+	idx.stalledConvs = make(map[chat1.ConvIDStr]stalledConv)
+	idx.stalledMu.Unlock()
 	idx.store.ClearMemory()
 	return nil
 }
