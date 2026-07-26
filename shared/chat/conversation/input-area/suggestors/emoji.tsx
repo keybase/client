@@ -53,9 +53,15 @@ const cachedEmojiData = (emoji: T.RPCChat.Emoji) => {
 }
 
 const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
-  const {emojis: userEmojis, loading: userEmojisLoading} = useUserEmoji({conversationIDKey})
+  // a filter the prepass rejects discards the result below, so don't pay for the
+  // fetch — userEmojis is expensive to resolve service-side
+  const matchesPrepass = emojiPrepass.test(filter)
+  const {emojis: userEmojis, loading: userEmojisLoading} = useUserEmoji({
+    conversationIDKey,
+    disabled: !matchesPrepass,
+  })
 
-  if (!emojiPrepass.test(filter)) {
+  if (!matchesPrepass) {
     return {
       items: empty,
       loading: false,

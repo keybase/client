@@ -53,12 +53,14 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
   const [allowToast, setAllowToast] = React.useState(true)
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
-  C.Router2.useSafeFocusEffect(() => {
-    setAllowToast(true)
-    return () => {
-      setAllowToast(false)
-    }
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      setAllowToast(true)
+      return () => {
+        setAllowToast(false)
+      }
+    }, [])
+  )
 
   return allowToast && showingToast ? (
     <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} toastTargetRef={toastTargetRef} />
