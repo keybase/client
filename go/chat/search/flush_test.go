@@ -469,7 +469,7 @@ func textMsgForTest(id chat1.MessageID, body string) chat1.MessageUnboxed {
 	})
 }
 
-// Bumping indexVersion is how a damaged index gets rebuilt: a conv whose
+// Bumping indexMetadataVersion is how a damaged index gets rebuilt: a conv whose
 // metadata claims messages are indexed reads as complete, so nothing revisits
 // it and only a version change discards it. That makes the mismatch check
 // load-bearing rather than incidental.

@@ -9,7 +9,22 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-const indexMetadataVersion = 3
+// 3 -> 4 discards every conversation's index metadata, which is what makes a
+// damaged index repair itself. Several bugs could leave the metadata recording
+// messages as indexed while the tokens making them findable never reached disk:
+// writes evicted from the cache before a flush, a flush that failed partway,
+// Remove publishing metadata ahead of its tokens, and Add marking a message
+// before indexing it. Such a conversation reads as fully indexed, so nothing
+// revisits it and the messages stay unsearchable.
+//
+// Dropping the metadata alone - rather than bumping indexVersion, which would
+// discard the token and alias entries too - means every message is re-indexed
+// onto the entries already on disk, so search keeps working throughout the
+// repair instead of going dark until the rebuild catches up. The cost is that
+// surviving alias refcounts are inflated further by the re-add, and that token
+// entries naming since-deleted messages survive; those are filtered at search
+// time by the message lookup, so they cost a lookup, not a wrong result.
+const indexMetadataVersion = 4
 
 type indexMetadata struct {
 	SeenIDs map[chat1.MessageID]chat1.EmptyStruct `codec:"s"`
