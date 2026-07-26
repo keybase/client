@@ -97,8 +97,12 @@ def main():
     print("\n== ROOT  app RPC that opened the trace this ran on")
     for k, v in roots.most_common(args.top):
         print(f"{v:8d}  {k}")
-    unrooted = roots.get("<nothing preceding on this trace>", 0) + roots.get(
-        "<no app RPC on this trace>", 0
+    # Both buckets mean "nothing asked for this": a hit whose trace never saw a
+    # server RPC, and a hit with no trace at all. The DRIVERS placeholder is not
+    # one of them - it is only ever counted into drivers, so reading it back out
+    # of roots always added zero.
+    unrooted = roots.get("<no app RPC on this trace>", 0) + roots.get(
+        "<untraced: no chat-trace tag>", 0
     )
     if unrooted > hits * 0.5:
         print("  most hits have no app RPC above them: this is service-side background")

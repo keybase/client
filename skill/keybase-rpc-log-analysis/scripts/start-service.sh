@@ -24,7 +24,11 @@ cd "$REPO/go"
 echo "building from $REPO/go"
 go install github.com/keybase/client/go/keybase
 
-BIN="$(go env GOPATH)/bin/keybase"
+# go install honours GOBIN when it is set and only falls back to GOPATH/bin
+# otherwise, so asking for GOPATH unconditionally looks in the wrong place on
+# any setup that sets GOBIN.
+GOBIN_DIR="$(go env GOBIN)"
+BIN="${GOBIN_DIR:-$(go env GOPATH)/bin}/keybase"
 [ -x "$BIN" ] || { echo "no binary at $BIN"; exit 1; }
 echo "built $("$BIN" version -S 2>/dev/null || echo '?')"
 
@@ -32,11 +36,18 @@ echo "built $("$BIN" version -S 2>/dev/null || echo '?')"
 # bin directory. Without it the Files tab is empty and `keybase git` fails with
 # "KBFS client not found", which fails every files-* and git-* e2e test for
 # reasons that have nothing to do with the code under test.
+#
+# The name matters: on darwin the service looks for a binary called "kbfs"
+# (install_darwin.go), but the package that builds it is kbfsfuse, so a plain
+# go install leaves you with kbfsfuse and the service still finds nothing. Hence
+# the link in the hint below.
 if [ ! -x "$(dirname "$BIN")/kbfs" ]; then
   echo
   echo "WARNING: no kbfs binary next to $BIN."
   echo "  Files and git e2e tests will fail with 'KBFS client not found'."
-  echo "  To include them:  go install github.com/keybase/client/go/kbfs/kbfsfuse"
+  echo "  To include them:"
+  echo "    go install github.com/keybase/client/go/kbfs/kbfsfuse"
+  echo "    ln -s $(dirname "$BIN")/kbfsfuse $(dirname "$BIN")/kbfs"
   echo "  Otherwise ignore those failures - they are not regressions."
   echo
 fi

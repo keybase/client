@@ -5,12 +5,6 @@ description: Use when hunting redundant, duplicated or looping RPCs in the Keyba
 
 # Keybase RPC log analysis
 
-**Picking up an in-progress effort?** `plans/rpc-perf-findings.md` holds the
-current state: the baseline numbers, what has already been fixed, what is still
-open and in what order, and what was measured and deliberately left alone. Read
-it before re-deriving any of that. This file is the method; that one is where
-things stand.
-
 The Go service logs every RPC it serves and every call it makes. That log is the
 only place the client's real network behaviour is visible — the JS side shows
 intent, the log shows what actually went out. A quiet minute is ~45 lines; a
@@ -34,7 +28,8 @@ in under two minutes.
 is lost, but the analysis must include the siblings, so always pass them all:
 
 ```bash
-python3 scripts/rpc-report.py /tmp/kb-analysis/service.log-* /tmp/kb-analysis/service.log
+python3 skill/keybase-rpc-log-analysis/scripts/rpc-report.py \
+  /tmp/kb-analysis/service.log-* /tmp/kb-analysis/service.log
 ```
 
 The service forks kbfs from its own bin directory, and a plain `go install` of
@@ -58,6 +53,11 @@ loudest line in the log is usually not the expensive one. In one capture the top
 line by count was an in-memory map lookup — 15,767 calls for 0.16s total, not
 worth touching — while the real cost was 469 team loads at 292ms each, 186
 seconds, sitting 30th by count.
+
+To *prove* a loud flood is free rather than just absent from the table, pass
+`--min-mean-ms 0 --top 400`: the default threshold hides cheap chatty ops, which
+is exactly the row you need. `AttachmentHTTPSrv: GetURL` at 4,848 calls does not
+appear at all by default, and shows as 0.04s total once it does.
 
 Analysing an already-rotated log is the same — pass
 `~/Library/Logs/keybase.service.log-<start>-<end>` directly. The filename carries
