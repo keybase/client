@@ -25,7 +25,7 @@ export const makeInboxSearchInfo = (): T.Chat.InboxSearchInfo => ({
   botsResults: [],
   botsResultsSuggested: false,
   botsStatus: 'initial',
-  indexPercent: 0,
+  indexPercent: undefined,
   nameResults: [],
   nameResultsUnread: false,
   nameStatus: 'initial',
@@ -311,6 +311,9 @@ export function useInboxSearch(): InboxSearchController {
           updateIfActive(prev => ({
             ...prev,
             botsStatus: 'inprogress',
+            // unknown again until this search reports one, rather than carrying
+            // the previous search's number
+            indexPercent: undefined,
             nameStatus: 'inprogress',
             openTeamsStatus: 'inprogress',
             selectedIndex: 0,
