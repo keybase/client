@@ -423,6 +423,28 @@ func releaseStorageCB(cb chan error, err error) {
 	close(cb)
 }
 
+// drainStorageQueue releases every op still queued at shutdown. They will not
+// run, so each callback reports errStorageStopped: a caller told an op finished
+// marks its messages as indexed, and nothing put them there.
+//
+// Split out of storageLoop because that select has both cases ready once stopCh
+// closes and Go picks between them at random, which is untestable from outside.
+func (idx *Indexer) drainStorageQueue() {
+	for {
+		select {
+		case iop := <-idx.storageCh:
+			switch op := iop.(type) {
+			case storageAdd:
+				releaseStorageCB(op.cb, errStorageStopped)
+			case storageRemove:
+				releaseStorageCB(op.cb, errStorageStopped)
+			}
+		default:
+			return
+		}
+	}
+}
+
 func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
 	idx.Debug(ctx, "storageLoop: starting")
@@ -430,21 +452,8 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 		select {
 		case <-stopCh:
 			idx.Debug(ctx, "storageLoop: shutting down")
-			// Release anything still queued. These ops will not run, but a
-			// caller blocked on one's callback would never wake up otherwise.
-			for {
-				select {
-				case iop := <-idx.storageCh:
-					switch op := iop.(type) {
-					case storageAdd:
-						releaseStorageCB(op.cb, errStorageStopped)
-					case storageRemove:
-						releaseStorageCB(op.cb, errStorageStopped)
-					}
-				default:
-					return nil
-				}
-			}
+			idx.drainStorageQueue()
+			return nil
 		case iop := <-idx.storageCh:
 			switch op := iop.(type) {
 			case storageAdd:

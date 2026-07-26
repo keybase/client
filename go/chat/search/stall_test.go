@@ -224,12 +224,13 @@ func TestDroppedStorageOpDoesNotStrandCaller(t *testing.T) {
 // and a conv that reaches numMissing 0 that way is never revisited.
 func TestStorageLoopReleasesQueuedCallbacksOnShutdown(t *testing.T) {
 	idx, _ := setupStallTestIndexer(t, "dispatch-shutdown")
-	stopCh := make(chan struct{})
 	cb := make(chan error, 1)
 	idx.storageCh <- storageAdd{cb: cb}
 
-	close(stopCh)
-	require.NoError(t, idx.storageLoop(stopCh))
+	// the drain directly, not storageLoop: with stopCh closed both of its select
+	// cases are ready and Go picks at random, so going through the loop would
+	// run the op half the time and test nothing the other half
+	idx.drainStorageQueue()
 
 	select {
 	case err := <-cb:
