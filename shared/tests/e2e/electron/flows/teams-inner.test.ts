@@ -23,8 +23,9 @@ test('members tab renders', async ({page}) => {
     test.skip()
     return
   }
-  // the team view restores whichever tab was last open, so don't assume Members
-  await page.getByText('Members', {exact: true}).locator('visible=true').first().click()
+  // the team page remembers the last tab per team for the life of the app, so an
+  // earlier test can leave it on Channels/Settings — select Members explicitly
+  await page.getByTestId(T.TEAMS_TAB_MEMBERS_BUTTON).locator('visible=true').first().click()
   await expect(page.getByTestId(T.TEAMS_MEMBER_LIST).first()).toBeVisible({timeout: 5_000})
 })
 
@@ -34,10 +35,10 @@ test('settings tab renders', async ({page}) => {
     test.skip()
     return
   }
-  // 'Settings' appears in both nav sidebar and team tabs — use .nth(1) for team tab
-  await page.getByText('Settings', {exact: true}).nth(1).click()
-  // Verify we're still in the team view (Members tab still visible)
-  await expect(page.getByText('Members', {exact: true}).first()).toBeVisible({timeout: 5_000})
+  await page.getByTestId(T.TEAMS_TAB_SETTINGS_BUTTON).locator('visible=true').first().click()
+  // assert the settings BODY, not the 'Members' tab label: that label is part of
+  // the tab bar and is visible on every tab, so it passes without switching
+  await expect(page.getByTestId(T.TEAMS_SETTINGS_TAB).first()).toBeVisible({timeout: 5_000})
 })
 
 test('bots tab renders', async ({page}) => {
@@ -47,7 +48,7 @@ test('bots tab renders', async ({page}) => {
     return
   }
   await page.getByText('Bots', {exact: true}).first().click()
-  await expect(page.getByText('Members', {exact: true}).first()).toBeVisible({timeout: 5_000})
+  await expect(page.getByTestId(T.TEAMS_BOTS_TAB).first()).toBeVisible({timeout: 5_000})
 })
 
 test('channels tab renders (if big team or admin)', async ({page}) => {
@@ -62,5 +63,5 @@ test('channels tab renders (if big team or admin)', async ({page}) => {
     return
   }
   await channelsTab.click()
-  await expect(page.getByText('Members', {exact: true}).first()).toBeVisible({timeout: 5_000})
+  await expect(page.getByTestId(T.TEAMS_CHANNEL_LIST).first()).toBeVisible({timeout: 5_000})
 })
