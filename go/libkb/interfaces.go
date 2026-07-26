@@ -965,6 +965,16 @@ type MemLRUer interface {
 	OnDbNuke(mctx MetaContext) error
 }
 
+// AnnotatedTeamCacher memoizes the expensive, mostly off-chain bundle of data that
+// backs the team page in the UI. Implemented in the teams package; the interface lives
+// here so NotifyRouter can invalidate entries when a team changes.
+type AnnotatedTeamCacher interface {
+	Get(mctx MetaContext, teamID keybase1.TeamID) (keybase1.AnnotatedTeam, bool)
+	Put(mctx MetaContext, teamID keybase1.TeamID, team keybase1.AnnotatedTeam)
+	Remove(teamID keybase1.TeamID)
+	Clear()
+}
+
 type ClockContext interface {
 	GetClock() clockwork.Clock
 }

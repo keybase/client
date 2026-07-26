@@ -2193,6 +2193,12 @@ func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 		return
 	}
 
+	// Any change to the team, local or server-pushed, drops the memoized
+	// AnnotatedTeam so the next UI read rebuilds it from the server.
+	if c := n.G().GetAnnotatedTeamCacher(); c != nil {
+		c.Remove(teamID)
+	}
+
 	arg := keybase1.TeamChangedByIDArg{
 		TeamID:              teamID,
 		LatestSeqno:         latestSeqno,

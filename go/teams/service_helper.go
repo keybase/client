@@ -34,9 +34,21 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 // GetAnnotatedTeam bundles up various data, both on and off chain, about a specific team for
 // consumption by the UI. In particular, it supplies almost all of the information on a team's
 // subpage in the Teams tab.
-// It always repolls to ensure latest version of a team, but member infos (username, full name, if
-// they reset or not) are subject to UIDMapper caching.
+//
+// The result is memoized (see annotated_cache.go): concurrent requests for the same team share
+// one load, and repeat requests inside a short window reuse the previous result. Any team change
+// we hear about, local or server-pushed, invalidates the entry.
 func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
+	cache, _ := g.GetAnnotatedTeamCacher().(*annotatedTeamCache)
+	if cache == nil {
+		return loadAnnotatedTeam(ctx, g, teamID)
+	}
+	return cache.load(libkb.NewMetaContext(ctx, g), teamID, loadAnnotatedTeam)
+}
+
+// loadAnnotatedTeam always repolls to ensure latest version of a team, but member infos
+// (username, full name, if they reset or not) are subject to UIDMapper caching.
+func loadAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
 	tracer := g.CTimeTracer(ctx, "GetAnnotatedTeam", true)
 	defer tracer.Finish()
 

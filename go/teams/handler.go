@@ -241,6 +241,7 @@ func invalidateCaches(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 	// refresh the KBFS Favorites cache since it no longer should contain
 	// this team.
 	mctx.G().NotifyRouter.HandleFavoritesChanged(mctx.G().GetMyUID())
+	ClearAnnotatedTeamCache(mctx.G(), teamID)
 	if ekLib := mctx.G().GetEKLib(); ekLib != nil {
 		ekLib.PurgeTeamEKCachesForTeamID(mctx, teamID)
 		ekLib.PurgeTeambotEKCachesForTeamID(mctx, teamID)
@@ -308,6 +309,10 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 
 func HandleTeamMemberShowcaseChange(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	defer g.CTrace(ctx, "HandleTeamMemberShowcaseChange", &err)()
+	// The notification does not say which team changed, so drop everything.
+	if c := g.GetAnnotatedTeamCacher(); c != nil {
+		c.Clear()
+	}
 	g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
 	return nil
 }
@@ -518,6 +523,10 @@ func assertCanAcceptKeybaseInvite(ctx context.Context, g *libkb.GlobalContext, u
 func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenReqMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", &err)()
+
+	// Access requests are off-chain, so a membership change is not guaranteed to
+	// follow; drop the memoized team so the UI picks up the new request list.
+	ClearAnnotatedTeamCache(g, msg.TeamID)
 
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
