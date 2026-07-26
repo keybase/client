@@ -27,14 +27,14 @@ type storageAdd struct {
 	ctx    context.Context
 	convID chat1.ConversationID
 	msgs   []chat1.MessageUnboxed
-	cb     chan struct{}
+	cb     chan error
 }
 
 type storageRemove struct {
 	ctx    context.Context
 	convID chat1.ConversationID
 	msgs   []chat1.MessageUnboxed
-	cb     chan struct{}
+	cb     chan error
 }
 
 type Indexer struct {
@@ -410,6 +410,19 @@ func (idx *Indexer) storageDispatch(op any) bool {
 	}
 }
 
+// releaseStorageCB wakes an op's waiter, reporting whether the op actually ran.
+// The channel is buffered, so the send never blocks even with nobody waiting,
+// and a waiter that receives from a closed channel reads nil - success.
+func releaseStorageCB(cb chan error, err error) {
+	if cb == nil {
+		return
+	}
+	if err != nil {
+		cb <- err
+	}
+	close(cb)
+}
+
 func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
 	idx.Debug(ctx, "storageLoop: starting")
@@ -424,9 +437,9 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 				case iop := <-idx.storageCh:
 					switch op := iop.(type) {
 					case storageAdd:
-						close(op.cb)
+						releaseStorageCB(op.cb, errStorageStopped)
 					case storageRemove:
-						close(op.cb)
+						releaseStorageCB(op.cb, errStorageStopped)
 					}
 				default:
 					return nil
@@ -440,14 +453,14 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 					idx.Debug(op.ctx, "storageLoop: add failed: %s", err)
 				}
 				idx.consumeResultsForTest(op.convID, err)
-				close(op.cb)
+				releaseStorageCB(op.cb, err)
 			case storageRemove:
 				err := idx.store.Remove(op.ctx, op.convID, op.msgs)
 				if err != nil {
 					idx.Debug(op.ctx, "storageLoop: remove failed: %s", err)
 				}
 				idx.consumeResultsForTest(op.convID, err)
-				close(op.cb)
+				releaseStorageCB(op.cb, err)
 			}
 		}
 	}
@@ -502,8 +515,8 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 
 func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool,
-) (cb chan struct{}, err error) {
-	cb = make(chan struct{})
+) (cb chan error, err error) {
+	cb = make(chan error, 1)
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		close(cb)
 		return cb, nil
@@ -548,8 +561,8 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 
 func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool,
-) (cb chan struct{}, err error) {
-	cb = make(chan struct{})
+) (cb chan error, err error) {
+	cb = make(chan error, 1)
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		close(cb)
 		return cb, nil
@@ -632,7 +645,14 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			return completedJobs, err
 		}
 		select {
-		case <-cb:
+		case addErr := <-cb:
+			if addErr != nil {
+				// The op failed or never ran, so nothing in this chunk was
+				// indexed. Marking it seen here would record those messages as
+				// indexed with no tokens behind them, and the conv would never
+				// be revisited to fix it.
+				return completedJobs, addErr
+			}
 		case <-ctx.Done():
 			return completedJobs, ctx.Err()
 		}
@@ -796,6 +816,10 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // mark work as done once the op completes must not do so on this error: the op
 // did not run, so nothing was indexed.
 var errStorageQueueFull = errors.New("search storage queue full, operation dropped")
+
+// errStorageStopped reports that a queued op was released by shutdown rather
+// than run. Same contract as errStorageQueueFull: the op did not run.
+var errStorageStopped = errors.New("search storage loop stopped, operation dropped")
 
 const maxStallSkips = 12
 

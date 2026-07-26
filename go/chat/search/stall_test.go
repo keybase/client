@@ -2,6 +2,7 @@ package search
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -42,6 +43,39 @@ func setupStallTestIndexer(t *testing.T, label string) (*Indexer, chat1.Conversa
 		MaxMsgSummaries: []chat1.MessageSummary{{MsgID: 100}},
 	}
 	return idx, conv
+}
+
+// A failed store.Add was logged and then reported to the caller as a completed
+// op, so reindexConv marked the whole chunk seen against messages that never
+// made it into the index.
+func TestStorageLoopReportsAddFailure(t *testing.T) {
+	idx, _ := setupStallTestIndexer(t, "storage-add-failure")
+	disk := newMemDiskStorage()
+	idx.store.diskStorage = disk
+	disk.Lock()
+	disk.failTokenGet = fmt.Errorf("cannot read token entry")
+	disk.Unlock()
+
+	stopCh := make(chan struct{})
+	go func() { _ = idx.storageLoop(stopCh) }()
+	t.Cleanup(func() { close(stopCh) })
+
+	convID := chat1.ConversationID([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+	cb := make(chan error, 1)
+	idx.storageCh <- storageAdd{
+		ctx:    context.TODO(),
+		convID: convID,
+		msgs:   []chat1.MessageUnboxed{textMsgForTest(1, "hello world")},
+		cb:     cb,
+	}
+
+	select {
+	case err := <-cb:
+		require.Error(t, err,
+			"a failed add reported success, so its messages get marked indexed")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the caller was never woken")
+	}
 }
 
 func TestConvStalledBackoff(t *testing.T) {
@@ -184,18 +218,23 @@ func TestDroppedStorageOpDoesNotStrandCaller(t *testing.T) {
 }
 
 // Ops still queued when the loop shuts down have nobody left to run them, so
-// their callbacks have to be released too.
+// their callbacks have to be released - and released with an error. Waking the
+// caller with a bare "done" is worse than hanging it: reindexConv then marks the
+// chunk seen, recording messages as indexed that were never handed to the store,
+// and a conv that reaches numMissing 0 that way is never revisited.
 func TestStorageLoopReleasesQueuedCallbacksOnShutdown(t *testing.T) {
 	idx, _ := setupStallTestIndexer(t, "dispatch-shutdown")
 	stopCh := make(chan struct{})
-	cb := make(chan struct{})
+	cb := make(chan error, 1)
 	idx.storageCh <- storageAdd{cb: cb}
 
 	close(stopCh)
 	require.NoError(t, idx.storageLoop(stopCh))
 
 	select {
-	case <-cb:
+	case err := <-cb:
+		require.ErrorIs(t, err, errStorageStopped,
+			"an op that never ran reported success, so its messages get marked indexed")
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "a queued op's callback was abandoned at shutdown")
 	}
