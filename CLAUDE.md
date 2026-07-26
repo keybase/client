@@ -2,7 +2,7 @@
 - No `Co-Authored-By` in commits. Ever.
 - Never interact with the Electron app or iOS simulator (screenshots, driving UI, debug ports) without asking first. The user drives and takes screenshots.
 - Use `--no-ext-diff` with `git diff` (and `git show`/`git log -p`) so external diff tools don't hijack output.
-- "Was working before" = base branch, not previous commit. Base branch is almost always `nojima/HOTPOT-next-670-clean-2` (not `master`). Always run `gh pr view --json baseRefName` to confirm before any `git diff` or `git log` comparison.
+- "Was working before" = base branch, not previous commit. Base is normally `master`. Always run `gh pr view --json baseRefName` to confirm before any `git diff` or `git log` comparison.
 - Never use `npm`. Always `yarn`.
 - Never silently drop features/behavior — ask first, present options.
 - In tests/stories, use `testuser` / `testuser-mac` as placeholder usernames — never real usernames like `chrisnojima`.
@@ -23,4 +23,4 @@ Repo root is `client/`. TS source lives in `shared/`. Always use absolute paths 
 - Plans created by superpowers skills go into `plans/` at the repo root.
 
 ## Validation
-After TS changes (from `shared/`): `yarn lint` then `yarn tsc`. When debugging visually, skip until fix is confirmed. Never delete the ESLint cache.
+After TS changes (from `shared/`): `yarn lint:all` (= `yarn lint` && `yarn lint:bailouts` && `yarn tsc`). Plain `yarn lint` is eslint only and does NOT catch react-compiler bailouts — no compiler rule is wired into `eslint.config.mjs`, so bailouts only surface via `lint:bailouts`. Repo baseline is 0 bailouts; keep it there. When debugging visually, skip until fix is confirmed. Never delete the ESLint cache.
