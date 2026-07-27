@@ -798,12 +798,21 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
         if (self->isTornDown_.load()) {
           return;
         }
-        jsi::Array arr(runtime, converted.size());
-        for (size_t i = 0; i < converted.size(); ++i) {
-          arr.setValueAtIndex(runtime, i, std::move(converted[i]));
+        // The wire shape must match what actually survived conversion, not
+        // the original batch size: JS's rpcOnJs only unwraps the array when
+        // count > 1, so a single surviving message must go through as a bare
+        // value like the values->size() == 1 path above, or JS hands the
+        // wrapper array itself to isRPCMessage and silently drops it.
+        if (converted.size() == 1) {
+          onJs.call(runtime, std::move(converted[0]), jsi::Value(1));
+        } else {
+          jsi::Array arr(runtime, converted.size());
+          for (size_t i = 0; i < converted.size(); ++i) {
+            arr.setValueAtIndex(runtime, i, std::move(converted[i]));
+          }
+          onJs.call(runtime, std::move(arr),
+                    jsi::Value(static_cast<int>(converted.size())));
         }
-        onJs.call(runtime, std::move(arr),
-                  jsi::Value(static_cast<int>(converted.size())));
       }
     } catch (const std::exception &e) {
       // Nothing decoded reached JS, so every reply in this batch is lost and
