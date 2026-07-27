@@ -36,13 +36,6 @@ struct KBBridge::RecvState {
   // stops tracking "did one big frame arrive" and starts tracking "did
   // several small frames arrive in the same read" instead.
   FrameParser parser;
-  // Epoch of the Go connection the most recent onDataFromGo call's bytes
-  // came from. Set at the top of onDataFromGo under recvMutex_; read back
-  // here only for anything that inspects RecvState directly. The fatal
-  // paths below use the onDataFromGo parameter (or its lambda capture)
-  // rather than this field, since resetRecvLocked() replaces RecvState --
-  // and so this field -- before those paths run.
-  int64_t epoch = 0;
 };
 
 struct KBBridge::SendState {
@@ -91,7 +84,18 @@ void KBBridge::reportError(const std::string &msg) {
   }
 }
 
-void KBBridge::resetRecvLocked() { recv_ = std::make_unique<RecvState>(); }
+// Resets framing state in place when a RecvState already exists (the common
+// case: a fresh connection or post-error recovery), constructing one only the
+// first time (recv_ starts null). RecvState currently owns nothing besides
+// the parser, so recv_->parser.reset() is behavior-equivalent to discarding
+// and rebuilding the whole RecvState, without the reallocation.
+void KBBridge::resetRecvLocked() {
+  if (recv_) {
+    recv_->parser.reset();
+  } else {
+    recv_ = std::make_unique<RecvState>();
+  }
+}
 
 Function &KBBridge::uint8ArrayCtor(Runtime &runtime) {
   resetCaches(runtime);
@@ -638,15 +642,14 @@ void KBBridge::onDataFromGo(uint8_t *data, int size, int64_t epoch) {
     if (!recv_) {
       return;
     }
-    recv_->epoch = epoch;
     try {
       recv_->parser.feed(data, static_cast<size_t>(size), *values);
 
       // A provably safe resync point: no partial frame and no unparsed
-      // bytes to lose. resetRecvLocked() rebuilds RecvState (including the
-      // parser's totalFed and unpacker) together, so the
-      // totalFed/consumedAtHeader invariant restarts from a consistent
-      // fresh baseline rather than desyncing.
+      // bytes to lose. resetRecvLocked() resets the parser's unpacker,
+      // totalFed, and consumedAtHeader together, so that invariant restarts
+      // from a consistent fresh baseline (and the realloc'd unpacker buffer
+      // is released) rather than desyncing.
       if (recv_->parser.atSafeShrinkPoint()) {
         resetRecvLocked();
       }
