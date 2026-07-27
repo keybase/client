@@ -732,6 +732,20 @@ func Reset() error {
 	return resetLocked()
 }
 
+// CurrentEpoch returns the epoch of the connection currently considered
+// live. A caller that is about to hand off a batch of bytes it just read
+// from that connection (e.g. a platform reader loop, right before passing
+// the data into the native bridge for parsing) should capture this value
+// there, not later once some asynchronous handler for that batch actually
+// runs — ensureConnection may have re-dialed by then, and passing the
+// wrong (newer) epoch to ResetIfCurrent would tear down a good connection
+// instead of leaving it alone.
+func CurrentEpoch() int64 {
+	connMutex.Lock()
+	defer connMutex.Unlock()
+	return connEpoch
+}
+
 // ResetIfCurrent closes the connection only if epoch (obtained implicitly by
 // whoever last dialed) still matches the live connection's epoch. If
 // ensureConnection has re-dialed since, the
