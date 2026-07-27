@@ -61,6 +61,11 @@ private:
   std::function<void()> onFatal_;
   std::function<bool(void *ptr, size_t size)> writeToGo_;
   std::atomic<bool> isTornDown_{false};
+  // Set when the incoming stream desynced and the connection is being reset.
+  // Bytes already in flight from the dead stream keep arriving and would each
+  // trigger another reset, so drop them until the platform layer confirms the
+  // connection was replaced (resetRecv).
+  std::atomic<bool> awaitingReset_{false};
 
   enum class ReadState { needSize, needContent };
 
