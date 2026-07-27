@@ -1,8 +1,8 @@
 #include "react-native-kb.h"
-#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include "frame-parser.h"
 #include "msgpack-safe.hpp"
 #include <optional>
 #include <string>
@@ -17,42 +17,17 @@ namespace kb {
 namespace {
 // A desynced length prefix can otherwise ask us to buffer gigabytes. Matches
 // the JS-side packetizer limit.
-constexpr uint64_t kMaxFrameSize = 64ull * 1024 * 1024;
+constexpr uint64_t kMaxFrameSize = FrameParser::kMaxFrameSize;
 // Conversion is iterative, so nesting costs heap rather than native stack.
 // This is a sanity bound on pathological payloads, not a stack guard.
 constexpr size_t kMaxDepth = 1024;
 // Don't let one huge attachment frame permanently retain its peak size.
 constexpr size_t kSendBufKeepCapacity = 4u * 1024 * 1024;
-// msgpack::unpacker rewinds its buffer in place but never shrinks the
-// realloc'd allocation, so this bounds how long a single large frame's peak
-// stays resident.
-constexpr size_t kRecvBufKeepCapacity = 4u * 1024 * 1024;
-// nonparsed_size() includes the frame header plus any bytes of the next
-// frame already buffered in the same read; the header check separately
-// accepts a declared size of exactly kMaxFrameSize. Without this margin a
-// legal maximal frame arriving in small chunks trips the limit on its last
-// chunk.
-constexpr size_t kMaxFrameSlack = 1024 * 1024;
 constexpr size_t kMaxCachedPropNames = 4096;
 } // namespace
 
 struct KBBridge::RecvState {
-  msgpack::unpacker unpacker;
-  ReadState state = ReadState::needSize;
-  // Persist across calls: a frame's header and its content routinely arrive
-  // in separate reads.
-  size_t declaredSize = 0;
-  size_t consumedAtHeader = 0;
-  // Every byte ever handed to the unpacker. parsed_size() cannot serve this
-  // role -- next() zeroes it on each success -- but totalFed minus
-  // nonparsed_size() is an accurate running count of what has been consumed.
-  size_t totalFed = 0;
-  // High-water mark of declaredSize since the last reset. declaredSize
-  // itself gets overwritten by the next header before we necessarily reach a
-  // safe (nonparsed_size() == 0) point to act on it, so this survives that
-  // overwrite and lets the shrink check fire for the frame that actually
-  // grew the buffer.
-  //
+  // Owns the unpacker and all pure framing arithmetic; see frame-parser.h.
   // This is only a meaningful shrink trigger because Go's ReadArr
   // (go/bind/keybase.go) reads into a fixed 300KB buffer per call: a stream
   // of many small frames delivered across many small reads can't durably
@@ -60,7 +35,7 @@ struct KBBridge::RecvState {
   // once fully drained. If that Go-side buffer ever grows, peakFrameSize
   // stops tracking "did one big frame arrive" and starts tracking "did
   // several small frames arrive in the same read" instead.
-  size_t peakFrameSize = 0;
+  FrameParser parser;
   // Epoch of the Go connection the most recent onDataFromGo call's bytes
   // came from. Set at the top of onDataFromGo under recvMutex_; read back
   // here only for anything that inspects RecvState directly. The fatal
@@ -665,64 +640,14 @@ void KBBridge::onDataFromGo(uint8_t *data, int size, int64_t epoch) {
     }
     recv_->epoch = epoch;
     try {
-      auto &up = recv_->unpacker;
-      up.reserve_buffer(static_cast<size_t>(size));
-      std::memcpy(up.buffer(), data, static_cast<size_t>(size));
-      up.buffer_consumed(static_cast<size_t>(size));
-      recv_->totalFed += static_cast<size_t>(size);
+      recv_->parser.feed(data, static_cast<size_t>(size), *values);
 
-      while (true) {
-        msgpack::object_handle result;
-        if (!up.next(result)) {
-          break;
-        }
-        if (recv_->state == ReadState::needSize) {
-          // The framing prefix must be a msgpack uint. Anything else means
-          // the stream desynced; without this check the parity flips and
-          // every later frame is silently swallowed as a "size".
-          const auto &o = result.get();
-          if (o.type != msgpack::type::POSITIVE_INTEGER ||
-              o.as<uint64_t>() > kMaxFrameSize) {
-            throw std::runtime_error("bad rpc frame header");
-          }
-          recv_->declaredSize = static_cast<size_t>(o.as<uint64_t>());
-          recv_->peakFrameSize =
-              std::max(recv_->peakFrameSize, recv_->declaredSize);
-          recv_->consumedAtHeader = recv_->totalFed - up.nonparsed_size();
-          recv_->state = ReadState::needContent;
-        } else {
-          // The header is only a plausibility check on its own: a fixint
-          // sitting inside a string payload parses as a valid header after a
-          // resync. Requiring the content object to consume exactly the
-          // declared byte count makes the framing self-checking, so a
-          // truncated or overlong frame is caught here instead of being
-          // handed to JS as a bogus [type, seqid, ...].
-          //
-          // parsed_size() is NOT usable here: unpacker::next() resets it to
-          // 0 on every successful parse, so it can't measure a span across
-          // two next() calls. totalFed - nonparsed_size() is a genuine
-          // monotonic count of bytes consumed from the stream.
-          const size_t consumed =
-              (recv_->totalFed - up.nonparsed_size()) - recv_->consumedAtHeader;
-          if (consumed != recv_->declaredSize) {
-            throw std::runtime_error("rpc frame length mismatch");
-          }
-          values->push_back(std::move(result));
-          recv_->state = ReadState::needSize;
-        }
-      }
-
-      if (up.nonparsed_size() > kMaxFrameSize + kMaxFrameSlack) {
-        throw std::runtime_error("rpc frame exceeds size limit");
-      }
-
-      // needSize with nothing unparsed is a provably safe resync point: no
-      // partial frame and no unparsed bytes to lose. resetRecvLocked()
-      // rebuilds RecvState (including totalFed and the unpacker) together,
-      // so the totalFed/consumedAtHeader invariant restarts from a
-      // consistent fresh baseline rather than desyncing.
-      if (recv_->state == ReadState::needSize && up.nonparsed_size() == 0 &&
-          recv_->peakFrameSize > kRecvBufKeepCapacity) {
+      // A provably safe resync point: no partial frame and no unparsed
+      // bytes to lose. resetRecvLocked() rebuilds RecvState (including the
+      // parser's totalFed and unpacker) together, so the
+      // totalFed/consumedAtHeader invariant restarts from a consistent
+      // fresh baseline rather than desyncing.
+      if (recv_->parser.atSafeShrinkPoint()) {
         resetRecvLocked();
       }
     } catch (const std::exception &e) {

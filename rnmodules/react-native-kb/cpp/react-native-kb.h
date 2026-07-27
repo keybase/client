@@ -76,8 +76,6 @@ private:
   std::function<bool(void *ptr, size_t size)> writeToGo_;
   std::atomic<bool> isTornDown_{false};
 
-  enum class ReadState { needSize, needContent };
-
   // Incoming stream state. Touched only from the native reader thread, and
   // under recvMutex_ so a stray second reader can't corrupt the unpacker.
   struct RecvState;
