@@ -303,11 +303,6 @@ class Engine {
 
   // Reset the engine
   reset() {
-    // Mobile has no socket to tear down and no reconnect to wait for, but the
-    // in-flight invocations still have to be failed: after an account switch
-    // nothing will answer them, and their callbacks would otherwise fire
-    // against post-switch state.
-    this._rpcClient.transport.reset()
     if (isMobile) {
       return
     }
