@@ -409,7 +409,22 @@ RCT_EXPORT_METHOD(notifyJSReady) {
           NSError *error = nil;
           NSData *data = KeybaseReadArr(&error);
           if (error) {
-            NSLog(@"Error reading data: %@", error);
+            // ReadArr already called Reset() on the Go side, so the connection
+            // JS thinks it has is gone and every in-flight RPC is dead. Tell
+            // JS so it fails them instead of spinning forever, and drop any
+            // half-parsed frame so the next connection starts clean.
+            kbLogToService([NSString
+                stringWithFormat:@"rpc read error, connection reset: %@",
+                                 error.localizedDescription]);
+            if (auto bridge = kbGetBridge()) {
+              bridge->resetRecv();
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+              Kb *instance = kbSharedInstance;
+              if (instance && [instance canEmit]) {
+                [instance emitOnMetaEvent:metaEventEngineReset];
+              }
+            });
             [NSThread sleepForTimeInterval:0.1];
             continue;
           }

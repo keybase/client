@@ -46,6 +46,13 @@ void KBBridge::teardown() {
 
 void KBBridge::tearup() { isTornDown_.store(false); }
 
+void KBBridge::resetRecv() {
+  std::lock_guard<std::mutex> lock(recvMutex_);
+  if (recv_) {
+    resetRecvLocked();
+  }
+}
+
 // Clears cached JSI objects. Must run on the runtime's thread while the
 // runtime is still alive — destroying jsi handles elsewhere is UB.
 void KBBridge::releaseJSIState() {

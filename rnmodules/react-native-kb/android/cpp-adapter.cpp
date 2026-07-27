@@ -81,6 +81,12 @@ static void nativeInvalidate(jni::alias_ref<JKbModule::javaobject>) {
   }
 }
 
+static void nativeResetRecv(jni::alias_ref<JKbModule::javaobject>) {
+  if (auto bridge = getBridge()) {
+    bridge->resetRecv();
+  }
+}
+
 static jni::local_ref<BindingsInstallerHolder::javaobject>
 getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
   auto adapter = std::make_shared<KbNativeAdapter>(thiz);
@@ -149,6 +155,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
             makeNativeMethod("getBindingsInstaller", getBindingsInstaller),
             makeNativeMethod("nativeOnDataFromGo", nativeOnDataFromGo),
             makeNativeMethod("nativeInvalidate", nativeInvalidate),
+            makeNativeMethod("nativeResetRecv", nativeResetRecv),
         });
   });
 }

@@ -47,6 +47,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     external override fun getBindingsInstaller(): BindingsInstallerHolder
     private external fun nativeOnDataFromGo(data: ByteArray)
     private external fun nativeInvalidate()
+    private external fun nativeResetRecv()
 
     private var lifecycleListenerRegistered = false
 
@@ -537,13 +538,17 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     Thread.currentThread().interrupt()
                     return
                 } catch (e: Exception) {
+                    // readArr already called Reset() on the Go side, so the
+                    // connection JS thinks it has is gone and every in-flight
+                    // RPC is dead. EOF is the ordinary shape of this, not a
+                    // surprise -- but JS still has to be told, or its callers
+                    // hang forever.
                     if (e.message != null && e.message.equals("Read error: EOF")) {
-                        NativeLogger.info("Got EOF from read. Likely because of reset.")
+                        NativeLogger.info("Got EOF from read, connection reset.")
                     } else {
                         NativeLogger.error("Exception in ReadFromKBLib.run", e)
                     }
-                    // Back off on error to avoid spinning at full CPU speed when Go is
-                    // unavailable (e.g. during init or loopback restart).
+                    instance?.onRpcConnectionReset()
                     try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt(); return }
                 }
             }
@@ -594,6 +599,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         } catch (e: Exception) {
             NativeLogger.error("Exception resetting after rpc desync", e)
         }
+        reactContext.runOnUiQueueThread { relayReset() }
+    }
+
+    // Called from the reader thread when readArr failed and Go reset the
+    // connection underneath us. Unlike onRpcStreamFatal we must NOT call
+    // Keybase.reset() -- ReadArr already did, and a second reset would close a
+    // connection a concurrent writeArr may have just dialed.
+    fun onRpcConnectionReset() {
+        nativeResetRecv()
         reactContext.runOnUiQueueThread { relayReset() }
     }
 

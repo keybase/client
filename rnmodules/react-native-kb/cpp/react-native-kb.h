@@ -41,6 +41,11 @@ public:
   // Any thread.
   void onDataFromGo(uint8_t *data, int size);
 
+  // Any thread. Drops any partially parsed frame. Must be called whenever the
+  // Go connection is replaced, or the unpacker resumes mid-frame on a fresh
+  // stream and the next header check fails on valid data.
+  void resetRecv();
+
   // Any thread. Stops all further work. Does NOT touch JSI state, so it is
   // safe to call from the main thread / module invalidation.
   void markTornDown();
