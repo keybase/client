@@ -46,6 +46,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     @DoNotStrip
     external override fun getBindingsInstaller(): BindingsInstallerHolder
     private external fun nativeOnDataFromGo(data: ByteArray)
+    private external fun nativeInvalidate()
 
     private var lifecycleListenerRegistered = false
 
@@ -558,6 +559,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // JNI callee ignores the receiver and routes through g_bridge, so a
         // stale instance delivers to the correct current bridge regardless.
         // Bridge teardown is handled by nativeInvalidate below.
+        nativeInvalidate()
         try {
             Keybase.reset()
             relayReset()

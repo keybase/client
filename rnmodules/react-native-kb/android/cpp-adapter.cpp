@@ -57,6 +57,30 @@ static std::shared_ptr<kb::KBBridge> getBridge() {
   return g_bridge;
 }
 
+// Any thread. Drops this module's C++-side state: flips the bridge's atomic
+// teardown flag so the permanent reader stops delivering into a runtime that
+// is going away, and releases the globals that would otherwise pin a dead
+// KbModule (and its ReactContext/Activity) and a destroyed runtime's
+// CallInvoker for the life of the process.
+//
+// Only atomics and shared_ptr slots are touched — the old bridge's jsi
+// handles belong to its own runtime and are released by its kbTeardown host
+// object on the JS thread.
+static void nativeInvalidate(jni::alias_ref<JKbModule::javaobject>) {
+  std::shared_ptr<kb::KBBridge> oldBridge;
+  std::shared_ptr<KbNativeAdapter> oldAdapter;
+  {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    oldBridge = std::move(g_bridge);
+    oldAdapter = std::move(g_adapter);
+    g_bridge = nullptr;
+    g_adapter = nullptr;
+  }
+  if (oldBridge) {
+    oldBridge->markTornDown();
+  }
+}
+
 static jni::local_ref<BindingsInstallerHolder::javaobject>
 getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
   auto adapter = std::make_shared<KbNativeAdapter>(thiz);
@@ -124,6 +148,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
         ->registerNatives({
             makeNativeMethod("getBindingsInstaller", getBindingsInstaller),
             makeNativeMethod("nativeOnDataFromGo", nativeOnDataFromGo),
+            makeNativeMethod("nativeInvalidate", nativeInvalidate),
         });
   });
 }
