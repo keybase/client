@@ -181,6 +181,37 @@ class NativeTransportMobile extends LocalTransport {
   }
 }
 
+// Expands a native rpcOnJs batch into individual dispatchOne calls. Exported
+// so the mobile batch path (otherwise only reachable through the
+// isMobile-gated global.rpcOnJs assignment inside createClient) can be
+// exercised directly in tests.
+export const dispatchRpcBatch = (
+  objs: unknown,
+  count: number,
+  dispatchOne: (obj: unknown) => void,
+  logError: (msg: string) => void
+) => {
+  // Outer guard: this is called from native, so throwing here would abort the
+  // whole batch delivery and unwind into native code.
+  try {
+    if (count > 1) {
+      if (!Array.isArray(objs)) {
+        // Native always sends an array when it batches, so this means the
+        // two sides disagree -- and count-1 messages would vanish silently.
+        logError(`rpcOnJs: count ${count} but payload is not an array`)
+        return
+      }
+      for (const obj of objs) {
+        dispatchOne(obj)
+      }
+    } else {
+      dispatchOne(objs)
+    }
+  } catch (e) {
+    logError(`rpcOnJs: batch guard threw: ${String(e)}`)
+  }
+}
+
 function createClient(
   incomingRPCCallback: IncomingRPCCallbackType,
   connectCallback: ConnectDisconnectCB,
@@ -201,26 +232,8 @@ function createClient(
       }
     }
 
-    // Outer guard: this is called from native, so throwing here would abort the
-    // whole batch delivery and unwind into native code.
     global.rpcOnJs = (objs: unknown, count: number) => {
-      try {
-        if (count > 1) {
-          if (!Array.isArray(objs)) {
-            // Native always sends an array when it batches, so this means the
-            // two sides disagree -- and count-1 messages would vanish silently.
-            logger.error(`rpcOnJs: count ${count} but payload is not an array`)
-            return
-          }
-          for (const obj of objs) {
-            dispatchOne(obj)
-          }
-        } else {
-          dispatchOne(objs)
-        }
-      } catch (e) {
-        logger.error('rpcOnJs: batch guard threw', e)
-      }
+      dispatchRpcBatch(objs, count, dispatchOne, msg => logger.error(msg))
     }
 
     onMetaEvent((payload: string) => {
