@@ -365,7 +365,14 @@ export abstract class RPCTransport {
           response: this.makeResponse(seqid),
         }
         if (this._incomingRPCCallback) {
-          this._incomingRPCCallback(payload)
+          try {
+            this._incomingRPCCallback(payload)
+          } catch (e) {
+            // The handler threw before settling payload.response, so the
+            // service side would otherwise wait forever on this seqid.
+            logger.error('incoming invoke handler threw', e)
+            payload.response.error?.(makeTransportError('UNKNOWN_METHOD'))
+          }
         } else {
           payload.response.error?.(makeTransportError('UNKNOWN_METHOD'))
         }

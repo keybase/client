@@ -245,6 +245,21 @@ test('a throwing incoming handler does not desync the packetizer', () => {
   expect(delivered).toHaveLength(1)
 })
 
+test('a throwing invoke handler still answers the caller with an error', () => {
+  const transport = new TestTransport({
+    incomingRPCCallback: () => {
+      throw new Error('handler blew up')
+    },
+  })
+
+  transport.dispatchDecodedMessage([0, 7, 'keybase.1.test.hello', [{}]])
+
+  // Something must go back for seqid 7 -- otherwise the service waits forever.
+  expect(transport.sent).toEqual([
+    [1, 7, {code: errors.UNKNOWN_METHOD, desc: 'No method available', name: 'UNKNOWN_METHOD'}, null],
+  ])
+})
+
 test('cancel packets surface a cancelled response payload', () => {
   const incoming = jest.fn()
   const transport = new TestTransport({incomingRPCCallback: incoming})
