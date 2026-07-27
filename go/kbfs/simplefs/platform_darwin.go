@@ -8,7 +8,7 @@ package simplefs
 #cgo LDFLAGS: -framework Foundation -framework CoreServices -lobjc
 
 #include <Foundation/Foundation.h>
-void quarantineFile(const char* inFilename) {
+static void quarantineFile(const char* inFilename) {
 	NSError* error = NULL;
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	NSURL* url = [NSURL fileURLWithPath:filename];

@@ -5,7 +5,7 @@ package attachments
 /*
 #cgo CFLAGS: -x objective-c -fobjc-arc
 #include <Foundation/Foundation.h>
-void quarantineFile(const char* inFilename) {
+static void quarantineFile(const char* inFilename) {
 	NSError* error = NULL;
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	NSURL* url = [NSURL fileURLWithPath:filename];
