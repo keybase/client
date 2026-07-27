@@ -31,7 +31,11 @@ struct KBBridge::RecvState {
   // Persist across calls: a frame's header and its content routinely arrive
   // in separate reads.
   size_t declaredSize = 0;
-  size_t sizeAtHeader = 0;
+  size_t consumedAtHeader = 0;
+  // Every byte ever handed to the unpacker. parsed_size() cannot serve this
+  // role -- next() zeroes it on each success -- but totalFed minus
+  // nonparsed_size() is an accurate running count of what has been consumed.
+  size_t totalFed = 0;
 };
 
 struct KBBridge::SendState {
@@ -632,6 +636,7 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
       up.reserve_buffer(static_cast<size_t>(size));
       std::memcpy(up.buffer(), data, static_cast<size_t>(size));
       up.buffer_consumed(static_cast<size_t>(size));
+      recv_->totalFed += static_cast<size_t>(size);
 
       while (true) {
         msgpack::object_handle result;
@@ -648,7 +653,7 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
             throw std::runtime_error("bad rpc frame header");
           }
           recv_->declaredSize = static_cast<size_t>(o.as<uint64_t>());
-          recv_->sizeAtHeader = up.parsed_size();
+          recv_->consumedAtHeader = recv_->totalFed - up.nonparsed_size();
           recv_->state = ReadState::needContent;
         } else {
           // The header is only a plausibility check on its own: a fixint
@@ -657,7 +662,13 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
           // declared byte count makes the framing self-checking, so a
           // truncated or overlong frame is caught here instead of being
           // handed to JS as a bogus [type, seqid, ...].
-          const size_t consumed = up.parsed_size() - recv_->sizeAtHeader;
+          //
+          // parsed_size() is NOT usable here: unpacker::next() resets it to
+          // 0 on every successful parse, so it can't measure a span across
+          // two next() calls. totalFed - nonparsed_size() is a genuine
+          // monotonic count of bytes consumed from the stream.
+          const size_t consumed =
+              (recv_->totalFed - up.nonparsed_size()) - recv_->consumedAtHeader;
           if (consumed != recv_->declaredSize) {
             throw std::runtime_error("rpc frame length mismatch");
           }
