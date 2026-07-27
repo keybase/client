@@ -29,8 +29,12 @@ public:
     if (jba == nullptr) {
       // NewByteArray leaves OutOfMemoryError pending. Returning with it still
       // set means the JS thread makes its next JNI call with a live exception
-      // -- UB, and an abort under CheckJNI.
+      // -- UB, and an abort under CheckJNI. Describe it to logcat before
+      // clearing, and route a line through onLog so an OOM here also reaches
+      // the uploadable log, not just logcat.
+      env->ExceptionDescribe();
       env->ExceptionClear();
+      onLog("writeToGo: NewByteArray failed (out of memory), dropping message");
       return false;
     }
     // Adopt into a local_ref so the ref is released even if the call below

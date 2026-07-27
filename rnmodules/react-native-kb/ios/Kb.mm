@@ -485,16 +485,21 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             // suppress the kb-engine-reset emit.
             CFTimeInterval now = CACurrentMediaTime();
             if (now >= emitNotBeforeTime) {
-              emitBackoffSeconds = emitBackoffSeconds == 0
-                  ? kEngineResetEmitInitialBackoff
-                  : MIN(emitBackoffSeconds * 2, kEngineResetEmitBackoffCeiling);
-              emitNotBeforeTime = now + emitBackoffSeconds;
-              dispatch_async(dispatch_get_main_queue(), ^{
-                Kb *instance = kbSharedInstance;
-                if (instance && [instance canEmit]) {
+              // Only advance the backoff window when the emit is actually
+              // deliverable now -- checked synchronously here rather than
+              // inside the dispatched block, so a dropped notification (no
+              // shared instance / not yet able to emit) costs nothing and the
+              // very next failure gets another chance to notify JS promptly.
+              Kb *instance = kbSharedInstance;
+              if (instance && [instance canEmit]) {
+                emitBackoffSeconds = emitBackoffSeconds == 0
+                    ? kEngineResetEmitInitialBackoff
+                    : MIN(emitBackoffSeconds * 2, kEngineResetEmitBackoffCeiling);
+                emitNotBeforeTime = now + emitBackoffSeconds;
+                dispatch_async(dispatch_get_main_queue(), ^{
                   [instance emitOnMetaEvent:metaEventEngineReset];
-                }
-              });
+                });
+              }
             }
             [NSThread sleepForTimeInterval:0.1];
             continue;

@@ -460,6 +460,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
+    // Synchronous, best-effort mirror of relayReset()'s own check, callable
+    // from the reader thread: lets a caller decide whether an emit has any
+    // chance of being delivered before committing to it.
+    internal fun canDeliverReset(): Boolean = reactContext.hasActiveReactInstance() && canEmit()
+
+    // No current caller (kept for future use). If ever wired up, this must
+    // reset the parser along with the Go connection, or the next connection
+    // desyncs on its first frame -- see the other reset paths in this file.
     @ReactMethod
     override fun engineReset() {
         try {
@@ -548,9 +556,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // JS learns promptly, then backs off exponentially to a ceiling.
         // Reset alongside readErrorCount on the next successful read, so a
         // later, unrelated episode again emits promptly.
-        private fun shouldEmitEngineReset(): Boolean {
+        //
+        // `deliverable` gates the backoff advance itself, not just the emit:
+        // an emit that has nowhere to go (no active react instance / can't
+        // emit yet) must not cost a full backoff window, or a dropped
+        // notification during e.g. a reload delays the next one that could
+        // actually be delivered.
+        private fun shouldEmitEngineReset(deliverable: Boolean): Boolean {
             val now = android.os.SystemClock.elapsedRealtime()
-            if (now < emitNotBeforeMs) {
+            if (now < emitNotBeforeMs || !deliverable) {
                 return false
             }
             emitBackoffMs = if (emitBackoffMs == 0L) EMIT_BACKOFF_INITIAL_MS else minOf(emitBackoffMs * 2, EMIT_BACKOFF_CEILING_MS)
@@ -588,11 +602,22 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     // surprise -- but JS still has to be told, or its callers
                     // hang forever.
                     if (e.message != null && e.message.equals("Read error: EOF")) {
-                        NativeLogger.info("Got EOF from read, connection reset.")
+                        // EOF is the ordinary shape of a persistent-read
+                        // outage, not a surprise, but at this loop's ~100ms
+                        // retry it is still a ~10Hz flood into the uploadable
+                        // log if left unthrottled -- share the read-error
+                        // counter with the non-EOF branch below, since both
+                        // are just "reads are failing".
+                        if (shouldLogReadError()) {
+                            NativeLogger.info("Got EOF from read, connection reset (count=$readErrorCount).")
+                        }
                     } else if (shouldLogReadError()) {
                         NativeLogger.error("Exception in ReadFromKBLib.run (count=$readErrorCount)", e)
                     }
-                    instance?.onRpcConnectionReset(shouldEmitEngineReset())
+                    val inst = instance
+                    if (inst != null) {
+                        inst.onRpcConnectionReset(shouldEmitEngineReset(inst.canDeliverReset()))
+                    }
                     try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt(); return }
                 }
             }
