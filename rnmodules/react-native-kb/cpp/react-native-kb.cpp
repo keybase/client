@@ -793,6 +793,18 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
           }
         }
         if (converted.empty()) {
+          // Every message in the batch was already irrevocably consumed off
+          // the wire during parsing, so whatever seqids they carried will
+          // never get a reply -- their JS-side callers would hang forever.
+          // `values` is never empty here (onDataFromGo returns before
+          // scheduling this lambda otherwise), so this only fires when
+          // something was genuinely dropped.
+          self->reportError("dropped entire batch: all " +
+                            std::to_string(values->size()) +
+                            " message(s) failed to convert");
+          if (self->onFatal_) {
+            self->onFatal_();
+          }
           return;
         }
         if (self->isTornDown_.load()) {
