@@ -2,6 +2,7 @@
 // every flow here (side-effect imports register their describe/it blocks) runs
 // the whole suite in ONE session — no per-file session teardown/recreate (~800ms
 // each) and the app stays warm between flows.
+import './flows/android-activity-restart.test'
 import './flows/chat-conversation.test'
 import './flows/chat-send-message.test'
 import './flows/crypto-outputs.test'

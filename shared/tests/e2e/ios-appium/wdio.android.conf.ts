@@ -32,7 +32,10 @@ export const config: WebdriverIO.Config = {
   // nav/list flake without masking real failures. Retries run ONLY on failure.
   mochaOpts: {ui: 'bdd', timeout: 120000, retries: 2},
   reporters: ['spec'],
-  services: [['appium', {args: {basePath: '/', port}}]],
+  // relaxedSecurity: android-activity-restart.test.ts uses `mobile: shell`
+  // (pidof) to prove the app process survived an Activity restart — Appium
+  // rejects that execute-driver-script command without it.
+  services: [['appium', {args: {basePath: '/', port, relaxedSecurity: true}}]],
   // The app restores its last screen on launch and screens leak between specs,
   // so reset to the root tab bar before each test by climbing out of any stack.
   beforeTest: async test => {
