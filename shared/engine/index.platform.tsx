@@ -189,7 +189,7 @@ export const dispatchRpcBatch = (
   objs: unknown,
   count: number,
   dispatchOne: (obj: unknown) => void,
-  logError: (msg: string) => void
+  logError: (msg: string, e?: unknown) => void
 ) => {
   // Outer guard: this is called from native, so throwing here would abort the
   // whole batch delivery and unwind into native code.
@@ -208,7 +208,7 @@ export const dispatchRpcBatch = (
       dispatchOne(objs)
     }
   } catch (e) {
-    logError(`rpcOnJs: batch guard threw: ${String(e)}`)
+    logError('rpcOnJs: batch guard threw', e)
   }
 }
 
@@ -233,7 +233,7 @@ function createClient(
     }
 
     global.rpcOnJs = (objs: unknown, count: number) => {
-      dispatchRpcBatch(objs, count, dispatchOne, msg => logger.error(msg))
+      dispatchRpcBatch(objs, count, dispatchOne, (msg, e) => logger.error(msg, e))
     }
 
     onMetaEvent((payload: string) => {
