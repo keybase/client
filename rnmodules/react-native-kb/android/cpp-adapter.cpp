@@ -34,7 +34,15 @@ public:
       // the uploadable log, not just logcat.
       env->ExceptionDescribe();
       env->ExceptionClear();
-      onLog("writeToGo: NewByteArray failed (out of memory), dropping message");
+      // onLog itself allocates a jstring (jni::make_jstring); if that
+      // allocation throws -- plausible right after an OOM -- an fbjni
+      // JniException must not escape writeToGo in place of the documented
+      // `return false`, or the caller's exception-handling contract breaks.
+      try {
+        onLog("writeToGo: NewByteArray failed (out of memory), dropping message");
+      } catch (...) {
+        env->ExceptionClear();
+      }
       return false;
     }
     // Adopt into a local_ref so the ref is released even if the call below
