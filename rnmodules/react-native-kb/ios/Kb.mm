@@ -267,6 +267,15 @@ RCT_EXPORT_MODULE()
 - (void)invalidate {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   kbPasteImageEnabled = NO;
+  // RN never nulls _eventEmitterCallback on invalidate and the __weak ref
+  // above only nils at dealloc, which lags this call — so without an explicit
+  // clear, canEmit stays YES and a push notification, token registration or
+  // (worst) the reader's desync meta event emits into the dying runtime's
+  // invoker. Guarded because a reload may already have installed a newer
+  // module as the shared instance.
+  if (kbSharedInstance == self) {
+    kbSharedInstance = nil;
+  }
   // Runs on the TurboModule shared method queue (no methodQueue getter, so
   // RCTTurboModuleManager assigns _sharedModuleQueue) — any thread, never the
   // JS thread. Only the atomic flag may be touched here; releasing jsi
