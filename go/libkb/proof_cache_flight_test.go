@@ -57,7 +57,7 @@ func TestProofCheckFlightZeroRequestedAtNeverShares(t *testing.T) {
 	}
 }
 
-func TestProofCheckFlightUnusableResultFallsThrough(t *testing.T) {
+func TestProofCheckFlightUnusableResultDropped(t *testing.T) {
 	pc := NewProofCache(nil, 10)
 	t0 := time.Now()
 
@@ -65,11 +65,25 @@ func TestProofCheckFlightUnusableResultFallsThrough(t *testing.T) {
 	// Owner was canceled, so its result can't stand in for anyone else.
 	mine.finish(nil, nil, false)
 
-	_, theirs := pc.CheckFlightBegin("k", t0, t0)
-	if theirs == nil {
-		t.Fatal("expected to find the flight")
+	// The dead flight is dropped so the next caller leads a fresh one...
+	mine2, theirs2 := pc.CheckFlightBegin("k", t0, t0)
+	if theirs2 != nil {
+		t.Fatal("must not share a finished unusable flight")
 	}
-	if _, _, usable := theirs.wait(context.Background()); usable {
-		t.Fatal("canceled result must not be usable")
+	if mine2 == nil {
+		t.Fatal("expected to own a new flight")
+	}
+
+	// ...which concurrent callers can then share.
+	_, theirs3 := pc.CheckFlightBegin("k", t0, t0)
+	if theirs3 != mine2 {
+		t.Fatal("expected to share the new flight")
+	}
+
+	hint := &SigHint{apiURL: "https://example.com/proof"}
+	go mine2.finish(hint, nil, true)
+	got, _, usable := theirs3.wait(context.Background())
+	if !usable || got != hint {
+		t.Fatalf("expected shared usable result, got usable=%v hint=%v", usable, got)
 	}
 }

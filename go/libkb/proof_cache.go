@@ -122,9 +122,9 @@ type ProofCache struct {
 // been kept around, so retention can't make a shared answer any staler.
 const proofCheckFlightCapacity = 500
 
-// proofCheckFlight is one outbound remote proof check that other identify
+// ProofCheckFlight is one outbound remote proof check that other identify
 // sessions may share instead of issuing a duplicate request of their own.
-type proofCheckFlight struct {
+type ProofCheckFlight struct {
 	startedAt time.Time
 	doneCh    chan struct{}
 
@@ -134,17 +134,28 @@ type proofCheckFlight struct {
 	usable bool
 }
 
-func (f *proofCheckFlight) finish(hint *SigHint, err ProofError, usable bool) {
+func (f *ProofCheckFlight) finish(hint *SigHint, err ProofError, usable bool) {
 	f.hint = hint
 	f.err = err
 	f.usable = usable
 	close(f.doneCh)
 }
 
+// finished reports whether the check is done. Only meaningful under flightMu,
+// where it gates reuse of the flight's result fields.
+func (f *ProofCheckFlight) finished() bool {
+	select {
+	case <-f.doneCh:
+		return true
+	default:
+		return false
+	}
+}
+
 // wait blocks until the shared check finishes. usable is false when the result
 // can't stand in for the caller's own check (the owning goroutine was canceled),
 // in which case the caller must do its own check.
-func (f *proofCheckFlight) wait(ctx context.Context) (hint *SigHint, err ProofError, usable bool) {
+func (f *ProofCheckFlight) wait(ctx context.Context) (hint *SigHint, err ProofError, usable bool) {
 	select {
 	case <-f.doneCh:
 		return f.hint, f.err, f.usable
@@ -162,7 +173,7 @@ func (f *proofCheckFlight) wait(ctx context.Context) (hint *SigHint, err ProofEr
 // older than one the caller would have produced by doing the work itself. That
 // makes this a pure singleflight: it collapses duplicate concurrent work without
 // letting any result outlive the freshness its requester asked for.
-func (pc *ProofCache) CheckFlightBegin(key string, requestedAt, now time.Time) (mine, theirs *proofCheckFlight) {
+func (pc *ProofCache) CheckFlightBegin(key string, requestedAt, now time.Time) (mine, theirs *ProofCheckFlight) {
 	if pc == nil {
 		return nil, nil
 	}
@@ -182,13 +193,21 @@ func (pc *ProofCache) CheckFlightBegin(key string, requestedAt, now time.Time) (
 	// can't say when they asked never share.
 	if !requestedAt.IsZero() {
 		if tmp, found := pc.flights.Get(key); found {
-			if f, ok := tmp.(*proofCheckFlight); ok && !f.startedAt.Before(requestedAt) {
-				return nil, f
+			if f, ok := tmp.(*ProofCheckFlight); ok && !f.startedAt.Before(requestedAt) {
+				// A finished flight whose owner was canceled can't answer for
+				// anyone, so keeping it would make every later caller fall back
+				// to its own check without ever forming a new flight. Drop it
+				// and let this caller lead one that others can share.
+				if f.finished() && !f.usable {
+					pc.flights.Remove(key)
+				} else {
+					return nil, f
+				}
 			}
 		}
 	}
 
-	f := &proofCheckFlight{startedAt: now, doneCh: make(chan struct{})}
+	f := &ProofCheckFlight{startedAt: now, doneCh: make(chan struct{})}
 	pc.flights.Add(key, f)
 	return f, nil
 }
