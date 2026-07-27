@@ -212,6 +212,20 @@ export const dispatchRpcBatch = (
   }
 }
 
+// Per-message try/catch: one bad message must not drop the rest of the batch
+// the native side handed over. Exported (alongside dispatchRpcBatch) so the
+// mobile-only wiring inside createClient's isMobile branch can be exercised
+// directly in tests without a mobile jest environment.
+export const makeDispatchOne = (client: {transport: {dispatchDecodedMessage: (obj: unknown) => void}}) => {
+  return (obj: unknown) => {
+    try {
+      client.transport.dispatchDecodedMessage(obj)
+    } catch (e) {
+      logger.error('rpcOnJs: dispatch threw', e)
+    }
+  }
+}
+
 function createClient(
   incomingRPCCallback: IncomingRPCCallbackType,
   connectCallback: ConnectDisconnectCB,
@@ -222,15 +236,7 @@ function createClient(
       new NativeTransportMobile(incomingRPCCallback, connectCallback, disconnectCallback)
     )
 
-    // Per-message try/catch: one bad message must not drop the rest of the
-    // batch the native side handed over.
-    const dispatchOne = (obj: unknown) => {
-      try {
-        client.transport.dispatchDecodedMessage(obj)
-      } catch (e) {
-        logger.error('rpcOnJs: dispatch threw', e)
-      }
-    }
+    const dispatchOne = makeDispatchOne(client)
 
     global.rpcOnJs = (objs: unknown, count: number) => {
       dispatchRpcBatch(objs, count, dispatchOne, (msg, e) => logger.error(msg, e))

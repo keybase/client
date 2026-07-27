@@ -3,7 +3,7 @@
 // jest.setup.js sets isMobile=false, isRenderer=true, and _fromPreload.functions
 // with no engineSend -- exactly the "renderer up, preload never wired engineSend"
 // case this test drives.
-import {createClient, dispatchRpcBatch} from './index.platform'
+import {createClient, dispatchRpcBatch, makeDispatchOne} from './index.platform'
 
 test('a missing engineSend fails the write instead of silently no-oping', () => {
   const client = createClient(
@@ -43,21 +43,23 @@ describe('dispatchRpcBatch', () => {
 
   test("one message's dispatch throwing does not stop the remaining messages", () => {
     const dispatched: Array<unknown> = []
-    const errors: Array<string> = []
-    // Mirrors production's dispatchOne: each item is individually try/caught
-    // so one bad message can't drop the rest of the batch.
-    const dispatchOne = (obj: unknown) => {
-      try {
-        if (obj === 'bad') {
-          throw new Error('dispatch threw')
-        }
-        dispatched.push(obj)
-      } catch (e) {
-        errors.push(`rpcOnJs: dispatch threw: ${String(e)}`)
-      }
+    // Exercises production's own dispatchOne (via makeDispatchOne) rather
+    // than a re-implementation, so this test still fails if production ever
+    // loses its per-message try/catch.
+    const fakeClient = {
+      transport: {
+        dispatchDecodedMessage: (obj: unknown) => {
+          if (obj === 'bad') {
+            throw new Error('dispatch threw')
+          }
+          dispatched.push(obj)
+        },
+      },
     }
+    const dispatchOne = makeDispatchOne(fakeClient)
+    const errors: Array<string> = []
     dispatchRpcBatch(['a', 'bad', 'b'], 3, dispatchOne, msg => errors.push(msg))
     expect(dispatched).toEqual(['a', 'b'])
-    expect(errors).toEqual(['rpcOnJs: dispatch threw: Error: dispatch threw'])
+    expect(errors).toEqual([])
   })
 })
