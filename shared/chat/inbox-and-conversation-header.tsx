@@ -15,6 +15,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToPath} from '@/constants/fs'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-context'
 import {muteConversation} from '@/chat/conversation/status-actions'
+import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
 
 const emptyMeta = Chat.makeConversationMeta()
 const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
@@ -171,7 +172,10 @@ const Header = () => {
   const leftSide = (
     <Kb.Box2 direction="horizontal" style={styles.left}>
       {C.isTablet ? (
-        <Kb.BoxGrow2>{headerPortalContent}</Kb.BoxGrow2>
+        <>
+          <AccountSwitchHeaderAvatar />
+          <Kb.BoxGrow2>{headerPortalContent}</Kb.BoxGrow2>
+        </>
       ) : !isMobile ? (
         <Kb.BoxGrow2>
           <div

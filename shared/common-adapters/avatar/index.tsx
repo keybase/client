@@ -18,6 +18,8 @@ type Props = {
   imageOverrideUrl?: string
   isTeam?: boolean
   onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
+  onError?: () => void
+  onLoad?: () => void
   testID?: string
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
   style?: Styles.CustomStyles<'borderStyle'>
@@ -259,8 +261,14 @@ function Avatar(p: Props) {
             style={cached.image}
             recyclingKey={name}
             cachePolicy="memory-disk"
-            onError={() => setErrorUri(source.uri)}
-            onLoad={() => setErrorUri(undefined)}
+            onError={() => {
+              setErrorUri(source.uri)
+              p.onError?.()
+            }}
+            onLoad={() => {
+              setErrorUri(undefined)
+              p.onLoad?.()
+            }}
           />
         </>
       ) : name || !isTeam ? (
