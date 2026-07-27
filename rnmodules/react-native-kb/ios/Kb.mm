@@ -367,14 +367,18 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
         // shared_ptr cycle.
         []() {
             kbLogToService(@"rpc stream desync, resetting connection");
-            if (auto bridge = kbGetBridge()) {
-              bridge->resetRecv();
-            }
+            // Reset the Go connection before the parser: the reader thread is
+            // still live on this path, so resetting the parser first would
+            // leave a window where bytes from the OLD connection land in the
+            // freshly-cleared unpacker mid-frame, causing a second desync.
             NSError *error = nil;
             KeybaseReset(&error);
             if (error) {
                 kbLogToService([NSString stringWithFormat:@"reset after desync failed: %@",
                                                           error.localizedDescription]);
+            }
+            if (auto bridge = kbGetBridge()) {
+              bridge->resetRecv();
             }
             dispatch_async(dispatch_get_main_queue(), ^{
                 Kb *instance = kbSharedInstance;
@@ -404,9 +408,15 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
 RCT_EXPORT_METHOD(shareListenersRegistered) {
 }
 
+// No current caller (kept for future use). If ever wired up, this must reset
+// the parser along with the Go connection, or the next connection desyncs on
+// its first frame -- see the other reset paths in this file.
 RCT_EXPORT_METHOD(engineReset) {
   NSError *error = nil;
   KeybaseReset(&error);
+  if (auto bridge = kbGetBridge()) {
+    bridge->resetRecv();
+  }
   if ([self canEmit]) {
     [self emitOnMetaEvent:metaEventEngineReset];
   }

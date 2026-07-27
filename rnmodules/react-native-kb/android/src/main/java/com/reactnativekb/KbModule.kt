@@ -472,6 +472,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     override fun engineReset() {
         try {
             Keybase.reset()
+            nativeResetRecv()
             relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in engineReset", e)
@@ -682,12 +683,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     @DoNotStrip
     fun onRpcStreamFatal() {
         NativeLogger.warn("$NAME: rpc stream desync, resetting connection")
-        nativeResetRecv()
+        // Reset the Go connection before the parser: the reader thread is
+        // still live on this path, so clearing the parser first would leave a
+        // window where bytes from the OLD connection land in the
+        // freshly-reset unpacker mid-frame, causing a second desync.
         try {
             Keybase.reset()
         } catch (e: Exception) {
             NativeLogger.error("Exception resetting after rpc desync", e)
         }
+        nativeResetRecv()
         reactContext.runOnUiQueueThread { relayReset() }
     }
 

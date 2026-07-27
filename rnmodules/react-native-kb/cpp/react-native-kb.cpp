@@ -52,6 +52,14 @@ struct KBBridge::RecvState {
   // safe (nonparsed_size() == 0) point to act on it, so this survives that
   // overwrite and lets the shrink check fire for the frame that actually
   // grew the buffer.
+  //
+  // This is only a meaningful shrink trigger because Go's ReadArr
+  // (go/bind/keybase.go) reads into a fixed 300KB buffer per call: a stream
+  // of many small frames delivered across many small reads can't durably
+  // grow the unpacker, since msgpack::unpacker rewinds its buffer in place
+  // once fully drained. If that Go-side buffer ever grows, peakFrameSize
+  // stops tracking "did one big frame arrive" and starts tracking "did
+  // several small frames arrive in the same read" instead.
   size_t peakFrameSize = 0;
 };
 
@@ -790,6 +798,8 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
           } catch (const std::exception &e) {
             self->reportError(std::string("dropping undecodable message: ") +
                               e.what());
+          } catch (...) {
+            self->reportError("dropping undecodable message: unknown error");
           }
         }
         if (converted.empty()) {
