@@ -243,10 +243,23 @@ function createClient(
             // Go dropped the loopback connection; anything in flight is dead.
             // Report the disconnect before the reconnect so the engine cancels
             // its sessions and the UI shows the reconnect state -- the desktop
-            // socket path does the same pair.
+            // socket path does the same pair. disconnectCallback and
+            // connectCallback are isolated in their own try/catch: a throw
+            // from a session cancel handler inside disconnectCallback must
+            // not strand the UI on the disconnect banner by skipping
+            // connectCallback (which synchronously clears the daemon error
+            // via startHandshake()).
             client.transport.reset()
-            disconnectCallback()
-            connectCallback()
+            try {
+              disconnectCallback()
+            } catch (e) {
+              logger.error('>>>> meta engine event: disconnectCallback threw', e)
+            }
+            try {
+              connectCallback()
+            } catch (e) {
+              logger.error('>>>> meta engine event: connectCallback threw', e)
+            }
         }
       } catch (e) {
         logger.error('>>>> meta engine event JS thrown!', e)
