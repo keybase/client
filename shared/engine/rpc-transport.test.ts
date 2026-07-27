@@ -367,6 +367,23 @@ test('auto-result then a throwing handler sends exactly one message and logs no 
   errorSpy.mockRestore()
 })
 
+test('a response cannot be settled twice: result() after error() is a no-op (first settle wins)', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      payload = incoming
+    },
+  })
+
+  transport.dispatchDecodedMessage([0, 10, 'keybase.1.test.hello', [{}]])
+  payload?.response?.error?.({code: errors.UNKNOWN_METHOD, desc: 'No method available', name: 'UNKNOWN_METHOD'})
+  payload?.response?.result?.({ok: true})
+
+  expect(transport.sent).toEqual([
+    [1, 10, {code: errors.UNKNOWN_METHOD, desc: 'No method available', name: 'UNKNOWN_METHOD'}, null],
+  ])
+})
+
 test('a genuine double-settle -- result() then error() called directly -- still logs', () => {
   let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
   const transport = new TestTransport({
@@ -426,6 +443,19 @@ test('a failed response write is reported, not swallowed', () => {
   // add a second, seqid-specific log or the service-side hang is invisible.
   expect(errorSpy).toHaveBeenCalledTimes(2)
   expect(errorSpy.mock.calls.some(args => args.some(a => typeof a === 'string' && a.includes('11')))).toBe(true)
+
+  // The response is marked settled before the write is attempted, so a
+  // failed write must not leave it settleable again -- there is no
+  // connection left to retry on. Fixing the write error and calling
+  // result() again must not silently open a retry path: it should trip
+  // the double-settle guard and send nothing.
+  transport.setWriteError(undefined)
+  payload?.response?.result?.({ok: 'retry'})
+  expect(transport.sent).toEqual([])
+  expect(errorSpy).toHaveBeenCalledTimes(3)
+  expect(
+    errorSpy.mock.calls.some(args => args.some(a => typeof a === 'string' && a.includes('twice')))
+  ).toBe(true)
   errorSpy.mockRestore()
 })
 
