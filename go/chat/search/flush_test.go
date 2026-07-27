@@ -209,9 +209,9 @@ func TestFlushWritesEvictedMetadata(t *testing.T) {
 	require.Contains(t, onDisk.SeenIDs, chat1.MessageID(2))
 }
 
-// An evicted dirty entry used to fall through to the copy on disk, which is by
-// definition stale - it is missing precisely the writes that are still dirty.
-// Further updates were then built on top of that stale copy.
+// A read of an evicted dirty entry must come from the pending set, not disk. The
+// copy on disk is by definition stale - it is missing precisely the writes that
+// are still dirty - and further updates would be built on top of it.
 func TestReadAfterEvictionDoesNotSeeStaleDisk(t *testing.T) {
 	ctx, s, _, convID := setupFlushTestStore(t, "flush-stale-read")
 
@@ -415,8 +415,9 @@ func TestRequeueKeepsNewerPendingWrite(t *testing.T) {
 	require.Equal(t, 1, count, "requeue double-counted an entry that was already pending")
 }
 
-// Remove used to write metadata straight to disk, ahead of the tokens for any
-// SeenIDs an in-flight Add had put on the same live object.
+// Remove must route metadata through the overlay, not straight to disk: writing
+// it directly publishes it ahead of the tokens for any SeenIDs an in-flight Add
+// has put on the same live object.
 func TestRemoveRoutesMetadataThroughOverlay(t *testing.T) {
 	ctx, s, disk, convID := setupFlushTestStore(t, "remove-ordering")
 
@@ -554,10 +555,9 @@ func TestStaleVersionEntriesAreDiscarded(t *testing.T) {
 }
 
 // A delete that lands while a flush is writing must survive that flush. Flush
-// snapshots under the lock but writes outside it, so a delete applied straight
-// to disk in that window was immediately undone by the write that followed and
-// the entry stayed searchable forever. Queuing the delete instead orders it
-// after the write.
+// snapshots under the lock but writes outside it, so a delete applied straight to
+// disk in that window is undone by the write that follows and the entry stays
+// searchable forever. Queuing the delete instead orders it after the write.
 func TestDeleteDuringFlushIsNotResurrected(t *testing.T) {
 	ctx, s, disk, convID := setupFlushTestStore(t, "delete-during-flush")
 
@@ -577,8 +577,8 @@ func TestDeleteDuringFlushIsNotResurrected(t *testing.T) {
 	disk.Unlock()
 
 	require.NoError(t, s.Flush())
-	// that flush wrote the value it had already snapshotted; the delete is
-	// pending behind it and must be applied by the next one
+	// that flush writes the value it snapshotted; the delete is pending behind it
+	// and must be applied by the next one
 	require.NoError(t, s.Flush())
 
 	onDisk, err := disk.GetTokenEntry(ctx, convID, "alpha")

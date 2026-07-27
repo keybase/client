@@ -45,8 +45,8 @@ func setupStallTestIndexer(t *testing.T, label string) (*Indexer, chat1.Conversa
 	return idx, conv
 }
 
-// A failed store.Add was logged and then reported to the caller as a completed
-// op, so reindexConv marked the whole chunk seen against messages that never
+// A failed store.Add must reach the caller as an error, not as a completed op:
+// reindexConv marks the whole chunk seen on success, against messages that never
 // made it into the index.
 func TestStorageLoopReportsAddFailure(t *testing.T) {
 	idx, _ := setupStallTestIndexer(t, "storage-add-failure")
@@ -121,12 +121,12 @@ func TestConvStalledClearedByProgress(t *testing.T) {
 	require.False(t, ok, "progress must delete the entry, not just zero it")
 }
 
-// TestStallStreakDoesNotOverflow pins the clamp on the shift exponent. streak is
-// unbounded, so `1 << streak` on a conv that never converges eventually shifts
-// past the width of an int: the result goes negative and then to 0, which reads
-// as "no skips left" and silently disables the backoff for good. Clamping the
-// result instead of the exponent does not help - the shift has already
-// overflowed by then.
+// TestStallStreakDoesNotOverflow pins the clamp on the shift exponent. Nothing
+// else bounds streak, so `1 << streak` on a conv that never converges shifts past
+// the width of an int: the result goes negative and then to 0, which reads as "no
+// skips left" and silently disables the backoff for good. Clamping the result
+// instead of the exponent does not help - the shift has already overflowed by
+// then.
 func TestStallStreakDoesNotOverflow(t *testing.T) {
 	ctx := context.TODO()
 	idx, conv := setupStallTestIndexer(t, "stall-overflow")
@@ -191,14 +191,21 @@ func TestClearResetsStalledConv(t *testing.T) {
 		"Clear must drop the backoff for that conv")
 }
 
-// A dropped storage op used to leave its callback unclosed, and reindexConv
-// waits on that callback. The waiter parked forever, which leaked SelectiveSync's
-// cancel func and left every later pass reporting "already running" - background
-// indexing dead until the process restarted.
+// reindexConv waits on a storage op's callback, so a dropped op must still close
+// it. An unclosed callback parks the waiter forever, holding SelectiveSync's
+// cancel func and leaving every later pass reporting "already running" -
+// background indexing dead until the process restarts.
 func TestDroppedStorageOpDoesNotStrandCaller(t *testing.T) {
 	ctx := context.TODO()
 	idx, conv := setupStallTestIndexer(t, "dispatch-full")
 	convID := conv.GetConvID()
+
+	// storageDispatch returns at its !started check otherwise, so the queue never
+	// comes into it and the branch under test is never reached.
+	idx.Lock()
+	idx.started = true
+	idx.stopCh = make(chan struct{})
+	idx.Unlock()
 
 	// fill the dispatch queue so the next op cannot be accepted
 	for len(idx.storageCh) < cap(idx.storageCh) {
@@ -214,6 +221,24 @@ func TestDroppedStorageOpDoesNotStrandCaller(t *testing.T) {
 	case <-cb:
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "callback of a dropped op was never closed; caller would hang forever")
+	}
+}
+
+// A stopped indexer refuses the op for a different reason than a full queue, and
+// must release the caller just the same.
+func TestDispatchOnStoppedIndexerDoesNotStrandCaller(t *testing.T) {
+	ctx := context.TODO()
+	idx, conv := setupStallTestIndexer(t, "dispatch-stopped")
+
+	msgs := []chat1.MessageUnboxed{textMsgForTest(1, "hello world")}
+	cb, err := idx.add(ctx, conv.GetConvID(), msgs, true)
+	require.ErrorIs(t, err, errStorageQueueFull,
+		"a op refused by a stopped indexer must be reported like any other drop")
+
+	select {
+	case <-cb:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "callback of a refused op was never closed; caller would hang forever")
 	}
 }
 

@@ -40,11 +40,9 @@ const (
 // hold, so the set peaks at roughly this plus one batch.
 //
 // It therefore has to sit well above one batch. A page of 300 messages produces
-// ~2600 entries, so a 1000 bound was crossed by every single batch and turned
-// into "flush after every batch": measured at 65 flushes in 2.9s, a 0.04s median
-// gap, rewriting hot tokens to disk - each one re-encrypted whole, not as a
-// delta - on every pass instead of once an interval. Raising it to 20000 cut
-// that to 7 flushes over a comparable window.
+// ~2600 entries, so a bound near that degenerates into "flush after every
+// batch", rewriting hot tokens to disk - each one re-encrypted whole, not as a
+// delta - on every pass instead of once an interval.
 //
 // Note this counts entries, not bytes, and the two differ by a lot: an entry
 // holding one message id and one holding ten thousand both count as 1. A fresh
@@ -283,10 +281,9 @@ type store struct {
 
 	// Entries written but not yet on disk. These hold the entry itself, not just
 	// its key: the caches above are bounded LRUs, so a dirty entry can be evicted
-	// before the next flush. Keying alone meant such an entry was skipped by
-	// Flush and lost, while a subsequent read fell through to the stale copy on
-	// disk and built further updates on top of it. Reads therefore consult these
-	// before disk, and Flush writes from these rather than from the caches.
+	// before the next flush, and a key-only record of it would name an entry that
+	// is no longer anywhere in memory. Reads consult these before disk, and Flush
+	// writes from these rather than from the caches.
 	dirtyTokens   map[chat1.ConvIDStr]map[string]*tokenEntry // map[convIDStr][token]
 	dirtyAliases  map[string]*aliasEntry                     // map[alias]
 	dirtyMetadata map[chat1.ConvIDStr]*indexMetadata         // map[convIDStr]
@@ -590,7 +587,7 @@ func (s *store) signalFlushIfFullLocked() {
 	}
 }
 
-// flushNeeded fires when the pending set has grown past maxDirtyEntries.
+// flushNeeded fires once the pending set reaches maxDirtyEntries.
 func (s *store) flushNeeded() <-chan struct{} {
 	return s.flushNeededCh
 }
@@ -814,12 +811,12 @@ func (s *store) ConvIndexStats(ctx context.Context, conv chat1.Conversation) (re
 //
 // A conv is "fully indexed" only when every ID between its min and max is in
 // SeenIDs, but an ID the server will not return for us can never get there by
-// being indexed: deleted messages, and gaps that never existed. Before this,
-// those IDs kept numMissing above zero forever, so the conv was never fully
-// indexed and SelectiveSync re-fetched the same already-indexed messages every
-// interval, permanently. Callers mark the IDs they asked for after a fetch that
-// succeeded - the source affirmatively answered for that range, so anything
-// absent from the reply is not coming.
+// being indexed: deleted messages, and gaps that never existed. Left unmarked
+// they hold numMissing above zero forever, so the conv is never fully indexed
+// and SelectiveSync re-fetches the same already-indexed messages every interval.
+// Callers mark the IDs they asked for after a fetch that succeeded - the source
+// affirmatively answered for that range, so anything absent from the reply is
+// not coming.
 func (s *store) MarkSeen(ctx context.Context, convID chat1.ConversationID, ids []chat1.MessageID) (err error) {
 	if len(ids) == 0 {
 		return nil
@@ -893,9 +890,9 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	superseded := make(map[chat1.MessageID]supersededFetch, len(msgs))
 
 	// Collect what every message in this batch supersedes, then fetch the whole
-	// set in one call. Asking per message meant one GetMessages round trip per
-	// edit or attachment upload: a backfill of a large conversation issued tens
-	// of thousands of single-message fetches.
+	// set in one call. Asking per message costs one GetMessages round trip per
+	// edit or attachment upload, which over a backfill of a large conversation
+	// is tens of thousands of single-message fetches.
 	superIDsByMsg := make(map[chat1.MessageID][]chat1.MessageID, len(msgs))
 	var allSuperIDs []chat1.MessageID
 	seenSuperID := make(map[chat1.MessageID]bool)
@@ -943,6 +940,7 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 		}
 	}
 
+	unresolved := make(map[chat1.MessageID]bool)
 	for _, msg := range msgs {
 		superIDs, ok := superIDsByMsg[msg.GetMessageID()]
 		if !ok {
@@ -955,6 +953,13 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 			}
 		}
 		if len(fetch.msgs) == 0 {
+			// We know what this message supersedes but could not fetch it, so
+			// its content has nowhere to go. Record that rather than falling
+			// through as a no-op, or the message would be marked seen with the
+			// edit never applied and nothing would revisit it.
+			if len(superIDs) > 0 {
+				unresolved[msg.GetMessageID()] = true
+			}
 			continue
 		}
 		if msg.GetMessageType() == chat1.MessageType_EDIT {
@@ -984,13 +989,18 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 			continue
 		}
 		// Mark seen only once the indexing behind the mark has succeeded. md is
-		// the live shared object and is usually already pending, so marking up
-		// front committed the mark whatever happened next: an error here left
-		// the message recorded as indexed with no tokens for it, and nothing
-		// re-indexes a message the metadata already accounts for.
+		// the live shared object and is usually already pending, so a mark made
+		// up front stands whatever happens next: the message ends up recorded as
+		// indexed with no tokens for it, and nothing re-indexes a message the
+		// metadata already accounts for. The same reasoning covers a message
+		// whose superseded target could not be fetched -- leave it unseen so a
+		// later pass can try again.
 		// NOTE DELETE and DELETEHISTORY are handled through calls to `remove`,
 		// other messages will be added if there is any content that can be
 		// indexed.
+		if unresolved[msg.GetMessageID()] {
+			continue
+		}
 		switch msg.GetMessageType() {
 		case chat1.MessageType_ATTACHMENTUPLOADED:
 			for _, sm := range superseded[msg.GetMessageID()].msgs {
@@ -1086,9 +1096,11 @@ func (s *store) ClearMemory() {
 }
 
 func (s *store) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
-	// ClearMemory is global while the disk clear is for one conv, so clearing a
-	// single conversation used to throw away every other conversation's pending
-	// writes. Flush first so only this conv's index is actually lost.
+	// ClearMemory is global while the disk clear is for one conv, so flush first:
+	// otherwise clearing one conversation discards every other conversation's
+	// pending writes along with it. If the flush fails those writes are still
+	// lost - the clear proceeds regardless, since leaving this conv's index half
+	// dropped is worse.
 	if err := s.Flush(); err != nil {
 		s.Debug(ctx, "Clear: flush before clear failed: %s", err)
 	}
@@ -1211,12 +1223,12 @@ func (s *store) Flush() error {
 // requeue puts snapshots that never reached disk back into the pending set so a
 // later flush retries them.
 //
-// Without this a failed write was simply dropped: the entry had already been
-// removed from dirty tracking before the write was attempted, and nothing marks
-// it dirty again, since nobody mutates a token entry for a message that is
-// already indexed. The live metadata meanwhile keeps its SeenIDs, so the next
-// successful flush would record those messages as indexed with no tokens on
-// disk - unsearchable, and never re-indexed because the conv reads as complete.
+// A dropped failure is unrecoverable: the entry leaves dirty tracking before the
+// write is attempted, and nothing marks it dirty again, since nobody mutates a
+// token entry for a message that is already indexed. The live metadata meanwhile
+// keeps its SeenIDs, so the next successful flush records those messages as
+// indexed with no tokens on disk - unsearchable, and never re-indexed because the
+// conv reads as complete.
 //
 // A key written again since the snapshot was taken is left alone: that pending
 // value is newer than what failed to write.

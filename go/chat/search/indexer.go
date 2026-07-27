@@ -75,7 +75,7 @@ type Indexer struct {
 
 	// convID -> how a conv's last reindex attempt went. A conv whose missing
 	// count did not move is backed off rather than retried every interval.
-	// See stalledConvs in SelectiveSync.
+	// See convStalled and recordIndexProgress for the backoff schedule.
 	stalledMu    sync.Mutex
 	stalledConvs map[chat1.ConvIDStr]stalledConv
 
@@ -315,14 +315,6 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	defer idx.Unlock()
 	ch := make(chan struct{})
 	if idx.started {
-		// Write out what is pending before dropping it. ClearMemory discards the
-		// overlay, and the flush loop is about to stop, so anything not written
-		// here is simply lost - work that has to be done again at best, and at
-		// worst tokens whose metadata already reached disk.
-		if err := idx.store.Flush(); err != nil {
-			idx.Debug(ctx, "Stop: final flush failed: %s", err)
-		}
-		idx.store.ClearMemory()
 		// stall counts describe one indexer run, so drop them with it: a count
 		// carried into the next Start would clamp a conv on evidence gathered
 		// before the restart
@@ -334,7 +326,30 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		go func() {
 			idx.Debug(context.Background(), "Stop: waiting for shutdown")
 			_ = idx.eg.Wait()
-			idx.Debug(context.Background(), "Stop: shutdown complete")
+			// Write out what is pending before dropping it. ClearMemory discards
+			// the overlay and the flush loop has stopped, so anything not written
+			// here is simply lost - work that has to be done again at best, and
+			// at worst tokens whose metadata already reached disk.
+			//
+			// This waits for the loops rather than running inline in Stop:
+			// storageLoop keeps writing into the overlay until stopCh closes, so
+			// a flush taken before that misses whatever lands in between and
+			// ClearMemory then drops it. It also keeps a flush of up to
+			// maxDirtyEntries individually-encrypted writes off idx.Lock, which
+			// every Add, Remove, Suspend and Clear has to take.
+			//
+			// On the logout path this flush fails: logout clears the device
+			// encryption key before it runs the logout hooks that reach us, and
+			// the store encrypts per write. Tokens and metadata share the
+			// overlay and are dropped together, so disk stays consistent and the
+			// work is redone after the next login -- but the write-out only
+			// really happens at process shutdown.
+			ctx := context.Background()
+			if err := idx.store.Flush(); err != nil {
+				idx.Debug(ctx, "Stop: final flush failed: %s", err)
+			}
+			idx.store.ClearMemory()
+			idx.Debug(ctx, "Stop: shutdown complete")
 			close(ch)
 		}()
 	} else {
@@ -406,24 +421,29 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 
 // storageDispatch queues op, reporting whether it was accepted. A caller that
 // waits on the op's callback must close it itself when this returns false:
-// dropping the op silently left that callback with nobody to close it, and the
-// waiter - reindexConv does an unconditional receive - parked forever. In
-// SelectiveSync that leaks the sync's cancel func, so every later attempt sees
-// "already running" and background indexing is done until the process restarts.
+// nothing else will, and the waiter - reindexConv does an unconditional receive
+// - would park forever. In SelectiveSync that parks the sync holding its cancel
+// func, so every later attempt sees "already running" and background indexing is
+// finished for the life of the process.
 // It also refuses to queue once the indexer is stopping. Nothing is left to run
-// the op then, and the drain that would have released its callback has already
-// walked the queue.
+// the op then, and the drain that would have released its callback may already
+// have walked the queue.
 func (idx *Indexer) storageDispatch(op storageOp) bool {
+	// The queue check has to happen under the same lock hold as the started
+	// check, and Stop clears started and closes stopCh under that lock. Testing
+	// started, releasing, then sending leaves a window where Stop runs in
+	// between and the drain has already walked the queue, so the op is enqueued
+	// with nobody left to release its callback. Selecting on stopCh instead of
+	// holding the lock does not close it either: once stopCh is closed both
+	// cases are ready and Go picks between them at random. The send is
+	// non-blocking and storageLoop never takes idx.Lock, so holding it here
+	// cannot deadlock.
 	idx.Lock()
-	stopCh := idx.stopCh
-	started := idx.started
-	idx.Unlock()
-	if !started {
+	defer idx.Unlock()
+	if !idx.started {
 		return false
 	}
 	select {
-	case <-stopCh:
-		return false
 	case idx.storageCh <- op:
 		return true
 	default:
@@ -618,13 +638,20 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	return cb, nil
 }
 
-// reindexConv attempts to fill in any missing messages from the index.  For a
-// small number of messages we use the GetMessages api to fill in the holes. If
-// our index is missing many messages, we page through and add batches of
-// missing messages.
+// reindexConv fills in the messages this conv is missing from the index. It
+// chunks the missing ids pageSize at a time, fetches each chunk with GetMessages
+// and indexes it, then marks the whole chunk seen so ids the source will never
+// produce stop counting as missing. It stops early once numJobs chunks are done,
+// so a large conv is filled in across several passes.
 func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation,
 	numJobs int, inboxIndexStatus *inboxIndexStatus,
 ) (completedJobs int, err error) {
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		// add() drops everything in this case, so paging on would MarkSeen ids
+		// that were never indexed and leave them permanently unsearchable if the
+		// indexer is turned back on.
+		return 0, nil
+	}
 	conv := rconv.Conv
 	convID := conv.GetConvID()
 	missingIDs, err := idx.store.MissingIDForConv(ctx, conv)
@@ -642,11 +669,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 		utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	// Page over the MISSING ids, not over the raw min..max range. Paging the
-	// range re-fetched everything already indexed (measured: 57,648 already-seen
-	// messages re-added in a single pass) and, because each pass restarts at the
-	// lowest missing id and stops once the inbox-wide budget is spent, the top of
-	// a large conv was never reachable at all.
+	// Page over the MISSING ids, not over the raw min..max range. The range
+	// includes everything already indexed - tens of thousands of messages in a
+	// large conv - and re-fetching those spends the inbox-wide budget before
+	// reaching the missing ones. Each pass restarts at the lowest missing id, so
+	// the top of a large conv is otherwise never reachable.
 	for start := 0; start < len(missingIDs); start += idx.pageSize {
 		select {
 		case <-ctx.Done():
@@ -683,9 +710,10 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			return completedJobs, ctx.Err()
 		}
 		// The fetch succeeded, so every id we asked for is now accounted for:
-		// the ones that came back were indexed by add(), and the ones that did
-		// not are ids the source will never produce. Without this the latter
-		// keep the conv permanently "not fully indexed".
+		// the ones that came back were indexed by add() -- or skipped by it as
+		// unindexable, which is equally final -- and the ones that did not are
+		// ids the source will never produce. Unmarked, the latter hold the conv
+		// at "not fully indexed" permanently.
 		if err := idx.store.MarkSeen(ctx, convID, chunk); err != nil {
 			// The store is failing, not the conv. Give up on this conv rather
 			// than paging on: without the mark these ids stay missing, so
@@ -827,17 +855,6 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 	idx.selectiveSyncActive = val
 }
 
-// SelectiveSync queues up a small number of jobs on the background loader
-// periodically so our index can cover all conversations. The number of jobs
-// varies between desktop and mobile so mobile can be more conservative.
-// A stalled conv is retried after 2, then 4, then 8, then every 12 skipped
-// intervals - so on desktop it settles to one attempt per 13 passes, a bit over
-// an hour, reached after ~90 minutes. Even a permanently stuck conv is retried
-// occasionally: nothing is suppressed forever on the strength of an inference.
-//
-// With reindexConv now marking fetched-but-unreturned ids as seen, a conv should
-// converge on its own and never reach here. This is the backstop for whatever
-// still cannot converge, not the mechanism.
 // errStorageQueueFull reports that a storage op was never queued. Callers that
 // mark work as done once the op completes must not do so on this error: the op
 // did not run, so nothing was indexed.
@@ -890,7 +907,7 @@ func (idx *Indexer) convStalled(convID chat1.ConversationID, numMissing uint) bo
 
 // recordIndexProgress stores the missing count after an attempt, so the next
 // pass can tell whether that attempt accomplished anything. A conv that has
-// reached 0 needs no entry: FullyIndexed already skips it.
+// reached 0 needs no entry: its caller skips a fully indexed conv anyway.
 func (idx *Indexer) recordIndexProgress(ctx context.Context, conv chat1.Conversation, before uint) {
 	status, err := idx.store.IndexStatus(ctx, conv)
 	if err != nil {
@@ -905,9 +922,10 @@ func (idx *Indexer) recordIndexProgress(ctx context.Context, conv chat1.Conversa
 		delete(idx.stalledConvs, convIDStr)
 		return
 	}
-	// Clamp the EXPONENT, not the result: streak is unbounded, and a large
-	// enough shift overflows int negative (then to 0), which reads as "no skips"
-	// and silently turns the backoff off for good.
+	// Clamp the EXPONENT, not the result. Nothing else bounds how many times a
+	// conv fails to converge, and a large enough shift overflows int negative
+	// (then to 0), which reads as "no skips" and silently turns the backoff off
+	// for good.
 	streak := idx.stalledConvs[convIDStr].streak + 1
 	if streak > maxStallStreak {
 		streak = maxStallStreak
@@ -923,6 +941,17 @@ func (idx *Indexer) recordIndexProgress(ctx context.Context, conv chat1.Conversa
 	}
 }
 
+// SelectiveSync queues up a small number of jobs on the background loader
+// periodically so our index can cover all conversations. The number of jobs
+// varies between desktop and mobile so mobile can be more conservative.
+// A stalled conv is retried after 2, then 4, then 8, then every 12 skipped
+// intervals - so on desktop it settles to one attempt per 13 passes, a bit over
+// an hour, reached after ~90 minutes. Even a permanently stuck conv is retried
+// occasionally: nothing is suppressed forever on the strength of an inference.
+//
+// reindexConv marks fetched-but-unreturned ids as seen, so a conv converges on
+// its own and should never reach the backoff at all. It is the backstop for
+// whatever still cannot converge, not the mechanism.
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 	defer idx.Trace(ctx, &err, "SelectiveSync")()
 	defer idx.PerfTrace(ctx, &err, "SelectiveSync")()
@@ -961,10 +990,9 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 		// return - deleted, or never delivered to us - therefore stay missing
 		// forever, so such a conv is never fully indexed and SelectiveSync
 		// re-queues it every syncInterval. Each pass re-fetches thousands of
-		// messages that are already indexed, marks nothing new, and burns the
-		// whole maxSyncConvs budget: measured at ~1800 remote getMessages every
-		// 5 minutes, indefinitely, on an idle desktop client, with numMissing
-		// byte-identical across 7 consecutive cycles.
+		// already-indexed messages, marks nothing new, and burns the whole
+		// maxSyncConvs budget - on the order of a thousand remote getMessages
+		// every syncInterval, indefinitely, on an idle client.
 		//
 		// So skip a conv whose missing count did not move on its last attempt.
 		// Anything that actually changes the conv - a new message, a delete,
