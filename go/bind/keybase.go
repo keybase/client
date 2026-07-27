@@ -603,7 +603,12 @@ func WriteArr(b []byte) (err error) {
 var buffer []byte
 
 // ReadArr is a blocking read for msgpack rpc data.
-// It is called serially by the mobile run loops.
+// It must still be called serially by the mobile run loops: conn.Read
+// ordering depends on it, and the msgpack::unpacker behind onDataFromGo
+// on the C++ side is not thread-safe. The returned slice is now this
+// call's own copy, so a second reader would no longer corrupt an
+// in-flight delivery -- it would just be an ordering bug, not memory
+// corruption.
 func ReadArr() (data []byte, err error) {
 	defer func() { err = flattenError(err) }()
 
@@ -641,10 +646,14 @@ func ReadArr() (data []byte, err error) {
 		}
 		// Deliver data even if err != nil (allowed by the net.Conn
 		// contract); a persistent failure is returned by a later call.
-		// Returning a view of the shared buffer is safe because gomobile
-		// copies the bytes across the boundary and ReadArr is called
-		// serially.
-		return buffer[0:n], nil
+		//
+		// Copy out of the shared buffer rather than returning a view of it:
+		// gomobile copies again at the JNI/ObjC boundary regardless, so this
+		// costs one extra memcpy of a few KB on a call already crossing a
+		// language boundary, and it removes buffer aliasing as a hazard.
+		out := make([]byte, n)
+		copy(out, buffer[:n])
+		return out, nil
 	}
 
 	if err != nil {
