@@ -37,10 +37,16 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 //
 // The result is memoized (see annotated_cache.go): concurrent requests for the same team share
 // one load, and repeat requests inside a short window reuse the previous result. Any team change
-// we hear about, local or server-pushed, invalidates the entry.
+// we hear about, local or server-pushed, invalidates the entry. A caller that has already waited
+// on several loads of the same team stops waiting and loads alongside them, so "share one load"
+// holds for the common case rather than universally.
 func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
+	// Reaches past the interface for the unexported load. Anything else installed
+	// as the cacher would silently stop memoizing while NotifyRouter kept calling
+	// Remove on it, so say so rather than quietly halving the feature.
 	cache, _ := g.GetAnnotatedTeamCacher().(*annotatedTeamCache)
 	if cache == nil {
+		g.Log.CDebugf(ctx, "GetAnnotatedTeam: no annotatedTeamCache installed, loading uncached")
 		return loadAnnotatedTeam(ctx, g, teamID)
 	}
 	return cache.load(libkb.NewMetaContext(ctx, g), teamID, loadAnnotatedTeam)
