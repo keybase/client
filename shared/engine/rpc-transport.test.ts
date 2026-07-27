@@ -260,6 +260,34 @@ test('a throwing invoke handler still answers the caller with an error', () => {
   ])
 })
 
+test('a response cannot be settled twice: error() after result() is a no-op', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      payload = incoming
+    },
+  })
+
+  transport.dispatchDecodedMessage([0, 9, 'keybase.1.test.hello', [{}]])
+  payload?.response?.result?.({ok: true})
+  payload?.response?.error?.({code: errors.UNKNOWN_METHOD, desc: 'No method available', name: 'UNKNOWN_METHOD'})
+
+  expect(transport.sent).toEqual([[1, 9, null, {ok: true}]])
+})
+
+test('an invoke handler that settles result() and then throws does not also send an error', () => {
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      incoming.response?.result?.({ok: true})
+      throw new Error('reducer blew up after acking')
+    },
+  })
+
+  transport.dispatchDecodedMessage([0, 13, 'keybase.1.test.hello', [{}]])
+
+  expect(transport.sent).toEqual([[1, 13, null, {ok: true}]])
+})
+
 test('cancel packets surface a cancelled response payload', () => {
   const incoming = jest.fn()
   const transport = new TestTransport({incomingRPCCallback: incoming})

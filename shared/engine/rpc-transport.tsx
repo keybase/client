@@ -505,12 +505,23 @@ export abstract class RPCTransport {
   }
 
   private makeResponse(seqid: number): ResponseType {
+    let settled = false
     return {
       cancelled: false,
       error: err => {
+        if (settled) {
+          logger.error(`Attempted to settle response for seqid ${seqid} twice (error after already settled)`)
+          return
+        }
+        settled = true
         this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])
       },
       result: result => {
+        if (settled) {
+          logger.error(`Attempted to settle response for seqid ${seqid} twice (result after already settled)`)
+          return
+        }
+        settled = true
         this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])
       },
       seqid,
