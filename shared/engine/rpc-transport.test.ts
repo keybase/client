@@ -289,6 +289,51 @@ test('an invoke handler that settles result() and then throws does not also send
   expect(transport.sent).toEqual([[1, 13, null, {ok: true}]])
 })
 
+test('auto-result then a throwing handler sends exactly one message and logs no double-settle error', () => {
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      // Mirrors index.tsx: auto-result() for non-custom-response calls,
+      // then the next line (dispatching the action) throws.
+      incoming.response?.result?.({ok: true})
+      throw new Error('reducer blew up after acking')
+    },
+  })
+  const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {})
+
+  transport.dispatchDecodedMessage([0, 21, 'keybase.1.test.hello', [{}]])
+
+  expect(transport.sent).toEqual([[1, 21, null, {ok: true}]])
+  // The handler-threw log is expected; a second, double-settle log is not --
+  // this is an expected sequence (auto-result then a throwing dispatch), not
+  // a real control-flow bug.
+  expect(errorSpy).toHaveBeenCalledTimes(1)
+  expect(errorSpy).toHaveBeenCalledWith('incoming invoke handler threw', expect.any(Error))
+  expect(errorSpy.mock.calls.some(args => args.some(a => typeof a === 'string' && a.includes('twice')))).toBe(
+    false
+  )
+  errorSpy.mockRestore()
+})
+
+test('a genuine double-settle -- result() then error() called directly -- still logs', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      payload = incoming
+    },
+  })
+  const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {})
+
+  transport.dispatchDecodedMessage([0, 22, 'keybase.1.test.hello', [{}]])
+  payload?.response?.result?.({ok: true})
+  payload?.response?.error?.({code: errors.UNKNOWN_METHOD, desc: 'No method available', name: 'UNKNOWN_METHOD'})
+
+  expect(transport.sent).toEqual([[1, 22, null, {ok: true}]])
+  expect(
+    errorSpy.mock.calls.some(args => args.some(a => typeof a === 'string' && a.includes('twice')))
+  ).toBe(true)
+  errorSpy.mockRestore()
+})
+
 test('failAllOutstanding clears buffered frame bytes', () => {
   const delivered: Array<unknown> = []
   const transport = new TestTransport({

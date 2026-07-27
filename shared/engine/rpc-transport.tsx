@@ -31,6 +31,11 @@ export type ResponseType = {
   seqid: number
   error?: (e?: ErrorType) => void
   result?: (r?: unknown) => void
+  // Read-only: true once error()/result() has settled this response. Lets a
+  // caller that catches after an intentional settle (e.g. a throwing
+  // reducer that runs after the auto-result() call) skip re-settling instead
+  // of tripping the double-settle guard below and logging a false alarm.
+  readonly settled?: boolean
 }
 
 export type PayloadType = {
@@ -368,10 +373,16 @@ export abstract class RPCTransport {
           try {
             this._incomingRPCCallback(payload)
           } catch (e) {
-            // The handler threw before settling payload.response, so the
-            // service side would otherwise wait forever on this seqid.
             logger.error('incoming invoke handler threw', e)
-            payload.response.error?.(makeTransportError('UNKNOWN_METHOD'))
+            // If the handler already settled the response (e.g. an
+            // auto-result() call followed by a throwing reducer on the next
+            // line) it has already answered the service; settling again
+            // would only trip the double-settle guard and log a false
+            // alarm. Only settle here when nothing has answered yet -- the
+            // service side would otherwise wait forever on this seqid.
+            if (!payload.response.settled) {
+              payload.response.error?.(makeTransportError('UNKNOWN_METHOD'))
+            }
           }
         } else {
           payload.response.error?.(makeTransportError('UNKNOWN_METHOD'))
@@ -512,6 +523,9 @@ export abstract class RPCTransport {
     let settled = false
     return {
       cancelled: false,
+      get settled() {
+        return settled
+      },
       error: err => {
         if (settled) {
           logger.error(`Attempted to settle response for seqid ${seqid} twice (error after already settled)`)
