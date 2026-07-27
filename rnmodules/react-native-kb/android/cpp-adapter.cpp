@@ -83,11 +83,21 @@ static std::shared_ptr<kb::KBBridge> getBridge() {
 // Only atomics and shared_ptr slots are touched — the old bridge's jsi
 // handles belong to its own runtime and are released by its kbTeardown host
 // object on the JS thread.
-static void nativeInvalidate(jni::alias_ref<JKbModule::javaobject>) {
+// A stale invalidate can run after the next module already installed its own
+// bridge -- RN's module teardown is not ordered against the next module's
+// installJSIBindings/getBindingsInstaller, so without an identity check an
+// unconditional clear would tear down the LIVE bridge with no desync and no
+// recovery. Mirrors iOS's kbClearBridgeIfCurrent: only clear if the module
+// invoking invalidate is still the one that installed the current
+// adapter/bridge.
+static void nativeInvalidate(jni::alias_ref<JKbModule::javaobject> thiz) {
   std::shared_ptr<kb::KBBridge> oldBridge;
   std::shared_ptr<KbNativeAdapter> oldAdapter;
   {
     std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_adapter || !(g_adapter->jModule_ == thiz)) {
+      return;
+    }
     oldBridge = std::move(g_bridge);
     oldAdapter = std::move(g_adapter);
     g_bridge = nullptr;
