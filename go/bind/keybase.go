@@ -58,8 +58,16 @@ var (
 var (
 	jsReadyOnce sync.Once
 	jsReadyCh   = make(chan struct{})
-	connMutex   sync.Mutex // Protects conn operations
+	connMutex   sync.Mutex // Protects conn and connEpoch
 )
+
+// connEpoch increments every time ensureConnection successfully (re)dials.
+// Callers that observed a failure on a particular conn capture the epoch
+// alongside it (while holding connMutex) and pass it to ResetIfCurrent,
+// which only tears down the connection if nothing has re-dialed since —
+// otherwise some other caller already recovered and this call is a stale,
+// no-op complaint. Protected by connMutex.
+var connEpoch int64
 
 func describeConn(c net.Conn) string {
 	if c == nil {
@@ -571,6 +579,7 @@ func WriteArr(b []byte) (err error) {
 		}
 	}
 	currentConn := conn
+	currentEpoch := connEpoch
 	connMutex.Unlock()
 
 	if currentConn == nil {
@@ -590,8 +599,10 @@ func WriteArr(b []byte) (err error) {
 		// all-or-nothing. If a future transport can short-write, the peer's
 		// framer is left holding a partial frame and every later write would
 		// be consumed as its remainder, so drop the connection rather than
-		// corrupt the stream indefinitely.
-		if ierr := Reset(); ierr != nil {
+		// corrupt the stream indefinitely. ResetIfCurrent (rather than Reset)
+		// so this doesn't tear down a connection some concurrent caller has
+		// already redialed since currentConn was captured above.
+		if ierr := ResetIfCurrent(currentEpoch); ierr != nil {
 			log("failed to Reset after short write: %v", ierr)
 		}
 		return fmt.Errorf("Did not write all the data: wrote %d of %d", n, len(bytes))
@@ -605,9 +616,10 @@ var buffer []byte
 // ReadArr is a blocking read for msgpack rpc data.
 // It must still be called serially by the mobile run loops: conn.Read
 // ordering depends on it, and the msgpack::unpacker behind onDataFromGo
-// on the C++ side is not thread-safe. The returned slice is this call's
-// own copy, so a second concurrent caller could only produce an ordering
-// bug, never memory corruption from an aliased in-flight delivery.
+// on the C++ side is not thread-safe. The returned slice is this call's own
+// copy, which only protects the caller of ReadArr — a second concurrent
+// caller would still interleave its Read into the shared package-level
+// buffer above, garbling frame content, not just ordering.
 func ReadArr() (data []byte, err error) {
 	defer func() { err = flattenError(err) }()
 
@@ -623,6 +635,7 @@ func ReadArr() (data []byte, err error) {
 		}
 	}
 	currentConn := conn
+	currentEpoch := connEpoch
 	connMutex.Unlock()
 
 	if currentConn == nil {
@@ -656,8 +669,10 @@ func ReadArr() (data []byte, err error) {
 	}
 
 	if err != nil {
-		// Attempt to fix the connection
-		if ierr := Reset(); ierr != nil {
+		// Attempt to fix the connection. ResetIfCurrent so a stale failure
+		// on an already-superseded conn doesn't tear down one a concurrent
+		// WriteArr just redialed.
+		if ierr := ResetIfCurrent(currentEpoch); ierr != nil {
 			log("failed to Reset: %v", ierr)
 		}
 		return nil, fmt.Errorf("Read error: %s", err)
@@ -693,21 +708,60 @@ func ensureConnection() error {
 			log("ensureConnection: Dial failed after restart: %v", err)
 			return fmt.Errorf("failed to dial after loopback restart: %s", err)
 		}
-		log("ensureConnection: loopback server restarted successfully conn=%s appState=%s",
-			describeConn(conn), appStateForLog())
+		connEpoch++
+		log("ensureConnection: loopback server restarted successfully conn=%s epoch=%d appState=%s",
+			describeConn(conn), connEpoch, appStateForLog())
 		return nil
 	}
-	log("Go: Established loopback connection conn=%s appState=%s",
-		describeConn(conn), appStateForLog())
+	connEpoch++
+	log("Go: Established loopback connection conn=%s epoch=%d appState=%s",
+		describeConn(conn), connEpoch, appStateForLog())
 	return nil
 }
 
-// Reset resets the socket connection
+// Reset unconditionally resets the socket connection. Use this only when the
+// caller genuinely means "tear down whatever connection is current" (e.g.
+// iOS invalidate, Android destroy/engineReset) — it will happily close a
+// connection some concurrent failure-driven caller never saw fail. Callers
+// reacting to a failure on a specific connection should use ResetIfCurrent
+// instead so a stale complaint can't clobber a connection that has already
+// been recovered.
 func Reset() error {
 	connMutex.Lock()
 	defer connMutex.Unlock()
+	return resetLocked()
+}
 
-	log("Go: Reset start conn=%s appState=%s", describeConn(conn), appStateForLog())
+// ResetIfCurrent closes the connection only if epoch (obtained via
+// CurrentConnEpoch, or implicitly by whoever last dialed) still matches the
+// live connection's epoch. If ensureConnection has re-dialed since, the
+// epoch has moved on and this call is a stale no-op: some other caller
+// already recovered, and closing the newer connection would silently
+// discard whatever was just written to it.
+func ResetIfCurrent(epoch int64) error {
+	connMutex.Lock()
+	defer connMutex.Unlock()
+	if epoch != connEpoch {
+		log("Go: ResetIfCurrent skipped, stale epoch=%d current=%d appState=%s",
+			epoch, connEpoch, appStateForLog())
+		return nil
+	}
+	return resetLocked()
+}
+
+// CurrentConnEpoch returns the epoch of the connection currently installed
+// in the global conn var. Must be read close to (and ideally under the same
+// critical section as) the operation whose failure it will be paired with,
+// so the epoch and the conn it describes stay consistent.
+func CurrentConnEpoch() int64 {
+	connMutex.Lock()
+	defer connMutex.Unlock()
+	return connEpoch
+}
+
+// resetLocked does the actual teardown. Must be called with connMutex held.
+func resetLocked() error {
+	log("Go: Reset start conn=%s epoch=%d appState=%s", describeConn(conn), connEpoch, appStateForLog())
 	if conn != nil {
 		conn.Close()
 		conn = nil
