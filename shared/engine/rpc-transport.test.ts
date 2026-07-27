@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 
+import logger from '@/logger'
 import {
   RPCTransport,
   encodeFrame,
@@ -308,6 +309,26 @@ test('failAllOutstanding clears buffered frame bytes', () => {
 
   expect(delivered).toHaveLength(1)
   expect((delivered[0] as {method: string}).method).toBe('keybase.1.test.second')
+})
+
+test('a failed response write is reported, not swallowed', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      payload = incoming
+    },
+    writeError: new Error('native write failed'),
+  })
+  const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {})
+
+  transport.dispatchDecodedMessage([0, 11, 'keybase.1.test.hello', [{}]])
+  payload?.response?.result?.({ok: true})
+
+  // send() itself already logs the generic write failure; makeResponse must
+  // add a second, seqid-specific log or the service-side hang is invisible.
+  expect(errorSpy).toHaveBeenCalledTimes(2)
+  expect(errorSpy.mock.calls.some(args => args.some(a => typeof a === 'string' && a.includes('11')))).toBe(true)
+  errorSpy.mockRestore()
 })
 
 test('cancel packets surface a cancelled response payload', () => {

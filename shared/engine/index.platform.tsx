@@ -143,7 +143,13 @@ class NativeTransport extends TransportShared {
 class ProxyNativeTransport extends LocalTransport {
   protected writeMessage(message: RPCMessage) {
     const {engineSend} = KB2.functions
-    engineSend?.(message)
+    if (!engineSend) {
+      // Silently no-oping here reports success upstream (send() returns true)
+      // while the invocation is never delivered, leaving it outstanding
+      // forever. Throwing lets the transport fail it, same as mobile.
+      throw new Error('engineSend missing')
+    }
+    engineSend(message)
   }
   // On account-switch reset fail outstanding invocations so pre-switch RPC
   // callbacks can't fire later against post-switch state

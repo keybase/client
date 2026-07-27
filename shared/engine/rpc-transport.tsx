@@ -518,7 +518,12 @@ export abstract class RPCTransport {
           return
         }
         settled = true
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])
+        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])) {
+          // The service is waiting on this reply and nothing else will tell
+          // it. The write already failed (send() logged that), so there's no
+          // connection left to retry on -- surface which seqid was lost.
+          logger.error(`failed to write error response for seqid ${seqid}`)
+        }
       },
       result: result => {
         if (settled) {
@@ -526,7 +531,11 @@ export abstract class RPCTransport {
           return
         }
         settled = true
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])
+        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])) {
+          // Same as above: the write failed, the connection is gone, and
+          // nothing will retry this seqid.
+          logger.error(`failed to write response for seqid ${seqid}`)
+        }
       },
       seqid,
     }
