@@ -68,6 +68,26 @@ static void kbSetBridge(std::shared_ptr<kb::KBBridge> bridge) {
   }
 }
 
+// Clears the installed bridge only if it is still `mine`. A module's
+// invalidate can run *after* the next module already installed its bridge
+// (RCTInstance::invalidate hops to the old JS thread asynchronously, and
+// RCTTurboModuleManager only waits 10s before proceeding), so an
+// unconditional clear would tear down the live bridge and wedge the app
+// with no desync and no reset to recover from.
+static bool kbClearBridgeIfCurrent(const std::shared_ptr<kb::KBBridge> &mine) {
+  std::shared_ptr<kb::KBBridge> old;
+  {
+    std::lock_guard<std::mutex> lock(kbBridgeMutex);
+    if (!mine || kbCurrentBridge != mine) {
+      return false;
+    }
+    old = std::move(kbCurrentBridge);
+    kbCurrentBridge = nullptr;
+  }
+  old->markTornDown();
+  return true;
+}
+
 static void kbLogToService(NSString *message) {
   KeybaseLogToService([NSString
       stringWithFormat:@"dNativeLogger: [%f,\"%@\"]",
@@ -154,7 +174,9 @@ static NSDictionary *kbConstants(void) {
   return constants;
 }
 
-@implementation Kb
+@implementation Kb {
+  std::shared_ptr<kb::KBBridge> myBridge_;
+}
 
 RCT_EXPORT_MODULE()
 
@@ -245,13 +267,19 @@ RCT_EXPORT_MODULE()
 - (void)invalidate {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   kbPasteImageEnabled = NO;
-  // Drop the bridge so the (permanent) reader thread stops delivering into a
-  // runtime that is going away. Only the atomic flag is touched here: this
-  // runs on the main thread, and releasing jsi handles off the JS thread is
-  // undefined behavior.
-  kbSetBridge(nullptr);
-  NSError *error = nil;
-  KeybaseReset(&error);
+  // Runs on the TurboModule shared method queue (no methodQueue getter, so
+  // RCTTurboModuleManager assigns _sharedModuleQueue) — any thread, never the
+  // JS thread. Only the atomic flag may be touched here; releasing jsi
+  // handles off the runtime's thread is undefined behavior.
+  //
+  // Both the teardown and the Go reset are gated on still being the current
+  // bridge: a reload can install the next module's bridge before this runs,
+  // and clearing that one would leave the app wedged with no way to notice.
+  if (kbClearBridgeIfCurrent(myBridge_)) {
+    NSError *error = nil;
+    KeybaseReset(&error);
+  }
+  myBridge_ = nullptr;
 }
 
 RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
@@ -304,6 +332,7 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
             });
         });
 
+    myBridge_ = bridge;
     kbSetBridge(bridge);
     kbLogToService(@"jsi install success (via installJSIBindings)");
 }
