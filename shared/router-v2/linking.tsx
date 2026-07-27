@@ -193,7 +193,9 @@ const customGetStateFromPath = (
 export const createLinkingConfig = (
   handleAppLink: (link: string) => void
 ): LinkingOptions<RootParamList> => {
-  setDeepLinkFallback(handleAppLink)
+  if (!isMobile) {
+    setDeepLinkFallback(handleAppLink)
+  }
   return {
     getInitialURL: async () => {
       const {loggedIn, startup, androidShare} = useConfigState.getState()

@@ -59,6 +59,11 @@ export const normalizeUrl = (url: string): string | undefined => {
 // Listener for programmatic deep link emission (e.g., from desktop IPC, engine events)
 let _deepLinkListener: ((url: string) => void) | undefined
 
+// Navigation briefly unsubscribes while switching accounts. Retain the latest
+// user action during that gap so it can be delivered when the new account's
+// NavigationContainer subscribes.
+let _pendingURL: string | undefined
+
 // Fallback handler for when no linking subscription is active (desktop).
 // Set by createLinkingConfig.
 let _fallbackHandler: ((link: string) => void) | undefined
@@ -74,6 +79,11 @@ export const setDeepLinkFallback = (h: (link: string) => void) => {
 }
 export const setDeepLinkListener = (l: ((url: string) => void) | undefined) => {
   _deepLinkListener = l
+  if (l && _pendingURL) {
+    const pendingURL = _pendingURL
+    _pendingURL = undefined
+    emitDeepLink(pendingURL)
+  }
 }
 // Records the URL and returns it so callers can `return setInitialURLOnce(url)`.
 export const setInitialURLOnce = (url: string) => {
@@ -93,7 +103,9 @@ export const emitDeepLink = (url: string) => {
   }
   if (_deepLinkListener) {
     _deepLinkListener(normalized)
+  } else if (_fallbackHandler) {
+    _fallbackHandler(normalized)
   } else {
-    _fallbackHandler?.(normalized)
+    _pendingURL = normalized
   }
 }
