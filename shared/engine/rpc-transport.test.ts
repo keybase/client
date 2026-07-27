@@ -175,6 +175,33 @@ test('send reports failure when the native write throws', () => {
   expect(transport.sent).toEqual([[1, 3, null, {ok: true}]])
 })
 
+test('failAllOutstanding fails every outstanding invocation exactly once', () => {
+  const transport = new TestTransport()
+  const calls: Array<unknown> = []
+  transport.invoke('keybase.1.test.a', [{}], err => calls.push(err))
+  transport.invoke('keybase.1.test.b', [{}], err => calls.push(err))
+
+  transport.failAllOutstanding()
+
+  expect(calls).toHaveLength(2)
+  expect(calls.every(e => (e as {code?: number} | undefined)?.code === errors.EOF)).toBe(true)
+
+  // A second call must not re-fail anything already failed.
+  transport.failAllOutstanding()
+  expect(calls).toHaveLength(2)
+})
+
+test('seqids keep advancing after outstanding invocations are failed, so a late reply cannot alias', () => {
+  const transport = new TestTransport()
+  transport.invoke('keybase.1.test.a', [{}], () => {})
+  transport.failAllOutstanding()
+  transport.invoke('keybase.1.test.b', [{}], () => {})
+
+  const [, firstSeqid] = transport.sent[0] as [number, number, string, [object]]
+  const [, secondSeqid] = transport.sent[1] as [number, number, string, [object]]
+  expect(secondSeqid).toBeGreaterThan(firstSeqid)
+})
+
 test('cancel packets surface a cancelled response payload', () => {
   const incoming = jest.fn()
   const transport = new TestTransport({incomingRPCCallback: incoming})
