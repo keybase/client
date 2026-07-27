@@ -1,4 +1,5 @@
 import {decode, encode} from '@msgpack/msgpack'
+import logger from '@/logger'
 
 const MESSAGE_TYPE_INVOKE = 0
 const MESSAGE_TYPE_RESPONSE = 1
@@ -326,7 +327,17 @@ export abstract class RPCTransport {
         }
         const payload = decode(payloadBytes)
         p.consumeBytes(payloadLen)
-        this.dispatchDecodedMessage(payload)
+
+        // Dispatch outside the framing try: an app-side handler that throws must
+        // not reach the catch below, which resets the packetizer and discards
+        // every buffered byte. That leaves parsing to resume at an arbitrary
+        // offset -- and on the renderer transport there is no socket to
+        // reconnect, so it never recovers.
+        try {
+          this.dispatchDecodedMessage(payload)
+        } catch (e) {
+          logger.error('dispatchDecodedMessage threw', e)
+        }
       }
     } catch (err) {
       p.reset()

@@ -219,6 +219,32 @@ test('seqids keep advancing after outstanding invocations are failed, so a late 
   expect(secondSeqid).toBeGreaterThan(firstSeqid)
 })
 
+test('a throwing incoming handler does not desync the packetizer', () => {
+  const delivered: Array<unknown> = []
+  let shouldThrow = true
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      if (shouldThrow) {
+        shouldThrow = false
+        throw new Error('app handler blew up')
+      }
+      delivered.push(incoming)
+    },
+  })
+
+  // Two well-formed frames arriving in a single chunk. The first frame's
+  // handler throws; the second frame must still be parsed and delivered.
+  const first = encodeFrame([2, 'keybase.1.test.first', [{}]])
+  const second = encodeFrame([2, 'keybase.1.test.second', [{}]])
+  const both = new Uint8Array(first.length + second.length)
+  both.set(first, 0)
+  both.set(second, first.length)
+
+  transport.packetizeData(both)
+
+  expect(delivered).toHaveLength(1)
+})
+
 test('cancel packets surface a cancelled response payload', () => {
   const incoming = jest.fn()
   const transport = new TestTransport({incomingRPCCallback: incoming})
