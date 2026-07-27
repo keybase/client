@@ -584,14 +584,23 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // process (back button to home, then reopen). It is only a gate: the
         // JNI callee ignores the receiver and routes through g_bridge, so a
         // stale instance delivers to the correct current bridge regardless.
-        // Bridge teardown is handled by nativeInvalidate below.
-        nativeInvalidate()
+        // Bridge teardown belongs to invalidate() below, which fires on real
+        // ReactInstance teardown, not Activity death.
         try {
             Keybase.reset()
             relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in KeybaseEngine.destroy", e)
         }
+    }
+
+    // Fires on real ReactInstance/TurboModule teardown (reload, instance
+    // recreation) — unlike onHostDestroy, which fires when the last Activity
+    // dies while the ReactInstance and this module survive. This is the only
+    // place that should ever clear the native bridge.
+    override fun invalidate() {
+        nativeInvalidate()
+        super.invalidate()
     }
 
     // Called from JNI (cpp-adapter writeToGo), not from JS. DoNotStrip keeps it
