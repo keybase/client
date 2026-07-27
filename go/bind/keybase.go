@@ -586,7 +586,15 @@ func WriteArr(b []byte) (err error) {
 	if n != len(bytes) {
 		log("Go: WriteArr short write conn=%s wrote=%d expected=%d appState=%s",
 			describeConn(currentConn), n, len(bytes), appStateForLog())
-		return errors.New("Did not write all the data")
+		// Not reachable through LoopbackConn today, whose Write is
+		// all-or-nothing. If a future transport can short-write, the peer's
+		// framer is left holding a partial frame and every later write would
+		// be consumed as its remainder, so drop the connection rather than
+		// corrupt the stream indefinitely.
+		if ierr := Reset(); ierr != nil {
+			log("failed to Reset after short write: %v", ierr)
+		}
+		return fmt.Errorf("Did not write all the data: wrote %d of %d", n, len(bytes))
 	}
 	return nil
 }
