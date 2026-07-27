@@ -725,7 +725,12 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
           runtime.global().getProperty(runtime, *self->cachedRpcOnJsName_);
       if (!onJsValue.isObject() ||
           !onJsValue.getObject(runtime).isFunction(runtime)) {
+        // These messages are already consumed from the unpacker and cannot be
+        // replayed, so dropping them silently would strand their callers.
         self->reportError("rpcOnJs is not installed");
+        if (self->onFatal_) {
+          self->onFatal_();
+        }
         return;
       }
       auto onJs = onJsValue.getObject(runtime).getFunction(runtime);
@@ -739,23 +744,51 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
         }
         onJs.call(runtime, std::move(value), jsi::Value(1));
       } else {
-        // Multiple messages: batch into array, pass count
-        jsi::Array arr(runtime, values->size());
+        // Convert per message: a single bad message (non-scalar map key,
+        // nesting over the limit) must not take the whole batch with it and
+        // strand every other reply's caller. JS iterates the delivered
+        // array with a plain for-of (index.platform.tsx's global.rpcOnJs
+        // only uses `count` to decide array-vs-single, not to bound the
+        // loop), so the array must be sized to what actually converted --
+        // a hole left at `values->size()` would hand JS an undefined
+        // message to dispatch instead of just skipping it.
+        std::vector<Value> converted;
+        converted.reserve(values->size());
         for (size_t i = 0; i < values->size(); ++i) {
-          msgpack::object obj((*values)[i].get());
-          arr.setValueAtIndex(runtime, i,
-                              self->convertMPToJSI(runtime, &obj));
+          try {
+            msgpack::object obj((*values)[i].get());
+            converted.push_back(self->convertMPToJSI(runtime, &obj));
+          } catch (const std::exception &e) {
+            self->reportError(std::string("dropping undecodable message: ") +
+                              e.what());
+          }
+        }
+        if (converted.empty()) {
+          return;
         }
         if (self->isTornDown_.load()) {
           return;
         }
+        jsi::Array arr(runtime, converted.size());
+        for (size_t i = 0; i < converted.size(); ++i) {
+          arr.setValueAtIndex(runtime, i, std::move(converted[i]));
+        }
         onJs.call(runtime, std::move(arr),
-                  jsi::Value(static_cast<int>(values->size())));
+                  jsi::Value(static_cast<int>(converted.size())));
       }
     } catch (const std::exception &e) {
+      // Nothing decoded reached JS, so every reply in this batch is lost and
+      // its caller would wait forever. Treat it like a desync: reset the
+      // connection so JS fails its outstanding RPCs.
       self->reportError(e.what());
+      if (self->onFatal_) {
+        self->onFatal_();
+      }
     } catch (...) {
       self->reportError("unknown error in onDataFromGo JS callback");
+      if (self->onFatal_) {
+        self->onFatal_();
+      }
     }
   });
 }
