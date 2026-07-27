@@ -65,7 +65,7 @@ docker_build.sh. Look for the line that looks like this:
 Increment that number, so that everyone who's running these builds
 automatically rebuilds the docker image with your change.
 
-#### Setting up the automated slackbot
+#### Setting up the automated Linux build bot
 
-Clone https://github.com/keybase/slackbot and follow the instructions in
-systemd/README.md.
+The Linux build bot lives in `packaging/linux/tuxbot`. Use its provisioning
+scripts to create the builder and install its systemd user services.
