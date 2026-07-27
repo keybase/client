@@ -768,14 +768,39 @@ func LastReadEpoch() int64 {
 // already recovered, and closing the newer connection would silently
 // discard whatever was just written to it.
 func ResetIfCurrent(epoch int64) error {
+	_, err := resetIfCurrent(epoch)
+	return err
+}
+
+// ResetIfCurrentDidReset behaves exactly like ResetIfCurrent, additionally
+// reporting whether the reset actually ran (epoch matched connEpoch) as
+// opposed to being a stale no-op (epoch was already superseded).
+//
+// Platform readers need this distinction: they also reset their local parser
+// state (resetRecv/nativeResetRecv) alongside the Go connection, and doing so
+// unconditionally after a stale no-op drops bytes already in flight on a
+// connection nothing here actually touched. See Kb.mm and KbModule.kt.
+func ResetIfCurrentDidReset(epoch int64) bool {
+	didReset, err := resetIfCurrent(epoch)
+	if err != nil {
+		log("Go: ResetIfCurrentDidReset: reset error: %v", err)
+	}
+	return didReset
+}
+
+// resetIfCurrent is the shared implementation behind ResetIfCurrent and
+// ResetIfCurrentDidReset. didReset reports whether epoch matched connEpoch
+// (i.e. whether resetLocked actually ran), independent of whether resetLocked
+// itself returned an error.
+func resetIfCurrent(epoch int64) (didReset bool, err error) {
 	connMutex.Lock()
 	defer connMutex.Unlock()
 	if epoch != connEpoch {
 		log("Go: ResetIfCurrent skipped, stale epoch=%d current=%d appState=%s",
 			epoch, connEpoch, appStateForLog())
-		return nil
+		return false, nil
 	}
-	return resetLocked()
+	return true, resetLocked()
 }
 
 // resetLocked does the actual teardown. Must be called with connMutex held.

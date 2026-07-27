@@ -4,6 +4,7 @@
 package keybase
 
 import (
+	"errors"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -42,6 +43,13 @@ func (c *trackingConn) Close() error {
 // seed them directly instead of routing through ensureConnection's dial
 // machinery, then exercise the real Reset/ResetIfCurrent/ReadArr/WriteArr/
 // LastReadEpoch functions against that seeded state.
+//
+// One piece of state this cannot restore: any test that calls NotifyJSReady
+// closes the package-level jsReadyCh via a sync.Once, and that close is
+// irreversible for the life of the test binary. Later tests that call
+// ReadArr never block on jsReadyCh regardless of what this helper resets.
+// That's fine for every test in this file (none rely on ReadArr blocking on
+// JS readiness), but it's a latent trap for a future test that would.
 func resetConnStateForTest(t *testing.T) {
 	t.Helper()
 
@@ -412,4 +420,198 @@ func TestConcurrentRedialsAndResets(t *testing.T) {
 	if postEpoch <= preEpoch {
 		t.Fatalf("post-concurrency epoch did not advance: pre=%d post=%d", preEpoch, postEpoch)
 	}
+}
+
+// readSignalConn wraps a net.Conn and closes entered the first time Read is
+// called, letting a test observe "the reader has entered conn.Read" without
+// racing on it.
+type readSignalConn struct {
+	net.Conn
+	entered chan struct{}
+	once    sync.Once
+}
+
+func (c *readSignalConn) Read(p []byte) (int, error) {
+	c.once.Do(func() { close(c.entered) })
+	return c.Conn.Read(p)
+}
+
+// Test 8: the regression this whole mechanism guards against. ReadArr must
+// capture lastReadEpoch from the connection/epoch pair it is actually about
+// to read from, before that read can be raced by a redial — not after
+// currentConn.Read returns, and not from whatever connEpoch happens to be
+// when the async caller gets around to reading it back.
+//
+// This interleaves a redial with an in-flight ReadArr: the reader parks in
+// Read() on connA/epoch A, a redial swaps in connB/epoch B while the read is
+// still outstanding, and only then does connA's peer supply the bytes that
+// unblock it. LastReadEpoch() must report A (the connection actually read
+// from), not B (the connection live at the time the caller happens to check).
+//
+// Falsified: moving `lastReadEpoch = currentEpoch` in ReadArr to after
+// currentConn.Read returns (the exact regression this guards against) makes
+// this test fail, reporting epoch B instead of A.
+func TestReadArr_LastReadEpochCapturedBeforeRaceableRead(t *testing.T) {
+	resetConnStateForTest(t)
+
+	savedBuffer := buffer
+	buffer = make([]byte, 4096)
+	t.Cleanup(func() { buffer = savedBuffer })
+
+	NotifyJSReady() // sync.Once; safe to call unconditionally; see the note
+	// on resetConnStateForTest above about why this can't be undone.
+
+	localA, remoteA := net.Pipe()
+	t.Cleanup(func() { _ = localA.Close(); _ = remoteA.Close() })
+
+	entered := make(chan struct{})
+	setConn(&readSignalConn{Conn: remoteA, entered: entered}, 100)
+
+	type readResult struct {
+		data []byte
+		err  error
+	}
+	resultCh := make(chan readResult, 1)
+	go func() {
+		data, err := ReadArr()
+		resultCh <- readResult{data, err}
+	}()
+
+	// Wait until the reader has actually entered conn.Read on connA/epoch
+	// 100 (and, in correct code, has already captured lastReadEpoch=100
+	// under connMutex before releasing it and blocking here).
+	select {
+	case <-entered:
+	case <-time.After(5 * time.Second):
+		t.Fatal("ReadArr never entered conn.Read")
+	}
+
+	// A redial races in while the read above is still outstanding, exactly
+	// as ensureConnection would do for a concurrent WriteArr/ReadArr caller
+	// recovering from a failure on a different connection.
+	localB, remoteB := net.Pipe()
+	t.Cleanup(func() { _ = localB.Close(); _ = remoteB.Close() })
+	setConn(remoteB, 101)
+
+	// Only now does connA's peer supply the bytes that unblock the
+	// already-in-flight Read on connA.
+	go func() { _, _ = localA.Write([]byte("hello")) }()
+
+	var res readResult
+	select {
+	case res = <-resultCh:
+	case <-time.After(5 * time.Second):
+		t.Fatal("ReadArr did not return")
+	}
+	if res.err != nil {
+		t.Fatalf("ReadArr returned error: %v", res.err)
+	}
+	if string(res.data) != "hello" {
+		t.Fatalf("unexpected data: %q", res.data)
+	}
+
+	if got := LastReadEpoch(); got != 100 {
+		t.Errorf("expected LastReadEpoch to report the epoch actually read from (100), got %d", got)
+	}
+}
+
+// erroringReadConn's Read always fails, driving ReadArr's error path.
+type erroringReadConn struct {
+	trackingConn
+}
+
+func (c *erroringReadConn) Read(p []byte) (int, error) {
+	return 0, errors.New("simulated read error")
+}
+
+// Test 9: ReadArr's error path (a real production caller of ResetIfCurrent,
+// keybase.go ~:681) must reset the connection it just failed to read from.
+func TestReadArr_ErrorPathResetsConnection(t *testing.T) {
+	resetConnStateForTest(t)
+
+	savedBuffer := buffer
+	buffer = make([]byte, 4096)
+	t.Cleanup(func() { buffer = savedBuffer })
+
+	NotifyJSReady()
+
+	c := &erroringReadConn{}
+	setConn(c, 7)
+
+	if _, err := ReadArr(); err == nil {
+		t.Fatal("expected ReadArr to return an error")
+	}
+
+	if !c.closed.Load() {
+		t.Error("expected ReadArr's error path to reset (close) the connection it read from")
+	}
+	if gotConn, _ := getConnState(); gotConn != nil {
+		t.Error("expected conn to be nil after ReadArr's error-path reset")
+	}
+}
+
+// shortWriteConn's Write always reports writing one byte fewer than given,
+// with no error, driving WriteArr's short-write path.
+type shortWriteConn struct {
+	trackingConn
+}
+
+func (c *shortWriteConn) Write(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+	return len(p) - 1, nil
+}
+
+// Test 10: WriteArr's short-write path (a real production caller of
+// ResetIfCurrent, keybase.go ~:610) must reset the connection rather than
+// leave the peer's framer holding a partial frame.
+func TestWriteArr_ShortWriteResetsConnection(t *testing.T) {
+	resetConnStateForTest(t)
+
+	c := &shortWriteConn{}
+	setConn(c, 11)
+
+	if err := WriteArr([]byte("hello world")); err == nil {
+		t.Fatal("expected WriteArr to return an error on a short write")
+	}
+
+	if !c.closed.Load() {
+		t.Error("expected WriteArr's short-write path to reset (close) the connection")
+	}
+	if gotConn, _ := getConnState(); gotConn != nil {
+		t.Error("expected conn to be nil after WriteArr's short-write reset")
+	}
+}
+
+// Test 11: ResetIfCurrentDidReset reports whether it actually reset the
+// connection (epoch matched) as opposed to being a stale no-op, which is
+// exactly what platform readers (Kb.mm, KbModule.kt) now gate their local
+// parser reset on.
+func TestResetIfCurrentDidReset_ReportsWhetherItActed(t *testing.T) {
+	resetConnStateForTest(t)
+
+	t.Run("matching epoch resets and reports true", func(t *testing.T) {
+		c := &trackingConn{}
+		setConn(c, 20)
+
+		if didReset := ResetIfCurrentDidReset(20); !didReset {
+			t.Error("expected ResetIfCurrentDidReset to report true for a matching epoch")
+		}
+		if !c.closed.Load() {
+			t.Error("expected the connection to be closed when epoch matches")
+		}
+	})
+
+	t.Run("stale epoch is a no-op and reports false", func(t *testing.T) {
+		c := &trackingConn{}
+		setConn(c, 21)
+
+		if didReset := ResetIfCurrentDidReset(20); didReset {
+			t.Error("expected ResetIfCurrentDidReset to report false for a stale epoch")
+		}
+		if c.closed.Load() {
+			t.Error("expected the connection to be left open on a stale epoch")
+		}
+	})
 }
