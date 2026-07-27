@@ -281,7 +281,13 @@ export abstract class RPCTransport {
   protected failOutstanding(err: unknown, data: unknown) {
     const invocations = this._invocations
     this._invocations = new Map()
-    invocations.forEach(cb => cb(err, data))
+    invocations.forEach(cb => {
+      try {
+        cb(err, data)
+      } catch (e) {
+        logger.error('failOutstanding callback threw', e)
+      }
+    })
   }
 
   packetizeData(data: Uint8Array) {

@@ -209,6 +209,22 @@ test('a callback that re-enters with a new invoke during failAllOutstanding is n
   expect(reentrant).not.toHaveBeenCalled()
 })
 
+test('a throwing callback does not stop the remaining outstanding invocations from being failed', () => {
+  const transport = new TestTransport()
+  const calls: Array<number> = []
+
+  transport.invoke('keybase.1.test.a', [{}], () => {
+    calls.push(1)
+    throw new Error('boom')
+  })
+  transport.invoke('keybase.1.test.b', [{}], () => calls.push(2))
+  transport.invoke('keybase.1.test.c', [{}], () => calls.push(3))
+
+  expect(() => transport.failAllOutstanding()).not.toThrow()
+
+  expect(calls).toEqual([1, 2, 3])
+})
+
 test('seqids keep advancing after outstanding invocations are failed, so a late reply cannot alias', () => {
   const transport = new TestTransport()
   transport.invoke('keybase.1.test.a', [{}], () => {})
