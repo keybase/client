@@ -16,6 +16,7 @@ exports.StyleSheet = {
 }
 
 exports.NativeModules = {}
+exports.LogBox = {ignoreAllLogs: () => {}}
 exports.TurboModuleRegistry = {get: () => null, getEnforcing: () => ({})}
 exports.findNodeHandle = () => null
 
