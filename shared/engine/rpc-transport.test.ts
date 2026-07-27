@@ -191,6 +191,23 @@ test('failAllOutstanding fails every outstanding invocation exactly once', () =>
   expect(calls).toHaveLength(2)
 })
 
+test('a callback that re-enters with a new invoke during failAllOutstanding is not itself failed', () => {
+  const transport = new TestTransport()
+  const calls: Array<unknown> = []
+  const reentrant = jest.fn()
+
+  transport.invoke('keybase.1.test.a', [{}], err => {
+    calls.push(err)
+    transport.invoke('keybase.1.test.c', [{}], reentrant)
+  })
+  transport.invoke('keybase.1.test.b', [{}], err => calls.push(err))
+
+  transport.failAllOutstanding()
+
+  expect(calls).toHaveLength(2)
+  expect(reentrant).not.toHaveBeenCalled()
+})
+
 test('seqids keep advancing after outstanding invocations are failed, so a late reply cannot alias', () => {
   const transport = new TestTransport()
   transport.invoke('keybase.1.test.a', [{}], () => {})

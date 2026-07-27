@@ -166,9 +166,10 @@ class NativeTransportMobile extends LocalTransport {
       throw new Error('native rpc write failed')
     }
   }
-  // The Go connection can be reset underneath us (engine reset, or a stream
-  // desync detected natively). Nothing will answer the in-flight RPCs after
-  // that, so fail them rather than hang every caller.
+  // Reached two ways: a mobile account switch calling Engine.reset()
+  // synchronously, or the Go connection resetting underneath us (a stream
+  // desync detected natively). Either way nothing will answer the in-flight
+  // RPCs after that, so fail them rather than hang every caller.
   override reset() {
     this.failAllOutstanding()
   }
