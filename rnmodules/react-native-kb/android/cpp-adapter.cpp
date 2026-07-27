@@ -89,8 +89,13 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
     g_adapter = adapter;
   }
 
+  // Captured strongly: the adapter must outlive the bridge that calls it, and
+  // the g_adapter slot is not an ownership anchor -- installing a second
+  // module overwrites it while the first bridge is still live and installed,
+  // which with a weak capture failed every rpcOnGo in that window. No cycle:
+  // the adapter holds a global_ref to the Java module and never the bridge.
   return BindingsInstallerHolder::newObjectCxxArgs(
-      [weakAdapter = std::weak_ptr<KbNativeAdapter>(adapter)](
+      [adapter](
           jsi::Runtime &runtime,
           const std::shared_ptr<CallInvoker> &callInvoker) {
         auto bridge = std::make_shared<kb::KBBridge>();
@@ -98,11 +103,8 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
             runtime, callInvoker,
             // false means the RPC never reached Go, so the caller fails that
             // invocation instead of waiting forever for a reply.
-            [weakAdapter](void *ptr, size_t size) -> bool {
-              if (auto a = weakAdapter.lock()) {
-                return a->writeToGo(ptr, size);
-              }
-              return false;
+            [adapter](void *ptr, size_t size) -> bool {
+              return adapter->writeToGo(ptr, size);
             },
             [](const std::string &err) {
               __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
@@ -110,12 +112,10 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
             },
             // The incoming stream desynced; reset the Go connection and tell
             // JS so it fails outstanding RPCs rather than hanging forever.
-            [weakAdapter]() {
+            [adapter]() {
               __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
                                   "rpc stream desync, resetting connection");
-              if (auto a = weakAdapter.lock()) {
-                a->onFatal();
-              }
+              adapter->onFatal();
             });
 
         std::shared_ptr<kb::KBBridge> old;
