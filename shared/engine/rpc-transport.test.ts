@@ -404,6 +404,49 @@ test('a genuine double-settle -- result() then error() called directly -- still 
   errorSpy.mockRestore()
 })
 
+test('a malformed frame resets the packetizer, and a subsequent well-formed frame still dispatches', () => {
+  const delivered: Array<unknown> = []
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      delivered.push(incoming)
+    },
+  })
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+  // 0x80 (msgpack fixmap) is not a fixint (<0x80) nor one of the supported
+  // uint8/16/32 length-prefix bytes (0xcc/0xcd/0xce): frameHeaderLength
+  // returns 0 for it, so packetizeData throws "Bad frame header received".
+  transport.packetizeData(Uint8Array.of(0x80))
+  expect(delivered).toHaveLength(0)
+
+  const good = encodeFrame([2, 'keybase.1.test.recovered', [{}]])
+  transport.packetizeData(good)
+
+  expect(delivered).toHaveLength(1)
+  expect((delivered[0] as {method: string}).method).toBe('keybase.1.test.recovered')
+  consoleSpy.mockRestore()
+})
+
+test('a frame split at every possible byte boundary across two packetizeData calls still dispatches exactly once', () => {
+  const probe = new TestTransport()
+  probe.invoke('keybase.1.test.hello', [{}], () => {})
+  const [, probeSeqid] = probe.sent[0] as [number, number, string, [object]]
+  const frame = encodeFrame([1, probeSeqid, null, {ok: 'sweep', pad: 'x'.repeat(40)}])
+
+  for (let splitAt = 1; splitAt < frame.length; splitAt++) {
+    const transport = new TestTransport()
+    const cb = jest.fn()
+    transport.invoke('keybase.1.test.hello', [{}], cb)
+
+    transport.packetizeData(frame.slice(0, splitAt))
+    expect(cb).not.toHaveBeenCalled()
+
+    transport.packetizeData(frame.slice(splitAt))
+    expect(cb).toHaveBeenCalledTimes(1)
+    expect(cb).toHaveBeenCalledWith(null, {ok: 'sweep', pad: 'x'.repeat(40)})
+  }
+})
+
 test('failAllOutstanding clears buffered frame bytes', () => {
   const delivered: Array<unknown> = []
   const transport = new TestTransport({
