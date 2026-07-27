@@ -22,6 +22,18 @@ describe('android activity restart (back-button RPC wedge)', () => {
   it('keeps inbound RPC alive after the Activity (not the process) is destroyed and reopened', async () => {
     if (!browser.isAndroid) return
 
+    // Proving the process survived needs `mobile: shell`, which needs the
+    // appium service running with relaxedSecurity. That widens what the local
+    // appium server will execute, so it is opt-in. Without it this test cannot
+    // tell a surviving process from a fresh one, and a fresh one reinstalls the
+    // bridge and passes while proving nothing — so skip instead of pretending.
+    if (!process.env['KB_E2E_RELAXED_SECURITY']) {
+      console.warn(
+        'android-activity-restart: SKIPPED — set KB_E2E_RELAXED_SECURITY=1 to run it (needs appium relaxedSecurity for pidof)'
+      )
+      return
+    }
+
     requireSmokeUser()
     await escapeToTabs()
     await navigateToChat()
