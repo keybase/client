@@ -540,7 +540,6 @@ export abstract class RPCTransport {
       seqid,
     }
   }
-
 }
 
 export {encodeFrame, makeEOFError, makeTransportError}

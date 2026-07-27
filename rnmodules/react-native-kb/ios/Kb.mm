@@ -342,8 +342,20 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
         // fatal callback: the incoming stream desynced. Reset the Go
         // connection and tell JS, so it fails outstanding RPCs rather than
         // leaving every caller hanging on a channel that can't recover.
+        //
+        // Also true since this can escalate for a msgpack->JSI conversion
+        // failure or a missing rpcOnJs, arriving on the JS thread rather than
+        // the reader thread -- either way recv_ still holds bytes from the
+        // now-dead connection, so drop them here too or the next connection
+        // desyncs on its very first frame. Goes through kbGetBridge() rather
+        // than capturing `bridge` directly: this lambda is stored inside the
+        // bridge's own onFatal_ member, so a direct capture would be a
+        // shared_ptr cycle.
         []() {
             kbLogToService(@"rpc stream desync, resetting connection");
+            if (auto bridge = kbGetBridge()) {
+              bridge->resetRecv();
+            }
             NSError *error = nil;
             KeybaseReset(&error);
             if (error) {

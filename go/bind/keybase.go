@@ -605,10 +605,9 @@ var buffer []byte
 // ReadArr is a blocking read for msgpack rpc data.
 // It must still be called serially by the mobile run loops: conn.Read
 // ordering depends on it, and the msgpack::unpacker behind onDataFromGo
-// on the C++ side is not thread-safe. The returned slice is now this
-// call's own copy, so a second reader would no longer corrupt an
-// in-flight delivery -- it would just be an ordering bug, not memory
-// corruption.
+// on the C++ side is not thread-safe. The returned slice is this call's
+// own copy, so a second concurrent caller could only produce an ordering
+// bug, never memory corruption from an aliased in-flight delivery.
 func ReadArr() (data []byte, err error) {
 	defer func() { err = flattenError(err) }()
 

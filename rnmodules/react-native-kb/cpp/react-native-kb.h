@@ -29,8 +29,13 @@ public:
   // `writeToGo` returns false if the native write failed, so the caller's
   // RPC can be failed instead of hanging forever waiting for a reply.
   // `onFatal` is invoked when the incoming byte stream can no longer be
-  // trusted (desynced framing, oversized frame). The platform layer is
-  // expected to reset the Go connection and emit the engine-reset meta
+  // trusted (desynced framing, oversized frame), when a decoded message
+  // fails msgpack->JSI conversion (single message, or an entire batch), or
+  // when rpcOnJs is not installed. The first case runs synchronously on the
+  // native reader thread inside onDataFromGo; the latter three run
+  // asynchronously on the JS thread, from the callInvoker lambda scheduled
+  // by onDataFromGo. The platform layer is expected to reset the Go
+  // connection, drop any buffered recv state, and emit the engine-reset meta
   // event so JS fails its outstanding RPCs.
   void install(facebook::jsi::Runtime &runtime,
                std::shared_ptr<facebook::react::CallInvoker> callInvoker,

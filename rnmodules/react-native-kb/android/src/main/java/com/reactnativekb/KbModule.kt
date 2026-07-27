@@ -646,12 +646,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // Called from JNI when the incoming byte stream desyncs. Resetting the Go
-    // connection and relaying the meta event lets JS fail its outstanding RPCs
-    // instead of waiting on a channel that can no longer deliver.
+    // Called from JNI when the incoming byte stream desyncs -- also true
+    // since this can escalate for a msgpack->JSI conversion failure or a
+    // missing rpcOnJs, arriving on the JS thread rather than the reader
+    // thread. Either way recv_ still holds bytes from the now-dead
+    // connection; nativeResetRecv() drops them so the next connection
+    // doesn't desync on its very first frame. Resetting the Go connection
+    // and relaying the meta event lets JS fail its outstanding RPCs instead
+    // of waiting on a channel that can no longer deliver.
     @DoNotStrip
     fun onRpcStreamFatal() {
         NativeLogger.warn("$NAME: rpc stream desync, resetting connection")
+        nativeResetRecv()
         try {
             Keybase.reset()
         } catch (e: Exception) {

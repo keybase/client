@@ -122,11 +122,10 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
     g_adapter = adapter;
   }
 
-  // Captured strongly: the adapter must outlive the bridge that calls it, and
-  // the g_adapter slot is not an ownership anchor -- installing a second
-  // module overwrites it while the first bridge is still live and installed,
-  // which with a weak capture failed every rpcOnGo in that window. No cycle:
-  // the adapter holds a global_ref to the Java module and never the bridge.
+  // Captured strongly: the adapter must outlive the bridge that calls it,
+  // since installing a second module overwrites the g_adapter slot while the
+  // first bridge is still live and installed. No cycle: the adapter holds a
+  // global_ref to the Java module and never the bridge.
   return BindingsInstallerHolder::newObjectCxxArgs(
       [adapter](
           jsi::Runtime &runtime,
