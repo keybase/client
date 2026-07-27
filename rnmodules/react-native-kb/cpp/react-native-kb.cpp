@@ -55,20 +55,10 @@ void KBBridge::teardown() {
 void KBBridge::tearup() { isTornDown_.store(false); }
 
 void KBBridge::resetRecv() {
-  {
-    std::lock_guard<std::mutex> lock(recvMutex_);
-    if (recv_) {
-      resetRecvLocked();
-    }
+  std::lock_guard<std::mutex> lock(recvMutex_);
+  if (recv_) {
+    resetRecvLocked();
   }
-  // The platform layer calls this once it has confirmed the dead connection
-  // is gone (a read error) or replaced it, so it is safe to trust incoming
-  // data again. It must NOT also be called right after onFatal_ fires: that
-  // runs synchronously on the same serial reader thread that is still about
-  // to deliver the rest of the desynced stream, so clearing the latch there
-  // would unlatch before the next stale chunk even arrives and the storm
-  // this latch exists to stop would go right through it.
-  awaitingReset_.store(false);
 }
 
 // Clears cached JSI objects. Must run on the runtime's thread while the
@@ -626,8 +616,7 @@ void KBBridge::install(
 }
 
 void KBBridge::onDataFromGo(uint8_t *data, int size) {
-  if (isTornDown_.load() || awaitingReset_.load() || size <= 0 ||
-      data == nullptr) {
+  if (isTornDown_.load() || size <= 0 || data == nullptr) {
     return;
   }
 
@@ -706,11 +695,7 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
     reportError(fatalMsg);
     // The stream can no longer be trusted, so anything decoded in this batch
     // is dropped. The platform layer resets the Go connection and signals JS
-    // so outstanding RPCs fail instead of hanging forever. Latch until that
-    // reset is confirmed (resetRecv): the rest of the dead stream is still in
-    // flight on the reader thread and would otherwise trigger a reset per
-    // chunk, each one failing whatever JS just re-issued.
-    awaitingReset_.store(true);
+    // so outstanding RPCs fail instead of hanging forever.
     if (onFatal_) {
       onFatal_();
     }
