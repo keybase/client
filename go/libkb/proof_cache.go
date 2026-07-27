@@ -118,8 +118,9 @@ type ProofCache struct {
 }
 
 // proofCheckFlightCapacity bounds the singleflight table. It is a memory bound
-// only: sharing is gated on when a check started, never on how long an entry has
-// been kept around, so retention can't make a shared answer any staler.
+// only: an entry is shareable exactly while its check is still running, so how
+// long a finished entry lingers before eviction can't affect what any caller
+// gets back.
 const proofCheckFlightCapacity = 500
 
 // ProofCheckFlight is one outbound remote proof check that other identify
@@ -152,9 +153,11 @@ func (f *ProofCheckFlight) finished() bool {
 	}
 }
 
-// wait blocks until the shared check finishes. usable is false when the result
-// can't stand in for the caller's own check (the owning goroutine was canceled),
-// in which case the caller must do its own check.
+// wait blocks until the shared check finishes. usable is false either because
+// the result can't stand in for the caller's own check (the owning goroutine was
+// canceled, or it panicked before producing one) or because the caller's own ctx
+// died first. Callers must fall back to their own check, which the second case
+// makes pointless -- hence the separate ctx error check at the call site.
 func (f *ProofCheckFlight) wait(ctx context.Context) (hint *SigHint, err ProofError, usable bool) {
 	select {
 	case <-f.doneCh:
@@ -168,11 +171,14 @@ func (f *ProofCheckFlight) wait(ctx context.Context) (hint *SigHint, err ProofEr
 // outbound proof check for key (returning mine), or hands back a check another
 // session already has going that can answer for the caller (returning theirs).
 //
-// requestedAt is when the caller asked for this check. A check may only be
-// shared if it *started* at or after that moment, so the shared answer is never
-// older than one the caller would have produced by doing the work itself. That
-// makes this a pure singleflight: it collapses duplicate concurrent work without
-// letting any result outlive the freshness its requester asked for.
+// A check is shareable only while it is still running, and only if it started at
+// or after requestedAt (when the caller asked for it). Both halves are needed to
+// keep this a pure singleflight rather than a second result cache: requestedAt
+// is stamped when the identify begins but the check runs much later, after the
+// user load and the identify UI round trip, so an already-finished flight can
+// easily satisfy the start-time test while its answer is seconds old. Requiring
+// the check to still be in flight means every caller either does the work or
+// waits on work that is genuinely happening during its own request.
 func (pc *ProofCache) CheckFlightBegin(key string, requestedAt, now time.Time) (mine, theirs *ProofCheckFlight) {
 	if pc == nil {
 		return nil, nil
@@ -194,15 +200,14 @@ func (pc *ProofCache) CheckFlightBegin(key string, requestedAt, now time.Time) (
 	if !requestedAt.IsZero() {
 		if tmp, found := pc.flights.Get(key); found {
 			if f, ok := tmp.(*ProofCheckFlight); ok && !f.startedAt.Before(requestedAt) {
-				// A finished flight whose owner was canceled can't answer for
-				// anyone, so keeping it would make every later caller fall back
-				// to its own check without ever forming a new flight. Drop it
-				// and let this caller lead one that others can share.
-				if f.finished() && !f.usable {
-					pc.flights.Remove(key)
-				} else {
+				// A finished flight is a result, not work in progress, and this
+				// table is not a result cache -- keeping it would let one check
+				// answer callers arbitrarily long after it completed. Drop it so
+				// this caller leads a fresh one that others can share.
+				if !f.finished() {
 					return nil, f
 				}
+				pc.flights.Remove(key)
 			}
 		}
 	}

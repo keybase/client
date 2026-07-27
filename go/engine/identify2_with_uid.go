@@ -252,7 +252,7 @@ type Identify2WithUID struct {
 
 	resultCh chan<- error
 
-	// When this identify was asked for; bounds which in-flight remote proof
+	// When this identify was asked for; bounds which still-running remote proof
 	// checks it may share with concurrent identifies of the same user.
 	requestedAt time.Time
 
@@ -334,8 +334,8 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 		return libkb.NoUIDError{}
 	}
 
-	// Remote proof checks started from here on may be shared with other identify
-	// sessions, but only if they started after this point.
+	// This identify may share another session's remote proof check, but only one
+	// that started at or after this point and is still running when we ask.
 	e.requestedAt = m.G().Clock().Now()
 
 	// Only the first send matters, but we don't want to block the subsequent no-op

@@ -1856,7 +1856,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	if res.hint != nil {
 		hint = *res.hint
 	}
-	res.verifiedHint, res.err = idt.checkStatusShared(m, pc, hint, pcm, pvlU, sid, requestedAt)
+	res.verifiedHint, res.err = idt.checkStatusShared(m, pc, hint, pcm, pvlU, sid, requestedAt, forceRemoteCheck)
 
 	// If no error than all good
 	if res.err == nil {
@@ -1882,23 +1882,34 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 // checkStatusShared performs the outbound check of a remote proof, collapsing it
 // with an identical check that another identify session already started after
 // this one was requested. Several UI surfaces routinely identify the same user at
-// the same moment (profile screen, tracker popup, profile card), and each one
-// used to send its own request to the third-party service; those services rate
-// limit, and a throttled fetch shows up to the user as a broken proof.
+// the same moment (profile screen, tracker popup, profile card), and one request
+// per surface to the third-party service risks being rate limited; a throttled
+// fetch shows up to the user as a broken proof.
 //
-// This only shares work, never results: a check is eligible only if it began at
-// or after requestedAt, so what the caller gets back is a live check that ran
-// during its own request. Nothing is remembered past the check, so this neither
-// lengthens any cache lifetime nor lets a stale answer stand in for a new one.
+// This only shares work, never results: a check is eligible only while it is
+// still running and only if it began at or after requestedAt, so what the caller
+// gets back is a check that was live during its own request. Nothing is
+// remembered past the check, so this neither lengthens any cache lifetime nor
+// lets a stale answer stand in for a new one.
+//
+// forceRemoteCheck callers never share. They are asking to bypass the caches, so
+// answering them from work someone else started -- however recent -- is not what
+// they asked for.
 func (idt *IdentityTable) checkStatusShared(m MetaContext, pc ProofChecker, hint SigHint,
 	pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry, sid keybase1.SigID,
-	requestedAt time.Time,
+	requestedAt time.Time, forceRemoteCheck bool,
 ) (*SigHint, ProofError) {
 	// Everything that can change the outcome of the check has to be in the key:
 	// which proof, which pvl script, which checker mode (passive checks skip
-	// self-hosted services), and which hint we're checking against.
-	key := fmt.Sprintf("%s|%s|%d|%s|%s", sid, pvlU.Hash, pcm, hint.GetAPIURL(), hint.GetCheckText())
+	// self-hosted services), and which hint we're checking against. %q so a
+	// separator inside a server-supplied hint can't make two different checks
+	// collide on one key.
+	key := fmt.Sprintf("%s|%s|%d|%q|%q", sid, pvlU.Hash, pcm, hint.GetAPIURL(), hint.GetCheckText())
 
+	// A zero requestedAt is CheckFlightBegin's "never share" signal.
+	if forceRemoteCheck {
+		requestedAt = time.Time{}
+	}
 	mine, theirs := m.G().ProofCache.CheckFlightBegin(key, requestedAt, m.G().Clock().Now())
 
 	if theirs != nil {
@@ -1906,6 +1917,9 @@ func (idt *IdentityTable) checkStatusShared(m MetaContext, pc ProofChecker, hint
 			m.Debug("| Shared an in-flight remote proof check for %s (started %s)", sid, theirs.startedAt)
 			return verifiedHint, perr
 		}
+		// Falls through to our own check. wait also reports unusable when it was
+		// our own context that died, in which case this check fails immediately
+		// on that same dead context rather than reaching the network.
 		return pc.CheckStatus(m, hint, pcm, pvlU)
 	}
 
@@ -1914,8 +1928,14 @@ func (idt *IdentityTable) checkStatusShared(m MetaContext, pc ProofChecker, hint
 	if mine != nil {
 		// Deferred so a panic in the checker still closes the flight. Otherwise
 		// the entry sits in the LRU with an open channel and every session that
-		// shares it blocks until its own context is canceled.
-		defer func() { mine.finish(verifiedHint, perr, m.Ctx().Err() == nil) }()
+		// shares it blocks until its own context is canceled. `completed` keeps
+		// the panic path from publishing (nil, nil) -- which reads downstream as
+		// a passing proof -- to everyone waiting on us.
+		completed := false
+		defer func() { mine.finish(verifiedHint, perr, completed && m.Ctx().Err() == nil) }()
+		verifiedHint, perr = pc.CheckStatus(m, hint, pcm, pvlU)
+		completed = true
+		return verifiedHint, perr
 	}
 	verifiedHint, perr = pc.CheckStatus(m, hint, pcm, pvlU)
 	return verifiedHint, perr
