@@ -37,6 +37,10 @@ using namespace kb;
 @end
 
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
+// Backoff bounds for throttling the kb-engine-reset emit on a persistent
+// read-error loop; see the readErrorCount/emitBackoffSeconds comment below.
+static const NSTimeInterval kEngineResetEmitInitialBackoff = 0.5;
+static const NSTimeInterval kEngineResetEmitBackoffCeiling = 5.0;
 
 static __weak Kb *kbSharedInstance = nil;
 // Guards the compare-and-clear in invalidate against init's write: init runs
@@ -407,6 +411,17 @@ RCT_EXPORT_METHOD(notifyJSReady) {
       // episode gets its own "first 5" logging window, rather than picking
       // up mid-backoff from an earlier, unrelated episode.
       static int readErrorCount = 0;
+      // Throttles the kb-engine-reset EMIT below, separately from
+      // readErrorCount above -- they have different cadences and must not
+      // share a counter. disconnectCallback does a full session-cancel sweep
+      // (with its own log) and connectCallback re-dispatches the bootstrap
+      // path, so a connection that cannot be re-dialed must not re-trigger
+      // those at the ~10Hz this loop retries at. The first failure emits
+      // immediately so JS learns promptly; each later failure in the same
+      // episode backs off exponentially to a ceiling. Reset alongside
+      // readErrorCount on the next successful read.
+      static NSTimeInterval emitBackoffSeconds = 0;
+      static NSTimeInterval emitNotBeforeTime = 0;
       while (true) {
         // The block never returns, so the queue's pool never drains on its
         // own — each iteration needs its own.
@@ -434,12 +449,19 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             if (auto bridge = kbGetBridge()) {
               bridge->resetRecv();
             }
-            dispatch_async(dispatch_get_main_queue(), ^{
-              Kb *instance = kbSharedInstance;
-              if (instance && [instance canEmit]) {
-                [instance emitOnMetaEvent:metaEventEngineReset];
-              }
-            });
+            NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            if (now >= emitNotBeforeTime) {
+              emitBackoffSeconds = emitBackoffSeconds == 0
+                  ? kEngineResetEmitInitialBackoff
+                  : MIN(emitBackoffSeconds * 2, kEngineResetEmitBackoffCeiling);
+              emitNotBeforeTime = now + emitBackoffSeconds;
+              dispatch_async(dispatch_get_main_queue(), ^{
+                Kb *instance = kbSharedInstance;
+                if (instance && [instance canEmit]) {
+                  [instance emitOnMetaEvent:metaEventEngineReset];
+                }
+              });
+            }
             [NSThread sleepForTimeInterval:0.1];
             continue;
           }
@@ -458,6 +480,8 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             continue;
           }
           readErrorCount = 0;
+          emitBackoffSeconds = 0;
+          emitNotBeforeTime = 0;
           auto bridge = kbGetBridge();
           if (bridge) {
             bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);

@@ -525,6 +525,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     private class ReadFromKBLib : Runnable {
         private var loggedEmptyRead = false
         private var readErrorCount = 0
+        private var emitBackoffMs = 0L
+        private var emitNotBeforeMs = 0L
 
         // A read error retries every ~100ms; if the connection can't be
         // re-established that is a ~10Hz flood into the uploadable log.
@@ -535,6 +537,25 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         private fun shouldLogReadError(): Boolean {
             readErrorCount++
             return readErrorCount <= 5 || readErrorCount % 50 == 0
+        }
+
+        // Throttles the kb-engine-reset EMIT, separately from the log line
+        // above -- they have different cadences and must not share a
+        // counter. JS's disconnectCallback does a full session-cancel sweep
+        // (with a log of its own) and connectCallback re-dispatches the
+        // bootstrap path, so a connection that cannot be re-dialed must not
+        // re-trigger those at ~10Hz. The first failure emits immediately so
+        // JS learns promptly, then backs off exponentially to a ceiling.
+        // Reset alongside readErrorCount on the next successful read, so a
+        // later, unrelated episode again emits promptly.
+        private fun shouldEmitEngineReset(): Boolean {
+            val now = android.os.SystemClock.elapsedRealtime()
+            if (now < emitNotBeforeMs) {
+                return false
+            }
+            emitBackoffMs = if (emitBackoffMs == 0L) EMIT_BACKOFF_INITIAL_MS else minOf(emitBackoffMs * 2, EMIT_BACKOFF_CEILING_MS)
+            emitNotBeforeMs = now + emitBackoffMs
+            return true
         }
 
         override fun run() {
@@ -554,6 +575,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                         continue
                     }
                     readErrorCount = 0
+                    emitBackoffMs = 0L
+                    emitNotBeforeMs = 0L
                     instance?.nativeOnDataFromGo(data)
                 } catch (e: InterruptedException) {
                     Thread.currentThread().interrupt()
@@ -569,10 +592,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     } else if (shouldLogReadError()) {
                         NativeLogger.error("Exception in ReadFromKBLib.run (count=$readErrorCount)", e)
                     }
-                    instance?.onRpcConnectionReset()
+                    instance?.onRpcConnectionReset(shouldEmitEngineReset())
                     try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt(); return }
                 }
             }
+        }
+
+        companion object {
+            private const val EMIT_BACKOFF_INITIAL_MS = 500L
+            private const val EMIT_BACKOFF_CEILING_MS = 5000L
         }
     }
 
@@ -636,9 +664,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // connection underneath us. Unlike onRpcStreamFatal we must NOT call
     // Keybase.reset() -- ReadArr already did, and a second reset would close a
     // connection a concurrent writeArr may have just dialed.
-    fun onRpcConnectionReset() {
+    //
+    // nativeResetRecv() runs every time regardless of `emit`: it is cheap and
+    // must happen on every failed read. `emit` only throttles the
+    // kb-engine-reset meta event, which the caller rate-limits with a
+    // backoff -- a connection that cannot be re-dialed retries this path at
+    // ~10Hz, and disconnectCallback/connectCallback on the JS side are not
+    // free to re-run at that rate.
+    fun onRpcConnectionReset(emit: Boolean) {
         nativeResetRecv()
-        reactContext.runOnUiQueueThread { relayReset() }
+        if (emit) {
+            reactContext.runOnUiQueueThread { relayReset() }
+        }
     }
 
     // Called from JNI. Routes native bridge errors into the uploadable log --
