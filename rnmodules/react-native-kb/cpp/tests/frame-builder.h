@@ -29,8 +29,9 @@ inline Bytes packContent(
 }
 
 // Packs a bare msgpack unsigned integer header (the smallest encoding msgpack
-// chooses for `value`), matching how the framing prefix is written on the
-// wire.
+// chooses for `value`). Useful for exercising the parser against header
+// encodings other than the one production actually emits (e.g. small values
+// that fit in a 1-byte fixint).
 inline Bytes packHeader(uint64_t value) {
   msgpack::sbuffer buf;
   msgpack::packer<msgpack::sbuffer> pk(&buf);
@@ -38,9 +39,33 @@ inline Bytes packHeader(uint64_t value) {
   return sbufferToBytes(buf);
 }
 
+// Packs the frame header exactly as production writes it
+// (react-native-kb.cpp's packAndSend): always 5 bytes -- a 0xce ("uint 32")
+// tag byte followed by a big-endian uint32 length -- regardless of how small
+// `value` is. Unlike packHeader() above, this never picks a smaller encoding,
+// so it's the encoding that must be used to faithfully exercise the header
+// split-boundary arithmetic.
+inline Bytes packHeaderUint32(uint32_t value) {
+  Bytes out(5);
+  out[0] = 0xce;
+  out[1] = static_cast<uint8_t>(value >> 24);
+  out[2] = static_cast<uint8_t>(value >> 16);
+  out[3] = static_cast<uint8_t>(value >> 8);
+  out[4] = static_cast<uint8_t>(value);
+  return out;
+}
+
 // A well-formed frame: header declares content.size(), content follows.
 inline Bytes buildFrame(const Bytes &content) {
   Bytes out = packHeader(content.size());
+  out.insert(out.end(), content.begin(), content.end());
+  return out;
+}
+
+// Same as buildFrame(), but with the header encoded exactly as production
+// writes it (see packHeaderUint32()) rather than msgpack's minimal encoding.
+inline Bytes buildFrameProdHeader(const Bytes &content) {
+  Bytes out = packHeaderUint32(static_cast<uint32_t>(content.size()));
   out.insert(out.end(), content.begin(), content.end());
   return out;
 }

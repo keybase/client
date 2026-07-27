@@ -66,10 +66,8 @@ void testFrameSplitAcrossTwoFeeds() {
   CHECK_EQ(out.size(), 1u);
 }
 
-void testFrameSplitAtEveryByteBoundary() {
-  // Exercises totalFed - nonparsed_size() arithmetic at every possible split
-  // point across a single frame.
-  Bytes content = packContent([](auto &pk) {
+Bytes contentSplitBoundarySample() {
+  return packContent([](auto &pk) {
     pk.pack_map(3);
     pk.pack(std::string("a"));
     pk.pack(1);
@@ -81,8 +79,15 @@ void testFrameSplitAtEveryByteBoundary() {
     pk.pack(2);
     pk.pack(3);
   });
-  Bytes frame = buildFrame(content);
+}
 
+// Feeds `frame` in two pieces at every possible split point (including the
+// no-op splits at 0 and frame.size()) and checks that exactly one object of
+// `wantType` is always decoded. Exercises totalFed - nonparsed_size()
+// arithmetic, and in particular the header-partial-read bookkeeping
+// (consumedAtHeader_ in frame-parser.h), at every possible split point across
+// a single frame.
+void sweepSplitBoundaries(const Bytes &frame, msgpack::type::object_type wantType) {
   for (size_t split = 0; split <= frame.size(); ++split) {
     FrameParser parser;
     std::vector<msgpack::object_handle> out;
@@ -95,7 +100,59 @@ void testFrameSplitAtEveryByteBoundary() {
     CHECK_MSG(out.size() == 1,
              "split at " + std::to_string(split) + " produced " +
                  std::to_string(out.size()) + " messages, want 1");
-    CHECK(out[0].get().type == msgpack::type::MAP);
+    CHECK(out[0].get().type == wantType);
+  }
+}
+
+void testFrameSplitAtEveryByteBoundary() {
+  // Minimal msgpack encoding: for this content's small size, the header
+  // collapses to a 1-byte fixint rather than production's fixed 5-byte
+  // header, so this sweep never lands a split inside a real header. Still
+  // meaningful on its own merits: it covers a variable-length header (this
+  // content also happens to fall in the fixint range) and the general
+  // content-boundary arithmetic.
+  Bytes frame = buildFrame(contentSplitBoundarySample());
+  sweepSplitBoundaries(frame, msgpack::type::MAP);
+}
+
+void testFrameSplitAtEveryByteBoundaryProdHeader() {
+  // Same sweep and same content as testFrameSplitAtEveryByteBoundary, but
+  // with the header encoded exactly as production writes it (0xce tag + a
+  // fixed 4-byte big-endian length, see packHeaderUint32() and
+  // react-native-kb.cpp's packAndSend). This is what real traffic looks like
+  // for small frames, and is the only encoding that actually exercises a
+  // split landing inside bytes 1-4 of a real header.
+  Bytes frame = buildFrameProdHeader(contentSplitBoundarySample());
+  sweepSplitBoundaries(frame, msgpack::type::MAP);
+}
+
+void testMaxSizeFrameHeaderSplitBoundaries() {
+  // A maximal (kMaxFrameSize) frame's header already requires msgpack's
+  // uint32 format under minimal encoding, so this is production-accurate
+  // without even needing packHeaderUint32 -- but the existing max-size
+  // coverage (testOversizedFrameRejectedAndLegalMaxNotFalselyRejected) always
+  // buffers the whole 5-byte header in a single chunk (its fixed
+  // 65537-byte chunking never happens to split within the first 5 bytes).
+  // This sweeps every split point within and just past the header so the
+  // "header split across two feeds" case is covered for the largest frame
+  // the parser accepts, not just for small frames. (A full byte-by-byte
+  // sweep across the entire 64MB body would be O(n^2) and impractically
+  // slow, so this only sweeps the header region.)
+  Bytes content = contentBinOfWireSize(FrameParser::kMaxFrameSize);
+  CHECK_EQ(content.size(), FrameParser::kMaxFrameSize);
+  Bytes frame = buildFrameProdHeader(content);
+  constexpr size_t kHeaderLen = 5;
+  for (size_t split = 0; split <= kHeaderLen + 2; ++split) {
+    FrameParser parser;
+    std::vector<msgpack::object_handle> out;
+    if (split > 0) {
+      parser.feed(frame.data(), split, out);
+    }
+    parser.feed(frame.data() + split, frame.size() - split, out);
+    CHECK_MSG(out.size() == 1,
+             "split at " + std::to_string(split) + " produced " +
+                 std::to_string(out.size()) + " messages, want 1");
+    CHECK(out[0].get().type == msgpack::type::BIN);
   }
 }
 
@@ -183,8 +240,13 @@ void testOversizedFrameRejectedAndLegalMaxNotFalselyRejected() {
   }
 
   // A LEGAL maximal frame (declaredSize == kMaxFrameSize exactly) arriving in
-  // small chunks must NOT be falsely rejected by the nonparsed_size() vs.
-  // size-limit check. This proves the kMaxFrameSlack margin fix.
+  // small chunks must NOT be falsely rejected. next() consumes the msgpack
+  // object as soon as it's fully buffered, so by the time the
+  // nonparsed_size() > kMaxFrameSize + kMaxFrameSlack check runs at the end
+  // of feed(), nonparsed_size() is already back to 0 for this scenario --
+  // this pins down that the header check's `> kMaxFrameSize` (not `>=`)
+  // comparison accepts a declared size of exactly kMaxFrameSize, not the
+  // kMaxFrameSlack margin.
   {
     FrameParser parser;
     std::vector<msgpack::object_handle> out;
@@ -312,6 +374,10 @@ int main() {
   runner.add("frame_split_across_two_feeds", testFrameSplitAcrossTwoFeeds);
   runner.add("frame_split_at_every_byte_boundary",
             testFrameSplitAtEveryByteBoundary);
+  runner.add("frame_split_at_every_byte_boundary_prod_header",
+            testFrameSplitAtEveryByteBoundaryProdHeader);
+  runner.add("max_size_frame_header_split_boundaries",
+            testMaxSizeFrameHeaderSplitBoundaries);
   runner.add("consumed_equals_declared_across_sizes",
             testConsumedEqualsDeclaredAcrossSizes);
   runner.add("declared_length_mismatch_detected",

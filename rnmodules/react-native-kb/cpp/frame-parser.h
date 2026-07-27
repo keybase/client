@@ -21,11 +21,17 @@ public:
   // A desynced length prefix can otherwise ask us to buffer gigabytes.
   // Matches the JS-side packetizer limit.
   static constexpr uint64_t kMaxFrameSize = 64ull * 1024 * 1024;
-  // nonparsed_size() includes the frame header plus any bytes of the next
-  // frame already buffered in the same read; the header check separately
-  // accepts a declared size of exactly kMaxFrameSize. Without this margin a
-  // legal maximal frame arriving in small chunks trips the limit on its last
-  // chunk.
+  // The end-of-feed() check `nonparsed_size() > kMaxFrameSize + kMaxFrameSlack`
+  // guards against a garbage/corrupt length prefix (e.g. a malicious or
+  // desynced header claiming a multi-gigabyte size) that would otherwise make
+  // the unpacker buffer unboundedly. It is not needed to protect legal
+  // traffic: nonparsed_size() at that point can only be an incomplete
+  // (not-yet-fully-parsed) frame, and every declared size is already checked
+  // against kMaxFrameSize as soon as its header is read, so a legal frame's
+  // nonparsed_size() can never exceed kMaxFrameSize even with zero slack.
+  // This margin exists purely to keep the check from being a razor's-edge
+  // `> kMaxFrameSize` on the garbage-detection path; it does not need to be
+  // large, just nonzero.
   static constexpr size_t kMaxFrameSlack = 1024 * 1024;
   // msgpack::unpacker rewinds its buffer in place but never shrinks the
   // realloc'd allocation, so this bounds how long a single large frame's peak
