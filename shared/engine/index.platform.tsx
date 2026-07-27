@@ -216,7 +216,11 @@ function createClient(
         switch (payload) {
           case 'kb-engine-reset':
             // Go dropped the loopback connection; anything in flight is dead.
+            // Report the disconnect before the reconnect so the engine cancels
+            // its sessions and the UI shows the reconnect state -- the desktop
+            // socket path does the same pair.
             client.transport.reset()
+            disconnectCallback()
             connectCallback()
         }
       } catch (e) {

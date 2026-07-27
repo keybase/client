@@ -288,6 +288,28 @@ test('an invoke handler that settles result() and then throws does not also send
   expect(transport.sent).toEqual([[1, 13, null, {ok: true}]])
 })
 
+test('failAllOutstanding clears buffered frame bytes', () => {
+  const delivered: Array<unknown> = []
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      delivered.push(incoming)
+    },
+  })
+
+  // Feed half a frame -- the packetizer buffers a partial header+payload.
+  const first = encodeFrame([2, 'keybase.1.test.first', [{}]])
+  transport.packetizeData(first.slice(0, first.length - 2))
+  transport.failAllOutstanding()
+
+  // A complete, unrelated frame arrives next. If the stale half-frame was not
+  // dropped, it prefixes these bytes and corrupts the decode.
+  const second = encodeFrame([2, 'keybase.1.test.second', [{}]])
+  transport.packetizeData(second)
+
+  expect(delivered).toHaveLength(1)
+  expect((delivered[0] as {method: string}).method).toBe('keybase.1.test.second')
+})
+
 test('cancel packets surface a cancelled response payload', () => {
   const incoming = jest.fn()
   const transport = new TestTransport({incomingRPCCallback: incoming})

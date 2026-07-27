@@ -487,6 +487,10 @@ export abstract class RPCTransport {
   // the engine resets; without it the callbacks are never invoked and every
   // in-flight RPC hangs forever.
   failAllOutstanding(err: unknown = makeEOFError()) {
+    // Also drop any partial frame: on the renderer transport this runs on the
+    // account switch, and a half-delivered pre-switch frame would otherwise
+    // concatenate with post-switch bytes into one corrupt decode.
+    this._packetizer.reset()
     this.failOutstanding(err, {})
   }
 
