@@ -524,6 +524,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // the life of the process. It forwards to whichever module is current.
     private class ReadFromKBLib : Runnable {
         private var loggedEmptyRead = false
+        private var readErrorCount = 0
+
+        // A read error retries every ~100ms; if the connection can't be
+        // re-established that is a ~10Hz flood into the uploadable log.
+        // Unlike loggedEmptyRead (a one-shot degenerate case) a recurring
+        // read error is exactly what an operator needs to see recur, so
+        // this logs the first few occurrences, then backs off to every
+        // Nth rather than going silent.
+        private fun shouldLogReadError(): Boolean {
+            readErrorCount++
+            return readErrorCount <= 5 || readErrorCount % 50 == 0
+        }
 
         override fun run() {
             while (true) {
@@ -553,8 +565,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     // hang forever.
                     if (e.message != null && e.message.equals("Read error: EOF")) {
                         NativeLogger.info("Got EOF from read, connection reset.")
-                    } else {
-                        NativeLogger.error("Exception in ReadFromKBLib.run", e)
+                    } else if (shouldLogReadError()) {
+                        NativeLogger.error("Exception in ReadFromKBLib.run (count=$readErrorCount)", e)
                     }
                     instance?.onRpcConnectionReset()
                     try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt(); return }
@@ -617,6 +629,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     fun onRpcConnectionReset() {
         nativeResetRecv()
         reactContext.runOnUiQueueThread { relayReset() }
+    }
+
+    // Called from JNI. Routes native bridge errors into the uploadable log --
+    // __android_log_print only reaches logcat, which a field log send does not
+    // include.
+    @DoNotStrip
+    fun onNativeLog(message: String) {
+        NativeLogger.error("$NAME: $message")
     }
 
     @ReactMethod

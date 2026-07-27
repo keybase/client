@@ -432,7 +432,7 @@ export abstract class RPCTransport {
       try {
         this.writeMessage(message)
       } catch (err) {
-        console.warn('Failed to write RPC message', err)
+        logger.error('Failed to write RPC message', err)
         return false
       }
       return true

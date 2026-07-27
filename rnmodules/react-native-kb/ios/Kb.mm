@@ -413,9 +413,20 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             // JS thinks it has is gone and every in-flight RPC is dead. Tell
             // JS so it fails them instead of spinning forever, and drop any
             // half-parsed frame so the next connection starts clean.
-            kbLogToService([NSString
-                stringWithFormat:@"rpc read error, connection reset: %@",
-                                 error.localizedDescription]);
+            //
+            // This retries every ~100ms below, so if the connection can't be
+            // re-established this is a ~10Hz flood into the uploadable log.
+            // Unlike the empty-read case above (a one-shot degenerate state)
+            // a recurring read error is exactly what an operator needs to see
+            // recur, so log the first few, then back off to every Nth rather
+            // than going silent.
+            static int readErrorCount = 0;
+            readErrorCount++;
+            if (readErrorCount <= 5 || readErrorCount % 50 == 0) {
+              kbLogToService([NSString
+                  stringWithFormat:@"rpc read error, connection reset (count=%d): %@",
+                                   readErrorCount, error.localizedDescription]);
+            }
             if (auto bridge = kbGetBridge()) {
               bridge->resetRecv();
             }

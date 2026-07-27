@@ -50,6 +50,17 @@ public:
         JKbModule::javaClassStatic()->getMethod<void()>("onRpcStreamFatal");
     method(jModule_);
   }
+
+  // Called from JNI. Routes native bridge errors into the uploadable log --
+  // __android_log_print only reaches logcat, which a field log send does not
+  // include.
+  void onLog(const std::string &message) {
+    jni::ThreadScope scope;
+    static auto method =
+        JKbModule::javaClassStatic()
+            ->getMethod<void(jni::alias_ref<jni::JString>)>("onNativeLog");
+    method(jModule_, jni::make_jstring(message));
+  }
 };
 
 // The bridge is created on the JS thread and consumed by the native reader
@@ -118,15 +129,17 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
             [adapter](void *ptr, size_t size) -> bool {
               return adapter->writeToGo(ptr, size);
             },
-            [](const std::string &err) {
+            [adapter](const std::string &err) {
               __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
                                   "JSI error: %s", err.c_str());
+              adapter->onLog("jsi error: " + err);
             },
             // The incoming stream desynced; reset the Go connection and tell
             // JS so it fails outstanding RPCs rather than hanging forever.
             [adapter]() {
               __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
                                   "rpc stream desync, resetting connection");
+              adapter->onLog("rpc stream desync, resetting connection");
               adapter->onFatal();
             });
 
