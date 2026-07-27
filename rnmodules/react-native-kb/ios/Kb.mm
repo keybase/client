@@ -186,6 +186,11 @@ static NSDictionary *kbConstants(void) {
 }
 
 @implementation Kb {
+  // Guarded by kbBridgeMutex: written on the JS thread in
+  // installJSIBindingsWithRuntime, read and cleared on the TurboModule shared
+  // method queue in invalidate. Reusing kbBridgeMutex (rather than a second
+  // lock) keeps this ivar and kbCurrentBridge consistent with each other
+  // without ever nesting the two critical sections.
   std::shared_ptr<kb::KBBridge> myBridge_;
 }
 
@@ -302,11 +307,19 @@ RCT_EXPORT_MODULE()
   // Both the teardown and the Go reset are gated on still being the current
   // bridge: a reload can install the next module's bridge before this runs,
   // and clearing that one would leave the app wedged with no way to notice.
-  if (kbClearBridgeIfCurrent(myBridge_)) {
+  std::shared_ptr<kb::KBBridge> mine;
+  {
+    std::lock_guard<std::mutex> lock(kbBridgeMutex);
+    mine = myBridge_;
+  }
+  if (kbClearBridgeIfCurrent(mine)) {
     NSError *error = nil;
     KeybaseReset(&error);
   }
-  myBridge_ = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(kbBridgeMutex);
+    myBridge_ = nullptr;
+  }
 }
 
 RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
@@ -371,7 +384,10 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
             });
         });
 
-    myBridge_ = bridge;
+    {
+      std::lock_guard<std::mutex> lock(kbBridgeMutex);
+      myBridge_ = bridge;
+    }
     kbSetBridge(bridge);
     kbLogToService(@"jsi install success (via installJSIBindings)");
 }
