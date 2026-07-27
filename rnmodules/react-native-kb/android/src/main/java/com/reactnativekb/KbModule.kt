@@ -523,13 +523,21 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // instance, so capturing one would pin its ReactContext (and Activity) for
     // the life of the process. It forwards to whichever module is current.
     private class ReadFromKBLib : Runnable {
+        private var loggedEmptyRead = false
+
         override fun run() {
             while (true) {
                 try {
                     val data: ByteArray? = readArr()
                     if (data == null || data.isEmpty()) {
-                        // readArr yields nothing when the connection had
-                        // nothing for us; without a pause this spins a core.
+                        // Not the idle path: readArr blocks until there is
+                        // data, so an empty non-error result is degenerate --
+                        // reachable if Init never ran and the shared buffer is
+                        // zero-length, which would otherwise spin silently.
+                        if (!loggedEmptyRead) {
+                            NativeLogger.warn("$NAME: read returned no data; is Keybase initialized?")
+                            loggedEmptyRead = true
+                        }
                         Thread.sleep(10)
                         continue
                     }

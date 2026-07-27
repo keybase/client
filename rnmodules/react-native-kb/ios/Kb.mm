@@ -429,8 +429,16 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             continue;
           }
           if (data.length == 0) {
-            // ReadArr returns (nil, nil) when the connection had nothing for
-            // us; without a pause this spins a core at full speed.
+            // Not the idle path: ReadArr blocks in LoopbackConn.Read until
+            // there is data, so an empty non-error result is degenerate (it
+            // needs n == 0 with no error, which a blocking read does not
+            // produce). It is reachable if Init never ran and the shared
+            // buffer is zero-length, which would otherwise spin silently.
+            static BOOL loggedEmptyRead = NO;
+            if (!loggedEmptyRead) {
+              kbLogToService(@"rpc read returned no data; is Keybase initialized?");
+              loggedEmptyRead = YES;
+            }
             [NSThread sleepForTimeInterval:0.01];
             continue;
           }
