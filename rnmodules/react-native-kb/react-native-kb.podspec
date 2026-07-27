@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
       "cpp/*.{h,cpp}"
   ]
   # cpp/tests is a standalone plain-clang++ test binary (see
-  # plans/scripts/test-native-kb-framing.sh), not part of the shipped module.
+  # rnmodules/react-native-kb/scripts/test-framing.sh), not part of the shipped module.
   s.exclude_files = "cpp/tests/**/*"
 
   s.dependency "KBCommon"
