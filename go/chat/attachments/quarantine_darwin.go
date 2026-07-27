@@ -5,7 +5,7 @@ package attachments
 /*
 #cgo CFLAGS: -x objective-c -fobjc-arc
 #include <Foundation/Foundation.h>
-static void quarantineFile(const char* inFilename) {
+void chatAttachmentsQuarantineFile(const char* inFilename) {
 	NSError* error = NULL;
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	NSURL* url = [NSURL fileURLWithPath:filename];
@@ -26,6 +26,6 @@ import (
 func Quarantine(ctx context.Context, path string) error {
 	cpath := C.CString(path)
 	defer C.free(unsafe.Pointer(cpath))
-	C.quarantineFile(cpath)
+	C.chatAttachmentsQuarantineFile(cpath)
 	return nil
 }
