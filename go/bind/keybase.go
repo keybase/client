@@ -69,6 +69,11 @@ var (
 // no-op complaint. Protected by connMutex.
 var connEpoch int64
 
+// lastReadEpoch is the epoch of the connection the most recent ReadArr call
+// read (or is about to read) from, captured atomically with the connection
+// reference itself. See LastReadEpoch. Protected by connMutex.
+var lastReadEpoch int64
+
 func describeConn(c net.Conn) string {
 	if c == nil {
 		return "<nil>"
@@ -636,6 +641,7 @@ func ReadArr() (data []byte, err error) {
 	}
 	currentConn := conn
 	currentEpoch := connEpoch
+	lastReadEpoch = currentEpoch
 	connMutex.Unlock()
 
 	if currentConn == nil {
@@ -732,18 +738,27 @@ func Reset() error {
 	return resetLocked()
 }
 
-// CurrentEpoch returns the epoch of the connection currently considered
-// live. A caller that is about to hand off a batch of bytes it just read
-// from that connection (e.g. a platform reader loop, right before passing
-// the data into the native bridge for parsing) should capture this value
-// there, not later once some asynchronous handler for that batch actually
-// runs — ensureConnection may have re-dialed by then, and passing the
-// wrong (newer) epoch to ResetIfCurrent would tear down a good connection
+// LastReadEpoch returns the epoch of the connection the most recent ReadArr
+// call read its bytes from. A caller that is about to hand off a batch of
+// bytes it just got back from ReadArr (e.g. a platform reader loop, right
+// before passing the data into the native bridge for parsing) should call
+// this immediately after ReadArr returns and capture the result there, not
+// later once some asynchronous handler for that batch actually runs —
+// ensureConnection may have re-dialed by then, and passing the wrong
+// (newer) epoch to ResetIfCurrent would tear down a good connection
 // instead of leaving it alone.
-func CurrentEpoch() int64 {
+//
+// This is exact only because there is exactly one permanent ReadArr caller
+// for the life of the process (enforced on both platforms: a single serial
+// reader loop). With one reader, nothing can start a second ReadArr call
+// between this one's internal epoch capture and this accessor being read
+// afterward, so the value can never be stale by the time the caller reads
+// it. A design with concurrent readers would need to thread the epoch
+// through ReadArr's return value instead.
+func LastReadEpoch() int64 {
 	connMutex.Lock()
 	defer connMutex.Unlock()
-	return connEpoch
+	return lastReadEpoch
 }
 
 // ResetIfCurrent closes the connection only if epoch (obtained implicitly by

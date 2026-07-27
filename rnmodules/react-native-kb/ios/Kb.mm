@@ -470,14 +470,17 @@ RCT_EXPORT_METHOD(notifyJSReady) {
         // The block never returns, so the queue's pool never drains on its
         // own — each iteration needs its own.
         @autoreleasepool {
-          // Captured immediately before the blocking read, mirroring how
-          // ReadArr itself grabs the epoch under connMutex before reading:
-          // this is the epoch of the connection `data` below is about to
-          // come from, not whatever epoch is current once onFatal_ actually
-          // runs (arbitrarily later, off callInvoker_->invokeAsync).
-          int64_t epoch = KeybaseCurrentEpoch();
           NSError *error = nil;
           NSData *data = KeybaseReadArr(&error);
+          // Read immediately after ReadArr returns, not before it: ReadArr
+          // records the epoch of the connection it actually read from under
+          // connMutex as part of the call, and with exactly one permanent
+          // reader for the life of the process (this loop) nothing can have
+          // started a second ReadArr in between, so this is exact for the
+          // bytes just returned -- unlike capturing the epoch before the
+          // blocking call, which could race a redial that happens while this
+          // read is in flight.
+          int64_t epoch = KeybaseLastReadEpoch();
           if (error) {
             // ReadArr already called Reset() on the Go side, so the connection
             // JS thinks it has is gone and every in-flight RPC is dead. Tell

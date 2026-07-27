@@ -587,15 +587,17 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         override fun run() {
             while (true) {
                 try {
-                    // Captured immediately before the blocking read, mirroring
-                    // how Go's own ReadArr grabs the epoch under connMutex
-                    // before reading: this is the epoch of the connection
-                    // `data` below is about to come from, not whatever epoch
-                    // is current once onRpcStreamFatal actually runs
-                    // (arbitrarily later, off the shared C++ onFatal_
-                    // callback).
-                    val epoch = Keybase.currentEpoch()
                     val data: ByteArray? = readArr()
+                    // Read immediately after readArr returns, not before it:
+                    // Go's ReadArr records the epoch of the connection it
+                    // actually read from under connMutex as part of the call,
+                    // and with exactly one permanent reader for the life of
+                    // the process (this loop) nothing can have started a
+                    // second readArr in between, so this is exact for the
+                    // bytes just returned -- unlike capturing the epoch
+                    // before the blocking call, which could race a redial
+                    // that happens while this read is in flight.
+                    val epoch = Keybase.lastReadEpoch()
                     if (data == null || data.isEmpty()) {
                         // Not the idle path: readArr blocks until there is
                         // data, so an empty non-error result is degenerate --
