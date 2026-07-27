@@ -864,10 +864,13 @@ func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
 	g.G().ActivityNotifier.ResetConversation(ctx, uid, convID, topicType)
 }
 
-// invalidateParticipants drops the cached participant list for every conv whose
-// membership just changed. Without this the cache serves the pre-change list
-// until it expires, which for a conv that never re-localizes is the whole
-// freshness window.
+// invalidateParticipants expires the cached participant list for every conv
+// whose membership just changed. It is the only thing that shortens the wait:
+// re-localizing the conv reads through the same cache, so nothing else goes back
+// to the server before the freshness window is up.
+//
+// Unlike notifyMembersUpdate this does not filter on topic type -- the
+// participant cache is keyed by conv regardless of what the conv is for.
 func (g *PushHandler) invalidateParticipants(ctx context.Context, uid gregor1.UID,
 	membersRes types.MembershipUpdateRes,
 ) {

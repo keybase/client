@@ -24,13 +24,14 @@ type partDiskStorage struct {
 }
 
 // How long a cached participant list is served without asking the server. Every
-// localization of a team conversation asks for participants, so a team screen
-// with N channels used to mean N remote round trips every time it loaded, even
-// when nothing had changed and the server only answered HashMatch. Membership
-// changes arrive by server push for anything that re-localizes the conversation.
+// localization of a team conversation asks for participants, so without this a
+// team screen with N channels costs N remote round trips every time it loads,
+// even when nothing has changed and the server only answers HashMatch.
 //
-// A membership push drops the entry for the convs it touches (see Invalidate),
-// so this bounds only changes that arrive by neither push nor re-localization.
+// A membership push expires the entry for the convs it touches (see Invalidate),
+// so this bounds only changes that arrive by neither a push nor a cache miss.
+// Re-localizing a conversation is served from this cache like any other read, so
+// it is not itself a refresh path.
 const participantsCacheFreshness = 5 * time.Minute
 
 type CachingParticipantSource struct {
@@ -101,16 +102,35 @@ func (s *CachingParticipantSource) dbKey(uid gregor1.UID, convID chat1.Conversat
 	}
 }
 
-// Invalidate drops the cached list for these convs. Membership pushes call it,
+// Invalidate expires the cached list for these convs. Membership pushes call it,
 // so a join or leave shows up in participant lists and @-mention completion at
 // the next read instead of waiting out participantsCacheFreshness.
+//
+// It expires rather than deletes: the stale list is still the best answer
+// available until the server replies, and callers depend on getting it. A
+// local-only read has nowhere else to go, and a local-and-remote read emits the
+// cached list first so the UI has something to draw while the refresh is in
+// flight. The stored hash is kept for the same reason it is normally kept -- the
+// server derives it from the membership, so if it still matches, the push
+// changed something that does not affect this list and the refetch is free.
 func (s *CachingParticipantSource) Invalidate(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID,
 ) {
 	for _, convID := range convIDs {
 		lock := s.locktab.AcquireOnName(ctx, s.G(), convID.String())
-		if err := s.encryptedDB.Delete(ctx, s.dbKey(uid, convID)); err != nil {
-			s.Debug(ctx, "Invalidate: failed to delete participants for %s: %s", convID, err)
+		var local partDiskStorage
+		found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, convID), &local)
+		switch {
+		case err != nil:
+			s.Debug(ctx, "Invalidate: failed to read participants for %s: %s", convID, err)
+			if err := s.encryptedDB.Delete(ctx, s.dbKey(uid, convID)); err != nil {
+				s.Debug(ctx, "Invalidate: failed to delete participants for %s: %s", convID, err)
+			}
+		case found:
+			local.CachedAt = time.Time{}
+			if err := s.encryptedDB.Put(ctx, s.dbKey(uid, convID), local); err != nil {
+				s.Debug(ctx, "Invalidate: failed to expire participants for %s: %s", convID, err)
+			}
 		}
 		lock.Release(ctx)
 	}
@@ -142,9 +162,10 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 
 		// load local first and send to channel
 		localHash := ""
+		var local partDiskStorage
+		var foundLocal bool
 		switch dataSource {
 		case types.InboxSourceDataSourceAll, types.InboxSourceDataSourceLocalOnly:
-			var local partDiskStorage
 			found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
 			if err != nil {
 				resCh <- types.ParticipantResult{Err: err}
@@ -154,6 +175,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 				return
 			}
 			if found {
+				foundLocal = true
 				resCh <- types.ParticipantResult{Uids: local.Uids}
 				localHash = local.Hash
 				if !local.CachedAt.IsZero() &&
@@ -178,10 +200,18 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 			if partRes.HashMatch {
 				s.Debug(ctx, "GetNonblock: hash match on remote, all done")
 				// nothing changed, but record that we just checked so the next
-				// localization of this conv can be served from disk
-				var local partDiskStorage
-				found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
-				if err == nil && found {
+				// localization of this conv can be served from disk. Only the
+				// remote-only path has to read here: every other path already
+				// has the entry in hand from the local read above.
+				if !foundLocal {
+					found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
+					if err != nil {
+						s.Debug(ctx, "GetNonblock: failed to read back after hash match: %s", err)
+						return
+					}
+					foundLocal = found
+				}
+				if foundLocal {
 					local.CachedAt = s.G().GetClock().Now()
 					if err := s.encryptedDB.Put(ctx, s.dbKey(uid, conv.GetConvID()), local); err != nil {
 						s.Debug(ctx, "GetNonblock: failed to record refresh time: %s", err)
