@@ -39,6 +39,12 @@ using namespace kb;
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 static __weak Kb *kbSharedInstance = nil;
+// Guards the compare-and-clear in invalidate against init's write: init runs
+// on the main thread, invalidate on the TurboModule shared method queue, and
+// the __weak load/store are each individually synchronized but the
+// read-then-write in invalidate is not, so without this lock a reload's new
+// instance can be clobbered by the old instance's invalidate.
+static std::mutex kbSharedInstanceMutex;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
@@ -192,7 +198,10 @@ RCT_EXPORT_MODULE()
 
 - (instancetype)init {
   self = [super init];
-  kbSharedInstance = self;
+  {
+    std::lock_guard<std::mutex> lock(kbSharedInstanceMutex);
+    kbSharedInstance = self;
+  }
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(handleHardwareKeyPressed:)
                                                name:@"hardwareKeyPressed"
@@ -272,9 +281,13 @@ RCT_EXPORT_MODULE()
   // clear, canEmit stays YES and a push notification, token registration or
   // (worst) the reader's desync meta event emits into the dying runtime's
   // invoker. Guarded because a reload may already have installed a newer
-  // module as the shared instance.
-  if (kbSharedInstance == self) {
-    kbSharedInstance = nil;
+  // module as the shared instance; the lock makes the compare-and-clear
+  // atomic with init's write so a newer instance can never be clobbered.
+  {
+    std::lock_guard<std::mutex> lock(kbSharedInstanceMutex);
+    if (kbSharedInstance == self) {
+      kbSharedInstance = nil;
+    }
   }
   // Runs on the TurboModule shared method queue (no methodQueue getter, so
   // RCTTurboModuleManager assigns _sharedModuleQueue) — any thread, never the
