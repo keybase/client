@@ -3,7 +3,7 @@
 # expo autolinking points gradle/pods at it. Native edits under rnmodules/
 # are invisible to a build until they are copied across.
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SRC="$ROOT/rnmodules/react-native-kb"
 DST="$ROOT/shared/node_modules/react-native-kb"
 test -d "$DST" || { echo "missing $DST — run yarn in shared/ first" >&2; exit 1; }

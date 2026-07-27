@@ -96,3 +96,6 @@ CLAUDE.md
 docs
 .codegraph
 .mcp.json
+
+# Scratch plans (not part of the codebase)
+plans/2*.md

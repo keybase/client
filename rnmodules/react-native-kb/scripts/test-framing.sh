@@ -5,7 +5,7 @@
 # this only needs a plain msgpack-cxx include path, the same one used for the
 # react-native-kb.cpp syntax-only clang++ check.
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 CPP_DIR="$ROOT/rnmodules/react-native-kb/cpp"
 MSGPACK_INCLUDE="$ROOT/shared/node_modules/msgpack-cxx-7.0.0/include"
 test -d "$MSGPACK_INCLUDE" || {
