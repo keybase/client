@@ -28,6 +28,10 @@ constexpr size_t kMaxCachedPropNames = 4096;
 struct KBBridge::RecvState {
   msgpack::unpacker unpacker;
   ReadState state = ReadState::needSize;
+  // Persist across calls: a frame's header and its content routinely arrive
+  // in separate reads.
+  size_t declaredSize = 0;
+  size_t sizeAtHeader = 0;
 };
 
 struct KBBridge::SendState {
@@ -643,8 +647,20 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
               o.as<uint64_t>() > kMaxFrameSize) {
             throw std::runtime_error("bad rpc frame header");
           }
+          recv_->declaredSize = static_cast<size_t>(o.as<uint64_t>());
+          recv_->sizeAtHeader = up.parsed_size();
           recv_->state = ReadState::needContent;
         } else {
+          // The header is only a plausibility check on its own: a fixint
+          // sitting inside a string payload parses as a valid header after a
+          // resync. Requiring the content object to consume exactly the
+          // declared byte count makes the framing self-checking, so a
+          // truncated or overlong frame is caught here instead of being
+          // handed to JS as a bogus [type, seqid, ...].
+          const size_t consumed = up.parsed_size() - recv_->sizeAtHeader;
+          if (consumed != recv_->declaredSize) {
+            throw std::runtime_error("rpc frame length mismatch");
+          }
           values->push_back(std::move(result));
           recv_->state = ReadState::needSize;
         }
