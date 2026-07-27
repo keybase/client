@@ -146,7 +146,7 @@ func (e *SelfProvisionEngine) loadUserAndActiveDeviceKeys(m libkb.MetaContext) (
 	if err != nil {
 		return nil, err
 	}
-	if _, err := keys.Populate(m); err != nil {
+	if err := keys.PopulateFromUser(e.User); err != nil {
 		return nil, err
 	}
 

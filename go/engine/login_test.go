@@ -1314,6 +1314,10 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	err = AssertProvisioned(tc2)
 	require.NoError(t, err)
 
+	deviceCtime, err := tc2.G.ActiveDevice.Ctime(m)
+	require.NoError(t, err)
+	require.NotZero(t, deviceCtime)
+
 	require.Equal(t, provUI.calledChooseDeviceType, 0)
 	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
 }
