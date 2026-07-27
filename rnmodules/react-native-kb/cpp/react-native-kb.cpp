@@ -1,4 +1,5 @@
 #include "react-native-kb.h"
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -22,6 +23,16 @@ constexpr uint64_t kMaxFrameSize = 64ull * 1024 * 1024;
 constexpr size_t kMaxDepth = 1024;
 // Don't let one huge attachment frame permanently retain its peak size.
 constexpr size_t kSendBufKeepCapacity = 4u * 1024 * 1024;
+// msgpack::unpacker rewinds its buffer in place but never shrinks the
+// realloc'd allocation, so this bounds how long a single large frame's peak
+// stays resident.
+constexpr size_t kRecvBufKeepCapacity = 4u * 1024 * 1024;
+// nonparsed_size() includes the frame header plus any bytes of the next
+// frame already buffered in the same read; the header check separately
+// accepts a declared size of exactly kMaxFrameSize. Without this margin a
+// legal maximal frame arriving in small chunks trips the limit on its last
+// chunk.
+constexpr size_t kMaxFrameSlack = 1024 * 1024;
 constexpr size_t kMaxCachedPropNames = 4096;
 } // namespace
 
@@ -36,6 +47,12 @@ struct KBBridge::RecvState {
   // role -- next() zeroes it on each success -- but totalFed minus
   // nonparsed_size() is an accurate running count of what has been consumed.
   size_t totalFed = 0;
+  // High-water mark of declaredSize since the last reset. declaredSize
+  // itself gets overwritten by the next header before we necessarily reach a
+  // safe (nonparsed_size() == 0) point to act on it, so this survives that
+  // overwrite and lets the shrink check fire for the frame that actually
+  // grew the buffer.
+  size_t peakFrameSize = 0;
 };
 
 struct KBBridge::SendState {
@@ -653,6 +670,8 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
             throw std::runtime_error("bad rpc frame header");
           }
           recv_->declaredSize = static_cast<size_t>(o.as<uint64_t>());
+          recv_->peakFrameSize =
+              std::max(recv_->peakFrameSize, recv_->declaredSize);
           recv_->consumedAtHeader = recv_->totalFed - up.nonparsed_size();
           recv_->state = ReadState::needContent;
         } else {
@@ -677,8 +696,18 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
         }
       }
 
-      if (up.nonparsed_size() > kMaxFrameSize) {
+      if (up.nonparsed_size() > kMaxFrameSize + kMaxFrameSlack) {
         throw std::runtime_error("rpc frame exceeds size limit");
+      }
+
+      // needSize with nothing unparsed is a provably safe resync point: no
+      // partial frame and no unparsed bytes to lose. resetRecvLocked()
+      // rebuilds RecvState (including totalFed and the unpacker) together,
+      // so the totalFed/consumedAtHeader invariant restarts from a
+      // consistent fresh baseline rather than desyncing.
+      if (recv_->state == ReadState::needSize && up.nonparsed_size() == 0 &&
+          recv_->peakFrameSize > kRecvBufKeepCapacity) {
+        resetRecvLocked();
       }
     } catch (const std::exception &e) {
       fatal = true;
