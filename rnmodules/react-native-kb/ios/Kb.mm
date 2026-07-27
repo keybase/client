@@ -418,9 +418,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
 RCT_EXPORT_METHOD(shareListenersRegistered) {
 }
 
-// No current caller (kept for future use). If ever wired up, this must reset
-// the parser along with the Go connection, or the next connection desyncs on
-// its first frame -- see the other reset paths in this file.
+// No current caller (kept for future use).
 RCT_EXPORT_METHOD(engineReset) {
   NSError *error = nil;
   KeybaseReset(&error);

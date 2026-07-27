@@ -465,9 +465,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // chance of being delivered before committing to it.
     internal fun canDeliverReset(): Boolean = reactContext.hasActiveReactInstance() && canEmit()
 
-    // No current caller (kept for future use). If ever wired up, this must
-    // reset the parser along with the Go connection, or the next connection
-    // desyncs on its first frame -- see the other reset paths in this file.
+    // No current caller (kept for future use).
     @ReactMethod
     override fun engineReset() {
         try {
