@@ -732,9 +732,9 @@ func Reset() error {
 	return resetLocked()
 }
 
-// ResetIfCurrent closes the connection only if epoch (obtained via
-// CurrentConnEpoch, or implicitly by whoever last dialed) still matches the
-// live connection's epoch. If ensureConnection has re-dialed since, the
+// ResetIfCurrent closes the connection only if epoch (obtained implicitly by
+// whoever last dialed) still matches the live connection's epoch. If
+// ensureConnection has re-dialed since, the
 // epoch has moved on and this call is a stale no-op: some other caller
 // already recovered, and closing the newer connection would silently
 // discard whatever was just written to it.
@@ -747,16 +747,6 @@ func ResetIfCurrent(epoch int64) error {
 		return nil
 	}
 	return resetLocked()
-}
-
-// CurrentConnEpoch returns the epoch of the connection currently installed
-// in the global conn var. Must be read close to (and ideally under the same
-// critical section as) the operation whose failure it will be paired with,
-// so the epoch and the conn it describes stay consistent.
-func CurrentConnEpoch() int64 {
-	connMutex.Lock()
-	defer connMutex.Unlock()
-	return connEpoch
 }
 
 // resetLocked does the actual teardown. Must be called with connMutex held.

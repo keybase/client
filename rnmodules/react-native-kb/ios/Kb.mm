@@ -371,6 +371,16 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
             // still live on this path, so resetting the parser first would
             // leave a window where bytes from the OLD connection land in the
             // freshly-cleared unpacker mid-frame, causing a second desync.
+            //
+            // Unconditional Reset() rather than ResetIfCurrent(epoch): this
+            // callback runs off KBBridge's onFatal_, which is a bare
+            // std::function<void()> with no epoch parameter -- onDataFromGo
+            // itself never receives one from either platform's read loop.
+            // Threading an epoch through would mean widening onFatal_'s
+            // signature and onDataFromGo's across the ObjC and JNI call
+            // sites, not just this file. Left as unconditional Reset() for
+            // now; this can race a concurrent re-dial the same way any
+            // unconditional reset can.
             NSError *error = nil;
             KeybaseReset(&error);
             if (error) {

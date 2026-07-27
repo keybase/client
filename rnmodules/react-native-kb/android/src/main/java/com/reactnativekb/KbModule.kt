@@ -699,6 +699,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // still live on this path, so clearing the parser first would leave a
         // window where bytes from the OLD connection land in the
         // freshly-reset unpacker mid-frame, causing a second desync.
+        //
+        // Unconditional reset() rather than resetIfCurrent(epoch): this
+        // fires from the shared C++ onFatal_ callback, a bare no-arg
+        // std::function that runs off callInvoker_->invokeAsync with
+        // arbitrary latency -- but no epoch is plumbed through it or through
+        // onDataFromGo on either platform's read loop. Widening that would
+        // touch the JNI and ObjC call sites too, not just this method. Left
+        // as unconditional reset() for now; this can race a concurrent
+        // re-dial the same way any unconditional reset can.
         try {
             Keybase.reset()
         } catch (e: Exception) {
