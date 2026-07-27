@@ -225,6 +225,43 @@ test('a throwing callback does not stop the remaining outstanding invocations fr
   expect(calls).toEqual([1, 2, 3])
 })
 
+test('a reset cycle fails outstanding invocations once and a post-reset invocation gets a fresh, non-colliding seqid that dispatches correctly', () => {
+  const transport = new TestTransport()
+  const preResetCb = jest.fn()
+  transport.invoke('keybase.1.test.old', [{}], preResetCb)
+  const [, preResetSeqid] = transport.sent[0] as [number, number, string, [object]]
+
+  transport.failAllOutstanding()
+  expect(preResetCb).toHaveBeenCalledTimes(1)
+
+  const postResetCb = jest.fn()
+  transport.invoke('keybase.1.test.new', [{}], postResetCb)
+  const [, postResetSeqid] = transport.sent[1] as [number, number, string, [object]]
+
+  expect(postResetSeqid).not.toBe(preResetSeqid)
+
+  transport.dispatchDecodedMessage([1, postResetSeqid, null, {ok: 'post-reset'}])
+  expect(postResetCb).toHaveBeenCalledWith(null, {ok: 'post-reset'})
+  // The reset must not have re-fired the pre-reset callback.
+  expect(preResetCb).toHaveBeenCalledTimes(1)
+})
+
+test('a response for a pre-reset seqid arriving after reset is ignored', () => {
+  const transport = new TestTransport()
+  const preResetCb = jest.fn()
+  transport.invoke('keybase.1.test.old', [{}], preResetCb)
+  const [, preResetSeqid] = transport.sent[0] as [number, number, string, [object]]
+
+  transport.failAllOutstanding()
+  expect(preResetCb).toHaveBeenCalledTimes(1)
+
+  // A stale response for the pre-reset seqid shows up late -- the seqid is
+  // gone from the invocations map, so this must be a silent no-op rather
+  // than re-firing the already-failed callback.
+  transport.dispatchDecodedMessage([1, preResetSeqid, null, {ok: 'stale'}])
+  expect(preResetCb).toHaveBeenCalledTimes(1)
+})
+
 test('seqids keep advancing after outstanding invocations are failed, so a late reply cannot alias', () => {
   const transport = new TestTransport()
   transport.invoke('keybase.1.test.a', [{}], () => {})
