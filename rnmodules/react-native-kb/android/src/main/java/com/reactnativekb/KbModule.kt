@@ -708,18 +708,24 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // window where bytes from the OLD connection land in the
         // freshly-reset unpacker mid-frame, causing a second desync.
         //
-        // resetIfCurrent(epoch), not reset(): `epoch` is the epoch of the
-        // connection the desynced bytes actually came from, captured by the
-        // reader loop at read time. If Go has already re-dialed since (e.g. a
-        // concurrent writeArr recovered first), epoch no longer matches and
-        // this is a no-op instead of tearing down a connection that already
-        // worked.
+        // resetIfCurrentDidReset(epoch), not reset(): `epoch` is the epoch of
+        // the connection the desynced bytes actually came from, captured by
+        // the reader loop at read time. If Go has already re-dialed since
+        // (e.g. a concurrent writeArr recovered first), epoch no longer
+        // matches and this is a stale no-op instead of tearing down a
+        // connection that already worked -- and in that case nativeResetRecv()
+        // must also be skipped, or it drops the new connection's
+        // already-in-flight partial frame and forces a second, needless
+        // fatal/reset cycle.
+        var didReset = false
         try {
-            Keybase.resetIfCurrent(epoch)
+            didReset = Keybase.resetIfCurrentDidReset(epoch)
         } catch (e: Exception) {
             NativeLogger.error("Exception resetting after rpc desync", e)
         }
-        nativeResetRecv()
+        if (didReset) {
+            nativeResetRecv()
+        }
         reactContext.runOnUiQueueThread { relayReset() }
     }
 

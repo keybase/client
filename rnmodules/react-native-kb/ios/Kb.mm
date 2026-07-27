@@ -372,20 +372,20 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
             // leave a window where bytes from the OLD connection land in the
             // freshly-cleared unpacker mid-frame, causing a second desync.
             //
-            // ResetIfCurrent(epoch), not Reset(): `epoch` is the epoch of the
-            // connection the desynced bytes actually came from, captured by
-            // the reader loop below at read time. If Go has already re-dialed
-            // since (e.g. a concurrent WriteArr recovered first), epoch no
-            // longer matches and this is a no-op instead of tearing down a
-            // connection that already worked.
-            NSError *error = nil;
-            KeybaseResetIfCurrent(epoch, &error);
-            if (error) {
-                kbLogToService([NSString stringWithFormat:@"reset after desync failed: %@",
-                                                          error.localizedDescription]);
-            }
-            if (auto bridge = kbGetBridge()) {
-              bridge->resetRecv();
+            // ResetIfCurrentDidReset(epoch), not Reset(): `epoch` is the
+            // epoch of the connection the desynced bytes actually came from,
+            // captured by the reader loop below at read time. If Go has
+            // already re-dialed since (e.g. a concurrent WriteArr recovered
+            // first), epoch no longer matches and this is a stale no-op
+            // instead of tearing down a connection that already worked --
+            // and in that case resetRecv() must also be skipped, or it drops
+            // the new connection's already-in-flight partial frame and
+            // forces a second, needless fatal/reset cycle.
+            BOOL didReset = KeybaseResetIfCurrentDidReset(epoch);
+            if (didReset) {
+              if (auto bridge = kbGetBridge()) {
+                bridge->resetRecv();
+              }
             }
             dispatch_async(dispatch_get_main_queue(), ^{
                 Kb *instance = kbSharedInstance;
