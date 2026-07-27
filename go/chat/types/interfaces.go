@@ -642,6 +642,9 @@ type ParticipantSource interface {
 	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		dataSource InboxSourceDataSourceTyp)
 	GetParticipantsFromUids(ctx context.Context, uids []gregor1.UID) ([]chat1.ConversationLocalParticipant, error)
+	// Invalidate drops any cached participant list for these convs, so the next
+	// read goes to the server rather than waiting out the cache freshness.
+	Invalidate(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID)
 }
 
 type EmojiSource interface {

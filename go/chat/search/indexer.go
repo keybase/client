@@ -23,6 +23,12 @@ import (
 // is read, a prerequisite for searching.
 const minPriorityScore = 10
 
+// storageOp is what every queued storage operation has in common: a waiter that
+// must be released whether or not the op ever runs.
+type storageOp interface {
+	callback() chan error
+}
+
 type storageAdd struct {
 	ctx    context.Context
 	convID chat1.ConversationID
@@ -30,12 +36,16 @@ type storageAdd struct {
 	cb     chan error
 }
 
+func (o storageAdd) callback() chan error { return o.cb }
+
 type storageRemove struct {
 	ctx    context.Context
 	convID chat1.ConversationID
 	msgs   []chat1.MessageUnboxed
 	cb     chan error
 }
+
+func (o storageRemove) callback() chan error { return o.cb }
 
 type Indexer struct {
 	globals.Contextified
@@ -54,7 +64,7 @@ type Indexer struct {
 	clock        clockwork.Clock
 	eg           errgroup.Group
 	uid          gregor1.UID
-	storageCh    chan any
+	storageCh    chan storageOp
 
 	maxSyncConvs          int
 	startSyncDelay        time.Duration
@@ -88,7 +98,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		pokeSyncCh:   make(chan struct{}, 100),
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
-		storageCh:    make(chan any, 100),
+		storageCh:    make(chan storageOp, 100),
 		stalledConvs: make(map[chat1.ConvIDStr]stalledConv),
 	}
 	switch idx.G().GetAppType() {
@@ -313,9 +323,9 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 			idx.Debug(ctx, "Stop: final flush failed: %s", err)
 		}
 		idx.store.ClearMemory()
-		// entries are keyed by convID only, and team convs are shared between
-		// users on this device: a count left by the previous user must not
-		// decide anything for the next one
+		// stall counts describe one indexer run, so drop them with it: a count
+		// carried into the next Start would clamp a conv on evidence gathered
+		// before the restart
 		idx.stalledMu.Lock()
 		idx.stalledConvs = make(map[chat1.ConvIDStr]stalledConv)
 		idx.stalledMu.Unlock()
@@ -400,8 +410,20 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 // waiter - reindexConv does an unconditional receive - parked forever. In
 // SelectiveSync that leaks the sync's cancel func, so every later attempt sees
 // "already running" and background indexing is done until the process restarts.
-func (idx *Indexer) storageDispatch(op any) bool {
+// It also refuses to queue once the indexer is stopping. Nothing is left to run
+// the op then, and the drain that would have released its callback has already
+// walked the queue.
+func (idx *Indexer) storageDispatch(op storageOp) bool {
+	idx.Lock()
+	stopCh := idx.stopCh
+	started := idx.started
+	idx.Unlock()
+	if !started {
+		return false
+	}
 	select {
+	case <-stopCh:
+		return false
 	case idx.storageCh <- op:
 		return true
 	default:
@@ -432,13 +454,8 @@ func releaseStorageCB(cb chan error, err error) {
 func (idx *Indexer) drainStorageQueue() {
 	for {
 		select {
-		case iop := <-idx.storageCh:
-			switch op := iop.(type) {
-			case storageAdd:
-				releaseStorageCB(op.cb, errStorageStopped)
-			case storageRemove:
-				releaseStorageCB(op.cb, errStorageStopped)
-			}
+		case op := <-idx.storageCh:
+			releaseStorageCB(op.callback(), errStorageStopped)
 		default:
 			return
 		}

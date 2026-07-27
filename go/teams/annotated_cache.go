@@ -111,30 +111,20 @@ type annotatedTeamLoader func(ctx context.Context, g *libkb.GlobalContext, teamI
 // already-running load of the same team if there is one, and otherwise runs loader.
 func (c *annotatedTeamCache) load(mctx libkb.MetaContext, teamID keybase1.TeamID, loader annotatedTeamLoader) (res keybase1.AnnotatedTeam, err error) {
 	for waits := 0; ; waits++ {
-		c.Lock()
-		if cached, ok := c.getLocked(mctx, teamID); ok {
-			c.Unlock()
+		cached, hit, wait, lead, startedGen := c.beginLoad(mctx, teamID, waits < maxAnnotatedTeamCacheWaits)
+		switch {
+		case hit:
 			mctx.Debug("annotatedTeamCache: hit for %v", teamID)
 			return cached, nil
-		}
-		if ch, ok := c.inflight[teamID]; ok && waits < maxAnnotatedTeamCacheWaits {
-			c.Unlock()
+		case wait != nil:
 			mctx.Debug("annotatedTeamCache: waiting on in-flight load for %v", teamID)
 			select {
-			case <-ch:
+			case <-wait:
 				continue
 			case <-mctx.Ctx().Done():
 				return res, mctx.Ctx().Err()
 			}
 		}
-		startedGen := c.gen[teamID]
-		ch := make(chan struct{})
-		hasLead := false
-		if _, ok := c.inflight[teamID]; !ok {
-			c.inflight[teamID] = ch
-			hasLead = true
-		}
-		c.Unlock()
 
 		// The leader must release its slot even if loader panics: the RPC
 		// handler recovers, but a populated inflight entry whose channel is
@@ -142,13 +132,8 @@ func (c *annotatedTeamCache) load(mctx libkb.MetaContext, teamID keybase1.TeamID
 		// ctx dies, for the life of the process. Deferred rather than inline for
 		// that reason; this path always returns below, so despite the enclosing
 		// loop it is registered at most once.
-		if hasLead {
-			defer func() {
-				c.Lock()
-				delete(c.inflight, teamID)
-				c.Unlock()
-				close(ch)
-			}()
+		if lead != nil {
+			defer c.endLoad(teamID, lead)
 		}
 
 		// Age the entry from when the load started, not when it finished: the
@@ -156,14 +141,57 @@ func (c *annotatedTeamCache) load(mctx libkb.MetaContext, teamID keybase1.TeamID
 		// must not buy the result extra TTL it has already spent being stale.
 		startedAt := mctx.G().Clock().Now()
 		res, err = loader(mctx.Ctx(), mctx.G(), teamID)
-
-		c.Lock()
-		if err == nil && c.gen[teamID] == startedGen {
-			c.entries[teamID] = annotatedTeamCacheEntry{team: res, cachedAt: startedAt}
+		if err == nil {
+			c.storeLoad(teamID, res, startedAt, startedGen)
 		}
-		c.Unlock()
 		return res, err
 	}
+}
+
+// beginLoad decides in one locked step what this caller does next: take a fresh
+// cached team (hit), block on somebody else's load (wait), or run the load - as
+// its leader if the slot was free (lead non-nil), otherwise alongside it.
+// startedGen pins the invalidation generation the load reads at.
+func (c *annotatedTeamCache) beginLoad(mctx libkb.MetaContext, teamID keybase1.TeamID, canWait bool) (
+	cached keybase1.AnnotatedTeam, hit bool, wait, lead chan struct{}, startedGen uint64,
+) {
+	c.Lock()
+	defer c.Unlock()
+	if cached, ok := c.getLocked(mctx, teamID); ok {
+		return cached, true, nil, nil, 0
+	}
+	if ch, ok := c.inflight[teamID]; ok {
+		if canWait {
+			return cached, false, ch, nil, 0
+		}
+		// Somebody is loading, but this caller has waited its share, so it goes
+		// ahead without claiming the slot.
+		return cached, false, nil, nil, c.gen[teamID]
+	}
+	ch := make(chan struct{})
+	c.inflight[teamID] = ch
+	return cached, false, nil, ch, c.gen[teamID]
+}
+
+// endLoad releases the leader's slot and wakes everyone waiting on it.
+func (c *annotatedTeamCache) endLoad(teamID keybase1.TeamID, lead chan struct{}) {
+	c.Lock()
+	delete(c.inflight, teamID)
+	c.Unlock()
+	close(lead)
+}
+
+// storeLoad memoizes a finished load, unless the team was invalidated while it
+// ran - that result may have read pre-change data.
+func (c *annotatedTeamCache) storeLoad(teamID keybase1.TeamID, team keybase1.AnnotatedTeam,
+	startedAt time.Time, startedGen uint64,
+) {
+	c.Lock()
+	defer c.Unlock()
+	if c.gen[teamID] != startedGen {
+		return
+	}
+	c.entries[teamID] = annotatedTeamCacheEntry{team: team, cachedAt: startedAt}
 }
 
 func NewAnnotatedTeamCacheAndInstall(g *libkb.GlobalContext) {

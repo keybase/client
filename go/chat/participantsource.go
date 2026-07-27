@@ -29,11 +29,8 @@ type partDiskStorage struct {
 // when nothing had changed and the server only answered HashMatch. Membership
 // changes arrive by server push for anything that re-localizes the conversation.
 //
-// Known gap: nothing deletes the cached entry, and every production caller
-// passes DataSourceAll (the RemoteOnly path exists but is unused), so a
-// membership change that does not re-localize can take up to this long to show
-// up in a participant list or @-mention completion. Before the cache that was
-// one cheap HashMatch round trip per localization instead.
+// A membership push drops the entry for the convs it touches (see Invalidate),
+// so this bounds only changes that arrive by neither push nor re-localization.
 const participantsCacheFreshness = 5 * time.Minute
 
 type CachingParticipantSource struct {
@@ -101,6 +98,21 @@ func (s *CachingParticipantSource) dbKey(uid gregor1.UID, convID chat1.Conversat
 	return libkb.DbKey{
 		Typ: libkb.DBChatParticipants,
 		Key: uid.String() + convID.String(),
+	}
+}
+
+// Invalidate drops the cached list for these convs. Membership pushes call it,
+// so a join or leave shows up in participant lists and @-mention completion at
+// the next read instead of waiting out participantsCacheFreshness.
+func (s *CachingParticipantSource) Invalidate(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID,
+) {
+	for _, convID := range convIDs {
+		lock := s.locktab.AcquireOnName(ctx, s.G(), convID.String())
+		if err := s.encryptedDB.Delete(ctx, s.dbKey(uid, convID)); err != nil {
+			s.Debug(ctx, "Invalidate: failed to delete participants for %s: %s", convID, err)
+		}
+		lock.Release(ctx)
 	}
 }
 

@@ -458,6 +458,58 @@ func TestAddDoesNotMarkSeenWhenIndexingFails(t *testing.T) {
 		"message was marked indexed even though indexing it failed")
 }
 
+// IDs the server will never return - deleted messages, gaps that never existed -
+// cannot be closed by indexing them, so before MarkSeen they held numMissing
+// above zero forever and SelectiveSync re-fetched the same conv every interval.
+func TestMarkSeenClosesUnfetchableIDs(t *testing.T) {
+	ctx, s, _, convID := setupFlushTestStore(t, "mark-seen-converges")
+
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{ConversationID: convID},
+		MaxMsgSummaries: []chat1.MessageSummary{
+			{MsgID: 3, MessageType: chat1.MessageType_TEXT},
+		},
+	}
+
+	require.NoError(t, s.Add(ctx, convID, []chat1.MessageUnboxed{
+		textMsgForTest(1, "hello world"),
+		textMsgForTest(3, "hello world"),
+	}))
+
+	missing, err := s.MissingIDForConv(ctx, conv)
+	require.NoError(t, err)
+	require.Equal(t, []chat1.MessageID{2}, missing,
+		"the ID the fetch could not produce must read as missing until marked")
+
+	// The fetch that asked for 2 succeeded and did not return it, so nothing
+	// else is coming for that ID.
+	require.NoError(t, s.MarkSeen(ctx, convID, []chat1.MessageID{2}))
+
+	missing, err = s.MissingIDForConv(ctx, conv)
+	require.NoError(t, err)
+	require.Empty(t, missing, "a marked ID must not keep the conv incomplete")
+
+	fullyIndexed, err := s.FullyIndexed(ctx, conv)
+	require.NoError(t, err)
+	require.True(t, fullyIndexed, "conv must converge once every ID is accounted for")
+}
+
+// MarkSeen goes through the pending set like every other metadata mutation; a
+// write-through would be undone by a concurrent flush's snapshot.
+func TestMarkSeenSurvivesEviction(t *testing.T) {
+	ctx, s, _, convID := setupFlushTestStore(t, "mark-seen-eviction")
+
+	require.NoError(t, s.MarkSeen(ctx, convID, []chat1.MessageID{9}))
+	s.mdCache.Purge()
+
+	s.RLock()
+	md, err := s.getMetadataLocked(ctx, convID)
+	s.RUnlock()
+	require.NoError(t, err)
+	require.Contains(t, md.SeenIDs, chat1.MessageID(9),
+		"the mark was lost once the metadata left the cache")
+}
+
 func textMsgForTest(id chat1.MessageID, body string) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader: chat1.MessageClientHeaderVerified{

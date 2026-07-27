@@ -625,11 +625,14 @@ func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationI
 
 	s.tokenCache.Remove(cacheKey)
 
-	// Queue the delete rather than writing it through. Flush snapshots under the
-	// lock but writes outside it, so a delete applied straight to disk in that
-	// window was undone by the write that followed, and requeueing a failed
-	// write could put a deleted entry back. Ordering both through the pending
-	// set keeps the last operation the one that lands.
+	// Flush snapshots pending mutations under s.Lock, then applies them to disk
+	// after releasing the lock. A write-through delete could therefore race:
+	//
+	//   flush snapshots old value -> delete removes disk key -> flush writes old value
+	//
+	// Queue a nil tombstone instead. A later flush applies it after any older
+	// snapshot, and requeue() will not replace the tombstone with a failed older
+	// write. This preserves the ordering of in-memory mutations.
 	convIDStr := convID.ConvIDStr()
 	if s.dirtyTokens[convIDStr] == nil {
 		s.dirtyTokens[convIDStr] = make(map[string]*tokenEntry)
@@ -1227,6 +1230,10 @@ func (s *store) requeue(tokens []tokenSnapshot, aliases map[string]*aliasEntry,
 		if s.dirtyTokens[convIDStr] == nil {
 			s.dirtyTokens[convIDStr] = make(map[string]*tokenEntry)
 		}
+		// A value queued since the snapshot was taken - including a nil
+		// tombstone from a delete - describes a later state of the entry than
+		// the one whose write failed, so restoring the snapshot over it would
+		// roll that mutation back.
 		if _, ok := s.dirtyTokens[convIDStr][snapshot.token]; ok {
 			continue
 		}

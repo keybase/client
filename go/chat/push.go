@@ -864,6 +864,43 @@ func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
 	g.G().ActivityNotifier.ResetConversation(ctx, uid, convID, topicType)
 }
 
+// invalidateParticipants drops the cached participant list for every conv whose
+// membership just changed. Without this the cache serves the pre-change list
+// until it expires, which for a conv that never re-localizes is the whole
+// freshness window.
+func (g *PushHandler) invalidateParticipants(ctx context.Context, uid gregor1.UID,
+	membersRes types.MembershipUpdateRes,
+) {
+	seen := make(map[chat1.ConvIDStr]struct{})
+	var convIDs []chat1.ConversationID
+	add := func(convID chat1.ConversationID) {
+		convIDStr := convID.ConvIDStr()
+		if _, ok := seen[convIDStr]; ok {
+			return
+		}
+		seen[convIDStr] = struct{}{}
+		convIDs = append(convIDs, convID)
+	}
+	for _, conv := range membersRes.RoleUpdates {
+		add(conv.GetConvID())
+	}
+	for _, conv := range membersRes.UserJoinedConvs {
+		add(conv.GetConvID())
+	}
+	for _, cms := range [][]chat1.ConversationMember{
+		membersRes.UserRemovedConvs, membersRes.UserResetConvs,
+		membersRes.OthersJoinedConvs, membersRes.OthersRemovedConvs, membersRes.OthersResetConvs,
+	} {
+		for _, cm := range cms {
+			add(cm.ConvID)
+		}
+	}
+	if len(convIDs) == 0 {
+		return
+	}
+	g.G().ParticipantsSource.Invalidate(ctx, uid, convIDs)
+}
+
 func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	membersRes types.MembershipUpdateRes,
 ) {
@@ -1053,6 +1090,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		for _, c := range updateRes.UserResetConvs {
 			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
+		g.invalidateParticipants(ctx, uid, updateRes)
 		g.notifyMembersUpdate(ctx, uid, updateRes)
 		g.notifyConvUpdates(ctx, uid, updateRes.RoleUpdates)
 

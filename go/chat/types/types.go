@@ -874,6 +874,10 @@ func (d DummyParticipantSource) GetParticipantsFromUids(
 	return nil, nil
 }
 
+func (d DummyParticipantSource) Invalidate(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) {
+}
+
 type DummyEmojiSource struct{}
 
 var _ EmojiSource = (*DummyEmojiSource)(nil)
