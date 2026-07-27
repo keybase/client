@@ -5,6 +5,7 @@
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTCallInvoker.h>
 #import <React/RCTUtils.h>
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
@@ -461,7 +462,12 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             if (auto bridge = kbGetBridge()) {
               bridge->resetRecv();
             }
-            NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            // CACurrentMediaTime is monotonic and immune to wall-clock/NTP
+            // adjustments, unlike NSDate/[NSDate timeIntervalSinceReferenceDate]:
+            // a backward clock correction during a read-error episode (plausible
+            // at cold boot) must not push emitNotBeforeTime into the future and
+            // suppress the kb-engine-reset emit.
+            CFTimeInterval now = CACurrentMediaTime();
             if (now >= emitNotBeforeTime) {
               emitBackoffSeconds = emitBackoffSeconds == 0
                   ? kEngineResetEmitInitialBackoff
