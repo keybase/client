@@ -61,6 +61,13 @@ struct KBBridge::RecvState {
   // stops tracking "did one big frame arrive" and starts tracking "did
   // several small frames arrive in the same read" instead.
   size_t peakFrameSize = 0;
+  // Epoch of the Go connection the most recent onDataFromGo call's bytes
+  // came from. Set at the top of onDataFromGo under recvMutex_; read back
+  // here only for anything that inspects RecvState directly. The fatal
+  // paths below use the onDataFromGo parameter (or its lambda capture)
+  // rather than this field, since resetRecvLocked() replaces RecvState --
+  // and so this field -- before those paths run.
+  int64_t epoch = 0;
 };
 
 struct KBBridge::SendState {
@@ -574,7 +581,7 @@ void KBBridge::install(
     std::shared_ptr<facebook::react::CallInvoker> callInvoker,
     std::function<bool(void *ptr, size_t size)> writeToGo,
     std::function<void(const std::string &)> onError,
-    std::function<void()> onFatal) {
+    std::function<void(int64_t epoch)> onFatal) {
   callInvoker_ = std::move(callInvoker);
   onError_ = std::move(onError);
   onFatal_ = std::move(onFatal);
@@ -640,7 +647,7 @@ void KBBridge::install(
           std::make_shared<KBTearDownSimple>(shared_from_this())));
 }
 
-void KBBridge::onDataFromGo(uint8_t *data, int size) {
+void KBBridge::onDataFromGo(uint8_t *data, int size, int64_t epoch) {
   if (isTornDown_.load() || size <= 0 || data == nullptr) {
     return;
   }
@@ -656,6 +663,7 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
     if (!recv_) {
       return;
     }
+    recv_->epoch = epoch;
     try {
       auto &up = recv_->unpacker;
       up.reserve_buffer(static_cast<size_t>(size));
@@ -731,10 +739,11 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
   if (fatal) {
     reportError(fatalMsg);
     // The stream can no longer be trusted, so anything decoded in this batch
-    // is dropped. The platform layer resets the Go connection and signals JS
-    // so outstanding RPCs fail instead of hanging forever.
+    // is dropped. The platform layer resets the Go connection (if `epoch`
+    // is still current) and signals JS so outstanding RPCs fail instead of
+    // hanging forever.
     if (onFatal_) {
-      onFatal_();
+      onFatal_(epoch);
     }
     return;
   }
@@ -744,7 +753,11 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
   }
 
   auto self = shared_from_this();
-  callInvoker_->invokeAsync([values, self](jsi::Runtime &runtime) {
+  // `epoch` is captured by value here, fixed at the moment this batch was
+  // parsed from the reader thread -- not re-queried once this lambda
+  // actually runs on the JS thread, which could be arbitrarily later and
+  // after Go has re-dialed.
+  callInvoker_->invokeAsync([values, self, epoch](jsi::Runtime &runtime) {
     try {
       if (self->isTornDown_.load()) {
         return;
@@ -766,7 +779,7 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
         // replayed, so dropping them silently would strand their callers.
         self->reportError("rpcOnJs is not installed");
         if (self->onFatal_) {
-          self->onFatal_();
+          self->onFatal_(epoch);
         }
         return;
       }
@@ -813,7 +826,7 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
                             std::to_string(values->size()) +
                             " message(s) failed to convert");
           if (self->onFatal_) {
-            self->onFatal_();
+            self->onFatal_(epoch);
           }
           return;
         }
@@ -842,12 +855,12 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
       // connection so JS fails its outstanding RPCs.
       self->reportError(e.what());
       if (self->onFatal_) {
-        self->onFatal_();
+        self->onFatal_(epoch);
       }
     } catch (...) {
       self->reportError("unknown error in onDataFromGo JS callback");
       if (self->onFatal_) {
-        self->onFatal_();
+        self->onFatal_(epoch);
       }
     }
   });

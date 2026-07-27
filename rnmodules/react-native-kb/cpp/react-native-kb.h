@@ -34,17 +34,26 @@ public:
   // when rpcOnJs is not installed. The first case runs synchronously on the
   // native reader thread inside onDataFromGo; the latter three run
   // asynchronously on the JS thread, from the callInvoker lambda scheduled
-  // by onDataFromGo. The platform layer is expected to reset the Go
-  // connection, drop any buffered recv state, and emit the engine-reset meta
-  // event so JS fails its outstanding RPCs.
+  // by onDataFromGo. Its int64_t argument is the epoch (go/bind/keybase.go's
+  // connEpoch) of the Go connection the parsed bytes were actually read
+  // from — the same value onDataFromGo was called with, carried through to
+  // wherever onFatal ends up running, sync or async. The platform layer is
+  // expected to call Go's ResetIfCurrent(epoch) (not an unconditional
+  // reset) so a fatal blamed on a since-superseded connection can't tear
+  // down a connection that has already recovered, drop any buffered recv
+  // state, and emit the engine-reset meta event so JS fails its outstanding
+  // RPCs.
   void install(facebook::jsi::Runtime &runtime,
                std::shared_ptr<facebook::react::CallInvoker> callInvoker,
                std::function<bool(void *ptr, size_t size)> writeToGo,
                std::function<void(const std::string &)> onError,
-               std::function<void()> onFatal);
+               std::function<void(int64_t epoch)> onFatal);
 
-  // Any thread.
-  void onDataFromGo(uint8_t *data, int size);
+  // Any thread. `epoch` is the epoch of the Go connection `data` was read
+  // from, captured by the caller at read time (see the platform reader
+  // loops) — not whatever Go's connection epoch happens to be when this
+  // function runs.
+  void onDataFromGo(uint8_t *data, int size, int64_t epoch);
 
   // Any thread. Drops any partially parsed frame. Must be called whenever the
   // Go connection is replaced, or the unpacker resumes mid-frame on a fresh
@@ -63,7 +72,7 @@ public:
 private:
   std::shared_ptr<facebook::react::CallInvoker> callInvoker_;
   std::function<void(const std::string &)> onError_;
-  std::function<void()> onFatal_;
+  std::function<void(int64_t epoch)> onFatal_;
   std::function<bool(void *ptr, size_t size)> writeToGo_;
   std::atomic<bool> isTornDown_{false};
 
