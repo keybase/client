@@ -265,3 +265,25 @@ func TestStorageLoopReleasesQueuedCallbacksOnShutdown(t *testing.T) {
 		require.Fail(t, "a queued op's callback was abandoned at shutdown")
 	}
 }
+
+// Stop finishes its work in a goroutine, and Stop clears started before that
+// goroutine runs, so a Start can install a new store in between. Reading
+// idx.store from out there would flush and -- worse -- ClearMemory the wrong
+// store: the new run's pending writes dropped, this run's never written.
+//
+// The failure is a data race rather than a wrong value, so this is a -race test:
+// it passes trivially without the detector.
+func TestStopDoesNotReachForANewerStore(t *testing.T) {
+	idx, _ := setupStallTestIndexer(t, "stop-start-store")
+	uid := gregor1.UID([]byte{1, 2, 3, 4})
+	ctx := context.TODO()
+	for range 20 {
+		idx.Start(ctx, uid)
+		stopped := idx.Stop(ctx)
+		// deliberately not waiting on stopped before restarting: that gap is
+		// exactly what this covers
+		idx.Start(ctx, uid)
+		<-stopped
+		<-idx.Stop(ctx)
+	}
+}

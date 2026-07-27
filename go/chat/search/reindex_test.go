@@ -341,3 +341,44 @@ func TestPendingAliasDeleteIsNotReadFromDisk(t *testing.T) {
 	require.Empty(t, got.Aliases,
 		"a pending alias delete must read as empty, not fall through to the copy on disk")
 }
+
+// A fetch that fails spends the same remote round trip a completed page does. If
+// only completed pages count, a conv whose fetches keep failing pages over its
+// entire missing range in one pass and numJobs bounds nothing.
+func TestReindexConvStopsAfterRepeatedFetchFailures(t *testing.T) {
+	ctx := context.TODO()
+	idx, cs, _, rconv := setupReindexTest(t, "reindex-repeated-failures", 50)
+	startStorage(t, idx)
+	idx.SetPageSize(10)
+
+	cs.mu.Lock()
+	for _, first := range []chat1.MessageID{1, 11, 21, 31, 41} {
+		cs.errs[first] = transientErr{fmt.Errorf("network blip")}
+	}
+	cs.mu.Unlock()
+
+	completed, err := idx.reindexConv(ctx, rconv, 0, nil)
+	require.NoError(t, err, "a transient failure must not fail the whole conv")
+	require.Equal(t, 0, completed)
+	require.Len(t, cs.calls(), maxConsecutiveFetchFailures,
+		"a conv whose fetches keep failing must be abandoned, not paged to the end")
+}
+
+// The budget counts round trips, so a failed one leaves less of it for the rest
+// of the pass.
+func TestReindexConvChargesFailedFetchesToBudget(t *testing.T) {
+	ctx := context.TODO()
+	idx, cs, _, rconv := setupReindexTest(t, "reindex-failure-budget", 50)
+	startStorage(t, idx)
+	idx.SetPageSize(10)
+
+	// second chunk only, so the failures never run consecutively
+	cs.mu.Lock()
+	cs.errs[11] = transientErr{fmt.Errorf("network blip")}
+	cs.mu.Unlock()
+
+	completed, err := idx.reindexConv(ctx, rconv, 2, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, completed, "only the chunk that succeeded counts as a job")
+	require.Len(t, cs.calls(), 2, "the failed fetch must spend budget like a completed one")
+}

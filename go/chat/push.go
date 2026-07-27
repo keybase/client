@@ -1093,7 +1093,18 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		for _, c := range updateRes.UserResetConvs {
 			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
-		g.invalidateParticipants(ctx, uid, updateRes)
+		// Off the push path: Invalidate takes the same per-conv lock GetNonblock
+		// holds across its remote refresh, so a conv being refreshed right now
+		// would stall this handler - and every later out-of-band message with it -
+		// for an RPC apiece, in series.
+		//
+		// Started before the notifications so it is normally ahead of the reads
+		// they provoke. Losing that race costs one stale participant list, which
+		// the read after it corrects; blocking here costs every notification
+		// behind us.
+		go func(ctx context.Context) {
+			g.invalidateParticipants(ctx, uid, updateRes)
+		}(globals.BackgroundChatCtx(ctx, g.G()))
 		g.notifyMembersUpdate(ctx, uid, updateRes)
 		g.notifyConvUpdates(ctx, uid, updateRes.RoleUpdates)
 

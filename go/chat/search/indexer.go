@@ -62,9 +62,12 @@ type Indexer struct {
 	resumeWait   time.Duration
 	started      bool
 	clock        clockwork.Clock
-	eg           errgroup.Group
-	uid          gregor1.UID
-	storageCh    chan storageOp
+	// the loops of the current run. Replaced by each Start rather than reused:
+	// Stop waits on it from a goroutine, and a Group cannot be added to while
+	// somebody is waiting on it.
+	eg        *errgroup.Group
+	uid       gregor1.UID
+	storageCh chan storageOp
 
 	maxSyncConvs          int
 	startSyncDelay        time.Duration
@@ -143,34 +146,41 @@ func (idx *Indexer) SetUID(uid gregor1.UID) {
 	idx.store = newStore(idx.G(), uid)
 }
 
+// startLoopLocked runs f as part of the current run, opening one if there isn't
+// one yet. Callers hold idx.Lock.
+func (idx *Indexer) startLoopLocked(f func(stopCh chan struct{}) error) {
+	if !idx.started {
+		idx.started = true
+		idx.newRunLocked()
+	}
+	stopCh, eg := idx.stopCh, idx.eg
+	eg.Go(func() error { return f(stopCh) })
+}
+
+// newRunLocked gives this run its own stop channel and errgroup, so nothing a
+// previous run is still shutting down can be confused for part of this one.
+// Callers hold idx.Lock.
+func (idx *Indexer) newRunLocked() {
+	idx.stopCh = make(chan struct{})
+	idx.eg = new(errgroup.Group)
+}
+
 func (idx *Indexer) StartFlushLoop() {
 	idx.Lock()
 	defer idx.Unlock()
-	if !idx.started {
-		idx.started = true
-		idx.stopCh = make(chan struct{})
-	}
-	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
+	idx.startLoopLocked(idx.flushLoop)
 }
 
 func (idx *Indexer) StartStorageLoop() {
 	idx.Lock()
 	defer idx.Unlock()
-	if !idx.started {
-		idx.started = true
-		idx.stopCh = make(chan struct{})
-	}
-	idx.eg.Go(func() error { return idx.storageLoop(idx.stopCh) })
+	idx.startLoopLocked(idx.storageLoop)
 }
 
 func (idx *Indexer) StartSyncLoop() {
 	idx.Lock()
 	defer idx.Unlock()
-	if !idx.started {
-		idx.started = true
-		idx.stopCh = make(chan struct{})
-	}
-	idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
+	idx.startLoopLocked(idx.SyncLoop)
 }
 
 func (idx *Indexer) SetFlushDelay(dur time.Duration) {
@@ -187,12 +197,12 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	idx.uid = uid
 	idx.store = newStore(idx.G(), uid)
 	idx.started = true
-	idx.stopCh = make(chan struct{})
+	idx.newRunLocked()
 	if !idx.G().IsMobileAppType() && !idx.G().GetEnv().GetDisableSearchIndexer() {
-		idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
+		idx.startLoopLocked(idx.SyncLoop)
 	}
-	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
-	idx.eg.Go(func() error { return idx.storageLoop(idx.stopCh) })
+	idx.startLoopLocked(idx.flushLoop)
+	idx.startLoopLocked(idx.storageLoop)
 }
 
 func (idx *Indexer) CancelSync(ctx context.Context) {
@@ -323,9 +333,18 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		idx.stalledMu.Unlock()
 		idx.started = false
 		close(idx.stopCh)
+		// Read this run's store and errgroup under the lock. Stop clears started
+		// immediately, so a Start can run before the goroutine below does, and it
+		// replaces both -- reading the fields out there would wait on the new
+		// run's loops and then flush and ClearMemory the new run's store, dropping
+		// its pending writes and never writing out this run's.
+		store, eg := idx.store, idx.eg
 		go func() {
 			idx.Debug(context.Background(), "Stop: waiting for shutdown")
-			_ = idx.eg.Wait()
+			if eg != nil {
+				// nil when nothing ever started a loop, which only a test does
+				_ = eg.Wait()
+			}
 			// Write out what is pending before dropping it. ClearMemory discards
 			// the overlay and the flush loop has stopped, so anything not written
 			// here is simply lost - work that has to be done again at best, and
@@ -345,10 +364,10 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 			// work is redone after the next login -- but the write-out only
 			// really happens at process shutdown.
 			ctx := context.Background()
-			if err := idx.store.Flush(); err != nil {
+			if err := store.Flush(); err != nil {
 				idx.Debug(ctx, "Stop: final flush failed: %s", err)
 			}
-			idx.store.ClearMemory()
+			store.ClearMemory()
 			idx.Debug(ctx, "Stop: shutdown complete")
 			close(ch)
 		}()
@@ -638,11 +657,16 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	return cb, nil
 }
 
+// maxConsecutiveFetchFailures is how many transient fetch failures in a row
+// reindexConv tolerates before it abandons the conv for this pass. Two rather
+// than one so a single bad chunk does not stop a conv that is otherwise fine.
+const maxConsecutiveFetchFailures = 2
+
 // reindexConv fills in the messages this conv is missing from the index. It
 // chunks the missing ids pageSize at a time, fetches each chunk with GetMessages
 // and indexes it, then marks the whole chunk seen so ids the source will never
-// produce stop counting as missing. It stops early once numJobs chunks are done,
-// so a large conv is filled in across several passes.
+// produce stop counting as missing. It stops early once numJobs chunks have been
+// attempted, so a large conv is filled in across several passes.
 func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation,
 	numJobs int, inboxIndexStatus *inboxIndexStatus,
 ) (completedJobs int, err error) {
@@ -674,6 +698,12 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 	// large conv - and re-fetching those spends the inbox-wide budget before
 	// reaching the missing ones. Each pass restarts at the lowest missing id, so
 	// the top of a large conv is otherwise never reachable.
+	// A failed fetch spends the same remote round trip a completed page does, so
+	// both count against the pass budget. Counting only completed pages lets a
+	// conv whose fetches keep failing page over its whole missing range in one
+	// pass -- hundreds of round trips for one conv, with numJobs bounding nothing.
+	budgetSpent := 0
+	consecutiveFetchFailures := 0
 	for start := 0; start < len(missingIDs); start += idx.pageSize {
 		select {
 		case <-ctx.Done():
@@ -691,8 +721,21 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				return completedJobs, err
 			}
 			// transient: leave these ids missing so a later pass retries them
+			budgetSpent++
+			consecutiveFetchFailures++
+			if consecutiveFetchFailures >= maxConsecutiveFetchFailures {
+				// it is the network failing rather than these particular ids, so
+				// paging on just spends the budget on the same failure
+				idx.Debug(ctx, "reindexConv: giving up on conv after %d consecutive fetch failures: %s",
+					consecutiveFetchFailures, err)
+				return completedJobs, nil
+			}
+			if numJobs > 0 && budgetSpent >= numJobs {
+				return completedJobs, nil
+			}
 			continue
 		}
+		consecutiveFetchFailures = 0
 		cb, err := idx.add(ctx, convID, msgs, true)
 		if err != nil {
 			return completedJobs, err
@@ -722,7 +765,8 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			return completedJobs, err
 		}
 		completedJobs++
-		if numJobs > 0 && completedJobs >= numJobs {
+		budgetSpent++
+		if numJobs > 0 && budgetSpent >= numJobs {
 			break
 		}
 		if inboxIndexStatus != nil {
