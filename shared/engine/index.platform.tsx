@@ -191,7 +191,7 @@ function createClient(
       try {
         client.transport.dispatchDecodedMessage(obj)
       } catch (e) {
-        logger.error('>>>> rpcOnJs JS thrown!', e)
+        logger.error('rpcOnJs: dispatch threw', e)
       }
     }
 
@@ -199,7 +199,13 @@ function createClient(
     // whole batch delivery and unwind into native code.
     global.rpcOnJs = (objs: unknown, count: number) => {
       try {
-        if (count > 1 && Array.isArray(objs)) {
+        if (count > 1) {
+          if (!Array.isArray(objs)) {
+            // Native always sends an array when it batches, so this means the
+            // two sides disagree -- and count-1 messages would vanish silently.
+            logger.error(`rpcOnJs: count ${count} but payload is not an array`)
+            return
+          }
           for (const obj of objs) {
             dispatchOne(obj)
           }
@@ -207,7 +213,7 @@ function createClient(
           dispatchOne(objs)
         }
       } catch (e) {
-        logger.error('>>>> rpcOnJs JS thrown!', e)
+        logger.error('rpcOnJs: batch guard threw', e)
       }
     }
 
@@ -251,7 +257,7 @@ function createClient(
       try {
         client.transport.packetizeData(data as Uint8Array)
       } catch (e) {
-        logger.error('>>>> rpcOnJs JS thrown!', e)
+        logger.error('>>>> engineIncoming IPC JS thrown!', e)
       }
     })
 
