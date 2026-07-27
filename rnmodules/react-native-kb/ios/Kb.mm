@@ -506,8 +506,17 @@ RCT_EXPORT_METHOD(notifyJSReady) {
                     ? kEngineResetEmitInitialBackoff
                     : MIN(emitBackoffSeconds * 2, kEngineResetEmitBackoffCeiling);
                 emitNotBeforeTime = now + emitBackoffSeconds;
+                // Re-check kbSharedInstance/canEmit inside the dispatched
+                // block rather than reusing the reader-thread snapshot above:
+                // an invalidate/reload can land between this dispatch and the
+                // block running, and `_eventEmitterCallback` is never cleared
+                // on invalidate, so emitting on a strongly-captured `instance`
+                // here could deliver into a dying runtime's invoker.
                 dispatch_async(dispatch_get_main_queue(), ^{
-                  [instance emitOnMetaEvent:metaEventEngineReset];
+                  Kb *emitInstance = kbSharedInstance;
+                  if (emitInstance && [emitInstance canEmit]) {
+                    [emitInstance emitOnMetaEvent:metaEventEngineReset];
+                  }
                 });
               }
             }
