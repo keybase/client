@@ -553,6 +553,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                         Thread.sleep(10)
                         continue
                     }
+                    readErrorCount = 0
                     instance?.nativeOnDataFromGo(data)
                 } catch (e: InterruptedException) {
                     Thread.currentThread().interrupt()

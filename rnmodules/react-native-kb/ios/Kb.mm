@@ -402,6 +402,11 @@ RCT_EXPORT_METHOD(notifyJSReady) {
       KeybaseNotifyJSReady();
       NSLog(@"Notified Go that JS is ready, starting ReadArr loop");
 
+      // Consecutive read-error count, used to rate-limit the log line below.
+      // Reset to 0 on every genuine successful read so each new failure
+      // episode gets its own "first 5" logging window, rather than picking
+      // up mid-backoff from an earlier, unrelated episode.
+      static int readErrorCount = 0;
       while (true) {
         // The block never returns, so the queue's pool never drains on its
         // own — each iteration needs its own.
@@ -420,7 +425,6 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             // a recurring read error is exactly what an operator needs to see
             // recur, so log the first few, then back off to every Nth rather
             // than going silent.
-            static int readErrorCount = 0;
             readErrorCount++;
             if (readErrorCount <= 5 || readErrorCount % 50 == 0) {
               kbLogToService([NSString
@@ -453,6 +457,7 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             [NSThread sleepForTimeInterval:0.01];
             continue;
           }
+          readErrorCount = 0;
           auto bridge = kbGetBridge();
           if (bridge) {
             bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);
