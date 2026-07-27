@@ -56,11 +56,12 @@ public:
     return ok != JNI_FALSE;
   }
 
-  void onFatal() {
+  void onFatal(int64_t epoch) {
     jni::ThreadScope scope;
     static auto method =
-        JKbModule::javaClassStatic()->getMethod<void()>("onRpcStreamFatal");
-    method(jModule_);
+        JKbModule::javaClassStatic()->getMethod<void(jlong)>(
+            "onRpcStreamFatal");
+    method(jModule_, static_cast<jlong>(epoch));
   }
 
   // Called from JNI. Routes native bridge errors into the uploadable log --
@@ -155,13 +156,15 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
                                   "JSI error: %s", err.c_str());
               adapter->onLog("jsi error: " + err);
             },
-            // The incoming stream desynced; reset the Go connection and tell
-            // JS so it fails outstanding RPCs rather than hanging forever.
-            [adapter]() {
+            // The incoming stream desynced; reset the Go connection (if
+            // `epoch` -- the connection the desynced bytes actually came
+            // from -- is still current) and tell JS so it fails outstanding
+            // RPCs rather than hanging forever.
+            [adapter](int64_t epoch) {
               __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
                                   "rpc stream desync, resetting connection");
               adapter->onLog("rpc stream desync, resetting connection");
-              adapter->onFatal();
+              adapter->onFatal(epoch);
             });
 
         std::shared_ptr<kb::KBBridge> old;
@@ -179,13 +182,14 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
 }
 
 static void nativeOnDataFromGo(jni::alias_ref<JKbModule::javaobject> thiz,
-                                jni::alias_ref<jni::JArrayByte> data) {
+                                jni::alias_ref<jni::JArrayByte> data,
+                                jlong epoch) {
   auto bridge = getBridge();
   if (!bridge || !data)
     return;
   auto pinned = data->pin();
   bridge->onDataFromGo(reinterpret_cast<uint8_t *>(pinned.get()),
-                       pinned.size());
+                       pinned.size(), static_cast<int64_t>(epoch));
 }
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {

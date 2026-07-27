@@ -45,7 +45,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     @DoNotStrip
     external override fun getBindingsInstaller(): BindingsInstallerHolder
-    private external fun nativeOnDataFromGo(data: ByteArray)
+    private external fun nativeOnDataFromGo(data: ByteArray, epoch: Long)
     private external fun nativeInvalidate()
     private external fun nativeResetRecv()
 
@@ -587,6 +587,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         override fun run() {
             while (true) {
                 try {
+                    // Captured immediately before the blocking read, mirroring
+                    // how Go's own ReadArr grabs the epoch under connMutex
+                    // before reading: this is the epoch of the connection
+                    // `data` below is about to come from, not whatever epoch
+                    // is current once onRpcStreamFatal actually runs
+                    // (arbitrarily later, off the shared C++ onFatal_
+                    // callback).
+                    val epoch = Keybase.currentEpoch()
                     val data: ByteArray? = readArr()
                     if (data == null || data.isEmpty()) {
                         // Not the idle path: readArr blocks until there is
@@ -604,7 +612,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     nonEofErrorCount = 0
                     emitBackoffMs = 0L
                     emitNotBeforeMs = 0L
-                    instance?.nativeOnDataFromGo(data)
+                    instance?.nativeOnDataFromGo(data, epoch)
                 } catch (e: InterruptedException) {
                     Thread.currentThread().interrupt()
                     return
@@ -691,23 +699,21 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // and relaying the meta event lets JS fail its outstanding RPCs instead
     // of waiting on a channel that can no longer deliver.
     @DoNotStrip
-    fun onRpcStreamFatal() {
+    fun onRpcStreamFatal(epoch: Long) {
         NativeLogger.warn("$NAME: rpc stream desync, resetting connection")
         // Reset the Go connection before the parser: the reader thread is
         // still live on this path, so clearing the parser first would leave a
         // window where bytes from the OLD connection land in the
         // freshly-reset unpacker mid-frame, causing a second desync.
         //
-        // Unconditional reset() rather than resetIfCurrent(epoch): this
-        // fires from the shared C++ onFatal_ callback, a bare no-arg
-        // std::function that runs off callInvoker_->invokeAsync with
-        // arbitrary latency -- but no epoch is plumbed through it or through
-        // onDataFromGo on either platform's read loop. Widening that would
-        // touch the JNI and ObjC call sites too, not just this method. Left
-        // as unconditional reset() for now; this can race a concurrent
-        // re-dial the same way any unconditional reset can.
+        // resetIfCurrent(epoch), not reset(): `epoch` is the epoch of the
+        // connection the desynced bytes actually came from, captured by the
+        // reader loop at read time. If Go has already re-dialed since (e.g. a
+        // concurrent writeArr recovered first), epoch no longer matches and
+        // this is a no-op instead of tearing down a connection that already
+        // worked.
         try {
-            Keybase.reset()
+            Keybase.resetIfCurrent(epoch)
         } catch (e: Exception) {
             NativeLogger.error("Exception resetting after rpc desync", e)
         }

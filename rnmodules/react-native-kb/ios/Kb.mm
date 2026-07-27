@@ -365,24 +365,21 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
         // than capturing `bridge` directly: this lambda is stored inside the
         // bridge's own onFatal_ member, so a direct capture would be a
         // shared_ptr cycle.
-        []() {
+        [](int64_t epoch) {
             kbLogToService(@"rpc stream desync, resetting connection");
             // Reset the Go connection before the parser: the reader thread is
             // still live on this path, so resetting the parser first would
             // leave a window where bytes from the OLD connection land in the
             // freshly-cleared unpacker mid-frame, causing a second desync.
             //
-            // Unconditional Reset() rather than ResetIfCurrent(epoch): this
-            // callback runs off KBBridge's onFatal_, which is a bare
-            // std::function<void()> with no epoch parameter -- onDataFromGo
-            // itself never receives one from either platform's read loop.
-            // Threading an epoch through would mean widening onFatal_'s
-            // signature and onDataFromGo's across the ObjC and JNI call
-            // sites, not just this file. Left as unconditional Reset() for
-            // now; this can race a concurrent re-dial the same way any
-            // unconditional reset can.
+            // ResetIfCurrent(epoch), not Reset(): `epoch` is the epoch of the
+            // connection the desynced bytes actually came from, captured by
+            // the reader loop below at read time. If Go has already re-dialed
+            // since (e.g. a concurrent WriteArr recovered first), epoch no
+            // longer matches and this is a no-op instead of tearing down a
+            // connection that already worked.
             NSError *error = nil;
-            KeybaseReset(&error);
+            KeybaseResetIfCurrent(epoch, &error);
             if (error) {
                 kbLogToService([NSString stringWithFormat:@"reset after desync failed: %@",
                                                           error.localizedDescription]);
@@ -473,6 +470,12 @@ RCT_EXPORT_METHOD(notifyJSReady) {
         // The block never returns, so the queue's pool never drains on its
         // own — each iteration needs its own.
         @autoreleasepool {
+          // Captured immediately before the blocking read, mirroring how
+          // ReadArr itself grabs the epoch under connMutex before reading:
+          // this is the epoch of the connection `data` below is about to
+          // come from, not whatever epoch is current once onFatal_ actually
+          // runs (arbitrarily later, off callInvoker_->invokeAsync).
+          int64_t epoch = KeybaseCurrentEpoch();
           NSError *error = nil;
           NSData *data = KeybaseReadArr(&error);
           if (error) {
@@ -550,7 +553,7 @@ RCT_EXPORT_METHOD(notifyJSReady) {
           emitNotBeforeTime = 0;
           auto bridge = kbGetBridge();
           if (bridge) {
-            bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);
+            bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length], epoch);
           }
         }
       }
