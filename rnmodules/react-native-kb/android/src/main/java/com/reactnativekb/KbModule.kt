@@ -534,6 +534,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     private class ReadFromKBLib : Runnable {
         private var loggedEmptyRead = false
         private var readErrorCount = 0
+        private var nonEofErrorCount = 0
         private var emitBackoffMs = 0L
         private var emitNotBeforeMs = 0L
 
@@ -546,6 +547,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         private fun shouldLogReadError(): Boolean {
             readErrorCount++
             return readErrorCount <= 5 || readErrorCount % 50 == 0
+        }
+
+        // Separate counter for non-EOF exceptions: readErrorCount only resets
+        // on a successful read, so a sustained EOF outage can drive it into
+        // the hundreds before a genuine non-EOF failure arrives -- sharing
+        // the counter would let the `% 50` throttle swallow the very log line
+        // (with stack trace) an operator needs at exactly that transition.
+        // A dedicated counter guarantees the first few non-EOF exceptions
+        // always log regardless of how long the preceding EOF flood ran.
+        private fun shouldLogNonEofError(): Boolean {
+            nonEofErrorCount++
+            return nonEofErrorCount <= 5 || nonEofErrorCount % 50 == 0
         }
 
         // Throttles the kb-engine-reset EMIT, separately from the log line
@@ -590,6 +603,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                         continue
                     }
                     readErrorCount = 0
+                    nonEofErrorCount = 0
                     emitBackoffMs = 0L
                     emitNotBeforeMs = 0L
                     instance?.nativeOnDataFromGo(data)
@@ -606,14 +620,12 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                         // EOF is the ordinary shape of a persistent-read
                         // outage, not a surprise, but at this loop's ~100ms
                         // retry it is still a ~10Hz flood into the uploadable
-                        // log if left unthrottled -- share the read-error
-                        // counter with the non-EOF branch below, since both
-                        // are just "reads are failing".
+                        // log if left unthrottled.
                         if (shouldLogReadError()) {
                             NativeLogger.info("Got EOF from read, connection reset (count=$readErrorCount).")
                         }
-                    } else if (shouldLogReadError()) {
-                        NativeLogger.error("Exception in ReadFromKBLib.run (count=$readErrorCount)", e)
+                    } else if (shouldLogNonEofError()) {
+                        NativeLogger.error("Exception in ReadFromKBLib.run (count=$nonEofErrorCount)", e)
                     }
                     val inst = instance
                     if (inst != null) {
