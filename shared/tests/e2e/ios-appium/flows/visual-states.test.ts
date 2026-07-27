@@ -1,5 +1,15 @@
 import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, navigateToTeams, navigateToFiles, navigateToPeople, goBack, scrollDownToText, tapSettingsRow, tabTo} from '../helpers/navigate'
+import {
+  escapeToTabs,
+  navigateToMore,
+  navigateToTeams,
+  navigateToFiles,
+  navigateToChat,
+  goBack,
+  scrollDownToText,
+  tapSettingsRow,
+  tabTo,
+} from '../helpers/navigate'
 import {byText, el, els, anyExist, waitForTestID, tab, enterText, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
@@ -238,7 +248,9 @@ describe('visual states', () => {
 
   it('account switcher', async () => {
     await escapeToTabs()
-    await navigateToPeople()
+    // Chat uses a full-width custom header on iPad, so exercise it here rather
+    // than only checking a root that uses the navigator's standard header.
+    await navigateToChat()
     await el(T.PEOPLE_HEADER_AVATAR).click()
     await byText('Log in as another user').waitForExist({timeout: 8000})
     await expect(byText('Log in as another user')).toExist()

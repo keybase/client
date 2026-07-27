@@ -7,6 +7,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as React from 'react'
 import {Pressable} from 'react-native'
+import logger from '@/logger'
 
 const openAccountSwitcher = () => {
   C.Router2.navigateAppend({name: 'accountSwitcher', params: {}})
@@ -14,9 +15,10 @@ const openAccountSwitcher = () => {
 
 const AccountSwitchHeaderAvatar = () => {
   const username = useCurrentUserState(s => s.username)
-  const {configuredAccounts, login, setUserSwitching, userSwitching} = useConfigState(
+  const {configuredAccounts, httpSrvReady, login, setUserSwitching, userSwitching} = useConfigState(
     C.useShallow(s => ({
       configuredAccounts: s.configuredAccounts,
+      httpSrvReady: !!s.httpSrv.address,
       login: s.dispatch.login,
       setUserSwitching: s.dispatch.setUserSwitching,
       userSwitching: s.userSwitching,
@@ -24,6 +26,19 @@ const AccountSwitchHeaderAvatar = () => {
   )
   const recentAccount = getMostRecentlyUsedAccount(configuredAccounts, username)
   const handledLongPressRef = React.useRef(false)
+
+  React.useEffect(() => {
+    logger.info('[AccountSwitcherHeader] mounted')
+    return () => {
+      logger.info('[AccountSwitcherHeader] unmounted')
+    }
+  }, [])
+
+  React.useEffect(() => {
+    logger.info(
+      `[AccountSwitcherHeader] state tab=${C.Router2.getTab() ?? 'none'} username=${username || 'none'} http=${httpSrvReady ? 'ready' : 'missing'} accounts=${configuredAccounts.length} recent=${recentAccount?.username ?? 'none'}`
+    )
+  }, [configuredAccounts.length, httpSrvReady, recentAccount?.username, username])
 
   const switchToRecentAccount = () => {
     if (userSwitching || !recentAccount) return
@@ -47,6 +62,16 @@ const AccountSwitchHeaderAvatar = () => {
     openAccountSwitcher()
   }
 
+  const onAvatarError = () => {
+    logger.warn(
+      `[AccountSwitcherHeader] avatar error username=${username || 'none'} http=${httpSrvReady ? 'ready' : 'missing'}`
+    )
+  }
+
+  const onAvatarLoad = () => {
+    logger.info(`[AccountSwitcherHeader] avatar loaded username=${username || 'none'}`)
+  }
+
   return (
     <Pressable
       accessibilityHint={
@@ -60,7 +85,7 @@ const AccountSwitchHeaderAvatar = () => {
       style={Kb.Styles.castStyleNative(styles.container)}
       testID={TestIDs.PEOPLE_HEADER_AVATAR}
     >
-      <Kb.Avatar size={32} username={username} />
+      <Kb.Avatar size={32} username={username} onError={onAvatarError} onLoad={onAvatarLoad} />
     </Pressable>
   )
 }

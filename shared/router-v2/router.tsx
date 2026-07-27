@@ -81,7 +81,16 @@ const onUnhandledAction = (a: Readonly<{type: string}>) => {
   logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
 }
 const onStateChange = () => {
-  C.useRouterState.getState().dispatch.setNavState(C.Router2.getRootState())
+  const navState = C.Router2.getRootState()
+  C.useRouterState.getState().dispatch.setNavState(navState)
+  if (isMobile && navState) {
+    const tab = C.Router2.getTab(navState)
+    const visible = C.Router2.getVisibleScreen(navState)?.name ?? 'none'
+    const tabRoot = tab ? tabRoots[tab] : undefined
+    logger.info(
+      `[AccountSwitcherHeader] navigation tab=${tab ?? 'none'} visible=${visible} root=${tabRoot || 'none'} expected=${visible === tabRoot ? 'yes' : 'no'}`
+    )
+  }
 }
 const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
   if (ref) {
@@ -305,10 +314,15 @@ const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as 
 
 const tabStackOptions = ({
   navigation,
+  route,
 }: {
   navigation: {canGoBack: () => boolean}
+  route: {name: string}
 }): NativeStackNavigationOptions => {
   const canGoBack = navigation.canGoBack()
+  logger.info(
+    `[AccountSwitcherHeader] options route=${route.name} canGoBack=${canGoBack ? 'yes' : 'no'} install=${canGoBack ? 'no' : 'yes'}`
+  )
   return {
     ...Common.defaultNavigationOptions,
     // Root screens show the account switcher avatar. Pushed screens use the

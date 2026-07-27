@@ -18,6 +18,9 @@ function TabletHeader() {
 export default Kb.Styles.isTablet
   ? {
       headerBackgroundContainerStyle: {},
+      // The split-view title owns the full header width and renders the account
+      // switcher inside its left pane. Keep the native side slots collapsed so
+      // they do not shift the inbox/conversation column boundary.
       headerLeft: undefined,
       headerLeftContainerStyle: {maxWidth: 0},
       headerRight: undefined,
