@@ -297,9 +297,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     init {
         this.reactContext = reactContext!!
-        instance = this
         misTestDevice = isTestDevice(reactContext)
         Thread { cachedConstants }.start()
+        // Published last: the reader thread reads `instance` and must never
+        // see a partially constructed module.
+        instance = this
     }
 
     private fun normalizePath(path: String): String {
@@ -548,14 +550,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     fun destroy() {
-        // The read loop outlives us and forwards to whatever `instance` holds,
-        // so drop ourselves from it: otherwise a torn-down module (and the
-        // ReactContext/Activity it pins) keeps receiving deliveries. Only clear
-        // if we're still the current one — a reload may have installed a newer
-        // module before our onHostDestroy runs.
-        if (instance === this) {
-            instance = null
-        }
+        // `instance` is deliberately NOT cleared here. onHostDestroy fires when
+        // the last Activity goes away, but the ReactInstance and this module
+        // survive, so init{} never re-runs and nothing would ever restore it —
+        // every later inbound message would be dropped for the life of the
+        // process (back button to home, then reopen). It is only a gate: the
+        // JNI callee ignores the receiver and routes through g_bridge, so a
+        // stale instance delivers to the correct current bridge regardless.
+        // Bridge teardown is handled by nativeInvalidate below.
         try {
             Keybase.reset()
             relayReset()
