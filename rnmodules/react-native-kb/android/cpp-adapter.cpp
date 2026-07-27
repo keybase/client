@@ -27,14 +27,20 @@ public:
     auto env = jni::Environment::current();
     auto jba = env->NewByteArray(size);
     if (jba == nullptr) {
+      // NewByteArray leaves OutOfMemoryError pending. Returning with it still
+      // set means the JS thread makes its next JNI call with a live exception
+      // -- UB, and an abort under CheckJNI.
+      env->ExceptionClear();
       return false;
     }
+    // Adopt into a local_ref so the ref is released even if the call below
+    // throws a JniException.
+    auto arr = jni::adopt_local(static_cast<jni::JArrayByte::javaobject>(jba));
     env->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
     static auto method =
         JKbModule::javaClassStatic()
             ->getMethod<jboolean(jni::alias_ref<jni::JArrayByte>)>("rpcOnGo");
-    auto ok = method(jModule_, jni::wrap_alias(jba));
-    env->DeleteLocalRef(jba);
+    auto ok = method(jModule_, arr);
     return ok != JNI_FALSE;
   }
 
