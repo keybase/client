@@ -719,7 +719,9 @@ close a connection a concurrent writeArr may have just dialed."
 
 So a truncated or over-long content frame is undetected: the unpacker reads into the following frame, and the parity check only trips later, or never — if the shifted bytes happen to begin with a positive int. After a mid-stream resync the parser can land on a `0x05` fixint *inside a string payload*, accept it as a header, and hand whatever parses next to JS as an RPC message. JS then gets a bogus `[type, seqid, …]` and may resolve the wrong seqid. The detector reports "no desync" while delivering corrupt data.
 
-`msgpack::unpacker::parsed_size()` (`msgpack/v1/unpack.hpp:1319`) makes this exact for the cost of one comparison.
+**Do NOT use `parsed_size()` for this.** It is not a cumulative stream position: `unpacker::next()` calls `reset()` on every success (`msgpack/v2/unpack.hpp:92-101`), and `parser::reset()` sets `m_parsed = 0` (`msgpack/v2/parse.hpp:969`). So `parsed_size()` reads 0 immediately after any successful `next()`, and a delta between two such reads is always `0 - 0`. An earlier revision of this task specified exactly that and would have rejected every non-empty frame — a self-inflicted DoS on the mainline decode path, invisible to `-fsyntax-only`.
+
+Track the consumed count manually instead. `nonparsed_size()` (`m_used - m_off`) IS accurate at any moment, so if `RecvState` accumulates every byte handed to `reserve_buffer`/`buffer_consumed`, then `totalFed - up.nonparsed_size()` is a genuine monotonic count of bytes consumed so far, unaffected by the per-object reset.
 
 **Files:**
 - Modify: `rnmodules/react-native-kb/cpp/react-native-kb.cpp:625-655` (the `while (true)` parse loop in `onDataFromGo`)
@@ -737,11 +739,15 @@ struct KBBridge::RecvState {
   // Persist across calls: a frame's header and its content routinely arrive
   // in separate reads.
   size_t declaredSize = 0;
-  size_t sizeAtHeader = 0;
+  size_t consumedAtHeader = 0;
+  // Every byte ever handed to the unpacker. parsed_size() cannot serve this
+  // role -- next() zeroes it on each success -- but totalFed minus
+  // nonparsed_size() is an accurate running count of what has been consumed.
+  size_t totalFed = 0;
 };
 ```
 
-Read `resetRecvLocked()` and confirm it constructs a fresh `RecvState` (which zeroes these for free). If it instead mutates fields in place, add the two resets there — do not assume.
+Read `resetRecvLocked()` and confirm it constructs a fresh `RecvState` (which zeroes these for free). If it instead mutates fields in place, add the three resets there — do not assume.
 
 - [ ] **Step 2: Verify content consumed exactly the declared length**
 
@@ -763,7 +769,7 @@ Replace the parse loop body:
             throw std::runtime_error("bad rpc frame header");
           }
           recv_->declaredSize = static_cast<size_t>(o.as<uint64_t>());
-          recv_->sizeAtHeader = up.parsed_size();
+          recv_->consumedAtHeader = recv_->totalFed - up.nonparsed_size();
           recv_->state = ReadState::needContent;
         } else {
           // The header is only a plausibility check on its own: a fixint
@@ -772,7 +778,8 @@ Replace the parse loop body:
           // declared byte count makes the framing self-checking, so a
           // truncated or overlong frame is caught here instead of being
           // handed to JS as a bogus [type, seqid, ...].
-          const size_t consumed = up.parsed_size() - recv_->sizeAtHeader;
+          const size_t consumed =
+              (recv_->totalFed - up.nonparsed_size()) - recv_->consumedAtHeader;
           if (consumed != recv_->declaredSize) {
             throw std::runtime_error("rpc frame length mismatch");
           }
@@ -782,12 +789,28 @@ Replace the parse loop body:
       }
 ```
 
-- [ ] **Step 3: Syntax check**
+- [ ] **Step 3: Feed `totalFed` where bytes enter the unpacker**
+
+In `onDataFromGo`, immediately after the existing `up.buffer_consumed(...)` call, add:
+
+```cpp
+      recv_->totalFed += static_cast<size_t>(size);
+```
+
+Without this the counter never advances and the check is meaningless. Confirm there is exactly one place bytes enter the unpacker; if there is more than one, every such site must update `totalFed`.
+
+- [ ] **Step 4: Prove the arithmetic on a real frame, not just a syntax check**
+
+`-fsyntax-only` cannot catch wrong arithmetic here, and the previous revision of this task shipped a version that rejected every frame. Write a throwaway harness in `/tmp/` that links the real msgpack headers, packs two well-formed frames (`<uint len><object>` twice, with different content sizes), feeds them to a `msgpack::unpacker` **split across three chunk boundaries** — including one that splits a header from its content — and asserts the computed `consumed` equals `declaredSize` for both frames. Then feed a deliberately truncated frame and assert it does NOT match.
+
+Run it and paste the actual output into your report. If `consumed` is 0 or mismatched for a valid frame, stop and report BLOCKED — do not commit.
+
+- [ ] **Step 5: Syntax check the real file**
 
 Run the fast C++-only check from Task 0 Step 3.
-Expected: exit 0. If `parsed_size` is reported as not a member, confirm the msgpack include path resolves to `msgpack-cxx-7.0.0`.
+Expected: exit 0.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add rnmodules/react-native-kb/cpp/
@@ -914,6 +937,21 @@ consumed and unreplayable) to onFatal so JS fails its outstanding RPCs."
 
 ---
 
+### Task 9: WITHDRAWN — the latch is unnecessary and actively harmful
+
+**Do not implement this task.** It was attempted (commit `0ed435d`) and reverted. Recorded here so the reasoning is not lost and nobody re-derives it.
+
+Two findings killed it:
+
+1. **The premise is already dead.** The task assumed stale in-flight bytes keep arriving after a desync and each triggers another reset. But `onFatal_` runs *synchronously* on the single serial reader thread, so `KeybaseReset` completes **before** the loop's next `ReadArr`, and the stale bytes are discarded wholesale along with the closed connection. They are never re-read. One desync already produces exactly one reset. Task 6's synchronous fatal handling closed this scenario.
+
+2. **Every way of clearing the latch is broken.** Clearing it inside the fatal handler (this task's original Step 4) is a zero-width no-op — the latch is false again before the next chunk arrives, on the same synchronous call chain. Clearing it only from the platform read-error branches instead produces a **permanent wedge**: after `KeybaseReset` nils the connection, the next `ReadArr` dials a fresh one via `ensureConnection`, and `LoopbackConn.Read` (`go/libkb/loopback.go:120-138`) blocks until real data — it never returns `(0, nil)`. So the reconnect succeeds with `err == nil`, the error branch never fires, `resetRecv()` is never called, and `onDataFromGo`'s entry guard drops every byte for the rest of the process. `engineReset` also bypasses `resetRecv()`, so there is no user-triggered escape short of an app restart.
+
+If a genuine reset storm is ever observed in the field, the fix is a signal that distinguishes "a new connection is up and serving data" from "nothing has arrived yet" — which does not exist today — not a latch cleared by either of the paths above.
+
+<details>
+<summary>Original (withdrawn) task text, kept for reference</summary>
+
 ### Task 9: C++ — latch after a fatal so one desync isn't a reset storm
 
 **The bug.** Every desynced chunk calls `onFatal_()` → `KeybaseReset()` + engine-reset meta event → JS fails all outstanding RPCs. But bytes already in flight from the pre-reset stream keep arriving on the reader thread and keep failing the header check, so a single desync produces N resets in a row, each nuking whatever JS re-issued in between. Go's read buffer is 300KB (`keybase.go:348`), so a 1MB backlog is ~4 iterations.
@@ -1024,6 +1062,8 @@ the header check, so a single desync fired a reset per 300KB chunk -- and
 each reset failed whatever JS had re-issued since the last one. Drop incoming
 data until the platform layer confirms the connection was replaced."
 ```
+
+</details>
 
 ---
 
