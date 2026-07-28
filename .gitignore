@@ -73,6 +73,9 @@ browser/node_modules
 browser/js/bundle.js
 go/.go_package_deps*
 
+# Leftovers from killed test runs that wrote temp dirs into the package dir
+go/kbfs/kbpagesconfig/kbpagesconfig-editor-test-*/
+
 # Files used during the Docker build
 .docker
 
