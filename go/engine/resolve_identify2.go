@@ -127,6 +127,9 @@ func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("ResolveThenIdentify2#Run", &err)()
 
 	e.i2eng = NewIdentify2WithUID(m.G(), e.arg)
+	// Record the request before resolving its assertion. Another identify can
+	// finish a proof check while this request is still resolving.
+	e.i2eng.requestedAt = m.G().Clock().Now()
 	if e.responsibleGregorItem != nil {
 		e.i2eng.SetResponsibleGregorItem(e.responsibleGregorItem)
 	}

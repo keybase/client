@@ -19,6 +19,16 @@ type CheckResult struct {
 	VerifiedHint *SigHint   // client provided verified hint if any
 	Time         time.Time  // When the last check was
 	PvlHash      string     // Added after other fields. Some entries may not have this packed.
+	// requestKey is memory-only metadata. It lets a forced identify reuse a
+	// matching check that completed after the identify was requested, including
+	// soft failures that the normal proof-cache policy intentionally rejects.
+	requestKey *proofCacheRequestKey
+}
+
+type proofCacheRequestKey struct {
+	mode      ProofCheckerMode
+	apiURL    string
+	checkText string
 }
 
 func (cr CheckResult) Pack() *jsonw.Wrapper {
@@ -216,6 +226,38 @@ func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash keybase1.MerkleStoreKitHas
 	return cr
 }
 
+// getForRequest returns only a matching in-memory result produced strictly
+// after requestedAt. Unlike Get, it may return a soft failure: this is
+// short-lived request coalescing, not a change to normal cache freshness.
+func (pc *ProofCache) getForRequest(sid keybase1.SigID, pvlHash keybase1.MerkleStoreKitHash, requestedAt time.Time, key proofCacheRequestKey) *CheckResult {
+	if pc == nil || requestedAt.IsZero() {
+		return nil
+	}
+	if err := pc.setup(); err != nil {
+		return nil
+	}
+
+	pc.RLock()
+	defer pc.RUnlock()
+
+	tmp, found := pc.lru.Peek(sid)
+	if !found {
+		return nil
+	}
+	cr, ok := tmp.(CheckResult)
+	if !ok {
+		pc.G().Log.Errorf("Bad type assertion in ProofCache.getForRequest")
+		return nil
+	}
+	if cr.PvlHash != string(pvlHash) || cr.requestKey == nil || *cr.requestKey != key {
+		return nil
+	}
+	if !cr.Time.After(requestedAt) {
+		return nil
+	}
+	return &cr
+}
+
 func (pc *ProofCache) dbKey(sid keybase1.SigID) (DbKey, string) {
 	sidstr := sid.String()
 	key := DbKey{Typ: DBProofCheck, Key: sidstr}
@@ -290,6 +332,7 @@ func (pc *ProofCache) Put(sid keybase1.SigID, lcr *LinkCheckResult, pvlHash keyb
 		VerifiedHint: lcr.verifiedHint,
 		Time:         pc.G().Clock().Now(),
 		PvlHash:      string(pvlHash),
+		requestKey:   lcr.proofCacheRequestKey,
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
