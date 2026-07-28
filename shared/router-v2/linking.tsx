@@ -101,7 +101,8 @@ export const subscribeNavigationIntents = (
 ) => {
   let consumingID: number | undefined
   const consumeIfReady = () => {
-    const {intent, navigationReady, dispatch} = useNavigationIntentsState.getState()
+    const {intent, navigationReady, navigationReadyForUid, dispatch} =
+      useNavigationIntentsState.getState()
     if (!intent || consumingID !== undefined) return
     if (Date.now() - intent.createdAt > navigationIntentLifetimeMs) {
       dispatch.acknowledge(intent.id)
@@ -109,8 +110,9 @@ export const subscribeNavigationIntents = (
     }
 
     const {loggedIn, userSwitching} = useConfigState.getState()
-    if (!navigationReady || !loggedIn || userSwitching) return
-    if (intent.targetUid && intent.targetUid !== useCurrentUserState.getState().uid) return
+    const currentUid = useCurrentUserState.getState().uid
+    if (!navigationReady || navigationReadyForUid !== currentUid || !loggedIn || userSwitching) return
+    if (intent.targetUid && intent.targetUid !== currentUid) return
 
     consumingID = intent.id
     try {

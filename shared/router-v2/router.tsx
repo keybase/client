@@ -263,6 +263,13 @@ function DesktopRouter() {
 
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const navKey = Common.useUserSwitchNavKey()
+  const currentUid = useCurrentUserState(s => s.uid)
+  const {setUserSwitching, userSwitching} = useConfigState(
+    C.useShallow(s => ({
+      setUserSwitching: s.dispatch.setUserSwitching,
+      userSwitching: s.userSwitching,
+    }))
+  )
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
 
   React.useEffect(
@@ -291,7 +298,10 @@ function DesktopRouter() {
       documentTitle={documentTitle}
       onReady={() => {
         onStateChange()
-        setNavigationReady(true)
+        setNavigationReady(true, currentUid)
+        if (userSwitching) {
+          setUserSwitching(false)
+        }
       }}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
@@ -624,14 +634,20 @@ const nativeLinkingConfig = isMobile ? createLinkingConfig(handleAppLink) : unde
 function NativeRouter() {
   const loggedInLoaded = useHandshakeEverDone()
 
-  const {loggedIn, startupLoaded, userSwitching} = useConfigState(
+  const {loggedIn, setUserSwitching, startupLoaded, userSwitching} = useConfigState(
     C.useShallow(s => ({
       loggedIn: s.loggedIn,
+      setUserSwitching: s.dispatch.setUserSwitching,
       startupLoaded: s.startup.loaded,
       userSwitching: s.userSwitching,
     }))
   )
-  const username = useCurrentUserState(s => s.username)
+  const {currentUid, username} = useCurrentUserState(
+    C.useShallow(s => ({
+      currentUid: s.uid,
+      username: s.username,
+    }))
+  )
 
   const {barStyle, isDarkMode} = useDarkModeState(
     C.useShallow(s => {
@@ -670,7 +686,10 @@ function NativeRouter() {
     if (tab) {
       C.Router2.switchTab(tab)
     }
-    setNavigationReady(true)
+    setNavigationReady(true, currentUid)
+    if (userSwitching) {
+      setUserSwitching(false)
+    }
   }
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {

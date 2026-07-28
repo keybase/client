@@ -71,7 +71,7 @@ test('preserves a pending intent across the account store reset', () => {
   dispatch.enqueue('keybase://convid/reset-test', {
     targetUid: 'target-uid',
   })
-  dispatch.setNavigationReady(true)
+  dispatch.setNavigationReady(true, 'target-uid')
 
   resetAllStores()
 
@@ -80,12 +80,13 @@ test('preserves a pending intent across the account store reset', () => {
     url: 'keybase://convid/reset-test',
   })
   expect(useNavigationIntentsState.getState().navigationReady).toBe(false)
+  expect(useNavigationIntentsState.getState().navigationReadyForUid).toBeUndefined()
 })
 
 test('discards an unscoped intent across the account store reset', () => {
   const dispatch = useNavigationIntentsState.getState().dispatch
   dispatch.enqueue('keybase://incoming-share')
-  dispatch.setNavigationReady(true)
+  dispatch.setNavigationReady(true, 'current-uid')
 
   resetAllStores()
 

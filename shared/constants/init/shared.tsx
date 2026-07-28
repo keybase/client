@@ -206,9 +206,6 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   if (username) {
     configDispatch.setDefaultUsername(username)
   }
-  if (loggedIn) {
-    configDispatch.setUserSwitching(false)
-  }
   if (!loggedIn && useConfigState.getState().userSwitching) {
     logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
     return

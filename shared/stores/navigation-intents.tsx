@@ -21,12 +21,13 @@ type Store = {
   intent?: NavigationIntent
   lastHandledIntent?: HandledIntent
   navigationReady: boolean
+  navigationReadyForUid?: string
   dispatch: {
     acknowledge: (id: number) => void
     enqueue: (url: string, options?: NavigationIntentOptions) => void
     markInitialURLHandled: (url: string) => void
     resetState: () => void
-    setNavigationReady: (ready: boolean) => void
+    setNavigationReady: (ready: boolean, uid?: string) => void
   }
 }
 
@@ -112,11 +113,17 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
           }
           s.lastHandledIntent = undefined
           s.navigationReady = false
+          s.navigationReadyForUid = undefined
         })
       },
-      setNavigationReady: ready => {
+      setNavigationReady: (ready, uid) => {
         set(s => {
           s.navigationReady = ready
+          // Only onReady supplies a UID. Callback-ref detach/reattach events
+          // update readiness without assigning the old container to a new user.
+          if (uid !== undefined) {
+            s.navigationReadyForUid = uid
+          }
         })
       },
     }
@@ -126,6 +133,7 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
       intent: undefined,
       lastHandledIntent: undefined,
       navigationReady: false,
+      navigationReadyForUid: undefined,
     }
   }
 )

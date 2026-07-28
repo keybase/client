@@ -39,7 +39,7 @@ test('waits for navigation readiness before consuming an intent', () => {
   emitDeepLink('keybase://convid/readiness-conversation')
   expect(listener).not.toHaveBeenCalled()
 
-  useNavigationIntentsState.getState().dispatch.setNavigationReady(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
 
   expect(listener).toHaveBeenCalledTimes(1)
   expect(listener).toHaveBeenCalledWith('keybase://convid/readiness-conversation')
@@ -48,7 +48,7 @@ test('waits for navigation readiness before consuming an intent', () => {
 })
 
 test('retains an intent across a temporary subscription gap', () => {
-  useNavigationIntentsState.getState().dispatch.setNavigationReady(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
   emitDeepLink('keybase://convid/subscription-gap-conversation')
 
   const listener = jest.fn()
@@ -60,7 +60,7 @@ test('retains an intent across a temporary subscription gap', () => {
 })
 
 test('waits until the intended account is active', () => {
-  useNavigationIntentsState.getState().dispatch.setNavigationReady(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
@@ -68,6 +68,9 @@ test('waits until the intended account is active', () => {
   expect(listener).not.toHaveBeenCalled()
 
   setCurrentUser('target-uid')
+  expect(listener).not.toHaveBeenCalled()
+
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'target-uid')
 
   expect(listener).toHaveBeenCalledTimes(1)
   expect(listener).toHaveBeenCalledWith('keybase://convid/target-account-conversation')
@@ -76,7 +79,7 @@ test('waits until the intended account is active', () => {
 })
 
 test('waits for an account switch to finish', () => {
-  useNavigationIntentsState.getState().dispatch.setNavigationReady(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
   useConfigState.getState().dispatch.setUserSwitching(true)
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
@@ -90,8 +93,32 @@ test('waits for an account switch to finish', () => {
   unsubscribe()
 })
 
+test('waits for the replacement router after the current account changes', () => {
+  const navigationDispatch = useNavigationIntentsState.getState().dispatch
+  navigationDispatch.setNavigationReady(true, 'current-uid')
+  useConfigState.getState().dispatch.setUserSwitching(true)
+  const listener = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  emitDeepLink('keybase://convid/replacement-router-conversation', {
+    targetUid: 'target-uid',
+  })
+  setCurrentUser('target-uid')
+
+  // The bootstrap UID can change before React commits the keyed router remount.
+  // Even if switching is cleared early, the old account's ready router must not
+  // consume and acknowledge the target account's intent.
+  useConfigState.getState().dispatch.setUserSwitching(false)
+  expect(listener).not.toHaveBeenCalled()
+
+  navigationDispatch.setNavigationReady(true, 'target-uid')
+  expect(listener).toHaveBeenCalledTimes(1)
+  expect(listener).toHaveBeenCalledWith('keybase://convid/replacement-router-conversation')
+  unsubscribe()
+})
+
 test('uses imperative navigation for URLs outside the linking state config', () => {
-  useNavigationIntentsState.getState().dispatch.setNavigationReady(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
   const listener = jest.fn()
   const handleAppLink = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, handleAppLink)

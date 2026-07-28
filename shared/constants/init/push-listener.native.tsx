@@ -275,7 +275,8 @@ export const initPushListener = () => {
     const forUid = (pending as {forUid?: string}).forUid
     if (!forUid || forUid !== s.uid) return
     pushState.dispatch.clearPendingPushNotification()
-    useConfigState.getState().dispatch.setUserSwitching(false)
+    // Replay while switching remains true. The replacement NavigationContainer
+    // clears it from onReady, so the intent cannot be consumed by the old router.
     pushState.dispatch.handlePush(pending)
   })
 
