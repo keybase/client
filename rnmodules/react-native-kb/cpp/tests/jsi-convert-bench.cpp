@@ -187,8 +187,12 @@ int main(int argc, char **argv) {
 
   printf("best: decode %.2f ms   encode %.2f ms   (%d iterations)\n",
          decodeBest, encodeBest, iterations);
+  // Any conversion error makes the timings meaningless (a build where every
+  // message fails is the fastest one), so exit nonzero -- this doubles as a
+  // smoke test of the bridge rather than reporting green on total failure.
   if (errors) {
     printf("errors reported: %zu\n", errors);
+    return 1;
   }
   return 0;
 }

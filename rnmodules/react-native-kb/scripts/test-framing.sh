@@ -7,16 +7,20 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 CPP_DIR="$ROOT/rnmodules/react-native-kb/cpp"
-MSGPACK_INCLUDE="$ROOT/shared/node_modules/msgpack-cxx-7.0.0/include"
-test -d "$MSGPACK_INCLUDE" || {
-  echo "missing $MSGPACK_INCLUDE — run yarn in shared/ first" >&2
-  exit 1
-}
+# Sets MSGPACK_INCLUDE, fetching the headers if yarn hasn't unpacked them.
+# shellcheck source=./msgpack-include.sh
+source "$(dirname "${BASH_SOURCE[0]}")/msgpack-include.sh"
+
+# clang++ locally / on the mac builders, g++ on the Linux CI image.
+CXX="${CXX:-}"
+if [ -z "$CXX" ]; then
+  if command -v clang++ >/dev/null 2>&1; then CXX=clang++; else CXX=g++; fi
+fi
 
 BIN="$(mktemp -d)/frame-parser-test"
 trap 'rm -rf "$(dirname "$BIN")"' EXIT
 
-clang++ -std=c++20 -O1 -g -DMSGPACK_NO_BOOST \
+"$CXX" -std=c++20 -O1 -g -DMSGPACK_NO_BOOST \
   -Wall -Wextra \
   -I "$MSGPACK_INCLUDE" \
   "$CPP_DIR/frame-parser.cpp" \

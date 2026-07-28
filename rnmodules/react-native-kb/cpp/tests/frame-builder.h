@@ -114,6 +114,21 @@ inline Bytes contentBinOfWireSize(size_t totalWireSize) {
   return sbufferToBytes(buf);
 }
 
+// A bare msgpack bin32 *tag* (0xc6 + big-endian uint32 length) with no body.
+// Feeding this plus fewer than `bodyLen` body bytes leaves the unpacker with a
+// msgpack object that can never complete, which is how a corrupt/desynced
+// length prefix makes it buffer without bound. Used to drive the
+// nonparsed_size() > kMaxFrameSize + kMaxFrameSlack guard.
+inline Bytes bin32TagOnly(uint32_t bodyLen) {
+  Bytes out(5);
+  out[0] = 0xc6;
+  out[1] = static_cast<uint8_t>(bodyLen >> 24);
+  out[2] = static_cast<uint8_t>(bodyLen >> 16);
+  out[3] = static_cast<uint8_t>(bodyLen >> 8);
+  out[4] = static_cast<uint8_t>(bodyLen);
+  return out;
+}
+
 inline void packNestedArray(msgpack::packer<msgpack::sbuffer> &pk,
                             int depth) {
   if (depth == 0) {
