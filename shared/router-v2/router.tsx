@@ -14,7 +14,7 @@ import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
-import {createLinkingConfig} from './linking'
+import {createLinkingConfig, subscribeNavigationIntents} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {useDaemonState} from '@/stores/daemon'
@@ -34,6 +34,7 @@ import {Platform, StatusBar, View, useColorScheme} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
@@ -99,11 +100,6 @@ const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
 }
 
 // ─── Desktop ──────────────────────────────────────────────────────────────────
-
-if (!isMobile) {
-  // Set up the fallback handler for emitDeepLink on desktop (no linking prop needed on Electron)
-  createLinkingConfig(handleAppLink)
-}
 
 // Sticky: once the handshake finishes we never go back to the splash, even if it
 // restarts later (engine reconnect); the disconnected overlay covers that case.
@@ -267,6 +263,18 @@ function DesktopRouter() {
 
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const navKey = Common.useUserSwitchNavKey()
+  const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
+
+  React.useEffect(
+    () => subscribeNavigationIntents(handleAppLink, handleAppLink),
+    []
+  )
+  const setDesktopNavRef = (ref: typeof C.Router2.navigationRef.current) => {
+    setNavRef(ref)
+    // React 19 Strict Mode detaches and reattaches callback refs without calling
+    // NavigationContainer.onReady again. Restore readiness from the live ref.
+    setNavigationReady(ref?.isReady() ?? false)
+  }
 
   const documentTitle = {
     formatter: () => {
@@ -281,9 +289,13 @@ function DesktopRouter() {
     <NavigationContainer
       key={navKey}
       documentTitle={documentTitle}
+      onReady={() => {
+        onStateChange()
+        setNavigationReady(true)
+      }}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
-      ref={setNavRef}
+      ref={setDesktopNavRef}
       theme={isDarkMode ? darkTheme : lightTheme}
     >
       <LoadedTeamsListProvider>
@@ -640,6 +652,11 @@ function NativeRouter() {
   const navKey = Common.useUserSwitchNavKey()
   const nativeDarkSuffix = isAndroid ? (nativeIsDarkMode ? '-dark' : '-light') : ''
   const rootKey = navKey ? `${navKey}${nativeDarkSuffix}` : ''
+  const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
+  const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {
+    setNavRef(ref)
+    setNavigationReady(ref?.isReady() ?? false)
+  }
 
   React.useEffect(() => {
     if (!userSwitching) {
@@ -653,6 +670,7 @@ function NativeRouter() {
     if (tab) {
       C.Router2.switchTab(tab)
     }
+    setNavigationReady(true)
   }
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
@@ -675,7 +693,7 @@ function NativeRouter() {
         onReady={onNativeReady}
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}
-        ref={setNavRef}
+        ref={setNativeNavRef}
         theme={isDarkMode ? darkTheme : lightTheme}
       >
         <LoadedTeamsListProvider>

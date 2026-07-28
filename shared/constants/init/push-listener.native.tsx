@@ -340,9 +340,8 @@ export const initPushListener = () => {
           }
           emitDeepLink('keybase://incoming-share')
         })
-        // shareListenersRegistered() is deliberately NOT called here: it makes native flush
-        // pending share intents, and emitDeepLink has no queue. The init/index.tsx router
-        // subscriber calls it once we're logged in with the router mounted.
+        // shareListenersRegistered() is deliberately NOT called here: the init/index.tsx
+        // router subscriber controls when native flushes pending share intents.
       }
     } catch (e) {
       logger.error('[Push] failed to set up listeners: ', e)

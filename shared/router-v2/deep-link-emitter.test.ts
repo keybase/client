@@ -1,50 +1,56 @@
 /// <reference types="jest" />
-import {emitDeepLink, setDeepLinkListener, setInitialURLOnce} from './deep-link-emitter'
+import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {emitDeepLink, setInitialURLOnce} from './deep-link-emitter'
+
+const resetNavigationIntents = () => {
+  const {intent, dispatch} = useNavigationIntentsState.getState()
+  if (intent) {
+    dispatch.acknowledge(intent.id)
+  }
+  dispatch.resetState()
+}
 
 afterEach(() => {
-  setDeepLinkListener(undefined)
+  resetNavigationIntents()
 })
 
-test('delivers a deep link emitted while navigation is temporarily unsubscribed', () => {
-  setDeepLinkListener(undefined)
-  emitDeepLink('keybase://convid/test-conversation')
+test('normalizes and enqueues a deep link until navigation can consume it', () => {
+  emitDeepLink('https://keybase.io/alice')
 
-  const listener = jest.fn()
-  setDeepLinkListener(listener)
-
-  expect(listener).toHaveBeenCalledTimes(1)
-  expect(listener).toHaveBeenCalledWith('keybase://convid/test-conversation')
+  expect(useNavigationIntentsState.getState().intent).toMatchObject({
+    url: 'keybase://profile/show/alice',
+  })
 })
 
-test('keeps the latest deep link emitted while navigation is unsubscribed', () => {
-  setDeepLinkListener(undefined)
+test('keeps the latest deep link while navigation is unavailable', () => {
   emitDeepLink('keybase://convid/older-conversation')
   emitDeepLink('keybase://convid/newer-conversation')
 
-  const listener = jest.fn()
-  setDeepLinkListener(listener)
-
-  expect(listener).toHaveBeenCalledTimes(1)
-  expect(listener).toHaveBeenCalledWith('keybase://convid/newer-conversation')
+  expect(useNavigationIntentsState.getState().intent?.url).toBe(
+    'keybase://convid/newer-conversation'
+  )
 })
 
-test('delivers immediately while navigation is subscribed', () => {
-  const listener = jest.fn()
-  setDeepLinkListener(listener)
+test('does not enqueue an unsupported URL', () => {
+  emitDeepLink('https://example.com/not-keybase')
 
-  emitDeepLink('keybase://convid/test-conversation')
-
-  expect(listener).toHaveBeenCalledTimes(1)
-  expect(listener).toHaveBeenCalledWith('keybase://convid/test-conversation')
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
 })
 
-test('deduplicates a queued deep link handled as the initial URL', () => {
-  setDeepLinkListener(undefined)
-  emitDeepLink('keybase://convid/test-conversation')
+test('deduplicates an emitted deep link already handled as the initial URL', () => {
   setInitialURLOnce('keybase://convid/test-conversation')
+  emitDeepLink('keybase://convid/test-conversation')
 
-  const listener = jest.fn()
-  setDeepLinkListener(listener)
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+})
 
-  expect(listener).not.toHaveBeenCalled()
+test('removes a queued deep link when the initial URL handles it', () => {
+  emitDeepLink('keybase://convid/queued-initial-conversation')
+  expect(useNavigationIntentsState.getState().intent?.url).toBe(
+    'keybase://convid/queued-initial-conversation'
+  )
+
+  setInitialURLOnce('keybase://convid/queued-initial-conversation')
+
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
 })

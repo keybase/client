@@ -3,16 +3,12 @@ import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {usePushState} from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
 import {Linking} from 'react-native'
-import {
-  normalizeUrl,
-  setDeepLinkFallback,
-  setDeepLinkListener,
-  setInitialURLOnce,
-} from './deep-link-emitter'
+import {emitDeepLink, normalizeUrl, setInitialURLOnce} from './deep-link-emitter'
 // Re-exported so existing importers ('@/router-v2/linking') keep working; the
 // definitions live in the dependency-free './deep-link-emitter' leaf.
 export {emitDeepLink, normalizeUrl} from './deep-link-emitter'
@@ -93,6 +89,59 @@ export const isHandledByLinkingConfig = (url: string): boolean => {
   const prefix = 'keybase://'
   if (!url.startsWith(prefix)) return false
   return customGetStateFromPath(url.substring(prefix.length)) !== undefined
+}
+
+const navigationIntentLifetimeMs = 5 * 60_000
+
+// The router owns consumption. Producers can enqueue before this subscription
+// exists, during an account switch, or before NavigationContainer is ready.
+export const subscribeNavigationIntents = (
+  listener: (url: string) => void,
+  handleAppLink: (link: string) => void
+) => {
+  let consumingID: number | undefined
+  const consumeIfReady = () => {
+    const {intent, navigationReady, dispatch} = useNavigationIntentsState.getState()
+    if (!intent || consumingID !== undefined) return
+    if (Date.now() - intent.createdAt > navigationIntentLifetimeMs) {
+      dispatch.acknowledge(intent.id)
+      return
+    }
+
+    const {loggedIn, userSwitching} = useConfigState.getState()
+    if (!navigationReady || !loggedIn || userSwitching) return
+    if (intent.targetUid && intent.targetUid !== useCurrentUserState.getState().uid) return
+
+    consumingID = intent.id
+    try {
+      // Profile links use imperative navigation to build their intermediate
+      // back stack. Other known URLs can use React Navigation's linking state.
+      if (intent.url.startsWith('keybase://profile/')) {
+        handleAppLink(intent.url)
+      } else if (isHandledByLinkingConfig(intent.url)) {
+        listener(intent.url)
+      } else {
+        handleAppLink(intent.url)
+      }
+      dispatch.acknowledge(intent.id)
+    } finally {
+      consumingID = undefined
+    }
+    // A navigation callback can synchronously enqueue a newer intent. Its store
+    // notification was ignored while this one was in flight, so retry it now.
+    consumeIfReady()
+  }
+
+  const unsubscribeIntents = useNavigationIntentsState.subscribe(consumeIfReady)
+  const unsubscribeConfig = useConfigState.subscribe(consumeIfReady)
+  const unsubscribeCurrentUser = useCurrentUserState.subscribe(consumeIfReady)
+  consumeIfReady()
+
+  return () => {
+    unsubscribeIntents()
+    unsubscribeConfig()
+    unsubscribeCurrentUser()
+  }
 }
 
 // Custom getStateFromPath - handles keybase:// URL paths
@@ -193,9 +242,6 @@ const customGetStateFromPath = (
 export const createLinkingConfig = (
   handleAppLink: (link: string) => void
 ): LinkingOptions<RootParamList> => {
-  if (!isMobile) {
-    setDeepLinkFallback(handleAppLink)
-  }
   return {
     getInitialURL: async () => {
       const {loggedIn, startup, androidShare} = useConfigState.getState()
@@ -230,19 +276,20 @@ export const createLinkingConfig = (
       if (deepLinkUrl) {
         const normalized = normalizeUrl(deepLinkUrl)
         if (normalized) {
-          if (isHandledByLinkingConfig(normalized)) return normalized
+          if (isHandledByLinkingConfig(normalized)) return setInitialURLOnce(normalized)
           // URL not handled by linking config; use imperative navigation as fallback
+          setInitialURLOnce(normalized)
           setTimeout(() => handleAppLink(normalized), 1)
           return null
         }
       }
 
       if (showMonster && !haveSavedTab) {
-        return 'keybase://settingsPushPrompt'
+        return setInitialURLOnce('keybase://settingsPushPrompt')
       }
 
       if (androidShare && !haveSavedTab) {
-        return 'keybase://incoming-share'
+        return setInitialURLOnce('keybase://incoming-share')
       }
 
       if (startupFollowUser && !startupConversation) {
@@ -254,7 +301,7 @@ export const createLinkingConfig = (
       }
 
       if (startupTab) {
-        return `keybase://${startupTab}`
+        return setInitialURLOnce(`keybase://${startupTab}`)
       }
 
       return null
@@ -269,56 +316,19 @@ export const createLinkingConfig = (
   prefixes: ['keybase://'],
 
   subscribe: (listener: (url: string) => void) => {
-    // Deduplicate rapid calls to listener from multiple sources (e.g., push handler
-    // via emitDeepLink AND RN Linking 'url' event both firing for the same push tap).
-    let _lastUrl: string | undefined
-    let _lastTime = 0
-    const dedupedListener = (url: string) => {
-      const now = Date.now()
-      if (url === _lastUrl && now - _lastTime < 1500) return
-      _lastUrl = url
-      _lastTime = now
-      listener(url)
-    }
-
-    // Set up the programmatic deep link listener
-    setDeepLinkListener((url: string) => {
-      // Profile deep links need imperative navigation to properly set up
-      // the back stack. State-based linking may not create intermediate screens.
-      if (url.startsWith('keybase://profile/')) {
-        handleAppLink(url)
-        return
-      }
-      if (isHandledByLinkingConfig(url)) {
-        dedupedListener(url)
-      } else {
-        handleAppLink(url)
-      }
-    })
+    const unsubscribeIntents = subscribeNavigationIntents(listener, handleAppLink)
 
     // On native, listen for RN Linking 'url' events (warm-start deep links)
     let removeLinkingSub: (() => void) | undefined
     if (isMobile) {
       const sub = Linking.addEventListener('url', ({url}: {url: string}) => {
-        const normalized = normalizeUrl(url)
-        if (!normalized) return
-        // Profile deep links need imperative navigation to properly set up
-        // the back stack. State-based linking may not create intermediate screens.
-        if (normalized.startsWith('keybase://profile/')) {
-          handleAppLink(normalized)
-          return
-        }
-        if (isHandledByLinkingConfig(normalized)) {
-          dedupedListener(normalized)
-        } else {
-          handleAppLink(normalized)
-        }
+        emitDeepLink(url)
       })
       removeLinkingSub = () => sub.remove()
     }
 
     return () => {
-      setDeepLinkListener(undefined)
+      unsubscribeIntents()
       removeLinkingSub?.()
     }
   },

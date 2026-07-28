@@ -127,7 +127,10 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       topRoute?.name === 'chatConversation' &&
       (topRoute.params as {conversationIDKey?: string} | undefined)?.conversationIDKey === conversationIDKey
     if (!alreadyOnConv) {
-      emitDeepLink(`keybase://convid/${conversationIDKey}`)
+      const targetUid = 'forUid' in notification ? notification.forUid : undefined
+      emitDeepLink(`keybase://convid/${conversationIDKey}`, {
+        targetUid,
+      })
     }
     if (unboxPayload && membersType && !isIOS) {
       try {
@@ -194,6 +197,9 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       const f = async () => {
         try {
           const forUid = 'forUid' in notification ? notification.forUid : undefined
+          const navigationIntentOptions = {
+            targetUid: forUid,
+          }
 
           if (forUid) {
             const currentUid = useCurrentUserState.getState().uid
@@ -246,7 +252,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
-                emitDeepLink(`keybase://profile/show/${username}`)
+                emitDeepLink(`keybase://profile/show/${username}`, navigationIntentOptions)
               }
               break
             case 'device.revoked':
@@ -261,12 +267,12 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                emitDeepLink(`keybase://convid/${conversationIDKey}`)
+                emitDeepLink(`keybase://convid/${conversationIDKey}`, navigationIntentOptions)
               }
               break
             case 'settings.contacts':
               if (useConfigState.getState().loggedIn) {
-                emitDeepLink('keybase://people')
+                emitDeepLink('keybase://people', navigationIntentOptions)
               }
               break
           }
