@@ -63,6 +63,9 @@ type TeamShowcaseProps = T.Tracker.TeamShowcase & {
 const TeamShowcase = (props: TeamShowcaseProps) => {
   const {name, isOpen} = props
   const {onClick, popup, popupAnchor} = useTeamInfoPopup({
+    // a profile can feature every team its owner is in; annotating them all up
+    // front is one expensive getAnnotatedTeam per row for a popup nobody opened
+    loadOnDemand: true,
     popupInfo: props,
     teamname: name,
   })
