@@ -961,7 +961,7 @@ func TestReadArr_BlocksUntilJSReady(t *testing.T) {
 		t.Skipf("cannot re-exec the test binary (%v)", err)
 	}
 
-	cmd := exec.Command(os.Args[0], "-test.run=^TestReadArrJSReadyChild$", "-test.v")
+	cmd := exec.Command(os.Args[0], "-test.run=^TestReadArrJSReadyChild$", "-test.v") //nolint:gosec // G204: Re-execs this test binary itself with constant flags; no external input
 	cmd.Env = append(os.Environ(), jsReadyChildEnv+"=1")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
