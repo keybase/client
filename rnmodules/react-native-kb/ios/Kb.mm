@@ -1,5 +1,6 @@
 #import "Kb.h"
 #import "Keybasego.h"
+#import "engine-reset-backoff.h"
 #import <Foundation/Foundation.h>
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
@@ -38,10 +39,6 @@ using namespace kb;
 @end
 
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
-// Backoff bounds for throttling the kb-engine-reset emit on a persistent
-// read-error loop; see the readErrorCount/emitBackoffSeconds comment below.
-static const NSTimeInterval kEngineResetEmitInitialBackoff = 0.5;
-static const NSTimeInterval kEngineResetEmitBackoffCeiling = 5.0;
 
 static __weak Kb *kbSharedInstance = nil;
 // Guards the compare-and-clear in invalidate against init's write: init runs
@@ -65,18 +62,20 @@ static std::shared_ptr<kb::KBBridge> kbGetBridge(void) {
   return kbCurrentBridge;
 }
 
-static void kbSetBridge(std::shared_ptr<kb::KBBridge> bridge) {
-  std::shared_ptr<kb::KBBridge> old;
-  {
-    std::lock_guard<std::mutex> lock(kbBridgeMutex);
-    old = std::move(kbCurrentBridge);
-    kbCurrentBridge = std::move(bridge);
-  }
-  // markTornDown only flips an atomic; releasing the old bridge's jsi handles
-  // is the JS runtime's job (see the kbTeardown host object).
-  if (old) {
-    old->markTornDown();
-  }
+// REQUIRES kbBridgeMutex. Publishes `bridge` as the current one and hands the
+// displaced bridge back to the caller, which must markTornDown() it *after*
+// releasing the lock (markTornDown only flips an atomic, but nothing that can
+// re-enter this file may run under kbBridgeMutex; releasing the old bridge's
+// jsi handles is the JS runtime's job -- see the kbTeardown host object).
+//
+// Lock-requiring rather than lock-taking so the caller can publish myBridge_
+// and kbCurrentBridge in ONE critical section; see
+// installJSIBindingsWithRuntime.
+static std::shared_ptr<kb::KBBridge>
+kbSetBridgeLocked(std::shared_ptr<kb::KBBridge> bridge) {
+  std::shared_ptr<kb::KBBridge> old = std::move(kbCurrentBridge);
+  kbCurrentBridge = std::move(bridge);
+  return old;
 }
 
 // Clears the installed bridge only if it is still `mine`. A module's
@@ -395,11 +394,30 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
             });
         });
 
+    // myBridge_ and kbCurrentBridge are published in ONE critical section.
+    // Splitting them (set myBridge_, drop the lock, then set kbCurrentBridge)
+    // opened a window where invalidate could read a non-null `mine` while
+    // kbCurrentBridge was still the previous value: kbClearBridgeIfCurrent
+    // then returned false, so BOTH the teardown and the KeybaseReset were
+    // skipped, and this method went on to publish a bridge belonging to an
+    // already-invalidated module that nothing would ever clean up.
+    //
+    // With the single critical section, myBridge_ is non-null only if
+    // kbCurrentBridge was set to that same bridge under the same lock, so
+    // invalidate's read of myBridge_ followed by kbClearBridgeIfCurrent can
+    // only ever see the publish as all-or-nothing -- never half-done. (The
+    // two are separate critical sections in invalidate, which is fine: they
+    // only need the atomicity of the *publish*, not of their own pair.)
+    std::shared_ptr<kb::KBBridge> old;
     {
       std::lock_guard<std::mutex> lock(kbBridgeMutex);
       myBridge_ = bridge;
+      old = kbSetBridgeLocked(bridge);
     }
-    kbSetBridge(bridge);
+    // Outside the lock, by kbSetBridgeLocked's contract.
+    if (old) {
+      old->markTornDown();
+    }
     kbLogToService(@"jsi install success (via installJSIBindings)");
 }
 
@@ -457,15 +475,10 @@ RCT_EXPORT_METHOD(notifyJSReady) {
       static int readErrorCount = 0;
       // Throttles the kb-engine-reset EMIT below, separately from
       // readErrorCount above -- they have different cadences and must not
-      // share a counter. disconnectCallback does a full session-cancel sweep
-      // (with its own log) and connectCallback re-dispatches the bootstrap
-      // path, so a connection that cannot be re-dialed must not re-trigger
-      // those at the ~10Hz this loop retries at. The first failure emits
-      // immediately so JS learns promptly; each later failure in the same
-      // episode backs off exponentially to a ceiling. Reset alongside
-      // readErrorCount on the next successful read.
-      static NSTimeInterval emitBackoffSeconds = 0;
-      static NSTimeInterval emitNotBeforeTime = 0;
+      // share a counter. See cpp/engine-reset-backoff.h (and its unit test)
+      // for the arithmetic. Reset alongside readErrorCount on the next
+      // successful read.
+      static kb::EngineResetEmitBackoff emitBackoff;
       while (true) {
         // The block never returns, so the queue's pool never drains on its
         // own — each iteration needs its own.
@@ -502,37 +515,30 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             if (auto bridge = kbGetBridge()) {
               bridge->resetRecv();
             }
+            // Only advance the backoff window when the emit is actually
+            // deliverable now -- checked synchronously here rather than
+            // inside the dispatched block, so a dropped notification (no
+            // shared instance / not yet able to emit) costs nothing and the
+            // very next failure gets another chance to notify JS promptly.
+            Kb *instance = kbSharedInstance;
+            bool deliverable = instance != nil && [instance canEmit];
             // CACurrentMediaTime is monotonic and immune to wall-clock/NTP
             // adjustments, unlike NSDate/[NSDate timeIntervalSinceReferenceDate]:
             // a backward clock correction during a read-error episode (plausible
-            // at cold boot) must not push emitNotBeforeTime into the future and
-            // suppress the kb-engine-reset emit.
-            CFTimeInterval now = CACurrentMediaTime();
-            if (now >= emitNotBeforeTime) {
-              // Only advance the backoff window when the emit is actually
-              // deliverable now -- checked synchronously here rather than
-              // inside the dispatched block, so a dropped notification (no
-              // shared instance / not yet able to emit) costs nothing and the
-              // very next failure gets another chance to notify JS promptly.
-              Kb *instance = kbSharedInstance;
-              if (instance && [instance canEmit]) {
-                emitBackoffSeconds = emitBackoffSeconds == 0
-                    ? kEngineResetEmitInitialBackoff
-                    : MIN(emitBackoffSeconds * 2, kEngineResetEmitBackoffCeiling);
-                emitNotBeforeTime = now + emitBackoffSeconds;
-                // Re-check kbSharedInstance/canEmit inside the dispatched
-                // block rather than reusing the reader-thread snapshot above:
-                // an invalidate/reload can land between this dispatch and the
-                // block running, and `_eventEmitterCallback` is never cleared
-                // on invalidate, so emitting on a strongly-captured `instance`
-                // here could deliver into a dying runtime's invoker.
-                dispatch_async(dispatch_get_main_queue(), ^{
-                  Kb *emitInstance = kbSharedInstance;
-                  if (emitInstance && [emitInstance canEmit]) {
-                    [emitInstance emitOnMetaEvent:metaEventEngineReset];
-                  }
-                });
-              }
+            // at cold boot) must not suppress the kb-engine-reset emit.
+            if (emitBackoff.shouldEmit(CACurrentMediaTime(), deliverable)) {
+              // Re-check kbSharedInstance/canEmit inside the dispatched
+              // block rather than reusing the reader-thread snapshot above:
+              // an invalidate/reload can land between this dispatch and the
+              // block running, and `_eventEmitterCallback` is never cleared
+              // on invalidate, so emitting on a strongly-captured `instance`
+              // here could deliver into a dying runtime's invoker.
+              dispatch_async(dispatch_get_main_queue(), ^{
+                Kb *emitInstance = kbSharedInstance;
+                if (emitInstance && [emitInstance canEmit]) {
+                  [emitInstance emitOnMetaEvent:metaEventEngineReset];
+                }
+              });
             }
             [NSThread sleepForTimeInterval:0.1];
             continue;
@@ -552,8 +558,7 @@ RCT_EXPORT_METHOD(notifyJSReady) {
             continue;
           }
           readErrorCount = 0;
-          emitBackoffSeconds = 0;
-          emitNotBeforeTime = 0;
+          emitBackoff.reset();
           auto bridge = kbGetBridge();
           if (bridge) {
             bridge->onDataFromGo((uint8_t *)[data bytes], (int)[data length], epoch);

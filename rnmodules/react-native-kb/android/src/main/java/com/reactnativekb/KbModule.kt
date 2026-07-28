@@ -46,7 +46,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     @DoNotStrip
     external override fun getBindingsInstaller(): BindingsInstallerHolder
     private external fun nativeOnDataFromGo(data: ByteArray, epoch: Long)
-    private external fun nativeInvalidate()
+    // Returns true only if this module was still the one owning the installed
+    // adapter/bridge (see cpp-adapter's nativeInvalidate).
+    private external fun nativeInvalidate(): Boolean
     private external fun nativeResetRecv()
 
     private var lifecycleListenerRegistered = false
@@ -531,58 +533,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // the life of the process. It forwards to whichever module is current.
     private class ReadFromKBLib : Runnable {
         private var loggedEmptyRead = false
-        private var readErrorCount = 0
-        private var nonEofErrorCount = 0
-        private var emitBackoffMs = 0L
-        private var emitNotBeforeMs = 0L
-
-        // A read error retries every ~100ms; if the connection can't be
-        // re-established that is a ~10Hz flood into the uploadable log.
-        // Unlike loggedEmptyRead (a one-shot degenerate case) a recurring
-        // read error is exactly what an operator needs to see recur, so
-        // this logs the first few occurrences, then backs off to every
-        // Nth rather than going silent.
-        private fun shouldLogReadError(): Boolean {
-            readErrorCount++
-            return readErrorCount <= 5 || readErrorCount % 50 == 0
-        }
-
-        // Separate counter for non-EOF exceptions: readErrorCount only resets
-        // on a successful read, so a sustained EOF outage can drive it into
-        // the hundreds before a genuine non-EOF failure arrives -- sharing
-        // the counter would let the `% 50` throttle swallow the very log line
-        // (with stack trace) an operator needs at exactly that transition.
-        // A dedicated counter guarantees the first few non-EOF exceptions
-        // always log regardless of how long the preceding EOF flood ran.
-        private fun shouldLogNonEofError(): Boolean {
-            nonEofErrorCount++
-            return nonEofErrorCount <= 5 || nonEofErrorCount % 50 == 0
-        }
-
-        // Throttles the kb-engine-reset EMIT, separately from the log line
-        // above -- they have different cadences and must not share a
-        // counter. JS's disconnectCallback does a full session-cancel sweep
-        // (with a log of its own) and connectCallback re-dispatches the
-        // bootstrap path, so a connection that cannot be re-dialed must not
-        // re-trigger those at ~10Hz. The first failure emits immediately so
-        // JS learns promptly, then backs off exponentially to a ceiling.
-        // Reset alongside readErrorCount on the next successful read, so a
-        // later, unrelated episode again emits promptly.
-        //
-        // `deliverable` gates the backoff advance itself, not just the emit:
-        // an emit that has nowhere to go (no active react instance / can't
-        // emit yet) must not cost a full backoff window, or a dropped
-        // notification during e.g. a reload delays the next one that could
-        // actually be delivered.
-        private fun shouldEmitEngineReset(deliverable: Boolean): Boolean {
-            val now = android.os.SystemClock.elapsedRealtime()
-            if (now < emitNotBeforeMs || !deliverable) {
-                return false
-            }
-            emitBackoffMs = if (emitBackoffMs == 0L) EMIT_BACKOFF_INITIAL_MS else minOf(emitBackoffMs * 2, EMIT_BACKOFF_CEILING_MS)
-            emitNotBeforeMs = now + emitBackoffMs
-            return true
-        }
+        // See ReadLoopThrottles.kt for the arithmetic and its unit tests.
+        private val readErrorLog = ReadErrorLogThrottle()
+        private val emitThrottle = EngineResetEmitThrottle { android.os.SystemClock.elapsedRealtime() }
 
         override fun run() {
             while (true) {
@@ -610,10 +563,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                         Thread.sleep(10)
                         continue
                     }
-                    readErrorCount = 0
-                    nonEofErrorCount = 0
-                    emitBackoffMs = 0L
-                    emitNotBeforeMs = 0L
+                    readErrorLog.reset()
+                    emitThrottle.reset()
                     instance?.nativeOnDataFromGo(data, epoch)
                 } catch (e: InterruptedException) {
                     Thread.currentThread().interrupt()
@@ -624,29 +575,27 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     // RPC is dead. EOF is the ordinary shape of this, not a
                     // surprise -- but JS still has to be told, or its callers
                     // hang forever.
-                    if (e.message != null && e.message.equals("Read error: EOF")) {
-                        // EOF is the ordinary shape of a persistent-read
-                        // outage, not a surprise, but at this loop's ~100ms
-                        // retry it is still a ~10Hz flood into the uploadable
-                        // log if left unthrottled.
-                        if (shouldLogReadError()) {
-                            NativeLogger.info("Got EOF from read, connection reset (count=$readErrorCount).")
+                    val isEof = e.message != null && e.message.equals("Read error: EOF")
+                    // EOF is the ordinary shape of a persistent-read outage,
+                    // not a surprise, but at this loop's ~100ms retry it is
+                    // still a ~10Hz flood into the uploadable log if left
+                    // unthrottled. Non-EOF gets its own counter -- see
+                    // ReadErrorLogThrottle.
+                    val logCount = readErrorLog.next(isEof)
+                    if (logCount != null) {
+                        if (isEof) {
+                            NativeLogger.info("Got EOF from read, connection reset (count=$logCount).")
+                        } else {
+                            NativeLogger.error("Exception in ReadFromKBLib.run (count=$logCount)", e)
                         }
-                    } else if (shouldLogNonEofError()) {
-                        NativeLogger.error("Exception in ReadFromKBLib.run (count=$nonEofErrorCount)", e)
                     }
                     val inst = instance
                     if (inst != null) {
-                        inst.onRpcConnectionReset(shouldEmitEngineReset(inst.canDeliverReset()))
+                        inst.onRpcConnectionReset(emitThrottle.shouldEmit(inst.canDeliverReset()))
                     }
                     try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt(); return }
                 }
             }
-        }
-
-        companion object {
-            private const val EMIT_BACKOFF_INITIAL_MS = 500L
-            private const val EMIT_BACKOFF_CEILING_MS = 5000L
         }
     }
 
@@ -673,7 +622,26 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // dies while the ReactInstance and this module survive. This is the only
     // place that should ever clear the native bridge.
     override fun invalidate() {
-        nativeInvalidate()
+        val wasCurrent = nativeInvalidate()
+        // Mirrors iOS invalidate's identity-gated KeybaseReset. Replacing the
+        // runtime replaces the JS transport: it starts with fresh seqids and
+        // an empty parser, while the still-live Go loopback may hold
+        // outstanding replies or a partial frame -- which would mis-settle a
+        // new invocation with an old response, or desync on the first read.
+        // Resetting the connection along with the bridge keeps the two ends in
+        // step.
+        //
+        // Gated on wasCurrent because a stale invalidate can run after the next
+        // module already installed its own bridge; resetting then would tear
+        // down a connection that module already owns and kill its in-flight
+        // RPCs for nothing.
+        if (wasCurrent) {
+            try {
+                Keybase.reset()
+            } catch (e: Exception) {
+                NativeLogger.error("Exception resetting connection in invalidate", e)
+            }
+        }
         super.invalidate()
     }
 
@@ -710,20 +678,30 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         //
         // resetIfCurrentDidReset(epoch), not reset(): `epoch` is the epoch of
         // the connection the desynced bytes actually came from, captured by
-        // the reader loop at read time. If Go has already re-dialed since
-        // (e.g. a concurrent writeArr recovered first), epoch no longer
-        // matches and this is a stale no-op instead of tearing down a
-        // connection that already worked -- and in that case nativeResetRecv()
-        // must also be skipped, or it drops the new connection's
-        // already-in-flight partial frame and forces a second, needless
-        // fatal/reset cycle.
+        // the reader loop at read time. Three outcomes, and only one of them
+        // keeps the parser's bytes:
+        //  - true: the desynced connection was still current and Go reset it,
+        //    so the buffered partial frame belongs to a dead connection ->
+        //    nativeResetRecv().
+        //  - threw: we have no idea what state Go is in, and we already know
+        //    this stream desynced -> nativeResetRecv(); keeping the bytes
+        //    would feed old frame fragments into whatever connection exists
+        //    and re-desync immediately.
+        //  - false (stale epoch): Go already re-dialed (e.g. a concurrent
+        //    writeArr recovered first), so this is a no-op instead of tearing
+        //    down a connection that already worked -- and the buffered partial
+        //    frame belongs to that healthy current connection, so dropping it
+        //    would force a second, needless fatal/reset cycle. This is the
+        //    ONLY case that skips nativeResetRecv().
         var didReset = false
+        var resetThrew = false
         try {
             didReset = Keybase.resetIfCurrentDidReset(epoch)
         } catch (e: Exception) {
+            resetThrew = true
             NativeLogger.error("Exception resetting after rpc desync", e)
         }
-        if (didReset) {
+        if (didReset || resetThrew) {
             nativeResetRecv()
         }
         reactContext.runOnUiQueueThread { relayReset() }

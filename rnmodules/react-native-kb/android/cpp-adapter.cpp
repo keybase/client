@@ -103,13 +103,19 @@ static std::shared_ptr<kb::KBBridge> getBridge() {
 // recovery. Mirrors iOS's kbClearBridgeIfCurrent: only clear if the module
 // invoking invalidate is still the one that installed the current
 // adapter/bridge.
-static void nativeInvalidate(jni::alias_ref<JKbModule::javaobject> thiz) {
+//
+// Returns true only when it actually matched `thiz` and cleared, so the Kotlin
+// caller can gate Keybase.reset() on it exactly like iOS gates KeybaseReset on
+// kbClearBridgeIfCurrent. The gate is the whole point: a stale invalidate that
+// reset the Go connection would tear down the loopback the NEXT module already
+// owns, killing its in-flight RPCs for no reason.
+static jboolean nativeInvalidate(jni::alias_ref<JKbModule::javaobject> thiz) {
   std::shared_ptr<kb::KBBridge> oldBridge;
   std::shared_ptr<KbNativeAdapter> oldAdapter;
   {
     std::lock_guard<std::mutex> lock(g_mutex);
     if (!g_adapter || !(g_adapter->jModule_ == thiz)) {
-      return;
+      return JNI_FALSE;
     }
     oldBridge = std::move(g_bridge);
     oldAdapter = std::move(g_adapter);
@@ -119,6 +125,7 @@ static void nativeInvalidate(jni::alias_ref<JKbModule::javaobject> thiz) {
   if (oldBridge) {
     oldBridge->markTornDown();
   }
+  return JNI_TRUE;
 }
 
 static void nativeResetRecv(jni::alias_ref<JKbModule::javaobject>) {
@@ -130,14 +137,30 @@ static void nativeResetRecv(jni::alias_ref<JKbModule::javaobject>) {
 static jni::local_ref<BindingsInstallerHolder::javaobject>
 getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
   auto adapter = std::make_shared<KbNativeAdapter>(thiz);
+  // INVARIANT: g_adapter and g_bridge are only ever published as a PAIR, and
+  // g_bridge is only ever published while its own adapter is still current.
+  // Publishing the adapter here without also dropping the previous module's
+  // bridge would leave that bridge live with no owner -- a later
+  // nativeInvalidate from the previous module no longer matches g_adapter, so
+  // nothing would ever tear it down. A new module installing means the
+  // previous one is definitively dead, so take its bridge over now.
+  std::shared_ptr<kb::KBBridge> displaced;
   {
     std::lock_guard<std::mutex> lock(g_mutex);
+    displaced = std::move(g_bridge);
+    g_bridge = nullptr;
     g_adapter = adapter;
   }
+  // Outside the lock: markTornDown only flips an atomic, but nothing that can
+  // reenter this file may run while g_mutex is held.
+  if (displaced) {
+    displaced->markTornDown();
+  }
 
-  // Captured strongly: the adapter must outlive the bridge that calls it,
-  // since installing a second module overwrites the g_adapter slot while the
-  // first bridge is still live and installed. No cycle: the adapter holds a
+  // Captured strongly: the adapter must outlive the bridge that calls it.
+  // Unpublishing a bridge only flips its teardown flag -- another thread can
+  // still be inside one of these callbacks -- so the adapter cannot be kept
+  // alive by the g_adapter slot alone. No cycle: the adapter holds a
   // global_ref to the Java module and never the bridge.
   return BindingsInstallerHolder::newObjectCxxArgs(
       [adapter](
@@ -167,16 +190,32 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
               adapter->onFatal(epoch);
             });
 
+        // Identity-gated publish: this bridge belongs to `adapter`, so it may
+        // only be published while `adapter` is still the current one. Without
+        // the gate, a nativeInvalidate that lands between the g_adapter store
+        // above and this lambda (RN runs them at different times, on
+        // different threads) clears both slots and then this store resurrects
+        // g_bridge -- targeting a runtime that is going away, with a null
+        // g_adapter. A bridge installed into a runtime whose module was
+        // already invalidated must be inert, not published.
         std::shared_ptr<kb::KBBridge> old;
+        bool published = false;
         {
           std::lock_guard<std::mutex> lock(g_mutex);
-          old = std::move(g_bridge);
-          g_bridge = bridge;
+          if (g_adapter == adapter) {
+            old = std::move(g_bridge);
+            g_bridge = bridge;
+            published = true;
+          }
         }
         // Only flips an atomic. The old bridge's jsi handles belong to its
-        // own runtime and are released by its kbTeardown host object.
+        // own runtime and are released by its kbTeardown host object. Kept
+        // outside the lock -- nothing may reenter this file under g_mutex.
         if (old) {
           old->markTornDown();
+        }
+        if (!published) {
+          bridge->markTornDown();
         }
       });
 }
