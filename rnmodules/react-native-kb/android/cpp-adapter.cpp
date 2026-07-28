@@ -87,6 +87,11 @@ static std::shared_ptr<kb::KBBridge> getBridge() {
   return g_bridge;
 }
 
+static bool isCurrentAdapter(const std::shared_ptr<KbNativeAdapter> &adapter) {
+  std::lock_guard<std::mutex> lock(g_mutex);
+  return g_adapter == adapter;
+}
+
 // Any thread. Drops this module's C++-side state: flips the bridge's atomic
 // teardown flag so the permanent reader stops delivering into a runtime that
 // is going away, and releases the globals that would otherwise pin a dead
@@ -144,6 +149,14 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
   // nativeInvalidate from the previous module no longer matches g_adapter, so
   // nothing would ever tear it down. A new module installing means the
   // previous one is definitively dead, so take its bridge over now.
+  //
+  // Known window, accepted: from this displace until the bindings-installer
+  // lambda below publishes the new bridge, the permanent reader finds
+  // g_bridge null and drops whatever it reads -- and nothing resets the Go
+  // connection here, so those bytes are consumed from a live stream. If the
+  // drop lands mid-frame, the new bridge's first feed desyncs and the
+  // fatal/reset path re-syncs it: one needless reset cycle on some reloads,
+  // in exchange for never touching a connection that might not need it.
   std::shared_ptr<kb::KBBridge> displaced;
   {
     std::lock_guard<std::mutex> lock(g_mutex);
@@ -184,6 +197,21 @@ getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
             // from -- is still current) and tell JS so it fails outstanding
             // RPCs rather than hanging forever.
             [adapter](int64_t epoch) {
+              // Identity gate mirroring iOS's Kb.mm: only act if the module
+              // that faulted still owns the installed adapter/bridge. A batch
+              // queued by a dying runtime can hit its conversion-failure
+              // fatal after the next module has already published its pair,
+              // and the epoch check can't catch that (nothing re-dialed, so
+              // `epoch` is still current) -- acting here would tear down the
+              // connection the new runtime is already using, then clear the
+              // new bridge's parser mid-frame, forcing a needless second
+              // fatal/reset cycle.
+              if (!isCurrentAdapter(adapter)) {
+                __android_log_print(
+                    ANDROID_LOG_WARN, "KBBridge",
+                    "rpc stream desync from superseded bridge, ignoring");
+                return;
+              }
               __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
                                   "rpc stream desync, resetting connection");
               adapter->onLog("rpc stream desync, resetting connection");

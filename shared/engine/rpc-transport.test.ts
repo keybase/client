@@ -142,7 +142,12 @@ test('invoke fails the caller when the native write throws', () => {
 
   transport.invoke('keybase.1.test.hello', [{}], cb)
 
-  expect(cb).toHaveBeenCalledWith(writeError, {})
+  // The raw exception is wrapped into the transport error shape (code/desc)
+  // so convertToError produces an RPCError; the message survives in desc.
+  expect(cb).toHaveBeenCalledWith(
+    expect.objectContaining({code: errors.EOF, desc: writeError.message}),
+    {}
+  )
 })
 
 test('a failed write leaves no outstanding invocation', () => {
@@ -643,7 +648,9 @@ test('flushPending terminates and settles every queued item exactly once when th
   transport.flushConnected()
 
   expect(calls).toHaveLength(5)
-  expect(calls.every(([err]) => err === writeError)).toBe(true)
+  expect(
+    calls.every(([err]) => (err as {code?: number; desc?: string}).desc === writeError.message)
+  ).toBe(true)
   expect(transport.sent).toEqual([])
 
   // Nothing was re-queued: a second flush with a working write sends nothing

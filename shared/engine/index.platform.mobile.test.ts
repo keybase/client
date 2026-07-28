@@ -147,8 +147,10 @@ test('NativeTransportMobile fails the invocation (not hang) when rpcOnGo reports
     const [err] = cb.mock.calls[0] as [unknown, unknown]
     // rpcOnGo is defined but returns false -- this must be the "native rpc
     // write failed" throw site, not the "rpcOnGo send before rpcOnGo global"
-    // site that fires when rpcOnGo is undefined.
-    expect((err as Error).message).toBe('native rpc write failed')
+    // site that fires when rpcOnGo is undefined. The transport wraps the
+    // thrown Error into its code/desc shape; the message survives in desc.
+    expect((err as {code?: number; desc?: string}).code).toBe(errors.EOF)
+    expect((err as {code?: number; desc?: string}).desc).toBe('native rpc write failed')
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
   }

@@ -539,8 +539,11 @@ export abstract class RPCTransport {
     } catch (err) {
       // The message never left, so no response is coming. Fail the caller
       // rather than leaving the seqid outstanding for the rest of the session.
+      // Shaped like every other transport-level failure (code/desc, not the
+      // raw exception) so downstream convertToError yields an RPCError with a
+      // code; the original message survives in desc.
       this._invocations.delete(seqid)
-      cb(err, {})
+      cb({code: errors.EOF, desc: err instanceof Error ? err.message : String(err), name: 'EOF'}, {})
     }
   }
 

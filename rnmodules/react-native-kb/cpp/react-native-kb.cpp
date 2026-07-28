@@ -158,11 +158,15 @@ std::string mpToString(const msgpack::object &o) {
 }
 
 void packNumber(msgpack::packer<msgpack::sbuffer> &pk, double d) {
-  // Doubles can exactly represent integers up to 2^53. Encode exact
-  // integers as msgpack int/uint (matching @msgpack/msgpack JS behavior)
-  // so Go's decoder sees integer types, not float64. Integer-valued
-  // doubles outside [INT64_MIN, UINT64_MAX] would be UB to cast, so
-  // those stay float64. 18446744073709551616.0 == 2^64 and
+  // Encode exact integers as msgpack int/uint so Go's decoder sees integer
+  // types, not float64. @msgpack/msgpack does the same only for safe
+  // integers (|d| <= 2^53, Number.isSafeInteger); this goes further and
+  // packs any integer-valued double in [INT64_MIN, UINT64_MAX] as an
+  // integer, which typed Go decoding coerces identically -- only an
+  // interface{}/reflect consumer could see uint64 where the old JS encoder
+  // produced float64, and only for values above 2^53. Integer-valued
+  // doubles outside [INT64_MIN, UINT64_MAX] would be UB to cast, so those
+  // stay float64. 18446744073709551616.0 == 2^64 and
   // -9223372036854775808.0 == -2^63 are both exact doubles.
   //
   // The range check comes first so the cast is always defined, and the

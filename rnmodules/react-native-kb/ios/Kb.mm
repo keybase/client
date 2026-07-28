@@ -360,11 +360,23 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
         // failure or a missing rpcOnJs, arriving on the JS thread rather than
         // the reader thread -- either way recv_ still holds bytes from the
         // now-dead connection, so drop them here too or the next connection
-        // desyncs on its very first frame. Goes through kbGetBridge() rather
-        // than capturing `bridge` directly: this lambda is stored inside the
-        // bridge's own onFatal_ member, so a direct capture would be a
-        // shared_ptr cycle.
-        [](int64_t epoch) {
+        // desyncs on its very first frame. Captured weakly rather than by
+        // shared_ptr: this lambda is stored inside the bridge's own onFatal_
+        // member, so a strong capture would be a shared_ptr cycle.
+        [weakBridge = std::weak_ptr<kb::KBBridge>(bridge)](int64_t epoch) {
+            // Identity gate: only act if the bridge that faulted is still the
+            // installed one. A batch queued by a dying runtime can hit its
+            // conversion-failure fatal on the old JS thread after a reload
+            // has already published the next module's bridge, and the epoch
+            // check can't catch that (nothing re-dialed, so `epoch` is still
+            // current) -- acting here would tear down the connection the new
+            // runtime is already using, then clear the new bridge's parser
+            // mid-frame, forcing a needless second fatal/reset cycle.
+            auto strongBridge = weakBridge.lock();
+            if (!strongBridge || kbGetBridge() != strongBridge) {
+              kbLogToService(@"rpc stream desync from superseded bridge, ignoring");
+              return;
+            }
             kbLogToService(@"rpc stream desync, resetting connection");
             // Reset the Go connection before the parser: the reader thread is
             // still live on this path, so resetting the parser first would
@@ -382,9 +394,7 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
             // forces a second, needless fatal/reset cycle.
             BOOL didReset = KeybaseResetIfCurrentDidReset(epoch);
             if (didReset) {
-              if (auto bridge = kbGetBridge()) {
-                bridge->resetRecv();
-              }
+              strongBridge->resetRecv();
             }
             dispatch_async(dispatch_get_main_queue(), ^{
                 Kb *instance = kbSharedInstance;
