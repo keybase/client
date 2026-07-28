@@ -283,9 +283,9 @@ func TestFlushLoopFlushesOnPendingSignal(t *testing.T) {
 
 	convID := chat1.ConversationID([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 	idx.store.Lock()
-	for i := 0; i < maxDirtyEntries; i++ {
+	for i := chat1.MessageID(0); i < maxDirtyEntries; i++ {
 		te := newTokenEntry()
-		te.MsgIDs[chat1.MessageID(i)] = chat1.EmptyStruct{}
+		te.MsgIDs[i] = chat1.EmptyStruct{}
 		require.NoError(t, idx.store.putTokenEntry(ctx, convID, fmt.Sprintf("token%d", i), te))
 	}
 	idx.store.Unlock()

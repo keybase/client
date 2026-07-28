@@ -23,4 +23,6 @@ Repo root is `client/`. TS source lives in `shared/`. Always use absolute paths 
 - Plans created by superpowers skills go into `plans/` at the repo root.
 
 ## Validation
+After Go changes (from `go/`): always run both the tests for every package you touched (`go test ./chat/... ./libkb/...` etc.) and the linter (`golangci-lint run --timeout 30m ./...`, same as `make golangci-lint`). CI runs golangci-lint with `--new-from-rev <base>` and gosec/govet/revive/staticcheck are enabled — nothing else in the repo (no pre-commit hook, not `yarn lint:all`) runs it for you, so a skipped lint pass = red CI.
+
 After TS changes (from `shared/`): `yarn lint:all` (= `yarn lint` && `yarn lint:bailouts` && `yarn tsc`). Plain `yarn lint` is eslint only and does NOT catch react-compiler bailouts — no compiler rule is wired into `eslint.config.mjs`, so bailouts only surface via `lint:bailouts`. Repo baseline is 0 bailouts; keep it there. When debugging visually, skip until fix is confirmed. Never delete the ESLint cache.
