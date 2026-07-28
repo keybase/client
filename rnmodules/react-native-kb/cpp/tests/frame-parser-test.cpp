@@ -284,6 +284,58 @@ void testRecoveryAfterErrorAndReset() {
   }
 }
 
+// reset() is called from its own frame, which is then deliberately overwritten
+// before the parser is used again. If reset() left the unpacker holding a
+// reference into that frame (which move-assignment does), the reference now
+// points at the fill pattern rather than at plausible-looking leftovers, so the
+// test fails on every run instead of only when the stack happens to be reused.
+[[gnu::noinline]] void resetInOwnFrame(FrameParser &parser) { parser.reset(); }
+
+[[gnu::noinline]] void clobberStack() {
+  volatile char scratch[8192];
+  for (size_t i = 0; i < sizeof(scratch); ++i) {
+    scratch[i] = static_cast<char>(0xab);
+  }
+}
+
+void testResetThenBufferGrowth() {
+  // reset() must leave a parser that is safe to grow, not just safe to reuse.
+  // msgpack::unpacker cannot be move-assigned: its parser base keeps a
+  // reference to the finalizer object inside the unpacker, and the move
+  // constructor copies that reference instead of rebinding it, so a
+  // move-assigned unpacker points at the destroyed source. Nothing goes wrong
+  // until the buffer has to expand -- which is why every existing reset test
+  // passed while the real reader crashed on the first sizeable frame after a
+  // reset.
+  FrameParser parser;
+  std::vector<msgpack::object_handle> out;
+
+  Bytes first = buildFrame(packContent([](auto &pk) { pk.pack(1); }));
+  parser.feed(first.data(), first.size(), out);
+  CHECK_EQ(out.size(), 1u);
+
+  for (int round = 0; round < 3; ++round) {
+    resetInOwnFrame(parser);
+    clobberStack();
+    out.clear();
+
+    // The finalizer is only consulted when the buffer has to grow while it is
+    // still referenced, i.e. when a frame that has already had a string parsed
+    // out of it is still incomplete and the buffer must be reallocated to hold
+    // the rest. A multi-field frame arriving across several reads -- an
+    // everyday RPC reply -- does exactly that.
+    const size_t big = 2u * 1024 * 1024;
+    Bytes frame = buildFrame(packContent([big](auto &pk) {
+      pk.pack_array(2);
+      pk.pack(std::string(1024, 'r'));
+      pk.pack(std::string(big, 'z'));
+    }));
+    feedInChunks(parser, frame, 64 * 1024, out);
+    CHECK_EQ(out.size(), 1u);
+    CHECK_EQ(out[0].get().via.array.ptr[1].via.str.size, big);
+  }
+}
+
 void testBufferShrinkFiresAndArithmeticHoldsAfterShrink() {
   FrameParser parser;
   std::vector<msgpack::object_handle> out;
@@ -387,6 +439,7 @@ int main() {
   runner.add("oversized_frame_rejected_and_legal_max_not_falsely_rejected",
             testOversizedFrameRejectedAndLegalMaxNotFalselyRejected);
   runner.add("recovery_after_error_and_reset", testRecoveryAfterErrorAndReset);
+  runner.add("reset_then_buffer_growth", testResetThenBufferGrowth);
   runner.add("buffer_shrink_fires_and_arithmetic_holds_after_shrink",
             testBufferShrinkFiresAndArithmeticHoldsAfterShrink);
   runner.add("nested_and_empty_containers_roundtrip",

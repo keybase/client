@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -69,7 +70,14 @@ public:
 private:
   enum class ReadState { needSize, needContent };
 
-  msgpack::unpacker unpacker_;
+  // Held by pointer so reset() can replace it with a freshly constructed one.
+  // msgpack::unpacker must never be move-assigned: its parser base holds a
+  // *reference* to the finalizer living inside the unpacker object, and the
+  // move constructor copies that reference rather than rebinding it, so a
+  // moved-into unpacker keeps pointing at the (destroyed) source. The next
+  // buffer expansion then writes through that dangling reference.
+  std::unique_ptr<msgpack::unpacker> unpacker_ =
+      std::make_unique<msgpack::unpacker>();
   ReadState state_ = ReadState::needSize;
   // Persist across calls: a frame's header and its content routinely arrive
   // in separate reads.

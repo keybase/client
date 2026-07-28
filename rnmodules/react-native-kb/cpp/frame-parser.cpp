@@ -6,14 +6,14 @@ namespace kb {
 
 void FrameParser::feed(const uint8_t *data, size_t size,
                        std::vector<msgpack::object_handle> &out) {
-  unpacker_.reserve_buffer(size);
-  std::memcpy(unpacker_.buffer(), data, size);
-  unpacker_.buffer_consumed(size);
+  unpacker_->reserve_buffer(size);
+  std::memcpy(unpacker_->buffer(), data, size);
+  unpacker_->buffer_consumed(size);
   totalFed_ += size;
 
   while (true) {
     msgpack::object_handle result;
-    if (!unpacker_.next(result)) {
+    if (!unpacker_->next(result)) {
       break;
     }
     if (state_ == ReadState::needSize) {
@@ -27,7 +27,7 @@ void FrameParser::feed(const uint8_t *data, size_t size,
       }
       declaredSize_ = static_cast<size_t>(o.as<uint64_t>());
       peakFrameSize_ = std::max(peakFrameSize_, declaredSize_);
-      consumedAtHeader_ = totalFed_ - unpacker_.nonparsed_size();
+      consumedAtHeader_ = totalFed_ - unpacker_->nonparsed_size();
       state_ = ReadState::needContent;
     } else {
       // The header is only a plausibility check on its own: a fixint sitting
@@ -42,7 +42,7 @@ void FrameParser::feed(const uint8_t *data, size_t size,
       // calls. totalFed - nonparsed_size() is a genuine monotonic count of
       // bytes consumed from the stream.
       const size_t consumed =
-          (totalFed_ - unpacker_.nonparsed_size()) - consumedAtHeader_;
+          (totalFed_ - unpacker_->nonparsed_size()) - consumedAtHeader_;
       if (consumed != declaredSize_) {
         throw std::runtime_error("rpc frame length mismatch");
       }
@@ -51,13 +51,13 @@ void FrameParser::feed(const uint8_t *data, size_t size,
     }
   }
 
-  if (unpacker_.nonparsed_size() > kMaxFrameSize + kMaxFrameSlack) {
+  if (unpacker_->nonparsed_size() > kMaxFrameSize + kMaxFrameSlack) {
     throw std::runtime_error("rpc frame exceeds size limit");
   }
 }
 
 void FrameParser::reset() {
-  unpacker_ = msgpack::unpacker();
+  unpacker_ = std::make_unique<msgpack::unpacker>();
   state_ = ReadState::needSize;
   declaredSize_ = 0;
   consumedAtHeader_ = 0;
@@ -66,7 +66,7 @@ void FrameParser::reset() {
 }
 
 bool FrameParser::atSafeShrinkPoint() const {
-  return state_ == ReadState::needSize && unpacker_.nonparsed_size() == 0 &&
+  return state_ == ReadState::needSize && unpacker_->nonparsed_size() == 0 &&
          peakFrameSize_ > kRecvBufKeepCapacity;
 }
 
