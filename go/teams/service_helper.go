@@ -51,23 +51,16 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	settings := t.Settings()
 
 	tracer.Stage("members & invites")
-	members, annotatedInvites, err := GetAnnotatedInvitesAndMembersForUI(mctx, t)
+	members, annotatedInvites, err := annotatedTeamMembersForUI(mctx, t)
 	if err != nil {
 		return res, err
 	}
-	members = membersFilterDeletedUsers(mctx.Ctx(), mctx.G(), members)
-	members = membersHideInactiveDuplicates(mctx.Ctx(), mctx.G(), members)
 
 	var transitiveSubteamsUnverified keybase1.SubteamListResult
 	var joinRequests []keybase1.TeamJoinRequest
 	var tarsDisabled bool
 	var showcase keybase1.TeamShowcase
 	if !t.IsImplicit() {
-		if settings.Open {
-			g.Log.CDebugf(ctx, "GetAnnotatedTeam: %q is an open team, filtering reset writers and readers", t.Name().String())
-			members = keybase1.FilterInactiveReadersWriters(members)
-		}
-
 		tracer.Stage("transitive subteams")
 		transitiveSubteamsUnverified, err = ListSubteamsUnverified(mctx, t.Name())
 		if err != nil {
@@ -111,6 +104,40 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		KeyGeneration:                t.Generation(),
 		Showcase:                     showcase,
 	}, nil
+}
+
+// GetAnnotatedTeamMembers returns the member view used by the UI without
+// fetching the unrelated subteam, access-request, TAR, and showcase data in an
+// AnnotatedTeam.
+func GetAnnotatedTeamMembers(ctx context.Context, g *libkb.GlobalContext,
+	teamID keybase1.TeamID,
+) (res []keybase1.TeamMemberDetails, err error) {
+	tracer := g.CTimeTracer(ctx, "GetAnnotatedTeamMembers", true)
+	defer tracer.Finish()
+
+	t, err := GetMaybeAdminByID(ctx, g, teamID, teamID.IsPublic())
+	if err != nil {
+		return nil, err
+	}
+
+	res, _, err = annotatedTeamMembersForUI(libkb.NewMetaContext(ctx, g), t)
+	return res, err
+}
+
+func annotatedTeamMembersForUI(mctx libkb.MetaContext, t *Team) (
+	members []keybase1.TeamMemberDetails, annotatedInvites []keybase1.AnnotatedTeamInvite, err error,
+) {
+	members, annotatedInvites, err = GetAnnotatedInvitesAndMembersForUI(mctx, t)
+	if err != nil {
+		return nil, nil, err
+	}
+	members = membersFilterDeletedUsers(mctx.Ctx(), mctx.G(), members)
+	members = membersHideInactiveDuplicates(mctx.Ctx(), mctx.G(), members)
+	if t.Settings().Open {
+		mctx.Debug("GetAnnotatedTeamMembers: %q is an open team, filtering reset writers and readers", t.Name().String())
+		members = keybase1.FilterInactiveReadersWriters(members)
+	}
+	return members, annotatedInvites, nil
 }
 
 func GetAnnotatedTeamByName(ctx context.Context, g *libkb.GlobalContext, teamName string) (res keybase1.AnnotatedTeam, err error) {

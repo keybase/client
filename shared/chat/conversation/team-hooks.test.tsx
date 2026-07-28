@@ -65,6 +65,9 @@ test('useChatTeamMembers serves cached members on remount so roles render withou
 test('useChatTeamMemberRole resolves from cache on the first render under a remounted provider', async () => {
   const teamID = makeTeamID(2)
   mockThreadMeta = {teamID, teamType: 'big', teamname: 'keybase'}
+  const annotatedTeamRPC = jest
+    .spyOn(T.RPCGen, 'teamsGetAnnotatedTeamRpcPromise')
+    .mockResolvedValue({} as T.RPCGen.AnnotatedTeam)
   const rpc = mockGetMembers([
     memberDetails('testuser', T.RPCGen.TeamRole.admin),
     memberDetails('testuser-mac', T.RPCGen.TeamRole.reader),
@@ -86,6 +89,7 @@ test('useChatTeamMemberRole resolves from cache on the first render under a remo
     await flushPromises()
   })
   expect(rpc).toHaveBeenCalledTimes(1)
+  expect(annotatedTeamRPC).not.toHaveBeenCalled()
 })
 
 test('a disabled shadow useChatTeamMembers does not clobber the provider cache', async () => {

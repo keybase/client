@@ -73,10 +73,10 @@ func TestGetAnnotatedTeamIdiosyncrasies(t *testing.T) {
 	}
 	t.Logf("assert that ali is also invited as an admin")
 	assertInvite(tc, name.String(), resetUV.String(), "keybase", keybase1.TeamRole_ADMIN)
-	tm, err = GetAnnotatedTeam(ctx, tc.G, ID)
+	members, err := GetAnnotatedTeamMembers(ctx, tc.G, ID)
 	require.NoError(t, err)
-	require.Len(t, tm.Members, 3, "GetAnnotatedTeam returns only one result for Ali anyway, filtering out inactive owners")
-	require.Equal(t, 1, countMember(t, tm.Members, ali.Username, true, keybase1.TeamMemberStatus_ACTIVE), "ali added as a kb invite")
+	require.Len(t, members, 3, "GetAnnotatedTeamMembers returns only one result for Ali anyway, filtering out inactive owners")
+	require.Equal(t, 1, countMember(t, members, ali.Username, true, keybase1.TeamMemberStatus_ACTIVE), "ali added as a kb invite")
 }
 
 func TestGetAnnotatedTeamKeybaseInvites(t *testing.T) {
@@ -119,8 +119,8 @@ func TestGetAnnotatedTeamKeybaseInvites(t *testing.T) {
 	_, err = AddMember(ctx, tc.G, name.String(), cha.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
-	tm, err = GetAnnotatedTeam(ctx, tc.G, ID)
+	members, err := GetAnnotatedTeamMembers(ctx, tc.G, ID)
 	require.NoError(t, err)
-	require.Len(t, tm.Members, 2)
-	require.Equal(t, 1, countMember(t, tm.Members, cha.Username, false, keybase1.TeamMemberStatus_ACTIVE))
+	require.Len(t, members, 2)
+	require.Equal(t, 1, countMember(t, members, cha.Username, false, keybase1.TeamMemberStatus_ACTIVE))
 }
