@@ -24,3 +24,4 @@ apt-get -yq install libssl-dev libffi-dev
 pip3 install triplesec
 
 usermod -aG systemd-journal vagrant
+loginctl enable-linger vagrant
