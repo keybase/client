@@ -3,14 +3,82 @@ package chat
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
+
+type teamChannelParticipantsListener struct {
+	libkb.NoopNotifyListener
+	participants chan map[chat1.ConvIDStr][]chat1.UIParticipant
+}
+
+func (l *teamChannelParticipantsListener) ChatParticipantsInfo(
+	participants map[chat1.ConvIDStr][]chat1.UIParticipant,
+) {
+	l.participants <- participants
+}
+
+func TestTeamChannelSourceNotifiesParticipants(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+
+	ctc := makeChatTestContext(t, "TestTeamChannelSourceNotifiesParticipants", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+	user := users[0]
+	otherUser := users[1]
+
+	general := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM, otherUser)
+	topicName := "channel1"
+	channel := mustCreateChannelForTest(t, ctc, user, chat1.TopicType_CHAT, &topicName,
+		chat1.ConversationMembersType_TEAM, otherUser)
+
+	listener := &teamChannelParticipantsListener{
+		participants: make(chan map[chat1.ConvIDStr][]chat1.UIParticipant, 10),
+	}
+	ctc.as(t, user).h.G().NotifyRouter.AddListener(listener)
+
+	uid := gregor1.UID(user.GetUID().ToBytes())
+	convs, err := ctc.world.Tcs[user.Username].Context().TeamChannelSource.GetChannelsFull(
+		ctc.as(t, user).startCtx, uid, general.Triple.Tlfid, chat1.TopicType_CHAT)
+	require.NoError(t, err)
+	require.Len(t, convs, 2)
+
+	want := map[chat1.ConvIDStr]bool{
+		general.Id.ConvIDStr(): false,
+		channel.Id.ConvIDStr(): false,
+	}
+	timeout := time.After(20 * time.Second)
+	for {
+		allFound := true
+		for _, found := range want {
+			allFound = allFound && found
+		}
+		if allFound {
+			break
+		}
+		select {
+		case participants := <-listener.participants:
+			for convID, participantList := range participants {
+				if _, ok := want[convID]; ok {
+					require.NotEmpty(t, participantList)
+					want[convID] = true
+				}
+			}
+		case <-timeout:
+			require.FailNow(t, "timed out waiting for team channel participants",
+				"received participants for: %+v", want)
+		}
+	}
+}
 
 func TestTeamChannelSource(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
