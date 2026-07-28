@@ -29,6 +29,17 @@ const (
 	aliasDiskVersion = 1
 )
 
+// Triggers early flush when pending set grows large. Fast indexing writes thousands
+// of entries/second, which would sit in memory for the full 15s flushDelay otherwise.
+//
+// This is a trigger, not a ceiling: one Add() holds the lock for a full batch (~2600
+// entries for 300 messages), so actual peak is this + one batch. Must stay well above
+// one batch or every batch triggers a flush (wasteful re-encryption of hot tokens).
+//
+// Counts entries, not bytes. Hot tokens dominate the pending set and have large posting
+// lists, so 35-40MB is realistic despite "only" 20k entries.
+const maxDirtyEntries = 20000
+
 type tokenEntry struct {
 	Version string                                `codec:"v"`
 	MsgIDs  map[chat1.MessageID]chat1.EmptyStruct `codec:"m"`
@@ -256,12 +267,23 @@ type store struct {
 	mdCache     *lru.Cache
 	diskStorage diskStorage
 
-	// Track dirty entries that need to be flushed to disk
-	dirtyTokens   map[chat1.ConvIDStr]map[string]struct{} // map[convIDStr][token]
-	dirtyAliases  map[string]struct{}                     // map[alias]
-	dirtyMetadata map[chat1.ConvIDStr]struct{}            // map[convIDStr]
+	// Entries written but not yet on disk. These hold the entry itself, not just
+	// its key: the caches above are bounded LRUs, so a dirty entry can be evicted
+	// before the next flush, and a key-only record of it would name an entry that
+	// is no longer anywhere in memory. Reads consult these before disk, and Flush
+	// writes from these rather than from the caches.
+	dirtyTokens   map[chat1.ConvIDStr]map[string]*tokenEntry // map[convIDStr][token]
+	dirtyAliases  map[string]*aliasEntry                     // map[alias]
+	dirtyMetadata map[chat1.ConvIDStr]*indexMetadata         // map[convIDStr]
+
+	// how many entries are pending across all three maps above, and a one-slot
+	// nudge to the flush loop for when that gets big. Buffered and sent to
+	// without blocking: a signal already waiting is the same request.
+	dirtyCount    int
+	flushNeededCh chan struct{}
 
 	flushMtx sync.Mutex // Synchronizes flush operations to disk
+	clearMtx sync.RWMutex
 }
 
 func newStore(g *globals.Context, uid gregor1.UID) *store {
@@ -283,9 +305,10 @@ func newStore(g *globals.Context, uid gregor1.UID) *store {
 		tokenCache:    tc,
 		mdCache:       mc,
 		diskStorage:   newDiskStore(g, uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn), g.LocalChatDb),
-		dirtyTokens:   make(map[chat1.ConvIDStr]map[string]struct{}),
-		dirtyAliases:  make(map[string]struct{}),
-		dirtyMetadata: make(map[chat1.ConvIDStr]struct{}),
+		dirtyTokens:   make(map[chat1.ConvIDStr]map[string]*tokenEntry),
+		dirtyAliases:  make(map[string]*aliasEntry),
+		dirtyMetadata: make(map[chat1.ConvIDStr]*indexMetadata),
+		flushNeededCh: make(chan struct{}, 1),
 	}
 }
 
@@ -471,6 +494,15 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 	if te, ok := s.tokenCache.Get(cacheKey); ok {
 		return te.(*tokenEntry), nil
 	}
+	// evicted from the cache but not yet flushed: the copy on disk is stale
+	if te, ok := s.dirtyTokens[convID.ConvIDStr()][token]; ok {
+		if te == nil {
+			// pending delete: the copy still on disk is about to go
+			return newTokenEntry(), nil
+		}
+		s.tokenCache.Add(cacheKey, te)
+		return te, nil
+	}
 	if res, err = s.diskStorage.GetTokenEntry(ctx, convID, token); err != nil {
 		return nil, err
 	}
@@ -488,6 +520,15 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
 	if dat, ok := s.aliasCache.Get(alias); ok {
 		return dat.(*aliasEntry), nil
+	}
+	// evicted from the cache but not yet flushed: the copy on disk is stale
+	if ae, ok := s.dirtyAliases[alias]; ok {
+		if ae == nil {
+			// pending delete: the copy still on disk is about to go
+			return newAliasEntry(), nil
+		}
+		s.aliasCache.Add(alias, ae)
+		return ae, nil
 	}
 	if res, err = s.diskStorage.GetAliasEntry(ctx, alias); err != nil {
 		return nil, err
@@ -511,16 +552,42 @@ func (s *store) putTokenEntry(ctx context.Context, convID chat1.ConversationID,
 
 	convIDStr := convID.ConvIDStr()
 	if s.dirtyTokens[convIDStr] == nil {
-		s.dirtyTokens[convIDStr] = make(map[string]struct{})
+		s.dirtyTokens[convIDStr] = make(map[string]*tokenEntry)
 	}
-	s.dirtyTokens[convIDStr][token] = struct{}{}
+	if _, ok := s.dirtyTokens[convIDStr][token]; !ok {
+		s.dirtyCount++
+	}
+	s.dirtyTokens[convIDStr][token] = te
+	s.signalFlushIfFullLocked()
 
 	return nil
 }
 
+// signalFlushIfFullLocked asks the flush loop to run early once enough entries
+// are pending. Callers hold s.Lock; the send never blocks, so it cannot deadlock
+// against the flush it is asking for.
+func (s *store) signalFlushIfFullLocked() {
+	if s.dirtyCount < maxDirtyEntries {
+		return
+	}
+	select {
+	case s.flushNeededCh <- struct{}{}:
+	default:
+	}
+}
+
+// flushNeeded fires once the pending set reaches maxDirtyEntries.
+func (s *store) flushNeeded() <-chan struct{} {
+	return s.flushNeededCh
+}
+
 func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
 	s.aliasCache.Add(alias, ae)
-	s.dirtyAliases[alias] = struct{}{}
+	if _, ok := s.dirtyAliases[alias]; !ok {
+		s.dirtyCount++
+	}
+	s.dirtyAliases[alias] = ae
+	s.signalFlushIfFullLocked()
 
 	return nil
 }
@@ -528,7 +595,11 @@ func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry)
 func (s *store) putMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) (err error) {
 	convIDStr := convID.ConvIDStr()
 	s.mdCache.Add(convIDStr, md)
-	s.dirtyMetadata[convIDStr] = struct{}{}
+	if _, ok := s.dirtyMetadata[convIDStr]; !ok {
+		s.dirtyCount++
+	}
+	s.dirtyMetadata[convIDStr] = md
+	s.signalFlushIfFullLocked()
 
 	return nil
 }
@@ -540,24 +611,28 @@ func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationI
 
 	s.tokenCache.Remove(cacheKey)
 
+	// Queue a nil tombstone instead of deleting directly. Flush snapshots under lock
+	// but writes outside it, so a direct delete races: flush snapshots old value →
+	// delete removes key → flush restores old value. Tombstones preserve ordering.
 	convIDStr := convID.ConvIDStr()
-	if tokens, ok := s.dirtyTokens[convIDStr]; ok {
-		delete(tokens, token)
-		// Clean up empty map
-		if len(tokens) == 0 {
-			delete(s.dirtyTokens, convIDStr)
-		}
+	if s.dirtyTokens[convIDStr] == nil {
+		s.dirtyTokens[convIDStr] = make(map[string]*tokenEntry)
 	}
-
-	// Delete from disk immediately
-	s.diskStorage.RemoveTokenEntry(ctx, convID, token)
+	if _, pending := s.dirtyTokens[convIDStr][token]; !pending {
+		s.dirtyCount++
+		s.signalFlushIfFullLocked()
+	}
+	s.dirtyTokens[convIDStr][token] = nil
 }
 
 func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
 	s.aliasCache.Remove(alias)
-	delete(s.dirtyAliases, alias)
-	// Delete from disk immediately
-	s.diskStorage.RemoveAliasEntry(ctx, alias)
+	// queued, not written through - see deleteTokenEntry
+	if _, pending := s.dirtyAliases[alias]; !pending {
+		s.dirtyCount++
+		s.signalFlushIfFullLocked()
+	}
+	s.dirtyAliases[alias] = nil
 }
 
 // addTokens add the given tokens to the index under the given message
@@ -716,6 +791,35 @@ func (s *store) ConvIndexStats(ctx context.Context, conv chat1.Conversation) (re
 	}, nil
 }
 
+// MarkSeen records IDs as accounted for without indexing them. Lets convs converge
+// despite deleted messages and gaps the server will never return: without this, those
+// IDs hold numMissing > 0 forever and SelectiveSync refetches the conv every interval.
+// Called after successful fetch with IDs absent from the response.
+func (s *store) MarkSeen(ctx context.Context, convID chat1.ConversationID, ids []chat1.MessageID) (err error) {
+	if len(ids) == 0 {
+		return nil
+	}
+	s.clearMtx.RLock()
+	defer s.clearMtx.RUnlock()
+	s.Lock()
+	defer s.Unlock()
+	md, err := s.getMetadataLocked(ctx, convID)
+	if err != nil {
+		return err
+	}
+	modified := false
+	for _, id := range ids {
+		if _, ok := md.SeenIDs[id]; !ok {
+			md.SeenIDs[id] = chat1.EmptyStruct{}
+			modified = true
+		}
+	}
+	if !modified {
+		return nil
+	}
+	return s.putMetadata(ctx, convID, md)
+}
+
 // getMetadataLocked returns the live cached metadata for convID, populating the
 // cache from disk on a miss. The returned *indexMetadata is shared and its
 // SeenIDs map may be mutated, so callers must hold s.RLock for read-only access
@@ -724,6 +828,12 @@ func (s *store) getMetadataLocked(ctx context.Context, convID chat1.Conversation
 	convIDStr := convID.ConvIDStr()
 	if cached, ok := s.mdCache.Get(convIDStr); ok {
 		return cached.(*indexMetadata), nil
+	}
+	// evicted from the cache but not yet flushed: the copy on disk is stale, and
+	// for metadata that means losing SeenIDs and re-indexing what it recorded
+	if md, ok := s.dirtyMetadata[convIDStr]; ok {
+		s.mdCache.Add(convIDStr, md)
+		return md, nil
 	}
 
 	if res, err = s.diskStorage.GetMetadata(ctx, convID); err != nil {
@@ -758,6 +868,14 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	}
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	superseded := make(map[chat1.MessageID]supersededFetch, len(msgs))
+
+	// Collect what every message in this batch supersedes, then fetch the whole
+	// set in one call. Asking per message costs one GetMessages round trip per
+	// edit or attachment upload, which over a backfill of a large conversation
+	// is tens of thousands of single-message fetches.
+	superIDsByMsg := make(map[chat1.MessageID][]chat1.MessageID, len(msgs))
+	var allSuperIDs []chat1.MessageID
+	seenSuperID := make(map[chat1.MessageID]bool)
 	for _, msg := range msgs {
 		switch msg.GetMessageType() {
 		case chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_EDIT:
@@ -766,20 +884,74 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 				s.Debug(ctx, "Add: unable to get supersedes: %v", err)
 				continue
 			}
-			supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, superIDs,
-				false /* resolveSupersedes */, &reason)
-			if err != nil {
-				s.Debug(ctx, "Add: unable to fetch superseded messages: %v", err)
-				continue
+			superIDsByMsg[msg.GetMessageID()] = superIDs
+			for _, superID := range superIDs {
+				if !seenSuperID[superID] {
+					seenSuperID[superID] = true
+					allSuperIDs = append(allSuperIDs, superID)
+				}
 			}
-			fetch := supersededFetch{msgs: supersededMsgs}
-			if msg.GetMessageType() == chat1.MessageType_EDIT {
-				fetch.tokens = tokensFromMsg(msg)
-			}
-			superseded[msg.GetMessageID()] = fetch
 		}
 	}
 
+	supersededByID := make(map[chat1.MessageID]chat1.MessageUnboxed, len(allSuperIDs))
+	if len(allSuperIDs) > 0 {
+		supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, allSuperIDs,
+			false /* resolveSupersedes */, &reason)
+		if err != nil {
+			// the batch tells us nothing about which ID was at fault, so fall back
+			// to the per-message fetches and let each one fail on its own
+			s.Debug(ctx, "Add: unable to fetch superseded messages in bulk: %v", err)
+			for _, superIDs := range superIDsByMsg {
+				single, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, superIDs,
+					false /* resolveSupersedes */, &reason)
+				if err != nil {
+					s.Debug(ctx, "Add: unable to fetch superseded messages: %v", err)
+					continue
+				}
+				for _, sm := range single {
+					supersededByID[sm.GetMessageID()] = sm
+				}
+			}
+		} else {
+			for _, sm := range supersededMsgs {
+				supersededByID[sm.GetMessageID()] = sm
+			}
+		}
+	}
+
+	unresolved := make(map[chat1.MessageID]bool)
+	for _, msg := range msgs {
+		superIDs, ok := superIDsByMsg[msg.GetMessageID()]
+		if !ok {
+			continue
+		}
+		fetch := supersededFetch{}
+		for _, superID := range superIDs {
+			if sm, ok := supersededByID[superID]; ok {
+				fetch.msgs = append(fetch.msgs, sm)
+			}
+		}
+		if len(fetch.msgs) == 0 {
+			// We know what this message supersedes but could not fetch it, so
+			// its content has nowhere to go. Record that rather than falling
+			// through as a no-op, or the message would be marked seen with the
+			// edit never applied and nothing would revisit it.
+			if len(superIDs) > 0 {
+				unresolved[msg.GetMessageID()] = true
+			}
+			continue
+		}
+		if msg.GetMessageType() == chat1.MessageType_EDIT {
+			fetch.tokens = tokensFromMsg(msg)
+		}
+		superseded[msg.GetMessageID()] = fetch
+	}
+
+	// Fetching superseded messages above can block, so only join the mutation
+	// barrier once the data needed for the write is ready.
+	s.clearMtx.RLock()
+	defer s.clearMtx.RUnlock()
 	s.Lock()
 	defer s.Unlock()
 
@@ -800,26 +972,34 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 		if _, ok := seenIDs[msg.GetMessageID()]; ok {
 			continue
 		}
-		modified = true
-		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
+		// Mark seen only once the indexing behind the mark has succeeded. md is
+		// the live shared object and is usually already pending, so a mark made
+		// up front stands whatever happens next: the message ends up recorded as
+		// indexed with no tokens for it, and nothing re-indexes a message the
+		// metadata already accounts for. The same reasoning covers a message
+		// whose superseded target could not be fetched -- leave it unseen so a
+		// later pass can try again.
 		// NOTE DELETE and DELETEHISTORY are handled through calls to `remove`,
 		// other messages will be added if there is any content that can be
 		// indexed.
+		if unresolved[msg.GetMessageID()] {
+			continue
+		}
 		switch msg.GetMessageType() {
 		case chat1.MessageType_ATTACHMENTUPLOADED:
 			for _, sm := range superseded[msg.GetMessageID()].msgs {
-				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
 				err := s.addMsg(ctx, convID, sm)
 				if err != nil {
 					return err
 				}
+				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
+				modified = true
 			}
 		case chat1.MessageType_EDIT:
 			fetch := superseded[msg.GetMessageID()]
 			// remove the original message text and replace it with the edited
 			// contents (using the original id in the index)
 			for _, sm := range fetch.msgs {
-				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
 				err := s.removeMsg(ctx, convID, sm)
 				if err != nil {
 					return err
@@ -828,6 +1008,8 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 				if err != nil {
 					return err
 				}
+				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
+				modified = true
 			}
 		default:
 			err := s.addMsg(ctx, convID, msg)
@@ -835,6 +1017,8 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 				return err
 			}
 		}
+		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
+		modified = true
 	}
 	return nil
 }
@@ -844,6 +1028,8 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed,
 ) (err error) {
 	defer s.Trace(ctx, &err, "Remove")()
+	s.clearMtx.RLock()
+	defer s.clearMtx.RUnlock()
 	s.Lock()
 	defer s.Unlock()
 
@@ -860,14 +1046,18 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 			continue
 		}
 		modified = true
-		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
 		err := s.removeMsg(ctx, convID, msg)
 		if err != nil {
 			return err
 		}
 	}
 	if modified {
-		return s.diskStorage.PutMetadata(ctx, convID, md)
+		// Through the overlay, never straight to disk. md is the live shared
+		// object, so it carries SeenIDs from an Add whose token entries are
+		// still only pending; writing it here published "these messages are
+		// indexed" ahead of the tokens backing them, and a conv that reaches
+		// numMissing 0 that way is never looked at again.
+		return s.putMetadata(ctx, convID, md)
 	}
 	return nil
 }
@@ -881,14 +1071,38 @@ func (s *store) ClearMemory() {
 	s.tokenCache.Purge()
 	s.mdCache.Purge()
 
-	s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]struct{})
-	s.dirtyAliases = make(map[string]struct{})
-	s.dirtyMetadata = make(map[chat1.ConvIDStr]struct{})
+	s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]*tokenEntry)
+	s.dirtyAliases = make(map[string]*aliasEntry)
+	s.dirtyMetadata = make(map[chat1.ConvIDStr]*indexMetadata)
+	s.dirtyCount = 0
+	select {
+	case <-s.flushNeededCh:
+	default:
+	}
 }
 
 func (s *store) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
+	// Keep Add, Remove, and MarkSeen out of the gap between Flush and
+	// ClearMemory. A mutation that starts during this clear waits and is applied
+	// afterward instead of being silently discarded.
+	s.clearMtx.Lock()
+	defer s.clearMtx.Unlock()
+	// ClearMemory is global while the disk clear is for one conv, so flush first:
+	// otherwise clearing one conversation discards every other conversation's
+	// pending writes along with it. If the flush fails those writes are still
+	// lost - the clear proceeds regardless, since leaving this conv's index half
+	// dropped is worse.
+	if err := s.Flush(); err != nil {
+		s.Debug(ctx, "Clear: flush before clear failed: %s", err)
+	}
 	s.ClearMemory()
 	return s.diskStorage.Clear(ctx, uid, convID)
+}
+
+type tokenSnapshot struct {
+	convID chat1.ConversationID
+	token  string
+	entry  *tokenEntry
 }
 
 func (s *store) Flush() error {
@@ -898,12 +1112,7 @@ func (s *store) Flush() error {
 	s.flushMtx.Lock()
 	defer s.flushMtx.Unlock()
 
-	// Snapshot the cache entries that need to be flushed to disk.
-	type tokenSnapshot struct {
-		convID chat1.ConversationID
-		token  string
-		entry  *tokenEntry
-	}
+	// Snapshot the entries that need to be flushed to disk.
 	var tokenSnapshots []tokenSnapshot
 	aliasSnapshots := make(map[string]*aliasEntry)
 	mdSnapshots := make(map[chat1.ConvIDStr]*indexMetadata)
@@ -922,37 +1131,33 @@ func (s *store) Flush() error {
 				s.Debug(ctx, "Flush: invalid convID %s: %s", convIDStr, err)
 				continue
 			}
-			for token := range tokens {
-				cacheKey := s.tokenCacheKey(convID, token)
-				if cachedVal, ok := s.tokenCache.Get(cacheKey); ok {
-					te := cachedVal.(*tokenEntry)
-					tokenSnapshots = append(tokenSnapshots, tokenSnapshot{
-						convID: convID,
-						token:  token,
-						entry:  te.dup(),
-					})
-				}
+			for token, te := range tokens {
+				tokenSnapshots = append(tokenSnapshots, tokenSnapshot{
+					convID: convID,
+					token:  token,
+					entry:  te.dup(),
+				})
 			}
 		}
 
-		for alias := range s.dirtyAliases {
-			if cachedVal, ok := s.aliasCache.Get(alias); ok {
-				ae := cachedVal.(*aliasEntry)
-				aliasSnapshots[alias] = ae.dup()
-			}
+		for alias, ae := range s.dirtyAliases {
+			aliasSnapshots[alias] = ae.dup()
 		}
 
-		for convIDStr := range s.dirtyMetadata {
-			if cachedVal, ok := s.mdCache.Get(convIDStr); ok {
-				md := cachedVal.(*indexMetadata)
-				mdSnapshots[convIDStr] = md.dup()
-			}
+		for convIDStr, md := range s.dirtyMetadata {
+			mdSnapshots[convIDStr] = md.dup()
 		}
 
 		// Clear dirty tracking
-		s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]struct{})
-		s.dirtyAliases = make(map[string]struct{})
-		s.dirtyMetadata = make(map[chat1.ConvIDStr]struct{})
+		s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]*tokenEntry)
+		s.dirtyAliases = make(map[string]*aliasEntry)
+		s.dirtyMetadata = make(map[chat1.ConvIDStr]*indexMetadata)
+		s.dirtyCount = 0
+		// drop a signal raised before this flush: it has just been answered
+		select {
+		case <-s.flushNeededCh:
+		default:
+		}
 
 		s.Unlock()
 	}
@@ -960,31 +1165,89 @@ func (s *store) Flush() error {
 	s.Debug(ctx, "Flush: writing %d tokens, %d aliases, %d metadata to disk",
 		len(tokenSnapshots), len(aliasSnapshots), len(mdSnapshots))
 
-	for _, snapshot := range tokenSnapshots {
+	for i, snapshot := range tokenSnapshots {
+		// a nil entry is a queued delete, not a value to write
+		if snapshot.entry == nil {
+			s.diskStorage.RemoveTokenEntry(ctx, snapshot.convID, snapshot.token)
+			continue
+		}
 		if err := s.diskStorage.PutTokenEntry(ctx, snapshot.convID, snapshot.token, snapshot.entry); err != nil {
 			s.Debug(ctx, "Flush: failed to write token: %s", err)
+			s.requeue(tokenSnapshots[i:], aliasSnapshots, mdSnapshots)
 			return err
 		}
 	}
+	tokenSnapshots = nil
 
 	for alias, ae := range aliasSnapshots {
+		if ae == nil {
+			s.diskStorage.RemoveAliasEntry(ctx, alias)
+			delete(aliasSnapshots, alias)
+			continue
+		}
 		if err := s.diskStorage.PutAliasEntry(ctx, alias, ae); err != nil {
 			s.Debug(ctx, "Flush: failed to write alias: %s", err)
+			s.requeue(nil, aliasSnapshots, mdSnapshots)
 			return err
 		}
+		delete(aliasSnapshots, alias)
 	}
 
 	for convIDStr, md := range mdSnapshots {
 		convID, err := chat1.MakeConvID(string(convIDStr))
 		if err != nil {
 			s.Debug(ctx, "Flush: invalid convID %s: %s", convIDStr, err)
+			delete(mdSnapshots, convIDStr)
 			continue
 		}
 		if err := s.diskStorage.PutMetadata(ctx, convID, md); err != nil {
 			s.Debug(ctx, "Flush: failed to write metadata: %s", err)
+			s.requeue(nil, nil, mdSnapshots)
 			return err
 		}
+		delete(mdSnapshots, convIDStr)
 	}
 
 	return nil
+}
+
+// requeue restores failed writes to the pending set for retry. Without this, entries
+// that fail to write are lost: they left dirty tracking before the write attempt, and
+// nothing marks them dirty again. The live metadata keeps its SeenIDs, so the next
+// flush records those messages as indexed with no tokens (unsearchable, never retried).
+// Skips keys with newer pending writes (the snapshot is stale).
+func (s *store) requeue(tokens []tokenSnapshot, aliases map[string]*aliasEntry,
+	mds map[chat1.ConvIDStr]*indexMetadata,
+) {
+	s.Lock()
+	defer s.Unlock()
+	for _, snapshot := range tokens {
+		convIDStr := snapshot.convID.ConvIDStr()
+		if s.dirtyTokens[convIDStr] == nil {
+			s.dirtyTokens[convIDStr] = make(map[string]*tokenEntry)
+		}
+		// A value queued since the snapshot was taken - including a nil
+		// tombstone from a delete - describes a later state of the entry than
+		// the one whose write failed, so restoring the snapshot over it would
+		// roll that mutation back.
+		if _, ok := s.dirtyTokens[convIDStr][snapshot.token]; ok {
+			continue
+		}
+		s.dirtyTokens[convIDStr][snapshot.token] = snapshot.entry
+		s.dirtyCount++
+	}
+	for alias, ae := range aliases {
+		if _, ok := s.dirtyAliases[alias]; ok {
+			continue
+		}
+		s.dirtyAliases[alias] = ae
+		s.dirtyCount++
+	}
+	for convIDStr, md := range mds {
+		if _, ok := s.dirtyMetadata[convIDStr]; ok {
+			continue
+		}
+		s.dirtyMetadata[convIDStr] = md
+		s.dirtyCount++
+	}
 }
