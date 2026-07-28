@@ -19,8 +19,13 @@ import * as T from '../../shared/test-ids'
 const ANDROID_PACKAGE = 'io.keybase.ossifrage'
 
 describe('android activity restart (back-button RPC wedge)', () => {
-  it('keeps inbound RPC alive after the Activity (not the process) is destroyed and reopened', async () => {
-    if (!browser.isAndroid) return
+  // Non-arrow body so `this.skip()` is available: returning early from an
+  // async test body marks it PASSED, which is exactly the false green this
+  // regression test must not produce.
+  it('keeps inbound RPC alive after the Activity (not the process) is destroyed and reopened', async function () {
+    if (!browser.isAndroid) {
+      this.skip()
+    }
 
     // Proving the process survived needs `mobile: shell`, which needs the
     // appium service running with relaxedSecurity. That widens what the local
@@ -31,7 +36,7 @@ describe('android activity restart (back-button RPC wedge)', () => {
       console.warn(
         'android-activity-restart: SKIPPED — set KB_E2E_RELAXED_SECURITY=1 to run it (needs appium relaxedSecurity for pidof)'
       )
-      return
+      this.skip()
     }
 
     requireSmokeUser()

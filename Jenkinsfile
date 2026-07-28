@@ -257,6 +257,17 @@ helpers.rootLinuxNode(env, {
                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                 "NODE_OPTIONS=--max-old-space-size=4096",
               ]) {
+                // Native C++ framing tests. Needs only a C++ compiler and the
+                // vendored msgpack headers (the script fetches them if yarn's
+                // darwin-only postinstall didn't), no JSI/RN, so run it before
+                // the JS suite rather than behind it -- it takes seconds and
+                // failFast would otherwise hide it whenever JS is red.
+                stage("Native framing tests") {
+                  sh "./rnmodules/react-native-kb/scripts/test-framing.sh"
+                  // Same deal, and not even msgpack: pure arithmetic extracted
+                  // from the iOS reader loop's engine-reset emit backoff.
+                  sh "./rnmodules/react-native-kb/scripts/test-engine-reset-backoff.sh"
+                }
                 dir("shared") {
                   stage("JS Tests") {
                     sh "git config --global user.name 'Keybase Jenkins'"
@@ -526,9 +537,28 @@ def testGo(prefix, packagesToTest, hasKBFSChanges) {
     test_go_test_suite: {
       testGoTestSuite(prefix, packagesToTest)
     },
+    test_go_bind: {
+      testGoBind(prefix)
+    },
     failFast: true
   )
   }}
+}
+
+// go/bind is deliberately absent from the generic sweep (getTestDirsNix,
+// getTestDirsWindows, getPackagesToTest): it is the gomobile entry point and
+// used to fail to link a test binary at all because of duplicate quarantineFile
+// C symbols (fixed in fb1420066c / a4281e4026). It links now, so run its suite
+// explicitly rather than reintroducing it to the sweep -- the sweep runs under
+// citogo with per-package flags, and this package wants nothing but -race.
+// Linux/darwin only: the Windows path has never built this package.
+def testGoBind(prefix) {
+  if (prefix != "test_linux_go_") {
+    return
+  }
+  timeout(activity: true, time: 10, unit: 'MINUTES') {
+    sh "go test -race -count=1 ./bind/..."
+  }
 }
 
 def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
