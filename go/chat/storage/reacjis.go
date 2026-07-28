@@ -292,6 +292,11 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 	customMap := make(map[string]string)
 	customMapNoAnim := make(map[string]string)
 	cache := s.populateCacheLocked(ctx, uid)
+	noAnim, err := s.G().EmojiSource.AnimationsDisabled(ctx)
+	if err != nil {
+		s.Debug(ctx, "UserReacjis: failed to read animation setting: %s", err)
+		noAnim = false
+	}
 	// resolve custom emoji
 	for name := range cache.FrequencyMap {
 		if s.G().EmojiSource.IsStockEmoji(name) {
@@ -309,7 +314,7 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 			delete(cache.FrequencyMap, name)
 			continue
 		}
-		source, noAnimSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, uid, harvested[0].Source)
+		source, noAnimSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, harvested[0].Source, noAnim)
 		if err != nil {
 			s.Debug(ctx, "UserReacjis: failed to convert to local source: %s", err)
 			delete(cache.FrequencyMap, name)

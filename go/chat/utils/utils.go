@@ -26,6 +26,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -3217,6 +3218,10 @@ func GetGregorBool(ctx context.Context, g *globals.Context, key string, defaultV
 	if err != nil {
 		return false, err
 	}
+	return GetGregorBoolFromState(st, key, defaultVal)
+}
+
+func GetGregorBoolFromState(st gregor.State, key string, defaultVal bool) (bool, error) {
 	cat, err := gregor1.ObjFactory{}.MakeCategory(key)
 	if err != nil {
 		return false, err
