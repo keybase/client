@@ -19,6 +19,7 @@ systemctl --user link "$TUXBOTD/nightly.timer"
 systemctl --user link "$TUXBOTD/docker-cleanup.service"
 systemctl --user link "$TUXBOTD/docker-cleanup.timer"
 systemctl --user daemon-reload
+systemctl --user enable "$TUXBOTD/tuxbot.service"
 systemctl --user enable "$TUXBOTD/nightly.timer"
 systemctl --user enable "$TUXBOTD/docker-cleanup.timer"
 
