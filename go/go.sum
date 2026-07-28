@@ -316,6 +316,8 @@ github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee h1:HU7N6AMnAXACm
 github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee/go.mod h1:YT8b13LS9QDe45OyX1BFgXD0BRANHm0xauB+LNfV6WM=
 github.com/keybase/saltpack v0.0.0-20251212154201-989135827042 h1:vtUfBctFZHc3yvvtYVzsZ0ISAKniOJPSoNhJdhEWWuU=
 github.com/keybase/saltpack v0.0.0-20251212154201-989135827042/go.mod h1:/pasLsId9ytjNdOmDknh4TXBv+h1q+xTWgHlP9FdN5A=
+github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6 h1:EdvpU9BuWL2e7IAysp2poRlYaxOQUJhmwCn0Y6b7jSg=
+github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6/go.mod h1:Sw53KzqVYBoB3AAaZLyyLcBTqQxQXDFOHp/lWg2hVOM=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7 h1:wOqDICze0HpgV4PfV6m4fWvHV5XZteSgFHrT6KVDOkg=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7/go.mod h1:U4zGmzxsNw5Kr0Z8f0clhHVFOIfi80iVh8MBp7y8pY0=
 github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050 h1:S1Zlz3H0Jg6qZKKfURnXgv/tOvV6ZLWoFF1ajLiHj78=
@@ -460,8 +462,6 @@ github.com/spf13/pflag v0.0.0-20161005214240-4bd69631f475/go.mod h1:DYY7MBk1bdzu
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/viper v0.0.0-20150621231900-db7ff930a189/go.mod h1:A8kyI5cUJhb8N+3pkfONlcEcZbueH6nhAm0Fq7SrnBM=
 github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DMA2s=
-github.com/stathat/go v1.0.0 h1:HFIS5YkyaI6tXu7JXIRRZBLRvYstdNZm034zcCeaybI=
-github.com/stathat/go v1.0.0/go.mod h1:+9Eg2szqkcOGWv6gfheJmBBsmq9Qf5KDbzy8/aYYR0c=
 github.com/stellar/go-xdr v0.0.0-20180917104419-0bc96f33a18e/go.mod h1:gpOLVzy6TVYTQ3LvHSN9RJC700FkhFCpSE82u37aNRM=
 github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee h1:fbVs0xmXpBvVS4GBeiRmAE3Le70ofAqFMch1GTiq/e8=
 github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=

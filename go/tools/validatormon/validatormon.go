@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"log"
+	"os"
 	"strings"
 	"time"
 
-	stathat "github.com/stathat/go"
+	showtrends "github.com/keybase/showtrends-sdk/go"
 )
 
 // this is a tool to monitor stellar validators.
@@ -100,22 +102,39 @@ func AnalyzeNode(sr StatusReader, nodeName string) (*Analysis, error) {
 	return &a, nil
 }
 
-var shkey string
+var (
+	showtrendsAddr   string
+	showtrendsClient *showtrends.Client
+)
 
 func main() {
 	log.Printf("validatormon starting")
 	parseFlags()
+	if showtrendsAddr != "" {
+		showtrendsClient = showtrends.NewClient(
+			showtrendsAddr, "keybase", showtrends.DefaultBatchInterval)
+	}
 	analyzeNodes()
-	log.Printf("waiting until stat posts are complete")
-	stathat.WaitUntilFinished(30 * time.Second)
+	if showtrendsClient != nil {
+		closeShowtrendsClient()
+	}
 	log.Printf("validatormon finished")
 }
 
 func parseFlags() {
-	flag.StringVar(&shkey, "shkey", "", "StatHat ezkey")
+	flag.StringVar(&showtrendsAddr, "showtrends-addr",
+		os.Getenv("SHOWTRENDS_ADDR"), "showtrends server address")
 	flag.Parse()
-	if shkey == "" {
-		log.Printf("no shkey provided, proceeding but no stats will be reported")
+	if showtrendsAddr == "" {
+		log.Printf("no showtrends address provided, proceeding but no stats will be reported")
+	}
+}
+
+func closeShowtrendsClient() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := showtrendsClient.Close(ctx); err != nil {
+		log.Printf("showtrends close error: %s", err)
 	}
 }
 
@@ -156,21 +175,15 @@ func analyzeNodes() {
 const statPrefix = "stellar - validator - "
 
 func postCount(name string) {
-	if shkey == "" {
+	if showtrendsClient == nil {
 		return
 	}
-	sname := statPrefix + name
-	if err := stathat.PostEZCountOne(sname, shkey); err != nil {
-		log.Printf("stathat post error: %s", err)
-	}
+	showtrendsClient.CountOne(statPrefix + name)
 }
 
 func postValue(name string, v int) {
-	if shkey == "" {
+	if showtrendsClient == nil {
 		return
 	}
-	sname := statPrefix + name
-	if err := stathat.PostEZValue(sname, shkey, float64(v)); err != nil {
-		log.Printf("stathat post error: %s", err)
-	}
+	showtrendsClient.Value(statPrefix+name, float64(v))
 }
