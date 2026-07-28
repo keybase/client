@@ -11,16 +11,14 @@ CPP_DIR="$ROOT/rnmodules/react-native-kb/cpp"
 # shellcheck source=./msgpack-include.sh
 source "$(dirname "${BASH_SOURCE[0]}")/msgpack-include.sh"
 
-# clang++ locally / on the mac builders, g++ on the Linux CI image.
-CXX="${CXX:-}"
-if [ -z "$CXX" ]; then
-  if command -v clang++ >/dev/null 2>&1; then CXX=clang++; else CXX=g++; fi
-fi
+# Sets CXX and CXX_STD (-std=c++20, or -std=c++2a on the older CI g++).
+# shellcheck source=./cxx-select.sh
+source "$(dirname "${BASH_SOURCE[0]}")/cxx-select.sh"
 
 BIN="$(mktemp -d)/frame-parser-test"
 trap 'rm -rf "$(dirname "$BIN")"' EXIT
 
-"$CXX" -std=c++20 -O1 -g -DMSGPACK_NO_BOOST \
+"$CXX" "$CXX_STD" -O1 -g -DMSGPACK_NO_BOOST \
   -Wall -Wextra \
   -I "$MSGPACK_INCLUDE" \
   "$CPP_DIR/frame-parser.cpp" \
