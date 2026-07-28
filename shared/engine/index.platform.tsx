@@ -172,10 +172,13 @@ class NativeTransportMobile extends LocalTransport {
       throw new Error('native rpc write failed')
     }
   }
-  // Reached two ways: a mobile account switch calling Engine.reset()
-  // synchronously, or the Go connection resetting underneath us (a stream
-  // desync detected natively). Either way nothing will answer the in-flight
-  // RPCs after that, so fail them rather than hang every caller.
+  // Only reachable from the 'kb-engine-reset' meta event below: Go dropped
+  // the loopback connection (e.g. a stream desync detected natively), so
+  // nothing will answer the in-flight RPCs and hanging every caller is the
+  // alternative. Engine.reset() early-returns on mobile, so an account switch
+  // does NOT land here -- and must not: failing outstanding RPCs on a switch
+  // EOFs login.login, proven on device. Keep any new call site inside the
+  // meta-event handler, not in code shared with the account-switch path.
   override reset() {
     this.failAllOutstanding()
   }

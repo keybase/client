@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
 import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
+import {errors} from './rpc-transport'
 
 type IndexPlatformModule = {
   createClient: (
@@ -67,6 +68,55 @@ test('disconnectCallback throwing does not prevent connectCallback from running 
     // The isolation fix: disconnectCallback throwing must not skip connectCallback,
     // or the UI is stranded on the disconnect banner forever.
     expect(connectCallback).toHaveBeenCalledTimes(1)
+  } finally {
+    teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
+  }
+})
+
+// Guard for a load-bearing asymmetry: on mobile, outstanding RPCs must be
+// failed ONLY when Go drops the connection ('kb-engine-reset'). Engine.reset()
+// early-returns on mobile precisely so an account switch does not fail them --
+// doing so EOFs login.login (proven on device). If a future refactor moves a
+// reset() call into code shared with the account-switch path, the first half
+// of this test starts failing instead of the bug shipping silently.
+test('outstanding invocations survive everything except kb-engine-reset', () => {
+  const originalIsMobile = global.isMobile
+  const originalRpcOnGo = global.rpcOnGo
+  const originalRpcOnJs = global.rpcOnJs
+  global.isMobile = true
+
+  let capturedMetaCb: ((payload: string) => void) | undefined
+  mockNativeModules(cb => {
+    capturedMetaCb = cb
+  })
+  jest.resetModules()
+
+  try {
+    const {createClient} = require('./index.platform') as IndexPlatformModule
+    global.rpcOnGo = () => true
+    const client = createClient(
+      () => {},
+      () => {},
+      () => {}
+    )
+
+    const cb = jest.fn()
+    client.invoke('keybase.1.login.login', [{}], cb)
+    expect(cb).not.toHaveBeenCalled()
+
+    if (!capturedMetaCb) {
+      throw new Error('meta event handler was never registered')
+    }
+
+    // Any other meta payload (and, by construction, everything else that runs
+    // on an account switch) must leave the invocation outstanding.
+    capturedMetaCb('kb-some-other-event')
+    expect(cb).not.toHaveBeenCalled()
+
+    capturedMetaCb('kb-engine-reset')
+    expect(cb).toHaveBeenCalledTimes(1)
+    const [err] = cb.mock.calls[0] as [unknown, unknown]
+    expect((err as {code?: number}).code).toBe(errors.EOF)
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
   }

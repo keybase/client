@@ -13,6 +13,7 @@ class TestTransport extends RPCTransport {
   private _connected = true
   private _writeError: Error | undefined
   sent = new Array<RPCMessage>()
+  packetizeErrors = new Array<unknown>()
 
   constructor(p?: {connected?: boolean; incomingRPCCallback?: IncomingRPCCallbackType; writeError?: Error}) {
     super({incomingRPCCallback: p?.incomingRPCCallback})
@@ -22,6 +23,13 @@ class TestTransport extends RPCTransport {
 
   protected override isConnected() {
     return this._connected
+  }
+
+  // Records rather than replaces: the base still console.error()s, so tests
+  // that only assert on that keep working.
+  protected override onPacketizeError(err: unknown) {
+    this.packetizeErrors.push(err)
+    super.onPacketizeError(err)
   }
 
   protected writeMessage(message: RPCMessage) {
@@ -233,9 +241,18 @@ test('a reset cycle fails outstanding invocations once and a post-reset invocati
   transport.failAllOutstanding()
   expect(preResetCb).toHaveBeenCalledTimes(1)
 
+  const preResetSeqids = new Set(
+    transport.sent.map(m => (m as [number, number, string, [object]])[1])
+  )
+
   const postResetCb = jest.fn()
   transport.invoke('keybase.1.test.new', [{}], postResetCb)
   const [, postResetSeqid] = transport.sent[1] as [number, number, string, [object]]
+
+  // The actual invariant: the post-reset seqid must not alias ANY seqid used
+  // before the reset. "greater than the last one" would also pass if the
+  // counter were reset and then advanced past a single stale value.
+  expect(preResetSeqids.has(postResetSeqid)).toBe(false)
 
   transport.dispatchDecodedMessage([1, postResetSeqid, null, {ok: 'post-reset'}])
   expect(postResetCb).toHaveBeenCalledWith(null, {ok: 'post-reset'})
@@ -259,13 +276,28 @@ test('a response for a pre-reset seqid arriving after reset is ignored', () => {
 
 test('seqids keep advancing after outstanding invocations are failed, so a late reply cannot alias', () => {
   const transport = new TestTransport()
+  // Several pre-reset invocations, so "not the last one" is genuinely weaker
+  // than "not any of them" and only the latter is asserted.
   transport.invoke('keybase.1.test.a', [{}], () => {})
-  transport.failAllOutstanding()
   transport.invoke('keybase.1.test.b', [{}], () => {})
+  transport.invoke('keybase.1.test.c', [{}], () => {})
+  const preResetSeqids = new Set(transport.sent.map(m => (m as [number, number, string, [object]])[1]))
+  expect(preResetSeqids.size).toBe(3)
 
-  const [, firstSeqid] = transport.sent[0] as [number, number, string, [object]]
-  const [, secondSeqid] = transport.sent[1] as [number, number, string, [object]]
-  expect(secondSeqid).toBeGreaterThan(firstSeqid)
+  transport.failAllOutstanding()
+
+  transport.invoke('keybase.1.test.d', [{}], () => {})
+  transport.invoke('keybase.1.test.e', [{}], () => {})
+  const postResetSeqids = transport.sent
+    .slice(3)
+    .map(m => (m as [number, number, string, [object]])[1])
+
+  // No post-reset seqid may be a member of the pre-reset set -- a late reply
+  // for a failed invocation would otherwise be delivered to a live callback.
+  for (const seqid of postResetSeqids) {
+    expect(preResetSeqids.has(seqid)).toBe(false)
+  }
+  expect(new Set(postResetSeqids).size).toBe(postResetSeqids.length)
 })
 
 test('a throwing incoming handler does not desync the packetizer', () => {
@@ -491,6 +523,137 @@ test('a failed response write is reported, not swallowed', () => {
   errorSpy.mockRestore()
 })
 
+// maxFrameSize (64MB) is a JS-side sanity limit: a corrupt/desynced length
+// prefix would otherwise make the packetizer sit on a multi-hundred-MB
+// allocation intent and buffer forever, never dispatching again.
+const maxFrameSize = 64 * 1024 * 1024
+
+// 0xce is the msgpack uint32 length prefix; the four bytes after it are the
+// big-endian payload length. Only this prefix can express a length above
+// maxFrameSize (0xcd tops out at 65535).
+const oversizedHeader = (payloadLen: number) =>
+  Uint8Array.of(
+    0xce,
+    (payloadLen >>> 24) & 0xff,
+    (payloadLen >>> 16) & 0xff,
+    (payloadLen >>> 8) & 0xff,
+    payloadLen & 0xff
+  )
+
+test('a frame header declaring more than 64MB is rejected, resets the packetizer, and the next valid frame still dispatches', () => {
+  const delivered: Array<unknown> = []
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      delivered.push(incoming)
+    },
+  })
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+  // Header only -- no payload bytes follow. The size check must fire before
+  // anything tries to buffer 128MB.
+  transport.packetizeData(oversizedHeader(128 * 1024 * 1024))
+
+  expect(transport.packetizeErrors).toHaveLength(1)
+  expect((transport.packetizeErrors[0] as Error).message).toBe(`Frame too large: ${128 * 1024 * 1024} bytes`)
+  expect(delivered).toHaveLength(0)
+
+  // The packetizer was reset, so the stale 5 header bytes are gone and this
+  // frame parses from its own first byte.
+  const good = encodeFrame([2, 'keybase.1.test.after-oversized', [{}]])
+  transport.packetizeData(good)
+
+  expect(delivered).toHaveLength(1)
+  expect((delivered[0] as {method: string}).method).toBe('keybase.1.test.after-oversized')
+  consoleSpy.mockRestore()
+})
+
+test('the 64MB frame limit is exclusive: exactly maxFrameSize is accepted and only one byte over is rejected', () => {
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+  // Exactly at the limit: legal, so the packetizer just waits for the payload.
+  const atLimit = new TestTransport()
+  atLimit.packetizeData(oversizedHeader(maxFrameSize))
+  expect(atLimit.packetizeErrors).toEqual([])
+
+  const overLimit = new TestTransport()
+  overLimit.packetizeData(oversizedHeader(maxFrameSize + 1))
+  expect(overLimit.packetizeErrors).toHaveLength(1)
+
+  consoleSpy.mockRestore()
+})
+
+test('the 1001st queued invoke is failed, not silently swallowed', () => {
+  const transport = new TestTransport({connected: false})
+  const callbacks = new Array<jest.Mock>()
+
+  // queueMax is 1000: the first 1000 are queued with no callback yet.
+  for (let i = 0; i < 1000; i++) {
+    const cb = jest.fn()
+    callbacks.push(cb)
+    transport.invoke(`keybase.1.test.queued${i}`, [{}], cb)
+  }
+  expect(callbacks.every(cb => cb.mock.calls.length === 0)).toBe(true)
+
+  // A silently dropped invoke is a permanent hang for its caller, so the
+  // overflow branch must answer rather than discard.
+  const overflowCb = jest.fn()
+  transport.invoke('keybase.1.test.overflow', [{}], overflowCb)
+  expect(overflowCb).toHaveBeenCalledTimes(1)
+  const [err] = overflowCb.mock.calls[0] as [unknown, unknown]
+  expect((err as Error).message).toBe('Queue overflow for keybase.1.test.overflow')
+
+  // The overflowed invoke was never queued, so connecting must flush exactly
+  // the 1000 that were accepted -- and must not re-answer the overflowed one.
+  transport.flushConnected()
+  expect(transport.sent).toHaveLength(1000)
+  expect(callbacks.every(cb => cb.mock.calls.length === 0)).toBe(true)
+  expect(overflowCb).toHaveBeenCalledTimes(1)
+})
+
+test('send reports failure once the pending queue is full instead of growing without bound', () => {
+  const transport = new TestTransport({connected: false})
+  const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+  for (let i = 0; i < 1000; i++) {
+    expect(transport.send([1, i, null, {}])).toBe(true)
+  }
+
+  expect(transport.send([1, 1000, null, {}])).toBe(false)
+  expect(warnSpy).toHaveBeenCalledWith('Queue overflow for raw RPC message')
+
+  transport.flushConnected()
+  expect(transport.sent).toHaveLength(1000)
+  warnSpy.mockRestore()
+})
+
+test('flushPending terminates and settles every queued item exactly once when the write fails on connect', () => {
+  const transport = new TestTransport({connected: false})
+  const calls = new Array<Array<unknown>>()
+
+  for (let i = 0; i < 5; i++) {
+    transport.invoke(`keybase.1.test.q${i}`, [{}], (err, data) => calls.push([err, data]))
+  }
+  transport.send([1, 99, null, {}])
+
+  // Connected, but every write throws. flushPending() swaps _pending and
+  // re-enters invoke()/send(); if a failing write could put items back on the
+  // queue this would spin forever or double-settle a callback.
+  const writeError = new Error('write failed right after connect')
+  transport.setWriteError(writeError)
+  transport.flushConnected()
+
+  expect(calls).toHaveLength(5)
+  expect(calls.every(([err]) => err === writeError)).toBe(true)
+  expect(transport.sent).toEqual([])
+
+  // Nothing was re-queued: a second flush with a working write sends nothing
+  // and settles nothing again.
+  transport.setWriteError(undefined)
+  transport.flushConnected()
+  expect(calls).toHaveLength(5)
+  expect(transport.sent).toEqual([])
+})
+
 test('cancel packets surface a cancelled response payload', () => {
   const incoming = jest.fn()
   const transport = new TestTransport({incomingRPCCallback: incoming})
@@ -504,4 +667,66 @@ test('cancel packets surface a cancelled response payload', () => {
       response: expect.objectContaining({cancelled: true, seqid: 44}),
     })
   )
+})
+
+test('close settles every queued invoke exactly once with EOF and drops queued sends', () => {
+  const transport = new TestTransport({connected: false})
+  const calls: Array<Array<unknown>> = []
+  const cbA = jest.fn((err: unknown, data: unknown) => calls.push([err, data]))
+  const cbB = jest.fn((err: unknown, data: unknown) => calls.push([err, data]))
+
+  transport.invoke('keybase.1.test.a', [{}], cbA)
+  transport.invoke('keybase.1.test.b', [{}], cbB)
+  // A queued raw send() has no callback and nothing waiting on it; it must
+  // simply be dropped, not replayed later.
+  expect(transport.send([1, 5, null, {ok: true}])).toBe(true)
+
+  transport.close()
+
+  expect(cbA).toHaveBeenCalledTimes(1)
+  expect(cbB).toHaveBeenCalledTimes(1)
+  expect(calls.every(([err]) => (err as {code?: number} | undefined)?.code === errors.EOF)).toBe(true)
+  expect(transport.sent).toEqual([])
+
+  // Reconnecting must not replay or re-settle anything the close already
+  // settled -- the queue was detached, not just marked.
+  transport.flushConnected()
+  expect(cbA).toHaveBeenCalledTimes(1)
+  expect(cbB).toHaveBeenCalledTimes(1)
+  expect(transport.sent).toEqual([])
+})
+
+test('close settles queued invokes even when one callback throws', () => {
+  const transport = new TestTransport({connected: false})
+  const calls: Array<number> = []
+
+  transport.invoke('keybase.1.test.a', [{}], () => {
+    calls.push(1)
+    throw new Error('boom')
+  })
+  transport.invoke('keybase.1.test.b', [{}], () => calls.push(2))
+  transport.invoke('keybase.1.test.c', [{}], () => calls.push(3))
+
+  expect(() => transport.close()).not.toThrow()
+  expect(calls).toEqual([1, 2, 3])
+})
+
+test('close does not re-queue an invoke made from a settling callback', () => {
+  const transport = new TestTransport({connected: false})
+  const reentrant = jest.fn()
+
+  transport.invoke('keybase.1.test.a', [{}], () => {
+    // Post-close invokes hit the explicit-close branch and fail immediately
+    // rather than sitting in a queue nothing will ever flush.
+    transport.invoke('keybase.1.test.reentrant', [{}], reentrant)
+  })
+
+  transport.close()
+
+  expect(reentrant).toHaveBeenCalledTimes(1)
+  expect(reentrant).toHaveBeenCalledWith(expect.objectContaining({code: errors.EOF}), {})
+
+  transport.flushConnected()
+  expect(reentrant).toHaveBeenCalledTimes(1)
+  expect(transport.sent).toEqual([])
 })

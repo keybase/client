@@ -278,6 +278,25 @@ export abstract class RPCTransport {
     }
   }
 
+  // Settles everything queued while disconnected. Detaching the array first is
+  // what makes this once-only: a later flushPending()/onConnected() sees an
+  // empty queue, so nothing is re-sent or settled twice. Queued raw send()s
+  // have no callback and nothing waiting on them, so they're just dropped.
+  protected failPending(err: unknown, data: unknown) {
+    const pending = this._pending
+    this._pending = []
+    for (const item of pending) {
+      if (item.type !== 'invoke') {
+        continue
+      }
+      try {
+        item.cb(err, data)
+      } catch (e) {
+        logger.error('failPending callback threw', e)
+      }
+    }
+  }
+
   protected failOutstanding(err: unknown, data: unknown) {
     const invocations = this._invocations
     this._invocations = new Map()
@@ -490,7 +509,7 @@ export abstract class RPCTransport {
 
   close() {
     this.markExplicitClose()
-    this._pending = []
+    this.failPending(makeEOFError(), {})
     this._packetizer.reset()
     this.failOutstanding(makeEOFError(), {})
   }
