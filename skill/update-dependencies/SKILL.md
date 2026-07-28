@@ -5,15 +5,17 @@ description: Use when updating npm/yarn dependencies in shared/package.json, pro
 
 # Updating Dependencies
 
-## Packages to NEVER update with this skill
+## The react-native cluster
 
-These are pinned to the Expo SDK version — do not touch:
+`react-native` is the anchor; everything else in this cluster follows it.
 
-- `react`, `react-dom`, `react-is`, `react-test-renderer` — must match Expo SDK
-- `react-native` — must stay on the minor version Expo SDK expects (e.g., Expo 56 → react-native 0.85.x). Do NOT update across minor versions.
-- `@react-native/babel-preset`, `@react-native/eslint-config`, `@react-native/metro-config` — must stay on `react-native`'s major version line (react-native 0.86.x → these stay 0.86.x), but minor bumps within it ARE fine (0.86.0 → 0.86.1) — take them on routine passes. Never cross to 0.87.x while react-native is 0.86.x. The check script caps these automatically.
+- **`react-native` itself is always upgradable.** Take the in-line bump (0.86.0 → 0.86.2) as routine. A version-line jump (0.86 → 0.87) is a **major** — opt-in, and it drags the whole cluster with it. The check script reports both, and filters out react-native's `1000.0.0` main-branch sentinel.
+- `react`, `react-dom`, `react-is`, `react-test-renderer` — **pinned to whatever `react-native` requires**, never checked against npm on their own. When `react-native` moves, read its peer deps (`npm view react-native@<new> peerDependencies`) and sync these by hand.
+- `@react-native/babel-preset`, `@react-native/eslint-config`, `@react-native/metro-config` — must stay on `react-native`'s version line (react-native 0.86.x → these stay 0.86.x), but minor bumps within it ARE fine (0.86.0 → 0.86.2) — take them on routine passes. The check script caps these to `react-native`'s line automatically, so bumping RN's line pulls them along.
 
 > Version terminology in this project (all packages, not just react-native): a version-line change like 0.86 → 0.87 is a **major**; the last number (0.86.0 → 0.86.1) is a **minor**.
+
+## Other version constraints
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.
 

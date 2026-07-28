@@ -11,10 +11,13 @@ deps.update(pkg.get('dependencies', {}))
 deps.update(pkg.get('devDependencies', {}))
 
 SKIP = {'react-native-kb'}
-PINNED = {'react', 'react-dom', 'react-is', 'react-test-renderer', 'react-native'}
+# These track whatever react-native resolves to, so they are never checked
+# against npm directly — sync them by hand to react-native's peer deps.
+PINNED = {'react', 'react-dom', 'react-is', 'react-test-renderer'}
 # Project terminology: a version-line change (0.86 -> 0.87) is a MAJOR, the
-# last number (.1, .2) is minor. These must stay on react-native's major
-# (0.86), but minor bumps within it are allowed (0.86.0 -> 0.86.1, never 0.87.x).
+# last number (.1, .2) is minor. These must stay on react-native's line, but
+# minor bumps within it are allowed (0.86.0 -> 0.86.2, never 0.87.x while
+# react-native is 0.86.x).
 RN_MAJOR_PINNED = {'@react-native/babel-preset', '@react-native/eslint-config', '@react-native/metro-config'}
 
 import re as _re
@@ -52,6 +55,16 @@ def _is_prerelease(v):
     parsed = _parse_semver(v)
     return bool(parsed and parsed[3])
 
+def _line(v):
+    """The project's notion of a 'major': react-native ships 0.x, so the line is
+    (0, 86) — a 0.86 -> 0.87 move is a major, 0.86.0 -> 0.86.2 is a minor."""
+    p = _parse_semver(v)
+    return (p[0], p[1]) if p else None
+
+# react-native drives the @react-native/* cap, so read it before checking anything.
+RN_CURRENT = deps.get('react-native', '')
+RN_LINE = _line(RN_CURRENT)
+
 def get_latest(name, current):
     if name in SKIP or current.startswith(('file:', 'link:', 'github:')):
         return name, current, current, 'skip', current
@@ -73,16 +86,31 @@ def get_latest(name, current):
         all_versions = parsed.get('data', [])
         cur_major = _parse_semver(current)[0]
         if name in RN_MAJOR_PINNED:
-            # Cap at react-native's major (0.86) — minor bumps only.
-            cur_rn_major = _parse_semver(current)[1]
-            candidates = [v for v in all_versions if not _is_prerelease(v)
-                          and _parse_semver(v)
-                          and _parse_semver(v)[0] == cur_major
-                          and _parse_semver(v)[1] == cur_rn_major]
+            # Cap at react-native's own line (0.86) — minor bumps only. Follows
+            # react-native rather than their current line, so bumping RN's line
+            # pulls these along instead of leaving them a line behind.
+            cap = RN_LINE or _line(current)
+            candidates = [v for v in all_versions if not _is_prerelease(v) and _line(v) == cap]
             latest = max(candidates, key=semver_key) if candidates else current
             if semver_key(latest) < semver_key(current):
                 latest = current
             return name, current, latest, 'rn-major-pinned', latest
+        if name == 'react-native':
+            # Always upgradable. Report the in-line bump as the routine one and
+            # flag a line jump (0.86 -> 0.87) as the opt-in major — it drags
+            # react/react-dom/react-is/react-test-renderer and @react-native/*.
+            # react-native publishes a 1000.0.0 sentinel for the unreleased main
+            # branch — never a real upgrade target.
+            candidates = [v for v in all_versions if not _is_prerelease(v)
+                          and _parse_semver(v) and _parse_semver(v)[0] < 1000]
+            latest = max(candidates, key=semver_key) if candidates else current
+            in_line_c = [v for v in candidates if _line(v) == _line(current)]
+            in_major = max(in_line_c, key=semver_key) if in_line_c else current
+            if semver_key(latest) < semver_key(current):
+                latest = current
+            if semver_key(in_major) < semver_key(current):
+                in_major = current
+            return name, current, latest, 'rn', in_major
         if is_pre:
             # Consider all versions on the same major — pre or stable.
             # This handles graduation (e.g. 56.0.0-preview.x → 56.0.5 stable).
@@ -121,10 +149,12 @@ for name, cur, lat, kind, in_major in results:
         # in-major upgrade first, then flag the major jump separately so we
         # can take the in-major bump without being forced onto a new major.
         if in_major != lat and semver_key(in_major) > semver_key(cur):
-            cur_major = _parse_semver(cur)[0]
-            lat_major = _parse_semver(lat)[0]
+            if kind == 'rn':
+                label = lambda v: '.'.join(str(n) for n in _line(v))
+            else:
+                label = lambda v: str(_parse_semver(v)[0])
             print(f'  {name}: {cur} -> {in_major}  (in-major){pre}')
-            print(f'      ↳ MAJOR jump available: -> {lat} (major {cur_major} -> {lat_major})')
+            print(f'      ↳ MAJOR jump available: -> {lat} (major {label(cur)} -> {label(lat)})')
         else:
             print(f'  {name}: {cur} -> {lat}{pre}')
 
@@ -133,7 +163,7 @@ for name, cur, lat, kind, in_major in results:
     if kind not in ('skip', 'error') and name not in PINNED and (cur == lat or not lat):
         print(f'  {name}: {cur}')
 
-print('\n=== PINNED (skipped) ===')
+print('\n=== PINNED to react-native (sync by hand when react-native moves) ===')
 for name, cur, lat, kind, in_major in results:
     if name in PINNED:
         print(f'  {name}: {cur}')
