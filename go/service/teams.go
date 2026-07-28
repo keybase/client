@@ -255,11 +255,7 @@ func (h *TeamsHandler) TeamGetMembersByID(ctx context.Context, arg keybase1.Team
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetMembersByID(%s)", arg.Id), &err)()
 
-	t, err := teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg.Id)
-	if err != nil {
-		return res, err
-	}
-	return t.Members, nil
+	return teams.GetAnnotatedTeamMembers(ctx, h.G().ExternalG(), arg.Id)
 }
 
 func (h *TeamsHandler) TeamListUnverified(ctx context.Context, arg keybase1.TeamListUnverifiedArg) (res keybase1.AnnotatedTeamList, err error) {

@@ -17,9 +17,6 @@ import {useThreadMeta} from './thread-context'
 import {registerExternalResetter} from '@/util/zustand'
 
 type ChatTeamState = {
-  allowPromote: boolean
-  description: string
-  loading: boolean
   role: T.Teams.MaybeTeamRoleType
   teamname: string
   yourOperations: T.Teams.TeamOperations
@@ -35,9 +32,7 @@ type ChatManageChannelsBadgeState = {
   showBadge: boolean
 }
 
-export type ChatTeam = ChatTeamState & {
-  reload: () => Promise<void>
-}
+export type ChatTeam = ChatTeamState
 
 export type ChatTeamMembers = ChatTeamMembersState & {
   reload: () => Promise<void>
@@ -47,31 +42,20 @@ export type ChatManageChannelsBadge = ChatManageChannelsBadgeState & {
   dismiss: () => Promise<void>
 }
 
-// The cached slice of a team: everything the annotated-team RPC tells us that
-// isn't derived from the (separately cached) role map. Team-global, so the
-// cache is keyed by team ID alone and shared by every conversation in the team.
-type ChatTeamData = {
-  allowPromote: boolean
-  description: string
-  teamname: string
-}
 type ChatTeamMembersData = ReadonlyMap<string, T.Teams.MemberInfo>
 type TeamCacheKey = T.Teams.TeamID | undefined
 type TeamCacheMap<D> = Map<TeamCacheKey, CachedResourceCache<D, TeamCacheKey>>
 
-const emptyChatTeamData: ChatTeamData = {allowPromote: false, description: '', teamname: ''}
 const emptyChatTeamMembersData: ChatTeamMembersData = new Map<string, T.Teams.MemberInfo>()
 
 // Module level so switching conversations (or channels within a team) reuses
-// the loaded team instead of refetching. teamChangedByID & friends invalidate.
-const chatTeamCacheMap: TeamCacheMap<ChatTeamData> = new Map()
+// loaded members instead of refetching. teamChangedByID & friends invalidate.
 const chatTeamMembersCacheMap: TeamCacheMap<ChatTeamMembersData> = new Map()
 const chatTeamReloadStaleMs = 5 * 60_000
 
 // module scope outlives sign-out, so the next user would be served the previous
-// user's team data and member lists
+// user's member lists
 registerExternalResetter('chat-team-hooks-caches', () => {
-  chatTeamCacheMap.clear()
   chatTeamMembersCacheMap.clear()
 })
 
@@ -102,94 +86,20 @@ const roleAndDetailsFromMap = (
   }
 }
 
-const annotatedTeamToChatTeamData = (annotatedTeam: T.RPCGen.AnnotatedTeam): ChatTeamData => ({
-  allowPromote: annotatedTeam.showcase.anyMemberShowcase,
-  description: annotatedTeam.showcase.description ?? '',
-  teamname: annotatedTeam.name,
-})
-
-const useChatTeamRaw = (
-  teamID: T.Teams.TeamID,
-  teamname?: string,
-  enabled = true,
-  subscribeToUpdates = enabled,
-  forceLocalCache = false
-): ChatTeam => {
+const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string): ChatTeam => {
   const validTeamID = loadableTeamID(teamID)
   const teamMetaByID = useTeamsListMap()
-  const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
-  const cacheMap = useTeamCacheMap(chatTeamCacheMap, forceLocalCache)
-  const cache = React.useMemo(
-    () => getCachedResourceCache(cacheMap, emptyChatTeamData, validTeamID),
-    [cacheMap, validTeamID]
-  )
+  const {roleMap} = useTeamsRoleMap()
 
   const teamMeta = validTeamID ? teamMetaByID.get(validTeamID) : undefined
   const knownTeamname = teamname || teamMeta?.teamname || ''
 
-  const {clear, data, loaded, loading, reload} = useCachedResource({
-    cache,
-    cacheKey: validTeamID,
-    enabled: enabled && !!validTeamID,
-    initialData: emptyChatTeamData,
-    load: async () => {
-      const [annotatedTeam] = await Promise.all([
-        T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID ?? T.Teams.noTeamID}),
-        loadRoleMapIfStale(),
-      ])
-      return annotatedTeamToChatTeamData(annotatedTeam)
-    },
-    onError: error => {
-      logger.warn(`Failed to load chat team metadata for ${validTeamID}`, error)
-    },
-    staleMs: chatTeamReloadStaleMs,
-  })
-
   const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID)
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamMetadataUpdate',
-    () => {
-      void reload()
-    },
-    subscribeToUpdates
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamChangedByID',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        void reload()
-      }
-    },
-    subscribeToUpdates
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamDeleted',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        clear(validTeamID)
-      }
-    },
-    subscribeToUpdates
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamExit',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        clear(validTeamID)
-      }
-    },
-    subscribeToUpdates
-  )
-
   return {
-    allowPromote: teamMeta?.allowPromote ?? data.allowPromote,
-    description: data.description,
-    loading: loading && !loaded,
-    reload,
     role: roleAndDetails?.role ?? teamMeta?.role ?? 'none',
-    teamname: knownTeamname || data.teamname,
+    teamname: knownTeamname,
     yourOperations,
   }
 }
@@ -284,7 +194,7 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const outer = React.useContext(ChatTeamContext)
   const enabled = teamType !== 'adhoc' && !!loadableTeamID(teamID)
   const sameAsOuter = outer?.teamID === teamID
-  const team = useChatTeamRaw(teamID, teamname, enabled && !sameAsOuter, enabled && !sameAsOuter, sameAsOuter)
+  const team = useChatTeamRaw(teamID, teamname)
   const members = useChatTeamMembersRaw(
     teamID,
     enabled && !sameAsOuter,
@@ -298,7 +208,7 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
 export const useChatTeam = (teamID: T.Teams.TeamID, teamname?: string): ChatTeam => {
   const context = React.useContext(ChatTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useChatTeamRaw(teamID, teamname, !useContextValue, !useContextValue, useContextValue)
+  const raw = useChatTeamRaw(teamID, teamname)
   return useContextValue ? context.team : raw
 }
 
