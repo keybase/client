@@ -5,18 +5,23 @@
 package libpages
 
 import (
+	"context"
 	"strconv"
 	"strings"
 	"time"
 
-	stathat "github.com/stathat/go"
+	showtrends "github.com/keybase/showtrends-sdk/go"
 	"go.uber.org/zap"
 )
 
-type stathatReporter struct {
-	logger   *zap.Logger
-	ezKey    string
-	reporter stathat.Reporter
+type showtrendsClient interface {
+	CountOne(name string)
+	Value(name string, value float64)
+}
+
+type showtrendsReporter struct {
+	logger *zap.Logger
+	client showtrendsClient
 
 	statNameRequests      string
 	statNameAuthenticated string
@@ -32,7 +37,7 @@ type stathatReporter struct {
 	statPrefixActiveTlfs  string
 }
 
-func (s *stathatReporter) activityStatsReportLoop() {
+func (s *showtrendsReporter) activityStatsReportLoop() {
 	if len(s.activityStats.Durations) == 0 || s.activityStats.Interval == 0 {
 		return
 	}
@@ -61,33 +66,31 @@ func (s *stathatReporter) activityStatsReportLoop() {
 			if err != nil {
 				s.logger.Warn("GetActives", zap.Error(err))
 			}
-			if err = s.reporter.PostEZValue(statNamesTlfs[i], s.ezKey,
-				float64(tlfs)); err != nil {
-				s.logger.Warn("PostEZValue", zap.Error(err))
-			}
-			if err = s.reporter.PostEZValue(statNamesHosts[i], s.ezKey,
-				float64(hosts)); err != nil {
-				s.logger.Warn("PostEZValue", zap.Error(err))
-			}
+			s.client.Value(statNamesTlfs[i], float64(tlfs))
+			s.client.Value(statNamesHosts[i], float64(hosts))
 		}
 	}
 }
 
-var _ StatsReporter = (*stathatReporter)(nil)
+var _ StatsReporter = (*showtrendsReporter)(nil)
 
-const stathatReportInterval = time.Second * 10
-
-// NewStathatReporter create a new StatsReporter that reports stats to stathat.
-// If enableActivityBasedStats, if set to non-nil, causes the reporter to
-// generate activity-based stats. Caller should not modify
-// enableActivityBasedStats passed into this function.
-func NewStathatReporter(logger *zap.Logger, prefix string, ezKey string,
+// NewShowtrendsReporter creates a StatsReporter that reports to ShowTrends.
+// If enableActivityBasedStats is non-nil, the reporter also generates
+// activity-based stats. The caller must not modify enableActivityBasedStats
+// after passing it to this function. The returned close function flushes
+// pending stats.
+func NewShowtrendsReporter(logger *zap.Logger, prefix, addr string,
 	enableActivityBasedStats *ActivityStatsEnabler,
-) StatsReporter {
-	if len(ezKey) == 0 {
-		return &stathatReporter{}
-	}
+) (StatsReporter, func(context.Context) error) {
+	client := showtrends.NewClient(
+		addr, "kbfs", showtrends.DefaultBatchInterval)
+	return newShowtrendsReporter(
+		logger, prefix, client, enableActivityBasedStats), client.Close
+}
 
+func newShowtrendsReporter(logger *zap.Logger, prefix string,
+	client showtrendsClient, enableActivityBasedStats *ActivityStatsEnabler,
+) StatsReporter {
 	enabler := enableActivityBasedStats
 	if enabler == nil {
 		enabler = &ActivityStatsEnabler{
@@ -97,11 +100,9 @@ func NewStathatReporter(logger *zap.Logger, prefix string, ezKey string,
 	}
 
 	prefix = strings.TrimSpace(prefix) + " "
-	reporter := &stathatReporter{
+	reporter := &showtrendsReporter{
 		logger: logger,
-		ezKey:  ezKey,
-		reporter: stathat.NewBatchReporter(
-			stathat.DefaultReporter, stathatReportInterval),
+		client: client,
 
 		statNameRequests:      prefix + "requests",
 		statNameAuthenticated: prefix + "authenticated",
@@ -120,28 +121,22 @@ func NewStathatReporter(logger *zap.Logger, prefix string, ezKey string,
 	return reporter
 }
 
-func (s *stathatReporter) postCountOneOrLog(statName string) {
-	if err := s.reporter.PostEZCountOne(statName, s.ezKey); err != nil {
-		s.logger.Warn("PostEZCountOne", zap.Error(err))
-	}
-}
-
 // ReportServedRequest implements the StatsReporter interface.
-func (s *stathatReporter) ReportServedRequest(sri *ServedRequestInfo) {
-	s.postCountOneOrLog(s.statNameRequests)
-	s.postCountOneOrLog(s.statPrefixProto + sri.Proto)
-	s.postCountOneOrLog(s.statPrefixStatus + strconv.Itoa(sri.HTTPStatus))
+func (s *showtrendsReporter) ReportServedRequest(sri *ServedRequestInfo) {
+	s.client.CountOne(s.statNameRequests)
+	s.client.CountOne(s.statPrefixProto + sri.Proto)
+	s.client.CountOne(s.statPrefixStatus + strconv.Itoa(sri.HTTPStatus))
 	if sri.Authenticated {
-		s.postCountOneOrLog(s.statNameAuthenticated)
+		s.client.CountOne(s.statNameAuthenticated)
 	}
 	if sri.CloningShown {
-		s.postCountOneOrLog(s.statNameCloningShown)
+		s.client.CountOne(s.statNameCloningShown)
 	}
 	if sri.InvalidConfig {
-		s.postCountOneOrLog(s.statNameInvalidConfig)
+		s.client.CountOne(s.statNameInvalidConfig)
 	}
-	s.postCountOneOrLog(s.statPrefixTlfType + sri.TlfType.String())
-	s.postCountOneOrLog(s.statPrefixRootType + sri.RootType.String())
+	s.client.CountOne(s.statPrefixTlfType + sri.TlfType.String())
+	s.client.CountOne(s.statPrefixRootType + sri.RootType.String())
 
 	s.activityStats.Storer.RecordActives(sri.TlfID, sri.Host)
 }

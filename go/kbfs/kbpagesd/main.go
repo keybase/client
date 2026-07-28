@@ -32,14 +32,14 @@ import (
 )
 
 var (
-	fProd          bool
-	fDiskCertCache bool
-	fKBFSLogFile   string
-	fStathatEZKey  string
-	fStathatPrefix string
-	fBlacklist     string
-	fMySQLDSN      string
-	fMySQLDSNCAURL string
+	fProd             bool
+	fDiskCertCache    bool
+	fKBFSLogFile      string
+	fShowtrendsAddr   string
+	fShowtrendsPrefix string
+	fBlacklist        string
+	fMySQLDSN         string
+	fMySQLDSNCAURL    string
 )
 
 func init() {
@@ -47,10 +47,11 @@ func init() {
 	flag.BoolVar(&fDiskCertCache, "use-disk-cert-cache", false, "cache cert on disk")
 	flag.StringVar(&fKBFSLogFile, "kbfs-logfile", "kbp-kbfs.log",
 		"path to KBFS log file; empty means print to stdout")
-	flag.StringVar(&fStathatEZKey, "stathat-key", "",
-		"stathat EZ key for reporting stats to stathat; empty disables stathat")
-	flag.StringVar(&fStathatPrefix, "stathat-prefix", "kbp -",
-		"prefix to stathat statnames")
+	flag.StringVar(&fShowtrendsAddr, "showtrends-addr",
+		os.Getenv("SHOWTRENDS_ADDR"),
+		"showtrends server address; empty disables stats reporting")
+	flag.StringVar(&fShowtrendsPrefix, "showtrends-prefix", "kbp -",
+		"prefix to showtrends stat names")
 	// TODO: hook up support in kbpagesd.
 	// TODO: when we make kbpagesd horizontally scalable, blacklist and
 	// whitelist should be dynamically configurable.
@@ -243,7 +244,7 @@ func main() {
 	}
 
 	var statsReporter libpages.StatsReporter
-	if len(fStathatEZKey) != 0 {
+	if len(fShowtrendsAddr) != 0 {
 		activityStorer := getStatsActivityStorerOrBust(logger)
 		enabler := &libpages.ActivityStatsEnabler{
 			Durations: []libpages.NameableDuration{
@@ -260,8 +261,14 @@ func main() {
 			Interval: activityStatsReportInterval,
 			Storer:   activityStorer,
 		}
-		statsReporter = libpages.NewStathatReporter(
-			logger, fStathatPrefix, fStathatEZKey, enabler)
+		var closeStatsReporter func(context.Context) error
+		statsReporter, closeStatsReporter = libpages.NewShowtrendsReporter(
+			logger, fShowtrendsPrefix, fShowtrendsAddr, enabler)
+		defer func() {
+			if err := closeStatsReporter(context.Background()); err != nil {
+				logger.Warn("close showtrends reporter", zap.Error(err))
+			}
+		}()
 	}
 
 	certStore := libpages.NoCertStore

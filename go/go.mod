@@ -52,6 +52,7 @@ require (
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
 	github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee
 	github.com/keybase/saltpack v0.0.0-20251212154201-989135827042
+	github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
@@ -64,7 +65,6 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20161128210544-1f30fe9094a5
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/shirou/gopsutil v2.18.13-0.20181231150826-db425313bfa8+incompatible
-	github.com/stathat/go v1.0.0
 	// NOTE: if stellar/go is updated, consider removing the `replace` directive
 	// for goautoneg at the bottom of this go.mod
 	github.com/stellar/go v0.0.0-20221209134558-b4ba6f8e67f2
