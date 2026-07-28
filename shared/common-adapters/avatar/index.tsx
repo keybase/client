@@ -22,6 +22,9 @@ type Props = {
   onLoad?: () => void
   testID?: string
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  // for callsites that will never have a name (e.g. the 'create a team' button); without it
+  // a nameless team avatar holds a blank box forever waiting for a teamname that never comes
+  showPlaceholder?: boolean
   style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
   username?: string
@@ -160,6 +163,7 @@ const borderTeamStyle = {
 
 function Avatar(p: Props) {
   const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children, testID} = p
+  const {showPlaceholder} = p
   const {imageOverrideUrl, crop} = p
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
@@ -271,7 +275,7 @@ function Avatar(p: Props) {
             }}
           />
         </>
-      ) : name || !isTeam ? (
+      ) : name || !isTeam || showPlaceholder ? (
         // with a name the placeholder type is known correct; with no name at all, team
         // callsites pass isTeam so anything else is a user (e.g. signup's empty avatar)
         <Image source={placeholderSource} style={cached.image} />
