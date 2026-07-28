@@ -9,7 +9,20 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-const indexMetadataVersion = 3
+// Bumping this discards every conversation's index metadata, which is how a
+// damaged index repairs itself: a conversation whose metadata records messages
+// as indexed while the tokens making them findable never reached disk reads as
+// fully indexed, so nothing revisits it and those messages stay unsearchable.
+// Dropping the metadata makes every message missing again and forces a reindex.
+//
+// Metadata only, rather than bumping indexVersion, which would discard the token
+// and alias entries too: re-indexing onto the entries already on disk keeps
+// search working throughout the repair instead of going dark until the rebuild
+// catches up. The cost is that surviving alias refcounts are inflated further by
+// the re-add, and that token entries naming since-deleted messages survive.
+// Those are filtered at search time by the message lookup, so they cost a
+// lookup, not a wrong result.
+const indexMetadataVersion = 4
 
 type indexMetadata struct {
 	SeenIDs map[chat1.MessageID]chat1.EmptyStruct `codec:"s"`
