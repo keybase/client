@@ -267,6 +267,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
           width: '100%',
         },
+        isElectron: {paddingTop: Kb.Styles.globalMargins.small},
         isMobile: {flexShrink: 1},
       }),
       container2: Kb.Styles.platformStyles({
