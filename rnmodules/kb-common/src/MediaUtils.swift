@@ -180,9 +180,9 @@ public class MediaUtils: NSObject {
 
     private static func exportSettings(compress: Bool) -> VideoExportSettings {
         // One policy, two outcomes. Callers decide whether to compress; the
-        // policy itself never varies by source size. Changing MediumQuality
-        // here changes it for both the share extension and in-chat attach.
-        return compress ? VideoExportSettings.mediumQuality : VideoExportSettings.passthrough
+        // policy itself never varies by source size. Changing the compressed
+        // preset here changes it for both the share extension and in-chat attach.
+        return compress ? VideoExportSettings.compressed : VideoExportSettings.passthrough
     }
 
     private static func exportVideoWithSettings(
@@ -207,6 +207,17 @@ public class MediaUtils: NSObject {
         exportSession.outputFileType = .mp4
         exportSession.shouldOptimizeForNetworkUse = true
         exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()  // Strips location data
+
+        // The 720p preset alone encodes around 11 Mbps, several times what the
+        // old picker-driven flow produced. A byte budget is the only bitrate
+        // knob AVAssetExportSession exposes, and it only ever lowers quality, so
+        // a short or already-small clip is unaffected.
+        if let bitsPerSecond = settings.totalBitrate {
+            let duration = CMTimeGetSeconds(asset.duration)
+            if duration.isFinite && duration > 0 {
+                exportSession.fileLengthLimit = Int64(Double(bitsPerSecond) / 8 * duration)
+            }
+        }
 
         exportSession.exportAsynchronously {
             exportError = exportSession.error
@@ -297,9 +308,14 @@ public class MediaUtils: NSObject {
 
 struct VideoExportSettings {
     let preset: String
+    // Video + audio combined, in bits per second. nil leaves the preset's own
+    // bitrate alone.
+    let totalBitrate: Int?
 
-    static let passthrough = VideoExportSettings(preset: AVAssetExportPresetPassthrough)
-    static let highQuality = VideoExportSettings(preset: AVAssetExportPreset1920x1080)
-    static let mediumQuality = VideoExportSettings(preset: AVAssetExportPresetMediumQuality)
-    static let lowQuality = VideoExportSettings(preset: AVAssetExportPresetLowQuality)
+    static let passthrough = VideoExportSettings(
+        preset: AVAssetExportPresetPassthrough, totalBitrate: nil)
+    // 720p at ~3.9 Mbps reproduces what the old picker-driven flow produced:
+    // a 28s 1080p/60 clip lands around 13 MB either way.
+    static let compressed = VideoExportSettings(
+        preset: AVAssetExportPreset1280x720, totalBitrate: 3_900_000)
 }

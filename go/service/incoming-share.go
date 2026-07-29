@@ -142,8 +142,10 @@ func (h *IncomingShareHandler) GetPreference(ctx context.Context) (
 	if found {
 		return pref, nil
 	}
+	// Compressing is the default for both the share extension and in-chat
+	// attach; only an explicit opt-out uploads originals.
 	return keybase1.IncomingSharePreference{
-		CompressPreference: keybase1.IncomingShareCompressPreference_ORIGINAL,
+		CompressPreference: keybase1.IncomingShareCompressPreference_COMPRESSED,
 	}, nil
 }
 
