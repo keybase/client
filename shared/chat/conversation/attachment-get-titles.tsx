@@ -10,7 +10,7 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
-import {canTrim, isVideoPath, processPaths, trimVideo} from '@/util/media-process'
+import {canProcess, canTrim, isVideoPath, processPaths, trimVideo} from '@/util/media-process'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -33,9 +33,10 @@ type Info = {
   url?: string
 }
 
+// Display only: which preview to show. Processing eligibility is canProcess,
+// which is deliberately a different set (heic previews as a file but is
+// processed, gif previews as an image but is passed through untouched).
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
-// Video detection has to stay identical to the processor's, or an item can be
-// eligible for trimming but not for processing (or vice versa).
 const pathToAttachmentType = (path: string) => {
   if (imageFileNameRegex.test(path)) {
     return 'image'
@@ -145,7 +146,7 @@ const ContainerInner = (ownProps: OwnProps) => {
     // Only local media can be handed to the native processor: kbfs paths aren't
     // real files and non-media has nothing to compress.
     const eligible = effective.reduce((l: Array<{idx: number; path: string}>, {path}, idx) => {
-      if (!isKbfsPath(path) && pathToAttachmentType(path) !== 'file') {
+      if (!isKbfsPath(path) && canProcess(path)) {
         l.push({idx, path})
       }
       return l
