@@ -122,6 +122,80 @@ const useUnfurlSettings = () => {
   return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
 }
 
+const useCompressPreference = () => {
+  const [error, setError] = React.useState('')
+  const {data: compress, setData} = useRPCLoad(T.RPCGen.incomingShareGetPreferenceRpcPromise, [undefined], {
+    map: pref => pref.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original,
+    onError: () => setError('Unable to load the attachment setting, please try again.'),
+    onResult: () => setError(''),
+  })
+  const setPreferenceRPC = C.useRPC(T.RPCGen.incomingShareSetPreferenceRpcPromise)
+
+  const compressSaved = React.useCallback(
+    (next: boolean) => {
+      setError('')
+      setData(next)
+      setPreferenceRPC(
+        [
+          {
+            preference: {
+              compressPreference: next
+                ? T.RPCGen.IncomingShareCompressPreference.compressed
+                : T.RPCGen.IncomingShareCompressPreference.original,
+            },
+          },
+        ],
+        () => {},
+        () => {
+          setError('Unable to save the attachment setting, please try again.')
+        }
+      )
+    },
+    [setData, setPreferenceRPC]
+  )
+
+  return {compress, compressSaved, error}
+}
+
+const Attachments = () => {
+  const {compress, compressSaved, error} = useCompressPreference()
+  return (
+    <>
+      <Kb.Divider style={styles.divider} />
+      <SettingsSectionTitle
+        title="Photos and videos"
+        description="Applies both when you share into Keybase from another app and when you attach in a chat."
+        style={styles.innerContainer}
+      />
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        gap="xtiny"
+        gapStart={true}
+        style={styles.innerContainer}
+      >
+        <Kb.RadioButton
+          label="Compress"
+          onSelect={() => compressSaved(true)}
+          selected={compress !== false}
+          disabled={compress === undefined}
+        />
+        <Kb.RadioButton
+          label="Keep full size"
+          onSelect={() => compressSaved(false)}
+          selected={compress === false}
+          disabled={compress === undefined}
+        />
+        {!!error && (
+          <Kb.Text type="BodySmall" style={styles.error}>
+            {error}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    </>
+  )
+}
+
 const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsState) => {
   const {contactSettingsRefresh, contactSettingsSaved, error, settings} = useContactSettings()
   const {teams} = useTeamsList()
@@ -494,6 +568,8 @@ const Chat = () => {
         <Security {...notificationSettings} />
         <Kb.Divider style={styles.divider} />
         <Links />
+        {/* iOS is the only platform that processes attachments before sending */}
+        {isIOS && <Attachments />}
         <Sound {...notificationSettings} />
         <Misc {...notificationSettings} />
       </Kb.Box2>

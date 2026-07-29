@@ -31,7 +31,6 @@ type Store = T.Immutable<{
     address: string
     token: string
   }
-  incomingShareUseOriginal?: boolean
   installerRanCount: number
   isOnline: boolean
   justDeletedSelf: string
@@ -69,7 +68,6 @@ const initialStore: Store = {
     address: '',
     token: '',
   },
-  incomingShareUseOriginal: undefined,
   installerRanCount: 0,
   isOnline: true,
   justDeletedSelf: '',
@@ -118,7 +116,6 @@ export type State = Store & {
     setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
     setHTTPSrvInfo: (address: string, token: string) => void
-    setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
@@ -535,11 +532,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
-      })
-    },
-    setIncomingShareUseOriginal: use => {
-      set(s => {
-        s.incomingShareUseOriginal = use
       })
     },
     setJustDeletedSelf: self => {
