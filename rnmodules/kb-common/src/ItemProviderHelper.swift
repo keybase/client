@@ -16,11 +16,23 @@ public class ItemProviderHelper: NSObject {
   @objc public var manifest: [[String: Any]] {
     // reconcile what we're sending over. types=text, url, video, image, file, error
     var toWrite: [[String: Any]] = []
-    let urls = typeToArray["url"]
+    let images = typeToArray["image"] ?? []
+    let videos = typeToArray["video"] ?? []
+    let files = typeToArray["file"] ?? []
+
+    // Media wins over everything else: we want to attach the thing, not also
+    // inject into the input box. A share can carry a url attachment next to the
+    // media one, and the media is what was asked for.
+    if !images.isEmpty || !videos.isEmpty || !files.isEmpty {
+      toWrite.append(contentsOf: images)
+      toWrite.append(contentsOf: videos)
+      toWrite.append(contentsOf: files)
+      return toWrite
+    }
 
     // We treat all text that has http in it a url, we take the longest one as its
     // likely most descriptive
-    if let urls = urls {
+    if let urls = typeToArray["url"] {
       var content = urls.first?["content"] as? String ?? ""
       for url in urls {
         if let c = url["content"] as? String, c.count > content.count {
@@ -31,22 +43,9 @@ public class ItemProviderHelper: NSObject {
         "type": "text",
         "content": content,
       ])
-    } else {
-      let images = typeToArray["image"] ?? []
-      let videos = typeToArray["video"] ?? []
-      let files = typeToArray["file"] ?? []
-      let texts = typeToArray["text"] ?? []
-
-      // If we have media, ignore text, we want to attach stuff and not also
-      // inject into the input box
-      if !images.isEmpty || !videos.isEmpty || !files.isEmpty {
-        toWrite.append(contentsOf: images)
-        toWrite.append(contentsOf: videos)
-        toWrite.append(contentsOf: files)
-      } else if !texts.isEmpty {
-        // Likely just one piece of text
-        toWrite.append(texts[0])
-      }
+    } else if let texts = typeToArray["text"], !texts.isEmpty {
+      // Likely just one piece of text
+      toWrite.append(texts[0])
     }
 
     return toWrite
@@ -297,6 +296,131 @@ public class ItemProviderHelper: NSObject {
     completeItemAndAppendManifest(type: isVideo ? "video" : "image", originalFileURL: filePayloadURL)
   }
 
+  // A public.url item is not necessarily a web link: providers also vend local
+  // temp files this way. Route file URLs by their real content type instead of
+  // pasting the path as text.
+  private func sendURLItem(_ url: URL?) {
+    guard let url = url else {
+      completeItemAndAppendManifestAndLogError(text: "sendURLItem: unable to decode share", error: nil)
+      return
+    }
+    guard url.isFileURL else {
+      sendRemoteURL(url)
+      return
+    }
+
+    let scoped = url.startAccessingSecurityScopedResource()
+    defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+
+    let type = (try? url.resourceValues(forKeys: [.contentTypeKey]))?.contentType
+      ?? UTType(filenameExtension: url.pathExtension)
+
+    if let type = type {
+      if type.conforms(to: .movie) {
+        sendMedia(url, isVideo: true)
+        return
+      }
+      if type.conforms(to: .image) {
+        sendMedia(url, isVideo: false)
+        return
+      }
+      if !type.conforms(to: .text) {
+        sendFile(url)
+        return
+      }
+    }
+
+    let text = (try? Data(contentsOf: url)).flatMap { String(data: $0, encoding: .utf8) }
+    sendText(text ?? url.absoluteString)
+  }
+
+  // Safari's long-press-image share hands over the image's web address, not the
+  // image, so the only way to attach the picture the user pointed at is to
+  // fetch it. Probe with HEAD first so an ordinary link share doesn't download
+  // a whole page before falling back to pasting the link.
+  private static let probeTimeout: TimeInterval = 6
+  private static let downloadTimeout: TimeInterval = 30
+
+  private func sendRemoteURL(_ url: URL) {
+    let sendLink: () -> Void = { [weak self] in self?.sendText(url.absoluteString) }
+
+    if let type = UTType(filenameExtension: url.pathExtension.lowercased()),
+      type.conforms(to: .image) || type.conforms(to: .movie)
+    {
+      downloadMedia(url, isVideo: type.conforms(to: .movie), sendLink: sendLink)
+      return
+    }
+
+    var head = URLRequest(url: url, timeoutInterval: Self.probeTimeout)
+    head.httpMethod = "HEAD"
+    URLSession.shared.dataTask(with: head) { [weak self] _, response, _ in
+      guard let self = self else { return }
+      let mime = response?.mimeType ?? ""
+      if mime.hasPrefix("image/") || mime.hasPrefix("video/") {
+        self.downloadMedia(url, isVideo: mime.hasPrefix("video/"), sendLink: sendLink)
+      } else {
+        sendLink()
+      }
+    }.resume()
+  }
+
+  private func downloadMedia(_ url: URL, isVideo: Bool, sendLink: @escaping () -> Void) {
+    let request = URLRequest(url: url, timeoutInterval: Self.downloadTimeout)
+    URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+      guard let self = self else { return }
+      let mime = response?.mimeType ?? ""
+      guard error == nil, let data = data, !data.isEmpty,
+        mime.isEmpty || mime.hasPrefix("image/") || mime.hasPrefix("video/")
+      else {
+        sendLink()
+        return
+      }
+      self.writeDownloadedMedia(
+        data, from: url, mime: mime, isVideo: isVideo || mime.hasPrefix("video/"),
+        sendLink: sendLink)
+    }.resume()
+  }
+
+  private func writeDownloadedMedia(
+    _ data: Data, from url: URL, mime: String, isVideo: Bool, sendLink: @escaping () -> Void
+  ) {
+    let type = UTType(mimeType: mime) ?? UTType(filenameExtension: url.pathExtension.lowercased())
+
+    if isVideo {
+      let payloadURL = getPayloadURL(withExtension: type?.preferredFilenameExtension ?? "mp4")
+      guard (try? data.write(to: payloadURL, options: .atomic)) != nil else {
+        sendLink()
+        return
+      }
+      completeItemAndAppendManifest(type: "video", originalFileURL: payloadURL)
+      return
+    }
+
+    // Pass these through untouched (re-encoding a gif would drop its animation);
+    // anything else the web serves (webp, avif) gets transcoded so it renders.
+    let passthrough: [UTType] = [.png, .gif, .jpeg, .heic]
+    if let type = type, let ext = type.preferredFilenameExtension,
+      passthrough.contains(where: { type.conforms(to: $0) })
+    {
+      let payloadURL = getPayloadURL(withExtension: ext)
+      if (try? data.write(to: payloadURL, options: .atomic)) != nil {
+        completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+        return
+      }
+    }
+
+    guard let jpeg = UIImage(data: data)?.jpegData(compressionQuality: 0.85) else {
+      sendLink()
+      return
+    }
+    let payloadURL = getPayloadURL(withExtension: "jpg")
+    guard (try? jpeg.write(to: payloadURL, options: .atomic)) != nil else {
+      sendLink()
+      return
+    }
+    completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+  }
+
   private func sendImage(_ imgData: Data?) {
     if let imgData = imgData {
       let originalFileURL = getPayloadURL(withExtension: "jpg")
@@ -309,6 +433,46 @@ public class ItemProviderHelper: NSObject {
 
     completeItemAndAppendManifestAndLogError(
       text: "coerceImageHandlerSimple2: unable to decode share", error: nil)
+  }
+
+  // Providers register several representations for one item and the order is
+  // arbitrary, not a preference — a provider can list public.url ahead of the
+  // image itself. Rank so media always beats the link.
+  private enum ItemKind: Int {
+    case movie = 0
+    case imageFile = 1
+    case image = 2
+    case vCard = 3
+    case file = 4
+    case text = 5
+    case url = 6
+  }
+
+  private static func kind(forType stype: String) -> ItemKind? {
+    guard let type = UTType(stype) else { return nil }
+    if type.conforms(to: .movie) { return .movie }
+    if type.conforms(to: .png) || type.conforms(to: .gif) || type.conforms(to: .jpeg)
+      || stype == "public.heic"
+    {
+      return .imageFile
+    }
+    if type.conforms(to: .image) { return .image }
+    if type.conforms(to: .vCard) { return .vCard }
+    if type.conforms(to: .pdf) || type.conforms(to: .fileURL) { return .file }
+    if type.conforms(to: .plainText) { return .text }
+    if type.conforms(to: .url) { return .url }
+    return nil
+  }
+
+  private static func bestType(for item: NSItemProvider) -> (stype: String, kind: ItemKind)? {
+    var best: (stype: String, kind: ItemKind)?
+    for stype in item.registeredTypeIdentifiers {
+      guard let kind = Self.kind(forType: stype) else { continue }
+      if best == nil || kind.rawValue < best!.kind.rawValue {
+        best = (stype, kind)
+      }
+    }
+    return best
   }
 
   private func incrementUnprocessed() {
@@ -386,64 +550,37 @@ public class ItemProviderHelper: NSObject {
       objc_sync_exit(self)
 
       for item in items {
-        for stype in item.registeredTypeIdentifiers {
-          guard let type = UTType(stype) else { continue }
-
-          // Movies
-          if type.conforms(to: .movie) {
-            incrementUnprocessed()
-            item.loadFileRepresentation(forTypeIdentifier: stype, completionHandler: movieHandler)
-            break
-          }
-          // Images (PNG, GIF, JPEG, HEIC): copy the original file through as-is
-          else if type.conforms(to: .png) || type.conforms(to: .gif) || type.conforms(to: .jpeg)
-            || stype == "public.heic"
-          {
-            incrementUnprocessed()
-            item.loadFileRepresentation(forTypeIdentifier: stype, completionHandler: imageFileHandler)
-            break
-          }
-          // Other Images (coerce)
-          else if type.conforms(to: .image) {
-            incrementUnprocessed()
-            item.loadItem(
-              forTypeIdentifier: "public.image", options: nil, completionHandler: imageHandler)
-            break
-          }
-          // Contact cards
-          else if type.conforms(to: .vCard) {
-            incrementUnprocessed()
-            item.loadDataRepresentation(
-              forTypeIdentifier: "public.vcard", completionHandler: contactHandler)
-            break
-          }
-          // Plain Text
-          else if type.conforms(to: .plainText) {
-            incrementUnprocessed()
-            item.loadItem(
-              forTypeIdentifier: "public.plain-text", options: nil,
-              completionHandler: secureTextHandler)
-            break
-          }
-          // Files (PDF, generic files)
-          else if type.conforms(to: .pdf) || type.conforms(to: .fileURL) {
-            incrementUnprocessed()
-            item.loadFileRepresentation(
-              forTypeIdentifier: "public.item", completionHandler: fileHandler)
-            break
-          }
-          // URLs
-          else if type.conforms(to: .url) {
-            incrementUnprocessed()
-            item.loadItem(
-              forTypeIdentifier: "public.url", options: nil,
-              completionHandler: { (item: NSSecureCoding?, error: Error?) in
-                let url = item as? URL
-                self.sendText(url?.absoluteString ?? "")
-              })
-
-            break
-          }
+        guard let best = Self.bestType(for: item) else { continue }
+        incrementUnprocessed()
+        switch best.kind {
+        case .movie:
+          item.loadFileRepresentation(
+            forTypeIdentifier: best.stype, completionHandler: movieHandler)
+        // PNG, GIF, JPEG, HEIC: copy the original file through as-is
+        case .imageFile:
+          item.loadFileRepresentation(
+            forTypeIdentifier: best.stype, completionHandler: imageFileHandler)
+        // Other images (coerce)
+        case .image:
+          item.loadItem(
+            forTypeIdentifier: "public.image", options: nil, completionHandler: imageHandler)
+        case .vCard:
+          item.loadDataRepresentation(
+            forTypeIdentifier: "public.vcard", completionHandler: contactHandler)
+        // PDF and generic files
+        case .file:
+          item.loadFileRepresentation(
+            forTypeIdentifier: "public.item", completionHandler: fileHandler)
+        case .text:
+          item.loadItem(
+            forTypeIdentifier: "public.plain-text", options: nil,
+            completionHandler: secureTextHandler)
+        case .url:
+          item.loadItem(
+            forTypeIdentifier: "public.url", options: nil,
+            completionHandler: { (item: NSSecureCoding?, error: Error?) in
+              self.sendURLItem(item as? URL)
+            })
         }
       }
     }
