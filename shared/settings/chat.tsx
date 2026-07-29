@@ -174,7 +174,7 @@ const Attachments = () => {
       <Kb.Divider style={styles.divider} />
       <SettingsSectionTitle
         title="Photos and videos"
-        description="Applies both when you share into Keybase from another app and when you attach in a chat."
+        description="Applies both when you share into Keybase from another app and when you attach in a chat. Full size sends the original file, including its metadata such as location."
         style={styles.innerContainer}
       />
       <Kb.Box2
