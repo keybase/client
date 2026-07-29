@@ -39,14 +39,9 @@ const FilePickerPopupImpl = (p: Props) => {
           title: 'Take photo or video',
         },
         {
-          icon: 'iconfont-video-library',
-          onClick: () => onSelect('video', 'library'),
-          title: 'Choose video from library',
-        },
-        {
           icon: 'iconfont-photo-library',
-          onClick: () => onSelect('photo', 'library'),
-          title: 'Choose photos from library',
+          onClick: () => onSelect('mixed', 'library'),
+          title: 'Choose from library',
         },
         {
           icon: 'iconfont-attachment',

@@ -2,15 +2,15 @@ import * as ImagePicker from 'expo-image-picker'
 
 // built lazily: on desktop expo-image-picker is nulled out by the bundler, so
 // dereferencing its enums at module scope crashes at import time
+// Picks are deliberately untouched: MediaUtils on the get-titles screen owns trim +
+// compression for both the share extension and in-chat attach, so the picker should hand
+// back originals rather than pre-processing them. quality: 1 avoids an iOS JPEG recompress
+// pass before MediaUtils.processImage ever sees the image.
 const getDefaultOptions = () => ({
   allowsEditing: false,
   exif: false,
-  quality: 0.4,
-  // marked deprecated but still the only thing that compresses library video picks on iOS;
-  // default is Passthrough which uploads the original file untouched. UIImagePickerController
-  // ignores videoQuality once this is set, so MediumQuality is what keeps uploads near the
-  // size the old .typeMedium path produced.
-  videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality,
+  quality: 1,
+  videoExportPreset: ImagePicker.VideoExportPreset.Passthrough,
   videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
 }) as const
 
@@ -68,7 +68,6 @@ export const launchImageLibraryAsync = async (
     res = await ImagePicker.launchImageLibraryAsync({
       ...getDefaultOptions(),
       allowsMultipleSelection,
-      ...(mediaType === 'video' ? {allowsEditing: true, allowsMultipleSelection: false} : {}),
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
   } catch (e) {
