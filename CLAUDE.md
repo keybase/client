@@ -22,6 +22,7 @@ Repo root is `client/`. TS source lives in `shared/`. Always use absolute paths 
 
 ## Superpowers
 - Plans created by superpowers skills go into `plans/` at the repo root.
+- Never commit plan/spec/design docs. They're scratch for the current effort — leave them untracked and delete them when the work lands.
 
 ## Validation
 After TS changes (from `shared/`): `yarn lint:all` (= `yarn lint` && `yarn lint:bailouts` && `yarn tsc`). Plain `yarn lint` is eslint only and does NOT catch react-compiler bailouts — no compiler rule is wired into `eslint.config.mjs`, so bailouts only surface via `lint:bailouts`. Repo baseline is 0 bailouts; keep it there. When debugging visually, skip until fix is confirmed. Never delete the ESLint cache.
