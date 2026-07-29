@@ -28,7 +28,7 @@ typealias ProcessMediaCompletion = (Result<URL, Error>) -> Void
 typealias ProcessMediaProgressCallback = (Float) -> Void
 
 @objc(MediaUtils)
-class MediaUtils: NSObject {
+public class MediaUtils: NSObject {
     private static var scaledImageOptions: CFDictionary {
         return [
             kCGImageSourceCreateThumbnailWithTransform: true,
@@ -37,7 +37,7 @@ class MediaUtils: NSObject {
         ] as CFDictionary
     }
 
-    @objc static func processImage(
+    @objc public static func processImage(
         fromOriginal url: URL,
         compress: Bool,
         completion: @escaping (Error?, URL?) -> Void
@@ -97,7 +97,7 @@ class MediaUtils: NSObject {
         return scaledURL
     }
 
-    @objc static func processVideo(
+    @objc public static func processVideo(
         fromOriginal url: URL,
         compress: Bool,
         completion: @escaping (Error?, URL?) -> Void

@@ -6,14 +6,14 @@ import UIKit
 // for untouched clips, we compare durations afterwards and throw away the
 // editor's output when the user did not actually move the handles.
 @objc(VideoTrim)
-class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationControllerDelegate {
+public class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationControllerDelegate {
     private static let durationEpsilon: Double = 0.05
 
     private var completion: ((String?, Error?) -> Void)?
     private var sourceDuration: Double = 0
     private static var inFlight: VideoTrim?
 
-    @objc static func present(
+    @objc public static func present(
         path: String,
         highQuality: Bool,
         completion: @escaping (String?, Error?) -> Void
@@ -63,7 +63,7 @@ class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationControll
         }
     }
 
-    func videoEditorController(_ editor: UIVideoEditorController, didSaveEditedVideoToPath editedVideoPath: String) {
+    public func videoEditorController(_ editor: UIVideoEditorController, didSaveEditedVideoToPath editedVideoPath: String) {
         let editedDuration = CMTimeGetSeconds(AVURLAsset(url: URL(fileURLWithPath: editedVideoPath)).duration)
         let unchanged = abs(editedDuration - sourceDuration) < VideoTrim.durationEpsilon
         if unchanged {
@@ -72,11 +72,11 @@ class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationControll
         finish(editor, path: unchanged ? nil : editedVideoPath, error: nil)
     }
 
-    func videoEditorController(_ editor: UIVideoEditorController, didFailWithError error: Error) {
+    public func videoEditorController(_ editor: UIVideoEditorController, didFailWithError error: Error) {
         finish(editor, path: nil, error: error)
     }
 
-    func videoEditorControllerDidCancel(_ editor: UIVideoEditorController) {
+    public func videoEditorControllerDidCancel(_ editor: UIVideoEditorController) {
         finish(editor, path: nil, error: nil)
     }
 }
