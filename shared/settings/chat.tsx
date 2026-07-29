@@ -124,7 +124,11 @@ const useUnfurlSettings = () => {
 
 const useCompressPreference = () => {
   const [error, setError] = React.useState('')
-  const {data: compress, setData} = useRPCLoad(T.RPCGen.incomingShareGetPreferenceRpcPromise, [undefined], {
+  const {
+    data: compress,
+    reload,
+    setData,
+  } = useRPCLoad(T.RPCGen.incomingShareGetPreferenceRpcPromise, [undefined], {
     map: pref => pref.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original,
     onError: () => setError('Unable to load the attachment setting, please try again.'),
     onResult: () => setError(''),
@@ -133,7 +137,9 @@ const useCompressPreference = () => {
 
   const compressSaved = React.useCallback(
     (next: boolean) => {
+      const prev = compress
       setError('')
+      // optimistic, the post-save reload has the final say
       setData(next)
       setPreferenceRPC(
         [
@@ -145,13 +151,17 @@ const useCompressPreference = () => {
             },
           },
         ],
-        () => {},
         () => {
+          reload()
+        },
+        () => {
+          // don't reload here: its onResult would clear the error we're about to show
+          setData(prev)
           setError('Unable to save the attachment setting, please try again.')
         }
       )
     },
-    [setData, setPreferenceRPC]
+    [compress, reload, setData, setPreferenceRPC]
   )
 
   return {compress, compressSaved, error}
