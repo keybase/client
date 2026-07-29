@@ -49,6 +49,9 @@ public class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationC
             editor.videoPath = path
             editor.videoQuality = highQuality ? .typeHigh : .typeMedium
             editor.delegate = helper
+            // Its chrome assumes full screen; the iOS 13+ pageSheet default
+            // crushes the title bar and the trim filmstrip together.
+            editor.modalPresentationStyle = .fullScreen
             root.present(editor, animated: true)
         }
     }

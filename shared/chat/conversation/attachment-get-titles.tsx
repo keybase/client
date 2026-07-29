@@ -74,6 +74,7 @@ const ContainerInner = (ownProps: OwnProps) => {
   // Paths the user trimmed, keyed by their index in pathAndOutboxIDs (a prop, so
   // we can't write back into it).
   const [trimmedPaths, setTrimmedPaths] = React.useState<{[index: number]: string}>({})
+  const [trimError, setTrimError] = React.useState(false)
   const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
   // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
   // so a dismissed screen must not go on to upload or navigate when it finishes.
@@ -285,7 +286,9 @@ const ContainerInner = (ownProps: OwnProps) => {
   const onTrim = () => {
     if (!path) return
     const f = async () => {
-      const trimmed = await trimVideo(path)
+      const {failed, path: trimmed} = await trimVideo(path)
+      if (unmountedRef.current) return
+      setTrimError(failed)
       if (trimmed !== path) {
         setTrimmedPaths(s => ({...s, [index]: trimmed}))
       }
@@ -310,6 +313,11 @@ const ContainerInner = (ownProps: OwnProps) => {
                 label={trimmedPaths[index] ? 'Trim again' : 'Trim'}
                 onClick={onTrim}
               />
+              {trimError ? (
+                <Kb.Text type="BodySmall" center={true} negative={false} style={styles.trimError}>
+                  Can&apos;t trim this video.
+                </Kb.Text>
+              ) : null}
             </Kb.Box2>
           ) : null}
           {pathAndInfos.length > 0 && !isMobile && (
@@ -446,6 +454,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 0,
         marginBottom: Kb.Styles.globalMargins.tiny,
       },
+      trimError: {color: Kb.Styles.globalColors.redDark},
     }) as const
 )
 

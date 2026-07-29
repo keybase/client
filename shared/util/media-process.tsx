@@ -15,16 +15,18 @@ export const canProcess = (path: string) =>
 export const canTrim = (path: string) => isIOS && isVideoPath(path)
 
 // Resolves to the trimmed path, or the input path when the user cancels or
-// leaves the range alone. Callers never have to distinguish those cases.
-export const trimVideo = async (path: string): Promise<string> => {
-  if (!canTrim(path)) return path
+// leaves the range alone — callers never have to distinguish those. `failed` is
+// separate because a rejected trim is otherwise indistinguishable from a cancel,
+// and the editor refuses outright on the simulator.
+export const trimVideo = async (path: string): Promise<{failed: boolean; path: string}> => {
+  if (!canTrim(path)) return {failed: false, path}
   try {
     // empty means canceled or unchanged
     const edited = await trimVideoNative(path)
-    return edited || path
+    return {failed: false, path: edited || path}
   } catch (e) {
     logger.warn('trimVideo failed', e)
-    return path
+    return {failed: true, path}
   }
 }
 
