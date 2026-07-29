@@ -49,7 +49,10 @@ const FilePickerPopupImpl = (p: Props) => {
           title: 'Choose a file',
         },
       ] as const)
-    : ([
+    : // the library picker handles mixed on both platforms, but Android's camera
+      // is two separate intents (ACTION_IMAGE_CAPTURE / ACTION_VIDEO_CAPTURE) and
+      // a mixed request silently resolves to photo-only, so capture stays split.
+      ([
         {
           icon: 'iconfont-camera',
           onClick: () => onSelect('photo', 'camera'),
@@ -58,13 +61,8 @@ const FilePickerPopupImpl = (p: Props) => {
         {icon: 'iconfont-film', onClick: () => onSelect('video', 'camera'), title: 'Take video'},
         {
           icon: 'iconfont-photo-library',
-          onClick: () => onSelect('photo', 'library'),
-          title: 'Photo from library',
-        },
-        {
-          icon: 'iconfont-video-library',
-          onClick: () => onSelect('video', 'library'),
-          title: 'Video from library',
+          onClick: () => onSelect('mixed', 'library'),
+          title: 'Choose from library',
         },
         {
           icon: 'iconfont-attachment',

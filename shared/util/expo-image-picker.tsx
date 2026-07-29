@@ -10,7 +10,9 @@ import * as ImagePicker from 'expo-image-picker'
 // upload, KBFS upload) has nothing downstream that compresses, so they keep the picker's
 // own compression.
 // Non-raw video picks keep the UIKit trim/editing step: it's the only video
-// handling those callers get, and it forces a single selection.
+// handling those callers get, and it forces a single selection. Android ignores
+// allowsEditing for video (it only ever launches the crop activity for images),
+// so this is effectively iOS-only.
 const usesEditor = (raw: boolean, mediaType: 'photo' | 'video' | 'mixed') => !raw && mediaType === 'video'
 
 const getDefaultOptions = (raw: boolean, mediaType: 'photo' | 'video' | 'mixed') => ({
