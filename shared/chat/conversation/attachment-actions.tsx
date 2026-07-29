@@ -143,9 +143,12 @@ export const uploadAttachments = (p: {
     }
     const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
     const outboxIDs = paths.map(pathInfo => pathInfo.outboxID ?? Common.generateOutboxID())
-    await Promise.all(
-      paths.map(async (pathInfo, idx) =>
-        T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
+    // Serial, not Promise.all: the service assigns the outbox ordinal when the RPC reaches the
+    // outbox, after a variable-length preprocess (video preview gen). Concurrent calls land in
+    // preprocess-completion order, so the thread shows the attachments shuffled.
+    for (const [idx, pathInfo] of paths.entries()) {
+      try {
+        await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
           arg: {
             ...ephemeralData,
             conversationID: T.Chat.keyToConversationID(conversationIDKey),
@@ -159,8 +162,10 @@ export const uploadAttachments = (p: {
           },
           clientPrev,
         })
-      )
-    )
+      } catch (e) {
+        logger.warn('attachmentsUpload: failed to post attachment', e)
+      }
+    }
   }
   ignorePromise(f())
 }
