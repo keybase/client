@@ -190,9 +190,9 @@ public class ItemProviderHelper: NSObject {
         scaledFileURL: scaled!)
     }
     if isVideo {
-      MediaUtils.processVideo(fromOriginal: url, completion: completion)
+      MediaUtils.processVideo(fromOriginal: url, compress: true, completion: completion)
     } else {
-      MediaUtils.processImage(fromOriginal: url, completion: completion)
+      MediaUtils.processImage(fromOriginal: url, compress: true, completion: completion)
     }
   }
 

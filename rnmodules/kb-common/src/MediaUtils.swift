@@ -6,8 +6,6 @@ import UIKit
 struct MediaProcessingConfig {
     static let imageMaxPixelSize: Int = 1200
     static let imageCompressionQuality: CGFloat = 0.85
-    static let videoMaxPixels: Int = 1920 * 1080
-    static let videoMaxFileSize: Int64 = 50 * 1024 * 1024
 }
 
 enum MediaUtilsError: Error, LocalizedError {
@@ -41,9 +39,10 @@ class MediaUtils: NSObject {
 
     @objc static func processImage(
         fromOriginal url: URL,
+        compress: Bool,
         completion: @escaping (Error?, URL?) -> Void
     ) {
-        processImageAsync(fromOriginal: url) { result in
+        processImageAsync(fromOriginal: url, compress: compress) { result in
             switch result {
             case .success(let url):
                 completion(nil, url)
@@ -55,11 +54,12 @@ class MediaUtils: NSObject {
 
     static func processImageAsync(
         fromOriginal url: URL,
+        compress: Bool,
         completion: @escaping ProcessMediaCompletion
     ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let processedURL = try processImageSync(fromOriginal: url)
+                let processedURL = try processImageSync(fromOriginal: url, compress: compress)
                 DispatchQueue.main.async {
                     completion(.success(processedURL))
                 }
@@ -71,10 +71,14 @@ class MediaUtils: NSObject {
         }
     }
 
-    private static func processImageSync(fromOriginal url: URL) throws -> URL {
+    private static func processImageSync(fromOriginal url: URL, compress: Bool) throws -> URL {
         // Validate input
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
+        }
+
+        if !compress {
+            return url
         }
 
         // Strip EXIF data first
@@ -95,9 +99,10 @@ class MediaUtils: NSObject {
 
     @objc static func processVideo(
         fromOriginal url: URL,
+        compress: Bool,
         completion: @escaping (Error?, URL?) -> Void
     ) {
-        processVideoAsync(fromOriginal: url) { result in
+        processVideoAsync(fromOriginal: url, compress: compress) { result in
             switch result {
             case .success(let url):
                 completion(nil, url)
@@ -109,12 +114,14 @@ class MediaUtils: NSObject {
 
     static func processVideoAsync(
         fromOriginal url: URL,
+        compress: Bool,
         progress: ProcessMediaProgressCallback? = nil,
         completion: @escaping ProcessMediaCompletion
     ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let processedURL = try processVideoSync(fromOriginal: url, progress: progress)
+                let processedURL = try processVideoSync(
+                    fromOriginal: url, compress: compress, progress: progress)
                 DispatchQueue.main.async {
                     completion(.success(processedURL))
                 }
@@ -128,26 +135,30 @@ class MediaUtils: NSObject {
 
     private static func processVideoSync(
         fromOriginal url: URL,
+        compress: Bool,
         progress: ProcessMediaProgressCallback? = nil
     ) throws -> URL {
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
-        let asset = AVURLAsset(url: url)
+        // Passthrough means the caller wants the original bytes. Exporting
+        // would rewrite the container for no benefit, so hand back the input.
+        if !compress {
+            return url
+        }
 
+        let asset = AVURLAsset(url: url)
         try validateVideoAsset(asset)
 
         let basename = url.deletingPathExtension().lastPathComponent
         let parent = url.deletingLastPathComponent()
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
 
-        let exportSettings = determineOptimalExportSettings(for: asset)
-
         try exportVideoWithSettings(
             asset: asset,
             outputURL: processedURL,
-            settings: exportSettings,
+            settings: exportSettings(compress: compress),
             progress: progress)
 
         return processedURL
@@ -175,27 +186,11 @@ class MediaUtils: NSObject {
         }
     }
 
-    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings
-    {
-        let videoTracks = asset.tracks(withMediaType: .video)
-        guard let firstVideoTrack = videoTracks.first else {
-            return VideoExportSettings.default
-        }
-
-        let size = firstVideoTrack.naturalSize
-        let pixelCount = Int(size.width * size.height)
-        let fileSize = getFileSize(for: asset.url)
-
-        // Determine if we need to scale down
-        let needsScaling =
-            pixelCount > MediaProcessingConfig.videoMaxPixels
-            || fileSize > MediaProcessingConfig.videoMaxFileSize
-
-        if needsScaling {
-            return VideoExportSettings.mediumQuality
-        } else {
-            return VideoExportSettings.passthrough
-        }
+    private static func exportSettings(compress: Bool) -> VideoExportSettings {
+        // One policy, two outcomes. Callers decide whether to compress; the
+        // policy itself never varies by source size. Changing MediumQuality
+        // here changes it for both the share extension and in-chat attach.
+        return compress ? VideoExportSettings.mediumQuality : VideoExportSettings.passthrough
     }
 
     private static func exportVideoWithSettings(
@@ -248,15 +243,6 @@ class MediaUtils: NSObject {
         guard exportSession.status == .completed else {
             throw MediaUtilsError.videoProcessingFailed(
                 "Export session failed with status: \(exportSession.status)")
-        }
-    }
-
-    private static func getFileSize(for url: URL) -> Int64 {
-        do {
-            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
-            return attributes[.size] as? Int64 ?? 0
-        } catch {
-            return 0
         }
     }
 
@@ -336,6 +322,4 @@ struct VideoExportSettings {
     static let highQuality = VideoExportSettings(preset: AVAssetExportPreset1920x1080)
     static let mediumQuality = VideoExportSettings(preset: AVAssetExportPresetMediumQuality)
     static let lowQuality = VideoExportSettings(preset: AVAssetExportPresetLowQuality)
-
-    static let `default` = mediumQuality
 }
