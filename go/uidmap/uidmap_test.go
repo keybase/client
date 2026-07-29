@@ -134,6 +134,29 @@ func TestLookupUsernameConcurrent(t *testing.T) {
 
 const tKB = keybase1.UID("7b7248a1c09d17451f9002d9edc8df19")
 
+func TestLookupFullNameFromDisk(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookupFullNameFromDisk", 1)
+	defer tc.Cleanup()
+
+	expected := keybase1.FullNamePackage{
+		Version:     CurrentFullNamePackageVersion,
+		FullName:    keybase1.FullName("Joe Keybaser"),
+		EldestSeqno: keybase1.Seqno(1),
+		Status:      keybase1.StatusCode_SCOk,
+		CachedAt:    keybase1.ToTime(time.Now()),
+	}
+	require.NoError(t, tc.G.GetKVStore().PutObj(usernameDBKey(tKB), nil, "t_kb"))
+	require.NoError(t, tc.G.GetKVStore().PutObj(fullNameDBKey(tKB), nil, expected))
+
+	uidMap := NewUIDMap(10)
+	results, err := uidMap.MapUIDsToUsernamePackagesOffline(
+		context.TODO(), tc.G, []keybase1.UID{tKB}, 0)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	require.Equal(t, libkb.NewNormalizedUsername("t_kb"), results[0].NormalizedUsername)
+	require.Equal(t, &expected, results[0].FullName)
+}
+
 func TestRanOutOfTime(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookup", 1)
 	defer tc.Cleanup()
