@@ -2,15 +2,18 @@ import * as ImagePicker from 'expo-image-picker'
 
 // built lazily: on desktop expo-image-picker is nulled out by the bundler, so
 // dereferencing its enums at module scope crashes at import time
-// Picks are deliberately untouched: MediaUtils on the get-titles screen owns trim +
-// compression for both the share extension and in-chat attach, so the picker should hand
-// back originals rather than pre-processing them. quality: 1 avoids an iOS JPEG recompress
-// pass before MediaUtils.processImage ever sees the image.
-const getDefaultOptions = () => ({
+//
+// `raw` is for chat attach only: MediaUtils on the get-titles screen owns trim +
+// compression for both the share extension and in-chat attach, so those picks should hand
+// back originals untouched (quality: 1 also avoids an iOS JPEG recompress pass before
+// MediaUtils.processImage ever sees the image). Every other caller (avatar upload, emoji
+// upload, KBFS upload) has nothing downstream that compresses, so they keep the picker's
+// own compression.
+const getDefaultOptions = (raw: boolean) => ({
   allowsEditing: false,
   exif: false,
-  quality: 1,
-  videoExportPreset: ImagePicker.VideoExportPreset.Passthrough,
+  quality: raw ? 1 : 0.4,
+  videoExportPreset: raw ? ImagePicker.VideoExportPreset.Passthrough : ImagePicker.VideoExportPreset.MediumQuality,
   videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
 }) as const
 
@@ -33,13 +36,14 @@ const guardUndefined = (res: ImagePicker.ImagePickerResult | undefined, name: st
 
 export const launchCameraAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
-  askPermAndRetry: boolean = true
+  askPermAndRetry: boolean = true,
+  raw: boolean = false
 ): Promise<ImagePicker.ImagePickerResult> => {
   if (!isMobile) return canceled
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchCameraAsync({
-      ...getDefaultOptions(),
+      ...getDefaultOptions(raw),
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
   } catch (e) {
@@ -52,7 +56,7 @@ export const launchCameraAsync = async (
     try {
       await ImagePicker.requestMediaLibraryPermissionsAsync()
     } catch {}
-    return launchCameraAsync(mediaType, false)
+    return launchCameraAsync(mediaType, false, raw)
   }
   return guardUndefined(res, 'launchCameraAsync')
 }
@@ -60,13 +64,14 @@ export const launchCameraAsync = async (
 export const launchImageLibraryAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true,
-  allowsMultipleSelection: boolean = false
+  allowsMultipleSelection: boolean = false,
+  raw: boolean = false
 ): Promise<ImagePicker.ImagePickerResult> => {
   if (!isMobile) return canceled
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchImageLibraryAsync({
-      ...getDefaultOptions(),
+      ...getDefaultOptions(raw),
       allowsMultipleSelection,
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
@@ -77,7 +82,7 @@ export const launchImageLibraryAsync = async (
     try {
       await ImagePicker.requestMediaLibraryPermissionsAsync()
     } catch {}
-    return launchImageLibraryAsync(mediaType, false, allowsMultipleSelection)
+    return launchImageLibraryAsync(mediaType, false, allowsMultipleSelection, raw)
   }
   return guardUndefined(res, 'launchImageLibraryAsync')
 }
