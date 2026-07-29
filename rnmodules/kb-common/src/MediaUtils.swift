@@ -25,7 +25,6 @@ enum MediaUtilsError: Error, LocalizedError {
 }
 
 typealias ProcessMediaCompletion = (Result<URL, Error>) -> Void
-typealias ProcessMediaProgressCallback = (Float) -> Void
 
 @objc(MediaUtils)
 public class MediaUtils: NSObject {
@@ -115,13 +114,11 @@ public class MediaUtils: NSObject {
     static func processVideoAsync(
         fromOriginal url: URL,
         compress: Bool,
-        progress: ProcessMediaProgressCallback? = nil,
         completion: @escaping ProcessMediaCompletion
     ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let processedURL = try processVideoSync(
-                    fromOriginal: url, compress: compress, progress: progress)
+                let processedURL = try processVideoSync(fromOriginal: url, compress: compress)
                 DispatchQueue.main.async {
                     completion(.success(processedURL))
                 }
@@ -133,11 +130,7 @@ public class MediaUtils: NSObject {
         }
     }
 
-    private static func processVideoSync(
-        fromOriginal url: URL,
-        compress: Bool,
-        progress: ProcessMediaProgressCallback? = nil
-    ) throws -> URL {
+    private static func processVideoSync(fromOriginal url: URL, compress: Bool) throws -> URL {
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
@@ -158,8 +151,7 @@ public class MediaUtils: NSObject {
         try exportVideoWithSettings(
             asset: asset,
             outputURL: processedURL,
-            settings: exportSettings(compress: compress),
-            progress: progress)
+            settings: exportSettings(compress: compress))
 
         return processedURL
     }
@@ -196,8 +188,7 @@ public class MediaUtils: NSObject {
     private static func exportVideoWithSettings(
         asset: AVURLAsset,
         outputURL: URL,
-        settings: VideoExportSettings,
-        progress: ProcessMediaProgressCallback?
+        settings: VideoExportSettings
     ) throws {
 
         let semaphore = DispatchSemaphore(value: 0)
@@ -208,29 +199,18 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.videoProcessingFailed("Failed to create export session")
         }
 
+        // AVAssetExportSession refuses to write over an existing file, so a
+        // second pass over the same source would fail outright.
+        try? FileManager.default.removeItem(at: outputURL)
+
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mp4
         exportSession.shouldOptimizeForNetworkUse = true
         exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()  // Strips location data
 
-        // Set up progress monitoring
-        if let progress = progress {
-            let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                DispatchQueue.main.async {
-                    progress(exportSession.progress)
-                }
-            }
-
-            exportSession.exportAsynchronously {
-                timer.invalidate()
-                exportError = exportSession.error
-                semaphore.signal()
-            }
-        } else {
-            exportSession.exportAsynchronously {
-                exportError = exportSession.error
-                semaphore.signal()
-            }
+        exportSession.exportAsynchronously {
+            exportError = exportSession.error
+            semaphore.signal()
         }
 
         semaphore.wait()
