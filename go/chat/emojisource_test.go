@@ -8,15 +8,19 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbtest"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbhttp/manager"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -26,6 +30,16 @@ var (
 	decorateBegin = "$>kb$"
 	decorateEnd   = "$<kb$"
 )
+
+type countingGregorState struct {
+	libkb.GregorState
+	stateCalls atomic.Int32
+}
+
+func (c *countingGregorState) State(ctx context.Context) (gregor.State, error) {
+	c.stateCalls.Add(1)
+	return c.GregorState.State(ctx)
+}
 
 func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID, emoji string,
@@ -236,6 +250,44 @@ func TestEmojiSourceBasic(t *testing.T) {
 		}
 	}
 	require.True(t, checked)
+}
+
+func TestEmojiSourceUserReacjisReadsGregorStateOnce(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestEmojiSourceUserReacjisReadsGregorStateOnce", 1)
+	defer ctc.cleanup()
+
+	user := ctc.users()[0]
+	uid := user.User.GetUID().ToBytes()
+	tc := ctc.world.Tcs[user.Username]
+	ctx := ctc.as(t, user).startCtx
+	emojiSource := tc.Context().EmojiSource.(*DevConvEmojiSource)
+	tc.ChatG.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+
+	emojiSource.aliasLookupLock.Lock()
+	emojiSource.aliasLookup = map[string]chat1.Emoji{
+		"custom-one": {
+			RemoteSource: chat1.NewEmojiRemoteSourceWithMessage(chat1.EmojiMessage{
+				ConvID: chat1.ConversationID{1},
+				MsgID:  1,
+			}),
+		},
+		"custom-two": {
+			RemoteSource: chat1.NewEmojiRemoteSourceWithMessage(chat1.EmojiMessage{
+				ConvID: chat1.ConversationID{2},
+				MsgID:  2,
+			}),
+		},
+	}
+	emojiSource.aliasLookupLock.Unlock()
+
+	reacjiStore := storage.NewReacjiStore(tc.Context())
+	require.NoError(t, reacjiStore.PutReacji(ctx, uid, ":custom-one:"))
+	require.NoError(t, reacjiStore.PutReacji(ctx, uid, ":custom-two:"))
+
+	gregorState := &countingGregorState{GregorState: tc.G.GregorState}
+	tc.G.GregorState = gregorState
+	reacjiStore.UserReacjis(ctx, uid)
+	require.Equal(t, int32(1), gregorState.stateCalls.Load())
 }
 
 type emojiAliasTestCase struct {

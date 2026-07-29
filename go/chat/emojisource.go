@@ -459,23 +459,20 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 	return storage.Put(ctx, uid, convID, topicName, stored)
 }
 
-func (s *DevConvEmojiSource) animationsDisabled(ctx context.Context, uid gregor1.UID) bool {
+func (s *DevConvEmojiSource) AnimationsDisabled(ctx context.Context) (bool, error) {
 	st, err := s.G().GregorState.State(ctx)
 	if err != nil {
-		s.Debug(ctx, "animationsDisabled: failed to get state: %s", err)
-		return false
+		return false, err
 	}
 	cat, err := gregor1.ObjFactory{}.MakeCategory(animationKey)
 	if err != nil {
-		s.Debug(ctx, "animationsDisabled: failed to make category: %s", err)
-		return false
+		return false, err
 	}
 	items, err := st.ItemsInCategory(cat)
 	if err != nil {
-		s.Debug(ctx, "animationsDisabled: failed to get items: %s", err)
-		return false
+		return false, err
 	}
-	return len(items) > 0
+	return len(items) > 0, nil
 }
 
 func (s *DevConvEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) (err error) {
@@ -492,18 +489,22 @@ func (s *DevConvEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.U
 	return err
 }
 
-func (s *DevConvEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor1.UID,
-	remote chat1.EmojiRemoteSource,
+func (s *DevConvEmojiSource) RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
+	noAnim bool,
 ) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {
 		return source, noAnimSource, err
 	}
-	noAnim := s.animationsDisabled(ctx, uid)
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		msg := remote.Message()
 		sourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, noAnim, true)
+		if noAnim {
+			// same arguments, so the second lookup would return the same URL
+			ret := chat1.NewEmojiLoadSourceWithHttpsrv(sourceURL)
+			return ret, ret, nil
+		}
 		noAnimSourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, true, true)
 		return chat1.NewEmojiLoadSourceWithHttpsrv(sourceURL),
 			chat1.NewEmojiLoadSourceWithHttpsrv(noAnimSourceURL), nil
@@ -573,6 +574,12 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	}
 	convs := ibox.Convs
 	seenAliases := make(map[string]int)
+	// Reconstruct the local Gregor state once for the whole emoji set.
+	noAnim, animationErr := s.AnimationsDisabled(ctx)
+	if animationErr != nil {
+		s.Debug(ctx, "Get: failed to read animation setting: %s", animationErr)
+		noAnim = false
+	}
 	addEmojis := func(convs []chat1.ConversationLocal, isCrossTeam bool) {
 		if opts.OnlyInTeam && isCrossTeam {
 			return
@@ -596,7 +603,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					continue
 				}
 				var creationInfo *chat1.EmojiCreationInfo
-				source, noAnimSource, err := s.RemoteToLocalSource(ctx, uid, storedEmoji)
+				source, noAnimSource, err := s.RemoteToLocalSource(ctx, storedEmoji, noAnim)
 				if err != nil {
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
@@ -954,9 +961,15 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 	offset := 0
 	added := 0
 	isReacji := messageType == chat1.MessageType_REACTION
+	// Reconstruct the local Gregor state once for the whole message.
+	noAnim, err := s.AnimationsDisabled(ctx)
+	if err != nil {
+		s.Debug(ctx, "Decorate: failed to read animation setting: %s", err)
+		noAnim = false
+	}
 	for _, match := range matches {
 		if remoteSource, ok := emojiMap[match.name]; ok {
-			source, noAnimSource, err := s.RemoteToLocalSource(ctx, uid, remoteSource)
+			source, noAnimSource, err := s.RemoteToLocalSource(ctx, remoteSource, noAnim)
 			if err != nil {
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue
