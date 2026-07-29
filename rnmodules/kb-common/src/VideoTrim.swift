@@ -19,6 +19,12 @@ public class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationC
         completion: @escaping (String?, Error?) -> Void
     ) {
         DispatchQueue.main.async {
+            // Only one editor at a time: inFlight is the helper's only strong
+            // reference, so a second present() would strand the first.
+            guard Self.inFlight == nil else {
+                completion(nil, MediaUtilsError.invalidInput("A video editor is already open"))
+                return
+            }
             guard UIVideoEditorController.canEditVideo(atPath: path) else {
                 completion(nil, MediaUtilsError.invalidInput("Video cannot be edited: \(path)"))
                 return

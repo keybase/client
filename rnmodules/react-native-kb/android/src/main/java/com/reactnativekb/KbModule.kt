@@ -569,6 +569,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         promise.reject(Exception("wrong platform"))
     }
 
+    @ReactMethod
+    override fun trimVideo(path: String, promise: Promise) {
+        promise.reject(Exception("wrong platform"))
+    }
+
+    @ReactMethod
+    override fun processMedia(path: String, isVideo: Boolean, compress: Boolean, promise: Promise) {
+        promise.reject(Exception("wrong platform"))
+    }
+
     private fun sendHardwareKeyEvent(keyName: String) {
         if (canEmit()) {
             emitOnHardwareKeyPressed(keyName)

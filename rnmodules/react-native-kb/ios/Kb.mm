@@ -356,6 +356,40 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
   }];
 }
 
+RCT_EXPORT_METHOD(trimVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  // highQuality:YES is deliberate. The editor's export is the only encode when
+  // compression is off, and when it's on MediaUtils re-encodes afterwards, so a
+  // high-quality intermediate keeps the loss down.
+  [VideoTrim presentWithPath:path highQuality:YES completion:^(NSString *edited, NSError *error) {
+    if (error) {
+      reject(@"trim_error", error.localizedDescription, error);
+    } else if (edited) {
+      resolve(edited);
+    } else {
+      // canceled, or the range was never changed
+      resolve([NSNull null]);
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  NSURL *url = [NSURL fileURLWithPath:path];
+  void (^done)(NSError *, NSURL *) = ^(NSError *error, NSURL *out) {
+    if (error) {
+      reject(@"process_media_error", error.localizedDescription, error);
+    } else if (out) {
+      resolve(out.path);
+    } else {
+      reject(@"process_media_error", @"No output produced", nil);
+    }
+  };
+  if (isVideo) {
+    [MediaUtils processVideoFromOriginal:url compress:compress completion:done];
+  } else {
+    [MediaUtils processImageFromOriginal:url compress:compress completion:done];
+  }
+}
+
 RCT_EXPORT_METHOD(checkPushPermissions: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
   UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
   [current getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *_Nonnull settings) {

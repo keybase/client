@@ -30,6 +30,9 @@ export interface Spec extends TurboModule {
     cpuProfileDir: string
   ): Promise<string>
   iosGetHasShownPushPrompt(): Promise<boolean>
+  // iOS only; Android rejects
+  trimVideo(path: string): Promise<string | null>
+  processMedia(path: string, isVideo: boolean, compress: boolean): Promise<string>
   androidShareText(text: string, mimeType: string): Promise<boolean>
   androidShare(text: string, mimeType: string): Promise<boolean>
   androidAddCompleteDownload(o: {
