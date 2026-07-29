@@ -24,6 +24,8 @@ import {
   registerSecondInstanceHandler,
 } from './app-events.desktop'
 import {setupIPCHandlers} from './ipc-handlers.desktop'
+import {localFileScheme} from '@/util/file-url'
+import {pathToFileURL} from 'url'
 
 type DeferredLaunch = {
   saltpackFilePath?: string
@@ -134,14 +136,14 @@ const startApp = () => {
   Electron.app
     .whenReady()
     .then(() => {
-      // In hot dev the renderer's document comes from the Vite dev server, and an
-      // http origin isn't allowed to load file:// subresources: local previews
-      // (drag-and-drop attachments, video, avatar overrides) fail to load.
-      // Packaged builds serve the document from file:// and don't need this.
+      // See registerSchemesAsPrivileged below.
       if (__HOT__) {
-        Electron.session.defaultSession.protocol.handle('file', async req =>
-          Electron.net.fetch(req.url, {bypassCustomProtocolHandlers: true})
-        )
+        Electron.protocol.handle(localFileScheme, async req => {
+          // Windows paths are carried with a leading slash (/C:/...) so the URL
+          // stays absolute; pathToFileURL wants them without it.
+          const path = decodeURIComponent(new URL(req.url).pathname).replace(/^\/([a-zA-Z]:)/, '$1')
+          return Electron.net.fetch(pathToFileURL(path).toString())
+        })
       }
       if (!process.env['KB_E2E_TEST']) {
         menuBar()
@@ -152,6 +154,22 @@ const startApp = () => {
       console.log('Electron app failed to initialize:', err)
       Electron.app.quit()
     })
+}
+
+// In hot dev the renderer's document comes from the Vite dev server, and Chromium
+// refuses to load file:// subresources into an http origin, so local previews
+// (drag-and-drop attachments, video, avatar overrides) fail with "Not allowed to
+// load local resource". A custom scheme isn't subject to that rule, so the
+// renderer addresses local files through this one instead. Registering it has to
+// happen before the app is ready. Packaged builds serve the document from file://
+// and keep using plain file:// URLs.
+if (__HOT__) {
+  Electron.protocol.registerSchemesAsPrivileged([
+    {
+      privileges: {secure: true, standard: true, stream: true, supportFetchAPI: true},
+      scheme: localFileScheme,
+    },
+  ])
 }
 
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
