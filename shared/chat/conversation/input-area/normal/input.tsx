@@ -1129,7 +1129,7 @@ const launchNativeImagePickerImpl = async (
   switch (location) {
     case 'camera':
       try {
-        const res = await launchCameraAsync(mt, true, true)
+        const res = await launchCameraAsync(mt, true, isIOS)
         handleSelection(res)
       } catch (error) {
         filePickerError(new Error(String(error)))
@@ -1137,7 +1137,7 @@ const launchNativeImagePickerImpl = async (
       break
     case 'library':
       try {
-        const res = await launchImageLibraryAsync(mt, true, true, true)
+        const res = await launchImageLibraryAsync(mt, true, true, isIOS)
         handleSelection(res)
       } catch (error) {
         filePickerError(new Error(String(error)))

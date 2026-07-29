@@ -9,8 +9,12 @@ import * as ImagePicker from 'expo-image-picker'
 // MediaUtils.processImage ever sees the image). Every other caller (avatar upload, emoji
 // upload, KBFS upload) has nothing downstream that compresses, so they keep the picker's
 // own compression.
-const getDefaultOptions = (raw: boolean) => ({
-  allowsEditing: false,
+// Non-raw video picks keep the UIKit trim/editing step: it's the only video
+// handling those callers get, and it forces a single selection.
+const usesEditor = (raw: boolean, mediaType: 'photo' | 'video' | 'mixed') => !raw && mediaType === 'video'
+
+const getDefaultOptions = (raw: boolean, mediaType: 'photo' | 'video' | 'mixed') => ({
+  allowsEditing: usesEditor(raw, mediaType),
   exif: false,
   quality: raw ? 1 : 0.4,
   videoExportPreset: raw ? ImagePicker.VideoExportPreset.Passthrough : ImagePicker.VideoExportPreset.MediumQuality,
@@ -43,7 +47,7 @@ export const launchCameraAsync = async (
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchCameraAsync({
-      ...getDefaultOptions(raw),
+      ...getDefaultOptions(raw, mediaType),
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
   } catch (e) {
@@ -71,8 +75,9 @@ export const launchImageLibraryAsync = async (
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchImageLibraryAsync({
-      ...getDefaultOptions(raw),
-      allowsMultipleSelection,
+      ...getDefaultOptions(raw, mediaType),
+      // the UIKit editor can't handle a multi-pick
+      allowsMultipleSelection: usesEditor(raw, mediaType) ? false : allowsMultipleSelection,
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
   } catch (e) {
