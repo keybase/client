@@ -6,7 +6,6 @@ import * as FS from '@/constants/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 import {IosHeaderTitle} from './nav-header/ios-header'
 import {Filename, ItemIcon} from './common'
-import {getIncomingShareSizes, OriginalOrCompressedButton} from '@/incoming-share'
 import {defineRouteMap} from '@/constants/types/router'
 
 const FsRoot = React.lazy(async () => import('.'))
@@ -28,16 +27,6 @@ const DestPickerHeaderLeft = ({source}: {source: T.FS.MoveOrCopySource | T.FS.In
       Cancel
     </Kb.Text>
   )
-}
-
-// undefined when there's nothing to show: a set headerRight rendering null
-// still gets an empty liquid glass circle on iOS 26
-const destPickerHeaderRight = (source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource) => {
-  if (source.type !== T.FS.DestinationPickerSource.IncomingShare) return undefined
-  if (getIncomingShareSizes(source.source).originalOnly) return undefined
-  const items = source.source
-  const HeaderRight = () => <OriginalOrCompressedButton incomingShareItems={items} />
-  return HeaderRight
 }
 
 const DestPickerHeaderTitle = (props: {
@@ -149,7 +138,6 @@ export const newModalRoutes = defineRouteMap({
                   : [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
             }
           : {headerLeft: () => <DestPickerHeaderLeft source={route.params.source} />}),
-        headerRight: destPickerHeaderRight(route.params.source),
         headerTitle: () => (
           <DestPickerHeaderTitle parentPath={route.params.parentPath} source={route.params.source} />
         ),

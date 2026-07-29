@@ -5,108 +5,10 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
-import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
-import {ensureError} from '@/util/errors'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {IncomingShareHeaderTitle} from './routes'
-
-export const getIncomingShareSizes = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
-  const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
-  const scaledTotalSize = incomingShareItems.reduce(
-    (bytes, item) => bytes + (item.scaledSize ?? item.originalSize ?? 0),
-    0
-  )
-  return {originalOnly: originalTotalSize <= scaledTotalSize, originalTotalSize, scaledTotalSize}
-}
-
-export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
-  const {originalOnly, originalTotalSize, scaledTotalSize} = getIncomingShareSizes(incomingShareItems)
-  const setUseOriginalInStore = useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
-
-  const setUseOriginalInService = (useOriginal: boolean) => {
-    C.ignorePromise(
-      T.RPCGen.incomingShareSetPreferenceRpcPromise({
-        preference: useOriginal
-          ? {compressPreference: T.RPCGen.IncomingShareCompressPreference.original}
-          : {compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed},
-      }).catch(() => {})
-    )
-  }
-
-  const getRPC = C.useRPC(T.RPCGen.incomingShareGetPreferenceRpcPromise)
-  React.useEffect(() => {
-    if (!originalOnly) {
-      getRPC(
-        [undefined],
-        pref =>
-          setUseOriginalInStore(
-            pref.compressPreference === T.RPCGen.IncomingShareCompressPreference.original
-          ),
-        err => {
-          throw ensureError(err)
-        }
-      )
-    }
-  }, [originalOnly, getRPC, setUseOriginalInStore])
-
-  const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
-
-  const isLarge = (useOriginalValue ? originalTotalSize : scaledTotalSize) > 1024 * 1024 * 150
-
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {hidePopup} = p
-    const setUseOriginalFromUI = (useOriginal: boolean) => {
-      if (!originalOnly) {
-        setUseOriginalInStore(useOriginal)
-      }
-      setUseOriginalInService(useOriginal)
-    }
-
-    return (
-      <Kb.FloatingMenu
-        closeOnSelect={true}
-        visible={true}
-        onHidden={hidePopup}
-        items={[
-          {
-            icon: useOriginalValue ? 'iconfont-check' : undefined,
-            onClick: () => setUseOriginalFromUI(true),
-            rightTitle: isLarge ? 'Large file' : undefined,
-            title: `Keep full size (${FS.humanizeBytes(originalTotalSize, 1)})`,
-          },
-          {
-            icon: useOriginalValue ? undefined : 'iconfont-check',
-            onClick: () => setUseOriginalFromUI(false),
-            title: `Compress (${FS.humanizeBytes(scaledTotalSize, 1)})`,
-          },
-        ]}
-      />
-    )
-  }
-  const {popup, showPopup} = Kb.usePopup2(makePopup)
-
-  if (originalOnly) {
-    return null
-  }
-
-  if (useOriginalValue === undefined) {
-    return <Kb.ProgressIndicator />
-  }
-
-  return (
-    <>
-      <Kb.Icon
-        type="iconfont-gear"
-        padding="tiny"
-        onClick={showPopup}
-        color={isLarge ? Kb.Styles.globalColors.yellow : undefined}
-      />
-      {popup}
-    </>
-  )
-}
 
 export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): string => {
   if (items.length === 0) {
@@ -159,14 +61,12 @@ type SelectedConversationProps = {
 const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) => {
   const navigateAppend = C.Router2.navigateAppend
   const navigation = useNavigation()
-  const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
+  // Always the untouched original: trimming and compression happen downstream on
+  // the get-titles screen, so the extension's copy must not be pre-processed.
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
       if (item.content) {
         return {sendPaths, text: item.content}
-      }
-      if (!useOriginalValue && item.scaledPath) {
-        return {sendPaths: [...sendPaths, item.scaledPath], text}
       }
       if (item.originalPath) {
         return {sendPaths: [...sendPaths, item.originalPath], text}
@@ -207,32 +107,16 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
   const footer = useFooter(props.incomingShareItems)
   const contentDescription = getContentDescriptionText(props.incomingShareItems)
 
-  // When there's no compress choice the header button renders nothing, but a set
-  // headerRight still gets an empty liquid glass circle on iOS 26 — so don't set
-  // it at all. The button's originalOnly store sync must then happen here.
-  const {originalOnly} = getIncomingShareSizes(props.incomingShareItems)
-  const setUseOriginalInStore = useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
-  React.useEffect(() => {
-    if (originalOnly) {
-      setUseOriginalInStore(true)
-    }
-  }, [originalOnly, setUseOriginalInStore])
-
   React.useEffect(() => {
     navigation.setOptions({
-      headerRight:
-        props.incomingShareItems.length && !originalOnly
-          ? () => <OriginalOrCompressedButton incomingShareItems={props.incomingShareItems} />
-          : undefined,
       headerTitle: () => <IncomingShareHeaderTitle title={contentDescription} />,
     })
     return () => {
       navigation.setOptions({
-        headerRight: undefined,
         headerTitle: () => <IncomingShareHeaderTitle />,
       })
     }
-  }, [contentDescription, navigation, originalOnly, props.incomingShareItems])
+  }, [contentDescription, navigation])
 
   if (canDirectNav) {
     return <LoadingSpinner />

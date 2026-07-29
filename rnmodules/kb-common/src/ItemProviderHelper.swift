@@ -1,4 +1,3 @@
-import AVFoundation
 import Contacts
 import Foundation
 import UIKit
@@ -146,15 +145,6 @@ public class ItemProviderHelper: NSObject {
     ])
   }
 
-  private func completeItemAndAppendManifest(type: String, originalFileURL: URL, scaledFileURL: URL)
-  {
-    completeItemAndAppend(type: type, entry: [
-      "type": type,
-      "originalPath": originalFileURL.absoluteURL.path,
-      "scaledPath": scaledFileURL.absoluteURL.path,
-    ])
-  }
-
   private func completeItemAndAppendManifestAndLogError(text: String, error: Error?) {
     completeItemAndAppend(type: "error", entry: [
       "error": "\(text): \(error != nil ? String(describing: error!) : "<empty>")"
@@ -169,30 +159,6 @@ public class ItemProviderHelper: NSObject {
       outputStream.open()
       defer { outputStream.close() }
       JSONSerialization.writeJSONObject(toWrite, to: outputStream, options: [], error: nil)
-    }
-  }
-
-  private func handleAndCompleteMediaFile(_ url: URL, isVideo: Bool) {
-    let completion: (Error?, URL?) -> Void = { error, scaled in
-      if let error = error {
-        if isVideo {
-          self.completeItemAndAppendManifestAndLogError(
-            text: "handleAndCompleteMediaFile", error: error)
-        } else {
-          // Unscalable image (odd format, corrupt, etc): still deliver the original
-          self.completeItemAndAppendManifest(type: "file", originalFileURL: url)
-        }
-        return
-      }
-      self.completeItemAndAppendManifest(
-        type: isVideo ? "video" : "image",
-        originalFileURL: url,
-        scaledFileURL: scaled!)
-    }
-    if isVideo {
-      MediaUtils.processVideo(fromOriginal: url, compress: true, completion: completion)
-    } else {
-      MediaUtils.processImage(fromOriginal: url, compress: true, completion: completion)
     }
   }
 
@@ -312,8 +278,9 @@ public class ItemProviderHelper: NSObject {
   }
 
   // Copy the provider's temporary file into our payload folder (it's deleted when
-  // the completion handler returns), then scale it so the manifest carries both
-  // original and compressed versions.
+  // the completion handler returns). The extension only copies: trimming and
+  // compression happen in the app, which has no extension memory budget and can
+  // let the user edit before encoding.
   private func sendMedia(_ url: URL?, isVideo: Bool) {
     guard let url = url else {
       completeItemAndAppendManifestAndLogError(text: "sendMedia: unable to decode share", error: nil)
@@ -327,7 +294,7 @@ public class ItemProviderHelper: NSObject {
       completeItemAndAppendManifestAndLogError(text: "sendMedia: copy error", error: error)
       return
     }
-    handleAndCompleteMediaFile(filePayloadURL, isVideo: isVideo)
+    completeItemAndAppendManifest(type: isVideo ? "video" : "image", originalFileURL: filePayloadURL)
   }
 
   private func sendImage(_ imgData: Data?) {
@@ -335,7 +302,7 @@ public class ItemProviderHelper: NSObject {
       let originalFileURL = getPayloadURL(withExtension: "jpg")
       let OK = (try? imgData.write(to: originalFileURL, options: .atomic)) != nil
       if OK {
-        handleAndCompleteMediaFile(originalFileURL, isVideo: false)
+        completeItemAndAppendManifest(type: "image", originalFileURL: originalFileURL)
         return
       }
     }
@@ -428,7 +395,7 @@ public class ItemProviderHelper: NSObject {
             item.loadFileRepresentation(forTypeIdentifier: stype, completionHandler: movieHandler)
             break
           }
-          // Images (PNG, GIF, JPEG, HEIC): keep the original file, offer a scaled version
+          // Images (PNG, GIF, JPEG, HEIC): copy the original file through as-is
           else if type.conforms(to: .png) || type.conforms(to: .gif) || type.conforms(to: .jpeg)
             || stype == "public.heic"
           {
