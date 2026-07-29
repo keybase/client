@@ -10,6 +10,7 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
+import {canTrim, processPaths, trimVideo} from '@/util/media-process'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -68,35 +69,105 @@ const ContainerInner = (ownProps: OwnProps) => {
   }
   const clearModals = C.Router2.clearModals
 
-  const _onSubmit = (titles: Array<string>) => {
-    const tlfNameToUse = tlfName ?? metaTlfName
-    const uploadArgs = {
-      clientPrev,
-      conversationIDKey,
-      ephemeralLifetime: explodingMode,
-      paths: pathAndOutboxIDs,
-      titles,
-      tlfName: tlfNameToUse,
+  // Paths the user trimmed, keyed by their index in pathAndOutboxIDs (a prop, so
+  // we can't write back into it).
+  const [trimmedPaths, setTrimmedPaths] = React.useState<{[index: number]: string}>({})
+  const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
+  // Until the service tells us otherwise assume compression is on, so a fast
+  // Send never quietly uploads originals.
+  const [compress, setCompress] = React.useState(true)
+  React.useEffect(() => {
+    if (!isIOS) {
+      return
     }
-    if (tlfName || noDragDrop) {
-      uploadAttachments(uploadArgs)
-    } else {
-      uploadAttachmentsFromDragAndDrop(uploadArgs)
+    let canceled = false
+    const f = async () => {
+      try {
+        const pref = await T.RPCGen.incomingShareGetPreferenceRpcPromise()
+        if (!canceled) {
+          setCompress(pref.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original)
+        }
+      } catch {}
     }
-    clearModals()
+    C.ignorePromise(f())
+    return () => {
+      canceled = true
+    }
+  }, [])
 
-    if (selectConversationWithReason) {
-      C.Router2.navigateToThread(
-        conversationIDKey,
-        selectConversationWithReason,
-        undefined,
-        undefined,
-        undefined,
-        ownProps.inputPrefillText
-      )
+  const _onSubmit = (titles: Array<string>) => {
+    if (progress) {
+      return
     }
+    const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
+      const uploadArgs = {
+        clientPrev,
+        conversationIDKey,
+        ephemeralLifetime: explodingMode,
+        paths,
+        titles,
+        tlfName: tlfName ?? metaTlfName,
+      }
+      if (tlfName || noDragDrop) {
+        uploadAttachments(uploadArgs)
+      } else {
+        uploadAttachmentsFromDragAndDrop(uploadArgs)
+      }
+      clearModals()
+
+      if (selectConversationWithReason) {
+        C.Router2.navigateToThread(
+          conversationIDKey,
+          selectConversationWithReason,
+          undefined,
+          undefined,
+          undefined,
+          ownProps.inputPrefillText
+        )
+      }
+    }
+
+    const effective = pathAndOutboxIDs.map(({path, outboxID, url}, idx) => ({
+      outboxID,
+      path: trimmedPaths[idx] ?? path,
+      url,
+    }))
+    // Only local media can be handed to the native processor: kbfs paths aren't
+    // real files and non-media has nothing to compress.
+    const eligible = effective.reduce((l: Array<{idx: number; path: string}>, {path}, idx) => {
+      if (!isKbfsPath(path) && pathToAttachmentType(path) !== 'file') {
+        l.push({idx, path})
+      }
+      return l
+    }, [])
+
+    if (!isIOS || eligible.length === 0) {
+      upload(effective)
+      return
+    }
+
+    setProgress({done: 0, total: eligible.length})
+    const f = async () => {
+      const processed = await processPaths(
+        eligible.map(e => e.path),
+        compress,
+        (done, total) => setProgress({done, total})
+      )
+      setProgress(undefined)
+      const next = [...effective]
+      eligible.forEach(({idx}, i) => {
+        const cur = next[idx]
+        if (cur) {
+          next[idx] = {...cur, path: processed[i] ?? cur.path}
+        }
+      })
+      upload(next)
+    }
+    C.ignorePromise(f())
   }
-  const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
+  const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}, idx) => {
+    // The filename and type stay tied to the original so a temp trim file's
+    // generated name is never what the user sees.
     const filename = T.FS.getLocalPathName(path)
     const info: Info = {
       filename,
@@ -105,7 +176,7 @@ const ContainerInner = (ownProps: OwnProps) => {
       type: pathToAttachmentType(path),
       url,
     }
-    return {info, path}
+    return {info, path: trimmedPaths[idx] ?? path}
   })
 
   const [index, setIndex] = React.useState(0)
@@ -191,6 +262,19 @@ const ContainerInner = (ownProps: OwnProps) => {
     }
   }
 
+  // kbfs paths aren't real files, so the native editor can't open them.
+  const showTrim = !!path && !isKbfsPath(path) && canTrim(path)
+  const onTrim = () => {
+    if (!path) return
+    const f = async () => {
+      const trimmed = await trimVideo(path)
+      if (trimmed !== path) {
+        setTrimmedPaths(s => ({...s, [index]: trimmed}))
+      }
+    }
+    C.ignorePromise(f())
+  }
+
   const isLast = index + 1 === pathAndInfos.length
   // Are we trying to upload multiple?
   const multiUpload = pathAndInfos.length > 1
@@ -200,6 +284,16 @@ const ContainerInner = (ownProps: OwnProps) => {
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
+          {showTrim ? (
+            <Kb.Box2 direction="vertical" style={styles.trim}>
+              <Kb.Button
+                type="Dim"
+                small={true}
+                label={trimmedPaths[index] ? 'Trim again' : 'Trim'}
+                onClick={onTrim}
+              />
+            </Kb.Box2>
+          ) : null}
           {pathAndInfos.length > 0 && !isMobile && (
             <Kb.Box2 direction="vertical" style={styles.filename}>
               <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
@@ -228,14 +322,27 @@ const ContainerInner = (ownProps: OwnProps) => {
             />
           </Kb.Box2>
         </Kb.ClickableBox>
+        {progress ? (
+          <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
+            <Kb.ProgressIndicator />
+            <Kb.Text type="BodySmall">{`Processing ${progress.done} of ${progress.total}...`}</Kb.Text>
+          </Kb.Box2>
+        ) : null}
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
-            <Kb.WaitingButton fullWidth={!multiUpload} onClick={onSubmit} label="Send" />
+            <Kb.WaitingButton
+              disabled={!!progress}
+              fullWidth={!multiUpload}
+              onClick={onSubmit}
+              label="Send"
+            />
           ) : (
-            <Kb.Button fullWidth={!multiUpload} onClick={onNext} label="Next" />
+            <Kb.Button disabled={!!progress} fullWidth={!multiUpload} onClick={onNext} label="Next" />
           )}
-          {multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
+          {multiUpload ? (
+            <Kb.WaitingButton disabled={!!progress} onClick={onSubmit} label="Send All" />
+          ) : null}
         </Kb.ButtonBar>
       </Kb.Box2>
     </>
@@ -311,6 +418,15 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
+      progress: {
+        alignSelf: 'center',
+        paddingTop: Kb.Styles.globalMargins.tiny,
+      },
+      trim: {
+        alignSelf: 'center',
+        flexShrink: 0,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+      },
     }) as const
 )
 
