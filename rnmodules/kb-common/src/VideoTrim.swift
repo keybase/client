@@ -13,8 +13,12 @@ public class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationC
     private var sourceDuration: Double = 0
     private static var inFlight: VideoTrim?
 
+    // The presenter comes from the caller: KBCommon is also linked into the share
+    // extension, where UIApplication.shared is unavailable, so this file cannot
+    // look the view controller up itself.
     @objc public static func present(
         path: String,
+        from presenter: UIViewController,
         highQuality: Bool,
         completion: @escaping (String?, Error?) -> Void
     ) {
@@ -29,9 +33,9 @@ public class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationC
                 completion(nil, MediaUtilsError.invalidInput("Video cannot be edited: \(path)"))
                 return
             }
-            guard let root = Self.topViewController() else {
-                completion(nil, MediaUtilsError.invalidInput("No view controller to present from"))
-                return
+            var root = presenter
+            while let presented = root.presentedViewController {
+                root = presented
             }
 
             let helper = VideoTrim()
@@ -47,17 +51,6 @@ public class VideoTrim: NSObject, UIVideoEditorControllerDelegate, UINavigationC
             editor.delegate = helper
             root.present(editor, animated: true)
         }
-    }
-
-    private static func topViewController() -> UIViewController? {
-        let scene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
-        var top = scene?.windows.first { $0.isKeyWindow }?.rootViewController
-        while let presented = top?.presentedViewController {
-            top = presented
-        }
-        return top
     }
 
     private func finish(_ editor: UIVideoEditorController, path: String?, error: Error?) {

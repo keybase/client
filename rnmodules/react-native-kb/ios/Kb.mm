@@ -4,6 +4,7 @@
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTCallInvoker.h>
+#import <React/RCTUtils.h>
 #import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
@@ -360,7 +361,12 @@ RCT_EXPORT_METHOD(trimVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)res
   // highQuality:YES is deliberate. The editor's export is the only encode when
   // compression is off, and when it's on MediaUtils re-encodes afterwards, so a
   // high-quality intermediate keeps the loss down.
-  [VideoTrim presentWithPath:path highQuality:YES completion:^(NSString *edited, NSError *error) {
+  UIViewController *presenter = RCTPresentedViewController();
+  if (!presenter) {
+    reject(@"trim_error", @"No view controller to present from", nil);
+    return;
+  }
+  [VideoTrim presentWithPath:path from:presenter highQuality:YES completion:^(NSString *edited, NSError *error) {
     if (error) {
       reject(@"trim_error", error.localizedDescription, error);
     } else if (edited) {
