@@ -10,7 +10,7 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
-import {canTrim, processPaths, trimVideo} from '@/util/media-process'
+import {canTrim, isVideoPath, processPaths, trimVideo} from '@/util/media-process'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -34,12 +34,13 @@ type Info = {
 }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
-const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
+// Video detection has to stay identical to the processor's, or an item can be
+// eligible for trimming but not for processing (or vice versa).
 const pathToAttachmentType = (path: string) => {
   if (imageFileNameRegex.test(path)) {
     return 'image'
   }
-  if (videoFileNameRegex.test(path)) {
+  if (isVideoPath(path)) {
     return 'video'
   }
   return 'file'
@@ -73,6 +74,15 @@ const ContainerInner = (ownProps: OwnProps) => {
   // we can't write back into it).
   const [trimmedPaths, setTrimmedPaths] = React.useState<{[index: number]: string}>({})
   const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
+  // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
+  // so a dismissed screen must not go on to upload or navigate when it finishes.
+  const unmountedRef = React.useRef(false)
+  React.useEffect(() => {
+    unmountedRef.current = false
+    return () => {
+      unmountedRef.current = true
+    }
+  }, [])
   // Until the service tells us otherwise assume compression is on, so a fast
   // Send never quietly uploads originals.
   const [compress, setCompress] = React.useState(true)
@@ -151,8 +161,15 @@ const ContainerInner = (ownProps: OwnProps) => {
       const processed = await processPaths(
         eligible.map(e => e.path),
         compress,
-        (done, total) => setProgress({done, total})
+        (done, total) => {
+          if (!unmountedRef.current) {
+            setProgress({done, total})
+          }
+        }
       )
+      if (unmountedRef.current) {
+        return
+      }
       setProgress(undefined)
       const next = [...effective]
       eligible.forEach(({idx}, i) => {
@@ -310,6 +327,7 @@ const ContainerInner = (ownProps: OwnProps) => {
                 e.stopPropagation()
               }}
               autoCorrect={true}
+              disabled={!!progress}
               placeholder={titleHint}
               multiline={true}
               rowsMin={2}
