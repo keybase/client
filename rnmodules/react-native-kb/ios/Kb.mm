@@ -357,6 +357,18 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
   }];
 }
 
+// JS carries mobile paths with a file:// prefix (see normalizePath in styles), but
+// AVFoundation and UIVideoEditorController want a bare filesystem path. Prefix
+// handling is a plain string slice on both sides to match normalizePath, which
+// does no percent-encoding.
+static NSString *kbBarePath(NSString *p) {
+  return [p hasPrefix:@"file://"] ? [p substringFromIndex:7] : p;
+}
+
+static NSString *kbJSPath(NSString *p) {
+  return [p hasPrefix:@"/"] ? [@"file://" stringByAppendingString:p] : p;
+}
+
 RCT_EXPORT_METHOD(trimVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
   // highQuality:YES is deliberate. The editor's export is the only encode when
   // compression is off, and when it's on MediaUtils re-encodes afterwards, so a
@@ -366,11 +378,11 @@ RCT_EXPORT_METHOD(trimVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)res
     reject(@"trim_error", @"No view controller to present from", nil);
     return;
   }
-  [VideoTrim presentWithPath:path from:presenter highQuality:YES completion:^(NSString *edited, NSError *error) {
+  [VideoTrim presentWithPath:kbBarePath(path) from:presenter highQuality:YES completion:^(NSString *edited, NSError *error) {
     if (error) {
       reject(@"trim_error", error.localizedDescription, error);
     } else if (edited) {
-      resolve(edited);
+      resolve(kbJSPath(edited));
     } else {
       // canceled, or the range was never changed
       resolve(@"");
@@ -379,12 +391,12 @@ RCT_EXPORT_METHOD(trimVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)res
 }
 
 RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
-  NSURL *url = [NSURL fileURLWithPath:path];
+  NSURL *url = [NSURL fileURLWithPath:kbBarePath(path)];
   void (^done)(NSError *, NSURL *) = ^(NSError *error, NSURL *out) {
     if (error) {
       reject(@"process_media_error", error.localizedDescription, error);
     } else if (out) {
-      resolve(out.path);
+      resolve(kbJSPath(out.path));
     } else {
       reject(@"process_media_error", @"No output produced", nil);
     }

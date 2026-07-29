@@ -1,3 +1,4 @@
+import logger from '@/logger'
 import {trimVideo as trimVideoNative, processMedia as processMediaNative} from 'react-native-kb'
 
 const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
@@ -21,7 +22,8 @@ export const trimVideo = async (path: string): Promise<string> => {
     // empty means canceled or unchanged
     const edited = await trimVideoNative(path)
     return edited || path
-  } catch {
+  } catch (e) {
+    logger.warn('trimVideo failed', e)
     return path
   }
 }
@@ -36,9 +38,11 @@ export const processPaths = async (
   for (const [idx, path] of paths.entries()) {
     try {
       out.push(await processMediaNative(path, isVideoPath(path), compress))
-    } catch {
+    } catch (e) {
       // Processing is best-effort: an unsupported or corrupt file still gets
-      // sent, just unprocessed.
+      // sent, just unprocessed. Logged because a silent fallback here means an
+      // uncompressed upload with the setting nominally on.
+      logger.warn('processMedia failed', e)
       out.push(path)
     }
     onProgress?.(idx + 1, paths.length)
