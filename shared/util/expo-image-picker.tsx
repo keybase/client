@@ -7,9 +7,10 @@ const getDefaultOptions = () => ({
   exif: false,
   quality: 0.4,
   // marked deprecated but still the only thing that compresses library video picks on iOS;
-  // default is Passthrough which uploads the original file untouched
-  videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
-  // camera recordings + legacy editing picker only
+  // default is Passthrough which uploads the original file untouched. UIImagePickerController
+  // ignores videoQuality once this is set, so MediumQuality is what keeps uploads near the
+  // size the old .typeMedium path produced.
+  videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality,
   videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
 }) as const
 
