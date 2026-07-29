@@ -352,7 +352,8 @@ const ContainerInner = (ownProps: OwnProps) => {
         {progress ? (
           <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
             <Kb.ProgressIndicator />
-            <Kb.Text type="BodySmall">{`Processing ${progress.done} of ${progress.total}...`}</Kb.Text>
+            {/* done counts completed items; the label names the one in flight */}
+            <Kb.Text type="BodySmall">{`Processing ${Math.min(progress.done + 1, progress.total)} of ${progress.total}...`}</Kb.Text>
           </Kb.Box2>
         ) : null}
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
