@@ -23,11 +23,11 @@ export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
 }
 
 // iOS only; Android rejects
-export const trimVideo = (path: string): Promise<string | null> => {
+export const trimVideo = (path: string): Promise<string> => {
   if (Platform.OS === 'ios') {
     return Kb.trimVideo(path)
   }
-  return Promise.resolve(null)
+  return Promise.resolve('')
 }
 
 export const processMedia = (path: string, isVideo: boolean, compress: boolean): Promise<string> => {

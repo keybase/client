@@ -30,8 +30,9 @@ export interface Spec extends TurboModule {
     cpuProfileDir: string
   ): Promise<string>
   iosGetHasShownPushPrompt(): Promise<boolean>
-  // iOS only; Android rejects
-  trimVideo(path: string): Promise<string | null>
+  // iOS only; Android rejects. Empty string means canceled or unchanged
+  // (codegen only allows plain types here, so no nullable).
+  trimVideo(path: string): Promise<string>
   processMedia(path: string, isVideo: boolean, compress: boolean): Promise<string>
   androidShareText(text: string, mimeType: string): Promise<boolean>
   androidShare(text: string, mimeType: string): Promise<boolean>

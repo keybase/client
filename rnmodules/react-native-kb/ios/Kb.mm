@@ -367,7 +367,7 @@ RCT_EXPORT_METHOD(trimVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)res
       resolve(edited);
     } else {
       // canceled, or the range was never changed
-      resolve([NSNull null]);
+      resolve(@"");
     }
   }];
 }
