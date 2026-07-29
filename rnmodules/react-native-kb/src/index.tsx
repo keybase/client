@@ -22,6 +22,21 @@ export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   return Promise.resolve(false)
 }
 
+// iOS only; Android rejects
+export const trimVideo = (path: string): Promise<string | null> => {
+  if (Platform.OS === 'ios') {
+    return Kb.trimVideo(path)
+  }
+  return Promise.resolve(null)
+}
+
+export const processMedia = (path: string, isVideo: boolean, compress: boolean): Promise<string> => {
+  if (Platform.OS === 'ios') {
+    return Kb.processMedia(path, isVideo, compress)
+  }
+  return Promise.resolve(path)
+}
+
 export const androidShareText = (text: string, mimeType: string): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType)
