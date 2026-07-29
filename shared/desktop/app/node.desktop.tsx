@@ -134,6 +134,15 @@ const startApp = () => {
   Electron.app
     .whenReady()
     .then(() => {
+      // In hot dev the renderer's document comes from the Vite dev server, and an
+      // http origin isn't allowed to load file:// subresources: local previews
+      // (drag-and-drop attachments, video, avatar overrides) fail to load.
+      // Packaged builds serve the document from file:// and don't need this.
+      if (__HOT__) {
+        Electron.session.defaultSession.protocol.handle('file', async req =>
+          Electron.net.fetch(req.url, {bypassCustomProtocolHandlers: true})
+        )
+      }
       if (!process.env['KB_E2E_TEST']) {
         menuBar()
       }
