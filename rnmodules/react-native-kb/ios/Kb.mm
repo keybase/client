@@ -373,21 +373,25 @@ RCT_EXPORT_METHOD(trimVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)res
   // highQuality:YES is deliberate. The editor's export is the only encode when
   // compression is off, and when it's on MediaUtils re-encodes afterwards, so a
   // high-quality intermediate keeps the loss down.
-  UIViewController *presenter = RCTPresentedViewController();
-  if (!presenter) {
-    reject(@"trim_error", @"No view controller to present from", nil);
-    return;
-  }
-  [VideoTrim presentWithPath:kbBarePath(path) from:presenter highQuality:YES completion:^(NSString *edited, NSError *error) {
-    if (error) {
-      reject(@"trim_error", error.localizedDescription, error);
-    } else if (edited) {
-      resolve(kbJSPath(edited));
-    } else {
-      // canceled, or the range was never changed
-      resolve(@"");
+  // Exported methods run on the module's queue, and RCTPresentedViewController
+  // walks the window/scene hierarchy, which is main-thread only.
+  dispatch_async(dispatch_get_main_queue(), ^{
+    UIViewController *presenter = RCTPresentedViewController();
+    if (!presenter) {
+      reject(@"trim_error", @"No view controller to present from", nil);
+      return;
     }
-  }];
+    [VideoTrim presentWithPath:kbBarePath(path) from:presenter highQuality:YES completion:^(NSString *edited, NSError *error) {
+      if (error) {
+        reject(@"trim_error", error.localizedDescription, error);
+      } else if (edited) {
+        resolve(kbJSPath(edited));
+      } else {
+        // canceled, or the range was never changed
+        resolve(@"");
+      }
+    }];
+  });
 }
 
 RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
