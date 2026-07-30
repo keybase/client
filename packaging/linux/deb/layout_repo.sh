@@ -56,7 +56,7 @@ for debian_arch in amd64 ; do
   # handling of + chars, and we don't want to duplicate it here.
   package_path="$(cd "$repo_root" && ls "repo/pool/main/k/$name/${name}_"*"_${debian_arch}.deb")"
 
-  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
+  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" --digest-algo SHA256 \
       -o "$repo_root/$package_path.sig" "$repo_root/$package_path"
 
   # Update the latest pointer.
