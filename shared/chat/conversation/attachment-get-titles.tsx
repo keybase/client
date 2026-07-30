@@ -10,7 +10,8 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
-import {canProcess, canTrim, isVideoPath, processPaths, trimVideo} from '@/util/media-process'
+import AttachmentTrim from './attachment-trim'
+import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -71,10 +72,10 @@ const ContainerInner = (ownProps: OwnProps) => {
   }
   const clearModals = C.Router2.clearModals
 
-  // Paths the user trimmed, keyed by their index in pathAndOutboxIDs (a prop, so
-  // we can't write back into it).
-  const [trimmedPaths, setTrimmedPaths] = React.useState<{[index: number]: string}>({})
-  const [trimError, setTrimError] = React.useState(false)
+  // Trim range and audio choice per item, keyed by their index in
+  // pathAndOutboxIDs (a prop, so we can't write back into it). Paths are never
+  // rewritten: the edit is applied by the same export that compresses, at Send.
+  const [edits, setEdits] = React.useState<{[index: number]: VideoEdit}>({})
   const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
   // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
   // so a dismissed screen must not go on to upload or navigate when it finishes.
@@ -139,19 +140,20 @@ const ContainerInner = (ownProps: OwnProps) => {
       }
     }
 
-    const effective = pathAndOutboxIDs.map(({path, outboxID, url}, idx) => ({
-      outboxID,
-      path: trimmedPaths[idx] ?? path,
-      url,
-    }))
+    const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
     // Only local media can be handed to the native processor: kbfs paths aren't
-    // real files and non-media has nothing to compress.
-    const eligible = effective.reduce((l: Array<{idx: number; path: string}>, {path}, idx) => {
-      if (!isKbfsPath(path) && canProcess(path)) {
-        l.push({idx, path})
-      }
-      return l
-    }, [])
+    // real files and non-media has nothing to compress. An edited clip goes
+    // through even when compression is off, since the cut has to be applied.
+    const eligible = effective.reduce(
+      (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
+        const edit = edits[idx]
+        if (!isKbfsPath(path) && (canProcess(path) || !isEditNoop(edit))) {
+          l.push({edit, idx, path})
+        }
+        return l
+      },
+      []
+    )
 
     if (!isIOS || eligible.length === 0) {
       upload(effective)
@@ -161,7 +163,7 @@ const ContainerInner = (ownProps: OwnProps) => {
     setProgress({done: 0, total: eligible.length})
     const f = async () => {
       const processed = await processPaths(
-        eligible.map(e => e.path),
+        eligible.map(({path, edit}) => ({edit, path})),
         compress,
         (done, total) => {
           if (!unmountedRef.current) {
@@ -184,9 +186,7 @@ const ContainerInner = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}, idx) => {
-    // The filename and type stay tied to the original so a temp trim file's
-    // generated name is never what the user sees.
+  const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
     const filename = T.FS.getLocalPathName(path)
     const info: Info = {
       filename,
@@ -195,7 +195,7 @@ const ContainerInner = (ownProps: OwnProps) => {
       type: pathToAttachmentType(path),
       url,
     }
-    return {info, path: trimmedPaths[idx] ?? path}
+    return {info, path}
   })
 
   const [index, setIndex] = React.useState(0)
@@ -258,6 +258,9 @@ const ContainerInner = (ownProps: OwnProps) => {
   const titleHint = 'Add a caption...'
   if (!info) return null
 
+  // kbfs paths aren't real files, so there's nothing to export from them.
+  const showTrim = !!path && !isKbfsPath(path) && canEdit(path)
+
   let preview: React.ReactNode
   switch (info.type) {
     case 'image':
@@ -266,7 +269,20 @@ const ContainerInner = (ownProps: OwnProps) => {
       ) : null
       break
     case 'video':
-      preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
+      // kbfs paths aren't real files, so nothing can be exported from them.
+      preview = !path ? null : showTrim ? (
+        <AttachmentTrim
+          // remount per clip: duration and handle positions are per-video state
+          key={path}
+          path={path}
+          edit={edits[index]}
+          onEdit={edit => {
+            setEdits(s => ({...s, [index]: edit}))
+          }}
+        />
+      ) : (
+        <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} />
+      )
       break
     default: {
       if (isIOS && path && Chat.isPathHEIC(path)) {
@@ -281,21 +297,6 @@ const ContainerInner = (ownProps: OwnProps) => {
     }
   }
 
-  // kbfs paths aren't real files, so the native editor can't open them.
-  const showTrim = !!path && !isKbfsPath(path) && canTrim(path)
-  const onTrim = () => {
-    if (!path) return
-    const f = async () => {
-      const {failed, path: trimmed} = await trimVideo(path)
-      if (unmountedRef.current) return
-      setTrimError(failed)
-      if (trimmed !== path) {
-        setTrimmedPaths(s => ({...s, [index]: trimmed}))
-      }
-    }
-    C.ignorePromise(f())
-  }
-
   const isLast = index + 1 === pathAndInfos.length
   // Are we trying to upload multiple?
   const multiUpload = pathAndInfos.length > 1
@@ -305,21 +306,6 @@ const ContainerInner = (ownProps: OwnProps) => {
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
-          {showTrim ? (
-            <Kb.Box2 direction="vertical" style={styles.trim}>
-              <Kb.Button
-                type="Dim"
-                small={true}
-                label={trimmedPaths[index] ? 'Trim again' : 'Trim'}
-                onClick={onTrim}
-              />
-              {trimError ? (
-                <Kb.Text type="BodySmall" center={true} negative={false} style={styles.trimError}>
-                  Can&apos;t trim this video.
-                </Kb.Text>
-              ) : null}
-            </Kb.Box2>
-          ) : null}
           {pathAndInfos.length > 0 && !isMobile && (
             <Kb.Box2 direction="vertical" style={styles.filename}>
               <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
@@ -450,12 +436,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'center',
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
-      trim: {
-        alignSelf: 'center',
-        flexShrink: 0,
-        marginBottom: Kb.Styles.globalMargins.tiny,
-      },
-      trimError: {color: Kb.Styles.globalColors.redDark},
     }) as const
 )
 

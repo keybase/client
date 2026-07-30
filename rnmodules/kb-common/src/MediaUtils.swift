@@ -96,12 +96,15 @@ public class MediaUtils: NSObject {
         return scaledURL
     }
 
+    // edit carries the user's trim range and audio choice; nil means "the whole
+    // clip, untouched".
     @objc public static func processVideo(
         fromOriginal url: URL,
         compress: Bool,
+        edit: VideoEdit?,
         completion: @escaping (Error?, URL?) -> Void
     ) {
-        processVideoAsync(fromOriginal: url, compress: compress) { result in
+        processVideoAsync(fromOriginal: url, compress: compress, edit: edit) { result in
             switch result {
             case .success(let url):
                 completion(nil, url)
@@ -114,11 +117,13 @@ public class MediaUtils: NSObject {
     static func processVideoAsync(
         fromOriginal url: URL,
         compress: Bool,
+        edit: VideoEdit? = nil,
         completion: @escaping ProcessMediaCompletion
     ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let processedURL = try processVideoSync(fromOriginal: url, compress: compress)
+                let processedURL = try processVideoSync(
+                    fromOriginal: url, compress: compress, edit: edit)
                 DispatchQueue.main.async {
                     completion(.success(processedURL))
                 }
@@ -130,14 +135,17 @@ public class MediaUtils: NSObject {
         }
     }
 
-    private static func processVideoSync(fromOriginal url: URL, compress: Bool) throws -> URL {
+    private static func processVideoSync(
+        fromOriginal url: URL, compress: Bool, edit: VideoEdit?
+    ) throws -> URL {
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
-        // Passthrough means the caller wants the original bytes. Exporting
-        // would rewrite the container for no benefit, so hand back the input.
-        if !compress {
+        // Passthrough with nothing to cut means the caller wants the original
+        // bytes. Exporting would rewrite the container for no benefit, so hand
+        // back the input.
+        if !compress && edit == nil {
             return url
         }
 
@@ -148,12 +156,50 @@ public class MediaUtils: NSObject {
         let parent = url.deletingLastPathComponent()
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
 
+        // An edit has to go through a composition, and a composition can't be
+        // passthrough-exported reliably, so any edit implies the compressed
+        // preset even when the preference says original.
+        let source = try edit.map { try composition(from: asset, edit: $0) } ?? asset
         try exportVideoWithSettings(
-            asset: asset,
+            asset: source,
             outputURL: processedURL,
-            settings: exportSettings(compress: compress))
+            settings: exportSettings(compress: compress || edit != nil))
 
         return processedURL
+    }
+
+    // Builds a video-only or video+audio composition covering the trim range.
+    private static func composition(from asset: AVURLAsset, edit: VideoEdit) throws
+        -> AVComposition
+    {
+        let duration = asset.duration
+        let range = edit.timeRange(within: duration)
+        guard range.duration.seconds > 0 else {
+            throw MediaUtilsError.invalidInput("Trim range is empty")
+        }
+
+        let composition = AVMutableComposition()
+
+        guard let sourceVideo = asset.tracks(withMediaType: .video).first,
+            let videoTrack = composition.addMutableTrack(
+                withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to create composition track")
+        }
+        try videoTrack.insertTimeRange(range, of: sourceVideo, at: .zero)
+        // Without the source transform a portrait clip exports sideways: the
+        // rotation lives on the track, not in the pixels.
+        videoTrack.preferredTransform = sourceVideo.preferredTransform
+
+        if !edit.removeAudio, let sourceAudio = asset.tracks(withMediaType: .audio).first {
+            if let audioTrack = composition.addMutableTrack(
+                withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+            {
+                try audioTrack.insertTimeRange(range, of: sourceAudio, at: .zero)
+            }
+        }
+
+        return composition
     }
 
     private static func validateVideoAsset(_ asset: AVURLAsset) throws {
@@ -186,7 +232,7 @@ public class MediaUtils: NSObject {
     }
 
     private static func exportVideoWithSettings(
-        asset: AVURLAsset,
+        asset: AVAsset,
         outputURL: URL,
         settings: VideoExportSettings
     ) throws {
@@ -303,6 +349,41 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.fileOperationFailed(
                 "Failed to replace original file: \(error.localizedDescription)")
         }
+    }
+}
+
+// A user's edit of one clip. Milliseconds because that's what crosses the JS
+// bridge; an end of 0 (or past the source) means "to the end".
+@objc(VideoEdit)
+public class VideoEdit: NSObject {
+    let startMs: Int
+    let endMs: Int
+    let removeAudio: Bool
+
+    @objc public init(startMs: Int, endMs: Int, removeAudio: Bool) {
+        self.startMs = max(0, startMs)
+        self.endMs = max(0, endMs)
+        self.removeAudio = removeAudio
+        super.init()
+    }
+
+    // Nothing trimmed and audio kept means there is no edit at all, so callers
+    // can skip the composition and the forced re-encode.
+    @objc public var isNoop: Bool {
+        return removeAudio == false && startMs == 0 && endMs == 0
+    }
+
+    func timeRange(within duration: CMTime) -> CMTimeRange {
+        let scale: CMTimeScale = 1000
+        let total = duration.isNumeric ? duration : .zero
+        let start = CMTime(value: CMTimeValue(startMs), timescale: scale)
+        let requestedEnd = CMTime(value: CMTimeValue(endMs), timescale: scale)
+        let end =
+            (endMs == 0 || CMTimeCompare(requestedEnd, total) > 0) ? total : requestedEnd
+        guard CMTimeCompare(start, end) < 0 else {
+            return CMTimeRange(start: .zero, duration: total)
+        }
+        return CMTimeRange(start: start, end: end)
     }
 }
 

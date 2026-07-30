@@ -1,5 +1,5 @@
 import logger from '@/logger'
-import {trimVideo as trimVideoNative, processMedia as processMediaNative} from 'react-native-kb'
+import {processMedia as processMediaNative} from 'react-native-kb'
 
 const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
 // heic/heif are here because processImage transcodes them to jpeg; gif is not,
@@ -12,34 +12,80 @@ export const isVideoPath = (path: string) => videoFileNameRegex.test(path)
 export const canProcess = (path: string) =>
   isVideoPath(path) || processableImageFileNameRegex.test(path)
 
-export const canTrim = (path: string) => isIOS && isVideoPath(path)
+// A trim range plus the audio choice. endMs of 0 means "to the end of the clip",
+// so a range the user never moved off the tail stays a noop.
+export type VideoEdit = {
+  startMs: number
+  endMs: number
+  removeAudio: boolean
+}
 
-// Resolves to the trimmed path, or the input path when the user cancels or
-// leaves the range alone — callers never have to distinguish those. `failed` is
-// separate because a rejected trim is otherwise indistinguishable from a cancel,
-// and the editor refuses outright on the simulator.
-export const trimVideo = async (path: string): Promise<{failed: boolean; path: string}> => {
-  if (!canTrim(path)) return {failed: false, path}
-  try {
-    // empty means canceled or unchanged
-    const edited = await trimVideoNative(path)
-    return {failed: false, path: edited || path}
-  } catch (e) {
-    logger.warn('trimVideo failed', e)
-    return {failed: true, path}
+// The shortest selection the handles allow. Also guards against exporting an
+// empty range if a drag lands both handles in the same spot.
+export const minTrimMs = 1000
+
+export const canEdit = (path: string) => isIOS && isVideoPath(path)
+
+export const isEditNoop = (edit?: VideoEdit) =>
+  !edit || (edit.startMs === 0 && edit.endMs === 0 && !edit.removeAudio)
+
+// Keeps a dragged pair of handles legal: inside the clip, in order, and at least
+// minTrimMs apart. `moved` says which handle the user has hold of, so the other
+// one is what gives way when they collide.
+export const clampRange = (
+  startMs: number,
+  endMs: number,
+  durationMs: number,
+  moved: 'start' | 'end'
+): {startMs: number; endMs: number} => {
+  const total = Math.max(0, durationMs)
+  // Too short to trim at all: hand back the whole clip.
+  if (total <= minTrimMs) {
+    return {endMs: total, startMs: 0}
   }
+  let s = Math.min(Math.max(0, startMs), total)
+  let e = Math.min(Math.max(0, endMs), total)
+  if (moved === 'start') {
+    s = Math.min(s, total - minTrimMs)
+    e = Math.max(e, s + minTrimMs)
+  } else {
+    e = Math.max(e, minTrimMs)
+    s = Math.min(s, e - minTrimMs)
+  }
+  return {endMs: e, startMs: s}
+}
+
+export const formatDuration = (ms: number) => {
+  const total = Math.max(0, Math.round(ms / 1000))
+  const mins = Math.floor(total / 60)
+  const secs = total % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+export type ProcessItem = {
+  path: string
+  edit?: VideoEdit
 }
 
 export const processPaths = async (
-  paths: ReadonlyArray<string>,
+  items: ReadonlyArray<ProcessItem>,
   compress: boolean,
   onProgress?: (done: number, total: number) => void
 ): Promise<Array<string>> => {
-  if (!isIOS) return [...paths]
+  if (!isIOS) return items.map(i => i.path)
   const out: Array<string> = []
-  for (const [idx, path] of paths.entries()) {
+  for (const [idx, {path, edit}] of items.entries()) {
     try {
-      out.push(await processMediaNative(path, isVideoPath(path), compress))
+      out.push(
+        await processMediaNative(
+          path,
+          isVideoPath(path),
+          compress,
+          edit?.startMs ?? 0,
+          edit?.endMs ?? 0,
+          edit?.removeAudio ?? false
+        )
+      )
     } catch (e) {
       // Processing is best-effort: an unsupported or corrupt file still gets
       // sent, just unprocessed. Logged because a silent fallback here means an
@@ -47,7 +93,7 @@ export const processPaths = async (
       logger.warn('processMedia failed', e)
       out.push(path)
     }
-    onProgress?.(idx + 1, paths.length)
+    onProgress?.(idx + 1, items.length)
   }
   return out
 }
