@@ -272,8 +272,9 @@ const ContainerInner = (ownProps: OwnProps) => {
       // kbfs paths aren't real files, so nothing can be exported from them.
       preview = !path ? null : showTrim ? (
         <AttachmentTrim
-          // remount per clip: duration and handle positions are per-video state
-          key={path}
+          // remount per slot AND per clip: duration and handle positions are
+          // per-video state, and the same path can appear at two indexes
+          key={`${index}-${path}`}
           path={path}
           edit={edits[index]}
           onEdit={edit => {

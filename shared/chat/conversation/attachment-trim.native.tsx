@@ -16,9 +16,9 @@ type Props = {
 
 const handleWidth = 14
 const trackHeight = 40
-// The end handle sitting this close to the tail counts as untrimmed, so a stray
+// A handle sitting this close to either end counts as untrimmed, so a stray
 // pixel of drag doesn't force an export.
-const tailEpsilonMs = 50
+const edgeEpsilonMs = 50
 // A drag can outrun the player; seeking on every move event stutters the preview.
 const seekIntervalMs = 60
 // Seeks land within seekTolerance of the request, so a correction back to the in
@@ -170,13 +170,15 @@ const AttachmentTrim = (props: Props) => {
   const commit = (audioOff = removeAudio) => {
     setDragging(false)
     if (durationMs <= 0) return
-    // An end handle left at the tail is not a trim, so it goes up as 0 and the
-    // clip skips the export when nothing else changed.
-    const atTail = endMs >= durationMs - tailEpsilonMs
+    // Handles left against the ends aren't a trim, so they go up as 0 and the
+    // clip skips the export when nothing else changed. Without the head case a
+    // 20ms nudge of the start handle would force a full re-encode.
+    const atTail = endMs >= durationMs - edgeEpsilonMs
+    const atHead = startMs <= edgeEpsilonMs
     onEdit({
       endMs: atTail ? 0 : Math.round(endMs),
       removeAudio: audioOff,
-      startMs: Math.round(startMs),
+      startMs: atHead ? 0 : Math.round(startMs),
     })
   }
 

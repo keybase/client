@@ -191,12 +191,16 @@ public class MediaUtils: NSObject {
         // rotation lives on the track, not in the pixels.
         videoTrack.preferredTransform = sourceVideo.preferredTransform
 
+        // A silent source is normal; failing to build the track when the user
+        // kept audio is not, and swallowing it would upload a silent video.
         if !edit.removeAudio, let sourceAudio = asset.tracks(withMediaType: .audio).first {
-            if let audioTrack = composition.addMutableTrack(
-                withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
-            {
-                try audioTrack.insertTimeRange(range, of: sourceAudio, at: .zero)
+            guard
+                let audioTrack = composition.addMutableTrack(
+                    withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+            else {
+                throw MediaUtilsError.videoProcessingFailed("Failed to create audio composition track")
             }
+            try audioTrack.insertTimeRange(range, of: sourceAudio, at: .zero)
         }
 
         return composition
