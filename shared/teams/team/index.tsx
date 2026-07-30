@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {produce} from 'immer'

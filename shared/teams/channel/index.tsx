@@ -4,7 +4,7 @@ import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {
