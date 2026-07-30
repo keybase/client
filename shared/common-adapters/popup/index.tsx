@@ -13,9 +13,22 @@ import {
   type BottomSheetFooterProps,
 } from './bottom-sheet'
 import {useSafeAreaInsets} from '../safe-area-view'
+import {initialWindowMetrics} from 'react-native-safe-area-context'
 import {FullWindowOverlay} from 'react-native-screens'
 import type {PopupProps} from './index.shared'
 export type {PopupProps} from './index.shared'
+
+// The sheet lives in a FullWindowOverlay, so it needs the window's insets. The
+// nearest SafeAreaProvider can't supply them: a provider nested inside a
+// react-native-screens scene (every modal route) re-measures to ~0.
+const useWindowInsets = () => {
+  const local = useSafeAreaInsets()
+  const window = initialWindowMetrics?.insets
+  return {
+    bottom: Math.max(window?.bottom ?? 0, local.bottom),
+    top: Math.max(window?.top ?? 0, local.top),
+  }
+}
 
 function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
@@ -99,7 +112,7 @@ function stopBubbling(ev: React.MouseEvent<HTMLDivElement>) {
 
 function PopupSheet(props: PopupProps) {
   const {children, footer, onHidden, snapPoints, style} = props
-  const {top: safeTop} = useSafeAreaInsets()
+  const {bottom: safeBottom, top: safeTop} = useWindowInsets()
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
 
   // the footer floats over the scrolled content down to the screen edge, so the
@@ -146,6 +159,8 @@ function PopupSheet(props: PopupProps) {
         overScrollMode="never"
         enableFooterMarginAdjustment={!!footer}
         style={style}
+        // a footer brings its own bottom inset
+        contentContainerStyle={footer ? undefined : {paddingBottom: safeBottom}}
       >
         {children}
       </BottomSheetScrollView>

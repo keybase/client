@@ -7,6 +7,7 @@ type NativeMethods = {present: () => void; forceClose: () => void}
 type BackdropProps = BottomSheetBackdropProps & {disappearsOnIndex?: number; appearsOnIndex?: number; opacity?: number}
 type ScrollViewProps = {
   style?: StylesCrossPlatform
+  contentContainerStyle?: StylesCrossPlatform
   children?: React.ReactNode
   enableFooterMarginAdjustment?: boolean
   alwaysBounceVertical?: boolean
