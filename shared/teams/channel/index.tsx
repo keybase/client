@@ -146,12 +146,6 @@ const ChannelBody = (props: OwnProps) => {
   const meta = channelMetas.get(conversationIDKey) ?? Chat.makeConversationMeta()
   const {loading: loadingTeam, teamDetails, yourOperations} = useLoadedTeam(teamID)
   const teamMembers = teamDetails.members
-  // getTLFConversations leaves team channel participants empty; ask the service to
-  // refresh them, which pushes ChatParticipantsInfo into useInboxMetadataState.
-  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  React.useEffect(() => {
-    refreshParticipants([{convID: T.Chat.keyToConversationID(conversationIDKey)}], () => {}, () => {})
-  }, [conversationIDKey, refreshParticipants])
   // Participants arrive async via ChatParticipantsInfo in useInboxMetadataState.
   const inboxParticipants = useInboxMetadataState(s => s.participants.get(conversationIDKey))
   const participantInfo = inboxParticipants ?? channelParticipantsByConv.get(conversationIDKey) ?? emptyParticipantInfo

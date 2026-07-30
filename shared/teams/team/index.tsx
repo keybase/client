@@ -140,20 +140,6 @@ const TeamBody = (props: Props) => {
 
   const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
 
-  // getTLFConversations leaves team channel participants empty; ask the service to
-  // refresh them, which pushes ChatParticipantsInfo into useInboxMetadataState (read
-  // by the channel rows). Without this the member counts render 0.
-  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  React.useEffect(() => {
-    for (const conversationIDKey of channels.keys()) {
-      refreshParticipants(
-        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-        () => {},
-        () => {}
-      )
-    }
-  }, [channels, refreshParticipants])
-
   React.useEffect(() => {
     if (!props.selectedMembers?.length) {
       return
