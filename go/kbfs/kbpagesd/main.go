@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	_ "net/http/pprof" // register /debug/pprof/* on http.DefaultServeMux; only reachable when -pprof-addr is set
 	"os"
 	"strings"
 	"time"
@@ -40,6 +41,7 @@ var (
 	fBlacklist        string
 	fMySQLDSN         string
 	fMySQLDSNCAURL    string
+	fPprofAddr        string
 )
 
 func init() {
@@ -61,6 +63,8 @@ func init() {
 		"enable MySQL based storage and use this as the DSN")
 	flag.StringVar(&fMySQLDSNCAURL, "mysql-dsn-ca-url", "",
 		"enable TLS for MySQL using the CA hosted at this URL")
+	flag.StringVar(&fPprofAddr, "pprof-addr", "",
+		"if non-empty, expose net/http/pprof on this address (e.g. 127.0.0.1:6060); leave empty in prod unless diagnosing")
 }
 
 func newLogger(isCLI bool) (*zap.Logger, error) {
@@ -193,6 +197,19 @@ func main() {
 
 	// Hack to make libkbfs.Init connect to prod {md,b}server all the time.
 	_ = os.Setenv("KEYBASE_RUN_MODE", "prod")
+
+	if fPprofAddr != "" {
+		logger.Info("starting pprof listener", zap.String("addr", fPprofAddr))
+		go func() {
+			pprofServer := &http.Server{
+				Addr:              fPprofAddr,
+				ReadHeaderTimeout: 5 * time.Second,
+			}
+			if err := pprofServer.ListenAndServe(); err != nil {
+				logger.Error("pprof listener exited", zap.Error(err))
+			}
+		}()
+	}
 
 	kbCtx := env.NewContext()
 	params := libkbfs.DefaultInitParams(kbCtx)
