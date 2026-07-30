@@ -83,7 +83,7 @@ func NewShowtrendsReporter(logger *zap.Logger, prefix, addr string,
 	enableActivityBasedStats *ActivityStatsEnabler,
 ) (StatsReporter, func(context.Context) error) {
 	client := showtrends.NewClient(
-		addr, "kbfs", showtrends.DefaultBatchInterval)
+		addr, "kbpages", showtrends.DefaultBatchInterval)
 	return newShowtrendsReporter(
 		logger, prefix, client, enableActivityBasedStats), client.Close
 }
