@@ -12,6 +12,10 @@
    - GODEBUG=asyncpreemptoff=1 stops Go's SIGURG-based preemption, which both
      TSan and lldb otherwise trip over (it is the same flag that fixes the
      device debug-launch freeze).
+   - halt_on_error + abort_on_error stop at the first report so lldb catches
+     the SIGABRT with both racing stacks live. If an uninstrumented-Go false
+     positive gets through the suppressions this will stop on it, so add the
+     frame to tsan-suppressions.txt rather than turning halting back off.
    - Expect it to be slow: TSan costs roughly 5-15x runtime and ~5x memory.
 -->
 <Scheme
@@ -79,7 +83,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "TSAN_OPTIONS"
-            value = "suppressions=$(SRCROOT)/tsan-suppressions.txt:second_deadlock_stack=1:history_size=7:halt_on_error=0"
+            value = "suppressions=$(SRCROOT)/tsan-suppressions.txt:second_deadlock_stack=1:history_size=7:halt_on_error=1:abort_on_error=1"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable

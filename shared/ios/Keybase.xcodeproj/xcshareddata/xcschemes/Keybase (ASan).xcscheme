@@ -15,6 +15,11 @@
      MallocErrorAbort=1, NSZombieEnabled=YES to the plain Keybase scheme (or
      DYLD_INSERT_LIBRARIES=/usr/lib/libgmalloc.dylib for full Guard Malloc,
      which is drastically slower and best pointed at one known repro).
+   - halt_on_error + abort_on_error stop the process at the first report. The
+     SIGABRT lands in lldb with the faulting frame and the heap state still
+     intact, which is the whole reason to run this under the debugger; logging
+     and continuing leaves you reading a report about memory that has since
+     been reused.
    - Expect roughly 2-3x runtime and ~3x memory.
 -->
 <Scheme
@@ -82,7 +87,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "ASAN_OPTIONS"
-            value = "detect_stack_use_after_return=0:strict_string_checks=1:halt_on_error=0:print_stats=0"
+            value = "detect_stack_use_after_return=0:strict_string_checks=1:halt_on_error=1:abort_on_error=1:print_stats=0"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
