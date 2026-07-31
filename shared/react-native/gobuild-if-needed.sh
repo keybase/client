@@ -47,6 +47,44 @@ else
 	stamp="$(dirname "$dest")/.gobuild-stamp"
 fi
 
+# Xcode.app launched from the Dock inherits launchd's PATH
+# (/usr/bin:/bin:/usr/sbin:/sbin), not a shell's, so a script phase gets
+# "go: command not found" even though `go` works fine in a terminal. This is the
+# same problem .xcode.env already solves for node, so use the same file: set
+# GO_BINARY there (in the ungitignored .xcode.env.local, since the path is
+# per-machine -- a versioned default cannot know whether go is a homebrew keg, a
+# /usr/local/go install, or an asdf shim).
+xcode_env_dir=$(cd "$client_dir/shared/ios" && pwd)
+# set +u while sourcing: .xcode.env expands build settings Xcode provides
+# (PODS_ROOT), which are unset when this runs from a terminal, and an unbound
+# variable there would abort a script that has nothing to do with them.
+set +u
+for env_file in "$xcode_env_dir/.xcode.env" "$xcode_env_dir/.xcode.env.local"; do
+	if [ -f "$env_file" ]; then
+		# shellcheck disable=SC1090
+		. "$env_file"
+	fi
+done
+set -u
+
+if [ -n "${GO_BINARY:-}" ]; then
+	if [ ! -x "$GO_BINARY" ]; then
+		echo "gobuild-if-needed: GO_BINARY=$GO_BINARY is not executable" >&2
+		exit 1
+	fi
+	# On PATH, not just invoked directly: gobuild.sh shells out to `go`, and
+	# gomobile shells out to `gobind`, neither of which reads GO_BINARY.
+	PATH="$(dirname "$GO_BINARY"):$PATH"
+	export PATH
+elif ! command -v go >/dev/null 2>&1; then
+	echo "gobuild-if-needed: cannot find 'go', and GO_BINARY is not set." >&2
+	echo "  A GUI-launched build (Xcode) gets a stripped PATH and will not find it." >&2
+	echo "  Add the full path to $xcode_env_dir/.xcode.env.local:" >&2
+	echo "    export GO_BINARY=/path/to/go" >&2
+	echo "  (in a terminal, \`command -v go\` prints the value to use)" >&2
+	exit 1
+fi
+
 # Building under a sanitizer scheme implies wanting the Go-side checks too.
 # Xcode exports its build settings to script phases, and enabling a sanitizer
 # sets these; the plain Keybase scheme leaves them unset. (A scheme's
