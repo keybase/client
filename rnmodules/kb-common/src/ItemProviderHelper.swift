@@ -375,9 +375,13 @@ public class ItemProviderHelper: NSObject {
         sendLink()
         return
       }
-      self.writeDownloadedMedia(
-        data, from: url, mime: mime, isVideo: isVideo || mime.hasPrefix("video/"),
-        sendLink: sendLink)
+      // URLSession runs this on its delegate queue, and writing a shared video
+      // out is enough file I/O to stall the extension's UI.
+      DispatchQueue.global(qos: .userInitiated).async {
+        self.writeDownloadedMedia(
+          data, from: url, mime: mime, isVideo: isVideo || mime.hasPrefix("video/"),
+          sendLink: sendLink)
+      }
     }.resume()
   }
 

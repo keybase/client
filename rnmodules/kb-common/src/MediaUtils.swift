@@ -76,12 +76,13 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
+        // EXIF and GPS come off no matter what the caller asked for; keeping the
+        // original bytes is a size choice, not a consent to ship location.
+        try stripImageExif(at: url)
+
         if !compress {
             return url
         }
-
-        // Strip EXIF data first
-        try stripImageExif(at: url)
 
         // Create scaled version
         let basename = url.deletingPathExtension().lastPathComponent
@@ -142,13 +143,9 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
-        // Passthrough with nothing to cut means the caller wants the original
-        // bytes. Exporting would rewrite the container for no benefit, so hand
-        // back the input.
-        if !compress && edit == nil {
-            return url
-        }
-
+        // Even "keep the original" goes through an export: the passthrough
+        // preset copies the samples untouched, but the export is the only place
+        // the metadata filter runs, and location never ships.
         let asset = AVURLAsset(url: url)
         try validateVideoAsset(asset)
 
