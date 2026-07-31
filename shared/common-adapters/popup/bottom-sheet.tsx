@@ -8,6 +8,9 @@ type BackdropProps = BottomSheetBackdropProps & {disappearsOnIndex?: number; app
 type ScrollViewProps = {
   style?: StylesCrossPlatform
   contentContainerStyle?: StylesCrossPlatform
+  automaticallyAdjustsScrollIndicatorInsets?: boolean
+  contentInsetAdjustmentBehavior?: 'automatic' | 'scrollableAxes' | 'never' | 'always'
+  scrollIndicatorInsets?: {top?: number; left?: number; bottom?: number; right?: number}
   children?: React.ReactNode
   enableFooterMarginAdjustment?: boolean
   alwaysBounceVertical?: boolean

@@ -10,7 +10,7 @@ import Text from '@/common-adapters/text'
 import Meta from '@/common-adapters/meta'
 import Badge from '@/common-adapters/badge'
 import ProgressIndicator from '@/common-adapters/progress-indicator'
-import SafeAreaView, {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
+import SafeAreaView from '@/common-adapters/safe-area-view'
 import ScrollView from '@/common-adapters/scroll-view'
 import {TouchableOpacity, Keyboard} from 'react-native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
@@ -20,7 +20,6 @@ import noop from 'lodash/noop'
 import './menu-layout.css'
 
 const MenuLayout = (props: MenuLayoutProps) => {
-  const {bottom: safeBottom} = useSafeAreaInsets()
   useOnMountOnce(() => {
     if (!isMobile) return
     Keyboard.dismiss()
@@ -30,7 +29,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
     return <DesktopMenuLayout {...props} />
   }
 
-  return <NativeMenuLayout {...props} safeBottom={safeBottom} />
+  return <NativeMenuLayout {...props} />
 }
 
 const DesktopMenuLayout = (props: MenuLayoutProps) => {
@@ -245,8 +244,8 @@ const MenuRow = (props: MenuRowProps) => (
   </TouchableOpacity>
 )
 
-const NativeMenuLayout = (props: MenuLayoutProps & {safeBottom: number}) => {
-  const {isModal, safeBottom} = props
+const NativeMenuLayout = (props: MenuLayoutProps) => {
+  const {isModal} = props
   const menuItemsWithDividers = props.items.filter((x): x is MenuItem | 'Divider' => x !== undefined)
   const beginningDivider = props.items[0] === 'Divider'
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
@@ -300,7 +299,7 @@ const NativeMenuLayout = (props: MenuLayoutProps & {safeBottom: number}) => {
         ])}
       >
         <Box2
-          style={Styles.collapseStyles([nativeStyles.bottomSheetContainer, {marginBottom: 20 + safeBottom}])}
+          style={nativeStyles.bottomSheetContainer}
           direction="vertical"
           fullWidth={true}
         >
@@ -421,10 +420,12 @@ const nativeStyles = Styles.styleSheetCreate(
       bottomSheetContainer: {
         backgroundColor: Styles.globalColors.white,
         borderRadius: Styles.borderRadius,
-        marginBottom: 20,
       },
+      // the sheet owns the bottom gap, so every sheet's content ends the same
+      // distance above the screen edge
       bottomSheetOuter: {
-        padding: 8,
+        paddingHorizontal: 8,
+        paddingTop: 8,
       },
       divider: {marginBottom: Styles.globalMargins.tiny},
       dividerInScrolleView: {

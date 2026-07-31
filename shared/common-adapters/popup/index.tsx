@@ -15,6 +15,7 @@ import {
 import {useSafeAreaInsets} from '../safe-area-view'
 import {initialWindowMetrics} from 'react-native-safe-area-context'
 import {FullWindowOverlay} from 'react-native-screens'
+import {Keyboard} from 'react-native'
 import type {PopupProps} from './index.shared'
 export type {PopupProps} from './index.shared'
 
@@ -114,6 +115,10 @@ function PopupSheet(props: PopupProps) {
   const {children, footer, onHidden, snapPoints, style} = props
   const {bottom: safeBottom, top: safeTop} = useWindowInsets()
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
+  // the sheet's content clears the home indicator plus a margin, so the last row
+  // never sits flush with the screen edge
+  const contentBottom = safeBottom + Styles.globalMargins.medium
+  const indicatorInsets = React.useMemo(() => ({bottom: contentBottom}), [contentBottom])
 
   // the footer floats over the scrolled content down to the screen edge, so the
   // caller's node must bring its own background and bottom safe-area padding
@@ -123,6 +128,8 @@ function PopupSheet(props: PopupProps) {
   )
 
   React.useEffect(() => {
+    // the sheet covers the bottom of the screen, so a raised keyboard would hide it
+    Keyboard.dismiss()
     bottomRef.current?.present()
     return () => {
       bottomRef.current?.forceClose()
@@ -160,7 +167,13 @@ function PopupSheet(props: PopupProps) {
         enableFooterMarginAdjustment={!!footer}
         style={style}
         // a footer brings its own bottom inset
-        contentContainerStyle={footer ? undefined : {paddingBottom: safeBottom}}
+        contentContainerStyle={footer ? undefined : {paddingBottom: contentBottom}}
+        // iOS otherwise insets the content by the safe area on its own, on top of
+        // the padding above. The indicator still has to clear that padding, so it
+        // gets the inset explicitly rather than from the automatic adjustment.
+        contentInsetAdjustmentBehavior="never"
+        automaticallyAdjustsScrollIndicatorInsets={false}
+        scrollIndicatorInsets={footer ? undefined : indicatorInsets}
       >
         {children}
       </BottomSheetScrollView>
