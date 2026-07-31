@@ -77,6 +77,7 @@ const ContainerInner = (ownProps: OwnProps) => {
   // rewritten: the edit is applied by the same export that compresses, at Send.
   const [edits, setEdits] = React.useState<{[index: number]: VideoEdit}>({})
   const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
+  const [error, setError] = React.useState<string | undefined>()
   // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
   // so a dismissed screen must not go on to upload or navigate when it finishes.
   const unmountedRef = React.useRef(false)
@@ -108,10 +109,13 @@ const ContainerInner = (ownProps: OwnProps) => {
     }
   }, [])
 
-  const _onSubmit = (titles: Array<string>) => {
+  // skipProcessing is the "Send anyway" path: the user has already been told the
+  // export failed and wants the originals.
+  const _onSubmit = (titles: Array<string>, skipProcessing = false) => {
     if (progress) {
       return
     }
+    setError(undefined)
     const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
       const uploadArgs = {
         clientPrev,
@@ -155,7 +159,7 @@ const ContainerInner = (ownProps: OwnProps) => {
       []
     )
 
-    if (!isIOS || eligible.length === 0) {
+    if (!isIOS || skipProcessing || eligible.length === 0) {
       upload(effective)
       return
     }
@@ -175,11 +179,19 @@ const ContainerInner = (ownProps: OwnProps) => {
         return
       }
       setProgress(undefined)
+      // A failed export means the original bytes: an uncompressed upload, or
+      // worse a clip the user asked to trim going out full length. Stop and say
+      // so instead of sending something they didn't ask for.
+      const failure = processed.find(p => p.error)
+      if (failure) {
+        setError(failure.error)
+        return
+      }
       const next = [...effective]
       eligible.forEach(({idx}, i) => {
         const cur = next[idx]
         if (cur) {
-          next[idx] = {...cur, path: processed[i] ?? cur.path}
+          next[idx] = {...cur, path: processed[i]?.path ?? cur.path}
         }
       })
       upload(next)
@@ -221,6 +233,10 @@ const ContainerInner = (ownProps: OwnProps) => {
   const onSubmit = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
     _onSubmit(titles)
+  }
+
+  const onSendAnyway = () => {
+    _onSubmit(titles, true)
   }
 
   const updateTitle = (title: string) => {
@@ -304,6 +320,12 @@ const ContainerInner = (ownProps: OwnProps) => {
 
   return (
     <>
+      <Kb.ErrorBanner
+        error={error}
+        onClose={() => {
+          setError(undefined)
+        }}
+      />
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
@@ -357,6 +379,15 @@ const ContainerInner = (ownProps: OwnProps) => {
           )}
           {multiUpload ? (
             <Kb.WaitingButton disabled={!!progress} onClick={onSubmit} label="Send All" />
+          ) : null}
+          {/* Send retries the export; this is the way out when it keeps failing. */}
+          {error ? (
+            <Kb.Button
+              disabled={!!progress}
+              type="Dim"
+              onClick={onSendAnyway}
+              label="Send original"
+            />
           ) : null}
         </Kb.ButtonBar>
       </Kb.Box2>

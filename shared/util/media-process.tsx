@@ -67,31 +67,37 @@ export type ProcessItem = {
   edit?: VideoEdit
 }
 
+// The original path is always usable, so a failure still yields something to
+// upload; error says the bytes are the untouched ones, which the caller has to
+// tell the user about rather than quietly sending an uncompressed or untrimmed
+// clip.
+export type ProcessResult = {
+  path: string
+  error?: string
+}
+
 export const processPaths = async (
   items: ReadonlyArray<ProcessItem>,
   compress: boolean,
   onProgress?: (done: number, total: number) => void
-): Promise<Array<string>> => {
-  if (!isIOS) return items.map(i => i.path)
-  const out: Array<string> = []
+): Promise<Array<ProcessResult>> => {
+  if (!isIOS) return items.map(i => ({path: i.path}))
+  const out: Array<ProcessResult> = []
   for (const [idx, {path, edit}] of items.entries()) {
     try {
-      out.push(
-        await processMediaNative(
+      out.push({
+        path: await processMediaNative(
           path,
           isVideoPath(path),
           compress,
           edit?.startMs ?? 0,
           edit?.endMs ?? 0,
           edit?.removeAudio ?? false
-        )
-      )
+        ),
+      })
     } catch (e) {
-      // Processing is best-effort: an unsupported or corrupt file still gets
-      // sent, just unprocessed. Logged because a silent fallback here means an
-      // uncompressed upload with the setting nominally on.
       logger.warn('processMedia failed', e)
-      out.push(path)
+      out.push({error: e instanceof Error ? e.message : String(e), path})
     }
     onProgress?.(idx + 1, items.length)
   }
