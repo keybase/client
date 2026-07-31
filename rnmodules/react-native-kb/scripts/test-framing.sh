@@ -15,11 +15,15 @@ source "$(dirname "${BASH_SOURCE[0]}")/msgpack-include.sh"
 # shellcheck source=./cxx-select.sh
 source "$(dirname "${BASH_SOURCE[0]}")/cxx-select.sh"
 
+# Sets SANITIZE_FLAGS from KB_SANITIZE (empty unless opted in).
+# shellcheck source=./sanitize-flags.sh
+source "$(dirname "${BASH_SOURCE[0]}")/sanitize-flags.sh"
+
 BIN="$(mktemp -d)/frame-parser-test"
 trap 'rm -rf "$(dirname "$BIN")"' EXIT
 
 "$CXX" "$CXX_STD" -O1 -g -DMSGPACK_NO_BOOST \
-  -Wall -Wextra \
+  -Wall -Wextra "${SANITIZE_FLAGS[@]+"${SANITIZE_FLAGS[@]}"}" \
   -I "$MSGPACK_INCLUDE" \
   "$CPP_DIR/frame-parser.cpp" \
   "$CPP_DIR/tests/frame-parser-test.cpp" \

@@ -43,8 +43,15 @@ trap 'rm -rf "$WORK"' EXIT
 # jsi-convert-test.cpp #includes react-native-kb.cpp (it needs at the
 # anonymous-namespace packNumber), so that file must NOT also be compiled
 # separately here or every symbol would be defined twice.
+# Sets SANITIZE_FLAGS from KB_SANITIZE (empty unless opted in). CXX/CXX_STD are
+# hardcoded to clang++/c++20 here (this script is macOS-only by construction),
+# but sanitize-flags.sh probes $CXX, so give it those values.
+CXX=clang++ CXX_STD=-std=c++20
+# shellcheck source=./sanitize-flags.sh
+source "$(dirname "${BASH_SOURCE[0]}")/sanitize-flags.sh"
+
 clang++ -std=c++20 -O1 -g -DMSGPACK_NO_BOOST \
-  -Wall -Wextra -Wno-unused-function \
+  -Wall -Wextra -Wno-unused-function "${SANITIZE_FLAGS[@]+"${SANITIZE_FLAGS[@]}"}" \
   -I "$MSGPACK_INCLUDE" \
   -I "$HERMES/include" \
   -I "$PODS/Headers/Public/React-callinvoker" \

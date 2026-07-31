@@ -13,10 +13,14 @@ CPP_DIR="$ROOT/rnmodules/react-native-kb/cpp"
 # shellcheck source=./cxx-select.sh
 source "$(dirname "${BASH_SOURCE[0]}")/cxx-select.sh"
 
+# Sets SANITIZE_FLAGS from KB_SANITIZE (empty unless opted in).
+# shellcheck source=./sanitize-flags.sh
+source "$(dirname "${BASH_SOURCE[0]}")/sanitize-flags.sh"
+
 BIN="$(mktemp -d)/engine-reset-backoff-test"
 trap 'rm -rf "$(dirname "$BIN")"' EXIT
 
-"$CXX" "$CXX_STD" -O1 -g -Wall -Wextra \
+"$CXX" "$CXX_STD" -O1 -g -Wall -Wextra "${SANITIZE_FLAGS[@]+"${SANITIZE_FLAGS[@]}"}" \
   "$CPP_DIR/tests/engine-reset-backoff-test.cpp" \
   -o "$BIN"
 
