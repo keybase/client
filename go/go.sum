@@ -314,8 +314,8 @@ github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef h1:L2+CaOtclKc0
 github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef/go.mod h1:fsoZSh32mLpZxN6dpbk+3DiMqMsACDxj7q6ZS381EnQ=
 github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee h1:HU7N6AMnAXACmaPuPfV6zFmyC0aE2In2/YtVDIJwYGo=
 github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee/go.mod h1:YT8b13LS9QDe45OyX1BFgXD0BRANHm0xauB+LNfV6WM=
-github.com/keybase/saltpack v0.0.0-20251212154201-989135827042 h1:vtUfBctFZHc3yvvtYVzsZ0ISAKniOJPSoNhJdhEWWuU=
-github.com/keybase/saltpack v0.0.0-20251212154201-989135827042/go.mod h1:/pasLsId9ytjNdOmDknh4TXBv+h1q+xTWgHlP9FdN5A=
+github.com/keybase/saltpack v0.0.0-20260731163415-735fecfa1520 h1:jwya3HP+2uIkvPZ0se7kGyZvZs+V8saDtjyAroDzhVo=
+github.com/keybase/saltpack v0.0.0-20260731163415-735fecfa1520/go.mod h1:/pasLsId9ytjNdOmDknh4TXBv+h1q+xTWgHlP9FdN5A=
 github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6 h1:EdvpU9BuWL2e7IAysp2poRlYaxOQUJhmwCn0Y6b7jSg=
 github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6/go.mod h1:Sw53KzqVYBoB3AAaZLyyLcBTqQxQXDFOHp/lWg2hVOM=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7 h1:wOqDICze0HpgV4PfV6m4fWvHV5XZteSgFHrT6KVDOkg=
