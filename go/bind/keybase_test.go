@@ -756,6 +756,37 @@ func TestWriteArr_ShortWriteResetsConnection(t *testing.T) {
 	}
 }
 
+// errWriteConn's Write fails after reporting a partial write, the shape
+// net.Conn explicitly permits, which leaves the peer's framer mid-frame.
+type errWriteConn struct {
+	trackingConn
+}
+
+func (c *errWriteConn) Write(p []byte) (int, error) {
+	return len(p) / 2, errors.New("write failed")
+}
+
+// Test 10b: a failed Write must reset the connection for the same reason a
+// short write does. Without this the broken conn stays installed and the next
+// WriteArr appends onto a stream the peer is already parsing wrong.
+func TestWriteArr_WriteErrorResetsConnection(t *testing.T) {
+	resetConnStateForTest(t)
+
+	c := &errWriteConn{}
+	setConn(c, 12)
+
+	if err := WriteArr([]byte("hello world")); err == nil {
+		t.Fatal("expected WriteArr to return an error when Write fails")
+	}
+
+	if !c.closed.Load() {
+		t.Error("expected WriteArr's error path to reset (close) the connection")
+	}
+	if gotConn, _ := getConnState(); gotConn != nil {
+		t.Error("expected conn to be nil after WriteArr's write-error reset")
+	}
+}
+
 // Test 11: ResetIfCurrentDidReset reports whether it actually reset the
 // connection (epoch matched) as opposed to being a stale no-op, which is
 // exactly what platform readers (Kb.mm, KbModule.kt) now gate their local

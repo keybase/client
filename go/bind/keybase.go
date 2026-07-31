@@ -593,8 +593,18 @@ func WriteArr(b []byte) (err error) {
 
 	n, err := currentConn.Write(bytes)
 	if err != nil {
-		log("Go: WriteArr error conn=%s len=%d appState=%s err=%v",
-			describeConn(currentConn), len(bytes), appStateForLog(), err)
+		log("Go: WriteArr error conn=%s len=%d wrote=%d appState=%s err=%v",
+			describeConn(currentConn), len(bytes), n, appStateForLog(), err)
+		// net.Conn permits n > 0 alongside the error, so the peer's framer may
+		// be holding a partial frame -- the same corruption the short-write
+		// path below drops the connection for. Reset unconditionally rather
+		// than only when n > 0: a write that failed outright has already told
+		// us this conn is broken, and ReadArr resets on its own error for the
+		// same reason. ResetIfCurrent so this doesn't tear down a connection a
+		// concurrent caller has redialed since currentConn was captured.
+		if ierr := ResetIfCurrent(currentEpoch); ierr != nil {
+			log("failed to Reset after write error: %v", ierr)
+		}
 		return fmt.Errorf("Write error: %s", err)
 	}
 	if n != len(bytes) {
