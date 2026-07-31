@@ -23,6 +23,16 @@ race:^runtime\.
 race:^gopark
 race:^goexit
 
+# react-native-screens mutates a *shared* immutable State from
+# ComponentDescriptor::adopt(): getStateDataMutable() const_casts the
+# shared_ptr<const State>'s data and writes the RCTImageLoader weak_ptr on every
+# clone. Any two threads cloning the same node race on that field -- here the
+# main thread (reanimated's shadow-tree commit) against the JS thread
+# (UIManager::appendChild). Same pointer written both times, so it is benign in
+# practice, but it is an upstream bug and nothing we can fix from app code.
+race:RNSScreenStackHeaderConfigState::setImageLoader
+race:RNSTabsHostState::setImageLoader
+
 # Go's async preemption drives signals through pthread internals that TSan
 # attributes to whatever thread it lands on. The scheme also sets
 # GODEBUG=asyncpreemptoff=1, which removes most of this; the suppression
