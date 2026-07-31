@@ -206,6 +206,11 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 	after := time.After(idx.startSyncDelay)
 	appState := keybase1.MobileAppState_FOREGROUND
 	netState := keybase1.MobileNetworkState_WIFI
+	// Subscribe once per state transition; NextUpdate leaks channels into
+	// MobileAppState/MobileNetState.updateChs when called each iteration and
+	// the state never changes (e.g. on headless servers).
+	appStateCh := idx.G().MobileAppState.NextUpdate(&appState)
+	netStateCh := idx.G().MobileNetState.NextUpdate(&netState)
 	var cancelFn context.CancelFunc
 	var l sync.Mutex
 	cancelSync := func() {
@@ -262,14 +267,16 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			attemptSync(ctx)
 		case <-ticker.C:
 			attemptSync(ctx)
-		case appState = <-idx.G().MobileAppState.NextUpdate(&appState):
+		case appState = <-appStateCh:
+			appStateCh = idx.G().MobileAppState.NextUpdate(&appState)
 			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:
 			// if we enter any state besides foreground cancel any running syncs
 			default:
 				cancelSync()
 			}
-		case netState = <-idx.G().MobileNetState.NextUpdate(&netState):
+		case netState = <-netStateCh:
+			netStateCh = idx.G().MobileNetState.NextUpdate(&netState)
 			if netState.IsLimited() {
 				// if we switch off of wifi cancel any running syncs
 				cancelSync()

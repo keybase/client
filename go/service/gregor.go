@@ -274,10 +274,16 @@ func (g *gregorHandler) monitorAppState() {
 	// Wait for state updates and react accordingly
 	state := keybase1.MobileAppState_FOREGROUND
 	suspended := false
+	// Subscribe once per state transition; NextUpdate/NextSuspendUpdate leak
+	// channels into their subscriber slices when called each iteration and the
+	// state never changes (e.g. on headless servers).
+	appStateCh := g.G().MobileAppState.NextUpdate(&state)
+	suspendCh := g.G().DesktopAppState.NextSuspendUpdate(&suspended)
 	for {
 		monitorAction := monitorNoop
 		select {
-		case state = <-g.G().MobileAppState.NextUpdate(&state):
+		case state = <-appStateCh:
+			appStateCh = g.G().MobileAppState.NextUpdate(&state)
 			switch state {
 			case keybase1.MobileAppState_FOREGROUND:
 				g.forcePing(ctx)
@@ -287,7 +293,8 @@ func (g *gregorHandler) monitorAppState() {
 			case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 				monitorAction = monitorDisconnect
 			}
-		case suspended = <-g.G().DesktopAppState.NextSuspendUpdate(&suspended):
+		case suspended = <-suspendCh:
+			suspendCh = g.G().DesktopAppState.NextSuspendUpdate(&suspended)
 			if !suspended {
 				monitorAction = monitorConnect
 				g.chatLog.Debug(ctx, "resumed, connecting")
