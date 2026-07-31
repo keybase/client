@@ -8,6 +8,8 @@ package simplefs
 #cgo LDFLAGS: -framework Foundation -framework CoreServices -lobjc
 
 #include <Foundation/Foundation.h>
+// Name must stay package-specific: chat/attachments has an identical shim, and
+// go/bind links both into one binary, so a shared name is a duplicate symbol.
 void simpleFSQuarantineFile(const char* inFilename) {
 	NSError* error = NULL;
 	NSString* filename = [NSString stringWithUTF8String:inFilename];

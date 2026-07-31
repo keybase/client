@@ -5,6 +5,8 @@ package attachments
 /*
 #cgo CFLAGS: -x objective-c -fobjc-arc
 #include <Foundation/Foundation.h>
+// Name must stay package-specific: kbfs/simplefs has an identical shim, and
+// go/bind links both into one binary, so a shared name is a duplicate symbol.
 void chatAttachmentsQuarantineFile(const char* inFilename) {
 	NSError* error = NULL;
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
