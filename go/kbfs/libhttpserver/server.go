@@ -248,7 +248,8 @@ func (s *Server) monitorAppState(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case state = <-s.appStateUpdater.NextAppStateUpdate(&state):
+		case <-s.appStateUpdater.NextAppStateUpdate(state):
+			state = s.appStateUpdater.AppState()
 			// Due to the way NextUpdate is designed, it's possible we miss an
 			// update if processing the last update takes too long. So it's
 			// possible to get consecutive FOREGROUND updates even if there are

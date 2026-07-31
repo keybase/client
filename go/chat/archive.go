@@ -196,7 +196,8 @@ func (r *ChatArchiveRegistry) monitorAppState(stopCh chan struct{}) error {
 		case <-stopCh:
 			cancel()
 			return nil
-		case appState = <-r.G().MobileAppState.NextUpdate(&appState):
+		case <-r.G().MobileAppState.NextUpdate(appState):
+			appState = r.G().MobileAppState.State()
 			r.Debug(ctx, "monitorAppState: next state -> %v", appState)
 			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:

@@ -1312,11 +1312,13 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		select {
 		case <-fbm.shutdownChan:
 			return
-		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
+		case <-fbm.appStateUpdater.NextAppStateUpdate(state):
+			state = fbm.appStateUpdater.AppState()
 			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", state)
-				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
+				<-fbm.appStateUpdater.NextAppStateUpdate(state)
+				state = fbm.appStateUpdater.AppState()
 			}
 			fbm.log.CDebugf(
 				context.Background(), "Resuming QR while foregrounded")
@@ -1585,12 +1587,14 @@ func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
 		case <-fbm.latestMergedChan:
 		case <-fbm.shutdownChan:
 			return
-		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
+		case <-fbm.appStateUpdater.NextAppStateUpdate(state):
+			state = fbm.appStateUpdater.AppState()
 			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing sync-cache cleaning while not foregrounded: "+
 						"state=%s", state)
-				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
+				<-fbm.appStateUpdater.NextAppStateUpdate(state)
+				state = fbm.appStateUpdater.AppState()
 			}
 			fbm.log.CDebugf(context.Background(),
 				"Resuming sync-cache cleaning while foregrounded")
