@@ -2351,18 +2351,27 @@ func (tasu *testAppStateUpdater) NextAppStateUpdate(
 func (tasu *testAppStateUpdater) NextNetworkStateUpdate(
 	lastState keybase1.MobileNetworkState,
 ) <-chan struct{} {
+	// Snapshot state and decrement nCalls under the lock, but do the blocking
+	// send on tasu.calls outside the lock so a stalled receiver can't deadlock
+	// concurrent setNetworkState / NetworkState calls.
 	tasu.lock.Lock()
-	defer tasu.lock.Unlock()
-	if tasu.nCalls > 0 {
-		tasu.calls <- lastState
+	shouldRecord := tasu.nCalls > 0
+	if shouldRecord {
 		tasu.nCalls--
 	}
-	if lastState != tasu.netState {
-		ch := make(chan struct{})
-		close(ch)
-		return ch
+	stale := lastState != tasu.netState
+	ch := tasu.changed
+	tasu.lock.Unlock()
+
+	if shouldRecord {
+		tasu.calls <- lastState
 	}
-	return tasu.changed
+	if stale {
+		closedCh := make(chan struct{})
+		close(closedCh)
+		return closedCh
+	}
+	return ch
 }
 
 func (tasu *testAppStateUpdater) AppState() keybase1.MobileAppState {
