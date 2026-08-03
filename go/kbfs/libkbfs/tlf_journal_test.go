@@ -895,6 +895,25 @@ type shimMDServer struct {
 	nextGetRange    []*RootMetadataSigned
 	nextErr         error
 	getForTLFCalled bool
+
+	// persistentErr, unlike nextErr, is returned from every Put until it is
+	// cleared, and putCount records how many Puts were attempted. Both are
+	// guarded by lock because they are read from the flusher goroutine.
+	lock          sync.Mutex
+	persistentErr error
+	putCount      int
+}
+
+func (s *shimMDServer) setPersistentErr(err error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.persistentErr = err
+}
+
+func (s *shimMDServer) getPutCount() int {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	return s.putCount
 }
 
 func (s *shimMDServer) GetRange(
@@ -909,6 +928,13 @@ func (s *shimMDServer) GetRange(
 func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority,
 ) error {
+	s.lock.Lock()
+	s.putCount++
+	persistentErr := s.persistentErr
+	s.lock.Unlock()
+	if persistentErr != nil {
+		return persistentErr
+	}
 	if s.nextErr != nil {
 		err := s.nextErr
 		s.nextErr = nil
@@ -1893,6 +1919,108 @@ func testTLFJournalSingleOp(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.Len(t, mdserver.rmdses, 1)
 }
 
+// testTLFJournalSingleOpPersistentFlushErr checks that a flush error that never
+// clears does not turn waitForCompleteFlush into a hot loop. It used to
+// re-signal work the instant each failed flush returned, which both spun as
+// fast as the flush could fail and cancelled the background flusher's retry
+// timer, so no backoff ever applied. Seen in the wild as 160k flush attempts in
+// 31 seconds against an unreachable MD server.
+func testTLFJournalSingleOpPersistentFlushErr(
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(
+		t, ver, TLFJournalSingleOpBackgroundWorkEnabled)
+	defer teardownTLFJournalTest(
+		ctx, tempdir, config, cancel, tlfJournal, delegate)
+
+	var mdserver shimMDServer
+	config.mdserver = &mdserver
+
+	tlfJournal.pauseBackgroundWork()
+	delegate.requireNextState(ctx, bwPaused)
+
+	putBlock(ctx, t, config, tlfJournal, []byte{1, 2})
+	md1 := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key, nil)
+	require.NoError(t, err)
+	prevRoot := irmd.mdID
+
+	putBlock(ctx, t, config, tlfJournal, []byte{3, 4})
+	md2 := config.makeMD(kbfsmd.Revision(11), prevRoot)
+	_, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
+	require.NoError(t, err)
+
+	tlfJournal.resumeBackgroundWork()
+	delegate.requireNextState(ctx, bwIdle)
+	delegate.requireNextState(ctx, bwBusy)
+	delegate.requireNextState(ctx, bwIdle)
+	requireJournalEntryCounts(t, tlfJournal, 0, 2)
+
+	finishCtx, finishCancel := context.WithCancel(ctx)
+	defer finishCancel()
+	finishCh := make(chan error, 1)
+	go func() {
+		finishCh <- tlfJournal.finishSingleOp(
+			finishCtx, nil, keybase1.MDPriorityNormal)
+	}()
+
+	// Finishing converts to a conflict branch and pauses; resolving that is
+	// what lets the flusher get as far as putting an MD. See
+	// testTLFJournalSingleOp for why the second state here is racy.
+	delegate.requireNextState(ctx, bwBusy)
+	if delegate.requireNextState(ctx, bwPaused, bwIdle) == bwIdle {
+		delegate.requireNextState(ctx, bwPaused)
+	}
+	require.Equal(
+		t, kbfsmd.PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+
+	// Every MD flush fails from here on, so the journal never drains.
+	mdserver.setPersistentErr(errors.New("EOF"))
+
+	// OnNewState blocks on an unbuffered channel, so the background loop
+	// stalls unless somebody keeps reading states for the rest of the test.
+	drainDone := make(chan struct{})
+	defer func() { <-drainDone }()
+	drainCtx, drainCancel := context.WithCancel(ctx)
+	defer drainCancel()
+	go func() {
+		defer close(drainDone)
+		for {
+			select {
+			case <-delegate.stateCh:
+			case <-drainCtx.Done():
+				return
+			}
+		}
+	}()
+
+	resolveMD := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
+	_, err = tlfJournal.resolveBranch(
+		ctx, tlfJournal.mdJournal.getBranchID(), nil, resolveMD, tlfJournal.key,
+		nil)
+	require.NoError(t, err)
+
+	// Let it retry for a while, then count the attempts. The backoff starts at
+	// 500ms, so a correct implementation gets a handful in this window; the hot
+	// loop managed thousands per second.
+	const window = 2 * time.Second
+	const maxAttempts = 20
+	time.Sleep(window)
+	attempts := mdserver.getPutCount()
+
+	finishCancel()
+	select {
+	case err := <-finishCh:
+		require.Error(t, err)
+	case <-time.After(10 * time.Second):
+		t.Fatal("finishSingleOp did not return after its context was canceled")
+	}
+
+	require.NotZero(t, attempts, "flush was never attempted")
+	require.LessOrEqual(t, attempts, maxAttempts,
+		"waitForCompleteFlush spun: %d flush attempts in %s", attempts, window)
+}
+
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, kbfsmd.MetadataVer){
 		testTLFJournalBasic,
@@ -1925,6 +2053,7 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalSquashByBytes,
 		testTLFJournalFirstRevNoSquash,
 		testTLFJournalSingleOp,
+		testTLFJournalSingleOpPersistentFlushErr,
 	}
 	runTestsOverMetadataVers(t, "testTLFJournal", tests)
 }
