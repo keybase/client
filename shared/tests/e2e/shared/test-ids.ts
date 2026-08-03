@@ -98,6 +98,7 @@ export const CRYPTO_DECRYPT_INPUT = 'crypto-decrypt-input'
 export const CRYPTO_SIGN_INPUT    = 'crypto-sign-input'
 export const CRYPTO_VERIFY_INPUT  = 'crypto-verify-input'
 export const CRYPTO_RUN_BUTTON    = 'crypto-run-button'
+export const CRYPTO_RECIPIENTS    = 'crypto-recipients'
 // The recipients field is a display-only input inside a pointerEvents="none"
 // wrapper, so only this outer clickable can receive a click.
 
