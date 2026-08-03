@@ -14,11 +14,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 CPP_DIR="$ROOT/rnmodules/react-native-kb/cpp"
 PODS="$ROOT/shared/ios/Pods"
 HERMES="$PODS/hermes-engine/destroot"
-MSGPACK_INCLUDE="$ROOT/shared/node_modules/msgpack-cxx-7.0.0/include"
 CORPUS="${1:-/tmp/kb-bench-corpus.bin}"
 ITERS="${2:-5}"
 
-for p in "$MSGPACK_INCLUDE" "$HERMES/include" \
+# Sets MSGPACK_INCLUDE, fetching the headers if yarn hasn't unpacked them.
+# shellcheck source=./msgpack-include.sh
+source "$(dirname "${BASH_SOURCE[0]}")/msgpack-include.sh"
+
+for p in "$HERMES/include" \
          "$PODS/Headers/Public/React-callinvoker"; do
   test -d "$p" || { echo "missing $p -- run yarn and yarn ios:pod:install first" >&2; exit 1; }
 done

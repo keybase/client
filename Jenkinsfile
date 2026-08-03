@@ -258,8 +258,8 @@ helpers.rootLinuxNode(env, {
                 "NODE_OPTIONS=--max-old-space-size=4096",
               ]) {
                 // Native C++ framing tests. Needs only a C++ compiler and the
-                // vendored msgpack headers (the script fetches them if yarn's
-                // darwin-only postinstall didn't), no JSI/RN, so run it before
+                // vendored msgpack headers (msgpack-include.sh fetches them if
+                // yarn hasn't), no JSI/RN, so run it before
                 // the JS suite rather than behind it -- it takes seconds and
                 // failFast would otherwise hide it whenever JS is red.
                 stage("Native framing tests") {
