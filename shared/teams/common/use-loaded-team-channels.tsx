@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
+import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as React from 'react'
 import {registerExternalResetter} from '@/util/zustand'
@@ -41,6 +42,27 @@ const loadedTeamChannelsReloadStaleMs = 5_000
 const emptyChannels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo> = new Map()
 const emptyChannelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta> = new Map()
 const emptyChannelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo> = new Map()
+
+// teamChangedByID fires for every incoming message in a team and reloads this,
+// and the result is nearly always identical to what is already cached. A fresh
+// Map each time gives the memo below a new identity, which wakes every consumer
+// of the context value - the cost this shared cache exists to remove. Reuse the
+// previous Map when nothing changed, and the previous entries when only some
+// did, so downstream memos can bail too.
+const recycleMap = <K, V>(old: ReadonlyMap<K, V>, next: Map<K, V>): ReadonlyMap<K, V> => {
+  let unchanged = old.size === next.size
+  for (const [key, value] of next) {
+    const previous = old.get(key)
+    if (previous !== undefined && isEqual(previous, value)) {
+      if (previous !== value) {
+        next.set(key, previous)
+      }
+    } else {
+      unchanged = false
+    }
+  }
+  return unchanged ? old : next
+}
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
@@ -171,11 +193,19 @@ const useLoadedTeamChannelsRaw = (
         }
       }
 
-      return {
-        channelMetas,
-        channelParticipants,
-        channels,
+      const previous = cache.getData()
+      const recycled = {
+        channelMetas: recycleMap(previous.channelMetas, channelMetas),
+        channelParticipants: recycleMap(previous.channelParticipants, channelParticipants),
+        channels: recycleMap(previous.channels, channels),
       }
+      // nothing moved at all: hand back the very object the cache already holds,
+      // so useCachedResource settles without a state change
+      return recycled.channelMetas === previous.channelMetas &&
+        recycled.channelParticipants === previous.channelParticipants &&
+        recycled.channels === previous.channels
+        ? previous
+        : recycled
     },
     onError: error => {
       logger.warn(`Failed to load team channels for ${validTeamID}`, error)

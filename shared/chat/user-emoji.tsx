@@ -82,8 +82,23 @@ export const useUserEmoji = ({
     if (disabled) {
       return undefined
     }
-    if (userEmojiCaches.size > userEmojiCacheMax) {
-      userEmojiCaches.clear()
+    // drop the least recently asked for entries rather than the whole map: a
+    // wholesale clear at the cap makes the conversation you switch back to
+    // re-issue localUserEmojis even though its entry was still fresh. Map
+    // iterates in insertion order, and re-inserting on use below keeps that
+    // order meaningful.
+    if (userEmojiCaches.has(requestKey)) {
+      const existing = userEmojiCaches.get(requestKey)!
+      userEmojiCaches.delete(requestKey)
+      userEmojiCaches.set(requestKey, existing)
+    } else {
+      while (userEmojiCaches.size >= userEmojiCacheMax) {
+        const oldest = userEmojiCaches.keys().next()
+        if (oldest.done) {
+          break
+        }
+        userEmojiCaches.delete(oldest.value)
+      }
     }
     return getCachedResourceCache(userEmojiCaches, emptyUserEmojiData, requestKey)
   }, [disabled, requestKey])

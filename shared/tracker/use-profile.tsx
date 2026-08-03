@@ -71,10 +71,13 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     }
   }, [cachedOnMount, loadOnMount, username])
 
-  return {
-    details,
-    loadNonUserProfile: loadNonUser,
-    loadProfile,
-    nonUserDetails,
-  }
+  return React.useMemo(
+    () => ({
+      details,
+      loadNonUserProfile: loadNonUser,
+      loadProfile,
+      nonUserDetails,
+    }),
+    [details, loadNonUser, loadProfile, nonUserDetails]
+  )
 }

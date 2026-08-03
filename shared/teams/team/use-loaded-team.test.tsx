@@ -5,6 +5,7 @@ import {act, render} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
+import {resetAllStores} from '@/util/zustand'
 import {LoadedTeamsListProvider} from '../use-teams-list'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {LoadedTeamProvider, useLoadedTeam} from './use-loaded-team'
@@ -98,4 +99,50 @@ test('team screen loads getAnnotatedTeam once', async () => {
   expect(listCalls).toBe(1)
   expect(bodyRenders).toBeLessThan(10)
   expect(annotatedCalls).toBe(1)
+})
+
+// These caches live at module scope, so they outlive the signed-in session. If
+// sign-out did not clear them the next user would be served the previous user's
+// team inside the stale window - and the entries are keyed on teamID, which
+// says nothing about who loaded them.
+test('signing out drops the shared team caches', async () => {
+  useCurrentUserState.setState({username: 'testuser'})
+  useConfigState.setState({loggedIn: true})
+  const first = render(
+    <LoadedTeamsListProvider>
+      <LoadedTeamProvider teamID={teamID}>
+        <WithChannels />
+      </LoadedTeamProvider>
+    </LoadedTeamsListProvider>
+  )
+  for (let i = 0; i < 60; i++) {
+    await act(async () => {
+      await Promise.resolve()
+    })
+  }
+  const callsWhileSignedIn = annotatedCalls
+  expect(callsWhileSignedIn).toBeGreaterThan(0)
+
+  first.unmount()
+  act(() => {
+    resetAllStores()
+  })
+
+  // a different user mounting the same screen must re-issue the RPC rather than
+  // read the entry the previous one left behind
+  useCurrentUserState.setState({username: 'testuser-mac'})
+  useConfigState.setState({loggedIn: true})
+  render(
+    <LoadedTeamsListProvider>
+      <LoadedTeamProvider teamID={teamID}>
+        <WithChannels />
+      </LoadedTeamProvider>
+    </LoadedTeamsListProvider>
+  )
+  for (let i = 0; i < 60; i++) {
+    await act(async () => {
+      await Promise.resolve()
+    })
+  }
+  expect(annotatedCalls).toBe(callsWhileSignedIn + 1)
 })

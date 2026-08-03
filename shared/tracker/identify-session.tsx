@@ -52,6 +52,14 @@ export type IdentifyLoadOptions = {
   maxAgeMs?: number
 }
 
+// Every map here is keyed on the username, and callers do not agree on its case:
+// a profile opens with whatever the link or the row carried, while the shared
+// mutual-teams cache next to it lowercases. Two spellings of one person would
+// otherwise mean two sessions and two identifies - exactly what this file
+// exists to prevent. Assertions are case insensitive, so the canonical form is
+// safe to send to the service as well.
+const canonicalUsername = (username: string) => username.toLowerCase()
+
 const sessions = new Map<string, Session>()
 // Survives the session being dropped when it goes idle: closing a profile and
 // reopening it should still count as "we just checked this user".
@@ -101,7 +109,10 @@ const makeSession = (username: string): Session => ({
   username,
 })
 
-const ensureSession = (username: string) => {
+// the single place a raw username becomes a key; every s.username below is
+// therefore already canonical
+const ensureSession = (rawUsername: string) => {
+  const username = canonicalUsername(rawUsername)
   const existing = sessions.get(username)
   if (existing) {
     return existing
@@ -272,10 +283,12 @@ const loadFollowing = async (s: Session, generation: number) => {
   }
 }
 
-export const loadProfileIdentify = (username: string, options: IdentifyLoadOptions) => {
-  if (!username) {
+export const loadProfileIdentify = (rawUsername: string, options: IdentifyLoadOptions) => {
+  if (!rawUsername) {
     return
   }
+  // lastCompleted below is keyed the same way the session map is
+  const username = canonicalUsername(rawUsername)
   ensureEngineSubscriptions()
   const {freshAfter, ignoreCache} = options
   const s = ensureSession(username)
@@ -375,7 +388,7 @@ const ensureEngineSubscriptions = () => {
   })
 
   subscribeToEngineAction('keybase.1.NotifyTracking.trackingChanged', action => {
-    const s = sessions.get(action.payload.params.username)
+    const s = sessions.get(canonicalUsername(action.payload.params.username))
     if (!s?.details.guiID) {
       return
     }
@@ -384,7 +397,8 @@ const ensureEngineSubscriptions = () => {
   })
 
   subscribeToEngineAction('keybase.1.NotifyUsers.userChanged', action => {
-    const {uid, username} = useCurrentUserState.getState()
+    const {uid, username: rawUsername} = useCurrentUserState.getState()
+    const username = rawUsername ? canonicalUsername(rawUsername) : ''
     if (!username || uid !== action.payload.params.uid || !sessions.has(username)) {
       return
     }
@@ -393,7 +407,8 @@ const ensureEngineSubscriptions = () => {
   })
 }
 
-export const subscribeToProfile = (username: string, cb: () => void) => {
+export const subscribeToProfile = (rawUsername: string, cb: () => void) => {
+  const username = canonicalUsername(rawUsername)
   ensureSession(username)
   let subscribers = subscribersByUsername.get(username)
   if (!subscribers) {
@@ -413,8 +428,9 @@ export const subscribeToProfile = (username: string, cb: () => void) => {
   }
 }
 
-export const getProfileDetails = (username: string) => sessions.get(username)?.details
-export const getProfileNonUserDetails = (username: string) => sessions.get(username)?.nonUserDetails
+export const getProfileDetails = (username: string) => sessions.get(canonicalUsername(username))?.details
+export const getProfileNonUserDetails = (username: string) =>
+  sessions.get(canonicalUsername(username))?.nonUserDetails
 
 registerExternalResetter('tracker-identify-sessions', () => {
   sessions.clear()
