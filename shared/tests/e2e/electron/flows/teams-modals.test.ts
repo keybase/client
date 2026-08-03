@@ -10,6 +10,21 @@ import * as T from '@/tests/e2e/shared/test-ids'
 const becomesVisible = async (l: Locator, timeout = 5_000) =>
   l.waitFor({state: 'visible', timeout}).then(() => true).catch(() => false)
 
+// Playwright only checks that a box held still for two animation frames before
+// dispatching. On a cold load the team settings page reflows ~20px once the
+// retention policy lands, which is enough to drop the click on the wrong row.
+const settles = async (l: Locator, timeout = 5_000) => {
+  const deadline = Date.now() + timeout
+  let prev = ''
+  while (Date.now() < deadline) {
+    const box = await l.boundingBox()
+    const cur = box ? `${Math.round(box.x)},${Math.round(box.y)}` : ''
+    if (cur && cur === prev) return
+    prev = cur
+    await l.page().waitForTimeout(250)
+  }
+}
+
 // a test that died mid-modal poisons every test after it — close leftovers first
 test.beforeEach(async ({page}) => {
   for (let i = 0; i < 3; i++) {
@@ -130,6 +145,7 @@ test('retention warning opens', async ({page}, testInfo) => {
     test.skip()
     return
   }
+  await settles(dropdown)
   await dropdown.click()
   await page.getByText('7 days', {exact: true}).locator('visible=true').last().click()
   const confirm = page.getByText('Yes, set to 7 days')

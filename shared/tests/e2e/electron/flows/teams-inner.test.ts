@@ -23,6 +23,8 @@ test('members tab renders', async ({page}) => {
     test.skip()
     return
   }
+  // the team view restores whichever tab was last open, so don't assume Members
+  await page.getByText('Members', {exact: true}).locator('visible=true').first().click()
   await expect(page.getByTestId(T.TEAMS_MEMBER_LIST).first()).toBeVisible({timeout: 5_000})
 })
 
