@@ -71,6 +71,8 @@
     "sync:kb-modules": "yarn run _helper sync-local-rnmodules",
     "test:e2e:desktop": "playwright test --config tests/e2e/electron/playwright.config.ts",
     "test:e2e:desktop:branch": "playwright test --config tests/e2e/electron/playwright.config.ts tests/e2e/electron/flows/team-member.test.ts && yarn test:e2e:desktop:report",
+    "test:e2e:desktop:flows": "playwright test --config tests/e2e/electron/playwright.config.ts --project=electron-flows",
+    "test:e2e:desktop:rpc": "yarn test:e2e:desktop:flows tests/e2e/electron/flows/teams-browse.test.ts tests/e2e/electron/flows/teams-inner.test.ts tests/e2e/electron/flows/teams-modals.test.ts tests/e2e/electron/flows/team-member.test.ts tests/e2e/electron/flows/team-wizard-channel.test.ts tests/e2e/electron/flows/chat-interactions.test.ts",
     "test:e2e:desktop:report": "node tests/e2e/generate-electron-report.mts && open tests/results/electron-report.html",
     "test:e2e:desktop:save-baseline": "node tests/e2e/generate-electron-report.mts --save-baseline",
     "test:e2e:ios": "bash tests/e2e/run-ios-appium-parallel.sh",
