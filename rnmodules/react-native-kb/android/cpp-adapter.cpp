@@ -22,38 +22,50 @@ public:
   explicit KbNativeAdapter(jni::alias_ref<JKbModule::javaobject> jModule)
       : jModule_(jni::make_global(jModule)) {}
 
+  // Clears a pending Java exception and routes a line to both logcat and the
+  // uploadable log. Returning to JS with an exception still set is UB, and an
+  // abort under CheckJNI.
+  void clearPendingException(JNIEnv *env, const char *what) {
+    env->ExceptionDescribe();
+    env->ExceptionClear();
+    onLog(what);
+  }
+
   bool writeToGo(void *ptr, size_t size) {
     jni::ThreadScope scope;
     auto env = jni::Environment::current();
     auto jba = env->NewByteArray(size);
     if (jba == nullptr) {
-      // NewByteArray leaves OutOfMemoryError pending. Returning with it still
-      // set means the JS thread makes its next JNI call with a live exception
-      // -- UB, and an abort under CheckJNI. Describe it to logcat before
-      // clearing, and route a line through onLog so an OOM here also reaches
-      // the uploadable log, not just logcat.
-      env->ExceptionDescribe();
-      env->ExceptionClear();
-      // onLog itself allocates a jstring (jni::make_jstring); if that
-      // allocation throws -- plausible right after an OOM -- an fbjni
-      // JniException must not escape writeToGo in place of the documented
-      // `return false`, or the caller's exception-handling contract breaks.
-      try {
-        onLog("writeToGo: NewByteArray failed (out of memory), dropping message");
-      } catch (...) {
-        env->ExceptionClear();
-      }
+      // NewByteArray leaves OutOfMemoryError pending.
+      clearPendingException(
+          env, "writeToGo: NewByteArray failed (out of memory), dropping message");
       return false;
     }
     // Adopt into a local_ref so the ref is released even if the call below
     // throws a JniException.
     auto arr = jni::adopt_local(static_cast<jni::JArrayByte::javaobject>(jba));
     env->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
+    if (env->ExceptionCheck()) {
+      // The copy can still fail (OOM in the VM's copy path); same pending
+      // exception hazard as above.
+      clearPendingException(env,
+                            "writeToGo: SetByteArrayRegion failed, dropping message");
+      return false;
+    }
     static auto method =
         JKbModule::javaClassStatic()
             ->getMethod<jboolean(jni::alias_ref<jni::JArrayByte>)>("rpcOnGo");
-    auto ok = method(jModule_, arr);
-    return ok != JNI_FALSE;
+    // rpcOnGo catches Exception itself and answers false, so only an Error
+    // (OOM, StackOverflow) reaches here -- as an fbjni JniException. Every
+    // caller of these three methods is a jsi host function or a KBBridge
+    // callback running on the JS thread, none of which expect a C++ throw, so
+    // letting one out means std::terminate rather than a dropped message.
+    try {
+      return method(jModule_, arr) != JNI_FALSE;
+    } catch (...) {
+      env->ExceptionClear();
+      return false;
+    }
   }
 
   void onFatal(int64_t epoch) {
@@ -61,7 +73,15 @@ public:
     static auto method =
         JKbModule::javaClassStatic()->getMethod<void(jlong)>(
             "onRpcStreamFatal");
-    method(jModule_, static_cast<jlong>(epoch));
+    try {
+      method(jModule_, static_cast<jlong>(epoch));
+    } catch (...) {
+      // Nothing to fall back to: the desync recovery itself failed, so the
+      // connection stays dead until the next read error retries this path.
+      jni::Environment::current()->ExceptionClear();
+      __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
+                          "onRpcStreamFatal threw, desync unrecovered");
+    }
   }
 
   // Called from JNI. Routes native bridge errors into the uploadable log --
@@ -72,7 +92,16 @@ public:
     static auto method =
         JKbModule::javaClassStatic()
             ->getMethod<void(jni::alias_ref<jni::JString>)>("onNativeLog");
-    method(jModule_, jni::make_jstring(message));
+    // make_jstring allocates, so this can throw right when it is most needed
+    // (logging an OOM). Swallow: onLog is best-effort and every caller,
+    // including clearPendingException, treats it as non-throwing.
+    try {
+      method(jModule_, jni::make_jstring(message));
+    } catch (...) {
+      jni::Environment::current()->ExceptionClear();
+      __android_log_print(ANDROID_LOG_ERROR, "KBBridge", "onLog failed: %s",
+                          message.c_str());
+    }
   }
 };
 
