@@ -16,7 +16,7 @@ minute with a flood is 120,000.
 skill/keybase-rpc-log-analysis/scripts/clean-logs.sh --archive   # dry run without a flag
 skill/keybase-rpc-log-analysis/scripts/start-service.sh          # own terminal, foreground
 cd shared && yarn desktop:start:hot:e2e                          # another terminal
-cd shared && yarn test:e2e:desktop                               # or drive the app by hand
+cd shared && yarn test:e2e:desktop:rpc                           # or drive the app by hand
 ```
 
 `start-service.sh` builds from this checkout, stops the running service, and logs
@@ -24,20 +24,68 @@ with `-d --log-file` to `/tmp/kb-analysis/service.log`. Its own file matters: th
 default log is shared with everything else and a flood rotates the evidence away
 in under two minutes.
 
-`--log-file` **still rotates at 128MB** — a full e2e run produces ~220MB. Nothing
-is lost, but the analysis must include the siblings, so always pass them all:
+**Use `test:e2e:desktop:rpc`, not `test:e2e:desktop`.** The full suite is 6.6
+minutes over two projects (light and dark), which doubles every count and makes
+the log rotate. `test:e2e:desktop:rpc` is the six flows that actually drive team
+and channel loading, on one project, in 39 seconds. `test:e2e:desktop:flows`
+takes file arguments if you need a different set — always pass a single
+`--project` (it does), or light and dark each contribute a copy of every call.
+
+`--log-file` **still rotates at 128MB** — a full e2e run produces ~135MB and will
+cross it. Nothing is lost, but the analysis must then include the siblings, so
+pass them all:
 
 ```bash
 python3 skill/keybase-rpc-log-analysis/scripts/rpc-report.py \
   /tmp/kb-analysis/service.log-* /tmp/kb-analysis/service.log
 ```
 
+Rotation is easy to miss: a script that reads only `service.log` after a long run
+silently analyses the tail. Check `ls -la /tmp/kb-analysis/` before believing a
+count.
+
 The service forks kbfs from its own bin directory, and a plain `go install` of
 the service does not build it. Without kbfs the Files tab is empty and git
 fails with `KBFS client not found`, which fails every `files-*` and `git-*` e2e
 test for reasons unrelated to the change under test. `start-service.sh` warns.
+Note the installed kbfs keeps the mount when the service is swapped for a local
+build, so those tests can fail even with a `kbfs` binary in place — they are not
+in the `test:e2e:desktop:rpc` set for that reason.
 
 Ask before stopping the service or launching the app — both are the user's.
+
+## Prove a fix
+
+A before/after is only worth reporting if both runs did the same thing. What
+works:
+
+```bash
+# after: with the fix in the tree
+<reload the renderer>; : > /tmp/kb-analysis/service.log
+cd shared && yarn test:e2e:desktop:rpc
+cp /tmp/kb-analysis/service.log /tmp/kb-analysis/after.log
+
+# before: revert ONLY the source changes, keeping any new test scripts
+git stash push -- <the source files you changed>
+<reload the renderer>; : > /tmp/kb-analysis/service.log
+cd shared && yarn test:e2e:desktop:rpc
+cp /tmp/kb-analysis/service.log /tmp/kb-analysis/before.log
+git stash pop
+```
+
+- **Stash by path, not wholesale.** If the fix added the very npm script the
+  capture runs, a bare `git stash` takes it with them.
+- **Hard-reload the renderer between runs** (CDP `page.reload()` on
+  `localhost:9222`). Module-level caches — the usual subject of these fixes —
+  survive HMR, so without a reload the second run starts warm and reads better
+  than it is.
+- **The service does not need rebuilding** between runs for a JS-only fix. Leave
+  it up; only truncate its log.
+- Counting straight out of the log beats `rpc-diff.py` when you already know
+  which calls you are watching: parse `+ Server: <Name>` / `+ RemoteClient:
+  chat.1.remote.<name>`, and count how many landed within the hook's own
+  `staleMs` of the previous call for the same subject. That last number is the
+  one that says "this was a cache miss" rather than "this was work".
 
 ## Read it
 
@@ -101,6 +149,19 @@ not `getMessagesRemote`. The script says so when it finds no counts.
   identical in the service log until you check.
 - **Attributing to the child call.** The line directly above a flood is often
   something the flood itself invoked. Trust ROOT over DRIVERS.
+- **Reading a count that went to zero as a win.** A call that disappears may have
+  been *dropped*, not deduped. Before claiming it, check what the baseline calls
+  actually did: pull their `chat-trace` out of the before-log and count the work
+  hanging off it. Two `getMutualTeamsLocal` calls here went to 0 after a guard on
+  "empty argument list" — and their traces showed 82 remote refreshes and 750ms
+  each, so the service treats the empty case as a real query and the guard was
+  removing a feature, not a redundancy. A real dedupe takes N to 1, not to 0.
+- **Forgetting that one call's result is another call's input.** Suppressing a
+  call suppresses everything downstream of it, so an unrelated-looking count
+  improves for the wrong reason. `getAnnotatedTeam` read 3 in the run where
+  mutual teams was wrongly suppressed and 11 in both runs where it was not —
+  because the shared teams it returns are what then get loaded. If a metric you
+  did not touch moves, find out which call upstream stopped happening.
 - **Reading a fix as failed because the totals did not move.** If the app's
   request volume changed between runs, a working cache can show flat server
   counts. Count what the cache actually did — a hit rate, a log line — before
@@ -117,7 +178,8 @@ not `getMessagesRemote`. The script says so when it finds no counts.
 - **Using plain `grep`.** It is wrapped in this environment and truncates. Use
   python, as the scripts do.
 - **Comparing unlike runs.** `rpc-diff.py` is only meaningful if both runs did
-  the same thing.
+  the same thing — same tests, same order, same project, renderer reloaded
+  between them. See "Prove a fix".
 
 ## Shapes seen before
 
@@ -139,6 +201,19 @@ Each of these was a real bug, and each is what its section looks like:
 - **The same expensive load repeated because each surface holds its own copy.**
   Two or three components asking for the same user or team at the same instant
   is the common case, not the rare one.
+- **Two identical calls the same microsecond apart.** Not a race — two *caches*.
+  Either the hook falls back to a per-instance map (so every provider and every
+  provider-less consumer holds its own), or two different hooks issue the same
+  RPC with the same arguments from separate module caches and cannot see each
+  other's in-flight request. Both were live in this client at once. Grep the
+  codebase for the RPC name: more than one call site that is not a shared hook is
+  the tell.
+- **Calls landing inside their own stale window.** If a hook declares
+  `staleMs: 5_000` and most of its calls arrive under 5s after the previous one
+  for the same subject, the cache is not being shared — the window is doing
+  nothing because each caller has a fresh copy of it. This ratio is the single
+  most useful derived number here; 81% for `getAnnotatedTeam` is what found that
+  bug.
 
 Where the money actually is in this client: identify/proof checks and team
 loads. Both are hundreds of milliseconds each and both fan out to several HTTP
