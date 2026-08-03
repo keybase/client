@@ -154,10 +154,10 @@ test('retention warning opens', async ({page}, testInfo) => {
     await dropdown.click()
     menuOpen = await becomesVisible(sevenDays, 2_000)
   }
-  if (!menuOpen) {
-    test.skip()
-    return
-  }
+  expect(
+    menuOpen,
+    'retention dropdown never opened its menu: no visible "7 days" option after 3 clicks on the message-deletion dropdown'
+  ).toBe(true)
   await sevenDays.click()
   const confirm = page.getByText('Yes, set to 7 days')
   if (!(await becomesVisible(confirm, 3_000))) {

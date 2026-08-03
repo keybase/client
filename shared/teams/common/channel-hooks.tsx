@@ -45,6 +45,10 @@ const allChannelMetasCaches = new Map<
 // module scope outlives sign-out, so the next user would be served the previous
 // user's channel metas for any team they happen to share
 registerExternalResetter('teams-all-channel-metas-caches', () => {
+  // dropping the map is not enough on its own: a consumer that is still mounted
+  // through the sign-out holds the cache object itself, so each one has to be
+  // emptied as well
+  allChannelMetasCaches.forEach((cache, teamID) => cache.reset(emptyChannelMetasData, teamID))
   allChannelMetasCaches.clear()
 })
 

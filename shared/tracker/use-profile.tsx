@@ -13,6 +13,11 @@ import {
 // this window reuses the check that just ran; an explicit reload always forces.
 const profileRecheckMs = 30_000
 
+// There is deliberately no focus-based reload here. Only mounting, an explicit
+// reload, or a tracking / userChanged notification starts an identify: refocusing
+// a screen that stayed mounted is not a signal that the identity changed, and
+// treating it as one made every tab switch re-check every proof.
+
 type Options = {
   // surfaces that only want loadProfile() to call after an action, and never
   // read details, can skip the identify their mount would otherwise trigger

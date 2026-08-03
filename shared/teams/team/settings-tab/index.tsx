@@ -206,6 +206,9 @@ const Settings = (p: Props) => {
 
   if (local.serverKey !== serverKey) {
     setLocal({...serverSettings, serverKey})
+    // the picker edits openTeamRole, so leaving it open after a server-side change
+    // would confirm against values that no longer exist.
+    setIsRolePickerOpen(false)
   }
 
   const {

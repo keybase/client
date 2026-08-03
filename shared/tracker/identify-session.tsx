@@ -56,6 +56,19 @@ const sessions = new Map<string, Session>()
 // Survives the session being dropped when it goes idle: closing a profile and
 // reopening it should still count as "we just checked this user".
 const lastCompleted = new Map<string, {at: number; ignoreCache: boolean}>()
+// An entry is only ever read against the caller's maxAgeMs, and the longest one
+// any caller passes is the profile screen's 30s recheck window, so anything this
+// old can never suppress an identify again - it is only holding a username.
+const lastCompletedTTLMs = 5 * 60_000
+
+const pruneLastCompleted = () => {
+  const now = Date.now()
+  for (const [username, done] of lastCompleted) {
+    if (now - done.at >= lastCompletedTTLMs) {
+      lastCompleted.delete(username)
+    }
+  }
+}
 // Kept outside of Session so a subscriber stays attached to its username even
 // if the session object behind it is replaced.
 const subscribersByUsername = new Map<string, Set<() => void>>()
@@ -196,6 +209,7 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
   } finally {
     if (s.generation === generation) {
       s.inFlight = false
+      pruneLastCompleted()
       lastCompleted.set(s.username, {at: Date.now(), ignoreCache: s.ignoreCache})
       dropSessionIfIdle(s)
     }

@@ -57,6 +57,11 @@ const useUserData = (username: string) => {
   const usernameKey = username.toLowerCase()
   const userIsYou = username === myName
   const {proofSuggestions, reload: reloadProofSuggestions} = useProofSuggestions(userIsYou)
+  // Deliberately no reload on focus. An identify re-checks every proof, and each
+  // check is an outbound request to a third-party host that rate limits us, so
+  // navigating back to a profile screen that never unmounted is not worth a fresh
+  // one. The mount path, an explicit pull-to-refresh, and the tracking /
+  // userChanged notifications are what refresh this.
   const {
     details: d,
     loadNonUserProfile,

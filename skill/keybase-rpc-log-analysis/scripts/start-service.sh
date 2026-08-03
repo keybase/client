@@ -13,7 +13,16 @@
 # rather than auto-forking the installed one.
 set -euo pipefail
 
-LOGFILE="${1:-/tmp/kb-analysis/service.log}"
+ASSUME_YES="${KB_RPC_LOG_ASSUME_YES:-}"
+ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --yes|-y) ASSUME_YES=1 ;;
+    *) ARGS+=("$arg") ;;
+  esac
+done
+
+LOGFILE="${ARGS[0]:-/tmp/kb-analysis/service.log}"
 mkdir -p "$(dirname "$LOGFILE")"
 
 # -P resolves symlinks before collapsing "..": this script is normally reached
@@ -58,7 +67,26 @@ fi
 # pgrep -x matches the process NAME. Do not use pgrep -f here: the pattern would
 # also match any shell whose command line happens to contain it, including the
 # one running this check.
+#
+# Stopping the service is disruptive to whoever is using the app right now, so
+# it needs an explicit ok unless the caller opted out with --yes /
+# KB_RPC_LOG_ASSUME_YES=1. With no tty there is nobody to ask, so abort rather
+# than stop it behind the user's back.
 if pgrep -x keybase >/dev/null 2>&1; then
+  if [ -z "$ASSUME_YES" ]; then
+    echo "a keybase service is already running (pids: $(pgrep -x keybase | tr '\n' ' '))"
+    echo "continuing stops it with '$BIN ctl stop --include service'."
+    if [ ! -t 0 ]; then
+      echo "not interactive; refusing to stop it. rerun with --yes or KB_RPC_LOG_ASSUME_YES=1"
+      exit 1
+    fi
+    printf 'stop the running service? [y/N] '
+    read -r REPLY
+    case "$REPLY" in
+      y|Y|yes|YES) ;;
+      *) echo "aborted; the running service was left alone"; exit 1 ;;
+    esac
+  fi
   echo "stopping the running service"
   "$BIN" ctl stop --include service || true
   for _ in $(seq 10); do

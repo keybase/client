@@ -21,7 +21,11 @@ const noGeneralConv: GeneralConvData = undefined
 const generalConvCaches = new Map<T.Teams.TeamID, CachedResourceCache<GeneralConvData, T.Teams.TeamID>>()
 const generalConvStaleMs = 5 * 60_000
 
+// module scope outlives sign-out. Dropping the map is not enough on its own: a
+// consumer that is still mounted through the sign-out holds the cache object
+// itself, so each one has to be emptied as well.
 registerExternalResetter('teams-general-conv-caches', () => {
+  generalConvCaches.forEach((cache, teamID) => cache.reset(noGeneralConv, teamID))
   generalConvCaches.clear()
 })
 
@@ -33,12 +37,14 @@ export const useGeneralConvIDKey = (teamID?: T.Teams.TeamID, enabled = true) => 
   const [localCache] = React.useState<CachedResourceCache<GeneralConvData, T.Teams.TeamID>>(() =>
     createCachedResourceCache<GeneralConvData, T.Teams.TeamID>(noGeneralConv, cacheKey)
   )
+  // an off instance must not seed the shared map: it never loads, so the entry it
+  // created would sit there empty for the life of the session
   const sharedCache = React.useMemo(
-    () => getCachedResourceCache(generalConvCaches, noGeneralConv, cacheKey),
-    [cacheKey]
+    () => (on ? getCachedResourceCache(generalConvCaches, noGeneralConv, cacheKey) : undefined),
+    [cacheKey, on]
   )
   const {data} = useCachedResource({
-    cache: on ? sharedCache : localCache,
+    cache: sharedCache ?? localCache,
     cacheKey,
     enabled: on,
     initialData: noGeneralConv,
