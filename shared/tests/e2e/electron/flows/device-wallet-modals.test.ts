@@ -20,7 +20,14 @@ test('add device chooser opens', async ({page}, testInfo) => {
 test('crypto recipients team builder opens', async ({page}, testInfo) => {
   await navigateToCrypto(page)
   await page.getByTestId(T.CRYPTO_NAV_ENCRYPT).click()
-  await page.getByPlaceholder('Search people').locator('visible=true').first().click()
+  // the recipients input sits under a pointerEvents:none wrapper (crypto/recipients.tsx)
+  // so it can't take focus — click the ClickableBox around it instead.
+  await page
+    .locator('.clickable-box2')
+    .filter({has: page.getByPlaceholder('Search people')})
+    .locator('visible=true')
+    .first()
+    .click()
   const search = page.getByPlaceholder('Search Keybase').locator('visible=true')
   await expect(search.first()).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)

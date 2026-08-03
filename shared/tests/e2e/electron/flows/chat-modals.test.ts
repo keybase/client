@@ -79,7 +79,10 @@ test('bot install preview opens', async ({page}, testInfo) => {
   await page.getByTestId(T.CHAT_INFO_PANEL).getByText('Bots', {exact: true}).click()
   const botRows = page.getByTestId(T.CHAT_BOT_ROW)
   await expect(botRows.first()).toBeVisible({timeout: 10_000})
-  await botRows.first().click()
+  // the row's center point lands on the "by <owner>" ConnectedUsernames link,
+  // which navigates to that profile instead of opening the bot. Click over the
+  // avatar column, which is plain ListItem body.
+  await botRows.first().click({position: {x: 20, y: 28}})
   // installed bot: Edit settings; new bot: Install; restricted bot: Review
   const installButton = page.getByText(/^(Install|Edit settings|Review)$/).first()
   await expect(installButton).toBeVisible({timeout: 10_000})
