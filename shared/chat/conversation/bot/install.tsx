@@ -701,7 +701,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 }
 
 type PermsListProps = {
-  channelMetas?: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelMetas?: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   commands: T.Chat.BotPublicCommands | undefined
   settings?: T.RPCGen.TeamBotSettings
   username: string

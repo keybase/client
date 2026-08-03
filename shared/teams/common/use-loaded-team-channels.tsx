@@ -11,6 +11,12 @@ import {type CachedResourceCache, getCachedResourceCache, useCachedResource} fro
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
+  // the full meta for each channel, derived from the same getTLFConversations
+  // result. This used to be a second module cache issuing the same RPC with the
+  // same arguments, which the two caches could not dedupe between - measured as
+  // pairs of identical calls microseconds apart, each fanning out to one remote
+  // participant refresh per channel in the team.
+  channelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   channelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
   loading: boolean
   reload: () => Promise<void>
@@ -20,7 +26,10 @@ type LoadedTeamChannelsContextValue = LoadedTeamChannels & {
   teamID: T.Teams.TeamID
 }
 
-type LoadedTeamChannelsData = Pick<LoadedTeamChannels, 'channels' | 'channelParticipants'>
+type LoadedTeamChannelsData = Pick<
+  LoadedTeamChannels,
+  'channels' | 'channelMetas' | 'channelParticipants'
+>
 type LoadedTeamChannelsCacheMap = Map<
   T.Teams.TeamID | undefined,
   CachedResourceCache<LoadedTeamChannelsData, T.Teams.TeamID | undefined>
@@ -30,12 +39,14 @@ const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextV
 const loadedTeamChannelsReloadStaleMs = 5_000
 
 const emptyChannels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo> = new Map()
+const emptyChannelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta> = new Map()
 const emptyChannelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo> = new Map()
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
 const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
+  channelMetas: emptyChannelMetas,
   channelParticipants: emptyChannelParticipants,
   channels: emptyChannels,
 }
@@ -140,24 +151,28 @@ const useLoadedTeamChannelsRaw = (
         teamChannelsRPCParams(teamname),
         C.waitingKeyTeamsGetChannels(teamIDToLoad)
       )
+      const channels = new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
+      const channelMetas = new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
       const channelParticipants = new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>()
-      const channels =
-        convs?.reduce((res, inboxUIItem) => {
-          const conversationIDKey = T.Chat.stringToConversationIDKey(inboxUIItem.convID)
-          res.set(conversationIDKey, {
-            channelname: inboxUIItem.channel,
-            conversationIDKey,
-            description: inboxUIItem.headline,
-          })
-          channelParticipants.set(
-            conversationIDKey,
-            Chat.uiParticipantsToParticipantInfo(inboxUIItem.participants ?? [])
-          )
-          return res
-        }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ??
-        new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
+      for (const inboxUIItem of convs ?? []) {
+        const conversationIDKey = T.Chat.stringToConversationIDKey(inboxUIItem.convID)
+        channels.set(conversationIDKey, {
+          channelname: inboxUIItem.channel,
+          conversationIDKey,
+          description: inboxUIItem.headline,
+        })
+        channelParticipants.set(
+          conversationIDKey,
+          Chat.uiParticipantsToParticipantInfo(inboxUIItem.participants ?? [])
+        )
+        const meta = Chat.inboxUIItemToConversationMeta(inboxUIItem)
+        if (meta) {
+          channelMetas.set(meta.conversationIDKey, meta)
+        }
+      }
 
       return {
+        channelMetas,
         channelParticipants,
         channels,
       }
@@ -187,10 +202,10 @@ const useLoadedTeamChannelsRaw = (
     }
   }, [enabled, validTeamID, reload])
 
-  const {channelParticipants, channels} = data
+  const {channelMetas, channelParticipants, channels} = data
   return React.useMemo(
-    () => ({channelParticipants, channels, loading, reload}),
-    [channelParticipants, channels, loading, reload]
+    () => ({channelMetas, channelParticipants, channels, loading, reload}),
+    [channelMetas, channelParticipants, channels, loading, reload]
   )
 }
 
@@ -208,11 +223,14 @@ export const LoadedTeamChannelsProvider = (
 
 export const useLoadedTeamChannels = (
   teamID: T.Teams.TeamID,
-  teamname?: string
+  teamname?: string,
+  enabled = true
 ): LoadedTeamChannels => {
   const context = React.useContext(LoadedTeamChannelsContext)
+  // a disabled consumer still reads a provider's already-loaded value when there
+  // is one - it only must not issue a load of its own
   const useContextValue = context?.teamID === teamID
-  const raw = useLoadedTeamChannelsRaw(teamID, teamname, !useContextValue, useContextValue)
+  const raw = useLoadedTeamChannelsRaw(teamID, teamname, enabled && !useContextValue, useContextValue)
   return useContextValue ? context : raw
 }
 
