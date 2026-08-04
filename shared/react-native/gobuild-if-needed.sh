@@ -113,6 +113,37 @@ fi
 # rebuilds rather than silently reusing the other's artifact.
 signature="tags=${TAGS:-default} targets=${TARGETS:-default} godebug=${KB_GO_DEBUG:-0}"
 
+# Deletions and renames are invisible to the -newer check below: removing a file
+# moves no surviving file's mtime forward, so checking out a branch that DROPS an
+# exported func from go/bind leaves a stale artifact that still exports it and a
+# stamp that still looks current -- the mirror image of the missing-identifier
+# failure this script exists to prevent. Hashing the source *list* catches every
+# add, delete and rename; -newer still covers plain edits, which leave the list
+# unchanged. This walk cannot use -quit, so it is the one unconditional full scan
+# of go/ per build.
+hash_stdin() {
+	if command -v shasum >/dev/null 2>&1; then
+		shasum -a 256
+	else
+		sha256sum
+	fi | cut -d' ' -f1
+}
+sources_hash=$(find "$client_dir/go" \
+	-name vendor -prune -o \
+	\( -name '*.go' -o -name 'go.mod' -o -name 'go.sum' \) -print |
+	LC_ALL=C sort | hash_stdin)
+
+# Line 1 is the signature, line 2 the source-list hash. A stamp written before
+# the hash existed has no line 2, so it mismatches and forces one rebuild.
+stamp_signature=""
+stamp_sources=""
+if [ -f "$stamp" ]; then
+	{
+		read -r stamp_signature || true
+		read -r stamp_sources || true
+	} <"$stamp"
+fi
+
 needs_build=""
 if [[ -n ${KB_FORCE_GOBUILD:-} && "${KB_FORCE_GOBUILD}" != "0" ]]; then
 	needs_build="KB_FORCE_GOBUILD set"
@@ -122,8 +153,10 @@ elif [ ! -f "$stamp" ]; then
 	# Artifact built before this script existed, or by a bare gobuild.sh run.
 	# Cannot tell whether it is current, so rebuild once and stamp it.
 	needs_build="no build stamp"
-elif [ "$(cat "$stamp")" != "$signature" ]; then
+elif [ "$stamp_signature" != "$signature" ]; then
 	needs_build="build settings changed"
+elif [ "$stamp_sources" != "$sources_hash" ]; then
+	needs_build="go source list changed"
 else
 	# -print -quit stops at the first hit, so the common (up-to-date) case walks
 	# only until it finds nothing rather than scanning the whole tree.
@@ -146,5 +179,5 @@ echo "gobuild-if-needed: rebuilding $arg ($needs_build)"
 
 # Stamp only after a successful build: a failed build must not look current.
 mkdir -p "$(dirname "$stamp")"
-printf '%s' "$signature" >"$stamp"
+printf '%s\n%s\n' "$signature" "$sources_hash" >"$stamp"
 echo "gobuild-if-needed: $arg build complete"
