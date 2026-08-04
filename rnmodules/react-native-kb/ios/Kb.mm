@@ -392,6 +392,13 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
             // and in that case resetRecv() must also be skipped, or it drops
             // the new connection's already-in-flight partial frame and
             // forces a second, needless fatal/reset cycle.
+            //
+            // No @try around this call, unlike KbModule.onRpcStreamFatal's
+            // catch-and-still-resetRecv: gomobile's ObjC glue has no
+            // panic-to-NSException path (nothing in the generated bridge
+            // recovers), so this either returns a BOOL or the process is
+            // already dead. There is no "it threw, so reset the parser to be
+            // safe" third outcome to handle here.
             BOOL didReset = KeybaseResetIfCurrentDidReset(epoch);
             if (didReset) {
               strongBridge->resetRecv();

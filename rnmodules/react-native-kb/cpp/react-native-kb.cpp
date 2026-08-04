@@ -545,6 +545,16 @@ bool KBBridge::packAndSend(Runtime &runtime, const Value &value) {
   msgpack::packer<msgpack::sbuffer> pk(&sendBuf);
   convertJSIToMP(runtime, value, &pk);
 
+  // sendBuf was cleared and given its headerLen placeholder just above, and
+  // msgpack::packer only appends, so this subtraction cannot underflow today.
+  // Checked rather than asserted because the failure is silent and severe: a
+  // size_t underflow yields a ~4GB contentBytes, which fails the kMaxFrameSize
+  // test and surfaces as a bogus "frame too large" -- but any future reordering
+  // that also moved the size check would truncate it to a plausible uint32 and
+  // put a mislabelled frame on the wire.
+  if (sendBuf.size() < headerLen) {
+    throw std::runtime_error("outgoing rpc frame lost its header slot");
+  }
   auto contentBytes = sendBuf.size() - headerLen;
   if (contentBytes > kMaxFrameSize) {
     throw std::runtime_error("outgoing rpc frame too large");
