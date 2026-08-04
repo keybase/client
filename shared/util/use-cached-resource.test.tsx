@@ -528,3 +528,131 @@ test('reload() bypasses an orphaned in-flight request', async () => {
   await flush()
   expect(result.current.data).toBe('fresh')
 })
+
+// A disabled hook must stay off the wire entirely, reconnects included, and must
+// start loading the moment it is enabled without waiting for another event.
+test('a disabled resource ignores reconnects until it is enabled', async () => {
+  act(() => {
+    useDaemonState.setState({handshakeGeneration: 1, handshakeState: 'done'})
+  })
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const load = jest.fn(async () => {
+    await Promise.resolve()
+    return {v: 1}
+  })
+  const {rerender, result} = renderHook(
+    ({enabled}: {enabled: boolean}) =>
+      useCachedResource({cache, cacheKey: 'k', enabled, initialData: {v: 0}, load, staleMs: 5000}),
+    {initialProps: {enabled: false}}
+  )
+  await flush()
+  expect(load).not.toHaveBeenCalled()
+
+  act(() => {
+    useDaemonState.setState({handshakeGeneration: 2, handshakeState: 'loading'})
+  })
+  act(() => {
+    useDaemonState.setState({handshakeState: 'done'})
+  })
+  await flush()
+  expect(load).not.toHaveBeenCalled()
+  expect(result.current.loaded).toBe(false)
+
+  rerender({enabled: true})
+  await flush()
+  expect(load).toHaveBeenCalledTimes(1)
+  expect(result.current.data).toEqual({v: 1})
+})
+
+// Nothing runs loadResource while a hook is disabled, so becoming disabled is
+// the only chance to drop data the cache is still holding under the old key.
+test('a resource that is disabled while its key changes clears the stale key', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'a')
+  const load = jest.fn(async () => {
+    await Promise.resolve()
+    return {v: 1}
+  })
+  const {rerender} = renderHook(
+    ({cacheKey, enabled}: {cacheKey: string; enabled: boolean}) =>
+      useCachedResource({cache, cacheKey, enabled, initialData: {v: 0}, load, staleMs: 5000}),
+    {initialProps: {cacheKey: 'a', enabled: true}}
+  )
+  await flush()
+  expect(cache.getKey()).toBe('a')
+  expect(cache.getLoadedAt()).not.toBe(0)
+
+  rerender({cacheKey: 'b', enabled: false})
+  await flush()
+  expect(cache.getKey()).toBe('b')
+  expect(cache.getLoadedAt()).toBe(0)
+  expect(load).toHaveBeenCalledTimes(1)
+})
+
+test('clear() drops the cached data and reloads', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  const load = jest.fn(async () => {
+    calls++
+    await Promise.resolve()
+    return {v: calls}
+  })
+  const {result} = renderHook(() =>
+    useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+  )
+  await flush()
+  expect(calls).toBe(1)
+  expect(result.current.data).toEqual({v: 1})
+  expect(result.current.loaded).toBe(true)
+
+  act(() => {
+    result.current.clear()
+  })
+  expect(result.current.data).toEqual({v: 0})
+  expect(result.current.loaded).toBe(false)
+  expect(cache.getLoadedAt()).toBe(0)
+
+  // clear() invalidates rather than just blanking state: the next stale check
+  // has to go back to the wire even though staleMs has not elapsed.
+  act(() => {
+    void result.current.reload()
+  })
+  await flush()
+  expect(calls).toBe(2)
+  expect(result.current.data).toEqual({v: 2})
+})
+
+test('a cacheKey change resets the cache and refetches', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'a')
+  const seen: Array<string> = []
+  const {rerender, result} = renderHook(
+    ({cacheKey}: {cacheKey: string}) =>
+      useCachedResource({
+        cache,
+        cacheKey,
+        initialData: {v: 0},
+        load: async () => {
+          seen.push(cacheKey)
+          await Promise.resolve()
+          return {v: seen.length}
+        },
+        staleMs: 5000,
+      }),
+    {initialProps: {cacheKey: 'a'}}
+  )
+  await flush()
+  expect(seen).toEqual(['a'])
+  expect(result.current.data).toEqual({v: 1})
+
+  rerender({cacheKey: 'b'})
+  await flush()
+  expect(seen).toEqual(['a', 'b'])
+  expect(cache.getKey()).toBe('b')
+  expect(result.current.data).toEqual({v: 2})
+
+  // data for the old key must not resurface when the key comes back: the reset
+  // dropped it, so this is a fresh load rather than a cache hit.
+  rerender({cacheKey: 'a'})
+  await flush()
+  expect(seen).toEqual(['a', 'b', 'a'])
+  expect(result.current.data).toEqual({v: 3})
+})

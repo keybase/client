@@ -357,12 +357,14 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
   })
 
   React.useEffect(() => {
-    if (!Object.is(cache.getKey(), cacheKey) || !enabled) {
+    if (enabled) {
+      // a key change is handled inside loadResource, which every load path goes
+      // through - including the reload()/reconnect ones this effect never sees
+      void loadIfStale()
+    } else {
+      // nothing will run loadResource to notice, so drop the stale key here
       requestVersionRef.current += 1
       resetCache(cacheKey)
-    }
-    if (enabled) {
-      void loadIfStale()
     }
   }, [cache, cacheKey, enabled, loadIfStale, refreshKey, resetCache])
 
