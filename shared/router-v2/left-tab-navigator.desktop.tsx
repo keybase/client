@@ -35,7 +35,7 @@ function LeftTabNavigator({
             navigation as any
           }
         />
-        <Kb.BoxGrow>
+        <Kb.BoxGrow style={styles.content}>
           {state.routes.map((route, i) => {
             const selected = i === state.index
             const desc = descriptors[route.key]
@@ -60,7 +60,10 @@ function ModalBackdrop(p: {hasModals: boolean}) {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Kb.Styles.globalColors.white},
+  // clip + min-width 0 so a misbehaving screen can never widen past the window and shove
+  // the tab bar off screen
+  box: {backgroundColor: Kb.Styles.globalColors.white, overflow: 'hidden'},
+  content: {minWidth: 0, overflow: 'hidden'},
 }))
 
 type NavType = NavigatorTypeBagBase & {

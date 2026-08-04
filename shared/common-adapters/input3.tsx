@@ -286,6 +286,9 @@ const styles = Styles.styleSheetCreate(
           ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
         },
         isElectron: {
+          // multiline inputs use field-sizing:content, whose intrinsic width follows the
+          // text; containment keeps a long unbreakable string from widening the layout
+          contain: 'inline-size',
           width: '100%',
         },
       }),
@@ -312,6 +315,9 @@ const styles = Styles.styleSheetCreate(
       multiline: Styles.platformStyles({
         isElectron: {
           fieldSizing: 'content',
+          // break anywhere so an unbreakable string (long url) wraps instead of
+          // demanding its full width
+          overflowWrap: 'anywhere',
           ...Styles.paddingV(0),
           resize: 'none',
           width: '100%',

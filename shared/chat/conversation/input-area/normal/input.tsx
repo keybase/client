@@ -267,6 +267,9 @@ const desktopInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
   multiline: Kb.Styles.platformStyles({
     isElectron: {
       fieldSizing: 'content',
+      // break anywhere so an unbreakable string (long url) wraps instead of
+      // demanding its full width
+      overflowWrap: 'anywhere',
       ...Kb.Styles.paddingV(0),
       resize: 'none',
       width: '100%',
@@ -903,14 +906,19 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
           minHeight: 22,
         },
       }),
-      inputBox: {
-        minWidth: 0,
-        paddingBottom: Kb.Styles.globalMargins.xtiny,
-        paddingLeft: 6,
-        paddingRight: 6,
-        paddingTop: Kb.Styles.globalMargins.tiny - 2,
-        textAlign: 'left',
-      },
+      inputBox: Kb.Styles.platformStyles({
+        common: {
+          minWidth: 0,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
+          paddingLeft: 6,
+          paddingRight: 6,
+          paddingTop: Kb.Styles.globalMargins.tiny - 2,
+          textAlign: 'left',
+        },
+        // field-sizing:content on the textarea makes its intrinsic width follow its text,
+        // so containment is what keeps a long unbreakable url from widening the layout
+        isElectron: {contain: 'inline-size'},
+      }),
       inputEditing: {color: Kb.Styles.globalColors.blackOrBlack},
       inputWrapper: {
         alignSelf: 'stretch',

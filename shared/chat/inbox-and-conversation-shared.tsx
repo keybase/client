@@ -56,7 +56,7 @@ export function InboxAndConversationShell(props: Props) {
     <Kb.KeyboardAvoidingView2>
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
         {props.leftPane}
-        <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
+        <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.conversation}>
           <Conversation {...props} conversationIDKey={conversationIDKey} />
         </Kb.Box2>
         {infoPanel ? (
@@ -72,6 +72,9 @@ export function InboxAndConversationShell(props: Props) {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      // without this the flex item's automatic min size is its content's min-content
+      // width, so one unbreakable string (a long url) can push the column past the window
+      conversation: {minWidth: 0},
       infoPanel: {
         backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
