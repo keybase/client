@@ -7,6 +7,7 @@ import SfmiBanner from '../banner/system-file-manager-integration-banner/contain
 import {WrapRow} from './rows/rows'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -57,6 +58,11 @@ const renderSectionHeader = ({section}: {section: {key: string; title: string}})
 // recents are re-derived on every FsDataContext write; reuse item identities
 // so the memoized rows can bail
 const recentItemCache = new Map<string, SectionListItem>()
+
+// module scope outlives sign-out; keyed by TLF name
+registerExternalResetter('fs-browser-recent-item-cache', () => {
+  recentItemCache.clear()
+})
 const canonRecentItem = (name: string, tlfType: T.FS.TlfType): SectionListItem => {
   const key = `${tlfType}-${name}`
   let item = recentItemCache.get(key)

@@ -349,7 +349,7 @@ const runProofFlow = async (p: {
 const ProofsList = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const {proofSuggestions} = useProofSuggestions()
-  const {loadProfile} = useTrackerProfile(currentUsername)
+  const {loadProfile} = useTrackerProfile(currentUsername, {loadOnMount: false})
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
   const isDarkMode = useColorScheme() === 'dark'
   const {clearModals, navigateAppend, navigateUp} = C.Router2

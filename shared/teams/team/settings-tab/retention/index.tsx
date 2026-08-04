@@ -5,7 +5,15 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import SaveIndicator from '@/common-adapters/save-indicator'
+import logger from '@/logger'
+import {registerExternalResetter} from '@/util/zustand'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {
+  type CachedResourceCache,
+  createCachedResourceCache,
+  getCachedResourceCache,
+  useCachedResource,
+} from '../../../use-cached-resource'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
 import {ConversationThreadProvider, useThreadMeta} from '@/chat/conversation/thread-context'
@@ -358,99 +366,67 @@ const policyToExplanation = (
   return exp
 }
 
-const loadTeamRetentionPolicy = async (
-  teamID: T.Teams.TeamID,
-  shouldApply: () => boolean,
-  setTeamRetentionPolicy: (policy?: T.RPCChat.RetentionPolicy | null) => void
-) => {
-  try {
-    const servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
-      {teamID},
-      C.waitingKeyTeamsLoadRetentionPolicy(teamID)
-    )
-    if (!shouldApply()) {
-      return
-    }
-    setTeamRetentionPolicy(servicePolicy)
-  } catch {
-    if (!shouldApply()) {
-      return
-    }
-    setTeamRetentionPolicy(undefined)
-  }
-}
+type TeamRetentionData = T.Retention.RetentionPolicy | undefined
+
+const teamRetentionStaleMs = 5_000
+const noTeamRetentionPolicy: TeamRetentionData = undefined
+
+// One cache per team, shared by every consumer (settings tab and every chat info
+// panel for the team): a burst of remounts would otherwise be a burst of
+// GetTeamRetentionLocal calls with identical arguments.
+const teamRetentionCaches = new Map<T.Teams.TeamID, CachedResourceCache<TeamRetentionData, T.Teams.TeamID>>()
+
+// module scope outlives sign-out, so the next user would inherit this user's policies
+registerExternalResetter('teams-retention-caches', () => {
+  teamRetentionCaches.clear()
+})
 
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
-  type TeamRetentionState = {
-    loadedTeamID?: T.Teams.TeamID
-    teamPolicy?: T.Retention.RetentionPolicy
-  }
-
-  const [state, setState] = React.useState<TeamRetentionState>({loadedTeamID: teamID, teamPolicy: undefined})
-  const requestVersionRef = React.useRef(0)
-  const requestTeamIDRef = React.useRef(teamID)
-
-  const setTeamRetentionPolicy = React.useCallback((policy?: T.RPCChat.RetentionPolicy | null) => {
-    const nextPolicy = Teams.serviceRetentionPolicyToRetentionPolicy(policy)
-    setState({
-      loadedTeamID: teamID,
-      teamPolicy: nextPolicy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : nextPolicy,
-    })
-  }, [teamID])
-
-  const reload = React.useCallback(async () => {
-    const requestVersion = ++requestVersionRef.current
-    await loadTeamRetentionPolicy(
-      teamID,
-      () => requestVersion === requestVersionRef.current,
-      setTeamRetentionPolicy
-    )
-  }, [setTeamRetentionPolicy, teamID])
-
-  React.useEffect(() => {
-    if (requestTeamIDRef.current !== teamID) {
-      requestTeamIDRef.current = teamID
-      requestVersionRef.current++
-    }
-  }, [teamID])
-
-  React.useEffect(() => {
-    let canceled = false
-    const requestVersion = ++requestVersionRef.current
-    void loadTeamRetentionPolicy(
-      teamID,
-      () => !canceled && requestVersion === requestVersionRef.current,
-      setTeamRetentionPolicy
-    )
-    return () => {
-      canceled = true
-    }
-  }, [setTeamRetentionPolicy, teamID])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      void reload()
-    }, [reload])
+  const enabled = !!teamID && teamID !== T.Teams.noTeamID
+  // an adhoc conversation has no team, and useCachedResource resets the cache it
+  // holds when disabled — give those instances their own throwaway cache so they
+  // can't wipe the shared one out from under a real loader
+  const [localCache] = React.useState<CachedResourceCache<TeamRetentionData, T.Teams.TeamID>>(() =>
+    createCachedResourceCache<TeamRetentionData, T.Teams.TeamID>(noTeamRetentionPolicy, teamID)
   )
-
-  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
-    if (action.payload.params.teamID !== teamID) {
-      return
-    }
-    const first = action.payload.params.convs?.[0]
-    if (!first?.teamRetention) {
-      void reload()
-      return
-    }
-    setTeamRetentionPolicy(first.teamRetention)
+  const sharedCache = React.useMemo(
+    () => getCachedResourceCache(teamRetentionCaches, noTeamRetentionPolicy, teamID),
+    [teamID]
+  )
+  const {data: teamPolicy, reload} = useCachedResource({
+    cache: enabled ? sharedCache : localCache,
+    cacheKey: teamID,
+    enabled,
+    initialData: noTeamRetentionPolicy,
+    // resolve rather than reject on failure: the picker falls back to the default
+    // "retain" policy on error instead of spinning forever
+    load: async () => {
+      let servicePolicy: T.RPCChat.RetentionPolicy | undefined | null
+      try {
+        servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
+          {teamID},
+          C.waitingKeyTeamsLoadRetentionPolicy(teamID)
+        )
+      } catch (error) {
+        logger.warn(`Failed to load team retention policy for ${teamID}`, error)
+      }
+      const policy = Teams.serviceRetentionPolicyToRetentionPolicy(servicePolicy)
+      return policy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : policy
+    },
+    staleMs: teamRetentionStaleMs,
   })
 
-  const visibleState =
-    state.loadedTeamID === teamID ? state : {loadedTeamID: teamID, teamPolicy: undefined}
+  // the notification carries the new policy, but reload() is what actually
+  // invalidates the shared cache for the other consumers
+  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
+    if (action.payload.params.teamID === teamID) {
+      void reload()
+    }
+  })
 
   return {
-    loading: !visibleState.teamPolicy,
-    teamPolicy: visibleState.teamPolicy,
+    loading: !teamPolicy,
+    teamPolicy,
   }
 }
 

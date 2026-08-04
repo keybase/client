@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 
 type Props = {
-  channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   installInConvs: ReadonlyArray<string>
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: ReadonlyArray<string>) => void
@@ -14,7 +14,7 @@ type Props = {
 }
 
 const getChannels = (
-  channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
+  channelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
   searchText: string
 ) => {
   const matcher = makeInsertMatcher(searchText)

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
 import * as React from 'react'
 import {useColorScheme} from 'react-native'
@@ -8,8 +8,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {editAvatar} from '@/util/misc'
 import {useProofSuggestions} from '../use-proof-suggestions'
 import {useTrackerProfile} from '@/tracker/use-profile'
-import {RPCError} from '@/util/errors'
-import logger from '@/logger'
+import {useMutualTeams} from '@/util/use-mutual-teams'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -24,70 +23,38 @@ const headerBackgroundColorType = (
   }
 }
 
-const loadSharedTeams = async (
-  requestUsernameKey: string,
-  requestID: number,
-  requestIDRef: {current: number},
-  setSharedTeamsState: (s: {teams?: ReadonlyArray<T.RPCChat.SharedTeam>; usernameKey: string}) => void
-) => {
-  try {
-    const res = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
-      {usernames: [requestUsernameKey]},
-      C.waitingKeyTrackerSharedTeams(requestUsernameKey)
-    )
-    if (requestIDRef.current !== requestID) {
-      return
-    }
-    const teams = res.teams ?? []
-    setSharedTeamsState({teams, usernameKey: requestUsernameKey})
-  } catch (error) {
-    if (requestIDRef.current !== requestID) {
-      return
-    }
-    if (error instanceof RPCError) {
-      logger.error(`Error loading shared teams: ${error.message}`)
-    } else {
-      logger.error('Error loading shared teams: non-RPC error', error)
-    }
-  }
-}
-
 const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const usernameKey = username.toLowerCase()
   const userIsYou = username === myName
   const {proofSuggestions, reload: reloadProofSuggestions} = useProofSuggestions(userIsYou)
+  // Deliberately no reload on focus. An identify re-checks every proof, and each
+  // check is an outbound request to a third-party host that rate limits us, so
+  // navigating back to a profile screen that never unmounted is not worth a fresh
+  // one. The mount path, an explicit pull-to-refresh, and the tracking /
+  // userChanged notifications are what refresh this.
   const {
     details: d,
     loadNonUserProfile,
     loadProfile,
     nonUserDetails,
-  } = useTrackerProfile(username, {
-    reloadOnFocus: true,
-  })
-  const requestIDRef = React.useRef(0)
-  const [sharedTeamsState, setSharedTeamsState] = React.useState<{
-    teams?: ReadonlyArray<T.RPCChat.SharedTeam>
-    usernameKey: string
-  }>({teams: undefined, usernameKey})
+  } = useTrackerProfile(username)
   const notAUser = d.state === 'notAUserYet'
 
-  React.useEffect(() => {
-    if (!myName || !username || username === myName || notAUser) {
-      return
-    }
-    const requestUsernameKey = usernameKey
-    const requestID = requestIDRef.current + 1
-    requestIDRef.current = requestID
-    C.ignorePromise(loadSharedTeams(requestUsernameKey, requestID, requestIDRef, setSharedTeamsState))
-    return () => {
-      if (requestIDRef.current === requestID) {
-        requestIDRef.current += 1
-      }
-    }
-  }, [d.guiID, myName, notAUser, username, usernameKey])
-
-  const sharedTeams = sharedTeamsState.usernameKey === usernameKey ? sharedTeamsState.teams : undefined
+  // shares one cache with the chat channel suggestor, keyed on the usernames:
+  // getMutualTeamsLocal localizes every conversation these users share and
+  // remotely refreshes each one's participants, so it must not run twice for the
+  // same person just because two surfaces want the answer
+  const sharedTeamsUsernames = React.useMemo(() => [usernameKey], [usernameKey])
+  const {loaded: sharedTeamsLoaded, teams: loadedSharedTeams} = useMutualTeams(
+    sharedTeamsUsernames,
+    C.waitingKeyTrackerSharedTeams(usernameKey),
+    !!myName && !!username && username !== myName && !notAUser,
+    d.guiID
+  )
+  // the shared-teams section distinguishes "not loaded yet" (spinner) from
+  // "loaded, none" (renders nothing), so keep undefined until it has landed
+  const sharedTeams = sharedTeamsLoaded ? loadedSharedTeams : undefined
 
   const commonProps = {
     _assertions: undefined,

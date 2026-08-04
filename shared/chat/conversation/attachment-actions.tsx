@@ -15,6 +15,7 @@ import {
   useConversationThreadID,
   useConversationThreadStore,
 } from './thread-context'
+import {registerExternalResetter} from '@/util/zustand'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -92,6 +93,12 @@ export const showAttachmentPreview = (
 }
 
 const pdfMessageHandoff = new Map<string, T.Chat.MessageAttachment>()
+
+// module scope outlives sign-out; both hold attachment messages keyed by conversation
+registerExternalResetter('chat-attachment-message-handoff', () => {
+  attachmentPreviewMessageHandoff.clear()
+  pdfMessageHandoff.clear()
+})
 
 export const takePDFMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import Text from '@/common-adapters/text'
+import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {
   children: React.ReactNode
@@ -9,6 +10,12 @@ type Props = {
 }
 
 const spoilerState = new Map<string, boolean>()
+
+// module scope outlives sign-out; keyed by message content, and a spoiler the
+// previous user revealed must not come up already revealed for the next one
+registerExternalResetter('markdown-spoiler-state', () => {
+  spoilerState.clear()
+})
 
 const Spoiler = (p: Props) => {
   const {children, content, context} = p

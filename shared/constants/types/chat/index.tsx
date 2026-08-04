@@ -50,7 +50,9 @@ export type InboxSearchOpenTeamHit = {
 }
 
 export type InboxSearchInfo = {
-  indexPercent: number
+  // undefined until the service reports one; 0 is a real value meaning nothing
+  // is indexed yet, which is what an index rebuild looks like
+  indexPercent?: number
   botsResults: ReadonlyArray<RPCTypes.FeaturedBot>
   botsResultsSuggested: boolean
   botsStatus: InboxSearchStatus

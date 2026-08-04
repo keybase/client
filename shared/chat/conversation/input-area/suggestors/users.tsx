@@ -6,6 +6,7 @@ import {useUsersState} from '@/stores/users'
 import {useChatTeamMembers} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useConversationMetadata} from '../../data-hooks'
+import {registerExternalResetter} from '@/util/zustand'
 
 export const transformer = (
   input: {
@@ -259,6 +260,11 @@ const keyExtractor = (item: ListItem) => {
 // the memoized suggestion rows can bail. Bounded by users/channels ever
 // suggested; the size guard is a backstop for pathological accounts.
 const listItemCache = new Map<string, ListItem>()
+
+// module scope outlives sign-out; keyed by username / team#channel
+registerExternalResetter('chat-user-suggestor-item-cache', () => {
+  listItemCache.clear()
+})
 const canonicalizeItems = (items: Array<ListItem>) => {
   if (listItemCache.size > 8192) {
     listItemCache.clear()

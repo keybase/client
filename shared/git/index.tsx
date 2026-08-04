@@ -101,13 +101,14 @@ const GitRoot = (ownProps: OwnProps) => {
   // errors from row actions (toggling chat), load errors come from the hook
   const [rowError, setRowError] = React.useState<Error | undefined>()
   const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
-  const {badged} = useLocalBadging(new Set(isNew ?? []), () => {
+  const clearBadges = React.useCallback(() => {
     clearGitBadges(
       [{category: 'new_git_repo'}],
       () => {},
       () => {}
     )
-  })
+  }, [clearGitBadges])
+  const {badged} = useLocalBadging(new Set(isNew ?? []), clearBadges)
   const {
     data,
     error: loadError,
