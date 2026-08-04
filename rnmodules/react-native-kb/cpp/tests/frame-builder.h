@@ -6,6 +6,7 @@
 #include "../msgpack-safe.hpp"
 #include <cstdint>
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -105,6 +106,13 @@ inline Bytes contentEmptyArray() {
 // exactly kMaxFrameSize.
 inline Bytes contentBinOfWireSize(size_t totalWireSize) {
   constexpr size_t kBin32HeaderLen = 5;
+  // Guard the subtraction: bodyLen is unsigned, so a too-small totalWireSize
+  // would wrap to a huge value and try to allocate it. bin32 also caps the
+  // body at uint32 max.
+  if (totalWireSize < kBin32HeaderLen ||
+      totalWireSize - kBin32HeaderLen > UINT32_MAX) {
+    throw std::invalid_argument("contentBinOfWireSize: totalWireSize out of range");
+  }
   size_t bodyLen = totalWireSize - kBin32HeaderLen;
   msgpack::sbuffer buf;
   msgpack::packer<msgpack::sbuffer> pk(&buf);
