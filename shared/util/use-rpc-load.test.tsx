@@ -4,7 +4,6 @@
 import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {useDaemonState} from '@/stores/daemon'
-import {createCachedResourceCache} from './use-cached-resource'
 import {useRPCLoad} from './use-rpc-load'
 
 const flush = async () => {
@@ -24,7 +23,7 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('without cache: loads on mount and maps the result', async () => {
+test('loads on mount and maps the result', async () => {
   const call = jest.fn(async (n: number) => {
     await Promise.resolve()
     return n * 2
@@ -39,74 +38,6 @@ test('without cache: loads on mount and maps the result', async () => {
   expect(call).toHaveBeenCalledTimes(1)
   expect(result.current.data).toBe('got:42')
   expect(result.current.loaded).toBe(true)
-})
-
-test('cache: concurrent hooks share one in-flight rpc', async () => {
-  const store = createCachedResourceCache<string, string | undefined>('', 'k')
-  let resolveCall: ((n: number) => void) | undefined
-  const call = jest.fn(
-    async () =>
-      new Promise<number>(resolve => {
-        resolveCall = resolve
-      })
-  )
-  const opts = {cache: {staleMs: 10_000, store}, key: 'k', map: (r: number) => `got:${r}`}
-  const a = renderHook(() => useRPCLoad(call, [], opts))
-  const b = renderHook(() => useRPCLoad(call, [], opts))
-  await flush()
-  expect(call).toHaveBeenCalledTimes(1)
-  await act(async () => {
-    resolveCall?.(7)
-    await Promise.resolve()
-  })
-  expect(a.result.current.data).toBe('got:7')
-  expect(b.result.current.data).toBe('got:7')
-})
-
-test('cache: fresh data serves without an rpc, stale refires', async () => {
-  const store = createCachedResourceCache<string, string | undefined>('', 'k')
-  const call = jest.fn(async () => {
-    await Promise.resolve()
-    return 1
-  })
-  const opts = {cache: {staleMs: 10_000, store}, key: 'k', map: (r: number) => `got:${r}`}
-  const first = renderHook(() => useRPCLoad(call, [], opts))
-  await flush()
-  expect(call).toHaveBeenCalledTimes(1)
-  first.unmount()
-
-  // fresh: second mount seeds from cache, no rpc
-  const second = renderHook(() => useRPCLoad(call, [], opts))
-  expect(second.result.current.data).toBe('got:1')
-  expect(second.result.current.loaded).toBe(true)
-  await flush()
-  expect(call).toHaveBeenCalledTimes(1)
-  second.unmount()
-
-  // stale: third mount refires
-  act(() => {
-    jest.advanceTimersByTime(11_000)
-  })
-  renderHook(() => useRPCLoad(call, [], opts))
-  await flush()
-  expect(call).toHaveBeenCalledTimes(2)
-})
-
-test('cache: reload() forces the rpc even when fresh', async () => {
-  const store = createCachedResourceCache<string, string | undefined>('', 'k')
-  const call = jest.fn(async () => {
-    await Promise.resolve()
-    return 1
-  })
-  const opts = {cache: {staleMs: 10_000, store}, key: 'k', map: (r: number) => `got:${r}`}
-  const {result} = renderHook(() => useRPCLoad(call, [], opts))
-  await flush()
-  expect(call).toHaveBeenCalledTimes(1)
-  act(() => {
-    result.current.reload()
-  })
-  await flush()
-  expect(call).toHaveBeenCalledTimes(2)
 })
 
 test('reloads when the daemon reconnects', async () => {
@@ -134,23 +65,29 @@ test('reloads when the daemon reconnects', async () => {
   expect(call).toHaveBeenCalledTimes(2)
 })
 
-test('cache: reload() bypasses an orphaned in-flight request', async () => {
-  const store = createCachedResourceCache<string, string | undefined>('', 'k')
+test('reload() supersedes an in-flight request', async () => {
+  let resolveFirst: ((n: number) => void) | undefined
   let resolveSecond: ((n: number) => void) | undefined
   const call = jest
     .fn<() => Promise<number>>()
-    .mockImplementationOnce(async () => new Promise<number>(() => {}))
+    .mockImplementationOnce(
+      async () =>
+        new Promise<number>(resolve => {
+          resolveFirst = resolve
+        })
+    )
     .mockImplementationOnce(
       async () =>
         new Promise<number>(resolve => {
           resolveSecond = resolve
         })
     )
-  const opts = {cache: {staleMs: 10_000, store}, key: 'k', map: (r: number) => `got:${r}`}
-  const {result} = renderHook(() => useRPCLoad(call, [], opts))
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => `got:${r}`}))
+  act(() => {
+    jest.advanceTimersByTime(1)
+  })
   await flush()
   expect(call).toHaveBeenCalledTimes(1)
-  expect(result.current.loading).toBe(true)
 
   act(() => {
     result.current.reload()
@@ -158,15 +95,16 @@ test('cache: reload() bypasses an orphaned in-flight request', async () => {
   await flush()
   expect(call).toHaveBeenCalledTimes(2)
 
+  // the superseded request settling last must not win
   await act(async () => {
     resolveSecond?.(9)
+    resolveFirst?.(1)
     await Promise.resolve()
   })
   expect(result.current.data).toBe('got:9')
 })
 
-test('cache: a rejected load surfaces the error to all sharers', async () => {
-  const store = createCachedResourceCache<string, string | undefined>('', 'k')
+test('surfaces a rejected load as an error', async () => {
   let rejectCall: ((error: Error) => void) | undefined
   const call = jest.fn(
     async () =>
@@ -174,16 +112,13 @@ test('cache: a rejected load surfaces the error to all sharers', async () => {
         rejectCall = reject
       })
   )
-  const onErrorA = jest.fn()
-  const onErrorB = jest.fn()
-  const opts = (onError: (e: unknown) => void) => ({
-    cache: {staleMs: 10_000, store},
-    key: 'k',
-    map: (r: number) => `got:${r}`,
-    onError,
+  const onError = jest.fn()
+  const {result} = renderHook(() =>
+    useRPCLoad(call, [], {map: (r: number) => `got:${r}`, onError})
+  )
+  act(() => {
+    jest.advanceTimersByTime(1)
   })
-  const a = renderHook(() => useRPCLoad(call, [], opts(onErrorA)))
-  const b = renderHook(() => useRPCLoad(call, [], opts(onErrorB)))
   await flush()
   expect(call).toHaveBeenCalledTimes(1)
 
@@ -192,8 +127,6 @@ test('cache: a rejected load surfaces the error to all sharers', async () => {
     rejectCall?.(error)
     await Promise.resolve()
   })
-  expect(a.result.current.error).toBe(error)
-  expect(b.result.current.error).toBe(error)
-  expect(onErrorA).toHaveBeenCalledWith(error)
-  expect(onErrorB).toHaveBeenCalledWith(error)
+  expect(result.current.error).toBe(error)
+  expect(onError).toHaveBeenCalledWith(error)
 })
