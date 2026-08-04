@@ -166,17 +166,16 @@ const useLoadedTeamRaw = (
       void reload()
     }
   })
-  const debouncedReloadRef = React.useRef<DebouncedFunc<() => void> | null>(null)
-  if (debouncedReloadRef.current == null) {
-    debouncedReloadRef.current = debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
-  }
+  const [debouncedReload] = React.useState<DebouncedFunc<() => void>>(() =>
+    debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
+  )
   React.useEffect(() => {
     return () => {
-      debouncedReloadRef.current?.cancel()
+      debouncedReload.cancel()
     }
-  }, [])
+  }, [debouncedReload])
   const onTeamChange = () => {
-    debouncedReloadRef.current?.()
+    debouncedReload()
   }
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, subscribeToUpdates)
   useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, subscribeToUpdates)
