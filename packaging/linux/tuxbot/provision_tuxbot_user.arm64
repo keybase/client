@@ -9,9 +9,9 @@ mkdir -p "$HOME/go/src/github.com/keybase"
 git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase/client"
 cd "$KBCLID/go"
 go install -tags "prerelease production" ./keybase
-sudo cp $HOME/go/bin/keybase /usr/bin
+sudo cp "$HOME/go/bin/keybase" /usr/bin
 go install -tags "prerelease production" ./kbfs/kbfsfuse
-sudo cp $HOME/go/bin/kbfsfuse /usr/bin
+sudo cp "$HOME/go/bin/kbfsfuse" /usr/bin
 (
     # install deps
     cd "$TUXBOTD/bot"
@@ -26,6 +26,7 @@ systemctl --user link "$TUXBOTD/nightly.timer"
 systemctl --user link "$TUXBOTD/docker-cleanup.service"
 systemctl --user link "$TUXBOTD/docker-cleanup.timer"
 systemctl --user daemon-reload
+systemctl --user enable "$TUXBOTD/tuxbot.service"
 systemctl --user enable "$TUXBOTD/nightly.timer"
 systemctl --user enable "$TUXBOTD/docker-cleanup.timer"
 

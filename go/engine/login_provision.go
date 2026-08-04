@@ -374,9 +374,9 @@ func (e *loginProvision) getValidPaperKeyOnce(m libkb.MetaContext, i int, lastEr
 		return nil, err
 	}
 
-	// use the KID to find the uid, deviceID and deviceName
-	var uid keybase1.UID
-	uid, err = keys.Populate(m)
+	// Use the KID to find the device in the user we force-reloaded before
+	// entering provisioning.
+	err = keys.PopulateFromUser(e.arg.User)
 	if err != nil {
 		m.Debug("getValidPaperKeyOnce attempt %d (%s): %s", i, prefix, err)
 
@@ -389,10 +389,6 @@ func (e *loginProvision) getValidPaperKeyOnce(m libkb.MetaContext, i int, lastEr
 			}
 		}
 		return nil, err
-	}
-
-	if uid.NotEqual(e.arg.User.GetUID()) {
-		return nil, paperKeyNotFound
 	}
 
 	// found a paper key that can be used for signing
@@ -872,8 +868,9 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []libkb.
 		return libkb.NoPaperKeysError{}
 	}
 
-	// use the KID to find the uid, deviceID and deviceName
-	uid, err := keys.Populate(m)
+	// Resolve the exact KID against the user we force-reloaded before entering
+	// provisioning. The prefix match above is only a UI convenience.
+	err = keys.PopulateFromUser(e.arg.User)
 	if err != nil {
 		switch err := err.(type) {
 		case libkb.NotFoundError:
@@ -884,9 +881,6 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []libkb.
 			}
 		}
 		return err
-	}
-	if uid.NotEqual(e.arg.User.GetUID()) {
-		return paperKeyNotFound
 	}
 
 	return e.paper(m, matchedDevice, keys)

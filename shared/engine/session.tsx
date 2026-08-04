@@ -89,7 +89,14 @@ class Session {
     if (this._cancelHandler) {
       this._cancelHandler(this)
     } else if (this._startCallback) {
-      this._startCallback(new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
+      // No server response is coming, so release the waiting count ourselves — but only when the
+      // server owes us one; while a prompt is pending on the GUI the count was already released.
+      if (this._waitingKey && this._seqIDsAwaitingResponse.size === 0) {
+        this._makeWaitingHandler(this._startMethod || 'unknown')(false)
+      }
+      const callback = this._startCallback
+      this._startCallback = undefined
+      callback(new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
     }
 
     this.end()

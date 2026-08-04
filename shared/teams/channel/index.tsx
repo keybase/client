@@ -4,7 +4,7 @@ import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {
@@ -23,6 +23,7 @@ import {LoadedTeamChannelsProvider} from '../common/use-loaded-team-channels'
 import {useUsersState} from '@/stores/users'
 import {LoadedTeamProvider, useLoadedTeam} from '../team/use-loaded-team'
 import {unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {registerExternalResetter} from '@/util/zustand'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -75,18 +76,24 @@ const useLoadDataForChannelPage = (
 }
 
 // keep track during session
-const lastSelectedTabs: {[T: string]: TabKey} = {}
+const lastSelectedTabs = new Map<T.Chat.ConversationIDKey, TabKey>()
 const defaultTab: TabKey = 'members'
+
+// module scope outlives sign-out; keyed by conversation, so the next user would
+// inherit the previous user's tab choices
+registerExternalResetter('teams-channel-index', () => {
+  lastSelectedTabs.clear()
+})
 
 const useTabsState = (
   conversationIDKey: T.Chat.ConversationIDKey,
   providedTab?: TabKey
 ): [TabKey, (t: TabKey) => void] => {
-  const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
+  const defaultSelectedTab = lastSelectedTabs.get(conversationIDKey) ?? providedTab ?? defaultTab
   const [selectedTab, setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
 
   React.useEffect(() => {
-    lastSelectedTabs[conversationIDKey] = selectedTab
+    lastSelectedTabs.set(conversationIDKey, selectedTab)
   }, [conversationIDKey, selectedTab])
 
   const prevConvIDRef = React.useRef(conversationIDKey)
@@ -146,12 +153,6 @@ const ChannelBody = (props: OwnProps) => {
   const meta = channelMetas.get(conversationIDKey) ?? Chat.makeConversationMeta()
   const {loading: loadingTeam, teamDetails, yourOperations} = useLoadedTeam(teamID)
   const teamMembers = teamDetails.members
-  // getTLFConversations leaves team channel participants empty; ask the service to
-  // refresh them, which pushes ChatParticipantsInfo into useInboxMetadataState.
-  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  React.useEffect(() => {
-    refreshParticipants([{convID: T.Chat.keyToConversationID(conversationIDKey)}], () => {}, () => {})
-  }, [conversationIDKey, refreshParticipants])
   // Participants arrive async via ChatParticipantsInfo in useInboxMetadataState.
   const inboxParticipants = useInboxMetadataState(s => s.participants.get(conversationIDKey))
   const participantInfo = inboxParticipants ?? channelParticipantsByConv.get(conversationIDKey) ?? emptyParticipantInfo

@@ -890,6 +890,10 @@ func (DummyEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID ch
 	return res, err
 }
 
+func (DummyEmojiSource) AnimationsDisabled(ctx context.Context) (bool, error) {
+	return false, nil
+}
+
 func (DummyEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias string,
 ) error {
@@ -914,8 +918,8 @@ func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UI
 	return res, err
 }
 func (DummyEmojiSource) IsStockEmoji(alias string) bool { return true }
-func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor1.UID,
-	remote chat1.EmojiRemoteSource,
+func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
+	noAnim bool,
 ) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
 	return source, noAnimSource, nil
 }

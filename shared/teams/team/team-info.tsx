@@ -103,6 +103,7 @@ const TeamInfo = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         <Kb.Avatar
           onClick={onEditAvatar}
+          isTeam={true}
           teamname={teamname}
           size={96}
           style={styles.avatar}

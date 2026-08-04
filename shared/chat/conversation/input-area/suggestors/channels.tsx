@@ -7,6 +7,7 @@ import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as React from 'react'
 import {useConversationMetadata} from '../../data-hooks'
+import {useMutualTeams} from '@/util/use-mutual-teams'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -48,56 +49,25 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
 
 const noChannel: Array<{channelname: string}> = []
 const noMutualTeams: ReadonlyArray<T.RPCChat.SharedTeam> = []
+const noParticipants: ReadonlyArray<string> = []
 
-const useMutualTeams = (
+const useConversationMutualTeams = (
   conversationIDKey: T.Chat.ConversationIDKey,
   meta: T.Immutable<T.Chat.ConversationMeta>,
   participants: T.Immutable<T.Chat.ParticipantInfo>
 ) => {
   const username = useCurrentUserState(s => s.username)
-  const [loaded, setLoaded] = React.useState<
-    | {
-        conversationIDKey: T.Chat.ConversationIDKey
-        teams: ReadonlyArray<T.RPCChat.SharedTeam>
-      }
-    | undefined
-  >()
-  const loadMutualTeams = C.useRPC(T.RPCChat.localGetMutualTeamsLocalRpcPromise)
-  const requestIDRef = React.useRef(0)
   const shouldLoad = !meta.teamname
-
-  React.useEffect(() => {
-    requestIDRef.current += 1
-    if (!shouldLoad) {
-      return undefined
-    }
-    const requestID = requestIDRef.current
-    const otherParticipants = Meta.getRowParticipants(participants, username || '')
-    loadMutualTeams(
-      [{usernames: otherParticipants}, C.waitingKeyChatMutualTeams(conversationIDKey)],
-      results => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        setLoaded({conversationIDKey, teams: results.teams ?? noMutualTeams})
-      },
-      () => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        setLoaded({conversationIDKey, teams: noMutualTeams})
-      }
-    )
-    return () => {
-      if (requestIDRef.current === requestID) {
-        requestIDRef.current += 1
-      }
-    }
-  }, [conversationIDKey, loadMutualTeams, participants, shouldLoad, username])
-
-  return shouldLoad && loaded?.conversationIDKey === conversationIDKey
-    ? loaded.teams
-    : noMutualTeams
+  const otherParticipants = React.useMemo(
+    () => (shouldLoad ? Meta.getRowParticipants(participants, username || '') : noParticipants),
+    [participants, shouldLoad, username]
+  )
+  const {teams} = useMutualTeams(
+    otherParticipants,
+    C.waitingKeyChatMutualTeams(conversationIDKey),
+    shouldLoad
+  )
+  return shouldLoad ? teams : noMutualTeams
 }
 
 const getChannelSuggestions = (teamname: string, mutualTeams: ReadonlyArray<T.RPCChat.SharedTeam>) => {
@@ -134,7 +104,7 @@ const getChannelSuggestions = (teamname: string, mutualTeams: ReadonlyArray<T.RP
 
 const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
   const {meta, participants} = useConversationMetadata(conversationIDKey)
-  const mutualTeams = useMutualTeams(conversationIDKey, meta, participants)
+  const mutualTeams = useConversationMutualTeams(conversationIDKey, meta, participants)
   const {teamID} = meta
 
   const suggestChannelsLoading = C.Waiting.useAnyWaiting([

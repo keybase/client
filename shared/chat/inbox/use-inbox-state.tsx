@@ -139,11 +139,13 @@ export function useInboxState(
     C.Router2.setChatRootParams({refreshInbox: undefined})
   }, [inboxRefresh, isFocused, loggedIn, refreshInbox, username])
 
-  C.Router2.useSafeFocusEffect(() => {
-    if (!inboxHasLoaded) {
-      C.ignorePromise(inboxRefresh('componentNeverLoaded'))
-    }
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      if (!inboxHasLoaded) {
+        C.ignorePromise(inboxRefresh('componentNeverLoaded'))
+      }
+    }, [inboxHasLoaded, inboxRefresh])
+  )
 
   React.useEffect(() => {
     const ready = loggedIn && !!username

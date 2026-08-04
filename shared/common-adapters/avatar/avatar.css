@@ -15,76 +15,85 @@
   contain: layout style paint;
 }
 
-/* Outer container sizes - no border-radius so follow icons aren't clipped */
+/* Outer container sizes - no border-radius so follow icons aren't clipped.
+   --team-radius is inherited by the inner clip and the team border overlay so they
+   always round identically. */
 .avatar.avatar-team-size-128,
 .avatar.avatar-user-size-128 {
   width: 128px;
   height: 128px;
+  --team-radius: 16px;
 }
 .avatar.avatar-team-size-16,
 .avatar.avatar-user-size-16 {
   width: 16px;
   height: 16px;
+  --team-radius: 4px;
 }
 .avatar.avatar-team-size-24,
 .avatar.avatar-user-size-24 {
   width: 24px;
   height: 24px;
+  --team-radius: 6px;
 }
 .avatar.avatar-team-size-32,
 .avatar.avatar-user-size-32 {
   width: 32px;
   height: 32px;
+  --team-radius: 6px;
 }
 .avatar.avatar-team-size-48,
 .avatar.avatar-user-size-48 {
   width: 48px;
   height: 48px;
+  --team-radius: 8px;
 }
 .avatar.avatar-team-size-64,
 .avatar.avatar-user-size-64 {
   width: 64px;
   height: 64px;
+  --team-radius: 10px;
 }
 .avatar.avatar-team-size-96,
 .avatar.avatar-user-size-96 {
   width: 96px;
   height: 96px;
+  --team-radius: 12px;
 }
 
 /* Inner wrapper sizes with border-radius for clipping */
 .avatar-inner.avatar-team-size-128 {
-  border-radius: 16px;
+  border-radius: var(--team-radius);
   width: 128px;
   height: 128px;
 }
 .avatar-inner.avatar-team-size-16 {
-  border-radius: 4px;
+  border-radius: var(--team-radius);
   width: 16px;
   height: 16px;
 }
 .avatar-inner.avatar-team-size-24 {
-  border-radius: 6px;
+  border-radius: var(--team-radius);
   width: 24px;
   height: 24px;
 }
 .avatar-inner.avatar-team-size-32 {
-  border-radius: 6px;
+  border-radius: var(--team-radius);
   width: 32px;
   height: 32px;
 }
 .avatar-inner.avatar-team-size-48 {
-  border-radius: 8px;
+  border-radius: var(--team-radius);
   width: 48px;
   height: 48px;
 }
 .avatar-inner.avatar-team-size-64 {
-  border-radius: 10px;
+  border-radius: var(--team-radius);
   width: 64px;
   height: 64px;
 }
 .avatar-inner.avatar-team-size-96 {
-  border-radius: 12px;
+  border-radius: var(--team-radius);
   width: 96px;
   height: 96px;
 }
@@ -142,7 +151,7 @@
 
 
 .avatar-border-team {
-  border-radius: 8px;
+  border-radius: var(--team-radius, 8px);
   background: rgba(0, 0, 0, 0);
   flex-shrink: 0;
   position: absolute;

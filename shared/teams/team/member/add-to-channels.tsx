@@ -42,8 +42,8 @@ const canonChannelItem = (channelMeta: T.Chat.ConversationMeta, participants: Ar
 }
 
 const getChannelsForList = (
-  channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
-  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>,
+  channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
+  channelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>,
   // Team channel participants arrive asynchronously via the ChatParticipantsInfo
   // notification (stored here), not in the getTLFConversations RPC result.
   inboxParticipants: T.Immutable<Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>>,

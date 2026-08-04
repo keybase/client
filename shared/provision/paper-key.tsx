@@ -44,6 +44,7 @@ export const PaperKey = (props: Props) => {
   return (
     <SignupScreen
       hideDesktopHeader={!isMobile}
+      waitingOverlay={true}
       banners={errorBanner(props.error)}
       buttons={[
         {

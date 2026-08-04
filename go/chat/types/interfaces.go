@@ -648,6 +648,7 @@ type EmojiSource interface {
 	Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias, filename string, allowOverwrite bool) (chat1.EmojiRemoteSource, error)
 	AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		newAlias, existingAlias string) (chat1.EmojiRemoteSource, error)
+	AnimationsDisabled(ctx context.Context) (bool, error)
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
 	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
 	Decorate(ctx context.Context, body string, uid gregor1.UID, messageType chat1.MessageType,
@@ -655,7 +656,8 @@ type EmojiSource interface {
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 	IsStockEmoji(alias string) bool
-	RemoteToLocalSource(ctx context.Context, uid gregor1.UID, remote chat1.EmojiRemoteSource) (chat1.EmojiLoadSource, chat1.EmojiLoadSource, error)
+	RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
+		noAnim bool) (chat1.EmojiLoadSource, chat1.EmojiLoadSource, error)
 	ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error
 	IsValidSize(size int64) bool
 }

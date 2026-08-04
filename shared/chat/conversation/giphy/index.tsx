@@ -39,7 +39,7 @@ const DesktopGiphySearch = () => {
     )
   }
   return (
-    <Kb.Box2 direction="vertical" relative={true} style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" relative={true} style={styles.outerContainer}>
       <Kb.Box2
         direction="vertical"
         ref={divRef as React.RefObject<DivRef>}

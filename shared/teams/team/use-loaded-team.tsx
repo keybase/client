@@ -5,6 +5,7 @@ import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
 import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
+import {registerExternalResetter} from '@/util/zustand'
 
 type LoadedTeam = {
   loaded: boolean
@@ -26,8 +27,15 @@ type LoadedTeamCacheMap = Map<
 >
 
 const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
-const LoadedTeamCacheContext = React.createContext<LoadedTeamCacheMap | null>(null)
 const loadedTeamReloadStaleMs = 5_000
+
+// One map for every consumer, for the same reason as the team channel cache: the
+// stale window and the single-flight live on the cache object, so callers holding
+// separate maps cannot see each other's in-flight request. While each provider
+// and each provider-less consumer held its own map, 81% of getAnnotatedTeam calls
+// in an e2e run landed inside their own 5s stale window - the team screen, the
+// channel screen and any modal above them each paid a full 200ms team load.
+const loadedTeamCache: LoadedTeamCacheMap = new Map()
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
@@ -35,6 +43,12 @@ const loadableTeamID = (teamID: T.Teams.TeamID) =>
 const emptyLoadedTeamData = (teamID?: T.Teams.TeamID): LoadedTeamData => ({
   teamDetails: Teams.emptyTeamDetails,
   teamMeta: teamID ? Teams.makeTeamMeta({id: teamID}) : Teams.emptyTeamMeta,
+})
+
+// module scope outlives sign-out and this is per-user team data
+registerExternalResetter('loaded-team-cache', () => {
+  loadedTeamCache.forEach((cache, teamID) => cache.reset(emptyLoadedTeamData(teamID), teamID))
+  loadedTeamCache.clear()
 })
 
 const roleAndDetailsFromMap = (
@@ -71,37 +85,37 @@ const annotatedTeamToMeta = (
 // value instead of its own) must NOT share the loader's cache map. With enabled=false
 // useCachedResource resets the cache (loadedAt=0), which would clobber the loader's
 // loaded data. Give shadows a private throwaway map so their resets are harmless.
-const useLoadedTeamCacheMap = (providedCacheMap?: LoadedTeamCacheMap, forceLocalCache = false) => {
-  const contextCacheMap = React.useContext(LoadedTeamCacheContext)
+const useLoadedTeamCacheMap = (forceLocalCache: boolean) => {
   const [localCacheMap] = React.useState<LoadedTeamCacheMap>(() => new Map())
-  if (forceLocalCache) {
-    return localCacheMap
-  }
-  return providedCacheMap ?? contextCacheMap ?? localCacheMap
+  return forceLocalCache ? localCacheMap : loadedTeamCache
 }
 
 const useLoadedTeamRaw = (
   teamID: T.Teams.TeamID,
   enabled = true,
-  providedCacheMap?: LoadedTeamCacheMap,
   subscribeToUpdates = enabled,
   forceLocalCache = false
 ): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
-  const cacheMap = useLoadedTeamCacheMap(providedCacheMap, forceLocalCache)
+  // a disabled instance resets whatever cache it holds, so it must never hold the
+  // shared one - gate on exactly the load condition, not just forceLocalCache
+  const cacheMap = useLoadedTeamCacheMap(forceLocalCache || !enabled || !validTeamID)
   const cache = React.useMemo(
     () => getCachedResourceCache(cacheMap, emptyLoadedTeamData(validTeamID), validTeamID),
     [cacheMap, validTeamID]
   )
   // Seed from the teams-list cache so the header (teamname, avatar, member count)
   // renders immediately instead of waiting for getAnnotatedTeam to round-trip.
+  // key the memo on this team's meta, not on the map: the map gets a new
+  // identity on every teams-list reload, and a fresh initialData object churns
+  // the whole useCachedResource state/effect chain for no reason
   const teamsListMap = useTeamsListMap()
+  const listMeta = validTeamID ? teamsListMap.get(validTeamID) : undefined
   const initialData = React.useMemo(() => {
     const data = emptyLoadedTeamData(validTeamID)
-    const listMeta = validTeamID ? teamsListMap.get(validTeamID) : undefined
     return listMeta ? {...data, teamMeta: listMeta} : data
-  }, [validTeamID, teamsListMap])
+  }, [validTeamID, listMeta])
   const {data, loaded, loading, reload, clear} = useCachedResource({
     cache,
     cacheKey: validTeamID,
@@ -123,7 +137,13 @@ const useLoadedTeamRaw = (
     },
     staleMs: loadedTeamReloadStaleMs,
   })
-  const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID)
+  // builds a fresh object whenever the team is in the map, so without this the
+  // memos below (and the context value built from them) never hit and every
+  // consumer re-renders on every render of the provider
+  const roleAndDetails = React.useMemo(
+    () => roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID),
+    [roleMap, validTeamID]
+  )
   const teamMeta = React.useMemo(
     () => ({
       ...data.teamMeta,
@@ -160,19 +180,18 @@ const useLoadedTeamRaw = (
     }
   }, subscribeToUpdates)
 
-  return {...data, loaded, loading, reload, teamMeta, yourOperations}
+  const teamDetails = data.teamDetails
+  return React.useMemo(
+    () => ({loaded, loading, reload, teamDetails, teamMeta, yourOperations}),
+    [loaded, loading, reload, teamDetails, teamMeta, yourOperations]
+  )
 }
 
 export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Teams.TeamID}>) => {
   const {children, teamID} = props
-  const [cacheMap] = React.useState<LoadedTeamCacheMap>(() => new Map())
-  const loadedTeam = useLoadedTeamRaw(teamID, true, cacheMap)
-  const value = {...loadedTeam, teamID}
-  return (
-    <LoadedTeamCacheContext.Provider value={cacheMap}>
-      <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>
-    </LoadedTeamCacheContext.Provider>
-  )
+  const loadedTeam = useLoadedTeamRaw(teamID)
+  const value = React.useMemo(() => ({...loadedTeam, teamID}), [loadedTeam, teamID])
+  return <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>
 }
 
 export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
@@ -181,7 +200,6 @@ export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTea
   const raw = useLoadedTeamRaw(
     teamID,
     enabled && !useContextValue,
-    undefined,
     enabled && !useContextValue,
     useContextValue
   )

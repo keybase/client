@@ -17,7 +17,9 @@ export const LoadingScreen = (props: {type?: 'Small' | 'Large' | 'Huge'}) => (
 // spinner covering the parent (which needs relative positioning) while keeping content visible
 export const LoadingOverlay = (props: {show: boolean}) =>
   props.show ? (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.overlay}>
+    // fullWidth/fullHeight required: without them desktop Box2 adds align-self:center, which
+    // collapses this absolutely-positioned box to a content-height band instead of filling.
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true} style={styles.overlay}>
       <Kb.ProgressIndicator />
     </Kb.Box2>
   ) : null

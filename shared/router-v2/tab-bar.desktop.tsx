@@ -20,6 +20,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
 import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
+import {fitFontSize, measureTextWidth} from '@/util/measure-text.desktop'
 import {dumpLogs} from '@/util/storeless-actions'
 
 const {hideWindow, ctlQuit} = KB2.functions
@@ -40,6 +41,10 @@ const stop = () => {
   }
   C.ignorePromise(f())
 }
+
+// ~82px of text space in the 160px nav: avatar (14 margin + 24) + gaps + caret + margins
+const maxNameWidth = 82
+const nameFont = (size: number) => `600 ${size}px Keybase` // BodyTinySemibold
 
 const Header = () => {
   const username = useCurrentUserState(s => s.username)
@@ -123,6 +128,20 @@ const Header = () => {
   }
   const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
+  // show the greeting only when it truly fits, and step the font down for long names
+  const greeting = `Hi ${username}!`
+  let nameText = greeting
+  let nameFontSize = 12
+  if (measureTextWidth(greeting, nameFont(nameFontSize)) > maxNameWidth) {
+    nameText = username
+    nameFontSize = fitFontSize(username, {
+      fontForSize: nameFont,
+      maxSize: 12,
+      minSize: 10,
+      maxWidth: maxNameWidth,
+    })
+  }
+
   // mid account-switch we have no user info yet; keep the bar but suppress the dropdown
   return (
     <>
@@ -130,7 +149,6 @@ const Header = () => {
         onClick={username ? togglePopup : undefined}
         direction="horizontal"
         gap="tiny"
-        centerChildren={true}
         fullWidth={true}
         style={styles.nameContainer}
         alignItems="center"
@@ -143,8 +161,13 @@ const Header = () => {
         />
         {!!username && (
           <>
-            <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
-              Hi {username}!
+            <Kb.Text
+              className="username"
+              lineClamp={1}
+              type="BodyTinySemibold"
+              style={Kb.Styles.collapseStyles([styles.username, nameFontSize !== 12 && {fontSize: nameFontSize}])}
+            >
+              {nameText}
             </Kb.Text>
             <Kb.Icon
               type="iconfont-arrow-down"

@@ -419,9 +419,15 @@ func (n *testRecoverUIRecover) GetPassphrase(p keybase1.GUIEntryArg, terminal *k
 }
 
 type errorAPIMock struct {
-	*libkb.APIArgRecorder
-	realAPI     libkb.API
+	libkb.API
 	shouldError bool
+}
+
+func newErrorAPIMock(api libkb.API, shouldError bool) *errorAPIMock {
+	return &errorAPIMock{
+		API:         api,
+		shouldError: shouldError,
+	}
 }
 
 func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
@@ -430,16 +436,27 @@ func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w lib
 			return errors.New("some api error")
 		}
 	}
-	return r.realAPI.GetDecode(mctx, arg, w)
+	return r.API.GetDecode(mctx, arg, w)
 }
 
-func (r errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+func (r *errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
 	if arg.Endpoint == "user/has_random_pw" {
 		if r.shouldError {
 			return nil, errors.New("some api error")
 		}
 	}
-	return r.realAPI.Get(mctx, arg)
+	return r.API.Get(mctx, arg)
+}
+
+func TestErrorAPIMockDelegatesPost(t *testing.T) {
+	realAPI := libkb.NewAPIArgRecorderWithNullAPI()
+	fakeAPI := newErrorAPIMock(realAPI, true)
+
+	require.NotPanics(t, func() {
+		_, err := fakeAPI.Post(libkb.MetaContext{}, libkb.APIArg{})
+		require.NoError(t, err)
+	})
+	require.Equal(t, 1, realAPI.NumCalls())
 }
 
 func TestPassphraseStateGregor(t *testing.T) {
@@ -500,10 +517,7 @@ func TestPassphraseStateGregor(t *testing.T) {
 	require.Equal(t, res, keybase1.PassphraseState_KNOWN)
 
 	ucli4 := keybase1.UserClient{Cli: dev4.cli}
-	fakeAPI := &errorAPIMock{
-		realAPI:     dev4.tctx.G.API,
-		shouldError: true,
-	}
+	fakeAPI := newErrorAPIMock(dev4.tctx.G.API, true)
 	dev4.tctx.G.API = fakeAPI
 	res, err = ucli4.LoadPassphraseState(context.Background(), 0)
 	// device has no gregor state *and* api call failed, so this will error

@@ -273,10 +273,10 @@ export const newModalRoutes = defineRouteMap({
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
   retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji')), {
-    getOptions: {headerLeft: isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add emoji'},
+    getOptions: {title: 'Add emoji'},
   }),
   teamAddEmojiAlias: makeChatScreen(React.lazy(async () => import('./emojis/add-alias')), {
-    getOptions: {headerLeft: isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add an alias'},
+    getOptions: {title: 'Add an alias'},
   }),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels')), {
     getOptions: ({route}) => ({

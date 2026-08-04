@@ -31,7 +31,7 @@ const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void
     >
       <Kb.Text type="BodyBig">Create a team</Kb.Text>
       <Kb.Box2 direction="vertical" relative={true}>
-        <Kb.Avatar isTeam={true} size={96} />
+        <Kb.Avatar isTeam={true} size={96} showPlaceholder={true} />
         <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
       </Kb.Box2>
     </Kb.ClickableBox>

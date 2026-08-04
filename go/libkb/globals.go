@@ -753,8 +753,8 @@ func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
 }
 
 func (g *GlobalContext) SetImplicitTeamConflictInfoCacher(l LRUer) {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.itciCacher = l
 }
 
@@ -765,8 +765,8 @@ func (g *GlobalContext) GetImplicitTeamCacher() MemLRUer {
 }
 
 func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.iteamCacher = l
 }
 
@@ -777,8 +777,8 @@ func (g *GlobalContext) GetKVRevisionCache() KVRevisionCacher {
 }
 
 func (g *GlobalContext) SetKVRevisionCache(kvr KVRevisionCacher) {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.kvRevisionCache = kvr
 }
 

@@ -104,6 +104,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const avatar = (
     <Kb.Avatar
       onClick={onEditAvatar}
+      isTeam={true}
       teamname={meta.teamname}
       size={96}
       style={Kb.Styles.collapseStyles([

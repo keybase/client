@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {produce} from 'immer'
 import {useColorScheme} from 'react-native'
+import {registerExternalResetter} from '@/util/zustand'
 
 type AnimationStatus =
   | 'encrypting'
@@ -45,6 +46,11 @@ const statusToIconDarkExploding = {
 } as const
 
 const shownEncryptingSet = new Set()
+
+// module scope outlives sign-out; holds the previous user's outbox ids
+registerExternalResetter('chat-send-indicator-shown', () => {
+  shownEncryptingSet.clear()
+})
 
 type OwnProps = {
   failed: boolean

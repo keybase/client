@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as React from 'react'
 import type * as T from '@/constants/types'
 import type {RetentionEntityType} from '.'
 import ConfirmWarning from '../confirm-warning'
@@ -87,12 +88,12 @@ const RetentionWarningContainer = (ownProps: OwnProps) => {
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
   C.Router2.useSafeFocusEffect(
-    () => {
+    React.useCallback(() => {
       openModal()
       return () => {
         closeModal()
       }
-    }
+    }, [openModal, closeModal])
   )
 
   const onConfirm = () => {

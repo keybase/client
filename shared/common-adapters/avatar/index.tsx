@@ -18,8 +18,13 @@ type Props = {
   imageOverrideUrl?: string
   isTeam?: boolean
   onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
+  onError?: () => void
+  onLoad?: () => void
   testID?: string
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  // for callsites that will never have a name (e.g. the 'create a team' button); without it
+  // a nameless team avatar holds a blank box forever waiting for a teamname that never comes
+  showPlaceholder?: boolean
   style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
   username?: string
@@ -158,6 +163,7 @@ const borderTeamStyle = {
 
 function Avatar(p: Props) {
   const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children, testID} = p
+  const {showPlaceholder} = p
   const {imageOverrideUrl, crop} = p
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
@@ -259,16 +265,23 @@ function Avatar(p: Props) {
             style={cached.image}
             recyclingKey={name}
             cachePolicy="memory-disk"
-            onError={() => setErrorUri(source.uri)}
-            onLoad={() => setErrorUri(undefined)}
+            onError={() => {
+              setErrorUri(source.uri)
+              p.onError?.()
+            }}
+            onLoad={() => {
+              setErrorUri(undefined)
+              p.onLoad?.()
+            }}
           />
         </>
-      ) : name ? (
-        // name known, just waiting on httpSrv address: the placeholder type is correct
+      ) : name || !isTeam || showPlaceholder ? (
+        // with a name the placeholder type is known correct; with no name at all, team
+        // callsites pass isTeam so anything else is a user (e.g. signup's empty avatar)
         <Image source={placeholderSource} style={cached.image} />
       ) : (
-        // no name yet (e.g. team meta still loading): a placeholder could be the wrong
-        // type (user vs team), so hold the shape with a blank background instead
+        // team with meta still loading: a user placeholder would be the wrong type, so
+        // hold the shape with a blank background until the teamname arrives
         <View style={[cached.image, blankBg]} />
       )}
       {children}

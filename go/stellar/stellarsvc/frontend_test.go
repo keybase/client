@@ -2859,6 +2859,8 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 }
 
 func TestSetMobileOnly(t *testing.T) {
+	t.Skip("test/agedevice only updates the server device ctime, not the UPAK device ctime")
+
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingMobile})
 	defer cleanup()
 

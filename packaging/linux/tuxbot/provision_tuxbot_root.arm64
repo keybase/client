@@ -9,7 +9,7 @@ apt-get install -t bullseye-backports qemu-user-static
 
 GOLANG_VERSION=1.25.5
 GOLANG_DOWNLOAD_URL=https://dl.google.com/go/go$GOLANG_VERSION.linux-arm64.tar.gz
-GOLANG_DOWNLOAD_SHA256=9e9b755d63b36acf30c12a9a3fc379243714c1c6d3dd72861da637f336ebb35b
+GOLANG_DOWNLOAD_SHA256=b00b694903d126c588c378e72d3545549935d3982635ba3f7a964c9fa23fe3b9
 wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
 echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
 tar -C /usr/local -xzf /root/go.tar.gz
@@ -21,3 +21,4 @@ apt-get -yq install libssl-dev libffi-dev
 pip3 install triplesec
 
 usermod -aG systemd-journal vagrant
+loginctl enable-linger vagrant

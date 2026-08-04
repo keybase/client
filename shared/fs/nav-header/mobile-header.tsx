@@ -6,6 +6,7 @@ import type * as T from '@/constants/types'
 import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import Actions from './actions'
 import * as FS from '@/constants/fs'
+import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
 
 /*
  *
@@ -57,9 +58,13 @@ const NavMobileHeaderInner = (props: Props) => {
   return props.path === FS.defaultPath ? (
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny" style={styles.rootContainer}>
-          <Kb.Text type="BodyBig">Files</Kb.Text>
-          <FilesTabStatusIcon />
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.rootContainer}>
+          <AccountSwitchHeaderAvatar />
+          <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} gap="xtiny">
+            <Kb.Text type="BodyBig">Files</Kb.Text>
+            <FilesTabStatusIcon />
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" style={styles.rootSpacer} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.SafeAreaViewTop>
@@ -110,6 +115,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingBottom: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny,
       },
       rootContainer: {height: 56},
+      rootSpacer: Kb.Styles.size(44),
       expandedTopContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         height: 56,

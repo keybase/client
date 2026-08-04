@@ -19,6 +19,7 @@
     "./common-adapters/icon.constants-gen.shared.tsx",
     "./chat/conversation/normal/container.test.tsx",
     "./common-adapters/markdown/index.test.tsx",
+    "./provision/waiting-overlay.test.tsx",
     "./tests/e2e/ios-appium"
   ]
 }

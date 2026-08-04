@@ -212,7 +212,7 @@ func (a adaptedLogger) Warning(format string, args ...any) {
 }
 
 func (s *Server) handleUnauthorized(w http.ResponseWriter,
-	r *http.Request, realm string, authorizationPossible bool,
+	realm string, authorizationPossible bool,
 ) {
 	if authorizationPossible {
 		w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
@@ -438,12 +438,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isListing && !canList {
-		s.handleUnauthorized(w, r, realm, possibleList)
+		s.handleUnauthorized(w, realm, possibleList)
 		return
 	}
 
 	if !isListing && !canRead {
-		s.handleUnauthorized(w, r, realm, possibleRead)
+		s.handleUnauthorized(w, realm, possibleRead)
 		return
 	}
 

@@ -7602,7 +7602,7 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 		defer ctc.cleanup()
 
 		user := ctc.users()[0]
-		// tc := ctc.world.Tcs[user.Username]
+		tc := ctc.world.Tcs[user.Username]
 		ctx := ctc.as(t, user).startCtx
 		expectedSettings := map[chat1.GlobalAppNotificationSetting]bool{
 			chat1.GlobalAppNotificationSetting_NEWMESSAGES:      true,
@@ -7622,8 +7622,11 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 		}
 
 		// Test default settings
+		gregorState := &countingGregorState{GregorState: tc.G.GregorState}
+		tc.G.GregorState = gregorState
 		s, err := ctc.as(t, user).chatLocalHandler().GetGlobalAppNotificationSettingsLocal(ctx)
 		require.NoError(t, err)
+		require.Equal(t, int32(1), gregorState.stateCalls.Load())
 		for k, v := range expectedSettings {
 			require.Equal(t, v, s.Settings[k], fmt.Sprintf("Not equal %v", k))
 			// flip all the defaults for the next test
@@ -7634,6 +7637,7 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 		require.NoError(t, err)
 		s, err = ctc.as(t, user).chatLocalHandler().GetGlobalAppNotificationSettingsLocal(ctx)
 		require.NoError(t, err)
+		require.Equal(t, int32(2), gregorState.stateCalls.Load())
 		for k, v := range expectedSettings {
 			require.Equal(t, v, s.Settings[k], fmt.Sprintf("Not equal %v", k))
 		}

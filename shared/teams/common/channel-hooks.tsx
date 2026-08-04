@@ -1,23 +1,6 @@
-import * as T from '@/constants/types'
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat'
-import * as React from 'react'
-import logger from '@/logger'
-import {ensureError} from '@/util/errors'
+import type * as T from '@/constants/types'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
-import {
-  teamChannelsRPCParams,
-  useLoadedTeamChannels,
-  useReloadOnTeamChannelChanges,
-} from './use-loaded-team-channels'
-
-type ChannelMetasData = {
-  channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
-  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
-}
-
-const allChannelMetasReloadStaleMs = 5_000
+import {useLoadedTeamChannels} from './use-loaded-team-channels'
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
@@ -40,80 +23,28 @@ export const useChannelParticipants = (
   })
 }
 
+// The channel metas come from the same getTLFConversations result as the channel
+// list, so this is a view onto that one cache rather than a second loader.
 export const useAllChannelMetas = (
   teamID: T.Teams.TeamID,
   dontCallRPC?: boolean
 ): {
-  channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
-  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
+  channelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
   loadingChannels: boolean
   reloadChannels: () => Promise<void>
 } => {
-  const getConversations = C.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
   const {
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
-  const enabled = !dontCallRPC && !!teamname
-  const emptyChannelMetas = React.useMemo(
-    () => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(),
-    []
+  const {channelMetas, channelParticipants, loading, reload} = useLoadedTeamChannels(
+    teamID,
+    undefined,
+    !dontCallRPC
   )
-  const emptyChannelParticipants = React.useMemo(
-    () => new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>(),
-    []
-  )
-  const initialData = React.useMemo(
-    () => ({channelMetas: emptyChannelMetas, channelParticipants: emptyChannelParticipants}),
-    [emptyChannelMetas, emptyChannelParticipants]
-  )
-  const [channelMetasCache] = React.useState<CachedResourceCache<ChannelMetasData, T.Teams.TeamID>>(
-    () => createCachedResourceCache(initialData, teamID)
-  )
-  const {data, loading, reload, clear} = useCachedResource({
-    cache: channelMetasCache,
-    cacheKey: teamID,
-    enabled,
-    initialData,
-    load: async () =>
-      new Promise<ChannelMetasData>((resolve, reject) => {
-        getConversations(
-          [teamChannelsRPCParams(teamname), C.waitingKeyTeamsGetChannels(teamID)],
-          ({convs}) => {
-            const channelMetas = new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
-            const channelParticipants = new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>()
-            const loadedConvs = convs ?? []
-            loadedConvs.forEach(conv => {
-              const meta = Chat.inboxUIItemToConversationMeta(conv)
-              if (!meta) {
-                return
-              }
-              const conversationIDKey = meta.conversationIDKey
-              channelMetas.set(conversationIDKey, meta)
-              channelParticipants.set(
-                conversationIDKey,
-                Chat.uiParticipantsToParticipantInfo(conv.participants ?? [])
-              )
-            })
-            resolve({
-              channelMetas,
-              channelParticipants,
-            })
-          },
-          error => reject(ensureError(error))
-        )
-      }),
-    onError: error => {
-      logger.warn(`Failed to load all channel metas for ${teamID}`, error)
-    },
-    refreshKey: teamname,
-    staleMs: allChannelMetasReloadStaleMs,
-  })
-
-  useReloadOnTeamChannelChanges(teamID, enabled, reload, () => clear(teamID))
-
   return {
-    channelMetas: data.channelMetas,
-    channelParticipants: data.channelParticipants,
+    channelMetas,
+    channelParticipants,
     loadingChannels: (!dontCallRPC && !teamname) || loading,
     reloadChannels: reload,
   }

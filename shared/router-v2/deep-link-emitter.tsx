@@ -1,7 +1,11 @@
-// Dependency-free deep-link emitter + URL normalization. Kept separate from
-// './linking' (which imports the config/push/current-user stores) so that
-// stores/push -> deep-link-emitter stays acyclic (push only needs emitDeepLink,
-// not the whole linking config). See the push <-> linking require cycle.
+import {
+  type NavigationIntentOptions,
+  useNavigationIntentsState,
+} from '@/stores/navigation-intents'
+
+// Deep-link emission + URL normalization. Kept separate from './linking'
+// (which imports the config/push/current-user stores) so stores/push can enqueue
+// navigation without importing the router's linking config.
 
 // ---- URL normalization ----
 
@@ -54,46 +58,16 @@ export const normalizeUrl = (url: string): string | undefined => {
   return normalizeHttpUrl(url)
 }
 
-// ---- Deep link emission ----
-
-// Listener for programmatic deep link emission (e.g., from desktop IPC, engine events)
-let _deepLinkListener: ((url: string) => void) | undefined
-
-// Fallback handler for when no linking subscription is active (desktop).
-// Set by createLinkingConfig.
-let _fallbackHandler: ((link: string) => void) | undefined
-
-// URL returned by getInitialURL, used to deduplicate cold-start push notifications.
-// On cold start from a push tap, the same notification is processed by both
-// getInitialURL (via startupConversation) and the push listener (via handlePush).
-// This prevents the second navigation.
-let _initialURLOnce: string | undefined
-
-export const setDeepLinkFallback = (h: (link: string) => void) => {
-  _fallbackHandler = h
-}
-export const setDeepLinkListener = (l: ((url: string) => void) | undefined) => {
-  _deepLinkListener = l
-}
 // Records the URL and returns it so callers can `return setInitialURLOnce(url)`.
 export const setInitialURLOnce = (url: string) => {
-  _initialURLOnce = url
+  useNavigationIntentsState.getState().dispatch.markInitialURLHandled(url)
   return url
 }
 
-// Emit a deep link URL from non-Linking sources (desktop IPC, engine notifications, etc.)
-// On native (with linking config), routes through the linking subscription.
-// On desktop (no linking config), falls back to handleAppLink.
-export const emitDeepLink = (url: string) => {
+// Producers only enqueue navigation intent. The active router consumes it once
+// the intended account is active and its NavigationContainer is ready.
+export const emitDeepLink = (url: string, options?: NavigationIntentOptions) => {
   const normalized = normalizeUrl(url)
   if (!normalized) return
-  if (_initialURLOnce && _initialURLOnce === normalized) {
-    _initialURLOnce = undefined
-    return
-  }
-  if (_deepLinkListener) {
-    _deepLinkListener(normalized)
-  } else {
-    _fallbackHandler?.(normalized)
-  }
+  useNavigationIntentsState.getState().dispatch.enqueue(normalized, options)
 }

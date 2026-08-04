@@ -60,6 +60,7 @@ const SetPublicName = ({route}: Props) => {
   return (
     <SignupScreen
       hideDesktopHeader={!isMobile}
+      waitingOverlay={true}
       banners={errorBanner(error)}
       buttons={[
         {

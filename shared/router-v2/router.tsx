@@ -14,7 +14,7 @@ import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
-import {createLinkingConfig} from './linking'
+import {createLinkingConfig, subscribeNavigationIntents} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {useDaemonState} from '@/stores/daemon'
@@ -31,6 +31,10 @@ import {colors, darkColors} from '@/styles/colors'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {Platform, StatusBar, View, useColorScheme} from 'react-native'
+import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
+import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
@@ -78,7 +82,16 @@ const onUnhandledAction = (a: Readonly<{type: string}>) => {
   logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
 }
 const onStateChange = () => {
-  C.useRouterState.getState().dispatch.setNavState(C.Router2.getRootState())
+  const navState = C.Router2.getRootState()
+  C.useRouterState.getState().dispatch.setNavState(navState)
+  if (isMobile && navState) {
+    const tab = C.Router2.getTab(navState)
+    const visible = C.Router2.getVisibleScreen(navState)?.name ?? 'none'
+    const tabRoot = tab ? tabRoots[tab] : undefined
+    logger.info(
+      `[AccountSwitcherHeader] navigation tab=${tab ?? 'none'} visible=${visible} root=${tabRoot || 'none'} expected=${visible === tabRoot ? 'yes' : 'no'}`
+    )
+  }
 }
 const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
   if (ref) {
@@ -87,11 +100,6 @@ const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
 }
 
 // ─── Desktop ──────────────────────────────────────────────────────────────────
-
-if (!isMobile) {
-  // Set up the fallback handler for emitDeepLink on desktop (no linking prop needed on Electron)
-  createLinkingConfig(handleAppLink)
-}
 
 // Sticky: once the handshake finishes we never go back to the splash, even if it
 // restarts later (engine reconnect); the disconnected overlay covers that case.
@@ -255,6 +263,25 @@ function DesktopRouter() {
 
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const navKey = Common.useUserSwitchNavKey()
+  const currentUid = useCurrentUserState(s => s.uid)
+  const {setUserSwitching, userSwitching} = useConfigState(
+    C.useShallow(s => ({
+      setUserSwitching: s.dispatch.setUserSwitching,
+      userSwitching: s.userSwitching,
+    }))
+  )
+  const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
+
+  React.useEffect(
+    () => subscribeNavigationIntents(handleAppLink, handleAppLink),
+    []
+  )
+  const setDesktopNavRef = (ref: typeof C.Router2.navigationRef.current) => {
+    setNavRef(ref)
+    // React 19 Strict Mode detaches and reattaches callback refs without calling
+    // NavigationContainer.onReady again. Restore readiness from the live ref.
+    setNavigationReady(ref?.isReady() ?? false)
+  }
 
   const documentTitle = {
     formatter: () => {
@@ -269,9 +296,16 @@ function DesktopRouter() {
     <NavigationContainer
       key={navKey}
       documentTitle={documentTitle}
+      onReady={() => {
+        onStateChange()
+        setNavigationReady(true, currentUid)
+        if (userSwitching) {
+          setUserSwitching(false)
+        }
+      }}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
-      ref={setNavRef}
+      ref={setDesktopNavRef}
       theme={isDarkMode ? darkTheme : lightTheme}
     >
       <LoadedTeamsListProvider>
@@ -302,15 +336,34 @@ const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as 
 
 const tabStackOptions = ({
   navigation,
+  route,
 }: {
   navigation: {canGoBack: () => boolean}
-}): NativeStackNavigationOptions => ({
-  ...Common.defaultNavigationOptions,
-  // Use the native back button (liquid glass pill on iOS 26) for non-root screens;
-  // omit headerLeft entirely on root screens so no empty glass circle appears.
-  headerBackVisible: navigation.canGoBack(),
-  headerLeft: undefined,
-})
+  route: {name: string}
+}): NativeStackNavigationOptions => {
+  const canGoBack = navigation.canGoBack()
+  logger.info(
+    `[AccountSwitcherHeader] options route=${route.name} canGoBack=${canGoBack ? 'yes' : 'no'} install=${canGoBack ? 'no' : 'yes'}`
+  )
+  return {
+    ...Common.defaultNavigationOptions,
+    // Root screens show the account switcher avatar. Pushed screens use the
+    // native back button (liquid glass pill on iOS 26).
+    headerBackVisible: canGoBack,
+    headerLeft: isAndroid && !canGoBack ? () => <AccountSwitchHeaderAvatar /> : undefined,
+    ...(isIOS && !canGoBack
+      ? {
+          unstable_headerLeftItems: () => [
+            {
+              element: <AccountSwitchHeaderAvatar />,
+              hidesSharedBackground: true,
+              type: 'custom' as const,
+            },
+          ],
+        }
+      : {}),
+  }
+}
 
 // On phones, each tab stack only contains its root screen. All other routes live in
 // the root stack (alongside chatConversation) so they render above the tab bar.
@@ -581,8 +634,19 @@ const nativeLinkingConfig = isMobile ? createLinkingConfig(handleAppLink) : unde
 function NativeRouter() {
   const loggedInLoaded = useHandshakeEverDone()
 
-  const {loggedIn, startupLoaded} = useConfigState(
-    C.useShallow(s => ({loggedIn: s.loggedIn, startupLoaded: s.startup.loaded}))
+  const {loggedIn, setUserSwitching, startupLoaded, userSwitching} = useConfigState(
+    C.useShallow(s => ({
+      loggedIn: s.loggedIn,
+      setUserSwitching: s.dispatch.setUserSwitching,
+      startupLoaded: s.startup.loaded,
+      userSwitching: s.userSwitching,
+    }))
+  )
+  const {currentUid, username} = useCurrentUserState(
+    C.useShallow(s => ({
+      currentUid: s.uid,
+      username: s.username,
+    }))
   )
 
   const {barStyle, isDarkMode} = useDarkModeState(
@@ -597,12 +661,36 @@ function NativeRouter() {
       return {barStyle, isDarkMode}
     })
   )
+
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   // Android also remounts on dark mode changes
   const nativeIsDarkMode = useColorScheme() === 'dark'
   const navKey = Common.useUserSwitchNavKey()
   const nativeDarkSuffix = isAndroid ? (nativeIsDarkMode ? '-dark' : '-light') : ''
   const rootKey = navKey ? `${navKey}${nativeDarkSuffix}` : ''
+  const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
+  const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {
+    setNavRef(ref)
+    setNavigationReady(ref?.isReady() ?? false)
+  }
+
+  React.useEffect(() => {
+    if (!userSwitching) {
+      clearPendingAccountSwitch(username)
+    }
+  }, [userSwitching, username])
+
+  const onNativeReady = () => {
+    onStateChange()
+    const tab = consumePendingAccountSwitchTab(username)
+    if (tab) {
+      C.Router2.switchTab(tab)
+    }
+    setNavigationReady(true, currentUid)
+    if (userSwitching) {
+      setUserSwitching(false)
+    }
+  }
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (
@@ -621,10 +709,10 @@ function NativeRouter() {
         // Sync the initial state from the linking config into the router store.
         // onStateChange doesn't fire for the initial state, so this ensures
         // onRouteChanged runs and conversation data gets loaded on startup.
-        onReady={onStateChange}
+        onReady={onNativeReady}
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}
-        ref={setNavRef}
+        ref={setNativeNavRef}
         theme={isDarkMode ? darkTheme : lightTheme}
       >
         <LoadedTeamsListProvider>

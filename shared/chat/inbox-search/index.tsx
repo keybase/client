@@ -16,6 +16,7 @@ import {
   type InboxSearchVisibleResultCounts,
 } from '../inbox/use-inbox-search'
 import {showTeamByName} from '@/teams/team-page-actions'
+import {registerExternalResetter} from '@/util/zustand'
 
 type OwnProps = {
   header?: React.ReactElement | null
@@ -56,6 +57,12 @@ const nameResultCache = new Map<string, NameResult>()
 const textResultCache = new Map<string, TextResult>()
 const openTeamItemCache = new WeakMap<T.Chat.InboxSearchOpenTeamHit, OpenTeamResult>()
 const botItemCache = new WeakMap<T.RPCGen.FeaturedBot, BotResult>()
+
+// module scope outlives sign-out; these hold conversation and username hits
+registerExternalResetter('chat-inbox-search-item-caches', () => {
+  nameResultCache.clear()
+  textResultCache.clear()
+})
 
 const canonNameResult = (next: NameResult) => {
   if (nameResultCache.size > 4096) {
@@ -258,7 +265,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     renderHeaderWithMore(section, _botsResults.length, botsCollapsed, botsAll, toggleBotsAll)
 
   const renderTextHeader = (section: Section) => {
-    const ratio = indexPercent / 100.0
+    const ratio = (indexPercent ?? 0) / 100.0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
         <Kb.SectionDivider
@@ -273,7 +280,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
               Search failed, please try again, or contact Keybase describing the problem.
             </Kb.Text>
           </Kb.Box2>
-        ) : indexPercent > 0 && indexPercent < 100 ? (
+        ) : indexPercent !== undefined && indexPercent < 100 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
             <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
             {isMobile ? (

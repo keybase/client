@@ -8,8 +8,10 @@ import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
 import {useConversationThreadID} from '../../thread-context'
-import {KeyboardStickyView} from 'react-native-keyboard-controller'
+import {KeyboardStickyView, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {MaxInputAreaContext} from '../normal/max-input-area-context'
+import {useAnimatedStyle, default as Reanimated} from '@/common-adapters/reanimated'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -429,16 +431,37 @@ type PopupProps = {
   inputRef: React.RefObject<InputRef | null>
   children: React.ReactNode
 }
-const Popup = (p: PopupProps) => {
-  const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-
-  const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
+const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
   const insets = useSafeAreaInsets()
+  const maxInputArea = React.useContext(MaxInputAreaContext)
+  const {height: keyboardHeight} = useReanimatedKeyboardAnimation()
   // this overlay is portaled to the window root, but the input bar sits
   // insets.bottom above the window bottom while the keyboard is closed (the
   // KeyboardStickyView in conversation/normal), so mirror its offsets or the
   // list covers the input when no keyboard is up
   const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
+  // the sticky view only translates, it keeps the full window height, so give
+  // the list the same box the conversation has (below the header, above the
+  // keyboard). without it the list's percentage maxHeight resolves against the
+  // whole screen and the bottom-anchored list runs up over the header.
+  // keyboardHeight is negative while the keyboard is up
+  const areaStyle = useAnimatedStyle(() => ({
+    height: maxInputArea ? Math.max(0, maxInputArea + keyboardHeight.value) : undefined,
+  }))
+
+  return (
+    <KeyboardStickyView offset={stickyOffset} pointerEvents="box-none" style={styles.sticky}>
+      <Reanimated.View pointerEvents="box-none" style={[styles.area, areaStyle]}>
+        {p.children}
+      </Reanimated.View>
+    </KeyboardStickyView>
+  )
+}
+
+const Popup = (p: PopupProps) => {
+  const {children, suggestionOverlayStyle, setInactive, inputRef} = p
+
+  const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
   return (
     <Kb.Popup
@@ -453,17 +476,12 @@ const Popup = (p: PopupProps) => {
       containerStyle={suggestionOverlayStyle}
       style={suggestionOverlayStyle}
     >
-      {isMobile ? (
-        <KeyboardStickyView offset={stickyOffset} pointerEvents="box-none" style={styles.sticky}>
-          {children}
-        </KeyboardStickyView>
-      ) : (
-        children
-      )}
+      {isMobile ? <MobileSuggestionArea>{children}</MobileSuggestionArea> : children}
     </Kb.Popup>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  area: {marginTop: 'auto'},
   sticky: {flexGrow: 1, flexShrink: 1},
 }))

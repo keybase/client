@@ -36,7 +36,7 @@ if (__DEV__) {
     config.printOutstandingRPCs = false
     config.printOutstandingTimerListeners = false
     config.printRPCWaitingSession = false
-    config.printRPC = false
+    config.printRPC = true
     config.printRPCStats = false
   } else {
     config.printOutstandingRPCs = true

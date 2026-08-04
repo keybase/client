@@ -7,6 +7,7 @@ import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import logger from '@/logger'
 import {useConversationMessage} from './data-hooks'
+import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
 
@@ -15,6 +16,11 @@ type PickerState = 'picker' | 'title'
 const forwardMessageHandoff = new Map<string, T.Chat.Message>()
 const forwardMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) =>
   `${conversationIDKey}:${T.Chat.messageIDToNumber(messageID)}`
+
+// module scope outlives sign-out; holds message bodies keyed by conversation
+registerExternalResetter('chat-forward-message-handoff', () => {
+  forwardMessageHandoff.clear()
+})
 
 const getForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
   const key = forwardMessageKey(conversationIDKey, messageID)

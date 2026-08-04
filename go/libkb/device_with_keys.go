@@ -111,32 +111,27 @@ func (s *SelfDestructingDeviceWithKeys) DeviceWithKeys() *DeviceWithKeys {
 	return &ret
 }
 
-type ownerDeviceReply struct {
-	Status      AppStatus         `json:"status"`
-	UID         keybase1.UID      `json:"uid"`
-	DeviceID    keybase1.DeviceID `json:"device_id"`
-	DeviceName  string            `json:"device_name"`
-	DeviceCtime keybase1.Time     `json:"device_ctime"`
-}
-
-func (o *ownerDeviceReply) GetAppStatus() *AppStatus {
-	return &o.Status
-}
-
-func (d *DeviceWithKeys) Populate(m MetaContext) (uid keybase1.UID, err error) {
-	arg := APIArg{
-		Endpoint:    "key/owner/device",
-		SessionType: APISessionTypeNONE,
-		Args:        HTTPArgs{"kid": S{Val: d.signingKey.GetKID().String()}},
+// PopulateFromUser fills device metadata from an already-loaded and verified
+// user sigchain.
+func (d *DeviceWithKeys) PopulateFromUser(u *User) error {
+	if u == nil || d.signingKey == nil {
+		return NotFoundError{Msg: "KID not found"}
 	}
-	var res ownerDeviceReply
-	if err = m.G().API.GetDecode(m, arg, &res); err != nil {
-		return uid, err
+
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		return NotFoundError{Msg: "KID not found"}
 	}
-	d.deviceID = res.DeviceID
-	d.deviceName = res.DeviceName
-	d.deviceCtime = res.DeviceCtime
-	return res.UID, nil
+
+	device, err := ckf.GetDeviceForKID(d.signingKey.GetKID())
+	if err != nil || device == nil || !device.IsActive() || device.Description == nil {
+		return NotFoundError{Msg: "KID not found"}
+	}
+
+	d.deviceID = device.ID
+	d.deviceName = *device.Description
+	d.deviceCtime = device.CTime
+	return nil
 }
 
 func (d *DeviceWithKeys) ToProvisioningKeyActiveDevice(m MetaContext, uv keybase1.UserVersion) *ActiveDevice {

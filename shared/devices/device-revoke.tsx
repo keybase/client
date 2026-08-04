@@ -51,6 +51,7 @@ const revokeDevice = async (
         C.waitingKeyDevices
       )
       useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
+      C.Router2.clearModals()
       C.Router2.navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
     } catch {}
   }
