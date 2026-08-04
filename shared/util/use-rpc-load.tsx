@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import type {RPCError} from './errors'
+import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 type Options<RESULT, DATA> = {
   /** skips the mount/focus/key auto-load when false, checked when the trigger fires. reload() ignores this */
@@ -53,24 +54,28 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   const load = React.useEffectEvent(() => {
     const id = ++requestID.current
     const keyAtCall = key
+    const adopt = (data: DATA) => {
+      setState(s => ({
+        data,
+        dataKey: keyAtCall,
+        error: undefined,
+        errorKey: undefined,
+        loadCount: s.loadCount + 1,
+        loaded: true,
+      }))
+      onResult?.(data)
+    }
+    const fail = (error: RPCError) => {
+      setState(s => ({...s, error, errorKey: keyAtCall, loaded: true}))
+      onError?.(error)
+    }
+
     call(...args)
       .then((result: Awaited<ReturnType<F>>) => {
-        if (requestID.current !== id) return
-        const data = map(result)
-        setState(s => ({
-          data,
-          dataKey: keyAtCall,
-          error: undefined,
-          errorKey: undefined,
-          loadCount: s.loadCount + 1,
-          loaded: true,
-        }))
-        onResult?.(data)
+        if (requestID.current === id) adopt(map(result))
       })
       .catch((error: RPCError) => {
-        if (requestID.current !== id) return
-        setState(s => ({...s, error, errorKey: keyAtCall, loaded: true}))
-        onError?.(error)
+        if (requestID.current === id) fail(error)
       })
   })
 
@@ -108,6 +113,12 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   React.useEffect(() => {
     if (keyed && when !== 'manual') autoLoad()
   }, [keyed, when, key])
+
+  // reconnects orphan any in-flight load without settling its promise, so the
+  // hook would sit on stale data forever without a refire
+  useReloadOnReconnect(() => {
+    if (enabled && when !== 'manual') load()
+  })
 
   const data = keyed ? (state.dataKey === key ? state.data : undefined) : state.data
   const error = keyed ? (state.errorKey === key ? state.error : undefined) : state.error

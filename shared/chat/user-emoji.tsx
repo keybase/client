@@ -6,7 +6,7 @@ import {
   createCachedResourceCache,
   getCachedResourceCache,
   useCachedResource,
-} from '@/teams/use-cached-resource'
+} from '@/util/use-cached-resource'
 import {registerExternalResetter} from '@/util/zustand'
 
 const emptyEmojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup> = []

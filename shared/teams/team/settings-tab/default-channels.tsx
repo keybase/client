@@ -6,7 +6,7 @@ import logger from '@/logger'
 import {registerExternalResetter} from '@/util/zustand'
 import {ChannelsWidget} from '@/teams/common'
 import {useLoadedTeam} from '../use-loaded-team'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../../use-cached-resource'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
 
 type Props = {
   teamID: T.Teams.TeamID

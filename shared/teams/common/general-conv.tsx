@@ -8,7 +8,7 @@ import {
   createCachedResourceCache,
   getCachedResourceCache,
   useCachedResource,
-} from '../use-cached-resource'
+} from '@/util/use-cached-resource'
 
 type GeneralConvData = T.Chat.ConversationIDKey | undefined
 

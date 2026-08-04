@@ -1,10 +1,12 @@
 import * as T from '@/constants/types'
+import type {DebouncedFunc} from 'lodash'
+import debounce from 'lodash/debounce'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
 import {registerExternalResetter} from '@/util/zustand'
 
 type LoadedTeam = {
@@ -154,19 +156,32 @@ const useLoadedTeamRaw = (
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
+  // One logical change fires metadata, role map and changedByID, and a reconnect
+  // fires all three at once - measured as 4 getAnnotatedTeam for one team inside
+  // 116ms, each a separate event superseding the last. Coalesce them the way
+  // useReloadOnTeamChanges does for the teams list: leading so the common single
+  // notification still reloads immediately, trailing to catch the rest of a burst.
+  const reloadNow = React.useEffectEvent(() => {
     if (enabled) {
       void reload()
     }
-  }, subscribeToUpdates)
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
-    if (enabled) {
-      void reload()
+  })
+  const [debouncedReload] = React.useState<DebouncedFunc<() => void>>(() =>
+    debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
+  )
+  React.useEffect(() => {
+    return () => {
+      debouncedReload.cancel()
     }
-  }, subscribeToUpdates)
+  }, [debouncedReload])
+  const onTeamChange = () => {
+    debouncedReload()
+  }
+  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, subscribeToUpdates)
+  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, subscribeToUpdates)
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      void reload()
+    if (action.payload.params.teamID === validTeamID) {
+      onTeamChange()
     }
   }, subscribeToUpdates)
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {

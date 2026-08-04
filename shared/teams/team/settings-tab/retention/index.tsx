@@ -13,7 +13,7 @@ import {
   createCachedResourceCache,
   getCachedResourceCache,
   useCachedResource,
-} from '../../../use-cached-resource'
+} from '@/util/use-cached-resource'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
 import {ConversationThreadProvider, useThreadMeta} from '@/chat/conversation/thread-context'

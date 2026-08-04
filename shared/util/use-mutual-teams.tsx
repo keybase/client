@@ -5,7 +5,7 @@ import {
   type CachedResourceCache,
   getCachedResourceCache,
   useCachedResource,
-} from '@/teams/use-cached-resource'
+} from '@/util/use-cached-resource'
 import {registerExternalResetter} from '@/util/zustand'
 
 // getMutualTeamsLocal makes the service localize every conversation the users
