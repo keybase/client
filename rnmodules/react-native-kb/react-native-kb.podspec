@@ -32,6 +32,15 @@ Pod::Spec.new do |s|
   # with no hint that `yarn ios:gobuild` is the fix. Runs before Kb.mm compiles
   # and no-ops (a `find -newer` probe) when the framework is already current.
   # KB_SKIP_GOBUILD=1 opts out.
+  #
+  # This is only a BACKSTOP, for builds driven by something other than the
+  # shared schemes. The real check is a pre-action on each scheme in
+  # Keybase.xcodeproj/xcshareddata/xcschemes. A build phase is too late: the
+  # Keybase target links the xcframework, so Xcode plans a ProcessXCFramework
+  # copy into DerivedData at the start of the build, and a rebuild that happens
+  # after that lands in the source tree but not in the staged copy. The compile
+  # then succeeds (HEADER_SEARCH_PATHS below points at the source tree) and the
+  # link fails on undefined Keybase* symbols, fixing itself on the next build.
   s.script_phase = {
     :name => "Build Keybasego if stale",
     # Off PODS_ROOT (shared/ios/Pods), not PODS_TARGET_SRCROOT: the pod source

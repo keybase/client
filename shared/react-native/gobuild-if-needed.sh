@@ -13,6 +13,14 @@
 #
 #   Kb.mm:394: error: use of undeclared identifier 'KeybaseResetIfCurrentDidReset'
 #
+# On iOS this must run as a scheme PRE-ACTION, not a build phase: the Keybase
+# target links keybasego.xcframework, so Xcode plans a ProcessXCFramework copy
+# into DerivedData when the build starts. Rebuilding the framework after that
+# updates the source tree but not the staged copy, so the link fails on
+# undefined Keybase* symbols even though the compile saw the new headers. The
+# script phase in react-native-kb.podspec is only a backstop for non-scheme
+# builds.
+#
 # Escape hatches:
 #   KB_SKIP_GOBUILD=1   never build, even if stale (packaging/CI paths that
 #                       supply the artifact by other means)

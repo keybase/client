@@ -28,6 +28,24 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Build Keybasego if stale"
+               scriptText = "&#10;# See the plain Keybase scheme for why this is a pre-action and not a build&#10;# phase. KB_GO_DEBUG is set here rather than left to the script's&#10;# ENABLE_ADDRESS_SANITIZER sniff: a pre-action's environment does not carry the&#10;# scheme's sanitizer settings, so without this the pre-action would build (and&#10;# stamp) godebug=0 and the pod's backstop phase would then see &quot;build settings&#10;# changed&quot; and rebuild mid-build -- the exact stale-link race this avoids.&#10;set -e&#10;export KB_GO_DEBUG=1&#10;&quot;$SRCROOT/../react-native/gobuild-if-needed.sh&quot; ios&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
+                     BuildableName = "Keybase.app"
+                     BlueprintName = "Keybase"
+                     ReferencedContainer = "container:Keybase.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"

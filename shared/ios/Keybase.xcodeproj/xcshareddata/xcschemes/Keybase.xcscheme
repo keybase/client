@@ -5,6 +5,24 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Build Keybasego if stale"
+               scriptText = "&#10;# Must be a pre-action, not a build phase: keybasego.xcframework is linked by&#10;# the Keybase target, so Xcode plans a ProcessXCFramework copy into&#10;# DerivedData at the *start* of the build. A script phase that rebuilds the&#10;# framework mid-build lands after that decision, so the link still uses the&#10;# stale staged copy and fails with undefined Keybase* symbols. Pre-actions run&#10;# before the task graph is computed.&#10;set -e&#10;&quot;$SRCROOT/../react-native/gobuild-if-needed.sh&quot; ios&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
+                     BuildableName = "Keybase.app"
+                     BlueprintName = "Keybase"
+                     ReferencedContainer = "container:Keybase.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
