@@ -1,7 +1,7 @@
 PODS:
-  - EXConstants (57.0.8):
+  - EXConstants (57.0.9):
     - ExpoModulesCore
-  - Expo (57.0.9):
+  - Expo (57.0.10):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -51,7 +51,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (57.0.1):
     - ExpoModulesCore
-  - ExpoImage (57.0.1):
+  - ExpoImage (57.0.2):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -73,7 +73,7 @@ PODS:
   - ExpoMediaLibrary (57.0.3):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (57.0.8):
+  - ExpoModulesCore (57.0.9):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -100,10 +100,10 @@ PODS:
   - ExpoModulesJSI (57.0.4):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (57.0.8):
+  - ExpoModulesWorklets (57.0.9):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (57.0.8):
+  - ExpoModulesWorkletsAdapter (57.0.9):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
@@ -1698,7 +1698,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context (5.8.0):
+  - react-native-safe-area-context (5.8.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1710,8 +1710,8 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-safe-area-context/common (= 5.8.0)
-    - react-native-safe-area-context/fabric (= 5.8.0)
+    - react-native-safe-area-context/common (= 5.8.1)
+    - react-native-safe-area-context/fabric (= 5.8.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1722,7 +1722,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context/common (5.8.0):
+  - react-native-safe-area-context/common (5.8.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1744,7 +1744,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context/fabric (5.8.0):
+  - react-native-safe-area-context/fabric (5.8.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2890,8 +2890,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXConstants: 5efe6122eecac2d970aa50a2a502ecc6ce4b7564
-  Expo: 2455fd2278a1de64070453c9f426dd413e3ccca8
+  EXConstants: 05451cfe61c84dd2d840831d05bb0c115f96ec6a
+  Expo: cf93d7e46db229e11a7b2b9b5bdc9b4ac7e87555
   ExpoAsset: a76534cf7b762978861dd31708308496c676166f
   ExpoAudio: b69f36525132edba8d87a715b3a20c678ef78b30
   ExpoCamera: a5e9d9ce2fc06689eb2dd676f1f8d5f22f8aa292
@@ -2903,7 +2903,7 @@ SPEC CHECKSUMS:
   ExpoFileSystem: e441dae0ae671fc451640517550973d9e024fdf0
   ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
   ExpoHaptics: 4503d2da51ff7109712ccdfe0e4939f66818183e
-  ExpoImage: 4c1e7634db6033185a98959fb028d8d4b1c89695
+  ExpoImage: d66c5e5be02228cdfed42ebcb31acf2dd594b8e7
   ExpoImagePicker: 53793977b6f686c3f1230739a1dbe7178a9cef80
   ExpoKeepAwake: c26f14275017370cc8a4b7b43a0e23361f2053a5
   ExpoLocalization: 659243b03b3a3e9589793cee2f728a899e181329
@@ -2911,10 +2911,10 @@ SPEC CHECKSUMS:
   ExpoLogBox: 6bb73c341aca22e699bd4da6cc61afc844e1a648
   ExpoMailComposer: 101933dc6bdb4d7a46495d1dd87420365325adb9
   ExpoMediaLibrary: e0829ae4fe90dc8bcd5ec13250ba6503aebbbc94
-  ExpoModulesCore: 6b1d05e9cb87b2add5787621ff31a9f960b32d12
+  ExpoModulesCore: aecda3700dcd8d2e0c8b04488f962a4e1913f448
   ExpoModulesJSI: 3accd404d715d63e7b04015d20c857e903e3bc73
-  ExpoModulesWorklets: 6b240031daa3de4df791588fc78236637ff602f6
-  ExpoModulesWorkletsAdapter: 7a7b58fb35a09f073cb310d7c63af696700a4858
+  ExpoModulesWorklets: a8986b0872d09df168f5d4e092625e9fbb6b38bb
+  ExpoModulesWorkletsAdapter: 45af1d3b1605384f7350ffbaf99575e4ae2dd2e4
   ExpoScreenCapture: 1728376b2a32a05dc1f6bae6a8d19b1bd33926f9
   ExpoSMS: ac35f6c85b72ee5b18a7c6bb06550fbd4a683775
   ExpoTaskManager: d52427f67bf8f00fa56d52f9603919049c67cfc5
@@ -2968,7 +2968,7 @@ SPEC CHECKSUMS:
   react-native-kb: 71289be80d93678d5abff5805cb638cd36d9e08e
   react-native-keyboard-controller: 8305b19b7841bab139be15cde9f424a502abaa6e
   react-native-netinfo: a05f9b897e76ad24b53f615fed1cbb731932363d
-  react-native-safe-area-context: 0bbcdfba5c4a1b3203276f1ed9128e3239fdf199
+  react-native-safe-area-context: 6255354c51cdabe084b19ed7bd2cd9cd6b0f57e2
   react-native-webview: 006d1ead1d2708b2fd1b6639a759139963b39e55
   React-NativeModulesApple: 167e532fb9bae30f3c66636b8ee0092bab263667
   React-networking: e382e6f2f815e801a34a630e708a551c7feb2090
