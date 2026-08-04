@@ -5,6 +5,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as React from 'react'
+import {nextReloadEpoch} from '@/util/reload-epoch'
 import {registerExternalResetter} from '@/util/zustand'
 import {registerTeamChannelsInvalidator} from './team-channels-invalidation'
 import {useLoadedTeam} from '../team/use-loaded-team'
@@ -79,7 +80,9 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
 // localizes every channel in the team. Measured at 7 calls for one team inside
 // 1.5s before this was shared.
 const loadedTeamChannelsCache: LoadedTeamChannelsCacheMap = new Map()
-const loadedTeamChannelsInvalidationListeners = new Set<(teamID: T.Teams.TeamID | undefined) => void>()
+const loadedTeamChannelsInvalidationListeners = new Set<
+  (teamID: T.Teams.TeamID | undefined, epoch: number) => void
+>()
 
 // module scope outlives sign-out and this is per-user team data
 registerExternalResetter('loaded-team-channels-cache', () => {
@@ -94,7 +97,10 @@ registerExternalResetter('loaded-team-channels-cache', () => {
 registerTeamChannelsInvalidator((teamID: T.Teams.TeamID) => {
   const key = loadableTeamID(teamID)
   loadedTeamChannelsCache.get(key)?.invalidate(key)
-  loadedTeamChannelsInvalidationListeners.forEach(listener => listener(key))
+  // one invalidation is one event: every listener reloads against the same
+  // epoch so they share an rpc instead of superseding each other
+  const epoch = nextReloadEpoch()
+  loadedTeamChannelsInvalidationListeners.forEach(listener => listener(key, epoch))
 })
 
 // forceLocalCache: a disabled "shadow" instance (one that returns the context
@@ -221,9 +227,9 @@ const useLoadedTeamChannelsRaw = (
     if (!enabled || !validTeamID) {
       return
     }
-    const listener = (invalidatedTeamID: T.Teams.TeamID | undefined) => {
+    const listener = (invalidatedTeamID: T.Teams.TeamID | undefined, epoch: number) => {
       if (invalidatedTeamID === validTeamID) {
-        void reload()
+        void reload(epoch)
       }
     }
     loadedTeamChannelsInvalidationListeners.add(listener)

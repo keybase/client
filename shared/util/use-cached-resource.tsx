@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import {produce} from 'immer'
+import {joinAnyEpoch, nextReloadEpoch} from './reload-epoch'
 import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 export type CachedResourceCache<T, K> = {
@@ -9,13 +10,14 @@ export type CachedResourceCache<T, K> = {
   getFailedAt: () => number
   getGeneration: () => number
   getInFlight: () => Promise<T> | undefined
-  getInFlightSeq: () => number
+  getInFlightEpoch: () => number
   getKey: () => K
   getLoadedAt: () => number
+  getLoadedEpoch: () => number
   invalidate: (key: K) => void
   reset: (data: T, key: K) => void
-  setDataLoaded: (data: T, generation: number) => void
-  setInFlight: (request: Promise<T>) => void
+  setDataLoaded: (data: T, generation: number, epoch: number) => void
+  setInFlight: (request: Promise<T>, epoch: number) => void
   setLoadFailed: (generation: number) => void
 }
 
@@ -25,14 +27,6 @@ export type CachedResourceCache<T, K> = {
 // request the instant the previous one settled - an unbounded retry loop at RPC
 // speed. An explicit reload()/invalidate() still retries immediately.
 const loadFailureBackoffMs = 5_000
-
-// Ordering of "was this request already on the wire when I asked?" cannot use
-// Date.now(): a mutation and the reload it triggers routinely land in the same
-// millisecond, and the two timestamps then compare equal, so the forced load
-// joins the very request it must supersede. A counter is exact.
-let inFlightSequence = 0
-const nextInFlightSeq = () => ++inFlightSequence
-const currentInFlightSeq = () => inFlightSequence
 
 type CachedResourceState<T> = {
   data: T
@@ -105,8 +99,9 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
   let failedAt = 0
   let generation = 0
   let inFlight: Promise<T> | undefined
-  let inFlightSeq = 0
+  let inFlightEpoch = joinAnyEpoch
   let loadedAt = 0
+  let loadedEpoch = joinAnyEpoch
   let storedKey = key
 
   return {
@@ -119,14 +114,16 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
     getFailedAt: () => failedAt,
     getGeneration: () => generation,
     getInFlight: (): Promise<T> | undefined => inFlight,
-    getInFlightSeq: () => inFlightSeq,
+    getInFlightEpoch: () => inFlightEpoch,
     getKey: () => storedKey,
     getLoadedAt: () => loadedAt,
+    getLoadedEpoch: () => loadedEpoch,
     invalidate: nextKey => {
       failedAt = 0
       generation += 1
       inFlight = undefined
       loadedAt = 0
+      loadedEpoch = joinAnyEpoch
       storedKey = nextKey
     },
     reset: (nextData, nextKey) => {
@@ -135,18 +132,20 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
       generation += 1
       inFlight = undefined
       loadedAt = 0
+      loadedEpoch = joinAnyEpoch
       storedKey = nextKey
     },
-    setDataLoaded: (nextData, requestGeneration) => {
+    setDataLoaded: (nextData, requestGeneration, epoch) => {
       if (generation === requestGeneration) {
         data = nextData
         failedAt = 0
         loadedAt = Date.now()
+        loadedEpoch = epoch
       }
     },
-    setInFlight: request => {
+    setInFlight: (request, epoch) => {
       inFlight = request
-      inFlightSeq = nextInFlightSeq()
+      inFlightEpoch = epoch
     },
     setLoadFailed: requestGeneration => {
       if (generation === requestGeneration) {
@@ -179,16 +178,15 @@ const runLoad = async <T, K>(
   requestVersion: number,
   requestVersionRef: React.RefObject<number>,
   setState: React.Dispatch<React.SetStateAction<StoredCachedResourceState<T, K>>>,
-  force: boolean,
-  requestedSeq: number
+  epoch: number
 ) => {
   let request: Promise<T> | undefined
-  // A forced load exists because something changed, so joining a request that
-  // was already on the wire before we asked would settle to pre-change data -
-  // and stamp loadedAt on it, holding it stale for the whole window. Only join a
-  // request that started after this one was asked for, which still collapses the
-  // N-mounted-consumers-reload-together case to one RPC.
-  const staleInFlight = force && !!cache.getInFlight() && cache.getInFlightSeq() <= requestedSeq
+  // A request issued for an older event was already on the wire when whatever
+  // we are reloading for happened, so it settles to pre-change data - and
+  // stamps loadedAt on it, holding it stale for the whole window. Supersede it.
+  // An equal epoch means it was issued for this same event by another consumer:
+  // join it, which is what keeps one event to one rpc.
+  const staleInFlight = !!cache.getInFlight() && cache.getInFlightEpoch() < epoch
   if (staleInFlight) {
     cache.invalidate(cacheKey)
   }
@@ -204,10 +202,10 @@ const runLoad = async <T, K>(
       return
     }
     request = load().then(data => {
-      cache.setDataLoaded(data, generation)
+      cache.setDataLoaded(data, generation, epoch)
       return data
     })
-    cache.setInFlight(request)
+    cache.setInFlight(request, epoch)
     const data = await request
     if (requestVersion === requestVersionRef.current) {
       setState(settledState(cache, cacheKey, initialData, data))
@@ -280,10 +278,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     [cache, cacheKey, initialData, resetCache]
   )
 
-  const loadResource = React.useCallback(async (force: boolean) => {
-    // stamped before any await so a forced load can tell an in-flight request
-    // that predates it from one issued in response to the same change
-    const requestedSeq = currentInFlightSeq()
+  const loadResource = React.useCallback(async (force: boolean, epoch: number) => {
     const {cache, cacheKey, enabled, initialData, load, onError, staleMs} = latestRef.current
     const resetCache = (nextKey: K) => {
       cache.reset(initialData, nextKey)
@@ -299,6 +294,15 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     }
     const loadedAt = cache.getLoadedAt()
     if (!force && loadedAt && Date.now() - loadedAt < staleMs) {
+      setState(settledState(cache, cacheKey, initialData, cache.getData()))
+      return
+    }
+    // The in-flight check in runLoad only collapses consumers that overlap. When
+    // the first consumer's request has already settled by the time the next one
+    // runs its effect - 75ms was enough for teamListUnverified - what is in the
+    // cache IS the answer to this event, so re-issuing just refetches it. A bare
+    // reload() allocates a fresh epoch and so is never caught by this.
+    if (force && loadedAt && cache.getLoadedEpoch() >= epoch) {
       setState(settledState(cache, cacheKey, initialData, cache.getData()))
       return
     }
@@ -323,25 +327,32 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
       requestVersion,
       requestVersionRef,
       setState,
-      force,
-      requestedSeq
+      epoch
     )
   }, [])
 
-  const reload = React.useCallback(async () => {
-    await loadResource(true)
-  }, [loadResource])
+  // epoch is how consumers reloading for one event collapse onto a single rpc,
+  // so a caller that has one (an invalidation broadcast) should pass it. A bare
+  // reload() is its own event and gets a fresh epoch, which supersedes anything
+  // already on the wire. Guarded because reload is routinely handed straight to
+  // an onClick, which would otherwise pass a react event as the epoch.
+  const reload = React.useCallback(
+    async (epoch?: number) => {
+      await loadResource(true, typeof epoch === 'number' ? epoch : nextReloadEpoch())
+    },
+    [loadResource]
+  )
 
   const loadIfStale = React.useCallback(async () => {
-    await loadResource(false)
+    await loadResource(false, joinAnyEpoch)
   }, [loadResource])
 
   // reconnects orphan any in-flight load; force so cached data from before the
   // restart doesn't mask post-restart changes. Disabled hooks must not touch the
   // shared cache (loadResource resets it when disabled)
-  useReloadOnReconnect(() => {
+  useReloadOnReconnect(epoch => {
     if (latestRef.current.enabled) {
-      void loadResource(true)
+      void loadResource(true, epoch)
     }
   })
 

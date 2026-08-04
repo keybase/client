@@ -1,8 +1,15 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {expect, jest, test} from '@jest/globals'
-import {act, render, renderHook} from '@testing-library/react'
+import {afterEach, expect, jest, test} from '@jest/globals'
+import {act, cleanup, render, renderHook} from '@testing-library/react'
+import {useDaemonState} from '@/stores/daemon'
+import {nextReloadEpoch} from './reload-epoch'
 import {createCachedResourceCache, useCachedResource} from './use-cached-resource'
+
+afterEach(() => {
+  cleanup()
+  useDaemonState.setState({handshakeGeneration: 0, handshakeState: 'loading'})
+})
 
 // A setState that lands outside act() - every load settling on its own - is
 // scheduled on React's MessageChannel, i.e. a macrotask. A flush built only from
@@ -274,6 +281,218 @@ test('concurrent consumers of one cache share a single load', async () => {
   expect(calls).toBe(1)
   // both consumers got the single load's result
   expect(view.getAllByText('v7')).toHaveLength(2)
+})
+
+// The whole point of the epoch. N consumers of one cache each run their own
+// effect in response to a single event, and React commits those one at a time,
+// so ordering by "was this on the wire when I asked?" makes every consumer after
+// the first supersede its predecessor - N rpcs for one event. Measured as 4
+// identical getAnnotatedTeam inside 106ms after one reconnect.
+test('consumers reloading for one event share a single rpc', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  const releases: Array<(v: Data) => void> = []
+  const load = jest.fn(async () => {
+    calls++
+    return await new Promise<Data>(resolve => {
+      releases.push(resolve)
+    })
+  })
+  const reloads: Array<(epoch?: number) => Promise<void>> = []
+  const Comp = () => {
+    'use no memo'
+    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    reloads.push(resource.reload)
+    return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
+  }
+  const view = render(
+    <>
+      <Comp />
+      <Comp />
+      <Comp />
+    </>
+  )
+  await flush()
+  expect(calls).toBe(1)
+  act(() => {
+    releases[0]?.({v: 1})
+  })
+  await flush()
+
+  // one event, one epoch, handed to every consumer
+  const epoch = nextReloadEpoch()
+  const current = reloads.slice(-3)
+  act(() => {
+    current.forEach(reload => void reload(epoch))
+  })
+  await flush()
+  expect(calls).toBe(2)
+
+  act(() => {
+    releases[1]?.({v: 2})
+  })
+  await flush()
+  expect(view.getAllByText('v2')).toHaveLength(3)
+})
+
+// Consumers do not necessarily overlap. Measured live: two consumers of the
+// teams list reloaded 75ms apart for one reconnect, and the first request had
+// already settled, so the in-flight check had nothing to collapse onto.
+test('a consumer reloading for an event already in the cache does not refetch', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  const releases: Array<(v: Data) => void> = []
+  const load = jest.fn(async () => {
+    calls++
+    return await new Promise<Data>(resolve => {
+      releases.push(resolve)
+    })
+  })
+  const reloads: Array<(epoch?: number) => Promise<void>> = []
+  const Comp = () => {
+    'use no memo'
+    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    reloads.push(resource.reload)
+    return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
+  }
+  const view = render(
+    <>
+      <Comp />
+      <Comp />
+    </>
+  )
+  await flush()
+  expect(calls).toBe(1)
+  act(() => {
+    releases[0]?.({v: 1})
+  })
+  await flush()
+
+  const epoch = nextReloadEpoch()
+  const current = reloads.slice(-2)
+  // first consumer reloads and its request settles before the second one runs
+  act(() => {
+    void current[0]?.(epoch)
+  })
+  await flush()
+  expect(calls).toBe(2)
+  act(() => {
+    releases[1]?.({v: 2})
+  })
+  await flush()
+
+  // second consumer, same event: the cache already holds the answer
+  act(() => {
+    void current[1]?.(epoch)
+  })
+  await flush()
+  expect(calls).toBe(2)
+  expect(view.getAllByText('v2')).toHaveLength(2)
+
+  // but a new event still refetches
+  act(() => {
+    void current[1]?.(nextReloadEpoch())
+  })
+  await flush()
+  expect(calls).toBe(3)
+})
+
+// The collapse must not swallow a genuinely newer event: a reload for a later
+// epoch still supersedes whatever an earlier one put on the wire.
+test('a later epoch still supersedes an in-flight request', async () => {
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  const releases: Array<(v: Data) => void> = []
+  const load = jest.fn(async () => {
+    calls++
+    return await new Promise<Data>(resolve => {
+      releases.push(resolve)
+    })
+  })
+  let reload: ((epoch?: number) => Promise<void>) | undefined
+  const Comp = () => {
+    'use no memo'
+    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    reload = resource.reload
+    return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
+  }
+  const view = render(<Comp />)
+  await flush()
+  expect(calls).toBe(1)
+
+  act(() => {
+    void reload?.(nextReloadEpoch())
+  })
+  await flush()
+  expect(calls).toBe(2)
+
+  act(() => {
+    void reload?.(nextReloadEpoch())
+  })
+  await flush()
+  expect(calls).toBe(3)
+
+  // the two superseded requests settle last and must not win
+  act(() => {
+    releases[2]?.({v: 3})
+  })
+  await flush()
+  act(() => {
+    releases[1]?.({v: 2})
+    releases[0]?.({v: 1})
+  })
+  await flush()
+  expect(view.getAllByText('v3')).toHaveLength(1)
+  expect(cache.getData()).toEqual({v: 3})
+})
+
+// End to end over the wiring that actually produced the burst: one reconnect,
+// several mounted consumers, one rpc.
+test('a reconnect reloads every consumer with one rpc', async () => {
+  act(() => {
+    useDaemonState.setState({handshakeGeneration: 1, handshakeState: 'done'})
+  })
+  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  let calls = 0
+  const releases: Array<(v: Data) => void> = []
+  const load = jest.fn(async () => {
+    calls++
+    return await new Promise<Data>(resolve => {
+      releases.push(resolve)
+    })
+  })
+  const Comp = () => {
+    const {data, loaded} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    return <div>{loaded ? `v${data.v}` : 'pending'}</div>
+  }
+  const view = render(
+    <>
+      <Comp />
+      <Comp />
+      <Comp />
+    </>
+  )
+  await flush()
+  expect(calls).toBe(1)
+  act(() => {
+    releases[0]?.({v: 1})
+  })
+  await flush()
+
+  act(() => {
+    useDaemonState.setState({handshakeGeneration: 2, handshakeState: 'loading'})
+  })
+  act(() => {
+    useDaemonState.setState({handshakeState: 'done'})
+  })
+  await flush()
+  expect(calls).toBe(2)
+
+  act(() => {
+    releases[1]?.({v: 2})
+  })
+  await flush()
+  expect(view.getAllByText('v2')).toHaveLength(3)
 })
 
 // An engine reset orphans in-flight rpcs without ever settling them. A forced

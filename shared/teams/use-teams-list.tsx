@@ -7,6 +7,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/constants/teams'
 import {ensureError} from '@/util/errors'
+import {nextReloadEpoch} from '@/util/reload-epoch'
 import {useEngineActionListener} from '@/engine/action-listener'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -34,8 +35,8 @@ const TeamsListContext = React.createContext<TeamsList | null>(null)
 const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
 
-const teamsListInvalidationListeners = new Set<() => void>()
-const teamsRoleMapInvalidationListeners = new Set<() => void>()
+const teamsListInvalidationListeners = new Set<(epoch: number) => void>()
+const teamsRoleMapInvalidationListeners = new Set<(epoch: number) => void>()
 const teamsListCache = createCachedResourceCache<ReadonlyArray<T.Teams.TeamMeta>, string | undefined>(
   emptyTeams,
   undefined
@@ -85,15 +86,18 @@ export const invalidateLoadedTeams = () => {
   }
   invalidateCachedResource(teamsListCache, username)
   invalidateCachedResource(teamsRoleMapCache, username)
-  teamsListInvalidationListeners.forEach(listener => listener())
-  teamsRoleMapInvalidationListeners.forEach(listener => listener())
+  // one invalidation is one event: every listener reloads against the same
+  // epoch so they share an rpc instead of superseding each other
+  const epoch = nextReloadEpoch()
+  teamsListInvalidationListeners.forEach(listener => listener(epoch))
+  teamsRoleMapInvalidationListeners.forEach(listener => listener(epoch))
 }
 
 // reload whenever the service signals a team change or invalidateLoadedTeams fires
 const useReloadOnTeamChanges = (
   enabled: boolean,
-  reload: () => unknown,
-  invalidationListeners: Set<() => void>,
+  reload: (epoch?: number) => unknown,
+  invalidationListeners: Set<(epoch: number) => void>,
   includeMetadataUpdate = false
 ) => {
   const reloadNow = React.useEffectEvent(() => {
@@ -131,8 +135,8 @@ const useReloadOnTeamChanges = (
     if (!enabled) {
       return
     }
-    const listener = () => {
-      void reload()
+    const listener = (epoch: number) => {
+      void reload(epoch)
     }
     invalidationListeners.add(listener)
     return () => {

@@ -16,6 +16,8 @@ type Store = T.Immutable<{
   bootstrapStatus?: T.RPCGen.BootstrapStatus
   error?: Error
   handshakeFailedReason: string
+  /** counts handshakes, so consumers can tell one reconnect from the next */
+  handshakeGeneration: number
   handshakeRetriesLeft: number
   handshakeState: T.Config.DaemonHandshakeState
 }>
@@ -24,6 +26,7 @@ const initialStore: Store = {
   bootstrapStatus: undefined,
   error: undefined,
   handshakeFailedReason: '',
+  handshakeGeneration: 0,
   handshakeRetriesLeft: maxHandshakeTries,
   handshakeState: 'loading',
 }
@@ -104,6 +107,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       set(s => {
         s.error = undefined
         s.handshakeFailedReason = ''
+        s.handshakeGeneration = gen
         s.handshakeRetriesLeft = maxHandshakeTries
         s.handshakeState = 'loading'
       })
