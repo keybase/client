@@ -9,6 +9,7 @@ import {ignorePromise} from '@/constants/utils'
 import {isDarwin} from '@/constants/platform'
 import * as PlatformSpecific from '@/util/platform-specific'
 import {RPCError} from '@/util/errors'
+import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
   useConversationThreadActions,
@@ -146,6 +147,10 @@ export const uploadAttachments = (p: {
     // Serial, not Promise.all: the service assigns the outbox ordinal when the RPC reaches the
     // outbox, after a variable-length preprocess (video preview gen). Concurrent calls land in
     // preprocess-completion order, so the thread shows the attachments shuffled.
+    //
+    // A failure skips one attachment and keeps going so the rest of the batch still lands, but the
+    // caller is fire-and-forget: without this the user gets a silently short upload.
+    let failed = 0
     for (const [idx, pathInfo] of paths.entries()) {
       try {
         await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
@@ -163,8 +168,20 @@ export const uploadAttachments = (p: {
           clientPrev,
         })
       } catch (e) {
+        ++failed
         logger.warn('attachmentsUpload: failed to post attachment', e)
       }
+    }
+    if (failed) {
+      useConfigState
+        .getState()
+        .dispatch.setGlobalError(
+          new Error(
+            failed === paths.length
+              ? `Failed to send ${failed === 1 ? 'the attachment' : 'the attachments'}.`
+              : `Failed to send ${failed} of ${paths.length} attachments.`
+          )
+        )
     }
   }
   ignorePromise(f())
