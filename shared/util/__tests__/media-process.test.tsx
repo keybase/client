@@ -1,4 +1,36 @@
-import {canProcess, clampRange, formatDuration, isEditNoop, isVideoPath, minTrimMs} from '../media-process'
+import {
+  canProcess,
+  clampRange,
+  formatDuration,
+  isEditNoop,
+  isVideoPath,
+  minTrimMs,
+  processPaths,
+} from '../media-process'
+import {processMedia} from 'react-native-kb'
+
+// Both native-only packages resolve to this one stub through jest.config's
+// moduleNameMapper, so that's what has to carry the mocks: mocking them under
+// their own names never reaches the mapped module.
+jest.mock('@/test/mocks/native-module', () => {
+  const deleted: Array<string> = []
+  return {
+    File: class {
+      private readonly path: string
+      constructor(path: string) {
+        this.path = path
+      }
+      delete() {
+        deleted.push(this.path)
+      }
+    },
+    deleted,
+    processMedia: jest.fn(),
+  }
+})
+
+const processMediaMock = processMedia as jest.MockedFunction<typeof processMedia>
+const {deleted} = jest.requireMock<{deleted: Array<string>}>('@/test/mocks/native-module')
 
 describe('isVideoPath', () => {
   it('matches common video extensions case-insensitively', () => {
@@ -69,5 +101,75 @@ describe('formatDuration', () => {
     expect(formatDuration(4200)).toBe('0:04')
     expect(formatDuration(65_000)).toBe('1:05')
     expect(formatDuration(-1000)).toBe('0:00')
+  })
+})
+
+describe('processPaths', () => {
+  beforeEach(() => {
+    processMediaMock.mockReset()
+    deleted.length = 0
+    global.isIOS = true
+  })
+
+  afterAll(() => {
+    global.isIOS = false
+  })
+
+  it('hands the paths straight back off iOS', async () => {
+    global.isIOS = false
+    const out = await processPaths([{path: '/tmp/clip.mp4'}], true)
+    expect(out).toEqual([{path: '/tmp/clip.mp4'}])
+    expect(processMediaMock).not.toHaveBeenCalled()
+    expect(deleted).toEqual([])
+  })
+
+  it('forwards the edit and the video flag, and reports progress per item', async () => {
+    processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
+    const onProgress = jest.fn()
+    const out = await processPaths(
+      [{edit: {endMs: 9000, removeAudio: true, startMs: 500}, path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}],
+      true,
+      onProgress
+    )
+    expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {path: '/tmp/photo.jpg.out'}])
+    expect(processMediaMock).toHaveBeenNthCalledWith(1, '/tmp/clip.mp4', true, true, 500, 9000, true)
+    expect(processMediaMock).toHaveBeenNthCalledWith(2, '/tmp/photo.jpg', false, true, 0, 0, false)
+    expect(onProgress.mock.calls).toEqual([
+      [1, 2],
+      [2, 2],
+    ])
+  })
+
+  it('deletes the sources it consumed', async () => {
+    processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
+    await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
+    expect(deleted).toEqual(['/tmp/clip.mp4', '/tmp/photo.jpg'])
+  })
+
+  it('keeps a source the processor handed back untouched', async () => {
+    processMediaMock.mockImplementation(async path => Promise.resolve(path))
+    const out = await processPaths([{path: '/tmp/photo.jpg'}], false)
+    expect(out).toEqual([{path: '/tmp/photo.jpg'}])
+    // that path is the upload, so deleting it would delete the attachment
+    expect(deleted).toEqual([])
+  })
+
+  it('reports a failure against the original and keeps every source', async () => {
+    processMediaMock.mockImplementation(async path =>
+      path === '/tmp/photo.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
+    )
+    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
+    expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}])
+    // one failure sends the user to "send original", which uploads these very paths
+    expect(deleted).toEqual([])
+  })
+
+  it('keeps going after a failure so the rest of the batch still exports', async () => {
+    processMediaMock.mockImplementation(async path =>
+      path === '/tmp/a.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
+    )
+    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], true)
+    expect(processMediaMock).toHaveBeenCalledTimes(2)
+    expect(out[1]).toEqual({path: '/tmp/b.jpg.out'})
   })
 })
