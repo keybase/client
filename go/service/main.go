@@ -420,6 +420,50 @@ func (d *Service) purgeOldChatAttachmentData() {
 	}
 }
 
+// A share is what launches the app, so a blind sweep here could delete the
+// payload for the share currently on screen. Anything this old is from a
+// previous run.
+const incomingShareMaxAge = 24 * time.Hour
+
+// The iOS share extension writes payloads into the app group's cache and is
+// gone before the app reads them, so nothing on either side owns deleting them.
+// They sit outside GetCacheDir (that is the app sandbox, this is the group
+// container), so purgeOldChatAttachmentData never sees them.
+func (d *Service) purgeOldIncomingShareData() {
+	dir := IncomingShareFolder(d.G().Env.GetMobileSharedHome())
+	if dir == "" {
+		return
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			d.G().Log.Debug("purgeOldIncomingShareData: read dir: %s", err)
+		}
+		return
+	}
+	cutoff := time.Now().Add(-incomingShareMaxAge)
+	for _, entry := range entries {
+		// manifest.json lives alongside the payload dirs and is the live handoff
+		// to the app; only the directories are ours to remove.
+		if !entry.IsDir() {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		// Writing the processed copy into the payload dir bumps its mtime, so a
+		// share still being worked on keeps renewing its lease.
+		if info.ModTime().After(cutoff) {
+			continue
+		}
+		p := filepath.Join(dir, entry.Name())
+		if err := os.RemoveAll(p); err != nil {
+			d.G().Log.Debug("purgeOldIncomingShareData: failed to remove %s: %s", p, err)
+		}
+	}
+}
+
 func (d *Service) startChatModules() {
 	kuid := d.G().Env.GetUID()
 	if !kuid.IsNil() {
@@ -444,6 +488,7 @@ func (d *Service) startChatModules() {
 		g.PushShutdownHook(d.stopChatModules)
 	}
 	d.purgeOldChatAttachmentData()
+	d.purgeOldIncomingShareData()
 }
 
 func (d *Service) stopChatModules(m libkb.MetaContext) error {

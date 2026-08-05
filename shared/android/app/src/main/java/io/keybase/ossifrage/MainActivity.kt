@@ -24,6 +24,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.facebook.react.modules.core.PermissionListener
 import com.reactnativekb.DarkModePreference
+import com.reactnativekb.IncomingShareCache
 import com.reactnativekb.KbModule
 import com.reactnativekb.GuiConfig
 import io.keybase.ossifrage.modules.NativeLogger
@@ -115,7 +116,7 @@ class MainActivity : ReactActivity() {
     }
 
     private fun saveFileToCache(reactContext: ReactContext?, uri: Uri, filename: String): File {
-        val file = File(reactContext!!.cacheDir, filename)
+        val file = IncomingShareCache.file(reactContext!!, filename)
         try {
             reactContext.contentResolver.openInputStream(uri).use { istream ->
                 FileOutputStream(file).use { ostream ->

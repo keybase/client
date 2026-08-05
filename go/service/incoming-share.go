@@ -51,9 +51,19 @@ func numPtr(num int) *int {
 	return nil
 }
 
+// IncomingShareFolder is where the iOS share extension drops its payloads: one
+// directory per share plus a single manifest.json, in the app group's cache so
+// the OS can reclaim them. Empty when there is no shared home, i.e. not iOS.
+func IncomingShareFolder(mobileSharedHome string) string {
+	if mobileSharedHome == "" {
+		return ""
+	}
+	return filepath.Join(mobileSharedHome, "Library", "Caches", "incoming-shares")
+}
+
 func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (items []keybase1.IncomingShareItem, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	manifestPath := filepath.Join(h.G().Env.GetMobileSharedHome(), "Library", "Caches", "incoming-shares", "manifest.json")
+	manifestPath := filepath.Join(IncomingShareFolder(h.G().Env.GetMobileSharedHome()), "manifest.json")
 	f, err := os.Open(manifestPath)
 	if err != nil {
 		mctx.Debug("incoming-share: open manifest.json error: %v", err)

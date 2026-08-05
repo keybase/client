@@ -85,7 +85,7 @@ object PathResolver {
                     if (attachment != null) {
                         val filename = getContentName(context.contentResolver, uri)
                         if (filename != null) {
-                            val file = File(context.cacheDir, filename)
+                            val file = IncomingShareCache.file(context, filename)
                             val tmp = FileOutputStream(file)
                             val buffer = ByteArray(1024)
                             while (attachment.read(buffer) > 0) {
