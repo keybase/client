@@ -33,12 +33,15 @@ public class ItemProviderHelper: NSObject {
   }
 
   // The Safari-image path downloads after the item load already reported done,
-  // so give it its own slice of the bar instead of leaving it invisible.
-  private func trackTask(_ task: URLSessionTask) {
+  // so give it its own slice of the bar instead of leaving it invisible. Resume
+  // from inside the main-queue hop: starting the task first lets a fast download
+  // finish before its units are added, which walks the bar backwards.
+  private func startTracked(_ task: URLSessionTask) {
     DispatchQueue.main.async { [weak self] in
       guard let self = self else { return }
       self.progress.totalUnitCount += 100
       self.progress.addChild(task.progress, withPendingUnitCount: 100)
+      task.resume()
     }
   }
 
@@ -420,8 +423,7 @@ public class ItemProviderHelper: NSObject {
           sendLink: sendLink)
       }
     }
-    trackTask(task)
-    task.resume()
+    startTracked(task)
   }
 
   private func writeDownloadedMedia(
