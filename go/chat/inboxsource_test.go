@@ -300,6 +300,47 @@ func TestSearchQueryTokenization(t *testing.T) {
 	}
 }
 
+// TestIsSearchableConvExistence verifies that convs which no longer exist
+// (deleted team channels, for instance) are kept out of conversation pickers.
+// They stay in local inbox storage after deletion, and since they were never
+// localized they all display as the bare team name, so leaking them shows up
+// as a pile of identical rows.
+func TestIsSearchableConvExistence(t *testing.T) {
+	src := &HybridInboxSource{
+		searchStatusMap: map[chat1.ConversationStatus]bool{
+			chat1.ConversationStatus_UNFILED: true,
+		},
+		searchMemberStatusMap: map[chat1.ConversationMemberStatus]bool{
+			chat1.ConversationMemberStatus_ACTIVE: true,
+		},
+	}
+
+	makeConv := func(existence chat1.ConversationExistence) types.RemoteConversation {
+		return types.RemoteConversation{
+			Conv: chat1.Conversation{
+				Metadata: chat1.ConversationMetadata{
+					IdTriple:    chat1.ConversationIDTriple{TopicType: chat1.TopicType_CHAT},
+					Existence:   existence,
+					TeamType:    chat1.TeamType_COMPLEX,
+					MembersType: chat1.ConversationMembersType_TEAM,
+					Status:      chat1.ConversationStatus_UNFILED,
+					},
+				ReaderInfo: &chat1.ConversationReaderInfo{
+					Status: chat1.ConversationMemberStatus_ACTIVE,
+				},
+				MaxMsgSummaries: []chat1.MessageSummary{{MsgID: 1, MessageType: chat1.MessageType_TEXT}},
+			},
+		}
+	}
+
+	require.True(t, src.isSearchableConv(makeConv(chat1.ConversationExistence_ACTIVE)),
+		"an active conv should be searchable")
+	require.False(t, src.isSearchableConv(makeConv(chat1.ConversationExistence_DELETED)),
+		"a deleted conv should not be searchable")
+	require.False(t, src.isSearchableConv(makeConv(chat1.ConversationExistence_ABANDONED)),
+		"an abandoned conv should not be searchable")
+}
+
 func TestChatConversationDeleted(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
