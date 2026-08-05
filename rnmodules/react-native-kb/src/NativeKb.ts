@@ -30,8 +30,10 @@ export interface Spec extends TurboModule {
     cpuProfileDir: string
   ): Promise<string>
   iosGetHasShownPushPrompt(): Promise<boolean>
-  // iOS only; Android rejects. startMs/endMs are the trim range, both 0 meaning
-  // the whole clip (codegen only allows plain types here, so no nullable).
+  // iOS only: the Android impl rejects, so call the processMedia wrapper in
+  // index.tsx rather than this directly — it hands the path back untouched off
+  // iOS. startMs/endMs are the trim range, both 0 meaning the whole clip
+  // (codegen only allows plain types here, so no nullable).
   processMedia(
     path: string,
     isVideo: boolean,

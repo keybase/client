@@ -31,7 +31,6 @@ func NewIncomingShareHandler(xp rpc.Transporter, g *libkb.GlobalContext) *Incomi
 type shareItemJSON struct {
 	Type          string `json:"type"`
 	OriginalPath  string `json:"originalPath"`
-	ScaledPath    string `json:"scaledPath"`
 	ThumbnailPath string `json:"thumbnailPath"`
 	Content       string `json:"content"`
 	Error         string `json:"error"`
@@ -111,22 +110,13 @@ loop:
 			originalSize = int(fiOriginal.Size())
 		}
 
-		var scaledSize int
-		if len(jsonItem.ScaledPath) > 0 {
-			fiScaled, err := os.Stat(jsonItem.ScaledPath)
-			if err != nil {
-				mctx.Debug("incoming-share: stat error on scaled, skipping item: %v", err)
-				continue loop
-			}
-			scaledSize = int(fiScaled.Size())
-		}
-
+		// ScaledPath/ScaledSize stay unset: the extension now applies the
+		// compression preference itself, so originalPath is already the file we
+		// want to upload and there is no second scaled variant to pick between.
 		items = append(items, keybase1.IncomingShareItem{
 			Type:          t,
 			OriginalPath:  strPtr(jsonItem.OriginalPath),
 			OriginalSize:  numPtr(originalSize),
-			ScaledPath:    strPtr(jsonItem.ScaledPath),
-			ScaledSize:    numPtr(scaledSize),
 			ThumbnailPath: strPtr(jsonItem.ThumbnailPath),
 			Content:       strPtr(jsonItem.Content),
 		})

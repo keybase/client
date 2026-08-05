@@ -22,7 +22,8 @@ export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   return Promise.resolve(false)
 }
 
-// iOS only; Android hands the path back untouched
+// iOS only. The native Android method rejects, so short-circuit and hand the
+// path back untouched instead.
 export const processMedia = (
   path: string,
   isVideo: boolean,

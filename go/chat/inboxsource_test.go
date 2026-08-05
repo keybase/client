@@ -324,7 +324,7 @@ func TestIsSearchableConvExistence(t *testing.T) {
 					TeamType:    chat1.TeamType_COMPLEX,
 					MembersType: chat1.ConversationMembersType_TEAM,
 					Status:      chat1.ConversationStatus_UNFILED,
-					},
+				},
 				ReaderInfo: &chat1.ConversationReaderInfo{
 					Status: chat1.ConversationMemberStatus_ACTIVE,
 				},
