@@ -51,13 +51,14 @@ public class ShareViewController: UIViewController {
   func showProgressView() {
     let alertController = UIAlertController(title: "Working on it", message: "\n\nPreparing content for sharing into Keybase.", preferredStyle: .alert)
     alert = alertController
-    let spinner = UIActivityIndicatorView(style: .medium)
-    spinner.translatesAutoresizingMaskIntoConstraints = false
-    spinner.startAnimating()
-    alertController.view.addSubview(spinner)
+    let bar = UIProgressView(progressViewStyle: .default)
+    bar.translatesAutoresizingMaskIntoConstraints = false
+    bar.observedProgress = iph?.progress
+    alertController.view.addSubview(bar)
     NSLayoutConstraint.activate([
-      spinner.centerXAnchor.constraint(equalTo: alertController.view.centerXAnchor),
-      spinner.centerYAnchor.constraint(equalTo: alertController.view.centerYAnchor, constant: -8)
+      bar.leadingAnchor.constraint(equalTo: alertController.view.leadingAnchor, constant: 32),
+      bar.trailingAnchor.constraint(equalTo: alertController.view.trailingAnchor, constant: -32),
+      bar.centerYAnchor.constraint(equalTo: alertController.view.centerYAnchor, constant: -8)
     ])
     present(alertController, animated: true, completion: nil)
   }

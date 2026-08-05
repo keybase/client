@@ -13,6 +13,35 @@ public class ItemProviderHelper: NSObject {
   private var completionHandler: () -> Void
   private var unprocessed: Int = 0
 
+  // Drives the extension's progress bar. Each item is worth 100 units: 90 for
+  // the provider's load, which reports bytes for the big cases, and 10 for the
+  // copy/encode we do once the load hands back a temp file.
+  @objc public let progress = Progress(totalUnitCount: 0)
+  // One entry per item, retired as items finish. Which entry we retire doesn't
+  // matter — they all carry the same weight.
+  private var pendingItemProgress: [Progress] = []
+
+  private func reserveItemProgress(loaderReportsProgress: Bool) {
+    let done = Progress(totalUnitCount: 1)
+    pendingItemProgress.append(done)
+    progress.totalUnitCount += 100
+    progress.addChild(done, withPendingUnitCount: loaderReportsProgress ? 10 : 100)
+  }
+
+  private func attachLoaderProgress(_ loader: Progress) {
+    progress.addChild(loader, withPendingUnitCount: 90)
+  }
+
+  // The Safari-image path downloads after the item load already reported done,
+  // so give it its own slice of the bar instead of leaving it invisible.
+  private func trackTask(_ task: URLSessionTask) {
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      self.progress.totalUnitCount += 100
+      self.progress.addChild(task.progress, withPendingUnitCount: 100)
+    }
+  }
+
   @objc public var manifest: [[String: Any]] {
     // reconcile what we're sending over. types=text, url, video, image, file, error
     var toWrite: [[String: Any]] = []
@@ -61,6 +90,8 @@ public class ItemProviderHelper: NSObject {
   }
 
   private func completeProcessingItemAlreadyInMainThread() {
+    pendingItemProgress.popLast()?.completedUnitCount = 1
+
     // more to process
     objc_sync_enter(self)
     unprocessed -= 1
@@ -366,7 +397,7 @@ public class ItemProviderHelper: NSObject {
 
   private func downloadMedia(_ url: URL, isVideo: Bool, sendLink: @escaping () -> Void) {
     let request = URLRequest(url: url, timeoutInterval: Self.downloadTimeout)
-    URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+    let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
       guard let self = self else { return }
       let mime = response?.mimeType ?? ""
       guard error == nil, let data = data, !data.isEmpty,
@@ -382,7 +413,9 @@ public class ItemProviderHelper: NSObject {
           data, from: url, mime: mime, isVideo: isVideo || mime.hasPrefix("video/"),
           sendLink: sendLink)
       }
-    }.resume()
+    }
+    trackTask(task)
+    task.resume()
   }
 
   private func writeDownloadedMedia(
@@ -556,30 +589,43 @@ public class ItemProviderHelper: NSObject {
       for item in items {
         guard let best = Self.bestType(for: item) else { continue }
         incrementUnprocessed()
+        // Only the load*Representation calls hand back a Progress; loadItem
+        // gives us nothing to observe, so those items count all at once.
         switch best.kind {
         case .movie:
-          item.loadFileRepresentation(
-            forTypeIdentifier: best.stype, completionHandler: movieHandler)
+          reserveItemProgress(loaderReportsProgress: true)
+          attachLoaderProgress(
+            item.loadFileRepresentation(
+              forTypeIdentifier: best.stype, completionHandler: movieHandler))
         // PNG, GIF, JPEG, HEIC: copy the original file through as-is
         case .imageFile:
-          item.loadFileRepresentation(
-            forTypeIdentifier: best.stype, completionHandler: imageFileHandler)
+          reserveItemProgress(loaderReportsProgress: true)
+          attachLoaderProgress(
+            item.loadFileRepresentation(
+              forTypeIdentifier: best.stype, completionHandler: imageFileHandler))
         // Other images (coerce)
         case .image:
+          reserveItemProgress(loaderReportsProgress: false)
           item.loadItem(
             forTypeIdentifier: "public.image", options: nil, completionHandler: imageHandler)
         case .vCard:
-          item.loadDataRepresentation(
-            forTypeIdentifier: "public.vcard", completionHandler: contactHandler)
+          reserveItemProgress(loaderReportsProgress: true)
+          attachLoaderProgress(
+            item.loadDataRepresentation(
+              forTypeIdentifier: "public.vcard", completionHandler: contactHandler))
         // PDF and generic files
         case .file:
-          item.loadFileRepresentation(
-            forTypeIdentifier: "public.item", completionHandler: fileHandler)
+          reserveItemProgress(loaderReportsProgress: true)
+          attachLoaderProgress(
+            item.loadFileRepresentation(
+              forTypeIdentifier: "public.item", completionHandler: fileHandler))
         case .text:
+          reserveItemProgress(loaderReportsProgress: false)
           item.loadItem(
             forTypeIdentifier: "public.plain-text", options: nil,
             completionHandler: secureTextHandler)
         case .url:
+          reserveItemProgress(loaderReportsProgress: false)
           item.loadItem(
             forTypeIdentifier: "public.url", options: nil,
             completionHandler: { (item: NSSecureCoding?, error: Error?) in
