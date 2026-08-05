@@ -28,7 +28,14 @@ object IncomingShareCache {
     // Call off the main thread: this stats every file in the directory.
     fun purgeOld(context: Context) {
         val cutoff = System.currentTimeMillis() - MAX_AGE_MS
-        dir(context).listFiles()?.forEach { file ->
+        // null means the listing itself failed, which is not the same as an empty
+        // directory: the copies are still there, so say so rather than looking swept
+        val files = dir(context).listFiles()
+        if (files == null) {
+            NativeLogger.warn("IncomingShareCache: unable to list the cache directory, skipping purge")
+            return
+        }
+        files.forEach { file ->
             if (file.lastModified() < cutoff) {
                 file.deleteRecursively()
             }

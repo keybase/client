@@ -83,17 +83,15 @@ object PathResolver {
                     val cr = context.contentResolver
                     val attachment: InputStream? = cr.openInputStream(uri)
                     if (attachment != null) {
-                        val filename = getContentName(context.contentResolver, uri)
-                        if (filename != null) {
-                            val file = IncomingShareCache.file(context, filename)
-                            val tmp = FileOutputStream(file)
-                            val buffer = ByteArray(1024)
-                            while (attachment.read(buffer) > 0) {
-                                tmp.write(buffer)
+                        attachment.use { istream ->
+                            val filename = getContentName(context.contentResolver, uri)
+                            if (filename != null) {
+                                val file = IncomingShareCache.file(context, filename)
+                                FileOutputStream(file).use { tmp ->
+                                    istream.copyTo(tmp)
+                                }
+                                return file.absolutePath
                             }
-                            tmp.close()
-                            attachment.close()
-                            return file.absolutePath
                         }
                     }
                 } catch (e: Exception) {
