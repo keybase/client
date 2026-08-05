@@ -1,4 +1,5 @@
 import logger from '@/logger'
+import {File} from 'expo-file-system'
 import {processMedia as processMediaNative} from 'react-native-kb'
 
 const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
@@ -101,5 +102,32 @@ export const processPaths = async (
     }
     onProgress?.(idx + 1, items.length)
   }
+  deleteConsumedSources(items, out)
   return out
+}
+
+// The export writes its output alongside the source, so leaving the source
+// behind means every share costs the original plus the processed copy until iOS
+// decides to purge the cache. Once the whole batch has exported, the sources are
+// dead: the compress choice was made before the export and the originals are
+// never offered again.
+const deleteConsumedSources = (items: ReadonlyArray<ProcessItem>, out: ReadonlyArray<ProcessResult>) => {
+  // A single failure sends the user to "Send original", which uploads the very
+  // paths we would be deleting, so it's all or nothing.
+  if (out.some(r => r.error)) return
+  const sources = new Set<string>()
+  items.forEach(({path}, i) => {
+    // Untouched passthrough (an image with compression off) hands the same path
+    // back — that one is the upload.
+    if (out[i]?.path !== path) {
+      sources.add(path)
+    }
+  })
+  for (const path of sources) {
+    try {
+      new File(path).delete()
+    } catch (e) {
+      logger.warn('processMedia source cleanup failed', e)
+    }
+  }
 }

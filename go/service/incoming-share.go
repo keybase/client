@@ -87,12 +87,16 @@ loop:
 			continue loop
 		}
 
+		// The payloads live in a Caches dir the OS may purge at any time, and the
+		// app deletes a source once it has exported it. A manifest that outlived
+		// its files is stale, not broken: drop the item instead of failing the
+		// whole share.
 		var originalSize int
 		if len(jsonItem.OriginalPath) > 0 {
 			fiOriginal, err := os.Stat(jsonItem.OriginalPath)
 			if err != nil {
-				mctx.Debug("incoming-share: stat error on original: %v", err)
-				return nil, err
+				mctx.Debug("incoming-share: stat error on original, skipping item: %v", err)
+				continue loop
 			}
 			originalSize = int(fiOriginal.Size())
 		}
