@@ -18,7 +18,7 @@ export const normalizeFilePathURL = (url: string) => {
   if (url.startsWith('file://')) {
     const path = url.slice('file://'.length)
     if (__HOT__) {
-      return encodeFilePathURL(decodeURI(path))
+      return encodeFilePathURL(decodeFilePath(path))
     }
     if (url.includes(' ') || url.includes('#')) {
       return encodeURI(url).replace(/#/g, '%23')
@@ -26,6 +26,23 @@ export const normalizeFilePathURL = (url: string) => {
   }
   return url
 }
+
+// A file:// url reaches us either already encoded or as a raw path, so decode
+// down to the real path before re-encoding. Per segment and with the raw segment
+// as the fallback: decodeURI leaves reserved characters alone (an encoded '#'
+// would survive as %23 and then double-encode), and either decoder throws on a
+// filename holding a literal '%'.
+const decodeFilePath = (path: string) =>
+  path
+    .split('/')
+    .map(seg => {
+      try {
+        return decodeURIComponent(seg)
+      } catch {
+        return seg
+      }
+    })
+    .join('/')
 
 // path is an absolute posix-style path, leading slash included
 const encodeFilePathURL = (path: string) => {

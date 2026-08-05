@@ -139,10 +139,17 @@ const startApp = () => {
       // See registerSchemesAsPrivileged below.
       if (__HOT__) {
         Electron.protocol.handle(localFileScheme, async req => {
-          // Windows paths are carried with a leading slash (/C:/...) so the URL
-          // stays absolute; pathToFileURL wants them without it.
-          const path = decodeURIComponent(new URL(req.url).pathname).replace(/^\/([a-zA-Z]:)/, '$1')
-          return Electron.net.fetch(pathToFileURL(path).toString())
+          try {
+            // Windows paths are carried with a leading slash (/C:/...) so the URL
+            // stays absolute; pathToFileURL wants them without it.
+            const path = decodeURIComponent(new URL(req.url).pathname).replace(/^\/([a-zA-Z]:)/, '$1')
+            return await Electron.net.fetch(pathToFileURL(path).toString())
+          } catch (e) {
+            // a malformed percent-escape throws out of decodeURIComponent; answer
+            // the request instead of leaving it to reject unhandled
+            console.log('local file scheme failed', req.url, e)
+            return new Response(undefined, {status: 400})
+          }
         })
       }
       if (!process.env['KB_E2E_TEST']) {
