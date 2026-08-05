@@ -76,13 +76,13 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
-        // EXIF and GPS come off no matter what the caller asked for; keeping the
-        // original bytes is a size choice, not a consent to ship location.
-        try stripImageExif(at: url)
-
+        // "Keep full size" is a raw share: the original bytes with their original
+        // metadata, which is what the settings screen promises.
         if !compress {
             return url
         }
+
+        try stripImageExif(at: url)
 
         // Create scaled version
         let basename = url.deletingPathExtension().lastPathComponent
@@ -143,9 +143,14 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
-        // Even "keep the original" goes through an export: the passthrough
-        // preset copies the samples untouched, but the export is the only place
-        // the metadata filter runs, and location never ships.
+        // "Keep full size" is a raw share: hand the original back untouched. An
+        // export purely to re-write the same samples would put a full-size
+        // duplicate next to the source, and a multi-GB share fills the disk
+        // before it ever uploads.
+        if !compress, edit == nil {
+            return url
+        }
+
         let asset = AVURLAsset(url: url)
         try validateVideoAsset(asset)
 
@@ -154,13 +159,11 @@ public class MediaUtils: NSObject {
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
 
         // An edit has to go through a composition, and a composition can't be
-        // passthrough-exported reliably, so any edit implies the compressed
-        // preset even when the preference says original.
+        // passthrough-exported reliably, so a trim re-encodes even when the
+        // preference says full size.
         let source = try edit.map { try composition(from: asset, edit: $0) } ?? asset
         try exportVideoWithSettings(
-            asset: source,
-            outputURL: processedURL,
-            settings: exportSettings(compress: compress || edit != nil))
+            asset: source, outputURL: processedURL, settings: .compressed)
 
         return processedURL
     }
@@ -223,13 +226,6 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.videoProcessingFailed(
                 "Failed to generate video thumbnail: \(error.localizedDescription)")
         }
-    }
-
-    private static func exportSettings(compress: Bool) -> VideoExportSettings {
-        // One policy, two outcomes. Callers decide whether to compress; the
-        // policy itself never varies by source size. Changing the compressed
-        // preset here changes it for both the share extension and in-chat attach.
-        return compress ? VideoExportSettings.compressed : VideoExportSettings.passthrough
     }
 
     private static func exportVideoWithSettings(
@@ -388,14 +384,15 @@ public class VideoEdit: NSObject {
     }
 }
 
+// The only export the app ever runs: "keep full size" never re-encodes, so
+// reaching the exporter at all means compressing or applying a trim. Changing
+// the preset here changes it for both the share extension and in-chat attach.
 struct VideoExportSettings {
     let preset: String
     // Video + audio combined, in bits per second. nil leaves the preset's own
     // bitrate alone.
     let totalBitrate: Int?
 
-    static let passthrough = VideoExportSettings(
-        preset: AVAssetExportPresetPassthrough, totalBitrate: nil)
     // 720p at ~3.9 Mbps reproduces what the old picker-driven flow produced:
     // a 28s 1080p/60 clip lands around 13 MB either way.
     static let compressed = VideoExportSettings(

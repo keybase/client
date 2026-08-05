@@ -146,12 +146,14 @@ const ContainerInner = (ownProps: OwnProps) => {
 
     const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
     // Only local media can be handed to the native processor: kbfs paths aren't
-    // real files and non-media has nothing to compress. An edited clip goes
-    // through even when compression is off, since the cut has to be applied.
+    // real files and non-media has nothing to compress. "Keep full size" is a raw
+    // share, so with compression off only an explicit trim still needs the
+    // exporter — the cut has to be applied somewhere.
     const eligible = effective.reduce(
       (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
         const edit = edits[idx]
-        if (!isKbfsPath(path) && (canProcess(path) || !isEditNoop(edit))) {
+        const needsProcessing = compress ? canProcess(path) || !isEditNoop(edit) : !isEditNoop(edit)
+        if (!isKbfsPath(path) && needsProcessing) {
           l.push({edit, idx, path})
         }
         return l
