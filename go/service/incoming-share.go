@@ -115,8 +115,8 @@ loop:
 		if len(jsonItem.ScaledPath) > 0 {
 			fiScaled, err := os.Stat(jsonItem.ScaledPath)
 			if err != nil {
-				mctx.Debug("incoming-share: stat error on scaled: %v", err)
-				return nil, err
+				mctx.Debug("incoming-share: stat error on scaled, skipping item: %v", err)
+				continue loop
 			}
 			scaledSize = int(fiScaled.Size())
 		}
