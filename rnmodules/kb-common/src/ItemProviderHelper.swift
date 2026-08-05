@@ -91,7 +91,13 @@ public class ItemProviderHelper: NSObject {
 
   private func completeProcessingItemAlreadyInMainThread() {
     pendingItemProgress.popLast()?.completedUnitCount = 1
+    finishOneAlreadyInMainThread()
+  }
 
+  // The bookkeeping half, for the balancing increment that stands in for the
+  // whole batch rather than for an item: that one reserved no progress entry, so
+  // retiring one here would mark an item still loading as done.
+  private func finishOneAlreadyInMainThread() {
     // more to process
     objc_sync_enter(self)
     unprocessed -= 1
@@ -638,7 +644,7 @@ public class ItemProviderHelper: NSObject {
     incrementUnprocessed()
     // Clean up if we didn't find anything
     DispatchQueue.main.async { [weak self] in
-      self?.completeProcessingItemAlreadyInMainThread()
+      self?.finishOneAlreadyInMainThread()
     }
   }
 }
