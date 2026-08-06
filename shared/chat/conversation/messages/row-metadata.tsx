@@ -18,13 +18,22 @@ const findOrdinalIndex = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Ch
   return low
 }
 
-export const getPreviousOrdinal = (
+// `inWindow` tells apart "this row is the oldest thing loaded" (previous is a real gap that a
+// scroll-back load can fill) from "we were asked about an ordinal the loaded window doesn't have"
+// (a stale item id during list churn), which looks identical from the previous ordinal alone.
+const getPreviousOrdinalInfo = (
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>,
   ordinal: T.Chat.Ordinal
 ) => {
   const idx = findOrdinalIndex(messageOrdinals, ordinal)
-  return messageOrdinals[idx] === ordinal && idx > 0 ? messageOrdinals[idx - 1]! : emptyOrdinal
+  const inWindow = messageOrdinals[idx] === ordinal
+  return {inWindow, previous: inWindow && idx > 0 ? messageOrdinals[idx - 1]! : emptyOrdinal}
 }
+
+export const getPreviousOrdinal = (
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>,
+  ordinal: T.Chat.Ordinal
+) => getPreviousOrdinalInfo(messageOrdinals, ordinal).previous
 
 export const getPreviousMessage = (
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>,
@@ -35,13 +44,21 @@ export const getPreviousMessage = (
   return previousOrdinal ? messageMap.get(previousOrdinal) : undefined
 }
 
-// Sticky username-header behavior. Whether a row shows the author header depends on its PREVIOUS
-// message (author grouping). When older messages load in (scroll-back pagination), a row's previous
-// changes from missing/placeholder to a real same-author message, which would collapse the header
-// and shrink the row — making the thread jump. Once a row has shown the header we keep showing it,
-// even if a later-loaded previous would group it away, so already-rendered rows never change height.
-// The cache is owned per-conversation by the thread provider (ShownUsernameCacheContext) and passed
-// in; omitting it (e.g. in tests) just disables stickiness.
+// Username-header behavior. Whether a row shows the author header depends on its PREVIOUS message
+// (author grouping), so the oldest row of the loaded window has no previous and must assume it
+// leads a group. A scroll-back load then hands it a same-author previous and the header has to go —
+// but dropping the header outright shrinks the row ~40px mid-load and the thread jumps. So the row
+// keeps the SPACE and loses the CONTENT: `showUsername` is always the currently correct answer
+// (empty once the row groups) while `reserveHeader` says a header was already painted here, so the
+// row renders it invisibly and its height never changes. shownCache records which rows painted one.
+//
+// Only non-provisional decisions are recorded. A row whose previous ordinal is in the window but
+// whose message is missing or still an unboxing placeholder reads as a different author and shows a
+// header it will lose a moment later; that neighbor's own height is about to change anyway, so
+// reserving space for it would leave a permanent blank gap where an avatar never belonged. Ditto a
+// stale ordinal that isn't in the window at all. The cache is owned per-conversation by the thread
+// provider (ShownUsernameCacheContext) and passed in; omitting it (e.g. in tests) disables both the
+// recording and the reservation.
 export const getMessageShowUsername = (p: {
   message: T.Chat.Message
   messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
@@ -49,16 +66,20 @@ export const getMessageShowUsername = (p: {
   ordinal: T.Chat.Ordinal
   you: string
   shownCache?: Map<T.Chat.Ordinal, string>
-}) => {
+}): {reserveHeader: boolean; showUsername: string} => {
   const {message, messageMap, messageOrdinals, ordinal, you, shownCache} = p
-  const result = getUsernameToShow(message, getPreviousMessage(messageOrdinals, messageMap, ordinal), you)
-  if (!shownCache) return result
-  if (result) {
-    shownCache.set(ordinal, result)
-    return result
+  const {inWindow, previous} = getPreviousOrdinalInfo(messageOrdinals, ordinal)
+  const previousMessage = previous ? messageMap.get(previous) : undefined
+  const showUsername = getUsernameToShow(message, previousMessage, you)
+  if (!shownCache) return {reserveHeader: false, showUsername}
+  const provisional = !inWindow || (!!previous && (!previousMessage || previousMessage.type === 'placeholder'))
+  if (showUsername) {
+    if (!provisional) {
+      shownCache.set(ordinal, showUsername)
+    }
+    return {reserveHeader: false, showUsername}
   }
-  // sticky: if this row previously showed the author, keep it rather than collapsing on load
-  return shownCache.get(ordinal) ?? result
+  return {reserveHeader: shownCache.has(ordinal), showUsername}
 }
 
 export const getMessageRowRecycleType = (

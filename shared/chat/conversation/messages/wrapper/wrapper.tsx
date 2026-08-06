@@ -73,6 +73,7 @@ const missingMessage = Chat.makeMessageDeleted({})
 type AuthorProps = {
   author: string
   botAlias: string
+  hiddenHeader: boolean
   isAdhocBot: boolean
   teamID: T.Teams.TeamID
   teamType: T.Chat.TeamType
@@ -95,6 +96,7 @@ type EditCancelRetryData = {
 type FlatAuthorData = {
   author: string
   botAlias: string
+  hiddenHeader: boolean
   isAdhocBot: boolean
   showUsername: string
   teamID: T.Teams.TeamID
@@ -106,6 +108,7 @@ type FlatAuthorData = {
 const emptyAuthorData: FlatAuthorData = {
   author: '',
   botAlias: '',
+  hiddenHeader: false,
   isAdhocBot: false,
   showUsername: '',
   teamID: '' as T.Teams.TeamID,
@@ -125,7 +128,8 @@ const getRowActions = (
 }
 
 function AuthorSection(p: AuthorProps) {
-  const {author, botAlias, isAdhocBot, teamID, teamType, teamname, timestamp, showUsername} = p
+  const {author, botAlias, hiddenHeader, isAdhocBot, teamID, teamType, teamname, timestamp} = p
+  const {showUsername} = p
 
   const authorRoleInTeam = useChatTeamMemberRole(teamID, author)
   const onAuthorClick = () => navToProfile(showUsername)
@@ -174,16 +178,20 @@ function AuthorSection(p: AuthorProps) {
     usernameNode
   )
 
+  // hidden: the header keeps its space so the row height never changes, but nothing of it shows.
+  // The avatar is absolutely positioned, so dropping it (and its image fetch) costs no height.
   return (
     <>
-      <Kb.Avatar size={32} username={showUsername} onClick={onAuthorClick} style={styles.avatar} />
+      {hiddenHeader ? null : (
+        <Kb.Avatar size={32} username={showUsername} onClick={onAuthorClick} style={styles.avatar} />
+      )}
       <Kb.Box2
-        pointerEvents="box-none"
+        pointerEvents={hiddenHeader ? 'none' : 'box-none'}
         key="author"
         direction="horizontal"
         alignItems="flex-start"
         alignSelf="flex-start"
-        style={styles.authorContainer}
+        style={hiddenHeader ? styles.authorContainerHidden : styles.authorContainer}
         gap="tiny"
       >
         <Kb.Box2
@@ -209,9 +217,10 @@ const getAuthorData = (
   message: T.Chat.Message,
   meta: Pick<T.Chat.ConversationMeta, 'botAliases' | 'teamID' | 'teamType' | 'teamname'>,
   participants: T.Chat.ParticipantInfo,
-  showUsername: string
+  showUsername: string,
+  reserveHeader: boolean
 ): FlatAuthorData => {
-  if (!showUsername) {
+  if (!showUsername && !reserveHeader) {
     return emptyAuthorData
   }
   const {author, timestamp} = message
@@ -222,8 +231,11 @@ const getAuthorData = (
   return {
     author,
     botAlias: botAliases[author] ?? '',
+    hiddenHeader: !showUsername,
     isAdhocBot,
-    showUsername,
+    // the hidden header still renders the author line, it just doesn't show; it needs a name to
+    // lay out the same way the visible one did
+    showUsername: showUsername || author,
     teamID,
     teamType,
     teamname,
@@ -402,7 +414,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
-      const showUsername = RowMetadata.getMessageShowUsername({
+      const {reserveHeader, showUsername} = RowMetadata.getMessageShowUsername({
         message,
         messageMap: s.messageMap,
         messageOrdinals: s.messageOrdinals ?? [],
@@ -414,7 +426,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(messageActions, uiDispatch, retryMessage),
-        ...getAuthorData(message, authorMeta, participantInfo, showUsername),
+        ...getAuthorData(message, authorMeta, participantInfo, showUsername, reserveHeader),
         message,
       }
     })
@@ -929,7 +941,8 @@ export function WrapperMessage(p: WrapperMessageProps) {
   const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
   const {failureDescription, messageDelete, messageRetry, outboxID} = mdata
   const {setEditing, setReplyTo, toggleMessageReaction} = mdata
-  const {author, botAlias, isAdhocBot, showUsername, teamID, teamType, teamname, timestamp} = mdata
+  const {author, botAlias, hiddenHeader, isAdhocBot, showUsername, teamID, teamType, teamname} = mdata
+  const {timestamp} = mdata
 
   // Both pieces of per-row state are keyed to messageKey and reset when it changes: with
   // recycleItems the component instance is REUSED for a different message, so plain mount-captured
@@ -1000,6 +1013,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
       <AuthorHeader
         author={author}
         botAlias={botAlias}
+        hiddenHeader={hiddenHeader}
         isAdhocBot={isAdhocBot}
         showUsername={showUsername}
         teamID={teamID}
@@ -1030,6 +1044,17 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {
           ...Kb.Styles.marginV(0),
+        },
+        isMobile: {marginTop: 8},
+      }),
+      authorContainerHidden: Kb.Styles.platformStyles({
+        common: {
+          marginLeft: isMobile ? 48 : 56,
+          opacity: 0,
+        },
+        isElectron: {
+          ...Kb.Styles.marginV(0),
+          visibility: 'hidden',
         },
         isMobile: {marginTop: 8},
       }),
