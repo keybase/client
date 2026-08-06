@@ -127,8 +127,9 @@ test('a header hides but keeps its space once a real previous message groups the
 
   // oldest row of the loaded window: nothing above it yet, so it leads a group
   expect(
-    showUsernameFor({message, messageMap, messageOrdinals: [ordinal], ordinal, shownCache, you: 'alice'})
-  ).toBe('bob')
+    getMessageHeader({message, messageMap, messageOrdinals: [ordinal], ordinal, shownCache, you: 'alice'})
+  ).toEqual({reserveHeader: false, showUsername: 'bob'})
+  expect(shownCache.get(ordinal)).toBe('bob')
 
   // an unboxing placeholder above is not an answer, so the header stays
   messageMap.set(
@@ -140,7 +141,7 @@ test('a header hides but keeps its space once a real previous message groups the
     })
   )
   expect(
-    showUsernameFor({
+    getMessageHeader({
       message,
       messageMap,
       messageOrdinals: [olderOrdinal, ordinal],
@@ -148,7 +149,7 @@ test('a header hides but keeps its space once a real previous message groups the
       shownCache,
       you: 'alice',
     })
-  ).toBe('bob')
+  ).toEqual({reserveHeader: false, showUsername: 'bob'})
 
   // it resolves to a same-author message close in time: the row groups, so the header stops showing
   // but keeps its space so the row height doesn't change under the load
@@ -201,6 +202,7 @@ test('a header forced by an unresolved previous is not remembered', () => {
   expect(
     getMessageHeader({message, messageMap, messageOrdinals, ordinal, shownCache, you: 'alice'})
   ).toEqual({reserveHeader: false, showUsername: 'bob'})
+  expect(shownCache.has(ordinal)).toBe(false)
 
   // the placeholder unboxes into a same-author message: no header, and no space held for one — the
   // neighbor's own height was about to change anyway, so there is nothing to keep stable
@@ -216,6 +218,72 @@ test('a header forced by an unresolved previous is not remembered', () => {
   )
   expect(
     getMessageHeader({message, messageMap, messageOrdinals, ordinal, shownCache, you: 'alice'})
+  ).toEqual({reserveHeader: false, showUsername: ''})
+})
+
+test('a header shown for an ordinal outside the loaded window is not remembered', () => {
+  // list churn can ask about an ordinal the window no longer holds. That looks the same as "oldest
+  // row, nothing above it" from the previous ordinal alone, but it is not a real gap, so nothing
+  // about it should be recorded and reserved later.
+  const staleOrdinal = T.Chat.numberToOrdinal(901)
+  const liveOrdinal = T.Chat.numberToOrdinal(902)
+  const message = makeTextMessage({
+    author: 'bob',
+    id: T.Chat.numberToMessageID(901),
+    ordinal: staleOrdinal,
+    outboxID: T.Chat.stringToOutboxID('stale'),
+    timestamp: 101,
+  })
+  const messageMap = new Map<T.Chat.Ordinal, T.Chat.Message>([[staleOrdinal, message]])
+  const shownCache = new Map<T.Chat.Ordinal, string>()
+
+  expect(
+    getMessageHeader({
+      message,
+      messageMap,
+      messageOrdinals: [liveOrdinal],
+      ordinal: staleOrdinal,
+      shownCache,
+      you: 'alice',
+    })
+  ).toEqual({reserveHeader: false, showUsername: 'bob'})
+  expect(shownCache.has(staleOrdinal)).toBe(false)
+})
+
+test('without a cache nothing is recorded and no space is ever reserved', () => {
+  const olderOrdinal = T.Chat.numberToOrdinal(1001)
+  const ordinal = T.Chat.numberToOrdinal(1002)
+  const message = makeTextMessage({
+    author: 'bob',
+    id: T.Chat.numberToMessageID(1002),
+    ordinal,
+    outboxID: T.Chat.stringToOutboxID('current'),
+    timestamp: 101,
+  })
+  const messageMap = new Map<T.Chat.Ordinal, T.Chat.Message>([[ordinal, message]])
+
+  expect(
+    getMessageHeader({message, messageMap, messageOrdinals: [ordinal], ordinal, you: 'alice'})
+  ).toEqual({reserveHeader: false, showUsername: 'bob'})
+
+  messageMap.set(
+    olderOrdinal,
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(1001),
+      ordinal: olderOrdinal,
+      outboxID: T.Chat.stringToOutboxID('older'),
+      timestamp: 100,
+    })
+  )
+  expect(
+    getMessageHeader({
+      message,
+      messageMap,
+      messageOrdinals: [olderOrdinal, ordinal],
+      ordinal,
+      you: 'alice',
+    })
   ).toEqual({reserveHeader: false, showUsername: ''})
 })
 
