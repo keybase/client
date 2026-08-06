@@ -447,12 +447,28 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     markedReadRef.current = false
   }, [conversationIDKey])
 
+  // LegendList only re-pins to the bottom while the gap is within
+  // maintainScrollAtEndThreshold * viewport (default 0.1). While the thread is still settling,
+  // rows re-measure and the content size can jump by several viewports in a single frame; the
+  // gap lands outside that threshold, the deferred re-pin bails, and the thread is left parked
+  // short of the last message. Widen the threshold for the settle window only — restoring the
+  // default afterwards keeps an arriving message from yanking a user who has scrolled up.
+  const [settledKey, setSettledKey] = React.useState('')
+  const settled = settledKey === listKey
+  const endSettle = React.useCallback(() => {
+    setSettledKey(listKey)
+  }, [listKey])
+  const settleTimerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+  React.useEffect(() => () => clearTimeout(settleTimerRef.current), [])
+
   const onLoad = React.useCallback(() => {
     if (!markedReadRef.current) {
       markedReadRef.current = true
       markInitiallyLoadedThreadAsRead()
     }
-  }, [markInitiallyLoadedThreadAsRead])
+    clearTimeout(settleTimerRef.current)
+    settleTimerRef.current = setTimeout(endSettle, 1000)
+  }, [endSettle, markInitiallyLoadedThreadAsRead])
 
   const renderItem = React.useCallback(
     ({item: ordinal}: {item: T.Chat.Ordinal}) => <HighlightableRow ordinal={ordinal} />,
@@ -524,6 +540,14 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
+  // A wheel during the settle window means the user took over: stop centering and narrow the
+  // maintainScrollAtEnd threshold back down so we don't scroll them away from where they landed.
+  const onWheel = React.useCallback(() => {
+    abortCentering()
+    clearTimeout(settleTimerRef.current)
+    endSettle()
+  }, [abortCentering, endSettle])
+
   return (
     <Kb.ErrorBoundary>
       <div
@@ -532,7 +556,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
-        onWheel={abortCentering}
+        onWheel={onWheel}
         ref={wrapperRef}
       >
         <LegendList
@@ -555,6 +579,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
               ? false
               : {on: {dataChange: true, footerLayout: true, itemLayout: true}}
           }
+          maintainScrollAtEndThreshold={settled ? undefined : 5}
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
           maintainVisibleContentPosition={{data: true}}
