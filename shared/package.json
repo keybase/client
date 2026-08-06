@@ -45,7 +45,7 @@
     "help": "yarn run _helper help",
     "ios:gobuild": "./react-native/gobuild.sh ios",
     "ios:jsbundle": "mkdir -p ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output ios/dist/main.jsbundle --sourcemap-output ios/dist/main.jsbundle.sourcemap",
-    "ios:pod:clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local; rm -rf ../rnmodules/react-native-kb/node_modules",
+    "ios:pod:clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local; rm -rf ../rnmodules/react-native-kb/node_modules; ./react-native/write-xcode-env-local.sh",
     "ios:pod:install": "cd ios; pod install --repo-update",
     "ios:sim:push-chat": "bash tools/sim-push-chat.sh",
     "lint": "yarn run lint:specific .",
