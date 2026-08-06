@@ -4,6 +4,7 @@
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTCallInvoker.h>
+#import <React/RCTUtils.h>
 #import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
@@ -354,6 +355,38 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
     resolve(@TRUE);
     return;
   }];
+}
+
+// JS carries mobile paths with a file:// prefix (see normalizePath in styles), but
+// AVFoundation wants a bare filesystem path. Prefix handling is a plain string
+// slice on both sides to match normalizePath, which does no percent-encoding.
+static NSString *kbBarePath(NSString *p) {
+  return [p hasPrefix:@"file://"] ? [p substringFromIndex:7] : p;
+}
+
+static NSString *kbJSPath(NSString *p) {
+  return [p hasPrefix:@"/"] ? [@"file://" stringByAppendingString:p] : p;
+}
+
+RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress startMs:(double)startMs endMs:(double)endMs removeAudio:(BOOL)removeAudio resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  NSURL *url = [NSURL fileURLWithPath:kbBarePath(path)];
+  void (^done)(NSError *, NSURL *) = ^(NSError *error, NSURL *out) {
+    if (error) {
+      reject(@"process_media_error", error.localizedDescription, error);
+    } else if (out) {
+      resolve(kbJSPath(out.path));
+    } else {
+      reject(@"process_media_error", @"No output produced", nil);
+    }
+  };
+  if (isVideo) {
+    VideoEdit *edit = [[VideoEdit alloc] initWithStartMs:(NSInteger)startMs
+                                                  endMs:(NSInteger)endMs
+                                            removeAudio:removeAudio];
+    [MediaUtils processVideoFromOriginal:url compress:compress edit:(edit.isNoop ? nil : edit) completion:done];
+  } else {
+    [MediaUtils processImageFromOriginal:url compress:compress completion:done];
+  }
 }
 
 RCT_EXPORT_METHOD(checkPushPermissions: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {

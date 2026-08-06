@@ -10,6 +10,8 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
+import AttachmentTrim from './attachment-trim'
+import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -32,13 +34,15 @@ type Info = {
   url?: string
 }
 
+// Display only: which preview to show. Processing eligibility is canProcess,
+// which is deliberately a different set (heic previews as a file but is
+// processed, gif previews as an image but is passed through untouched).
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
-const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
 const pathToAttachmentType = (path: string) => {
   if (imageFileNameRegex.test(path)) {
     return 'image'
   }
-  if (videoFileNameRegex.test(path)) {
+  if (isVideoPath(path)) {
     return 'video'
   }
   return 'file'
@@ -68,33 +72,147 @@ const ContainerInner = (ownProps: OwnProps) => {
   }
   const clearModals = C.Router2.clearModals
 
-  const _onSubmit = (titles: Array<string>) => {
-    const tlfNameToUse = tlfName ?? metaTlfName
-    const uploadArgs = {
-      clientPrev,
-      conversationIDKey,
-      ephemeralLifetime: explodingMode,
-      paths: pathAndOutboxIDs,
-      titles,
-      tlfName: tlfNameToUse,
+  // Trim range and audio choice per item, keyed by their index in
+  // pathAndOutboxIDs (a prop, so we can't write back into it). Paths are never
+  // rewritten: the edit is applied by the same export that compresses, at Send.
+  const [edits, setEdits] = React.useState<{[index: number]: VideoEdit}>({})
+  const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
+  const [error, setError] = React.useState<string | undefined>()
+  // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
+  // so a dismissed screen must not go on to upload or navigate when it finishes.
+  const unmountedRef = React.useRef(false)
+  React.useEffect(() => {
+    unmountedRef.current = false
+    return () => {
+      unmountedRef.current = true
     }
-    if (tlfName || noDragDrop) {
-      uploadAttachments(uploadArgs)
-    } else {
-      uploadAttachmentsFromDragAndDrop(uploadArgs)
+  }, [])
+  // Send awaits this instead of racing it: a fast tap must not apply the
+  // default policy when the user has chosen "Keep full size". A failed lookup
+  // resolves to true so we never quietly upload originals either.
+  const compressPrefRef = React.useRef<Promise<boolean> | undefined>(undefined)
+  React.useEffect(() => {
+    if (!isIOS) {
+      return
     }
-    clearModals()
+    compressPrefRef.current = (async () => {
+      try {
+        const pref = await T.RPCGen.incomingShareGetPreferenceRpcPromise()
+        return pref.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original
+      } catch {
+        return true
+      }
+    })()
+  }, [])
+  // progress only exists once the export starts, which is after the preference
+  // resolves, so it can't gate a double tap on its own
+  const submittingRef = React.useRef(false)
 
-    if (selectConversationWithReason) {
-      C.Router2.navigateToThread(
-        conversationIDKey,
-        selectConversationWithReason,
-        undefined,
-        undefined,
-        undefined,
-        ownProps.inputPrefillText
-      )
+  // skipProcessing is the "Send anyway" path: the user has already been told the
+  // export failed and wants the originals.
+  const _onSubmit = (titles: Array<string>, skipProcessing = false) => {
+    if (progress || submittingRef.current) {
+      return
     }
+    submittingRef.current = true
+    setError(undefined)
+    const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
+      const uploadArgs = {
+        clientPrev,
+        conversationIDKey,
+        ephemeralLifetime: explodingMode,
+        paths,
+        titles,
+        tlfName: tlfName ?? metaTlfName,
+      }
+      if (tlfName || noDragDrop) {
+        uploadAttachments(uploadArgs)
+      } else {
+        uploadAttachmentsFromDragAndDrop(uploadArgs)
+      }
+      clearModals()
+
+      if (selectConversationWithReason) {
+        C.Router2.navigateToThread(
+          conversationIDKey,
+          selectConversationWithReason,
+          undefined,
+          undefined,
+          undefined,
+          ownProps.inputPrefillText
+        )
+      }
+    }
+
+    const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
+
+    if (!isIOS || skipProcessing) {
+      submittingRef.current = false
+      upload(effective)
+      return
+    }
+
+    const isUnmounted = () => unmountedRef.current
+    const f = async () => {
+      const compress = (await compressPrefRef.current) ?? true
+      if (isUnmounted()) {
+        return
+      }
+      // Only local media can be handed to the native processor: kbfs paths aren't
+      // real files and non-media has nothing to compress. "Keep full size" is a raw
+      // share, so with compression off only an explicit trim still needs the
+      // exporter — the cut has to be applied somewhere.
+      const eligible = effective.reduce(
+        (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
+          const edit = edits[idx]
+          const needsProcessing = compress ? canProcess(path) || !isEditNoop(edit) : !isEditNoop(edit)
+          if (!isKbfsPath(path) && needsProcessing) {
+            l.push({edit, idx, path})
+          }
+          return l
+        },
+        []
+      )
+
+      if (eligible.length === 0) {
+        submittingRef.current = false
+        upload(effective)
+        return
+      }
+
+      setProgress({done: 0, total: eligible.length})
+      const processed = await processPaths(
+        eligible.map(({path, edit}) => ({edit, path})),
+        compress,
+        (done, total) => {
+          if (!unmountedRef.current) {
+            setProgress({done, total})
+          }
+        }
+      )
+      if (unmountedRef.current) {
+        return
+      }
+      setProgress(undefined)
+      submittingRef.current = false
+      // A failed export means the original bytes: an uncompressed upload, or
+      // worse a clip the user asked to trim going out full length. Stop and say
+      // so instead of sending something they didn't ask for.
+      const failure = processed.find(p => p.error)
+      if (failure) {
+        setError(failure.error)
+        return
+      }
+      const next = [...effective]
+      eligible.forEach(({idx}, i) => {
+        const cur = next[idx]
+        if (cur) {
+          next[idx] = {...cur, path: processed[i]?.path ?? cur.path}
+        }
+      })
+      upload(next)
+    }
+    C.ignorePromise(f())
   }
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
     const filename = T.FS.getLocalPathName(path)
@@ -133,6 +251,10 @@ const ContainerInner = (ownProps: OwnProps) => {
     _onSubmit(titles)
   }
 
+  const onSendAnyway = () => {
+    _onSubmit(titles, true)
+  }
+
   const updateTitle = (title: string) => {
     setTitles([...titles.slice(0, index), title, ...titles.slice(index + 1)])
   }
@@ -168,6 +290,9 @@ const ContainerInner = (ownProps: OwnProps) => {
   const titleHint = 'Add a caption...'
   if (!info) return null
 
+  // kbfs paths aren't real files, so there's nothing to export from them.
+  const showTrim = !!path && !isKbfsPath(path) && canEdit(path)
+
   let preview: React.ReactNode
   switch (info.type) {
     case 'image':
@@ -176,7 +301,21 @@ const ContainerInner = (ownProps: OwnProps) => {
       ) : null
       break
     case 'video':
-      preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
+      // kbfs paths aren't real files, so nothing can be exported from them.
+      preview = !path ? null : showTrim ? (
+        <AttachmentTrim
+          // remount per slot AND per clip: duration and handle positions are
+          // per-video state, and the same path can appear at two indexes
+          key={`${index}-${path}`}
+          path={path}
+          edit={edits[index]}
+          onEdit={edit => {
+            setEdits(s => ({...s, [index]: edit}))
+          }}
+        />
+      ) : (
+        <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} />
+      )
       break
     default: {
       if (isIOS && path && Chat.isPathHEIC(path)) {
@@ -197,6 +336,12 @@ const ContainerInner = (ownProps: OwnProps) => {
 
   return (
     <>
+      <Kb.ErrorBanner
+        error={error}
+        onClose={() => {
+          setError(undefined)
+        }}
+      />
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
@@ -216,6 +361,7 @@ const ContainerInner = (ownProps: OwnProps) => {
                 e.stopPropagation()
               }}
               autoCorrect={true}
+              disabled={!!progress}
               placeholder={titleHint}
               multiline={true}
               rowsMin={2}
@@ -228,14 +374,37 @@ const ContainerInner = (ownProps: OwnProps) => {
             />
           </Kb.Box2>
         </Kb.ClickableBox>
+        {progress ? (
+          <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
+            <Kb.ProgressIndicator />
+            {/* done counts completed items; the label names the one in flight */}
+            <Kb.Text type="BodySmall">{`Processing ${Math.min(progress.done + 1, progress.total)} of ${progress.total}...`}</Kb.Text>
+          </Kb.Box2>
+        ) : null}
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
-            <Kb.WaitingButton fullWidth={!multiUpload} onClick={onSubmit} label="Send" />
+            <Kb.WaitingButton
+              disabled={!!progress}
+              fullWidth={!multiUpload}
+              onClick={onSubmit}
+              label="Send"
+            />
           ) : (
-            <Kb.Button fullWidth={!multiUpload} onClick={onNext} label="Next" />
+            <Kb.Button disabled={!!progress} fullWidth={!multiUpload} onClick={onNext} label="Next" />
           )}
-          {multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
+          {multiUpload ? (
+            <Kb.WaitingButton disabled={!!progress} onClick={onSubmit} label="Send All" />
+          ) : null}
+          {/* Send retries the export; this is the way out when it keeps failing. */}
+          {error ? (
+            <Kb.Button
+              disabled={!!progress}
+              type="Dim"
+              onClick={onSendAnyway}
+              label="Send original"
+            />
+          ) : null}
         </Kb.ButtonBar>
       </Kb.Box2>
     </>
@@ -311,6 +480,10 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
+      progress: {
+        alignSelf: 'center',
+        paddingTop: Kb.Styles.globalMargins.tiny,
+      },
     }) as const
 )
 

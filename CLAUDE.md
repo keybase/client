@@ -13,6 +13,7 @@
 - Exact versions in `package.json` (no `^`/`~`).
 - Keep `react`, `react-dom`, `react-native`, `@react-native/*` in sync with Expo SDK.
 - When updating deps: edit `package.json` → `yarn` → `yarn ios:pod:install`.
+- After editing `rnmodules/react-native-kb/`: run `yarn sync:kb-modules` before building. `shared/node_modules/react-native-kb` is a copy, not a symlink, and Xcode compiles the copy — skipping this builds stale sources and reports errors against code you already fixed. `rnmodules/kb-common/` needs no sync (the Podfile references it by path).
 - When updating `electron`: run `shared/desktop/extract-electron-shasums.sh <version>`.
 - Never patch `react-native` itself (patch-package or node_modules edits): we use prebuilt RN core and don't compile its source, so native-side patches never take effect. Work around RN core bugs in app code.
 
@@ -21,6 +22,7 @@ Repo root is `client/`. TS source lives in `shared/`. Always use absolute paths 
 
 ## Superpowers
 - Plans created by superpowers skills go into `plans/` at the repo root.
+- Never commit plan/spec/design docs. They're scratch for the current effort — leave them untracked and delete them when the work lands.
 
 ## Validation
 After TS changes (from `shared/`): `yarn lint:all` (= `yarn lint` && `yarn lint:bailouts` && `yarn tsc`). Plain `yarn lint` is eslint only and does NOT catch react-compiler bailouts — no compiler rule is wired into `eslint.config.mjs`, so bailouts only surface via `lint:bailouts`. Repo baseline is 0 bailouts; keep it there. When debugging visually, skip until fix is confirmed. Never delete the ESLint cache.

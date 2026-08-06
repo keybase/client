@@ -31,7 +31,6 @@ func NewIncomingShareHandler(xp rpc.Transporter, g *libkb.GlobalContext) *Incomi
 type shareItemJSON struct {
 	Type          string `json:"type"`
 	OriginalPath  string `json:"originalPath"`
-	ScaledPath    string `json:"scaledPath"`
 	ThumbnailPath string `json:"thumbnailPath"`
 	Content       string `json:"content"`
 	Error         string `json:"error"`
@@ -51,9 +50,19 @@ func numPtr(num int) *int {
 	return nil
 }
 
+// IncomingShareFolder is where the iOS share extension drops its payloads: one
+// directory per share plus a single manifest.json, in the app group's cache so
+// the OS can reclaim them. Empty when there is no shared home, i.e. not iOS.
+func IncomingShareFolder(mobileSharedHome string) string {
+	if mobileSharedHome == "" {
+		return ""
+	}
+	return filepath.Join(mobileSharedHome, "Library", "Caches", "incoming-shares")
+}
+
 func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (items []keybase1.IncomingShareItem, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	manifestPath := filepath.Join(h.G().Env.GetMobileSharedHome(), "Library", "Caches", "incoming-shares", "manifest.json")
+	manifestPath := filepath.Join(IncomingShareFolder(h.G().Env.GetMobileSharedHome()), "manifest.json")
 	f, err := os.Open(manifestPath)
 	if err != nil {
 		mctx.Debug("incoming-share: open manifest.json error: %v", err)
@@ -87,32 +96,27 @@ loop:
 			continue loop
 		}
 
+		// The payloads live in a Caches dir the OS may purge at any time, and the
+		// app deletes a source once it has exported it. A manifest that outlived
+		// its files is stale, not broken: drop the item instead of failing the
+		// whole share.
 		var originalSize int
 		if len(jsonItem.OriginalPath) > 0 {
 			fiOriginal, err := os.Stat(jsonItem.OriginalPath)
 			if err != nil {
-				mctx.Debug("incoming-share: stat error on original: %v", err)
-				return nil, err
+				mctx.Debug("incoming-share: stat error on original, skipping item: %v", err)
+				continue loop
 			}
 			originalSize = int(fiOriginal.Size())
 		}
 
-		var scaledSize int
-		if len(jsonItem.ScaledPath) > 0 {
-			fiScaled, err := os.Stat(jsonItem.ScaledPath)
-			if err != nil {
-				mctx.Debug("incoming-share: stat error on scaled: %v", err)
-				return nil, err
-			}
-			scaledSize = int(fiScaled.Size())
-		}
-
+		// ScaledPath/ScaledSize stay unset: the extension now applies the
+		// compression preference itself, so originalPath is already the file we
+		// want to upload and there is no second scaled variant to pick between.
 		items = append(items, keybase1.IncomingShareItem{
 			Type:          t,
 			OriginalPath:  strPtr(jsonItem.OriginalPath),
 			OriginalSize:  numPtr(originalSize),
-			ScaledPath:    strPtr(jsonItem.ScaledPath),
-			ScaledSize:    numPtr(scaledSize),
 			ThumbnailPath: strPtr(jsonItem.ThumbnailPath),
 			Content:       strPtr(jsonItem.Content),
 		})
@@ -142,8 +146,10 @@ func (h *IncomingShareHandler) GetPreference(ctx context.Context) (
 	if found {
 		return pref, nil
 	}
+	// Compressing is the default for both the share extension and in-chat
+	// attach; only an explicit opt-out uploads originals.
 	return keybase1.IncomingSharePreference{
-		CompressPreference: keybase1.IncomingShareCompressPreference_ORIGINAL,
+		CompressPreference: keybase1.IncomingShareCompressPreference_COMPRESSED,
 	}, nil
 }
 

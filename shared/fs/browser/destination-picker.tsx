@@ -10,7 +10,6 @@ import {FsBrowserEditProvider, useFsBrowserEdits} from './edit-state'
 import {FsBrowserSortProvider} from './sort-state'
 import Rows from './rows/rows-container'
 import * as FS from '@/constants/fs'
-import {useConfigState} from '@/stores/config'
 import {makeUUID} from '@/util/uuid'
 
 type OwnProps = {
@@ -39,9 +38,9 @@ const doMoveOrCopy = async (
           },
         ]
       : source.source
-          .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
-          .filter(({originalPath}) => !!originalPath)
-          .map(({originalPath, scaledPath}) => ({
+          .map(item => item.originalPath ?? '')
+          .filter(originalPath => !!originalPath)
+          .map(originalPath => ({
             dest: FS.pathToRPCPath(
               T.FS.pathConcat(
                 parentPath,
@@ -53,11 +52,7 @@ const doMoveOrCopy = async (
             overwriteExistingFiles: false,
             src: {
               PathType: T.RPCGen.PathType.local,
-              local: T.FS.getNormalizedLocalPath(
-                useConfigState.getState().incomingShareUseOriginal
-                  ? originalPath
-                  : scaledPath || originalPath
-              ),
+              local: T.FS.getNormalizedLocalPath(originalPath),
             } as T.RPCGen.Path,
           }))
 

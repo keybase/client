@@ -1322,6 +1322,20 @@ func tokenizeSearchQuery(query string) (queryToks []string) {
 	return queryToks
 }
 
+// isSearchableConv reports whether a conv may show up in a conversation
+// picker. Search reads the inbox directly instead of going through
+// utils.ApplyInboxQuery, so it has to repeat that query's existence check
+// itself: deleted convs (a deleted team channel, say) stay in local inbox
+// storage, and without this they surface as extra rows that all render as the
+// bare team name because they were never localized.
+func (s *HybridInboxSource) isSearchableConv(conv types.RemoteConversation) bool {
+	return conv.Conv.GetTopicType() == chat1.TopicType_CHAT &&
+		conv.Conv.Metadata.Existence == chat1.ConversationExistence_ACTIVE &&
+		!utils.IsConvEmpty(conv.Conv) && !conv.Conv.IsPublic() &&
+		s.searchStatusMap[conv.Conv.Metadata.Status] &&
+		s.searchMemberStatusMap[conv.Conv.ReaderInfo.Status]
+}
+
 func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int,
 	emptyMode types.InboxSourceSearchEmptyMode,
 ) (res []types.RemoteConversation, err error) {
@@ -1336,10 +1350,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	queryToks := tokenizeSearchQuery(query)
 	var hits []convSearchHit
 	for _, conv := range convs {
-		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT ||
-			utils.IsConvEmpty(conv.Conv) || conv.Conv.IsPublic() ||
-			!s.searchStatusMap[conv.Conv.Metadata.Status] ||
-			!s.searchMemberStatusMap[conv.Conv.ReaderInfo.Status] {
+		if !s.isSearchableConv(conv) {
 			continue
 		}
 		hit := s.isConvSearchHit(ctx, conv, queryToks, username, emptyMode)

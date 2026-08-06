@@ -22,6 +22,22 @@ export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   return Promise.resolve(false)
 }
 
+// iOS only. The native Android method rejects, so short-circuit and hand the
+// path back untouched instead.
+export const processMedia = (
+  path: string,
+  isVideo: boolean,
+  compress: boolean,
+  startMs = 0,
+  endMs = 0,
+  removeAudio = false
+): Promise<string> => {
+  if (Platform.OS === 'ios') {
+    return Kb.processMedia(path, isVideo, compress, startMs, endMs, removeAudio)
+  }
+  return Promise.resolve(path)
+}
+
 export const androidShareText = (text: string, mimeType: string): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType)

@@ -118,7 +118,15 @@ const nativeMakeLayout = (
 
     return (
       <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-        <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
+        {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
+            onto a view whose static style is flexGrow:1 and whose child SafeAreaView forces
+            flex:1, so the shrink never reaches layout and the keyboard covers the content.
+            'padding' composes with those and is what iOS already uses. */}
+        <Kb.KeyboardAvoidingView2
+          behavior="padding"
+          extraOffset={modalOffset}
+          compensateNotBeingOnBottom={isModal && isTablet}
+        >
           <Kb.SafeAreaView
             edges={navigationOptions?.safeAreaEdges}
             style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}

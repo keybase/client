@@ -18,6 +18,7 @@ import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.common.ReleaseLevel
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
+import com.reactnativekb.IncomingShareCache
 import expo.modules.ApplicationLifecycleDispatcher.onApplicationCreate
 import expo.modules.ApplicationLifecycleDispatcher.onConfigurationChanged
 import expo.modules.ExpoReactHostFactory
@@ -63,6 +64,14 @@ class MainApplication : Application(), ReactApplication {
 
         // KB
         onApplicationCreate(this)
+
+        Thread {
+            try {
+                IncomingShareCache.purgeOld(this)
+            } catch (e: Exception) {
+                NativeLogger.warn("MainApplication: error purging old incoming shares", e)
+            }
+        }.start()
 
         val backgroundSyncRequest: WorkRequest = PeriodicWorkRequest.Builder(
             BackgroundSyncWorker::class.java,

@@ -171,6 +171,12 @@ export const emptyFileModulesPlugin = (isDev: boolean): Plugin => {
 
 const joinCsp = (sources: Array<string | false | undefined>) => sources.filter(Boolean).join(' ')
 
+// Local files reach the dev renderer through this scheme; keep in sync with
+// util/file-url.tsx (a .tsx module the config can't import). CSP source
+// expressions want the trailing colon, so callers below add it.
+const localFileScheme = 'kbfile'
+const localFileCspSource = `${localFileScheme}:`
+
 const makeCsp = (isDev: boolean) =>
   [
     "default-src 'none'",
@@ -179,7 +185,7 @@ const makeCsp = (isDev: boolean) =>
     'object-src http://127.0.0.1:*',
     'frame-src http://127.0.0.1:*',
     `font-src ${joinCsp(["'self'", isDev && devOrigin])}`,
-    'media-src http://127.0.0.1:*',
+    `media-src ${joinCsp(['http://127.0.0.1:*', isDev && localFileCspSource])}`,
     `img-src ${joinCsp([
       "'self'",
       'data:',
@@ -189,6 +195,7 @@ const makeCsp = (isDev: boolean) =>
       'https://avatars.githubusercontent.com/',
       'https://s3.amazonaws.com/keybase_processed_uploads/',
       isDev && devOrigin,
+      isDev && localFileCspSource,
     ])}`,
     // Vite emits app CSS as external <link> stylesheets (webpack's style-loader
     // inlined them), so 'self'/dev-origin must be allowed, not just 'unsafe-inline'.

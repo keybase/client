@@ -2,14 +2,24 @@ import * as ImagePicker from 'expo-image-picker'
 
 // built lazily: on desktop expo-image-picker is nulled out by the bundler, so
 // dereferencing its enums at module scope crashes at import time
-const getDefaultOptions = () => ({
-  allowsEditing: false,
+//
+// `raw` is for chat attach only: MediaUtils on the get-titles screen owns trim +
+// compression for both the share extension and in-chat attach, so those picks should hand
+// back originals untouched (quality: 1 also avoids an iOS JPEG recompress pass before
+// MediaUtils.processImage ever sees the image). Every other caller (avatar upload, emoji
+// upload, KBFS upload) has nothing downstream that compresses, so they keep the picker's
+// own compression.
+// Non-raw video picks keep the UIKit trim/editing step: it's the only video
+// handling those callers get, and it forces a single selection. Android ignores
+// allowsEditing for video (it only ever launches the crop activity for images),
+// so this is effectively iOS-only.
+const usesEditor = (raw: boolean, mediaType: 'photo' | 'video' | 'mixed') => !raw && mediaType === 'video'
+
+const getDefaultOptions = (raw: boolean, mediaType: 'photo' | 'video' | 'mixed') => ({
+  allowsEditing: usesEditor(raw, mediaType),
   exif: false,
-  quality: 0.4,
-  // marked deprecated but still the only thing that compresses library video picks on iOS;
-  // default is Passthrough which uploads the original file untouched
-  videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
-  // camera recordings + legacy editing picker only
+  quality: raw ? 1 : 0.4,
+  videoExportPreset: raw ? ImagePicker.VideoExportPreset.Passthrough : ImagePicker.VideoExportPreset.MediumQuality,
   videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
 }) as const
 
@@ -32,13 +42,14 @@ const guardUndefined = (res: ImagePicker.ImagePickerResult | undefined, name: st
 
 export const launchCameraAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
-  askPermAndRetry: boolean = true
+  askPermAndRetry: boolean = true,
+  raw: boolean = false
 ): Promise<ImagePicker.ImagePickerResult> => {
   if (!isMobile) return canceled
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchCameraAsync({
-      ...getDefaultOptions(),
+      ...getDefaultOptions(raw, mediaType),
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
   } catch (e) {
@@ -51,7 +62,7 @@ export const launchCameraAsync = async (
     try {
       await ImagePicker.requestMediaLibraryPermissionsAsync()
     } catch {}
-    return launchCameraAsync(mediaType, false)
+    return launchCameraAsync(mediaType, false, raw)
   }
   return guardUndefined(res, 'launchCameraAsync')
 }
@@ -59,15 +70,16 @@ export const launchCameraAsync = async (
 export const launchImageLibraryAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true,
-  allowsMultipleSelection: boolean = false
+  allowsMultipleSelection: boolean = false,
+  raw: boolean = false
 ): Promise<ImagePicker.ImagePickerResult> => {
   if (!isMobile) return canceled
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchImageLibraryAsync({
-      ...getDefaultOptions(),
-      allowsMultipleSelection,
-      ...(mediaType === 'video' ? {allowsEditing: true, allowsMultipleSelection: false} : {}),
+      ...getDefaultOptions(raw, mediaType),
+      // the UIKit editor can't handle a multi-pick
+      allowsMultipleSelection: usesEditor(raw, mediaType) ? false : allowsMultipleSelection,
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
   } catch (e) {
@@ -77,7 +89,7 @@ export const launchImageLibraryAsync = async (
     try {
       await ImagePicker.requestMediaLibraryPermissionsAsync()
     } catch {}
-    return launchImageLibraryAsync(mediaType, false, allowsMultipleSelection)
+    return launchImageLibraryAsync(mediaType, false, allowsMultipleSelection, raw)
   }
   return guardUndefined(res, 'launchImageLibraryAsync')
 }

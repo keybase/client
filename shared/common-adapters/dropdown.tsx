@@ -10,7 +10,6 @@ import {usePopup2, type Popup2Parms} from './popup/use-popup'
 import * as Styles from '@/styles'
 import './dropdown.css'
 import type {MeasureRef} from './measure-ref'
-import {useSafeAreaInsets} from './safe-area-view'
 
 const Kb = {
   Box2,
@@ -21,7 +20,6 @@ const Kb = {
   ScrollView,
   Text,
   usePopup2,
-  useSafeAreaInsets,
 }
 
 type DropdownButtonProps = {
@@ -89,42 +87,45 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const disabled = p.disabled ?? false
   const {style, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p
-  const {bottom} = Kb.useSafeAreaInsets()
 
   const makePopup = (p: Popup2Parms) => {
     const {attachTo, hidePopup} = p
+    const rows = items.map((i: N, idx) => (
+      <Kb.ClickableBox
+        key={idx}
+        onClick={evt => {
+          evt?.stopPropagation()
+          evt?.preventDefault()
+          // Bug in flow that doesn't let us just call this function
+          // onSelect(i)
+          onChangedIdx?.(idx)
+          hidePopup()
+        }}
+        direction="vertical"
+        fullWidth={true}
+        justifyContent="center"
+        noShrink={true}
+        className="hover_background_color_blueLighter2"
+        style={Styles.collapseStyles([styles.itemClickBox, styles.itemBox, itemBoxStyle])}
+      >
+        {i}
+      </Kb.ClickableBox>
+    ))
     return (
       <Kb.Popup
         style={Styles.collapseStyles([styles.overlay, overlayStyle])}
         attachTo={attachTo}
-        mobileAnchored={true}
         visible={true}
         onHidden={hidePopup}
         position={position || 'center center'}
       >
-        <Kb.ScrollView style={styles.scrollView} contentInset={{bottom}}>
-          {items.map((i: N, idx) => (
-            <Kb.ClickableBox
-              key={idx}
-              onClick={evt => {
-                evt?.stopPropagation()
-                evt?.preventDefault()
-                // Bug in flow that doesn't let us just call this function
-                // onSelect(i)
-                onChangedIdx?.(idx)
-                hidePopup()
-              }}
-              direction="vertical"
-              fullWidth={true}
-              justifyContent="center"
-              noShrink={true}
-              className="hover_background_color_blueLighter2"
-              style={Styles.collapseStyles([styles.itemClickBox, styles.itemBox, itemBoxStyle])}
-            >
-              {i}
-            </Kb.ClickableBox>
-          ))}
-        </Kb.ScrollView>
+        {isMobile ? (
+          // the sheet's own scroll view is the direct child that scrolls; another
+          // one here would measure unbounded and clip instead
+          rows
+        ) : (
+          <Kb.ScrollView style={styles.scrollView}>{rows}</Kb.ScrollView>
+        )}
       </Kb.Popup>
     )
   }
@@ -260,10 +261,6 @@ const styles = Styles.styleSheetCreate(
       scrollView: Styles.platformStyles({
         common: {
           ...Styles.size('100%'),
-        },
-        isMobile: {
-          backgroundColor: Styles.globalColors.white,
-          maxHeight: '50%',
         },
       }),
       selectedBox: {

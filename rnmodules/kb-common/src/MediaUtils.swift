@@ -6,8 +6,6 @@ import UIKit
 struct MediaProcessingConfig {
     static let imageMaxPixelSize: Int = 1200
     static let imageCompressionQuality: CGFloat = 0.85
-    static let videoMaxPixels: Int = 1920 * 1080
-    static let videoMaxFileSize: Int64 = 50 * 1024 * 1024
 }
 
 enum MediaUtilsError: Error, LocalizedError {
@@ -27,10 +25,9 @@ enum MediaUtilsError: Error, LocalizedError {
 }
 
 typealias ProcessMediaCompletion = (Result<URL, Error>) -> Void
-typealias ProcessMediaProgressCallback = (Float) -> Void
 
 @objc(MediaUtils)
-class MediaUtils: NSObject {
+public class MediaUtils: NSObject {
     private static var scaledImageOptions: CFDictionary {
         return [
             kCGImageSourceCreateThumbnailWithTransform: true,
@@ -39,11 +36,12 @@ class MediaUtils: NSObject {
         ] as CFDictionary
     }
 
-    @objc static func processImage(
+    @objc public static func processImage(
         fromOriginal url: URL,
+        compress: Bool,
         completion: @escaping (Error?, URL?) -> Void
     ) {
-        processImageAsync(fromOriginal: url) { result in
+        processImageAsync(fromOriginal: url, compress: compress) { result in
             switch result {
             case .success(let url):
                 completion(nil, url)
@@ -55,11 +53,12 @@ class MediaUtils: NSObject {
 
     static func processImageAsync(
         fromOriginal url: URL,
+        compress: Bool,
         completion: @escaping ProcessMediaCompletion
     ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let processedURL = try processImageSync(fromOriginal: url)
+                let processedURL = try processImageSync(fromOriginal: url, compress: compress)
                 DispatchQueue.main.async {
                     completion(.success(processedURL))
                 }
@@ -71,13 +70,18 @@ class MediaUtils: NSObject {
         }
     }
 
-    private static func processImageSync(fromOriginal url: URL) throws -> URL {
+    private static func processImageSync(fromOriginal url: URL, compress: Bool) throws -> URL {
         // Validate input
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
-        // Strip EXIF data first
+        // "Keep full size" is a raw share: the original bytes with their original
+        // metadata, which is what the settings screen promises.
+        if !compress {
+            return url
+        }
+
         try stripImageExif(at: url)
 
         // Create scaled version
@@ -93,11 +97,15 @@ class MediaUtils: NSObject {
         return scaledURL
     }
 
-    @objc static func processVideo(
+    // edit carries the user's trim range and audio choice; nil means "the whole
+    // clip, untouched".
+    @objc public static func processVideo(
         fromOriginal url: URL,
+        compress: Bool,
+        edit: VideoEdit?,
         completion: @escaping (Error?, URL?) -> Void
     ) {
-        processVideoAsync(fromOriginal: url) { result in
+        processVideoAsync(fromOriginal: url, compress: compress, edit: edit) { result in
             switch result {
             case .success(let url):
                 completion(nil, url)
@@ -109,12 +117,14 @@ class MediaUtils: NSObject {
 
     static func processVideoAsync(
         fromOriginal url: URL,
-        progress: ProcessMediaProgressCallback? = nil,
+        compress: Bool,
+        edit: VideoEdit? = nil,
         completion: @escaping ProcessMediaCompletion
     ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let processedURL = try processVideoSync(fromOriginal: url, progress: progress)
+                let processedURL = try processVideoSync(
+                    fromOriginal: url, compress: compress, edit: edit)
                 DispatchQueue.main.async {
                     completion(.success(processedURL))
                 }
@@ -127,30 +137,73 @@ class MediaUtils: NSObject {
     }
 
     private static func processVideoSync(
-        fromOriginal url: URL,
-        progress: ProcessMediaProgressCallback? = nil
+        fromOriginal url: URL, compress: Bool, edit: VideoEdit?
     ) throws -> URL {
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
 
-        let asset = AVURLAsset(url: url)
+        // "Keep full size" is a raw share: hand the original back untouched. An
+        // export purely to re-write the same samples would put a full-size
+        // duplicate next to the source, and a multi-GB share fills the disk
+        // before it ever uploads.
+        if !compress, edit == nil {
+            return url
+        }
 
+        let asset = AVURLAsset(url: url)
         try validateVideoAsset(asset)
 
         let basename = url.deletingPathExtension().lastPathComponent
         let parent = url.deletingLastPathComponent()
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
 
-        let exportSettings = determineOptimalExportSettings(for: asset)
-
+        // An edit has to go through a composition, and a composition can't be
+        // passthrough-exported reliably, so a trim re-encodes even when the
+        // preference says full size.
+        let source = try edit.map { try composition(from: asset, edit: $0) } ?? asset
         try exportVideoWithSettings(
-            asset: asset,
-            outputURL: processedURL,
-            settings: exportSettings,
-            progress: progress)
+            asset: source, outputURL: processedURL, settings: .compressed)
 
         return processedURL
+    }
+
+    // Builds a video-only or video+audio composition covering the trim range.
+    private static func composition(from asset: AVURLAsset, edit: VideoEdit) throws
+        -> AVComposition
+    {
+        let duration = asset.duration
+        let range = edit.timeRange(within: duration)
+        guard range.duration.seconds > 0 else {
+            throw MediaUtilsError.invalidInput("Trim range is empty")
+        }
+
+        let composition = AVMutableComposition()
+
+        guard let sourceVideo = asset.tracks(withMediaType: .video).first,
+            let videoTrack = composition.addMutableTrack(
+                withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to create composition track")
+        }
+        try videoTrack.insertTimeRange(range, of: sourceVideo, at: .zero)
+        // Without the source transform a portrait clip exports sideways: the
+        // rotation lives on the track, not in the pixels.
+        videoTrack.preferredTransform = sourceVideo.preferredTransform
+
+        // A silent source is normal; failing to build the track when the user
+        // kept audio is not, and swallowing it would upload a silent video.
+        if !edit.removeAudio, let sourceAudio = asset.tracks(withMediaType: .audio).first {
+            guard
+                let audioTrack = composition.addMutableTrack(
+                    withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+            else {
+                throw MediaUtilsError.videoProcessingFailed("Failed to create audio composition track")
+            }
+            try audioTrack.insertTimeRange(range, of: sourceAudio, at: .zero)
+        }
+
+        return composition
     }
 
     private static func validateVideoAsset(_ asset: AVURLAsset) throws {
@@ -175,34 +228,10 @@ class MediaUtils: NSObject {
         }
     }
 
-    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings
-    {
-        let videoTracks = asset.tracks(withMediaType: .video)
-        guard let firstVideoTrack = videoTracks.first else {
-            return VideoExportSettings.default
-        }
-
-        let size = firstVideoTrack.naturalSize
-        let pixelCount = Int(size.width * size.height)
-        let fileSize = getFileSize(for: asset.url)
-
-        // Determine if we need to scale down
-        let needsScaling =
-            pixelCount > MediaProcessingConfig.videoMaxPixels
-            || fileSize > MediaProcessingConfig.videoMaxFileSize
-
-        if needsScaling {
-            return VideoExportSettings.mediumQuality
-        } else {
-            return VideoExportSettings.passthrough
-        }
-    }
-
     private static func exportVideoWithSettings(
-        asset: AVURLAsset,
+        asset: AVAsset,
         outputURL: URL,
-        settings: VideoExportSettings,
-        progress: ProcessMediaProgressCallback?
+        settings: VideoExportSettings
     ) throws {
 
         let semaphore = DispatchSemaphore(value: 0)
@@ -213,29 +242,29 @@ class MediaUtils: NSObject {
             throw MediaUtilsError.videoProcessingFailed("Failed to create export session")
         }
 
+        // AVAssetExportSession refuses to write over an existing file, so a
+        // second pass over the same source would fail outright.
+        try? FileManager.default.removeItem(at: outputURL)
+
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mp4
         exportSession.shouldOptimizeForNetworkUse = true
         exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()  // Strips location data
 
-        // Set up progress monitoring
-        if let progress = progress {
-            let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                DispatchQueue.main.async {
-                    progress(exportSession.progress)
-                }
+        // The 720p preset alone encodes around 11 Mbps, several times what the
+        // old picker-driven flow produced. A byte budget is the only bitrate
+        // knob AVAssetExportSession exposes, and it only ever lowers quality, so
+        // a short or already-small clip is unaffected.
+        if let bitsPerSecond = settings.totalBitrate {
+            let duration = CMTimeGetSeconds(asset.duration)
+            if duration.isFinite && duration > 0 {
+                exportSession.fileLengthLimit = Int64(Double(bitsPerSecond) / 8 * duration)
             }
+        }
 
-            exportSession.exportAsynchronously {
-                timer.invalidate()
-                exportError = exportSession.error
-                semaphore.signal()
-            }
-        } else {
-            exportSession.exportAsynchronously {
-                exportError = exportSession.error
-                semaphore.signal()
-            }
+        exportSession.exportAsynchronously {
+            exportError = exportSession.error
+            semaphore.signal()
         }
 
         semaphore.wait()
@@ -248,15 +277,6 @@ class MediaUtils: NSObject {
         guard exportSession.status == .completed else {
             throw MediaUtilsError.videoProcessingFailed(
                 "Export session failed with status: \(exportSession.status)")
-        }
-    }
-
-    private static func getFileSize(for url: URL) -> Int64 {
-        do {
-            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
-            return attributes[.size] as? Int64 ?? 0
-        } catch {
-            return 0
         }
     }
 
@@ -329,13 +349,52 @@ class MediaUtils: NSObject {
     }
 }
 
+// A user's edit of one clip. Milliseconds because that's what crosses the JS
+// bridge; an end of 0 (or past the source) means "to the end".
+@objc(VideoEdit)
+public class VideoEdit: NSObject {
+    let startMs: Int
+    let endMs: Int
+    let removeAudio: Bool
+
+    @objc public init(startMs: Int, endMs: Int, removeAudio: Bool) {
+        self.startMs = max(0, startMs)
+        self.endMs = max(0, endMs)
+        self.removeAudio = removeAudio
+        super.init()
+    }
+
+    // Nothing trimmed and audio kept means there is no edit at all, so callers
+    // can skip the composition and the forced re-encode.
+    @objc public var isNoop: Bool {
+        return removeAudio == false && startMs == 0 && endMs == 0
+    }
+
+    func timeRange(within duration: CMTime) -> CMTimeRange {
+        let scale: CMTimeScale = 1000
+        let total = duration.isNumeric ? duration : .zero
+        let start = CMTime(value: CMTimeValue(startMs), timescale: scale)
+        let requestedEnd = CMTime(value: CMTimeValue(endMs), timescale: scale)
+        let end =
+            (endMs == 0 || CMTimeCompare(requestedEnd, total) > 0) ? total : requestedEnd
+        guard CMTimeCompare(start, end) < 0 else {
+            return CMTimeRange(start: .zero, duration: total)
+        }
+        return CMTimeRange(start: start, end: end)
+    }
+}
+
+// The only export the app ever runs: "keep full size" never re-encodes, so
+// reaching the exporter at all means compressing or applying a trim. Changing
+// the preset here changes it for both the share extension and in-chat attach.
 struct VideoExportSettings {
     let preset: String
+    // Video + audio combined, in bits per second. nil leaves the preset's own
+    // bitrate alone.
+    let totalBitrate: Int?
 
-    static let passthrough = VideoExportSettings(preset: AVAssetExportPresetPassthrough)
-    static let highQuality = VideoExportSettings(preset: AVAssetExportPreset1920x1080)
-    static let mediumQuality = VideoExportSettings(preset: AVAssetExportPresetMediumQuality)
-    static let lowQuality = VideoExportSettings(preset: AVAssetExportPresetLowQuality)
-
-    static let `default` = mediumQuality
+    // 720p at ~3.9 Mbps reproduces what the old picker-driven flow produced:
+    // a 28s 1080p/60 clip lands around 13 MB either way.
+    static let compressed = VideoExportSettings(
+        preset: AVAssetExportPreset1280x720, totalBitrate: 3_900_000)
 }
