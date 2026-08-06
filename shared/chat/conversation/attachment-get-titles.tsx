@@ -87,34 +87,34 @@ const ContainerInner = (ownProps: OwnProps) => {
       unmountedRef.current = true
     }
   }, [])
-  // Until the service tells us otherwise assume compression is on, so a fast
-  // Send never quietly uploads originals.
-  const [compress, setCompress] = React.useState(true)
+  // Send awaits this instead of racing it: a fast tap must not apply the
+  // default policy when the user has chosen "Keep full size". A failed lookup
+  // resolves to true so we never quietly upload originals either.
+  const compressPrefRef = React.useRef<Promise<boolean> | undefined>(undefined)
   React.useEffect(() => {
     if (!isIOS) {
       return
     }
-    let canceled = false
-    const f = async () => {
+    compressPrefRef.current = (async () => {
       try {
         const pref = await T.RPCGen.incomingShareGetPreferenceRpcPromise()
-        if (!canceled) {
-          setCompress(pref.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original)
-        }
-      } catch {}
-    }
-    C.ignorePromise(f())
-    return () => {
-      canceled = true
-    }
+        return pref.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original
+      } catch {
+        return true
+      }
+    })()
   }, [])
+  // progress only exists once the export starts, which is after the preference
+  // resolves, so it can't gate a double tap on its own
+  const submittingRef = React.useRef(false)
 
   // skipProcessing is the "Send anyway" path: the user has already been told the
   // export failed and wants the originals.
   const _onSubmit = (titles: Array<string>, skipProcessing = false) => {
-    if (progress) {
+    if (progress || submittingRef.current) {
       return
     }
+    submittingRef.current = true
     setError(undefined)
     const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
       const uploadArgs = {
@@ -145,29 +145,42 @@ const ContainerInner = (ownProps: OwnProps) => {
     }
 
     const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
-    // Only local media can be handed to the native processor: kbfs paths aren't
-    // real files and non-media has nothing to compress. "Keep full size" is a raw
-    // share, so with compression off only an explicit trim still needs the
-    // exporter — the cut has to be applied somewhere.
-    const eligible = effective.reduce(
-      (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
-        const edit = edits[idx]
-        const needsProcessing = compress ? canProcess(path) || !isEditNoop(edit) : !isEditNoop(edit)
-        if (!isKbfsPath(path) && needsProcessing) {
-          l.push({edit, idx, path})
-        }
-        return l
-      },
-      []
-    )
 
-    if (!isIOS || skipProcessing || eligible.length === 0) {
+    if (!isIOS || skipProcessing) {
+      submittingRef.current = false
       upload(effective)
       return
     }
 
-    setProgress({done: 0, total: eligible.length})
+    const isUnmounted = () => unmountedRef.current
     const f = async () => {
+      const compress = (await compressPrefRef.current) ?? true
+      if (isUnmounted()) {
+        return
+      }
+      // Only local media can be handed to the native processor: kbfs paths aren't
+      // real files and non-media has nothing to compress. "Keep full size" is a raw
+      // share, so with compression off only an explicit trim still needs the
+      // exporter — the cut has to be applied somewhere.
+      const eligible = effective.reduce(
+        (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
+          const edit = edits[idx]
+          const needsProcessing = compress ? canProcess(path) || !isEditNoop(edit) : !isEditNoop(edit)
+          if (!isKbfsPath(path) && needsProcessing) {
+            l.push({edit, idx, path})
+          }
+          return l
+        },
+        []
+      )
+
+      if (eligible.length === 0) {
+        submittingRef.current = false
+        upload(effective)
+        return
+      }
+
+      setProgress({done: 0, total: eligible.length})
       const processed = await processPaths(
         eligible.map(({path, edit}) => ({edit, path})),
         compress,
@@ -181,6 +194,7 @@ const ContainerInner = (ownProps: OwnProps) => {
         return
       }
       setProgress(undefined)
+      submittingRef.current = false
       // A failed export means the original bytes: an uncompressed upload, or
       // worse a clip the user asked to trim going out full length. Stop and say
       // so instead of sending something they didn't ask for.

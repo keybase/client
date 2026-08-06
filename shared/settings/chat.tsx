@@ -187,7 +187,7 @@ const Attachments = () => {
         <Kb.RadioButton
           label="Compress"
           onSelect={() => compressSaved(true)}
-          selected={compress !== false}
+          selected={compress === true}
           disabled={compress === undefined}
         />
         <Kb.RadioButton
