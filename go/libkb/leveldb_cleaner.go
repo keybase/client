@@ -134,7 +134,8 @@ func (c *levelDbCleaner) monitorAppState(stopCh chan struct{}) {
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		select {
-		case state = <-c.G().MobileAppState.NextUpdate(&state):
+		case <-c.G().MobileAppState.NextUpdate(state):
+			state = c.G().MobileAppState.State()
 			switch state {
 			case keybase1.MobileAppState_BACKGROUNDACTIVE:
 			default:

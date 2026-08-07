@@ -8,6 +8,7 @@ import (
 	"context"
 	"math"
 	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -2322,36 +2323,86 @@ func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
 }
 
 type testAppStateUpdater struct {
-	c      <-chan keybase1.MobileNetworkState
-	calls  chan<- keybase1.MobileNetworkState
-	nCalls int
+	lock     sync.Mutex
+	netState keybase1.MobileNetworkState
+	changed  chan struct{}
+	calls    chan<- keybase1.MobileNetworkState
+	nCalls   int
+}
+
+func newTestAppStateUpdater(
+	calls chan<- keybase1.MobileNetworkState, nCalls int,
+) *testAppStateUpdater {
+	return &testAppStateUpdater{
+		netState: keybase1.MobileNetworkState_NONE,
+		changed:  make(chan struct{}),
+		calls:    calls,
+		nCalls:   nCalls,
+	}
 }
 
 func (tasu *testAppStateUpdater) NextAppStateUpdate(
-	_ *keybase1.MobileAppState,
-) <-chan keybase1.MobileAppState {
+	_ keybase1.MobileAppState,
+) <-chan struct{} {
 	// Receiving on a nil channel blocks forever.
 	return nil
 }
 
 func (tasu *testAppStateUpdater) NextNetworkStateUpdate(
-	lastState *keybase1.MobileNetworkState,
-) <-chan keybase1.MobileNetworkState {
-	if tasu.nCalls > 0 {
-		tasu.calls <- *lastState
+	lastState keybase1.MobileNetworkState,
+) <-chan struct{} {
+	// Snapshot state and decrement nCalls under the lock, but do the blocking
+	// send on tasu.calls outside the lock so a stalled receiver can't deadlock
+	// concurrent setNetworkState / NetworkState calls.
+	tasu.lock.Lock()
+	shouldRecord := tasu.nCalls > 0
+	if shouldRecord {
 		tasu.nCalls--
 	}
-	return tasu.c
+	stale := lastState != tasu.netState
+	ch := tasu.changed
+	tasu.lock.Unlock()
+
+	if shouldRecord {
+		tasu.calls <- lastState
+	}
+	if stale {
+		closedCh := make(chan struct{})
+		close(closedCh)
+		return closedCh
+	}
+	return ch
+}
+
+func (tasu *testAppStateUpdater) AppState() keybase1.MobileAppState {
+	return keybase1.MobileAppState_FOREGROUND
+}
+
+func (tasu *testAppStateUpdater) NetworkState() keybase1.MobileNetworkState {
+	tasu.lock.Lock()
+	defer tasu.lock.Unlock()
+	return tasu.netState
+}
+
+func (tasu *testAppStateUpdater) setNetworkState(
+	state keybase1.MobileNetworkState,
+) {
+	tasu.lock.Lock()
+	defer tasu.lock.Unlock()
+	if tasu.netState != state {
+		tasu.netState = state
+		close(tasu.changed)
+		tasu.changed = make(chan struct{})
+	}
 }
 
 func TestPrefetcherCellularPause(t *testing.T) {
 	t.Log("Test that a cell mobile network pauses prefetching.")
 	bg := newFakeBlockGetter(false)
 	config := newTestBlockRetrievalConfig(t, bg, nil)
-	stateCh := make(chan keybase1.MobileNetworkState)
 	callCh := make(chan keybase1.MobileNetworkState)
-	q := newBlockRetrievalQueue(
-		1, 1, 0, config, &testAppStateUpdater{stateCh, callCh, 4})
+	updater := newTestAppStateUpdater(callCh, 4)
+	q := newBlockRetrievalQueue(1, 1, 0, config, updater)
 	require.NotNil(t, q)
 	<-callCh // Initial prefetcher, before sync ch is set.
 
@@ -2364,7 +2415,7 @@ func TestPrefetcherCellularPause(t *testing.T) {
 	require.Equal(t, keybase1.MobileNetworkState_NONE, last)
 
 	t.Log("Switch to cell and make sure it pauses")
-	stateCh <- keybase1.MobileNetworkState_CELLULAR
+	updater.setNetworkState(keybase1.MobileNetworkState_CELLULAR)
 	// Should be called again without a call to syncCh.
 	last = <-callCh
 	require.Equal(t, keybase1.MobileNetworkState_CELLULAR, last)
@@ -2378,7 +2429,7 @@ func TestPrefetcherCellularPause(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Unpause it to make it notify again")
-	stateCh <- keybase1.MobileNetworkState_NONE
+	updater.setNetworkState(keybase1.MobileNetworkState_NONE)
 	notifySyncCh(t, prefetchSyncCh)
 	last = <-callCh
 	require.Equal(t, keybase1.MobileNetworkState_NONE, last)
