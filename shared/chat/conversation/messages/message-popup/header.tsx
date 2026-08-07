@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
+import {humanReadableFileSize} from '@/constants/fs'
 
 const iconNameForDeviceType = isMobile
   ? (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
@@ -41,6 +42,7 @@ type Props = {
   deviceName: string
   deviceRevokedAt?: number
   deviceType: T.Devices.DeviceType
+  fileSize?: number
   isLast?: boolean
   isLocation: boolean
   timestamp: number
@@ -48,8 +50,9 @@ type Props = {
   onHidden: () => void
 }
 const MessagePopupHeader = (props: Props) => {
-  const {author, botUsername, deviceName, deviceRevokedAt, deviceType} = props
+  const {author, botUsername, deviceName, deviceRevokedAt, deviceType, fileSize} = props
   const {isLast, isLocation, timestamp, yourMessage, onHidden} = props
+  const prettySize = fileSize ? humanReadableFileSize(fileSize) : ''
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
 
@@ -100,6 +103,11 @@ const MessagePopupHeader = (props: Props) => {
       <Kb.Text center={true} type="BodySmall">
         {formatTimeForPopup(timestamp)}
       </Kb.Text>
+      {prettySize ? (
+        <Kb.Text center={true} type="BodySmall">
+          {prettySize}
+        </Kb.Text>
+      ) : null}
       {!!deviceRevokedAt && (
         <Kb.Box2
           gap="small"

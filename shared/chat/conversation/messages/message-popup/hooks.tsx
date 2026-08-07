@@ -380,6 +380,7 @@ export const useHeaderForMessage = (message: T.Chat.Message, onHidden: () => voi
   const deviceRevokedAt = message.deviceRevokedAt || undefined
   const mapUnfurl = Chat.getMapUnfurl(message)
   const isLocation = !!mapUnfurl
+  const fileSize = message.type === 'attachment' ? message.fileSize : undefined
 
   return exploding ? (
     <ExplodingPopupHeader
@@ -389,6 +390,7 @@ export const useHeaderForMessage = (message: T.Chat.Message, onHidden: () => voi
       botUsername={botUsername}
       deviceName={deviceName ?? ''}
       deviceRevokedAt={deviceRevokedAt}
+      fileSize={fileSize}
       explodesAt={message.exploded ? 0 : (explodingTime ?? 0)}
       timestamp={timestamp}
       yourMessage={yourMessage}
@@ -401,6 +403,7 @@ export const useHeaderForMessage = (message: T.Chat.Message, onHidden: () => voi
       deviceName={deviceName ?? ''}
       deviceRevokedAt={deviceRevokedAt}
       deviceType={deviceType ?? 'desktop'}
+      fileSize={fileSize}
       isLast={false}
       isLocation={isLocation}
       timestamp={timestamp}

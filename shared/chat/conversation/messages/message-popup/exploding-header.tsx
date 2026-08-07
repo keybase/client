@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {navToProfile} from '@/constants/router'
+import {humanReadableFileSize} from '@/constants/fs'
 
 type Props = {
   explodesAt: number
@@ -10,6 +11,7 @@ type Props = {
   botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
+  fileSize?: number
   hideTimer: boolean
   timestamp: number
   yourMessage: boolean
@@ -43,7 +45,8 @@ const ExplodingPopupHeader = (props: Props) => {
 
   const [now] = React.useState(() => Date.now())
 
-  const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = props
+  const {author, botUsername, deviceName, deviceRevokedAt, fileSize, hideTimer, timestamp} = props
+  const prettySize = fileSize ? humanReadableFileSize(fileSize) : ''
   const icon = <Kb.ImageIcon style={styles.headerIcon} type={headerIconType} />
   const info = (
     <Kb.Box2 direction="vertical" fullWidth={true} padding="xsmall">
@@ -83,6 +86,11 @@ const ExplodingPopupHeader = (props: Props) => {
         <Kb.Text center={true} type="BodySmall">
           {formatTimeForPopup(timestamp)}
         </Kb.Text>
+        {prettySize ? (
+          <Kb.Text center={true} type="BodySmall">
+            {prettySize}
+          </Kb.Text>
+        ) : null}
         {deviceRevokedAt ? (
           <Kb.Text center={true} type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.popupHeaderText, styles.revokedAt])}>
             Device revoked on {formatTimeForRevoked(deviceRevokedAt)}
