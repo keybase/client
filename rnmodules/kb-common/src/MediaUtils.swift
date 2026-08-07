@@ -4,8 +4,11 @@ import ImageIO
 import UIKit
 
 struct MediaProcessingConfig {
-    static let imageMaxPixelSize: Int = 1200
-    static let imageCompressionQuality: CGFloat = 0.85
+    // Images keep their original dimensions: 6.6.3's in-chat attach re-encoded at
+    // this quality without resizing, and downscaling to a thumbnail-sized long
+    // edge is the visible regression users noticed when the share extension's
+    // policy took over both flows.
+    static let imageCompressionQuality: CGFloat = 0.4
 }
 
 enum MediaUtilsError: Error, LocalizedError {
@@ -28,11 +31,13 @@ typealias ProcessMediaCompletion = (Result<URL, Error>) -> Void
 
 @objc(MediaUtils)
 public class MediaUtils: NSObject {
-    private static var scaledImageOptions: CFDictionary {
+    // No max pixel size, so this decodes at full resolution; it stays a thumbnail
+    // request only because that's the call that bakes the EXIF orientation into
+    // the pixels, which the re-encoded JPEG no longer carries as metadata.
+    private static var fullSizeImageOptions: CFDictionary {
         return [
             kCGImageSourceCreateThumbnailWithTransform: true,
             kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceThumbnailMaxPixelSize: MediaProcessingConfig.imageMaxPixelSize,
         ] as CFDictionary
     }
 
@@ -84,17 +89,18 @@ public class MediaUtils: NSObject {
 
         try stripImageExif(at: url)
 
-        // Create scaled version
+        // Re-encode at the shared quality. Same dimensions, JPEG out, so a HEIC
+        // pick still lands as something every platform can render.
         let basename = url.deletingPathExtension().lastPathComponent
         let parent = url.deletingLastPathComponent()
-        let scaledURL = parent.appendingPathComponent("\(basename).scaled.jpg")
+        let compressedURL = parent.appendingPathComponent("\(basename).compressed.jpg")
 
         guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
 
-        try scaleDownCGImageSource(cgSource, dstURL: scaledURL, options: scaledImageOptions)
-        return scaledURL
+        try recompressCGImageSource(cgSource, dstURL: compressedURL, options: fullSizeImageOptions)
+        return compressedURL
     }
 
     // edit carries the user's trim range and audio choice; nil means "the whole
@@ -280,25 +286,25 @@ public class MediaUtils: NSObject {
         }
     }
 
-    private static func scaleDownCGImageSource(
+    private static func recompressCGImageSource(
         _ img: CGImageSource, dstURL: URL, options: CFDictionary
     ) throws {
-        guard let scaledRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to create thumbnail")
+        guard let fullRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
+            throw MediaUtilsError.imageProcessingFailed("Failed to decode image")
         }
 
         guard
-            let scaled = UIImage(cgImage: scaledRef).jpegData(
+            let data = UIImage(cgImage: fullRef).jpegData(
                 compressionQuality: MediaProcessingConfig.imageCompressionQuality)
         else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create JPEG data")
         }
 
         do {
-            try scaled.write(to: dstURL)
+            try data.write(to: dstURL)
         } catch {
             throw MediaUtilsError.fileOperationFailed(
-                "Failed to write scaled image: \(error.localizedDescription)")
+                "Failed to write compressed image: \(error.localizedDescription)")
         }
     }
 
