@@ -4,7 +4,7 @@ import * as SM from '@khanacademy/simple-markdown'
 import {BareErrorBoundary} from '@/common-adapters/error-boundary'
 import Text from '@/common-adapters/text'
 import logger from '@/logger'
-import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
+import {emojiIndexByChar, emojiIndexByName, emojiRegex, commonTlds} from './emoji-gen'
 import {
   reactOutput,
   previewOutput,
@@ -184,6 +184,7 @@ const quoteMarkerRegex = /^ *> ?/gm
 const isFullyQuoted = (block: string) =>
   block.split('\n').every(line => line.trim() === '' || /^ *>/.test(line))
 const countFences = (line: string) => (line.match(/```/g) ?? []).length
+const emojiMatcher = SimpleMarkdown.inlineRegex(emojiRegex)
 const quotedFenceRegex = SimpleMarkdown.anyScopeRegex(
   /^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/
 )
@@ -248,7 +249,21 @@ const rules: {[type: string]: SM.ParserRule} = {
     match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/)),
   },
   emoji: {
-    match: SimpleMarkdown.inlineRegex(emojiRegex),
+    // emojiRegex matches the *shape* of a short name rather than an alternation of every known one,
+    // so confirm the name actually exists. A `:name::skin-tone-N:` whose combination we don't know
+    // falls back to the bare `:name:`, which is what the old alternation of literals did.
+    match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
+      const capture = emojiMatcher(source, state, prevCapture)
+      const matched = capture?.[0]
+      if (!matched) {
+        return null
+      }
+      if (!matched.startsWith(':') || emojiIndexByName[matched]) {
+        return capture
+      }
+      const base = matched.slice(0, matched.indexOf(':', 1) + 1)
+      return emojiIndexByName[base] ? [base, base] : null
+    },
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
     parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => {
       // If it's a unicode emoji, let's get it's shortname
@@ -558,10 +573,28 @@ const renderMarkdown = (
   }
 }
 
+const emptyStyleOverride: StyleOverride = {}
+
 function SimpleMarkdownComponent(p: Props) {
-  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
-  const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
-  const {serviceOnlyNoWrap, disallowAnimation, context} = p
+  // One destructure: split across statements the compiler keeps `p` itself as a memo dependency, so
+  // every new props object re-parses the markdown even when nothing it reads actually changed.
+  const {
+    allowFontScaling,
+    styleOverride = emptyStyleOverride,
+    paragraphTextClassName,
+    messageType,
+    children,
+    serviceOnly,
+    preview,
+    smallStandaloneEmoji,
+    virtualText,
+    lineClamp,
+    style,
+    selectable,
+    serviceOnlyNoWrap,
+    disallowAnimation,
+    context,
+  } = p
 
   const state = {
     allowFontScaling,

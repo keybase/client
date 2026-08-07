@@ -176,6 +176,25 @@ test('parseMarkdown wraps quoted fence preambles in paragraphs on mobile', () =>
   expect(nested[1]?.['content']).toBe('foo\n')
 })
 
+test('parseMarkdown parses a known emoji short name', () => {
+  expect(paragraphContent(':thumbsup:')).toEqual([{content: ':thumbsup:', type: 'emoji'}])
+})
+
+test('parseMarkdown leaves an unknown emoji short name as text', () => {
+  expect(paragraphContent(':notanemoji:').every(node => node.type === 'text')).toBe(true)
+})
+
+test('parseMarkdown falls back to the bare short name for an unknown skin tone pairing', () => {
+  const content = paragraphContent(':thumbsup::skin-tone-99:')
+  expect(content[0]).toEqual({content: ':thumbsup:', type: 'emoji'})
+  expect(content.slice(1).every(node => node.type === 'text')).toBe(true)
+})
+
+test('parseMarkdown does not split text into a node per character before a url', () => {
+  const content = paragraphContent('a'.repeat(2000) + '.com')
+  expect(content.length).toBeLessThan(80)
+})
+
 test('parseMarkdown parses spoilers with raw content preserved', () => {
   const content = paragraphContent('!>secret<!')
   expect(content.map(node => node.type)).toEqual(['spoiler'])
