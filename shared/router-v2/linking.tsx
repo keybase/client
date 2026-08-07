@@ -111,7 +111,13 @@ export const subscribeNavigationIntents = (
 
     const {loggedIn, userSwitching} = useConfigState.getState()
     const currentUid = useCurrentUserState.getState().uid
-    if (!navigationReady || navigationReadyForUid !== currentUid || !loggedIn || userSwitching) return
+    if (!navigationReady || !loggedIn || userSwitching) return
+    // Desktop mounts its NavigationContainer before the bootstrap RPC returns, so
+    // onReady stamps readiness with an empty uid. That container goes on to serve
+    // whoever logs in, so an unstamped router matches any account. Real account
+    // switches remount the router (useUserSwitchNavKey) and re-stamp with the new
+    // uid, which still blocks the old container here.
+    if (navigationReadyForUid && navigationReadyForUid !== currentUid) return
     if (intent.targetUid && intent.targetUid !== currentUid) return
 
     consumingID = intent.id
