@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -1093,6 +1094,101 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 	// Alice ID's Eve, in chat mode, with a track. Assert that we get an
 	// Active proof checker mode for rooter.
 	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModeActive)
+}
+
+func testForcedIdentifyReusesProofCheckedAfterRequest(t *testing.T, checkErr libkb.ProofError) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+
+	eve := CreateAndSignupFakeUser(tc, "e")
+	_, _, err := proveRooter(tc.G, eve, libkb.GetDefaultSigVersion(tc.G))
+	require.NoError(t, err)
+	Logout(tc)
+	_ = CreateAndSignupFakeUser(tc, "a")
+
+	tc.G.ProofCache.DisableDisk()
+	require.NoError(t, tc.G.ProofCache.Reset())
+
+	tester := newIdentify2WithUIDTester(tc.G)
+	tc.G.SetProofServices(tester)
+
+	var checks int64
+	firstCheckStarted := make(chan struct{})
+	releaseFirstCheck := make(chan struct{})
+	tester.checkStatusHook = func(libkb.SigHint, libkb.ProofCheckerMode) libkb.ProofError {
+		if atomic.AddInt64(&checks, 1) == 1 {
+			close(firstCheckStarted)
+			<-releaseFirstCheck
+		}
+		return checkErr
+	}
+
+	newEngine := func() *Identify2WithUID {
+		return NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{
+			Uid:              eve.UID(),
+			ForceRemoteCheck: true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+			NeedProofSet:     true,
+		})
+	}
+	run := func(eng *Identify2WithUID) <-chan error {
+		resultCh := make(chan error, 1)
+		go func() {
+			resultCh <- eng.runReturnError(identify2MetaContext(tc, &FakeIdentifyUI{}))
+		}()
+		return resultCh
+	}
+
+	first := newEngine()
+	first.requestedAt = tc.G.Clock().Now()
+	firstResult := run(first)
+	select {
+	case <-firstCheckStarted:
+	case <-time.After(10 * time.Second):
+		close(releaseFirstCheck)
+		t.Fatal("first proof check did not start")
+	}
+
+	// The second request arrives while the first owns the per-UID identify lock.
+	// Its proof check will run only after the first identify completes.
+	second := newEngine()
+	second.requestedAt = tc.G.Clock().Now()
+	secondResult := run(second)
+	close(releaseFirstCheck)
+
+	require.NoError(t, <-firstResult)
+	require.NoError(t, <-secondResult)
+	require.Equal(t, int64(1), atomic.LoadInt64(&checks))
+
+	// A request made after the shared result was produced still forces a new
+	// remote check.
+	third := newEngine()
+	third.requestedAt = tc.G.Clock().Now()
+	require.NoError(t, <-run(third))
+	require.Equal(t, int64(2), atomic.LoadInt64(&checks))
+}
+
+func TestForcedIdentifyReusesProofCheckedAfterRequest(t *testing.T) {
+	testForcedIdentifyReusesProofCheckedAfterRequest(t, nil)
+}
+
+func TestForcedIdentifyReusesSoftFailureCheckedAfterRequest(t *testing.T) {
+	testForcedIdentifyReusesProofCheckedAfterRequest(
+		t, libkb.NewProofError(keybase1.ProofStatus_HTTP_500, "temporary failure"))
+}
+
+func TestResolveThenIdentify2RecordsRequestBeforeResolution(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+
+	requestedAt := time.Date(2026, time.July, 28, 12, 0, 0, 0, time.UTC)
+	tc.G.SetClock(clockwork.NewFakeClockAt(requestedAt))
+	arg := keybase1.Identify2Arg{UserAssertion: "("}
+	eng := NewResolveThenIdentify2(tc.G, &arg)
+
+	require.Error(t, eng.Run(NewMetaContextForTest(tc)))
+	require.NotNil(t, eng.i2eng)
+	require.Equal(t, requestedAt, eng.i2eng.requestedAt)
 }
 
 func TestSkipExternalChecks(t *testing.T) {
