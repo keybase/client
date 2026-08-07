@@ -169,26 +169,28 @@ type InlineDropdownProps = {
 )
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
+  const {containerStyle, label, loading, onPress, selectedStyle, style, textWrapperType} = props
+
   const selected = (
     <Kb.Box2
       direction="horizontal"
       alignItems="center"
       noShrink={true}
-      style={Styles.collapseStyles([styles.inlineSelected, props.selectedStyle])}
+      style={Styles.collapseStyles([styles.inlineSelected, selectedStyle])}
     >
-      {props.textWrapperType ? <Kb.Text type={props.textWrapperType}>{props.label}</Kb.Text> : props.label}
+      {textWrapperType ? <Kb.Text type={textWrapperType}>{label}</Kb.Text> : label}
     </Kb.Box2>
   )
   return (
     <DropdownButton
       inline={true}
-      loading={props.loading}
-      style={Styles.collapseStyles([styles.inlineDropdown, props.containerStyle])}
+      loading={loading}
+      style={Styles.collapseStyles([styles.inlineDropdown, containerStyle])}
       toggleOpen={e => {
         e?.stopPropagation()
-        props.onPress()
+        onPress()
       }}
-      selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, props.style])}
+      selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, style])}
       selected={selected}
     />
   )

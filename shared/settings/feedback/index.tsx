@@ -15,10 +15,18 @@ type Props = {
 const clickThreshold = 7
 
 const Feedback = (props: Props) => {
-  const {sending, sendError, onFeedbackDone, showInternalSuccessBanner} = props
+  const {
+    sending,
+    sendError,
+    onFeedbackDone,
+    showInternalSuccessBanner,
+    feedback: _feedback,
+    loggedOut,
+    onSendFeedback,
+  } = props
   const [clickCount, setClickCount] = React.useState(0)
   const [email, setEmail] = React.useState<string | undefined>(undefined)
-  const [feedback, setFeedback] = React.useState(props.feedback || '')
+  const [feedback, setFeedback] = React.useState(_feedback || '')
   const [sendLogs, setSendLogs] = React.useState(true)
   const [showSuccessBanner, setShowSuccessBanner] = React.useState(false)
 
@@ -32,8 +40,8 @@ const Feedback = (props: Props) => {
     })
   }
 
-  const lastSendingRef = React.useRef(props.sending)
-  const lastSendErrorRef = React.useRef(props.sendError)
+  const lastSendingRef = React.useRef(sending)
+  const lastSendErrorRef = React.useRef(sendError)
 
   React.useEffect(() => {
     if (lastSendingRef.current !== sending || sendError !== lastSendErrorRef.current) {
@@ -52,7 +60,7 @@ const Feedback = (props: Props) => {
     const sendMaxBytes = _sendMaxBytes()
     setClickCount(0)
     setShowSuccessBanner(false)
-    props.onSendFeedback(email ? `${feedback} (email: ${email || ''} )` : feedback, sendLogs, sendMaxBytes)
+    onSendFeedback(email ? `${feedback} (email: ${email || ''} )` : feedback, sendLogs, sendMaxBytes)
   }
 
   return (
@@ -91,7 +99,7 @@ const Feedback = (props: Props) => {
               onCheck={setSendLogs}
             />
           </Kb.ClickableBox>
-          {props.loggedOut && (
+          {loggedOut && (
             <Kb.Input3
               textType="BodySemibold"
               containerStyle={styles.input}
@@ -99,7 +107,7 @@ const Feedback = (props: Props) => {
               onChangeText={setEmail}
             />
           )}
-          <Kb.Box2 alignSelf={props.loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
+          <Kb.Box2 alignSelf={loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
             <Kb.ButtonBar>
               <Kb.Button
                 label="Send"

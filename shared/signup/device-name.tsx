@@ -116,9 +116,9 @@ const makeCleanDeviceName = (d: string) => {
 }
 
 const EnterDevicename = (props: EnterDevicenameProps) => {
-  const [deviceName, setDeviceName] = React.useState(() =>
-    makeCleanDeviceName(props.initialDevicename || '')
-  )
+  const {error, initialDevicename, onBack, onContinue: _onContinue, waiting} = props
+
+  const [deviceName, setDeviceName] = React.useState(() => makeCleanDeviceName(initialDevicename || ''))
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const _setReadyToShowError = C.useDebouncedCallback((ready: boolean) => {
     setReadyToShowError(ready)
@@ -136,14 +136,14 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
     setReadyToShowError(false)
     _setReadyToShowError(true)
   }
-  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(cleanDeviceName))
+  const onContinue = () => (disabled || waiting ? {} : _onContinue(cleanDeviceName))
 
   return (
     <SignupScreen
-      banners={errorBanner(props.error)}
-      buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
+      banners={errorBanner(error)}
+      buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting}]}
       hideDesktopHeader={!isMobile}
-      onBack={props.onBack}
+      onBack={onBack}
       title={isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2

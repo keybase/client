@@ -35,10 +35,24 @@ type Props = {
 }
 
 const CopyText = (props: Props) => {
-  const {withReveal, text, loadText, onCopy, hideOnCopy} = props
-  const [revealed, setRevealed] = React.useState(!props.withReveal)
+  const {
+    withReveal,
+    text,
+    loadText,
+    onCopy,
+    hideOnCopy,
+    buttonType,
+    containerStyle,
+    disabled,
+    multiline,
+    onReveal,
+    placeholderText,
+    shareSheet: _shareSheet,
+    textType,
+  } = props
+  const [revealed, setRevealed] = React.useState(!withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
-  const shareSheet = props.shareSheet && isMobile
+  const shareSheet = _shareSheet && isMobile
   const copyRequestIDRef = React.useRef(0)
   const copyOnLoadedRequestIDRef = React.useRef(0)
   const popupAnchor = React.useRef<MeasureRef | null>(null)
@@ -125,18 +139,18 @@ const CopyText = (props: Props) => {
   }
 
   const reveal = () => {
-    if (!props.text && props.loadText) {
+    if (!text && loadText) {
       // if we don't have text to copy we should load it
-      props.loadText()
+      loadText()
     }
-    props.onReveal?.()
+    onReveal?.()
     setRevealed(true)
   }
 
-  const isRevealed = !props.withReveal || revealed
-  const lineClamp = props.multiline
-    ? typeof props.multiline === 'number'
-      ? props.multiline
+  const isRevealed = !withReveal || revealed
+  const lineClamp = multiline
+    ? typeof multiline === 'number'
+      ? multiline
       : undefined
     : isRevealed
       ? 1
@@ -149,11 +163,7 @@ const CopyText = (props: Props) => {
       alignItems="center"
       fullWidth={true}
       relative={true}
-      style={Styles.collapseStyles([
-        styles.container,
-        props.disabled && styles.containerDisabled,
-        props.containerStyle,
-      ])}
+      style={Styles.collapseStyles([styles.container, disabled && styles.containerDisabled, containerStyle])}
     >
       <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
         {isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
@@ -163,22 +173,20 @@ const CopyText = (props: Props) => {
       </Kb.Toast>
       <Kb.Text
         lineClamp={lineClamp}
-        type={props.textType || 'BodySmallSemibold'}
+        type={textType || 'BodySmallSemibold'}
         selectable={true}
         center={true}
-        style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
+        style={Styles.collapseStyles([styles.text, disabled && styles.textDisabled])}
       >
-        {isRevealed && (props.text || props.placeholderText)
-          ? props.text || props.placeholderText
-          : '••••••••••••'}
+        {isRevealed && (text || placeholderText) ? text || placeholderText : '••••••••••••'}
       </Kb.Text>
       {!isRevealed && (
         <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
           Reveal
         </Kb.Text>
       )}
-      {!props.disabled && (
-        <Kb.Button type={props.buttonType || 'Default'} style={styles.button} onClick={copy}>
+      {!disabled && (
+        <Kb.Button type={buttonType || 'Default'} style={styles.button} onClick={copy}>
           <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
             color={Styles.globalColors.whiteOrWhite}

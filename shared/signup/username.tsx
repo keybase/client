@@ -82,22 +82,31 @@ type EnterUsernameProps = {
 }
 
 const EnterUsername = (props: EnterUsernameProps) => {
-  const [username, onChangeUsername] = React.useState(props.initialUsername || '')
+  const {
+    onLogin,
+    usernameTaken,
+    error,
+    initialUsername,
+    onBack,
+    onContinue: _onContinue,
+    onUsernameChange,
+    waiting,
+  } = props
+  const [username, onChangeUsername] = React.useState(initialUsername || '')
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
   const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
-  const {onLogin, usernameTaken} = props
   const usernameTrimmed = username.trim()
   const disabled = !usernameTrimmed || usernameTrimmed === usernameTaken || !acceptedEULA
   const _onChangeUsername = (username: string) => {
     onChangeUsername(username)
-    props.onUsernameChange()
+    onUsernameChange()
   }
   const onContinue = () => {
-    if (disabled || props.waiting) {
+    if (disabled || waiting) {
       return
     }
     onChangeUsername(usernameTrimmed) // maybe trim the input
-    props.onContinue(usernameTrimmed)
+    _onContinue(usernameTrimmed)
   }
   const eulaLabel = (
     <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.eulaText}>
@@ -129,7 +138,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
               />
             </Kb.Banner>
           ) : null}
-          {errorBanner(props.error)}
+          {errorBanner(error)}
         </>
       }
       buttons={[
@@ -138,12 +147,12 @@ const EnterUsername = (props: EnterUsernameProps) => {
           label: 'Continue',
           onClick: onContinue,
           type: 'Success',
-          waiting: props.waiting,
+          waiting: waiting,
         },
       ]}
       footer={isMobile ? eulaBlock : undefined}
       hideDesktopHeader={!isMobile}
-      onBack={props.onBack}
+      onBack={onBack}
       title="Create account"
     >
       <Kb.ScrollView>

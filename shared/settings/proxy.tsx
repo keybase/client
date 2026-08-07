@@ -105,7 +105,18 @@ type Props = {
 }
 
 const ProxySettingsComponent = (props: Props) => {
-  const {loadProxyData, proxyData, setProxyData} = props
+  const {
+    loadProxyData,
+    proxyData,
+    setProxyData,
+    allowTlsMitmToggle,
+    onCancelDisableCertPinning,
+    onConfirmDisableCertPinning,
+    onDisableCertPinning,
+    onEnableCertPinning,
+    saveProxyData,
+    showDisableCertPinningWarning,
+  } = props
   const [proxyForm, setProxyForm] = React.useState<ProxyFormState>(() =>
     proxyData ? proxyDataToFormState(proxyData) : {address: '', port: '', proxyType: 'noProxy'}
   )
@@ -129,18 +140,18 @@ const ProxySettingsComponent = (props: Props) => {
   }, [loadProxyData, setProxyData])
 
   const certPinning = (): boolean => {
-    if (props.allowTlsMitmToggle === undefined) {
-      return props.proxyData ? props.proxyData.certPinning : true
+    if (allowTlsMitmToggle === undefined) {
+      return proxyData ? proxyData.certPinning : true
     } else {
-      return !props.allowTlsMitmToggle
+      return !allowTlsMitmToggle
     }
   }
 
   const toggleCertPinning = () => {
     if (certPinning()) {
-      props.onDisableCertPinning()
+      onDisableCertPinning()
     } else {
-      props.onEnableCertPinning()
+      onEnableCertPinning()
     }
   }
 
@@ -150,7 +161,7 @@ const ProxySettingsComponent = (props: Props) => {
       certPinning: certPinning(),
       proxyType: T.RPCGen.ProxyType[nextProxyType],
     }
-    props.saveProxyData(
+    saveProxyData(
       [{proxyData: nextProxyData}],
       () => {
         setProxyData(nextProxyData)
@@ -172,7 +183,7 @@ const ProxySettingsComponent = (props: Props) => {
     }
   }
 
-  if (props.showDisableCertPinningWarning) {
+  if (showDisableCertPinningWarning) {
     return (
       <Kb.Box2
         direction="vertical"
@@ -191,8 +202,8 @@ const ProxySettingsComponent = (props: Props) => {
           It is not recommended to use this option unless absolutely required.
         </Kb.Text>
         <Kb.ButtonBar>
-          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancelDisableCertPinning} />
-          <Kb.Button type="Danger" label="Yes, I am sure" onClick={props.onConfirmDisableCertPinning} />
+          <Kb.Button type="Dim" label="Cancel" onClick={onCancelDisableCertPinning} />
+          <Kb.Button type="Danger" label="Yes, I am sure" onClick={onConfirmDisableCertPinning} />
         </Kb.ButtonBar>
       </Kb.Box2>
     )

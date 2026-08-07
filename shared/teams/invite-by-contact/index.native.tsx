@@ -56,6 +56,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [filterValue, setFilterValue] = React.useState('')
 
+  const {errorMessage, onRoleChange, selectedRole, teamName} = props
   let {listItems} = props
   // Remember if we have any data before appying filtering.
   const hasItems = listItems.length > 0
@@ -72,10 +73,10 @@ export const InviteByContact = (props: InviteByContactProps) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      {!!props.errorMessage && (
+      {!!errorMessage && (
         <Kb.Box2 direction="horizontal" style={styles.errorMessageContainer} fullWidth={true} justifyContent="center">
           <Kb.Text center={true} type="BodySemibold" negative={true}>
-            {props.errorMessage}
+            {errorMessage}
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -92,9 +93,9 @@ export const InviteByContact = (props: InviteByContactProps) => {
             />
           </Kb.Box2>
           <FloatingRolePicker
-            presetRole={props.selectedRole}
+            presetRole={selectedRole}
             onConfirm={role => {
-              props.onRoleChange(role)
+              onRoleChange(role)
               setRolePickerOpen(false)
             }}
             open={isRolePickerOpen}
@@ -103,8 +104,8 @@ export const InviteByContact = (props: InviteByContactProps) => {
           />
           <Kb.ClickableBox direction="vertical" centerChildren={true} onClick={() => setRolePickerOpen(true)} style={styles.rolePickerBox}>
             <Kb.Text center={true} type="BodySmall">
-              Users will be invited to {props.teamName} as
-              <Kb.Text type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text>.
+              Users will be invited to {teamName} as
+              <Kb.Text type="BodySmallPrimaryLink">{' ' + selectedRole + 's'}</Kb.Text>.
             </Kb.Text>
           </Kb.ClickableBox>
           <Kb.List

@@ -25,6 +25,19 @@ const CHECKBOX_SIZE = 13
 const Kb = {Box2, ClickableBox, Icon, Switch, Text}
 
 const Checkbox = (props: Props) => {
+  const {
+    checkboxColor,
+    checkboxStyle,
+    checked,
+    disabled,
+    label,
+    labelComponent,
+    labelSubtitle,
+    labelType,
+    onCheck,
+    style,
+  } = props
+
   if (!isMobile) {
     return (
       <Kb.ClickableBox
@@ -34,40 +47,36 @@ const Checkbox = (props: Props) => {
         gap="tiny"
         style={Styles.collapseStyles([
           styles.container,
-          !props.disabled && styles.clickable,
-          props.style,
+          !disabled && styles.clickable,
+          style,
         ])}
         onClick={e =>
-          props.disabled || e?.defaultPrevented ? undefined : props.onCheck?.(!props.checked)
+          disabled || e?.defaultPrevented ? undefined : onCheck?.(!checked)
         }
       >
         <div
           style={Styles.castStyleDesktop(
             Styles.collapseStyles([
               styles.checkbox,
-              props.checked && styles.checkboxChecked,
-              props.disabled && styles.checkboxInactive,
-              props.disabled && props.checked && styles.semiTransparent,
-              props.checkboxStyle,
+              checked && styles.checkboxChecked,
+              disabled && styles.checkboxInactive,
+              disabled && checked && styles.semiTransparent,
+              checkboxStyle,
             ])
           )}
         >
           <Kb.Icon
             type="iconfont-check"
-            style={Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
+            style={Styles.collapseStyles([styles.icon, !checked && styles.transparent])}
             hoverColor={Styles.globalColors.white}
-            color={props.checkboxColor ?? Styles.globalColors.white}
+            color={checkboxColor ?? Styles.globalColors.white}
             fontSize={9}
           />
         </div>
         <Kb.Box2 direction="vertical">
-          {props.labelComponent ||
-            (typeof props.label === 'string' ? (
-              <Kb.Text type={props.labelType ?? 'Body'}>{props.label}</Kb.Text>
-            ) : (
-              props.label
-            ))}
-          {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
+          {labelComponent ||
+            (typeof label === 'string' ? <Kb.Text type={labelType ?? 'Body'}>{label}</Kb.Text> : label)}
+          {!!labelSubtitle && <Kb.Text type="BodySmall">{labelSubtitle}</Kb.Text>}
         </Kb.Box2>
       </Kb.ClickableBox>
     )
@@ -77,15 +86,15 @@ const Checkbox = (props: Props) => {
     <Kb.Switch
       align="left"
       color="blue"
-      disabled={props.disabled}
-      label={props.labelComponent || props.label || ''}
-      labelType={props.labelType}
-      on={props.checked}
+      disabled={disabled}
+      label={labelComponent || label || ''}
+      labelType={labelType}
+      on={checked}
       onClick={() => {
-        props.onCheck?.(!props.checked)
+        onCheck?.(!checked)
       }}
-      style={Styles.collapseStyles([styles.mobileContainer, props.style])}
-      labelSubtitle={props.labelSubtitle}
+      style={Styles.collapseStyles([styles.mobileContainer, style])}
+      labelSubtitle={labelSubtitle}
     />
   )
 }

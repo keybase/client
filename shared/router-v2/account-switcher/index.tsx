@@ -132,7 +132,7 @@ type AccountRowProps = {
   waiting: boolean
 }
 const AccountRow = (props: AccountRowProps) => {
-  const {waiting} = props
+  const {waiting, entry, onSelectAccount} = props
   const [{clicked, wasWaiting}, setClickedState] = React.useState(() => ({
     clicked: false,
     wasWaiting: waiting,
@@ -145,25 +145,25 @@ const AccountRow = (props: AccountRowProps) => {
     ? undefined
     : () => {
         setClickedState({clicked: true, wasWaiting: waiting})
-        props.onSelectAccount(props.entry.account.username)
+        onSelectAccount(entry.account.username)
       }
   return (
     <Kb.ListItem
       type={isMobile ? 'Large' : 'Small'}
-      icon={<Kb.Avatar size={isMobile ? 48 : 32} username={props.entry.account.username} />}
+      icon={<Kb.Avatar size={isMobile ? 48 : 32} username={entry.account.username} />}
       firstItem={true}
       action={clicked ? <Kb.ProgressIndicator type="Large" /> : undefined}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={waiting ? styles.waiting : undefined}>
-          <Kb.Text type="BodySemibold">{props.entry.account.username}</Kb.Text>
-          {(props.entry.fullName || !props.entry.account.hasStoredSecret) && (
+          <Kb.Text type="BodySemibold">{entry.account.username}</Kb.Text>
+          {(entry.fullName || !entry.account.hasStoredSecret) && (
             <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
               <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
-                {props.entry.fullName}
+                {entry.fullName}
               </Kb.Text>
-              {!props.entry.account.hasStoredSecret && (
+              {!entry.account.hasStoredSecret && (
                 <Kb.Text type="BodySmall" style={styles.text2}>
-                  {props.entry.fullName && ' · '}Signed out
+                  {entry.fullName && ' · '}Signed out
                 </Kb.Text>
               )}
             </Kb.Box2>

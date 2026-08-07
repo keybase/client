@@ -10,7 +10,7 @@ type Props = {
 }
 
 const LocationMap = (props: Props) => {
-  const {height, mapSrc, width} = props
+  const {height, mapSrc, width, onLoad: _onLoad} = props
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const [mapFailed, setMapFailed] = React.useState(false)
   // mapSrc updates as the live location moves; reset load/error state so a new
@@ -23,7 +23,7 @@ const LocationMap = (props: Props) => {
   }
   const onLoad = () => {
     setMapLoaded(true)
-    props.onLoad?.()
+    _onLoad?.()
   }
   const onError = () => {
     setMapFailed(true)

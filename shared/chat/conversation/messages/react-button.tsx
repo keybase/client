@@ -77,11 +77,11 @@ function ReactionButton({
 }
 
 function ReactButtonContainer(p: OwnProps) {
-  const {emoji, reaction} = p
+  const {emoji, reaction, className, onLongPress, style, toggleReaction} = p
   const me = useCurrentUserState(s => s.username)
   const isDarkMode = useColorScheme() === 'dark'
   const onClick = () => {
-    p.toggleReaction?.(emoji)
+    toggleReaction?.(emoji)
   }
   const active = reaction.users.some(r => r.username === me)
   const count = reaction.users.length
@@ -90,12 +90,12 @@ function ReactButtonContainer(p: OwnProps) {
   return (
     <ReactionButton
       active={active}
-      className={p.className}
+      className={className}
       count={count}
       isDarkMode={isDarkMode}
       onClick={onClick}
-      onLongPress={p.onLongPress}
-      style={p.style}
+      onLongPress={onLongPress}
+      style={style}
       text={text}
     />
   )

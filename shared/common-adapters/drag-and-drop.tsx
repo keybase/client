@@ -44,10 +44,22 @@ const containsDirectory = async (paths: Array<string>) => {
 }
 
 const DragAndDrop = (props: Props): React.ReactNode => {
+  const {
+    allowFolders,
+    children,
+    containerStyle,
+    disabled,
+    fullHeight,
+    fullWidth,
+    onAttach,
+    prompt,
+    rejectReason,
+  } = props
+
   const [showDropOverlay, setShowDropOverlay] = React.useState(false)
 
   if (isMobile) {
-    return props.children ?? null
+    return children ?? null
   }
 
   const _onDrop = (e: DragEvent) => {
@@ -58,11 +70,11 @@ const DragAndDrop = (props: Props): React.ReactNode => {
         ? Array.from({length: fileList.length}, (_, i) => getPathForFile?.(fileList[i] as File) ?? '')
         : []
       if (paths.length) {
-        if (!props.allowFolders && (await containsDirectory(paths))) {
+        if (!allowFolders && (await containsDirectory(paths))) {
           setShowDropOverlay(false)
           return
         }
-        props.onAttach?.(paths)
+        onAttach?.(paths)
       }
       setShowDropOverlay(false)
     }
@@ -70,7 +82,7 @@ const DragAndDrop = (props: Props): React.ReactNode => {
   }
 
   const _validDrag = (e: DragEvent) =>
-    e.dataTransfer.types.includes('Files') && !props.disabled
+    e.dataTransfer.types.includes('Files') && !disabled
 
   const _onDragOver = (e: DragEvent) => {
     if (_validDrag(e)) {
@@ -95,15 +107,15 @@ const DragAndDrop = (props: Props): React.ReactNode => {
       style={styles.dropOverlay}
     >
       <Box2 direction="vertical" centerChildren={true} gap="medium">
-        {props.rejectReason ? (
+        {rejectReason ? (
           <Icon type="iconfont-remove" color={Styles.globalColors.red} sizeType="Huge" />
         ) : (
           <Icon type="iconfont-upload" color={Styles.globalColors.blue} sizeType="Huge" />
         )}
-        {props.rejectReason ? (
-          <Text type="Header">{props.rejectReason}</Text>
+        {rejectReason ? (
+          <Text type="Header">{rejectReason}</Text>
         ) : (
-          <Text type="Header">{props.prompt || 'Drop files to upload'}</Text>
+          <Text type="Header">{prompt || 'Drop files to upload'}</Text>
         )}
       </Box2>
     </Box2>
@@ -112,13 +124,13 @@ const DragAndDrop = (props: Props): React.ReactNode => {
   return (
     <Box2
       direction="vertical"
-      fullHeight={props.fullHeight}
-      fullWidth={props.fullWidth}
+      fullHeight={fullHeight}
+      fullWidth={fullWidth}
       relative={true}
       onDragOver={_onDragOver as never}
-      style={props.containerStyle}
+      style={containerStyle}
     >
-      {props.children}
+      {children}
       {showDropOverlay && _dropOverlay()}
     </Box2>
   )

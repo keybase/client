@@ -52,6 +52,8 @@ const Row = React.memo(function Row(p: RowProps) {
 })
 
 const ConversationList = (props: Props) => {
+  const {onDone, onSelect: _onSelect} = props
+
   const [query, setQuery] = React.useState('')
   const [waiting, setWaiting] = React.useState(false)
   const [selected, setSelected] = React.useState(0)
@@ -75,8 +77,8 @@ const ConversationList = (props: Props) => {
     )
   }
   const onSelect = (convID: T.Chat.ConversationIDKey, convName: string) => {
-    props.onSelect(convID, convName)
-    props.onDone?.()
+    _onSelect(convID, convName)
+    onDone?.()
   }
   return (
     <ConversationListRender

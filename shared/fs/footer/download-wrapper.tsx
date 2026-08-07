@@ -9,6 +9,8 @@ type Props = {
 }
 
 const DownloadWrapper = (props: Props): React.ReactNode => {
+  const {children, dismiss, done, isFirst} = props
+
   const [opacity] = React.useState(() => new NativeAnimated.Value(1))
   const started = React.useRef(false)
   const opacityAnimation = React.useRef(
@@ -23,7 +25,7 @@ const DownloadWrapper = (props: Props): React.ReactNode => {
   const ensureStarted = () => {
     if (started.current) return
     started.current = true
-    opacityAnimation.start(({finished}) => finished && props.dismiss())
+    opacityAnimation.start(({finished}) => finished && dismiss())
   }
 
   const ensureStopped = () => {
@@ -35,7 +37,7 @@ const DownloadWrapper = (props: Props): React.ReactNode => {
 
   React.useEffect(() => {
     if (!isMobile) return
-    if (props.isFirst && props.done) {
+    if (isFirst && done) {
       ensureStarted()
     } else {
       ensureStopped()
@@ -46,10 +48,10 @@ const DownloadWrapper = (props: Props): React.ReactNode => {
   })
 
   if (!isMobile) {
-    return props.children
+    return children
   }
 
-  return <NativeAnimated.View style={{opacity}}>{props.children}</NativeAnimated.View>
+  return <NativeAnimated.View style={{opacity}}>{children}</NativeAnimated.View>
 }
 
 export default DownloadWrapper
