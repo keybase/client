@@ -130,3 +130,21 @@ test('uses imperative navigation for URLs outside the linking state config', () 
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
   unsubscribe()
 })
+
+test('consumes an intent after bootstrap fills in the uid the router readied with', () => {
+  // Desktop mounts its NavigationContainer before the bootstrap RPC returns, so
+  // onReady stamps readiness with an empty uid. The same container then serves
+  // the logged-in user; intents must not be stranded.
+  setCurrentUser('')
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, '')
+  setCurrentUser('current-uid')
+
+  const listener = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  emitDeepLink('keybase://convid/post-bootstrap-conversation')
+
+  expect(listener).toHaveBeenCalledTimes(1)
+  expect(listener).toHaveBeenCalledWith('keybase://convid/post-bootstrap-conversation')
+  unsubscribe()
+})
