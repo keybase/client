@@ -1,6 +1,7 @@
 /* eslint-disable */
 import emojiRegexNew from 'emoji-regex'
 const emojiRegex2 = emojiRegexNew()
+export const emojiUnicodeRegex = emojiRegex2
 export const spriteSheetWidth = 62
 export const spriteSheetHeight = 62
 export const emojiRegex = new RegExp(`^(${emojiRegex2.source}|:[a-z0-9_+\\-]+:(?::skin-tone-\\d{1,2}:)?)`)

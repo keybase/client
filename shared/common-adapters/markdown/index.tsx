@@ -4,7 +4,7 @@ import * as SM from '@khanacademy/simple-markdown'
 import {BareErrorBoundary} from '@/common-adapters/error-boundary'
 import Text from '@/common-adapters/text'
 import logger from '@/logger'
-import {emojiIndexByChar, emojiIndexByName, emojiRegex, commonTlds} from './emoji-gen'
+import {emojiIndexByChar, emojiIndexByName, emojiRegex, emojiUnicodeRegex, commonTlds} from './emoji-gen'
 import {
   reactOutput,
   previewOutput,
@@ -124,21 +124,34 @@ const makeTextRegexp = () => {
   // (?= // Positive look ahead. It should have these chars ahead
   // This is kinda weird, but for the regex to terminate it should have these cases be true ahead of its termination
 
-  // [^0-9A-Za-z\s] not a character in this set. So don't terminate if there is still more normal chars to eat
-  const notNormal = /[^0-9A-Za-z\s]/
-  // [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
-  const anyUnicode = /[\u00c0-\uffff]/
+  // OR a character that some other rule could start with, so that rule gets a chance at this
+  // position. Everything else -- ordinary punctuation -- stays inside the text run; stopping on all
+  // of it (the original was [^0-9A-Za-z\s\u00c0-\uffff]) emits a node, and a react element, per
+  // character of '....' or 'e.g.'. Non-latin letters are ordinary too: stopping on those meant one
+  // node per character of any japanese or cyrillic message. Emoji have their own alternative below.
+  // Keep this in sync with the rules: \ escape, ` fence/inlineCode, * strong, _ em, ~ del,
+  // : emoji, ! spoiler, $ serviceDecoration, > blockQuote/quotedFence.
+  const notNormal = /[\\`*_~:!$>]/
+  // OR there is an emoji ahead, so the emoji rule gets a chance at it.
+  // This used to be [\u00c0-\uffff], i.e. any non-latin char at all, which stopped the text run
+  // before every single character of a non-english message: one node, and one react element, per
+  // character. Matching actual emoji instead keeps a japanese or cyrillic sentence in one node.
+  const anyUnicode = emojiUnicodeRegex
   // [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
   // The repetitions below are bounded (a dns label is at most 63 chars): unbounded they rescan the
   // rest of the message at every position the lazy [\s\S]+? stops at, which is quadratic.
   const emaily = /[\w-_.]{1,64}@/
   // (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
-  const tldsPrefix = /(\w{1,63}\.)+/
-  const tldsPosfix = new RegExp(`(${commonTlds.join('|')})`)
+  // The lookbehind matters: without it the url is "ahead" from every position inside the word that
+  // starts it, so the text rule stops after a single character over and over and emits one node --
+  // and one react element -- per character. 'https://keybase.io/docs' used to parse to 17 of them.
+  // \b so a tld only counts at a word end: x.comx is not a url, x.com/y is.
+  const tldsPrefix = /(?<![0-9A-Za-z])(\w{1,63}\.)+/
+  const tldsPosfix = new RegExp(`(${commonTlds.join('|')})\\b`)
   const tlds = new RegExp([tldsPrefix.source, tldsPosfix.source].join(''))
   const newline = /\n/
-  // | \w+:\S // OR there's letters before a : so stop here.
-  const lettersColon = /\w{1,64}:\S/
+  // | \w+:\S // OR there's letters before a : so stop here. Same word-start anchor as the tlds.
+  const lettersColon = /(?<![0-9A-Za-z])\w{1,64}:\S/
   const end = /$/ //   | $ // OR we reach the end of the line
   return new RegExp(
     `${anyCharOne.source}(?=${[

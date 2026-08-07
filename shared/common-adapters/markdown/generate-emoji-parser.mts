@@ -131,6 +131,7 @@ async function buildEmojiFile() {
   const data = `/* eslint-disable */
 import emojiRegexNew from 'emoji-regex'
 const emojiRegex2 = emojiRegexNew()
+export const emojiUnicodeRegex = emojiRegex2
 export const spriteSheetWidth = ${swidth}
 export const spriteSheetHeight = ${sheight}
 export const emojiRegex = new RegExp(\`^(\${emojiRegex2.source}|${shortNameSource})\`)

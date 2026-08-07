@@ -1,5 +1,6 @@
 // Dev-only markdown debug screen. Gated by __DEV__ in nav and routes — never visible in production.
 import * as Kb from '@/common-adapters'
+import {parseMarkdown} from '@/common-adapters/markdown'
 
 type SampleType = {name: string; source: string}
 type Section = {title: string; samples: ReadonlyArray<SampleType>}
@@ -76,11 +77,44 @@ const sections: ReadonlyArray<Section> = [
     ],
     title: 'Edge cases',
   },
+  {
+    // The node count next to each of these is the point: every node becomes a react element, so a
+    // rule that stops the text run too eagerly costs one element per character.
+    samples: [
+      {name: 'url in a sentence', source: 'go to https://keybase.io/docs now'},
+      {name: 'bare host', source: 'Checkout google.com, they got all the cool gizmos.'},
+      {name: 'subdomains', source: 'sub.domain.org here'},
+      {name: 'not a tld', source: 'x.comx and notes.commercial and foo.tvx'},
+      {name: 'long word before a tld', source: 'a'.repeat(120) + '.com'},
+      {name: 'email', source: 'mail me a@b.com please'},
+      {name: 'japanese', source: 'こんにちは、今日はいい天気ですね。散歩に行きましょう'},
+      {name: 'russian', source: 'привет как дела у меня всё хорошо спасибо большое'},
+      {name: 'arabic', source: 'مرحبا كيف حالك اليوم الطقس جميل جدا'},
+      {name: 'accents', source: 'voilà une phrase très française avec des accents éèêë'},
+      {name: 'punctuation run', source: 'wait.... really??? no!!!'},
+      {name: 'abbreviations', source: 'e.g. i.e. etc. v1.2.3 and 1,000.50'},
+      {name: 'keycap emoji', source: '0️⃣1️⃣2️⃣ #️⃣ and 👍😀🎉'},
+      {name: 'english control', source: 'hello there this is a perfectly normal english sentence'},
+    ],
+    title: 'Node counts',
+  },
 ]
+
+type Node = {type: string; content?: unknown}
+const countNodes = (nodes: Array<Node>): number =>
+  nodes.reduce(
+    (a, n) => a + (Array.isArray(n.content) ? countNodes(n.content as Array<Node>) : 1),
+    0
+  )
 
 const Sample = ({name, source}: SampleType) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.sample}>
-    <Kb.Text type="BodySmallSemibold">{name}</Kb.Text>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+      <Kb.Text type="BodySmallSemibold">{name}</Kb.Text>
+      <Kb.Text type="BodyTiny" style={styles.count}>
+        {countNodes(parseMarkdown(source) as Array<Node>)} nodes / {source.length} chars
+      </Kb.Text>
+    </Kb.Box2>
     <Kb.Text type="BodyTiny" style={styles.source} selectable={true}>
       {JSON.stringify(source)}
     </Kb.Text>
@@ -106,6 +140,10 @@ const MarkdownDebug = () => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  count: {
+    color: Kb.Styles.globalColors.black_50,
+    marginLeft: Kb.Styles.globalMargins.tiny,
+  },
   rendered: {
     backgroundColor: Kb.Styles.globalColors.white,
     borderColor: Kb.Styles.globalColors.black_10,

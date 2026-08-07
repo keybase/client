@@ -190,9 +190,43 @@ test('parseMarkdown falls back to the bare short name for an unknown skin tone p
   expect(content.slice(1).every(node => node.type === 'text')).toBe(true)
 })
 
+// Each of these was one text node -- and so one react element -- per character.
 test('parseMarkdown does not split text into a node per character before a url', () => {
-  const content = paragraphContent('a'.repeat(2000) + '.com')
-  expect(content.length).toBeLessThan(80)
+  expect(paragraphContent('a'.repeat(2000) + '.com')).toHaveLength(1)
+  expect(paragraphContent('https://keybase.io/docs ok').length).toBeLessThan(9)
+})
+
+test('parseMarkdown keeps non-latin text in one node', () => {
+  expect(paragraphContent('こんにちは、今日はいい天気ですね')).toHaveLength(1)
+  expect(paragraphContent('привет как дела у меня всё хорошо')).toHaveLength(1)
+  expect(paragraphContent('مرحبا كيف حالك اليوم الطقس جميل')).toHaveLength(1)
+})
+
+test('parseMarkdown keeps a run of ordinary punctuation in one node', () => {
+  expect(paragraphContent('wait.... really??? no')).toHaveLength(1)
+  expect(paragraphContent('e.g. i.e. etc. v1.2.3')).toHaveLength(1)
+})
+
+test('parseMarkdown still stops the text run for every markdown marker', () => {
+  // if a marker stops counting as a stop character its rule silently stops matching
+  expect(paragraphContent('a *b* c').map(n => n.type)).toContain('strong')
+  expect(paragraphContent('a _b_ c').map(n => n.type)).toContain('em')
+  expect(paragraphContent('a ~b~ c').map(n => n.type)).toContain('del')
+  expect(paragraphContent('a `b` c').map(n => n.type)).toContain('inlineCode')
+  expect(paragraphContent('a :+1: c').map(n => n.type)).toContain('emoji')
+  expect(paragraphContent('a 👍 c').map(n => n.type)).toContain('emoji')
+  expect(paragraphContent('a !>b<! c').map(n => n.type)).toContain('spoiler')
+  expect(paragraphContent('a \\*b\\* c').every(n => n.type === 'text')).toBe(true)
+})
+
+test('parseMarkdown treats a tld only at a word end', () => {
+  expect(paragraphContent('x.comx')).toHaveLength(1)
+  expect(paragraphContent('foo.tvx')).toHaveLength(1)
+  expect(paragraphContent('notes.commercial stuff')).toHaveLength(1)
+})
+
+test('parseMarkdown parses keycap emoji', () => {
+  expect(paragraphContent('0️⃣')).toEqual([{content: ':zero:', type: 'emoji'}])
 })
 
 test('parseMarkdown parses spoilers with raw content preserved', () => {
