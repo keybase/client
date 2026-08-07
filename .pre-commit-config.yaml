@@ -12,11 +12,6 @@ repos:
         language: node
         files: \.(js|ts|tsx)$
         args: ['--quiet', '--resolve-plugins-relative-to shared']
-      - id: prettier
-        name: prettier
-        entry: shared/node_modules/.bin/prettier --write
-        language: node
-        files: \.(js|ts|tsx)$
   - repo: https://github.com/keybase/pre-commit-golang.git
     rev: 616cc0b14a680b0eb5132b26a1c6fa87682bd048
     hooks:
