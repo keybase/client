@@ -18,39 +18,42 @@ type Props = {
   style?: StylesTextCrossPlatform
 }
 
+// Read every prop through one destructure: reaching through `props.x` in the body makes the react
+// compiler key its memo on the whole props object, so a mention re-renders on every parent render.
 const MaybeMention = (props: Props) => {
-  if (!props.info || props.info.status === T.RPCChat.UIMaybeMentionStatus.nothing) {
-    let text = `@${props.name}`
-    if (props.channel.length > 0) {
-      text += `#${props.channel}`
+  const {allowFontScaling, channel, info, name, onResolve, style} = props
+  if (!info || info.status === T.RPCChat.UIMaybeMentionStatus.nothing) {
+    let text = `@${name}`
+    if (channel.length > 0) {
+      text += `#${channel}`
     }
     return (
-      <Kb.Text type="Body" style={props.style} allowFontScaling={props.allowFontScaling}>
+      <Kb.Text type="Body" style={style} allowFontScaling={allowFontScaling}>
         {text}
       </Kb.Text>
     )
   }
-  switch (props.info.status) {
+  switch (info.status) {
     case T.RPCChat.UIMaybeMentionStatus.unknown:
       return (
         <UnknownMention
-          allowFontScaling={props.allowFontScaling}
-          channel={props.channel}
-          name={props.name}
-          onResolve={props.onResolve}
-          style={props.style}
+          allowFontScaling={allowFontScaling}
+          channel={channel}
+          name={name}
+          onResolve={onResolve}
+          style={style}
         />
       )
     case T.RPCChat.UIMaybeMentionStatus.user:
-      return <Kb.Mention allowFontScaling={props.allowFontScaling} username={props.name} />
+      return <Kb.Mention allowFontScaling={allowFontScaling} username={name} />
     case T.RPCChat.UIMaybeMentionStatus.team:
       return (
         <TeamMention
-          allowFontScaling={props.allowFontScaling}
-          style={props.style}
-          name={props.name}
-          channel={props.channel}
-          mentionInfo={props.info.team}
+          allowFontScaling={allowFontScaling}
+          style={style}
+          name={name}
+          channel={channel}
+          mentionInfo={info.team}
         />
       )
   }

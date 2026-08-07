@@ -44,10 +44,6 @@ function UTF162JSON(text: string) {
   return r.join('')
 }
 
-function escapeRegExp(text: string) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
 const readEmojiData = async () => {
   const emojiDataPath = path.join(__dirname, '../../node_modules/emoji-datasource-apple/emoji.json')
   return JSON.parse(await fsp.readFile(emojiDataPath, 'utf8')) as Array<EmojiData>
@@ -127,15 +123,18 @@ async function buildEmojiFile() {
   const {swidth, sheight} = await getSpriteSheetSize()
   const emojiData = await readEmojiData()
   const {emojiIndexByName, emojiIndexByChar} = genEmojiData(emojiData)
-  const regIndex = Object.keys(emojiIndexByName)
-    .map((s: string) => escapeRegExp(s).replace(/\\/g, '\\\\'))
-    .join('|')
+  // Every short name is :[a-z0-9_+-]+: with an optional ::skin-tone-N: suffix, so match that shape
+  // instead of emitting an alternation of all ~3800 of them. The literal alternation was 85KB of
+  // the bundle and had to be compiled at startup; the markdown emoji rule validates the shape
+  // against emojiIndexByName, which is exactly as strict and a hash lookup instead.
+  const shortNameSource = ':[a-z0-9_+\\\\-]+:(?::skin-tone-\\\\d{1,2}:)?'
   const data = `/* eslint-disable */
 import emojiRegexNew from 'emoji-regex'
 const emojiRegex2 = emojiRegexNew()
+export const emojiUnicodeRegex = emojiRegex2
 export const spriteSheetWidth = ${swidth}
 export const spriteSheetHeight = ${sheight}
-export const emojiRegex = new RegExp(\`^(\${emojiRegex2.source}|${regIndex})\`)
+export const emojiRegex = new RegExp(\`^(\${emojiRegex2.source}|${shortNameSource})\`)
 export const emojiIndexByName: {[key: string]: string} = JSON.parse(\`${JSON.stringify(
     emojiIndexByName,
     null,

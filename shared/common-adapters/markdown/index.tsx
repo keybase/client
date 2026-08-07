@@ -4,7 +4,7 @@ import * as SM from '@khanacademy/simple-markdown'
 import {BareErrorBoundary} from '@/common-adapters/error-boundary'
 import Text from '@/common-adapters/text'
 import logger from '@/logger'
-import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
+import {emojiIndexByChar, emojiIndexByName, emojiRegex, emojiUnicodeRegex, commonTlds} from './emoji-gen'
 import {
   reactOutput,
   previewOutput,
@@ -124,19 +124,34 @@ const makeTextRegexp = () => {
   // (?= // Positive look ahead. It should have these chars ahead
   // This is kinda weird, but for the regex to terminate it should have these cases be true ahead of its termination
 
-  // [^0-9A-Za-z\s] not a character in this set. So don't terminate if there is still more normal chars to eat
-  const notNormal = /[^0-9A-Za-z\s]/
-  // [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
-  const anyUnicode = /[\u00c0-\uffff]/
+  // OR a character that some other rule could start with, so that rule gets a chance at this
+  // position. Everything else -- ordinary punctuation -- stays inside the text run; stopping on all
+  // of it (the original was [^0-9A-Za-z\s\u00c0-\uffff]) emits a node, and a react element, per
+  // character of '....' or 'e.g.'. Non-latin letters are ordinary too: stopping on those meant one
+  // node per character of any japanese or cyrillic message. Emoji have their own alternative below.
+  // Keep this in sync with the rules: \ escape, ` fence/inlineCode, * strong, _ em, ~ del,
+  // : emoji, ! spoiler, $ serviceDecoration, > blockQuote/quotedFence.
+  const notNormal = /[\\`*_~:!$>]/
+  // OR there is an emoji ahead, so the emoji rule gets a chance at it.
+  // This used to be [\u00c0-\uffff], i.e. any non-latin char at all, which stopped the text run
+  // before every single character of a non-english message: one node, and one react element, per
+  // character. Matching actual emoji instead keeps a japanese or cyrillic sentence in one node.
+  const anyUnicode = emojiUnicodeRegex
   // [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
-  const emaily = /[\w-_.]+@/
+  // The repetitions below are bounded (a dns label is at most 63 chars): unbounded they rescan the
+  // rest of the message at every position the lazy [\s\S]+? stops at, which is quadratic.
+  const emaily = /[\w-_.]{1,64}@/
   // (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
-  const tldsPrefix = /(\w+\.)+/
-  const tldsPosfix = new RegExp(`(${commonTlds.join('|')})`)
+  // The lookbehind matters: without it the url is "ahead" from every position inside the word that
+  // starts it, so the text rule stops after a single character over and over and emits one node --
+  // and one react element -- per character. 'https://keybase.io/docs' used to parse to 17 of them.
+  // \b so a tld only counts at a word end: x.comx is not a url, x.com/y is.
+  const tldsPrefix = /(?<![0-9A-Za-z])(\w{1,63}\.)+/
+  const tldsPosfix = new RegExp(`(${commonTlds.join('|')})\\b`)
   const tlds = new RegExp([tldsPrefix.source, tldsPosfix.source].join(''))
   const newline = /\n/
-  // | \w+:\S // OR there's letters before a : so stop here.
-  const lettersColon = /\w+:\S/
+  // | \w+:\S // OR there's letters before a : so stop here. Same word-start anchor as the tlds.
+  const lettersColon = /(?<![0-9A-Za-z])\w{1,64}:\S/
   const end = /$/ //   | $ // OR we reach the end of the line
   return new RegExp(
     `${anyCharOne.source}(?=${[
@@ -174,6 +189,19 @@ const wordBoundryLookBehindMatch =
     return null
   }
 
+// A single line of a block quote, e.g. '> foo\n'
+// sticky so the scan below never has to slice the source
+const quotedLineRegex = / *>[^\n]*(?:\n|$)/y
+// Strips the quote marker (and a single following space, so code indentation survives)
+const quoteMarkerRegex = /^ *> ?/gm
+const isFullyQuoted = (block: string) =>
+  block.split('\n').every(line => line.trim() === '' || /^ *>/.test(line))
+const countFences = (line: string) => (line.match(/```/g) ?? []).length
+const emojiMatcher = SimpleMarkdown.inlineRegex(emojiRegex)
+const quotedFenceRegex = SimpleMarkdown.anyScopeRegex(
+  /^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/
+)
+
 // Rules are defined here, the react components for these types are defined in markdown-react.js
 const rules: {[type: string]: SM.ParserRule} = {
   blockQuote: {
@@ -181,25 +209,38 @@ const rules: {[type: string]: SM.ParserRule} = {
     // match: blockRegex(/^( *>[^\n]+(\n[^\n]+)*\n*)+\n{2,}/),
     // Original: A quote block only needs to start with > and everything in the same paragraph will be a quote
     // e.g. https://regex101.com/r/ZiDBsO/2
-    // ours: Everything in the quote has to be preceded by >
-    // unless it has the start of a fence
-    // e.g. https://regex101.com/r/ZiDBsO/8
+    // ours: Everything in the quote has to be preceded by >. Fences that open and close inside the
+    // quote are kept (the marker is stripped before the nested parse, so the fence rule sees them),
+    // but we stop before a fence that never closes inside the quote so quotedFence can handle it.
     match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
       if ((state['blockQuoteRecursionLevel'] ?? 0) > 6) {
         return null
       }
-      const regex = /^( *>(?:[^\n](?!```))+\n?)+/
       // make sure the look behind is empty
       const emptyLookbehind = /^$|\n *$/
-
-      const match = regex.exec(source)
-      if (match && emptyLookbehind.test(prevCapture)) {
-        return match
+      if (!emptyLookbehind.test(prevCapture)) {
+        return null
       }
-      return null
+
+      let insideFence = false
+      let balancedEnd = 0
+      quotedLineRegex.lastIndex = 0
+      while (quotedLineRegex.lastIndex < source.length) {
+        const line = quotedLineRegex.exec(source)?.[0]
+        if (!line) break
+        insideFence = (countFences(line) + (insideFence ? 1 : 0)) % 2 === 1
+        if (!insideFence) {
+          balancedEnd = quotedLineRegex.lastIndex
+        }
+      }
+      if (!balancedEnd) {
+        return null
+      }
+      const matched = source.slice(0, balancedEnd)
+      return [matched]
     },
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
-      const content = capture[0]?.replace(/^ *> */gm, '') ?? ''
+      const content = capture[0]?.replace(quoteMarkerRegex, '') ?? ''
       const oldBlockQuoteRecursionLevel = state['blockQuoteRecursionLevel'] || 0
       state['blockQuoteRecursionLevel'] = oldBlockQuoteRecursionLevel + 1
       const ret = {content: nestedParse(content, state)}
@@ -221,7 +262,21 @@ const rules: {[type: string]: SM.ParserRule} = {
     match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/)),
   },
   emoji: {
-    match: SimpleMarkdown.inlineRegex(emojiRegex),
+    // emojiRegex matches the *shape* of a short name rather than an alternation of every known one,
+    // so confirm the name actually exists. A `:name::skin-tone-N:` whose combination we don't know
+    // falls back to the bare `:name:`, which is what the old alternation of literals did.
+    match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
+      const capture = emojiMatcher(source, state, prevCapture)
+      const matched = capture?.[0]
+      if (!matched) {
+        return null
+      }
+      if (!matched.startsWith(':') || emojiIndexByName[matched]) {
+        return capture
+      }
+      const base = matched.slice(0, matched.indexOf(':', 1) + 1)
+      return emojiIndexByName[base] ? [base, base] : null
+    },
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
     parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => {
       // If it's a unicode emoji, let's get it's shortname
@@ -265,8 +320,36 @@ const rules: {[type: string]: SM.ParserRule} = {
     ...SimpleMarkdown.defaultRules.inlineCode,
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
-    // ours: only allow a single backtick
-    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
+    // ours: only allow a single backtick.
+    // This used to be a regex, but trimming the padding with \s* around a lazy [\s\S]*? content group
+    // is ambiguous and backtracked cubically: a 2k message of `<spaces>x hung the parser for seconds.
+    // The scan below is the same grammar in one linear pass.
+    match: (source: string, _state: State, _prevCapture: string): SM.Capture | null => {
+      if (!source.startsWith('`') || source[1] === '`') {
+        return null
+      }
+      for (let i = 1; i < source.length; ++i) {
+        // the closing backtick can't be part of a run of them
+        if (source[i] !== '`' || source[i + 1] === '`') {
+          continue
+        }
+        const raw = source.slice(1, i)
+        let content = raw.trim()
+        if (!content) {
+          // all padding: keep a single trailing space, but never a bare newline
+          const last = raw.slice(-1)
+          if (last !== ' ' && last !== '\t') {
+            continue
+          }
+          content = last
+        }
+        if (content.endsWith('`')) {
+          continue
+        }
+        return [source.slice(0, i + 1), '`', content]
+      }
+      return null
+    },
   },
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
@@ -300,7 +383,15 @@ const rules: {[type: string]: SM.ParserRule} = {
     // ```
     // It's much easier and cleaner to make this a separate rule
     ...SimpleMarkdown.defaultRules.fence,
-    match: SimpleMarkdown.anyScopeRegex(/^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/),
+    match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
+      const capture = quotedFenceRegex(source, state, prevCapture)
+      // When every line of the fence body is quoted too, this is a normal block quote that happens
+      // to contain a fence. blockQuote handles that (and strips the markers), so decline here.
+      if (!capture || isFullyQuoted(capture[2] ?? '')) {
+        return null
+      }
+      return capture
+    },
     // Example: https://regex101.com/r/ZiDBsO/6
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
@@ -495,10 +586,28 @@ const renderMarkdown = (
   }
 }
 
+const emptyStyleOverride: StyleOverride = {}
+
 function SimpleMarkdownComponent(p: Props) {
-  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
-  const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
-  const {serviceOnlyNoWrap, disallowAnimation, context} = p
+  // One destructure: split across statements the compiler keeps `p` itself as a memo dependency, so
+  // every new props object re-parses the markdown even when nothing it reads actually changed.
+  const {
+    allowFontScaling,
+    styleOverride = emptyStyleOverride,
+    paragraphTextClassName,
+    messageType,
+    children,
+    serviceOnly,
+    preview,
+    smallStandaloneEmoji,
+    virtualText,
+    lineClamp,
+    style,
+    selectable,
+    serviceOnlyNoWrap,
+    disallowAnimation,
+    context,
+  } = p
 
   const state = {
     allowFontScaling,

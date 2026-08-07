@@ -139,6 +139,14 @@ const LeftNav = (props: Props) => {
           onClick={props.onClick}
         />
       )}
+      {__DEV__ && (
+        <SettingsItem
+          text="Markdown"
+          type={Settings.settingsMarkdownTab}
+          selected={props.selected === Settings.settingsMarkdownTab}
+          onClick={props.onClick}
+        />
+      )}
       <Kb.Divider />
       <SettingsItem
         text="About"

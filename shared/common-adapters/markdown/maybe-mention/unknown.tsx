@@ -20,24 +20,25 @@ type PopupProps = {
 const items: MenuItems = []
 
 const UnknownMentionPopup = (props: PopupProps) => {
+  const {attachTo, onHidden, onResolve, text, visible} = props
   const header = (
     <Kb.Box2 direction="vertical" gap="tiny" padding="tiny" style={styles.popupContainer} gapStart={true}>
       <Kb.Text type="BodySemibold">User or team?</Kb.Text>
       <Kb.Text type="BodySmall">
-        {props.text} could be either a user or team. You can find out with a quick request to Keybase.
+        {text} could be either a user or team. You can find out with a quick request to Keybase.
       </Kb.Text>
-      <Kb.Button label="Lookup" onClick={props.onResolve} />
+      <Kb.Button label="Lookup" onClick={onResolve} />
     </Kb.Box2>
   )
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
+      attachTo={attachTo}
       closeOnSelect={true}
       header={header}
       items={items}
       mode="bottomsheet"
-      onHidden={props.onHidden}
-      visible={props.visible}
+      onHidden={onHidden}
+      visible={visible}
     />
   )
 }
@@ -51,7 +52,7 @@ type Props = {
 }
 
 const UnknownMention = (props: Props) => {
-  const {onResolve: _onResolve} = props
+  const {onResolve: _onResolve, allowFontScaling, channel, name, style} = props
   const [showPopup, setShowPopup] = React.useState(false)
   const mentionRef = React.useRef<MeasureRef | null>(null)
 
@@ -63,9 +64,9 @@ const UnknownMention = (props: Props) => {
     handleMouseLeave()
   }
 
-  let text = `@${props.name}`
-  if (props.channel.length > 0) {
-    text += `#${props.channel}`
+  let text = `@${name}`
+  if (channel.length > 0) {
+    text += `#${channel}`
   }
 
   const content = (
@@ -73,8 +74,8 @@ const UnknownMention = (props: Props) => {
       textRef={mentionRef}
       type="BodySemibold"
       className={Kb.Styles.classNames({'hover-underline': !isMobile})}
-      allowFontScaling={props.allowFontScaling}
-      style={Kb.Styles.collapseStyles([props.style, styles.text])}
+      allowFontScaling={allowFontScaling}
+      style={Kb.Styles.collapseStyles([style, styles.text])}
       onClick={handleMouseOver}
     >
       {text}
