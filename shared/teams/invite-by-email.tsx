@@ -14,6 +14,7 @@ const malformedEmailErrorMessage = (malformed: ReadonlyArray<string>) =>
     : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
 
 const InviteByEmail = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const teamID = ownProps.teamID
   const {
     teamMeta: {teamname},
@@ -87,7 +88,7 @@ const InviteByEmail = (ownProps: OwnProps) => {
           >
             <Kb.DropdownButton
               toggleOpen={onOpenRolePicker}
-              selected={_makeDropdownItem(role)}
+              selected={_makeDropdownItem(role, styles)}
               style={styles.dropdown}
             />
           </FloatingRolePicker>
@@ -117,17 +118,17 @@ const InviteByEmail = (ownProps: OwnProps) => {
   )
 }
 
-const _makeDropdownItem = (item: string) => (
+const _makeDropdownItem = (item: string, styles: ReturnType<typeof useStyles>) => (
   <Kb.Box2 key={item} direction="horizontal" alignItems="center" style={styles.dropdownItem}>
     <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
   </Kb.Box2>
 )
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   addAsText: {margin: Kb.Styles.globalMargins.tiny},
   dropdown: {width: 100},
   dropdownItem: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.small)},
-  errorText: {color: Kb.Styles.globalColors.redDark},
+  errorText: {color: theme.redDark},
   header: {padding: Kb.Styles.globalMargins.tiny},
   outerBox: {margin: Kb.Styles.globalMargins.medium},
   roleRow: {margin: Kb.Styles.globalMargins.tiny},

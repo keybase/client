@@ -14,6 +14,7 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
+  const styles = useStyles()
   const {navigate} = props
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))
@@ -161,10 +162,10 @@ const LeftNav = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
       flexDirection: 'column',
     },
     isElectron: {

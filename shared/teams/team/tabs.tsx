@@ -16,6 +16,7 @@ type TeamTabsProps = {
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
+  const styles = useStyles()
   const tabs: Array<TabType<T.Teams.TabKey>> = [
     {badgeNumber: props.resetUserCount, testID: TestIDs.TEAMS_TAB_MEMBERS_BUTTON, title: 'members' as const},
     ...(!props.isBig ? [{title: 'emoji' as const}] : []),
@@ -59,14 +60,14 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   clickableBox: Kb.Styles.platformStyles({
     isElectron: {flex: 1},
     isMobile: {
       flexGrow: 1,
     },
   }),
-  container: {backgroundColor: Kb.Styles.globalColors.white},
+  container: {backgroundColor: theme.white},
   tab: Kb.Styles.platformStyles({
     isElectron: {flexGrow: 1},
     isMobile: {
@@ -74,7 +75,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   tabContainer: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     flexBasis: '100%',
     marginTop: 0,
   },

@@ -19,6 +19,7 @@ type OwnProps = {
 }
 
 const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
+  const styles = useStyles()
   const emojiData = RPCToEmojiData(emoji, false)
   const nav = useSafeNavigation()
   const username = useCurrentUserState(s => s.username)
@@ -125,8 +126,8 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       alias: Kb.Styles.platformStyles({
         common: {
@@ -144,7 +145,7 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 130,
       },
       container: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.white},
+        common: {backgroundColor: theme.white},
         isElectron: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       }),
       username: {

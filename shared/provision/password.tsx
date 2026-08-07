@@ -16,6 +16,7 @@ type Props = {
 }
 
 const Password = ({route}: Props) => {
+  const styles = useStyles()
   const {username} = route.params
   const error = route.params.error ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
@@ -89,11 +90,11 @@ const Password = ({route}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   card: Kb.Styles.platformStyles({
     common: {
       alignItems: 'stretch',
-      backgroundColor: Kb.Styles.globalColors.transparent,
+      backgroundColor: theme.transparent,
     },
     isMobile: {
       ...Kb.Styles.paddingH(0),
@@ -112,7 +113,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {height: 'unset'},
   }),
   outerCardAvatar: {
-    backgroundColor: Kb.Styles.globalColors.transparent,
+    backgroundColor: theme.transparent,
   },
   scrollContentContainer: Kb.Styles.platformStyles({
     isElectron: {

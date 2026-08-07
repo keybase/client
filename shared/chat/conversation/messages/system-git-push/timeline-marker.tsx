@@ -12,17 +12,20 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-const TimelineMarker = ({idx, max, type, style}: Props) => (
-  <Kb.Box2 direction="vertical" alignItems="center" style={Styles.collapseStyles([{marginRight: 16}, style])}>
-    <Kb.Box2 direction="vertical" style={{...styles.line, opacity: idx ? 1 : 0}} />
-    {type === 'closed' ? <Kb.Box2 direction="vertical" style={styles.circleClosed} /> : <Kb.Box2 direction="vertical" style={styles.circleOpen} />}
-    <Kb.Box2 direction="vertical" style={{...styles.line, opacity: idx < max ? 1 : 0}} />
-  </Kb.Box2>
-)
+const TimelineMarker = ({idx, max, type, style}: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" alignItems="center" style={Styles.collapseStyles([{marginRight: 16}, style])}>
+      <Kb.Box2 direction="vertical" style={{...styles.line, opacity: idx ? 1 : 0}} />
+      {type === 'closed' ? <Kb.Box2 direction="vertical" style={styles.circleClosed} /> : <Kb.Box2 direction="vertical" style={styles.circleOpen} />}
+      <Kb.Box2 direction="vertical" style={{...styles.line, opacity: idx < max ? 1 : 0}} />
+    </Kb.Box2>
+  )
+}
 
 const circleSize = 8
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   circleClosed: Styles.platformStyles({
     common: {
       backgroundColor: timeline_grey,
@@ -30,10 +33,10 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.size(circleSize),
     },
     isElectron: {
-      border: `solid 2px ${Styles.globalColors.white}`,
+      border: `solid 2px ${theme.white}`,
     },
     isMobile: {
-      borderColor: Styles.globalColors.white,
+      borderColor: theme.white,
     },
   }),
   circleOpen: {

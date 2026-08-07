@@ -8,6 +8,8 @@ import {submitResetPrompt} from './account-reset'
 type Props = {route: {params: {hasWallet: boolean; resetKey: string}}}
 
 const ConfirmReset = ({route}: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {hasWallet, resetKey} = route.params
   const navigation = useNavigation()
   const resolvedRef = React.useRef(false)
@@ -73,7 +75,7 @@ const ConfirmReset = ({route}: Props) => {
         padding="medium"
         style={styles.container}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-skull" sizeType="Big" color={theme.black} />
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="Header">Go ahead with reset?</Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xsmall" alignItems="flex-start">
@@ -139,7 +141,7 @@ const ConfirmReset = ({route}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   buttonBar: {
     alignItems: 'center',
   },

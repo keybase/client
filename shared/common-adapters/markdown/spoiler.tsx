@@ -18,6 +18,7 @@ registerExternalResetter('markdown-spoiler-state', () => {
 })
 
 const Spoiler = (p: Props) => {
+  const styles = useStyles()
   const {children, content, context} = p
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
@@ -56,11 +57,11 @@ const Spoiler = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   hidden: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.black_on_white,
-      color: Styles.globalColors.black_on_white,
+      backgroundColor: theme.black_on_white,
+      color: theme.black_on_white,
     },
     isElectron: {
       borderRadius: Styles.borderRadius,
@@ -69,8 +70,8 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   shown: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.black_on_white,
-      color: Styles.globalColors.white,
+      backgroundColor: theme.black_on_white,
+      color: theme.white,
     },
     isElectron: {
       borderRadius: Styles.borderRadius,

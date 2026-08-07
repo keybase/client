@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 // TODO remove
-export const sharedStyles = Kb.Styles.styleSheetCreate(() => {
+export const useSharedStyles = Kb.Styles.createStyleHook(theme => {
   const editing: Kb.Styles._StylesCrossPlatform = {
     borderRadius: 2,
-    color: Kb.Styles.globalColors.blackOrBlack,
+    color: theme.blackOrBlack,
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.tiny,
   }
@@ -32,7 +32,7 @@ export const sharedStyles = Kb.Styles.styleSheetCreate(() => {
   return {
     editing,
     highlighted: {
-      color: Kb.Styles.globalColors.blackOrBlack,
+      color: theme.blackOrBlack,
     },
     pendingFail,
     pendingFailEditing,

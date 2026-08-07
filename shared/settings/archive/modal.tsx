@@ -57,6 +57,7 @@ const chatIDToDisplayname = (conversationIDKey: T.Chat.ConversationIDKey) => {
 }
 
 const ArchiveModal = (p: Props) => {
+  const styles = useStyles()
   const {type} = p
   const displayname = p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
 
@@ -369,15 +370,15 @@ const ArchiveModal = (p: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {padding: isMobile ? 8 : 16},
   contentContainer: {
     maxWidth: 400,
   },
   outPath: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Kb.Styles.globalColors.blue_30,
-      borderColor: Kb.Styles.globalColors.grey,
+      backgroundColor: theme.blue_30,
+      borderColor: theme.grey,
       borderRadius: Kb.Styles.borderRadius,
       padding: 2,
       wordBreak: 'break-all',

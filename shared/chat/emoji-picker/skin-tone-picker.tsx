@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {emojiData} from '@/common-adapters/emoji'
 
-const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
+const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean, styles: ReturnType<typeof useStyles>) => {
   return (
     <Kb.Box2 direction="vertical" relative={true}>
       {outerCircle && <Kb.Box2 direction="vertical" style={styles.circleOuter} />}
@@ -35,6 +35,7 @@ const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
 }
 
 function SkinTonePicker(props: Props) {
+  const styles = useStyles()
   const {currentSkinTone, onExpandChange, setSkinTone} = props
 
   const [expanded, _setExpanded] = React.useState(false)
@@ -52,7 +53,7 @@ function SkinTonePicker(props: Props) {
         setExpanded(false)
       }}
     >
-      {circle(skinTone, true, isMobile && skinTone === currentSkinTone)}
+      {circle(skinTone, true, isMobile && skinTone === currentSkinTone, styles)}
     </Kb.ClickableBox>
   ))
 
@@ -68,7 +69,7 @@ function SkinTonePicker(props: Props) {
       </Kb.Box2>
     ) : (
       <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
-        {circle(currentSkinTone, false, false)}
+        {circle(currentSkinTone, false, false, styles)}
         <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
       </Kb.ClickableBox>
     )
@@ -81,7 +82,7 @@ function SkinTonePicker(props: Props) {
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
           <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
-            {circle(currentSkinTone, false, false)}
+            {circle(currentSkinTone, false, false, styles)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
@@ -92,7 +93,7 @@ function SkinTonePicker(props: Props) {
 
 export default SkinTonePicker
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   absolute: {position: 'absolute'},
   circleCollapsed: {
     borderRadius: Kb.Styles.globalMargins.small / 2,
@@ -109,8 +110,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   circleOuter: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, (Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny) / 2),
+    backgroundColor: theme.white,
+    ...Kb.Styles.border(theme.black_10, 1, (Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny) / 2),
     ...Kb.Styles.size(Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny),
     left: -5,
     position: 'absolute',
@@ -126,8 +127,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.size(Kb.Styles.globalMargins.small * 2),
   },
   popupContainer: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.globalMargins.small),
+    backgroundColor: theme.white,
+    ...Kb.Styles.border(theme.black_10, 1, Kb.Styles.globalMargins.small),
     height: 126,
     marginLeft: Kb.Styles.globalMargins.xtiny - 1,
     marginTop: Kb.Styles.globalMargins.xtiny - 1,

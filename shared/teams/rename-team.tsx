@@ -7,6 +7,7 @@ import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 type OwnProps = {teamname: string}
 
 const RenameTeam = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const teamname = ownProps.teamname
   const waitingError = C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRename)
@@ -129,8 +130,8 @@ const splitTeamname = (teamname: string) => teamname.split('.')
 
 const invalidChars = /[^a-zA-Z0-9_]/
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       body: Kb.Styles.platformStyles({
         common: {flex: 1},
@@ -149,12 +150,12 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {flex: 1},
       }),
-      error: {color: Kb.Styles.globalColors.redDark},
+      error: {color: theme.redDark},
       inputContainer: {
-        ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
+        ...Kb.Styles.border(theme.black_10, 1, Kb.Styles.borderRadius),
         padding: Kb.Styles.globalMargins.tiny,
       },
-      inputContainerError: {borderColor: Kb.Styles.globalColors.red},
+      inputContainerError: {borderColor: theme.red},
       teamnameHeader: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,
       }),

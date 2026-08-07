@@ -16,6 +16,7 @@ const TBHeaderRight = ({
   namespace: T.TB.AllowedNamespace
   goButtonLabel?: string
 }) => {
+  const styles = useStyles()
   const {enabled, onAction} = useModalHeaderState(
     C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction}))
   )
@@ -102,7 +103,7 @@ const CancelOnBlur = () => {
   return null
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({hide: {opacity: 0}}) as const)
+const useStyles = Kb.Styles.createStyleHook(() => ({hide: {opacity: 0}}) as const)
 
 type OwnProps = StaticScreenProps<TeamBuilderRouteParams>
 

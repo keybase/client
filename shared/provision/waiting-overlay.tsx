@@ -13,6 +13,7 @@ const stillTryingMs = 10000
 // short delay so fast responses never flash, and offers an escape hatch once the wait is long.
 // Render as the last child of the screen's outermost container.
 const ProvisionWaitingOverlay = () => {
+  const styles = useStyles()
   const waiting = useAnyWaiting(waitingKeyProvision)
   const [phase, setPhase] = React.useState<'hidden' | 'spinner' | 'stillTrying'>('hidden')
   const navigation = useNavigation()
@@ -78,12 +79,12 @@ const ProvisionWaitingOverlay = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       overlay: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        backgroundColor: Kb.Styles.globalColors.white_75,
+        backgroundColor: theme.white_75,
         zIndex: 10,
       },
     }) as const

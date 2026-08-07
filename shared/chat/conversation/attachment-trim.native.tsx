@@ -30,6 +30,7 @@ const seekSlopMs = 400
 // player is doing; master's plain Kb.Video preview does it too, and a device is
 // clean. Don't chase it from this component.
 const AttachmentTrim = (props: Props) => {
+  const styles = useStyles()
   const {edit, onEdit, path} = props
   const uri = Styles.normalizePath(Styles.urlEscapeFilePath(path))
   const player = useVideoPlayer(uri, p => {
@@ -255,8 +256,8 @@ const AttachmentTrim = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
       checkbox: {
         alignSelf: 'center',
@@ -268,13 +269,13 @@ const styles = Styles.styleSheetCreate(
         paddingTop: Styles.globalMargins.tiny,
       },
       dim: {
-        backgroundColor: Styles.globalColors.black_20,
+        backgroundColor: theme.black_20,
         bottom: 0,
         position: 'absolute',
         top: 0,
       },
       handle: {
-        backgroundColor: Styles.globalColors.yellow,
+        backgroundColor: theme.yellow,
         bottom: 0,
         position: 'absolute',
         top: 0,
@@ -289,14 +290,14 @@ const styles = Styles.styleSheetCreate(
         borderTopRightRadius: Styles.borderRadius,
       },
       selected: {
-        borderColor: Styles.globalColors.yellow,
+        borderColor: theme.yellow,
         borderWidth: 2,
         bottom: 0,
         position: 'absolute',
         top: 0,
       },
       track: {
-        backgroundColor: Styles.globalColors.black_10,
+        backgroundColor: theme.black_10,
         borderRadius: Styles.borderRadius,
         height: trackHeight,
         overflow: 'hidden',

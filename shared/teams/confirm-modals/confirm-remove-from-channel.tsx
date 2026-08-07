@@ -15,6 +15,7 @@ type Props = {
 }
 
 const ConfirmRemoveFromChannel = (props: Props) => {
+  const styles = useStyles()
   const members = props.members
   const teamID = props.teamID
   const conversationIDKey = props.conversationIDKey
@@ -74,12 +75,12 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 }
 export default ConfirmRemoveFromChannel
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   headerIcon: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.red,
-      ...Kb.Styles.border(Kb.Styles.globalColors.white, 3),
-      color: Kb.Styles.globalColors.white,
+      backgroundColor: theme.red,
+      ...Kb.Styles.border(theme.white, 3),
+      color: theme.white,
       padding: 3,
     },
     isElectron: {

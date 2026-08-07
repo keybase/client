@@ -8,20 +8,23 @@ type SearchEmptyStateProps = {
 // Shown by the email/phone search screens when there is no matching user yet.
 // Quirks vs plain Kb.EmptyState: icon only on desktop, top-aligned on mobile,
 // and BodySmall text with mobile padding.
-export const SearchEmptyState = ({icon, text}: SearchEmptyStateProps) => (
-  <Kb.EmptyState
-    centerChildren={!isMobile}
-    gap="tiny"
-    icon={isMobile ? undefined : icon}
-    style={styles.emptyContainer}
-  >
-    <Kb.Text type="BodySmall" style={styles.helperText}>
-      {text}
-    </Kb.Text>
-  </Kb.EmptyState>
-)
+export const SearchEmptyState = ({icon, text}: SearchEmptyStateProps) => {
+  const styles = useStyles()
+  return (
+    <Kb.EmptyState
+      centerChildren={!isMobile}
+      gap="tiny"
+      icon={isMobile ? undefined : icon}
+      style={styles.emptyContainer}
+    >
+      <Kb.Text type="BodySmall" style={styles.helperText}>
+        {text}
+      </Kb.Text>
+    </Kb.EmptyState>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       emptyContainer: Kb.Styles.platformStyles({

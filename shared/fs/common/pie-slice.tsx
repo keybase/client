@@ -8,6 +8,7 @@ type Props = {
 }
 
 const Slice = (props: Props) => {
+  const styles = useStyles()
   const styleFilled = props.negative ? styles.filledNegative : styles.filledPositive
   const styleUnfilled = props.negative ? styles.unfilledNegative : styles.unfilledPositive
   return (
@@ -50,18 +51,18 @@ const stylePieWhole = {
   position: 'absolute' as const,
   width: pieSize,
 }
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         ...Kb.Styles.size(pieSize),
         position: 'relative' as const,
       },
       filledNegative: {
-        backgroundColor: Kb.Styles.globalColors.greyLight,
+        backgroundColor: theme.greyLight,
       },
       filledPositive: {
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
       },
       leftFilled: {
         ...stylePieHalf,
@@ -89,10 +90,10 @@ const styles = Kb.Styles.styleSheetCreate(
         left: 0,
       },
       unfilledNegative: {
-        backgroundColor: Kb.Styles.globalColors.blueDark,
+        backgroundColor: theme.blueDark,
       },
       unfilledPositive: {
-        backgroundColor: Kb.Styles.globalColors.greyLight,
+        backgroundColor: theme.greyLight,
       },
       wholeUnfilled: {
         ...stylePieWhole,

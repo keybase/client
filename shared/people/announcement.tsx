@@ -19,6 +19,7 @@ type OwnProps = {
 }
 
 const Announcement = (props: OwnProps) => {
+  const styles = useStyles()
   const {appLink, badged, confirmLabel, dismissAnnouncement, dismissable, getData, iconUrl, id, text, url} =
     props
   const {navigateAppend, switchTab, navigateToInbox} = C.Router2
@@ -97,7 +98,7 @@ const Announcement = (props: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       icon: {flexShrink: 0, ...Kb.Styles.size(32)},

@@ -5,6 +5,7 @@ const small = 4
 const padding = 5
 
 const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Kb.Styles.Color}) => {
+  const styles = useStyles()
   const s = [styles.common, {backgroundColor: color}]
   return canScan ? (
     <>
@@ -50,7 +51,7 @@ const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Kb.Styles.Colo
   ) : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   common: {position: 'absolute'},
 }))
 

@@ -19,6 +19,8 @@ type OwnProps = {
 }
 
 const CodePageContainer = (op: OwnProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const storeDeviceName = useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   const {otherDevice, textCode} = op
@@ -81,7 +83,7 @@ const CodePageContainer = (op: OwnProps) => {
         draft.tab = tab
       })
     )
-  const tabBackground = tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green
+  const tabBackground = tab === 'QR' ? theme.blueLight : theme.green
   const buttonType = tab === 'QR' ? ('Default' as const) : ('Success' as const)
   const buttonLabelStyle = tab === 'QR' ? styles.primaryOnBlueLabel : styles.primaryOnGreenLabel
 
@@ -136,7 +138,7 @@ const CodePageContainer = (op: OwnProps) => {
           <>
             <Kb.BackButton
               onClick={onBack}
-              iconColor={Kb.Styles.globalColors.white}
+              iconColor={theme.white}
               style={styles.backButton}
               textStyle={styles.backButtonText}
             />
@@ -286,6 +288,7 @@ const SwitchTab = (props: {
   otherDevice: Device
   currentDeviceAlreadyProvisioned: boolean
 }) => {
+  const styles = useStyles()
   const {onSelect} = props
   if (currentDeviceType === 'desktop' && props.otherDevice.type === 'desktop') {
     return null
@@ -323,24 +326,27 @@ const SwitchTab = (props: {
 }
 
 const Qr = (props: {textCode: string; currentDeviceAlreadyProvisioned: boolean}) =>
-  currentDeviceType === 'desktop' ? (
-    <Kb.Box2 direction="vertical" style={styles.qrOnlyContainer}>
-      <QRImage code={props.textCode} cellSize={8} />
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2
-      style={Kb.Styles.collapseStyles([
-        styles.qrContainer,
-        props.currentDeviceAlreadyProvisioned && styles.qrContainerFlip,
-      ])}
-      direction="vertical"
-    >
-      <Kb.Box2 direction="vertical" style={styles.qrImageContainer}>
-        <QRImage code={props.textCode} />
+  {
+  const styles = useStyles()
+  return currentDeviceType === 'desktop' ? (
+      <Kb.Box2 direction="vertical" style={styles.qrOnlyContainer}>
+        <QRImage code={props.textCode} cellSize={8} />
       </Kb.Box2>
-      <QRScan />
-    </Kb.Box2>
-  )
+    ) : (
+      <Kb.Box2
+        style={Kb.Styles.collapseStyles([
+          styles.qrContainer,
+          props.currentDeviceAlreadyProvisioned && styles.qrContainerFlip,
+        ])}
+        direction="vertical"
+      >
+        <Kb.Box2 direction="vertical" style={styles.qrImageContainer}>
+          <QRImage code={props.textCode} />
+        </Kb.Box2>
+        <QRScan />
+      </Kb.Box2>
+    )
+}
 
 const EnterText = (props: {
   code: string
@@ -348,6 +354,7 @@ const EnterText = (props: {
   onSubmitTextCode: (c: string) => void
   otherDevice: Device
 }) => {
+  const styles = useStyles()
   const {code, setCode} = props
   const {onSubmitTextCode} = props
   const onSubmit = (e?: React.KeyboardEvent) => {
@@ -380,13 +387,16 @@ const EnterText = (props: {
   )
 }
 
-const ViewText = (props: {textCode: string}) => (
-  <Kb.Box2 direction="vertical" alignItems="center" style={styles.viewTextContainer}>
-    <Kb.Text center={true} type="Terminal" style={styles.viewTextCode}>
-      {props.textCode}
-    </Kb.Text>
-  </Kb.Box2>
-)
+const ViewText = (props: {textCode: string}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" alignItems="center" style={styles.viewTextContainer}>
+      <Kb.Text center={true} type="Terminal" style={styles.viewTextCode}>
+        {props.textCode}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const getIcon = (type: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
   switch (type) {
@@ -406,6 +416,8 @@ const Instructions = (p: {
   otherDevice: Device
   iconNumber: T.Devices.IconNumber
 }) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const iconType = getIcon(
     p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type,
     p.iconNumber
@@ -448,11 +460,11 @@ const Instructions = (p: {
         >
           <Kb.Icon
             type="iconfont-nav-2-hamburger"
-            color={Kb.Styles.globalColors.white}
+            color={theme.white}
             sizeType="Default"
             style={styles.hamburger}
           />
-          <Kb.Icon type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
+          <Kb.Icon type="iconfont-arrow-right" color={theme.white} sizeType="Tiny" />
           <Kb.Text type={textType} style={styles.instructions}>
             Devices
           </Kb.Text>
@@ -491,8 +503,8 @@ const Instructions = (p: {
   return <Kb.Box2 direction="vertical">{content}</Kb.Box2>
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       backButton: Kb.Styles.platformStyles({
         isElectron: {
@@ -509,7 +521,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginTop: 0,
         },
       }),
-      backButtonText: {color: Kb.Styles.globalColors.white},
+      backButtonText: {color: theme.white},
       backgroundOnLeft: {marginLeft: -230},
       backgroundOnRight: {marginRight: -230},
       closeButton: Kb.Styles.marginH(Kb.Styles.globalMargins.small),
@@ -537,10 +549,10 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: isMobile ? undefined : 460,
         width: '90%',
       },
-      enterTextColor: {color: Kb.Styles.globalColors.greenDark},
+      enterTextColor: {color: theme.greenDark},
       enterTextContainer2: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           borderRadius: Kb.Styles.borderRadius,
           ...Kb.Styles.padding(15, 20),
         },
@@ -559,16 +571,16 @@ const styles = Kb.Styles.styleSheetCreate(
       imageContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
       },
-      instructions: {color: Kb.Styles.globalColors.white},
+      instructions: {color: theme.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
       instructionsUpper: {marginBottom: Kb.Styles.globalMargins.tiny},
-      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
-      primaryOnColor: {backgroundColor: Kb.Styles.globalColors.white},
-      primaryOnGreenLabel: {color: Kb.Styles.globalColors.greenDark},
+      primaryOnBlueLabel: {color: theme.blueDark},
+      primaryOnColor: {backgroundColor: theme.white},
+      primaryOnGreenLabel: {color: theme.greenDark},
       qrContainer: Kb.Styles.platformStyles({
         common: {
           // MUST be white, else darkmode messes up the qr code
-          backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
+          backgroundColor: theme.whiteOrWhite,
           borderRadius: isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
           flexDirection: 'column',
           padding: 4,
@@ -579,7 +591,7 @@ const styles = Kb.Styles.styleSheetCreate(
       qrContainerFlip: {flexDirection: 'column-reverse'},
       qrImageContainer: Kb.Styles.paddingV(10),
       qrOnlyContainer: {
-        backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
+        backgroundColor: theme.whiteOrWhite,
         borderRadius: 8,
         padding: 20,
       },
@@ -590,14 +602,14 @@ const styles = Kb.Styles.styleSheetCreate(
       viewTextCode: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.fontTerminalSemibold,
-          color: Kb.Styles.globalColors.greenLight,
+          color: theme.greenLight,
           fontSize: 16,
         },
         isElectron: {maxWidth: 330},
       }),
       viewTextContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.greenDark,
+          backgroundColor: theme.greenDark,
           borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {

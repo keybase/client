@@ -6,6 +6,7 @@ import {useConversationThreadID, useThreadMeta} from '../thread-context'
 import {useConversationParticipants} from '../data-hooks'
 
 const ResetUser = () => {
+  const styles = useStyles()
   const conversationIDKey = useConversationThreadID()
   const participantInfo = useConversationParticipants(conversationIDKey)
   const _participants = participantInfo.all
@@ -87,8 +88,8 @@ const ResetUser = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bullet: {
         maxWidth: 320,
@@ -97,7 +98,7 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
       },
       container: {
-        backgroundColor: Kb.Styles.globalColors.red,
+        backgroundColor: theme.red,
         marginBottom: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
@@ -105,13 +106,13 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.medium,
         textAlign: 'center',
       },
-      primaryOnRed: {backgroundColor: Kb.Styles.globalColors.white},
-      primaryOnRedLabel: {color: Kb.Styles.globalColors.redDark},
+      primaryOnRed: {backgroundColor: theme.white},
+      primaryOnRedLabel: {color: theme.redDark},
       secondaryOnRed: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        common: {backgroundColor: theme.black_20},
         isMobile: {borderWidth: 0},
       }),
-      secondaryOnRedLabel: {color: Kb.Styles.globalColors.white},
+      secondaryOnRedLabel: {color: theme.white},
       skullIcon: Kb.Styles.platformStyles({
         common: {margin: Kb.Styles.globalMargins.medium},
         isElectron: {...Kb.Styles.size(48)},

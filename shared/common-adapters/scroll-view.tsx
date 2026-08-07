@@ -57,6 +57,7 @@ type DivScrollable = {
 }
 
 function ScrollView(props: Props) {
+  const styles = useStyles()
   const {ref: outerRef, onRefresh, refreshing, ...rest} = props
 
   const divRef = React.useRef<DivScrollable | null>(null)
@@ -124,7 +125,7 @@ function ScrollView(props: Props) {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   overflowAuto: Styles.platformStyles({
     isElectron: {overflow: 'auto'},
   }),

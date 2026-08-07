@@ -91,6 +91,7 @@ const useCanManageEmoji = (conversationIDKey: T.Chat.ConversationIDKey) => {
 }
 
 const WrapperMobile = (props: Props) => {
+  const styles = useStyles()
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
 
@@ -171,6 +172,7 @@ const WrapperMobile = (props: Props) => {
 }
 
 const EmojiPickerDesktopInner = (props: Props) => {
+  const styles = useStyles()
   const {onDidPick} = props
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
@@ -277,8 +279,8 @@ const EmojiPickerDesktopInner = (props: Props) => {
 
 export const EmojiPickerDesktop = EmojiPickerDesktopInner
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       addEmojiButton: Kb.Styles.platformStyles({
         isElectron: {
@@ -295,7 +297,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerDesktop: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         height: 561,
         maxWidth: 336,
         minHeight: 561,
@@ -310,11 +312,11 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.xtiny,
         },
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           height: Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.small,
         },
       }),

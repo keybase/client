@@ -6,6 +6,7 @@ import {useThreadLoadStatus} from './thread-load-status-context'
 import {useConversationThreadID} from './thread-context'
 
 const ValidatedStatus = () => {
+  const styles = useStyles()
   const [visible, setVisible] = React.useState(true)
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -23,6 +24,7 @@ const ValidatedStatus = () => {
 }
 
 const ThreadLoadStatus = () => {
+  const styles = useStyles()
   const status = useThreadLoadStatus()
   const conversationIDKey = useConversationThreadID()
 
@@ -44,7 +46,7 @@ const ThreadLoadStatus = () => {
   }
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       banner: {

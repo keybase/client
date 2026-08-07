@@ -1,6 +1,4 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {useDarkModeState} from '@/stores/darkmode'
-import {DynamicColorIOS} from 'react-native'
 import type {Opaque} from '@/constants/types/ts'
 
 // Define all colors with their light/dark variants in one place
@@ -148,10 +146,10 @@ const specialVariants = {
   yellowOrYellowAlt: {dark: '#C3C390', light: '#FFFFC0'},
 } as const
 
-type ColorNames = keyof typeof colorDefs | keyof typeof colorVariants | keyof typeof specialVariants
+export type ColorNames = keyof typeof colorDefs | keyof typeof colorVariants | keyof typeof specialVariants
 
 // Create a unique opaque type for each color name
-type OpaqueColors = {
+export type OpaqueColors = {
   [K in ColorNames]: Opaque<string, K>
 }
 
@@ -182,59 +180,5 @@ function createColorObject(mode: 'light' | 'dark') {
 
 export const colors = createColorObject('light')
 export const darkColors = createColorObject('dark')
-
-type Color = typeof colors
-type Names = keyof Color
-
-const names = Object.keys(colors) as Array<Names>
-let iosDynamicColors: Color
-if (isIOS) {
-  iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
-    obj[name] =
-      DynamicColorIOS({dark: darkColors[name], light: colors[name]})
-    return obj
-  }, {}) as Color
-} else {
-  iosDynamicColors = colors
-}
-
-export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce((obj, name) => {
-  const {isDarkMode} = useDarkModeState.getState()
-  if (isIOS) {
-    // ios actually handles this nicely natively
-    return Object.defineProperty(obj, name, {
-      configurable: false,
-      enumerable: true,
-      get() {
-        return iosDynamicColors[name]
-      },
-    })
-  } else if (isAndroid) {
-    return Object.defineProperty(obj, name, {
-      configurable: false,
-      enumerable: true,
-      get() {
-        return isDarkMode() ? darkColors[name] : colors[name]
-      },
-    })
-  } else {
-    // desktop
-    return Object.defineProperty(obj, name, {
-      configurable: false,
-      enumerable: true,
-      get() {
-        return `var(--color-${name})`
-      },
-    })
-  }
-}, {} as Color)
-
-if (__DEV__) {
-  const t = themed as unknown as {random: () => string}
-  t.random = () =>
-    `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(
-      Math.random() * 256
-    )}, 1)`
-}
 
 export default colors

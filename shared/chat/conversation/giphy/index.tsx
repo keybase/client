@@ -15,6 +15,7 @@ type DivRef = {
 }
 
 const DesktopGiphySearch = () => {
+  const styles = useStyles()
   const gridHeight = 100
   const props = useHooks()
   const [width, setWidth] = React.useState<number | undefined>(undefined)
@@ -100,6 +101,7 @@ const DesktopGiphySearch = () => {
 }
 
 const NativeGiphySearch = () => {
+  const nativeStyles = useNativeStyles()
   const p = useHooks()
   const source = {uri: p.galleryURL}
   const darkMode = useColorScheme() === 'dark'
@@ -129,8 +131,8 @@ const NativeGiphySearch = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         flexWrap: 'wrap',
@@ -141,7 +143,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       imageContainer: {
         alignSelf: 'flex-start',
-        borderColor: Kb.Styles.globalColors.black,
+        borderColor: theme.black,
         borderStyle: 'solid',
         borderWidth: Kb.Styles.globalMargins.xxtiny,
         margin: -1,
@@ -170,7 +172,7 @@ const styles = Kb.Styles.styleSheetCreate(
       scrollContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
-          border: `1px solid ${Kb.Styles.globalColors.black_20}`,
+          border: `1px solid ${theme.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           maxHeight: 300,
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny),
@@ -179,7 +181,7 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
+const useNativeStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: {height: 80},

@@ -8,6 +8,7 @@ import {loadSettings} from '../load-settings'
 import {usePushState} from '@/stores/push'
 
 const TurnOnNotifications = () => {
+  const styles = useStyles()
   const mobileHasPermissions = usePushState(s => s.hasPermissions)
   const onEnable = usePushState(s => s.dispatch.requestPermissions)
   if (mobileHasPermissions) return null
@@ -38,6 +39,7 @@ const TurnOnNotifications = () => {
 }
 
 const Notifications = () => {
+  const styles = useStyles()
   const notificationSettings = useNotificationSettings()
   const props = useNotifications(notificationSettings)
   const onReload = () => {
@@ -74,7 +76,7 @@ const Notifications = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   scrollView: {...Kb.Styles.globalStyles.flexBoxColumn, ...Kb.Styles.globalStyles.flexOne},
   turnOnIllustration: {
     height: 270,
@@ -84,7 +86,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: 250,
   },
   turnOnOuter: {
-    backgroundColor: Kb.Styles.globalColors.red,
+    backgroundColor: theme.red,
     height: 330,
   },
   turnOnText: {

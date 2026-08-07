@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
-import {rowStyles, StillCommon} from './common'
+import {useRowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {TlfInfoLine, Filename} from '@/fs/common'
 import * as FS from '@/constants/fs'
@@ -16,6 +16,8 @@ export type OwnProps = {
 }
 
 const TLFContainer = (p: OwnProps) => {
+  const styles = useStyles()
+  const rowStyles = useRowStyles()
   const {tlfType, name, mixedMode, destinationPickerSource, disabled} = p
   const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
@@ -80,7 +82,7 @@ const TLFContainer = (p: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       avatarBox: {marginRight: Kb.Styles.globalMargins.xsmall},

@@ -11,6 +11,7 @@ type Props = {
 }
 
 const QRScannerMobile = (p: Props): React.ReactElement | null => {
+  const styles = useStyles()
   const {notAuthorizedView, onBarCodeRead, style} = p
 
   const [scanned, setScanned] = React.useState(false)
@@ -46,9 +47,9 @@ const QRScannerMobile = (p: Props): React.ReactElement | null => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   gettingPermissions: {
-    backgroundColor: Kb.Styles.globalColors.greyLight,
+    backgroundColor: theme.greyLight,
   },
 }))
 

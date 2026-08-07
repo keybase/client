@@ -19,6 +19,7 @@ export type Props = {
 }
 
 const UnfurlImage = (p: Props) => {
+  const styles = useStyles()
   const {autoplayVideo, isVideo, linkURL, onClick, url, style, widthPadding} = p
 
   const onOpenURL = () => {
@@ -62,7 +63,7 @@ const UnfurlImage = (p: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       image: {

@@ -56,6 +56,7 @@ export const FollowButton = (props: FollowProps) => {
 }
 
 const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
+  const styles = useStyles()
   const username = item.username
   const label = item.contactName || item.component.phoneNumber || item.component.email || ''
 
@@ -78,6 +79,7 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
 }
 
 const ContactsJoinedModal = (props: {contacts: ReadonlyArray<T.RPCGen.ProcessedContact>}) => {
+  const styles = useStyles()
   const following = useFollowerState(s => s.following)
   const filteredPeople = props.contacts.filter(p => !following.has(p.username))
   return (
@@ -90,7 +92,7 @@ const ContactsJoinedModal = (props: {contacts: ReadonlyArray<T.RPCGen.ProcessedC
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       avatar: {

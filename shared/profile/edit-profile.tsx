@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {useTrackerProfile} from '@/tracker/use-profile'
 
 const EditProfile = () => {
+  const styles = useStyles()
   const username = useCurrentUserState(s => s.username)
   const {details: d, loadProfile} = useTrackerProfile(username)
   const _bio = d.bio || ''
@@ -107,7 +108,7 @@ const EditProfile = () => {
 
 const maxBio = 255
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: Kb.Styles.platformStyles({
     isElectron: {
       width: 350,

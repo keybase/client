@@ -80,6 +80,7 @@ const FallbackResultInfo = ({displayLabel, prettyName}: Pick<ResultProps, 'displ
 )
 
 const CommonResult = (props: CommonResultProps) => {
+  const styles = useStyles()
   /*
    * Regardless of the service that is being searched, if we find that a
    * service user is also a keybase user, we also want to show their keybase
@@ -204,6 +205,7 @@ type ServicesIconsProps = {
 }
 
 const ServicesIcons = (props: ServicesIconsProps) => {
+  const styles = useStyles()
   const serviceIds = serviceMapToArray(props.services)
   const firstIconNoMargin = shouldOmitFirstIconMargin(props)
   return (
@@ -252,8 +254,9 @@ const FormatPrettyName = (props: {
     </Kb.Text>
   ) : null
 
-const MobileScrollView = ({children}: {children: React.ReactNode}) =>
-  isMobile ? (
+const MobileScrollView = ({children}: {children: React.ReactNode}) => {
+  const styles = useStyles()
+  return isMobile ? (
     <Kb.ScrollView
       horizontal={true}
       showsHorizontalScrollIndicator={false}
@@ -266,6 +269,7 @@ const MobileScrollView = ({children}: {children: React.ReactNode}) =>
   ) : (
     <>{children}</>
   )
+}
 
 const KeybaseUsernameLabel = ({
   followingState,
@@ -273,22 +277,26 @@ const KeybaseUsernameLabel = ({
 }: {
   followingState: T.TB.FollowingState
   keybaseUsername: string
-}) => (
-  <>
-    <Kb.Text
-      type="BodyBold"
-      style={followingStateToStyle(followingState)}
-      lineClamp={1}
-    >
-      {keybaseUsername}
-    </Kb.Text>
-    <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
-    <Kb.Text type="BodySmall">{dotSeparator}</Kb.Text>
-    <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
-  </>
-)
+}) => {
+  const theme = Kb.Styles.useTheme()
+  return (
+    <>
+      <Kb.Text
+        type="BodyBold"
+        style={followingStateToStyle(followingState, theme)}
+        lineClamp={1}
+      >
+        {keybaseUsername}
+      </Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
+      <Kb.Text type="BodySmall">{dotSeparator}</Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
+    </>
+  )
+}
 
 const BottomRow = (props: BottomRowProps) => {
+  const styles = useStyles()
   const serviceUserIsAlsoKeybaseUser = !props.isKeybaseResult && props.keybaseUsername
   const showServicesIcons = props.isKeybaseResult || !!props.keybaseUsername
 
@@ -340,12 +348,13 @@ const Username = (props: {
   keybaseUsername?: string
   username: string
 }) => {
+  const theme = Kb.Styles.useTheme()
   const showFollowingState = props.isKeybaseResult && props.keybaseUsername
 
   return (
     <Kb.Text
       type={showFollowingState ? 'BodyBold' : 'BodySemibold'}
-      style={followingStateToStyle(showFollowingState ? props.followingState : 'NoState')}
+      style={followingStateToStyle(showFollowingState ? props.followingState : 'NoState', theme)}
     >
       {props.username}
     </Kb.Text>
@@ -362,7 +371,7 @@ export const rowContainerWithLargePadding = Kb.Styles.padding(
   Kb.Styles.globalMargins.xsmall
 )
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   actionButtonsHighlighted: Kb.Styles.platformStyles({
     isElectron: {
       visibility: 'visible',
@@ -378,7 +387,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   highlighted: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Kb.Styles.globalColors.blueLighter2,
+      backgroundColor: theme.blueLighter2,
       borderRadius: Kb.Styles.borderRadius,
     },
   }),
@@ -399,19 +408,19 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const followingStateToStyle = (followingState: T.TB.FollowingState) =>
+const followingStateToStyle = (followingState: T.TB.FollowingState, theme: Kb.Styles.Theme) =>
   ({
     Following: {
-      color: Kb.Styles.globalColors.greenDark,
+      color: theme.greenDark,
     },
     NoState: {
-      color: Kb.Styles.globalColors.black,
+      color: theme.black,
     },
     NotFollowing: {
-      color: Kb.Styles.globalColors.blueDark,
+      color: theme.blueDark,
     },
     You: {
-      color: Kb.Styles.globalColors.black,
+      color: theme.black,
     },
   })[followingState]
 

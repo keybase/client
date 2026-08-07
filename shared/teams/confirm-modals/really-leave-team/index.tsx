@@ -15,14 +15,18 @@ type Props = {
   open?: boolean
 }
 
-const Header = (props: Props) => (
-  <>
-    <Kb.Avatar teamname={props.name} size={64} />
-    <AvatarBadge icon="iconfont-leave" style={styles.iconContainer} iconStyle={styles.headerIcon} />
-  </>
-)
+const Header = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <>
+      <Kb.Avatar teamname={props.name} size={64} />
+      <AvatarBadge icon="iconfont-leave" style={styles.iconContainer} iconStyle={styles.headerIcon} />
+    </>
+  )
+}
 
 const ReallyLeaveTeam = (props: Props) => {
+  const styles = useStyles()
   const {name, onLeave: propOnLeave} = props
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(
@@ -62,7 +66,7 @@ const ReallyLeaveTeam = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       checkBox: Kb.Styles.platformStyles({

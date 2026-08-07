@@ -62,6 +62,7 @@ function WrapPicker<T>(p: {
 // NOTE: this doesn't seem to work well when debugging w/ chrome. aka if you scroll and set a value
 // the native component will undo it a bunch and its very finnicky. works fine outside of that it seems
 const FloatingPicker = <T extends string | number>(props: Props<T>): React.ReactNode => {
+  const styles = useStyles()
   if (!isMobile || !props.visible) {
     return null
   }
@@ -103,31 +104,31 @@ const FloatingPicker = <T extends string | number>(props: Props<T>): React.React
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   actionButtons: {
     height: 56,
   },
   item: {
     ...Styles.globalStyles.fontRegular,
-    color: Styles.globalColors.black,
+    color: theme.black,
   },
   link: {
-    color: Styles.globalColors.blueDark,
+    color: theme.blueDark,
     fontSize: 17,
     padding: Styles.globalMargins.small,
   },
   menu: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: theme.white,
   },
   picker: Styles.platformStyles({
     isAndroid: {
-      color: Styles.globalColors.black,
+      color: theme.black,
       marginBottom: Styles.globalMargins.large,
       marginTop: Styles.globalMargins.medium,
     },
   }),
   safeArea: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: theme.white,
   },
 }))
 

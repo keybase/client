@@ -162,6 +162,8 @@ type DropdownProps = {
 }
 
 const DropdownButton = (p: DropdownProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {onInstallBot, onAddToTeam, onBrowsePublicFolder, onUnfollow} = p
   const {onManageBlocking, blockedOrHidFromFollowers, isBot, onOpenPrivateFolder} = p
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -201,14 +203,14 @@ const DropdownButton = (p: DropdownProps) => {
   return (
     <Kb.ClickableBox direction="horizontal" gap="xsmall" onClick={showPopup} ref={popupAnchor}>
       <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
-        <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
+        <Kb.Icon color={theme.blue} type="iconfont-ellipsis" />
       </Kb.Button>
       {popup}
     </Kb.ClickableBox>
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   dropdownButton: {minWidth: undefined},
 }))
 

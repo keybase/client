@@ -33,6 +33,7 @@ const SearchBotPopup = (props: Props) => {
 }
 
 const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const styles = useStyles()
   const {conversationIDKey, teamID} = props
   const [lastQuery, setLastQuery] = React.useState('')
   const [botSearchResults, setBotSearchResults] = React.useState(
@@ -213,7 +214,7 @@ const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.Conversat
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   inputContainer: Kb.Styles.platformStyles({
     isElectron: {padding: Kb.Styles.globalMargins.tiny},
   }),

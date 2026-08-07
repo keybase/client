@@ -39,6 +39,7 @@ type ListBodyProps = {
 type DerivedResults = ReturnType<typeof deriveSearchResults>
 
 const Suggestions = ({namespace, selectedService}: SuggestionsProps) => {
+  const styles = useStyles()
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2
@@ -361,25 +362,31 @@ const useEnterKeyHandler = ({
   ])
 }
 
-const LoadingState = ({showLoading}: {showLoading: boolean}) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    fullHeight={true}
-    gap="xtiny"
-    centerChildren={true}
-    flex={1}
-    justifyContent="flex-start"
-  >
-    {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
-  </Kb.Box2>
-)
+const LoadingState = ({showLoading}: {showLoading: boolean}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      gap="xtiny"
+      centerChildren={true}
+      flex={1}
+      justifyContent="flex-start"
+    >
+      {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
+    </Kb.Box2>
+  )
+}
 
-const NoResults = () => (
-  <Kb.Text type="BodySmall" style={styles.noResults}>
-    Sorry, no results were found.
-  </Kb.Text>
-)
+const NoResults = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Text type="BodySmall" style={styles.noResults}>
+      Sorry, no results were found.
+    </Kb.Text>
+  )
+}
 
 export const ListBody = ({
   namespace,
@@ -394,6 +401,7 @@ export const ListBody = ({
   onFinishTeamBuilding,
   enterInputCounter,
 }: ListBodyProps) => {
+  const styles = useStyles()
   const route = useRoute()
   // team building opens under a different route name per tab; all share the same params
   const params =
@@ -499,7 +507,7 @@ export const ListBody = ({
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       emptyContainer: Kb.Styles.platformStyles({

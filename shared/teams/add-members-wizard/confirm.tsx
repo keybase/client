@@ -26,6 +26,7 @@ const disabledRolesSubteam = {
 }
 
 const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
+  const styles = useStyles()
   const navigation = useNavigation('teamAddToTeamConfirm')
   const [wizardState, setWizardState] = React.useState(() => ({
     initialWizard,
@@ -316,7 +317,7 @@ const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSe
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   body: {
     flex: 1,
     padding: Kb.Styles.globalMargins.small,

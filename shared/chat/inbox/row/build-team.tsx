@@ -4,6 +4,7 @@ import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 function BuildTeam() {
+  const styles = useStyles()
   const nav = useSafeNavigation()
   const switchTab = C.Router2.switchTab
   const onCreateTeam = () => {
@@ -22,17 +23,17 @@ function BuildTeam() {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
       padding: Kb.Styles.globalMargins.xsmall,
     },
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       height: 120,
     },
-    isTablet: {backgroundColor: Kb.Styles.globalColors.transparent},
+    isTablet: {backgroundColor: theme.transparent},
   }),
 }))
 

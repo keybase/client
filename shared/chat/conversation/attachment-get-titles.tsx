@@ -51,6 +51,7 @@ const pathToAttachmentType = (path: string) => {
 const isKbfsPath = (path: string) => path.startsWith('/keybase/')
 
 const ContainerInner = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
@@ -411,8 +412,8 @@ const ContainerInner = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       boxGrow: {
         flexShrink: 1,
@@ -423,7 +424,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           alignSelf: 'flex-end',
           borderStyle: 'solid',
-          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopColor: theme.black_10,
           borderTopWidth: 1,
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.small,
@@ -458,7 +459,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       input: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.blue, 1, Kb.Styles.borderRadius),
+          ...Kb.Styles.border(theme.blue, 1, Kb.Styles.borderRadius),
           maxHeight: 42,
           minHeight: 42,
           padding: Kb.Styles.globalMargins.tiny,
@@ -470,7 +471,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       inputBare: {
-        backgroundColor: Kb.Styles.globalColors.transparent,
+        backgroundColor: theme.transparent,
         marginBottom: Kb.Styles.globalMargins.tiny,
         padding: 0,
         width: '100%',

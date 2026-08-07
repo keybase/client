@@ -9,16 +9,19 @@ const RoleCrown = (props: {
   sizeType?: SizeType
   style?: Kb.Styles.StylesCrossPlatform
 }) =>
-  props.role === 'admin' || props.role === 'owner' ? (
-    <Kb.Icon
-      type={props.role === 'owner' ? 'iconfont-crown-owner' : 'iconfont-crown-admin'}
-      color={
-        props.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35
-      }
-      fontSize={props.fontSize}
-      sizeType={props.sizeType}
-      style={props.style}
-    />
-  ) : null
+  {
+  const theme = Kb.Styles.useTheme()
+  return props.role === 'admin' || props.role === 'owner' ? (
+      <Kb.Icon
+        type={props.role === 'owner' ? 'iconfont-crown-owner' : 'iconfont-crown-admin'}
+        color={
+          props.role === 'owner' ? theme.yellowDark : theme.black_35
+        }
+        fontSize={props.fontSize}
+        sizeType={props.sizeType}
+        style={props.style}
+      />
+    ) : null
+}
 
 export default RoleCrown

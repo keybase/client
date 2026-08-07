@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 const TeamsFooter = (props: {empty: boolean}) => {
+  const styles = useStyles()
   const isLoadingTeams = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
   // only show the spinner when there's nothing to look at yet; background
   // refreshes with teams loaded shouldn't flash the footer
@@ -37,7 +38,7 @@ const TeamsFooter = (props: {empty: boolean}) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.large),
     isMobile: {

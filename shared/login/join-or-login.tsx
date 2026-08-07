@@ -7,6 +7,7 @@ import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {startProvision} from '@/provision/flow'
 
 const Intro = () => {
+  const styles = useStyles()
   const justDeletedSelf = useConfigState(s => s.justDeletedSelf)
   const justRevokedSelf = useConfigState(s => s.justRevokedSelf)
   const bannerMessage = justDeletedSelf
@@ -76,8 +77,8 @@ const Intro = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       buttonBar: Kb.Styles.platformStyles({
         isElectron: {
@@ -93,7 +94,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       container: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
       },
       header: Kb.Styles.platformStyles({
         isElectron: {padding: Kb.Styles.globalMargins.small},
@@ -103,7 +104,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       text: {
-        color: Kb.Styles.globalColors.orange,
+        color: theme.orange,
       },
     }) as const
 )

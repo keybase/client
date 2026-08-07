@@ -127,6 +127,7 @@ const WRAP = wrapInStrict
 
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {
+  const styles = useStyles()
   useInit()
 
   const {unmountAll, show} = useUnmountAll()
@@ -140,26 +141,28 @@ const Keybase = () => {
 
   return show ? (
     <WRAP>
-      <KeyboardProvider statusBarTranslucent={true} navigationBarTranslucent={true}>
-        <ReducedMotionConfig mode={ReduceMotion.Never} />
-        <GestureHandlerRootView style={[styles.gesture, {backgroundColor}]}>
-          <PortalProvider>
-            <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-              <StoreHelper>
-                <Main />
-                {unmountAll}
-              </StoreHelper>
-            </SafeAreaProvider>
-          </PortalProvider>
-        </GestureHandlerRootView>
-      </KeyboardProvider>
+      <Kb.Styles.ThemeProvider>
+        <KeyboardProvider statusBarTranslucent={true} navigationBarTranslucent={true}>
+          <ReducedMotionConfig mode={ReduceMotion.Never} />
+          <GestureHandlerRootView style={[styles.gesture, {backgroundColor}]}>
+            <PortalProvider>
+              <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+                <StoreHelper>
+                  <Main />
+                  {unmountAll}
+                </StoreHelper>
+              </SafeAreaProvider>
+            </PortalProvider>
+          </GestureHandlerRootView>
+        </KeyboardProvider>
+      </Kb.Styles.ThemeProvider>
     </WRAP>
   ) : (
     unmountAll
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   gesture: {flexGrow: 1},
 }))
 

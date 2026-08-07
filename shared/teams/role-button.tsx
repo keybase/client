@@ -13,6 +13,7 @@ export type Props = {
 }
 
 const RoleButton = (props: Props) => {
+  const styles = useStyles()
   return (
     <InlineDropdown
       containerStyle={props.containerStyle}
@@ -30,7 +31,7 @@ const RoleButton = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   button: Kb.Styles.platformStyles({
     common: {
       marginRight: 0,

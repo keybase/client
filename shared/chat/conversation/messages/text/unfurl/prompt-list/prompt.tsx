@@ -14,6 +14,8 @@ const promptIcon = isMobile
   : 'icon-fancy-unfurl-preview-desktop-96-96'
 
 const UnfurlPrompt = (p: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {onAlways, onAccept, onOnetime, domain, onNotnow, onNever} = p
   return (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.container} fullWidth={true}>
@@ -40,14 +42,14 @@ const UnfurlPrompt = (p: Props) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.closeContainer}>
-        <Kb.Icon type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onNotnow} fontSize={16} padding="xtiny" />
+        <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={onNotnow} fontSize={16} padding="xtiny" />
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       choiceContainer: Kb.Styles.platformStyles({
         isElectron: {width: 370},
@@ -61,7 +63,7 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
-          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          backgroundColor: theme.blueLighter3,
           borderRadius: Kb.Styles.borderRadius,
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },

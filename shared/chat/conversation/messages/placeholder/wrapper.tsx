@@ -6,6 +6,7 @@ const baseWidth = isMobile ? 100 : 150
 const mult = isMobile ? 5 : 10
 
 function WrapperPlaceholder(p: Props) {
+  const styles = useStyles()
   const {ordinal, isCenteredHighlight} = p
   const o = T.Chat.ordinalToNumber(ordinal)
   const code = o * 16807
@@ -21,7 +22,7 @@ function WrapperPlaceholder(p: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: {

@@ -45,6 +45,8 @@ const useBottomBannerState = Z.createZustand<State>('chat-bottom-banner', set =>
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
 const Invite = (props: {onDismiss: () => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
   const conversationIDKey = useConversationThreadID()
   const {all: participantInfoAll, contactName: usernameToContactName} = useConversationParticipantsSelector(
@@ -80,7 +82,7 @@ const Invite = (props: {onDismiss: () => void}) => {
 
   if (isMobile) {
     return (
-      <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
+      <BannerBox color={theme.blue} gap="xtiny">
         <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
           {caption}
         </Kb.Text>
@@ -106,7 +108,7 @@ const Invite = (props: {onDismiss: () => void}) => {
   }
 
   return (
-    <BannerBox color={Kb.Styles.globalColors.blue}>
+    <BannerBox color={theme.blue}>
       <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
         {caption}
       </Kb.Text>
@@ -166,21 +168,24 @@ const BannerBox = (props: {
   children: React.ReactNode
   color: string
   gap?: keyof typeof Kb.Styles.globalMargins
-}) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Kb.Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
-    gap={props.gap}
-    alignItems="center"
-    justifyContent="center"
-  >
-    {props.children}
-  </Kb.Box2>
-)
+}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
+      gap={props.gap}
+      alignItems="center"
+      justifyContent="center"
+    >
+      {props.children}
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bannerStyle: Kb.Styles.platformStyles({
         common: {
@@ -191,12 +196,12 @@ const styles = Kb.Styles.styleSheetCreate(
           marginBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
-      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
-      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      primaryOnBlue: {backgroundColor: theme.white},
+      primaryOnBlueLabel: {color: theme.blueDark},
       secondaryOnColor: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        common: {backgroundColor: theme.black_20},
         isMobile: {borderWidth: 0},
       }),
-      secondaryOnColorLabel: {color: Kb.Styles.globalColors.white},
+      secondaryOnColorLabel: {color: theme.white},
     }) as const
 )

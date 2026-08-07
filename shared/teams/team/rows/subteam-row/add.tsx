@@ -11,6 +11,7 @@ type Props = {
 }
 
 const AddSubteam = ({setSubteamFilter, subteamFilter, teamID}: Props) => {
+  const styles = useStyles()
   const nav = useSafeNavigation()
   const onCreateSubteam = () =>
     nav.safeNavigateAppend({
@@ -42,10 +43,10 @@ const AddSubteam = ({setSubteamFilter, subteamFilter, teamID}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   containerNew: {
     ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
   },
   filterInput: {maxWidth: 148},
 }))

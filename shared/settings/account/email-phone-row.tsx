@@ -9,18 +9,23 @@ const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
 }
 
-const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => (
-  <Kb.Box2
-    direction="vertical"
-    style={Kb.Styles.collapseStyles([
-      styles.badge,
-      p.menuItem ? styles.badgeMenuItem : styles.badgeGearIcon,
-      {backgroundColor: p.backgroundColor},
-    ])}
-  />
-)
+const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([
+        styles.badge,
+        p.menuItem ? styles.badgeMenuItem : styles.badgeGearIcon,
+        {backgroundColor: p.backgroundColor},
+      ])}
+    />
+  )
+}
 
 const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (email: string) => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const props = useData(p.contactKey, p.onEmailVerificationSuccess)
   const {address, onDelete, onMakePrimary, onToggleSearchable, onVerify, moreThanOneEmail} = props
   const {primary, searchable, superseded, type, verified, lastVerifyEmailDate} = props
@@ -29,7 +34,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
     const menuItems: Kb.MenuItems = []
     if (!verified) {
       menuItems.push({
-        decoration: <Badge backgroundColor={Kb.Styles.globalColors.orange} menuItem={true} />,
+        decoration: <Badge backgroundColor={theme.orange} menuItem={true} />,
         icon: 'iconfont-lock',
         onClick: onVerify,
         title: 'Verify',
@@ -47,7 +52,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
       const copyType = type === 'email' ? 'email' : 'number'
       menuItems.push({
         decoration: searchable ? undefined : (
-          <Badge backgroundColor={Kb.Styles.globalColors.blue} menuItem={true} />
+          <Badge backgroundColor={theme.blue} menuItem={true} />
         ),
         icon: searchable ? 'iconfont-hide' : 'iconfont-unhide',
         onClick: onToggleSearchable,
@@ -127,9 +132,9 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
 
   let gearIconBadge: React.ReactNode | null = null
   if (!verified) {
-    gearIconBadge = <Badge backgroundColor={Kb.Styles.globalColors.orange} />
+    gearIconBadge = <Badge backgroundColor={theme.orange} />
   } else if (!searchable) {
-    gearIconBadge = <Badge backgroundColor={Kb.Styles.globalColors.blue} />
+    gearIconBadge = <Badge backgroundColor={theme.blue} />
   }
 
   return (
@@ -140,7 +145,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
         </Kb.Text>
         {(!!subtitle || !verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
-            {!verified && <Kb.Meta backgroundColor={Kb.Styles.globalColors.red} title="UNVERIFIED" />}
+            {!verified && <Kb.Meta backgroundColor={theme.red} title="UNVERIFIED" />}
             {!!subtitle && <Kb.Text type="BodySmall">{subtitle}</Kb.Text>}
           </Kb.Box2>
         )}
@@ -164,7 +169,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       badge: {

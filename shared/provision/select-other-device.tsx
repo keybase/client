@@ -19,6 +19,7 @@ type Item = {type: 'header'} | {device: Device; type: 'device'} | {type: 'reset'
 const itemHeight = {type: 'trueVariable'} as const
 
 const SelectOtherDevice = (props: Props) => {
+  const styles = useStyles()
   const {passwordRecovery, devices, onBack, onSelect, onResetAccount, waitingDeviceName} = props
 
   const items: Item[] = [
@@ -118,7 +119,7 @@ const SelectOtherDevice = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   contentBox: Kb.Styles.platformStyles({
     common: {flexGrow: 1},
     isElectron: {
@@ -139,8 +140,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flexGrow: 1,
   },
   or: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
-    color: Kb.Styles.globalColors.black_50,
+    backgroundColor: theme.blueGrey,
+    color: theme.black_50,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
   },
 }))

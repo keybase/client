@@ -1,41 +1,41 @@
 import * as T from '@/constants/types'
-import * as Kb from '@/common-adapters'
+import type * as Kb from '@/common-adapters'
 
-export const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
+export const assertionColorToColor = (c: T.Tracker.AssertionColor, theme: Kb.Styles.Theme) => {
   switch (c) {
     case 'blue':
-      return Kb.Styles.globalColors.blue
+      return theme.blue
     case 'red':
-      return Kb.Styles.globalColors.red
+      return theme.red
     case 'black':
-      return Kb.Styles.globalColors.black
+      return theme.black
     case 'green':
-      return Kb.Styles.globalColors.green
+      return theme.green
     case 'gray':
-      return Kb.Styles.globalColors.black_50
+      return theme.black_50
     case 'yellow': // fallthrough
     case 'orange':
     default:
-      return Kb.Styles.globalColors.red
+      return theme.red
   }
 }
 
-export const assertionColorToTextColor = (c: T.Tracker.AssertionColor) => {
+export const assertionColorToTextColor = (c: T.Tracker.AssertionColor, theme: Kb.Styles.Theme) => {
   switch (c) {
     case 'blue':
-      return Kb.Styles.globalColors.blueDark
+      return theme.blueDark
     case 'red':
-      return Kb.Styles.globalColors.redDark
+      return theme.redDark
     case 'black':
-      return Kb.Styles.globalColors.black
+      return theme.black
     case 'green':
-      return Kb.Styles.globalColors.greenDark
+      return theme.greenDark
     case 'gray':
-      return Kb.Styles.globalColors.black_50
+      return theme.black_50
     case 'yellow': // fallthrough
     case 'orange':
     default:
-      return Kb.Styles.globalColors.redDark
+      return theme.redDark
   }
 }
 

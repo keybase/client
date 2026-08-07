@@ -15,6 +15,7 @@ type Props = {
 const clickThreshold = 7
 
 const Feedback = (props: Props) => {
+  const styles = useStyles()
   const {
     sending,
     sendError,
@@ -133,7 +134,7 @@ const Feedback = (props: Props) => {
 
 export default Feedback
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       input: Kb.Styles.platformStyles({

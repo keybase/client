@@ -20,24 +20,28 @@ const LeftAction = (p: {
   mode: 'back' | 'cancel'
   onAction: () => void
   iconColor?: string
-}) => (
-  <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftAction}>
-    {p.mode === 'cancel' ? (
-      <Text type="BodyBigLink" style={styles.action} onClick={p.onAction}>
-        Cancel
-      </Text>
-    ) : (
-      <Kb.BackButton
-        badgeNumber={p.badgeNumber}
-        iconColor={p.iconColor ?? Styles.globalColors.black_50}
-        style={styles.action}
-        onClick={p.onAction}
-      />
-    )}
-  </Kb.Box2>
-)
+}) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
+  return (
+    <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftAction}>
+      {p.mode === 'cancel' ? (
+        <Text type="BodyBigLink" style={styles.action} onClick={p.onAction}>
+          Cancel
+        </Text>
+      ) : (
+        <Kb.BackButton
+          badgeNumber={p.badgeNumber}
+          iconColor={p.iconColor ?? theme.black_50}
+          style={styles.action}
+          onClick={p.onAction}
+        />
+      )}
+    </Kb.Box2>
+  )
+}
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   action: Styles.platformStyles({
     common: {
       opacity: 1,
@@ -88,8 +92,8 @@ export function HeaderLeftButton(hp: HeaderBackButtonProps & {
 // stable across push transitions on iOS 26 — custom React views in headerLeft/headerRight
 // are re-created per screen and slide in with it. Prefer these on iOS wherever the button
 // is a plain label or SF Symbol.
-export const nativeHeaderItemLabelStyle = () => ({
-  color: Styles.globalColors.blueDark,
+export const nativeHeaderItemLabelStyle = (theme: Styles.Theme) => ({
+  color: theme.blueDark,
   fontFamily: 'Keybase',
   fontSize: 17,
   fontWeight: '600',
@@ -101,7 +105,7 @@ export const nativeTextHeaderItem = (
   opts?: Partial<Extract<NativeStackHeaderItem, {type: 'button'}>>
 ): NativeStackHeaderItem => ({
   label,
-  labelStyle: nativeHeaderItemLabelStyle(),
+  labelStyle: nativeHeaderItemLabelStyle(Styles.getTheme()),
   onPress,
   type: 'button',
   ...opts,
@@ -116,7 +120,7 @@ export const nativeIconHeaderItem = (
   icon: {name, type: 'sfSymbol'},
   label,
   onPress,
-  tintColor: Styles.globalColors.black_50,
+  tintColor: Styles.getTheme().black_50,
   type: 'button',
   ...opts,
 })
@@ -168,6 +172,7 @@ export const useModalHeaderAction = (p: {
 }
 
 export function HeaderRightButton(hp: {onPress?: () => void}) {
+  const styles = useStyles()
   const nav = useNavigation()
   return (
     <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.rightAction}>

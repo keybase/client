@@ -8,6 +8,8 @@ type Props = {
 }
 
 const OfflineFolder = ({path}: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const syncEnabled = useFsTlf(path).syncConfig.mode === T.FS.TlfSyncMode.Enabled
   return (
     <Kb.Box2 direction="vertical" flex={1} fullWidth={true} alignItems="stretch">
@@ -16,7 +18,7 @@ const OfflineFolder = ({path}: Props) => {
         <Kb.Icon
           type={syncEnabled ? 'iconfont-clock' : 'iconfont-cloud'}
           sizeType="Huge"
-          color={Kb.Styles.globalColors.black_10}
+          color={theme.black_10}
         />
         <Kb.Text type="BodySmall">
           {syncEnabled
@@ -28,12 +30,12 @@ const OfflineFolder = ({path}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       emptyContainer: {
         ...Kb.Styles.globalStyles.flexGrow,
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
     }) as const
 )

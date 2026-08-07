@@ -6,6 +6,7 @@ type KeybaseLinkErrorBodyProps = {
 }
 
 export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
+  const styles = useStyles()
   const bannerColor = props.isError ? 'red' : 'green'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
@@ -20,10 +21,10 @@ const LinkError = (props: {error?: string}) => (
   <KeybaseLinkErrorBody isError={true} message={props.error ?? 'Invalid page! (sorry)'} />
 )
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
     },
     isElectron: {
       height: 560,

@@ -46,6 +46,7 @@ function LeftTabNavigator({
 }: Parameters<typeof useNavigationBuilder>[1] & {
   backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
 }) {
+  const styles = useStyles()
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -95,6 +96,7 @@ const DesktopCryptoSubNavigator = createLeftTabNavigator({
 }).getComponent()
 
 const NativeCryptoSubNav = () => {
+  const styles = useStyles()
   const {navigate} = C.useNav()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container} testID={TestIDs.CRYPTO_INPUT}>
@@ -112,12 +114,12 @@ const NativeCryptoSubNav = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
-      box: {backgroundColor: Kb.Styles.globalColors.white},
+      box: {backgroundColor: theme.white},
       container: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         paddingTop: Kb.Styles.globalMargins.xsmall,
       },

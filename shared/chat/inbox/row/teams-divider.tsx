@@ -13,6 +13,7 @@ type Props = {
 }
 
 function TeamsDivider(props: Props) {
+  const styles = useStyles()
   const {badgeCount = 0, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
   let {hiddenCount} = props
 
@@ -60,8 +61,8 @@ function TeamsDivider(props: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       button: {
         alignSelf: 'center',
@@ -73,7 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           height: RowSizes.dividerHeight(true),
         },
-        isElectron: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+        isElectron: {backgroundColor: theme.blueGrey},
         isMobile: {
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },

@@ -33,6 +33,7 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
+  const styles = useStyles()
   const {conversationIDKey} = props
   const infoMap = useUsersState(s => s.infoMap)
   const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
@@ -129,7 +130,7 @@ const MembersTab = (props: Props) => {
 }
 export default MembersTab
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       membersSpinner: {marginTop: Kb.Styles.globalMargins.small},

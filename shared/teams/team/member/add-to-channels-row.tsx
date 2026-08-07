@@ -20,6 +20,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
   reloadChannels: () => Promise<void>
   selfMode: boolean
 }) {
+  const theme = Kb.Styles.useTheme()
   const {canDeleteChannel, canEditChannelDescription, meta, reloadChannels} = p
   const nav = useSafeNavigation()
   const inChannel = meta.membershipType === 'active'
@@ -139,7 +140,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
       {canEditChannelDescription && (
         <Kb.IconButton
           icon="iconfont-ellipsis"
-          iconColor={Kb.Styles.globalColors.black_50}
+          iconColor={theme.black_50}
           onClick={showPopup}
           ref={popupAnchor}
           small={true}
@@ -164,6 +165,8 @@ type ChannelRowProps = {
   rowHeight: number
 }
 const ChannelRow = function ChannelRow(p: ChannelRowProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {
     canDeleteChannel,
     canEditChannelDescription,
@@ -222,7 +225,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
             disabled={channelMeta.channelname === 'general' || allInChannel}
             disabledColor={
               channelMeta.channelname === 'general' || allInChannel
-                ? Kb.Styles.globalColors.black_20OrWhite_20
+                ? theme.black_20OrWhite_20
                 : undefined
             }
           />
@@ -265,7 +268,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
             disabled={channelMeta.channelname === 'general' || allInChannel}
             disabledColor={
               channelMeta.channelname === 'general' || allInChannel
-                ? Kb.Styles.globalColors.black_20OrWhite_20
+                ? theme.black_20OrWhite_20
                 : undefined
             }
             onCheck={() => {
@@ -299,18 +302,22 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   )
 }
 
-const ParticipantMeta = (props: {numParticipants: number}) => (
-  <Kb.Meta
-    color={Kb.Styles.globalColors.black_50}
-    icon="iconfont-people-solid"
-    iconColor={Kb.Styles.globalColors.black_20}
-    title={props.numParticipants.toLocaleString()}
-    backgroundColor={Kb.Styles.globalColors.black_10}
-    style={styles.participantMeta}
-  />
-)
+const ParticipantMeta = (props: {numParticipants: number}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Meta
+      color={theme.black_50}
+      icon="iconfont-people-solid"
+      iconColor={theme.black_20}
+      title={props.numParticipants.toLocaleString()}
+      backgroundColor={theme.black_10}
+      style={styles.participantMeta}
+    />
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
   channelText: {flexGrow: 1, flexShrink: 1},
   description: Kb.Styles.platformStyles({

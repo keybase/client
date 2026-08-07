@@ -1,16 +1,19 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
-export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; revokedCount: number}) => (
-  <Kb.Box2 direction="vertical" style={headerStyles.headerTitle}>
-    <Kb.Text type="Header">Devices</Kb.Text>
-    <Kb.Text type="BodySmall">
-      {activeCount} Active • {revokedCount} Revoked
-    </Kb.Text>
-  </Kb.Box2>
-)
+export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; revokedCount: number}) => {
+  const headerStyles = useHeaderStyles()
+  return (
+    <Kb.Box2 direction="vertical" style={headerStyles.headerTitle}>
+      <Kb.Text type="Header">Devices</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {activeCount} Active • {revokedCount} Revoked
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
-const headerStyles = Kb.Styles.styleSheetCreate(() => ({
+const useHeaderStyles = Kb.Styles.createStyleHook(() => ({
   headerTitle: {
     paddingBottom: Kb.Styles.globalMargins.xtiny,
     paddingLeft: Kb.Styles.globalMargins.xsmall,

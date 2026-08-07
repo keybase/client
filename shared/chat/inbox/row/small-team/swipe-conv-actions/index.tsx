@@ -27,6 +27,8 @@ const Action = (p: {
   progress: Animated.AnimatedDivision<number>
 }) => {
   'use no memo'
+  const nativeStyles = useNativeStyles()
+  const theme = Kb.Styles.useTheme()
   const {text, color, iconType, onClick, progress, offset} = p
   const translateX = progress.interpolate({
     extrapolate: 'clamp',
@@ -37,7 +39,7 @@ const Action = (p: {
   return (
     <Animated.View style={[nativeStyles.action, {transform: [{translateX}]}]}>
       <Pressable style={[nativeStyles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
-        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.white} />
+        <Kb.Icon type={iconType} color={theme.white} />
         <Kb.Text type="BodySmall" style={nativeStyles.actionText}>
           {text}
         </Kb.Text>
@@ -47,6 +49,9 @@ const Action = (p: {
 }
 
 function SwipeConvActions(p: Props) {
+  const desktopStyles = useDesktopStyles()
+  const nativeStyles = useNativeStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey} = p
   const isOpened = useOpenedRowState(s => s.openedRow === conversationIDKey)
   const wasOpenRef = React.useRef(isOpened)
@@ -105,7 +110,7 @@ function SwipeConvActions(p: Props) {
       <View style={[nativeStyles.container, {width: 3 * actionWidth}]}>
         <Action
           text="Unread"
-          color={Kb.Styles.globalColors.blue}
+          color={theme.blue}
           iconType="iconfont-envelope-solid"
           onClick={onMarkAsUnread}
           offset={0}
@@ -113,7 +118,7 @@ function SwipeConvActions(p: Props) {
         />
         <Action
           text={isMuted ? 'Unmute' : 'Mute'}
-          color={Kb.Styles.globalColors.orange}
+          color={theme.orange}
           iconType="iconfont-shh"
           onClick={onMute}
           offset={1}
@@ -121,7 +126,7 @@ function SwipeConvActions(p: Props) {
         />
         <Action
           text="Hide"
-          color={Kb.Styles.globalColors.greyDarker}
+          color={theme.greyDarker}
           iconType="iconfont-hide"
           onClick={onHide}
           offset={2}
@@ -155,7 +160,7 @@ function SwipeConvActions(p: Props) {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(() => ({
+const useDesktopStyles = Kb.Styles.createStyleHook(() => ({
   row: {
     flexShrink: 0,
     height: RowSizes.smallRowHeight,
@@ -163,8 +168,8 @@ const desktopStyles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       action: {
         height: '100%',
@@ -175,7 +180,7 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       },
       actionText: {
         backgroundColor: 'transparent',
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
       },
       container: {
         display: 'flex',

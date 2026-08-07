@@ -81,7 +81,7 @@ type BannerProps = {
   buttonSecondary?: BannerButtonProps
 }
 
-const backgroundToTextStyle = (background: Background) => {
+const backgroundToTextStyle = (background: Background, styles: ReturnType<typeof useStyles>) => {
   switch (background) {
     case Background.Blue:
     case Background.Green:
@@ -92,98 +92,100 @@ const backgroundToTextStyle = (background: Background) => {
   }
 }
 
-const backgroundToBackgroundColor = (background: Background) => {
+const backgroundToBackgroundColor = (background: Background, theme: Kb.Styles.Theme) => {
   switch (background) {
     case Background.Blue:
-      return Kb.Styles.globalColors.blue
+      return theme.blue
     case Background.Green:
-      return Kb.Styles.globalColors.green
+      return theme.green
     case Background.Yellow:
-      return Kb.Styles.globalColors.yellow
+      return theme.yellow
     case Background.Black:
-      return Kb.Styles.globalColors.black
+      return theme.black
   }
 }
 
-const buttonOnColorStyle = {backgroundColor: Kb.Styles.globalColors.white}
-
-const backgroundToButtonLabelStyle = (background: Background) => {
+const backgroundToButtonLabelStyle = (background: Background, theme: Kb.Styles.Theme) => {
   switch (background) {
     case Background.Blue:
-      return {color: Kb.Styles.globalColors.blueDark}
+      return {color: theme.blueDark}
     case Background.Green:
-      return {color: Kb.Styles.globalColors.greenDark}
+      return {color: theme.greenDark}
     case Background.Yellow:
-      return {color: Kb.Styles.globalColors.brown_75OrYellow}
+      return {color: theme.brown_75OrYellow}
     case Background.Black:
-      return {color: Kb.Styles.globalColors.black}
+      return {color: theme.black}
   }
 }
 
-const Banner = (props: BannerProps) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    centerChildren={true}
-    style={{backgroundColor: backgroundToBackgroundColor(props.background)}}
-  >
-    <Kb.IconAuto
-      type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
-      style={styles.fancyIcon}
-    />
-    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} padding="mediumLarge" style={styles.bodyContainer} justifyContent="center">
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-        <Kb.Text type="Header" style={backgroundToTextStyle(props.background)}>
-          {props.title}
-        </Kb.Text>
-        {props.body && (
-          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow}>
-            <Kb.Text type="Body" style={backgroundToTextStyle(props.background)}>
-              {props.body}
-            </Kb.Text>
+const Banner = (props: BannerProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      centerChildren={true}
+      style={{backgroundColor: backgroundToBackgroundColor(props.background, theme)}}
+    >
+      <Kb.IconAuto
+        type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
+        style={styles.fancyIcon}
+      />
+      <Kb.Box2 direction="vertical" gap="small" fullHeight={true} padding="mediumLarge" style={styles.bodyContainer} justifyContent="center">
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+          <Kb.Text type="Header" style={backgroundToTextStyle(props.background, styles)}>
+            {props.title}
+          </Kb.Text>
+          {props.body && (
+            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow}>
+              <Kb.Text type="Body" style={backgroundToTextStyle(props.background, styles)}>
+                {props.body}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+        {props.bodyExtraComponent ?? false}
+        {!!(props.button || props.buttonSecondary) && (
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+            {!!props.button && (
+              <Kb.Button
+                disabled={props.button.disabled}
+                label={props.button.buttonText}
+                onClick={props.button.action}
+                waiting={props.button.inProgress}
+                style={styles.buttonOnColor}
+                labelStyle={backgroundToButtonLabelStyle(props.background, theme)}
+              />
+            )}
+            {!!props.buttonSecondary && (
+              <Kb.Button
+                disabled={props.buttonSecondary.disabled}
+                label={props.buttonSecondary.buttonText}
+                onClick={props.buttonSecondary.action}
+                waiting={props.buttonSecondary.inProgress}
+                style={styles.buttonOnColor}
+                labelStyle={backgroundToButtonLabelStyle(props.background, theme)}
+              />
+            )}
           </Kb.Box2>
         )}
       </Kb.Box2>
-      {props.bodyExtraComponent ?? false}
-      {!!(props.button || props.buttonSecondary) && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-          {!!props.button && (
-            <Kb.Button
-              disabled={props.button.disabled}
-              label={props.button.buttonText}
-              onClick={props.button.action}
-              waiting={props.button.inProgress}
-              style={buttonOnColorStyle}
-              labelStyle={backgroundToButtonLabelStyle(props.background)}
-            />
-          )}
-          {!!props.buttonSecondary && (
-            <Kb.Button
-              disabled={props.buttonSecondary.disabled}
-              label={props.buttonSecondary.buttonText}
-              onClick={props.buttonSecondary.action}
-              waiting={props.buttonSecondary.inProgress}
-              style={buttonOnColorStyle}
-              labelStyle={backgroundToButtonLabelStyle(props.background)}
-            />
-          )}
+      <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
+      {!!props.onDismiss && (
+        <Kb.Box2 direction="vertical" alignSelf="flex-start">
+          <Kb.Icon
+            type="iconfont-close"
+            onClick={props.onDismiss}
+            color={theme.white_40}
+            fontSize={16}
+            style={styles.dismissIcon}
+          />
         </Kb.Box2>
       )}
     </Kb.Box2>
-    <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
-    {!!props.onDismiss && (
-      <Kb.Box2 direction="vertical" alignSelf="flex-start">
-        <Kb.Icon
-          type="iconfont-close"
-          onClick={props.onDismiss}
-          color={Kb.Styles.globalColors.white_40}
-          fontSize={16}
-          style={styles.dismissIcon}
-        />
-      </Kb.Box2>
-    )}
-  </Kb.Box2>
-)
+  )
+}
 
 const ThisShouldNotHappen = () => (
   <Banner background={Background.Black} okIcon={false} title="This should not happen." />
@@ -310,12 +312,13 @@ const Disabled = (props: {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bodyContainer: {
         maxWidth: Kb.Styles.globalMargins.large * 14 + Kb.Styles.globalMargins.mediumLarge * 2,
       },
+      buttonOnColor: {backgroundColor: theme.white},
       dismissIcon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'block',
@@ -328,8 +331,8 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
         paddingRight: Kb.Styles.globalMargins.small,
       },
-      textBrown: {color: Kb.Styles.globalColors.brown_75},
-      textWhite: {color: Kb.Styles.globalColors.white},
+      textBrown: {color: theme.brown_75},
+      textWhite: {color: theme.white},
     }) as const
 )
 

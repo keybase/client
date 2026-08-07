@@ -13,6 +13,7 @@ function UnfurlMap(p: {
   unfurlInfo: T.RPCChat.UIMessageUnfurlInfo
   youAreAuthor: boolean
 }) {
+  const styles = useStyles()
   const {author, conversationIDKey, unfurlInfo, youAreAuthor} = p
   const navigateAppend = C.Router2.navigateAppend
   const {unfurl} = unfurlInfo
@@ -74,6 +75,7 @@ type AgeProps = {
 }
 
 const UpdateAge = (props: AgeProps) => {
+  const styles = useStyles()
   const {time} = props
   const [duration, setDuration] = React.useState(() => Date.now() - time)
   React.useEffect(() => {
@@ -105,6 +107,7 @@ type DurationProps = {
 }
 
 const LiveDuration = (props: DurationProps) => {
+  const styles = useStyles()
   const {liveLocationEndTime} = props
   const [duration, setDuration] = React.useState(() => liveLocationEndTime - Date.now())
   React.useEffect(() => {
@@ -123,12 +126,12 @@ const LiveDuration = (props: DurationProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
-      fastStyle: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+      fastStyle: {backgroundColor: theme.blueGrey},
       liveLocation: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
         borderBottomLeftRadius: Kb.Styles.borderRadius,
         borderBottomRightRadius: Kb.Styles.borderRadius,
         justifyContent: 'space-between',

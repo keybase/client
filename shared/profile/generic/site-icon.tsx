@@ -17,6 +17,7 @@ type SiteIconProps = {
 }
 
 export const SiteIcon = (props: SiteIconProps) => {
+  const siteIconStyles = useSiteIconStyles()
   const style = props.full ? siteIconStyles.siteIconFull : siteIconStyles.siteIcon
   return isMobile ? (
     <Kb.Image
@@ -35,7 +36,7 @@ export const SiteIcon = (props: SiteIconProps) => {
   )
 }
 
-const siteIconStyles = Kb.Styles.styleSheetCreate(() => ({
+const useSiteIconStyles = Kb.Styles.createStyleHook(() => ({
   siteIcon: Kb.Styles.platformStyles({
     common: {
       flexShrink: 0,

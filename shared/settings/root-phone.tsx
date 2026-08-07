@@ -12,6 +12,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {
+  const styles = useStyles()
   const [toSubmit, setToSubmit] = React.useState('')
   const ref = React.useRef<Kb.Input3Ref>(null)
 
@@ -58,6 +59,8 @@ type Item = {
 type Section = {title: string; data: ReadonlyArray<Item>}
 
 function SettingsNav() {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   // Narrow to the three tabs shown here so chat/team badge churn doesn't re-render settings
   const badgeNumbers = useNotifState(
     C.useShallow(s => ({
@@ -218,7 +221,7 @@ function SettingsNav() {
             navigateAppend({name: Settings.settingsLogOutTab, params: {}})
           },
           text: 'Sign out',
-          textColor: Kb.Styles.globalColors.red,
+          textColor: theme.red,
         },
       ] as const,
       title: 'More' as const,
@@ -253,12 +256,12 @@ function SettingsNav() {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  perfInput: {backgroundColor: Kb.Styles.globalColors.grey, flex: 1, padding: 0, width: 'auto' as const},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  perfInput: {backgroundColor: theme.grey, flex: 1, padding: 0, width: 'auto' as const},
   perfRow: {height: 44},
   sectionTitle: {
-    backgroundColor: Kb.Styles.globalColors.blueLighter3,
-    color: Kb.Styles.globalColors.black_50,
+    backgroundColor: theme.blueLighter3,
+    color: theme.black_50,
     ...Kb.Styles.padding(7, Kb.Styles.globalMargins.small),
   },
 }))

@@ -9,6 +9,7 @@ import {makeMessageWrapper} from '../wrapper/wrapper'
 type OwnProps = {message: T.Chat.MessageSystemSimpleToComplex}
 
 function SystemSimpleToComplexContainer(p: OwnProps) {
+  const styles = useStyles()
   const {message} = p
   const teamID = useThreadMeta(m => m.teamID)
   const you = useCurrentUserState(s => s.username)
@@ -54,13 +55,13 @@ function SystemSimpleToComplexContainer(p: OwnProps) {
 
 const bullet = '• '
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   bullet: {marginRight: Kb.Styles.globalMargins.small},
   bulletList: {
     marginLeft: Kb.Styles.globalMargins.tiny,
     marginTop: Kb.Styles.globalMargins.xtiny,
   },
-  link: {color: Kb.Styles.globalColors.blueDark},
+  link: {color: theme.blueDark},
 }))
 
 export default makeMessageWrapper('systemSimpleToComplex', message => <SystemSimpleToComplexContainer key="systemSimpleToComplex" message={message} />)

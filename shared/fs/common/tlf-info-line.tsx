@@ -29,7 +29,7 @@ const getOtherResetText = (names: ReadonlyArray<string>): string => {
   return `${names.slice(0, -1).join(', ')}, and ${names.at(-1)} have reset or deleted their accounts.`
 }
 
-const newMetaMaybe = (props: Props) =>
+const newMetaMaybe = (props: Props, styles: ReturnType<typeof useStyles>) =>
   props.mode === 'row' && props.isNew ? (
     <Kb.Meta
       variant="new"
@@ -37,12 +37,12 @@ const newMetaMaybe = (props: Props) =>
     />
   ) : null
 
-const resetMetaMaybe = (props: Props) =>
+const resetMetaMaybe = (props: Props, styles: ReturnType<typeof useStyles>) =>
   props.mode === 'row' && props.reset === true ? (
     <Kb.Meta variant="reset" style={styles.meta} />
   ) : null
 
-const resetText = (props: Props) => {
+const resetText = (props: Props, styles: ReturnType<typeof useStyles>) => {
   const text =
     props.reset === true
       ? 'Participants have to let you back in.'
@@ -60,7 +60,7 @@ const resetText = (props: Props) => {
   ) : null
 }
 
-const getPrefixText = (props: Props) =>
+const getPrefixText = (props: Props, styles: ReturnType<typeof useStyles>) =>
   props.mixedMode && props.tlfType ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true}>
       <Kb.Text
@@ -73,7 +73,7 @@ const getPrefixText = (props: Props) =>
     </Kb.Box2>
   ) : null
 
-const timeText = (props: Props) =>
+const timeText = (props: Props, styles: ReturnType<typeof useStyles>) =>
   props.tlfMtime ? (
     <Kb.Text
       type="BodySmall"
@@ -84,23 +84,24 @@ const timeText = (props: Props) =>
     </Kb.Text>
   ) : null
 
-const getText = (props: Props) => {
+const getText = (props: Props, styles: ReturnType<typeof useStyles>) => {
   if (isMobile && props.mixedMode) {
     // on mobile in fs root, don't show reset text, and only show time text
     // if reset badge isn't shown, i.e. not self reset
-    return props.reset !== true ? timeText(props) : null
+    return props.reset !== true ? timeText(props, styles) : null
   }
 
   // in mixed mode, reset text takes higher priority
   if (props.mixedMode) {
-    return props.reset ? resetText(props) : timeText(props)
+    return props.reset ? resetText(props, styles) : timeText(props, styles)
   }
 
   // otherwise, show reset text if we need, and don't show time text.
-  return props.reset ? resetText(props) : null
+  return props.reset ? resetText(props, styles) : null
 }
 
 const TlfInfoLine = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const _tlf = FS.getTlfFromPath(useFsTlfs(), ownProps.path)
   const _username = useCurrentUserState(s => s.username)
   const resetParticipants = _tlf === FS.unknownTlf ? undefined : _tlf.resetParticipants
@@ -115,7 +116,7 @@ const TlfInfoLine = (ownProps: OwnProps) => {
     tlfMtime: _tlf.tlfMtime,
     tlfType: T.FS.getPathVisibility(ownProps.path),
   }
-  const prefix = getPrefixText(props)
+  const prefix = getPrefixText(props, styles)
   const dot = (
     <Kb.Text
       type="BodySmall"
@@ -126,9 +127,9 @@ const TlfInfoLine = (ownProps: OwnProps) => {
     </Kb.Text>
   )
 
-  const newMeta = newMetaMaybe(props)
-  const resetMeta = resetMetaMaybe(props)
-  const text = getText(props)
+  const newMeta = newMetaMaybe(props, styles)
+  const resetMeta = resetMetaMaybe(props, styles)
+  const text = getText(props, styles)
   return (
     <Kb.Box2
       direction="horizontal"
@@ -145,7 +146,7 @@ const TlfInfoLine = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       meta: {

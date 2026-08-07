@@ -10,6 +10,8 @@ type Props = {
 }
 
 const SFMIPopup = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {invert} = props
   const {driverEnable, driverStatus} = useSystemFileManagerIntegration()
   const {type} = driverStatus
@@ -69,8 +71,8 @@ const SFMIPopup = (props: Props) => {
               type="iconfont-finder"
               padding="tiny"
               fontSize={16}
-              color={Kb.Styles.globalColors.black_50}
-              hoverColor={Kb.Styles.globalColors.black}
+              color={theme.black_50}
+              hoverColor={theme.black}
               onClick={showPopup}
             />
           </Kb.Box2>
@@ -89,7 +91,7 @@ const SFMIPopup = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   buttonBox: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
   },
@@ -102,7 +104,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingTop: Kb.Styles.globalMargins.medium,
   },
   popup: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     marginTop: Kb.Styles.globalMargins.tiny,
     overflow: 'visible',
     padding: Kb.Styles.globalMargins.small,

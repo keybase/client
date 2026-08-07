@@ -21,6 +21,7 @@ type Props = {
 }
 
 const SectionDivider = (props: Props) => {
+  const styles = useStyles()
   const collapsible = props.collapsed === true || props.collapsed === false
   const boxProps = {
     alignItems: 'center',
@@ -57,14 +58,14 @@ const SectionDivider = (props: Props) => {
 const height = isMobile ? 40 : 32
 SectionDivider.height = height
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   caret: {
     marginLeft: Styles.globalMargins.xtiny,
   },
   container: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-      backgroundColor: Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
       height,
     },
     isMobile: {

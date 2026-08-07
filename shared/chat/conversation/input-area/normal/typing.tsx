@@ -45,6 +45,7 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 const emptySet = new Set<string>()
 
 const Typing = function Typing() {
+  const styles = useStyles()
   const threadTyping = useConversationThreadSelector(s => (s.typing.size === 0 ? emptySet : s.typing))
   const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
     C.useShallow(s => ({
@@ -71,8 +72,8 @@ const Typing = function Typing() {
 }
 
 export const mobileTypingContainerHeight = 18
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       isTypingAnimation: Kb.Styles.platformStyles({
         isMobile: {
@@ -94,7 +95,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {
           alignItems: 'flex-end',
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           height: mobileTypingContainerHeight,
           left: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',

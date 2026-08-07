@@ -40,6 +40,7 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
 }
 
 function DesktopPopupPositioned(props: PopupProps) {
+  const desktopStyles = useDesktopStyles()
   return (
     <FloatingBox
       attachTo={props.attachTo}
@@ -69,6 +70,7 @@ function PopupPositioned(props: PopupProps) {
 }
 
 function PopupCentered(props: PopupProps) {
+  const desktopStyles = useDesktopStyles()
   const {children, onHidden, style} = props
 
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
@@ -114,6 +116,7 @@ function stopBubbling(ev: React.MouseEvent<HTMLDivElement>) {
 }
 
 function PopupSheet(props: PopupProps) {
+  const nativeStyles = useNativeStyles()
   const {children, footer, onHidden, snapPoints, style} = props
   const {bottom: safeBottom, top: safeTop} = useWindowInsets()
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
@@ -200,7 +203,7 @@ function Popup(props: PopupProps) {
   return <PopupCentered {...props} />
 }
 
-const desktopStyles = Styles.styleSheetCreate(() => ({
+const useDesktopStyles = Styles.createStyleHook(theme => ({
   centeredContainer: {
     maxHeight: '100%',
     maxWidth: '100%',
@@ -209,7 +212,7 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
       ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: theme.white,
       borderRadius: Styles.borderRadius,
       flex: 1,
       maxWidth: '100%',
@@ -231,16 +234,16 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const nativeStyles = Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Styles.createStyleHook(
+  theme =>
     ({
-      handleIndicatorStyle: {backgroundColor: Styles.globalColors.black_40},
-      handleStyle: {backgroundColor: Styles.globalColors.black_05_on_white},
-      modalBackground: {backgroundColor: Styles.globalColors.black_05_on_white},
+      handleIndicatorStyle: {backgroundColor: theme.black_40},
+      handleStyle: {backgroundColor: theme.black_05_on_white},
+      modalBackground: {backgroundColor: theme.black_05_on_white},
       modalStyle: Styles.platformStyles({
         isAndroid: {
           elevation: 17,
-          shadowColor: Styles.globalColors.black_50OrBlack_40,
+          shadowColor: theme.black_50OrBlack_40,
           shadowOffset: {height: 5, width: 0},
           shadowOpacity: 1,
           shadowRadius: 10,

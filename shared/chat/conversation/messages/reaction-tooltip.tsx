@@ -31,6 +31,8 @@ type Section = {
 }
 
 const ReactionTooltip = (p: OwnProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
   const message = useConversationThreadMessage(ordinal)
@@ -95,7 +97,7 @@ const ReactionTooltip = (p: OwnProps) => {
         username={item.username}
       />
     ),
-    [onClickUser]
+    [onClickUser, styles]
   )
   if (!visible) {
     return null
@@ -152,7 +154,7 @@ const ReactionTooltip = (p: OwnProps) => {
             >
               <Kb.Icon
                 type="iconfont-reacji"
-                color={Kb.Styles.globalColors.blue}
+                color={theme.blue}
                 style={styles.addReactionButtonIcon}
               />
             </Kb.Button>
@@ -213,11 +215,11 @@ type ListItem = {
   username: string
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       addReactionButtonBar: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         ...Kb.Styles.padding(
           Kb.Styles.globalMargins.small,
           Kb.Styles.globalMargins.small,
@@ -230,14 +232,14 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           borderTopLeftRadius: 3,
           borderTopRightRadius: 3,
         },
-        isMobile: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+        isMobile: {backgroundColor: theme.blueGrey},
       }),
       emojiText: {
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
         flex: -1,
       },
       list: Kb.Styles.platformStyles({
@@ -248,27 +250,27 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       listContainer: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           maxHeight: 320,
           width: 240,
         },
       }),
       overlay: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           margin: Kb.Styles.globalMargins.tiny,
         },
       }),
       // fills the sheet's empty area below the reactions so it matches the rows
-      sheet: {backgroundColor: Kb.Styles.globalColors.white},
+      sheet: {backgroundColor: theme.white},
       sheetContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         borderRadius: Kb.Styles.borderRadius,
       },
       userContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'stretch',
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
           width: '100%',

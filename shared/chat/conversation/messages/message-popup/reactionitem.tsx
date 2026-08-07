@@ -8,6 +8,7 @@ type Props = {
 }
 
 const ReactionItem = (props: Props) => {
+  const styles = useStyles()
   const {onHidden, onReact: _onReact, showPicker: _showPicker} = props
 
   const topReacjis = useReactionRowTopReacjis()
@@ -35,7 +36,7 @@ const ReactionItem = (props: Props) => {
     </Kb.Box2>
   )
 }
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       clickableBox: {

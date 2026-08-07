@@ -17,14 +17,14 @@ type Props = {
   onSelectConversation: () => void
 }
 
-const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
+const getRowStyles = (isSelected: boolean, hasUnread: boolean, theme: Kb.Styles.Theme) => {
   const backgroundColor = isSelected
-    ? Kb.Styles.globalColors.blue
+    ? theme.blue
     : Kb.Styles.isPhone
       ? undefined
-      : Kb.Styles.globalColors.blueGrey
+      : theme.blueGrey
   const showBold = !isSelected && hasUnread
-  const usernameColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
+  const usernameColor = isSelected ? theme.white : theme.black
 
   return {
     backgroundColor,
@@ -34,11 +34,13 @@ const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
 }
 
 const SelectableSmallTeam = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = props
   const row = useInboxRowSmall(conversationIDKey)
   const isMuted = row.isMuted
   const showBadge = row.hasBadge
-  const rowStyles = getRowStyles(isSelected, row.hasUnread)
+  const rowStyles = getRowStyles(isSelected, row.hasUnread, theme)
   const {backgroundColor, showBold, usernameColor} = rowStyles
   const isLocked = row.isLocked || row.participantNeedToRekey || row.youNeedToRekey
   const teamname = row.teamDisplayName
@@ -85,7 +87,7 @@ const SelectableSmallTeam = (props: Props) => {
         styles.container,
         styles.rowContainer,
         {
-          backgroundColor: isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+          backgroundColor: isSelected ? theme.blue : theme.white,
         },
       ])}
       onMouseLeave={_onMouseLeave}
@@ -130,9 +132,9 @@ const SelectableSmallTeam = (props: Props) => {
 
 const rowHeight = isMobile ? 64 : 56
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   badge: {
-    backgroundColor: Kb.Styles.globalColors.orange,
+    backgroundColor: theme.orange,
     borderRadius: 6,
     ...Kb.Styles.size(Kb.Styles.globalMargins.tiny),
   },

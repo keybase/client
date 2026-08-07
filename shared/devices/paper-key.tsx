@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 
 const PaperKey = () => {
+  const styles = useStyles()
   const [paperkey, setPaperkey] = React.useState('')
   const [wroteItDown, setWroteItDown] = React.useState(false)
 
@@ -71,16 +72,16 @@ const PaperKey = () => {
 
 const borderWidth = 3
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         alignSelf: 'center',
         maxWidth: isMobile ? undefined : 560,
       },
       keyBox: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        borderColor: Kb.Styles.globalColors.blueDarker,
+        backgroundColor: theme.white,
+        borderColor: theme.blueDarker,
         borderRadius: borderWidth,
         borderStyle: 'solid',
         borderWidth,
@@ -88,7 +89,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       text: {
         ...Kb.Styles.globalStyles.fontTerminal,
-        color: Kb.Styles.globalColors.blueDark,
+        color: theme.blueDark,
       },
     }) as const
 )

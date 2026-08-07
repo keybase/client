@@ -82,6 +82,7 @@ type EnterUsernameProps = {
 }
 
 const EnterUsername = (props: EnterUsernameProps) => {
+  const styles = useStyles()
   const {
     onLogin,
     usernameTaken,
@@ -184,7 +185,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   eulaText: {alignSelf: 'center' as const},
   input: desktopInputWidth,
 }))

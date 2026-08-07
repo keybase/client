@@ -240,6 +240,8 @@ type AddEmojiPromptProps = {
 }
 
 const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {dragOver, onDragLeave, onDragOver, onDrop, pick} = usePickFiles(props.addFiles)
   return (
     <Kb.Box2
@@ -275,7 +277,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
         >
-          <Kb.Icon type="iconfont-emoji" fontSize={48} color={Kb.Styles.globalColors.black_10} />
+          <Kb.Icon type="iconfont-emoji" fontSize={48} color={theme.black_10} />
         </Kb.Box2>
       )}
       <Kb.Text type="BodySmall">Maximum 256KB per image.</Kb.Text>
@@ -312,11 +314,14 @@ type EmojiToAddOrAddRow =
       offset: number
     }
 
-const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
-  item.type === 'add' ? (
+const EmojiToAddRow = (p: {item: EmojiToAddOrAddRow}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  const {item} = p
+  return item.type === 'add' ? (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.emojiToAddRow}>
       <Kb.ClickableBox direction="vertical" centerChildren={true} onClick={item.add} style={styles.addEmojiIconContainer}>
-        <Kb.Icon type="iconfont-new" color={Kb.Styles.globalColors.blue} />
+        <Kb.Icon type="iconfont-new" color={theme.blue} />
       </Kb.ClickableBox>
     </Kb.Box2>
   ) : (
@@ -341,8 +346,12 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
       />
     </Kb.Box2>
   )
+}
+
+const renderRow = (_: number, item: EmojiToAddOrAddRow) => <EmojiToAddRow item={item} />
 
 const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
+  const styles = useStyles()
   const {dragOver, onDragLeave, onDragOver, onDrop, pick} = usePickFiles(props.addFiles)
   const {emojisToAdd} = props
   const items = (() => {
@@ -402,10 +411,10 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
 const emojiToAddRowHeightNoError = isMobile ? 48 : 40
 const emojiToAddRowHeightWithError = isMobile ? 70 : 60
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   addEmojiIconContainer: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.globalMargins.xtiny),
+      ...Kb.Styles.border(theme.black_20, 1, Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
       ...Kb.Styles.size(Kb.Styles.globalMargins.mediumLarge),
@@ -417,7 +426,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   contentContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexGrow,
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
       padding: Kb.Styles.globalMargins.small,
     },
   }),
@@ -428,8 +437,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   dropArea: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Kb.Styles.globalColors.black_05,
-      borderColor: Kb.Styles.globalColors.black_35,
+      backgroundColor: theme.black_05,
+      borderColor: theme.black_35,
       borderRadius: 30,
       borderStyle: 'dotted',
       borderWidth: 3,
@@ -438,7 +447,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   dropAreaDragOver: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Kb.Styles.globalColors.black_10,
+      backgroundColor: theme.black_10,
     },
   }),
   emojiToAddImage: {

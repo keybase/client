@@ -11,6 +11,7 @@ import {openAppSettings} from '@/util/storeless-actions'
  * popup.
  */
 const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: () => void}) => {
+  const styles = useStyles()
   const [dismissState, setDismissState] = React.useState(() => ({
     dismissed: false,
     noAccess,
@@ -47,7 +48,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
   ) : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   header: {marginBottom: 6},
 }))
 

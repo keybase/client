@@ -4,6 +4,7 @@ import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const CreateChannelRow = (props: {teamID: T.Teams.TeamID}) => {
+  const styles = useStyles()
   const nav = useSafeNavigation()
   const onCreateChannel = () =>
     nav.safeNavigateAppend({name: 'chatCreateChannel', params: {...props, navToChatOnSuccess: false}})
@@ -19,9 +20,9 @@ const CreateChannelRow = (props: {teamID: T.Teams.TeamID}) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   },
 }))

@@ -15,6 +15,7 @@ type PhoneSearchProps = {
 }
 
 const PhoneSearch = (props: PhoneSearchProps) => {
+  const styles = useStyles()
   const {namespace, continueLabel, search} = props
   const teamBuildingSearchResults = TB.useTBContext(s => s.searchResults)
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
@@ -83,29 +84,33 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 type UserMatchMentionProps = {
   username: string
 }
-export const UserMatchMention = ({username}: UserMatchMentionProps) => (
-  <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
-    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Kb.Styles.globalColors.greenDark} />
-    <Kb.Text type="BodySmall">
-      {"Great! That's "}
-      <Kb.ConnectedUsernames
-        colorFollowing={true}
-        inline={true}
-        onUsernameClicked="profile"
-        type="BodySmallBold"
-        usernames={username}
-      />
-      {' on Keybase.'}
-    </Kb.Text>
-  </Kb.Box2>
-)
+export const UserMatchMention = ({username}: UserMatchMentionProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
+      <Kb.Icon type="iconfont-check" sizeType="Tiny" color={theme.greenDark} />
+      <Kb.Text type="BodySmall">
+        {"Great! That's "}
+        <Kb.ConnectedUsernames
+          colorFollowing={true}
+          inline={true}
+          onUsernameClicked="profile"
+          type="BodySmallBold"
+          usernames={username}
+        />
+        {' on Keybase.'}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       containerStyle: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           flex: 1,
         },
         isMobile: {

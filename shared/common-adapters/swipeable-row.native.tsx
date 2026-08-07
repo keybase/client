@@ -8,6 +8,7 @@ const springConfig = {friction: 20, tension: 150, useNativeDriver: false} as con
 
 const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function SwipeableRow(props, ref) {
   'use no memo'
+  const styles = useStyles()
   const {children, renderRightActions, onSwipeableOpenStartDrag, onSwipeableWillOpen, containerStyle} = props
   const {enabled = true} = props
 
@@ -142,7 +143,7 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
 
 export default SwipeableRow
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   actionsContainer: {
     ...Styles.globalStyles.fillAbsolute,
     flexDirection: 'row-reverse',

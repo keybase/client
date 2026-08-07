@@ -21,6 +21,7 @@ export type Props = {
 }
 
 const UnlockFolders = (props: Props) => {
+  const styles = useStyles()
   let innerComponent: React.ReactNode
 
   switch (props.phase) {
@@ -51,7 +52,7 @@ const UnlockFolders = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: {

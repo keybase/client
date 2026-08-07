@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 const ProfileSearch = () => {
+  const styles = useStyles()
   const appendPeopleBuilder = C.Router2.appendPeopleBuilder
   return (
     <Kb.SearchFilter
@@ -15,7 +16,7 @@ const ProfileSearch = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   filter: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.marginH(Kb.Styles.globalMargins.xsmall),

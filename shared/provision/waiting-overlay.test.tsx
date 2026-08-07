@@ -20,9 +20,9 @@ jest.mock('@/common-adapters', () => {
       React.createElement('button', {onClick, type: 'button'}, label),
     ProgressIndicator: () => React.createElement('div', {'data-testid': 'spinner'}),
     Styles: {
-      globalColors: {white_75: '#ffffffbf'},
+      createStyleHook: <T,>(styles: (theme: unknown) => T) => () => styles({white_75: '#ffffffbf'}),
       globalStyles: {fillAbsolute: {}},
-      styleSheetCreate: <T,>(styles: () => T) => styles(),
+      useTheme: () => ({white_75: '#ffffffbf'}),
     },
     Text: ({children}: {children?: React.ReactNode}) => React.createElement('span', null, children),
   }

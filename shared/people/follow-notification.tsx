@@ -31,6 +31,7 @@ const FollowNotificationWrapper = (props: Props) => {
 export default FollowNotificationWrapper
 
 const FollowNotification = (props: Props) => {
+  const styles = useStyles()
   if (props.newFollows.length !== 1) {
     throw new Error('Single follow notification must have exactly one user supplied')
   }
@@ -81,6 +82,7 @@ const FollowNotification = (props: Props) => {
 }
 
 function MultiFollowNotification(props: Props) {
+  const styles = useStyles()
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
@@ -124,7 +126,7 @@ function MultiFollowNotification(props: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       avatar: {marginRight: Kb.Styles.globalMargins.xtiny},

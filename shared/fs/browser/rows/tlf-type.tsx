@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import * as FS from '@/constants/fs'
-import {rowStyles, StillCommon} from './common'
+import {useRowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
@@ -12,6 +12,7 @@ type OwnProps = {
 }
 
 const TLFTypeContainer = (p: OwnProps) => {
+  const rowStyles = useRowStyles()
   const {destinationPickerSource, name} = p
   const path = T.FS.stringToPath(`/keybase/${name}`)
   const onOpen = useOpen({destinationPickerSource, path})

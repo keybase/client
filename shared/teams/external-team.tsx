@@ -14,6 +14,7 @@ type Props = {teamname: string}
 type TeamInfoResult = {teamname: string; info?: T.RPCGen.UntrustedTeamInfo}
 
 const ExternalTeam = (props: Props) => {
+  const styles = useStyles()
   const teamname = props.teamname
 
   const getTeamInfo = C.useRPC(T.RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
@@ -91,6 +92,7 @@ type Item = {type: 'header'} | {type: 'empty'} | {type: 'member'; member: T.RPCC
 type Section = Kb.SectionType<Item>
 
 const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
+  const styles = useStyles()
   const members = orderMembers(info.publicMembers ?? undefined)
   const sections: Array<Section> = [
     {
@@ -141,6 +143,8 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
 }
 
 const Header = ({info}: ExternalTeamProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const nav = useSafeNavigation()
   const teamname = info.name.parts?.join('.')
   const onJoin = () =>
@@ -163,7 +167,7 @@ const Header = ({info}: ExternalTeamProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-  const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={Kb.Styles.globalColors.green} />
+  const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={theme.green} />
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
@@ -183,6 +187,7 @@ const Header = ({info}: ExternalTeamProps) => {
 }
 
 const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem: boolean}) => {
+  const styles = useStyles()
   const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Teams.teamRoleByEnum[member.role]
@@ -217,7 +222,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   contentContainer: Kb.Styles.platformStyles({
     common: {
       paddingBottom: Kb.Styles.globalMargins.small,
@@ -227,7 +232,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   crownIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
-  error: {color: Kb.Styles.globalColors.redDark},
+  error: {color: theme.redDark},
   headerContainer: {
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   },
@@ -243,7 +248,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
   },
   tabs: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     width: '100%',
   },
 }))

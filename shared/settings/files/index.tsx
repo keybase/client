@@ -18,6 +18,7 @@ const SyncNotificationSetting = (
     'spaceAvailableNotificationThreshold' | 'areSettingsLoading' | 'setSpaceAvailableNotificationThreshold'
   >
 ) => {
+  const styles = useStyles()
   const {spaceAvailableNotificationThreshold, areSettingsLoading, setSpaceAvailableNotificationThreshold} = p
   const onChangedSyncNotifications = (selectedIdx: number) =>
     setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
@@ -53,6 +54,7 @@ const SyncNotificationSetting = (
 
 // Desktop: Finder/Explorer integration section
 const FinderIntegration = () => {
+  const styles = useStyles()
   const {driverDisable, driverStatus, preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
   const navigateAppend = C.Router2.navigateAppend
   const onShowKextPermissionPopup = () => {
@@ -127,6 +129,7 @@ const FinderIntegration = () => {
 const ThresholdDropdown = (
   p: Pick<Props, 'spaceAvailableNotificationThreshold' | 'setSpaceAvailableNotificationThreshold'>
 ) => {
+  const styles = useStyles()
   const allowedThresholds = allowedNotificationThresholds.map(
     i => ({label: FS.humanizeBytes(i, 0), value: i}) as const
   )
@@ -180,6 +183,7 @@ const ThresholdDropdown = (
 }
 
 const FilesSettings = () => {
+  const styles = useStyles()
   const props = useFiles()
   // unconditional: a hook inside the isMobile branch makes the react compiler bail
   const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(C.waitingKeyFSSetSyncOnCellular)
@@ -272,14 +276,14 @@ const FilesSettings = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       actionNeededBox: {
         marginLeft: Kb.Styles.globalMargins.medium,
       },
       actionNeededText: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
       },
       buttonBox: {
         paddingTop: Kb.Styles.globalMargins.tiny,

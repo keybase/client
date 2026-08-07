@@ -1,21 +1,21 @@
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 
-const styleOverride: StyleOverride = Kb.Styles.styleSheetCreate(() => ({
+const useStyleOverride = Kb.Styles.createStyleHook(theme => ({
   del: {
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
   },
   em: {
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
   },
   link: {
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
   },
   paragraph: {
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
   },
   strong: {
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
   },
 }))
 
@@ -27,27 +27,31 @@ type Props = {
 }
 
 const MarkdownMemo = (props: Props) =>
-  props.memo ? (
-    <Kb.Box2
-      direction="horizontal"
-      gap="small"
-      fullWidth={true}
-      style={Kb.Styles.collapseStyles([props.style, styles.container])}
-    >
-      {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
-      <Kb.Text type="Body" style={styles.memo}>
-        <Kb.Markdown
-          style={styles.memo}
-          styleOverride={{...styleOverride, ...props.styleOverride}}
-          allowFontScaling={true}
-        >
-          {props.memo}
-        </Kb.Markdown>
-      </Kb.Text>
-    </Kb.Box2>
-  ) : null
+  {
+    const styleOverride = useStyleOverride()
+  const styles = useStyles()
+  return props.memo ? (
+      <Kb.Box2
+        direction="horizontal"
+        gap="small"
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([props.style, styles.container])}
+      >
+        {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
+        <Kb.Text type="Body" style={styles.memo}>
+          <Kb.Markdown
+            style={styles.memo}
+            styleOverride={{...styleOverride, ...props.styleOverride}}
+            allowFontScaling={true}
+          >
+            {props.memo}
+          </Kb.Markdown>
+        </Kb.Text>
+      </Kb.Box2>
+    ) : null
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: {
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.xxtiny),
     maxWidth: '100%',

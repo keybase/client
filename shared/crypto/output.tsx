@@ -39,6 +39,7 @@ type OutputInfoProps = {
 }
 
 export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => {
+  const styles = useStyles()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const signed = state.outputSigned
   const signedByUsername = state.outputSenderUsername
@@ -110,6 +111,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
 }
 
 const OutputProgress = ({state}: {state: CommonState}) => {
+  const styles = useStyles()
   if (!state.inProgress) {
     return null
   }
@@ -130,16 +132,19 @@ const OutputProgress = ({state}: {state: CommonState}) => {
 }
 
 export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) =>
-  outputStatus === 'success' ? (
-    <Kb.Banner
-      color="grey"
-      style={styles.banner}
-      textContainerStyle={styles.bannerContainer}
-      narrow={isMobile}
-    >
-      {children}
-    </Kb.Banner>
-  ) : null
+  {
+  const styles = useStyles()
+  return outputStatus === 'success' ? (
+      <Kb.Banner
+        color="grey"
+        style={styles.banner}
+        textContainerStyle={styles.bannerContainer}
+        narrow={isMobile}
+      >
+        {children}
+      </Kb.Banner>
+    ) : null
+}
 
 export const CryptoOutputActionsBar = ({
   canReplyInChat,
@@ -147,6 +152,7 @@ export const CryptoOutputActionsBar = ({
   onSaveAsText,
   state,
 }: OutputActionsBarProps) => {
+  const styles = useStyles()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 
@@ -285,11 +291,13 @@ export const CryptoOutput = ({
   outputTextType,
   state,
 }: CryptoOutputProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 
   const fileOutputTextColor =
-    outputTextType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black
+    outputTextType === 'cipher' ? theme.greenDark : theme.black
 
   if (state.outputStatus !== 'success') {
     return (
@@ -352,8 +360,8 @@ export const CryptoOutput = ({
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       banner: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
@@ -379,7 +387,7 @@ const styles = Kb.Styles.styleSheetCreate(
       fileOutputText: {...Kb.Styles.globalStyles.fontSemibold},
       output: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.black,
+          color: theme.black,
         },
         isElectron: {
           whiteSpace: 'pre-wrap',
@@ -395,13 +403,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
         },
         isTablet: {
           ...Kb.Styles.centered(),
         },
       }),
-      outputPlaceholder: {backgroundColor: Kb.Styles.globalColors.blueGreyLight},
+      outputPlaceholder: {backgroundColor: theme.blueGreyLight},
       progressBar: {
         width: 200,
       },
@@ -433,6 +441,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         },
       }),
-      toastText: {color: Kb.Styles.globalColors.white, textAlign: 'center'},
+      toastText: {color: theme.white, textAlign: 'center'},
     }) as const
 )

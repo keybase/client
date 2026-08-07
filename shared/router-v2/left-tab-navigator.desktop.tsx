@@ -16,6 +16,7 @@ function LeftTabNavigator({
   children,
   screenOptions,
 }: Props) {
+  const styles = useStyles()
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -59,10 +60,10 @@ function ModalBackdrop(p: {hasModals: boolean}) {
   return <div className={Kb.Styles.classNames({'has-modals': hasModals, 'modal-backdrop': true})} />
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   // clip + min-width 0 so a misbehaving screen can never widen past the window and shove
   // the tab bar off screen
-  box: {backgroundColor: Kb.Styles.globalColors.white, overflow: 'hidden'},
+  box: {backgroundColor: theme.white, overflow: 'hidden'},
   content: {minWidth: 0, overflow: 'hidden'},
 }))
 

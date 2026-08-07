@@ -17,6 +17,7 @@ type Props = {
 const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
 const FilePreviewView = (p: Props) => {
+  const styles = useStyles()
   return (
     <Kb.BoxGrow style={styles.container}>
       <FilePreviewViewContent {...p} />
@@ -25,6 +26,7 @@ const FilePreviewView = (p: Props) => {
 }
 
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
+  const styles = useStyles()
   const {fileContext, pathItem} = useFsFileContext(path)
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
@@ -125,8 +127,8 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
 
 export default FilePreviewView
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       banner: {
         opacity: 0.85,
@@ -141,7 +143,7 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       zoomableBox: {
-        backgroundColor: Kb.Styles.globalColors.blackOrBlack,
+        backgroundColor: theme.blackOrBlack,
         height: '100%',
         position: 'relative',
         width: '100%',

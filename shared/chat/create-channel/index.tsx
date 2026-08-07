@@ -4,6 +4,8 @@ import type {Props} from './index.shared'
 import useHook from './hooks'
 
 const CreateChannel = (p: Props) => {
+  const desktopStyles = useDesktopStyles()
+  const nativeStyles = useNativeStyles()
   const props = useHook(p)
 
   if (!isMobile) {
@@ -112,7 +114,7 @@ const CreateChannel = (p: Props) => {
 
 const buttonBarStyle = {alignItems: 'center'} as const
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
+const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       back: {
@@ -131,7 +133,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
+const useNativeStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       box: {padding: 16},

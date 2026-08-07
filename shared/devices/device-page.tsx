@@ -10,6 +10,7 @@ type DevicePageProps = {canRevoke: boolean; device: T.Devices.Device}
 type TimelineEventType = 'Revoked' | 'LastUsed' | 'Added'
 
 const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean}) => {
+  const styles = useStyles()
   const {first, last, closedCircle} = p
   return (
     <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch">
@@ -26,6 +27,7 @@ const TimelineLabel = (p: {
   subDescIsName: boolean
   spacerOnBottom: boolean
 }) => {
+  const styles = useStyles()
   const {desc, subDesc, subDescIsName, spacerOnBottom} = p
   return (
     <Kb.Box2 direction="vertical" alignItems="flex-start">
@@ -96,6 +98,7 @@ const Timeline = (p: {device: T.Devices.Device}) => {
 }
 
 const DevicePage = (ownProps: DevicePageProps) => {
+  const styles = useStyles()
   const {canRevoke, device} = ownProps
   const navigateAppend = C.Router2.navigateAppend
   const showRevokeDevicePage = () => {
@@ -149,19 +152,19 @@ const DevicePage = (ownProps: DevicePageProps) => {
 }
 const circleSize = 8
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       circleClosed: {
-        backgroundColor: Kb.Styles.globalColors.grey,
-        borderColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.grey,
+        borderColor: theme.white,
         borderRadius: circleSize / 2,
         borderStyle: 'solid',
         borderWidth: 2,
         ...Kb.Styles.size(circleSize),
       },
       circleOpen: {
-        borderColor: Kb.Styles.globalColors.grey,
+        borderColor: theme.grey,
         borderRadius: circleSize / 2,
         borderStyle: 'solid',
         borderWidth: 2,
@@ -169,14 +172,14 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       invisible: {opacity: 0},
       meta: {marginTop: 4},
-      subDesc: {color: Kb.Styles.globalColors.black},
+      subDesc: {color: theme.black},
       timelineLineBottom: {
-        backgroundColor: Kb.Styles.globalColors.grey,
+        backgroundColor: theme.grey,
         flex: 1,
         width: 2,
       },
       timelineLineTop: {
-        backgroundColor: Kb.Styles.globalColors.grey,
+        backgroundColor: theme.grey,
         height: 6,
         width: 2,
       },

@@ -13,6 +13,8 @@ export type Props = {
 }
 
 const CopyableText = (props: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const [hasCopied, setHasCopied] = React.useState(false)
   const setHasCopiedFalseLater = useTimeout(() => setHasCopied(false), 5000)
 
@@ -41,7 +43,7 @@ const CopyableText = (props: Props) => {
   return (
     <TouchableHighlight
       activeOpacity={0.6}
-      underlayColor={Styles.globalColors.white}
+      underlayColor={theme.white}
       onPress={() => handleCopy()}
       style={props.style}
     >
@@ -59,22 +61,22 @@ const CopyableText = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
       base: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.fontTerminal,
           alignItems: 'flex-start',
-          backgroundColor: Styles.globalColors.greyLight,
+          backgroundColor: theme.greyLight,
           ...Styles.globalStyles.rounded,
-          color: Styles.globalColors.black,
+          color: theme.black,
           fontSize: 13,
           padding: 10,
           textAlign: 'left',
         },
         isElectron: {
-          ...Styles.border(Styles.globalColors.black_10, 1),
+          ...Styles.border(theme.black_10, 1),
           justifyContent: 'stretch',
           lineHeight: '17px',
           overflowX: 'hidden',
@@ -84,7 +86,7 @@ const styles = Styles.styleSheetCreate(
           wordWrap: 'break-word',
         },
         isMobile: {
-          borderColor: Styles.globalColors.black_10,
+          borderColor: theme.black_10,
           borderWidth: 1,
           // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
           minHeight:
@@ -94,18 +96,18 @@ const styles = Styles.styleSheetCreate(
       copyToast: {
         ...Styles.paddingH(Styles.globalMargins.medium),
         // Box2 defaults to alignSelf center, which centers the absolute pill horizontally
-        backgroundColor: Styles.globalColors.black_50,
+        backgroundColor: theme.black_50,
         borderRadius: Styles.globalMargins.large,
         bottom: Styles.globalMargins.small,
         height: Styles.globalMargins.medium + Styles.globalMargins.tiny,
         position: 'absolute',
       },
       copyToastText: {
-        color: Styles.globalColors.white,
+        color: theme.white,
       },
       text: {
         ...Styles.globalStyles.fontTerminal,
-        color: Styles.globalColors.black,
+        color: theme.black,
       },
     }) as const
 )

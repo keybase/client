@@ -11,6 +11,8 @@ type Props = {
 const placeholder = 'Search people'
 
 const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.recipientsContainer}>
@@ -43,8 +45,8 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
           <Kb.Box2 direction="horizontal" style={styles.removeRecipients}>
             <Kb.Icon
               type="iconfont-remove"
-              color={Kb.Styles.globalColors.black_20}
-              hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
+              color={theme.black_20}
+              hoverColor={inProgress ? theme.black_20 : undefined}
               onClick={inProgress ? undefined : onClearRecipients}
             />
           </Kb.Box2>
@@ -56,8 +58,8 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
 }
 
 const recipientsRowHeight = 40
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       input: {
         ...Kb.Styles.globalStyles.flexGrow,
@@ -66,7 +68,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       inputInner: {
         ...Kb.Styles.globalStyles.flexGrow,
-        backgroundColor: Kb.Styles.globalColors.transparent,
+        backgroundColor: theme.transparent,
         padding: 0,
       },
       recipientsContainer: {

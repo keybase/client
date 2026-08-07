@@ -10,6 +10,7 @@ export type Props = {
 }
 
 const ChannelTabs = (props: Props) => {
+  const styles = useStyles()
   const {selectedTab, setSelectedTab} = props
   const tabs: Array<TabType<TabKey>> = [
     {title: 'members' as const},
@@ -32,12 +33,12 @@ const ChannelTabs = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   clickableBox: {
     flexGrow: 1,
   },
   container: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
   },
   tab: Kb.Styles.platformStyles({
     isMobile: {
@@ -45,7 +46,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   tabContainer: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     flexBasis: '100%',
     marginTop: 0,
   },

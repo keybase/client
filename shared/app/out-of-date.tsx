@@ -6,20 +6,21 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {openAppStore} from '@/util/storeless-actions'
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
     ...Kb.Styles.globalStyles.fillAbsolute,
-    backgroundColor: Kb.Styles.globalColors.red,
+    backgroundColor: theme.red,
     bottom: undefined,
     zIndex: 9999,
   },
   messageContainer: {
-    backgroundColor: Kb.Styles.globalColors.white_90,
+    backgroundColor: theme.white_90,
     borderRadius: Kb.Styles.borderRadius,
   },
 }))
 
 const OutOfDate = () => {
+  const styles = useStyles()
   const outOfDate = useConfigState(s => s.outOfDate)
   const [mobileMessage, setMobileMessage] = React.useState('')
   const [mobileCritical, setMobileCritical] = React.useState(false)

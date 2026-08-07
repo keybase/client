@@ -33,6 +33,8 @@ const getInviteIdentityKey = ({inviteDetails, inviteID = '', inviteKey = ''}: Pr
 const JoinFromInvite = (props: Props) => <JoinFromInviteInner key={getInviteIdentityKey(props)} {...props} />
 
 const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = '', inviteKey = ''}: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [details, setDetails] = React.useState(initialInviteDetails)
   const [error, setError] = React.useState('')
   const loaded = details !== undefined || !!error
@@ -139,7 +141,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
               fullWidth={!isMobile}
               centerChildren={true}
             >
-              <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} title="open" size="Small" />
+              <Kb.Meta backgroundColor={theme.green} title="open" size="Small" />
             </Kb.Box2>
           )}
         </Kb.Box2>
@@ -187,8 +189,8 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
   return body
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       avatar: Kb.Styles.platformStyles({
         common: {marginBottom: -36, position: 'relative', top: -48},
@@ -199,7 +201,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingBottom: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.blueGreyLight,
+          backgroundColor: theme.blueGreyLight,
           borderRadius: 8,
         },
       }),
@@ -217,7 +219,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inviterBox: {paddingBottom: Kb.Styles.globalMargins.small},
       laterBox: {
-        borderTopColor: Kb.Styles.globalColors.black_10,
+        borderTopColor: theme.black_10,
         borderTopWidth: 1,
         paddingTop: Kb.Styles.globalMargins.small,
       },

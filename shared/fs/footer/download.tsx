@@ -11,7 +11,7 @@ export type Props = {
   isFirst: boolean
 }
 
-const getProgress = (dlState: T.FS.DownloadState) => (
+const getProgress = (dlState: T.FS.DownloadState, styles: ReturnType<typeof useStyles>) => (
   <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
     <Kb.Box2 direction="vertical" flex={1} relative={true}>
       <Kb.Box2 direction="vertical" style={styles.tube} />
@@ -31,6 +31,8 @@ const getProgress = (dlState: T.FS.DownloadState) => (
 )
 
 const Download = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
   const dlState = Kbfs.useFsDownloadState(props.downloadID)
   const dismissDownload = Kbfs.useFsDismissDownload()
@@ -54,7 +56,7 @@ const Download = (props: Props) => {
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
           <Kb.Icon
             type={dlState.done ? 'iconfont-success' : 'iconfont-download'}
-            color={Kb.Styles.globalColors.black_20}
+            color={theme.black_20}
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
@@ -66,12 +68,12 @@ const Download = (props: Props) => {
           >
             {dlInfo.filename}
           </Kb.Text>
-          {FS.downloadIsOngoing(dlState) && getProgress(dlState)}
+          {FS.downloadIsOngoing(dlState) && getProgress(dlState, styles)}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
           <Kb.Icon
             type="iconfont-remove"
-            color={Kb.Styles.globalColors.white}
+            color={theme.white}
             onClick={!FS.downloadIsOngoing(dlState) ? dismiss : cancel}
           />
         </Kb.Box2>
@@ -80,12 +82,12 @@ const Download = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       download: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.green,
+          backgroundColor: theme.green,
           borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
@@ -99,7 +101,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       filename: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.white,
+          color: theme.white,
         },
         isElectron: {
           ...Kb.Styles.textEllipsis,
@@ -113,16 +115,16 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: -2,
       },
       red: {
-        backgroundColor: Kb.Styles.globalColors.red,
+        backgroundColor: theme.red,
       },
       tube: {
-        backgroundColor: Kb.Styles.globalColors.black_20,
+        backgroundColor: theme.black_20,
         borderRadius: 4.5,
         height: 4,
         width: '100%',
       },
       tubeStuffing: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         left: 0,
         position: 'absolute',
         top: 0,

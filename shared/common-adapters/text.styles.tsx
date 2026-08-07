@@ -31,14 +31,14 @@ function fontSizeToSizeStyleNative(fontSize: number): {fontSize: number; lineHei
   return {fontSize, lineHeight}
 }
 
-const _metaDataDesktop = (): {[K in TextType]: MetaType} => {
+const _metaDataDesktop = (theme: Styles.Theme): {[K in TextType]: MetaType} => {
   const whiteNegative = {
-    negative: Styles.globalColors.white,
-    positive: Styles.globalColors.black,
+    negative: theme.white,
+    positive: theme.black,
   }
   const _blueLink = {
-    negative: Styles.globalColors.white,
-    positive: Styles.globalColors.blueDark,
+    negative: theme.white,
+    positive: theme.blueDark,
   }
   return {
     Body: {colorForBackground: whiteNegative, fontSize: 14, styleOverride: Styles.globalStyles.fontRegular},
@@ -49,30 +49,30 @@ const _metaDataDesktop = (): {[K in TextType]: MetaType} => {
     BodyExtrabold: {colorForBackground: whiteNegative, fontSize: 14, styleOverride: Styles.globalStyles.fontExtrabold},
     BodyItalic: {colorForBackground: whiteNegative, fontSize: 14, styleOverride: {...Styles.globalStyles.fontRegular, fontStyle: 'italic'}},
     BodyPrimaryLink: {colorForBackground: _blueLink, fontSize: 14, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
-    BodySecondaryLink: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 14, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
+    BodySecondaryLink: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 14, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
     BodySemibold: {colorForBackground: whiteNegative, fontSize: 14, styleOverride: Styles.globalStyles.fontSemibold},
     BodySemiboldItalic: {colorForBackground: whiteNegative, fontSize: 14, styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'}},
     BodySemiboldLink: {colorForBackground: _blueLink, fontSize: 14, isLink: true, styleOverride: Styles.globalStyles.fontSemibold},
-    BodySmall: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
-    BodySmallBold: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontBold},
-    BodySmallError: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.redDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
-    BodySmallExtrabold: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontExtrabold},
-    BodySmallExtraboldSecondaryLink: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontExtrabold},
-    BodySmallItalic: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, styleOverride: {...Styles.globalStyles.fontRegular, fontStyle: 'italic'}},
-    BodySmallPrimaryLink: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.blueDark}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
-    BodySmallSecondaryLink: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
-    BodySmallSemibold: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontSemibold},
-    BodySmallSemiboldItalic: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'}},
-    BodySmallSemiboldPrimaryLink: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.blueDark}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontSemibold},
-    BodySmallSemiboldSecondaryLink: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 13, isLink: true, styleOverride: {...Styles.globalStyles.fontSemibold, textDecoration: undefined}},
-    BodySmallSuccess: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.greenDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
-    BodySmallWallet: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.purpleDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
-    BodyTiny: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontRegular},
-    BodyTinyBold: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontBold},
-    BodyTinyExtrabold: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontExtrabold},
-    BodyTinyLink: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 12, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
-    BodyTinySemibold: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontSemibold},
-    BodyTinySemiboldItalic: {colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50}, fontSize: 12, styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'}},
+    BodySmall: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
+    BodySmallBold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontBold},
+    BodySmallError: {colorForBackground: {...whiteNegative, positive: theme.redDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
+    BodySmallExtrabold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontExtrabold},
+    BodySmallExtraboldSecondaryLink: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontExtrabold},
+    BodySmallItalic: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, styleOverride: {...Styles.globalStyles.fontRegular, fontStyle: 'italic'}},
+    BodySmallPrimaryLink: {colorForBackground: {...whiteNegative, positive: theme.blueDark}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
+    BodySmallSecondaryLink: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
+    BodySmallSemibold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, styleOverride: Styles.globalStyles.fontSemibold},
+    BodySmallSemiboldItalic: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'}},
+    BodySmallSemiboldPrimaryLink: {colorForBackground: {...whiteNegative, positive: theme.blueDark}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontSemibold},
+    BodySmallSemiboldSecondaryLink: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, isLink: true, styleOverride: {...Styles.globalStyles.fontSemibold, textDecoration: undefined}},
+    BodySmallSuccess: {colorForBackground: {...whiteNegative, positive: theme.greenDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
+    BodySmallWallet: {colorForBackground: {...whiteNegative, positive: theme.purpleDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
+    BodyTiny: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontRegular},
+    BodyTinyBold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontBold},
+    BodyTinyExtrabold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontExtrabold},
+    BodyTinyLink: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, isLink: true, styleOverride: Styles.globalStyles.fontRegular},
+    BodyTinySemibold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontSemibold},
+    BodyTinySemiboldItalic: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'}},
     Header: {colorForBackground: whiteNegative, fontSize: 18, styleOverride: Styles.globalStyles.fontBold},
     HeaderBig: {colorForBackground: whiteNegative, fontSize: 24, styleOverride: Styles.globalStyles.fontBold},
     HeaderBigExtrabold: {colorForBackground: whiteNegative, fontSize: 24, styleOverride: Styles.globalStyles.fontExtrabold},
@@ -80,27 +80,27 @@ const _metaDataDesktop = (): {[K in TextType]: MetaType} => {
     HeaderItalic: {colorForBackground: whiteNegative, fontSize: 18, styleOverride: {...Styles.globalStyles.fontBold, fontStyle: 'italic'}},
     HeaderLink: {colorForBackground: _blueLink, fontSize: 18, isLink: true, styleOverride: Styles.globalStyles.fontBold},
     Terminal: {
-      colorForBackground: {negative: Styles.globalColors.blueLighter, positive: Styles.globalColors.blueLighter},
+      colorForBackground: {negative: theme.blueLighter, positive: theme.blueLighter},
       fontSize: 13,
       styleOverride: Styles.platformStyles({isElectron: {...Styles.globalStyles.fontTerminal, lineHeight: '20px'}}),
     },
     TerminalComment: {
-      colorForBackground: {negative: Styles.globalColors.blueLighter_40, positive: Styles.globalColors.blueLighter_40},
+      colorForBackground: {negative: theme.blueLighter_40, positive: theme.blueLighter_40},
       fontSize: 13,
       styleOverride: Styles.platformStyles({isElectron: {...Styles.globalStyles.fontTerminal, lineHeight: '20px'}}),
     },
     TerminalEmpty: {
-      colorForBackground: {negative: Styles.globalColors.blueLighter_40, positive: Styles.globalColors.blueLighter_40},
+      colorForBackground: {negative: theme.blueLighter_40, positive: theme.blueLighter_40},
       fontSize: 13,
       styleOverride: Styles.platformStyles({isElectron: {...Styles.globalStyles.fontTerminal, height: 20, lineHeight: '20px'}}),
     },
     TerminalInline: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blueDarker},
+      colorForBackground: {...whiteNegative, positive: theme.blueDarker},
       fontSize: 13,
       styleOverride: Styles.platformStyles({
         isElectron: {
           ...Styles.globalStyles.fontTerminal,
-          backgroundColor: Styles.globalColors.blueLighter2,
+          backgroundColor: theme.blueLighter2,
           borderRadius: 2,
           display: 'inline-block',
           height: 17,
@@ -113,19 +113,19 @@ const _metaDataDesktop = (): {[K in TextType]: MetaType} => {
   }
 }
 
-const _metaDataNative = (): {[K in TextType]: MetaType} => {
+const _metaDataNative = (theme: Styles.Theme): {[K in TextType]: MetaType} => {
   // you CANNOT spread these else the getters disappear and your colors will be wrong
   const whiteNegative = {
-    get negative() { return Styles.globalColors.white },
-    get positive() { return Styles.globalColors.black },
+    get negative() { return theme.white },
+    get positive() { return theme.black },
   }
   const whiteNegative_50 = {
-    get negative() { return Styles.globalColors.white },
-    get positive() { return Styles.globalColors.black_50 },
+    get negative() { return theme.white },
+    get positive() { return theme.black_50 },
   }
   const _blueLink = {
-    get negative() { return Styles.globalColors.white },
-    get positive() { return Styles.globalColors.blueDark },
+    get negative() { return theme.white },
+    get positive() { return theme.blueDark },
   }
   return {
     Body: {colorForBackground: whiteNegative, fontSize: 16, styleOverride: Styles.globalStyles.fontRegular},
@@ -144,8 +144,8 @@ const _metaDataNative = (): {[K in TextType]: MetaType} => {
     BodySmallBold: {colorForBackground: whiteNegative_50, fontSize: 15, styleOverride: Styles.globalStyles.fontBold},
     BodySmallError: {
       colorForBackground: {
-        get negative() { return Styles.globalColors.white },
-        get positive() { return Styles.globalColors.redDark },
+        get negative() { return theme.white },
+        get positive() { return theme.redDark },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
@@ -161,16 +161,16 @@ const _metaDataNative = (): {[K in TextType]: MetaType} => {
     BodySmallSemiboldSecondaryLink: {colorForBackground: _blueLink, fontSize: 15, isLink: true, styleOverride: {...Styles.globalStyles.fontSemibold, textDecorationLine: undefined}},
     BodySmallSuccess: {
       colorForBackground: {
-        get negative() { return Styles.globalColors.white },
-        get positive() { return Styles.globalColors.greenDark },
+        get negative() { return theme.white },
+        get positive() { return theme.greenDark },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallWallet: {
       colorForBackground: {
-        get negative() { return Styles.globalColors.white },
-        get positive() { return Styles.globalColors.purpleDark },
+        get negative() { return theme.white },
+        get positive() { return theme.purpleDark },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
@@ -189,37 +189,37 @@ const _metaDataNative = (): {[K in TextType]: MetaType} => {
     HeaderLink: {colorForBackground: _blueLink, fontSize: 20, isLink: true, styleOverride: Styles.globalStyles.fontBold},
     Terminal: {
       colorForBackground: {
-        get negative() { return Styles.globalColors.blueDarker },
-        get positive() { return Styles.globalColors.blueLighter },
+        get negative() { return theme.blueDarker },
+        get positive() { return theme.blueLighter },
       },
       fontSize: 15,
       styleOverride: {...Styles.globalStyles.fontTerminal, lineHeight: 20},
     },
     TerminalComment: {
       colorForBackground: {
-        get negative() { return Styles.globalColors.blueLighter_40 },
-        get positive() { return Styles.globalColors.blueLighter_40 },
+        get negative() { return theme.blueLighter_40 },
+        get positive() { return theme.blueLighter_40 },
       },
       fontSize: 15,
       styleOverride: {...Styles.globalStyles.fontTerminal, lineHeight: 20},
     },
     TerminalEmpty: {
       colorForBackground: {
-        get negative() { return Styles.globalColors.blueLighter_40 },
-        get positive() { return Styles.globalColors.blueLighter_40 },
+        get negative() { return theme.blueLighter_40 },
+        get positive() { return theme.blueLighter_40 },
       },
       fontSize: 15,
       styleOverride: {...Styles.globalStyles.fontTerminal, height: 20, lineHeight: 20},
     },
     TerminalInline: {
       colorForBackground: {
-        get negative() { return Styles.globalColors.blueDarker },
-        get positive() { return Styles.globalColors.blueDarker },
+        get negative() { return theme.blueDarker },
+        get positive() { return theme.blueDarker },
       },
       fontSize: 15,
       styleOverride: {
         ...Styles.globalStyles.fontTerminal,
-        backgroundColor: Styles.globalColors.blueLighter2,
+        backgroundColor: theme.blueLighter2,
         borderRadius: 2,
         height: 20,
         lineHeight: 20,
@@ -229,23 +229,10 @@ const _metaDataNative = (): {[K in TextType]: MetaType} => {
   }
 }
 
-const _metaData = isMobile ? _metaDataNative : _metaDataDesktop
+const metaData = Styles.createThemedValue(isMobile ? _metaDataNative : _metaDataDesktop)
 
-let _darkMetaData: {[K in TextType]: MetaType} | undefined
-let _lightMetaData: {[K in TextType]: MetaType} | undefined
-
-const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
-  if (isDarkMode) {
-    _darkMetaData = _darkMetaData || _metaData()
-    return _darkMetaData
-  } else {
-    _lightMetaData = _lightMetaData || _metaData()
-    return _lightMetaData
-  }
-}
-
-export function getTextStyle(type: TextType, isDarkMode: boolean): TextStyle {
-  const meta = metaData(isDarkMode)[type]
+export function getTextStyle(type: TextType, theme: Styles.Theme): TextStyle {
+  const meta = metaData(theme)[type]
   if (!isMobile) {
     const sizeStyle = fontSizeToSizeStyleDesktop(meta.fontSize as Parameters<typeof fontSizeToSizeStyleDesktop>[0])
     const colorStyle = {color: meta.colorForBackground['positive']}

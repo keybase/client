@@ -69,6 +69,9 @@ const doMoveOrCopy = async (
 }
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
+  const styles = useStyles()
+  const rowStyles = RowCommon.useRowStyles()
+  const theme = Kb.Styles.useTheme()
   const {parentPath, source} = ownProps
   const parentPathItem = FsCommon.useFsPathMetadata(parentPath)
   const browserEdits = useFsBrowserEdits()
@@ -135,9 +138,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         <Kb.ClickableBox key="up" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onBackUp}>
           <Kb.Icon
             type="iconfont-folder-up"
-            color={Kb.Styles.globalColors.black_50}
+            color={theme.black_50}
             fontSize={32}
-            style={RowCommon.rowStyles.pathItemIcon}
+            style={rowStyles.pathItemIcon}
           />
           <Kb.Text type="BodySemibold">..</Kb.Text>
         </Kb.ClickableBox>
@@ -146,7 +149,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         <Kb.ClickableBox key="copy" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onCopyHere}>
           <Kb.ImageIcon
             type="icon-folder-copy-32"
-            style={RowCommon.rowStyles.pathItemIcon}
+            style={rowStyles.pathItemIcon}
           />
           <Kb.Text type="BodySemibold" style={styles.actionText}>
             {isShare ? 'Save here' : 'Copy here'}
@@ -157,7 +160,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         <Kb.ClickableBox key="move" direction="horizontal" alignItems="center" fullWidth={true} style={styles.actionRowContainer} onClick={onMoveHere}>
           <Kb.ImageIcon
             type="icon-folder-move-32"
-            style={RowCommon.rowStyles.pathItemIcon}
+            style={rowStyles.pathItemIcon}
           />
           <Kb.Text type="BodySemibold" style={styles.actionText}>
             Move here
@@ -202,10 +205,12 @@ const Screen = (props: OwnProps) => (
 )
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {onNewFolder} = p
   return (
     <Kb.ClickableBox direction="horizontal" alignItems="center" fullWidth={true} style={styles.newFolderBox} onClick={onNewFolder}>
-      <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
+      <Kb.Icon type="iconfont-folder-new" color={theme.blue} />
       <Kb.Text type="BodyBig" style={styles.newFolderText}>
         Create new folder
       </Kb.Text>
@@ -213,17 +218,17 @@ const NewFolder = (p: {onNewFolder?: () => void}) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       actionRowContainer: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        backgroundColor: theme.blueLighter3,
         flexShrink: 0,
         height: RowCommon.normalRowHeight,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       actionText: {
-        color: Kb.Styles.globalColors.blueDark,
+        color: theme.blueDark,
       },
       anotherHeader: {
         height: 48,
@@ -234,7 +239,7 @@ const styles = Kb.Styles.styleSheetCreate(
           height: 64,
         },
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white_90,
+          backgroundColor: theme.white_90,
           bottom: 0,
           position: 'absolute',
         },
@@ -243,7 +248,7 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.tiny,
       },
       newFolderText: {
-        color: Kb.Styles.globalColors.blueDark,
+        color: theme.blueDark,
         marginLeft: Kb.Styles.globalMargins.tiny,
       },
     }) as const

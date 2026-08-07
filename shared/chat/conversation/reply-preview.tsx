@@ -6,6 +6,7 @@ import {useConversationThreadMessage} from './thread-context'
 import {ZoomedImage} from './common'
 
 const ReplyPreview = () => {
+  const styles = useStyles()
   const rordinal = InputState.useConversationInput(s => s.replyTo)
   const message = useConversationThreadMessage(rordinal)
   let text = ''
@@ -64,8 +65,8 @@ const ReplyPreview = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       close: {alignSelf: 'flex-start', flexShrink: 0},
       container: Kb.Styles.platformStyles({
@@ -93,7 +94,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       title: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
       username: {alignSelf: 'center'},

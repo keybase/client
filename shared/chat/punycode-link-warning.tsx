@@ -9,6 +9,7 @@ type PunycodeLinkWarningProps = {
 }
 
 const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
+  const theme = Kb.Styles.useTheme()
   const {url, display, punycode} = props
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
@@ -20,7 +21,7 @@ const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
   return (
     <Kb.ConfirmModal
       icon="iconfont-open-browser"
-      iconColor={Kb.Styles.globalColors.red}
+      iconColor={theme.red}
       prompt={'Open URL?'}
       description={description}
       onCancel={onCancel}

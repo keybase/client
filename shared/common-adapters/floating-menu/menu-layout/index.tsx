@@ -33,6 +33,8 @@ const MenuLayout = (props: MenuLayoutProps) => {
 }
 
 const DesktopMenuLayout = (props: MenuLayoutProps) => {
+  const desktopStyles = useDesktopStyles()
+  const theme = Styles.useTheme()
   const {closeOnClick, header, items: _items, listStyle, onHidden, style} = props
 
   const renderDivider = (index: number) => (
@@ -82,7 +84,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
               <Meta
                 title="New"
                 size="Small"
-                backgroundColor={Styles.globalColors.blue}
+                backgroundColor={theme.blue}
                 style={desktopStyles.badge}
               />
             )}
@@ -91,7 +93,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
             {item.isSelected && (
               <Icon
                 type="iconfont-check"
-                color={Styles.globalColors.blue}
+                color={theme.blue}
                 fontSize={16}
                 sizeType="Default"
                 style={{paddingLeft: Styles.globalMargins.tiny}}
@@ -165,6 +167,8 @@ type MenuRowProps = {
 const itemContainerHeight = 40
 
 const MenuRow = (props: MenuRowProps) => {
+  const nativeStyles = useNativeStyles()
+  const theme = Styles.useTheme()
   const {
     backgroundColor,
     danger,
@@ -216,7 +220,7 @@ const MenuRow = (props: MenuRowProps) => {
               {isSelected && (
                 <Icon
                   type="iconfont-check"
-                  color={Styles.globalColors.blue}
+                  color={theme.blue}
                   fontSize={16}
                   sizeType="Default"
                 />
@@ -228,7 +232,7 @@ const MenuRow = (props: MenuRowProps) => {
                 ) : (
                   <>
                     <IconAuto
-                      color={danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
+                      color={danger ? theme.redDark : theme.black_60}
                       style={Styles.collapseStyles([{alignSelf: 'center'}, iconStyle])}
                       sizeType="Default"
                       type={icon}
@@ -244,7 +248,7 @@ const MenuRow = (props: MenuRowProps) => {
                 <Text
                   type="Body"
                   style={Styles.collapseStyles([
-                    styleRowText({danger, disabled, isHeader, textColor}),
+                    styleRowText({danger, disabled, isHeader, textColor}, theme),
                     style,
                   ])}
                 >
@@ -255,7 +259,7 @@ const MenuRow = (props: MenuRowProps) => {
                   <Meta
                     title="New"
                     size="Small"
-                    backgroundColor={Styles.globalColors.blue}
+                    backgroundColor={theme.blue}
                     style={nativeStyles.badge}
                   />
                 )}
@@ -276,6 +280,8 @@ const MenuRow = (props: MenuRowProps) => {
 }
 
 const NativeMenuLayout = (props: MenuLayoutProps) => {
+  const nativeStyles = useNativeStyles()
+  const theme = Styles.useTheme()
   const {isModal} = props
   const menuItemsWithDividers = props.items.filter((x): x is MenuItem | 'Divider' => x !== undefined)
   const beginningDivider = props.items[0] === 'Divider'
@@ -329,7 +335,7 @@ const NativeMenuLayout = (props: MenuLayoutProps) => {
         direction="vertical"
         fullWidth={true}
         style={Styles.collapseStyles([
-          {backgroundColor: Styles.undynamicColor(Styles.globalColors.black_05OrBlack)},
+          {backgroundColor: Styles.undynamicColor(theme.black_05OrBlack)},
           nativeStyles.bottomSheetOuter,
         ])}
       >
@@ -387,23 +393,24 @@ const styleRowText = (props: {
   danger?: boolean
   disabled?: boolean
   textColor?: Styles.Color
-}) => {
-  const dangerColor = props.danger ? Styles.globalColors.redDark : Styles.globalColors.black
-  const color = props.textColor || props.isHeader ? Styles.globalColors.white : dangerColor
+}, theme: Styles.Theme) => {
+  const dangerColor = props.danger ? theme.redDark : theme.black
+  const color = props.textColor || props.isHeader ? theme.white : dangerColor
   return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
-const sharedIconBadgeStyle = {
-  ...Styles.paddingH(0),
-  ...Styles.size(Styles.globalMargins.tiny),
-  backgroundColor: Styles.globalColors.blue,
-  minWidth: 0,
-  position: 'relative',
-  right: Styles.globalMargins.xtiny,
-} as const
+const sharedIconBadgeStyle = (theme: Styles.Theme) =>
+  ({
+    ...Styles.paddingH(0),
+    ...Styles.size(Styles.globalMargins.tiny),
+    backgroundColor: theme.blue,
+    minWidth: 0,
+    position: 'relative',
+    right: Styles.globalMargins.xtiny,
+  }) as const
 
-const desktopStyles = Styles.styleSheetCreate(
-  () =>
+const useDesktopStyles = Styles.createStyleHook(
+  theme =>
     ({
       badge: {
         alignSelf: 'center',
@@ -416,7 +423,7 @@ const desktopStyles = Styles.styleSheetCreate(
         marginBottom: 8,
       },
       icon: {marginLeft: Styles.globalMargins.xtiny},
-      iconBadge: sharedIconBadgeStyle,
+      iconBadge: sharedIconBadgeStyle(theme),
       itemBodyText: {color: undefined},
       itemContainer: {
         ...Styles.padding(7, Styles.globalMargins.small),
@@ -424,7 +431,7 @@ const desktopStyles = Styles.styleSheetCreate(
       menuContainer: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.boxShadow,
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: theme.white,
           borderRadius: Styles.borderRadius,
           justifyContent: 'flex-start',
           overflowX: 'hidden',
@@ -444,15 +451,15 @@ const desktopStyles = Styles.styleSheetCreate(
     }) as const
 )
 
-const nativeStyles = Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Styles.createStyleHook(
+  theme =>
     ({
       badge: {
         alignSelf: 'center',
         marginLeft: Styles.globalMargins.tiny,
       },
       bottomSheetContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: theme.white,
         borderRadius: Styles.borderRadius,
       },
       // the sheet owns the bottom gap, so every sheet's content ends the same
@@ -466,7 +473,7 @@ const nativeStyles = Styles.styleSheetCreate(
         ...Styles.marginV(Styles.globalMargins.tiny),
       },
       firstIsUnWrapped: {paddingTop: 0},
-      iconBadge: sharedIconBadgeStyle,
+      iconBadge: sharedIconBadgeStyle(theme),
       iconContainer: {
         width: 20,
       },
@@ -481,7 +488,7 @@ const nativeStyles = Styles.styleSheetCreate(
         ...Styles.paddingH(Styles.globalMargins.small),
       },
       menuBox: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: theme.white,
         justifyContent: 'flex-end',
         paddingBottom: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.xsmall,
@@ -490,7 +497,7 @@ const nativeStyles = Styles.styleSheetCreate(
         justifyContent: 'flex-end',
       },
       progressIndicator: Styles.globalStyles.fillAbsolute,
-      safeArea: {backgroundColor: Styles.globalColors.white},
+      safeArea: {backgroundColor: theme.white},
       safeProvider: {
         flex: 0,
         justifyContent: 'flex-end',

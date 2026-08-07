@@ -5,6 +5,7 @@ import QRScanner from './scanner'
 import useQR from './hooks'
 
 const QRScan = () => {
+  const styles = useStyles()
   const {waiting, onSubmitTextCode} = useQR()
 
   if (!isMobile) {
@@ -31,14 +32,14 @@ const QRScan = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   camera: {
     flexGrow: 1,
   },
   container: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'stretch',
-      backgroundColor: Kb.Styles.globalColors.black,
+      backgroundColor: theme.black,
     },
     isElectron: {height: 200},
     isMobile: {height: 160},

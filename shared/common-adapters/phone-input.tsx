@@ -142,14 +142,17 @@ const menuItems = (
     }))
 }
 
-const MenuItem = (props: {emoji: string; text: string}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
-    <Kb.Text type="Body" center={true}>
-      <Kb.NativeEmoji size={18} emojiName={props.emoji} />
-    </Kb.Text>
-    <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
-  </Kb.Box2>
-)
+const MenuItem = (props: {emoji: string; text: string}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
+      <Kb.Text type="Body" center={true}>
+        <Kb.NativeEmoji size={18} emojiName={props.emoji} />
+      </Kb.Text>
+      <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 type CountrySelectorProps = {
   attachTo?: React.RefObject<MeasureRef | null>
@@ -165,6 +168,7 @@ type CountrySelectorRef = {
 }
 
 function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelectorRef>}) {
+  const styles = useStyles()
     const {onHidden, onSelect, selected: _selected, visible, attachTo, ref} = p
     const [filter, setFilter] = React.useState('')
     const [selectedState, setSelectedState] = React.useState<{
@@ -260,6 +264,7 @@ type Props = {
 }
 
 const PhoneInput = (p: Props) => {
+  const styles = useStyles()
   const {onChangeNumber, onClear, small, autoFocus, onEnterKeyDown} = p
   const [country, setCountry] = React.useState(p.defaultCountry)
   const [focused, setFocused] = React.useState(false)
@@ -643,10 +648,10 @@ const PhoneInput = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
-      bareInput: {backgroundColor: Styles.globalColors.transparent, flex: 1, padding: 0, width: 'auto'},
+      bareInput: {backgroundColor: theme.transparent, flex: 1, padding: 0, width: 'auto'},
       clearIcon: {
         marginRight: Styles.globalMargins.tiny,
       },
@@ -655,8 +660,8 @@ const styles = Styles.styleSheetCreate(
         display: 'flex',
       },
       containerSmall: {
-        ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
-        backgroundColor: Styles.globalColors.white,
+        ...Styles.border(theme.black_10, 1, Styles.borderRadius),
+        backgroundColor: theme.white,
         height: 38,
       },
       countryLayout: {
@@ -679,7 +684,7 @@ const styles = Styles.styleSheetCreate(
       },
       countrySelectorContainer: {
         ...Styles.padding(0, Styles.globalMargins.xsmall),
-        borderRightColor: Styles.globalColors.black_10,
+        borderRightColor: theme.black_10,
         borderRightWidth: 1,
         borderStyle: 'solid',
         height: 36,
@@ -688,12 +693,12 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
       },
       fakeInputBig: {
-        ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
-        backgroundColor: Styles.globalColors.white,
+        ...Styles.border(theme.black_10, 1, Styles.borderRadius),
+        backgroundColor: theme.white,
         height: 48,
       },
       fullWidthDesktopOnly: Styles.platformStyles({isElectron: {width: '100%'}}),
-      highlight: {borderColor: Styles.globalColors.blue, borderWidth: 1},
+      highlight: {borderColor: theme.blue, borderWidth: 1},
       menuItem: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
       },
@@ -702,12 +707,12 @@ const styles = Styles.styleSheetCreate(
       },
       plainInputBig: {
         ...Styles.padding(0, Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: theme.transparent,
         height: 48,
       },
       plainInputSmall: {
         ...Styles.padding(0, Styles.globalMargins.xsmall),
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: theme.transparent,
         height: 36,
       },
       prefixContainer: {

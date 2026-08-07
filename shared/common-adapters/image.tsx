@@ -20,6 +20,7 @@ type Props = {
 const onDragStart = (e: React.BaseSyntheticEvent) => e.preventDefault()
 
 const DesktopImage = (p: Props) => {
+  const styles = useStyles()
   const {showLoadingStateUntilLoaded, src, onLoad, onError} = p
   const [loading, setLoading] = React.useState(true)
   const _onLoad = (e: React.BaseSyntheticEvent) => {
@@ -150,7 +151,7 @@ const NativeImage = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   absolute: {position: 'absolute'},
 }))
 

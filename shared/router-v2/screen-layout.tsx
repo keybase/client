@@ -21,6 +21,7 @@ type LayoutProps = {
 // edge-to-edge, so content draws under the system nav bar unless we apply the bottom
 // inset ourselves.
 const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
+  const styles = useStyles()
   if (isAndroid) {
     return (
       <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
@@ -50,6 +51,7 @@ const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
 // KeyboardAvoidingView2 lifts content above it, so the bottom inset must collapse to 0 or it stacks as
 // a dead gap between the content and the keyboard.
 const LoggedOutScreenWrapper = ({children}: {children: React.ReactNode}) => {
+  const styles = useStyles()
   const insets = useSafeAreaInsets()
   const headerHeight = React.useContext(HeaderHeightContext) ?? 0
   const keyboardVisible = useKeyboardState(s => s.isVisible)
@@ -105,6 +107,7 @@ const nativeMakeLayout = (
 ) => {
   const modalOffset = isIOS ? 40 : 0
   return function Layout({children, route, navigation}: LayoutProps) {
+    const styles = useStyles()
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
 
     const wrappedContent = <React.Suspense>{children}</React.Suspense>
@@ -141,14 +144,14 @@ const nativeMakeLayout = (
 
 export const makeLayout = isMobile ? nativeMakeLayout : desktopMakeLayout
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   keyboard: {
     flexGrow: 1,
     maxHeight: '100%',
     position: 'relative',
   },
   loggedOutBackground: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
   },
   tabScreen: {
     flex: 1,

@@ -60,6 +60,7 @@ const UserBubbleCollection = function UserBubbleCollection(p: {
 }
 
 const TeamBox = (props: Props) => {
+  const styles = useStyles()
   // Scroll to the end when a new user is added so they are visible.
   const scrollViewRef = React.useRef<Kb.ScrollViewRef>(null)
   const last = !!props.teamSoFar.length && props.teamSoFar.at(-1)?.userId
@@ -110,8 +111,8 @@ const TeamBox = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bubbles: Kb.Styles.platformStyles({
         isElectron: {
@@ -121,14 +122,14 @@ const styles = Kb.Styles.styleSheetCreate(
       goButtonContainer: {marginLeft: 'auto' as const},
       container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
         },
         isElectron: {
           paddingLeft: Kb.Styles.globalMargins.xtiny,
           paddingRight: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          ...Kb.Styles.bottomDivider(),
+          ...Kb.Styles.bottomDivider(theme),
           minHeight: 90,
         },
       }),

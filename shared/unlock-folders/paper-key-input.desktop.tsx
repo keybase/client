@@ -9,6 +9,7 @@ export type Props = {
 }
 
 const PaperKeyInput = (props: Props) => {
+  const styles = useStyles()
   const [paperkey, setPaperkey] = React.useState('')
   const {onContinue} = props
 
@@ -35,7 +36,7 @@ const PaperKeyInput = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   back: {
     left: 30,
     position: 'absolute',

@@ -15,6 +15,8 @@ type OwnProps = {
 }
 
 function ConversationFilterInput(ownProps: OwnProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {isSearching, onCancelSearch, onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
   const {onQueryChanged: onSetFilter, query: filter} = ownProps
 
@@ -85,7 +87,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
         <Kb.Icon
           type="iconfont-search"
           sizeType={isMobile ? 'Small' : 'Default'}
-          color={Kb.Styles.globalColors.black_50}
+          color={theme.black_50}
           style={styles.searchPlaceholderIcon}
         />
         <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
@@ -113,12 +115,12 @@ function ConversationFilterInput(ownProps: OwnProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       containerNotFiltering: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           height: undefined,
         },
         isElectron: {
@@ -127,7 +129,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
           width: undefined,
         },
-        isPhone: {backgroundColor: Kb.Styles.globalColors.white},
+        isPhone: {backgroundColor: theme.white},
       }),
       searchBox: Kb.Styles.platformStyles({
         common: {flex: 1},
@@ -136,7 +138,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
       searchPlaceholder: {
-        backgroundColor: Kb.Styles.globalColors.black_10,
+        backgroundColor: theme.black_10,
         borderRadius: Kb.Styles.borderRadius,
         flexShrink: 1,
         height: 32,
@@ -154,8 +156,8 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isTablet: {...Kb.Styles.paddingH(0)},
       }),
-      searchPlaceholderText: {color: Kb.Styles.globalColors.black_50},
-      whiteBg: {backgroundColor: Kb.Styles.globalColors.white},
+      searchPlaceholderText: {color: theme.black_50},
+      whiteBg: {backgroundColor: theme.white},
     }) as const
 )
 

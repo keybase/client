@@ -20,6 +20,7 @@ type PopupProps = {
 const items: MenuItems = []
 
 const UnknownMentionPopup = (props: PopupProps) => {
+  const styles = useStyles()
   const {attachTo, onHidden, onResolve, text, visible} = props
   const header = (
     <Kb.Box2 direction="vertical" gap="tiny" padding="tiny" style={styles.popupContainer} gapStart={true}>
@@ -52,6 +53,7 @@ type Props = {
 }
 
 const UnknownMention = (props: Props) => {
+  const styles = useStyles()
   const {onResolve: _onResolve, allowFontScaling, channel, name, style} = props
   const [showPopup, setShowPopup] = React.useState(false)
   const mentionRef = React.useRef<MeasureRef | null>(null)
@@ -110,8 +112,8 @@ const UnknownMention = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -128,7 +130,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       text: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.greyLight,
+          backgroundColor: theme.greyLight,
           borderRadius: 2,
           letterSpacing: 0.3,
           ...Kb.Styles.paddingH(2),

@@ -105,6 +105,8 @@ type Props = {
 }
 
 const ProxySettingsComponent = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {
     loadProxyData,
     proxyData,
@@ -193,7 +195,7 @@ const ProxySettingsComponent = (props: Props) => {
         gap="small"
         padding="medium"
       >
-        <Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Kb.Styles.globalColors.red} />
+        <Kb.Icon type="iconfont-exclamation" sizeType="Big" color={theme.red} />
         <Kb.Text center={true} type="Header" style={styles.warningHeader}>
           Are you sure you want to allow TLS interception?
         </Kb.Text>
@@ -265,6 +267,7 @@ const ProxySettingsComponent = (props: Props) => {
 }
 
 const ProxySettingsPopup = (props: Props) => {
+  const styles = useStyles()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.popupBox}>
       {!isMobile && <Kb.BackButton onClick={props.onBack} />}
@@ -275,7 +278,7 @@ const ProxySettingsPopup = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   popupBox: {
     minHeight: '40%',
   },

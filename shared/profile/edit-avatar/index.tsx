@@ -66,6 +66,9 @@ const getCropCoordinates = (c: Crop) => {
 // Desktop implementation
 type Loading = undefined | 'loading' | 'loaded'
 const DesktopEditAvatar = (_p: Props) => {
+  const styles = useStyles()
+  const hoverStyles = useHoverStyles()
+  const theme = Kb.Styles.useTheme()
   const p = useEditAvatar(_p)
   const {wizard, type, error, createdTeam, teamname} = p
   const [serror, setSerror] = React.useState(false)
@@ -177,7 +180,7 @@ const DesktopEditAvatar = (_p: Props) => {
           {!loading && (
             <Kb.Icon
               className="icon"
-              color={Kb.Styles.globalColors.greyDark}
+              color={theme.greyDark}
               fontSize={48}
               style={styles.icon}
               type="iconfont-camera"
@@ -229,6 +232,8 @@ const chooseAvatar = async (
 }
 
 const NativeAvatarUploadWrapper = (p: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {newTeamWizard} = p
   const props = useEditAvatar(p)
   const {image, error: _error, onSave: _onSave, teamID, type, wizard, waitingKey} = props
@@ -306,7 +311,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
           style={Kb.Styles.collapseStyles([styles.placeholder, getImageStyle()])}
           onClick={onChooseNewAvatar}
         >
-          <Kb.Icon type="iconfont-camera" sizeType="Huge" color={Kb.Styles.globalColors.black_10} />
+          <Kb.Icon type="iconfont-camera" sizeType="Huge" color={theme.black_10} />
         </Kb.ClickableBox>
       )
     }
@@ -452,7 +457,7 @@ const AvatarUploadWrapper = (p: Props) => {
   return <NativeAvatarUploadWrapper {...p} />
 }
 
-const hoverStyles = Kb.Styles.styleSheetCreate(
+const useHoverStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       hoverContainer: Kb.Styles.platformStyles({
@@ -473,7 +478,7 @@ const hoverStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   button: {
     marginTop: Kb.Styles.globalMargins.tiny,
   },
@@ -492,7 +497,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   createdBanner: {
-    backgroundColor: Kb.Styles.globalColors.green,
+    backgroundColor: theme.green,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
     marginBottom: Kb.Styles.globalMargins.large,
@@ -514,8 +519,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   paddingTopForCreatedTeam: {paddingTop: Kb.Styles.globalMargins.xlarge},
   placeholder: {
     alignItems: 'center',
-    backgroundColor: Kb.Styles.globalColors.black_05,
-    borderColor: Kb.Styles.globalColors.black_50,
+    backgroundColor: theme.black_05,
+    borderColor: theme.black_50,
     borderStyle: 'dotted',
     borderWidth: 4,
     display: 'flex',
@@ -523,7 +528,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   wizardContainer: {
     ...Kb.Styles.padding(64, Kb.Styles.globalMargins.large),
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
   },
 }))
 

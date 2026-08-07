@@ -12,6 +12,7 @@ type Props = {
 }
 
 const Breadcrumb = (props: Props) => {
+  const styles = useStyles()
   const apath = props.path || FS.defaultPath
   // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
   const ancestors =
@@ -98,27 +99,36 @@ const Breadcrumb = (props: Props) => {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
+  {
+  const theme = Kb.Styles.useTheme()
+  return FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={theme.green} /> : null
+}
 
-const MainTitle = (props: Props) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-    <Kbfs.PathStatusIcon path={props.path} />
-    <Kbfs.Filename path={props.path} selectable={true} style={styles.mainTitleText} type="Header" />
-    <MaybePublicTag path={props.path} />
-  </Kb.Box2>
-)
-
-const FsNavHeaderTitleInner = (props: Props) =>
-  props.path === FS.defaultPath ? (
-    <Kb.Text type="Header" style={styles.rootTitle}>
-      Files
-    </Kb.Text>
-  ) : (
-    <Kb.Box2 direction="vertical" style={styles.container}>
-      <Breadcrumb {...props} />
-      <MainTitle {...props} />
+const MainTitle = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
+      <Kbfs.PathStatusIcon path={props.path} />
+      <Kbfs.Filename path={props.path} selectable={true} style={styles.mainTitleText} type="Header" />
+      <MaybePublicTag path={props.path} />
     </Kb.Box2>
   )
+}
+
+const FsNavHeaderTitleInner = (props: Props) =>
+  {
+  const styles = useStyles()
+  return props.path === FS.defaultPath ? (
+      <Kb.Text type="Header" style={styles.rootTitle}>
+        Files
+      </Kb.Text>
+    ) : (
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        <Breadcrumb {...props} />
+        <MainTitle {...props} />
+      </Kb.Box2>
+    )
+}
 
 const FsNavHeaderTitle = (props: Props) => (
   <Kbfs.FsErrorProvider>
@@ -130,7 +140,7 @@ const FsNavHeaderTitle = (props: Props) => (
 
 export default FsNavHeaderTitle
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: Kb.Styles.platformStyles({

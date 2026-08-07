@@ -7,6 +7,7 @@ const privacyPolicy = 'https://keybase.io/_/webview/privacypolicy'
 const terms = 'https://keybase.io/_/webview/terms'
 
 const About = () => {
+  const styles = useStyles()
   const navigateAppend = C.Router2.navigateAppend
   const onShowPrivacyPolicy = () => {
     if (isMobile) {
@@ -44,7 +45,7 @@ const About = () => {
     </Kb.Box2>
   )
 }
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   terms: {
     marginBottom: Kb.Styles.globalMargins.tiny,
   },

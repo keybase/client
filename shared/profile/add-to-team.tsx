@@ -57,6 +57,7 @@ type OwnProps = {username: string}
 const noTeamList = new Array<T.Teams.TeamProfileAddList>()
 
 const AddToTeam = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {username: them} = ownProps
   const {teams} = useTeamsList()
   const teamNameToID = useTeamsListNameToIDMap()
@@ -316,6 +317,7 @@ type RowProps = {
 }
 
 const TeamRow = (props: RowProps) => {
+  const styles = useStyles()
   const {canAddThem, onCheck, checked} = props
   return (
     <Kb.ClickableBox
@@ -349,8 +351,8 @@ const TeamRow = (props: RowProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       addButton: Kb.Styles.platformStyles({
         isMobile: {width: '100%'},
@@ -373,7 +375,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       addUserToTeamsResultsBox: {
-        backgroundColor: Kb.Styles.globalColors.red,
+        backgroundColor: theme.red,
         marginBottom: Kb.Styles.globalMargins.small,
       },
       addUserToTeamsResultsText: {
@@ -388,7 +390,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           flexGrow: 1,
           flexShrink: 1,
         },
@@ -403,8 +405,8 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },
-      teamNameDisabled: {color: Kb.Styles.globalColors.black_50},
-      teamNameEnabled: {color: Kb.Styles.globalColors.black},
+      teamNameDisabled: {color: theme.black_50},
+      teamNameEnabled: {color: theme.black},
       teamRowAvatar: {marginRight: Kb.Styles.globalMargins.tiny},
       teamRow: Kb.Styles.platformStyles({
         common: {

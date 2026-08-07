@@ -9,6 +9,7 @@ import {usePasswordCheck} from './use-password-check'
 import {useRandomPWState} from './use-random-pw'
 
 const LogoutContainer = () => {
+  const styles = useStyles()
   const {checkPassword, checkPasswordIsCorrect, reset} = usePasswordCheck()
   const {randomPW: hasRandomPW} = useRandomPWState()
   const {error, onSave, waitingForResponse} = useSubmitNewPassword(true)
@@ -152,8 +153,8 @@ const LogoutContainer = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bodyText: {
         paddingBottom: Kb.Styles.globalMargins.tiny,
@@ -163,7 +164,7 @@ const styles = Kb.Styles.styleSheetCreate(
       checkbox: {paddingTop: Kb.Styles.globalMargins.tiny},
       container: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       headerText: {
         marginBottom: Kb.Styles.globalMargins.small,

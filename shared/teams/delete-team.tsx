@@ -13,6 +13,7 @@ import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 type OwnProps = {teamID: T.Teams.TeamID}
 
 const DeleteTeamContainer = (op: OwnProps) => {
+  const styles = useStyles()
   const teamID = op.teamID
   const {loading, teamDetails, teamMeta} = useLoadedTeam(teamID)
   const {teams} = useTeamsList()
@@ -101,12 +102,15 @@ const DeleteTeamContainer = (op: OwnProps) => {
   )
 }
 
-const Header = (props: {teamname: string}) => (
-  <>
-    <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.ImageIcon type="icon-team-delete-28" style={styles.deleteIcon} />
-  </>
-)
+const Header = (props: {teamname: string}) => {
+  const styles = useStyles()
+  return (
+    <>
+      <Kb.Avatar teamname={props.teamname} size={64} />
+      <Kb.ImageIcon type="icon-team-delete-28" style={styles.deleteIcon} />
+    </>
+  )
+}
 
 type CheckboxesProps = {
   checkChats: boolean
@@ -140,7 +144,7 @@ const Checkboxes = (props: CheckboxesProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   deleteIcon: {marginRight: -60, marginTop: -20, zIndex: 1},
   subteamText: {marginTop: Kb.Styles.globalMargins.medium},
 }))

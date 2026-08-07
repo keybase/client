@@ -50,6 +50,7 @@ type RoleRowProps = {
 }
 
 const RoleRow = (p: RoleRowProps) => {
+  const styles = useStyles()
   const row = (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowChild}>
       <Kb.Box2
@@ -106,8 +107,10 @@ type RoleRowWrapperProps = {
 }
 
 const RoleRowWrapper = (props: RoleRowWrapperProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {role, selected, onSelect, disabledReason, plural} = props
-  const roleInfo = rolesMetaInfo(role)
+  const roleInfo = rolesMetaInfo(role, styles)
 
   const style = {
     ...(isMobile ? {} : {height: selected ? 160 : 42}),
@@ -125,8 +128,8 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
         body={
           selected
             ? [
-                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
-                roleAbilities(roleInfo.cants, false, true),
+                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0, theme, styles),
+                roleAbilities(roleInfo.cants, false, true, theme, styles),
               ]
             : null
         }
@@ -144,7 +147,7 @@ type RolesMetaInfo = {
   extra?: Array<string>
   icon: React.ReactNode
 }
-const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
+const rolesMetaInfo = (infoForRole: Role<true>, styles: ReturnType<typeof useStyles>): RolesMetaInfo => {
   switch (infoForRole) {
     case 'admin':
       return {
@@ -207,7 +210,9 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
 const roleAbilities = (
   abilities: Array<string>,
   canDo: boolean,
-  addFinalPadding: boolean
+  addFinalPadding: boolean,
+  theme: Kb.Styles.Theme,
+  styles: ReturnType<typeof useStyles>
 ): Array<React.ReactNode> => {
   return abilities.map((ability, i) => (
     <Kb.Box2
@@ -226,7 +231,7 @@ const roleAbilities = (
         type={canDo ? 'iconfont-check' : 'iconfont-block'}
         sizeType="Tiny"
         style={styles.abilityCheck}
-        color={canDo ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.black_50}
+        color={canDo ? theme.green : theme.black_50}
       />
       <Kb.Text type="BodySmall" style={canDo ? styles.canText : undefined}>
         {ability}
@@ -235,13 +240,17 @@ const roleAbilities = (
   ))
 }
 
-const Header = () => (
-  <Kb.Box2 direction="horizontal" style={styles.header}>
-    <Kb.Text type="Header">Pick a role</Kb.Text>
-  </Kb.Box2>
-)
+const Header = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.header}>
+      <Kb.Text type="Header">Pick a role</Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
+  const styles = useStyles()
   const {presetRole, onConfirm} = props
   const filteredRole = filterRole(presetRole)
   const presetSelectedRole = filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
@@ -292,20 +301,16 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       abilityCheck: Kb.Styles.platformStyles({
         isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny, paddingTop: 6},
         isMobile: {paddingRight: Kb.Styles.globalMargins.tiny, paddingTop: 4},
       }),
-      canText: {color: Kb.Styles.globalColors.black},
-      checkbox: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-        flexGrow: 0,
-      },
+      canText: {color: theme.black},
       container: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.white},
+        common: {backgroundColor: theme.white},
         isElectron: {
           minHeight: 350,
           width: 310,
@@ -332,13 +337,13 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       opaqueContainer: Kb.Styles.platformStyles({
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           paddingTop: 10,
         },
       }),
       popupHeader: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.bottomDivider(),
+          ...Kb.Styles.bottomDivider(theme),
           justifyContent: 'space-between',
         },
         isAndroid: {height: 56},
@@ -351,7 +356,7 @@ const styles = Kb.Styles.styleSheetCreate(
       radioButton: Kb.Styles.platformStyles({isMobile: {paddingRight: Kb.Styles.globalMargins.tiny}}),
       roleIcon: {paddingRight: Kb.Styles.globalMargins.xtiny},
       row: {
-        backgroundColor: Kb.Styles.globalColors.blueGreyLight,
+        backgroundColor: theme.blueGreyLight,
       },
       rowBody: Kb.Styles.platformStyles({
         // To push the body out of the zone visible when deselected
@@ -388,6 +393,7 @@ export type FloatingProps<T extends boolean> = {
 export function FloatingRolePicker<IncludeSetIndividually extends boolean = false>(
   props: FloatingProps<IncludeSetIndividually>
 ) {
+  const styles = useStyles()
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const {position, children, open, onCancel, ...rest} = props
   const picker = <RolePicker<IncludeSetIndividually> {...rest} onCancel={isMobile ? undefined : onCancel} />
@@ -428,13 +434,19 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   )
 }
 
+// Theme-independent, so this can live outside the style hook.
+const sendNotificationFooterCheckboxStyle = {
+  ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+  flexGrow: 0,
+}
+
 // Helper since it's common for some users to want this
 export const sendNotificationFooter = (
   label: string,
   checked: boolean,
   onCheck: (nextVal: boolean) => void
 ) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.checkbox}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={sendNotificationFooterCheckboxStyle}>
     <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>
 )

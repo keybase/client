@@ -11,6 +11,7 @@ type Props = {
 }
 
 const FilteredTopLine = (props: Props) => {
+  const styles = useStyles()
   const _getSearchHits = () => {
     if (!props.numSearchHits) {
       return ''
@@ -42,10 +43,10 @@ const FilteredTopLine = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   boldOverride: Kb.Styles.globalStyles.fontBold,
   selectedText: {
-    color: Kb.Styles.globalColors.white,
+    color: theme.white,
   },
   usernames: {
     paddingRight: Kb.Styles.globalMargins.tiny,

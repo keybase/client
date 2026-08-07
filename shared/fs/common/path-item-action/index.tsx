@@ -42,14 +42,15 @@ type ICProps = {
   actionIconWhite?: boolean | undefined
 }
 function IconClickable(props: ICProps) {
+  const theme = Kb.Styles.useTheme()
   const {measureRef, actionIconWhite, sizeType, onClick} = props
   return (
     <Kb.WithTooltip tooltip="More actions">
       <Kb.Box2 direction="vertical" ref={measureRef}>
         <Kb.Icon
           type="iconfont-ellipsis"
-          color={actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50}
-          hoverColor={actionIconWhite ? undefined : Kb.Styles.globalColors.black}
+          color={actionIconWhite ? theme.whiteOrBlueDark : theme.black_50}
+          hoverColor={actionIconWhite ? undefined : theme.black}
           padding="tiny"
           sizeType={sizeType}
           onClick={onClick}
@@ -60,6 +61,7 @@ function IconClickable(props: ICProps) {
 }
 
 const PathItemAction = React.forwardRef<PathItemActionHandle, Props>((props, ref) => {
+  const styles = useStyles()
   const {initView, path, mode, hideTrigger} = props
   const [previousView, setPreviousView] = React.useState(initView)
   const [view, setViewState] = React.useState(initView)
@@ -142,7 +144,7 @@ const PathItemAction = React.forwardRef<PathItemActionHandle, Props>((props, ref
   )
 })
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       floatingContainer: Kb.Styles.platformStyles({

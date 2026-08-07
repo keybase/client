@@ -16,6 +16,7 @@ function LeftTabNavigator({
 }: Parameters<typeof useNavigationBuilder>[1] & {
   backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
 }) {
+  const styles = useStyles()
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -64,8 +65,8 @@ function LeftTabNavigator({
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Kb.Styles.globalColors.white},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  box: {backgroundColor: theme.white},
   nav: {width: Kb.Styles.isTablet ? 200 : 180},
 }))
 

@@ -82,12 +82,15 @@ const recoverBackItems = (onPress: () => void) => ({
     canGoBack ? [Kb.nativeBackHeaderItem(onPress)] : [],
 })
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+// No colors here, so these don't need the theme -- which matters because
+// headerRightActions is called by react-navigation as a plain function, not rendered as a
+// component, so it can't reach a hook.
+const styles = {
   createAccount: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.small},
   }),
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
-}))
+} as const
 
 const headerRightActions = () => (
   <Kb.Box2 direction="horizontal" style={styles.questionBox}>

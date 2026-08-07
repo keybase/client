@@ -13,6 +13,7 @@ import {makeMessageWrapper} from '../wrapper/wrapper'
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
 function SystemAddedToTeamContainer(p: OwnProps) {
+  const theme = Kb.Styles.useTheme()
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
   const conversationIDKey = useConversationThreadID()
@@ -75,7 +76,7 @@ function SystemAddedToTeamContainer(p: OwnProps) {
           {teamname && (
             <Kb.Text
               onClick={onViewTeam}
-              style={{color: Kb.Styles.globalColors.black_50}}
+              style={{color: theme.black_50}}
               type="BodySmallSemiboldSecondaryLink"
             >
               {teamname}

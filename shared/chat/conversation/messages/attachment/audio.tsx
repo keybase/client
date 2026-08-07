@@ -6,6 +6,7 @@ import AudioPlayer from '@/chat/audio/audio-player'
 import {Title, TransferIcon, ShowToastAfterSaving, messageAttachmentHasProgress} from './shared'
 
 const AudioAttachment = ({message, ordinal}: {message: T.Chat.MessageAttachment; ordinal: T.Chat.Ordinal}) => {
+  const styles = useStyles()
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message.transferState)
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
@@ -52,10 +53,10 @@ const AudioAttachment = ({message, ordinal}: {message: T.Chat.MessageAttachment;
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  error: {color: Kb.Styles.globalColors.redDark},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  error: {color: theme.redDark},
   progressLabelStyle: {
-    color: Kb.Styles.globalColors.black_50,
+    color: theme.black_50,
     marginRight: Kb.Styles.globalMargins.tiny,
   },
   transferIcon: {left: -32, position: 'absolute' as const},

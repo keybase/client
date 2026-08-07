@@ -34,6 +34,7 @@ type Props = {
 }
 
 const SharedTeams = ({sharedTeams, username}: Props) => {
+  const styles = useStyles()
   const you = useCurrentUserState(s => s.username)
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyTrackerSharedTeams(username))
 
@@ -62,6 +63,6 @@ const SharedTeams = ({sharedTeams, username}: Props) => {
 
 export default SharedTeams
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   loadingRow: Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
 }))

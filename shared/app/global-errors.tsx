@@ -108,6 +108,8 @@ const useData = () => {
 }
 
 const GlobalError = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const d = useData()
   const {daemonError, error, onDismiss, onFeedback} = d
   const {cachedDetails, cachedSummary, size, onExpandClick} = d
@@ -166,7 +168,7 @@ const GlobalError = () => {
               {size !== 'Big' && (
                 <Kb.Icon
                   type="iconfont-caret-right"
-                  color={Kb.Styles.globalColors.white_75}
+                  color={theme.white_75}
                   sizeType="Tiny"
                 />
               )}
@@ -176,7 +178,7 @@ const GlobalError = () => {
             <Kb.Icon
               type="iconfont-close"
               onClick={onDismiss}
-              color={Kb.Styles.globalColors.white_75}
+              color={theme.white_75}
               fontSize={21}
             />
           </Kb.Box2>
@@ -225,8 +227,8 @@ const GlobalError = () => {
         />
         {summary && (
           <Kb.Icon
-            color={Kb.Styles.globalColors.white_75}
-            hoverColor={Kb.Styles.globalColors.white}
+            color={theme.white_75}
+            hoverColor={theme.white}
             onClick={onDismiss}
             type="iconfont-close"
           />
@@ -241,7 +243,7 @@ const GlobalError = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => {
+const useStyles = Kb.Styles.createStyleHook(theme => {
   const containerBase = {
     left: 0,
     overflow: 'hidden' as const,
@@ -264,31 +266,31 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       isElectron: {...containerBase, maxHeight: maxHeightForSize('Small')},
     }),
     details: {
-      backgroundColor: Kb.Styles.globalColors.black,
-      color: Kb.Styles.globalColors.white_75,
+      backgroundColor: theme.black,
+      color: theme.white_75,
       ...Kb.Styles.padding(8, Kb.Styles.globalMargins.xlarge),
     },
     innerContainer: {
-      backgroundColor: Kb.Styles.globalColors.black,
+      backgroundColor: theme.black,
       minHeight: maxHeightForSize('Small'),
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small),
     },
     message: {
-      color: Kb.Styles.globalColors.white,
+      color: theme.white,
     },
     mobileContainer: {
-      backgroundColor: Kb.Styles.globalColors.black,
+      backgroundColor: theme.black,
       position: 'absolute',
       top: 0,
     },
     mobileDetails: {
-      color: Kb.Styles.globalColors.white_75,
+      color: theme.white_75,
       fontSize: 14,
       lineHeight: 19,
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xtiny),
     },
     mobileErrorText: {
-      color: Kb.Styles.globalColors.white,
+      color: theme.white,
       flex: 1,
     },
     mobileErrorTextContainer: {
@@ -296,7 +298,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       position: 'relative',
     },
     mobileSafeAreaView: {
-      backgroundColor: Kb.Styles.globalColors.transparent,
+      backgroundColor: theme.transparent,
       flexGrow: 0,
     },
     mobileSummaryRow: {
@@ -305,14 +307,14 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
     },
     overlayFill: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
     },
     overlayRow: {
-      backgroundColor: Kb.Styles.globalColors.blue,
+      backgroundColor: theme.blue,
       padding: 8,
     },
     summary: {
-      color: Kb.Styles.globalColors.white,
+      color: theme.white,
       flex: 1,
     },
   } as const

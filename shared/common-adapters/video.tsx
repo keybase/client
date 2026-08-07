@@ -86,6 +86,7 @@ const DelayMount = ({children}: {children: React.ReactNode}): React.ReactNode =>
 }
 
 const DesktopVideo = (props: Props) => {
+  const styles = useStyles()
   const {onUrlError} = props
   const videoRef = React.useRef<VideoElementRef>(null)
   const mountedRef = React.useRef(false)
@@ -126,6 +127,7 @@ const DesktopVideo = (props: Props) => {
 }
 
 const NativeVideo = (props: Props) => {
+  const styles = useStyles()
   const {url: _url, allowFile, muted, onUrlError, autoPlay} = props
   const url = Styles.urlEscapeFilePath(_url)
   const uri = allowFile ? Styles.normalizePath(url) : url
@@ -169,7 +171,7 @@ const Video = (props: Props) => {
 
 export default Video
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.flexBoxCenter,

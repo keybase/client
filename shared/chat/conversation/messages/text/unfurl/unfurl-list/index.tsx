@@ -15,7 +15,7 @@ type UnfurlItemProps = {
   youAreAuthor: boolean
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: Kb.Styles.platformStyles({
@@ -43,6 +43,7 @@ function UnfurlListContainer({
   conversationIDKey: T.Chat.ConversationIDKey
   unfurls?: T.Chat.UnfurlMap
 }) {
+  const styles = useStyles()
   const ordinal = useOrdinal()
   const you = useCurrentUserState(s => s.username)
   const youAreAuthor = author === you

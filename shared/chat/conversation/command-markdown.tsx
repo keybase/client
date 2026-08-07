@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as InputState from './input-area/input-state'
 
 const CommandMarkdown = () => {
+  const styles = useStyles()
   const md = InputState.useConversationInput(s => s.commandMarkdown)
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
@@ -21,8 +22,8 @@ const CommandMarkdown = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bodyContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
@@ -30,13 +31,13 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
-          border: `1px solid ${Kb.Styles.globalColors.black_20}`,
+          border: `1px solid ${theme.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xtiny,
           ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           flexShrink: 1,
           // if this is not constrained it pushes the rest of the input down
           maxHeight: '70%',
@@ -46,8 +47,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {maxHeight: 300},
       }),
       title: {
-        backgroundColor: Kb.Styles.globalColors.black_05,
-        ...Kb.Styles.bottomDivider(),
+        backgroundColor: theme.black_05,
+        ...Kb.Styles.bottomDivider(theme),
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
     }) as const

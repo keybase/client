@@ -4,7 +4,7 @@ import {Box2} from './box'
 import IconAuto from './icon-auto'
 import Text from './text'
 import {getTextStyle} from './text.styles'
-import {useColorScheme, TextInput as _TextInputReal} from 'react-native'
+import {TextInput as _TextInputReal} from 'react-native'
 const NativeTextInput = _TextInputReal as unknown as React.ComponentType<{autoCapitalize?: string; autoCorrect?: boolean; autoFocus?: boolean; editable?: boolean; keyboardType?: string; maxLength?: number; multiline?: boolean; onBlur?: () => void; onChangeText?: (text: string) => void; onFocus?: () => void; onSubmitEditing?: () => void; placeholder?: string; placeholderTextColor?: string; ref?: React.Ref<InputLikeRef>; returnKeyType?: string; secureTextEntry?: boolean; selectTextOnFocus?: boolean; style?: Styles.StylesCrossPlatform; submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline'; textContentType?: string; underlineColorAndroid?: string; value?: string}>
 import type {Input3Props, Input3Ref} from './input3.shared'
 export type {Input3Props, Input3Ref} from './input3.shared'
@@ -29,6 +29,8 @@ const InputFrame = (p: {
   fontSize?: number
   props: Input3Props
 }) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const {children, focused, fontSize, props} = p
   const {containerStyle, decoration, disabled, error, hideBorder, icon, prefix} = props
   return (
@@ -47,7 +49,7 @@ const InputFrame = (p: {
     >
       {!!icon && (
         <Box2 direction="horizontal" style={styles.icon}>
-          <IconAuto color={Styles.globalColors.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
+          <IconAuto color={theme.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
         </Box2>
       )}
       {!!prefix && <Text type="BodySemibold" style={styles.prefix}>{prefix}</Text>}
@@ -64,6 +66,8 @@ type InputKeyEvent = {
 }
 
 const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
+  const theme = Styles.useTheme()
+  const styles = useStyles()
   const {
     autoCapitalize, autoCorrect, autoFocus, disabled,
     growAndScroll, inputStyle, maxLength, multiline, selectTextOnFocus,
@@ -75,7 +79,6 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
   const [focused, setFocused] = React.useState(false)
   const inputRef = React.useRef<InputLikeRef>(null)
   const isComposingRef = React.useRef(false)
-  const isDarkMode = useColorScheme() === 'dark'
 
   const onFocus = () => {
     if (disabled) return
@@ -117,7 +120,7 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     focus: () => inputRef.current?.focus?.(),
   }))
 
-  const textStyle = getTextStyle(textType, isDarkMode)
+  const textStyle = getTextStyle(textType, theme)
   const fontSize = textStyle.fontSize
   const lineHeight =
     textStyle.lineHeight === undefined
@@ -188,6 +191,8 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
 }
 
 const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const {
     autoCapitalize, autoCorrect, autoFocus, disabled,
     inputStyle, keyboardType, maxLength, multiline, onEnterKeyDown,
@@ -198,7 +203,6 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
 
   const [focused, setFocused] = React.useState(false)
   const inputRef = React.useRef<InputLikeRef>(null)
-  const isDarkMode = useColorScheme() === 'dark'
 
   const onFocus = () => {
     if (disabled) return
@@ -225,14 +229,14 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     focus: () => inputRef.current?.focus?.(),
   }))
 
-  let textStyle = getTextStyle(textType, isDarkMode)
+  let textStyle = getTextStyle(textType, theme)
   if (isIOS) {
     const {lineHeight: _, ...rest} = textStyle
     textStyle = rest
   }
 
   const fontSize = textStyle.fontSize
-  const lineHeight = getTextStyle(textType, true).lineHeight ?? 20
+  const lineHeight = getTextStyle(textType, theme).lineHeight ?? 20
   const rows = rowsMin || Math.min(2, rowsMax || 2)
 
   return (
@@ -250,7 +254,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
         onFocus={onFocus}
         onSubmitEditing={onEnterKeyDown}
         placeholder={placeholder}
-        placeholderTextColor={Styles.globalColors.black_35}
+        placeholderTextColor={theme.black_35}
         ref={inputRef as React.Ref<InputLikeRef>}
         returnKeyType={returnKeyType}
         secureTextEntry={secureTextEntry}
@@ -277,13 +281,13 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   return <NativeInput3 {...props} />
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
       container: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
-          ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
+          backgroundColor: theme.white,
+          ...Styles.border(theme.black_10, 1, Styles.borderRadius),
         },
         isElectron: {
           // multiline inputs use field-sizing:content, whose intrinsic width follows the
@@ -294,8 +298,8 @@ const styles = Styles.styleSheetCreate(
       }),
       disabled: {opacity: 0.4},
       displayFlex: Styles.platformStyles({isElectron: {display: 'flex'}}),
-      error: {borderColor: Styles.globalColors.red},
-      focused: {borderColor: Styles.globalColors.blue},
+      error: {borderColor: theme.red},
+      focused: {borderColor: theme.blue},
       growAndScroll: Styles.platformStyles({
         isElectron: {
           fieldSizing: 'fixed',

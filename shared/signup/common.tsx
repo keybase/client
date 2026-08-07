@@ -17,6 +17,7 @@ type InfoIconProps = {
 }
 
 export const InfoIcon = (props: InfoIconProps) => {
+  const styles = useStyles()
   const loggedIn = useConfigState(s => s.loggedIn)
   const navigateAppend = C.Router2.navigateAppend
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -71,49 +72,53 @@ type HeaderProps = {
 }
 
 // Only used on desktop
-const Header = (props: HeaderProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Kb.Styles.collapseStyles([styles.headerContainer, props.style])}
-  >
-    {(props.showInfoIcon || props.showInfoIconRow) && (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer} justifyContent="flex-end">
-        <InfoIcon invisible={props.negative || (props.showInfoIconRow && !props.showInfoIcon)} />
+const Header = (props: HeaderProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([styles.headerContainer, props.style])}
+    >
+      {(props.showInfoIcon || props.showInfoIconRow) && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer} justifyContent="flex-end">
+          <InfoIcon invisible={props.negative || (props.showInfoIconRow && !props.showInfoIcon)} />
+        </Kb.Box2>
+      )}
+      <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
+        {props.onBack && (
+          <Kb.ClickableBox onClick={props.onBack} direction="horizontal" alignItems="center" gap="xtiny" style={styles.backButton}>
+              <Kb.Icon
+                type="iconfont-arrow-left"
+                color={props.negative ? theme.white : theme.black_50}
+                sizeType="Small"
+                style={styles.fixIconAlignment}
+              />
+              <Kb.Text
+                type="Body"
+                style={props.negative ? undefined : styles.backText}
+                negative={props.negative}
+              >
+                Back
+              </Kb.Text>
+          </Kb.ClickableBox>
+        )}
+        {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
+        {props.onRightAction && !!props.rightActionLabel && (
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            small={true}
+            label={props.rightActionLabel}
+            onClick={props.onRightAction}
+            style={styles.rightActionButton}
+          />
+        )}
       </Kb.Box2>
-    )}
-    <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
-      {props.onBack && (
-        <Kb.ClickableBox onClick={props.onBack} direction="horizontal" alignItems="center" gap="xtiny" style={styles.backButton}>
-            <Kb.Icon
-              type="iconfont-arrow-left"
-              color={props.negative ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}
-              sizeType="Small"
-              style={styles.fixIconAlignment}
-            />
-            <Kb.Text
-              type="Body"
-              style={props.negative ? undefined : styles.backText}
-              negative={props.negative}
-            >
-              Back
-            </Kb.Text>
-        </Kb.ClickableBox>
-      )}
-      {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
-      {props.onRightAction && !!props.rightActionLabel && (
-        <Kb.Button
-          type="Default"
-          mode="Secondary"
-          small={true}
-          label={props.rightActionLabel}
-          onClick={props.onRightAction}
-          style={styles.rightActionButton}
-        />
-      )}
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 type ButtonMeta = {
   disabled?: boolean
@@ -148,6 +153,7 @@ type SignupScreenProps = {
 
 // Screens with header + body bg color (i.e. all but join-or-login)
 export const SignupScreen = (props: SignupScreenProps) => {
+  const styles = useStyles()
   // When logged out, React Navigation's header owns the title/back/action row, so this screen-level
   // header would be a second header. Only draw it for logged-in uses (e.g. the feedback modal).
   const loggedIn = useConfigState(s => s.loggedIn)
@@ -238,8 +244,8 @@ export const errorBanner = (error: string) =>
     </Kb.Banner>
   ) : null
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       backButton: {
         bottom: Kb.Styles.globalMargins.small,
@@ -247,7 +253,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
       },
       backText: {
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
       },
       banners: {
         left: 0,
@@ -256,7 +262,7 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 0,
       },
       blueBackground: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       body: {
         ...Kb.Styles.padding(
@@ -296,7 +302,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       headerContainer: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.white},
+        common: {backgroundColor: theme.white},
         isElectron: Kb.Styles.desktopStyles.windowDragging,
       }),
       infoIconContainer: {
@@ -317,8 +323,8 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0, Kb.Styles.globalMargins.small),
       },
       whiteBackground: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
       },
-      whiteHeaderContainer: Kb.Styles.bottomDivider(),
+      whiteHeaderContainer: Kb.Styles.bottomDivider(theme),
     }) as const
 )

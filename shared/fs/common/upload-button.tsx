@@ -38,6 +38,7 @@ type UploadButtonProps = {
 }
 
 const UploadButton = React.forwardRef<UploadButtonHandle, UploadButtonProps>((props, ref) => {
+  const theme = Kb.Styles.useTheme()
   const {pickAndUploadPhoto, pickAndUploadVideo, pickAndUploadFile, openAndUploadDirectory, openAndUploadFile: openAndUploadFileDesktop} = props
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -76,7 +77,7 @@ const UploadButton = React.forwardRef<UploadButtonHandle, UploadButtonProps>((pr
 
   if (!props.canUpload) {
     return props.showDisabled ? (
-      <Kb.Icon type="iconfont-upload" padding="tiny" color={Kb.Styles.globalColors.black_20} />
+      <Kb.Icon type="iconfont-upload" padding="tiny" color={theme.black_20} />
     ) : null
   }
   if (props.openAndUploadBoth) {

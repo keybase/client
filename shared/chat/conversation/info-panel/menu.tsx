@@ -90,6 +90,7 @@ const useData = (p: {
 }
 
 const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
+  const styles = useStyles()
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
   const conversationIDKey = p.conversationIDKey ?? Chat.noConversationIDKey
@@ -410,12 +411,14 @@ type AdhocHeaderProps = {
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {meta, participants} = useConversationMetadata(props.conversationIDKey)
   const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
       <Avatars
-        backgroundColor={Kb.Styles.globalColors.white}
+        backgroundColor={theme.white}
         isMuted={props.isMuted}
         participantOne={channelHumans[0]}
         participantTwo={channelHumans[1]}
@@ -424,7 +427,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
       <Kb.Box2 alignItems="flex-start" direction="vertical">
         <Kb.ConnectedUsernames
           colorFollowing={true}
-          commaColor={Kb.Styles.globalColors.black_50}
+          commaColor={theme.black_50}
           inline={false}
           skipSelf={channelHumans.length > 1}
           containerStyle={styles.maybeLongText}
@@ -446,6 +449,8 @@ type TeamHeaderProps = {
   onViewTeam: () => void
 }
 const TeamHeader = (props: TeamHeaderProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   // TODO: revert this back to memberCount if we can get one without bots cheaply.
   const {teamHumanCount} = InfoPanelCommon.useTeamHumans(props.teamID)
   return (
@@ -464,10 +469,10 @@ const TeamHeader = (props: TeamHeaderProps) => {
       {teamHumanCount ? (
         <Kb.Meta
           style={styles.meta}
-          backgroundColor={Kb.Styles.globalColors.blueGrey}
-          color={Kb.Styles.globalColors.black_50}
+          backgroundColor={theme.blueGrey}
+          color={theme.black_50}
           icon="iconfont-people-solid"
-          iconColor={Kb.Styles.globalColors.black_20}
+          iconColor={theme.black_20}
           title={teamHumanCount}
         />
       ) : (
@@ -477,12 +482,12 @@ const TeamHeader = (props: TeamHeaderProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       channelHeader: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueGreyLight,
+          backgroundColor: theme.blueGreyLight,
           justifyContent: 'space-between',
         },
         isElectron: {
@@ -498,7 +503,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       headerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.bottomDivider(),
+          ...Kb.Styles.bottomDivider(theme),
         },
         isElectron: {
           ...Kb.Styles.padding(
@@ -521,7 +526,7 @@ const styles = Kb.Styles.styleSheetCreate(
       meta: {alignSelf: 'center'},
       teamHeader: {
         borderStyle: 'solid',
-        borderTopColor: Kb.Styles.globalColors.black_10,
+        borderTopColor: theme.black_10,
         borderTopWidth: 1,
         marginTop: Kb.Styles.globalMargins.tiny,
       },

@@ -11,6 +11,7 @@ type OwnProps = {
 }
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
+  const styles = useStyles()
   const {accountID, name} = props
   const waiting = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
   const [showingToast, setShowToast] = React.useState(false)
@@ -109,14 +110,14 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  background: {backgroundColor: Kb.Styles.globalColors.yellow},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  background: {backgroundColor: theme.yellow},
   buttonBar: Kb.Styles.platformStyles({
     isElectron: {minHeight: 0},
   }),
   container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.yellow,
+      backgroundColor: theme.yellow,
       flexGrow: 1,
     },
     isElectron: {
@@ -136,14 +137,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   scrollContent: {...Kb.Styles.globalStyles.flexBoxColumn, ...Kb.Styles.globalStyles.flexGrow},
   scrollView: Kb.Styles.globalStyles.flexOne,
   toastText: Kb.Styles.platformStyles({
-    common: {color: Kb.Styles.globalColors.white},
+    common: {color: theme.white},
     isMobile: {
       ...Kb.Styles.paddingH(10),
       paddingTop: 5,
     },
   }),
   warningText: Kb.Styles.platformStyles({
-    common: {color: Kb.Styles.globalColors.brown_75},
+    common: {color: theme.brown_75},
     isMobile: {
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
     },

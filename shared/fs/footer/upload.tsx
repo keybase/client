@@ -30,6 +30,7 @@ type AnimationState = {
 const easing = NativeEasing.bezier(0.13, 0.72, 0.31, 0.95)
 
 const Upload = (props: UploadProps) => {
+  const styles = useStyles()
   const {smallMode, showing: _showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow} = props
 
   // Desktop animation state
@@ -225,8 +226,8 @@ const Upload = (props: UploadProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       backgroundBox: Kb.Styles.platformStyles({
         common: {
@@ -249,14 +250,14 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       stylesText: {
-        color: Kb.Styles.globalColors.whiteOrWhite,
+        color: theme.whiteOrWhite,
       },
       text: {
-        color: Kb.Styles.globalColors.whiteOrWhite,
+        color: theme.whiteOrWhite,
       },
       textOverflow: Kb.Styles.platformStyles({
         isElectron: {
-          color: Kb.Styles.globalColors.whiteOrWhite,
+          color: theme.whiteOrWhite,
           maxWidth: '100%',
           textAlign: 'center',
           ...Kb.Styles.textEllipsis,

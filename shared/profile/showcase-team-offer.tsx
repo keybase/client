@@ -57,6 +57,7 @@ type RowProps = {
 }
 
 const TeamRow = (p: RowProps) => {
+  const styles = useStyles()
   const {canShowcase, name, isOpen, membercount, onPromote, showcased, teamID, isExplicitMember} = p
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsTeam(teamID))
   return (
@@ -96,19 +97,22 @@ const TeamRow = (p: RowProps) => {
   )
 }
 
-const ShowcaseTeamOfferHeader = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerShowcaseTeamOffer}>
-    <Kb.InfoNote containerStyle={styles.noteShowcaseTeamOffer}>
-      <Kb.Text center={true} style={styles.noteText} type="BodySmall">
-        Featuring a team will encourage others to ask to join. The team&apos;s description and number of
-        members will be public.
-      </Kb.Text>
-    </Kb.InfoNote>
-  </Kb.Box2>
-)
+const ShowcaseTeamOfferHeader = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerShowcaseTeamOffer}>
+      <Kb.InfoNote containerStyle={styles.noteShowcaseTeamOffer}>
+        <Kb.Text center={true} style={styles.noteText} type="BodySmall">
+          Featuring a team will encourage others to ask to join. The team&apos;s description and number of
+          members will be public.
+        </Kb.Text>
+      </Kb.InfoNote>
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       headerShowcaseTeamOffer: Kb.Styles.platformStyles({
         isElectron: {
@@ -119,7 +123,7 @@ const styles = Kb.Styles.styleSheetCreate(
       membershipText: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'center',
-          color: Kb.Styles.globalColors.black_50,
+          color: theme.black_50,
           flexShrink: 1,
         },
         isElectron: {textAlign: 'right'},

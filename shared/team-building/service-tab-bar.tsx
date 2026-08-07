@@ -57,8 +57,9 @@ const TabletBottomBorderExtension = function TabletBottomBorderExtension(props: 
   offset?: SharedValue<number>
 }) {
   'use no memo'
+  const theme = Kb.Styles.useTheme()
   const {offset} = props
-  const borderColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)
+  const borderColor = Kb.Styles.undynamicColor(theme.black_10)
   const animatedStyles = useAnimatedStyle(() => {
     const translateY = offset
       ? interpolate(offset.value, [0, 100], [0, -8], {
@@ -84,9 +85,11 @@ const TabletBottomBorderExtension = function TabletBottomBorderExtension(props: 
 
 const ServiceIconNative = function ServiceIcon(props: IconProps) {
   'use no memo'
+  const nativeStyles = useNativeStyles()
+  const theme = Kb.Styles.useTheme()
   const {offset, isActive, service, label, onClick} = props
   const isDarkMode = useColorScheme() === 'dark'
-  const color = isActive ? serviceIdToAccentColor(service, isDarkMode) : Kb.Styles.globalColors.black
+  const color = isActive ? serviceIdToAccentColor(service, isDarkMode) : theme.black
 
   const animatedWidth = useAnimatedStyle(() => {
     const width = offset
@@ -150,7 +153,7 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
         direction="horizontal"
         fullWidth={true}
         style={Kb.Styles.collapseStyles([
-          {borderColor: Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)},
+          {borderColor: Kb.Styles.undynamicColor(theme.black_10)},
           isActive ? nativeStyles.activeTabBar : nativeStyles.inactiveTabBar,
           isActive && {backgroundColor: serviceIdToAccentColor(service, isDarkMode)},
           Kb.Styles.platformStyles({isMobile: animatedTransform}),
@@ -162,6 +165,7 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
 
 const ServiceTabBarNative = (props: Props) => {
   'use no memo'
+  const nativeStyles = useNativeStyles()
   const {onChangeService, offset, services, selectedService} = props
   const bounceX = useSharedValue(40)
 
@@ -236,6 +240,7 @@ const getDesktopServicesLayout = (
 }
 
 const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => {
+  const desktopStyles = useDesktopStyles()
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
@@ -253,6 +258,7 @@ const MoreNetworksButton = (props: {
   services: Array<T.TB.ServiceIdWithContact>
   onChangeService: (service: T.TB.ServiceIdWithContact) => void
 }) => {
+  const desktopStyles = useDesktopStyles()
   const {services, onChangeService} = props
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -305,11 +311,13 @@ const MoreNetworksButton = (props: {
 }
 
 const ServiceIconDesktop = (props: IconProps) => {
+  const desktopStyles = useDesktopStyles()
+  const theme = Kb.Styles.useTheme()
   const [hover, setHover] = React.useState(false)
   const isDarkMode = useColorScheme() === 'dark'
   const {onClick, service} = props
   const color =
-    props.isActive || hover ? serviceIdToAccentColor(service, isDarkMode) : Kb.Styles.globalColors.black
+    props.isActive || hover ? serviceIdToAccentColor(service, isDarkMode) : theme.black
   return (
     <Kb.ClickableBox
       onClick={() => onClick(service)}
@@ -366,6 +374,7 @@ const ServiceIconDesktop = (props: IconProps) => {
 }
 
 const ServiceTabBarDesktop = (props: Props) => {
+  const desktopStyles = useDesktopStyles()
   const [lastSelectedUnlockedService, setLastSelectedUnlockedService] = React.useState<
     T.TB.ServiceIdWithContact | undefined
   >()
@@ -403,18 +412,18 @@ const ServiceTabBarDesktop = (props: Props) => {
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       activeTabBar: {
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
         bottom: 0,
         height: 2,
         position: 'absolute',
         width: '100%',
       },
       badgeContainerStyle: {position: 'absolute', right: -4, top: -2, zIndex: 1},
-      badgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+      badgeStyle: {backgroundColor: theme.blue},
       inactiveTabBar: {borderBottomWidth: 1, bottom: 0, height: 2, position: 'absolute'},
       labelContainer: {marginTop: Kb.Styles.globalMargins.xtiny, overflow: 'hidden'},
       scroll: {flexGrow: 0, flexShrink: 0, width: '100%'},
@@ -427,12 +436,12 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useDesktopStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
-      activeTabBar: {backgroundColor: Kb.Styles.globalColors.blue, height: 2},
+      activeTabBar: {backgroundColor: theme.blue, height: 2},
       badgeContainerStyle: {position: 'absolute', right: -4, top: 10},
-      badgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+      badgeStyle: {backgroundColor: theme.blue},
       inactiveTabBar: {height: 2},
       label: {marginTop: Kb.Styles.globalMargins.xtiny, minWidth: 64},
       moreNetworkItemIcon: {marginRight: Kb.Styles.globalMargins.tiny},
@@ -448,11 +457,11 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       moreNetworks3: {
-        ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.borderRadius),
+        ...Kb.Styles.border(theme.black_20, 1, Kb.Styles.borderRadius),
         maxHeight: '100%',
         maxWidth: '100%',
       },
-      moreText: {color: Kb.Styles.globalColors.black_50},
+      moreText: {color: theme.black_50},
       serviceIconBox: {marginTop: 14},
       serviceIconContainer: {
         height: 70,
@@ -463,7 +472,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       serviceIconFlex: {maxWidth: 90},
       tabBarContainer: {
-        ...Kb.Styles.bottomDivider(),
+        ...Kb.Styles.bottomDivider(theme),
         minHeight: 30,
       },
     }) as const

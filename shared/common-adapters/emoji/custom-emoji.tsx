@@ -18,6 +18,7 @@ const Kb = {
 }
 
 const CustomEmoji = (props: Props) => {
+  const styles = useStyles()
   const {size, src, alias, style} = props
 
   if (isMobile) {
@@ -51,7 +52,7 @@ const CustomEmoji = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       emoji: Kb.Styles.platformStyles({

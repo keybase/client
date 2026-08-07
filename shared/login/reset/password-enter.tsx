@@ -9,6 +9,7 @@ import {enterResetPipeline} from './account-reset'
 type Props = {route: {params: {username: string}}}
 
 const EnterPassword = ({route}: Props) => {
+  const styles = useStyles()
   const {username} = route.params
   const [password, setPassword] = React.useState('')
   const [error, setError] = React.useState('')
@@ -45,7 +46,7 @@ const EnterPassword = ({route}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   input: Kb.Styles.platformStyles({
     isElectron: {
       width: 368,

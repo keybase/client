@@ -10,6 +10,7 @@ type Props = {
 }
 
 const TeamPurpose = ({wizard: wizardParam}: Props) => {
+  const styles = useStyles()
   const navigation = useNavigation('teamWizard1TeamPurpose')
   const navigateAppend = C.Router2.navigateAppend
   const wizard = wizardParam ?? makeNewTeamWizard()
@@ -57,7 +58,7 @@ const TeamPurpose = ({wizard: wizardParam}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

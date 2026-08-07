@@ -211,6 +211,7 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
 HighlightableRow.displayName = 'HighlightableRow'
 
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
+  const desktopStyles = useDesktopStyles()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const conversationIDKey = useConversationThreadID()
   const data = useThreadListData()
@@ -596,7 +597,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
+const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: Kb.Styles.platformStyles({
@@ -750,6 +751,7 @@ const maintainVisibleContentPositionNoAutoscroll = {
 }
 
 const NativeConversationList = function NativeConversationList() {
+  const nativeStyles = useNativeStyles()
   const List = FlatList as unknown as React.ComponentType<
     Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}
   >
@@ -1047,7 +1049,7 @@ const NativeConversationList = function NativeConversationList() {
   )
 }
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
+const useNativeStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       jumpWrapper: {

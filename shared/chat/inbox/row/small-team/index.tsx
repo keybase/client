@@ -19,6 +19,8 @@ export type Props = {
 }
 
 const SmallTeam = (p: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, isSelected} = p
 
   const row = useInboxRowSmall(conversationIDKey)
@@ -39,10 +41,10 @@ const SmallTeam = (p: Props) => {
         }))
 
   const backgroundColor = isSelected
-    ? Kb.Styles.globalColors.blue
+    ? theme.blue
     : Kb.Styles.isPhone && !Kb.Styles.isTablet
       ? undefined
-      : Kb.Styles.globalColors.blueGrey
+      : theme.blueGrey
 
   const participantOne = teamDisplayName ? '' : participants[0] ?? ''
   const participantTwo = teamDisplayName ? '' : participants[1] ?? ''
@@ -121,13 +123,15 @@ type TopLineProps = {
 }
 
 const TopLine = (p: TopLineProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {isSelected, backgroundColor, conversationIDKey, participants, teamDisplayName, timestamp, hasBadge, hasUnread} = p
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
-    ? Kb.Styles.globalColors.white
+    ? theme.white
     : hasUnread
-      ? Kb.Styles.globalColors.black
-      : Kb.Styles.globalColors.black_50
+      ? theme.black
+      : theme.black_50
 
   const tssubColor = (!hasBadge || isSelected) && subColor
   const timestampStyle = Kb.Styles.collapseStyles([
@@ -137,7 +141,7 @@ const TopLine = (p: TopLineProps) => {
   ])
   const timestampText = timestamp ? formatTimeForConversationList(timestamp) : ''
 
-  const usernameColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
+  const usernameColor = isSelected ? theme.white : theme.black
   const nameContainerStyle = Kb.Styles.collapseStyles([
     styles.name,
     showBold && styles.bold,
@@ -188,8 +192,10 @@ const TopLine = (p: TopLineProps) => {
 }
 
 const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: string; isSelected: boolean}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, subColor, isSelected} = p
-  const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
+  const iconHoverColor = isSelected ? theme.white_75 : theme.black
   const makePopup = (mp: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = mp
     return (
@@ -236,15 +242,17 @@ type BottomLineDisplayProps = {
 }
 
 const BottomLineDisplay = (p: BottomLineDisplayProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {allowBold = true, isSelected, backgroundColor} = p
   const {snippet, snippetDecoration, hasUnread, draft} = p
   const {hasResetUsers, youNeedToRekey, youAreReset, participantNeedToRekey, isDecryptingSnippet} = p
 
   const subColor = isSelected
-    ? Kb.Styles.globalColors.white
+    ? theme.white
     : hasUnread
-      ? Kb.Styles.globalColors.black
-      : Kb.Styles.globalColors.black_50
+      ? theme.black
+      : theme.black_50
   const showBold = allowBold && !isSelected && hasUnread
   const style = Kb.Styles.collapseStyles([
     styles.bottomLine,
@@ -261,7 +269,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
         negative={true}
         style={Kb.Styles.collapseStyles([
           styles.youAreResetText,
-          {color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red},
+          {color: isSelected ? theme.white : theme.red},
         ])}
       >
         You are locked out.
@@ -269,7 +277,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
     )
   } else if (participantNeedToRekey) {
     content = (
-      <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
+      <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={theme.red} />
     )
   } else if (draft) {
     content = (
@@ -278,7 +286,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
             styles.draftLabel,
-            isSelected ? {color: Kb.Styles.globalColors.white} : null,
+            isSelected ? {color: theme.white} : null,
           ])}
         >
           Draft:
@@ -290,7 +298,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
     )
   } else if (isDecryptingSnippet) {
     content = (
-      <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.blue} />
+      <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={theme.blue} />
     )
   } else {
     content = (
@@ -309,7 +317,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
         <Kb.Meta
           title="rekey needed"
           style={styles.alertMeta}
-          backgroundColor={Kb.Styles.globalColors.red}
+          backgroundColor={theme.red}
         />
       )}
       <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
@@ -361,8 +369,9 @@ const SnippetContent = (p: {
   isSelected?: boolean
   style: Kb.Styles.StylesCrossPlatform
 }) => {
+  const theme = Kb.Styles.useTheme()
   const {snippet, snippetDecoration: decoration, isSelected, style} = p
-  const defaultIconColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20
+  const defaultIconColor = isSelected ? theme.white : theme.black_20
 
   let decorationNode: React.ReactNode
   let exploded = false
@@ -378,7 +387,7 @@ const SnippetContent = (p: {
       decorationNode = (
         <SnippetDecorationIcon
           type="iconfont-exclamation"
-          color={isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
+          color={isSelected ? theme.white : theme.red}
         />
       )
       break
@@ -389,7 +398,7 @@ const SnippetContent = (p: {
       decorationNode = (
         <Kb.Text
           type="BodySmall"
-          style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}}
+          style={{color: isSelected ? theme.white : theme.black_50}}
         >
           Message exploded.
         </Kb.Text>
@@ -437,17 +446,20 @@ const SnippetContent = (p: {
   )
 }
 
-const SnippetDecorationIcon = (p: {type: Kb.IconType; color: string}) => (
-  <Kb.Icon
-    color={p.color}
-    type={p.type}
-    fontSize={isMobile ? 16 : 12}
-    style={styles.snippetDecoration}
-  />
-)
+const SnippetDecorationIcon = (p: {type: Kb.IconType; color: string}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Icon
+      color={p.color}
+      type={p.type}
+      fontSize={isMobile ? 16 : 12}
+      style={styles.snippetDecoration}
+    />
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       alertMeta: Kb.Styles.platformStyles({
         common: {marginRight: 6},
@@ -456,7 +468,7 @@ const styles = Kb.Styles.styleSheetCreate(
       bold: {...Kb.Styles.globalStyles.fontBold},
       bottomLine: Kb.Styles.platformStyles({
         isElectron: {
-          color: Kb.Styles.globalColors.black_50,
+          color: theme.black_50,
           display: 'block',
           minHeight: 16,
           paddingRight: 10,
@@ -464,7 +476,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.textEllipsis,
         },
         isMobile: {
-          color: Kb.Styles.globalColors.black_50,
+          color: theme.black_50,
           flex: 1,
           lineHeight: 19,
           paddingRight: 40,
@@ -482,7 +494,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexGrow: 1,
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
-      draftLabel: {color: Kb.Styles.globalColors.orange},
+      draftLabel: {color: theme.orange},
       icon: {position: 'relative'} as const,
       innerBox: Kb.Styles.platformStyles({
         common: {
@@ -516,10 +528,10 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       timestamp: {
-        color: Kb.Styles.globalColors.blueDark,
+        color: theme.blueDark,
       },
       unreadDotStyle: {
-        backgroundColor: Kb.Styles.globalColors.orange,
+        backgroundColor: theme.orange,
         borderRadius: 6,
         height: 8,
         marginLeft: 4,

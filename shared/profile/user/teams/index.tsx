@@ -72,22 +72,25 @@ const TeamShowcase = (props: TeamShowcaseProps) => {
   return <TeamRow name={name} isOpen={isOpen} onClick={onClick} popup={popup} popupAnchor={popupAnchor} />
 }
 
-const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
-  <Kb.ClickableBox direction="horizontal" gap="tiny" fullWidth={true} onClick={p.onEdit}>
-    <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
-    <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
-      {"Feature the teams you're in"}
-    </Kb.Text>
-  </Kb.ClickableBox>
-)
+const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => {
+  const styles = useStyles()
+  return (
+    <Kb.ClickableBox direction="horizontal" gap="tiny" fullWidth={true} onClick={p.onEdit}>
+      <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
+      <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
+        {"Feature the teams you're in"}
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       placeholderTeam: {borderRadius: Kb.Styles.borderRadius},
       youFeatureTeam: {
         alignSelf: 'center',
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
       },
     }) as const
 )

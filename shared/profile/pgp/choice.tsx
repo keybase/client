@@ -118,6 +118,7 @@ export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
 )
 
 export default function Choice() {
+  const styles = useStyles()
   const {clearModals, navigateAppend, navigateUp} = C.Router2
   const mountedRef = React.useRef(true)
   const cancelCurrentRef = React.useRef<undefined | (() => void)>(undefined)
@@ -317,6 +318,7 @@ const Finished = (props: {
   promptShouldStoreKeyOnServer: boolean
   pgpKeyString: string
 }) => {
+  const styles = useStyles()
   const {onDone} = props
   const [shouldStoreKeyOnServer, setShouldStoreKeyOnServer] = React.useState(false)
 
@@ -357,18 +359,18 @@ const Finished = (props: {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       centered: {alignSelf: 'center'},
       math: {flexGrow: 1},
       pgpKeyString: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.fontTerminal,
-          backgroundColor: Kb.Styles.globalColors.greyLight,
-          border: `solid 1px ${Kb.Styles.globalColors.black_10}`,
+          backgroundColor: theme.greyLight,
+          border: `solid 1px ${theme.black_10}`,
           ...Kb.Styles.globalStyles.rounded,
-          color: Kb.Styles.globalColors.black,
+          color: theme.black,
           flexGrow: 1,
           fontSize: 12,
           lineHeight: 17,

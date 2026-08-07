@@ -29,6 +29,8 @@ const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
 }
 
 const BlockButtons = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
   const {team, teamID, tlfname} = useThreadMeta(
@@ -135,7 +137,7 @@ const BlockButtons = () => {
         <Kb.Icon
           style={styles.dismissIcon}
           type="iconfont-close"
-          color={Kb.Styles.globalColors.black_20}
+          color={theme.black_20}
           onClick={onDismiss}
         />
       </Kb.Box2>
@@ -156,8 +158,8 @@ const BlockButtons = () => {
 
 export default BlockButtons
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       button: Kb.Styles.platformStyles({
         isElectron: {
@@ -173,7 +175,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: 57,
       },
       dismissContainer: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
       },
       dismissIcon: {

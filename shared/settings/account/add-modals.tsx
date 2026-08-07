@@ -11,6 +11,7 @@ import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import {settingsAccountTab} from '@/constants/settings'
 
 export const Email = () => {
+  const styles = useStyles()
   const nav = useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
@@ -91,6 +92,7 @@ export const Email = () => {
   )
 }
 export const Phone = () => {
+  const styles = useStyles()
   const nav = useSafeNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
@@ -175,6 +177,7 @@ type VerifyPhoneProps = {
 }
 
 export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
+  const styles = useStyles()
   const [code, onChangeCode] = React.useState('')
 
   const clearModals = C.Router2.clearModals
@@ -240,8 +243,8 @@ export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       banner: {
         left: 0,
@@ -250,7 +253,7 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 0,
       },
       blueBackground: {
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
       },
       body: {
         ...Kb.Styles.padding(
@@ -258,7 +261,7 @@ const styles = Kb.Styles.styleSheetCreate(
           Kb.Styles.globalMargins.small,
           0
         ),
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       buttonBar: {
         minHeight: undefined,

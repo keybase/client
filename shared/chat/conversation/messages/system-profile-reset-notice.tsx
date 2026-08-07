@@ -5,6 +5,7 @@ import UserNotice from './user-notice'
 import {useThreadMeta} from '../thread-context'
 
 const SystemProfileResetNotice = () => {
+  const styles = useStyles()
   const meta = useThreadMeta(
     C.useShallow(m => ({supersedes: m.supersedes, wasFinalizedBy: m.wasFinalizedBy}))
   )
@@ -35,8 +36,8 @@ const SystemProfileResetNotice = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  text: {color: Kb.Styles.globalColors.black_50},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  text: {color: theme.black_50},
 }))
 
 export default SystemProfileResetNotice

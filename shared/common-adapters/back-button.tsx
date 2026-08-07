@@ -22,6 +22,7 @@ type Props = {
 }
 
 function BackButton(props: Props) {
+  const styles = useStyles()
   const navigateUp = C.Router2.navigateUp
 
   if (!isMobile) {
@@ -78,7 +79,7 @@ function BackButton(props: Props) {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   arrow: {
     marginRight: -3,
     marginTop: 2,

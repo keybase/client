@@ -28,6 +28,8 @@ export type Props = {
 // you're changing one remember to change the other.
 
 const TeamBotRow = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   let descriptionLabel: React.ReactNode = null
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showMenu, setShowMenu] = React.useState(false)
@@ -47,7 +49,7 @@ const TeamBotRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
       <Kb.Text
         type="BodySmallSemibold"
-        style={{color: Kb.Styles.globalColors.black}}
+        style={{color: theme.black}}
         onClick={props.onOpenProfile}
       >
         {props.botAlias || props.username}
@@ -117,14 +119,14 @@ const TeamBotRow = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     height: isMobile ? 56 : 48,
   },
   containerReset: {
-    backgroundColor: Kb.Styles.globalColors.blueLighter2,
+    backgroundColor: theme.blueLighter2,
   },
   fullNameLabel: {marginRight: Kb.Styles.globalMargins.xtiny},
   menuButtonDesktop: {

@@ -9,7 +9,7 @@ import {useFsPathItem, useFsTlfs} from '../common'
 
 type OwnProps = {path: T.FS.Path}
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       progressIndicator: Kb.Styles.size(18),
@@ -17,6 +17,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const Loading = (op: OwnProps) => {
+  const styles = useStyles()
   const {path} = op
   const pathItem = useFsPathItem(path)
   const tlfs = useFsTlfs()

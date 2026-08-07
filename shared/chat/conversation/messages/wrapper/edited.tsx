@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import {useIsHighlighted} from '../ids-context'
 
 export const useEdited = (hasBeenEdited: boolean) => {
+  const styles = useStyles()
   const showCenteredHighlight = useIsHighlighted()
   return hasBeenEdited ? (
     <Kb.Text
@@ -15,10 +16,10 @@ export const useEdited = (hasBeenEdited: boolean) => {
   ) : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
-      edited: {color: Kb.Styles.globalColors.black_20},
-      editedHighlighted: {color: Kb.Styles.globalColors.black_20OrBlack},
+      edited: {color: theme.black_20},
+      editedHighlighted: {color: theme.black_20OrBlack},
     }) as const
 )

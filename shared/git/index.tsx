@@ -96,6 +96,8 @@ type ExpandedState = {
 const noRepos = new Map<string, T.Git.GitInfo>()
 
 const GitRoot = (ownProps: OwnProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   // errors from row actions (toggling chat), load errors come from the hook
@@ -195,7 +197,7 @@ const GitRoot = (ownProps: OwnProps) => {
         <Kb.ErrorBanner error={rowError ?? loadError} />
         {isMobile && (
           <Kb.ClickableBox ref={popupAnchor} direction="horizontal" centerChildren={true} noShrink={true} gap="tiny" style={styles.header} onClick={showPopup}>
-            <Kb.Icon type="iconfont-new" color={Kb.Styles.globalColors.blue} fontSize={20} />
+            <Kb.Icon type="iconfont-new" color={theme.blue} fontSize={20} />
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>
         )}
@@ -230,7 +232,7 @@ const GitRoot = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       header: {

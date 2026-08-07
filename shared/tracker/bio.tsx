@@ -15,6 +15,7 @@ type Props = {
 }
 
 const Bio = (props: Props) => {
+  const styles = useStyles()
   const {
     bio,
     blocked,
@@ -122,17 +123,17 @@ const FollowText = ({followThem, followsYou}: {followThem?: boolean; followsYou?
   return text ? <Kb.Text type="BodySmall">{text}</Kb.Text> : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       blockedBackgroundText: {
-        backgroundColor: Kb.Styles.globalColors.red_20,
+        backgroundColor: theme.red_20,
         borderRadius: Kb.Styles.borderRadius,
         margin: Kb.Styles.globalMargins.small,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       },
       bold: {...Kb.Styles.globalStyles.fontBold},
-      container: {backgroundColor: Kb.Styles.globalColors.white},
+      container: {backgroundColor: theme.white},
       fullNameBio: {
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
       },

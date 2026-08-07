@@ -7,6 +7,7 @@ import {defineRouteMap} from '@/constants/types/router'
 import {HeaderTitle} from './common'
 
 const HeaderRightActions = () => {
+  const headerStyles = useHeaderStyles()
   const navigateAppend = C.Router2.navigateAppend
   const onAdd = () => navigateAppend({name: 'deviceAdd', params: {}})
   return (
@@ -19,7 +20,7 @@ const HeaderRightActions = () => {
   )
 }
 
-const headerStyles = Kb.Styles.styleSheetCreate(() => ({
+const useHeaderStyles = Kb.Styles.createStyleHook(() => ({
   addDeviceButton: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'flex-end',

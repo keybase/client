@@ -30,6 +30,8 @@ type ArrowProps = {
 }
 
 const Arrow = (props: ArrowProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {left, onClick} = props
   return (
     <Kb.ClickableBox
@@ -48,7 +50,7 @@ const Arrow = (props: ArrowProps) => {
     >
       <Kb.Icon
         type={left ? 'iconfont-arrow-left' : 'iconfont-arrow-right'}
-        color={Kb.Styles.globalColors.white}
+        color={theme.white}
         style={Kb.Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
     </Kb.ClickableBox>
@@ -56,6 +58,8 @@ const Arrow = (props: ArrowProps) => {
 }
 
 const DesktopFullscreen = (p: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const data = useData(p.conversationIDKey, p.messageID, p.initialMessage)
   const {message, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment} = data
@@ -117,7 +121,7 @@ const DesktopFullscreen = (p: Props) => {
         <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
           <Kb.Icon
             type="iconfont-ellipsis"
-            color={Kb.Styles.globalColors.black_50}
+            color={theme.black_50}
             onClick={hasMessageID ? showPopup : undefined}
             padding="small"
             style={!hasMessageID ? styles.disabled : undefined}
@@ -162,7 +166,7 @@ const DesktopFullscreen = (p: Props) => {
         {!!progressLabel && (
           <Kb.Text
             type="BodySmall"
-            style={{color: Kb.Styles.globalColors.black_50, marginRight: Kb.Styles.globalMargins.tiny}}
+            style={{color: theme.black_50, marginRight: Kb.Styles.globalMargins.tiny}}
           >
             {progressLabel}
           </Kb.Text>
@@ -202,6 +206,7 @@ const NativeFullscreenVideo = (p: {
   onTouchEnd: (e: GestureEvent) => void
   onLoaded: () => void
 }) => {
+  const styles = useStyles()
   const {path, previewHeight, onTouchStart, onTouchEnd, onLoaded} = p
 
   const sourceUri = `${path}&contentforce=true`
@@ -235,6 +240,8 @@ const NativeFullscreenVideo = (p: {
 }
 
 const NativeFullscreen = (p: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {showHeader: _showHeader = true} = p
   const data = useData(p.conversationIDKey, p.messageID, p.initialMessage)
   const {isPlayableMedia, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
@@ -368,7 +375,7 @@ const NativeFullscreen = (p: Props) => {
     <Kb.Box2
       direction="vertical"
       relative={true}
-      style={{backgroundColor: Kb.Styles.globalColors.blackOrBlack}}
+      style={{backgroundColor: theme.blackOrBlack}}
       fullWidth={true}
       fullHeight={true}
       testID={TestIDs.CHAT_ATTACHMENT_FULLSCREEN}
@@ -403,12 +410,12 @@ const Fullscreen = (p: Props) => {
   return <NativeFullscreen {...p} />
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       allMedia: Kb.Styles.platformStyles({
         isMobile: {
-          color: Kb.Styles.globalColors.blueDark,
+          color: theme.blueDark,
           marginLeft: 'auto',
           padding: Kb.Styles.globalMargins.small,
         },
@@ -439,7 +446,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       close: Kb.Styles.platformStyles({
         isMobile: {
-          color: Kb.Styles.globalColors.blueDark,
+          color: theme.blueDark,
           padding: Kb.Styles.globalMargins.small,
         },
       }),
@@ -447,7 +454,7 @@ const styles = Kb.Styles.styleSheetCreate(
       ellipsisContainer: Kb.Styles.platformStyles({
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      error: {color: Kb.Styles.globalColors.redDark},
+      error: {color: theme.redDark},
       headerFooter: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
@@ -459,7 +466,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {
           ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          backgroundColor: Kb.Styles.globalColors.blackOrBlack,
+          backgroundColor: theme.blackOrBlack,
           bottom: Kb.Styles.globalMargins.small,
           flexShrink: 0,
           ...Kb.Styles.size(34),
@@ -469,15 +476,15 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       headerWrapper: Kb.Styles.platformStyles({
-        isMobile: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
+        isMobile: {backgroundColor: theme.blackOrBlack},
       }),
       link: Kb.Styles.platformStyles({
-        isElectron: {color: Kb.Styles.globalColors.black_50, cursor: 'pointer'},
+        isElectron: {color: theme.black_50, cursor: 'pointer'},
       }),
       progressIndicator: Kb.Styles.platformStyles({isMobile: {width: 48}}),
       progressWrapper: Kb.Styles.platformStyles({isMobile: {position: 'absolute'}}),
       retry: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
         textDecorationLine: 'underline',
       },
       videoFit: Kb.Styles.platformStyles({
@@ -497,7 +504,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       zoomableBox: Kb.Styles.platformStyles({
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.blackOrBlack,
+          backgroundColor: theme.blackOrBlack,
           ...Kb.Styles.size('100%'),
           position: 'relative',
         },

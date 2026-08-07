@@ -8,19 +8,22 @@ type Props = {
   onSelect: (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: 'camera' | 'library' | 'file') => void
 }
 
-const Prompt = () => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    centerChildren={true}
-    gap="xtiny"
-    style={styles.promptContainer}
-  >
-    <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
-  </Kb.Box2>
-)
+const Prompt = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      centerChildren={true}
+      gap="xtiny"
+      style={styles.promptContainer}
+    >
+      <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       promptContainer: {

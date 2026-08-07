@@ -5,6 +5,7 @@ type Props = {
   teamID: string
 }
 const AddBotRow = (props: Props) => {
+  const styles = useStyles()
   const {teamID} = props
 
   return (
@@ -19,7 +20,7 @@ const AddBotRow = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: {

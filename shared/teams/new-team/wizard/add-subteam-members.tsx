@@ -14,6 +14,7 @@ type Props = {
 }
 
 const AddSubteamMembers = ({wizard: wizardState}: Props) => {
+  const styles = useStyles()
   const navigation = useNavigation('teamWizardSubteamMembers')
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
@@ -133,10 +134,10 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   flexShrink: {flexShrink: 1},
   header: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
     height: Kb.Styles.globalMargins.mediumLarge,
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.small,

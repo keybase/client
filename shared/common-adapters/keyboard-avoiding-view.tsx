@@ -16,6 +16,7 @@ type Props = {
 const DesktopKeyboardAvoidingView = (p: Props): React.ReactNode => p.children || null
 
 const NativeKeyboardAvoidingView = (p: Props): React.ReactNode => {
+  const styles = useStyles()
   // useHeaderHeight throws when rendered outside a navigator; read the context directly instead
   const headerHeight = React.useContext(HeaderHeightContext) ?? 0
   const {extraOffset, behavior, children, testID} = p
@@ -36,6 +37,6 @@ const NativeKeyboardAvoidingView = (p: Props): React.ReactNode => {
 export const KeyboardAvoidingView2 = isMobile ? NativeKeyboardAvoidingView : DesktopKeyboardAvoidingView
 export default KeyboardAvoidingView2
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   keyboard: {flexGrow: 1, flexShrink: 1},
 }))

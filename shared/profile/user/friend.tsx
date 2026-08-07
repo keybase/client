@@ -11,6 +11,7 @@ type OwnProps = {
 const followIconStyle = {bottom: 0, left: 44, position: 'absolute'} as const
 
 const Friend = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {username, width} = ownProps
   const fullname = useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
   const onClick = () => navToProfile(username)
@@ -51,7 +52,7 @@ const Friend = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   avatar: {marginBottom: Kb.Styles.globalMargins.xxtiny},
   container: {
     height: 105,

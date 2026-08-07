@@ -17,6 +17,8 @@ type SettingsItemProps = {
 }
 
 function SettingsItem(props: SettingsItemProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {onClick: _onClick, type, selected} = props
   const onClick = () => {
     _onClick(type)
@@ -37,7 +39,7 @@ function SettingsItem(props: SettingsItemProps) {
         <Kb.Icon
           fontSize={24}
           type={props.icon}
-          color={Kb.Styles.globalColors.black_50}
+          color={theme.black_50}
           style={{
             marginRight: isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
           }}
@@ -64,7 +66,7 @@ function SettingsItem(props: SettingsItemProps) {
 }
 export default SettingsItem
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   badge: {
     marginLeft: 6,
   },
@@ -76,17 +78,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 32,
     },
     isMobile: {
-      borderBottomColor: Kb.Styles.globalColors.black_10,
+      borderBottomColor: theme.black_10,
       borderBottomWidth: Kb.Styles.hairlineWidth,
       height: 56,
     },
   }),
   itemText: Kb.Styles.platformStyles({
     isElectron: {
-      color: Kb.Styles.globalColors.black_50,
+      color: theme.black_50,
     },
     isMobile: {
-      color: Kb.Styles.globalColors.black,
+      color: theme.black,
     },
   }),
   progress: {
@@ -94,7 +96,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   selected: Kb.Styles.platformStyles({
     common: {
-      borderLeftColor: Kb.Styles.globalColors.blue,
+      borderLeftColor: theme.blue,
       borderLeftWidth: 3,
       borderStyle: 'solid',
     },
@@ -103,6 +105,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   selectedText: {
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
   },
 }))

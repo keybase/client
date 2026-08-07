@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
+import {StyleSheet} from 'react-native'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
 import Text from '@/common-adapters/text'
@@ -51,118 +52,163 @@ const electronInherit = {
   fontWeight: 'inherit',
 } as const
 
-const _markdownStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      bigTextBlockStyle: Styles.platformStyles({
-        isElectron: {
-          ...electronWrapStyle,
-          ...electronInherit,
-          display: 'block',
-        },
-        isMobile: {
-          fontSize: 32,
-          lineHeight: 39.5, // matches 40 px height
-        },
-      }),
-      boldStyle: Styles.platformStyles({
-        common: {...Styles.globalStyles.fontBold},
-        isElectron: {color: 'inherit', ...electronWrapStyle},
-        isMobile: {color: undefined},
-      }),
-      get codeSnippetBlockStyle() {
-        return Styles.platformStyles({
-          common: {
-            ...this.codeSnippetStyle,
-            backgroundColor: Styles.globalColors.redLighter,
-            ...Styles.marginV(Styles.globalMargins.xtiny),
-            ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-          },
-          isElectron: {
-            ...electronWrapStyle,
-            color: Styles.globalColors.black,
-            display: 'block',
-          },
-        })
+// consumed from many non-component places deep inside simple-markdown's output tree (render-rule
+// callbacks called by simple-markdown, not React), so this can't be a hook. Instead it's a themed
+// lookup cached per theme, with markdownStyles below re-resolving the current theme on every
+// property access the way those callbacks (and index.tsx's plain object usage) expect.
+const getMarkdownStyleTable = Styles.createThemedValue(theme => {
+  const built = {
+    bigTextBlockStyle: Styles.platformStyles({
+      isElectron: {
+        ...electronWrapStyle,
+        ...electronInherit,
+        display: 'block',
       },
-      codeSnippetBlockTextStyle: Styles.platformStyles({
-        isMobile: {
-          ...Styles.globalStyles.fontTerminal,
-          backgroundColor: Styles.globalColors.redLighter,
-          color: Styles.globalColors.black,
-          fontSize: 15,
+      isMobile: {
+        fontSize: 32,
+        lineHeight: 39.5, // matches 40 px height
+      },
+    }),
+    boldStyle: Styles.platformStyles({
+      common: {...Styles.globalStyles.fontBold},
+      isElectron: {color: 'inherit', ...electronWrapStyle},
+      isMobile: {color: undefined},
+    }),
+    get codeSnippetBlockStyle() {
+      return Styles.platformStyles({
+        common: {
+          ...this.codeSnippetStyle,
+          backgroundColor: theme.redLighter,
           ...Styles.marginV(Styles.globalMargins.xtiny),
-        },
-      }),
-      codeSnippetStyle: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.fontTerminal,
-          ...Styles.globalStyles.rounded,
-          backgroundColor: Styles.globalColors.redLighter,
-          color: Styles.globalColors.blueDarkOrBlueLight,
-          ...Styles.paddingH(Styles.globalMargins.xtiny),
+          ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
         },
         isElectron: {
           ...electronWrapStyle,
-          fontSize: 12,
-        },
-        isMobile: {fontSize: 15},
-      }),
-      italicStyle: Styles.platformStyles({
-        common: {fontStyle: 'italic'},
-        isElectron: {...electronInherit, ...electronWrapStyle},
-        isMobile: {color: undefined, fontWeight: undefined},
-      }),
-      neutralPreviewStyle: Styles.platformStyles({
-        isElectron: electronInherit,
-        isMobile: {color: Styles.globalColors.black_50, fontWeight: undefined},
-      }),
-      quoteStyle: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.redLighter,
-          borderLeftColor: Styles.globalColors.grey,
-          borderLeftWidth: 3,
-          borderStyle: 'solid',
-          color: Styles.globalColors.black,
-        },
-        isElectron: {
+          color: theme.black,
           display: 'block',
-          paddingLeft: Styles.globalMargins.small,
         },
-        isMobile: {
-          paddingLeft: Styles.globalMargins.tiny,
-        },
-      }),
-      quoteStyleText: Styles.platformStyles({
-        common: {
-          backgroundColor: 'transparent',
-          color: Styles.globalColors.black,
-        },
-      }),
-      strikeStyle: Styles.platformStyles({
-        isElectron: {
-          ...electronWrapStyle,
-          ...electronInherit,
-          textDecoration: 'line-through',
-        },
-        isMobile: {
-          fontWeight: undefined,
-          textDecorationLine: 'line-through',
-        },
-      }),
-      textBlockStyle: Styles.platformStyles({
-        isAndroid: {lineHeight: undefined},
-        isElectron: {...electronInherit, display: 'block', ...electronWrapStyle},
-      }),
-      wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
-    }) as const
-)
+      })
+    },
+    codeSnippetBlockTextStyle: Styles.platformStyles({
+      isMobile: {
+        ...Styles.globalStyles.fontTerminal,
+        backgroundColor: theme.redLighter,
+        color: theme.black,
+        fontSize: 15,
+        ...Styles.marginV(Styles.globalMargins.xtiny),
+      },
+    }),
+    codeSnippetStyle: Styles.platformStyles({
+      common: {
+        ...Styles.globalStyles.fontTerminal,
+        ...Styles.globalStyles.rounded,
+        backgroundColor: theme.redLighter,
+        color: theme.blueDarkOrBlueLight,
+        ...Styles.paddingH(Styles.globalMargins.xtiny),
+      },
+      isElectron: {
+        ...electronWrapStyle,
+        fontSize: 12,
+      },
+      isMobile: {fontSize: 15},
+    }),
+    italicStyle: Styles.platformStyles({
+      common: {fontStyle: 'italic'},
+      isElectron: {...electronInherit, ...electronWrapStyle},
+      isMobile: {color: undefined, fontWeight: undefined},
+    }),
+    neutralPreviewStyle: Styles.platformStyles({
+      isElectron: electronInherit,
+      isMobile: {color: theme.black_50, fontWeight: undefined},
+    }),
+    quoteStyle: Styles.platformStyles({
+      common: {
+        backgroundColor: theme.redLighter,
+        borderLeftColor: theme.grey,
+        borderLeftWidth: 3,
+        borderStyle: 'solid',
+        color: theme.black,
+      },
+      isElectron: {
+        display: 'block',
+        paddingLeft: Styles.globalMargins.small,
+      },
+      isMobile: {
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+    }),
+    quoteStyleText: Styles.platformStyles({
+      common: {
+        backgroundColor: 'transparent',
+        color: theme.black,
+      },
+    }),
+    strikeStyle: Styles.platformStyles({
+      isElectron: {
+        ...electronWrapStyle,
+        ...electronInherit,
+        textDecoration: 'line-through',
+      },
+      isMobile: {
+        fontWeight: undefined,
+        textDecorationLine: 'line-through',
+      },
+    }),
+    textBlockStyle: Styles.platformStyles({
+      isAndroid: {lineHeight: undefined},
+      isElectron: {...electronInherit, display: 'block', ...electronWrapStyle},
+    }),
+    wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
+  } as const
+  return isMobile
+    ? (StyleSheet.create(built as unknown as Parameters<typeof StyleSheet.create>[0]) as unknown as typeof built)
+    : built
+})
 
 type MakeText<T> = {
   [K in keyof T]: StylesTextCrossPlatform
 }
 
-export const markdownStyles = _markdownStyles as MakeText<typeof _markdownStyles>
+type MarkdownStyleTable = ReturnType<typeof getMarkdownStyleTable>
+
+export const markdownStyles = {
+  get bigTextBlockStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).bigTextBlockStyle
+  },
+  get boldStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).boldStyle
+  },
+  get codeSnippetBlockStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).codeSnippetBlockStyle
+  },
+  get codeSnippetBlockTextStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).codeSnippetBlockTextStyle
+  },
+  get codeSnippetStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).codeSnippetStyle
+  },
+  get italicStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).italicStyle
+  },
+  get neutralPreviewStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).neutralPreviewStyle
+  },
+  get quoteStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).quoteStyle
+  },
+  get quoteStyleText() {
+    return getMarkdownStyleTable(Styles.getTheme()).quoteStyleText
+  },
+  get strikeStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).strikeStyle
+  },
+  get textBlockStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).textBlockStyle
+  },
+  get wrapStyle() {
+    return getMarkdownStyleTable(Styles.getTheme()).wrapStyle
+  },
+} as MakeText<MarkdownStyleTable>
 
 const InlineCode = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p

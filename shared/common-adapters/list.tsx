@@ -103,6 +103,7 @@ const DesktopList = function List<T>({ref, ...p}: Props<T>) {
 }
 
 const NativeList = function List<T>({ref, ...p}: Props<T>) {
+  const styles = useStyles()
   const {empty, listProps} = useListProps(p as Props<T>)
   if (empty) return null
 
@@ -122,7 +123,7 @@ const NativeList = function List<T>({ref, ...p}: Props<T>) {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const useStyles = Styles.createStyleHook(
   () =>
     ({
       outerView: {

@@ -29,6 +29,7 @@ const defaultStyle = {
 } as const
 
 const SaveIndicator = (props: Props) => {
+  const theme = Styles.useTheme()
   const {saving, style} = props
   const [indicatorState, setIndicatorState] = React.useState<IndicatorState>(() => ({
     saving,
@@ -69,8 +70,8 @@ const SaveIndicator = (props: Props) => {
     case 'saved':
       content = (
         <>
-          <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
-          <Kb.Text type="BodySmall" style={{color: Styles.globalColors.greenDark}}>
+          <Kb.Icon type="iconfont-check" color={theme.green} />
+          <Kb.Text type="BodySmall" style={{color: theme.greenDark}}>
             &nbsp; Saved
           </Kb.Text>
         </>

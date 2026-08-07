@@ -14,6 +14,7 @@ type Props = {
 }
 
 const ChatPDF = (props: Props) => {
+  const nativeStyles = useNativeStyles()
   const {messageID} = props
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const [initialMessage] = React.useState(() =>
@@ -82,7 +83,7 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-const nativeStyles = Kb.Styles.styleSheetCreate(() => ({
+const useNativeStyles = Kb.Styles.createStyleHook(() => ({
   progressContainer: {position: 'absolute'},
   webViewContainer: {margin: Kb.Styles.globalMargins.xtiny},
 }))

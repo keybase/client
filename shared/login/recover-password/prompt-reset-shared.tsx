@@ -16,6 +16,8 @@ export type Props = {
 }
 
 const PromptReset = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const nav = useSafeNavigation()
   const [error, setError] = React.useState('')
   const {resetPassword, skipPassword, username} = props
@@ -61,7 +63,7 @@ const PromptReset = (props: Props) => {
     >
       <QuestionBody
         centered={false}
-        icon={<Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />}
+        icon={<Kb.Icon type="iconfont-skull" sizeType="Big" color={theme.black} />}
       >
         {props.resetPassword ? (
           <Kb.Text type="Body" center={true} style={styles.main}>
@@ -91,7 +93,7 @@ const PromptReset = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   main: {
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     maxWidth: 500,

@@ -11,6 +11,7 @@ type Props = {
 }
 
 const Banner = (props: Props) => {
+  const styles = useStyles()
   switch (props.bannerType) {
     case T.FS.MainBannerType.None:
       return null
@@ -44,7 +45,7 @@ const Banner = (props: Props) => {
   }
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   loadingLineContainer: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',

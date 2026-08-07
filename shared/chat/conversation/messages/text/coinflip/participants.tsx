@@ -11,6 +11,7 @@ export type Props = {
 const items: Kb.MenuItems = []
 
 const CoinFlipParticipants = (props: Props) => {
+  const styles = useStyles()
   const {attachTo, onHidden, participants, visible} = props
   const howThisWorksUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
   const header = (
@@ -55,7 +56,7 @@ const CoinFlipParticipants = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: Kb.Styles.platformStyles({

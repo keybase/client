@@ -13,6 +13,7 @@ type OwnProps = {
 }
 
 function DeviceRow(ownProps: OwnProps) {
+  const styles = useStyles()
   const {canRevoke, device, firstItem} = ownProps
   const {deviceID} = device
   const navigateAppend = C.Router2.navigateAppend
@@ -59,15 +60,15 @@ function DeviceRow(ownProps: OwnProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       icon: {opacity: 0.3},
       meta: {
         marginLeft: isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.xtiny,
       },
       text: {
-        color: Kb.Styles.globalColors.black_20,
+        color: theme.black_20,
         textDecorationLine: 'line-through',
         textDecorationStyle: 'solid',
       },

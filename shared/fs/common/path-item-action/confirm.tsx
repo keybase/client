@@ -52,26 +52,29 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-const ConfirmHeader = (props: {action: 'save-media' | 'send-to-other-app'; size: number}) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    centerChildren={true}
-    padding="medium"
-    gap="small"
-  >
-    <Kb.Text type="Header" style={styles.confirmText}>
-      Continue to {props.action === 'save-media' ? 'save' : 'share'}?
-    </Kb.Text>
-    <Kb.Text type="Body" style={styles.confirmText}>
-      {props.action === 'save-media'
-        ? `You are about to download a ${FS.humanReadableFileSize(props.size)} file.`
-        : `The file will be downloaded and its size is ${FS.humanReadableFileSize(props.size)}.`}
-    </Kb.Text>
-  </Kb.Box2>
-)
+const ConfirmHeader = (props: {action: 'save-media' | 'send-to-other-app'; size: number}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      centerChildren={true}
+      padding="medium"
+      gap="small"
+    >
+      <Kb.Text type="Header" style={styles.confirmText}>
+        Continue to {props.action === 'save-media' ? 'save' : 'share'}?
+      </Kb.Text>
+      <Kb.Text type="Body" style={styles.confirmText}>
+        {props.action === 'save-media'
+          ? `You are about to download a ${FS.humanReadableFileSize(props.size)} file.`
+          : `The file will be downloaded and its size is ${FS.humanReadableFileSize(props.size)}.`}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       confirmText: {

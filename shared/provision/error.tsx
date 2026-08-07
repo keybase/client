@@ -7,22 +7,25 @@ import * as T from '@/constants/types'
 import type {ProvisionRouteError} from '@/constants/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
 
-const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
-  <SignupScreen
-    onBack={p.onBack}
-    buttons={isMobile ? [{label: 'Close', onClick: p.onBack}] : undefined}
-  >
-    <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
-      <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
-      <Kb.Text type="Header" style={styles.header}>
-        Oops, something went wrong.
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
-        {p.children}
-      </Kb.Box2>
-    </Kb.ScrollView>
-  </SignupScreen>
-)
+const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => {
+  const styles = useStyles()
+  return (
+    <SignupScreen
+      onBack={p.onBack}
+      buttons={isMobile ? [{label: 'Close', onClick: p.onBack}] : undefined}
+    >
+      <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
+        <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
+        <Kb.Text type="Header" style={styles.header}>
+          Oops, something went wrong.
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+          {p.children}
+        </Kb.Box2>
+      </Kb.ScrollView>
+    </SignupScreen>
+  )
+}
 
 const rewriteErrorDesc = (s: string) => {
   switch (s) {
@@ -43,6 +46,7 @@ type Props = {
 }
 
 const RenderError = ({route}: Props) => {
+  const styles = useStyles()
   const error = route.params.error
   const username = route.params.username ?? ''
   const onBack = C.Router2.navigateUp
@@ -287,7 +291,7 @@ const RenderError = ({route}: Props) => {
   }
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: {maxWidth: 550},

@@ -23,7 +23,7 @@ const usePlayState = (url: string, autoPlay: boolean) => {
   return {playing, setPlaying}
 }
 
-const sharedStyles = Kb.Styles.styleSheetCreate(
+const useSharedStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       absoluteContainer: {
@@ -51,6 +51,7 @@ type VideoElementRef = {
 }
 
 const DesktopVideo = (p: Props) => {
+  const sharedStyles = useSharedStyles()
   const {autoPlay, onClick, height, width, style, url} = p
   const videoRef = React.useRef<VideoElementRef | null>(null)
   const {playing, setPlaying} = usePlayState(url, autoPlay)
@@ -103,6 +104,7 @@ type NativeActiveVideoProps = {
 }
 
 const NativeActiveVideo = (props: NativeActiveVideoProps) => {
+  const nativeStyles = useNativeStyles()
   const {sourceUri, autoPlay, playing, style} = props
 
   const player = useVideoPlayer(sourceUri, p => {
@@ -162,6 +164,7 @@ const NativeActiveVideo = (props: NativeActiveVideoProps) => {
 }
 
 const NativeVideo = (props: Props) => {
+  const sharedStyles = useSharedStyles()
   const {autoPlay, onClick, url, style, width, height} = props
   const {playing, setPlaying} = usePlayState(url, autoPlay)
   // Activate the player when autoPlay is true or the user first taps play.
@@ -208,7 +211,7 @@ const NativeVideo = (props: Props) => {
 }
 
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
+const useNativeStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       player: {

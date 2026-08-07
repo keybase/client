@@ -349,6 +349,7 @@ const EncryptOptionsPanel = ({
   setEncryptOptions: (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => void
   sign: boolean
 }) => {
+  const styles = useStyles()
   const direction = isMobile && !Kb.Styles.isTablet ? 'vertical' : 'horizontal'
   const gap = isMobile && !Kb.Styles.isTablet ? 'xtiny' : 'medium'
 
@@ -427,7 +428,7 @@ const EncryptOutputBanner = ({
   return <OutputInfoBanner outputStatus={outputStatus}>{paragraphs}</OutputInfoBanner>
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       optionsContainer: Kb.Styles.platformStyles({

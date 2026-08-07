@@ -22,6 +22,7 @@ type OwnProps = {
 const noAdmins: Array<string> = []
 
 const TeamMention = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {allowFontScaling, name, channel, mentionInfo, style} = ownProps
   const _convID = mentionInfo ? mentionInfo.convID : undefined
   const description = mentionInfo?.description || ''
@@ -128,8 +129,8 @@ const TeamMention = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -137,9 +138,9 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       resolved: {
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
         borderRadius: 2,
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
       },
       text: Kb.Styles.platformStyles({
         common: {

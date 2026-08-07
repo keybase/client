@@ -7,6 +7,8 @@ type Props = {
 }
 
 const YouRekey = (p: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   if (!isMobile) {
     return (
       <Kb.Box2
@@ -20,7 +22,7 @@ const YouRekey = (p: Props) => {
           direction="horizontal"
           fullWidth={true}
           justifyContent="center"
-          style={{backgroundColor: Kb.Styles.globalColors.red}}
+          style={{backgroundColor: theme.red}}
         >
           <Kb.Text
             negative={true}
@@ -65,15 +67,15 @@ const YouRekey = (p: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
-    backgroundColor: Kb.Styles.globalColors.blueDarker2,
+    backgroundColor: theme.blueDarker2,
   },
   mobileContainer: {
     padding: Kb.Styles.globalMargins.small,
   },
-  primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
-  primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+  primaryOnBlue: {backgroundColor: theme.white},
+  primaryOnBlueLabel: {color: theme.blueDark},
   text: {
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.large),
   },

@@ -20,19 +20,23 @@ type Props = {
   toastTargetRef?: React.RefObject<MeasureRef | null>
 }
 
-const SimpleToast = (props: Props) => (
-  <Kb.Toast visible={props.visible} attachTo={props.toastTargetRef}>
-    <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-      <Kb.IconAuto type={props.iconType} color={Styles.globalColors.white} />
-      <Kb.Text type="BodySemibold" style={styles.toastText}>
-        {props.text}
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.Toast>
-)
+const SimpleToast = (props: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
+  return (
+    <Kb.Toast visible={props.visible} attachTo={props.toastTargetRef}>
+      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+        <Kb.IconAuto type={props.iconType} color={theme.white} />
+        <Kb.Text type="BodySemibold" style={styles.toastText}>
+          {props.text}
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Toast>
+  )
+}
 
 export default SimpleToast
 
-const styles = Styles.styleSheetCreate(() => ({
-  toastText: {color: Styles.globalColors.white},
+const useStyles = Styles.createStyleHook(theme => ({
+  toastText: {color: theme.white},
 }))

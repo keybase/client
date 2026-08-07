@@ -28,6 +28,8 @@ const _secondsLeft = (explodesAt: number) => {
 }
 
 const ExplodingPopupHeader = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {explodesAt, onHidden} = props
   const [secondsLeft, setSecondsLeft] = React.useState(_secondsLeft(explodesAt))
 
@@ -108,7 +110,7 @@ const ExplodingPopupHeader = (props: Props) => {
         styles.timerBox,
         {
           backgroundColor:
-            secondsLeft < oneMinuteInS ? Kb.Styles.globalColors.red : Kb.Styles.globalColors.black,
+            secondsLeft < oneMinuteInS ? theme.red : theme.black,
         },
       ])}
     >
@@ -124,7 +126,7 @@ const ExplodingPopupHeader = (props: Props) => {
           <Kb.Icon
             type="iconfont-timer"
             fontSize={isMobile ? 20 : 16}
-            color={Kb.Styles.globalColors.white}
+            color={theme.white}
           />
           <Kb.Text style={styles.timerText} type="BodySemibold">
             {msToDHMS(props.explodesAt - now)}
@@ -147,8 +149,8 @@ const headerIconType = isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-
 const headerIconHeight = 48
 const oneMinuteInS = 60
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       headerIcon: {
         height: headerIconHeight,
@@ -161,8 +163,8 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       popupHeaderText: {
-        backgroundColor: Kb.Styles.globalColors.blue,
-        color: Kb.Styles.globalColors.white,
+        backgroundColor: theme.blue,
+        color: theme.white,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       },
       revokedAt: {
@@ -177,8 +179,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {height: 46},
       }),
       fullWidth: {width: '100%'},
-      timerText: {alignSelf: 'center', color: Kb.Styles.globalColors.white},
-      whiteText: {color: Kb.Styles.globalColors.white},
+      timerText: {alignSelf: 'center', color: theme.white},
+      whiteText: {color: theme.white},
     }) as const
 )
 

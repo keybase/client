@@ -12,6 +12,7 @@ type Props = OwnProps & {
 }
 
 const Explain = (props: Props) => {
+  const styles = useStyles()
   const elems = T.FS.getPathElements(props.path)
   if (elems.length < 3) {
     return null
@@ -46,41 +47,47 @@ const Explain = (props: Props) => {
   }
 }
 
-const NoAccess = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-    <Kb.EmptyState
-      illustration={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
-      action={{label: 'Go to parent folder', onClick: props.openParent}}
-    >
-      <Kb.Text type="Header" style={styles.textYouDontHave}>
-        {"You don't have access to this folder or file."}
-      </Kb.Text>
-      <Explain {...props} />
-    </Kb.EmptyState>
-  </Kb.Box2>
-)
-
-const NonExistent = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-    <Kb.EmptyState
-      illustration={
-        isMobile
-          ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
-          : 'icon-fancy-folder-file-inexistant-desktop-153-94'
-      }
-      action={{label: 'Go to parent folder', onClick: props.openParent}}
-    >
-      <Kb.Text type="Header" style={styles.textYouDontHave}>
-        {"This file or folder doesn't exist."}
-      </Kb.Text>
-      <Kb.Box2 direction="horizontal" style={styles.explainBox}>
-        <Kb.Text center={true} type="Body">
-          Either it was deleted, or the path is incorrect.
+const NoAccess = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+      <Kb.EmptyState
+        illustration={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
+        action={{label: 'Go to parent folder', onClick: props.openParent}}
+      >
+        <Kb.Text type="Header" style={styles.textYouDontHave}>
+          {"You don't have access to this folder or file."}
         </Kb.Text>
-      </Kb.Box2>
-    </Kb.EmptyState>
-  </Kb.Box2>
-)
+        <Explain {...props} />
+      </Kb.EmptyState>
+    </Kb.Box2>
+  )
+}
+
+const NonExistent = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+      <Kb.EmptyState
+        illustration={
+          isMobile
+            ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
+            : 'icon-fancy-folder-file-inexistant-desktop-153-94'
+        }
+        action={{label: 'Go to parent folder', onClick: props.openParent}}
+      >
+        <Kb.Text type="Header" style={styles.textYouDontHave}>
+          {"This file or folder doesn't exist."}
+        </Kb.Text>
+        <Kb.Box2 direction="horizontal" style={styles.explainBox}>
+          <Kb.Text center={true} type="Body">
+            Either it was deleted, or the path is incorrect.
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.EmptyState>
+    </Kb.Box2>
+  )
+}
 
 const Oops = (props: OwnProps) => {
   const nav = useSafeNavigation()
@@ -98,11 +105,11 @@ const Oops = (props: OwnProps) => {
 
 export default Oops
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.white},
+        common: {backgroundColor: theme.white},
         isMobile: {padding: Kb.Styles.globalMargins.large},
       }),
       // these margins stack with EmptyState's "small" gap

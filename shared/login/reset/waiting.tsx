@@ -16,6 +16,8 @@ const formatTimeLeft = (endTime: number) => {
 }
 
 const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const badgeEndTime = useConfigState(s => s.badgeState?.resetState.endTime ?? 0)
   const endTime = badgeEndTime || routeEndTime || 0
   const [formattedTime, setFormattedTime] = React.useState('a bit')
@@ -75,7 +77,7 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
         icon={
           <Kb.Icon
             type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
-            color={Kb.Styles.globalColors.black}
+            color={theme.black}
             fontSize={24}
           />
         }
@@ -114,13 +116,13 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
 
 export default Waiting
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   mainText: {
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
     maxWidth: 300,
   },
   progressContainer: {
     ...Kb.Styles.globalStyles.fillAbsolute,
-    backgroundColor: Kb.Styles.globalColors.white_40OrBlack_60,
+    backgroundColor: theme.white_40OrBlack_60,
   },
 }))

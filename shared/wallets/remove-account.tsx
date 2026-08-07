@@ -9,6 +9,7 @@ type OwnProps = {
 }
 
 const RemoveAccountPopup = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {accountID, balanceDescription, name} = ownProps
   const onDelete = () => {
     C.Router2.navigateAppend(
@@ -67,7 +68,7 @@ const RemoveAccountPopup = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   buttonBar: Kb.Styles.platformStyles({
     isElectron: {minHeight: 0},
   }),

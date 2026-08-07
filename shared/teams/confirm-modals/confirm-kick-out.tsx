@@ -16,6 +16,7 @@ type Props = {
 }
 
 const ConfirmKickOut = (props: Props) => {
+  const styles = useStyles()
   const {members, teamID} = props
   const [subteamsToo, setSubteamsToo] = React.useState(false)
   const [kickedVisible, setKickedVisible] = React.useState(false)
@@ -143,7 +144,7 @@ const ConfirmKickOut = (props: Props) => {
 }
 export default ConfirmKickOut
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   headerIcon: Kb.Styles.platformStyles({
     common: {position: 'relative'},

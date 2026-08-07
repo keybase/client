@@ -8,6 +8,8 @@ import {makeMessageWrapper} from '../wrapper/wrapper'
 type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
 function SystemNewChannelContainer(p: OwnProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {message} = p
   const teamID = useThreadMeta(m => m.teamID)
   const navigateAppend = C.Router2.navigateAppend
@@ -16,7 +18,7 @@ function SystemNewChannelContainer(p: OwnProps) {
   const descStyleOverride = {
     link: {fontSize: isMobile ? 15 : 13, fontWeight: '600'},
     paragraph: {
-      color: isMobile ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.black_50OrWhite_40,
+      color: isMobile ? theme.black_50 : theme.black_50OrWhite_40,
       fontSize: isMobile ? 15 : 13,
     },
   } as const
@@ -33,7 +35,7 @@ function SystemNewChannelContainer(p: OwnProps) {
       <Kb.Text
         onClick={onManageChannels}
         type="BodySmallSemiboldSecondaryLink"
-        style={{color: Kb.Styles.globalColors.blueDark}}
+        style={{color: theme.blueDark}}
       >
         Browse other channels
       </Kb.Text>
@@ -41,12 +43,12 @@ function SystemNewChannelContainer(p: OwnProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       text: Kb.Styles.platformStyles({
-        isElectron: {color: Kb.Styles.globalColors.black_50OrWhite_40},
-        isMobile: {color: Kb.Styles.globalColors.black_50},
+        isElectron: {color: theme.black_50OrWhite_40},
+        isMobile: {color: theme.black_50},
       }),
     }) as const
 )

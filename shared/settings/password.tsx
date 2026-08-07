@@ -24,6 +24,8 @@ const errorSavingFunc = (password: string, passwordConfirm: string): string => {
 }
 
 export const UpdatePassword = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [password, setPassword] = React.useState('')
   const [passwordConfirm, setPasswordConfirm] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(!!props.showTyping)
@@ -58,7 +60,7 @@ export const UpdatePassword = (props: Props) => {
     errorSaving
   ) : password.length >= 8 && passwordConfirm.length >= 8 ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.passwordFormat}>
-      <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
+      <Kb.Icon type="iconfont-check" color={theme.green} sizeType="Small" />
       <Kb.Text type="BodySmallSuccess">Passwords match.</Kb.Text>
     </Kb.Box2>
   ) : (
@@ -139,8 +141,8 @@ export const UpdatePassword = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bodyText: {
         paddingBottom: Kb.Styles.globalMargins.small,
@@ -155,7 +157,7 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       container: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       passwordFormat: {
         alignSelf: 'flex-start',

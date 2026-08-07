@@ -7,6 +7,7 @@ const OverlayIcon = function OverlayIcon(p: {
   isSelected: boolean
   isLocked: boolean
 }) {
+  const styles = useStyles()
   const {isHovered, isMuted, isSelected, isLocked} = p
 
   if (isMobile) {
@@ -63,6 +64,7 @@ type Props = {
 }
 
 const Avatars = function Avatars(p: Props) {
+  const styles = useStyles()
   const {participantOne, participantTwo, backgroundColor} = p
   const {singleSize = 48} = p
   const {isHovered = false} = p
@@ -97,7 +99,7 @@ const Avatars = function Avatars(p: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: {
     flexShrink: 0,
     justifyContent: 'flex-start',
@@ -117,6 +119,7 @@ const TeamAvatar = function TeamAvatar(p: {
   isSelected: boolean
   size?: 128 | 96 | 64 | 48 | 32 | 24 | 16
 }) {
+  const styles = useStyles()
   const {teamname, size, isSelected, isMuted, isHovered} = p
   return (
     <Kb.Box2 direction="vertical" relative={true} style={styles.container}>

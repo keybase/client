@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
-import {rowStyles, StillCommon} from './common'
+import {useRowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {
   LastModifiedLine,
@@ -31,6 +31,8 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 }
 
 const StillContainer = (p: OwnProps) => {
+  const theme = Kb.Styles.useTheme()
+  const rowStyles = useRowStyles()
   const {destinationPickerSource, path} = p
   const _pathItem = useFsPathItem(path, {loadOnMount: false, subscribe: false})
   const dismissUpload = useFsDismissUpload()
@@ -63,7 +65,7 @@ const StillContainer = (p: OwnProps) => {
           {isEmpty && (
             <Kb.Meta
               title="empty"
-              backgroundColor={Kb.Styles.globalColors.greyDark}
+              backgroundColor={theme.greyDark}
               style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xxtiny}}
             />
           )}
@@ -75,7 +77,7 @@ const StillContainer = (p: OwnProps) => {
             Upload has failed.{' '}
             <Kb.Text
               type="BodySmallPrimaryLink"
-              style={{color: Kb.Styles.globalColors.redDark}}
+              style={{color: theme.redDark}}
               onClick={e => {
                 e.stopPropagation()
                 dismissUploadError()
@@ -87,7 +89,7 @@ const StillContainer = (p: OwnProps) => {
         ) : intentIfDownloading ? (
           <Kb.Text type="BodySmall">{getDownloadingText(intentIfDownloading)}</Kb.Text>
         ) : writingToJournal ? (
-          <Kb.Meta title="Encrypting" backgroundColor={Kb.Styles.globalColors.blue} />
+          <Kb.Meta title="Encrypting" backgroundColor={theme.blue} />
         ) : uploading ? (
           <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
         ) : (

@@ -148,6 +148,8 @@ const addBotMember = async (p: {
 }
 
 const InstallBotPopup = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {botUsername, conversationIDKey} = props
   // state
   const [installScreen, setInstallScreen] = React.useState(false)
@@ -629,11 +631,11 @@ const InstallBotPopup = (props: Props) => {
               {removeButton}
             </Kb.ButtonBar>
             {!!error && (
-              <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
+              <Kb.Text type="Body" style={{color: theme.redDark}}>
                 {'Something went wrong! Please try again, or send '}
                 <Kb.Text
                   type="Body"
-                  style={{color: Kb.Styles.globalColors.redDark}}
+                  style={{color: theme.redDark}}
                   underline={true}
                   onClick={onFeedback}
                 >
@@ -655,13 +657,14 @@ type CommandsLabelProps = {
 const maxCommandsShown = 3
 
 const CommandsLabel = (props: CommandsLabelProps) => {
+  const theme = Kb.Styles.useTheme()
   const [expanded, setExpanded] = React.useState(false)
   let inner: React.ReactNode | undefined
   if (!props.commands) {
     inner = <Kb.ProgressIndicator />
   } else if (props.commands.loadError) {
     inner = (
-      <Kb.Text type="BodySemibold" style={{color: Kb.Styles.globalColors.redDark}}>
+      <Kb.Text type="BodySemibold" style={{color: theme.redDark}}>
         Error loading bot public commands.
       </Kb.Text>
     )
@@ -745,7 +748,7 @@ const PermsList = (props: PermsListProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   bodyScroll: {
     flex: 1,
     minHeight: 0,

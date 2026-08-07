@@ -50,6 +50,8 @@ type Props = {
   onHidden: () => void
 }
 const MessagePopupHeader = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {author, botUsername, deviceName, deviceRevokedAt, deviceType, fileSize} = props
   const {isLast, isLocation, timestamp, yourMessage, onHidden} = props
   const prettySize = fileSize ? humanReadableFileSize(fileSize) : ''
@@ -68,7 +70,7 @@ const MessagePopupHeader = (props: Props) => {
         <Kb.Text
           type="BodySmall"
           style={{
-            color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
+            color: deviceRevokedAt ? theme.black_50 : theme.greenDark,
           }}
         >
           ENCRYPTED & SIGNED
@@ -126,8 +128,8 @@ const MessagePopupHeader = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       headerContainer: Kb.Styles.platformStyles({
         common: {
@@ -147,8 +149,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {marginTop: Kb.Styles.globalMargins.small},
       }),
       popupHeaderText: {
-        backgroundColor: Kb.Styles.globalColors.blue,
-        color: Kb.Styles.globalColors.white,
+        backgroundColor: theme.blue,
+        color: theme.white,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       },
       divider: {

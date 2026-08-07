@@ -35,6 +35,7 @@ type ReloadProps = {
 }
 
 function Reload(props: ReloadProps) {
+  const styles = useStyles()
   const [expanded, setExpanded] = React.useState(false)
   const {onReload, onFeedback} = props
   const toggle = () => setExpanded(e => !e)
@@ -143,8 +144,8 @@ const Reloadable = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
       container: {
         height: '100%',
@@ -152,7 +153,7 @@ const styles = Styles.styleSheetCreate(
       },
       detailContainer: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueDarker2,
+          backgroundColor: theme.blueDarker2,
           borderRadius: Styles.borderRadius,
         },
         isElectron: {
@@ -170,7 +171,7 @@ const styles = Styles.styleSheetCreate(
       }),
       header: Styles.platformStyles({
         common: {
-          ...Styles.bottomDivider(),
+          ...Styles.bottomDivider(theme),
         },
         isAndroid: {height: 56},
         isIOS: {height: 44},

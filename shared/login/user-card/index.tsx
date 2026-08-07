@@ -12,6 +12,7 @@ type Props = {
 }
 
 const UserCard = (p: Props) => {
+  const styles = useStyles()
   const {outerStyle, onAvatarClicked, username, style, children} = p
 
   if (!isMobile) {
@@ -66,7 +67,7 @@ const UserCard = (p: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   avatarBackground: {
     left: 0,
     position: 'absolute',
@@ -88,7 +89,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       alignSelf: 'stretch',
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       borderRadius: Kb.Styles.borderRadius,
       padding: 30,
     },

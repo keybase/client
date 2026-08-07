@@ -10,6 +10,8 @@ const empty = {
 }
 
 const Container = () => {
+  const theme = Kb.Styles.useTheme()
+  const styles = useStyles()
   const info = InputState.useConversationInput(s => s.commandStatus)
   const _info = info || empty
 
@@ -33,17 +35,17 @@ const Container = () => {
         direction="horizontal"
         fullWidth={true}
         padding="tiny"
-        style={bkgColor(props.displayType)}
+        style={bkgColor(props.displayType, theme)}
         gap="xsmall"
       >
         <Kb.Icon
           onClick={props.onCancel}
           type="iconfont-remove"
           style={styles.close}
-          color={textColor(props.displayType)}
+          color={textColor(props.displayType, theme)}
         />
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} gap="tiny">
-          <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
+          <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType, theme)}])}>
             {props.displayText}
           </Kb.Text>
           {props.actions.map((a, i) => {
@@ -53,7 +55,7 @@ const Container = () => {
                 negative={true}
                 type="BodySmallSemiboldPrimaryLink"
                 onClick={a.onClick}
-                style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}
+                style={Kb.Styles.collapseStyles([{color: textColor(props.displayType, theme)}])}
                 underline={true}
               >
                 {a.displayText}
@@ -66,12 +68,12 @@ const Container = () => {
   )
 }
 
-const bkgColor = (typ: T.RPCChat.UICommandStatusDisplayTyp) => {
+const bkgColor = (typ: T.RPCChat.UICommandStatusDisplayTyp, theme: Kb.Styles.Theme) => {
   switch (typ) {
     case T.RPCChat.UICommandStatusDisplayTyp.error:
-      return {backgroundColor: Kb.Styles.globalColors.red}
+      return {backgroundColor: theme.red}
     case T.RPCChat.UICommandStatusDisplayTyp.warning:
-      return {backgroundColor: Kb.Styles.globalColors.yellowLight}
+      return {backgroundColor: theme.yellowLight}
     case T.RPCChat.UICommandStatusDisplayTyp.status:
       return {}
     default:
@@ -79,21 +81,21 @@ const bkgColor = (typ: T.RPCChat.UICommandStatusDisplayTyp) => {
   }
 }
 
-const textColor = (typ: T.RPCChat.UICommandStatusDisplayTyp) => {
+const textColor = (typ: T.RPCChat.UICommandStatusDisplayTyp, theme: Kb.Styles.Theme) => {
   switch (typ) {
     case T.RPCChat.UICommandStatusDisplayTyp.error:
-      return Kb.Styles.globalColors.white
+      return theme.white
     case T.RPCChat.UICommandStatusDisplayTyp.warning:
-      return Kb.Styles.globalColors.blackOrBlack
+      return theme.blackOrBlack
     case T.RPCChat.UICommandStatusDisplayTyp.status:
-      return Kb.Styles.globalColors.black
+      return theme.black
     default:
-      return Kb.Styles.globalColors.black
+      return theme.black
   }
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       close: {
         alignSelf: 'center',
@@ -101,14 +103,14 @@ const styles = Kb.Styles.styleSheetCreate(
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
-          border: `1px solid ${Kb.Styles.globalColors.black_20}`,
+          border: `1px solid ${theme.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xtiny,
           ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
           overflow: 'hidden',
         },
         isMobile: {
-          borderColor: Kb.Styles.globalColors.black_20,
+          borderColor: theme.black_20,
           borderStyle: 'solid',
           borderTopWidth: 1,
         },

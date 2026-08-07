@@ -52,6 +52,7 @@ const selectionFromDefault = (defaultSelected?: EmojiData): EmojiSelection => {
 }
 
 const AddAliasModal = (props: Props) => {
+  const styles = useStyles()
   const {defaultSelected} = props
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const defaultSelectedKey = defaultSelected ? getEmojiStr(defaultSelected) : ''
@@ -237,6 +238,7 @@ type SelectedEmojiProps = {
 }
 
 const SelectedEmoji = (props: SelectedEmojiProps) => {
+  const styles = useStyles()
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.emoji}>
       {props.chosen ? (
@@ -251,11 +253,11 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
 const emojiWidthWithPadding = isMobile ? 40 : 32
 const singleEmojiWidth = isMobile ? (24 as const) : (16 as const)
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexGrow,
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
     },
     isElectron: {
       padding: Kb.Styles.globalMargins.small,
@@ -269,7 +271,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   emoji: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     borderRadius: Kb.Styles.globalMargins.xtiny,
     ...Kb.Styles.size(emojiWidthWithPadding),
   },

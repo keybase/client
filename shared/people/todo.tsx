@@ -351,19 +351,22 @@ type Props = {
   buttons: Array<TaskButton>
 }
 
-const Task = (props: Props) => (
-  <PeopleItem
-    format="multi"
-    badged={props.badged}
-    icon={<Kb.IconAuto type={props.icon} />}
-    buttons={props.buttons}
-  >
-    <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
-    {!!props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
-  </PeopleItem>
-)
+const Task = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <PeopleItem
+      format="multi"
+      badged={props.badged}
+      icon={<Kb.IconAuto type={props.icon} />}
+      buttons={props.buttons}
+    >
+      <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
+      {!!props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
+    </PeopleItem>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   instructions: {marginTop: 2},
 }))
 

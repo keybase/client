@@ -117,13 +117,18 @@ const JobError = (p: {
   error: string
   fontSize?: number
   containerStyle?: Kb.Styles.StylesCrossPlatform
-}) => (
-  <Kb.WithTooltip tooltip={p.error} showOnPressMobile={true} containerStyle={p.containerStyle}>
-    <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={p.fontSize} />
-  </Kb.WithTooltip>
-)
+}) => {
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.WithTooltip tooltip={p.error} showOnPressMobile={true} containerStyle={p.containerStyle}>
+      <Kb.Icon type="iconfont-exclamation" color={theme.red} fontSize={p.fontSize} />
+    </Kb.WithTooltip>
+  )
+}
 
 function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise<void>}) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {index, job, loadChat} = p
   const {id} = job
   const cancelChat = C.useRPC(T.RPCChat.localArchiveChatDeleteRpcPromise)
@@ -223,7 +228,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
       <Kb.Box2 direction="horizontal" noShrink={true} gap="tiny">
         {pauseOrResume}
         {isMobile ? (
-          <Kb.Icon color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
+          <Kb.Icon color={theme.red} type="iconfont-remove" onClick={onCancel} />
         ) : (
           <Kb.Button type="Danger" label="Cancel" onClick={onCancel} small={true} />
         )}
@@ -251,6 +256,8 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
 }
 
 function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {index, job} = p
   const {id} = job
   const [currentTLFRevision, setCurrentTLFRevision] = React.useState(0)
@@ -337,7 +344,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
                   <Kb.Icon onClick={showPopup} type="iconfont-ellipsis" />
                 ) : (
                   <Kb.Icon
-                    color={Kb.Styles.globalColors.red}
+                    color={theme.red}
                     type="iconfont-remove"
                     onClick={onCancelOrDismiss}
                   />
@@ -396,7 +403,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
             <Kb.WithTooltip tooltip={revisionBehindStr}>
               <Kb.Icon
                 type="iconfont-exclamation"
-                color={Kb.Styles.globalColors.yellowDark}
+                color={theme.yellowDark}
                 fontSize={14}
               />
             </Kb.WithTooltip>
@@ -415,6 +422,7 @@ const ArchiveButtonRow = ({children}: {children: React.ReactNode}) => (
 )
 
 const Archive = () => {
+  const styles = useStyles()
   const {chatJobs, kbfsJobs, load, loadChat} = useArchiveJobs()
   const navigateAppend = C.Router2.navigateAppend
 
@@ -537,7 +545,7 @@ const Archive = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   clear: {alignSelf: 'flex-start', marginTop: 16},
   container: {padding: isMobile ? 8 : 16},
   errorTip: {justifyContent: 'center'},
@@ -548,7 +556,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   kbfsActions: {
     paddingLeft: 8,
   },
-  kbfsCancel: {color: Kb.Styles.globalColors.red},
+  kbfsCancel: {color: theme.red},
   kbfsJobLeft: {
     flexShrink: 1,
   },

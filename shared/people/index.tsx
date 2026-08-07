@@ -143,6 +143,7 @@ function PeoplePageList(props: Props) {
 }
 
 function People(props: WrapProps) {
+  const styles = useStyles()
   const {waiting, ...rest} = props
   // destructure so the compiler keys onRefresh on getData, not the whole props object
   const {getData} = props
@@ -155,7 +156,7 @@ function People(props: WrapProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: {...Kb.Styles.globalStyles.fullHeight},
   progress: {
     ...Kb.Styles.size(24),

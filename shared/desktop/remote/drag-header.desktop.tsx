@@ -13,6 +13,8 @@ export type Props = {
 }
 
 const DragHeader = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const renderDefault = () => {
     const maybeWindowDraggingStyle =
       (props.windowDragging ?? true) ? Kb.Styles.desktopStyles.windowDragging : {}
@@ -32,7 +34,7 @@ const DragHeader = (props: Props) => {
         <Kb.Text type="Body" style={{flex: 1, paddingLeft: 6}}>
           {props.title}
         </Kb.Text>
-        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={props.onClose} />}
+        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" color={theme.black_20} onClick={props.onClose} />}
       </div>
     )
   }
@@ -64,7 +66,7 @@ const DragHeader = (props: Props) => {
           </Kb.Text>
         )}
         {props.children}
-        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={props.onClose} />}
+        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" color={theme.black_20} onClick={props.onClose} />}
       </div>
     )
   }
@@ -76,7 +78,7 @@ const DragHeader = (props: Props) => {
   }
 }
 
-const styles = {
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   closeIcon: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.desktopStyles.windowDraggingClickable,
@@ -100,10 +102,10 @@ const styles = {
     width: 22,
   },
   strongContainer: {
-    backgroundColor: Kb.Styles.globalColors.blue,
+    backgroundColor: theme.blue,
     paddingBottom: 12,
     paddingTop: 6,
   },
-}
+}))
 
 export default DragHeader

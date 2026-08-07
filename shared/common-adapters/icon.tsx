@@ -31,13 +31,14 @@ const cssVarToColorName = (cssVar: string): string | undefined => {
 }
 
 const IconDesktop = (props: IconProps) => {
+  const theme = Styles.useTheme()
   const {type, color, fontSize, sizeType, style, className, hoverColor, hint, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null
 
   const size = fontSize ?? sizeToFont[sizeType ?? 'Default']
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
-  const effectiveColor = color || Styles.globalColors.black_50
+  const effectiveColor = color || theme.black_50
   // Use CSS class for color when it's a known CSS variable, so external CSS can override it.
   // Inline styles have higher specificity than CSS classes and break cases like the sidebar tab icons.
   const colorName = cssVarToColorName(effectiveColor)
@@ -67,13 +68,8 @@ const IconDesktop = (props: IconProps) => {
   return <span className={cn} style={finalStyle} onClick={handleClick} title={hint} data-testid={props.testID} />
 }
 
-const nativeBaseStyle: Styles._StylesCrossPlatform = {
-  color: Styles.globalColors.black_50,
-  fontFamily: 'kb',
-  fontWeight: 'normal' as const,
-}
-
 const IconNative = (props: IconProps) => {
+  const theme = Styles.useTheme()
   const {type, color, fontSize, sizeType, style, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null
@@ -81,13 +77,18 @@ const IconNative = (props: IconProps) => {
   const code = String.fromCharCode(meta.charCode || 0)
   const size = fontSize ?? sizeToFont[sizeType ?? 'Default']
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
+  const nativeBaseStyle: Styles._StylesCrossPlatform = {
+    color: theme.black_50,
+    fontFamily: 'kb',
+    fontWeight: 'normal' as const,
+  }
 
   return (
     <RNText
       style={Styles.castStyleNative(
         Styles.collapseStyles([
           nativeBaseStyle,
-          {color: color || Styles.globalColors.black_50, fontSize: size},
+          {color: color || theme.black_50, fontSize: size},
           paddingValue && {padding: paddingValue},
           style,
         ])

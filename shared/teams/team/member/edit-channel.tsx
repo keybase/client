@@ -14,6 +14,7 @@ type Props = {
 }
 
 const EditChannel = (props: Props) => {
+  const styles = useStyles()
   const teamID = props.teamID
   const conversationIDKey = props.conversationIDKey
   const oldName = props.channelname
@@ -127,7 +128,7 @@ const EditChannel = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

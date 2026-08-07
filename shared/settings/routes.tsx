@@ -52,13 +52,14 @@ const VerifyPhoneHeaderTitle = ({phoneNumber}: {phoneNumber?: string}) => {
 }
 
 const VerifyPhoneHeaderLeft = () => {
+  const theme = Kb.Styles.useTheme()
   const clearModals = C.Router2.clearModals
   return (
     <Kb.BackButton
       onClick={() => {
         clearModals()
       }}
-      iconColor={Kb.Styles.globalColors.white}
+      iconColor={theme.white}
     />
   )
 }
@@ -212,12 +213,12 @@ const sharedNewModalRoutes = {
           ? {
               unstable_headerLeftItems: () => [
                 Kb.nativeIconHeaderItem('chevron.backward', 'Back', C.Router2.clearModals, {
-                  tintColor: Kb.Styles.globalColors.white,
+                  tintColor: Kb.Styles.getTheme().white,
                 }),
               ],
             }
           : {headerLeft: isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined}),
-        headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+        headerStyle: {backgroundColor: Kb.Styles.getTheme().blue},
         headerTitle: () => <VerifyPhoneHeaderTitle phoneNumber={route.params.phoneNumber} />,
       }),
     }
@@ -265,14 +266,21 @@ export const newModalRoutes = defineRouteMap({
           ...(isIOS
             ? {
                 unstable_headerLeftItems: () => [],
-                unstable_headerRightItems: () => [
-                  Kb.nativeTextHeaderItem('Skip', onPushPromptSkip, {
-                    labelStyle: {...Kb.nativeHeaderItemLabelStyle(), color: Kb.Styles.globalColors.white},
-                  }),
-                ],
+                unstable_headerRightItems: () => {
+                  const theme = Kb.Styles.getTheme()
+                  return [
+                    Kb.nativeTextHeaderItem('Skip', onPushPromptSkip, {
+                      labelStyle: {...Kb.nativeHeaderItemLabelStyle(theme), color: theme.white},
+                    }),
+                  ]
+                },
               }
             : {headerLeft: () => null, headerRight: () => <PushPromptSkipButton />}),
-          headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+          headerStyle: {
+            get backgroundColor() {
+              return Kb.Styles.getTheme().blue
+            },
+          },
           headerTitle: () => (
             <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
               Allow notifications

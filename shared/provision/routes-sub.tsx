@@ -17,6 +17,7 @@ const CodePageHeaderLeft = () => {
 }
 
 const UsernameHeaderRight = ({username}: {username: string}) => {
+  const styles = useStyles()
   const requestAutoInvite = useRequestAutoInvite()
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.headerRight}>
@@ -70,7 +71,7 @@ export const newRoutes = {
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not
 // an empty newModalRoutes here.
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   headerRight: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.small},
   }),

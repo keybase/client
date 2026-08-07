@@ -12,6 +12,7 @@ import {useLoadedTeam} from './use-loaded-team'
 import {setMemberPublicity} from '@/teams/actions'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const styles = useStyles()
   const nav = useSafeNavigation()
   const onAdd = () =>
     nav.safeNavigateAppend({
@@ -34,6 +35,7 @@ type FeatureTeamCardProps = {
   onDismiss: () => void
 }
 const FeatureTeamCard = ({teamID, onDismiss}: FeatureTeamCardProps) => {
+  const styles = useStyles()
   const onFeature = () => setMemberPublicity(teamID, true)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsSetMemberPublicity(teamID))
   return (
@@ -89,6 +91,8 @@ const roleDisplay = {
 }
 
 const HeaderTitle = (props: HeaderTitleProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {teamID} = props
   const {teamDetails: details, teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
   const {teams: activityByTeam} = useActivityLevels()
@@ -190,7 +194,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           )}
           <Kb.Button label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />
           <Kb.Button mode="Secondary" small={true} ref={tmpopupAnchor} onClick={tmshowPopup}>
-            <Kb.Icon type="iconfont-ellipsis" color={Kb.Styles.globalColors.blue} />
+            <Kb.Icon type="iconfont-ellipsis" color={theme.blue} />
           </Kb.Button>
           {tmpopup}
         </Kb.Box2>
@@ -298,12 +302,12 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   }
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       addInviteAndLinkBox: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.black_10),
+          ...Kb.Styles.border(theme.black_10),
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.tiny,
         },
@@ -328,7 +332,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       addInviteAsFeatureTeamBox: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.black_10),
+          ...Kb.Styles.border(theme.black_10),
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.tiny,
         },
@@ -358,16 +362,16 @@ const styles = Kb.Styles.styleSheetCreate(
         textDecorationLine: 'underline',
       },
       alignSelfFlexStart: {alignSelf: 'flex-start'},
-      backgroundWhite: {backgroundColor: Kb.Styles.globalColors.white},
+      backgroundWhite: {backgroundColor: theme.white},
       clickable: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
       }),
       editTeamAvatar: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blue,
-          ...Kb.Styles.border(Kb.Styles.globalColors.white, 2, 100),
+          backgroundColor: theme.blue,
+          ...Kb.Styles.border(theme.white, 2, 100),
           bottom: -6,
-          color: Kb.Styles.globalColors.whiteOrWhite,
+          color: theme.whiteOrWhite,
           padding: 4,
           position: 'absolute',
           right: -6,
@@ -392,7 +396,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       outerBoxMobile: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
       },
       rightActionsContainer: Kb.Styles.platformStyles({
         common: {

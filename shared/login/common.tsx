@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 
 // Question screens in reset/ and recover-password/ hug the top on mobile instead of centering
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',
@@ -21,6 +21,7 @@ type QuestionBodyProps = {
 
 // icon-over-text body shared by the reset / recover-password question screens
 export const QuestionBody = (p: QuestionBodyProps) => {
+  const styles = useStyles()
   const {centered = true, children, gap = 'medium', icon, topGap = true} = p
   return (
     <Kb.Box2

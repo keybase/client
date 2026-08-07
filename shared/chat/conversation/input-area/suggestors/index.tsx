@@ -432,6 +432,7 @@ type PopupProps = {
   children: React.ReactNode
 }
 const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
+  const styles = useStyles()
   const insets = useSafeAreaInsets()
   const maxInputArea = React.useContext(MaxInputAreaContext)
   const {height: keyboardHeight} = useReanimatedKeyboardAnimation()
@@ -481,7 +482,7 @@ const Popup = (p: PopupProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   area: {marginTop: 'auto'},
   sticky: {flexGrow: 1, flexShrink: 1},
 }))

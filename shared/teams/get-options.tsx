@@ -14,6 +14,7 @@ export const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
+  const styles = useStyles()
   const route = useRoute('teamsRoot')
   const params = route.params
   const navigation = useNavigation('teamsRoot')
@@ -36,6 +37,7 @@ const TeamsFilter = () => {
 }
 
 const HeaderRightActions = () => {
+  const styles = useStyles()
   const {onCreateTeam, onJoinTeam} = useHeaderActions()
   return (
     <Kb.Box2 gap="tiny" direction="horizontal" alignItems="center" style={styles.headerActions}>
@@ -45,7 +47,7 @@ const HeaderRightActions = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   filter: {
     alignSelf: 'flex-end',
     marginBottom: Kb.Styles.globalMargins.xtiny,

@@ -4,6 +4,7 @@ import Modal from '@/profile/modal'
 import {PgpMobileUnsupported} from './choice'
 
 export default function Import() {
+  const styles = useStyles()
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
@@ -34,8 +35,8 @@ export default function Import() {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       body: {
         ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
@@ -45,10 +46,10 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       terminal: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueDarker2,
+          backgroundColor: theme.blueDarker2,
           borderRadius: Kb.Styles.borderRadius,
           boxSizing: 'content-box',
-          color: Kb.Styles.globalColors.white,
+          color: theme.white,
           ...Kb.Styles.marginH(-Kb.Styles.globalMargins.medium),
           padding: Kb.Styles.globalMargins.medium,
           textAlign: 'left',

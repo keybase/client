@@ -9,6 +9,7 @@ const enabledDescription = 'Your phone contacts are being synced on this device.
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
 
 const ManageContacts = () => {
+  const styles = useStyles()
   const contactsState = useSettingsContactsState(
     C.useShallow(s => ({
       contactsImported: s.importEnabled,
@@ -118,7 +119,7 @@ const ManageContactsBanner = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       buttonBar: {

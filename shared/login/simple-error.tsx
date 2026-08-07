@@ -8,22 +8,25 @@ type Props = {
   onBack: () => void
 }
 
-export const SimpleErrorScreen = (props: Props) => (
-  <SignupScreen
-    buttons={[{label: 'Back', onClick: props.onBack, type: 'Default'}]}
-    onBack={props.onBack}
-    title={props.title}
-  >
-    <Kb.Text center={true} type="Header" style={styles.heading}>
-      {props.heading}
-    </Kb.Text>
-    <Kb.Text type="Body" center={true}>
-      {props.message}
-    </Kb.Text>
-  </SignupScreen>
-)
+export const SimpleErrorScreen = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <SignupScreen
+      buttons={[{label: 'Back', onClick: props.onBack, type: 'Default'}]}
+      onBack={props.onBack}
+      title={props.title}
+    >
+      <Kb.Text center={true} type="Header" style={styles.heading}>
+        {props.heading}
+      </Kb.Text>
+      <Kb.Text type="Body" center={true}>
+        {props.message}
+      </Kb.Text>
+    </SignupScreen>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       heading: {maxWidth: 460, width: '80%'},

@@ -7,6 +7,7 @@ import {useLoadedTeam} from './use-loaded-team'
 type Props = {teamID: T.Teams.TeamID}
 
 const TeamInfo = (props: Props) => {
+  const styles = useStyles()
   const {teamID} = props
   const {teamDetails, teamMeta} = useLoadedTeam(teamID)
   const teamname = teamMeta.teamname
@@ -155,7 +156,7 @@ const TeamInfo = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   avatar: {
     alignSelf: 'center',
     marginRight: Kb.Styles.globalMargins.tiny,
@@ -169,10 +170,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   editTeamAvatar: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.blue,
-      ...Kb.Styles.border(Kb.Styles.globalColors.white, 2, 100),
+      backgroundColor: theme.blue,
+      ...Kb.Styles.border(theme.white, 2, 100),
       bottom: -6,
-      color: Kb.Styles.globalColors.whiteOrWhite,
+      color: theme.whiteOrWhite,
       padding: 4,
       position: 'absolute',
       right: -6,

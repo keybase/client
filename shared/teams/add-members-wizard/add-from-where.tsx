@@ -10,6 +10,7 @@ type Props = {
 }
 
 const AddFromWhere = ({wizard}: Props) => {
+  const styles = useStyles()
   const nav = useSafeNavigation()
   const isNewTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
   const navigateAppend = C.Router2.navigateAppend
@@ -73,9 +74,9 @@ const AddFromWhere = ({wizard}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   body: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+    common: {backgroundColor: theme.blueGrey},
     isElectron: {
       ...Kb.Styles.padding(
         Kb.Styles.globalMargins.small,

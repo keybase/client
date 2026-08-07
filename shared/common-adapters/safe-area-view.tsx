@@ -11,6 +11,7 @@ type Props = {
 }
 
 const SafeAreaViewTopNative = (p: Props) => {
+  const nativeStyles = useNativeStyles()
   const {children, style} = p
   const insets = useSafeAreaInsetsNative()
   return (
@@ -23,8 +24,8 @@ const SafeAreaViewTopNative = (p: Props) => {
 // desktop has no insets; both exports pass children straight through
 const PassThrough = (props: Props): React.ReactNode => props.children ?? null
 
-const nativeStyles = Styles.styleSheetCreate(() => ({
-  topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
+const useNativeStyles = Styles.createStyleHook(theme => ({
+  topSafeArea: {backgroundColor: theme.white, flexGrow: 0},
 }))
 
 export const SafeAreaViewTop = isMobile ? SafeAreaViewTopNative : PassThrough

@@ -29,7 +29,7 @@ export const Default: Story = {
 }
 
 export const Colored: Story = {
-  args: {type: 'iconfont-star', color: Styles.globalColors.blue},
+  args: {type: 'iconfont-star', color: Styles.getTheme().blue},
 }
 
 export const Large: Story = {
@@ -41,7 +41,7 @@ export const Small: Story = {
 }
 
 export const Clickable: Story = {
-  args: {type: 'iconfont-edit', onClick: () => {}, color: Styles.globalColors.blue},
+  args: {type: 'iconfont-edit', onClick: () => {}, color: Styles.getTheme().blue},
 }
 
 export const Showcase: Story = {

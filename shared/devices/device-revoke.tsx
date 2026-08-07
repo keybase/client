@@ -11,7 +11,7 @@ import {useRPCLoad} from '@/util/use-rpc-load'
 
 type DeviceRevokeProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
-const renderTLFEntry = (index: number, tlf: string) => (
+const renderTLFEntry = (index: number, tlf: string, styles: ReturnType<typeof useStyles>) => (
   <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
     <Kb.Text type="BodySemibold">•</Kb.Text>
     <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
@@ -20,6 +20,7 @@ const renderTLFEntry = (index: number, tlf: string) => (
   </Kb.Box2>
 )
 const EndangeredTLFList = (props: {endangeredTLFs?: ReadonlyArray<string>}) => {
+  const styles = useStyles()
   if (!props.endangeredTLFs?.length) return null
   return (
     <>
@@ -27,7 +28,7 @@ const EndangeredTLFList = (props: {endangeredTLFs?: ReadonlyArray<string>}) => {
         You may lose access to these folders forever:
       </Kb.Text>
       <Kb.ScrollView style={styles.listContainer}>
-        {props.endangeredTLFs.map((tlf, index) => renderTLFEntry(index, tlf))}
+        {props.endangeredTLFs.map((tlf, index) => renderTLFEntry(index, tlf, styles))}
       </Kb.ScrollView>
     </>
   )
@@ -68,6 +69,7 @@ const useRevoke = (device: T.Devices.Device) => {
 }
 
 const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
+  const styles = useStyles()
   const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
   const {data: loadedDevice, loaded} = useRPCLoad(
@@ -164,21 +166,21 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       endangeredTLFContainer: Kb.Styles.platformStyles({
         isElectron: {alignSelf: 'center'},
         isMobile: {...Kb.Styles.globalStyles.flexGrow},
       }),
       headerName: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
         textDecorationLine: 'line-through',
       },
       italicName: {...Kb.Styles.globalStyles.italic},
       listContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
+          ...Kb.Styles.border(theme.black_10, 1, Kb.Styles.borderRadius),
           flexGrow: 1,
           ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
         },

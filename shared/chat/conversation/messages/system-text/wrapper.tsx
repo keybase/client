@@ -5,6 +5,7 @@ import {makeMessageWrapper} from '../wrapper/wrapper'
 type OwnProps = {text: string}
 
 function SystemText(p: OwnProps) {
+  const styles = useStyles()
   const {text} = p
   return (
     <UserNotice>
@@ -15,7 +16,7 @@ function SystemText(p: OwnProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       text: Kb.Styles.platformStyles({

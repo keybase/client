@@ -45,6 +45,7 @@ type CheckboxRowProps = {
   text: React.ReactNode
 }
 const CheckboxRow = (props: CheckboxRowProps) => {
+  const styles = useStyles()
   const {onCheck, checked} = props
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
@@ -89,6 +90,7 @@ const defaultReport = {
   reason: reasons[0],
 } satisfies ReportSettings
 const ReportOptions = (props: ReportOptionsProps) => {
+  const styles = useStyles()
   const {showIncludeTranscript, setReason} = props
   return (
     <>
@@ -132,6 +134,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
 }
 
 const BlockModal = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
   let {username: adderUsername, others} = ownProps
@@ -513,14 +516,14 @@ const getListHeightStyle = (
       : 0),
 })
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   buttonBar: {minHeight: undefined},
   checkBoxRow: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   feedback: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small, 0),
   feedbackPaddingBottom: {paddingBottom: Kb.Styles.globalMargins.small},
   greyBox: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
-    color: Kb.Styles.globalColors.black_50,
+    backgroundColor: theme.blueGrey,
+    color: theme.black_50,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
   },
   grow: {flexGrow: 1},

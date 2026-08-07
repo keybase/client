@@ -128,6 +128,8 @@ const getRowActions = (
 }
 
 function AuthorSection(p: AuthorProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {author, botAlias, hiddenHeader, isAdhocBot, teamID, teamType, teamname, timestamp} = p
   const {showUsername} = p
 
@@ -157,7 +159,7 @@ function AuthorSection(p: AuthorProps) {
   const ownerAdminTooltipIcon = allowCrown ? (
     <Kb.Box2 direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
       <Kb.Icon
-        color={authorIsOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
+        color={authorIsOwner ? theme.yellowDark : theme.black_35}
         fontSize={10}
         type="iconfont-crown-owner"
       />
@@ -166,7 +168,7 @@ function AuthorSection(p: AuthorProps) {
 
   const botIcon = authorIsBot ? (
     <Kb.Box2 direction="vertical" tooltip="Bot">
-      <Kb.Icon fontSize={13} color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
+      <Kb.Icon fontSize={13} color={theme.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
 
@@ -437,6 +439,7 @@ const useWrapperPopup = (
   ordinal: T.Chat.Ordinal,
   data: Pick<ReturnType<typeof useMessageData>, 'shouldShowPopup' | 'type'>
 ) => {
+  const styles = useStyles()
   const {type, shouldShowPopup} = data
 
   const shouldShow = () => {
@@ -559,6 +562,8 @@ const NormalWrapper = ({
 }
 
 function TextAndSiblings(p: TSProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {
     botname,
     bottomChildren,
@@ -579,7 +584,7 @@ function TextAndSiblings(p: TSProps) {
   const pressableProps = isMobile
     ? {
         onLongPress: decorate && shouldShowPopup ? showPopup : undefined,
-        style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
+        style: isHighlighted ? {backgroundColor: theme.yellowOrYellowAlt} : undefined,
       }
     : {
         className: Kb.Styles.classNames({
@@ -679,6 +684,7 @@ function EditCancelRetry(p: {
   outboxID?: T.Chat.OutboxID
   setEditing: RowActions['setEditing']
 }) {
+  const styles = useStyles()
   const {ecrType, exploding, failureDescription, messageDelete, messageRetry, outboxID, setEditing} = p
   const ordinal = useOrdinal()
   const onCancel = () => {
@@ -759,6 +765,7 @@ type BProps = {
 }
 // reactions
 function BottomSide(p: BProps) {
+  const styles = useStyles()
   const {showingPopup, setShowingPicker, bottomChildren, canShowReactionsPopup, ecrType, hasBeenEdited} = p
   const {exploding, failureDescription, hasReactions, hasUnfurlList, messageType, ordinal, reactions} = p
   const {messageDelete, messageRetry, outboxID, setEditing, setReplyTo, toggleMessageReaction} = p
@@ -841,6 +848,8 @@ type RProps = {
   submitState?: T.Chat.Message['submitState']
 }
 function RightSide(p: RProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
   const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
   const sendIndicator = showSendIndicator ? (
@@ -865,7 +874,7 @@ function RightSide(p: RProps) {
 
   const revokedIcon = showRevoked ? (
     <Kb.Box2 direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
-      <Kb.Icon type="iconfont-rip" color={Kb.Styles.globalColors.black_35} />
+      <Kb.Icon type="iconfont-rip" color={theme.black_35} />
     </Kb.Box2>
   ) : null
 
@@ -873,7 +882,7 @@ function RightSide(p: RProps) {
 
   const bot = botname ? (
     <Kb.Box2 direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
-      <Kb.Icon color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
+      <Kb.Icon color={theme.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
 
@@ -1035,8 +1044,8 @@ export function WrapperMessage(p: WrapperMessageProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       authorContainer: Kb.Styles.platformStyles({
         common: {
@@ -1074,7 +1083,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
       },
       botAlias: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black},
+        common: {color: theme.black},
         isElectron: {
           maxWidth: 240,
           wordBreak: 'break-all',
@@ -1083,8 +1092,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       emojiRow: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
-          border: `1px solid ${Kb.Styles.globalColors.black_10}`,
+          backgroundColor: theme.white,
+          border: `1px solid ${theme.black_10}`,
           borderRadius: Kb.Styles.borderRadius,
           bottom: -Kb.Styles.globalMargins.medium + 3,
           paddingRight: Kb.Styles.globalMargins.xtiny,
@@ -1093,9 +1102,9 @@ const styles = Kb.Styles.styleSheetCreate(
           zIndex: 2,
         },
       }),
-      fail: {color: Kb.Styles.globalColors.redDark},
-      failExploding: {color: Kb.Styles.globalColors.black_50},
-      failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
+      fail: {color: theme.redDark},
+      failExploding: {color: theme.black_50},
+      failUnderline: {color: theme.redDark, textDecorationLine: 'underline'},
       // desktop anchored menu offset; on mobile this would shift the bottom sheet's content left
       messagePopupContainer: Kb.Styles.platformStyles({
         isElectron: {marginRight: Kb.Styles.globalMargins.small},
@@ -1112,7 +1121,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white_90,
+          backgroundColor: theme.white_90,
           minHeight: 14,
           position: 'absolute',
           right: 16,

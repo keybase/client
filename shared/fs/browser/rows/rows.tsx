@@ -17,14 +17,20 @@ export type Props = {
   path: T.FS.Path
 }
 
-export const WrapRow = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.rowContainer}>
-    {children}
-    <Kb.Divider key="divider" style={styles.divider} />
-  </Kb.Box2>
-)
+export const WrapRow = ({children}: {children: React.ReactNode}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.rowContainer}>
+      {children}
+      <Kb.Divider key="divider" style={styles.divider} />
+    </Kb.Box2>
+  )
+}
 
-const EmptyRow = () => <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.rowContainer} />
+const EmptyRow = () => {
+  const styles = useStyles()
+  return <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.rowContainer} />
+}
 
 function Rows(props: Props & {listKey: string}) {
   const {destinationPickerSource, items, emptyMode, listKey} = props
@@ -153,12 +159,12 @@ const RowsWithAutoLoad = (props: Props) => {
   return <Rows {...props} listKey={listKey} />
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       divider: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.black_05_on_white,
+          backgroundColor: theme.black_05_on_white,
         },
         isElectron: {
           marginLeft: 94,

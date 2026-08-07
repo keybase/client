@@ -22,6 +22,7 @@ type Props = {
 }
 
 const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props) => {
+  const styles = useStyles()
   const conversationIDKey = _conversationIDKey ?? Chat.noConversationIDKey
   const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
@@ -175,8 +176,8 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 
 const tabletContainerBorderSize = 1
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       clickableTabStyle: Kb.Styles.platformStyles({
         isElectron: {width: 'auto'},
@@ -185,8 +186,8 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {alignItems: 'stretch', paddingBottom: Kb.Styles.globalMargins.tiny},
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
-          borderLeft: `1px solid ${Kb.Styles.globalColors.black_10}`,
+          backgroundColor: theme.white,
+          borderLeft: `1px solid ${theme.black_10}`,
           width: infoPanelWidthElectron,
         },
         isTablet: {
@@ -195,7 +196,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerBorder: {
-        backgroundColor: Kb.Styles.globalColors.black_10,
+        backgroundColor: theme.black_10,
         width: tabletContainerBorderSize,
       },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
@@ -205,7 +206,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.xsmall,
       },
       tabContainer: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.white},
+        common: {backgroundColor: theme.white},
         isElectron: {
           overflowX: 'hidden',
           overflowY: 'hidden',

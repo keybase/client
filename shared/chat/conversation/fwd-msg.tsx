@@ -44,6 +44,8 @@ export const showForwardMessagePicker = (
 }
 
 const TeamPickerInner = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const srcConvID = props.conversationIDKey ?? Chat.noConversationIDKey
   const messageID = props.messageID
   const handoffKey = forwardMessageKey(srcConvID, messageID)
@@ -201,7 +203,7 @@ const TeamPickerInner = (props: Props) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           {showError ? (
-            <Kb.Text type="Body" style={{alignSelf: 'center', color: Kb.Styles.globalColors.redDark}}>
+            <Kb.Text type="Body" style={{alignSelf: 'center', color: theme.redDark}}>
               {error}
             </Kb.Text>
           ) : (
@@ -245,8 +247,8 @@ const TeamPickerInner = (props: Props) => {
   return content
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       boxGrow: {
         flexGrow: 1,
@@ -256,7 +258,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           alignSelf: 'flex-end',
           borderStyle: 'solid',
-          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopColor: theme.black_10,
           borderTopWidth: 1,
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.small,
@@ -276,7 +278,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       input: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.blue,
+          borderColor: theme.blue,
           marginBottom: Kb.Styles.globalMargins.tiny,
           minHeight: 40,
           width: '100%',

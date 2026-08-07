@@ -13,6 +13,7 @@ type VisProps = {
 }
 
 const AudioVis = (props: VisProps) => {
+  const theme = Kb.Styles.useTheme()
   const {amps, playedRatio, maxWidth} = props
   let threshold = Math.floor((amps?.length ?? 0) * playedRatio)
   if (threshold > 0) {
@@ -33,7 +34,7 @@ const AudioVis = (props: VisProps) => {
         direction="vertical"
         key={index}
         style={{
-          backgroundColor: index < threshold ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black,
+          backgroundColor: index < threshold ? theme.blue : theme.black,
           height,
           marginRight: isMobile ? 4 * Kb.Styles.hairlineWidth : 2,
           width: isMobile ? 3 * Kb.Styles.hairlineWidth : 1,
@@ -68,6 +69,8 @@ type Props = {
 }
 
 const AudioPlayer = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {duration, big, maxWidth, url, visAmps} = props
   const [playedRatio, setPlayedRatio] = React.useState(0)
   const [paused, setPaused] = React.useState(true)
@@ -105,14 +108,14 @@ const AudioPlayer = (props: Props) => {
           <SFSymbol
             name={paused ? 'play.fill' : 'pause.fill'}
             size={32}
-            color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
+            color={url ? theme.blue : theme.grey}
             contentTransition={{magic: true, type: 'replace'}}
           />
         ) : (
           <Kb.Icon
             type={!paused ? 'iconfont-pause' : 'iconfont-play'}
             fontSize={32}
-            color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
+            color={url ? theme.blue : theme.grey}
           />
         )}
       </Kb.ClickableBox>
@@ -127,11 +130,11 @@ const AudioPlayer = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
-    ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
-    backgroundColor: Kb.Styles.globalColors.white,
+    ...Kb.Styles.border(theme.grey, 1, Kb.Styles.borderRadius),
+    backgroundColor: theme.white,
   },
   visContainer: {
     minWidth: 40,

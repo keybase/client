@@ -108,6 +108,7 @@ type PushDefaultProps = {
   you: string
 }
 const GitPushDefault = (props: PushDefaultProps) => {
+  const styles = useStyles()
   const {pusher, you, commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
@@ -158,12 +159,12 @@ type PushCommonProps = {
 
 const GitPushCommon = ({children}: PushCommonProps) => <UserNotice>{children}</UserNotice>
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       commitHash: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.blueDarkOrBlueLight,
+          color: theme.blueDarkOrBlueLight,
           fontSize: 12,
           lineHeight: 16,
         },
@@ -172,7 +173,7 @@ const styles = Kb.Styles.styleSheetCreate(
         textAlign: 'left',
       },
       dot: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter_20,
+        backgroundColor: theme.blueLighter_20,
         borderRadius: 3,
         marginBottom: 1,
         marginRight: Kb.Styles.globalMargins.xtiny,
@@ -188,7 +189,7 @@ const styles = Kb.Styles.styleSheetCreate(
         ...(isMobile ? {marginTop: -3} : null),
         minWidth: 0,
       },
-      repoText: {color: Kb.Styles.globalColors.black_50},
+      repoText: {color: theme.black_50},
     }) as const
 )
 

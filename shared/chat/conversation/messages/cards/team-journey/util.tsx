@@ -38,20 +38,14 @@ function renderWelcomeMessage(
       lineClamp={3}
       selectable={false}
       paragraphTextClassName="text_BodySmall"
-      style={styles.welcomeStyle}
+      style={welcomeStyle}
     >
       {removeWhitespaceOnlyLines(computeWelcomeMessageText(message, cannotWrite))}
     </Kb.Markdown>
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      welcomeStyle: {
-        paddingTop: Kb.Styles.globalMargins.xtiny,
-      },
-    }) as const
-)
+// No colors here, so no theme and no hook -- renderWelcomeMessage is a plain helper.
+const welcomeStyle = {paddingTop: Kb.Styles.globalMargins.xtiny} as const
 
 export {computeWelcomeMessageTextRaw, renderWelcomeMessage}

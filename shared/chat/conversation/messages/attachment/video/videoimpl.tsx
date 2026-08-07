@@ -20,12 +20,12 @@ const usePosterState = (url: string) => {
   return {showPoster, reveal: () => setShowPoster(false)}
 }
 
-const sharedStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useSharedStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       durationContainer: {
         alignSelf: 'flex-end',
-        backgroundColor: Kb.Styles.globalColors.black_50,
+        backgroundColor: theme.black_50,
         borderRadius: 2,
         bottom: Kb.Styles.globalMargins.tiny,
         padding: 1,
@@ -33,7 +33,7 @@ const sharedStyles = Kb.Styles.styleSheetCreate(
         right: Kb.Styles.globalMargins.tiny,
       },
       durationText: {
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
         paddingLeft: 3,
         paddingRight: 3,
       },
@@ -56,6 +56,8 @@ type VideoElementRef = {
 }
 
 const DesktopVideoImpl = (p: Props) => {
+  const desktopStyles = useDesktopStyles()
+  const sharedStyles = useSharedStyles()
   const {allowPlay, message, openFullscreen} = p
   const {fileURL: url, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
@@ -107,6 +109,7 @@ type NativeActiveVideoProps = {
 }
 
 const NativeActiveVideo = (p: NativeActiveVideoProps) => {
+  const nativeStyles = useNativeStyles()
   const {sourceUri, height, width} = p
   const player = useVideoPlayer(sourceUri, pl => {
     pl.loop = false
@@ -126,6 +129,8 @@ const NativeActiveVideo = (p: NativeActiveVideoProps) => {
 }
 
 const NativeVideoImpl = (p: Props) => {
+  const nativeStyles = useNativeStyles()
+  const sharedStyles = useSharedStyles()
   const {allowPlay, message, showPopup} = p
   const {fileURL: url, transferState, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
@@ -168,7 +173,7 @@ const NativeVideoImpl = (p: Props) => {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
+const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       posterContainer: {
@@ -187,11 +192,11 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       poster: {
-        backgroundColor: Kb.Styles.globalColors.black_05_on_white,
+        backgroundColor: theme.black_05_on_white,
         opacity: 1,
       },
       posterContainer: {

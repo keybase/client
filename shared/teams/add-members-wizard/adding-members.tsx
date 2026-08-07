@@ -23,6 +23,7 @@ const AddingMembers = ({
   updateWizard: (wizard: AddMembersWizard) => void
   wizard: AddMembersWizard
 }) => {
+  const styles = useStyles()
   const {addingMembers} = wizard
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = isMobile && addingMembers.length > 4
@@ -84,6 +85,7 @@ const AddingMember = (
     wizard: AddMembersWizard
   }
 ) => {
+  const styles = useStyles()
   const {wizard, updateWizard} = props
   const role = wizard.role
   const individualRole =
@@ -152,10 +154,10 @@ const AddingMember = (
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   addingMember: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       borderRadius: Kb.Styles.borderRadius,
     },
     isElectron: {
@@ -169,13 +171,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   addingMemberDivider: {
-    backgroundColor: Kb.Styles.globalColors.black_20,
+    backgroundColor: theme.black_20,
     borderRadius: Kb.Styles.borderRadius,
     height: 40,
   },
   addingMembers: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.blueGreyDark,
+      backgroundColor: theme.blueGreyDark,
       borderRadius: Kb.Styles.borderRadius,
     },
     isElectron: {

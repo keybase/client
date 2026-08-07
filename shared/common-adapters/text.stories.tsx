@@ -47,7 +47,7 @@ export const Negative: Story = {
   args: {type: 'Body', children: 'Negative (light text for dark backgrounds)', negative: true},
   decorators: [
     Story => (
-      <Box2 direction="vertical" style={{backgroundColor: Styles.globalColors.black, padding: Styles.globalMargins.medium}}>
+      <Box2 direction="vertical" style={{backgroundColor: Styles.getTheme().black, padding: Styles.globalMargins.medium}}>
         <Story />
       </Box2>
     ),

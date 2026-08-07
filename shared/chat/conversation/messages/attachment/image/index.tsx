@@ -23,6 +23,7 @@ type Props = {
 }
 
 function Image(p: Props) {
+  const styles = useStyles()
   const {message, ordinal, showPopup} = p
   const {isCollapsed, title, transferProgress, transferState} = message
   const conversationIDKey = useConversationThreadID()
@@ -94,10 +95,10 @@ function Image(p: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => {
+const useStyles = Kb.Styles.createStyleHook(theme => {
   return {
     contentContainer: {
-      backgroundColor: Kb.Styles.globalColors.black_05_on_white,
+      backgroundColor: theme.black_05_on_white,
       borderRadius: Kb.Styles.borderRadius,
       maxWidth: isMobile ? '100%' : 330,
       padding: 3,

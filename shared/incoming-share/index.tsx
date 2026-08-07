@@ -32,6 +32,8 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
 }
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const navigateAppend = C.Router2.navigateAppend
   const saveInFiles = () => {
     navigateAppend({
@@ -44,7 +46,7 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
   }
   return isChatOnly(incomingShareItems) ? undefined : (
     <Kb.ClickableBox direction="horizontal" centerChildren={true} fullWidth={true} onClick={saveInFiles}>
-      <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
+      <Kb.Icon type="iconfont-file" color={theme.blue} style={styles.footerIcon} />
       <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
     </Kb.ClickableBox>
   )
@@ -198,7 +200,7 @@ const IncomingShareMain = (props: SelectedConversationProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   footerIcon: {
     marginRight: Kb.Styles.globalMargins.tiny,
   },

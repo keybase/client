@@ -9,6 +9,7 @@ type Props = {
 }
 
 const ChooseConversation = (props: Props) => {
+  const styles = useStyles()
   const {onSelect} = props
   const text = !props.convName.length ? 'Choose a conversation' : props.convName
 
@@ -47,12 +48,12 @@ const ChooseConversation = (props: Props) => {
 
 export default ChooseConversation
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       dropdownButton: {width: 300},
       overlay: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         height: 360,
         width: 300,
       },

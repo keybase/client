@@ -1,11 +1,10 @@
-import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
-import {themed as globalColors, themed, colors, darkColors} from './colors'
+import {colors, darkColors} from './colors'
 import {StyleSheet, Dimensions} from 'react-native'
 import {useDarkModeState} from '@/stores/darkmode'
 import {isTablet, isPhone, getAssetPath} from '@/constants/platform'
 import type * as CSS from './css'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
-import type {Background} from '@/common-adapters/text.shared'
+import type {Theme} from './theme'
 
 // ─── Global margins ───────────────────────────────────────────────────────────
 
@@ -20,43 +19,6 @@ export const globalMargins = {
   large: 40,
   xlarge: 64,
 } as const
-
-export const backgroundModeToColor = {
-  get Announcements() {
-    return globalColors.blue
-  },
-  get Documentation() {
-    return globalColors.blueDarker
-  },
-  get HighRisk() {
-    return globalColors.red
-  },
-  get Information() {
-    return globalColors.yellow
-  },
-  get Normal() {
-    return globalColors.white
-  },
-  get Success() {
-    return globalColors.green
-  },
-  get Terminal() {
-    return globalColors.blueDarker2
-  },
-}
-
-export const backgroundModeToTextColor = (backgroundMode: Background) => {
-  switch (backgroundMode) {
-    case 'Information':
-      return globalColors.brown_75
-    case 'Normal':
-      return globalColors.black
-    case 'Terminal':
-      return globalColors.blueLighter
-    default:
-      return globalColors.white
-  }
-}
 
 const flexCommon = isMobile ? {} : ({display: 'flex'} as const)
 const utilBase = {
@@ -143,9 +105,9 @@ export const border = (color: string, width = 1, radius?: number, justBottom?: b
     : {}),
 })
 
-export const topDivider = () => ({
+export const topDivider = (theme: Theme) => ({
   borderStyle: 'solid' as const,
-  borderTopColor: globalColors.black_10,
+  borderTopColor: theme.black_10,
   borderTopWidth: 1,
   minHeight: 56,
 })
@@ -166,8 +128,8 @@ export const marginH = (n: number) => ({marginLeft: n, marginRight: n})
 export const marginV = (n: number) => ({marginTop: n, marginBottom: n})
 export const size = (n: number | `${number}%`) => ({height: n, width: n})
 export const centered = () => ({alignItems: 'center' as const, justifyContent: 'center' as const})
-export const bottomDivider = (minHeight?: number) => ({
-  borderBottomColor: globalColors.black_10,
+export const bottomDivider = (theme: Theme, minHeight?: number) => ({
+  borderBottomColor: theme.black_10,
   borderBottomWidth: 1,
   borderStyle: 'solid' as const,
   ...(minHeight !== undefined ? {minHeight} : {}),
@@ -273,7 +235,7 @@ export const desktopStyles = isMobile
     }
   : {
       get boxShadow() {
-        return {boxShadow: `0 2px 5px 0 ${themed.black_20OrBlack}`}
+        return {boxShadow: '0 2px 5px 0 var(--color-black_20OrBlack)'}
       },
       clickable: {cursor: 'pointer' as const},
       noSelect: {userSelect: 'none' as const},
@@ -374,17 +336,6 @@ export const initDesktopStyles = () => {
 
 export const hairlineWidth = isMobile ? StyleSheet.hairlineWidth : 1
 
-// ─── styleSheetCreate ─────────────────────────────────────────────────────────
-
-type NamedStyles = Record<string, CSS._StylesCrossPlatform>
-export function styleSheetCreate<const O extends NamedStyles>(styles: () => O): O
-export function styleSheetCreate(styles: () => NamedStyles): NamedStyles {
-  if (isMobile) {
-    return styleSheetCreateProxy(styles, o => StyleSheet.create(o as unknown as Parameters<typeof StyleSheet.create>[0]) as MapToStyles) as unknown as NamedStyles
-  }
-  return styleSheetCreateProxy(styles, o => o) as NamedStyles
-}
-
 // ─── collapseStyles ───────────────────────────────────────────────────────────
 
 // Always returns a plain merged object (also used directly with DOM style props on desktop).
@@ -470,9 +421,10 @@ export const undynamicColor = (col: string): string => {
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
+export {ThemeProvider, createStyleHook, createThemedHook, createThemedValue, getTheme, useTheme} from './theme'
+export type {Theme} from './theme'
 export {isPhone, isTablet, fileUIName} from '@/constants/platform'
 export * from './styles-base'
-export {globalColors}
 export {default as classNames} from './class-names'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export type {Color, CustomStyles, _StylesCrossPlatform, _StylesDesktop, _StylesMobile} from './css'

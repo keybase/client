@@ -11,27 +11,30 @@ type Props = {
   popupAnchor: React.Ref<Kb.MeasureRef>
 }
 
-const TeamRow = ({isOpen, loading = false, name, onClick, popup, popupAnchor}: Props) => (
-  <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" style={styles.row} ref={popupAnchor} onClick={onClick}>
-    <>
-      {popup}
-      <Kb.Avatar size={32} teamname={name} isTeam={true} />
-    </>
-    <Kb.Text type="BodySemiboldLink" lineClamp={1} style={styles.title}>
-      {name}
-    </Kb.Text>
-    {typeof isOpen === 'boolean' && <OpenMeta isOpen={isOpen} />}
-    {loading && <Kb.ProgressIndicator style={styles.loading} />}
-  </Kb.ClickableBox>
-)
+const TeamRow = ({isOpen, loading = false, name, onClick, popup, popupAnchor}: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" style={styles.row} ref={popupAnchor} onClick={onClick}>
+      <>
+        {popup}
+        <Kb.Avatar size={32} teamname={name} isTeam={true} />
+      </>
+      <Kb.Text type="BodySemiboldLink" lineClamp={1} style={styles.title}>
+        {name}
+      </Kb.Text>
+      {typeof isOpen === 'boolean' && <OpenMeta isOpen={isOpen} />}
+      {loading && <Kb.ProgressIndicator style={styles.loading} />}
+    </Kb.ClickableBox>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   loading: Kb.Styles.size(16),
   row: {
     alignItems: 'center',
   },
   title: {
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
     flexShrink: 1,
   },
 }))

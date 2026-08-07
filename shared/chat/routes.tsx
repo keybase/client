@@ -202,7 +202,7 @@ export const newModalRoutes = defineRouteMap({
       {
         getOptions: {
           headerTitle: () => (
-            <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />
+            <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.getTheme().red} />
           ),
         },
       }

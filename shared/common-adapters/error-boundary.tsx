@@ -72,6 +72,8 @@ const detailContainerStyle = {
 } as const
 
 const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, style}: FallbackProps) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   return (
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} padding="medium" relative={true} style={style}>
       <ScrollView style={styles.scroll}>
@@ -85,7 +87,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
             <Box2
               direction="vertical"
               style={{
-                backgroundColor: Styles.globalColors.blueDarker2,
+                backgroundColor: theme.blueDarker2,
                 borderRadius: Styles.borderRadius,
                 minWidth: 100,
                 padding: 10,
@@ -116,7 +118,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
         {closeOnClick && (
           <Icon
             type="iconfont-close"
-            color={Styles.globalColors.black_20}
+            color={theme.black_20}
             style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
             onClick={closeOnClick}
           />
@@ -158,7 +160,7 @@ const ErrorBoundary = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const useStyles = Styles.createStyleHook(
   () =>
     ({
       detailStyle: Styles.platformStyles({isElectron: {whiteSpace: 'pre'}}),

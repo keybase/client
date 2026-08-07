@@ -71,6 +71,7 @@ type IndicatorState = {
 }
 
 function SendIndicator(p: OwnProps) {
+  const styles = useStyles()
   const {failed, id, isExploding, sent} = p
 
   const [indicatorState, setIndicatorState] = React.useState<IndicatorState>(() => ({
@@ -155,13 +156,13 @@ function SendIndicator(p: OwnProps) {
   ) : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       animationVisible: Kb.Styles.platformStyles({
         common: {...Kb.Styles.size(20), opacity: 1},
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           borderRadius: 10,
         },
       }),

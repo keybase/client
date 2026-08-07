@@ -24,6 +24,7 @@ const useOpenInFilesTab = (path: T.FS.Path) => {
 }
 
 const KbfsPathPopup = (props: PopupProps) => {
+  const styles = useStyles()
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const header = (
     <FsErrorProvider>
@@ -70,6 +71,7 @@ const KbfsPathPopup = (props: PopupProps) => {
 }
 
 const KbfsPath = (props: Props) => {
+  const styles = useStyles()
   const [showing, setShowing] = React.useState(false)
   const textRef = React.useRef<Kb.MeasureRef | null>(null)
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
@@ -105,7 +107,7 @@ const KbfsPath = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       headerContainer: Kb.Styles.platformStyles({

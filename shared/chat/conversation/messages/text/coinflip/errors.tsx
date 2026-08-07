@@ -28,6 +28,7 @@ const CoinFlipError = (props: Props) => {
 }
 
 const CoinFlipGenericError = () => {
+  const styles = useStyles()
   const navigateAppend = C.Router2.navigateAppend
   const sendFeedback = () => {
     navigateAppend({name: 'modalFeedback', params: {}})
@@ -47,6 +48,7 @@ type AbsenteeProps = {
 }
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
+  const styles = useStyles()
   const learnMoreUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
@@ -70,60 +72,72 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
   )
 }
 
-const CoinFlipTimeoutError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
-    Flip timed out before a result was obtained.
-  </Kb.Text>
-)
+const CoinFlipTimeoutError = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Text selectable={true} style={styles.error} type="BodySmall">
+      Flip timed out before a result was obtained.
+    </Kb.Text>
+  )
+}
 
-const CoinFlipAbortedError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
-    Flip aborted before a result was obtained.
-  </Kb.Text>
-)
+const CoinFlipAbortedError = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Text selectable={true} style={styles.error} type="BodySmall">
+      Flip aborted before a result was obtained.
+    </Kb.Text>
+  )
+}
 
 type DupProps = {
   desc: string
   offender: T.RPCChat.UICoinFlipErrorParticipant
 }
 
-const CoinFlipDupError = (props: DupProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
-    <Kb.Text selectable={true} type="Body">
-      Duplicate {props.desc} received from the following participant:
-    </Kb.Text>
-    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
-      {props.offender.user} (device: {props.offender.device})
-    </Kb.Text>
-  </Kb.Box2>
-)
+const CoinFlipDupError = (props: DupProps) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
+      <Kb.Text selectable={true} type="Body">
+        Duplicate {props.desc} received from the following participant:
+      </Kb.Text>
+      <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+        {props.offender.user} (device: {props.offender.device})
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 type CommitMismatchProps = {
   offender: T.RPCChat.UICoinFlipErrorParticipant
 }
 
-const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
-    <Kb.Text selectable={true} type="Body">
-      Commitment mismatch from the following participant:
-    </Kb.Text>
-    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
-      {props.offender.user} (device: {props.offender.device})
-    </Kb.Text>
-  </Kb.Box2>
-)
+const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
+      <Kb.Text selectable={true} type="Body">
+        Commitment mismatch from the following participant:
+      </Kb.Text>
+      <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+        {props.offender.user} (device: {props.offender.device})
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bordered: {
-        borderColor: Kb.Styles.globalColors.grey,
+        borderColor: theme.grey,
         borderLeftWidth: 4,
         borderStyle: 'solid',
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       error: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
       },
     }) as const
 )

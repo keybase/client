@@ -12,6 +12,8 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 
 const PinnedMessage = function PinnedMessage() {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const conversationIDKey = useConversationThreadID()
   const {pinnedMsg, teamID, teamname} = useThreadMeta(
     C.useShallow(m => ({
@@ -114,7 +116,7 @@ const PinnedMessage = function PinnedMessage() {
             onClick={onIconClick}
             type="iconfont-close"
             sizeType="Small"
-            color={Kb.Styles.globalColors.black_20}
+            color={theme.black_20}
           />
         </Kb.Box2>
       )}
@@ -144,6 +146,7 @@ type UnpinProps = {
 }
 
 const UnpinPrompt = (props: UnpinProps) => {
+  const styles = useStyles()
   const header = (
     <Kb.Box2 direction="vertical" centerChildren={true} gap="xsmall" style={styles.popup}>
       <Kb.Text type="BodyBig">Unpin this message?</Kb.Text>
@@ -168,12 +171,12 @@ const UnpinPrompt = (props: UnpinProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
-      author: {color: Kb.Styles.globalColors.black},
+      author: {color: theme.black},
       blueBar: {
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
         width: Kb.Styles.globalMargins.xtiny,
       },
       close: Kb.Styles.platformStyles({
@@ -187,10 +190,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
-        ...Kb.Styles.bottomDivider(),
-        backgroundColor: Kb.Styles.globalColors.white,
+        ...Kb.Styles.bottomDivider(theme),
+        backgroundColor: theme.white,
       },
-      label: {color: Kb.Styles.globalColors.blueDark},
+      label: {color: theme.blueDark},
       popup: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 0),
@@ -198,7 +201,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {maxWidth: 200},
       }),
       text: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_50},
+        common: {color: theme.black_50},
         isElectron: {
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
