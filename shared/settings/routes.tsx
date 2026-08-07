@@ -137,6 +137,10 @@ export const sharedNewRoutes = defineRouteMap({
           getOptions: {title: 'Icons'},
           screen: React.lazy(async () => import('./icons')),
         },
+        [Settings.settingsMarkdownTab]: {
+          getOptions: {title: 'Markdown'},
+          screen: React.lazy(async () => import('./markdown')),
+        },
       }
     : {}),
 })
@@ -163,6 +167,7 @@ export const settingsDesktopTabRoutes = defineRouteMap({
     ? {
         [Settings.settingsTypographyTab]: sharedNewRoutes[Settings.settingsTypographyTab],
         [Settings.settingsIconsTab]: sharedNewRoutes[Settings.settingsIconsTab],
+        [Settings.settingsMarkdownTab]: sharedNewRoutes[Settings.settingsMarkdownTab],
       }
     : {}),
   [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],

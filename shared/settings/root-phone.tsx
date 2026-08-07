@@ -205,6 +205,12 @@ function SettingsNav() {
                 },
                 text: 'Icons',
               } as const,
+              {
+                onClick: () => {
+                  navigateAppend({name: Settings.settingsMarkdownTab, params: {}})
+                },
+                text: 'Markdown',
+              } as const,
             ]
           : []),
         {

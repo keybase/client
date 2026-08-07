@@ -129,14 +129,16 @@ const makeTextRegexp = () => {
   // [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
   const anyUnicode = /[\u00c0-\uffff]/
   // [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
-  const emaily = /[\w-_.]+@/
+  // The repetitions below are bounded (a dns label is at most 63 chars): unbounded they rescan the
+  // rest of the message at every position the lazy [\s\S]+? stops at, which is quadratic.
+  const emaily = /[\w-_.]{1,64}@/
   // (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
-  const tldsPrefix = /(\w+\.)+/
+  const tldsPrefix = /(\w{1,63}\.)+/
   const tldsPosfix = new RegExp(`(${commonTlds.join('|')})`)
   const tlds = new RegExp([tldsPrefix.source, tldsPosfix.source].join(''))
   const newline = /\n/
   // | \w+:\S // OR there's letters before a : so stop here.
-  const lettersColon = /\w+:\S/
+  const lettersColon = /\w{1,64}:\S/
   const end = /$/ //   | $ // OR we reach the end of the line
   return new RegExp(
     `${anyCharOne.source}(?=${[
@@ -174,6 +176,18 @@ const wordBoundryLookBehindMatch =
     return null
   }
 
+// A single line of a block quote, e.g. '> foo\n'
+// sticky so the scan below never has to slice the source
+const quotedLineRegex = / *>[^\n]*(?:\n|$)/y
+// Strips the quote marker (and a single following space, so code indentation survives)
+const quoteMarkerRegex = /^ *> ?/gm
+const isFullyQuoted = (block: string) =>
+  block.split('\n').every(line => line.trim() === '' || /^ *>/.test(line))
+const countFences = (line: string) => (line.match(/```/g) ?? []).length
+const quotedFenceRegex = SimpleMarkdown.anyScopeRegex(
+  /^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/
+)
+
 // Rules are defined here, the react components for these types are defined in markdown-react.js
 const rules: {[type: string]: SM.ParserRule} = {
   blockQuote: {
@@ -181,25 +195,38 @@ const rules: {[type: string]: SM.ParserRule} = {
     // match: blockRegex(/^( *>[^\n]+(\n[^\n]+)*\n*)+\n{2,}/),
     // Original: A quote block only needs to start with > and everything in the same paragraph will be a quote
     // e.g. https://regex101.com/r/ZiDBsO/2
-    // ours: Everything in the quote has to be preceded by >
-    // unless it has the start of a fence
-    // e.g. https://regex101.com/r/ZiDBsO/8
+    // ours: Everything in the quote has to be preceded by >. Fences that open and close inside the
+    // quote are kept (the marker is stripped before the nested parse, so the fence rule sees them),
+    // but we stop before a fence that never closes inside the quote so quotedFence can handle it.
     match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
       if ((state['blockQuoteRecursionLevel'] ?? 0) > 6) {
         return null
       }
-      const regex = /^( *>(?:[^\n](?!```))+\n?)+/
       // make sure the look behind is empty
       const emptyLookbehind = /^$|\n *$/
-
-      const match = regex.exec(source)
-      if (match && emptyLookbehind.test(prevCapture)) {
-        return match
+      if (!emptyLookbehind.test(prevCapture)) {
+        return null
       }
-      return null
+
+      let insideFence = false
+      let balancedEnd = 0
+      quotedLineRegex.lastIndex = 0
+      while (quotedLineRegex.lastIndex < source.length) {
+        const line = quotedLineRegex.exec(source)?.[0]
+        if (!line) break
+        insideFence = (countFences(line) + (insideFence ? 1 : 0)) % 2 === 1
+        if (!insideFence) {
+          balancedEnd = quotedLineRegex.lastIndex
+        }
+      }
+      if (!balancedEnd) {
+        return null
+      }
+      const matched = source.slice(0, balancedEnd)
+      return [matched]
     },
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
-      const content = capture[0]?.replace(/^ *> */gm, '') ?? ''
+      const content = capture[0]?.replace(quoteMarkerRegex, '') ?? ''
       const oldBlockQuoteRecursionLevel = state['blockQuoteRecursionLevel'] || 0
       state['blockQuoteRecursionLevel'] = oldBlockQuoteRecursionLevel + 1
       const ret = {content: nestedParse(content, state)}
@@ -265,8 +292,36 @@ const rules: {[type: string]: SM.ParserRule} = {
     ...SimpleMarkdown.defaultRules.inlineCode,
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
-    // ours: only allow a single backtick
-    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
+    // ours: only allow a single backtick.
+    // This used to be a regex, but trimming the padding with \s* around a lazy [\s\S]*? content group
+    // is ambiguous and backtracked cubically: a 2k message of `<spaces>x hung the parser for seconds.
+    // The scan below is the same grammar in one linear pass.
+    match: (source: string, _state: State, _prevCapture: string): SM.Capture | null => {
+      if (!source.startsWith('`') || source[1] === '`') {
+        return null
+      }
+      for (let i = 1; i < source.length; ++i) {
+        // the closing backtick can't be part of a run of them
+        if (source[i] !== '`' || source[i + 1] === '`') {
+          continue
+        }
+        const raw = source.slice(1, i)
+        let content = raw.trim()
+        if (!content) {
+          // all padding: keep a single trailing space, but never a bare newline
+          const last = raw.slice(-1)
+          if (last !== ' ' && last !== '\t') {
+            continue
+          }
+          content = last
+        }
+        if (content.endsWith('`')) {
+          continue
+        }
+        return [source.slice(0, i + 1), '`', content]
+      }
+      return null
+    },
   },
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
@@ -300,7 +355,15 @@ const rules: {[type: string]: SM.ParserRule} = {
     // ```
     // It's much easier and cleaner to make this a separate rule
     ...SimpleMarkdown.defaultRules.fence,
-    match: SimpleMarkdown.anyScopeRegex(/^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/),
+    match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
+      const capture = quotedFenceRegex(source, state, prevCapture)
+      // When every line of the fence body is quoted too, this is a normal block quote that happens
+      // to contain a fence. blockQuote handles that (and strips the markers), so decline here.
+      if (!capture || isFullyQuoted(capture[2] ?? '')) {
+        return null
+      }
+      return capture
+    },
     // Example: https://regex101.com/r/ZiDBsO/6
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {

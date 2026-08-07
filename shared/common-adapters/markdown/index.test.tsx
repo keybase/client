@@ -121,6 +121,53 @@ test('parseMarkdown parses quoted fences on desktop without wrapping the preambl
   expect(nested[1]?.['content']).toBe('foo\n')
 })
 
+test('parseMarkdown keeps a bare quote marker line inside the same block quote', () => {
+  const ast = parseMarkdown('> one\n>\n> two')
+  expect(ast).toHaveLength(1)
+  expect(ast[0]?.type).toBe('blockQuote')
+})
+
+test('parseMarkdown trims padding around inline code', () => {
+  expect(paragraphContent('` code `')).toEqual([{content: 'code', type: 'inlineCode'}])
+})
+
+test('parseMarkdown does not backtrack on padded unterminated inline code', () => {
+  const start = Date.now()
+  parseMarkdown('`' + ' '.repeat(4000) + 'x')
+  expect(Date.now() - start).toBeLessThan(1000)
+})
+
+test('parseMarkdown keeps a fully quoted fence inside a single block quote', () => {
+  const ast = parseMarkdown('> test one\n> ```\n> hello\n> ```\n> two')
+  expect(ast).toHaveLength(1)
+  expect(ast[0]?.type).toBe('blockQuote')
+  const nested = ast[0]?.['content'] as Array<{type: string; content?: unknown}>
+  expect(nested.map(node => node.type)).toEqual(['paragraph', 'fence', 'paragraph'])
+  expect(nested[1]?.['content']).toBe('hello\n')
+  expect(getTextAt(nested[2]?.['content'] as Array<{content?: string}> | undefined, 0)).toBe('two')
+})
+
+test('parseMarkdown keeps indentation inside a fully quoted fence', () => {
+  const ast = parseMarkdown('> ```\n>   indented\n> ```')
+  const nested = ast[0]?.['content'] as Array<{type: string; content?: unknown}>
+  expect(nested[0]).toMatchObject({content: '  indented\n', type: 'fence'})
+})
+
+test('parseMarkdown handles a fully quoted fence opened after text on the same line', () => {
+  const ast = parseMarkdown('> they wrote ```\n> foo\n> ```')
+  expect(ast).toHaveLength(1)
+  const nested = ast[0]?.['content'] as Array<{type: string; content?: unknown}>
+  expect(nested.map(node => node.type)).toEqual(['paragraph', 'fence'])
+  expect(getTextAt(nested[0]?.['content'] as Array<{content?: string}> | undefined, 0)).toBe('they wrote ')
+  expect(nested[1]?.['content']).toBe('foo\n')
+})
+
+test('parseMarkdown does not create a fence for an unterminated quoted fence', () => {
+  const ast = parseMarkdown('> ```\n> hello')
+  expect(flattenAstText(ast as Array<{type: string; content?: unknown}>)).toContain('```')
+  expect(JSON.stringify(ast)).not.toContain('"fence"')
+})
+
 test('parseMarkdown wraps quoted fence preambles in paragraphs on mobile', () => {
   const ast = parseMarkdown('> they wrote ```\nfoo\n```', {isMobile: true})
   const nested = normalizeInlineContent(ast[0]?.['content'] as Array<{type: string; content?: unknown}>)
