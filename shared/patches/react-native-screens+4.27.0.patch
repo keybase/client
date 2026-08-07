@@ -1,0 +1,201 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreen.mm b/node_modules/react-native-screens/ios/RNSScreen.mm
+index 3074998..bc69729 100644
+--- a/node_modules/react-native-screens/ios/RNSScreen.mm
++++ b/node_modules/react-native-screens/ios/RNSScreen.mm
+@@ -1544,6 +1544,21 @@ - (void)viewDidDisappear:(BOOL)animated
+ - (void)viewDidLayoutSubviews
+ {
+   [super viewDidLayoutSubviews];
++  // Keybase patch: a screen marked with this backTitle hosts an intentionally empty,
++  // transparent navigation bar. It is kept visible so pushes get the coordinated bar-content
++  // transition — unhiding a hidden bar mid-push makes iOS 26 slide the whole UINavigationBar
++  // in from the right as its own animated plane, desynced from the screen slide (see
++  // react-native-screens issue #3773). Cancel the bar's safe-area contribution so nested
++  // content (e.g. a nested stack's own header) doesn't shift down by the bar height.
++  RNSScreenStackHeaderConfig *emptyBarCfg = [self.screenView findHeaderConfig];
++  if ([emptyBarCfg.backTitle isEqualToString:@"RNS_EMPTY_BAR"]) {
++    CGFloat emptyBarHeight = self.navigationController.navigationBar.frame.size.height;
++    if (emptyBarHeight > 0 && self.additionalSafeAreaInsets.top != -emptyBarHeight) {
++      UIEdgeInsets insets = self.additionalSafeAreaInsets;
++      insets.top = -emptyBarHeight;
++      self.additionalSafeAreaInsets = insets;
++    }
++  }
+ 
+   // The below code makes the screen view adapt dimensions provided by the system. We take these
+   // into account only when the view is mounted under RNSNavigationController in which case system
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+index c233036..a3f0f36 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+@@ -59,6 +59,21 @@ - (UIViewController *)childViewControllerForStatusBarHidden
+ - (void)viewDidLayoutSubviews
+ {
+   [super viewDidLayoutSubviews];
++  // Everything below can synchronously commit & mount a shadow tree update, and mounting can
++  // force another layout pass of `self.navigationBar` (see
++  // `-[RNSScreenStackHeaderSubview layoutNavigationBar]`). Laying the bar out again from here
++  // — while UIKit is still unwinding the layout pass that produced this callback — lets
++  // UIKit observe a half-updated view controller hierarchy, which crashes on iOS 26 in
++  // `-[UINavigationController _effectiveSearchControllerForSearchBarGivenTopNavigationItem:]`.
++  // Marking the bar as "layout in progress" turns those nested passes into a plain
++  // `setNeedsLayout`, which the in-flight outer pass resolves before the frame is committed.
++  [self.navigationBar rnscreens_withLayoutInProgress:^{
++    [self rnscreens_updateHeaderLayoutInfoAfterLayout];
++  }];
++}
++
++- (void)rnscreens_updateHeaderLayoutInfoAfterLayout
++{
+   if ([self.topViewController isKindOfClass:[RNSScreen class]]) {
+     RNSScreen *screenController = (RNSScreen *)self.topViewController;
+     BOOL isNotDismissingModal = screenController.presentedViewController == nil ||
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
+index add33c4..8022575 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
+@@ -2,6 +2,7 @@
+ #import "RNSConvert.h"
+ #import "RNSDefines.h"
+ #import "RNSScreenStackHeaderConfig.h"
++#import "utils/UINavigationBar+RNSUtility.h"
+ 
+ #import <react/renderer/components/rnscreens/ComponentDescriptors.h>
+ #import <react/renderer/components/rnscreens/EventEmitters.h>
+@@ -53,14 +54,18 @@ - (void)layoutNavigationBar
+     return;
+   }
+ 
+-  UIView *toLayoutView = [self findNavigationBar];
++  UINavigationBar *toLayoutView = [self findNavigationBar];
+ 
+   // TODO: It is possible, that this call is no longer necessary. Make sure that Test432 keeps working.
+   [toLayoutView setNeedsLayout];
+ 
+   // TODO: Determine why this must be called & deferring layout to next "update cycle"
+   // is not sufficient. See Test2552 and Test432.
+-  [toLayoutView layoutIfNeeded];
++  //
++  // This method can be reached from a mounting transaction that was itself triggered from
++  // inside a layout pass of this very navigation bar, so the forced layout has to bail out
++  // when it would be re-entrant. See `rnscreens_layoutIfNeededAvoidingReentrancy`.
++  [toLayoutView rnscreens_layoutIfNeededAvoidingReentrancy];
+ }
+ 
+ #pragma mark - Fabric specific
+@@ -277,6 +282,11 @@ - (void)configureBarButtonItem
+   if (@available(iOS 26.0, *)) {
+     if (_barButtonItem != nil) {
+       [_barButtonItem setHidesSharedBackground:_hidesSharedBackground];
++      // KB patch: give custom items a stable per-slot identifier so UIKit
++      // matches them across push/pop transitions and morphs them in place
++      // instead of playing the assemble/expand animation on every screen.
++      _barButtonItem.identifier =
++          _type == RNSScreenStackHeaderSubviewTypeRight ? @"rns-custom-right" : @"rns-custom-left";
+     }
+   }
+ #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
+diff --git a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h b/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h
+index 0e7010d..8e3af12 100644
+--- a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h
++++ b/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h
+@@ -34,6 +34,35 @@ NS_ASSUME_NONNULL_BEGIN
+  */
+ - (nullable UIView *)rnscreens_findBackButtonWrapperView;
+ 
++/**
++ * Forces a synchronous layout pass on the receiver, unless the receiver is already
++ * being laid out higher up on the current call stack.
++ *
++ * RNScreens updates its shadow tree from within UIKit layout callbacks
++ * (see `-[RNSNavigationController viewDidLayoutSubviews]`). When synchronous shadow
++ * state updates are enabled, that commit is mounted immediately, and mounting can call
++ * back into `-[RNSScreenStackHeaderSubview layoutNavigationBar]`, which forces another
++ * layout pass of the very same navigation bar. On iOS 26 that nested pass makes
++ * `_UINavigationBarVisualProviderModernIOSSwift` resolve the navigation item back to its
++ * owning view controller while the controller hierarchy is still mid-mutation, and the
++ * resulting stale pointer crashes in
++ * `-[UINavigationController _effectiveSearchControllerForSearchBarGivenTopNavigationItem:]`.
++ *
++ * Skipping the nested pass is safe: the receiver is still marked as needing layout, and the
++ * in-flight outer pass resolves it before the current `CATransaction` commits, so the
++ * navigation bar is laid out within the same frame either way.
++ */
++- (void)rnscreens_layoutIfNeededAvoidingReentrancy;
++
++/**
++ * Marks the receiver as being laid out for the duration of `block`, so that
++ * `rnscreens_layoutIfNeededAvoidingReentrancy` invoked from within `block` becomes a no-op.
++ *
++ * Use this to wrap code that runs inside a UIKit layout callback for the receiver and may
++ * synchronously re-enter layout (e.g. by committing and mounting a shadow tree update).
++ */
++- (void)rnscreens_withLayoutInProgress:(NS_NOESCAPE dispatch_block_t)block;
++
+ @end
+ 
+ NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.mm b/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.mm
+index bc3d7c7..9780871 100644
+--- a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.mm
++++ b/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.mm
+@@ -1,5 +1,7 @@
+ #import "UINavigationBar+RNSUtility.h"
+ 
++#import <objc/runtime.h>
++
+ @implementation UINavigationBar (RNSUtility)
+ 
+ - (nullable UIView *)rnscreens_findContentView
+@@ -83,4 +85,51 @@ + (Class)rnscreens_getContentViewRuntimeClass
+   return NSClassFromString(@"_UINavigationBarContentView"); // Sampled from iOS 17.5 (iPhone 15 Pro)
+ }
+ 
++#pragma mark - Layout re-entrancy
++
++static const void *RNSNavigationBarLayoutInProgressKey = &RNSNavigationBarLayoutInProgressKey;
++
++- (BOOL)rnscreens_isLayoutInProgress
++{
++  return [objc_getAssociatedObject(self, RNSNavigationBarLayoutInProgressKey) boolValue];
++}
++
++- (void)rnscreens_setLayoutInProgress:(BOOL)layoutInProgress
++{
++  objc_setAssociatedObject(
++      self,
++      RNSNavigationBarLayoutInProgressKey,
++      layoutInProgress ? @YES : nil,
++      OBJC_ASSOCIATION_RETAIN_NONATOMIC);
++}
++
++- (void)rnscreens_layoutIfNeededAvoidingReentrancy
++{
++  if ([self rnscreens_isLayoutInProgress]) {
++    // A layout pass for this navigation bar is already in flight; forcing a nested one
++    // would expose UIKit to a half-updated view controller hierarchy. The `setNeedsLayout`
++    // performed by the caller keeps the bar dirty, so the outer pass picks it up.
++    return;
++  }
++
++  [self rnscreens_withLayoutInProgress:^{
++    [self layoutIfNeeded];
++  }];
++}
++
++- (void)rnscreens_withLayoutInProgress:(NS_NOESCAPE dispatch_block_t)block
++{
++  if ([self rnscreens_isLayoutInProgress]) {
++    block();
++    return;
++  }
++
++  [self rnscreens_setLayoutInProgress:YES];
++  @try {
++    block();
++  } @finally {
++    [self rnscreens_setLayoutInProgress:NO];
++  }
++}
++
+ @end
