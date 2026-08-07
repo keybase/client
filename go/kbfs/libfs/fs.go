@@ -1154,22 +1154,35 @@ func (o folderHandleChangeObserver) TlfHandleChange(
 
 // SubscribeToObsolete returns a channel that will be closed when this *FS
 // reaches obsolescence, meaning if user of this object caches it for long term
-// use, it should invalide this entry and create a new one using NewFS.
-func (fs *FS) SubscribeToObsolete() (<-chan struct{}, error) {
+// use, it should invalidate this entry and create a new one using NewFS. The
+// returned unsubscribe function must be called when the caller is done with
+// the subscription so the underlying folder-branch observer can be removed;
+// otherwise the observer leaks on that TLF's folderBranchOps for the process
+// lifetime. Calling unsubscribe more than once is safe.
+func (fs *FS) SubscribeToObsolete() (
+	obsoleteCh <-chan struct{}, unsubscribe func(), err error,
+) {
 	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	c := make(chan struct{})
-	var once sync.Once
+	var closeOnce sync.Once
 	onHandleChange := folderHandleChangeObserver(
-		func() { once.Do(func() { close(c) }) })
+		func() { closeOnce.Do(func() { close(c) }) })
+	fb := fs.root.GetFolderBranch()
 	if err := fs.config.Notifier().RegisterForChanges(
-		[]data.FolderBranch{fs.root.GetFolderBranch()},
-		onHandleChange); err != nil {
-		return nil, err
+		[]data.FolderBranch{fb}, onHandleChange); err != nil {
+		return nil, nil, err
 	}
-	return c, nil
+	var unsubOnce sync.Once
+	unsubscribe = func() {
+		unsubOnce.Do(func() {
+			_ = fs.config.Notifier().UnregisterFromChanges(
+				[]data.FolderBranch{fb}, onHandleChange)
+		})
+	}
+	return c, unsubscribe, nil
 }
 
 // IsEmpty returns true if this is a faked-out empty TLF.

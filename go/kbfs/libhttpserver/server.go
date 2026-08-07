@@ -107,8 +107,9 @@ func (s *Server) handleInternalServerError(w http.ResponseWriter) {
 }
 
 type obsoleteTrackingFS struct {
-	fs *libfs.FS
-	ch <-chan struct{}
+	fs          *libfs.FS
+	ch          <-chan struct{}
+	unsubscribe func()
 }
 
 func (e obsoleteTrackingFS) isObsolete() bool {
@@ -156,12 +157,14 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 		return "", nil, err
 	}
 
-	fsLifeCh, err := tlfFS.SubscribeToObsolete()
+	fsLifeCh, unsubscribe, err := tlfFS.SubscribeToObsolete()
 	if err != nil {
 		return "", nil, err
 	}
 
-	s.fs.Add(toStrip, obsoleteTrackingFS{fs: tlfFS, ch: fsLifeCh})
+	s.fs.Add(toStrip, obsoleteTrackingFS{
+		fs: tlfFS, ch: fsLifeCh, unsubscribe: unsubscribe,
+	})
 
 	return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
 }
@@ -280,7 +283,12 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 		logger:          logger,
 		vlog:            config.MakeVLogger(logger),
 	}
-	if s.fs, err = lru.New(fsCacheSize); err != nil {
+	s.fs, err = lru.NewWithEvict(fsCacheSize, func(_ any, value any) {
+		if e, ok := value.(obsoleteTrackingFS); ok && e.unsubscribe != nil {
+			e.unsubscribe()
+		}
+	})
+	if err != nil {
 		return nil, err
 	}
 	if err = s.restart(); err != nil {
@@ -305,5 +313,8 @@ func (s *Server) Shutdown() {
 	s.serverLock.Lock()
 	defer s.serverLock.Unlock()
 	s.server.Stop()
+	// Purge the LRU so its evict callback runs and unsubscribes any
+	// folder-branch observers still held by cached entries.
+	s.fs.Purge()
 	s.cancel()
 }
