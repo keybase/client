@@ -14,8 +14,7 @@ type Props = {
   tooltip: string
 } & OwnProps
 
-const SyncingFolders = (props: Props) =>
-  {
+const SyncingFolders = (props: Props) => {
   const styles = useStyles()
   return props.show && props.progress !== 1.0 ? (
       <Kb.WithTooltip tooltip={props.tooltip} containerStyle={styles.tooltipContainer}>

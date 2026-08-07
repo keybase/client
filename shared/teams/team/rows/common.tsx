@@ -46,8 +46,7 @@ export const getResetLabel = (status: T.Teams.MemberStatus, youCanManageMembers:
       ? 'Has reset their account'
       : 'Has reset their account; admins can re-invite'
 
-export const FullNameLabel = (props: {fullName: string; active: boolean}) =>
-  {
+export const FullNameLabel = (props: {fullName: string; active: boolean}) => {
   const selectionStyles = useSelectionStyles()
   return props.fullName && props.active ? (
       <Kb.Text style={selectionStyles.fullNameLabel} type="BodySmall" lineClamp={1}>

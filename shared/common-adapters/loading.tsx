@@ -15,8 +15,7 @@ export const LoadingScreen = (props: {type?: 'Small' | 'Large' | 'Huge'}) => (
 )
 
 // spinner covering the parent (which needs relative positioning) while keeping content visible
-export const LoadingOverlay = (props: {show: boolean}) =>
-  {
+export const LoadingOverlay = (props: {show: boolean}) => {
   const styles = useStyles()
   return props.show ? (
       // fullWidth/fullHeight required: without them desktop Box2 adds align-self:center, which

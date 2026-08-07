@@ -314,8 +314,7 @@ const TeamsAndProofs = (props: BioTeamProofsProps) => {
   )
 }
 
-const BioTeamProofs = (props: BioTeamProofsProps) =>
-  {
+const BioTeamProofs = (props: BioTeamProofsProps) => {
   const styles = useStyles()
   return isMobile ? (
       <Kb.Box2

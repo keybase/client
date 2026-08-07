@@ -265,8 +265,7 @@ const NativeNoChats = (props: {onNewChat: () => void}) => {
 // overlay so the icon centers and the buttons sit at the bottom. On iOS the tab
 // screen draws edge-to-edge under the native tab bar, so inset the bottom edge to
 // clear it; Android already insets the whole tab screen.
-const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) =>
-  {
+const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) => {
   const nativeStyles = useNativeStyles()
   return isIOS ? (
       <ScreensSafeAreaView edges={{bottom: true}} style={nativeStyles.noChatsWrapper}>

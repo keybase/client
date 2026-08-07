@@ -23,8 +23,7 @@ type Props = {
   path: T.FS.Path
 }
 
-const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  {
+const MaybePublicTag = ({path}: {path: T.FS.Path}) => {
   const theme = Kb.Styles.useTheme()
   return FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={theme.green} /> : null
 }

@@ -98,8 +98,7 @@ const Breadcrumb = (props: Props) => {
   )
 }
 
-const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  {
+const MaybePublicTag = ({path}: {path: T.FS.Path}) => {
   const theme = Kb.Styles.useTheme()
   return FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={theme.green} /> : null
 }
@@ -115,8 +114,7 @@ const MainTitle = (props: Props) => {
   )
 }
 
-const FsNavHeaderTitleInner = (props: Props) =>
-  {
+const FsNavHeaderTitleInner = (props: Props) => {
   const styles = useStyles()
   return props.path === FS.defaultPath ? (
       <Kb.Text type="Header" style={styles.rootTitle}>

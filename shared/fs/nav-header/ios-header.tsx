@@ -13,8 +13,7 @@ import {FsBrowserEditProvider} from '../browser/edit-state'
 // items get the system liquid glass treatment. Android keeps the fully custom
 // header (mobile-header.tsx).
 
-const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  {
+const MaybePublicTag = ({path}: {path: T.FS.Path}) => {
   const theme = Kb.Styles.useTheme()
   return FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={theme.green} /> : null
 }

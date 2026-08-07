@@ -8,8 +8,7 @@ const RoleCrown = (props: {
   fontSize?: number
   sizeType?: SizeType
   style?: Kb.Styles.StylesCrossPlatform
-}) =>
-  {
+}) => {
   const theme = Kb.Styles.useTheme()
   return props.role === 'admin' || props.role === 'owner' ? (
       <Kb.Icon

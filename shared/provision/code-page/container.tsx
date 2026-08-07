@@ -325,8 +325,7 @@ const SwitchTab = (props: {
   )
 }
 
-const Qr = (props: {textCode: string; currentDeviceAlreadyProvisioned: boolean}) =>
-  {
+const Qr = (props: {textCode: string; currentDeviceAlreadyProvisioned: boolean}) => {
   const styles = useStyles()
   return currentDeviceType === 'desktop' ? (
       <Kb.Box2 direction="vertical" style={styles.qrOnlyContainer}>

@@ -26,8 +26,7 @@ type Props = {
   styleOverride?: StyleOverride
 }
 
-const MarkdownMemo = (props: Props) =>
-  {
+const MarkdownMemo = (props: Props) => {
     const styleOverride = useStyleOverride()
   const styles = useStyles()
   return props.memo ? (

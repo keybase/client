@@ -17,8 +17,7 @@ type Props = {
   white?: boolean
 }
 
-const LoadingStateView = (props: Props) =>
-  {
+const LoadingStateView = (props: Props) => {
   const styles = useStyles()
   const theme = Styles.useTheme()
   return props.loading ? (
