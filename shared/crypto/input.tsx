@@ -127,7 +127,9 @@ const TextInput = (props: TextProps) => {
     value ? styles.inputFull : styles.inputEmpty,
     !value && !isMobile && {width: emptyInputWidth},
   ])
-  const inputContainerStyle = value ? styles.inputContainer : styles.inputContainerEmpty
+  const inputContainerStyle = value
+    ? styles.inputContainer
+    : Kb.Styles.collapseStyles([styles.inputContainerEmpty, !isMobile && {width: emptyInputWidth}])
 
   const browseButton = value ? null : (
     <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>

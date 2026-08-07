@@ -131,19 +131,25 @@ const OutputProgress = ({state}: {state: CommonState}) => {
   )
 }
 
-export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) =>
-  {
+// A text operation re-runs on every keystroke, so 'pending' alternates with 'success' as
+// fast as the user types. Keep showing the last output through a re-run instead of dropping
+// back to the placeholder, which reads as the whole pane blinking.
+const hasOutput = (state: CommonState) => state.outputStatus === 'success' || !!state.output
+
+export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) => {
   const styles = useStyles()
-  return outputStatus === 'success' ? (
-      <Kb.Banner
-        color="grey"
-        style={styles.banner}
-        textContainerStyle={styles.bannerContainer}
-        narrow={isMobile}
-      >
-        {children}
-      </Kb.Banner>
-    ) : null
+  // 'pending' too: text input re-runs the operation on every keystroke, and dropping the
+  // banner for each run makes it blink.
+  return outputStatus ? (
+    <Kb.Banner
+      color="grey"
+      style={styles.banner}
+      textContainerStyle={styles.bannerContainer}
+      narrow={isMobile}
+    >
+      {children}
+    </Kb.Banner>
+  ) : null
 }
 
 export const CryptoOutputActionsBar = ({
@@ -184,7 +190,7 @@ export const CryptoOutputActionsBar = ({
     copyToClipboard(state.output)
   }
 
-  return state.outputStatus === 'success' ? (
+  return hasOutput(state) ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
       {state.outputType === 'file' && !isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
@@ -299,7 +305,7 @@ export const CryptoOutput = ({
   const fileOutputTextColor =
     outputTextType === 'cipher' ? theme.greenDark : theme.black
 
-  if (state.outputStatus !== 'success') {
+  if (!hasOutput(state)) {
     return (
       <Kb.Box2
         direction="vertical"
