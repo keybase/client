@@ -1,0 +1,8 @@
+<resources>
+    <!-- API 31+ ignores the legacy splash windowBackground drawable and draws the
+         system splash screen instead, which otherwise falls back to colorBackground. -->
+    <style name="SplashTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+    </style>
+</resources>

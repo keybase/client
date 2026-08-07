@@ -145,7 +145,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         constants.putBoolean("androidIsTestDevice", misTestDevice)
         constants.putString("appVersionCode", c.versionCode)
         constants.putString("appVersionName", c.versionName)
-        constants.putBoolean("darkModeSupported", false)
+        // System dark mode (uiMode night mask) exists on Q+.
+        constants.putBoolean("darkModeSupported", Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         constants.putString("fsCacheDir", c.cacheDir)
         constants.putString("fsDownloadDir", c.downloadDir)
         // gui_config.json changes at runtime (route persistence), and JS re-reads

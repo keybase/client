@@ -63,15 +63,16 @@ class MainActivity : ReactActivity() {
         setupKBRuntime(this, true)
         captureIntent(intent)
 
+        // Before super.onCreate so the first frame after the splash already has the
+        // right background; a delayed call here shows a white flash in dark mode.
+        try {
+            val gc = GuiConfig.getInstance(filesDir)
+            gc?.let { setBackgroundColor(it.getDarkMode()) }
+        } catch (e: Exception) {
+            NativeLogger.warn("Error reading GuiConfig in onCreate", e)
+        }
+
         super.onCreate(null)
-        Handler(Looper.getMainLooper()).postDelayed({
-            try {
-                val gc = GuiConfig.getInstance(filesDir)
-                gc?.let { setBackgroundColor(it.getDarkMode()) }
-            } catch (e: Exception) {
-                NativeLogger.warn("Error reading GuiConfig in onCreate", e)
-            }
-        }, 300)
         KeybasePushNotificationListenerService.createNotificationChannel(this)
         updateIsUsingHardwareKeyboard()
 
@@ -395,9 +396,11 @@ class MainActivity : ReactActivity() {
             DarkModePreference.AlwaysLight -> R.color.white
         }
         val mainWindow = this.window
-        val handler = Handler(Looper.getMainLooper())
-        // Run this on the main thread.
-        handler.post { mainWindow.setBackgroundDrawableResource(bgColor) }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            mainWindow.setBackgroundDrawableResource(bgColor)
+        } else {
+            Handler(Looper.getMainLooper()).post { mainWindow.setBackgroundDrawableResource(bgColor) }
+        }
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
