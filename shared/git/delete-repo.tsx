@@ -9,6 +9,7 @@ type OwnProps = {
 }
 
 const DeleteRepo = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const _name = ownProps.name
   const teamname = ownProps.teamname ?? ''
   const [error, setError] = React.useState('')
@@ -107,7 +108,7 @@ const DeleteRepo = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   checkbox: {alignSelf: 'flex-start'},
   container: Kb.Styles.platformStyles({
     isElectron: {
@@ -120,7 +121,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       padding: Kb.Styles.globalMargins.small,
     },
   }),
-  repoName: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'line-through'},
+  repoName: {color: theme.redDark, textDecorationLine: 'line-through'},
 }))
 
 export default DeleteRepo

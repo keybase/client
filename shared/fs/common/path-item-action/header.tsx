@@ -5,25 +5,28 @@ import PathInfo from '../path-info'
 
 export type Props = {path: T.FS.Path}
 
-const Header = (props: Props) => (
-  <Kb.ClickableBox
-    onClick={
-      // This box is necessary as otherwise the click event propagates into
-      // the ListItem backed row.
-      e => e?.stopPropagation()
-    }
-    direction="vertical"
-    fullWidth={true}
-  >
-    <PathItemInfo path={props.path} containerStyle={styles.container} />
-    <Kb.Divider />
-    <PathInfo path={props.path} containerStyle={styles.container} />
-  </Kb.ClickableBox>
-)
+const Header = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.ClickableBox
+      onClick={
+        // This box is necessary as otherwise the click event propagates into
+        // the ListItem backed row.
+        e => e?.stopPropagation()
+      }
+      direction="vertical"
+      fullWidth={true}
+    >
+      <PathItemInfo path={props.path} containerStyle={styles.container} />
+      <Kb.Divider />
+      <PathInfo path={props.path} containerStyle={styles.container} />
+    </Kb.ClickableBox>
+  )
+}
 
 export default Header
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: Kb.Styles.platformStyles({

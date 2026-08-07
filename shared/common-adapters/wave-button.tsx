@@ -35,6 +35,8 @@ const getWaveWaitingKey = (recipient: string) => {
 
 // A button that sends a wave emoji into a chat.
 const WaveButton = (props: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
@@ -85,7 +87,7 @@ const WaveButton = (props: Props) => {
     <Kb.Box2 direction="vertical" noShrink={true} style={props.style}>
       {hideButton && (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
-          <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
+          <Kb.Icon type="iconfont-check" color={theme.black_50} sizeType="Tiny" />
           <Kb.Text type="BodySmall"> Waved</Kb.Text>
         </Kb.Box2>
       )}
@@ -108,10 +110,10 @@ const WaveButton = (props: Props) => {
 
 export default WaveButton
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
-      blueText: {color: Styles.globalColors.blueDark, paddingRight: Styles.globalMargins.xtiny},
+      blueText: {color: theme.blueDark, paddingRight: Styles.globalMargins.xtiny},
       button: Styles.platformStyles({isElectron: {width: 'auto'}}),
       hiddenButton: {opacity: 0},
       waved: {

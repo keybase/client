@@ -20,30 +20,33 @@ const LocationButton = (props: {
   onClick: () => void
   subLabel?: string
   primary?: boolean
-}) => (
-  <Kb.Button
-    disabled={props.disabled}
-    fullWidth={true}
-    onClick={props.onClick}
-    mode={props.primary ? 'Primary' : 'Secondary'}
-    type="Default"
-    style={styles.liveButton}
-  >
-    <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text
-        type="BodySemibold"
-        style={props.primary ? styles.liveButtonLabelPrimary : styles.liveButtonLabel}
-      >
-        {props.label}
-      </Kb.Text>
-      {!!props.subLabel && (
-        <Kb.Text type="BodyTiny" style={props.primary ? styles.liveButtonLabelPrimary : styles.accuracy}>
-          {props.subLabel}
+}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Button
+      disabled={props.disabled}
+      fullWidth={true}
+      onClick={props.onClick}
+      mode={props.primary ? 'Primary' : 'Secondary'}
+      type="Default"
+      style={styles.liveButton}
+    >
+      <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Text
+          type="BodySemibold"
+          style={props.primary ? styles.liveButtonLabelPrimary : styles.liveButtonLabel}
+        >
+          {props.label}
         </Kb.Text>
-      )}
-    </Kb.Box2>
-  </Kb.Button>
-)
+        {!!props.subLabel && (
+          <Kb.Text type="BodyTiny" style={props.primary ? styles.liveButtonLabelPrimary : styles.accuracy}>
+            {props.subLabel}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    </Kb.Button>
+  )
+}
 
 const updateLocation = (coord: T.Chat.Coordinate) => {
   const f = async () => {
@@ -95,6 +98,7 @@ const useWatchPosition = (
 }
 
 const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const styles = useStyles()
   const {conversationIDKey} = props
   const {tlfname} = useConversationMeta(conversationIDKey)
   const username = useCurrentUserState(s => s.username)
@@ -189,26 +193,26 @@ const LocationPopupMobile = (props: LocationPopupProps) => {
 }
 const LocationPopup = isMobile ? LocationPopupMobile : () => null
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       accuracy: {
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
       },
       denied: {
         ...Kb.Styles.globalStyles.fillAbsolute,
       },
       deniedText: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
       },
       liveButton: {
         height: 53,
       },
       liveButtonLabel: {
-        color: Kb.Styles.globalColors.blueDark,
+        color: theme.blueDark,
       },
       liveButtonLabelPrimary: {
-        color: Kb.Styles.globalColors.whiteOrWhite,
+        color: theme.whiteOrWhite,
       },
     }) as const
 )

@@ -27,19 +27,19 @@ function getIcon(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSync
   }
 }
 
-function getColor(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyncStatus) {
+function getColor(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyncStatus, theme: Kb.Styles.Theme) {
   switch (status) {
     case T.FS.NonUploadStaticSyncStatus.AwaitingToSync:
     case T.FS.NonUploadStaticSyncStatus.OnlineOnly:
-      return Kb.Styles.globalColors.blue
+      return theme.blue
     case T.FS.NonUploadStaticSyncStatus.Unknown:
-      return Kb.Styles.globalColors.greyDark
+      return theme.greyDark
     case T.FS.NonUploadStaticSyncStatus.Synced:
-      return Kb.Styles.globalColors.green
+      return theme.green
     case T.FS.NonUploadStaticSyncStatus.SyncError:
-      return Kb.Styles.globalColors.red
+      return theme.red
     case T.FS.LocalConflictStatus:
-      return Kb.Styles.globalColors.red
+      return theme.red
   }
 }
 
@@ -71,6 +71,8 @@ function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string 
 }
 
 function PathStatusIcon(props: Props) {
+  const theme = Kb.Styles.useTheme()
+  const styles = useStyles()
   return props.statusIcon ? (
     <Kb.WithTooltip
       tooltip={getTooltip(props.statusIcon, props.isFolder)}
@@ -89,7 +91,7 @@ function PathStatusIcon(props: Props) {
           type={getIcon(props.statusIcon)}
           sizeType="Small"
           style={styles.iconFont}
-          color={getColor(props.statusIcon)}
+          color={getColor(props.statusIcon, theme)}
         />
       )}
     </Kb.WithTooltip>
@@ -100,7 +102,7 @@ function PathStatusIcon(props: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   iconFont: {
     alignSelf: 'center',
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),

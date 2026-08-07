@@ -9,33 +9,36 @@ export type Props = {
   suggestions: ReadonlyArray<FollowSuggestion>
 }
 
-const FollowSuggestions = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Text type="BodySmallSemibold" style={styles.text}>
-      Consider following...
-    </Kb.Text>
-    <Kb.ScrollView
-      {...horizontalScrollProps}
-      contentContainerStyle={styles.scrollViewContainer}
-    >
-      {props.suggestions.map(suggestion => (
-        <Kb.NameWithIcon
-          key={suggestion.username}
-          username={suggestion.username}
-          metaOne={suggestion.fullName}
-          metaStyle={styles.meta}
-          onClick="profile"
-          colorFollowing={true}
-          size="small"
-          containerStyle={styles.suggestionContainer}
-        />
-      ))}
-    </Kb.ScrollView>
-  </Kb.Box2>
-)
+const FollowSuggestions = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Text type="BodySmallSemibold" style={styles.text}>
+        Consider following...
+      </Kb.Text>
+      <Kb.ScrollView
+        {...horizontalScrollProps}
+        contentContainerStyle={styles.scrollViewContainer}
+      >
+        {props.suggestions.map(suggestion => (
+          <Kb.NameWithIcon
+            key={suggestion.username}
+            username={suggestion.username}
+            metaOne={suggestion.fullName}
+            metaStyle={styles.meta}
+            onClick="profile"
+            colorFollowing={true}
+            size="small"
+            containerStyle={styles.suggestionContainer}
+          />
+        ))}
+      </Kb.ScrollView>
+    </Kb.Box2>
+  )
+}
 export default FollowSuggestions
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
@@ -46,7 +49,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       ...Kb.Styles.globalStyles.flexBoxRow,
       borderBottomWidth: 1,
-      borderColor: Kb.Styles.globalColors.black_10,
+      borderColor: theme.black_10,
       paddingBottom: Kb.Styles.globalMargins.small,
     },
     isElectron: {

@@ -11,6 +11,8 @@ type Props = {
 }
 
 const BigTeamHeader = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {showBadge, teamID, teamname} = props
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => navigateAppend({name: 'team', params: {teamID}})
@@ -54,7 +56,7 @@ const BigTeamHeader = (props: Props) => {
       >
         <Kb.Icon
           className="hover_contained_color_black"
-          color={Kb.Styles.globalColors.black_35}
+          color={theme.black_35}
           type="iconfont-gear"
         />
         <Kb.Box2
@@ -66,8 +68,8 @@ const BigTeamHeader = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       badge: {
         height: 10,
@@ -77,8 +79,8 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 10,
       },
       badgeVisible: {
-        backgroundColor: Kb.Styles.globalColors.blue,
-        borderColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blue,
+        borderColor: theme.blueGrey,
         borderRadius: 5,
         borderStyle: `solid`,
         borderWidth: 2,
@@ -95,7 +97,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       team: {
         alignSelf: 'center',
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
         letterSpacing: 0.2,
         ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
       },

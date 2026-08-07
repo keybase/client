@@ -51,6 +51,7 @@ const handleKeyDown = (
 }
 
 const Input = (props: Props) => {
+  const styles = useStyles()
   const ref = React.useRef<Kb.SearchFilterRef>(null)
   const {focusCounter, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown} = props
   const prevFocusCounterRef = React.useRef(focusCounter)
@@ -91,7 +92,7 @@ const Input = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),

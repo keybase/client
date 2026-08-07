@@ -17,6 +17,7 @@ type GroupProps = {
 }
 
 const Group = (props: GroupProps) => {
+  const styles = useStyles()
   const {
     allowEdit,
     groupName,
@@ -71,7 +72,7 @@ const Group = (props: GroupProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       label: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},

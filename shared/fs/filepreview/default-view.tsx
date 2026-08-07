@@ -20,6 +20,7 @@ const Share = (p: ClickableProps) => {
 }
 
 const Container = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {path} = ownProps
   const {fileContext, pathItem} = useFsFileContext(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
@@ -99,8 +100,8 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {padding: Kb.Styles.globalMargins.medium},
@@ -112,7 +113,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       innerContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           ...Kb.Styles.globalStyles.flexGrow,
         },
         isMobile: {

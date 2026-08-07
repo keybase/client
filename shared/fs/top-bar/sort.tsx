@@ -29,6 +29,7 @@ const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void)
 })
 
 const Sort = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {path} = ownProps
   const pathItem = useFsPathItem(path)
   const {setSortSetting, sortSetting} = useFsBrowserSort(path)
@@ -66,7 +67,7 @@ const Sort = (ownProps: OwnProps) => {
   ) : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       sortText: Kb.Styles.platformStyles({isElectron: {whiteSpace: 'nowrap'}}),

@@ -17,6 +17,7 @@ type UnmutedProps = {
 }
 
 const UnmutedNotificationPrefs = (props: UnmutedProps) => {
+  const styles = useStyles()
   const {desktop, setDesktop, mobile, setMobile, channelWide, toggleChannelWide} = props
   const allNotifsEnabled = desktop === 'onAnyActivity' && mobile === 'onAnyActivity'
   let ignoreMentionsSuffix = ''
@@ -102,6 +103,8 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
 }
 
 const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey} = props
   const meta = useConversationMeta(conversationIDKey)
   const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
@@ -206,7 +209,7 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
           }}
           label="Mute all notifications"
         />
-        <Kb.Icon type="iconfont-shh" style={styles.icon} color={Kb.Styles.globalColors.black_20} />
+        <Kb.Icon type="iconfont-shh" style={styles.icon} color={theme.black_20} />
         <Kb.SaveIndicator saving={saving} style={styles.saveIndicator} />
       </Kb.Box2>
       {!muted && (
@@ -237,7 +240,7 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       icon: {marginLeft: Kb.Styles.globalMargins.xtiny},

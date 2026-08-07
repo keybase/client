@@ -10,6 +10,7 @@ const lightPatternImage = require('../../images/upload-pattern-80.png') as numbe
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png') as number
 
 const UploadAccessory = () => {
+  const styles = useStyles()
   const kbfsDaemonStatus = useKbfsDaemonStatus()
   const uploads = useFsUploadStatus()
   const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
@@ -66,7 +67,7 @@ const UploadContainer = () => {
   return <Upload {...np} />
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   accessoryBg: {
     height: 48,
   },
@@ -79,7 +80,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginTop: -48,
   },
   text: {
-    color: Kb.Styles.globalColors.whiteOrWhite,
+    color: theme.whiteOrWhite,
   },
 }))
 

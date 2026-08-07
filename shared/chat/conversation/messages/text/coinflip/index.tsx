@@ -24,6 +24,8 @@ const guessFlipResultHeight = (raw: string) => {
 }
 
 function CoinFlipContainer() {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const ordinal = useOrdinal()
   const message = useConversationThreadMessage(ordinal)
   const isSendError = message?.type === 'text' ? !!message.errorReason : false
@@ -91,7 +93,7 @@ function CoinFlipContainer() {
           {!isMobile && 'Collecting '}commitments: {numParticipants}
         </Kb.Text>
         {phase === T.RPCChat.UICoinFlipPhase.reveals && (
-          <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
+          <Kb.Icon type="iconfont-check" color={theme.green} sizeType="Small" />
         )}
       </Kb.Box2>
       {phase === T.RPCChat.UICoinFlipPhase.reveals && (
@@ -169,21 +171,21 @@ function CoinFlipContainer() {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         alignSelf: 'flex-start',
-        borderColor: Kb.Styles.globalColors.grey,
+        borderColor: theme.grey,
         borderLeftWidth: 4,
         borderStyle: 'solid',
         marginTop: Kb.Styles.globalMargins.xtiny,
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
-      error: {color: Kb.Styles.globalColors.redDark},
+      error: {color: theme.redDark},
       flipAgainContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
       flipAgainContainerHidden: {opacity: 0, paddingTop: Kb.Styles.globalMargins.tiny},
-      placeholder: {backgroundColor: Kb.Styles.globalColors.grey},
+      placeholder: {backgroundColor: theme.grey},
       progressVis: {
         height: 40,
         width: 64,

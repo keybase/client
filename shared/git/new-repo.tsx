@@ -9,26 +9,35 @@ import {useTeamsList} from '@/teams/use-teams-list'
 type OwnProps = {isTeam: boolean}
 const NewTeamSentry = '---NewTeam---'
 
-const PickTeamItem = () => (
-  <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.avatarBox} justifyContent="flex-start">
-    <Kb.Text type="BodyBig">Pick a team</Kb.Text>
-  </Kb.Box2>
-)
+const PickTeamItem = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.avatarBox} justifyContent="flex-start">
+      <Kb.Text type="BodyBig">Pick a team</Kb.Text>
+    </Kb.Box2>
+  )
+}
 
-const NewTeamItem = () => (
-  <Kb.Text type="Header" style={styles.newTeamItem}>
-    New team...
-  </Kb.Text>
-)
-
-const TeamItem = (p: {teamname: string}) => (
-  <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.avatarBox}>
-    <Kb.Avatar isTeam={true} teamname={p.teamname} size={16} />
-    <Kb.Text type="Header" style={styles.teamName}>
-      {p.teamname}
+const NewTeamItem = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Text type="Header" style={styles.newTeamItem}>
+      New team...
     </Kb.Text>
-  </Kb.Box2>
-)
+  )
+}
+
+const TeamItem = (p: {teamname: string}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.avatarBox}>
+      <Kb.Avatar isTeam={true} teamname={p.teamname} size={16} />
+      <Kb.Text type="Header" style={styles.teamName}>
+        {p.teamname}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const makeDropdownItem = (item?: string) => {
   if (!item) {
@@ -41,6 +50,7 @@ const makeDropdownItem = (item?: string) => {
 }
 
 const NewRepo = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {isTeam} = ownProps
   const [error, setError] = React.useState('')
   const {teams: loadedTeams} = useTeamsList()
@@ -143,7 +153,7 @@ const NewRepo = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       avatarBox: {

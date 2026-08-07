@@ -106,6 +106,7 @@ type DesktopSendToChatRenderProps = {
 }
 
 export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => {
+  const desktopStyles = useDesktopStyles()
   return (
     <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
       <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
@@ -148,7 +149,7 @@ const SendToChat = isMobile ? MobileSendToChat : DesktopSendToChat
 
 export default SendToChat
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
+const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       belly: {

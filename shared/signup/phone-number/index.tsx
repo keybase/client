@@ -16,6 +16,7 @@ type BodyProps = {
 }
 
 export const EnterPhoneNumberBody = (props: BodyProps) => {
+  const styles = useStyles()
   const showCheckbox = !!props.onChangeSearchable
   return (
     <Kb.Box2
@@ -50,7 +51,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   checkbox: {width: '100%'},
   container: Kb.Styles.platformStyles({
     isTablet: {maxWidth: 386},

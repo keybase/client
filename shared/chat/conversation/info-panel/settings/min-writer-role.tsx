@@ -11,6 +11,7 @@ import {useConversationMeta} from '../../data-hooks'
 const positionFallbacks = ['bottom center'] as const
 
 const MinWriterRole = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const styles = useStyles()
   const {conversationIDKey} = props
   const meta = useConversationMeta(conversationIDKey)
   const {teamname, minWriterRole} = meta
@@ -116,6 +117,7 @@ type DropdownProps = {
 }
 
 const Dropdown = (p: DropdownProps) => {
+  const styles = useStyles()
   const {items, minWriterRole} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -158,11 +160,11 @@ const Display = ({minWriterRole}: {minWriterRole: T.Teams.TeamRoleType}) => (
   </Kb.Text>
 )
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       dropdown: {
-        ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
+        ...Kb.Styles.border(theme.grey, 1, Kb.Styles.borderRadius),
         paddingRight: Kb.Styles.globalMargins.small,
         width: '100%',
       },

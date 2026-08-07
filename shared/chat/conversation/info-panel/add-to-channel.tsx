@@ -15,6 +15,8 @@ const AddToChannel = (props: Props) => {
 }
 
 const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, teamID} = props
   const nav = useSafeNavigation()
   const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
@@ -120,7 +122,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
                     disabled={alreadyIn}
                     disabledColor={
                       alreadyIn || toAdd.has(item.username)
-                        ? Kb.Styles.globalColors.black_20OrWhite_20
+                        ? theme.black_20OrWhite_20
                         : undefined
                     }
                     style={styles.checkCircle}
@@ -149,7 +151,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   checkCircle: {
     paddingRight: isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
   },

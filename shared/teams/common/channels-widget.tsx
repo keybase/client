@@ -16,6 +16,7 @@ type Props = {
 
 // always shows #general
 export const ChannelsWidget = (props: Props) => {
+  const styles = useStyles()
   const {onRemoveChannel} = props
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container} fullWidth={true}>
@@ -97,6 +98,8 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
 }
 
 const ChannelInputMobile = (props: ChannelInputProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {disableGeneral, disabledChannels, onAdd, selected, teamID} = props
   const [showingPopup, setShowingPopup] = React.useState(false)
   const onComplete = (channels: Array<T.Teams.ChannelNameID>) => {
@@ -112,7 +115,7 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
         centerChildren={true}
         style={styles.channelDummyInput}
       >
-        <Kb.Icon type="iconfont-search" color={Kb.Styles.globalColors.black_50} sizeType="Small" />
+        <Kb.Icon type="iconfont-search" color={theme.black_50} sizeType="Small" />
         <Kb.Text type="BodySemibold" style={styles.channelDummyInputText}>
           Add channels
         </Kb.Text>
@@ -132,36 +135,40 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
 
 const ChannelInput = isMobile ? ChannelInputMobile : ChannelInputDesktop
 
-const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
-  <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
-    <Kb.Text type={isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
-    {onRemove && (
-      <Kb.Icon type="iconfont-remove" onClick={onRemove} color={Kb.Styles.globalColors.black_20} />
-    )}
-  </Kb.Box2>
-)
+const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
+      <Kb.Text type={isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
+      {onRemove && (
+        <Kb.Icon type="iconfont-remove" onClick={onRemove} color={theme.black_20} />
+      )}
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   channelDummyInput: {
-    backgroundColor: Kb.Styles.globalColors.black_10,
+    backgroundColor: theme.black_10,
     borderRadius: Kb.Styles.borderRadius,
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
-  channelDummyInputText: {color: Kb.Styles.globalColors.black_50},
+  channelDummyInputText: {color: theme.black_50},
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
     borderRadius: Kb.Styles.borderRadius,
   },
   pill: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       borderRadius: Kb.Styles.borderRadius,
       marginBottom: Kb.Styles.globalMargins.xtiny,
     },
     isMobile: {
-      ...Kb.Styles.border(Kb.Styles.globalColors.black_20),
+      ...Kb.Styles.border(theme.black_20),
     },
   }),
   pillContainer: {

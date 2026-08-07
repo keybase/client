@@ -6,20 +6,23 @@ type PlaceholderProps = {
   width?: number
 }
 
-const Placeholder = (props: PlaceholderProps) => (
-  <Box2
-    direction="vertical"
-    style={Styles.collapseStyles([
-      styles.placeholder,
-      props.style,
-      props.width ? {width: props.width} : undefined,
-    ])}
-  />
-)
+const Placeholder = (props: PlaceholderProps) => {
+  const styles = useStyles()
+  return (
+    <Box2
+      direction="vertical"
+      style={Styles.collapseStyles([
+        styles.placeholder,
+        props.style,
+        props.width ? {width: props.width} : undefined,
+      ])}
+    />
+  )
+}
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   placeholder: {
-    backgroundColor: Styles.globalColors.greyLight,
+    backgroundColor: theme.greyLight,
     borderRadius: 5,
     height: 10,
     width: 200,

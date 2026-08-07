@@ -108,6 +108,8 @@ export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
 }
 
 const Activity = (p: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {level, style, iconOnly = false} = p
   return level === 'none' ? null : (
     <Kb.Box2
@@ -120,7 +122,7 @@ const Activity = (p: Props) => {
     >
       <Kb.Icon
         type={activityToIcon[level]}
-        color={level === 'active' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black_50}
+        color={level === 'active' ? theme.greenDark : theme.black_50}
         sizeType="Small"
       />
       {iconOnly ? null : (
@@ -140,9 +142,9 @@ export const useActivityLevels = (): ActivityLevels => {
   return context
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   activityActive: {
-    color: Kb.Styles.globalColors.greenDark,
+    color: theme.greenDark,
   },
 }))
 

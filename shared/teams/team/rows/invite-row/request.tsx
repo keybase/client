@@ -42,6 +42,8 @@ type RolePickerProps = {
 export type Props = {} & RowProps & RolePickerProps
 
 const TeamRequestRow = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {ctime, fullName, username, onAccept, onOpenProfile, reset} = props
 
   const approveWord = reset ? 'Readmit' : 'Approve'
@@ -94,7 +96,7 @@ const TeamRequestRow = (props: Props) => {
             <Kb.Meta
               title={reset ? 'locked out' : 'please decide'}
               style={styleCharm}
-              backgroundColor={reset ? Kb.Styles.globalColors.red : Kb.Styles.globalColors.orange}
+              backgroundColor={reset ? theme.red : theme.orange}
             />
             {isMobile ? (
               C.isLargeScreen && (
@@ -158,12 +160,12 @@ const styleCharm = {
   marginRight: Kb.Styles.globalMargins.xtiny,
 } as const
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Kb.Styles.globalColors.white},
-  disabled: {backgroundColor: Kb.Styles.globalColors.white, opacity: 0.4},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  bg: {backgroundColor: theme.white},
+  disabled: {backgroundColor: theme.white, opacity: 0.4},
   ignoreButton: {marginLeft: Kb.Styles.globalMargins.xtiny},
   letInButton: {
-    backgroundColor: Kb.Styles.globalColors.green,
+    backgroundColor: theme.green,
     marginLeft: Kb.Styles.globalMargins.xtiny,
   },
   newFullName: {

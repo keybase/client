@@ -9,6 +9,8 @@ type BodyProps = {
 }
 
 const VerifyBody = (props: BodyProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   // build in a delay to resend
   // disable first, then enable after 2s
   const [resendDisabled, setResendDisabled] = React.useState(true)
@@ -52,7 +54,7 @@ const VerifyBody = (props: BodyProps) => {
         >
           <Kb.Icon
             type="iconfont-reload"
-            color={Kb.Styles.globalColors.white}
+            color={theme.white}
             style={styles.iconVerticalAlign}
           />
           <Kb.Text type="BodySemibold" negative={true}>
@@ -69,8 +71,8 @@ const VerifyBody = (props: BodyProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       body: Kb.Styles.platformStyles({
         isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},
@@ -83,7 +85,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputContainer2: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueDark,
+          backgroundColor: theme.blueDark,
           borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
@@ -100,7 +102,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputText2: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.white,
+          color: theme.white,
           letterSpacing: 20,
           textAlign: 'center',
         },

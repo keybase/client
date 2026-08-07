@@ -39,6 +39,7 @@ const TYPE_METRICS: ReadonlyArray<{type: TextType; fs: number; lh: number}> = [
 // Zone overlay — shows baseline / cap / x zones
 // ─────────────────────────────────────────────
 const ZoneRow = ({type, fs, lh}: {type: TextType; fs: number; lh: number}) => {
+  const styles = useStyles()
   const z = zonePos(fs, lh)
   const clamp = (v: number) => Math.max(0, Math.min(lh, v))
   // coloured bands between zone boundaries
@@ -96,49 +97,55 @@ const ZoneRow = ({type, fs, lh}: {type: TextType; fs: number; lh: number}) => {
   )
 }
 
-const ZoneSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
-    <Kb.Text type="BodySmallSemibold">Metric zone overlay</Kb.Text>
-    <Kb.Text type="BodyTiny" style={styles.hint}>
-      Blue=ascender  Green=cap zone  Yellow=x zone  Red=descender{'\n'}
-      Lines: dark green=cap-top  brown=x-height  dark red=baseline
-    </Kb.Text>
-    {TYPE_METRICS.map(m => (
-      <ZoneRow key={m.type} {...m} />
-    ))}
-  </Kb.Box2>
-)
+const ZoneSection = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
+      <Kb.Text type="BodySmallSemibold">Metric zone overlay</Kb.Text>
+      <Kb.Text type="BodyTiny" style={styles.hint}>
+        Blue=ascender  Green=cap zone  Yellow=x zone  Red=descender{'\n'}
+        Lines: dark green=cap-top  brown=x-height  dark red=baseline
+      </Kb.Text>
+      {TYPE_METRICS.map(m => (
+        <ZoneRow key={m.type} {...m} />
+      ))}
+    </Kb.Box2>
+  )
+}
 
 // ─────────────────────────────────────────────
 // Strikethrough & underline position
 // ─────────────────────────────────────────────
-const DecorationSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
-    <Kb.Text type="BodySmallSemibold">Strikethrough (yStrikeoutPosition) — should bisect caps optically</Kb.Text>
-    {TYPE_METRICS.map(({type}) => (
-      <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type} style={styles.strikethrough}>Hamburgefontsiv 0123456789 ÁÉÍÓÚ</Kb.Text>
-      </Kb.Box2>
-    ))}
-    <Kb.Divider style={styles.innerDivider} />
-    <Kb.Text type="BodySmallSemibold">Underline (underlinePosition) — should sit just below descenders</Kb.Text>
-    {TYPE_METRICS.map(({type}) => (
-      <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type} style={styles.underline}>Hamburgefontsiv gjpqy 0123456789</Kb.Text>
-      </Kb.Box2>
-    ))}
-    <Kb.Divider style={styles.innerDivider} />
-    <Kb.Text type="BodySmallSemibold">Both together</Kb.Text>
-    {TYPE_METRICS.map(({type}) => (
-      <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type} style={styles.bothDecoration}>Hamburgefontsiv 0123456789</Kb.Text>
-      </Kb.Box2>
-    ))}
-  </Kb.Box2>
-)
+const DecorationSection = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
+      <Kb.Text type="BodySmallSemibold">Strikethrough (yStrikeoutPosition) — should bisect caps optically</Kb.Text>
+      {TYPE_METRICS.map(({type}) => (
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type} style={styles.strikethrough}>Hamburgefontsiv 0123456789 ÁÉÍÓÚ</Kb.Text>
+        </Kb.Box2>
+      ))}
+      <Kb.Divider style={styles.innerDivider} />
+      <Kb.Text type="BodySmallSemibold">Underline (underlinePosition) — should sit just below descenders</Kb.Text>
+      {TYPE_METRICS.map(({type}) => (
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type} style={styles.underline}>Hamburgefontsiv gjpqy 0123456789</Kb.Text>
+        </Kb.Box2>
+      ))}
+      <Kb.Divider style={styles.innerDivider} />
+      <Kb.Text type="BodySmallSemibold">Both together</Kb.Text>
+      {TYPE_METRICS.map(({type}) => (
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type} style={styles.bothDecoration}>Hamburgefontsiv 0123456789</Kb.Text>
+        </Kb.Box2>
+      ))}
+    </Kb.Box2>
+  )
+}
 
 // ─────────────────────────────────────────────
 // Inline icon + text (sxHeight / vertical-align)
@@ -150,159 +157,174 @@ const iconSizePairs = [
   {iconSize: 'Big', textType: 'BodyBig'},
 ] as const
 
-const InlineIconSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
-    <Kb.Text type="BodySmallSemibold">Inline icon + text (sxHeight → vertical-align: middle)</Kb.Text>
-    <Kb.Text type="BodyTiny" style={styles.hint}>Icons should sit at the optical mid-cap of adjacent text</Kb.Text>
-    {iconSizePairs.map(({iconSize, textType}) => (
-      <Kb.Box2 key={textType} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{textType}</Kb.Text>
-        <Kb.Icon type="iconfont-keybase" sizeType={iconSize} />
-        <Kb.Text type={textType}>Hamburgefontsiv</Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType={iconSize} />
-        <Kb.Text type={textType}>gjpqy 0123456789</Kb.Text>
-        <Kb.Icon type="iconfont-check" sizeType={iconSize} />
-      </Kb.Box2>
-    ))}
-    <Kb.Divider style={styles.innerDivider} />
-    <Kb.Text type="BodySmallSemibold">Mixed icon + bold + regular inline</Kb.Text>
-    {iconSizePairs.map(({iconSize, textType}) => (
-      <Kb.Box2 key={textType} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center" style={styles.inlineRow}>
-        <Kb.Text type="BodyTiny" style={styles.label}>{textType}</Kb.Text>
-        <Kb.Icon type="iconfont-person" sizeType={iconSize} />
-        <Kb.Text type={textType}><Kb.Text type={textType} style={styles.bold}>Bold</Kb.Text> regular <Kb.Text type={textType} style={styles.italic}>italic</Kb.Text></Kb.Text>
-      </Kb.Box2>
-    ))}
-  </Kb.Box2>
-)
+const InlineIconSection = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
+      <Kb.Text type="BodySmallSemibold">Inline icon + text (sxHeight → vertical-align: middle)</Kb.Text>
+      <Kb.Text type="BodyTiny" style={styles.hint}>Icons should sit at the optical mid-cap of adjacent text</Kb.Text>
+      {iconSizePairs.map(({iconSize, textType}) => (
+        <Kb.Box2 key={textType} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{textType}</Kb.Text>
+          <Kb.Icon type="iconfont-keybase" sizeType={iconSize} />
+          <Kb.Text type={textType}>Hamburgefontsiv</Kb.Text>
+          <Kb.Icon type="iconfont-arrow-right" sizeType={iconSize} />
+          <Kb.Text type={textType}>gjpqy 0123456789</Kb.Text>
+          <Kb.Icon type="iconfont-check" sizeType={iconSize} />
+        </Kb.Box2>
+      ))}
+      <Kb.Divider style={styles.innerDivider} />
+      <Kb.Text type="BodySmallSemibold">Mixed icon + bold + regular inline</Kb.Text>
+      {iconSizePairs.map(({iconSize, textType}) => (
+        <Kb.Box2 key={textType} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center" style={styles.inlineRow}>
+          <Kb.Text type="BodyTiny" style={styles.label}>{textType}</Kb.Text>
+          <Kb.Icon type="iconfont-person" sizeType={iconSize} />
+          <Kb.Text type={textType}><Kb.Text type={textType} style={styles.bold}>Bold</Kb.Text> regular <Kb.Text type={textType} style={styles.italic}>italic</Kb.Text></Kb.Text>
+        </Kb.Box2>
+      ))}
+    </Kb.Box2>
+  )
+}
 
 // ─────────────────────────────────────────────
 // Fixed-height container centering (hhea.ascender)
 // ─────────────────────────────────────────────
 const containerHeights = [16, 20, 24, 28, 32, 40, 48] as const
 
-const CenteringSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="small">
-    <Kb.Text type="BodySmallSemibold">Fixed-height container centering (hhea.ascender)</Kb.Text>
-    <Kb.Text type="BodyTiny" style={styles.hint}>Text must be visually centered in each box. Red line = exact center.</Kb.Text>
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
-      {containerHeights.map(h => (
-        <Kb.Box2 key={h} direction="vertical" alignItems="center" gap="xtiny">
-          <Kb.Box2
-            direction="horizontal"
-            centerChildren={true}
-            relative={true}
-            style={Kb.Styles.collapseStyles([styles.centeredBox, {height: h, minWidth: h + 8}])}
-          >
-            <Kb.Text type="BodyTinyBold">Ag</Kb.Text>
-            {/* exact-center line */}
+const CenteringSection = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="small">
+      <Kb.Text type="BodySmallSemibold">Fixed-height container centering (hhea.ascender)</Kb.Text>
+      <Kb.Text type="BodyTiny" style={styles.hint}>Text must be visually centered in each box. Red line = exact center.</Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
+        {containerHeights.map(h => (
+          <Kb.Box2 key={h} direction="vertical" alignItems="center" gap="xtiny">
             <Kb.Box2
               direction="horizontal"
-              style={Kb.Styles.platformStyles({
-                isElectron: {
-                  backgroundColor: 'rgba(239,68,68,0.4)',
-                  height: 1,
-                  left: 0,
-                  position: 'absolute',
-                  right: 0,
-                  top: h / 2,
-                } as object,
-              })}
-            />
+              centerChildren={true}
+              relative={true}
+              style={Kb.Styles.collapseStyles([styles.centeredBox, {height: h, minWidth: h + 8}])}
+            >
+              <Kb.Text type="BodyTinyBold">Ag</Kb.Text>
+              {/* exact-center line */}
+              <Kb.Box2
+                direction="horizontal"
+                style={Kb.Styles.platformStyles({
+                  isElectron: {
+                    backgroundColor: 'rgba(239,68,68,0.4)',
+                    height: 1,
+                    left: 0,
+                    position: 'absolute',
+                    right: 0,
+                    top: h / 2,
+                  } as object,
+                })}
+              />
+            </Kb.Box2>
+            <Kb.Text type="BodyTiny">{h}px</Kb.Text>
           </Kb.Box2>
-          <Kb.Text type="BodyTiny">{h}px</Kb.Text>
-        </Kb.Box2>
-      ))}
+        ))}
+      </Kb.Box2>
+      <Kb.Text type="BodySmallSemibold" style={styles.innerDivider}>Badge pills (orange) — same test</Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
+        {([1, 9, 42, 99, 999] as const).map(n => (
+          <Kb.Box2 key={n} direction="vertical" alignItems="center" gap="xtiny">
+            <Kb.Badge badgeNumber={n} />
+            <Kb.Text type="BodyTiny">{n}</Kb.Text>
+          </Kb.Box2>
+        ))}
+      </Kb.Box2>
     </Kb.Box2>
-    <Kb.Text type="BodySmallSemibold" style={styles.innerDivider}>Badge pills (orange) — same test</Kb.Text>
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
-      {([1, 9, 42, 99, 999] as const).map(n => (
-        <Kb.Box2 key={n} direction="vertical" alignItems="center" gap="xtiny">
-          <Kb.Badge badgeNumber={n} />
-          <Kb.Text type="BodyTiny">{n}</Kb.Text>
-        </Kb.Box2>
-      ))}
-    </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 // ─────────────────────────────────────────────
 // Baseline alignment across mixed sizes
 // ─────────────────────────────────────────────
-const BaselineSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
-    <Kb.Text type="BodySmallSemibold">Baseline alignment — mixed sizes on one line</Kb.Text>
-    <Kb.Text type="BodyTiny" style={styles.hint}>All text should share a single baseline regardless of size</Kb.Text>
-    {/* On desktop these render as inline spans so baseline aligns naturally */}
-    {(['BodyTiny', 'BodySmall', 'Body', 'BodyBig', 'Header'] as const).map((_, i, arr) => (
-      <Kb.Box2 key={i} direction="horizontal" fullWidth={true} alignItems="flex-end" gap="xtiny">
-        {arr.slice(0, i + 2).map(t => (
-          <Kb.Text key={t} type={t}>Hg</Kb.Text>
-        ))}
-      </Kb.Box2>
-    ))}
-    <Kb.Divider style={styles.innerDivider} />
-    <Kb.Text type="BodySmallSemibold">Weight mixing — bold / regular / semibold same line</Kb.Text>
-    {(['BodyTiny', 'BodySmall', 'Body', 'BodyBig'] as const).map(type => (
-      <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type}>regular</Kb.Text>
-        <Kb.Text type={type} style={styles.bold}> bold </Kb.Text>
-        <Kb.Text type={type}>regular</Kb.Text>
-        <Kb.Text type={type} style={styles.italic}> italic</Kb.Text>
-      </Kb.Box2>
-    ))}
-  </Kb.Box2>
-)
+const BaselineSection = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
+      <Kb.Text type="BodySmallSemibold">Baseline alignment — mixed sizes on one line</Kb.Text>
+      <Kb.Text type="BodyTiny" style={styles.hint}>All text should share a single baseline regardless of size</Kb.Text>
+      {/* On desktop these render as inline spans so baseline aligns naturally */}
+      {(['BodyTiny', 'BodySmall', 'Body', 'BodyBig', 'Header'] as const).map((_, i, arr) => (
+        <Kb.Box2 key={i} direction="horizontal" fullWidth={true} alignItems="flex-end" gap="xtiny">
+          {arr.slice(0, i + 2).map(t => (
+            <Kb.Text key={t} type={t}>Hg</Kb.Text>
+          ))}
+        </Kb.Box2>
+      ))}
+      <Kb.Divider style={styles.innerDivider} />
+      <Kb.Text type="BodySmallSemibold">Weight mixing — bold / regular / semibold same line</Kb.Text>
+      {(['BodyTiny', 'BodySmall', 'Body', 'BodyBig'] as const).map(type => (
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type}>regular</Kb.Text>
+          <Kb.Text type={type} style={styles.bold}> bold </Kb.Text>
+          <Kb.Text type={type}>regular</Kb.Text>
+          <Kb.Text type={type} style={styles.italic}> italic</Kb.Text>
+        </Kb.Box2>
+      ))}
+    </Kb.Box2>
+  )
+}
 
 // ─────────────────────────────────────────────
 // Multi-line paragraph — line height / leading
 // ─────────────────────────────────────────────
 const PARA = 'The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. gjpqy ÁÉÍÓÚ ÅÄÖ 0123456789.'
 
-const LineHeightSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="small">
-    <Kb.Text type="BodySmallSemibold">Multi-line paragraph — line-height / leading (hhea.ascender)</Kb.Text>
-    <Kb.Text type="BodyTiny" style={styles.hint}>Lines should be evenly spaced with no clipping or overlap</Kb.Text>
-    {TYPE_METRICS.map(({type}) => (
-      <Kb.Box2 key={type} direction="vertical" fullWidth={true} style={styles.paraRow} gap="xtiny">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type}>{PARA}</Kb.Text>
-      </Kb.Box2>
-    ))}
-  </Kb.Box2>
-)
+const LineHeightSection = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="small">
+      <Kb.Text type="BodySmallSemibold">Multi-line paragraph — line-height / leading (hhea.ascender)</Kb.Text>
+      <Kb.Text type="BodyTiny" style={styles.hint}>Lines should be evenly spaced with no clipping or overlap</Kb.Text>
+      {TYPE_METRICS.map(({type}) => (
+        <Kb.Box2 key={type} direction="vertical" fullWidth={true} style={styles.paraRow} gap="xtiny">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type}>{PARA}</Kb.Text>
+        </Kb.Box2>
+      ))}
+    </Kb.Box2>
+  )
+}
 
 // ─────────────────────────────────────────────
 // Cap-height & x-height visual ruler
 // ─────────────────────────────────────────────
-const RulerSection = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
-    <Kb.Text type="BodySmallSemibold">Cap-height & x-height uniformity (sCapHeight, sxHeight)</Kb.Text>
-    <Kb.Text type="BodyTiny" style={styles.hint}>All caps must reach the same height; x-height glyphs (a e o x) must be consistent</Kb.Text>
-    {TYPE_METRICS.map(({type}) => (
-      <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type}>ABCDEFGHIJKLMNOPQRSTUVWXYZ</Kb.Text>
-      </Kb.Box2>
-    ))}
-    <Kb.Divider style={styles.innerDivider} />
-    {TYPE_METRICS.map(({type}) => (
-      <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type}>abcdefghijklmnopqrstuvwxyz</Kb.Text>
-      </Kb.Box2>
-    ))}
-    <Kb.Divider style={styles.innerDivider} />
-    <Kb.Text type="BodySmallSemibold">Diacritics — should not clip (usWinAscent)</Kb.Text>
-    {TYPE_METRICS.map(({type}) => (
-      <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-        <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
-        <Kb.Text type={type}>ÁÀÂÄÃÅÆÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜ ÅÄÖ áàâäéèêëíîóôöúùû</Kb.Text>
-      </Kb.Box2>
-    ))}
-  </Kb.Box2>
-)
+const RulerSection = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
+      <Kb.Text type="BodySmallSemibold">Cap-height & x-height uniformity (sCapHeight, sxHeight)</Kb.Text>
+      <Kb.Text type="BodyTiny" style={styles.hint}>All caps must reach the same height; x-height glyphs (a e o x) must be consistent</Kb.Text>
+      {TYPE_METRICS.map(({type}) => (
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type}>ABCDEFGHIJKLMNOPQRSTUVWXYZ</Kb.Text>
+        </Kb.Box2>
+      ))}
+      <Kb.Divider style={styles.innerDivider} />
+      {TYPE_METRICS.map(({type}) => (
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type}>abcdefghijklmnopqrstuvwxyz</Kb.Text>
+        </Kb.Box2>
+      ))}
+      <Kb.Divider style={styles.innerDivider} />
+      <Kb.Text type="BodySmallSemibold">Diacritics — should not clip (usWinAscent)</Kb.Text>
+      {TYPE_METRICS.map(({type}) => (
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
+          <Kb.Text type={type}>ÁÀÂÄÃÅÆÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜ ÅÄÖ áàâäéèêëíîóôöúùû</Kb.Text>
+        </Kb.Box2>
+      ))}
+    </Kb.Box2>
+  )
+}
 
 // ─────────────────────────────────────────────
 // Markdown — exercises all decoration + weight paths
@@ -345,6 +367,7 @@ type LayoutMetrics = {
 }
 
 const SampleRow = ({textType, decoration, sample}: {textType: TextType; decoration: Decoration; sample: string}) => {
+  const styles = useStyles()
   const [metrics, setMetrics] = React.useState<LayoutMetrics | null>(null)
   const lineThrough = decoration === 'strikethrough' || decoration === 'underline+strikethrough'
   const underline = decoration === 'underline' || decoration === 'underline+strikethrough'
@@ -392,6 +415,7 @@ const SampleRow = ({textType, decoration, sample}: {textType: TextType; decorati
 }
 
 const Typography = () => {
+  const styles = useStyles()
   const [selectedType, setSelectedType] = React.useState<TextType | 'all'>('all')
   const [decoration, setDecoration] = React.useState<Decoration>('strikethrough')
   const [sampleIdx, setSampleIdx] = React.useState(0)
@@ -463,34 +487,34 @@ const Typography = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   bold: Kb.Styles.platformStyles({isElectron: {fontWeight: 'bold'} as object, isMobile: {fontWeight: 'bold'}}),
   centeredBox: {
-    backgroundColor: Kb.Styles.globalColors.blue_10,
-    borderColor: Kb.Styles.globalColors.blue,
+    backgroundColor: theme.blue_10,
+    borderColor: theme.blue,
     borderWidth: 1,
   },
   container: {flex: 1},
   controlLabel: {minWidth: 80},
   controlRow: {flexWrap: 'wrap'},
-  darkBg: {backgroundColor: Kb.Styles.globalColors.blueDarker2},
-  hint: {color: Kb.Styles.globalColors.black_50, marginBottom: 4},
+  darkBg: {backgroundColor: theme.blueDarker2},
+  hint: {color: theme.black_50, marginBottom: 4},
   innerDivider: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},
   inlineRow: {flexWrap: 'wrap'},
   italic: Kb.Styles.platformStyles({isElectron: {fontStyle: 'italic'} as object, isMobile: {fontStyle: 'italic'}}),
-  label: {color: Kb.Styles.globalColors.black_50, minWidth: 100},
-  lightBg: {backgroundColor: Kb.Styles.globalColors.white},
-  metricsText: {color: Kb.Styles.globalColors.blue, fontFamily: 'monospace' as const, marginTop: 2},
+  label: {color: theme.black_50, minWidth: 100},
+  lightBg: {backgroundColor: theme.white},
+  metricsText: {color: theme.blue, fontFamily: 'monospace' as const, marginTop: 2},
   bothDecoration: Kb.Styles.platformStyles({
     isElectron: {textDecoration: 'underline line-through'} as object,
     isMobile: {textDecorationLine: 'underline line-through'},
   }),
   paraRow: {
-    ...Kb.Styles.bottomDivider(),
+    ...Kb.Styles.bottomDivider(theme),
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   sampleRow: {
-    ...Kb.Styles.bottomDivider(),
+    ...Kb.Styles.bottomDivider(theme),
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   strikethrough: Kb.Styles.platformStyles({
@@ -502,7 +526,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {textDecorationLine: 'underline'},
   }),
   wrap: {flexWrap: 'wrap'},
-  zoneRow: Kb.Styles.bottomDivider(),
+  zoneRow: Kb.Styles.bottomDivider(theme),
   zoneText: Kb.Styles.platformStyles({
     isElectron: {position: 'absolute', top: 0} as object,
   }),

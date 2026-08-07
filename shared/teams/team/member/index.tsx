@@ -146,6 +146,7 @@ type NodeNotInRowProps = {
   username: string
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
+  const styles = useStyles()
   const currentUsername = useCurrentUserState(s => s.username)
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(props.node.teamID)
   const nav = useSafeNavigation()
@@ -260,6 +261,8 @@ type NodeInRowProps = {
   setExpanded: (b: boolean) => void
 }
 const NodeInRow = (props: NodeInRowProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const currentUsername = useCurrentUserState(s => s.username)
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(props.node.teamID)
   const {channelMetas, loadingChannels} = useAllChannelMetas(
@@ -426,14 +429,14 @@ const NodeInRow = (props: NodeInRowProps) => {
                     <Kb.Icon
                       type="iconfont-typing"
                       sizeType="Small"
-                      color={Kb.Styles.globalColors.black_20}
+                      color={theme.black_20}
                     />
                     <LastActivity lastActivity={props.node.lastActivity} loading={loadingActivity} />
                   </Kb.Box2>
                 )}
                 {expanded && !isSmallTeam && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
-                    <Kb.Icon type="iconfont-hash" sizeType="Small" color={Kb.Styles.globalColors.black_20} />
+                    <Kb.Icon type="iconfont-hash" sizeType="Small" color={theme.black_20} />
                     <Kb.Text
                       type="BodySmall"
                       style={Kb.Styles.globalStyles.flexOne}
@@ -472,7 +475,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                         <Kb.Icon
                           type={isMe ? 'iconfont-team-leave' : 'iconfont-block'}
                           sizeType="Small"
-                          color={Kb.Styles.globalColors.redDark}
+                          color={theme.redDark}
                         />
                       </Kb.WaitingButton>
                     )}
@@ -492,7 +495,7 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   contentCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 48},
     isPhone: {height: 64},
@@ -556,7 +559,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 65,
     },
   }),
-  teamNameLink: {color: Kb.Styles.globalColors.black},
+  teamNameLink: {color: theme.black},
 }))
 
 export default TeamMember

@@ -45,7 +45,7 @@ type DragAndDropProps = {
 // RNScreens' SafeAreaView hardcodes `flex: 1` (i.e. flexBasis 0%), which collapses the
 // bar to zero height inside the keyboard sticky view. A `flexBasis`/`flexGrow` override
 // loses to the `flex` shorthand in the style merge, so unset `flex` itself (plain object,
-// not styleSheetCreate, so the undefined survives) and let the bar size to its content.
+// not a created sheet, so the undefined survives) and let the bar size to its content.
 const unsetLibFlex = {flex: undefined}
 
 type RunActionBarProps = {
@@ -75,6 +75,7 @@ export type CryptoBannerProps = {
 }
 
 const TextInput = (props: TextProps) => {
+  const styles = useStyles()
   const {allowDirectories, emptyInputWidth, inputPlaceholder, state, onChangeText, onSetFile, setBlurCB, testID, textInputType} =
     props
   const value = state.inputType === 'text' ? state.input : ''
@@ -126,7 +127,9 @@ const TextInput = (props: TextProps) => {
     value ? styles.inputFull : styles.inputEmpty,
     !value && !isMobile && {width: emptyInputWidth},
   ])
-  const inputContainerStyle = value ? styles.inputContainer : styles.inputContainerEmpty
+  const inputContainerStyle = value
+    ? styles.inputContainer
+    : Kb.Styles.collapseStyles([styles.inputContainerEmpty, !isMobile && {width: emptyInputWidth}])
 
   const browseButton = value ? null : (
     <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
@@ -182,6 +185,7 @@ const TextInput = (props: TextProps) => {
 }
 
 const FileInput = ({fileIcon, onClearFiles, state}: FileProps) => {
+  const styles = useStyles()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
 
   return (
@@ -281,6 +285,7 @@ export const CryptoBanner = ({infoMessage, state}: CryptoBannerProps) => {
 }
 
 export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActionBarProps) => {
+  const styles = useStyles()
   const insets = Kb.useSafeAreaInsets()
   const keyboardVisible = useKeyboardState(s => s.isVisible)
   const androidOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
@@ -342,8 +347,8 @@ export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActio
   return <KeyboardStickyView offset={androidOffset}>{bar}</KeyboardStickyView>
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       browseFile: {
         flexShrink: 0,
@@ -370,19 +375,19 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       input: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.black,
+          color: theme.black,
         },
         isMobile: {
           ...Kb.Styles.globalStyles.fullHeight,
         },
       }),
       inputActionsBarContainer: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       // RNScreens' SafeAreaView forces flex: 1; neutralize it so the bar wraps its
       // content height instead of stretching inside the keyboard sticky view.
       stickyBarSafeArea: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
         flexBasis: 'auto',
         flexGrow: 0,
         flexShrink: 0,

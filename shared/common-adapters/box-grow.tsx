@@ -9,6 +9,7 @@ type Props = {
 }
 
 const BoxGrowImpl = (p: Props & {direction: 'vertical' | 'horizontal'}) => {
+  const styles = useStyles()
   const {direction, onLayout, style, children} = p
   return (
     <Box2
@@ -28,7 +29,7 @@ const BoxGrowImpl = (p: Props & {direction: 'vertical' | 'horizontal'}) => {
 const BoxGrow = (p: Props) => <BoxGrowImpl {...p} direction="vertical" />
 export const BoxGrow2 = (p: Props) => <BoxGrowImpl {...p} direction="horizontal" />
 
-const styles = Styles.styleSheetCreate(
+const useStyles = Styles.createStyleHook(
   () =>
     ({
       inner: {...Styles.globalStyles.fillAbsolute, height: '100%', width: '100%'},

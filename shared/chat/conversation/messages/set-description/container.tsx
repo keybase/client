@@ -8,6 +8,7 @@ type Props = {
 const lquote = '\u201C'
 const rquote = '\u201D'
 const SetDescriptionMessage = (props: Props) => {
+  const styles = useStyles()
   const desc = props.message.newDescription.stringValue()
   return desc ? (
     <Kb.Text type="BodySmall" style={styles.text}>
@@ -26,7 +27,7 @@ const SetDescriptionMessage = (props: Props) => {
 }
 export default SetDescriptionMessage
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       text: {flexGrow: 1},

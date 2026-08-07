@@ -58,6 +58,7 @@ type JointSelectionPopupProps = {
 }
 
 const JointSelectionPopup = (props: JointSelectionPopupProps) => {
+  const styles = useStyles()
   const {onCancel, selectableTabName, selectedCount, children} = props
   const onSelectableTab = !!selectableTabName
 
@@ -363,10 +364,10 @@ const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamA
   teamMembers: TeamMembersActions,
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       position: 'absolute',
     },
     isElectron: {

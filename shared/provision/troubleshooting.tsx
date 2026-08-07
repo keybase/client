@@ -16,37 +16,42 @@ type BigButtonProps = {
   waiting: boolean
 }
 
-const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
-  <Kb.ClickableBox
-    onClick={waiting ? undefined : onClick}
-    direction={isMobile ? 'horizontal' : 'vertical'}
-    style={styles.bigButton}
-    className="hover_background_color_blueLighter2"
-  >
-      <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        style={Kb.Styles.collapseStyles([styles.buttonIcon, waiting && Kb.Styles.globalStyles.opacity0])}
-        gap="tiny"
-      >
-        <Kb.IconAuto type={icon} sizeType="Big" color={Kb.Styles.globalColors.blue} />
-      </Kb.Box2>
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.buttonText, waiting && Kb.Styles.globalStyles.opacity0])}
-      >
-        <Kb.Text type="Body">{mainText}</Kb.Text>
-        <Kb.Text type="BodySmall">{subText}</Kb.Text>
-      </Kb.Box2>
-      {waiting && (
-        <Kb.Box2 direction="vertical" style={styles.bigButtonWaiting} centerChildren={true}>
-          <Kb.ProgressIndicator />
+const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.ClickableBox
+      onClick={waiting ? undefined : onClick}
+      direction={isMobile ? 'horizontal' : 'vertical'}
+      style={styles.bigButton}
+      className="hover_background_color_blueLighter2"
+    >
+        <Kb.Box2
+          direction="horizontal"
+          centerChildren={true}
+          style={Kb.Styles.collapseStyles([styles.buttonIcon, waiting && Kb.Styles.globalStyles.opacity0])}
+          gap="tiny"
+        >
+          <Kb.IconAuto type={icon} sizeType="Big" color={theme.blue} />
         </Kb.Box2>
-      )}
-  </Kb.ClickableBox>
-)
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([styles.buttonText, waiting && Kb.Styles.globalStyles.opacity0])}
+        >
+          <Kb.Text type="Body">{mainText}</Kb.Text>
+          <Kb.Text type="BodySmall">{subText}</Kb.Text>
+        </Kb.Box2>
+        {waiting && (
+          <Kb.Box2 direction="vertical" style={styles.bigButtonWaiting} centerChildren={true}>
+            <Kb.ProgressIndicator />
+          </Kb.Box2>
+        )}
+    </Kb.ClickableBox>
+  )
+}
 
 const Troubleshooting = (props: Props) => {
+  const styles = useStyles()
   const onBack = props.onCancel
   const onWayBack = () => {
     C.Router2.navUpToScreen('login')
@@ -126,11 +131,11 @@ const Troubleshooting = (props: Props) => {
 }
 export default Troubleshooting
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   bigButton: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
+      ...Kb.Styles.border(theme.black_10, 1, Kb.Styles.borderRadius),
       position: 'relative',
     },
     isElectron: {
@@ -143,7 +148,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   bigButtonWaiting: {
     ...Kb.Styles.globalStyles.fillAbsolute,
-    backgroundColor: Kb.Styles.globalColors.white_40,
+    backgroundColor: theme.white_40,
   },
   bodyMargins: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.xlarge, 0),
@@ -167,7 +172,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    ...Kb.Styles.bottomDivider(48),
+    ...Kb.Styles.bottomDivider(theme, 48),
   },
   headerSide: {
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),

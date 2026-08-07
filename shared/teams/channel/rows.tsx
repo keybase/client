@@ -10,7 +10,7 @@ import {
   getMassActionsProps,
   getResetLabel,
   MemberActions,
-  selectionStyles,
+  useSelectionStyles,
   useOnBlockUser,
 } from '../team/rows/common'
 import {useUsersState} from '@/stores/users'
@@ -33,6 +33,9 @@ type Props = {
 // you're changing one remember to change the other.
 
 const ChannelMemberRow = (props: Props) => {
+  const styles = useStyles()
+  const selectionStyles = useSelectionStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, participantInfo, teamID, username} = props
   const userFullname = useUsersState(s => s.infoMap.get(username)?.fullname)
   const {selectedMembers: channelSelectedMembers, setMemberSelected: channelSetMemberSelected} =
@@ -95,7 +98,7 @@ const ChannelMemberRow = (props: Props) => {
           {crown}
           {!active && (
             <Kb.Meta
-              backgroundColor={Kb.Styles.globalColors.red}
+              backgroundColor={theme.red}
               title={teamMemberInfo.status === 'reset' ? 'locked out' : 'deleted'}
             />
           )}
@@ -141,7 +144,7 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const massActionsProps = yourOperations.manageMembers
-    ? getMassActionsProps(username, memberSelected, onSelect)
+    ? getMassActionsProps(username, memberSelected, onSelect, selectionStyles)
     : {}
   return (
     <Kb.ListItem
@@ -158,7 +161,7 @@ const ChannelMemberRow = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},

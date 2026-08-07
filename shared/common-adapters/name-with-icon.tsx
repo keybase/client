@@ -61,6 +61,7 @@ export type NameWithIconProps = {
 
 // If lineclamping isn't working, try adding a static width in containerStyle
 export const NameWithIcon = (props: NameWithIconProps) => {
+  const styles = useStyles()
   const {onClick, username = '', teamname, size} = props
   const _onClickWrapper = onClick
     ? (event?: React.BaseSyntheticEvent) => {
@@ -259,16 +260,16 @@ const TextOrComponent = (props: {
   return props.val
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   botAlias: {
     paddingTop: Styles.globalMargins.xtiny,
   },
   editTeam: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blue,
-      ...Styles.border(Styles.globalColors.white, 2, 100),
+      backgroundColor: theme.blue,
+      ...Styles.border(theme.white, 2, 100),
       bottom: -6,
-      color: Styles.globalColors.whiteOrWhite,
+      color: theme.whiteOrWhite,
       padding: 4,
       position: 'absolute',
       right: -6,
@@ -323,7 +324,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   smallerWidthTextContainer: Styles.platformStyles({
     isElectron: {
-      color: Styles.globalColors.black_50,
+      color: theme.black_50,
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       width: 48,

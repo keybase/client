@@ -181,6 +181,7 @@ const TeamBuilding = ({
   goButtonLabel = 'Start',
   onFinishTeamBuilding: onFinishTeamBuildingProp,
 }: OwnProps) => {
+  const styles = useStyles()
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [enterInputCounter, setEnterInputCounter] = React.useState(0)
   const [highlightedIndex, setHighlightedIndex] = React.useState(0)
@@ -341,14 +342,14 @@ const TeamBuilding = ({
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: Kb.Styles.platformStyles({
     common: {...Kb.Styles.globalStyles.flexOne},
     isElectron: {minHeight: 500},
   }),
   waiting: {
     ...Kb.Styles.globalStyles.fillAbsolute,
-    backgroundColor: Kb.Styles.globalColors.black_20,
+    backgroundColor: theme.black_20,
   },
   waitingProgress: {
     ...Kb.Styles.size(48),

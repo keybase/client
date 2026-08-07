@@ -7,6 +7,7 @@ import type * as T from '@/constants/types'
 type Props = {outOfDate: T.Config.OutOfDate}
 
 const OutOfDate = ({outOfDate}: Props) => {
+  const styles = useStyles()
   const updateNow = isWindows || isDarwin ? () => R.remoteDispatch(RemoteGen.createUpdateNow()) : undefined
 
   if (!outOfDate.outOfDate) return null
@@ -42,13 +43,13 @@ const OutOfDate = ({outOfDate}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   banner: {flexShrink: 0},
   textContainerStyle: {
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
   },
-  textCritical: {color: Kb.Styles.globalColors.white},
-  textNonCritical: {color: Kb.Styles.globalColors.brown_75},
+  textCritical: {color: theme.white},
+  textNonCritical: {color: theme.brown_75},
 }))
 
 export default OutOfDate

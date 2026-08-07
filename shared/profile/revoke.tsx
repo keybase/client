@@ -17,6 +17,7 @@ type OwnProps = {
   proofId: string
 }
 const RevokeProof = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {icon, kid, platform, platformHandle, proofId} = ownProps
   const [errorMessage, setErrorMessage] = React.useState('')
   const currentUsername = useCurrentUserState(s => s.username)
@@ -98,8 +99,8 @@ const RevokeProof = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       contentContainer: {
         margin: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
@@ -108,19 +109,19 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       descriptionText: {marginTop: Kb.Styles.globalMargins.medium},
       errorBanner: {
-        backgroundColor: Kb.Styles.globalColors.red,
+        backgroundColor: theme.red,
         minHeight: Kb.Styles.globalMargins.large,
       },
       errorBannerText: {
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
         maxWidth: 512,
       },
       platformSubtitle: {
-        color: Kb.Styles.globalColors.black_20,
+        color: theme.black_20,
       },
       platformUsername: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.redDark,
+          color: theme.redDark,
           textDecorationLine: 'line-through',
         },
         isElectron: {

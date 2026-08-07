@@ -6,6 +6,7 @@ import useInboxHeaderPortal from '@/chat/inbox/use-header-portal'
 import {useInboxSearch} from '@/chat/inbox/use-inbox-search'
 
 export default function InboxAndConversation(props: InboxAndConversationProps) {
+  const styles = useStyles()
   const search = useInboxSearch()
   const headerPortal = useInboxHeaderPortal(search)
   const inbox = (
@@ -31,9 +32,9 @@ export default function InboxAndConversation(props: InboxAndConversationProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   inboxPane: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
     maxWidth: inboxWidth,
     minWidth: inboxWidth,
   },

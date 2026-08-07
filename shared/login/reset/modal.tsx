@@ -19,6 +19,7 @@ const ResetModal = () => {
 }
 
 const ResetModalImpl = ({endTime}: {endTime: number}) => {
+  const styles = useStyles()
   const [dismissed, setDismissed] = React.useState(false)
   const [error, setError] = React.useState('')
   const [now] = React.useState(() => Date.now())
@@ -121,22 +122,22 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   body: Kb.Styles.platformStyles({
     isElectron: {minHeight: 220},
   }),
-  desktopCover: {backgroundColor: Kb.Styles.globalColors.black_20},
+  desktopCover: {backgroundColor: theme.black_20},
   desktopModal: {width: 420},
   header: {
-    ...Kb.Styles.bottomDivider(48),
+    ...Kb.Styles.bottomDivider(theme, 48),
   },
   mobileModal: {
     ...Kb.Styles.globalStyles.fillAbsolute,
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
   },
   mobileOverlay: {
     ...Kb.Styles.globalStyles.fillAbsolute,
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     zIndex: 1000,
   },
   skullIcon: {

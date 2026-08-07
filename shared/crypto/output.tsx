@@ -39,6 +39,7 @@ type OutputInfoProps = {
 }
 
 export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => {
+  const styles = useStyles()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const signed = state.outputSigned
   const signedByUsername = state.outputSenderUsername
@@ -110,6 +111,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
 }
 
 const OutputProgress = ({state}: {state: CommonState}) => {
+  const styles = useStyles()
   if (!state.inProgress) {
     return null
   }
@@ -129,8 +131,16 @@ const OutputProgress = ({state}: {state: CommonState}) => {
   )
 }
 
-export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) =>
-  outputStatus === 'success' ? (
+// A text operation re-runs on every keystroke, so 'pending' alternates with 'success' as
+// fast as the user types. Keep showing the last output through a re-run instead of dropping
+// back to the placeholder, which reads as the whole pane blinking.
+const hasOutput = (state: CommonState) => state.outputStatus === 'success' || !!state.output
+
+export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) => {
+  const styles = useStyles()
+  // 'pending' too: text input re-runs the operation on every keystroke, and dropping the
+  // banner for each run makes it blink.
+  return outputStatus ? (
     <Kb.Banner
       color="grey"
       style={styles.banner}
@@ -140,6 +150,7 @@ export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) =>
       {children}
     </Kb.Banner>
   ) : null
+}
 
 export const CryptoOutputActionsBar = ({
   canReplyInChat,
@@ -147,6 +158,7 @@ export const CryptoOutputActionsBar = ({
   onSaveAsText,
   state,
 }: OutputActionsBarProps) => {
+  const styles = useStyles()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 
@@ -178,7 +190,7 @@ export const CryptoOutputActionsBar = ({
     copyToClipboard(state.output)
   }
 
-  return state.outputStatus === 'success' ? (
+  return hasOutput(state) ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
       {state.outputType === 'file' && !isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
@@ -285,13 +297,15 @@ export const CryptoOutput = ({
   outputTextType,
   state,
 }: CryptoOutputProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 
   const fileOutputTextColor =
-    outputTextType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black
+    outputTextType === 'cipher' ? theme.greenDark : theme.black
 
-  if (state.outputStatus !== 'success') {
+  if (!hasOutput(state)) {
     return (
       <Kb.Box2
         direction="vertical"
@@ -352,8 +366,8 @@ export const CryptoOutput = ({
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       banner: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
@@ -379,7 +393,7 @@ const styles = Kb.Styles.styleSheetCreate(
       fileOutputText: {...Kb.Styles.globalStyles.fontSemibold},
       output: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.black,
+          color: theme.black,
         },
         isElectron: {
           whiteSpace: 'pre-wrap',
@@ -395,13 +409,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
         },
         isTablet: {
           ...Kb.Styles.centered(),
         },
       }),
-      outputPlaceholder: {backgroundColor: Kb.Styles.globalColors.blueGreyLight},
+      outputPlaceholder: {backgroundColor: theme.blueGreyLight},
       progressBar: {
         width: 200,
       },
@@ -433,6 +447,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         },
       }),
-      toastText: {color: Kb.Styles.globalColors.white, textAlign: 'center'},
+      toastText: {color: theme.white, textAlign: 'center'},
     }) as const
 )

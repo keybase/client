@@ -11,19 +11,22 @@ const PDFViewDesktop = (props: Props) => (
   </Kb.Box2>
 )
 
-const PdfViewNative = (props: Props) => (
-  <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
-    <Kb.WebView
-      url={props.url}
-      pinnedURLMode={true}
-      style={styles.webview}
-      onError={props.onUrlError}
-      showLoadingStateUntilLoaded={true}
-    />
-  </Kb.Box2>
-)
+const PdfViewNative = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
+      <Kb.WebView
+        url={props.url}
+        pinnedURLMode={true}
+        style={styles.webview}
+        onError={props.onUrlError}
+        showLoadingStateUntilLoaded={true}
+      />
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   webview: {...Kb.Styles.size('100%')},
 }))
 

@@ -13,6 +13,7 @@ const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(null!)
 ReplyToContext.displayName = 'ReplyToContext'
 
 const AvatarHolder = () => {
+  const styles = useStyles()
   const {author} = React.useContext(ReplyToContext)
   const showCenteredHighlight = useIsHighlighted()
   return (
@@ -45,6 +46,7 @@ const ReplyImage = () => {
 }
 
 const ReplyText = () => {
+  const styles = useStyles()
   const replyTo = React.useContext(ReplyToContext)
   const showCenteredHighlight = useIsHighlighted()
 
@@ -74,6 +76,7 @@ type RS = {
 }
 
 function ReplyStructure(p: RS) {
+  const styles = useStyles()
   const {showImage, showEdited, isDeleted, onClick} = p
 
   return (
@@ -119,20 +122,20 @@ function Reply({replyTo, onClick}: {onClick?: () => void; replyTo: T.Chat.Messag
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       quoteContainer: {
-        backgroundColor: Kb.Styles.globalColors.grey,
+        backgroundColor: theme.grey,
         paddingLeft: Kb.Styles.globalMargins.xtiny,
       },
       replyContainer: {
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },
-      replyEdited: {color: Kb.Styles.globalColors.black_35},
+      replyEdited: {color: theme.black_35},
       replyUsername: {alignSelf: 'center'},
-      replyUsernameHighlighted: {color: Kb.Styles.globalColors.blackOrBlack},
-      textHighlighted: {color: Kb.Styles.globalColors.black_50OrBlack_50},
+      replyUsernameHighlighted: {color: theme.blackOrBlack},
+      textHighlighted: {color: theme.black_50OrBlack_50},
     }) as const
 )

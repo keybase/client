@@ -10,6 +10,8 @@ export type Props = {
 }
 
 const InfoNote = (props: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const lineStyle = Styles.collapseStyles([styles.line, props.color ? {backgroundColor: props.color} : undefined])
   return (
     <Box2
@@ -21,7 +23,7 @@ const InfoNote = (props: Props) => {
       <Box2 direction="horizontal" gap="tiny" alignItems="center">
         <Box2 direction="vertical" style={lineStyle} />
         <Icon
-          color={props.color || Styles.globalColors.black_10}
+          color={props.color || theme.black_10}
           type="iconfont-info"
           fontSize={isMobile ? 22 : 16}
         />
@@ -32,9 +34,9 @@ const InfoNote = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   line: {
-    backgroundColor: Styles.globalColors.black_10,
+    backgroundColor: theme.black_10,
     height: 1,
     width: 24,
   },

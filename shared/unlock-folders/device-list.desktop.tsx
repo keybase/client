@@ -7,6 +7,7 @@ export type Props = {
 }
 
 const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
+  const styles = useStyles()
   const icon = (
     {
       backup: 'icon-paper-key-32',
@@ -25,30 +26,33 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
   )
 }
 
-const DeviceList = (props: Props) => (
-  <Kb.Box2 direction="vertical" alignItems="center">
-    <Kb.Text center={true} type="Body" style={styles.infoText}>
-      This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
-      please turn on one of the devices below:
-    </Kb.Text>
-    <Kb.Box2 direction="vertical" gap="small" style={styles.devicesContainer}>
-      {props.devices.map(d => (
-        <DeviceRow key={d.deviceID} device={d} />
-      ))}
+const DeviceList = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" alignItems="center">
+      <Kb.Text center={true} type="Body" style={styles.infoText}>
+        This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
+        please turn on one of the devices below:
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" gap="small" style={styles.devicesContainer}>
+        {props.devices.map(d => (
+          <DeviceRow key={d.deviceID} device={d} />
+        ))}
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" style={styles.buttonsContainer}>
+        <Kb.Button
+          type="Dim"
+          label="Enter a paper key instead"
+          style={styles.enterPaperKey}
+          onClick={props.toPaperKeyInput}
+        />
+      </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box2 direction="horizontal" style={styles.buttonsContainer}>
-      <Kb.Button
-        type="Dim"
-        label="Enter a paper key instead"
-        style={styles.enterPaperKey}
-        onClick={props.toPaperKeyInput}
-      />
-    </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       buttonsContainer: {
         marginRight: 30,
@@ -56,7 +60,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       devicesContainer: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.greyLight,
+          backgroundColor: theme.greyLight,
           height: 162,
           overflowY: 'auto',
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),

@@ -19,25 +19,31 @@ const onSignOut = () => {
   C.Router2.navigateAppend({name: settingsLogOutTab, params: {}})
 }
 
-const AccountSignOutButton = () => (
-  <Kb.Text type="BodyBigLink" onClick={onSignOut} style={styles.signOut}>
-    Sign out
-  </Kb.Text>
-)
+const AccountSignOutButton = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Text type="BodyBigLink" onClick={onSignOut} style={styles.signOut}>
+      Sign out
+    </Kb.Text>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  signOut: {color: Kb.Styles.globalColors.red, padding: 8},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  signOut: {color: theme.red, padding: 8},
 }))
 
 export const newModalRoutes = defineRouteMap({
   accountSwitcher: {
     getOptions: isIOS
       ? {
-          unstable_headerRightItems: () => [
-            Kb.nativeTextHeaderItem('Sign out', onSignOut, {
-              labelStyle: {...Kb.nativeHeaderItemLabelStyle(), color: Kb.Styles.globalColors.red},
-            }),
-          ],
+          unstable_headerRightItems: () => {
+            const theme = Kb.Styles.getTheme()
+            return [
+              Kb.nativeTextHeaderItem('Sign out', onSignOut, {
+                labelStyle: {...Kb.nativeHeaderItemLabelStyle(theme), color: theme.red},
+              }),
+            ]
+          },
         }
       : {headerRight: () => <AccountSignOutButton />},
     screen: React.lazy(async () => import('../router-v2/account-switcher')),

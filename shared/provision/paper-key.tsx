@@ -37,6 +37,7 @@ type Props = {
 }
 
 export const PaperKey = (props: Props) => {
+  const styles = useStyles()
   const {onSubmit: onSubmitFunc} = props
   const [paperKey, setPaperKey] = React.useState('')
   const onSubmit = () => onSubmitFunc(paperKey)
@@ -87,8 +88,8 @@ export const PaperKey = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container2: {
         minHeight: 77,
@@ -105,7 +106,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputText: {
         ...Kb.Styles.globalStyles.fontTerminal,
-        color: Kb.Styles.globalColors.black,
+        color: theme.black,
       },
     }) as const
 )

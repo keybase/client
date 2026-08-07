@@ -13,6 +13,7 @@ export type OwnProps = {
 }
 
 const Mention = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {style, allowFontScaling} = ownProps
   const username = ownProps.username.toLowerCase()
   const following = useFollowerState(s => s.following.has(username))
@@ -41,18 +42,18 @@ const Mention = (ownProps: OwnProps) => {
 }
 export default Mention
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   follow: {
-    backgroundColor: Styles.globalColors.greenLighterOrGreen,
-    color: Styles.globalColors.greenDarkOrBlack,
+    backgroundColor: theme.greenLighterOrGreen,
+    color: theme.greenDarkOrBlack,
   },
   highlight: {
-    backgroundColor: Styles.globalColors.yellowOrYellowAlt,
-    color: Styles.globalColors.blackOrBlack,
+    backgroundColor: theme.yellowOrYellowAlt,
+    color: theme.blackOrBlack,
   },
   nonFollow: {
-    backgroundColor: Styles.globalColors.blueLighter2,
-    color: Styles.globalColors.blueDark,
+    backgroundColor: theme.blueLighter2,
+    color: theme.blueDark,
   },
   text: Styles.platformStyles({
     common: {

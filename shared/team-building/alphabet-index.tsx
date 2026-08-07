@@ -17,6 +17,7 @@ const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
   isValidMeasure(newM) ? newM : m
 
 const AlphabetIndexImpl = (props: Props) => {
+  const styles = useStyles()
   const topSectionRef = React.useRef<View>(null)
   const sectionMeasureRef = React.useRef(initMeasureRef)
   const currIndex = React.useRef(-1)
@@ -82,7 +83,7 @@ const AlphabetIndexImpl = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
     ...Kb.Styles.centered(),

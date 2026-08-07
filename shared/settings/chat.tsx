@@ -168,6 +168,7 @@ const useCompressPreference = () => {
 }
 
 const Attachments = () => {
+  const styles = useStyles()
   const {compress, compressSaved, error} = useCompressPreference()
   return (
     <>
@@ -207,6 +208,7 @@ const Attachments = () => {
 }
 
 const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsState) => {
+  const styles = useStyles()
   const {contactSettingsRefresh, contactSettingsSaved, error, settings} = useContactSettings()
   const {teams} = useTeamsList()
   const teamMeta = [...teams].sort((a, b) => a.teamname.localeCompare(b.teamname))
@@ -390,6 +392,8 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
 }
 
 const Links = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
@@ -466,7 +470,7 @@ const Links = () => {
                     noShrink={true}
                     style={Kb.Styles.collapseStyles([
                       styles.whitelistRowContainer,
-                      wlremoved ? {backgroundColor: Kb.Styles.globalColors.red_20} : undefined,
+                      wlremoved ? {backgroundColor: theme.red_20} : undefined,
                     ])}
                   >
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
@@ -516,6 +520,7 @@ const Links = () => {
 }
 
 const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
+  const styles = useStyles()
   const {onToggleSound, sound} = useShellState(
     C.useShallow(s => ({
       onToggleSound: s.dispatch.setNotifySound,
@@ -548,6 +553,7 @@ const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
 }
 
 const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
+  const styles = useStyles()
   const showMisc = C.isMac || isIOS
   if (!showMisc) return null
   return (
@@ -570,6 +576,7 @@ const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
 }
 
 const Chat = () => {
+  const styles = useStyles()
   const notificationSettings = useNotificationSettings()
   return (
     <Kb.ScrollView testID={TestIDs.SETTINGS_CHAT}>
@@ -588,6 +595,7 @@ const Chat = () => {
 }
 
 const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (c: boolean) => void}) => {
+  const styles = useStyles()
   const {checked, isOpen, name, onCheck} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
@@ -603,7 +611,7 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   checkboxIndented: Kb.Styles.platformStyles({
     isElectron: {paddingLeft: Kb.Styles.globalMargins.medium},
     isMobile: {paddingBottom: Kb.Styles.globalMargins.medium, paddingLeft: Kb.Styles.globalMargins.small},
@@ -612,7 +620,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
   },
   divider: {marginBottom: Kb.Styles.globalMargins.small},
-  error: {color: Kb.Styles.globalColors.redDark},
+  error: {color: theme.redDark},
   innerContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
@@ -621,7 +629,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       maxWidth: 600,
     },
   }),
-  removeText: {color: Kb.Styles.globalColors.black},
+  removeText: {color: theme.black},
   save: {
     marginBottom: Kb.Styles.globalMargins.small,
     marginTop: Kb.Styles.globalMargins.tiny,
@@ -650,7 +658,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   whitelist: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
       marginBottom: Kb.Styles.globalMargins.xtiny,
       marginLeft: 22,
       marginTop: Kb.Styles.globalMargins.xtiny,
@@ -668,7 +676,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   whitelistRowContainer: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     height: 40,
     marginBottom: 1,
     marginLeft: Kb.Styles.globalMargins.tiny,

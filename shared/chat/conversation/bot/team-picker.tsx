@@ -9,6 +9,8 @@ import logger from '@/logger'
 type Props = {botUsername: string}
 
 const BotTeamPicker = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const botUsername = props.botUsername
   const [term, setTerm] = React.useState('')
   const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
@@ -73,7 +75,7 @@ const BotTeamPicker = (props: Props) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           {error.length > 0 ? (
-            <Kb.Text type="Body" style={{alignSelf: 'center', color: Kb.Styles.globalColors.redDark}}>
+            <Kb.Text type="Body" style={{alignSelf: 'center', color: theme.redDark}}>
               {error}
             </Kb.Text>
           ) : (
@@ -90,7 +92,7 @@ const BotTeamPicker = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: Kb.Styles.platformStyles({

@@ -209,6 +209,7 @@ function EmojiRow(p: {
   emojisPerLine: number
   mapper: (e: Row['emojis'][number]) => React.ReactNode
 }) {
+  const styles = useStyles()
   const {row, emojisPerLine, mapper} = p
   return (
     <Kb.Box2
@@ -219,12 +220,14 @@ function EmojiRow(p: {
       direction="horizontal"
     >
       {row.emojis.map(mapper)}
-      {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
+      {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index, styles))}
     </Kb.Box2>
   )
 }
 
 function EmojiPicker(props: Props) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
   const {onChoose, onHover, skinTone} = props
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
@@ -282,7 +285,7 @@ function EmojiPicker(props: Props) {
               <Kb.Icon
                 type={bookmark.iconType}
                 padding="tiny"
-                color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
+                color={isActive ? theme.blue : theme.black_50}
                 onClick={() => {
                   setActiveSectionKey(secKey)
                   sectionListRef.current?.scrollToLocation({
@@ -380,7 +383,7 @@ function EmojiPicker(props: Props) {
           {getSectionHeader('Search results')}
           {results.map(e => getEmojiSingle(e, skinTone))}
           {[...Array<unknown>(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
-            makeEmojiPlaceholder(index)
+            makeEmojiPlaceholder(index, styles)
           )}
           {makeNotFound()}
         </Kb.Box2>
@@ -426,15 +429,15 @@ export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T
   return undefined
 }
 
-const makeEmojiPlaceholder = (index: number) => (
+const makeEmojiPlaceholder = (index: number, styles: ReturnType<typeof useStyles>) => (
   <Kb.Box2 direction="vertical" key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       activeBookmark: {
-        backgroundColor: Kb.Styles.globalColors.blue_10,
+        backgroundColor: theme.blue_10,
       },
       bookmarkContainer: {
         height: 44,
@@ -466,7 +469,7 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },

@@ -9,6 +9,7 @@ import {startRecoverPassword} from './flow'
 type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
 
 const ExplainDevice = ({route}: Props) => {
+  const theme = Kb.Styles.useTheme()
   const {deviceName, deviceType, username} = route.params
   const onBack = () => {
     startRecoverPassword({
@@ -47,7 +48,7 @@ const ExplainDevice = ({route}: Props) => {
           </Kb.Text>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             {explainingMobile ? (
-              <Kb.Icon type="iconfont-nav-2-hamburger" color={Kb.Styles.globalColors.black} />
+              <Kb.Icon type="iconfont-nav-2-hamburger" color={theme.black} />
             ) : (
               <Kb.Text type="Body">Settings</Kb.Text>
             )}

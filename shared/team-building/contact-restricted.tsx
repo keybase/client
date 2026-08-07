@@ -7,6 +7,8 @@ type Props = {
 }
 
 export const ContactRestricted = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const nav = useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
   let header = ''
@@ -51,7 +53,7 @@ export const ContactRestricted = (props: Props) => {
         style={styles.container}
         noShrink={true}
       >
-        <Kb.Icon type="iconfont-warning" sizeType="Huge" color={Kb.Styles.globalColors.black_20} />
+        <Kb.Icon type="iconfont-warning" sizeType="Huge" color={theme.black_20} />
         <Kb.Text center={true} style={styles.text} type="Header" lineClamp={2}>
           {header}
         </Kb.Text>
@@ -81,7 +83,7 @@ export const ContactRestricted = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   button: {
     flex: 1,
   },

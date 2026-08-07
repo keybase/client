@@ -22,6 +22,7 @@ type Props = {
 }
 
 const CheckCircle = (props: Props) => {
+  const theme = Styles.useTheme()
   const {
     checked,
     checkedColor,
@@ -50,17 +51,17 @@ const CheckCircle = (props: Props) => {
       fontSize={fontSize}
       color={
         disabled
-          ? disabledColor || Styles.globalColors.black_05OrWhite_10
+          ? disabledColor || theme.black_05OrWhite_10
           : checked
-            ? checkedColor || Styles.globalColors.blue
-            : color || Styles.globalColors.black_20OrWhite_20
+            ? checkedColor || theme.blue
+            : color || theme.black_20OrWhite_20
       }
       hoverColor={
         disabled
-          ? disabledColor || Styles.globalColors.black_05OrWhite_10
+          ? disabledColor || theme.black_05OrWhite_10
           : checked
-            ? checkedHoverColor || Styles.globalColors.blueDarkOrBlueLight
-            : hoverColor || Styles.globalColors.blue
+            ? checkedHoverColor || theme.blueDarkOrBlueLight
+            : hoverColor || theme.blue
       }
       className={Styles.classNames(disabled && `checkCircle__disabled`, className)}
       style={style}

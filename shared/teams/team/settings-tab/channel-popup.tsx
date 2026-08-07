@@ -13,6 +13,7 @@ type Props = {
 }
 
 const ChannelPopup = (props: Props) => {
+  const styles = useStyles()
   const {disabledChannels, onCancel, onComplete, teamID} = props
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
@@ -100,7 +101,7 @@ const ChannelPopup = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   addDisabled: {opacity: 0.4},
   channelContainer: {
     ...Kb.Styles.padding(14, Kb.Styles.globalMargins.medium, 14, Kb.Styles.globalMargins.small),

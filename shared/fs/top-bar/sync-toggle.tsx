@@ -30,6 +30,7 @@ const setTlfSyncConfigRPC = async (
 }
 
 const SyncToggle = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {tlfPath} = ownProps
   const tlfPathItem = useFsFolderChildren(tlfPath)
   const tlf = useFsTlf(tlfPath)
@@ -103,6 +104,7 @@ const SyncToggle = (ownProps: OwnProps) => {
 }
 
 const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting: boolean}) => {
+  const styles = useStyles()
   const {showPopup, waiting, disableSync} = props
   const wasWaiting = React.useRef(waiting)
   React.useEffect(() => {
@@ -150,7 +152,7 @@ const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       explainText: Kb.Styles.platformStyles({

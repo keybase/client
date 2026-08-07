@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 export const HeaderTitle = () => {
+  const styles = useStyles()
   const readHowUrlProps = Kb.useClickURL('https://keybase.io/blog/encrypted-git-for-everyone')
   return (
     <Kb.Box2
@@ -28,6 +29,7 @@ export const HeaderTitle = () => {
 }
 
 export const HeaderRightActions = () => {
+  const styles = useStyles()
   const navigateAppend = C.Router2.navigateAppend
 
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -69,7 +71,7 @@ export const HeaderRightActions = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   headerTitle: {
     paddingBottom: Kb.Styles.globalMargins.xtiny,
     paddingLeft: Kb.Styles.globalMargins.xsmall,

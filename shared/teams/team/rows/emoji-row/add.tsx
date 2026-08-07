@@ -10,6 +10,7 @@ type OwnProps = {
   setFilter: (filter: string) => void
 }
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
+  const styles = useStyles()
   const nav = useSafeNavigation()
   const {yourOperations} = useLoadedTeam(teamID)
   const canManageEmoji = yourOperations.manageEmojis
@@ -57,10 +58,10 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   containerNew: {
     ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
   },
   filterInput: {
     marginRight: Kb.Styles.globalMargins.tiny,

@@ -25,6 +25,7 @@ import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from '@/
 type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
 
 const HeaderAreaRight = (props: HeaderConversationProps) => {
+  const styles = useStyles()
   const {conversationIDKey} = props
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
@@ -129,36 +130,45 @@ const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps
 
 const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})
 
+const iosBackBadgeButtonStyle = {
+  marginRight: 0,
+  minWidth: 0,
+  padding: Kb.Styles.globalMargins.xtiny,
+}
+
 // iOS: back-button options for a given badge count. Badged = custom bar item carrying a native
 // UIBarButtonItem badge (iOS 26+) or our own back button (pre-26); unbadged = native back button.
 const iosBackOptions = (badgeNumber: number) =>
   badgeNumber > 0
     ? {
         headerBackVisible: false,
-        unstable_headerLeftItems: () => [
-          isIOS26Plus
-            ? {
-                badge: {
-                  style: {
-                    backgroundColor: Kb.Styles.globalColors.orange,
-                    color: Kb.Styles.globalColors.white,
+        unstable_headerLeftItems: () => {
+          const theme = Kb.Styles.getTheme()
+          return [
+            isIOS26Plus
+              ? {
+                  badge: {
+                    style: {
+                      backgroundColor: theme.orange,
+                      color: theme.white,
+                    },
+                    value: badgeNumber,
                   },
-                  value: badgeNumber,
+                  icon: sfIcon('chevron.backward'),
+                  label: 'Back',
+                  // void wrapper: navigateUp's inferred return type references the nav state
+                  // (RootParamList), which circularly depends on this options function's type
+                  onPress: () => {
+                    C.Router2.navigateUp()
+                  },
+                  type: 'button' as const,
+                }
+              : {
+                  element: <Kb.BackButton badgeNumber={badgeNumber} style={iosBackBadgeButtonStyle} />,
+                  type: 'custom' as const,
                 },
-                icon: sfIcon('chevron.backward'),
-                label: 'Back',
-                // void wrapper: navigateUp's inferred return type references the nav state
-                // (RootParamList), which circularly depends on this options function's type
-                onPress: () => {
-                  C.Router2.navigateUp()
-                },
-                type: 'button' as const,
-              }
-            : {
-                element: <Kb.BackButton badgeNumber={badgeNumber} style={styles.iosBackBadgeButton} />,
-                type: 'custom' as const,
-              },
-        ],
+          ]
+        },
       }
     : {headerBackVisible: true, unstable_headerLeftItems: undefined}
 
@@ -326,10 +336,11 @@ export const BadgeHeaderUpdater = isIOS
     }
   : (_props: HeaderConversationProps) => null
 
-const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const ShhIcon = function ShhIcon(props: HeaderConversationProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey} = props
   const isMuted = useConversationMetaSelector(conversationIDKey, m => m.isMuted)
   const unMuteConversation = () => {
@@ -339,7 +350,7 @@ const ShhIcon = function ShhIcon(props: HeaderConversationProps) {
     <Kb.Icon
       type="iconfont-shh"
       style={styles.shhIcon}
-      color={shhIconColor}
+      color={theme.black_20}
       fontSize={shhIconFontSize}
       onClick={unMuteConversation}
     />
@@ -359,6 +370,7 @@ const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
 }
 
 const ChannelHeader = (props: HeaderConversationProps & {teamname: string; channelname: string}) => {
+  const styles = useStyles()
   const {conversationIDKey, teamname, channelname} = props
   const {teamType, teamID} = useConversationMetaSelector(
     conversationIDKey,
@@ -410,6 +422,8 @@ const ChannelHeader = (props: HeaderConversationProps & {teamname: string; chann
 const emptyArray = new Array<string>()
 type HeaderParticipantsProps = HeaderConversationProps & {participants: ReadonlyArray<string>}
 const UsernameHeader = (props: HeaderParticipantsProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, participants} = props
   const you = useCurrentUserState(s => s.username)
   const theirUsername = participants.length === 2 ? participants.find(username => username !== you) : undefined
@@ -437,7 +451,7 @@ const UsernameHeader = (props: HeaderParticipantsProps) => {
           colorFollowing={true}
           inline={false}
           lineClamp={participants.length > 2 ? 2 : 1}
-          commaColor={Kb.Styles.globalColors.black_50}
+          commaColor={theme.black_50}
           type={participants.length > 2 || !!theirFullname ? 'BodyTinyBold' : 'BodyBig'}
           usernames={participants}
           containerStyle={styles.center}
@@ -451,6 +465,7 @@ const UsernameHeader = (props: HeaderParticipantsProps) => {
 }
 
 const PhoneOrEmailHeader = (props: HeaderParticipantsProps) => {
+  const styles = useStyles()
   const {conversationIDKey, participants} = props
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
@@ -472,8 +487,8 @@ const PhoneOrEmailHeader = (props: HeaderParticipantsProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       center: {
         justifyContent: 'center',
@@ -482,16 +497,11 @@ const styles = Kb.Styles.styleSheetCreate(
       channelHeaderContainer: {
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
       },
-      channelName: {color: Kb.Styles.globalColors.black},
-      channelNameLight: {color: Kb.Styles.globalColors.black_50},
+      channelName: {color: theme.black},
+      channelNameLight: {color: theme.black_50},
       headerRight: {
         height: 22,
         width: 56,
-      },
-      iosBackBadgeButton: {
-        marginRight: 0,
-        minWidth: 0,
-        padding: Kb.Styles.globalMargins.xtiny,
       },
       lessMargins: {marginBottom: -5},
       shhIcon: {marginLeft: Kb.Styles.globalMargins.xtiny},

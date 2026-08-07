@@ -24,6 +24,8 @@ type RowProps = {
 // compiler's memo graph, so the shallow prop bail is what lets rows skip when
 // only the selection or result batch changes
 const Row = React.memo(function Row(p: RowProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {isSelected, item, onSelectItem} = p
   return (
     <Kb.ClickableBox
@@ -35,7 +37,7 @@ const Row = React.memo(function Row(p: RowProps) {
         styles.results,
         {
           backgroundColor:
-            !isMobile && isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+            !isMobile && isSelected ? theme.blue : theme.white,
         },
       ])}
     >
@@ -102,6 +104,7 @@ type ConversationListRenderProps = {
 }
 
 const ConversationListRender = (props: ConversationListRenderProps) => {
+  const styles = useStyles()
   const {selected, setSelected, results, onSelect} = props
   const onSelectItem = React.useEffectEvent((item: T.RPCChat.SimpleSearchInboxConvNamesHit) =>
     onSelect(T.Chat.conversationIDToKey(item.convID), item.tlfName)
@@ -155,7 +158,7 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       filterContainer: Kb.Styles.platformStyles({

@@ -73,6 +73,7 @@ const SoftErrorBanner = ({path}: {path: T.FS.Path}) => {
 }
 
 const PathItemInfo = (props: Props) => {
+  const styles = useStyles()
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   const pathItem = useFsPathItem(props.path)
   const name = (
@@ -101,7 +102,7 @@ const PathItemInfo = (props: Props) => {
 
 export default PathItemInfo
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       nameTextBox: Kb.Styles.platformStyles({

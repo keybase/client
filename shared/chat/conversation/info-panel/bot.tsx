@@ -40,6 +40,7 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 const AddToChannel = (props: AddToChannelProps) => {
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, username} = props
   const {settings, setSettings} = useBotSettings(conversationIDKey, username)
   const editBotSettings = C.useRPC(T.RPCChat.localSetBotMemberSettingsRpcPromise)
@@ -89,7 +90,7 @@ const AddToChannel = (props: AddToChannelProps) => {
       }}
       waitingKey={C.waitingKeyChatBotAdd}
     >
-      <Kb.Icon type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.black} />
+      <Kb.Icon type="iconfont-new" sizeType="Small" color={theme.black} />
     </Kb.WaitingButton>
   )
 }
@@ -105,12 +106,14 @@ type BotProps = T.RPCGen.FeaturedBot & {
   onClick: (username: string) => void
 }
 export const Bot = (props: BotProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {botAlias, description, botUsername} = props
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem, isSelected} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const primaryColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
-  const secondaryColor = isSelected ? Kb.Styles.globalColors.white : undefined
+  const primaryColor = isSelected ? theme.white : theme.black
+  const secondaryColor = isSelected ? theme.white : undefined
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
@@ -161,7 +164,7 @@ export const Bot = (props: BotProps) => {
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
-      style={{backgroundColor: isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}}
+      style={{backgroundColor: isSelected ? theme.blue : theme.white}}
       action={
         showTeamAdd ? (
           <Kb.IconButton type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
@@ -179,7 +182,7 @@ export const Bot = (props: BotProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       addBot: {
@@ -209,6 +212,7 @@ type Props = {
 }
 
 const BotTab = (props: Props) => {
+  const styles = useStyles()
   const {conversationIDKey} = props
   const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {teamID, teamname, teamType, botAliases} = meta

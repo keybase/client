@@ -16,6 +16,7 @@ type EmailSearchProps = {
 }
 
 const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
+  const styles = useStyles()
   const teamBuildingSearchResults = TB.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
@@ -83,12 +84,12 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       background: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           flex: 1,
         },
         isMobile: {

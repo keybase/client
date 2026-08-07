@@ -18,6 +18,8 @@ type Props = {
 }
 
 const ChatButton = ({small, style, username, afterClick}: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const previewConversation = C.Router2.previewConversation
   const chat = () => {
     afterClick?.()
@@ -33,14 +35,14 @@ const ChatButton = ({small, style, username, afterClick}: Props) => {
       small={small}
       style={style}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={theme.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 }
 
 export default ChatButton
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   chatIcon: {
     marginRight: Styles.globalMargins.tiny,
   },

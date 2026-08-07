@@ -6,6 +6,7 @@ type BotCommandUpdateStatusProps = {
 }
 
 export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
+  const styles = useStyles()
   let statusText = ''
   switch (props.status) {
     case T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate:
@@ -26,7 +27,7 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   botCommandContainer: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),

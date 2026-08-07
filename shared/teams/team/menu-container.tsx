@@ -27,6 +27,7 @@ type Props = {
 }
 
 const TeamMenu = (props: Props) => {
+  const styles = useStyles()
   const {attachTo, items, onHidden, visible, teamname, memberCount, role} = props
   if (visible && items.length === 0) {
     onHidden()
@@ -62,7 +63,7 @@ const TeamMenu = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   headerContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny),

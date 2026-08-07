@@ -12,6 +12,7 @@ type Props = {
 const waitingKey = 'emailLookup'
 
 const AddEmail = (props: Props) => {
+  const styles = useStyles()
   const [invitees, setInvitees] = React.useState('')
   const [error, setError] = React.useState('')
   const disabled = invitees.length < 1
@@ -77,16 +78,16 @@ const AddEmail = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
       flex: 1,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  errorText: {color: Kb.Styles.globalColors.redDark},
+  errorText: {color: theme.redDark},
 }))
 
 export default AddEmail

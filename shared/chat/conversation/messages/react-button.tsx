@@ -36,6 +36,7 @@ function ReactionButton({
   style?: Kb.Styles.StylesCrossPlatform
   text: string
 }) {
+  const styles = useStyles()
   return (
     <Kb.ClickableBox
       direction="horizontal"
@@ -106,6 +107,8 @@ type NewReactionButtonProps = {
 }
 
 export function NewReactionButton(p: NewReactionButtonProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const ordinal = useOrdinal()
   const isDarkMode = useColorScheme() === 'dark'
   const conversationIDKey = useConversationThreadID()
@@ -138,7 +141,7 @@ export function NewReactionButton(p: NewReactionButtonProps) {
     >
       <Kb.Icon
         type="iconfont-reacji"
-        color={Kb.Styles.globalColors.black_50}
+        color={theme.black_50}
         fontSize={18}
         style={styles.emojiIconWrapper}
       />
@@ -166,22 +169,21 @@ const markdownOverride: StyleOverride = isMobile
       paragraph: {alignSelf: 'center', display: 'flex'},
     }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       active: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter2,
-        borderColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blueLighter2,
+        borderColor: theme.blue,
       },
       borderBase: {
-        // dynamicColorIOS seems to fail here in the new arch
-        //borderColor: Kb.Styles.globalColors.black_10,
+        // borderColor is set per-platform below: DynamicColorIOS fails for it in the new arch
         borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
       },
       buttonBox: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           borderWidth: 1,
           height: isMobile ? 30 : 26,
           minWidth: 40,
@@ -190,10 +192,10 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {...Kb.Styles.transition('border-color', 'background-color', 'box-shadow')},
       }),
       count: {
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
         position: 'relative',
       },
-      countActive: {color: Kb.Styles.globalColors.blueDark},
+      countActive: {color: theme.blueDark},
       disabled: {opacity: 0.3},
       emojiIconWrapper: Kb.Styles.platformStyles({
         isElectron: {position: 'absolute'},

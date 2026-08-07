@@ -194,6 +194,7 @@ type NativeCommonZoomState = {
 type NativeSwipeDirection = 'left' | 'right' | 'up' | 'down'
 
 const NativeZoomableImage = (p: Props) => {
+  const styles = useStyles()
   const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap} = p
 
   const {isFetching, resolution} = useImageResolution({uri: src})
@@ -292,7 +293,7 @@ const ZoomableImage = (p: Props) => {
   return <NativeZoomableImage {...p} />
 }
 
-const styles = Styles.styleSheetCreate(
+const useStyles = Styles.createStyleHook(
   () =>
     ({
       container: {

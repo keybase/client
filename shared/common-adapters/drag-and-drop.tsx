@@ -44,6 +44,8 @@ const containsDirectory = async (paths: Array<string>) => {
 }
 
 const DragAndDrop = (props: Props): React.ReactNode => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const {
     allowFolders,
     children,
@@ -108,9 +110,9 @@ const DragAndDrop = (props: Props): React.ReactNode => {
     >
       <Box2 direction="vertical" centerChildren={true} gap="medium">
         {rejectReason ? (
-          <Icon type="iconfont-remove" color={Styles.globalColors.red} sizeType="Huge" />
+          <Icon type="iconfont-remove" color={theme.red} sizeType="Huge" />
         ) : (
-          <Icon type="iconfont-upload" color={Styles.globalColors.blue} sizeType="Huge" />
+          <Icon type="iconfont-upload" color={theme.blue} sizeType="Huge" />
         )}
         {rejectReason ? (
           <Text type="Header">{rejectReason}</Text>
@@ -136,11 +138,11 @@ const DragAndDrop = (props: Props): React.ReactNode => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   dropOverlay: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,
-      backgroundImage: `linear-gradient(${Styles.globalColors.white_75}, ${Styles.globalColors.white})`,
+      backgroundImage: `linear-gradient(${theme.white_75}, ${theme.white})`,
       padding: Styles.globalMargins.large,
     },
   }),

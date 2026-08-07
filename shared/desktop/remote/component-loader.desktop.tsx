@@ -32,6 +32,7 @@ type Props<P> = {
 }
 
 function RemoteComponentLoader<P>(p: Props<P>) {
+  const styles = useStyles()
   const {Component, component, param, showOnProps} = p
   const value = useRemotePropsReceiver<P>({component, param, showOnProps})
   useRemoteDarkModeSync(value?.darkMode)
@@ -54,18 +55,18 @@ function RemoteComponentLoader<P>(p: Props<P>) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           display: 'block' as const,
           ...Kb.Styles.size('100%'),
           overflow: 'hidden',
         },
       }),
-      errorFallback: {backgroundColor: Kb.Styles.globalColors.white},
+      errorFallback: {backgroundColor: theme.white},
     }) as const
 )
 

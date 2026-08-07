@@ -19,14 +19,16 @@ const emojiSize = 24
 const rowHeight = Common.desktopRowHeight(emojiSize)
 
 const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
+  const styles = Common.useStyles()
+  const theme = Kb.Styles.useTheme()
   const {item, selected} = p
   return (
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
       style={Kb.Styles.collapseStyles([
-        Common.styles.suggestionBase,
-        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
+        styles.suggestionBase,
+        {backgroundColor: selected ? theme.blueLighter2 : theme.white},
       ])}
       gap="small"
     >

@@ -35,25 +35,28 @@ type Props = {
 
 const LabelContainer = (props: Props) =>
   // We put the tooltip on the whole thing on desktop.
-  isMobile && props.labelTooltip ? (
-    <Kb.WithTooltip
-      tooltip={props.labelTooltip}
-      containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
-      showOnPressMobile={true}
-    >
-      {props.children}
-    </Kb.WithTooltip>
-  ) : (
-    <Kb.ClickableBox
-      onClick={props.allowLabelClick ? props.onClick : undefined}
-      direction="vertical"
-      style={styles.labelContainer}
-    >
-      {props.children}
-    </Kb.ClickableBox>
-  )
+  {
+  const styles = useStyles()
+  return isMobile && props.labelTooltip ? (
+      <Kb.WithTooltip
+        tooltip={props.labelTooltip}
+        containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
+        showOnPressMobile={true}
+      >
+        {props.children}
+      </Kb.WithTooltip>
+    ) : (
+      <Kb.ClickableBox
+        onClick={props.allowLabelClick ? props.onClick : undefined}
+        direction="vertical"
+        style={styles.labelContainer}
+      >
+        {props.children}
+      </Kb.ClickableBox>
+    )
+}
 
-const getStyle = (props: Props) =>
+const getStyle = (props: Props, styles: ReturnType<typeof useStyles>) =>
   Styles.collapseStyles([
     styles.container,
     props.align !== 'right' ? Styles.globalStyles.flexBoxRow : Styles.globalStyles.flexBoxRowReverse,
@@ -61,6 +64,7 @@ const getStyle = (props: Props) =>
   ])
 
 function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
+  const styles = useStyles()
   const {ref} = props
   const content = (
     <>
@@ -98,7 +102,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
     <Kb.Box2 direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'} fullWidth={true} style={Styles.collapseStyles([styles.container, props.style])}>{content}</Kb.Box2>
   ) : (
     <Kb.WithTooltip
-      containerStyle={getStyle(props)}
+      containerStyle={getStyle(props, styles)}
       tooltip={props.labelTooltip || ''}
       position={props.align !== 'right' ? 'top left' : 'top right'}
     >
@@ -109,7 +113,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
 
 export default Switch
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   container: Styles.platformStyles({
     isElectron: {
       alignItems: 'center',

@@ -30,6 +30,7 @@ const fetchContent = (
 }
 
 const TextView = (props: Props) => {
+  const styles = useStyles()
   const {onUrlError, url} = props
 
   const [content, setContent] = React.useState('')
@@ -64,32 +65,32 @@ const TextView = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          backgroundColor: theme.blueLighter3,
         },
         isElectron: {overflow: 'auto', scrollbarGutter: 'stable'} as const,
       }),
       innerContainer: {
         ...Kb.Styles.globalStyles.flexGrow,
-        backgroundColor: Kb.Styles.globalColors.white,
-        color: Kb.Styles.globalColors.black,
+        backgroundColor: theme.white,
+        color: theme.black,
         maxWidth: '100%',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
         width: 800,
       },
       text: Kb.Styles.platformStyles({
         isElectron: {
-          color: Kb.Styles.globalColors.black_on_white,
+          color: theme.black_on_white,
           overflow: 'auto',
           whiteSpace: 'pre',
         },
       }),
       webview: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         height: '100%',
         width: '100%',
       },

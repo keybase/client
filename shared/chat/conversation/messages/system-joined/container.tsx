@@ -9,6 +9,7 @@ import {useThreadMeta} from '../../thread-context'
 type OwnProps = {message: T.Chat.MessageSystemJoined}
 
 function JoinedContainer(p: OwnProps) {
+  const styles = useStyles()
   const {message} = p
   const {joiners, author, leavers, timestamp} = message
   const {channelname, teamType, teamname} = useThreadMeta(
@@ -33,6 +34,7 @@ const MultiUserJoinedNotice = (p: {
   teamname: string
   timestamp: number
 }) => {
+  const styles = useStyles()
   const {who, join, isBigTeam, channelname, teamname, timestamp} = p
 
   const shorten = isMobile && who.length > 1
@@ -61,7 +63,7 @@ const MultiUserJoinedNotice = (p: {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: {marginLeft: -40, paddingBottom: 4},

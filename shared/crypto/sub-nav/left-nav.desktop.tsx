@@ -14,6 +14,7 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
+  const styles = useStyles()
   const {onClick} = props
   const rows = Crypto.Tabs.map(t => ({
     ...t,
@@ -56,12 +57,12 @@ const LeftNav = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   list: {
     ...Kb.Styles.globalStyles.fullHeight,
   },
   listContainer: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
     flexGrow: 0,
     width: 180,
   },

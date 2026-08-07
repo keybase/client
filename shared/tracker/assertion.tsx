@@ -21,6 +21,8 @@ type OwnProps = {
 }
 
 const Assertion = (ownProps: OwnProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const isYours = useCurrentUserState(s => ownProps.username === s.username)
   const {assertion, isSuggestion = false, notAUser = false, onRefresh, stellarHidden = false} = ownProps
   const {color, metas: _metas, proofURL, sigID, siteIcon} = assertion
@@ -235,8 +237,8 @@ const Assertion = (ownProps: OwnProps) => {
           <Kb.Icon
             type={stateToIcon(state)}
             fontSize={20}
-            hoverColor={assertionColorToColor(color)}
-            color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
+            hoverColor={assertionColorToColor(color, theme)}
+            color={isSuggestion ? theme.black_20 : assertionColorToColor(color, theme)}
           />
           {items ? (
             <>
@@ -249,7 +251,7 @@ const Assertion = (ownProps: OwnProps) => {
       {!!metas.length && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaAssertion}>
           {metas.map(m => (
-            <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
+            <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color, theme)} title={m.label} />
           ))}
         </Kb.Box2>
       )}
@@ -285,7 +287,7 @@ const stateToDecorationIcon = (state: T.Tracker.AssertionState) => {
   }
 }
 
-const stateToValueTextStyle = (state: T.Tracker.AssertionState) => {
+const stateToValueTextStyle = (state: T.Tracker.AssertionState, styles: ReturnType<typeof useStyles>) => {
   switch (state) {
     case 'revoked':
       return styles.strikeThrough
@@ -300,6 +302,8 @@ const stateToValueTextStyle = (state: T.Tracker.AssertionState) => {
 }
 
 const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {value, color} = p
   const onCopyAddress = () => {
     copyToClipboard(value)
@@ -327,7 +331,7 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
       type="BodyPrimaryLink"
       onClick={isMobile ? undefined : showPopup}
       tooltip={popup ? undefined : 'Stellar Federation Address'}
-      style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
+      style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color, theme)}])}
     >
       {value}
     </Kb.Text>
@@ -353,6 +357,8 @@ const Value = (p: {
   state: T.Tracker.AssertionState
   color: T.Tracker.AssertionColor
 }) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   let content: React.JSX.Element | null
   if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue value={p.value} color={p.color} />
@@ -383,8 +389,8 @@ const Value = (p: {
         onClick={p.onCreateProof || p.onShowSite}
         style={Kb.Styles.collapseStyles([
           style,
-          stateToValueTextStyle(p.state),
-          {color: assertionColorToTextColor(p.color)},
+          stateToValueTextStyle(p.state, styles),
+          {color: assertionColorToTextColor(p.color, theme)},
         ])}
       >
         {str}
@@ -413,6 +419,7 @@ type SIProps = {
 }
 
 const AssertionSiteIcon = (p: SIProps) => {
+  const styles = useStyles()
   const {full, siteIconFullDarkmode, siteIconFull, siteIconDarkmode, siteIcon} = p
   const {onCreateProof, onShowProof, isSuggestion} = p
   const isDarkMode = useColorScheme() === 'dark'
@@ -438,13 +445,14 @@ const AssertionSiteIcon = (p: SIProps) => {
   )
 }
 
-const popupHeaderTextBase = {
-  color: Kb.Styles.globalColors.white,
-  ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-} as const
+const popupHeaderTextBase = (theme: Kb.Styles.Theme) =>
+  ({
+    color: theme.white,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+  }) as const
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {...Kb.Styles.paddingV(4)},
       crypto: Kb.Styles.platformStyles({
@@ -457,19 +465,19 @@ const styles = Kb.Styles.styleSheetCreate(
       // desktop is handled by css
       halfOpacity: Kb.Styles.platformStyles({isMobile: {opacity: 0.5}}),
       menuHeader: {
-        ...Kb.Styles.bottomDivider(),
+        ...Kb.Styles.bottomDivider(theme),
         padding: Kb.Styles.globalMargins.small,
       },
       metaAssertion: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
       popupHeaderTextBlue: {
-        ...popupHeaderTextBase,
-        backgroundColor: Kb.Styles.globalColors.blue,
+        ...popupHeaderTextBase(theme),
+        backgroundColor: theme.blue,
       },
       popupHeaderTextRed: {
-        ...popupHeaderTextBase,
-        backgroundColor: Kb.Styles.globalColors.red,
+        ...popupHeaderTextBase(theme),
+        backgroundColor: theme.red,
       },
-      site: {color: Kb.Styles.globalColors.black_20},
+      site: {color: theme.black_20},
       siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
       statusAssertion: Kb.Styles.platformStyles({
         isMobile: {position: 'relative', top: -2},

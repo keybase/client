@@ -27,7 +27,7 @@ const AvatarLine = (props: Props) => {
   const usernamesToShow = props.usernames.slice(0, props.maxShown)
   const extra = props.usernames.length - usernamesToShow.length
   const reverse = {horizontal: 'horizontalReverse', vertical: 'verticalReverse'} as const
-  const styles = styleMap.get(props.size)?.[props.layout]
+  const styles = useStyleMap().get(props.size)?.[props.layout]
   if (!styles) return null
   return (
     <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>
@@ -54,49 +54,35 @@ const AvatarLine = (props: Props) => {
 
 const getTextSize = (size: AvatarSize) => (size >= 48 ? 'BodySmallBold' : 'BodyTinyBold')
 
-const getSizeStyle = (size: AvatarSize) => ({
-  horizontal: Kb.Styles.styleSheetCreate(() => ({
-    avatar: {
-      marginRight: -Math.round(size / 3),
-    },
-    container: {
-      marginLeft: 2,
-      marginRight: Math.round(size / 3) + 2,
-    },
+const sizeStyles = (theme: Styles.Theme, size: AvatarSize) => ({
+  horizontal: {
+    avatar: {marginRight: -Math.round(size / 3)},
+    container: {marginLeft: 2, marginRight: Math.round(size / 3) + 2},
     overflowBox: {
-      backgroundColor: Kb.Styles.globalColors.grey,
+      backgroundColor: theme.grey,
       borderBottomRightRadius: size,
       borderTopRightRadius: size,
       height: size,
       paddingLeft: Math.round(size / 2),
     },
-    text: {
-      color: Kb.Styles.globalColors.black_50,
-      paddingRight: Math.round(size / 5),
-    },
-  })),
-  vertical: Kb.Styles.styleSheetCreate(() => ({
-    avatar: {
-      marginBottom: -Math.round(size / 3),
-    },
-    container: {
-      marginBottom: Math.round(size / 3) + 2,
-      marginTop: 2,
-    },
+    text: {color: theme.black_50, paddingRight: Math.round(size / 5)},
+  },
+  vertical: {
+    avatar: {marginBottom: -Math.round(size / 3)},
+    container: {marginBottom: Math.round(size / 3) + 2, marginTop: 2},
     overflowBox: {
-      backgroundColor: Kb.Styles.globalColors.grey,
+      backgroundColor: theme.grey,
       borderBottomLeftRadius: size,
       borderBottomRightRadius: size,
       paddingTop: Math.round(size / 2),
       width: size,
     },
-    text: {
-      color: Kb.Styles.globalColors.black_50,
-      paddingBottom: Math.round(size / 5),
-    },
-  })),
+    text: {color: theme.black_50, paddingBottom: Math.round(size / 5)},
+  },
 })
 
-const styleMap = new Map(avatarSizes.map(s => [s, getSizeStyle(s)]))
+const useStyleMap = Kb.Styles.createThemedHook(
+  theme => new Map(avatarSizes.map(size => [size, sizeStyles(theme, size)]))
+)
 
 export default AvatarLine

@@ -25,6 +25,7 @@ const getJoinTeamError = (error: unknown) => {
 const JoinTeam = (props: OwnProps) => <JoinTeamInner key={props.initialTeamname ?? ''} {...props} />
 
 const JoinTeamInner = ({initialTeamname, success: successParam}: OwnProps) => {
+  const styles = useStyles()
   const [errorText, setErrorText] = React.useState('')
   const [open, setOpen] = React.useState(false)
   const [successTeamName, setSuccessTeamName] = React.useState('')
@@ -139,7 +140,7 @@ const JoinTeamInner = ({initialTeamname, success: successParam}: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       banner: Kb.Styles.platformStyles({isElectron: {overflowX: 'hidden'}}),

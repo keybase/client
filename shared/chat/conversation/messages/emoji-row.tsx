@@ -27,6 +27,7 @@ type OwnProps = {
 }
 
 function EmojiRowContainer(p: OwnProps) {
+  const styles = useStyles()
   const {
     className,
     hasUnfurls,
@@ -187,6 +188,7 @@ function EmojiRowContainer(p: OwnProps) {
 }
 
 const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) => {
+  const styles = useStyles()
   const [hovering, setHovering] = React.useState(false)
   const _setHovering = () => setHovering(true)
   const _setNotHovering = () => setHovering(false)
@@ -211,13 +213,13 @@ const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) =>
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         common: {...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xsmall)},
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          backgroundColor: theme.blueLighter3,
           height: Kb.Styles.globalMargins.medium,
         },
       }),

@@ -30,23 +30,27 @@ export const avatarSize = 32
 // rows leading with an avatar (users, teams, channels-of-a-team)
 export const avatarRowHeight = desktopRowHeight(avatarSize)
 
-export const TeamSuggestion = (p: {teamname: string; channelname: string | undefined; selected: boolean}) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    style={Kb.Styles.collapseStyles([
-      styles.suggestionBase,
-      styles.fixSuggestionHeight,
-      {
-        backgroundColor: p.selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white,
-      },
-    ])}
-    gap="tiny"
-  >
-    <Kb.Avatar teamname={p.teamname} size={avatarSize} />
-    <Kb.Text type="BodyBold">{p.channelname ? p.teamname + ' #' + p.channelname : p.teamname}</Kb.Text>
-  </Kb.Box2>
-)
+export const TeamSuggestion = (p: {teamname: string; channelname: string | undefined; selected: boolean}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([
+        styles.suggestionBase,
+        styles.fixSuggestionHeight,
+        {
+          backgroundColor: p.selected ? theme.blueLighter2 : theme.white,
+        },
+      ])}
+      gap="tiny"
+    >
+      <Kb.Avatar teamname={p.teamname} size={avatarSize} />
+      <Kb.Text type="BodyBold">{p.channelname ? p.teamname + ' #' + p.channelname : p.teamname}</Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 export type ItemRendererProps<T> = {selected: boolean; item: T}
 export type ListProps<L> = {
@@ -150,7 +154,7 @@ export function List<T>(p: ListProps<T>) {
   )
 }
 
-export const styles = Kb.Styles.styleSheetCreate(
+export const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       fixSuggestionHeight: Kb.Styles.platformStyles({

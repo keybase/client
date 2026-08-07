@@ -17,6 +17,7 @@ type ItemProps = {
 }
 
 const Item = (props: ItemProps) => {
+  const theme = Kb.Styles.useTheme()
   let content: React.ReactNode
   const words = props.desc.text.split(' ')
   if (props.desc.seconds === 0) {
@@ -36,7 +37,7 @@ const Item = (props: ItemProps) => {
       <Kb.Text type="Body" style={{flex: 1}}>
         {content}
       </Kb.Text>
-      {props.selected && <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.blue} />}
+      {props.selected && <Kb.Icon type="iconfont-check" color={theme.blue} />}
     </Kb.Box2>
   )
 }

@@ -9,6 +9,7 @@ import {usePhoneVerification} from './use-verification'
 type Props = {route: {params: {phoneNumber: string}}}
 
 const VerifyPhoneNumber = ({route}: Props) => {
+  const styles = useStyles()
   const {phoneNumber} = route.params
   const resendWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneResendVerification)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
@@ -67,19 +68,19 @@ const VerifyPhoneNumber = ({route}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       backButton: {
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
         ...Kb.Styles.globalStyles.flexOne,
       },
-      container: {backgroundColor: Kb.Styles.globalColors.blue},
+      container: {backgroundColor: theme.blue},
       headerContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
       },
-      headerText: {color: Kb.Styles.globalColors.black_50},
+      headerText: {color: theme.black_50},
     }) as const
 )
 

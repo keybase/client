@@ -24,6 +24,7 @@ type Props = InboxAndConversationProps & {
 }
 
 export function InboxAndConversationShell(props: Props) {
+  const styles = useStyles()
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
@@ -69,14 +70,14 @@ export function InboxAndConversationShell(props: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       // without this the flex item's automatic min size is its content's min-content
       // width, so one unbreakable string (a long url) can push the column past the window
       conversation: {minWidth: 0},
       infoPanel: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         bottom: 0,
         position: 'absolute',
         right: 0,

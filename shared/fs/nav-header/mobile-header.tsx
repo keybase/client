@@ -23,15 +23,19 @@ type Props = {
   path: T.FS.Path
 }
 
-const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
+const MaybePublicTag = ({path}: {path: T.FS.Path}) => {
+  const theme = Kb.Styles.useTheme()
+  return FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={theme.green} /> : null
+}
 
 const FilesTabStatusIcon = () => {
+  const styles = useStyles()
   const uploadIcon = Kbfs.useFilesTabUploadIcon()
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.filesTabStatusIcon} /> : null
 }
 
 const NavMobileHeaderInner = (props: Props) => {
+  const styles = useStyles()
   const {expanded, folderViewFilter, setFolderViewFilter} = useFolderViewFilterState(
     C.useShallow(s => ({
       expanded: s.folderViewFilter !== undefined,
@@ -101,8 +105,8 @@ const NavMobileHeaderInner = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       backButton: {
         opacity: 1,
@@ -110,22 +114,22 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.small,
       },
       expandedTitleContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         padding: Kb.Styles.globalMargins.tiny,
         paddingBottom: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny,
       },
       rootContainer: {height: 56},
       rootSpacer: Kb.Styles.size(44),
       expandedTopContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         height: 56,
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
       filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
       filesTabStatusIcon: Kb.Styles.size(Kb.Styles.globalMargins.small),
       headerContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        ...Kb.Styles.bottomDivider(44),
+        backgroundColor: theme.white,
+        ...Kb.Styles.bottomDivider(theme, 44),
       },
     }) as const
 )

@@ -1,12 +1,15 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import {typeStyles, negativeColors} from './text-meta'
+import {useTypeStyles, useNegativeColors} from './text-meta'
 import {linkTypes} from './text.shared'
 import type {Props} from './text.shared'
 import {Text as RNText} from 'react-native'
 import './text.css'
 
 export function Text(p: Props) {
+  const nativeStyles = useNativeStyles()
+  const typeStyles = useTypeStyles()
+  const negativeColors = useNegativeColors()
   if (!isMobile) {
     const type = p.type ?? 'BodySmall'
     const {textRef} = p
@@ -91,7 +94,7 @@ export function Text(p: Props) {
 
 export default Text
 
-const nativeStyles = Styles.styleSheetCreate(
+const useNativeStyles = Styles.createStyleHook(
   () =>
     ({
       center: {textAlign: 'center'},

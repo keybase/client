@@ -43,6 +43,7 @@ const ActionButton = (props: {
   onAdd: (e?: React.BaseSyntheticEvent) => void
   onRemove: () => void
 }) => {
+  const styles = useStyles()
   const Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
 
   return (
@@ -57,20 +58,26 @@ const ActionButton = (props: {
   )
 }
 
-const AddButton = () => (
-  <Kb.Icon
-    className="hover_contained_color_blue"
-    type="iconfont-circle"
-    fontSize={actionButtonSize}
-    color={Kb.Styles.globalColors.black_20}
-  />
-)
+const AddButton = () => {
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Icon
+      className="hover_contained_color_blue"
+      type="iconfont-circle"
+      fontSize={actionButtonSize}
+      color={theme.black_20}
+    />
+  )
+}
 
-const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-success" fontSize={actionButtonSize} color={Kb.Styles.globalColors.blue} />
-)
+const AlreadyAddedIconButton = () => {
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Icon type="iconfont-success" fontSize={actionButtonSize} color={theme.blue} />
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   actionButton: Kb.Styles.platformStyles({
     common: {
       marginLeft: Kb.Styles.globalMargins.tiny,

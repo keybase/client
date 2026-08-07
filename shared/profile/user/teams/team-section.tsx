@@ -10,21 +10,24 @@ type Props = {
   title: string
 }
 
-const TeamSection = ({children, right, title}: Props) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} flex={1} alignItems="flex-start" style={styles.container}>
-    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-      <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
-      {right}
-    </Kb.Box2>
-    <Kb.ScrollView style={styles.scroll}>
-      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-        {children}
+const TeamSection = ({children, right, title}: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} flex={1} alignItems="flex-start" style={styles.container}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
+        {right}
       </Kb.Box2>
-    </Kb.ScrollView>
-  </Kb.Box2>
-)
+      <Kb.ScrollView style={styles.scroll}>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+          {children}
+        </Kb.Box2>
+      </Kb.ScrollView>
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: Kb.Styles.platformStyles({
     common: {
       minWidth: 0,

@@ -6,22 +6,25 @@ const ModalFooter = (props: {
   children: React.ReactNode
   hideBorder?: boolean
   style?: Styles.StylesCrossPlatform
-}) => (
-  <Box2
-    direction="vertical"
-    centerChildren={true}
-    fullWidth={true}
-    style={Styles.collapseStyles([props.hideBorder ? styles.footerNoBorder : styles.footer, props.style])}
-  >
-    {props.children}
-  </Box2>
-)
+}) => {
+  const styles = useStyles()
+  return (
+    <Box2
+      direction="vertical"
+      centerChildren={true}
+      fullWidth={true}
+      style={Styles.collapseStyles([props.hideBorder ? styles.footerNoBorder : styles.footer, props.style])}
+    >
+      {props.children}
+    </Box2>
+  )
+}
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   footer: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      ...Styles.topDivider(),
+      ...Styles.topDivider(theme),
     },
     isElectron: {
       ...Styles.roundedBottom(),

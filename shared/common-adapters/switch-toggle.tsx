@@ -13,14 +13,10 @@ const nativeEnabledOffset = 22
 const desktopDisabledOffset = 2
 const desktopEnabledOffset = 10
 
-const desktopInnerStyle: React.CSSProperties = {
-  backgroundColor: Styles.globalColors.white,
-  borderRadius: 6,
-  ...Styles.size(12),
-}
-
 const SwitchToggle = (props: Props) => {
-  const {on: _on} = props
+  const styles = useStyles()
+  const theme = Styles.useTheme()
+  const {on: _on, color, style} = props
   const [offset] = React.useState(
     new NativeAnimated.Value(_on ? nativeEnabledOffset : nativeDisabledOffset)
   )
@@ -39,10 +35,15 @@ const SwitchToggle = (props: Props) => {
   }, [_on, offset])
 
   if (!isMobile) {
+    const desktopInnerStyle: React.CSSProperties = {
+      backgroundColor: theme.white,
+      borderRadius: 6,
+      ...Styles.size(12),
+    }
     const outerStyle: React.CSSProperties = {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: _on ? Styles.globalColors[props.color] : Styles.globalColors.greyDark,
+      backgroundColor: _on ? theme[color] : theme.greyDark,
       borderRadius: 8,
       flexShrink: 0,
       height: 16,
@@ -65,12 +66,12 @@ const SwitchToggle = (props: Props) => {
           backgroundColor: offset.interpolate({
             inputRange: [nativeDisabledOffset, nativeEnabledOffset],
             outputRange: [
-              Styles.undynamicColor(Styles.globalColors.greyDark),
-              Styles.undynamicColor(Styles.globalColors[props.color]),
+              Styles.undynamicColor(theme.greyDark),
+              Styles.undynamicColor(theme[color]),
             ],
           }),
         },
-        props.style,
+        style,
       ]}
     >
       <NativeAnimated.View style={[styles.nativeInner, {marginLeft: offset}]} />
@@ -78,9 +79,9 @@ const SwitchToggle = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   nativeInner: {
-    backgroundColor: Styles.undynamicColor(Styles.globalColors.white),
+    backgroundColor: Styles.undynamicColor(theme.white),
     borderRadius: 12,
     ...Styles.size(24),
   },

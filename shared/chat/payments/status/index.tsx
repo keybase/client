@@ -50,20 +50,22 @@ const getIcon = (status: Status) => {
   }
 }
 
-const statusColor = (s: Status) => {
+const statusColor = (s: Status, theme: Styles.Theme) => {
   switch (s) {
     case 'completed':
-      return Kb.Styles.globalColors.purpleDarkOrWhite
+      return theme.purpleDarkOrWhite
     case 'claimable':
       return undefined
     case 'pending':
-      return Kb.Styles.globalColors.black_50OrWhite
+      return theme.black_50OrWhite
     case 'error':
-      return Kb.Styles.globalColors.redDarkOrWhite
+      return theme.redDarkOrWhite
   }
 }
 
 const PaymentStatus = (props: Props) => {
+  const theme = Styles.useTheme()
+  const styles = useStyles()
   const statusRef = React.useRef<MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const showPopupIfAllowed = () => {
@@ -83,7 +85,7 @@ const PaymentStatus = (props: Props) => {
     >
       {' '}
       <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
-        {props.text} <Kb.Icon type={getIcon(props.status)} fontSize={12} color={statusColor(props.status)} />
+        {props.text} <Kb.Icon type={getIcon(props.status)} fontSize={12} color={statusColor(props.status, theme)} />
       </Kb.Text>{' '}
     </Kb.Text>
   )
@@ -113,19 +115,19 @@ const PaymentStatus = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       claimable: {
-        backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
+        backgroundColor: theme.purple_10OrPurple,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
-        color: Kb.Styles.globalColors.purpleDarkOrWhite,
+        color: theme.purpleDarkOrWhite,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       completed: {
-        backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
+        backgroundColor: theme.purple_10OrPurple,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
-        color: Kb.Styles.globalColors.purpleDarkOrWhite,
+        color: theme.purpleDarkOrWhite,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       container: Kb.Styles.platformStyles({
@@ -134,15 +136,15 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       error: {
-        backgroundColor: Kb.Styles.globalColors.red_10OrRed,
+        backgroundColor: theme.red_10OrRed,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
-        color: Kb.Styles.globalColors.redDarkOrWhite,
+        color: theme.redDarkOrWhite,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
       pending: {
-        backgroundColor: Kb.Styles.globalColors.greyLight,
+        backgroundColor: theme.greyLight,
         borderRadius: Kb.Styles.globalMargins.xxtiny,
-        color: Kb.Styles.globalColors.black_50OrWhite,
+        color: theme.black_50OrWhite,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
       },
     }) as const

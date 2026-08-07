@@ -10,7 +10,7 @@ import type {RootParamList} from '@/router-v2/route-params'
 
 const isLiquidGlassActive = (isIOS && C.isPhone && _isLiquidGlassSupported) as boolean
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   container: {
     ...Styles.globalStyles.fillAbsolute,
     alignItems: 'stretch',
@@ -19,6 +19,7 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const BottomAccessoryMobile = ({children}: {children: React.ReactNode}) => {
+  const styles = useStyles()
   const navigation = useNavigation()
   const isFocused = useIsFocused()
 
@@ -35,7 +36,7 @@ const BottomAccessoryMobile = ({children}: {children: React.ReactNode}) => {
     return () => {
       parent?.setOptions({bottomAccessory: undefined})
     }
-  }, [children, isFocused, navigation])
+  }, [children, isFocused, navigation, styles.container])
 
   return null
 }

@@ -196,6 +196,8 @@ type MediaThumbProps = {
 // the compiler's memo graph, so elements are recreated per row render; the shallow
 // prop bail here is what lets unchanged thumbs skip when new pages arrive
 const MediaThumb = React.memo(function MediaThumb(props: MediaThumbProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {sizing, thumb} = props
   return (
     <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
@@ -206,7 +208,7 @@ const MediaThumb = React.memo(function MediaThumb(props: MediaThumbProps) {
               <Kb.Icon
                 type="iconfont-mic"
                 style={{marginLeft: 2}}
-                color={Kb.Styles.globalColors.whiteOrWhite}
+                color={theme.whiteOrWhite}
                 sizeType="Big"
               />
             </Kb.Box2>
@@ -230,6 +232,7 @@ const MediaThumb = React.memo(function MediaThumb(props: MediaThumbProps) {
 type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
+  const styles = useStyles()
   const {item} = props
   const hasMessageID = !!item.message && !!T.Chat.messageIDToNumber(item.message.id)
   const shouldShow = () => {
@@ -282,12 +285,14 @@ type SelectorProps = {
   onSelectView: (typ: T.RPCChat.GalleryItemTyp) => void
 }
 
-const getBkgColor = (selected: boolean) =>
-  selected ? {backgroundColor: Kb.Styles.globalColors.blue} : {backgroundColor: undefined}
-const getColor = (selected: boolean) =>
-  selected ? {color: Kb.Styles.globalColors.white} : {color: Kb.Styles.globalColors.blueDark}
+const getBkgColor = (selected: boolean, theme: Kb.Styles.Theme) =>
+  selected ? {backgroundColor: theme.blue} : {backgroundColor: undefined}
+const getColor = (selected: boolean, theme: Kb.Styles.Theme) =>
+  selected ? {color: theme.white} : {color: theme.blueDark}
 
 const AttachmentTypeSelector = (props: SelectorProps) => {
+  const theme = Kb.Styles.useTheme()
+  const styles = useStyles()
   const {onSelectView} = props
   return (
     <Kb.Box2
@@ -305,10 +310,10 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
         style={Kb.Styles.collapseStyles([
           styles.selectorItemContainer,
           styles.selectorMediaContainer,
-          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media, theme),
         ])}
       >
-        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media, theme)}>
           Media
         </Kb.Text>
       </Kb.ClickableBox>
@@ -320,10 +325,10 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
         style={Kb.Styles.collapseStyles([
           styles.selectorDocContainer,
           styles.selectorItemContainer,
-          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc, theme),
         ])}
       >
-        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc, theme)}>
           Docs
         </Kb.Text>
       </Kb.ClickableBox>
@@ -335,10 +340,10 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
         style={Kb.Styles.collapseStyles([
           styles.selectorItemContainer,
           styles.selectorLinkContainer,
-          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
+          getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link, theme),
         ])}
       >
-        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
+        <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link, theme)}>
           Links
         </Kb.Text>
       </Kb.ClickableBox>
@@ -347,24 +352,26 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
 }
 
 const LinkTitle = (p: {title: string; url?: string}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const urlProps = Kb.useClickURL(p.url ?? '')
   return (
     <Kb.Text
       type="BodySmallPrimaryLink"
       {...urlProps}
-      style={Kb.Styles.collapseStyles([styles.linkStyle, {color: Kb.Styles.globalColors.blueDark}])}
+      style={Kb.Styles.collapseStyles([styles.linkStyle, {color: theme.blueDark}])}
     >
       {p.title}
     </Kb.Text>
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       audioBackground: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blue,
+          backgroundColor: theme.blue,
         },
         isElectron: {
           borderRadius: '50%',
@@ -393,7 +400,7 @@ const styles = Kb.Styles.styleSheetCreate(
       flexWrap: {flexWrap: 'wrap'},
       linkContainer: {padding: Kb.Styles.globalMargins.tiny},
       linkStyle: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_50},
+        common: {color: theme.black_50},
         isElectron: {
           fontSize: 13,
           lineHeight: 17,
@@ -412,7 +419,7 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: 460,
       },
       selectorDocContainer: {
-        borderColor: Kb.Styles.globalColors.blue,
+        borderColor: theme.blue,
         borderLeftWidth: 1,
         borderRadius: 0,
         borderRightWidth: 1,
@@ -420,7 +427,7 @@ const styles = Kb.Styles.styleSheetCreate(
       selectorItemContainer: Kb.Styles.platformStyles({
         common: {
           borderBottomWidth: 1,
-          borderColor: Kb.Styles.globalColors.blue,
+          borderColor: theme.blue,
           borderStyle: 'solid',
           borderTopWidth: 1,
           height: 32,
@@ -443,13 +450,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
-
-const linkStyleOverride = {
-  link: Kb.Styles.collapseStyles([
-    styles.linkStyle,
-    {color: Kb.Styles.globalColors.blueDark},
-  ]) as StylesTextCrossPlatform,
-}
 
 const getFromMsgID = (info: T.Chat.AttachmentViewInfo): T.Chat.MessageID | undefined => {
   if (info.last || info.status !== 'success') {
@@ -712,6 +712,14 @@ export const useAttachmentSections = (
   loadImmediately: boolean,
   useFlexWrap: boolean
 ): {sections: Array<Section>} => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  const linkStyleOverride = React.useMemo(
+    () => ({
+      link: Kb.Styles.collapseStyles([styles.linkStyle, {color: theme.blueDark}]) as StylesTextCrossPlatform,
+    }),
+    [styles.linkStyle, theme]
+  )
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState(T.RPCChat.GalleryItemTyp.media)
   const {conversationIDKey} = p
   const {attachmentViewMap, loadAttachmentView} = useAttachmentViewState(conversationIDKey)

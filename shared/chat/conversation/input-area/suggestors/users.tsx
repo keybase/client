@@ -32,10 +32,10 @@ export const transformer = (
   return Common.standardTransformer(`${marker}${s}`, tData, preview)
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   iconPeople: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 16),
+    backgroundColor: theme.white,
+    ...Kb.Styles.border(theme.black_10, 1, 16),
     ...Kb.Styles.size(32),
   },
 }))
@@ -212,6 +212,9 @@ type ListProps = Pick<
 }
 
 const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
+  const styles = useStyles()
+  const commonStyles = Common.useStyles()
+  const theme = Kb.Styles.useTheme()
   const {selected, item} = p
   const {username, fullName, teamname, channelname} = item
 
@@ -224,15 +227,15 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
       direction="horizontal"
       fullWidth={true}
       style={Kb.Styles.collapseStyles([
-        Common.styles.suggestionBase,
-        Common.styles.fixSuggestionHeight,
-        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
+        commonStyles.suggestionBase,
+        commonStyles.fixSuggestionHeight,
+        {backgroundColor: selected ? theme.blueLighter2 : theme.white},
       ])}
       gap="tiny"
     >
       {Chat.isSpecialMention(username ?? '') ? (
         <Kb.Box2 direction="horizontal" style={styles.iconPeople} centerChildren={true}>
-          <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
+          <Kb.Icon type="iconfont-people" color={theme.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (
         <Kb.Avatar username={username} size={Common.avatarSize} />

@@ -9,6 +9,7 @@ type WinGlobal = {
 }
 
 const RoverDesktop = () => {
+  const desktopStyles = useDesktopStyles()
   const win = globalThis as unknown as WinGlobal
   const widthX = win.innerWidth
   const heightY = win.innerHeight
@@ -49,19 +50,22 @@ const RoverDesktop = () => {
   )
 }
 
-const RoverNative = () => (
-  <Kb.Box2 direction="vertical" style={nativeStyles.container}>
-    <Kb.ImageIcon style={nativeStyles.background} type="icon-illustration-mars-rover-background" />
-    <Kb.ImageIcon style={nativeStyles.rover} type="icon-illustration-mars-rover" />
-    <Kb.ImageIcon style={nativeStyles.foreground} type="icon-illustration-mars-rover-foreground" />
-  </Kb.Box2>
-)
+const RoverNative = () => {
+  const nativeStyles = useNativeStyles()
+  return (
+    <Kb.Box2 direction="vertical" style={nativeStyles.container}>
+      <Kb.ImageIcon style={nativeStyles.background} type="icon-illustration-mars-rover-background" />
+      <Kb.ImageIcon style={nativeStyles.rover} type="icon-illustration-mars-rover" />
+      <Kb.ImageIcon style={nativeStyles.foreground} type="icon-illustration-mars-rover-foreground" />
+    </Kb.Box2>
+  )
+}
 
 const Rover = isMobile ? RoverNative : RoverDesktop
 
 const desktopCommon = {bottom: 0, left: 0, position: 'absolute'} as const
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
+const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       background: {...desktopCommon, bottom: 10},
@@ -75,7 +79,7 @@ const nativeShared = Kb.Styles.isTablet
   ? ({bottom: 0, position: 'absolute', right: 0} as const)
   : ({bottom: 0, left: 0, position: 'absolute'} as const)
 
-const nativeStyles = Kb.Styles.styleSheetCreate(() => ({
+const useNativeStyles = Kb.Styles.createStyleHook(() => ({
   background: {...nativeShared, bottom: 10},
   container: nativeShared,
   foreground: nativeShared,

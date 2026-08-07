@@ -41,6 +41,8 @@ function makeRetentionNotice(
 }
 
 function RetentionNoticeContainer() {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const meta = useThreadMeta(
     C.useShallow(m => ({
       retentionPolicy: m.retentionPolicy,
@@ -65,7 +67,7 @@ function RetentionNoticeContainer() {
   return (
     <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 direction="vertical" style={styles.iconBox}>
-        <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={20} type={iconType} />
+        <Kb.Icon color={theme.black_20} fontSize={20} type={iconType} />
       </Kb.Box2>
       {!!explanation && (
         <Kb.Text center={true} type="BodySmallSemibold">
@@ -75,7 +77,7 @@ function RetentionNoticeContainer() {
       {canChange && (
         <Kb.Text
           type="BodySmallSemiboldPrimaryLink"
-          style={{color: Kb.Styles.globalColors.blueDark}}
+          style={{color: theme.blueDark}}
           onClick={onChange}
         >
           Change this
@@ -85,11 +87,11 @@ function RetentionNoticeContainer() {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        backgroundColor: theme.blueLighter3,
         ...Kb.Styles.padding(
           Kb.Styles.globalMargins.small,
           Kb.Styles.globalMargins.medium

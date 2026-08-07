@@ -137,6 +137,7 @@ const HitRow = React.memo(function HitRow(p: HitRowProps) {
 })
 
 export default function InboxSearchContainer(ownProps: OwnProps) {
+  const styles = useStyles()
   const {
     search: {searchInfo: _inboxSearch, selectResult, setVisibleResultCounts},
   } = ownProps
@@ -484,6 +485,8 @@ const rowHeight = isMobile ? 64 : 56
 type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {isSelected: boolean}
 // memo so identity-stable open-team hits bail when other sections update
 const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
@@ -540,7 +543,7 @@ const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
         style={Kb.Styles.collapseStyles([
           styles.openTeamContainer,
           {
-            backgroundColor: isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+            backgroundColor: isSelected ? theme.blue : theme.white,
             height: rowHeight,
           },
         ])}
@@ -551,7 +554,7 @@ const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Text
             type="BodySemibold"
-            style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black}}
+            style={{color: isSelected ? theme.white : theme.black}}
             title={name}
             lineClamp={isMobile ? 1 : undefined}
             ellipsizeMode="tail"
@@ -560,7 +563,7 @@ const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
           </Kb.Text>
           <Kb.Text
             type="BodySmall"
-            style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}}
+            style={{color: isSelected ? theme.white : theme.black_50}}
             title={`#${description}`}
             lineClamp={1}
             ellipsizeMode="tail"
@@ -574,13 +577,13 @@ const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
   )
 })
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
-          borderRightColor: Kb.Styles.globalColors.black_10,
+          backgroundColor: theme.blueGrey,
+          borderRightColor: theme.black_10,
           borderRightWidth: 1,
           borderStyle: 'solid',
           contain: 'strict',
@@ -590,9 +593,9 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       emptyUnreadPlaceholder: Kb.Styles.platformStyles({
         common: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)},
-        isTablet: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+        isTablet: {backgroundColor: theme.blueGrey},
       }),
-      errorText: {color: Kb.Styles.globalColors.redDark},
+      errorText: {color: theme.redDark},
       openTeamContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
@@ -612,6 +615,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flex: 1,
         width: '100%',
       },
-      textHeader: {backgroundColor: Kb.Styles.globalColors.blueLighter3},
+      textHeader: {backgroundColor: theme.blueLighter3},
     }) as const
 )

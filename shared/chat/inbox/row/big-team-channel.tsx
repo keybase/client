@@ -10,6 +10,8 @@ type Props = {
 }
 
 const BigTeamChannel = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {selected, conversationIDKey} = props
 
   const row = useInboxRowBig(conversationIDKey)
@@ -27,7 +29,7 @@ const BigTeamChannel = (props: Props) => {
           style={styles.icon}
           sizeType="Small"
           type={'iconfont-hourglass'}
-          color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20}
+          color={selected ? theme.white : theme.black_20}
         />
       )
       break
@@ -37,7 +39,7 @@ const BigTeamChannel = (props: Props) => {
         <Kb.Icon
           style={styles.icon}
           type={'iconfont-exclamation'}
-          color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
+          color={selected ? theme.white : theme.red}
         />
       )
       break
@@ -73,7 +75,7 @@ const BigTeamChannel = (props: Props) => {
   const mutedIcon = isMuted ? (
     <Kb.Box2 direction="vertical" tooltip="Muted conversation">
       <Kb.IconAuto
-        color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20}
+        color={selected ? theme.white : theme.black_20}
         style={styles.muted}
         type={Kb.Styles.isPhone ? (selected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'}
       />
@@ -85,7 +87,7 @@ const BigTeamChannel = (props: Props) => {
       type="iconfont-edit"
       style={styles.icon}
       sizeType="Small"
-      color={selected ? Kb.Styles.globalColors.white : undefined}
+      color={selected ? theme.white : undefined}
     />
   ) : null
 
@@ -122,8 +124,8 @@ const BigTeamChannel = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       channelBackground: Kb.Styles.platformStyles({
         common: {
@@ -149,8 +151,8 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.tiny,
         },
       }),
-      channelHash: {color: Kb.Styles.globalColors.black_20},
-      channelHashSelected: {color: Kb.Styles.globalColors.white_60},
+      channelHash: {color: theme.black_20},
+      channelHashSelected: {color: theme.white_60},
       channelText: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
@@ -168,21 +170,21 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isTablet: {alignItems: 'center'},
       }),
-      selectedChannelBackground: {backgroundColor: Kb.Styles.globalColors.blue},
-      textError: {color: Kb.Styles.globalColors.redDark},
-      textPlain: {color: Kb.Styles.globalColors.black_63},
+      selectedChannelBackground: {backgroundColor: theme.blue},
+      textError: {color: theme.redDark},
+      textPlain: {color: theme.black_63},
       textPlainBold: {
-        color: Kb.Styles.globalColors.blackOrWhite,
+        color: theme.blackOrWhite,
         ...Kb.Styles.globalStyles.fontBold,
       },
-      textSelected: {color: Kb.Styles.globalColors.white},
+      textSelected: {color: theme.white},
       textSelectedBold: {
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
         ...Kb.Styles.globalStyles.fontBold,
       },
       unread: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.orange,
+          backgroundColor: theme.orange,
           borderRadius: Kb.Styles.borderRadius,
           flexShrink: 0,
           ...Kb.Styles.size(8),

@@ -14,6 +14,7 @@ export type Props = {
 }
 
 const Pinentry = (props: Props) => {
+  const styles = useStyles()
   const {showTyping: _showTyping, onSubmit} = props
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(_showTyping?.defaultValue ?? false)
@@ -85,11 +86,11 @@ const Pinentry = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   alignment: {marginLeft: Kb.Styles.globalMargins.xsmall},
   button: {alignSelf: 'center' as const},
   container: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     paddingBottom: Kb.Styles.globalMargins.medium,
   },
   inner: {...Kb.Styles.paddingH(30)},

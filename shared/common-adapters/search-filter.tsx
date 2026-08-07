@@ -59,6 +59,8 @@ export type SearchFilterRef = {
   focus: () => void
 }
 function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const {
     onChange,
     onBlur: _onBlur,
@@ -175,7 +177,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   }
 
   const iconColor = () => {
-    return _iconColor ? _iconColor : Styles.globalColors.black_50
+    return _iconColor ? _iconColor : theme.black_50
   }
 
   const leftIcon = () => {
@@ -342,7 +344,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
 export default SearchFilter
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexGrow,
@@ -373,20 +375,20 @@ const styles = Styles.styleSheetCreate(() => ({
     minWidth: 80,
     ...Styles.paddingH(Styles.globalMargins.tiny),
   },
-  dark: {backgroundColor: Styles.globalColors.black_10},
+  dark: {backgroundColor: theme.black_10},
   icon: Styles.platformStyles({
     isElectron: {marginTop: 2},
   }),
-  input: {backgroundColor: Styles.globalColors.transparent},
+  input: {backgroundColor: theme.transparent},
   inputContainer: {
     ...Styles.globalStyles.flexGrow,
-    backgroundColor: Styles.globalColors.transparent,
+    backgroundColor: theme.transparent,
     flexShrink: 1,
     ...Styles.paddingH(0),
   },
   leftIconTiny: {marginRight: Styles.globalMargins.tiny},
   leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
-  light: {backgroundColor: Styles.globalColors.black_05},
+  light: {backgroundColor: theme.black_05},
   removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},
   removeIconNonFullWidth: {marginLeft: Styles.globalMargins.tiny},
   spinnerFullWidth: {

@@ -38,6 +38,7 @@ type Props = {
 }
 
 const ListItem = (props: Props) => {
+  const styles = useStyles()
   if (props.type === 'Card') return <CardListItem {...props} />
   return (
   <Kb.ClickableBox
@@ -69,7 +70,7 @@ const ListItem = (props: Props) => {
       {props.statusIcon && (
         <Kb.Box2
           direction="vertical"
-          style={getStatusIconStyle(props)}
+          style={getStatusIconStyle(props, styles)}
           alignSelf="flex-start"
           centerChildren={true}
         >
@@ -79,14 +80,14 @@ const ListItem = (props: Props) => {
       {props.icon && (
         <Kb.Box2
           direction="vertical"
-          style={getIconStyle(props)}
+          style={getIconStyle(props, styles)}
           centerChildren={true}
           alignSelf="flex-start"
         >
           {props.icon}
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="horizontal" relative={true} style={getContainerStyles(props)}>
+      <Kb.Box2 direction="horizontal" relative={true} style={getContainerStyles(props, styles)}>
         {!props.firstItem && !props.fullDivider && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
           <Kb.Box2 fullHeight={true} direction="horizontal" justifyContent="flex-start" flex={1} relative={true} style={styles.bodyContainer}>
@@ -99,7 +100,7 @@ const ListItem = (props: Props) => {
             fade: props.onlyShowActionOnHover === 'fade',
             grow: props.onlyShowActionOnHover === 'grow',
           })}
-          style={getActionStyle(props)}
+          style={getActionStyle(props, styles)}
           alignSelf="center"
         >
           {props.action}
@@ -117,7 +118,7 @@ const largeIconWidth = isMobile ? 72 : 72
 const statusIconWidth = isMobile ? 48 : 44
 const afterStatusIconItemLeftDistance = statusIconWidth - (isMobile ? 10 : 14)
 
-const styles = Styles.styleSheetCreate(() => {
+const useStyles = Styles.createStyleHook(() => {
   const _styles = {
     actionContainer: {
       alignItems: 'center',
@@ -282,10 +283,10 @@ const styles = Styles.styleSheetCreate(() => {
   }
 })
 
-const getStatusIconStyle = (props: Props) =>
+const getStatusIconStyle = (props: Props, styles: ReturnType<typeof useStyles>) =>
   props.type === 'Small' ? styles.statusIconSmall : styles.statusIconLarge
 
-const getIconStyle = (props: Props) =>
+const getIconStyle = (props: Props, styles: ReturnType<typeof useStyles>) =>
   props.iconStyleOverride ??
   (props.type === 'Small'
     ? props.statusIcon
@@ -295,7 +296,7 @@ const getIconStyle = (props: Props) =>
       ? styles.iconLargeWithStatusIcon
       : styles.iconLargeWithNoStatusIcon)
 
-const getContainerStyles = (props: Props) =>
+const getContainerStyles = (props: Props, styles: ReturnType<typeof useStyles>) =>
   Styles.collapseStyles([
     props.type === 'Small'
       ? props.statusIcon
@@ -317,7 +318,7 @@ const getContainerStyles = (props: Props) =>
     props.containerStyleOverride,
   ])
 
-const getActionStyle = (props: Props) =>
+const getActionStyle = (props: Props, styles: ReturnType<typeof useStyles>) =>
   Styles.collapseStyles([
     props.type === 'Small'
       ? props.onlyShowActionOnHover
@@ -329,26 +330,29 @@ const getActionStyle = (props: Props) =>
     !!props.height && {minHeight: props.height},
   ])
 
-const CardListItem = (props: Props) => (
-  <Kb.ClickableBox
-    onClick={props.onClick}
-    direction="horizontal"
-    alignItems="center"
-    fullWidth={true}
-    gap="small"
-    overflow="hidden"
-    padding="small"
-    style={Styles.collapseStyles([cardStyles.card, props.style])}
-  >
-    {props.icon}
-    <Kb.Box2 direction="vertical" flex={1} fullWidth={true}>{props.body}</Kb.Box2>
-  </Kb.ClickableBox>
-)
+const CardListItem = (props: Props) => {
+  const cardStyles = useCardStyles()
+  return (
+    <Kb.ClickableBox
+      onClick={props.onClick}
+      direction="horizontal"
+      alignItems="center"
+      fullWidth={true}
+      gap="small"
+      overflow="hidden"
+      padding="small"
+      style={Styles.collapseStyles([cardStyles.card, props.style])}
+    >
+      {props.icon}
+      <Kb.Box2 direction="vertical" flex={1} fullWidth={true}>{props.body}</Kb.Box2>
+    </Kb.ClickableBox>
+  )
+}
 
-const cardStyles = Styles.styleSheetCreate(() => ({
+const useCardStyles = Styles.createStyleHook(theme => ({
   card: {
-    ...Styles.border(Styles.globalColors.grey, 1, Styles.borderRadius),
-    backgroundColor: Styles.globalColors.white,
+    ...Styles.border(theme.grey, 1, Styles.borderRadius),
+    backgroundColor: theme.white,
   },
 }))
 

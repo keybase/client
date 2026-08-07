@@ -6,6 +6,7 @@ import {loadAccountsWaitingKey} from '@/constants/strings'
 import {makeRemoveAccountRouteParams, sortAccounts, toAccount, type Account} from './account-utils'
 
 const Row = (p: {account: Account}) => {
+  const styles = useStyles()
   const {account} = p
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
@@ -112,6 +113,7 @@ const Row = (p: {account: Account}) => {
 }
 
 const WalletsScreen = () => {
+  const styles = useStyles()
   const [accounts, setAccounts] = React.useState<Array<Account>>([])
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = C.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
@@ -169,8 +171,8 @@ const WalletsScreen = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       accountID: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
@@ -194,7 +196,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       row: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueGreyLight,
+          backgroundColor: theme.blueGreyLight,
           borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {

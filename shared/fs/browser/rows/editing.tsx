@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {rowStyles} from './common'
+import {useRowStyles} from './common'
 import * as T from '@/constants/types'
 import type {BrowserEditSession} from '../edit-state'
 
@@ -9,6 +9,9 @@ type Props = {
 }
 
 function Editing({editSession}: Props) {
+  const styles = useStyles()
+  const rowStyles = useRowStyles()
+  const theme = Kb.Styles.useTheme()
   const {commitEdit, discardEdit, edit} = editSession
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') discardEdit()
@@ -48,7 +51,7 @@ function Editing({editSession}: Props) {
         <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
-              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
+              <Kb.Icon type="iconfont-exclamation" color={theme.red} />
             </Kb.WithTooltip>
           )}
           <Kb.Button
@@ -62,8 +65,8 @@ function Editing({editSession}: Props) {
           <Kb.Icon
             onClick={discardEdit}
             type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
-            color={Kb.Styles.globalColors.black_50}
-            hoverColor={Kb.Styles.globalColors.black}
+            color={theme.black_50}
+            hoverColor={theme.black}
             style={styles.iconCancel}
           />
         </Kb.Box2>
@@ -72,7 +75,7 @@ function Editing({editSession}: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       button: {

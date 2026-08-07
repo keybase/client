@@ -25,6 +25,7 @@ export const AudioSendWrapper = () => {
 // This is created and driven by the AudioRecorder button but its ultimately rendered
 // through a portal into the parent PlatformInput
 const AudioSend = (props: Props) => {
+  const styles = useStyles()
   const {cancelRecording, sendRecording, duration, ampTracker, path} = props
 
   // render
@@ -53,10 +54,10 @@ const AudioSend = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
     borderStyle: 'solid',
-    borderTopColor: Kb.Styles.globalColors.black_10,
+    borderTopColor: theme.black_10,
     borderTopWidth: 1,
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },

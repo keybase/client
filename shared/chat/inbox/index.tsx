@@ -54,25 +54,31 @@ type InboxDragEvent = {
 const widths = [10, 80, 2, 66]
 const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]!
 
-const DesktopFakeRow = ({idx}: {idx: number}) => (
-  <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRow}>
-    <Kb.Box2 direction="vertical" style={desktopStyles.fakeAvatar} />
-    <Kb.Box2 direction="vertical" justifyContent="space-around" flex={1} style={desktopStyles.fakeText}>
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([desktopStyles.fakeTextTop, {width: stableWidth(idx) / 4}])}
-        alignSelf="flex-start"
-      />
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([desktopStyles.fakeTextBottom, {width: stableWidth(idx)}])}
-        alignSelf="flex-start"
-      />
+const DesktopFakeRow = ({idx}: {idx: number}) => {
+  const desktopStyles = useDesktopStyles()
+  return (
+    <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRow}>
+      <Kb.Box2 direction="vertical" style={desktopStyles.fakeAvatar} />
+      <Kb.Box2 direction="vertical" justifyContent="space-around" flex={1} style={desktopStyles.fakeText}>
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([desktopStyles.fakeTextTop, {width: stableWidth(idx) / 4}])}
+          alignSelf="flex-start"
+        />
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([desktopStyles.fakeTextBottom, {width: stableWidth(idx)}])}
+          alignSelf="flex-start"
+        />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
-const DesktopFakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRemovingRow} />
+const DesktopFakeRemovingRow = () => {
+  const desktopStyles = useDesktopStyles()
+  return <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRemovingRow} />
+}
 
 const dragKey = 'application/keybase_inbox'
 
@@ -86,6 +92,7 @@ const DesktopDragLine = (p: {
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
 }) => {
+  const desktopStyles = useDesktopStyles()
   const {rows, inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
@@ -224,47 +231,52 @@ const DesktopDragLine = (p: {
 
 // Native-only components
 
-const NativeNoChats = (props: {onNewChat: () => void}) => (
-  <>
-    <Kb.Box2
-      direction="vertical"
-      gap="small"
-      justifyContent="center"
-      alignItems="center"
-      fullWidth={true}
-      style={nativeStyles.noChatsContainer}
-    >
-      <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
-      <Kb.Box2 direction="vertical">
-        <Kb.Text type="BodySmall" center={true}>
-          All conversations are
-        </Kb.Text>
-        <Kb.Text type="BodySmall" center={true}>
-          end-to-end encrypted.
-        </Kb.Text>
+const NativeNoChats = (props: {onNewChat: () => void}) => {
+  const nativeStyles = useNativeStyles()
+  return (
+    <>
+      <Kb.Box2
+        direction="vertical"
+        gap="small"
+        justifyContent="center"
+        alignItems="center"
+        fullWidth={true}
+        style={nativeStyles.noChatsContainer}
+      >
+        <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="BodySmall" center={true}>
+            All conversations are
+          </Kb.Text>
+          <Kb.Text type="BodySmall" center={true}>
+            end-to-end encrypted.
+          </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} style={nativeStyles.newChat}>
-      <Kb.Button fullWidth={true} onClick={props.onNewChat} mode="Primary" label="Start a new chat" />
-    </Kb.Box2>
-  </>
-)
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} noShrink={true} style={nativeStyles.newChat}>
+        <Kb.Button fullWidth={true} onClick={props.onNewChat} mode="Primary" label="Start a new chat" />
+      </Kb.Box2>
+    </>
+  )
+}
 
 // The empty state is a sibling of the (flex) list, which would otherwise eat the
 // vertical space and push this content off the bottom. Pin it as an absolute fill
 // overlay so the icon centers and the buttons sit at the bottom. On iOS the tab
 // screen draws edge-to-edge under the native tab bar, so inset the bottom edge to
 // clear it; Android already insets the whole tab screen.
-const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) =>
-  isIOS ? (
-    <ScreensSafeAreaView edges={{bottom: true}} style={nativeStyles.noChatsWrapper}>
-      {children}
-    </ScreensSafeAreaView>
-  ) : (
-    <Kb.Box2 direction="vertical" style={nativeStyles.noChatsWrapper}>
-      {children}
-    </Kb.Box2>
-  )
+const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) => {
+  const nativeStyles = useNativeStyles()
+  return isIOS ? (
+      <ScreensSafeAreaView edges={{bottom: true}} style={nativeStyles.noChatsWrapper}>
+        {children}
+      </ScreensSafeAreaView>
+    ) : (
+      <Kb.Box2 direction="vertical" style={nativeStyles.noChatsWrapper}>
+        {children}
+      </Kb.Box2>
+    )
+}
 
 const NativeNoRowsBuildTeam = () => {
   const isLoading = C.useWaitingState(s => [...s.counts.keys()].some(k => k.startsWith('chat:')))
@@ -272,6 +284,7 @@ const NativeNoRowsBuildTeam = () => {
 }
 
 const NativeLoadingLine = () => {
+  const nativeStyles = useNativeStyles()
   const isLoading = C.Waiting.useAnyWaiting([C.waitingKeyChatInboxRefresh, C.waitingKeyChatInboxSyncStarted])
   return isLoading ? (
     <Kb.Box2 direction="vertical" style={nativeStyles.loadingContainer}>
@@ -312,6 +325,7 @@ function InboxWithSearch(props: {
 
 // Desktop InboxBody
 function DesktopInboxBody(props: ControlledInboxProps) {
+  const desktopStyles = useDesktopStyles()
   const {conversationIDKey, refreshInbox, search} = props
   const inbox = useInboxState(conversationIDKey, search.isSearching, refreshInbox)
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
@@ -442,6 +456,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
 
 // Native InboxBody
 function NativeInboxBody(p: ControlledInboxProps) {
+  const nativeStyles = useNativeStyles()
   const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching, p.refreshInbox)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
@@ -619,15 +634,15 @@ function Inbox(props: InboxProps) {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useDesktopStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       body: {
         minHeight: 0,
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           contain: 'strict',
           maxWidth: inboxWidth,
           minWidth: inboxWidth,
@@ -638,7 +653,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       fakeAvatar: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.black_10,
+          backgroundColor: theme.black_10,
           borderRadius: '50%',
           ...Kb.Styles.size(48),
           marginLeft: 8,
@@ -653,14 +668,14 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       }),
       fakeRow: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           height: 56,
           position: 'relative',
           width: '100%',
         },
       }),
       fakeRowContainer: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
         left: 0,
         position: 'absolute',
         right: 0,
@@ -673,7 +688,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       fakeTextBottom: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.black_10,
+          backgroundColor: theme.black_10,
           borderRadius: 8,
           height: 10,
           width: '75%',
@@ -681,7 +696,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       }),
       fakeTextTop: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.black_10,
+          backgroundColor: theme.black_10,
           borderRadius: 8,
           height: 10,
           width: '25%',
@@ -690,7 +705,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       grabber: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
-          backgroundColor: Kb.Styles.globalColors.black_05,
+          backgroundColor: theme.black_05,
           bottom: 8,
           height: Kb.Styles.globalMargins.tiny,
           justifyContent: 'center',
@@ -702,7 +717,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         },
       }),
       grabberLine: {
-        backgroundColor: Kb.Styles.globalColors.black_35,
+        backgroundColor: theme.black_35,
         height: 1,
         marginBottom: 1,
         width: '100%',
@@ -718,7 +733,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       spacer: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
         bottom: 0,
         height: 8,
         position: 'absolute',
@@ -727,15 +742,15 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
         },
         isTablet: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           maxWidth: Kb.Styles.globalStyles.mediumSubNavWidth,
         },
       }),

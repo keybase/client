@@ -48,39 +48,45 @@ type RowProps = {
   onToggle: () => void
   selected: boolean
 }
-const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
-  <Kb.ListItem
-    type="Small"
-    firstItem={false}
-    body={
-      <Kb.Box2 direction="vertical" flex={1} style={disabled ? {opacity: 0.4} : undefined}>
-        <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-          <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
-            #
-          </Kb.Text>
-          <Kb.Text type="Body" style={styles.channelText}>
-            {name}
-          </Kb.Text>
+const Row = ({description, disabled, name, onToggle, selected}: RowProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.ListItem
+      type="Small"
+      firstItem={false}
+      body={
+        <Kb.Box2 direction="vertical" flex={1} style={disabled ? {opacity: 0.4} : undefined}>
+          <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+            <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
+              #
+            </Kb.Text>
+            <Kb.Text type="Body" style={styles.channelText}>
+              {name}
+            </Kb.Text>
+          </Kb.Box2>
+          {!!description && (
+            <Kb.Text type="Body" lineClamp={1} style={{color: theme.black_50}}>
+              {description}
+            </Kb.Text>
+          )}
         </Kb.Box2>
-        {!!description && (
-          <Kb.Text type="Body" lineClamp={1} style={{color: Kb.Styles.globalColors.black_50}}>
-            {description}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
-    }
-    onClick={disabled ? undefined : onToggle}
-    action={
-      <Kb.CheckCircle
-        checked={selected}
-        onCheck={disabled ? undefined : onToggle}
-        disabled={disabled}
-        disabledColor={selected ? Kb.Styles.globalColors.black_20OrWhite_20 : undefined}
-      />
-    }
-  />
-)
+      }
+      onClick={disabled ? undefined : onToggle}
+      action={
+        <Kb.CheckCircle
+          checked={selected}
+          onCheck={disabled ? undefined : onToggle}
+          disabled={disabled}
+          disabledColor={selected ? theme.black_20OrWhite_20 : undefined}
+        />
+      }
+    />
+  )
+}
 const ChannelPicker = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {installInConvs, setInstallInConvs, setDisableDone} = props
   const [allSelected, setAllSelected] = React.useState(installInConvs.length === 0)
   const [searchText, setSearchText] = React.useState('')
@@ -124,7 +130,7 @@ const ChannelPicker = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>
-        <Kb.Box2 direction="horizontal" style={{backgroundColor: Kb.Styles.globalColors.blueGrey}}>
+        <Kb.Box2 direction="horizontal" style={{backgroundColor: theme.blueGrey}}>
           <Kb.ListItem
             type="Small"
             firstItem={true}
@@ -139,12 +145,12 @@ const ChannelPicker = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       channelHash: {
         alignSelf: 'center',
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
         flexShrink: 0,
         marginRight: Kb.Styles.globalMargins.xtiny,
       },

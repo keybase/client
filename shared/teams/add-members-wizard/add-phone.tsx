@@ -9,6 +9,7 @@ import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard}
 const waitingKey = 'phoneLookup'
 
 const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
+  const styles = useStyles()
   const [error, setError] = React.useState('')
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
@@ -65,12 +66,12 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       ...Kb.Styles.globalStyles.flexOne,
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      backgroundColor: theme.blueGrey,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),

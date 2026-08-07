@@ -6,6 +6,7 @@ type Props = {
 }
 
 const StartNewChat = (props: Props) => {
+  const styles = useStyles()
   if (isMobile) {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} justifyContent="center" style={styles.container} relative={true}>
@@ -25,8 +26,8 @@ const StartNewChat = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       button: Kb.Styles.platformStyles({
         common: {
@@ -38,13 +39,13 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         backgroundColor: isMobile
           ? undefined
-          : Kb.Styles.globalColors.blueGrey,
+          : theme.blueGrey,
         minHeight: 48,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
       iconCompose: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.blueDark,
+          color: theme.blueDark,
         },
         isElectron: {
           fontSize: 16,

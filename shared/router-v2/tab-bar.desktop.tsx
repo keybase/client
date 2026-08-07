@@ -31,6 +31,7 @@ export type Props = {
 }
 
 const FilesTabBadge = () => {
+  const styles = useStyles()
   const uploadIcon = Kbfs.useFilesTabUploadIcon()
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
@@ -47,6 +48,8 @@ const maxNameWidth = 82
 const nameFont = (size: number) => `600 ${size}px Keybase` // BodyTinySemibold
 
 const Header = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const username = useCurrentUserState(s => s.username)
   const fullname = useUsersState(s => s.infoMap.get(username)?.fullname ?? '')
 
@@ -171,7 +174,7 @@ const Header = () => {
             </Kb.Text>
             <Kb.Icon
               type="iconfont-arrow-down"
-              color={Kb.Styles.globalColors.blueLighter}
+              color={theme.blueLighter}
               fontSize={12}
               style={styles.caret}
             />
@@ -193,6 +196,7 @@ const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs
 const hotKeys = Object.keys(keysMap)
 
 function TabBar(props: Props) {
+  const styles = useStyles()
   const {navigation, state} = props
   const onHotKey = (cmd: string) => {
     navigation.dispatch(CommonActions.navigate(keysMap[cmd] as Tabs.Tab))
@@ -245,6 +249,7 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
 }
 
 function Tab(props: TabProps) {
+  const styles = useStyles()
   const {tab, index, isSelected, onSelectTab} = props
   const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
@@ -325,11 +330,11 @@ function Tab(props: TabProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       avatar: {marginLeft: 14},
-      avatarBorder: {borderRadius: '50%', boxShadow: `0px 0px 0px 2px ${Kb.Styles.globalColors.blue}`},
+      avatarBorder: {borderRadius: '50%', boxShadow: `0px 0px 0px 2px ${theme.blue}`},
       badgeIconUpload: {
         bottom: -Kb.Styles.globalMargins.xxtiny,
         ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall),
@@ -359,7 +364,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: 12,
       },
       username: Kb.Styles.platformStyles({
-        isElectron: {color: Kb.Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
+        isElectron: {color: theme.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
       }),
     }) as const
 )

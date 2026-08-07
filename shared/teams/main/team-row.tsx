@@ -22,6 +22,7 @@ type Props = TeamRowItem & {
 }
 
 const TeamRow = function TeamRow(props: Props) {
+  const styles = useStyles()
   const {activityLevel, badgeCount, id: teamID, isNew, showChat = true, teamMeta} = props
   const navigateAppend = C.Router2.navigateAppend
 
@@ -132,7 +133,7 @@ const TeamRow = function TeamRow(props: Props) {
 const smallHeight = isMobile ? 56 : 48
 const smallIconWidth = 64
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   action: {
     flexShrink: 0,
     marginRight: 8,
@@ -172,7 +173,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   rowStyle: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       flexShrink: 0,
       position: 'relative',
     },
@@ -182,7 +183,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   crownIcon: Kb.Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
   crownIconBox: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       borderRadius: 100,
       ...Kb.Styles.size(17),
       position: 'absolute',

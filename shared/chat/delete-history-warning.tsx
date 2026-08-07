@@ -9,6 +9,7 @@ type Props = {
 }
 
 const DeleteHistoryWarning = (props: Props) => {
+  const styles = useStyles()
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const onCancel = C.Router2.navigateUp
   const clearModals = C.Router2.clearModals
@@ -64,12 +65,12 @@ const DeleteHistoryWarning = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       box: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {

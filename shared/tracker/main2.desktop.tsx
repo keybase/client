@@ -46,7 +46,7 @@ loadRemoteComponent<ProxyProps>({
   component: 'tracker',
   style: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Kb.Styles.globalColors.transparent,
+      backgroundColor: Kb.Styles.getTheme().transparent,
       borderRadius: 8,
       display: 'block',
       ...Kb.Styles.size('100%'),

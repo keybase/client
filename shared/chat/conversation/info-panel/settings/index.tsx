@@ -18,6 +18,7 @@ type SettingsPanelProps = {
 }
 
 const SettingsPanel = (props: SettingsPanelProps) => {
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, isPreview} = props
   const username = useCurrentUserState(s => s.username)
   const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
@@ -99,7 +100,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             fullWidth={true}
             waiting={spinnerForLeave}
           >
-            <Kb.Icon type="iconfont-leave" sizeType="Small" color={Kb.Styles.globalColors.blue} />
+            <Kb.Icon type="iconfont-leave" sizeType="Small" color={theme.blue} />
           </Kb.Button>
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
@@ -110,7 +111,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           onClick={onArchive}
           fullWidth={true}
         >
-          <Kb.Icon type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
+          <Kb.Icon type="iconfont-folder-downloads" sizeType="Small" color={theme.black} />
         </Kb.Button>
         {entityType !== 'channel' && (
           <Kb.Button
@@ -120,7 +121,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             onClick={ignored ? onUnhideConv : onHideConv}
             fullWidth={true}
           >
-            <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
+            <Kb.Icon type="iconfont-unhide" sizeType="Small" color={theme.red} />
           </Kb.Button>
         )}
         <RetentionPicker
@@ -154,7 +155,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 onClick={onShowBlockConversationDialog}
                 fullWidth={true}
               >
-                <Kb.Icon type="iconfont-remove" sizeType="Small" color={Kb.Styles.globalColors.whiteOrWhite} />
+                <Kb.Icon type="iconfont-remove" sizeType="Small" color={theme.whiteOrWhite} />
               </Kb.Button>
             )}
           </>

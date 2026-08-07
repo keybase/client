@@ -18,6 +18,7 @@ type Props = {
 }
 
 const SetPublicName = ({route}: Props) => {
+  const styles = useStyles()
   const devices = route.params.devices ?? []
   const error = route.params.error ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
@@ -103,12 +104,12 @@ const SetPublicName = ({route}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   contents: Kb.Styles.platformStyles({
     common: {width: '100%'},
     isTablet: {width: undefined},
   }),
-  deviceNameError: {color: Kb.Styles.globalColors.redDark},
+  deviceNameError: {color: theme.redDark},
   nameInput: Kb.Styles.platformStyles({
     common: {padding: Kb.Styles.globalMargins.tiny},
     isMobile: {minHeight: 48},

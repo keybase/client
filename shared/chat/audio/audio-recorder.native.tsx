@@ -37,6 +37,7 @@ enum Visible {
 
 const useTooltip = () => {
   'use no memo'
+  const styles = useStyles()
   const [showTooltip, setShowTooltip] = React.useState(false)
   const lastShowTooltipRef = React.useRef(showTooltip)
   const opacitySV = useSharedValue(0)
@@ -98,6 +99,7 @@ type MicButtonProps = {
 
 const MicButton = (p: MicButtonProps) => {
   'use no memo'
+  const styles = useStyles()
   const {startedSV, fadeSV, canceledSV, lockedSV, dragXSV, dragYSV,
     startRecording, onCancelRecording, onFlashTip, sendRecording, onReset} = p
 
@@ -195,6 +197,7 @@ const useIconAndOverlay = (p: {
   ampSV: SVN
 }) => {
   'use no memo'
+  const styles = useStyles()
   const {stageRecording, startRecording, sendRecording, cancelRecording, flashTip, ampSV} = p
   const [visible, setVisible] = React.useState(Visible.HIDDEN)
 
@@ -570,8 +573,10 @@ const AudioRecorder = function AudioRecorder(props: Props) {
 
 const BigBackground = (props: {fadeSV: SVN}) => {
   'use no memo'
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {fadeSV} = props
-  const backgroundColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.white)
+  const backgroundColor = Kb.Styles.undynamicColor(theme.white)
   const animatedStyle = useAnimatedStyle(() => ({
     backgroundColor,
     opacity: fadeSV.value * 0.9,
@@ -582,6 +587,7 @@ const BigBackground = (props: {fadeSV: SVN}) => {
 
 const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; lockedSV: SVN}) => {
   'use no memo'
+  const styles = useStyles()
   const {ampSV, dragXSV, dragYSV, fadeSV, lockedSV} = props
   const animatedStyle = useAnimatedStyle(() => {
     const dragDistanceX = -50
@@ -608,6 +614,8 @@ const InnerCircle = (props: {
   stageRecording: () => void
 }) => {
   'use no memo'
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {dragXSV, dragYSV, fadeSV, lockedSV, stageRecording} = props
   const circleStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason
@@ -626,7 +634,7 @@ const InnerCircle = (props: {
   return (
     <Animated.View style={[styles.innerCircleStyle, circleStyle]}>
       <Animated.View style={[iconStyle]}>
-        <Kb.Icon type="iconfont-stop" color={Kb.Styles.globalColors.whiteOrWhite} onClick={stageRecording} />
+        <Kb.Icon type="iconfont-stop" color={theme.whiteOrWhite} onClick={stageRecording} />
       </Animated.View>
     </Animated.View>
   )
@@ -634,6 +642,7 @@ const InnerCircle = (props: {
 
 const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN}) => {
   'use no memo'
+  const styles = useStyles()
   const {lockedSV, fadeSV, dragXSV, dragYSV} = props
   const slideAmount = 150
   const spaceBetween = 20
@@ -690,6 +699,8 @@ const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: () => void}) => {
   'use no memo'
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {lockedSV, fadeSV, onCancel, dragXSV} = props
   const arrowStyle = useAnimatedStyle(() => {
     // copy paste so we don't share as many vars between jsc contexts
@@ -755,7 +766,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
         <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
       </AnimatedBox2>
       <AnimatedBox2 direction="vertical" style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}>
-        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={Kb.Styles.globalColors.black_20} />
+        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={theme.black_20} />
       </AnimatedBox2>
       <AnimatedText
         type="BodySmallPrimaryLink"
@@ -773,8 +784,10 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 
 const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: () => void}) => {
   'use no memo'
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {fadeSV, lockedSV, sendRecording} = props
-  const backgroundColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.blue)
+  const backgroundColor = Kb.Styles.undynamicColor(theme.blue)
   const buttonStyle = useAnimatedStyle(() => ({
     backgroundColor,
     opacity: lockedSV.value ? fadeSV.value : withTiming(0),
@@ -784,7 +797,7 @@ const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: 
     <Animated.View style={[styles.sendRecordingButtonStyle, buttonStyle]}>
       <Kb.Icon
         padding="tiny"
-        color={Kb.Styles.globalColors.whiteOrWhite}
+        color={theme.whiteOrWhite}
         onClick={sendRecording}
         sizeType="Small"
         type="iconfont-arrow-full-up"
@@ -821,7 +834,7 @@ const circleAroundIcon = (size: number) => ({
   borderRadius: size / 2,
 })
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   ampCircleStyle: {
     ...circleAroundIcon(34),
   },
@@ -859,7 +872,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.centered(),
   },
   tooltipContainer: {
-    backgroundColor: Kb.Styles.globalColors.black,
+    backgroundColor: theme.black,
     borderRadius: Kb.Styles.borderRadius,
     bottom: 45,
     padding: Kb.Styles.globalMargins.tiny,

@@ -4,11 +4,13 @@ import {useConversationCenterActions} from '../center-context'
 import {useConversationThreadSelector, useConversationThreadToggleSearch} from '../thread-context'
 
 const JumpToRecent = (props: {onClick: () => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   return (
     <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.outerContainer}>
       <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true}>
         <Kb.Icon
-          color={Kb.Styles.globalColors.whiteOrWhite}
+          color={theme.whiteOrWhite}
           type="iconfont-arrow-full-down"
           sizeType="Small"
           style={styles.arrowText}
@@ -34,8 +36,8 @@ export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number)
   return loaded && moreToLoadForward && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       arrowText: {paddingRight: Kb.Styles.globalMargins.tiny},
       outerContainer: Kb.Styles.platformStyles({
@@ -44,7 +46,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
         },
         isElectron: {
-          backgroundImage: `linear-gradient(transparent, ${Kb.Styles.globalColors.white} 75%)`,
+          backgroundImage: `linear-gradient(transparent, ${theme.white} 75%)`,
           bottom: 0,
           position: 'absolute',
         },

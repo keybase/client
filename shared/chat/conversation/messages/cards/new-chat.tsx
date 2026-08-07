@@ -16,6 +16,8 @@ type InnerProps = {
 }
 
 function NewCard(outerProps: Props) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const iconEncrypted: Kb.IconType = 'icon-illustration-encrypted-116-96'
   const iconSecure: Kb.IconType = 'icon-illustration-secure-116-96'
   const props: InnerProps = outerProps.self
@@ -52,7 +54,7 @@ function NewCard(outerProps: Props) {
             {props.label}
           </Kb.Text>
           <Kb.Icon
-            color={Kb.Styles.globalColors.blueLighter}
+            color={theme.blueLighter}
             sizeType="Tiny"
             type="iconfont-arrow-right"
             className="hover_contained_color_white"
@@ -68,12 +70,12 @@ function NewCard(outerProps: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueDark,
+          backgroundColor: theme.blueDark,
           borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
@@ -111,7 +113,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: isMobile ? -65 : undefined,
         marginTop: isMobile ? -20 : 39,
       },
-      link: {color: isMobile ? Kb.Styles.globalColors.blueLighter : undefined},
+      link: {color: isMobile ? theme.blueLighter : undefined},
     }) as const
 )
 

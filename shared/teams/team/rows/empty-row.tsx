@@ -87,6 +87,7 @@ Make it a big team by creating chat channels.`
 }
 
 const EmptyRow = (props: Props) => {
+  const styles = useStyles()
   const {conversationIDKey, teamID} = props
   const {teamMeta} = useLoadedTeam(teamID)
   const notIn = teamMeta.role === 'none' || props.notChannelMember
@@ -149,12 +150,12 @@ const EmptyRow = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         ...Kb.Styles.padding(40, 0),
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       iconHeight: {height: 96},
       text: Kb.Styles.platformStyles({

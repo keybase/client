@@ -22,6 +22,7 @@ const Header = () => (
 )
 
 const DeleteChannel = (props: Props) => {
+  const styles = useStyles()
   const teamID = props.teamID
   const routePropChannel = props.conversationIDKey
 
@@ -103,7 +104,7 @@ const DeleteChannel = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
 }))
 

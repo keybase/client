@@ -144,9 +144,10 @@ for (const size of allSizes) {
   }
 }
 
-const bgColor = Styles.globalColors.greyLight
-const errorUnderlay = {backgroundColor: bgColor, position: 'absolute'} as const
-const blankBg = {backgroundColor: bgColor} as const
+const useNativeBgStyles = Styles.createThemedHook(theme => ({
+  blankBg: {backgroundColor: theme.greyLight} as const,
+  errorUnderlay: {backgroundColor: theme.greyLight, position: 'absolute'} as const,
+}))
 
 // ── Desktop-only ─────────────────────────────────────────────────────────────
 
@@ -155,9 +156,12 @@ const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 
 const clickableStyle = {cursor: 'pointer'} as const
-const borderTeamStyle = {
-  boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`,
-} satisfies React.CSSProperties
+const useBorderTeamStyle = Styles.createThemedHook(
+  theme =>
+    ({
+      boxShadow: `0px 0px 0px 1px ${theme.black_10} inset`,
+    }) satisfies React.CSSProperties
+)
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -181,6 +185,8 @@ function Avatar(p: Props) {
   const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
   const httpSrv = useConfigState(s => s.httpSrv)
   const isDarkMode = useColorScheme() === 'dark'
+  const {blankBg, errorUnderlay} = useNativeBgStyles()
+  const borderTeamStyle = useBorderTeamStyle()
   const {address, token} = httpSrv
   const [errorUri, setErrorUri] = useState<string>()
 

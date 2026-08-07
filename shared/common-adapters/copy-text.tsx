@@ -35,6 +35,8 @@ type Props = {
 }
 
 const CopyText = (props: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const {
     withReveal,
     text,
@@ -166,7 +168,7 @@ const CopyText = (props: Props) => {
       style={Styles.collapseStyles([styles.container, disabled && styles.containerDisabled, containerStyle])}
     >
       <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
-        {isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
+        {isMobile && <Kb.Icon type="iconfont-clipboard" color={theme.whiteOrWhite} />}
         <Kb.Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Kb.Text>
@@ -189,7 +191,7 @@ const CopyText = (props: Props) => {
         <Kb.Button type={buttonType || 'Default'} style={styles.button} onClick={copy}>
           <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
-            color={Styles.globalColors.whiteOrWhite}
+            color={theme.whiteOrWhite}
           />
         </Kb.Button>
       )}
@@ -198,8 +200,8 @@ const CopyText = (props: Props) => {
 }
 
 // border radii aren't literally so big, just sets it to maximum
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
       button: Styles.platformStyles({
         common: {
@@ -226,7 +228,7 @@ const styles = Styles.styleSheetCreate(
       }),
       container: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: theme.blueGrey,
           borderRadius: Styles.borderRadius,
           flexGrow: 1,
         },
@@ -236,7 +238,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       containerDisabled: {
-        backgroundColor: Styles.globalColors.black_10,
+        backgroundColor: theme.black_10,
       },
       reveal: {
         marginLeft: Styles.globalMargins.tiny,
@@ -246,7 +248,7 @@ const styles = Styles.styleSheetCreate(
           ...Styles.globalStyles.fontTerminal,
           ...Styles.marginH(Styles.globalMargins.tiny),
           ...Styles.marginV(Styles.globalMargins.xtiny),
-          color: Styles.globalColors.blueDark,
+          color: theme.blueDark,
           flexShrink: 1,
           minWidth: 0,
           textAlign: 'left',
@@ -260,11 +262,11 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       textDisabled: {
-        color: Styles.globalColors.black_50,
+        color: theme.black_50,
       },
       toastText: Styles.platformStyles({
         common: {
-          color: Styles.globalColors.white,
+          color: theme.white,
           textAlign: 'center',
         },
         isMobile: {

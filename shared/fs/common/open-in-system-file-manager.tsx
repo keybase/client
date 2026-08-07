@@ -11,6 +11,7 @@ import {
 type Props = {path: T.FS.Path}
 
 function OpenInSystemFileManager({path}: Props) {
+  const theme = Kb.Styles.useTheme()
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const openPathInSystemFileManagerDesktop = useOpenPathInSystemFileManagerDesktop()
   const openInSystemFileManager = () => openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
@@ -20,8 +21,8 @@ function OpenInSystemFileManager({path}: Props) {
         type="iconfont-finder"
         padding="tiny"
         onClick={openInSystemFileManager}
-        color={Kb.Styles.globalColors.black_50}
-        hoverColor={Kb.Styles.globalColors.black}
+        color={theme.black_50}
+        hoverColor={theme.black}
       />
     </Kb.WithTooltip>
   )

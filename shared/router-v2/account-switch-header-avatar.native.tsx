@@ -14,6 +14,7 @@ const openAccountSwitcher = () => {
 }
 
 const AccountSwitchHeaderAvatar = () => {
+  const styles = useStyles()
   const username = useCurrentUserState(s => s.username)
   const {configuredAccounts, httpSrvReady, login, setUserSwitching, userSwitching} = useConfigState(
     C.useShallow(s => ({
@@ -90,7 +91,7 @@ const AccountSwitchHeaderAvatar = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: {
     alignItems: 'center',
     height: 44,

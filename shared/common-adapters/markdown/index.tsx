@@ -547,6 +547,7 @@ export const getMarkdownOutputKind = (
 }
 
 const ErrorComponent = (p: {children: React.ReactNode}) => {
+  const styles = useStyles()
   const {children} = p
   return (
     <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}>
@@ -589,6 +590,7 @@ const renderMarkdown = (
 const emptyStyleOverride: StyleOverride = {}
 
 function SimpleMarkdownComponent(p: Props) {
+  const styles = useStyles()
   // One destructure: split across statements the compiler keeps `p` itself as a memo dependency, so
   // every new props object re-parses the markdown even when nothing it reads actually changed.
   const {
@@ -677,7 +679,7 @@ function SimpleMarkdownComponent(p: Props) {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   rootWrapper: Styles.platformStyles({
     isElectron: {whiteSpace: 'pre'},
   }),

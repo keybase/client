@@ -17,6 +17,7 @@ type OwnProps = {
 }
 
 export default function InboxSearchRow(ownProps: OwnProps) {
+  const styles = useStyles()
   const {forceShowFilter, search, showNewChatButton, showSearch} = ownProps
   const {cancelSearch, isSearching, moveSelectedIndex, query, selectResult, setQuery, startSearch} = search
   const chatState = useInboxLayoutState(
@@ -65,7 +66,7 @@ export default function InboxSearchRow(ownProps: OwnProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       row: {

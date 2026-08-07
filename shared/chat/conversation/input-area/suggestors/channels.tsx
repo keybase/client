@@ -28,6 +28,8 @@ const keyExtractor = ({channelname, teamname}: ChannelType) =>
 const bareChannelRowHeight = Common.desktopRowHeight(18)
 
 const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
+  const styles = Common.useStyles()
+  const theme = Kb.Styles.useTheme()
   const {item, selected} = p
   const {channelname, teamname} = item
   return teamname ? (
@@ -37,9 +39,9 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
       direction="horizontal"
       fullWidth={true}
       style={Kb.Styles.collapseStyles([
-        Common.styles.suggestionBase,
-        Common.styles.fixSuggestionHeight,
-        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
+        styles.suggestionBase,
+        styles.fixSuggestionHeight,
+        {backgroundColor: selected ? theme.blueLighter2 : theme.white},
       ])}
     >
       <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>

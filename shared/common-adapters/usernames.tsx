@@ -81,6 +81,8 @@ type UsernameProps = {
   withProfileCardPopup: boolean
 }
 function Username(p: UsernameProps) {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const {colorFollowing, colorBroken, username, notFollowingColorOverride, colorYou} = p
   const {inline, style, lineClamp, selectable, type, backgroundMode, showAnd, underline} = p
   const {onUsernameClicked, joinerStyle, showComma, showSpace, virtualText, withProfileCardPopup} = p
@@ -104,14 +106,14 @@ function Username(p: UsernameProps) {
       ...(colorFollowing && !you
         ? ({
             color: following
-              ? Styles.globalColors.greenDark
-              : notFollowingColorOverride || Styles.globalColors.blueDark,
+              ? theme.greenDark
+              : notFollowingColorOverride || theme.blueDark,
           } as const)
         : null),
-      ...(colorBroken && broken && !you ? ({color: Styles.globalColors.redDark} as const) : null),
+      ...(colorBroken && broken && !you ? ({color: theme.redDark} as const) : null),
       ...(colorYou && you
         ? ({
-            color: typeof colorYou === 'string' ? colorYou : Styles.globalColors.black,
+            color: typeof colorYou === 'string' ? colorYou : theme.black,
           } as const)
         : null),
     },
@@ -191,6 +193,7 @@ type UsernamesTextProps = {
   you: string
 }
 const UsernamesText = (p: UsernamesTextProps) => {
+  const styles = useStyles()
   const {showAnd, inlineGrammar, users, joinerStyle, commaColor, ...rest} = p
   const derivedJoinerStyle = Styles.collapseStyles([
     joinerStyle,
@@ -224,6 +227,7 @@ const UsernamesText = (p: UsernamesTextProps) => {
 const inlineProps = isMobile ? {lineClamp: 1 as const} : {}
 
 function Usernames(p: Props) {
+  const styles = useStyles()
   const {backgroundMode, commaColor, inline, containerStyle, className} = p
   const {joinerStyle, lineClamp, notFollowingColorOverride, onUsernameClicked, prefix, selectable} = p
   const {showAnd, inlineGrammar, colorYou, skipSelf, style, suffix, suffixType, title} = p
@@ -312,7 +316,7 @@ export const assertionToDisplay = (assertion: string): string => {
   return assertion
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   inlineStyle: Styles.platformStyles({
     isElectron: {
       display: 'inline',

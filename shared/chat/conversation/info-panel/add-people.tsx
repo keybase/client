@@ -11,6 +11,7 @@ type Props = {
 }
 
 const AddPeople = (p: Props) => {
+  const styles = useStyles()
   const {conversationIDKey, isGeneralChannel, isAdmin, teamID} = p
   const onAddPeople = () => {
     if (teamID) {
@@ -69,7 +70,7 @@ const AddPeople = (p: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       addButtonContainer: {

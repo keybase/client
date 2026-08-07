@@ -18,6 +18,7 @@ const decodeForgotUsernameError = (error: RPCError) => {
 }
 
 const ForgotUsername = () => {
+  const styles = useStyles()
   const defaultCountry = useDefaultPhoneCountry()
   const recoverUsernameWithEmail = C.useRPC(T.RPCGen.accountRecoverUsernameWithEmailRpcPromise)
   const recoverUsernameWithPhone = C.useRPC(T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise)
@@ -119,7 +120,7 @@ const ForgotUsername = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   phoneInput: Kb.Styles.platformStyles({
     isElectron: {
       height: 38,

@@ -3,7 +3,6 @@ import {clampImageSize} from '@/constants/chat/helpers'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {sharedStyles} from '../shared-styles'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {useConversationAttachmentActions} from '../../attachment-actions'
 import {useConversationThreadMessageActions} from '../../thread-context'
@@ -72,6 +71,7 @@ export const TransferIcon = (p: {
   ordinal: T.Chat.Ordinal
   style: Kb.Styles.StylesCrossPlatform
 }) => {
+  const theme = Kb.Styles.useTheme()
   const {message, ordinal, style} = p
   const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
   let state: 'none' | 'doneWithPath' | 'done' | 'downloading' = 'none'
@@ -121,7 +121,7 @@ export const TransferIcon = (p: {
           <Kb.Icon
             className="hover-opacity-full"
             type="iconfont-share"
-            color={Kb.Styles.globalColors.blue}
+            color={theme.blue}
             fontSize={20}
             hint="Share"
             onClick={onDownload}
@@ -134,7 +134,7 @@ export const TransferIcon = (p: {
         <Kb.Icon
           className="hover-opacity-full"
           type="iconfont-finder"
-          color={Kb.Styles.globalColors.blue}
+          color={theme.blue}
           fontSize={20}
           hint="Open folder"
           onClick={onFinder}
@@ -148,7 +148,7 @@ export const TransferIcon = (p: {
         <Kb.Icon
           className="hover-opacity-full"
           type="iconfont-download"
-          color={Kb.Styles.globalColors.green}
+          color={theme.green}
           fontSize={20}
           hint="Downloading"
           style={style}
@@ -159,7 +159,7 @@ export const TransferIcon = (p: {
         <Kb.Icon
           className="hover-opacity-full"
           type={isMobileAudio ? 'iconfont-share' : 'iconfont-download'}
-          color={Kb.Styles.globalColors.blue}
+          color={theme.blue}
           fontSize={20}
           onClick={onDownload}
           style={isMobile ? mobileStyle : undefined}
@@ -170,6 +170,7 @@ export const TransferIcon = (p: {
 }
 
 export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAttachmentTransferState}) => {
+  const styles = useStyles()
   const {ratio, transferState} = p
   const isTransferring =
     transferState === 'uploading' || transferState === 'downloading' || transferState === 'mobileSaving'
@@ -193,8 +194,35 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
   )
 }
 
+// mirrors the 'sent'/'sentEditing' pieces of shared-styles.tsx's useSharedStyles; duplicated
+// here because this is a plain helper (not a component), so it can't call that hook, and it's
+// called from render code we don't own, so it can't take the theme as a parameter either
+const getSentStyles = Kb.Styles.createThemedValue(theme => {
+  const editing: Kb.Styles._StylesCrossPlatform = {
+    borderRadius: 2,
+    color: theme.blackOrBlack,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
+  }
+  const sent: Kb.Styles._StylesCrossPlatform = Kb.Styles.platformStyles({
+    isElectron: {
+      // Make text selectable. On mobile we implement that differently.
+      cursor: 'text',
+      userSelect: 'text',
+      whiteSpace: 'pre-wrap',
+      width: '100%',
+      wordBreak: 'break-word',
+    } as const,
+    isMobile: {
+      ...Kb.Styles.globalStyles.flexBoxColumn,
+    },
+  })
+  return {sent, sentEditing: {...sent, ...editing}}
+})
+
 export const getEditStyle = (isEditing: boolean) => {
-  return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
+  const {sent, sentEditing} = getSentStyles(Kb.Styles.getTheme())
+  return isEditing ? sentEditing : sent
 }
 
 export const getAttachmentDisplayFileName = (message: T.Chat.MessageAttachment) => {
@@ -223,10 +251,12 @@ export const getAttachmentPreviewSize = (
 }
 
 export const Title = ({message}: {message: T.Chat.MessageAttachment}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const title = message.decoratedText?.stringValue() ?? message.title
 
   const styleOverride = isMobile
-    ? {paragraph: {backgroundColor: Kb.Styles.globalColors.black_05_on_white}}
+    ? {paragraph: {backgroundColor: theme.black_05_on_white}}
     : undefined
 
   return (
@@ -244,6 +274,7 @@ export const Title = ({message}: {message: T.Chat.MessageAttachment}) => {
 }
 
 const CollapseIcon = ({isCollapsed, isWhite}: {isCollapsed: boolean; isWhite: boolean}) => {
+  const styles = useStyles()
   return (
     <Kb.Icon
       style={isWhite ? styles.collapseLabelWhite : undefined}
@@ -253,14 +284,14 @@ const CollapseIcon = ({isCollapsed, isWhite}: {isCollapsed: boolean; isWhite: bo
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
 
-  collapseLabelWhite: {color: Kb.Styles.globalColors.white_75},
+  collapseLabelWhite: {color: theme.white_75},
   titleContainer: {
     paddingTop: Kb.Styles.globalMargins.xxtiny,
   },
   transferring: {
-    backgroundColor: Kb.Styles.globalColors.black_50,
+    backgroundColor: theme.black_50,
     borderRadius: 2,
     left: Kb.Styles.globalMargins.tiny,
     position: 'absolute',

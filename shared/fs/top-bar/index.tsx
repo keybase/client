@@ -10,30 +10,33 @@ type Props = {
   mode?: 'offline' | 'default'
 }
 
-const TopBar = (props: Props) => (
-  <Kb.Box2
-    direction="horizontal"
-    style={styles.container}
-    fullWidth={true}
-    gap="small"
-    gapStart={true}
-    gapEnd={true}
-    alignItems="center"
-  >
-    {!isMobile && <Sort path={props.path} />}
-    <Loading path={props.path} />
-    <Kb.Box2 direction="horizontal" flex={1} />
-    {T.FS.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
-  </Kb.Box2>
-)
+const TopBar = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.container}
+      fullWidth={true}
+      gap="small"
+      gapStart={true}
+      gapEnd={true}
+      alignItems="center"
+    >
+      {!isMobile && <Sort path={props.path} />}
+      <Loading path={props.path} />
+      <Kb.Box2 direction="horizontal" flex={1} />
+      {T.FS.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
+    </Kb.Box2>
+  )
+}
 
 const height = isMobile ? 40 : 32
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        backgroundColor: theme.blueLighter3,
         height,
       },
     }) as const

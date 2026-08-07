@@ -9,6 +9,7 @@ import {enterResetPipeline} from './account-reset'
 type Props = {route: {params: {username: string}}}
 
 const KnowPassword = ({route}: Props) => {
+  const theme = Kb.Styles.useTheme()
   const {username} = route.params
   const [error, setError] = React.useState('')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
@@ -27,7 +28,7 @@ const KnowPassword = ({route}: Props) => {
         {label: 'No', onClick: onNo, type: 'Dim', waiting},
       ]}
     >
-      <QuestionBody icon={<Kb.Icon type="iconfont-password" color={Kb.Styles.globalColors.black} fontSize={24} />}>
+      <QuestionBody icon={<Kb.Icon type="iconfont-password" color={theme.black} fontSize={24} />}>
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="Header" center={true}>
             Do you know your

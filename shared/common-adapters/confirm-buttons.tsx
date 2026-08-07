@@ -35,6 +35,7 @@ type Props = {
  * width confirm button.
  */
 const ConfirmButtons = (props: Props) => {
+  const styles = useStyles()
   const splitStyle = props.split ? styles.split : undefined
   const cancel = isMobile ? null : props.waitingKey ? (
     <Kb.WaitingButton
@@ -95,7 +96,7 @@ const ConfirmButtons = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   split: {...Styles.globalStyles.flexOne},
 }))
 

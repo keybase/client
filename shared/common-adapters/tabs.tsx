@@ -37,15 +37,19 @@ type Props<TitleT extends string> = {
   showProgressIndicator?: boolean
 }
 
-const TabText = ({selected, text}: {selected: boolean; text: string}) => (
-  <Kb.Box2 direction="horizontal" justifyContent="center">
-    <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
-      {text}
-    </Kb.Text>
-  </Kb.Box2>
-)
+const TabText = ({selected, text}: {selected: boolean; text: string}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" justifyContent="center">
+      <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
+        {text}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const Tabs = <TitleT extends string>(props: Props<TitleT>) => {
+  const styles = useStyles()
   const {onSelect} = props
   return (
     <Kb.Box2
@@ -98,7 +102,7 @@ const dividerBase = {
   width: '100%',
 } as const
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   badge: Styles.platformStyles({
     isElectron: {
       marginLeft: Styles.globalMargins.xtiny,
@@ -109,29 +113,29 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   container: {
-    ...Styles.bottomDivider(),
+    ...Styles.bottomDivider(theme),
     maxHeight: isMobile ? 48 : 40,
   },
   divider: {
     ...dividerBase,
-    backgroundColor: Styles.globalColors.transparent,
+    backgroundColor: theme.transparent,
   },
   dividerSelected: {
     ...dividerBase,
-    backgroundColor: Styles.globalColors.blue,
+    backgroundColor: theme.blue,
   },
   icon: {
     alignSelf: 'center',
   },
   iconSelected: {
     alignSelf: 'center',
-    color: Styles.globalColors.black,
+    color: theme.black,
   },
   progressIndicator: {
     ...Styles.size(17),
   },
   selected: {
-    color: Styles.globalColors.black,
+    color: theme.black,
   },
   tab: {
     flex: 1,

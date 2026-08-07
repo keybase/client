@@ -9,6 +9,7 @@ type Props = {
 }
 
 export const ModalTitle = ({title, teamID, newTeamWizard}: Props) => {
+  const styles = useStyles()
   const {teamMeta} = useLoadedTeam(teamID)
   const teamname = teamMeta.teamname
   const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
@@ -43,7 +44,7 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   avatar: Kb.Styles.platformStyles({
     isElectron: {
       height: 16,

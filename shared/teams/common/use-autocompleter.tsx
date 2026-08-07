@@ -8,6 +8,7 @@ function useAutocompleter<U>(
   onSelect: (value: U) => void,
   filter: string
 ) {
+  const styles = useStyles()
   const [selected, setSelected] = React.useState(0)
   const filterLCase = filter.trim().toLowerCase()
   const prevFilterLCaseRef = React.useRef(filterLCase)
@@ -86,11 +87,11 @@ function useAutocompleter<U>(
   return {hidePopup, onKeyDown, popup, popupAnchor, showPopup}
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  option: {...Kb.Styles.padding(4, 10, 2), backgroundColor: Kb.Styles.globalColors.white},
-  optionOuter: {backgroundColor: Kb.Styles.globalColors.white}, // because blueLighter2 is transparent in dark mode
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  option: {...Kb.Styles.padding(4, 10, 2), backgroundColor: theme.white},
+  optionOuter: {backgroundColor: theme.white}, // because blueLighter2 is transparent in dark mode
   optionSelected: {
-    backgroundColor: Kb.Styles.globalColors.blueLighter2,
+    backgroundColor: theme.blueLighter2,
   },
 }))
 

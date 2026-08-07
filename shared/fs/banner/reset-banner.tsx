@@ -9,6 +9,8 @@ import {navToProfile} from '@/constants/router'
 type OwnProps = {path: T.FS.Path}
 
 const ConnectedBanner = (ownProps: OwnProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {path} = ownProps
   const tlf = useFsTlf(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
@@ -59,7 +61,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
             showAnd={true}
             inline={true}
             inlineGrammar={true}
-            commaColor={Kb.Styles.globalColors.white}
+            commaColor={theme.white}
             onUsernameClicked="profile"
             underline={true}
             usernames={resetParticipants}
@@ -158,11 +160,11 @@ const fixedHeight = (height: number) => ({
   minHeight: height,
 })
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       banner: {
-        backgroundColor: Kb.Styles.globalColors.red,
+        backgroundColor: theme.red,
       },
       button: Kb.Styles.platformStyles({
         isElectron: {width: Kb.Styles.globalMargins.xlarge * 4},
@@ -172,13 +174,13 @@ const styles = Kb.Styles.styleSheetCreate(
         ...fixedHeight(isMobile ? Kb.Styles.globalMargins.large * 3 : Kb.Styles.globalMargins.large * 2),
         maxWidth: isMobile ? 280 : 400,
       },
-      primaryOnRed: {backgroundColor: Kb.Styles.globalColors.white},
-      primaryOnRedLabel: {color: Kb.Styles.globalColors.redDark},
+      primaryOnRed: {backgroundColor: theme.white},
+      primaryOnRedLabel: {color: theme.redDark},
       secondaryOnRed: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        common: {backgroundColor: theme.black_20},
         isMobile: {borderWidth: 0},
       }),
-      secondaryOnRedLabel: {color: Kb.Styles.globalColors.white},
+      secondaryOnRedLabel: {color: theme.white},
       textDontLetThemIn: {
         ...fixedHeight(Kb.Styles.globalMargins.mediumLarge),
         marginBottom: Kb.Styles.globalMargins.tiny,

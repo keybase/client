@@ -12,6 +12,7 @@ type Props = {
 }
 
 const FsNavHeaderRightActionsInner = (props: Props) => {
+  const styles = useStyles()
   const {folderViewFilter, setFolderViewFilter} = useFolderViewFilterState(
     C.useShallow(s => ({
       folderViewFilter: s.folderViewFilter,
@@ -63,7 +64,7 @@ const FsNavHeaderRightActions = (props: Props) => (
 
 export default FsNavHeaderRightActions
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: Kb.Styles.platformStyles({

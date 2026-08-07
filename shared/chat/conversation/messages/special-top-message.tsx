@@ -17,6 +17,8 @@ import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const createConversationError = useChatThreadRouteParams()?.createConversationError
 
   const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
@@ -65,7 +67,7 @@ const ErrorMessage = () => {
       gapStart={true}
       centerChildren={true}
     >
-      <Kb.Icon color={Kb.Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
+      <Kb.Icon color={theme.black_20} sizeType="Huge" type="iconfont-warning" />
       <Kb.Text center={true} style={styles.errorText} type="Header">
         {createConversationErrorHeader}
       </Kb.Text>
@@ -110,6 +112,7 @@ const ErrorMessage = () => {
 }
 
 function SpecialTopMessage() {
+  const styles = useStyles()
   const username = useCurrentUserState(s => s.username)
   const conversationIDKey = useConversationThreadID()
   const {hasLoadedEver, moreToLoadBack} = useConversationThreadSelector(
@@ -186,7 +189,7 @@ function SpecialTopMessage() {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       buttonBar: {padding: Kb.Styles.globalMargins.small},

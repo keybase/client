@@ -22,6 +22,8 @@ import {FlatList} from 'react-native'
 const maxHeight = 224
 
 const SuggestionList = <I,>(props: Props<I>) => {
+  const desktopStyles = useDesktopStyles()
+  const nativeStyles = useNativeStyles()
   const listRef = React.useRef<LegendListRef>(null)
   const {items, keyExtractor, renderItem, rowHeight, selectedIndex, style, suggestBotCommandsUpdateStatus} =
     props
@@ -115,25 +117,25 @@ const SuggestionList = <I,>(props: Props<I>) => {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useDesktopStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       commandStatusContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, 0),
       },
       listContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         borderRadius: Kb.Styles.borderRadius,
       },
     }) as const
 )
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       commandStatusContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, 0),
       },
       listContainer: {flexGrow: 0, marginTop: 'auto'},

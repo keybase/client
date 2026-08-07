@@ -19,41 +19,44 @@ export type Props = {
   teams: ReadonlyArray<TeamRowItem>
 }
 
-const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
-    <Kb.ClickableBox
-      style={styles.bigButton}
-      onClick={props.onCreateTeam}
-      className="background_color_white hover_background_color_blueLighter2"
-      direction="vertical"
-      gap="tiny"
-      alignItems="center"
-    >
-      <Kb.Text type="BodyBig">Create a team</Kb.Text>
-      <Kb.Box2 direction="vertical" relative={true}>
-        <Kb.Avatar isTeam={true} size={96} showPlaceholder={true} />
-        <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
-      </Kb.Box2>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
-      style={styles.bigButton}
-      onClick={props.onJoinTeam}
-      className="background_color_white hover_background_color_blueLighter2"
-      direction="vertical"
-      gap="tiny"
-      alignItems="center"
-    >
-      <Kb.Text type="BodyBig">Join a team</Kb.Text>
-      <Kb.ImageIcon type="icon-illustration-teams-96" />
-    </Kb.ClickableBox>
-    {props.empty && !isMobile && (
-      <Kb.Text type="BodySmall" style={styles.emptyNote}>
-        Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
-        large communities.
-      </Kb.Text>
-    )}
-  </Kb.Box2>
-)
+const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
+      <Kb.ClickableBox
+        style={styles.bigButton}
+        onClick={props.onCreateTeam}
+        className="background_color_white hover_background_color_blueLighter2"
+        direction="vertical"
+        gap="tiny"
+        alignItems="center"
+      >
+        <Kb.Text type="BodyBig">Create a team</Kb.Text>
+        <Kb.Box2 direction="vertical" relative={true}>
+          <Kb.Avatar isTeam={true} size={96} showPlaceholder={true} />
+          <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
+        </Kb.Box2>
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
+        style={styles.bigButton}
+        onClick={props.onJoinTeam}
+        className="background_color_white hover_background_color_blueLighter2"
+        direction="vertical"
+        gap="tiny"
+        alignItems="center"
+      >
+        <Kb.Text type="BodyBig">Join a team</Kb.Text>
+        <Kb.ImageIcon type="icon-illustration-teams-96" />
+      </Kb.ClickableBox>
+      {props.empty && !isMobile && (
+        <Kb.Text type="BodySmall" style={styles.emptyNote}>
+          Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
+          large communities.
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+}
 
 const sortOrderToTitle = {
   activity: 'Activity',
@@ -61,6 +64,7 @@ const sortOrderToTitle = {
   role: 'Your role',
 }
 const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSort']; sortOrder: Props['sortOrder']}) => {
+  const styles = useStyles()
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
@@ -103,6 +107,7 @@ const teamRowHeight = isMobile ? 72 : 48
 const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
 
 const Teams = function Teams(p: Props) {
+  const styles = useStyles()
 const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} = p
 
   const listHeader = (
@@ -152,34 +157,34 @@ const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} =
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bigButton: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 8),
+          ...Kb.Styles.border(theme.black_10, 1, 8),
         },
         isElectron: {padding: Kb.Styles.globalMargins.small},
         isMobile: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.small, 0),
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           width: 140,
         },
       }),
-      container: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+      container: {backgroundColor: theme.blueGrey},
       emptyNote: Kb.Styles.padding(60, 42, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium),
       sortHeader: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+        common: {backgroundColor: theme.blueGrey},
         isElectron: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},
         isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.tiny)},
       }),
       teamButtons: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       teamPlus: {
         bottom: -2,
-        color: Kb.Styles.globalColors.blue,
+        color: theme.blue,
         position: 'absolute',
         right: -1,
       },

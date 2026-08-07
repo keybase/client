@@ -60,6 +60,7 @@ type Props = {
 }
 
 function SeparatorConnector(p: Props) {
+  const styles = useStyles()
   const {trailingItem} = p
   const data = useSeparatorData(trailingItem)
   const {ordinal, orangeLineAbove, orangeTime} = data
@@ -86,8 +87,8 @@ function SeparatorConnector(p: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -96,9 +97,9 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       orangeLabel: {
-        backgroundColor: Kb.Styles.globalColors.orange,
+        backgroundColor: theme.orange,
         borderBottomRightRadius: 4,
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
         left: 0,
         opacity: 0.7,
         paddingLeft: 2,
@@ -108,7 +109,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       orangeLine: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.orange,
+          backgroundColor: theme.orange,
           height: 1,
           left: 0,
           position: 'absolute',

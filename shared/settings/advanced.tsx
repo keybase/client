@@ -75,6 +75,7 @@ const useLockdownMode = () => {
 }
 
 const UseNativeFrame = () => {
+  const styles = useStyles()
   const {onChangeUseNativeFrame, useNativeFrame} = useShellState(
     C.useShallow(s => ({
       onChangeUseNativeFrame: s.dispatch.setUseNativeFrame,
@@ -109,6 +110,7 @@ const LockdownCheckbox = (p: {
   setLockdownMode: (enabled: boolean) => void
   settingLockdownMode: boolean
 }) => {
+  const theme = Kb.Styles.useTheme()
   const {hasRandomPW, loaded, lockdownModeEnabled, setLockdownMode, settingLockdownMode} = p
   const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/lockdown/index')
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
@@ -132,7 +134,7 @@ const LockdownCheckbox = (p: {
             <Kb.Icon
               type="iconfont-open-browser"
               sizeType="Tiny"
-              color={Kb.Styles.globalColors.blueDark}
+              color={theme.blueDark}
             />
           </Kb.Text>
         </Kb.Box2>
@@ -150,6 +152,7 @@ const stampDisableSpellCheckInitialValue = (value: boolean) => {
 }
 
 const Advanced = () => {
+  const styles = useStyles()
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
   const {loaded: randomPWLoaded, randomPW} = useRandomPWState()
   const hasRandomPW = !!randomPW
@@ -295,6 +298,7 @@ const traceDurationSeconds = 30
 const processorProfileDurationSeconds = 30
 
 const Developer = () => {
+  const styles = useStyles()
   const [clickCount, setClickCount] = React.useState(0)
 
   const onExtraKBFSLogging = () => {
@@ -412,8 +416,8 @@ const Developer = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       developerButtons: {
         marginTop: Kb.Styles.globalMargins.small,
@@ -426,7 +430,7 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       error: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
       },
       proxyDivider: {
         ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),

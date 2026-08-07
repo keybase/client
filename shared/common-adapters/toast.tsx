@@ -26,6 +26,8 @@ const Kb = {
 const positionFallbacks = [] as const
 
 const Toast = (props: Props) => {
+  const desktopStyles = useDesktopStyles()
+  const nativeStyles = useNativeStyles()
   const {visible} = props
 
   // Desktop state
@@ -164,11 +166,11 @@ const Toast = (props: Props) => {
 
 export default Toast
 
-const desktopStyles = Styles.styleSheetCreate(() => ({
+const useDesktopStyles = Styles.createStyleHook(theme => ({
   container: Styles.platformStyles({
     isElectron: {
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.black,
+      backgroundColor: theme.black,
       borderRadius: Styles.borderRadius,
       borderWidth: 0,
       justifyContent: 'center',
@@ -183,7 +185,7 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const nativeStyles = Styles.styleSheetCreate(() => ({
+const useNativeStyles = Styles.createStyleHook(() => ({
   container: {
     alignItems: 'center',
     borderRadius: 140,

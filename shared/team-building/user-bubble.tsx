@@ -12,6 +12,7 @@ export type Props = {
 const removeSize = isMobile ? 22 : 16
 
 const UserBubble = (props: Props) => {
+  const styles = useStyles()
   const isKeybase = props.service === 'keybase'
   let {username} = props
   let title = !isKeybase ? `${props.username}@${props.service}` : undefined
@@ -49,20 +50,24 @@ const UserBubble = (props: Props) => {
   )
 }
 
-const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
-  <Kb.ClickableBox onClick={onRemove} direction="vertical">
-    <Kb.Icon
-      type="iconfont-close"
-      color={Kb.Styles.globalColors.black_50_on_white}
-      fontSize={isMobile ? 14 : 12}
-      style={styles.removeIcon}
-      className="hover_color_black"
-    />
-  </Kb.ClickableBox>
-)
+const RemoveBubble = ({onRemove}: {onRemove: () => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.ClickableBox onClick={onRemove} direction="vertical">
+      <Kb.Icon
+        type="iconfont-close"
+        color={theme.black_50_on_white}
+        fontSize={isMobile ? 14 : 12}
+        style={styles.removeIcon}
+        className="hover_color_black"
+      />
+    </Kb.ClickableBox>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bubble: Kb.Styles.platformStyles({
         common: {
@@ -76,7 +81,7 @@ const styles = Kb.Styles.styleSheetCreate(
       // TODO: the service icons are too high without this - are they right?
       remove: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           borderRadius: 100,
           ...Kb.Styles.size(removeSize),
           position: 'absolute',
@@ -95,7 +100,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      userBubbleTitle: {color: Kb.Styles.globalColors.black},
+      userBubbleTitle: {color: theme.black},
     }) as const
 )
 

@@ -11,6 +11,7 @@ type Props = {
 }
 
 const BigTeamsDivider = (props: Props) => {
+  const styles = useStyles()
   const {inlineLayout, toggle, onEdit} = props
   const badgeCount = useConfigState(s => s.badgeState?.bigTeamBadgeCount ?? 0)
   const containerStyle = Kb.Styles.collapseStyles([
@@ -71,8 +72,8 @@ const BigTeamsDivider = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       badge: {
         marginLeft: Kb.Styles.globalMargins.xtiny,
@@ -82,13 +83,13 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.fillAbsolute,
-          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          backgroundColor: theme.blueLighter3,
           flexShrink: 0,
           height: RowSizes.floatingDivider,
           top: undefined,
         },
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           bottom: 0,
           flexShrink: 0,
           height: RowSizes.floatingDivider,
@@ -115,7 +116,7 @@ const styles = Kb.Styles.styleSheetCreate(
       dividerBox: Kb.Styles.platformStyles({
         common: {
           borderStyle: 'solid',
-          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopColor: theme.black_10,
           borderTopWidth: 1,
         },
         isElectron: {

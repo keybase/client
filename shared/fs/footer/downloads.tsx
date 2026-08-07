@@ -5,6 +5,7 @@ import Download from './download'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const Mobile = () => {
+  const styles = useStyles()
   const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
   return downloadIDs.length ? (
     <>
@@ -29,6 +30,8 @@ const Mobile = () => {
 }
 
 const Desktop = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
   const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   return downloadIDs.length ? (
@@ -53,7 +56,7 @@ const Desktop = () => {
               style={styles.iconBoxEllipsis}
               type="iconfont-ellipsis"
               hint="Open downloads folder"
-              color={Kb.Styles.globalColors.black_50}
+              color={theme.black_50}
               padding="tiny"
               onClick={openDownloadFolder}
             />
@@ -64,7 +67,7 @@ const Desktop = () => {
           <Kb.Icon
             type="iconfont-folder-downloads"
             hint="Open downloads folder"
-            color={Kb.Styles.globalColors.black_50}
+            color={theme.black_50}
             padding="tiny"
             onClick={openDownloadFolder}
           />
@@ -74,18 +77,18 @@ const Desktop = () => {
   ) : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       box: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          backgroundColor: theme.blueLighter3,
         },
         isElectron: {height: 40},
         isMobile: {height: 48},
       }),
       iconBoxEllipsis: {
-        backgroundColor: Kb.Styles.globalColors.black_10,
+        backgroundColor: theme.black_10,
         borderRadius: Kb.Styles.borderRadius,
         marginLeft: Kb.Styles.globalMargins.xtiny,
       },

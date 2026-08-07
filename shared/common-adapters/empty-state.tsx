@@ -26,6 +26,7 @@ export type EmptyStateProps = {
 }
 
 const EmptyState = (props: EmptyStateProps) => {
+  const theme = Styles.useTheme()
   const {action, centerChildren = true, children, gap = 'small', icon, illustration} = props
   const {style, text, textType = 'Body', title} = props
   return (
@@ -38,7 +39,7 @@ const EmptyState = (props: EmptyStateProps) => {
     >
       {illustration ? <IconAuto type={illustration} /> : null}
       {!illustration && icon ? (
-        <Icon color={Styles.globalColors.black_20} fontSize={48} type={icon} />
+        <Icon color={theme.black_20} fontSize={48} type={icon} />
       ) : null}
       {title ? (
         <Text center={true} type="Header">

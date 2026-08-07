@@ -23,8 +23,9 @@ jest.mock('./box', () => ({
   Box2: ({children}: {children?: React.ReactNode}) => require('react').createElement('div', null, children),
 }))
 jest.mock('@/styles', () => ({
+  createStyleHook: <T,>(styles: (theme: unknown) => T) => () => styles({}),
   globalStyles: {flexOne: {}},
-  styleSheetCreate: <T,>(styles: () => T) => styles(),
+  useTheme: () => ({}),
 }))
 
 import ConfirmButtons from './confirm-buttons'

@@ -12,6 +12,7 @@ type Props = {
 }
 
 const CreateSubteams = ({wizard: wizardState}: Props) => {
+  const styles = useStyles()
   const navigation = useNavigation('teamWizard6Subteams')
   const navigateAppend = C.Router2.navigateAppend
   const teamname = wizardState.name
@@ -68,7 +69,7 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

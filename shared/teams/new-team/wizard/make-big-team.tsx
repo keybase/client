@@ -9,6 +9,7 @@ type Props = {
 }
 
 const MakeBigTeam = ({wizard: initialWizard}: Props) => {
+  const styles = useStyles()
   const navigation = useNavigation('teamWizard4TeamSize')
   const navigateAppend = C.Router2.navigateAppend
   const onSubmit = (isBig: boolean) => {
@@ -49,7 +50,7 @@ const MakeBigTeam = ({wizard: initialWizard}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

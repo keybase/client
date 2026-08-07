@@ -15,13 +15,14 @@ type Props = {
 }
 
 const RetentionWarning = (props: Props) => {
+  const theme = Kb.Styles.useTheme()
   const showChannelWarnings = props.entityType === 'big team'
   const convType: string = getConvType(props.entityType)
   return (
     <ConfirmWarning
       icon={
         <Kb.Icon
-          color={props.exploding ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_20}
+          color={props.exploding ? theme.black : theme.black_20}
           fontSize={48}
           type={props.exploding ? 'iconfont-bomb-solid' : 'iconfont-timer-solid'}
         />

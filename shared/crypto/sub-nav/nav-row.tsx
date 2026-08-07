@@ -14,6 +14,8 @@ type Props = {
 }
 
 const NavRow = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {isSelected, title, icon, illustration, description, onClick} = props
 
   const desktopRow = icon ? (
@@ -33,7 +35,7 @@ const NavRow = (props: Props) => {
           <Kb.IconAuto
             type={icon}
             sizeType="Small"
-            color={isSelected ? Kb.Styles.globalColors.whiteOrWhite : undefined}
+            color={isSelected ? theme.whiteOrWhite : undefined}
             padding="xtiny"
           />
         }
@@ -50,7 +52,7 @@ const NavRow = (props: Props) => {
             <Kb.Text
               type="BodySemibold"
               style={{
-                color: isSelected ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blackOrWhite,
+                color: isSelected ? theme.whiteOrWhite : theme.blackOrWhite,
               }}
             >
               {title}
@@ -90,7 +92,7 @@ const NavRow = (props: Props) => {
   return isMobile ? mobileRow : desktopRow
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   desktopItemBody: {
     marginLeft: Kb.Styles.globalMargins.tiny,
   },

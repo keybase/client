@@ -3,14 +3,17 @@ import * as Kb from '@/common-adapters'
 
 type Props = {message: T.Chat.MessageSetChannelname}
 
-const ChannelNameMessage = (props: Props) => (
-  <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
-    set the channel name to #{props.message.newChannelname}
-  </Kb.Text>
-)
+const ChannelNameMessage = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
+      set the channel name to #{props.message.newChannelname}
+    </Kb.Text>
+  )
+}
 export default ChannelNameMessage
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       text: {flexGrow: 1},

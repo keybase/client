@@ -72,6 +72,7 @@ const getChannelsForList = (
 }
 
 const AddToChannelsBody = function AddToChannelsBody(props: Props) {
+  const styles = useStyles()
   const teamID = props.teamID
   const myUsername = useCurrentUserState(s => s.username)
   const usernames = React.useMemo(() => props.usernames ?? [myUsername], [props.usernames, myUsername])
@@ -271,6 +272,8 @@ const HeaderRow = function HeaderRow(p: {
   onSelectAll?: () => void
   onSelectNone?: () => void
 }) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {canCreateChannel, mode, teamID, onSelectAll, onSelectNone} = p
   const nav = useSafeNavigation()
   const onCreate = () => nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
@@ -291,7 +294,7 @@ const HeaderRow = function HeaderRow(p: {
         mode="Secondary"
         onClick={onCreate}
       >
-        <Kb.Icon type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.blueDark} />
+        <Kb.Icon type="iconfont-new" sizeType="Small" color={theme.blueDark} />
       </Kb.Button>
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
         <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
@@ -304,9 +307,9 @@ const HeaderRow = function HeaderRow(p: {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   headerItem: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+    common: {backgroundColor: theme.blueGrey},
     isElectron: {height: 40},
     isMobile: {height: 48},
   }),

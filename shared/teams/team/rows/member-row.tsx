@@ -9,7 +9,7 @@ import {
   getMassActionsProps,
   getResetLabel,
   MemberActions,
-  selectionStyles,
+  useSelectionStyles,
   useOnBlockUser,
 } from './common'
 import {useTeamSelectionState} from '../../common/selection-state'
@@ -43,6 +43,8 @@ export type Props = {
 // you're changing one remember to change the other.
 
 const TeamMemberRow = (props: Props) => {
+  const selectionStyles = useSelectionStyles()
+  const theme = Kb.Styles.useTheme()
   const {roleType, fullName, username, youCanEditRole, youCanManageMembers} = props
   const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'
@@ -85,7 +87,7 @@ const TeamMemberRow = (props: Props) => {
           {crown}
           {!active && (
             <Kb.Meta
-              backgroundColor={Kb.Styles.globalColors.red}
+              backgroundColor={theme.red}
               title={props.status === 'reset' ? 'locked out' : 'deleted'}
             />
           )}
@@ -125,7 +127,7 @@ const TeamMemberRow = (props: Props) => {
   )
 
   const massActionsProps = props.youCanManageMembers
-    ? getMassActionsProps(props.username, selected, onSelect)
+    ? getMassActionsProps(props.username, selected, onSelect, selectionStyles)
     : {}
 
   return (

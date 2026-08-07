@@ -44,12 +44,13 @@ const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
 C.Router2.setModalRouteNames(Object.keys(modalRoutes))
 
 function SimpleLoading() {
+  const theme = Kb.Styles.useTheme()
   return (
     <Kb.Box2
       direction="vertical"
       fullHeight={true}
       fullWidth={true}
-      style={{backgroundColor: Kb.Styles.globalColors.white}}
+      style={{backgroundColor: theme.white}}
     >
       <Splash allowFeedback={false} failed="" status="" />
     </Kb.Box2>
@@ -125,9 +126,13 @@ if (!isMobile) {
     ...Common.defaultNavigationOptions,
     header: undefined,
     headerShown: false,
-    tabBarActiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
+    get tabBarActiveBackgroundColor() {
+      return Kb.Styles.getTheme().blueDarkOrGreyDarkest
+    },
     tabBarHideOnKeyboard: true,
-    tabBarInactiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
+    get tabBarInactiveBackgroundColor() {
+      return Kb.Styles.getTheme().blueDarkOrGreyDarkest
+    },
     tabBarShowLabel: Kb.Styles.isTablet,
     tabBarStyle: Common.tabBarStyle,
   }
@@ -462,7 +467,7 @@ const appTabsScreenOptions = (
   routeName: Tabs.Tab,
   navBadges: ReadonlyMap<Tabs.Tab, number>,
   hasPermissions: boolean,
-  isDarkMode: boolean
+  isDarkMode: boolean, theme: Kb.Styles.Theme
 ) => {
   return {
     headerShown: false,
@@ -472,7 +477,7 @@ const appTabsScreenOptions = (
     overrideScrollViewContentInsetAdjustmentBehavior: true,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {
-      backgroundColor: Kb.Styles.globalColors.orange,
+      backgroundColor: theme.orange,
     },
     ...(isIOS
       ? {
@@ -483,7 +488,7 @@ const appTabsScreenOptions = (
                 tabBarBlurEffect: Common.tabBarBlurEffect,
               }
             : {
-                tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
+                tabBarActiveTintColor: theme.whiteOrWhite,
                 tabBarInactiveTintColor: isDarkMode ? colors.black : colors.blueDarker,
               }),
         }
@@ -492,7 +497,7 @@ const appTabsScreenOptions = (
           tabBarActiveIndicatorEnabled: true,
           // The bar is dark in both themes (greyDarkest/blueDark below), so the tints
           // must not flip with the theme or the labels invert onto a dark background.
-          tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
+          tabBarActiveTintColor: theme.whiteOrWhite,
           tabBarInactiveTintColor: colors.blueLighter,
         }),
     tabBarIcon: getNativeTabIcon(routeName),
@@ -512,6 +517,7 @@ if (isMobile) {
   const NativeTab = createBottomTabNavigator()
 
   function AppTabsNative() {
+    const theme = Kb.Styles.useTheme()
     const navBadges = useNotifState(s => s.navBadges)
     const hasPermissions = usePushState(s => s.hasPermissions)
     const isDarkMode = useDarkModeState(s => s.isDarkMode())
@@ -523,7 +529,7 @@ if (isMobile) {
             key={tab}
             name={tab}
             component={nativeTabComponents[tab]!}
-            options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
+            options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode, theme)}
           />
         ))}
       </NativeTab.Navigator>
@@ -634,6 +640,7 @@ if (isMobile) {
 const nativeLinkingConfig = isMobile ? createLinkingConfig(handleAppLink) : undefined
 
 function NativeRouter() {
+  const theme = Kb.Styles.useTheme()
   const loggedInLoaded = useHandshakeEverDone()
 
   const {loggedIn, setUserSwitching, startupLoaded, userSwitching} = useConfigState(
@@ -665,13 +672,7 @@ function NativeRouter() {
   )
 
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
-  // Android resolves palette colors at read time, so a theme flip only reaches a
-  // component that happens to re-render; remount the navigators instead. The suffix
-  // must not be gated on navKey (empty unless a user switch already happened).
-  // Keyed inside NavigationContainer, not around it: the container owns the nav
-  // state, so remounting only its child repaints without losing where you were.
   const navKey = Common.useUserSwitchNavKey()
-  const nativeDarkSuffix = isAndroid ? (isDarkMode ? '-dark' : '-light') : ''
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
   const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {
     setNavRef(ref)
@@ -708,7 +709,7 @@ function NativeRouter() {
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={navKey}>
       {bar}
       <NavigationContainer
-        fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
+        fallback={<View style={{backgroundColor: theme.white, flex: 1}} />}
         linking={loggedIn ? nativeLinkingConfig : undefined}
         // Sync the initial state from the linking config into the router store.
         // onStateChange doesn't fire for the initial state, so this ensures
@@ -720,7 +721,7 @@ function NativeRouter() {
         theme={isDarkMode ? darkTheme : lightTheme}
       >
         <LoadedTeamsListProvider>
-          <NativeRootComponent key={nativeDarkSuffix} />
+          <NativeRootComponent />
         </LoadedTeamsListProvider>
       </NavigationContainer>
     </Kb.Box2>

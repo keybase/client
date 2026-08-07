@@ -18,6 +18,7 @@ type Props = {
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
 export const CreateChannelsModal = (props: Props) => {
+  const styles = useStyles()
   const {onSubmitChannels, waiting} = props
   const initialChannels = props.initialChannels ?? ['hellos', 'random', '']
 
@@ -110,6 +111,7 @@ type ChannelInputProps =
     }
 
 const ChannelInput = (props: ChannelInputProps) => {
+  const styles = useStyles()
   if (props.isGeneral) {
     return <Kb.Input3 textType="BodySemibold" value="#general" disabled={true} containerStyle={styles.inputGeneral} />
   }
@@ -128,7 +130,7 @@ const ChannelInput = (props: ChannelInputProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       body: {

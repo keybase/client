@@ -40,6 +40,8 @@ type HeaderTitleProps = {
 }
 
 const HeaderTitle = (props: HeaderTitleProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {teamID, conversationIDKey} = props
   const {teamMeta, yourOperations} = useLoadedTeam(teamID)
   const {channels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
@@ -151,7 +153,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"
-              iconColor={Kb.Styles.globalColors.blue}
+              iconColor={theme.blue}
               ref={popupAnchor}
               onClick={showPopup}
             />
@@ -164,7 +166,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const tip = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny" style={styles.tipBox}>
-      <Kb.Icon color={Kb.Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
+      <Kb.Icon color={theme.black_20} type="iconfont-info" sizeType="Small" />
       <Kb.Text type="BodySmall">Tip: Use @mentions to invite team members to channels from the chat.</Kb.Text>
     </Kb.Box2>
   )
@@ -208,8 +210,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 }
 export default HeaderTitle
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       addMembersButton: {
         flexGrow: 0,
@@ -218,7 +220,7 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'flex-start',
       },
       backButton: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
       },
       flexShrink: {
         flexShrink: 1,
@@ -229,7 +231,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       outerBoxMobile: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
       },
       rightActionsContainer: Kb.Styles.platformStyles({
         common: {

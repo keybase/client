@@ -27,7 +27,7 @@ type Item =
 
 type Section = Kb.SectionType<Item>
 
-const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
+const colorTypeToStyle = (type: 'red' | 'green' | 'blue', styles: ReturnType<typeof useStyles>) => {
   switch (type) {
     case 'red':
       return styles.typedBackgroundRed
@@ -52,55 +52,60 @@ const SbsTitle = (p: SbsTitleProps) => (
     <Kb.Text type="HeaderBig">{p.sbsUsername}</Kb.Text>
   </Kb.Box2>
 )
-const BioLayout = (p: BioTeamProofsProps) => (
-  <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.bio}>
-    <Kb.NameWithIcon
-      onClick={p.title === p.username ? 'profile' : noopOnClick}
-      title={
-        p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : undefined
-      }
-      username={p.username}
-      underline={false}
-      selectable={true}
-      colorFollowing={true}
-      notFollowingColorOverride={p.notAUser ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.orange}
-      editableIcon={!!p.onEditAvatar}
-      onEditIcon={p.onEditAvatar || undefined}
-      avatarSize={avatarSize}
-      size="huge"
-      avatarImageOverride={p.sbsAvatarUrl}
-      withProfileCardPopup={false}
-    />
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-      <Bio
-        bio={p.bio}
-        blocked={p.blocked}
-        followThem={p.followThem}
-        followersCount={p.followersCount}
-        followingCount={p.followingCount}
-        followsYou={p.followsYou}
-        fullname={p.fullName}
-        hidFromFollowers={p.hidFromFollowers}
-        inTracker={false}
-        location={p.location}
-        sbsDescription={p.sbsDescription}
+const BioLayout = (p: BioTeamProofsProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.bio}>
+      <Kb.NameWithIcon
+        onClick={p.title === p.username ? 'profile' : noopOnClick}
+        title={
+          p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : undefined
+        }
         username={p.username}
+        underline={false}
+        selectable={true}
+        colorFollowing={true}
+        notFollowingColorOverride={p.notAUser ? theme.black_50 : theme.orange}
+        editableIcon={!!p.onEditAvatar}
+        onEditIcon={p.onEditAvatar || undefined}
+        avatarSize={avatarSize}
+        size="huge"
+        avatarImageOverride={p.sbsAvatarUrl}
+        withProfileCardPopup={false}
       />
-      <Actions
-        blocked={p.blocked}
-        followThem={p.followThem}
-        followsYou={p.followsYou}
-        guiID={p.guiID}
-        hidFromFollowers={p.hidFromFollowers}
-        onReload={p.onReload}
-        state={p.state}
-        username={p.username}
-      />
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Bio
+          bio={p.bio}
+          blocked={p.blocked}
+          followThem={p.followThem}
+          followersCount={p.followersCount}
+          followingCount={p.followingCount}
+          followsYou={p.followsYou}
+          fullname={p.fullName}
+          hidFromFollowers={p.hidFromFollowers}
+          inTracker={false}
+          location={p.location}
+          sbsDescription={p.sbsDescription}
+          username={p.username}
+        />
+        <Actions
+          blocked={p.blocked}
+          followThem={p.followThem}
+          followsYou={p.followsYou}
+          guiID={p.guiID}
+          hidFromFollowers={p.hidFromFollowers}
+          onReload={p.onReload}
+          state={p.state}
+          username={p.username}
+        />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const ProveIt = (p: BioTeamProofsProps) => {
+  const styles = useStyles()
   let doWhat: string
   switch (p.service) {
     case 'phone':
@@ -185,6 +190,7 @@ type TabsProps = {
 }
 
 const Tabs = (p: TabsProps) => {
+  const styles = useStyles()
   const {onSelectTab} = p
   const onClickFollowing = () => onSelectTab('following')
   const onClickFollowers = () => onSelectTab('followers')
@@ -230,6 +236,7 @@ type FriendRowProps = {
 }
 
 function FriendRow(p: FriendRowProps) {
+  const styles = useStyles()
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
       {p.usernames.map(u => (
@@ -270,89 +277,98 @@ export type BioTeamProofsProps = {
   fullName?: string
   title: string
 }
-const BackgroundColorBox = (p: {backgroundColorType: BackgroundColorType}) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Kb.Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(p.backgroundColorType)])}
-  />
-)
-
-const TeamsAndProofs = (props: BioTeamProofsProps) => (
-  <>
-    <TeamSections
-      notAUser={props.notAUser}
-      sharedTeams={props.sharedTeams}
-      teamShowcase={props.teamShowcase}
-      username={props.username}
-    />
-    <Proofs {...props} />
-    {!!props.onAddIdentity && (
-      <Kb.ButtonBar style={styles.addIdentityContainer}>
-        <Kb.Button
-          fullWidth={true}
-          onClick={props.onAddIdentity}
-          style={styles.addIdentityButton}
-          mode="Secondary"
-          label="Add more identities"
-        />
-      </Kb.ButtonBar>
-    )}
-  </>
-)
-
-const BioTeamProofs = (props: BioTeamProofsProps) =>
-  isMobile ? (
+const BackgroundColorBox = (p: {backgroundColorType: BackgroundColorType}) => {
+  const styles = useStyles()
+  return (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      justifyContent="space-around"
-      relative={true}
-      style={styles.bioAndProofs}
-    >
-      {!!props.reason && (
-        <Kb.Text
-          type="BodySmallSemibold"
-          negative={true}
-          center={true}
-          style={Kb.Styles.collapseStyles([styles.reason, colorTypeToStyle(props.backgroundColorType)])}
-        >
-          {props.reason}
-        </Kb.Text>
-      )}
-      <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
-        <BackgroundColorBox backgroundColorType={props.backgroundColorType} />
-      </Kb.Box2>
-      <BioLayout {...props} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
-        <TeamsAndProofs {...props} />
-      </Kb.Box2>
-    </Kb.Box2>
-  ) : (
+      style={Kb.Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(p.backgroundColorType, styles)])}
+    />
+  )
+}
+
+const TeamsAndProofs = (props: BioTeamProofsProps) => {
+  const styles = useStyles()
+  return (
     <>
-      <BackgroundColorBox backgroundColorType={props.backgroundColorType} />
+      <TeamSections
+        notAUser={props.notAUser}
+        sharedTeams={props.sharedTeams}
+        teamShowcase={props.teamShowcase}
+        username={props.username}
+      />
+      <Proofs {...props} />
+      {!!props.onAddIdentity && (
+        <Kb.ButtonBar style={styles.addIdentityContainer}>
+          <Kb.Button
+            fullWidth={true}
+            onClick={props.onAddIdentity}
+            style={styles.addIdentityButton}
+            mode="Secondary"
+            label="Add more identities"
+          />
+        </Kb.ButtonBar>
+      )}
+    </>
+  )
+}
+
+const BioTeamProofs = (props: BioTeamProofsProps) => {
+  const styles = useStyles()
+  return isMobile ? (
       <Kb.Box2
-        key="bioTeam"
-        direction="horizontal"
+        direction="vertical"
         fullWidth={true}
         justifyContent="space-around"
         relative={true}
         style={styles.bioAndProofs}
       >
-        <BioLayout {...props} />
-        <Kb.Box2 direction="vertical" noShrink={true} style={styles.proofs}>
-          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
+        {!!props.reason && (
+          <Kb.Text
+            type="BodySmallSemibold"
+            negative={true}
+            center={true}
+            style={Kb.Styles.collapseStyles([styles.reason, colorTypeToStyle(props.backgroundColorType, styles)])}
+          >
             {props.reason}
           </Kb.Text>
+        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
+          <BackgroundColorBox backgroundColorType={props.backgroundColorType} />
+        </Kb.Box2>
+        <BioLayout {...props} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <TeamsAndProofs {...props} />
         </Kb.Box2>
       </Kb.Box2>
-    </>
-  )
+    ) : (
+      <>
+        <BackgroundColorBox backgroundColorType={props.backgroundColorType} />
+        <Kb.Box2
+          key="bioTeam"
+          direction="horizontal"
+          fullWidth={true}
+          justifyContent="space-around"
+          relative={true}
+          style={styles.bioAndProofs}
+        >
+          <BioLayout {...props} />
+          <Kb.Box2 direction="vertical" noShrink={true} style={styles.proofs}>
+            <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
+              {props.reason}
+            </Kb.Text>
+            <TeamsAndProofs {...props} />
+          </Kb.Box2>
+        </Kb.Box2>
+      </>
+    )
+}
 
 type Tab = 'followers' | 'following'
 
 const User = (props: {username: string}) => {
+  const styles = useStyles()
   const p = useUserData(props.username)
   const insetTop = Kb.useSafeAreaInsets().top
   const {username} = p
@@ -533,6 +549,7 @@ const User = (props: {username: string}) => {
       p.title,
       p.username,
       chunks,
+      styles,
     ]
   )
 
@@ -547,7 +564,7 @@ const User = (props: {username: string}) => {
         direction="vertical"
         fullWidth={true}
         fullHeight={true}
-        style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
+        style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType, styles)])}
         testID={TestIDs.PROFILE_PAGE}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={wrapperRef}>
@@ -574,7 +591,7 @@ registerExternalResetter('profile-user-selected-tab', () => {
 
 const avatarSize = 128
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   addIdentityButton: {
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.xsmall),
   },
@@ -603,7 +620,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   followTab: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.centered(),
-      borderBottomColor: Kb.Styles.globalColors.white,
+      borderBottomColor: theme.white,
       borderBottomWidth: 2,
     },
     isElectron: {
@@ -620,8 +637,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   followTabContainer: Kb.Styles.platformStyles({
     common: {
       alignItems: 'flex-end',
-      backgroundColor: Kb.Styles.globalColors.white,
-      borderBottomColor: Kb.Styles.globalColors.black_10,
+      backgroundColor: theme.white,
+      borderBottomColor: theme.black_10,
       borderBottomWidth: 1,
     },
     isElectron: {
@@ -633,10 +650,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   followTabSelected: {
-    borderBottomColor: Kb.Styles.globalColors.blue,
+    borderBottomColor: theme.blue,
   },
-  followTabText: {color: Kb.Styles.globalColors.black_50},
-  followTabTextSelected: {color: Kb.Styles.globalColors.black},
+  followTabText: {color: theme.black_50},
+  followTabTextSelected: {color: theme.black},
   friendRow: Kb.Styles.platformStyles({
     common: {
       maxWidth: '100%',
@@ -668,21 +685,21 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   sectionList: Kb.Styles.platformStyles({
     common: {width: '100%'},
     isElectron: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       position: 'relative',
       willChange: 'transform',
     },
   }),
   sectionListContentStyle: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.white, paddingBottom: Kb.Styles.globalMargins.xtiny},
+    common: {backgroundColor: theme.white, paddingBottom: Kb.Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
   textEmpty: {
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
   },
-  typedBackgroundBlue: {backgroundColor: Kb.Styles.globalColors.blue},
-  typedBackgroundGreen: {backgroundColor: Kb.Styles.globalColors.green},
-  typedBackgroundRed: {backgroundColor: Kb.Styles.globalColors.red},
+  typedBackgroundBlue: {backgroundColor: theme.blue},
+  typedBackgroundGreen: {backgroundColor: theme.green},
+  typedBackgroundRed: {backgroundColor: theme.red},
 }))
 
 export default User

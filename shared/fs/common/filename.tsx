@@ -20,6 +20,7 @@ const splitFileNameAndExtension = (fileName: string) => {
 }
 
 const Filename = (props: Props) => {
+  const styles = useStyles()
   // also does this to subteams...
   const [fileNameWithoutExtension, fileExtension] = splitFileNameAndExtension(
     props.path ? T.FS.getPathName(props.path) : props.filename || ''
@@ -51,7 +52,7 @@ const Filename = (props: Props) => {
 
 export default Filename
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       breakAll: Kb.Styles.platformStyles({

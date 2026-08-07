@@ -13,6 +13,7 @@ type OwnProps = {
 }
 
 const SelectChannel = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {teamID, repoID, teamname} = ownProps
   const _selected = ownProps.selected
   const {channelMetas} = useAllChannelMetas(teamID)
@@ -78,7 +79,7 @@ const SelectChannel = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   container: {
     width: isMobile ? '100%' : 300,
   },

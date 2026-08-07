@@ -12,7 +12,7 @@ type Props = {
 
 const yesNo = (v?: boolean) => (v ? 'YES' : 'NO')
 
-const severityStyle = (s: T.RPCGen.StatsSeverityLevel) => {
+const severityStyle = (s: T.RPCGen.StatsSeverityLevel, styles: ReturnType<typeof useStyles>) => {
   switch (s) {
     case T.RPCGen.StatsSeverityLevel.warning:
       return styles.statWarning
@@ -79,6 +79,7 @@ const dbTypeString = (s: T.RPCGen.DbType) => {
 // and choose a max to show. We use refs a lot since we only want to figure stuff out based on an interval
 // TODO mobile
 const LogStats = (props: {num?: number}) => {
+  const styles = useStyles()
   const {num} = props
   const maxBuckets = num ?? 5
 
@@ -207,6 +208,7 @@ const LogStats = (props: {num?: number}) => {
 }
 
 const RuntimeStatsDesktop = ({stats}: Props) => {
+  const styles = useStyles()
   // const [showRadar, setShowRadar] = React.useState(false)
   // const refContainer = React.useCallback(
   //   node => {
@@ -234,11 +236,11 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
                       {processTypeString(stat.type)}
                     </Kb.Text>
                     <Kb.Text
-                      style={Kb.Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity)])}
+                      style={Kb.Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity, styles)])}
                       type="BodyTiny"
                     >{`CPU: ${stat.cpu}`}</Kb.Text>
                     <Kb.Text
-                      style={Kb.Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity)])}
+                      style={Kb.Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity, styles)])}
                       type="BodyTiny"
                     >{`Res: ${stat.resident}`}</Kb.Text>
                     <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text>
@@ -318,6 +320,7 @@ const kbfsDbs = [
 ]
 
 const RuntimeStatsMobile = ({stats}: Props) => {
+  const styles = useStyles()
   const [showLogs, setShowLogs] = React.useState(true)
   const processStat = stats.processStats?.[0]
   const coreCompaction = compactionActive(stats.dbStats, chatDbs)
@@ -338,11 +341,11 @@ const RuntimeStatsMobile = ({stats}: Props) => {
           <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
               <Kb.Text
-                style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity)])}
+                style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity, styles)])}
                 type="BodyTiny"
               >{`C:${processStat.cpu}`}</Kb.Text>
               <Kb.Text
-                style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.residentSeverity)])}
+                style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.residentSeverity, styles)])}
                 type="BodyTiny"
               >{`R:${processStat.resident}`}</Kb.Text>
               <Kb.Text style={styles.stat} type="BodyTiny">{`V:${processStat.virt}`}</Kb.Text>
@@ -403,8 +406,8 @@ const RuntimeStats = () => {
   ) : null
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       boxGrow: Kb.Styles.platformStyles({
         isElectron: {
@@ -412,7 +415,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       container: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
+        common: {backgroundColor: theme.blackOrBlack},
         isElectron: {
           overflow: 'auto',
           padding: Kb.Styles.globalMargins.tiny,
@@ -425,7 +428,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       logStat: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.whiteOrWhite},
+        common: {color: theme.whiteOrWhite},
         isElectron: {wordBreak: 'break-all'},
         isMobile: {
           fontFamily: 'Courier',
@@ -448,7 +451,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       // radarContainer: Kb.Styles.platformStyles({
       //   isElectron: {
-      //     backgroundColor: Kb.Styles.globalColors.white_20,
       //     borderRadius: '50%',
       //     height: radarSize,
       //     position: 'absolute',
@@ -458,7 +460,7 @@ const styles = Kb.Styles.styleSheetCreate(
       //   },
       // }),
       stat: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.whiteOrGreenDark},
+        common: {color: theme.whiteOrGreenDark},
         isElectron: {wordBreak: 'break-all'},
         isMobile: {
           fontFamily: 'Courier',
@@ -467,13 +469,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       statNormal: {
-        color: Kb.Styles.globalColors.whiteOrGreenDark,
+        color: theme.whiteOrGreenDark,
       },
       statSevere: {
-        color: Kb.Styles.globalColors.red,
+        color: theme.red,
       },
       statWarning: {
-        color: Kb.Styles.globalColors.yellowOrYellowAlt,
+        color: theme.yellowOrYellowAlt,
       },
     }) as const
 )

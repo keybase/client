@@ -32,6 +32,7 @@ type Props = {
 // Desktop login
 
 const DesktopLogin = (props: Props) => {
+  const desktopStyles = useDesktopStyles()
   const {
     error,
     needPassword,
@@ -113,8 +114,8 @@ const DesktopLogin = (props: Props) => {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useDesktopStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         // UserCard's own desktop container already provides flexBoxColumn + alignItems center
@@ -138,7 +139,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         maxHeight: 32,
       },
       userContainer: {
-        backgroundColor: Kb.Styles.globalColors.transparent,
+        backgroundColor: theme.transparent,
         flex: 1,
       },
     }) as const
@@ -147,6 +148,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 // Native login
 
 const NativeLoginRender = (props: Props) => {
+  const nativeStyles = useNativeStyles()
   const {
     passwordChange,
     onSubmit,
@@ -241,8 +243,8 @@ const NativeLoginRender = (props: Props) => {
   )
 }
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       card: {
         flexShrink: 1,
@@ -254,7 +256,7 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         isTablet: {paddingBottom: 0},
       }),
       container: {
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       createAccountRow: Kb.Styles.padding(
         Kb.Styles.globalMargins.tiny,
@@ -262,11 +264,11 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         0
       ),
       deviceNotSecureContainer: {
-        backgroundColor: Kb.Styles.globalColors.yellow,
+        backgroundColor: theme.yellow,
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
       deviceNotSecureText: {
-        color: Kb.Styles.globalColors.brown_75,
+        color: theme.brown_75,
       },
       forgotPassword: {
         marginBottom: Kb.Styles.globalMargins.tiny,

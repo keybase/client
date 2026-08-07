@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {Activity, useActivityLevels, useChannelParticipants} from '@/teams/common'
 import {useTeamSelectionState} from '@/teams/common/selection-state'
-import {selectionStyles} from '../common'
+import {useSelectionStyles} from '../common'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -14,6 +14,9 @@ type ChannelRowProps = {
   teamID: T.Teams.TeamID
 }
 const ChannelRow = (props: ChannelRowProps) => {
+  const styles = useStyles()
+  const selectionStyles = useSelectionStyles()
+  const theme = Kb.Styles.useTheme()
   const {channel, teamID} = props
   const conversationIDKey = channel.conversationIDKey
   const isGeneral = channel.channelname === 'general'
@@ -127,7 +130,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       {popup}
       <Kb.IconButton
         icon="iconfont-edit"
-        iconColor={Kb.Styles.globalColors.black_50}
+        iconColor={theme.black_50}
         mode="Secondary"
         onClick={onEditChannel}
         small={true}
@@ -135,7 +138,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       />
       <Kb.IconButton
         icon="iconfont-ellipsis"
-        iconColor={Kb.Styles.globalColors.black_50}
+        iconColor={theme.black_50}
         mode="Secondary"
         onClick={showPopup}
         ref={popupAnchor}
@@ -166,7 +169,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       actionButtons: {

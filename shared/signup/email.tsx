@@ -80,42 +80,45 @@ type BodyProps = {
   showSearchable: boolean
   iconType: Kb.IconType
 }
-export const EnterEmailBody = (props: BodyProps) => (
-  <Kb.ScrollView>
-    <Kb.Box2
-      alignItems="center"
-      direction="vertical"
-      gap={isMobile ? 'small' : 'medium'}
-      fullWidth={true}
-      flex={1}
-    >
-      <Kb.ImageIcon type={props.iconType} />
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
-        <Kb.Input3
-          textType="BodySemibold"
-          autoFocus={true}
-          containerStyle={styles.input}
-          keyboardType="email-address"
-          placeholder="Email address"
-          onChangeText={props.onChangeEmail}
-          onEnterKeyDown={props.onContinue}
-          textContentType="emailAddress"
-          value={props.email}
-        />
-        {props.showSearchable && (
-          <Kb.Checkbox
-            label="Allow friends to find you by this email address"
-            checked={props.searchable}
-            onCheck={props.onChangeSearchable}
-            style={styles.checkbox}
+export const EnterEmailBody = (props: BodyProps) => {
+  const styles = useStyles()
+  return (
+    <Kb.ScrollView>
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        gap={isMobile ? 'small' : 'medium'}
+        fullWidth={true}
+        flex={1}
+      >
+        <Kb.ImageIcon type={props.iconType} />
+        <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
+          <Kb.Input3
+            textType="BodySemibold"
+            autoFocus={true}
+            containerStyle={styles.input}
+            keyboardType="email-address"
+            placeholder="Email address"
+            onChangeText={props.onChangeEmail}
+            onEnterKeyDown={props.onContinue}
+            textContentType="emailAddress"
+            value={props.email}
           />
-        )}
+          {props.showSearchable && (
+            <Kb.Checkbox
+              label="Allow friends to find you by this email address"
+              checked={props.searchable}
+              onCheck={props.onChangeSearchable}
+              style={styles.checkbox}
+            />
+          )}
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  </Kb.ScrollView>
-)
+    </Kb.ScrollView>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   checkbox: {width: '100%'},
   input: desktopInputWidth,
   inputBox: Kb.Styles.platformStyles({

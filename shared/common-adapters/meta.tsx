@@ -20,14 +20,16 @@ type Props = BaseProps &
   )
 
 // common badge presets, centered so they sit next to text in a row
-const variants = {
-  new: {backgroundColor: Styles.globalColors.orange, title: 'new'},
-  open: {backgroundColor: Styles.globalColors.green, title: 'open'},
-  reset: {backgroundColor: Styles.globalColors.red, title: 'reset'},
-  revoked: {backgroundColor: Styles.globalColors.red, title: 'revoked'},
-} as const
+const useVariants = Styles.createThemedHook(theme => ({
+  new: {backgroundColor: theme.orange, title: 'new'},
+  open: {backgroundColor: theme.green, title: 'open'},
+  reset: {backgroundColor: theme.red, title: 'reset'},
+  revoked: {backgroundColor: theme.red, title: 'revoked'},
+}) as const)
 
 const Meta = (props: Props) => {
+  const styles = useStyles()
+  const variants = useVariants()
   const title = props.variant ? variants[props.variant].title : props.title
   const backgroundColor = props.variant ? variants[props.variant].backgroundColor : props.backgroundColor
   return (
@@ -59,7 +61,7 @@ const Meta = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   container: {
     borderRadius: 2,
     ...Styles.paddingH(3),
@@ -69,7 +71,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   text: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.white,
+      color: theme.white,
       ...Styles.marginV(-1),
     },
     isMobile: {

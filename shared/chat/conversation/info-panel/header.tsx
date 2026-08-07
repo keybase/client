@@ -11,6 +11,8 @@ import {useConversationMetadata} from '../data-hooks'
 const gearIconSize = isMobile ? 24 : 16
 
 const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey} = props
   const {meta, participants} = useConversationMetadata(conversationIDKey)
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
@@ -57,10 +59,10 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
               title={title}
             />
             <Kb.Meta
-              backgroundColor={Kb.Styles.globalColors.blueGrey}
-              color={Kb.Styles.globalColors.black_50}
+              backgroundColor={theme.blueGrey}
+              color={theme.black_50}
               icon="iconfont-people-solid"
-              iconColor={Kb.Styles.globalColors.black_20}
+              iconColor={theme.black_20}
               style={styles.meta}
               title={channelHumans.length}
             />
@@ -79,10 +81,10 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
               </Kb.Text>
               {!isGeneralChannel && (
                 <Kb.Meta
-                  backgroundColor={Kb.Styles.globalColors.blueGrey}
-                  color={Kb.Styles.globalColors.black_50}
+                  backgroundColor={theme.blueGrey}
+                  color={theme.black_50}
                   icon="iconfont-people-solid"
-                  iconColor={Kb.Styles.globalColors.black_20}
+                  iconColor={theme.black_20}
                   title={channelHumans.length}
                 />
               )}
@@ -99,10 +101,10 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
                 <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
               </Kb.Box2>
               <Kb.Meta
-                backgroundColor={Kb.Styles.globalColors.blueGrey}
-                color={Kb.Styles.globalColors.black_50}
+                backgroundColor={theme.blueGrey}
+                color={theme.black_50}
                 icon="iconfont-people-solid"
-                iconColor={Kb.Styles.globalColors.black_20}
+                iconColor={theme.black_20}
                 title={teamHumanCount}
               />
             </Kb.Box2>
@@ -145,6 +147,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
 }
 
 export const AdhocHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const styles = useStyles()
   const {conversationIDKey} = props
   const onShowNewTeamDialog = () => {
     C.Router2.navigateAppend({
@@ -168,7 +171,7 @@ export const AdhocHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       addMembers: {

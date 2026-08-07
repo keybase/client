@@ -10,6 +10,7 @@ type Props = {
 }
 
 const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
+  const styles = useStyles()
   const animatedStyles = {
     ...styles.inner,
     ...fillStyle,
@@ -32,24 +33,24 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   flatLeft: {borderBottomLeftRadius: 0, borderTopLeftRadius: 0},
   flatRight: {borderBottomRightRadius: 0, borderTopRightRadius: 0},
   inner: {
     alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.blue,
+    backgroundColor: theme.blue,
     ...Styles.globalStyles.rounded,
     height: 4,
   },
   outer: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.greyLight,
+      backgroundColor: theme.greyLight,
       ...Styles.globalStyles.rounded,
       height: 4,
       width: 64,
     },
     isElectron: {
-      boxShadow: `inset 0 1px 0 0 ${Styles.globalColors.black_05}`,
+      boxShadow: `inset 0 1px 0 0 ${theme.black_05}`,
     },
   }),
 }))

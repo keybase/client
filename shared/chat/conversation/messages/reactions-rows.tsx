@@ -19,6 +19,7 @@ type OwnProps = {
 }
 
 function ReactionsRowContainer(p: OwnProps) {
+  const styles = useStyles()
   const {hasUnfurls, messageType, onReact, onReply, reactions} = p
   const emojis = React.useMemo(
     () => (reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis),
@@ -58,6 +59,7 @@ type IProps = {
   reaction: T.Chat.ReactionDesc
 }
 function RowItem(p: IProps) {
+  const styles = useStyles()
   const ordinal = useOrdinal()
   const {emoji, onReact, reaction} = p
 
@@ -99,8 +101,8 @@ function RowItem(p: IProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       button: {marginBottom: Kb.Styles.globalMargins.tiny},
       container: {
@@ -109,8 +111,8 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
       emojiRow: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        borderColor: Kb.Styles.globalColors.black_10,
+        backgroundColor: theme.white,
+        borderColor: theme.black_10,
         borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,

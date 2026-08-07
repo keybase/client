@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import {getAttachmentPreviewSize} from '../shared'
 
 const ImageImpl = ({message}: {message: T.Chat.MessageAttachment}) => {
+  const styles = useStyles()
   const {previewURL, height, width} = getAttachmentPreviewSize(message, true)
   if (!isMobile) {
     // explicit height/width so we never CLS while loading
@@ -20,7 +21,7 @@ const ImageImpl = ({message}: {message: T.Chat.MessageAttachment}) => {
   return <Kb.Image src={previewURL} style={Kb.Styles.collapseStyles([styles.image, {height, width}])} />
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   image: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.globalStyles.rounded,
@@ -33,7 +34,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       maxWidth: '100%',
     },
     isIOS: {
-      backgroundColor: Kb.Styles.globalColors.black_05_on_white,
+      backgroundColor: theme.black_05_on_white,
     },
   }),
 }))

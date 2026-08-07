@@ -14,7 +14,6 @@ import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
-import {useColorScheme} from 'react-native'
 import {useConversationThreadID} from '../../thread-context'
 import {TextInput, Keyboard} from 'react-native'
 import {registerPasteImage, removeOnHWKeyPressed, onHWKeyPressed} from 'react-native-kb'
@@ -88,11 +87,11 @@ const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
 
 function DesktopInput(p: InputLowLevelProps) {
+  const theme = Kb.Styles.useTheme()
+  const desktopInputLowLevelStyles = useDesktopInputLowLevelStyles()
   const {style: _style, onChangeText: _onChangeText, multiline, ref} = p
   const {textType = 'Body', rowsMax, rowsMin, padding, placeholder, onKeyUp: _onKeyUp} = p
   const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown, onEnterKeyDown} = p
-
-  const isDarkMode = useColorScheme() === 'dark'
 
   const [value, setValue] = React.useState('')
   // this isn't a value react can set on the input, so we need to drive it manually
@@ -170,7 +169,7 @@ function DesktopInput(p: InputLowLevelProps) {
 
   const rows = multiline ? rowsMin || Math.min(2, rowsMax || 2) : 0
   const style = (() => {
-    const textStyle = getTextStyle(textType, isDarkMode)
+    const textStyle = getTextStyle(textType, theme)
     if (multiline) {
       const heightStyles: {minHeight: number; maxHeight?: number} = {
         minHeight:
@@ -263,7 +262,7 @@ function DesktopInput(p: InputLowLevelProps) {
   )
 }
 
-const desktopInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
+const useDesktopInputLowLevelStyles = Kb.Styles.createStyleHook(() => ({
   multiline: Kb.Styles.platformStyles({
     isElectron: {
       fieldSizing: 'content',
@@ -288,6 +287,8 @@ const desktopInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
 
 // Low-level TextInput wrapper
 function NativeInput(p: InputLowLevelProps) {
+  const theme = Kb.Styles.useTheme()
+  const nativeInputLowLevelStyles = useNativeInputLowLevelStyles()
   type RNTextInput = {
     blur: () => void
     focus: () => void
@@ -307,7 +308,6 @@ function NativeInput(p: InputLowLevelProps) {
     onSelectionChange: _onSelectionChange,
   } = p
 
-  const isDarkMode = useColorScheme() === 'dark'
   const [autoFocus] = React.useState(_autoFocus)
   const [value, setValue] = React.useState('')
   const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
@@ -374,7 +374,7 @@ function NativeInput(p: InputLowLevelProps) {
   }, [onChangeText, selection, value])
 
   const style = (() => {
-    let textStyle = getTextStyle(textType, isDarkMode)
+    let textStyle = getTextStyle(textType, theme)
     // RN TextInput plays better without this
     if (isIOS) {
       const {lineHeight, ...rest} = textStyle
@@ -440,7 +440,7 @@ function NativeInput(p: InputLowLevelProps) {
   )
 }
 
-const nativeInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
+const useNativeInputLowLevelStyles = Kb.Styles.createStyleHook(() => ({
   common: {borderWidth: 0, flexGrow: 1},
   multiline: Kb.Styles.platformStyles({
     isMobile: {
@@ -463,6 +463,8 @@ type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   setExplodingMode: (mode: number) => void
 }
 const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
+  const desktopStyles = useDesktopStyles()
+  const theme = Kb.Styles.useTheme()
   const {explodingModeSeconds, focusInput, setExplodingMode} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -489,7 +491,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
       style={Kb.Styles.collapseStyles([
         desktopStyles.explodingIconContainer,
         !!explodingModeSeconds && {
-          backgroundColor: Kb.Styles.globalColors.black,
+          backgroundColor: theme.black,
         },
       ])}
     >
@@ -520,6 +522,8 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
 
 type EmojiButtonProps = {inputRef: InputRefType}
 const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
+  const desktopStyles = useDesktopStyles()
+  const theme = Kb.Styles.useTheme()
   const {inputRef} = p
   const conversationIDKey = useConversationThreadID()
   const insertEmoji = (emojiColons: string) => {
@@ -560,7 +564,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
         className="tooltip-top-left"
       >
         <Kb.Icon
-          color={showingPopup ? Kb.Styles.globalColors.black : undefined}
+          color={showingPopup ? theme.black : undefined}
           onClick={showPopup}
           type="iconfont-emoji"
         />
@@ -571,6 +575,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
 }
 
 const GiphyButton = function GiphyButton() {
+  const desktopStyles = useDesktopStyles()
   const toggleGiphyPrefill = InputState.useConversationInputDispatch(s => s.toggleGiphyPrefill)
 
   return (
@@ -586,6 +591,7 @@ const fileListToPaths = (f: HtmlFileList): Array<string> => {
 }
 
 const FileButton = function FileButton(p: {setHtmlInputRef: (i: HtmlInputRef | null) => void}) {
+  const desktopStyles = useDesktopStyles()
   const {setHtmlInputRef} = p
   const htmlInputRef = React.useRef<HtmlInputRef | null>(null)
   const conversationIDKey = useConversationThreadID()
@@ -632,6 +638,7 @@ const FileButton = function FileButton(p: {setHtmlInputRef: (i: HtmlInputRef | n
 }
 
 const DesktopFooter = () => {
+  const desktopStyles = useDesktopStyles()
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" justifyContent="space-between">
       <Typing />
@@ -731,6 +738,7 @@ type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
 }
 
 const SideButtons = (p: SideButtonsProps) => {
+  const desktopStyles = useDesktopStyles()
   const {setHtmlInputRef, cannotWrite, inputRef} = p
   return (
     <Kb.Box2 direction="horizontal" style={desktopStyles.sideButtons}>
@@ -746,6 +754,7 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
+  const desktopStyles = useDesktopStyles()
   const {cannotWrite, explodingModeSeconds, onCancelEditing, setExplodingMode} = p
   const {showReplyPreview, hintText, setInputRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HtmlInputRef | null>(null)
@@ -864,12 +873,12 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useDesktopStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       cancelEditingBtn: {margin: Kb.Styles.globalMargins.xtiny},
       container: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
       },
       explodingIconContainer: Kb.Styles.platformStyles({
         common: {
@@ -880,13 +889,13 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
           width: 32,
         },
         isElectron: {
-          borderRight: `1px solid ${Kb.Styles.globalColors.black_20}`,
+          borderRight: `1px solid ${theme.black_20}`,
         },
       }),
       explodingInsideWrapper: {height: 32},
       footer: {
         alignSelf: 'flex-end',
-        color: Kb.Styles.globalColors.black_20,
+        color: theme.black_20,
         marginBottom: Kb.Styles.globalMargins.xtiny,
         marginRight: Kb.Styles.globalMargins.medium + 2,
         marginTop: 2,
@@ -901,7 +910,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       input: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.transparent,
+          backgroundColor: theme.transparent,
           lineHeight: 22,
           minHeight: 22,
         },
@@ -919,16 +928,16 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         // so containment is what keeps a long unbreakable url from widening the layout
         isElectron: {contain: 'inline-size'},
       }),
-      inputEditing: {color: Kb.Styles.globalColors.blackOrBlack},
+      inputEditing: {color: theme.blackOrBlack},
       inputWrapper: {
         alignSelf: 'stretch',
-        backgroundColor: Kb.Styles.globalColors.white,
-        ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.borderRadius),
+        backgroundColor: theme.white,
+        ...Kb.Styles.border(theme.black_20, 1, Kb.Styles.borderRadius),
         ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      inputWrapperEditing: {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt},
-      inputWrapperExplodingMode: {borderColor: Kb.Styles.globalColors.black},
+      inputWrapperEditing: {backgroundColor: theme.yellowOrYellowAlt},
+      inputWrapperExplodingMode: {borderColor: theme.black},
       sideButtons: {alignSelf: 'flex-end'},
       suggestionSpinnerStyle: {
         bottom: Kb.Styles.globalMargins.tiny,
@@ -964,6 +973,7 @@ type NativeButtonsProps = Pick<
 }
 
 const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
+  const nativeStyles = useNativeStyles()
   const {insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
   const {showAudioSend, setShowAudioSend} = p
@@ -1064,6 +1074,8 @@ const NativeAnimatedExpand = (() => {
   } else {
     return function NativeAnimatedExpand(p: {expandInput: () => void; expanded: boolean}) {
       'use no memo'
+      const nativeStyles = useNativeStyles()
+      const theme = Kb.Styles.useTheme()
       const {expandInput, expanded} = p
       const offset = useSharedValue(expanded ? 1 : 0)
       const topStyle = useAnimatedStyle(() => ({
@@ -1093,10 +1105,10 @@ const NativeAnimatedExpand = (() => {
           style={nativeStyles.iconContainer}
         >
           <Animated.View style={[nativeStyles.iconTop, topStyle]} pointerEvents="none">
-            <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
+            <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={theme.black_35} />
           </Animated.View>
           <Animated.View style={[nativeStyles.iconBottom, bottomStyle]} pointerEvents="none">
-            <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
+            <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={theme.black_35} />
           </Animated.View>
         </Kb.ClickableBox>
       )
@@ -1186,6 +1198,7 @@ const NativeAnimatedInput = (() => {
   const Animated = Reanimated
   if (skipAnimations) {
     return function NativeAnimatedInput(p: NativeAnimatedInputProps) {
+      const nativeStyles = useNativeStyles()
       const {expanded: _expanded, inputRef, reservedHeight: _reservedHeight, ...rest} = p
       return (
         <Animated.View style={[p.style, rest.style]}>
@@ -1196,6 +1209,7 @@ const NativeAnimatedInput = (() => {
   } else {
     return function NativeAnimatedInput(p: NativeAnimatedInputProps) {
       'use no memo'
+      const nativeStyles = useNativeStyles()
       const maxInputArea = React.useContext(MaxInputAreaContext)
       const {expanded, inputRef, reservedHeight = 0, ...rest} = p
       const lastExpandedRef = React.useRef(expanded)
@@ -1229,6 +1243,7 @@ const NativeAnimatedInput = (() => {
 })()
 
 const NativePlatformInput = (p: Props) => {
+  const nativeStyles = useNativeStyles()
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [showAudioSend, setShowAudioSend] = React.useState(false)
@@ -1478,14 +1493,14 @@ const NativePlatformInput = (p: Props) => {
   )
 }
 
-const nativeStyles = Kb.Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       actionContainer: {
         minHeight: 32,
       },
       container: {
-        borderTopColor: Kb.Styles.globalColors.black_10,
+        borderTopColor: theme.black_10,
         borderTopWidth: 1,
         minHeight: 1,
         overflow: 'hidden',
@@ -1495,19 +1510,19 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
       },
       exploding: {
-        backgroundColor: Kb.Styles.globalColors.black,
+        backgroundColor: theme.black,
         borderRadius: Kb.Styles.globalMargins.mediumLarge / 2,
         ...Kb.Styles.size(28),
         margin: Kb.Styles.globalMargins.xtiny,
       },
-      explodingContainer: {borderTopColor: Kb.Styles.globalColors.black},
+      explodingContainer: {borderTopColor: theme.black},
       explodingSendBtn: {
-        backgroundColor: Kb.Styles.globalColors.black,
+        backgroundColor: theme.black,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
-      // explodingSendBtn bg is globalColors.black which inverts in dark mode, so the
+      // explodingSendBtn bg is theme.black which inverts in dark mode, so the
       // default whiteOrWhite label would be white-on-white there
-      explodingSendBtnLabel: {color: Kb.Styles.globalColors.white},
+      explodingSendBtnLabel: {color: theme.white},
       explodingText: {
         fontSize: 11,
         lineHeight: 16,
@@ -1547,11 +1562,11 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       },
       inputInner: {flexGrow: 1},
       sendBtn: {marginRight: Kb.Styles.globalMargins.tiny},
-      sendWrapper: {backgroundColor: Kb.Styles.globalColors.white_90, position: 'absolute'},
+      sendWrapper: {backgroundColor: theme.white_90, position: 'absolute'},
       suggestionList: Kb.Styles.platformStyles({
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.white,
-          borderColor: Kb.Styles.globalColors.black_10,
+          backgroundColor: theme.white,
+          borderColor: theme.black_10,
           borderStyle: 'solid',
           borderTopWidth: 3,
           maxHeight: '50%',

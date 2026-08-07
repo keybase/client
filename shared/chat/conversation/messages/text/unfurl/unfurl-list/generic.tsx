@@ -11,6 +11,8 @@ function UnfurlGeneric(p: {
   unfurlInfo: T.RPCChat.UIMessageUnfurlInfo
   youAreAuthor: boolean
 }) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {ordinal, unfurlInfo, youAreAuthor} = p
   const {isCollapsed, unfurl, unfurlMessageID} = unfurlInfo
   const {onClose, onToggleCollapse} = useActions(
@@ -48,7 +50,7 @@ function UnfurlGeneric(p: {
           padding="xtiny"
           className="unfurl-closebox"
           fontSize={12}
-          color={Kb.Styles.globalColors.black_20}
+          color={theme.black_20}
         />
       ) : null}
     </Kb.Box2>
@@ -110,8 +112,8 @@ function UnfurlGeneric(p: {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bottomImage: Kb.Styles.platformStyles({
         common: {marginTop: Kb.Styles.globalMargins.xtiny},
@@ -142,7 +144,7 @@ const styles = Kb.Styles.styleSheetCreate(
           minWidth: 150,
         },
         isMobile: {
-          borderColor: Kb.Styles.globalColors.grey,
+          borderColor: theme.grey,
           borderRadius: Kb.Styles.borderRadius,
           borderWidth: 1,
           padding: Kb.Styles.globalMargins.xtiny,
@@ -150,7 +152,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       quoteContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.grey,
+          backgroundColor: theme.grey,
           paddingLeft: Kb.Styles.globalMargins.xtiny,
         },
       }),

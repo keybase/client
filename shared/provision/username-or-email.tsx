@@ -35,6 +35,7 @@ const decodeInlineError = (inlineErrorCode?: number) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
+  const styles = useStyles()
   const {inlineError, inlineSignUpLink} = decodeInlineError(op.inlineErrorCode)
   const error = inlineError && !inlineSignUpLink ? inlineError : ''
   const resetBannerUser = op.fromReset ? op.username : undefined
@@ -135,13 +136,13 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       card: Kb.Styles.platformStyles({
         common: {
           alignItems: 'stretch',
-          backgroundColor: Kb.Styles.globalColors.transparent,
+          backgroundColor: theme.transparent,
         },
         isMobile: {
           ...Kb.Styles.paddingH(0),
@@ -158,7 +159,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {flex: 1},
         isElectron: {height: 'unset'},
       }),
-      outerCardAvatar: {backgroundColor: Kb.Styles.globalColors.transparent},
+      outerCardAvatar: {backgroundColor: theme.transparent},
       scrollContentContainer: Kb.Styles.platformStyles({
         isElectron: {margin: 'auto'},
         isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},

@@ -51,6 +51,8 @@ const makeInitialTimerState = (p: {exploded: boolean; explodesAt: number; pendin
 }
 
 function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {exploded, exploding, explodesAt, messageKey, onClick, pending} = p
   const [timerState, setTimerState] = React.useState<TimerState>(() =>
     makeInitialTimerState({exploded, explodesAt, pending})
@@ -159,10 +161,10 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   }, [exploded, messageKey, mode])
 
   const backgroundColor = pending
-    ? Kb.Styles.globalColors.black
+    ? theme.black
     : explodesAt - now < oneMinuteInMs
-      ? Kb.Styles.globalColors.red
-      : Kb.Styles.globalColors.black
+      ? theme.red
+      : theme.black
   let children: React.ReactNode
   const m = pending ? 'countdown' : mode
   switch (m) {
@@ -200,7 +202,7 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
         <Kb.Icon
           className="explodingTimeIcon"
           type="iconfont-boom"
-          color={isParentHighlighted ? Kb.Styles.globalColors.blackOrBlack : Kb.Styles.globalColors.black}
+          color={isParentHighlighted ? theme.blackOrBlack : theme.black}
         />
       )
       break
@@ -264,14 +266,14 @@ const getLoopInterval = (diff: number) => {
   return deltaMS + halfNearestUnit
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         height: 20,
       },
       countdown: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.white, fontWeight: 'bold'},
+        common: {color: theme.white, fontWeight: 'bold'},
         isElectron: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
         isMobile: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
       }),
@@ -280,8 +282,8 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.size(20),
         borderRadius: 10,
       },
-      countdownContainerHighlighted: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
-      countdownHighlighted: {color: Kb.Styles.globalColors.whiteOrWhite},
+      countdownContainerHighlighted: {backgroundColor: theme.blackOrBlack},
+      countdownHighlighted: {color: theme.whiteOrWhite},
       hidden: {opacity: 0},
     }) as const
 )

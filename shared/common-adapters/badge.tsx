@@ -20,6 +20,7 @@ export type Badge2Props = {
 }
 
 function Badge(p: Badge2Props) {
+  const styles = useStyles()
   const {border, containerStyle, className, badgeNumberStyle, badgeNumber, badgeStyle} = p
   const fontSize = p.fontSize ?? (isMobile ? 12 : 10)
   const height = p.height ?? (isMobile ? 20 : 16)
@@ -83,11 +84,11 @@ function Badge(p: Badge2Props) {
 }
 export default Badge
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   badge: {
     ...Styles.globalStyles.flexBoxCenter,
-    backgroundColor: Styles.globalColors.orange,
+    backgroundColor: theme.orange,
   },
-  container: {backgroundColor: Styles.globalColors.white},
-  text: {color: Styles.globalColors.white},
+  container: {backgroundColor: theme.white},
+  text: {color: theme.white},
 }))

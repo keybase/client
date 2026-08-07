@@ -6,6 +6,7 @@ import * as Kbfs from '@/fs/common'
 import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/util/fs-platform'
 
 const InstallSecurityPrefs = () => {
+  const styles = useStyles()
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const {driverStatus} = Kbfs.useSystemFileManagerIntegration()
   const onCancel = C.Router2.navigateUp
@@ -75,15 +76,15 @@ const InstallSecurityPrefs = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.mediumLarge, Kb.Styles.globalMargins.large),
       },
       enablingContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        backgroundColor: Kb.Styles.globalColors.black_63,
+        backgroundColor: theme.black_63,
       },
       image: {
         width: 408,

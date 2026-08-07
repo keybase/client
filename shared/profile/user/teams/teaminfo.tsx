@@ -21,6 +21,7 @@ export type Props = {
 }
 
 const TeamInfo = (props: Props) => {
+  const styles = useStyles()
   const [requested, setRequested] = React.useState(false)
   const {onChat, onHidden, onViewTeam, onJoinTeam, name} = props
 
@@ -117,7 +118,7 @@ const TeamInfo = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       description: Kb.Styles.platformStyles({

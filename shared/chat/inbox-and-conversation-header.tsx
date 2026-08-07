@@ -22,6 +22,8 @@ const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
 const emptyParticipants: ReadonlyArray<string> = []
 
 const Header = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {params} = useRoute('chatRoot')
   const username = useCurrentUserState(s => s.username)
   // chatRoot params are a union of the split-view and phone inbox variants; only the
@@ -207,7 +209,7 @@ const Header = () => {
                   colorFollowing={true}
                   underline={true}
                   inline={true}
-                  commaColor={Kb.Styles.globalColors.black_50}
+                  commaColor={theme.black_50}
                   type="Header"
                   usernames={part}
                   onUsernameClicked="profile"
@@ -222,7 +224,7 @@ const Header = () => {
         <Kb.Icon
           type="iconfont-shh"
           style={styles.shhIconStyle}
-          color={Kb.Styles.globalColors.black_20}
+          color={theme.black_20}
           fontSize={20}
           onClick={unMuteConversation}
         />
@@ -251,7 +253,7 @@ const Header = () => {
         tooltip={folderPath ? 'Open folder' : 'Folder unavailable'}
       >
         <Kb.Icon
-          color={folderPath ? undefined : Kb.Styles.globalColors.black_20}
+          color={folderPath ? undefined : theme.black_20}
           style={folderPath ? styles.clickable : undefined}
           type="iconfont-folder-private"
           onClick={folderPath ? onOpenFolder : undefined}
@@ -259,7 +261,7 @@ const Header = () => {
       </Kb.Box2>
       <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Chat info & settings">
         <Kb.Icon
-          color={infoPanelShowing ? Kb.Styles.globalColors.blue : undefined}
+          color={infoPanelShowing ? theme.blue : undefined}
           style={styles.clickable}
           type="iconfont-info"
           onClick={onToggleInfoPanel}
@@ -277,7 +279,7 @@ const Header = () => {
               colorFollowing={true}
               underline={true}
               inline={true}
-              commaColor={Kb.Styles.globalColors.black_50}
+              commaColor={theme.black_50}
               type="BodySmallBold"
               usernames={withoutSelf[0] ?? ''}
               onUsernameClicked="profile"
@@ -321,8 +323,8 @@ const Header = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       actionIcons: {paddingBottom: Kb.Styles.globalMargins.tiny},
       clickable: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
@@ -335,13 +337,13 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.platformStyles({
           isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable, width: '100%'},
         }),
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
       },
       descDot: {
         ...Kb.Styles.platformStyles({
           isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
         }),
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
       },
       descriptionContainer: {
         height: 17,
@@ -380,7 +382,7 @@ const styles = Kb.Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
         isMobile: {
-          color: Kb.Styles.globalColors.black_50,
+          color: theme.black_50,
           fontSize: 15,
           lineHeight: 19,
         },

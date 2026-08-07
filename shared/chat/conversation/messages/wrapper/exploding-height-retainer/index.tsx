@@ -25,6 +25,7 @@ const explodedIllustrationDarkURL = explodedIllustrationDarkURLraw as unknown as
 
 // Desktop implementation
 const DesktopExplodingHeightRetainer = (p: Props) => {
+  const styles = useStyles()
   const {retainHeight, explodedBy, style, children, messageKey} = p
   const [animationState, setAnimationState] = React.useState(() => ({
     animationKey: undefined as string | undefined,
@@ -107,6 +108,7 @@ const DesktopAshes = (props: {
   explodedBy?: string
   height: number
 }) => {
+  const styles = useStyles()
   const {doneExploding, explodedBy, exploded, height} = props
   let explodedTag: React.ReactNode = null
   if (doneExploding) {
@@ -145,6 +147,7 @@ const DesktopAshes = (props: {
 }
 
 function FlameFront(props: {height: number; stop: boolean}) {
+  const styles = useStyles()
   const isDarkMode = useColorScheme() === 'dark'
   if (props.stop) {
     return null
@@ -167,6 +170,7 @@ function FlameFront(props: {height: number; stop: boolean}) {
 
 // Native implementation
 const NativeExplodingHeightRetainer = (p: Props) => {
+  const styles = useStyles()
   const {retainHeight, explodedBy, messageKey, style, children} = p
   // keyed to the message: with recycleItems this instance is reused for other messages, and a
   // stale measured height would be applied as the retained height of the wrong row — and since
@@ -215,6 +219,7 @@ type AshTowerProps = {
 }
 
 const AnimatedAshTower = (p: AshTowerProps) => {
+  const styles = useStyles()
   const {exploded, numImages, explodedBy} = p
   const [showExploded, setShowExploded] = React.useState(exploded)
   const [widthAV] = React.useState(new NativeAnimated.Value(exploded ? 100 : 0))
@@ -286,6 +291,7 @@ const makeEmojiTowerChildren = (numImages: number) => {
 }
 
 const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value}) => {
+  const styles = useStyles()
   const {numImages, animatedValue} = p
   const runningRef = React.useRef(false)
   const [, setForce] = React.useState(0)
@@ -317,6 +323,7 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
 }
 
 const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
+  const styles = useStyles()
   const {numImages, showExploded, explodedBy} = p
   const isDarkMode = useColorScheme() === 'dark'
   const children: Array<React.ReactNode> = []
@@ -364,12 +371,12 @@ const ExplodingHeightRetainer = (p: Props) => {
   return <NativeExplodingHeightRetainer {...p} />
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       ashBox: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           backgroundRepeat: 'repeat',
           backgroundSize: '400px 68px',
           bottom: 0,
@@ -392,9 +399,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       explodedDesktop: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.white,
+          backgroundColor: theme.white,
           bottom: 0,
-          color: Kb.Styles.globalColors.black_20_on_white,
+          color: theme.black_20_on_white,
           padding: 2,
           paddingLeft: Kb.Styles.globalMargins.tiny,
           paddingTop: 0,
@@ -404,8 +411,8 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       explodedNative: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        color: Kb.Styles.globalColors.black_20_on_white,
+        backgroundColor: theme.white,
+        color: theme.black_20_on_white,
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       flame: {

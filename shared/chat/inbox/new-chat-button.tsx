@@ -18,6 +18,7 @@ const colorBarCommon = {
 } as const
 
 const HeaderNewChatButton = () => {
+  const styles = useStyles()
   const hide = useInboxLayoutState(s => s.hasLoaded && isEmptyInboxLayout(s.layout))
 
   const onNewChat = C.Router2.appendNewChatBuilder
@@ -64,7 +65,7 @@ const HeaderNewChatButton = () => {
 
 const calcBarTop = (index: number) => index * colorBarCommon.height
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       glass: {

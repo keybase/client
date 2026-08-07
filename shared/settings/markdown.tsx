@@ -107,59 +107,65 @@ const countNodes = (nodes: Array<Node>): number =>
     0
   )
 
-const Sample = ({name, source}: SampleType) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.sample}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-      <Kb.Text type="BodySmallSemibold">{name}</Kb.Text>
-      <Kb.Text type="BodyTiny" style={styles.count}>
-        {countNodes(parseMarkdown(source) as Array<Node>)} nodes / {source.length} chars
+const Sample = ({name, source}: SampleType) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.sample}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.Text type="BodySmallSemibold">{name}</Kb.Text>
+        <Kb.Text type="BodyTiny" style={styles.count}>
+          {countNodes(parseMarkdown(source) as Array<Node>)} nodes / {source.length} chars
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Text type="BodyTiny" style={styles.source} selectable={true}>
+        {JSON.stringify(source)}
       </Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rendered}>
+        <Kb.Markdown selectable={true}>{source}</Kb.Markdown>
+      </Kb.Box2>
     </Kb.Box2>
-    <Kb.Text type="BodyTiny" style={styles.source} selectable={true}>
-      {JSON.stringify(source)}
-    </Kb.Text>
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rendered}>
-      <Kb.Markdown selectable={true}>{source}</Kb.Markdown>
-    </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
-const MarkdownDebug = () => (
-  <Kb.ScrollView style={styles.scroll}>
-    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
-      {sections.map(section => (
-        <Kb.Box2 key={section.title} direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Text type="Header">{section.title}</Kb.Text>
-          {section.samples.map(sample => (
-            <Sample key={sample.name} name={sample.name} source={sample.source} />
-          ))}
-        </Kb.Box2>
-      ))}
-    </Kb.Box2>
-  </Kb.ScrollView>
-)
+const MarkdownDebug = () => {
+  const styles = useStyles()
+  return (
+    <Kb.ScrollView style={styles.scroll}>
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
+        {sections.map(section => (
+          <Kb.Box2 key={section.title} direction="vertical" fullWidth={true} gap="tiny">
+            <Kb.Text type="Header">{section.title}</Kb.Text>
+            {section.samples.map(sample => (
+              <Sample key={sample.name} name={sample.name} source={sample.source} />
+            ))}
+          </Kb.Box2>
+        ))}
+      </Kb.Box2>
+    </Kb.ScrollView>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   count: {
-    color: Kb.Styles.globalColors.black_50,
+    color: theme.black_50,
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
   rendered: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    borderColor: Kb.Styles.globalColors.black_10,
+    backgroundColor: theme.white,
+    borderColor: theme.black_10,
     borderRadius: Kb.Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
     padding: Kb.Styles.globalMargins.xtiny,
   },
   sample: {
-    borderTopColor: Kb.Styles.globalColors.black_10,
+    borderTopColor: theme.black_10,
     borderTopWidth: 1,
     paddingBottom: Kb.Styles.globalMargins.xtiny,
     paddingTop: Kb.Styles.globalMargins.xtiny,
   },
   scroll: {flex: 1},
-  source: {color: Kb.Styles.globalColors.black_50},
+  source: {color: theme.black_50},
 }))
 
 export default MarkdownDebug

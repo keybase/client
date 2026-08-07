@@ -26,78 +26,82 @@ export type Props = {
   waiting?: boolean
 }
 
-const ConfirmModal = (props: Props) => (
-  <>
-    {props.error ? (
-      <Banner key="error" color="red">
-        <BannerParagraph bannerColor="red" content={props.error} />
-      </Banner>
-    ) : null}
-    <Box2
-      direction="vertical"
-      centerChildren={true}
-      fullWidth={true}
-      style={styles.container}
-      noShrink={true}
-    >
-      {props.icon && (
-        <Box2 direction="vertical" style={styles.icon}>
-          <IconAuto
-            color={props.iconColor ? props.iconColor : Styles.globalColors.black_50}
-            fontSize={isMobile ? 64 : 48}
-            style={styles.icon}
-            type={props.icon}
-          />
-        </Box2>
-      )}
-      {props.header && (
-        <Box2 alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>
-          {props.header}
-        </Box2>
-      )}
-      {typeof props.prompt === 'string' ? (
-        <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
-          {props.prompt}
-        </Text>
-      ) : (
-        props.prompt
-      )}
-      {!!props.description && (
-        <Text center={true} style={styles.text} type="Body">
-          {props.description}
-        </Text>
-      )}
-      {props.content}
-    </Box2>
-    <ModalFooter hideBorder={isMobile}>
-      <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-        {!isMobile && (
+const ConfirmModal = (props: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
+  return (
+    <>
+      {props.error ? (
+        <Banner key="error" color="red">
+          <BannerParagraph bannerColor="red" content={props.error} />
+        </Banner>
+      ) : null}
+      <Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        style={styles.container}
+        noShrink={true}
+      >
+        {props.icon && (
+          <Box2 direction="vertical" style={styles.icon}>
+            <IconAuto
+              color={props.iconColor ? props.iconColor : theme.black_50}
+              fontSize={isMobile ? 64 : 48}
+              style={styles.icon}
+              type={props.icon}
+            />
+          </Box2>
+        )}
+        {props.header && (
+          <Box2 alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>
+            {props.header}
+          </Box2>
+        )}
+        {typeof props.prompt === 'string' ? (
+          <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
+            {props.prompt}
+          </Text>
+        ) : (
+          props.prompt
+        )}
+        {!!props.description && (
+          <Text center={true} style={styles.text} type="Body">
+            {props.description}
+          </Text>
+        )}
+        {props.content}
+      </Box2>
+      <ModalFooter hideBorder={isMobile}>
+        <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+          {!isMobile && (
+            <WaitingButton
+              key="cancel"
+              disabled={!props.onCancel || props.waiting}
+              type="Dim"
+              label="Cancel"
+              onClick={props.onCancel}
+              style={styles.button}
+              waitingKey={props.waitingKey}
+            />
+          )}
           <WaitingButton
-            key="cancel"
-            disabled={!props.onCancel || props.waiting}
-            type="Dim"
-            label="Cancel"
-            onClick={props.onCancel}
+            key="confirm"
+            disabled={props.onConfirmDeactivated || !props.onConfirm}
+            type="Danger"
+            label={props.confirmText || 'Confirm'}
+            onClick={props.onConfirm}
             style={styles.button}
             waitingKey={props.waitingKey}
+            waiting={props.waiting}
           />
-        )}
-        <WaitingButton
-          key="confirm"
-          disabled={props.onConfirmDeactivated || !props.onConfirm}
-          type="Danger"
-          label={props.confirmText || 'Confirm'}
-          onClick={props.onConfirm}
-          style={styles.button}
-          waitingKey={props.waitingKey}
-          waiting={props.waiting}
-        />
-      </ButtonBar>
-    </ModalFooter>
-  </>
-)
+        </ButtonBar>
+      </ModalFooter>
+    </>
+  )
+}
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   button: {flex: 1},
   buttonBar: {minHeight: undefined},
   container: Styles.platformStyles({
@@ -110,7 +114,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.marginV(Styles.globalMargins.small),
   },
   text: {
-    color: Styles.globalColors.black,
+    color: theme.black,
     margin: Styles.globalMargins.small,
   },
 }))

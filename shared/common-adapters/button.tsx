@@ -54,41 +54,46 @@ const baseContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
   isTablet: {alignSelf: 'center'},
 })
 
-const primaryContainers = Styles.styleSheetCreate(() => ({
-  Danger: {...baseContainer, backgroundColor: Styles.globalColors.red},
-  Default: {...baseContainer, backgroundColor: Styles.globalColors.blue},
-  Dim: {...baseContainer, backgroundColor: Styles.globalColors.grey},
-  Success: {...baseContainer, backgroundColor: Styles.globalColors.green},
+const usePrimaryContainers = Styles.createStyleHook(theme => ({
+  Danger: {...baseContainer, backgroundColor: theme.red},
+  Default: {...baseContainer, backgroundColor: theme.blue},
+  Dim: {...baseContainer, backgroundColor: theme.grey},
+  Success: {...baseContainer, backgroundColor: theme.green},
 }))
 
-const secondaryContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
-  common: baseContainer,
-  isElectron: {backgroundColor: Styles.globalColors.white},
-  isMobile: {
-    ...Styles.border(Styles.globalColors.black_20, 1),
-    backgroundColor: Styles.globalColors.white,
-  },
-})
+const useSecondaryContainer = Styles.createThemedHook(
+  theme =>
+    Styles.platformStyles({
+      common: baseContainer,
+      isElectron: {backgroundColor: theme.white},
+      isMobile: {
+        ...Styles.border(theme.black_20, 1),
+        backgroundColor: theme.white,
+      },
+    }) as Styles._StylesCrossPlatform
+)
 
 // Pre-computed label styles
-const baseLabel: Styles._StylesCrossPlatform = Styles.platformStyles({
-  common: {color: Styles.globalColors.whiteOrWhite, textAlign: 'center'},
-  isElectron: {whiteSpace: 'pre'},
+const useLabelStyles = Styles.createThemedHook(theme => {
+  const baseLabel: Styles._StylesCrossPlatform = Styles.platformStyles({
+    common: {color: theme.whiteOrWhite, textAlign: 'center'},
+    isElectron: {whiteSpace: 'pre'},
+  })
+  return {
+    primary: {
+      Danger: baseLabel,
+      Default: baseLabel,
+      Dim: {...baseLabel, color: theme.black},
+      Success: baseLabel,
+    } as const,
+    secondary: {
+      Danger: {...baseLabel, color: theme.redDark},
+      Default: {...baseLabel, color: theme.blueDark},
+      Dim: {...baseLabel, color: theme.black_50},
+      Success: {...baseLabel, color: theme.greenDark},
+    } as const,
+  }
 })
-
-const primaryLabelStyles = {
-  Danger: baseLabel,
-  Default: baseLabel,
-  Dim: {...baseLabel, color: Styles.globalColors.black},
-  Success: baseLabel,
-} as const
-
-const secondaryLabelStyles = {
-  Danger: {...baseLabel, color: Styles.globalColors.redDark},
-  Default: {...baseLabel, color: Styles.globalColors.blueDark},
-  Dim: {...baseLabel, color: Styles.globalColors.black_50},
-  Success: {...baseLabel, color: Styles.globalColors.greenDark},
-} as const
 
 const smallStyle = {
   borderRadius: Styles.borderRadius,
@@ -144,14 +149,19 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
 type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null>}
 
 // Style/state derivation shared by the desktop and native renderers
-const buttonShared = (props: FullProps) => {
+const buttonShared = (
+  props: FullProps,
+  primaryContainers: ReturnType<typeof usePrimaryContainers>,
+  secondaryContainer: Styles._StylesCrossPlatform,
+  labelStyles: ReturnType<typeof useLabelStyles>
+) => {
   const {children, label, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style} = props
   const unclickable = disabled || waiting
   const isPrimary = mode === 'Primary'
   const hasChildrenOnly = !!children && !label
 
   const container = isPrimary ? primaryContainers[type] : secondaryContainer
-  const labelStyle = isPrimary ? primaryLabelStyles[type] : secondaryLabelStyles[type]
+  const labelStyle = isPrimary ? labelStyles.primary[type] : labelStyles.secondary[type]
 
   const needsCollapse = small || fullWidth || unclickable || hasChildrenOnly || style
   const containerStyle = needsCollapse
@@ -172,8 +182,16 @@ const buttonShared = (props: FullProps) => {
 }
 
 const ButtonDesktop = (props: FullProps) => {
+  const primaryContainers = usePrimaryContainers()
+  const secondaryContainer = useSecondaryContainer()
+  const labelStyles = useLabelStyles()
   const {onClick, ref: measureRef, small, waiting, tooltip, labelStyle: labelStyleOverride, testID, children, label} = props
-  const {containerStyle, isPrimary, labelStyle, type, unclickable, whiteSpinner} = buttonShared(props)
+  const {containerStyle, isPrimary, labelStyle, type, unclickable, whiteSpinner} = buttonShared(
+    props,
+    primaryContainers,
+    secondaryContainer,
+    labelStyles
+  )
 
   const className = Styles.classNames(
     isPrimary ? 'button--primary' : 'button--secondary',
@@ -209,8 +227,16 @@ const ButtonDesktop = (props: FullProps) => {
 }
 
 const ButtonNative = (props: FullProps) => {
+  const primaryContainers = usePrimaryContainers()
+  const secondaryContainer = useSecondaryContainer()
+  const labelStyles = useLabelStyles()
   const {children, label, onClick, small, waiting, labelStyle: labelStyleOverride, testID} = props
-  const {containerStyle, labelStyle, unclickable, whiteSpinner} = buttonShared(props)
+  const {containerStyle, labelStyle, unclickable, whiteSpinner} = buttonShared(
+    props,
+    primaryContainers,
+    secondaryContainer,
+    labelStyles
+  )
 
   const handlePress = unclickable ? undefined : onClick
 
@@ -254,12 +280,14 @@ type IconButtonProps = Omit<ButtonProps, 'label' | 'children'> & {
 }
 
 export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef | null>}) => {
+  const theme = Styles.useTheme()
+  const labelStyles = useLabelStyles()
   const {icon, iconColor, ref, ...rest} = props
   const isPrimary = (rest.mode ?? 'Primary') === 'Primary'
   const type = rest.type ?? 'Default'
   const defaultColor = isPrimary
-    ? type === 'Dim' ? Styles.globalColors.black : Styles.globalColors.whiteOrWhite
-    : secondaryLabelStyles[type].color
+    ? type === 'Dim' ? theme.black : theme.whiteOrWhite
+    : labelStyles.secondary[type].color
   return (
     <Button ref={ref} {...rest}>
       <Icon type={icon} sizeType="Small" color={iconColor ?? (defaultColor as string)} />

@@ -26,6 +26,7 @@ type RowProps = {
 // clicked/wasWaiting mirrors router-v2/account-switcher: spinner on the row that
 // started the login, cleared when the waiting key clears
 const UserRow = (p: RowProps) => {
+  const styles = useStyles()
   const {username, hasStoredSecret, selected, firstItem, waiting, onSelectUser} = p
   const [{clicked, wasWaiting}, setClickedState] = React.useState(() => ({
     clicked: false,
@@ -59,6 +60,7 @@ const UserRow = (p: RowProps) => {
 }
 
 const UserList = (p: Props) => {
+  const styles = useStyles()
   const {users, selectedUser, onSelectUser, onSomeoneElse} = p
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   return (
@@ -89,12 +91,12 @@ const UserList = (p: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       scroll: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        borderColor: Kb.Styles.globalColors.black_10,
+        backgroundColor: theme.white,
+        borderColor: theme.black_10,
         borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
@@ -104,7 +106,7 @@ const styles = Kb.Styles.styleSheetCreate(
         minHeight: rowHeight * 2,
         width: '100%',
       },
-      selectedRow: {backgroundColor: Kb.Styles.globalColors.blueLighter2},
+      selectedRow: {backgroundColor: theme.blueLighter2},
       waiting: {opacity: 0.5},
     }) as const
 )

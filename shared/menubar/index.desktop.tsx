@@ -82,13 +82,15 @@ const HttpAvatar = (p: {
 const avatarStyle = {borderRadius: '50%', flexShrink: 0} satisfies React.CSSProperties
 
 const ArrowTick = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   return (
     <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.arrowTick,
-        {borderBottomColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
+        {borderBottomColor: isDarkMode ? '#2d2d2d' : theme.blueDark},
       ])}
     />
   )
@@ -110,6 +112,7 @@ const UploadWithCountdown = (p: UWCDProps) => {
 
 // Inline chat row for the menubar conversation list.
 const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: string; username: string}) => {
+  const styles = useStyles()
   const {conv, httpSrvAddress, httpSrvToken, username} = p
   const isTeam = conv.teamType !== 'adhoc'
   const name = isTeam ? conv.tlfname || '' : conv.participants?.filter(u => u !== username).join(', ') || conv.tlfname || ''
@@ -170,6 +173,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
 }
 
 const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convLimit?: number; httpSrvAddress: string; httpSrvToken: string; username: string}) => {
+  const styles = useStyles()
   const {conversationsToSend, convLimit, httpSrvAddress, httpSrvToken, username} = p
   const convs = conversationsToSend.slice(0, convLimit ?? conversationsToSend.length)
 
@@ -191,28 +195,32 @@ const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convL
 }
 
 // Inline file updates (replaces FilesContainer + files.desktop.tsx with store-connected components)
-const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void}) => (
-  <Kb.ClickableBox
-    className="hover-underline-container"
-    onClick={p.onClick}
-    direction="horizontal"
-    fullWidth={true}
-    alignItems="flex-start"
-    style={styles.fileUpdateRow}
-  >
-    <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
-    {p.uploading && (
-      <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
-        <Kb.ImageIcon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
-      </Kb.Box2>
-    )}
-    <Filename type="Body" path={p.path} />
-  </Kb.ClickableBox>
-)
+const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void}) => {
+  const styles = useStyles()
+  return (
+    <Kb.ClickableBox
+      className="hover-underline-container"
+      onClick={p.onClick}
+      direction="horizontal"
+      fullWidth={true}
+      alignItems="flex-start"
+      style={styles.fileUpdateRow}
+    >
+      <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
+      {p.uploading && (
+        <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
+          <Kb.ImageIcon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
+        </Kb.Box2>
+      )}
+      <Filename type="Body" path={p.path} />
+    </Kb.ClickableBox>
+  )
+}
 
 const defaultNumFileOptionsShown = 3
 
 const FileUpdates = (p: {updates: ReadonlyArray<{path: T.FS.Path; uploading: boolean}>}) => {
+  const styles = useStyles()
   const [isShowingAll, setIsShowingAll] = React.useState(false)
   const shown = isShowingAll ? p.updates : p.updates.slice(0, defaultNumFileOptionsShown)
   return (
@@ -240,6 +248,8 @@ const FileUpdates = (p: {updates: ReadonlyArray<{path: T.FS.Path; uploading: boo
 }
 
 const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; following: ReadonlyArray<string>; httpSrvAddress: string; httpSrvToken: string}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {remoteTlfUpdates, following, httpSrvAddress, httpSrvToken} = p
   const followingSet = new Set(following)
   return (
@@ -286,7 +296,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
                         ? (
                             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
                               {(participants || []).join(',')}
-                              <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} size="Small" title="PUBLIC" />
+                              <Kb.Meta backgroundColor={theme.green} size="Small" title="PUBLIC" />
                             </Kb.Box2>
                           )
                         : (participants || []).join(',')}
@@ -386,6 +396,8 @@ const useMenuItems = (
 }
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {navBadges, showBadges} = p
   const openApp = (tab?: C.Tabs.AppTab) => {
     R.remoteDispatch(RemoteGen.createShowMain())
@@ -421,7 +433,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
       flex={1}
       style={Kb.Styles.collapseStyles([
         styles.topRow,
-        {backgroundColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
+        {backgroundColor: isDarkMode ? '#2d2d2d' : theme.blueDark},
       ])}
     >
       <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
@@ -433,8 +445,8 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
         <Kb.Icon
-          color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
-          hoverColor={Kb.Styles.globalColors.whiteOrWhite}
+          color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
+          hoverColor={theme.whiteOrWhite}
           onClick={showPopup}
           type="iconfont-nav-2-hamburger"
           sizeType="Big"
@@ -449,6 +461,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
 const badgeTypesInHeader = [C.Tabs.peopleTab, C.Tabs.chatTab, C.Tabs.fsTab, C.Tabs.teamsTab] as const
 const badgesInMenu = [C.Tabs.gitTab, C.Tabs.devicesTab, C.Tabs.settingsTab] as const
 const LoggedIn = (p: Props) => {
+  const styles = useStyles()
   const {endEstimate, files, following, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, conversationsToSend, remoteTlfUpdates} = p
   const {httpSrvAddress, httpSrvToken, username} = p
@@ -492,6 +505,7 @@ const LoggedIn = (p: Props) => {
 }
 
 const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; loggedIn: boolean}) => {
+  const styles = useStyles()
   const {daemonHandshakeState, loggedIn} = p
 
   const fullyLoggedOut = daemonHandshakeState === 'done' && !loggedIn
@@ -532,6 +546,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
 }
 
 const MenubarRender = (p: Props) => {
+  const styles = useStyles()
   const {loggedIn, daemonHandshakeState} = p
   let content: React.ReactNode
   if (daemonHandshakeState === 'done' && loggedIn) {
@@ -554,11 +569,13 @@ const MenubarRender = (p: Props) => {
 }
 
 const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {count, iconType, title} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
       <Kb.Box2 direction="vertical" relative={true}>
-        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
+        <Kb.Icon type={iconType} color={theme.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
       <Kb.Text className="title" type="BodySemibold">
@@ -581,6 +598,8 @@ const iconMap = {
 type Tabs = (typeof badgeTypesInHeader)[number] | (typeof badgesInMenu)[number]
 
 const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t: Tabs) => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {tab, countMap, openApp} = p
   const count = countMap[tab]
   const iconType = iconMap[tab]
@@ -593,8 +612,8 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
   return (
     <Kb.Box2 direction="vertical" style={styles.badgeIconContainer}>
       <Kb.Icon
-        color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
-        hoverColor={Kb.Styles.globalColors.whiteOrWhite}
+        color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
+        hoverColor={theme.whiteOrWhite}
         onClick={() => openApp(tab)}
         sizeType="Big"
         style={styles.navIcons}
@@ -605,7 +624,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   arrowTick: {
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
@@ -633,21 +652,21 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   chatBadge: {
-    backgroundColor: Kb.Styles.globalColors.blue,
+    backgroundColor: theme.blue,
     borderRadius: Kb.Styles.borderRadius,
     ...Kb.Styles.size(8),
   },
   chatContainer: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    color: Kb.Styles.globalColors.black,
+    backgroundColor: theme.white,
+    color: theme.black,
   },
   chatRowInner: Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xsmall),
   chatRowName: {flexShrink: 1},
 
   chatRowNameLeft: {flexShrink: 1},
-  chatSnippet: {color: Kb.Styles.globalColors.black_50},
-  chatSnippetUnread: {color: Kb.Styles.globalColors.black},
-  chatTimestamp: {color: Kb.Styles.globalColors.black_50, flexShrink: 0, marginLeft: Kb.Styles.globalMargins.tiny},
+  chatSnippet: {color: theme.black_50},
+  chatSnippetUnread: {color: theme.black},
+  chatTimestamp: {color: theme.black_50, flexShrink: 0, marginLeft: Kb.Styles.globalMargins.tiny},
   fileIcon: {
     flexShrink: 0,
     ...Kb.Styles.size(16),
@@ -678,8 +697,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   navIcons: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny)},
   showMoreContainer: {marginTop: Kb.Styles.globalMargins.tiny},
   tlfContainer: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    color: Kb.Styles.globalColors.black,
+    backgroundColor: theme.white,
+    color: theme.black,
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
   },
   tlfParticipants: {fontSize: 12},
@@ -687,14 +706,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny),
   },
   tlfSectionHeader: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
-    color: Kb.Styles.globalColors.black_50,
+    backgroundColor: theme.blueGrey,
+    color: theme.black_50,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, 0, Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
   },
   tlfTime: {marginRight: Kb.Styles.globalMargins.tiny},
 
-  tlfWriterFollowing: {color: Kb.Styles.globalColors.greenDark},
-  tlfWriterNotFollowing: {color: Kb.Styles.globalColors.blueDark},
+  tlfWriterFollowing: {color: theme.greenDark},
+  tlfWriterNotFollowing: {color: theme.blueDark},
   topRow: {
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
@@ -703,7 +722,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },
   widgetContainer: {
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
     ...Kb.Styles.size('100%'),

@@ -14,6 +14,7 @@ const iconfontTypes: ReadonlyArray<IconType> = (Object.keys(iconMeta) as Array<I
 const CELL_SIZE = 80
 
 const IconCell = ({type}: {type: IconType}) => {
+  const styles = useStyles()
   const name = type.replace(/^iconfont-/, '')
   return (
     <Kb.Box2 direction="vertical" padding="xtiny" style={styles.cell} alignItems="center">
@@ -33,6 +34,8 @@ const sfTogglePairs: ReadonlyArray<{off: SFSymbolName; on: SFSymbolName}> = [
 ]
 
 const SFToggleCell = ({off, on}: {off: SFSymbolName; on: SFSymbolName}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [isOn, setOn] = React.useState(false)
   const name = isOn ? on : off
   return (
@@ -46,7 +49,7 @@ const SFToggleCell = ({off, on}: {off: SFSymbolName; on: SFSymbolName}) => {
       <NavSFSymbol
         name={name}
         size={32}
-        color={Kb.Styles.globalColors.black}
+        color={theme.black}
         contentTransition={{magic: true, type: 'replace'}}
       />
       <Kb.Text type="BodyTiny" style={styles.cellLabel} lineClamp={2}>
@@ -57,6 +60,8 @@ const SFToggleCell = ({off, on}: {off: SFSymbolName; on: SFSymbolName}) => {
 }
 
 const SFVariableCell = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [value, setValue] = React.useState(1)
   return (
     <Kb.ClickableBox
@@ -69,7 +74,7 @@ const SFVariableCell = () => {
       <NavSFSymbol
         name="wifi"
         size={32}
-        color={Kb.Styles.globalColors.black}
+        color={theme.black}
         variableValue={value}
         contentTransition="automatic"
       />
@@ -80,19 +85,23 @@ const SFVariableCell = () => {
   )
 }
 
-const SFSymbolDemos = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="tiny" alignItems="flex-start">
-    <Kb.Text type="BodySmallSemibold">SF Symbol contentTransition — tap a tile (iOS 17+)</Kb.Text>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grid}>
-      {sfTogglePairs.map(p => (
-        <SFToggleCell key={p.off} off={p.off} on={p.on} />
-      ))}
-      <SFVariableCell />
+const SFSymbolDemos = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="tiny" alignItems="flex-start">
+      <Kb.Text type="BodySmallSemibold">SF Symbol contentTransition — tap a tile (iOS 17+)</Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grid}>
+        {sfTogglePairs.map(p => (
+          <SFToggleCell key={p.off} off={p.off} on={p.on} />
+        ))}
+        <SFVariableCell />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const Icons = () => {
+  const styles = useStyles()
   const [query, setQuery] = React.useState('')
   const filtered = query
     ? iconfontTypes.filter(t => t.includes(query.toLowerCase()))
@@ -124,15 +133,15 @@ const Icons = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   cell: Kb.Styles.size(CELL_SIZE),
   cellLabel: {
-    color: Kb.Styles.globalColors.black_50,
+    color: theme.black_50,
     marginTop: 2,
     textAlign: 'center',
   },
   count: {
-    color: Kb.Styles.globalColors.black_50,
+    color: theme.black_50,
     marginLeft: Kb.Styles.globalMargins.small,
   },
   grid: {
@@ -140,7 +149,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   scroll: {flex: 1},
   searchRow: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
+    borderBottomColor: theme.black_10,
     borderBottomWidth: 1,
   },
 }))

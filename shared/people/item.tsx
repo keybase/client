@@ -24,54 +24,57 @@ export type Props = {
   buttons?: Array<TaskButton>
 }
 
-const PeopleItem = (props: Props) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
-    {!!props.icon && (
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
-        {props.icon}
-      </Kb.Box2>
-    )}
-
-    <Kb.Box2
-      direction="vertical"
-      flex={1}
-      gap="xtiny"
-      overflow="hidden"
-      style={Kb.Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
-    >
-      {props.children}
-      <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true} justifyContent="flex-start">
-        {props.buttons &&
-          props.buttons.length > 0 &&
-          props.buttons.map((b, idx) =>
-            React.isValidElement(b) ? (
-              <Kb.Box2 key={idx} direction="vertical" style={styles.button}>
-                {b}
-              </Kb.Box2>
-            ) : (
-              <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
-            )
-          )}
-      </Kb.Box2>
-    </Kb.Box2>
-    <Kb.Box2
-      direction="horizontal"
-      alignItems="center"
-      style={Kb.Styles.collapseStyles([
-        styles.timestampContainer,
-        props.format === 'multi' && styles.timestampContainerMulti,
-      ])}
-    >
-      {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
-      {props.badged && (
-        <Kb.Badge badgeStyle={styles.badge} height={Kb.Styles.globalMargins.tiny} leftRightPadding={0} />
+const PeopleItem = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
+      {!!props.icon && (
+        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
+          {props.icon}
+        </Kb.Box2>
       )}
+
+      <Kb.Box2
+        direction="vertical"
+        flex={1}
+        gap="xtiny"
+        overflow="hidden"
+        style={Kb.Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
+      >
+        {props.children}
+        <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true} justifyContent="flex-start">
+          {props.buttons &&
+            props.buttons.length > 0 &&
+            props.buttons.map((b, idx) =>
+              React.isValidElement(b) ? (
+                <Kb.Box2 key={idx} direction="vertical" style={styles.button}>
+                  {b}
+                </Kb.Box2>
+              ) : (
+                <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
+              )
+            )}
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Box2
+        direction="horizontal"
+        alignItems="center"
+        style={Kb.Styles.collapseStyles([
+          styles.timestampContainer,
+          props.format === 'multi' && styles.timestampContainerMulti,
+        ])}
+      >
+        {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
+        {props.badged && (
+          <Kb.Badge badgeStyle={styles.badge} height={Kb.Styles.globalMargins.tiny} leftRightPadding={0} />
+        )}
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 export default PeopleItem
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   actionContainer: {
     flexWrap: 'wrap',
   },
@@ -85,15 +88,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.white,
-      ...Kb.Styles.bottomDivider(),
+      backgroundColor: theme.white,
+      ...Kb.Styles.bottomDivider(theme),
       ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
       position: 'relative',
     },
   }),
   containerBadged: {
-    backgroundColor: Kb.Styles.globalColors.blueLighter2,
-    borderBottomColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.blueLighter2,
+    borderBottomColor: theme.white,
   },
   iconContainer: {
     marginLeft: Kb.Styles.globalMargins.small,

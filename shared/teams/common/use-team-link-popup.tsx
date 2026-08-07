@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 
 export const useTeamLinkPopup = (teamname: string) => {
+  const styles = useStyles()
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const shareURLApp = `keybase://team-page/${teamname}`
@@ -29,12 +30,12 @@ export const useTeamLinkPopup = (teamname: string) => {
   return Kb.usePopup2(makePopup)
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   linkPopupContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
     isElectron: {maxWidth: 300},
   }),
-  overlay: {backgroundColor: Kb.Styles.globalColors.white, marginTop: Kb.Styles.globalMargins.tiny},
+  overlay: {backgroundColor: theme.white, marginTop: Kb.Styles.globalMargins.tiny},
 }))

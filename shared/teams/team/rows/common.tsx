@@ -5,16 +5,19 @@ import type * as React from 'react'
 import MenuHeader from './menu-header'
 
 // the explanatory blueGrey footer row at the bottom of the channels/subteams tabs
-export const InfoNoteRow = (props: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={infoNoteStyles.container}>
-    <Kb.InfoNote>{props.children}</Kb.InfoNote>
-  </Kb.Box2>
-)
+export const InfoNoteRow = (props: {children: React.ReactNode}) => {
+  const infoNoteStyles = useInfoNoteStyles()
+  return (
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={infoNoteStyles.container}>
+      <Kb.InfoNote>{props.children}</Kb.InfoNote>
+    </Kb.Box2>
+  )
+}
 
-export const infoNoteStyles = Kb.Styles.styleSheetCreate(() => ({
+export const useInfoNoteStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.large, Kb.Styles.globalMargins.medium),
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
   },
   text: {
     maxWidth: 326,
@@ -22,7 +25,7 @@ export const infoNoteStyles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 // styles shared by the selectable member/channel rows
-export const selectionStyles = Kb.Styles.styleSheetCreate(() => ({
+export const useSelectionStyles = Kb.Styles.createStyleHook(theme => ({
   checkCircle: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
     alignSelf: 'center',
@@ -31,8 +34,8 @@ export const selectionStyles = Kb.Styles.styleSheetCreate(() => ({
   listItemMargin: {marginLeft: 0},
   mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
   nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
-  selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
-  unselected: {backgroundColor: Kb.Styles.globalColors.white},
+  selected: {backgroundColor: theme.blueLighterOrBlueDarker},
+  unselected: {backgroundColor: theme.white},
   widenClickableArea: {margin: -5, padding: 5},
 }))
 
@@ -43,15 +46,17 @@ export const getResetLabel = (status: T.Teams.MemberStatus, youCanManageMembers:
       ? 'Has reset their account'
       : 'Has reset their account; admins can re-invite'
 
-export const FullNameLabel = (props: {fullName: string; active: boolean}) =>
-  props.fullName && props.active ? (
-    <Kb.Text style={selectionStyles.fullNameLabel} type="BodySmall" lineClamp={1}>
-      {props.fullName} •
-    </Kb.Text>
-  ) : null
+export const FullNameLabel = (props: {fullName: string; active: boolean}) => {
+  const selectionStyles = useSelectionStyles()
+  return props.fullName && props.active ? (
+      <Kb.Text style={selectionStyles.fullNameLabel} type="BodySmall" lineClamp={1}>
+        {props.fullName} •
+      </Kb.Text>
+    ) : null
+}
 
 // ListItem props that swap the leading icon for a mass-selection check circle
-export const getMassActionsProps = (username: string, selected: boolean, onSelect: (s: boolean) => void) => ({
+export const getMassActionsProps = (username: string, selected: boolean, onSelect: (s: boolean) => void, selectionStyles: ReturnType<typeof useSelectionStyles>) => ({
   containerStyleOverride: selectionStyles.listItemMargin,
   icon: (
     <Kb.CheckCircle
@@ -97,6 +102,8 @@ type MemberMenuProps = {
 // the chat/ellipsis hover actions incl. the "More actions" floating menu, shared
 // by the team-members and channel-members rows
 export const MemberActions = (props: MemberMenuProps) => {
+  const selectionStyles = useSelectionStyles()
+  const theme = Kb.Styles.useTheme()
   const {blockIcon, canEditRole, crown, fullName, isYou, onAddToChannels, onBlock, onChat} = props
   const {onEditRole, onOpenProfile, removeItem, roleLabel, username, youCanManageMembers} = props
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -174,7 +181,7 @@ export const MemberActions = (props: MemberMenuProps) => {
       {popup}
       <Kb.IconButton
         icon="iconfont-chat"
-        iconColor={Kb.Styles.globalColors.black_50}
+        iconColor={theme.black_50}
         mode="Secondary"
         onClick={onChat}
         small={true}
@@ -182,7 +189,7 @@ export const MemberActions = (props: MemberMenuProps) => {
       />
       <Kb.IconButton
         icon="iconfont-ellipsis"
-        iconColor={Kb.Styles.globalColors.black_50}
+        iconColor={theme.black_50}
         mode="Secondary"
         onClick={showPopup}
         ref={popupAnchor}

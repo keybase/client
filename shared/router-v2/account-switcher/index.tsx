@@ -10,6 +10,7 @@ import {navToProfile} from '@/constants/router'
 import {rememberAccountSwitchTab} from '../account-switch'
 
 const AccountSwitcher = (p: {onSelected?: () => void}) => {
+  const styles = useStyles()
   const {onSelected} = p
   const _fullnames = useUsersState(s => s.infoMap)
   const {
@@ -91,40 +92,43 @@ type Props = {
   waiting: boolean
 }
 
-const MobileHeader = (props: Props) => (
-  <>
-    <Kb.Box2
-      direction="vertical"
-      gap="tiny"
-      gapStart={true}
-      centerChildren={true}
-      gapEnd={true}
-      fullWidth={true}
-      style={styles.userBox}
-    >
-      <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
-      <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
-          {props.username}
-        </Kb.Text>
-        <Kb.Text type="BodySmall" lineClamp={1} onClick={props.onProfileClick}>
-          {props.fullname}
-        </Kb.Text>
-      </Kb.Box2>
-      <Kb.Button fullWidth={true} label="View/Edit profile" mode="Secondary" onClick={props.onProfileClick} />
-      <Kb.Divider style={styles.divider} />
-    </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
-      <Kb.WaitingButton
-        onClick={props.onLoginAsAnotherUser}
-        label="Log in as another user"
-        mode="Primary"
+const MobileHeader = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <>
+      <Kb.Box2
+        direction="vertical"
+        gap="tiny"
+        gapStart={true}
+        centerChildren={true}
+        gapEnd={true}
         fullWidth={true}
-        waitingKey={C.waitingKeyConfigLoginAsOther}
-      />
-    </Kb.Box2>
-  </>
-)
+        style={styles.userBox}
+      >
+        <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
+            {props.username}
+          </Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1} onClick={props.onProfileClick}>
+            {props.fullname}
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.Button fullWidth={true} label="View/Edit profile" mode="Secondary" onClick={props.onProfileClick} />
+        <Kb.Divider style={styles.divider} />
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
+        <Kb.WaitingButton
+          onClick={props.onLoginAsAnotherUser}
+          label="Log in as another user"
+          mode="Primary"
+          fullWidth={true}
+          waitingKey={C.waitingKeyConfigLoginAsOther}
+        />
+      </Kb.Box2>
+    </>
+  )
+}
 
 type AccountRowProps = {
   entry: AccountRowItem
@@ -132,6 +136,7 @@ type AccountRowProps = {
   waiting: boolean
 }
 const AccountRow = (props: AccountRowProps) => {
+  const styles = useStyles()
   const {waiting, entry, onSelectAccount} = props
   const [{clicked, wasWaiting}, setClickedState] = React.useState(() => ({
     clicked: false,
@@ -175,20 +180,23 @@ const AccountRow = (props: AccountRowProps) => {
   )
 }
 
-const AccountsRows = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.accountRows}>
-    {props.accountRows.map(entry => (
-      <AccountRow
-        entry={entry}
-        onSelectAccount={props.onSelectAccount}
-        waiting={props.waiting}
-        key={entry.account.username}
-      />
-    ))}
-  </Kb.Box2>
-)
+const AccountsRows = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.accountRows}>
+      {props.accountRows.map(entry => (
+        <AccountRow
+          entry={entry}
+          onSelectAccount={props.onSelectAccount}
+          waiting={props.waiting}
+          key={entry.account.username}
+        />
+      ))}
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   accountRows: Kb.Styles.platformStyles({
     isTablet: {maxWidth: Kb.Styles.globalStyles.mediumWidth},
   }),

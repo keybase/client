@@ -13,6 +13,7 @@ type AliasInputProps = {
 
 export type AliasRef = {focus: () => void}
 export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>}) {
+  const styles = useStyles()
   const {ref, error, disabled, small, onChangeAlias, onEnterKeyDown, onRemove} = props
   const inputRef = React.useRef<Kb.Input3Ref>(null)
 
@@ -60,6 +61,7 @@ type ModalProps = {
 }
 
 export const Modal = (props: ModalProps) => {
+  const styles = useStyles()
   return (
     <Kb.Box2
       direction="vertical"
@@ -101,7 +103,7 @@ export const Modal = (props: ModalProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   aliasInput: Kb.Styles.platformStyles({
     common: {
       flexBasis: 0,

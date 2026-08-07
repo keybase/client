@@ -29,11 +29,14 @@ import {useSharedValue} from 'react-native-reanimated'
 import {HeaderHeightContext} from '@react-navigation/elements'
 import logger from '@/logger'
 
-const Offline = () => (
-  <Kb.Banner color="grey" small={true} style={styles.offline}>
-    {"Couldn't load all chat messages due to network connectivity. Retrying..."}
-  </Kb.Banner>
-)
+const Offline = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Banner color="grey" small={true} style={styles.offline}>
+      {"Couldn't load all chat messages due to network connectivity. Retrying..."}
+    </Kb.Banner>
+  )
+}
 
 const LoadingLine = () => {
   const conversationIDKey = useConversationThreadID()
@@ -45,6 +48,7 @@ const LoadingLine = () => {
 }
 
 const DesktopConversation = function DesktopConversation() {
+  const desktopStyles = useDesktopStyles()
   const conversationIDKey = useConversationThreadID()
   const navigateAppend = C.Router2.navigateAppend
   const onAttach = (paths: Array<string>) => {
@@ -114,6 +118,7 @@ const DesktopConversation = function DesktopConversation() {
 }
 
 const NativeConversation = function NativeConversation() {
+  const styles = useStyles()
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [maxInputArea, setMaxInputArea] = React.useState(0)
@@ -186,7 +191,7 @@ const NativeConversation = function NativeConversation() {
   )
 }
 
-const desktopStyles = Kb.Styles.styleSheetCreate(
+const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       container: {
@@ -206,11 +211,11 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       offline: {padding: Kb.Styles.globalMargins.xxtiny},
-      whiteBackground: {backgroundColor: Kb.Styles.globalColors.white},
+      whiteBackground: {backgroundColor: theme.white},
     }) as const
 )
 

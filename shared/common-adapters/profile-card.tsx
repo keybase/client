@@ -74,6 +74,8 @@ const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | 
 }
 
 const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const services = new Map(
     userDetailsAssertions
       ? [...userDetailsAssertions.values()].map(assertion => [assertion.type, assertion])
@@ -103,21 +105,21 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
               `${assertion.value} on ${capitalize(serviceId)}` +
               (assertion.state === 'valid' ? '' : ' (unverified)')
             }
-            backgroundColor={assertion.state === 'valid' ? undefined : Styles.globalColors.red}
+            backgroundColor={assertion.state === 'valid' ? undefined : theme.red}
             position="top center"
             showOnPressMobile={true}
             containerStyle={styles.iconContainer}
           >
             <Kb.Icon
               type={Platforms.serviceIdToIcon(serviceId)}
-              color={assertion.state === 'valid' ? Styles.globalColors.black : Styles.globalColors.black_20}
+              color={assertion.state === 'valid' ? theme.black : theme.black_20}
             />
             {assertion.state !== 'valid' && (
               <Kb.Icon
                 fontSize={isMobile ? 12 : 10}
                 style={styles.brokenBadge}
                 type="iconfont-proof-broken"
-                color={Styles.globalColors.red}
+                color={theme.red}
               />
             )}
           </Kb.WithTooltip>
@@ -125,7 +127,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
       })}
       {!!expandLabel && (
         <Kb.ClickableBox onClick={() => setExpanded(true)} direction="vertical" style={styles.expand}>
-          <Kb.Meta title={expandLabel} backgroundColor={Styles.globalColors.greyDark} />
+          <Kb.Meta title={expandLabel} backgroundColor={theme.greyDark} />
         </Kb.ClickableBox>
       )}
     </Kb.Box2>
@@ -140,6 +142,8 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   // a hover card is incidental, not "check this identity now" - the cached proof
   // results are what it should show, and forcing a check re-fetches every proof
   // from its third-party host
@@ -196,7 +200,7 @@ const ProfileCard = ({
       style={Styles.collapseStyles([styles.container, containerStyle])}
     >
       {!!showClose && (
-        <Kb.Icon type="iconfont-close" color={Styles.globalColors.black_20} onClick={() => {}} style={styles.close} padding="tiny" />
+        <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={() => {}} style={styles.close} padding="tiny" />
       )}
       <Kb.ConnectedNameWithIcon
         onClick={clickToProfile && openProfile}
@@ -251,6 +255,7 @@ type WithProfileCardPopupProps = {
 }
 
 export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithProfileCardPopupProps) => {
+  const styles = useStyles()
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
@@ -325,12 +330,12 @@ _setWithProfileCardPopup(WithProfileCardPopup)
 
 export default ProfileCard
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
       brokenBadge: Styles.platformStyles({
         common: {
-          ...Styles.border(Styles.globalColors.white, Styles.globalMargins.xxtiny),
+          ...Styles.border(theme.white, Styles.globalMargins.xxtiny),
           bottom: -Styles.globalMargins.xxtiny,
           position: 'absolute',
           right: -Styles.globalMargins.xxtiny,
@@ -360,7 +365,7 @@ const styles = Styles.styleSheetCreate(
       }),
       container: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: theme.white,
           ...Styles.padding(
             Styles.globalMargins.small,
             Styles.globalMargins.tiny,

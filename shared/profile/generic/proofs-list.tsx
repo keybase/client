@@ -654,13 +654,16 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
   return content
 }
 
-const ErrorBanner = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} padding="medium" style={styles.error}>
-    <Kb.Text center={true} negative={true} type="BodySemibold">
-      {children}
-    </Kb.Text>
-  </Kb.Box2>
-)
+const ErrorBanner = ({children}: {children: React.ReactNode}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="medium" style={styles.error}>
+      <Kb.Text center={true} negative={true} type="BodySemibold">
+        {children}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const ProviderPicker = ({
   onCancel,
@@ -671,6 +674,8 @@ const ProviderPicker = ({
   onSelect: (key: string) => void
   providers: Array<Provider>
 }) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [filter, setFilter] = React.useState('')
   const itemHeight = {
     height: rowHeight,
@@ -730,7 +735,7 @@ const ProviderPicker = ({
                         {provider.new && (
                           <Kb.Meta
                             title="NEW"
-                            backgroundColor={Kb.Styles.globalColors.blue}
+                            backgroundColor={theme.blue}
                             style={styles.new}
                           />
                         )}
@@ -741,7 +746,7 @@ const ProviderPicker = ({
                     )}
                   </Kb.Box2>
                   <Kb.Icon
-                    color={Kb.Styles.globalColors.black_50}
+                    color={theme.black_50}
                     fontSize={isMobile ? 20 : 16}
                     style={styles.iconArrow}
                     type="iconfont-arrow-right"
@@ -773,6 +778,8 @@ const EnterUsername = ({
   platform: T.More.PlatformsExpandedType
   username: string
 }) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const [usernameState, setUsernameState] = React.useState({
     initialUsername,
     username: initialUsername,
@@ -830,7 +837,7 @@ const EnterUsername = ({
           style={styles.center}
           platform={platform}
           overlay="icon-proof-unfinished"
-          overlayColor={Kb.Styles.globalColors.greyDark}
+          overlayColor={theme.greyDark}
         />
         <Kb.Input3
           autoFocus={true}
@@ -861,6 +868,7 @@ const GenericEnterUsername = ({
   onSubmit: (username: string) => void
   step: GenericEnterUsernameStep
 }) => {
+  const styles = useStyles()
   const [usernameState, setUsernameState] = React.useState({
     stepUsername: step.username,
     username: step.username,
@@ -983,6 +991,8 @@ const PostProof = ({
   onSubmit: () => void
   step: PostProofStep
 }) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   let proofText = step.proofText
   let url = ''
   let openLinkBeforeSubmit = false
@@ -1038,7 +1048,7 @@ const PostProof = ({
             platform={step.platform}
             style={styles.center}
             overlay="icon-proof-unfinished"
-            overlayColor={Kb.Styles.globalColors.greyDark}
+            overlayColor={theme.greyDark}
           />
           <>
             <Kb.Text center={true} style={styles.blue} type="Header">
@@ -1080,13 +1090,15 @@ const PostProof = ({
 }
 
 const ConfirmOrPending = ({onClose, step}: {onClose: () => void; step: ConfirmOrPendingStep}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const isGood = step.proofFound && step.proofStatus === T.RPCGen.ProofStatus.ok
   const isPending =
     !isGood &&
     !step.proofFound &&
     !!step.proofStatus &&
     step.proofStatus <= T.RPCGen.ProofStatus.baseHardError
-  const platformIconOverlayColor = isGood ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.greyDark
+  const platformIconOverlayColor = isGood ? theme.green : theme.greyDark
   const platformIconOverlay = isPending ? 'icon-proof-pending' : 'icon-proof-success'
   const platformSubtitle = subtitle(step.platform)
   const title = isPending ? 'Your proof is pending.' : 'Verified!'
@@ -1134,6 +1146,7 @@ const ConfirmOrPending = ({onClose, step}: {onClose: () => void; step: ConfirmOr
 }
 
 const GenericResult = ({onClose, step}: {onClose: () => void; step: GenericResultStep}) => {
+  const styles = useStyles()
   const proofUsername = step.username + step.genericParams.suffix
   const success = !step.error
   const iconType = success ? 'icon-proof-success' : 'icon-proof-broken'
@@ -1176,35 +1189,39 @@ const Unreachable = ({
   serviceIcon: T.Tracker.SiteIconSet
   serviceSuffix: string
   username: string
-}) => (
-  <Kb.Box2
-    direction="horizontal"
-    gap="xtiny"
-    alignItems="flex-start"
-    style={Kb.Styles.collapseStyles([styles.inputBox, styles.unreachableBox])}
-    fullWidth={isMobile}
-  >
-    <SiteIcon
-      set={serviceIcon}
-      full={false}
-      style={Kb.Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
-    />
-    <Kb.Box2 direction="vertical" flex={1}>
-      <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
-        <Kb.Text type="BodySemibold" style={styles.colorRed}>
-          {username}
+}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      alignItems="flex-start"
+      style={Kb.Styles.collapseStyles([styles.inputBox, styles.unreachableBox])}
+      fullWidth={isMobile}
+    >
+      <SiteIcon
+        set={serviceIcon}
+        full={false}
+        style={Kb.Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
+      />
+      <Kb.Box2 direction="vertical" flex={1}>
+        <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
+          <Kb.Text type="BodySemibold" style={styles.colorRed}>
+            {username}
+          </Kb.Text>
+          {serviceSuffix}
         </Kb.Text>
-        {serviceSuffix}
-      </Kb.Text>
-      <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
+        <Kb.Meta title="unreachable" backgroundColor={theme.red} />
+      </Kb.Box2>
+      <Kb.Icon
+        type="iconfont-proof-broken"
+        color={theme.red}
+        style={Kb.Styles.collapseStyles([styles.inlineIcon, styles.marginLeftAuto])}
+      />
     </Kb.Box2>
-    <Kb.Icon
-      type="iconfont-proof-broken"
-      color={Kb.Styles.globalColors.red}
-      style={Kb.Styles.collapseStyles([styles.inlineIcon, styles.marginLeftAuto])}
-    />
-  </Kb.Box2>
-)
+  )
+}
 
 const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
   platform === 'hackernews' ? (
@@ -1260,6 +1277,7 @@ const noteMap = new Map([
 ])
 
 const WebDescription = ({platformUserName}: {platformUserName: string}) => {
+  const styles = useStyles()
   const root = `${platformUserName}/keybase.txt`
   const wellKnown = `${platformUserName}/.well-known/keybase.txt`
   const rootUrlProps = Kb.useClickURL(`https://${root}`)
@@ -1346,8 +1364,8 @@ const filterProvider = (p: Provider, filter: RegExp) =>
 
 const rowHeight = isMobile ? 56 : 48
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       backButton: {
         left: Kb.Styles.globalMargins.small,
@@ -1355,7 +1373,7 @@ const styles = Kb.Styles.styleSheetCreate(
         top: Kb.Styles.globalMargins.small,
       },
       blue: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.blueDark},
+        common: {color: theme.blueDark},
         isElectron: {wordBreak: 'break-all'},
       }),
       bottomContainer: {height: 80},
@@ -1366,11 +1384,11 @@ const styles = Kb.Styles.styleSheetCreate(
           Kb.Styles.globalMargins.medium
         ),
       },
-      buttonBarWarning: {backgroundColor: Kb.Styles.globalColors.yellow},
+      buttonBarWarning: {backgroundColor: theme.yellow},
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
       center: {alignSelf: 'center'},
-      colorRed: {color: Kb.Styles.globalColors.redDark},
+      colorRed: {color: theme.redDark},
       container: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
@@ -1383,11 +1401,11 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       description: Kb.Styles.platformStyles({isElectron: {...Kb.Styles.textEllipsis}}),
       error: {
-        backgroundColor: Kb.Styles.globalColors.red,
+        backgroundColor: theme.red,
         borderRadius: Kb.Styles.borderRadius,
         marginBottom: Kb.Styles.globalMargins.small,
       },
-      grey: {color: Kb.Styles.globalColors.black_20},
+      grey: {color: theme.black_20},
       icon: {
         ...Kb.Styles.size(32),
         ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
@@ -1404,12 +1422,12 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       inputBox: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
-        ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
+        ...Kb.Styles.border(theme.black_10, 1, Kb.Styles.borderRadius),
         minHeight: 40,
       },
       inputContainer: {
         alignSelf: 'stretch',
-        backgroundColor: Kb.Styles.globalColors.black_10,
+        backgroundColor: theme.black_10,
         borderRadius: Kb.Styles.borderRadius,
         ...Kb.Styles.marginV(Kb.Styles.globalMargins.xsmall),
         ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
@@ -1425,7 +1443,7 @@ const styles = Kb.Styles.styleSheetCreate(
       opacity40: {opacity: 0.4},
       opacity75: {opacity: 0.75},
       placeholderService: {
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
       },
       proof: {
         maxWidth: '100%',
@@ -1450,17 +1468,17 @@ const styles = Kb.Styles.styleSheetCreate(
         right: -8,
       },
       text: {
-        backgroundColor: Kb.Styles.globalColors.transparent,
-        color: Kb.Styles.globalColors.black_50,
+        backgroundColor: theme.transparent,
+        color: theme.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
       title: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black},
+        common: {color: theme.black},
         isElectron: {...Kb.Styles.textEllipsis},
       }),
       topContainer: {flex: 1},
       unreachableBox: {
-        backgroundColor: Kb.Styles.globalColors.black_05,
+        backgroundColor: theme.black_05,
       },
       unreachablePlaceholder: {
         alignItems: 'center',
@@ -1472,7 +1490,7 @@ const styles = Kb.Styles.styleSheetCreate(
       warningText: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.medium, 0),
       },
-      webLink: {color: Kb.Styles.globalColors.blueDark},
+      webLink: {color: theme.blueDark},
       webLinkFirst: {marginTop: Kb.Styles.globalMargins.tiny},
     }) as const
 )

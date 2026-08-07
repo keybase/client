@@ -31,6 +31,7 @@ type Props = {
 }
 
 const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
+  const styles = useStyles()
   const navigation = useNavigation('teamWizard2TeamInfo')
   const parentTeamID = teamWizardState.parentTeamID ?? T.Teams.noTeamID
   const {
@@ -234,7 +235,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   biggerOnTheInside: {height: 100},
   body: Kb.Styles.platformStyles({
     common: {

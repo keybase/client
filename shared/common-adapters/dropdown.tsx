@@ -33,6 +33,7 @@ type DropdownButtonProps = {
   loading?: boolean
 }
 export const DropdownButton = (props: DropdownButtonProps) => {
+  const styles = useStyles()
   const {disabled, toggleOpen, style, popupAnchor, selectedBoxStyle, inline, loading, selected} = props
   return (
     <Kb.ClickableBox
@@ -84,6 +85,7 @@ type Props<N> = {
 }
 
 function Dropdown<N extends React.ReactNode>(p: Props<N>) {
+  const styles = useStyles()
   const disabled = p.disabled ?? false
   const {style, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p
@@ -169,6 +171,7 @@ type InlineDropdownProps = {
 )
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
+  const styles = useStyles()
   const {containerStyle, label, loading, onPress, selectedStyle, style, textWrapperType} = props
 
   const selected = (
@@ -196,8 +199,8 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
+const useStyles = Styles.createStyleHook(
+  theme =>
     ({
       dropdownBoxContainer: Styles.platformStyles({
         isTablet: {
@@ -218,7 +221,7 @@ const styles = Styles.styleSheetCreate(
       }),
       itemBox: {
         borderBottomWidth: 1,
-        borderColor: Styles.globalColors.black_10,
+        borderColor: theme.black_10,
         borderStyle: 'solid',
         minHeight: isMobile ? 40 : 32,
       },
@@ -230,8 +233,8 @@ const styles = Styles.styleSheetCreate(
       measureBox: {
         ...(isMobile
           ? {
-              borderColor: Styles.globalColors.black_10,
-              color: Styles.globalColors.black_50,
+              borderColor: theme.black_10,
+              color: theme.black_50,
             }
           : {}),
         borderRadius: Styles.borderRadius,
@@ -242,11 +245,11 @@ const styles = Styles.styleSheetCreate(
       overlay: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: theme.white,
           marginTop: Styles.globalMargins.xtiny,
         },
         isElectron: {
-          border: `1px solid ${Styles.globalColors.blue}`,
+          border: `1px solid ${theme.blue}`,
           borderRadius: Styles.borderRadius,
           maxHeight: 300,
           width: 270,

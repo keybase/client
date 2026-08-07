@@ -14,17 +14,17 @@ import Header from './header/index'
 // render through the native appearance path which ignores headerStyle, so styling the others
 // creates two different bar types; pushing between them slides two opaque slabs (visible seam
 // riding the header during the transition) instead of morphing one native bar. The native
-// appearance already draws the theme card color (same palette value as globalColors.white).
+// appearance already draws the theme card color (same palette value as theme.white).
 // Colors go through getters: this object lives at module scope, so a plain read would
 // bake in whatever the theme was at import time (before initDarkMode runs) and Android
 // resolves the palette at read time.
 export const headerDefaultStyle = isAndroid
   ? {
       get backgroundColor() {
-        return Kb.Styles.globalColors.white
+        return Kb.Styles.getTheme().white
       },
       get borderBottomColor() {
-        return Kb.Styles.globalColors.black_10
+        return Kb.Styles.getTheme().black_10
       },
       borderBottomWidth: Kb.Styles.hairlineWidth,
       height: 44,
@@ -33,7 +33,7 @@ export const headerDefaultStyle = isAndroid
 
 export const tabBarStyle = {
   get backgroundColor() {
-    return Kb.Styles.globalColors.blueDarkOrGreyDarkest
+    return Kb.Styles.getTheme().blueDarkOrGreyDarkest
   },
 } as const
 
@@ -100,10 +100,10 @@ export const defaultNavigationOptions = isMobile
       },
       headerStyle: headerDefaultStyle,
       get headerTintColor() {
-        return Kb.Styles.globalColors.black_50
+        return Kb.Styles.getTheme().black_50
       },
       headerTitle: (hp: {children: React.ReactNode}) => (
-        <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
+        <Kb.Text type="BodyBig" style={headerTitleStyle(Kb.Styles.getTheme())} lineClamp={1} center={true}>
           {hp.children}
         </Kb.Text>
       ),
@@ -129,7 +129,7 @@ export const defaultNavigationOptions = isMobile
       headerRightContainerStyle: {paddingRight: 8},
       headerStyle: headerDefaultStyle,
       headerTitle: (hp: {children: React.ReactNode}) => (
-        <Kb.Text type="Header" style={styles.headerTitle} lineClamp={1} center={true}>
+        <Kb.Text type="Header" style={headerTitleStyle(Kb.Styles.getTheme())} lineClamp={1} center={true}>
           {hp.children}
         </Kb.Text>
       ),
@@ -139,9 +139,9 @@ export const defaultNavigationOptions = isMobile
       },
     }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  headerTitle: Kb.Styles.platformStyles({
-    common: {color: Kb.Styles.globalColors.black},
+const headerTitleStyle = Kb.Styles.createThemedValue(theme =>
+  Kb.Styles.platformStyles({
+    common: {color: theme.black},
     isElectron: {
       alignSelf: 'center',
       marginLeft: Kb.Styles.globalMargins.xsmall,
@@ -149,8 +149,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {
       ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
     },
-  }),
-}))
+  })
+)
 
 type SubnavNavigation = Pick<NavigationContainerRef<ParamListBase>, 'dispatch' | 'emit'>
 

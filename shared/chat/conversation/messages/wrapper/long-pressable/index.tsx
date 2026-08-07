@@ -18,6 +18,7 @@ import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 
 function ReplyIcon({progress}: {progress: Animated.Value}) {
+  const styles = useStyles()
   const opacity = progress.interpolate({inputRange: [-20, 0], outputRange: [1, 0], extrapolate: 'clamp'})
   return (
     <Animated.View style={[styles.reply, {opacity}]}>
@@ -27,6 +28,7 @@ function ReplyIcon({progress}: {progress: Animated.Value}) {
 }
 
 function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
+  const styles = useStyles()
   const toggleThreadSearch = useConversationThreadToggleSearch()
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const ordinal = useOrdinal()
@@ -74,7 +76,7 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       pressable: {

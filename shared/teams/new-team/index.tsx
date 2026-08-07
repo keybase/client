@@ -16,6 +16,7 @@ type Props = {
 
 // used in chat too
 export const CreateNewTeam = (props: Props) => {
+  const styles = useStyles()
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
@@ -85,7 +86,7 @@ export const CreateNewTeam = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

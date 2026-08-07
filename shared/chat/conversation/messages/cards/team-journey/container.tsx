@@ -22,6 +22,7 @@ type OwnProps = {ordinal: T.Chat.Ordinal}
 const emptyJourney = Chat.makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
+  const styles = useStyles()
   const {ordinal} = ownProps
   const m = useConversationThreadMessage(ordinal)
   const message = m?.type === 'journeycard' ? m : emptyJourney
@@ -192,6 +193,8 @@ type HeaderProps = {
   deactivateButtons?: boolean
 }
 const TeamJourneyHeader = (props: HeaderProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {teamname, onAuthorClick, deactivateButtons, onDismiss} = props
   const avatarStyle = styles.avatarChat
   return (
@@ -221,7 +224,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
       {!isMobile && !deactivateButtons && (
-        <Kb.Icon type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} fontSize={12} />
+        <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={onDismiss} fontSize={12} />
       )}
     </Kb.Box2>
   )
@@ -229,8 +232,8 @@ const TeamJourneyHeader = (props: HeaderProps) => {
 
 const buttonSpace = 6
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       actionsBox: Kb.Styles.platformStyles({
         common: {marginTop: Kb.Styles.globalMargins.tiny - buttonSpace},
@@ -278,7 +281,7 @@ const styles = Kb.Styles.styleSheetCreate(
       image: Kb.Styles.platformStyles({
         isElectron: {marginTop: -33},
       }),
-      teamnameText: {color: Kb.Styles.globalColors.black},
+      teamnameText: {color: theme.black},
       text: {maxWidth: isMobile ? '70%' : 320},
     }) as const
 )

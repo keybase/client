@@ -96,6 +96,7 @@ const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
 }
 
 const TeamBody = (props: Props) => {
+  const styles = useStyles()
   const teamID = props.teamID
   const initialTab = props.initialTab
   const navigation = useNavigation()
@@ -311,9 +312,9 @@ const Team = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: {
-    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    backgroundColor: theme.blueGrey,
   },
   listContentContainer: Kb.Styles.platformStyles({
     isMobile: {

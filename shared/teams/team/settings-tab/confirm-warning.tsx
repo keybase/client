@@ -15,6 +15,7 @@ type Props = {
 // destructive-settings warning: icon, header, body, an "I understand" checkbox
 // gating the confirm button
 const ConfirmWarning = (props: Props) => {
+  const styles = useStyles()
   const [enabled, setEnabled] = React.useState(false)
 
   return (
@@ -50,7 +51,7 @@ const ConfirmWarning = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   body: {marginBottom: Kb.Styles.globalMargins.small},
   checkbox: Kb.Styles.platformStyles({
     isElectron: {

@@ -50,6 +50,7 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 `
 
 const WebView = (props: WebViewProps) => {
+  const styles = useStyles()
   const {onError, injections} = props
   const webviewRef = React.useRef<ElectronWebviewTag | null>(null)
 
@@ -159,7 +160,7 @@ const WebView = (props: WebViewProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(() => ({
   absolute: {position: 'absolute'},
 }))
 

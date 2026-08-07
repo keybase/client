@@ -6,13 +6,15 @@ import './loading-line.css'
 
 function LoadingLine() {
   'use no memo'
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const opacity = useSharedValue(1)
   React.useEffect(() => {
     if (!isMobile) return
     opacity.set(withDelay(1000, withRepeat(withTiming(0, {duration: 600}), -1, true)))
   }, [opacity])
 
-  const backgroundColor = Styles.undynamicColor(Styles.globalColors.blue)
+  const backgroundColor = Styles.undynamicColor(theme.blue)
   const animatedStyle = useAnimatedStyle(() => {
     return {
       backgroundColor,
@@ -31,14 +33,14 @@ function LoadingLine() {
   return <Animated.View style={[styles.nativeLine, animatedStyle]} />
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   container: {
     left: 0,
     position: 'absolute',
     top: 0,
   },
   line: {
-    backgroundColor: Styles.globalColors.blue,
+    backgroundColor: theme.blue,
     height: 1,
   },
   nativeLine: {

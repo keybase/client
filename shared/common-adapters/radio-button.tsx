@@ -21,6 +21,9 @@ const Kb = {
 const RADIOBUTTON_SIZE = 22
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
+  const desktopStyles = useDesktopStyles()
+  const nativeStyles = useNativeStyles()
+  const theme = Styles.useTheme()
   if (!isMobile) {
     return (
       <div
@@ -30,7 +33,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
         <div className={Styles.classNames('radio-button', {disabled, selected})}>
           <div style={Styles.castStyleDesktop(desktopStyles.radio)} />
         </div>
-        <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
+        <Kb.Text type="Body" style={{color: theme.black}}>
           {label}
         </Kb.Text>
       </div>
@@ -48,7 +51,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
         style={Styles.collapseStyles([
           nativeStyles.outer,
           {
-            borderColor: selected ? Styles.globalColors.blue : Styles.globalColors.black_20,
+            borderColor: selected ? theme.blue : theme.black_20,
             opacity: disabled ? 0.4 : 1,
           },
         ])}
@@ -56,12 +59,12 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
         <View
           style={Styles.collapseStyles([
             nativeStyles.inner,
-            {borderColor: selected ? Styles.globalColors.blue : Styles.globalColors.transparent},
+            {borderColor: selected ? theme.blue : theme.transparent},
           ])}
         />
       </View>
       {typeof label === 'string' ? (
-        <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
+        <Kb.Text type="Body" style={{color: theme.black}}>
           {label}
         </Kb.Text>
       ) : (
@@ -71,7 +74,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
   )
 }
 
-const desktopStyles = Styles.styleSheetCreate(() => ({
+const useDesktopStyles = Styles.createStyleHook(theme => ({
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -80,10 +83,10 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   radio: Styles.platformStyles({
     isElectron: {
       ...Styles.transition('opacity'),
-      border: `solid 3px ${Styles.globalColors.white}`,
+      border: `solid 3px ${theme.white}`,
       borderRadius: 100,
-      color: Styles.globalColors.white,
-      hoverColor: Styles.globalColors.white,
+      color: theme.white,
+      hoverColor: theme.white,
       left: 3,
       position: 'absolute',
       top: 3,
@@ -91,15 +94,15 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const nativeStyles = Styles.styleSheetCreate(
-  () =>
+const useNativeStyles = Styles.createStyleHook(
+  theme =>
     ({
       container: {
         ...Styles.paddingV(Styles.globalMargins.xtiny),
         alignSelf: 'flex-start',
       },
       inner: {
-        borderColor: Styles.globalColors.white,
+        borderColor: theme.white,
         borderRadius: 10,
         borderWidth: 5,
         left: 5,
@@ -108,7 +111,7 @@ const nativeStyles = Styles.styleSheetCreate(
       },
       outer: {
         ...Styles.size(RADIOBUTTON_SIZE),
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: theme.white,
         borderRadius: 100,
         borderWidth: 1,
         position: 'relative' as const,

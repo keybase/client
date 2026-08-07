@@ -35,35 +35,39 @@ const SetMemberShowcase = (props: {
   canShowcase: boolean
   newPublicityMember: boolean
   setNewPublicityMember: (s: boolean) => void
-}) => (
-  <Kb.Box2 direction="vertical" alignItems="flex-start" alignSelf="flex-start" style={styles.memberShowcase}>
-    <Kb.Checkbox
-      checked={props.newPublicityMember}
-      disabled={!props.canShowcase}
-      labelComponent={
-        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-          <Kb.Text style={props.canShowcase ? undefined : styles.grey} type="Body">
-            Feature team on your own profile
-          </Kb.Text>
-          <Kb.Text type="BodySmall">
-            {props.canShowcase
-              ? 'Your profile will mention this team. Team description and number of members will be public.'
-              : props.yourOperationsJoinTeam
-                ? 'You must join this team to feature it on your profile.'
-                : "Admins aren't allowing members to feature this team on their profile."}
-          </Kb.Text>
-        </Kb.Box2>
-      }
-      onCheck={props.setNewPublicityMember}
-      style={styles.paddingRight}
-    />
-  </Kb.Box2>
-)
+}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" alignItems="flex-start" alignSelf="flex-start" style={styles.memberShowcase}>
+      <Kb.Checkbox
+        checked={props.newPublicityMember}
+        disabled={!props.canShowcase}
+        labelComponent={
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
+            <Kb.Text style={props.canShowcase ? undefined : styles.grey} type="Body">
+              Feature team on your own profile
+            </Kb.Text>
+            <Kb.Text type="BodySmall">
+              {props.canShowcase
+                ? 'Your profile will mention this team. Team description and number of members will be public.'
+                : props.yourOperationsJoinTeam
+                  ? 'You must join this team to feature it on your profile.'
+                  : "Admins aren't allowing members to feature this team on their profile."}
+            </Kb.Text>
+          </Kb.Box2>
+        }
+        onCheck={props.setNewPublicityMember}
+        style={styles.paddingRight}
+      />
+    </Kb.Box2>
+  )
+}
 
 const PublicityAnyMember = (props: {
   newPublicityAnyMember: boolean
   setNewPublicityAnyMember: (s: boolean) => void
 }) => {
+  const styles = useStyles()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
@@ -83,6 +87,7 @@ const PublicityAnyMember = (props: {
 const teamsLink = 'keybase.io/popular-teams'
 
 const PublicityTeam = (props: {newPublicityTeam: boolean; setNewPublicityTeam: (s: boolean) => void}) => {
+  const styles = useStyles()
   const teamsLinkUrlProps = Kb.useClickURL(`https://${teamsLink}`)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
@@ -114,6 +119,7 @@ const OpenTeam = (props: {
   onOpenRolePicker: () => void
   newOpenTeamRole: T.Teams.TeamRoleType
 }) => {
+  const styles = useStyles()
   const disabledReasonsForRolePicker = {
     admin: `Users can't join open teams as admins.`,
     owner: `Users can't join open teams as owners.`,
@@ -165,6 +171,7 @@ const IgnoreAccessRequests = (props: {
   newIgnoreAccessRequests: boolean
   setNewIgnoreAccessRequests: (s: boolean) => void
 }) => {
+  const styles = useStyles()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
@@ -184,6 +191,7 @@ const IgnoreAccessRequests = (props: {
 }
 
 const Settings = (p: Props) => {
+  const styles = useStyles()
   const {error, savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
   const {canShowcase, allowOpenTrigger} = p
 
@@ -322,14 +330,14 @@ const Settings = (p: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  grey: {color: Kb.Styles.globalColors.black_50},
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  grey: {color: theme.black_50},
   joinAs: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny},
   }),
   main: {
     alignSelf: 'flex-start',
-    backgroundColor: Kb.Styles.globalColors.white,
+    backgroundColor: theme.white,
     flexBasis: 0,
     maxWidth: 600,
     padding: Kb.Styles.globalMargins.small,
@@ -340,7 +348,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flexShrink: 1,
     paddingRight: Kb.Styles.globalMargins.small,
   },
-  outerBox: {backgroundColor: Kb.Styles.globalColors.white},
+  outerBox: {backgroundColor: theme.white},
   paddingRight: {paddingRight: Kb.Styles.globalMargins.xtiny},
   publicitySettings: {
     paddingRight: Kb.Styles.globalMargins.small,

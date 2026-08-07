@@ -11,27 +11,30 @@ type ModalHeaderProps = {
   rightButton?: React.ReactNode
 }
 
-const ModalHeader = (props: ModalHeaderProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-    <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
-      <Kb.Box2 direction="horizontal" flex={1} style={styles.headerLeft}>
-        {!!props.leftButton && props.leftButton}
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical">
-        {typeof props.title === 'string' ? (
-          <Kb.Text type="Header" lineClamp={1} center={true}>
-            {props.title}
-          </Kb.Text>
-        ) : (
-          props.title
-        )}
-      </Kb.Box2>
-      <Kb.Box2 direction="horizontal" flex={1} style={styles.headerRight}>
-        {!!props.rightButton && props.rightButton}
+const ModalHeader = (props: ModalHeaderProps) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
+        <Kb.Box2 direction="horizontal" flex={1} style={styles.headerLeft}>
+          {!!props.leftButton && props.leftButton}
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical">
+          {typeof props.title === 'string' ? (
+            <Kb.Text type="Header" lineClamp={1} center={true}>
+              {props.title}
+            </Kb.Text>
+          ) : (
+            props.title
+          )}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" flex={1} style={styles.headerRight}>
+          {!!props.rightButton && props.rightButton}
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
@@ -73,6 +76,8 @@ export type ModalWrapperProps = {
 }
 
 export const ModalWrapper = (p: ModalWrapperProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {navigationOptions, navigation, children} = p
   const {overlayAvoidTabs, overlayTransparent, overlayNoClose, modalSize} = navigationOptions ?? {}
 
@@ -157,8 +162,8 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
             <Kb.Icon
               type="iconfont-close"
               onClick={() => navigation.pop()}
-              color={Kb.Styles.globalColors.whiteOrWhite_75}
-              hoverColor={Kb.Styles.globalColors.white_40OrWhite_40}
+              color={theme.whiteOrWhite_75}
+              hoverColor={theme.white_40OrWhite_40}
               style={styles.closeIcon}
             />
           )}
@@ -168,7 +173,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   closeIcon: Kb.Styles.platformStyles({
     isElectron: {
       cursor: 'pointer',
@@ -179,7 +184,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    ...Kb.Styles.bottomDivider(48),
+    ...Kb.Styles.bottomDivider(theme, 48),
   },
   headerLeft: {
     justifyContent: 'flex-start',
@@ -193,7 +198,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   modalBox: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.desktopStyles.boxShadow,
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       borderRadius: Kb.Styles.borderRadius,
       pointerEvents: 'auto',
       position: 'relative',

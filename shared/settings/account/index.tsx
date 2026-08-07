@@ -17,11 +17,14 @@ import type {SettingsAccountRouteParams} from '../routes'
 import SettingsSectionTitle from '../section-title'
 import {useRandomPWState} from '../use-random-pw'
 
-export const SettingsSection = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
-    {children}
-  </Kb.Box2>
-)
+export const SettingsSection = ({children}: {children: React.ReactNode}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+      {children}
+    </Kb.Box2>
+  )
+}
 
 type AddButtonProps = {
   disabled: boolean
@@ -40,6 +43,8 @@ const AddButton = (props: AddButtonProps) => (
 )
 
 const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (email: string) => void}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const navigateAppend = C.Router2.navigateAppend
   const _emails = useSettingsEmailState(s => s.emails)
   const _phones = useSettingsPhoneState(s => s.phones)
@@ -66,7 +71,7 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
           find you by phone number or email.{' '}
           <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" color={Kb.Styles.globalColors.blueDark} />
+            <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" color={theme.blueDark} />
           </Kb.Text>
         </Kb.Text>
       </Kb.Box2>
@@ -86,6 +91,7 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
 }
 
 const Password = ({randomPW}: {randomPW?: boolean}) => {
+  const styles = useStyles()
   const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
     navigateAppend({name: settingsPasswordTab, params: {}})
@@ -115,6 +121,7 @@ const Password = ({randomPW}: {randomPW?: boolean}) => {
 }
 
 const WebAuthTokenLogin = () => {
+  const styles = useStyles()
   const generateWebAuthToken = C.useRPC(T.RPCGen.configGenerateWebAuthTokenRpcPromise)
   const loginBrowserViaWebAuthToken = () => {
     generateWebAuthToken(
@@ -144,6 +151,7 @@ const WebAuthTokenLogin = () => {
 }
 
 const DeleteAccount = () => {
+  const styles = useStyles()
   const navigateAppend = C.Router2.navigateAppend
   const onDeleteAccount = () => {
     navigateAppend({name: 'deleteConfirm', params: {}})
@@ -178,6 +186,7 @@ type AddedBannerState = {
 }
 
 const AccountSettings = ({route}: Props) => {
+  const styles = useStyles()
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
   const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
   const navigation = useNavigation('settingsTabs.accountTab')
@@ -339,7 +348,7 @@ const AccountSettings = ({route}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   buttonBar: {
     minHeight: undefined,
     width: undefined,
@@ -351,8 +360,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
     ...Kb.Styles.globalStyles.flexGrow,
   },
-  primaryOnYellow: {backgroundColor: Kb.Styles.globalColors.white},
-  primaryOnYellowLabel: {color: Kb.Styles.globalColors.brown_75OrYellow},
+  primaryOnYellow: {backgroundColor: theme.white},
+  primaryOnYellowLabel: {color: theme.brown_75OrYellow},
   progress: Kb.Styles.size(16),
   section: Kb.Styles.platformStyles({
     common: {

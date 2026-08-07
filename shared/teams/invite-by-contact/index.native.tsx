@@ -12,7 +12,8 @@ export type ContactRowProps = Contact & {
   onClick: () => void
 }
 
-const contactRow = (_: number, props: ContactRowProps) => {
+const ContactRow = (props: ContactRowProps) => {
+  const styles = useStyles()
   const hasThumbnail = !!props.pictureUri
 
   return (
@@ -44,6 +45,8 @@ const contactRow = (_: number, props: ContactRowProps) => {
   )
 }
 
+const contactRow = (_: number, props: ContactRowProps) => <ContactRow {...props} />
+
 type InviteByContactProps = {
   selectedRole: T.Teams.TeamRoleType
   onRoleChange: (newRole: T.Teams.TeamRoleType) => void
@@ -53,6 +56,7 @@ type InviteByContactProps = {
 }
 
 export const InviteByContact = (props: InviteByContactProps) => {
+  const styles = useStyles()
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [filterValue, setFilterValue] = React.useState('')
 
@@ -121,8 +125,8 @@ export const InviteByContact = (props: InviteByContactProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       contactList: {
         alignSelf: 'stretch',
@@ -133,11 +137,11 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       errorMessageContainer: {
         alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.red,
+        backgroundColor: theme.red,
         padding: Kb.Styles.globalMargins.tiny,
       },
       filterContainer: {
-        borderBottomColor: Kb.Styles.globalColors.black_10,
+        borderBottomColor: theme.black_10,
         borderBottomWidth: Kb.Styles.hairlineWidth,
         padding: Kb.Styles.globalMargins.small,
       },
@@ -153,7 +157,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: 16,
       },
       rolePickerBox: {
-        borderBottomColor: Kb.Styles.globalColors.black_10,
+        borderBottomColor: theme.black_10,
         borderBottomWidth: Kb.Styles.hairlineWidth,
         marginBottom: Kb.Styles.globalMargins.xtiny,
         padding: Kb.Styles.globalMargins.small,

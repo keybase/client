@@ -35,6 +35,7 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
 }
 
 export const TeamMemberHeader = (props: Props) => {
+  const styles = useStyles()
   const {teamID, username} = props
   const nav = useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
@@ -141,10 +142,10 @@ const BlockDropdown = (props: {username: string}) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   headerContainer: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Kb.Styles.globalColors.white,
+      backgroundColor: theme.white,
       paddingBottom: Kb.Styles.globalMargins.small,
     },
     isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},

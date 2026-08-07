@@ -3,6 +3,8 @@ import * as Kb from '@/common-adapters'
 import {useConversationThreadID} from '../../thread-context'
 
 const MakeTeam = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const conversationIDKey = useConversationThreadID()
   const onShowNewTeamDialog = () =>
     C.Router2.navigateAppend({name: 'chatShowNewTeamDialog', params: {conversationIDKey}})
@@ -21,7 +23,7 @@ const MakeTeam = () => {
             Enter a team name
           </Kb.Text>
           <Kb.Icon
-            color={Kb.Styles.globalColors.greenLight}
+            color={theme.greenLight}
             sizeType="Tiny"
             type="iconfont-arrow-right"
             className="hover_contained_color_white"
@@ -34,12 +36,12 @@ const MakeTeam = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.green,
+          backgroundColor: theme.green,
           borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
@@ -67,7 +69,7 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'center',
         paddingRight: Kb.Styles.globalMargins.small,
       },
-      link: {color: isMobile ? Kb.Styles.globalColors.greenLight : undefined},
+      link: {color: isMobile ? theme.greenLight : undefined},
     }) as const
 )
 

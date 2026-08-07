@@ -7,24 +7,27 @@ export type Props = {
   label?: React.ReactNode
 }
 
-const MenuHeader = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.header}>
-    <Kb.Avatar username={props.username} size={64} style={styles.avatar} />
-    <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={props.username} />
-    {!!props.fullName && (
-      <Kb.Text type="BodySmall" center={true}>
-        {props.fullName}
-      </Kb.Text>
-    )}
-    {!!props.label && typeof props.label === 'string' ? (
-      <Kb.Text type="BodySmall">{props.label}</Kb.Text>
-    ) : (
-      props.label
-    )}
-  </Kb.Box2>
-)
+const MenuHeader = (props: Props) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.header}>
+      <Kb.Avatar username={props.username} size={64} style={styles.avatar} />
+      <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={props.username} />
+      {!!props.fullName && (
+        <Kb.Text type="BodySmall" center={true}>
+          {props.fullName}
+        </Kb.Text>
+      )}
+      {!!props.label && typeof props.label === 'string' ? (
+        <Kb.Text type="BodySmall">{props.label}</Kb.Text>
+      ) : (
+        props.label
+      )}
+    </Kb.Box2>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   avatar: {
     marginBottom: Kb.Styles.globalMargins.tiny,
   },

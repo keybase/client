@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import {usePushState} from '@/stores/push'
 
 const PushPrompt = () => {
+  const styles = useStyles()
   const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
   const clearModals = C.Router2.clearModals
   const onRequestPermissions = () => {
@@ -36,8 +37,8 @@ const PushPrompt = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       button: Kb.Styles.platformStyles({
         common: {
@@ -49,10 +50,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
       },
       footer: {
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
       },
       image: Kb.Styles.platformStyles({
         isTablet: {

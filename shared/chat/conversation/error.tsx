@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import {useThreadMeta} from './thread-context'
 
 const ConversationError = () => {
+  const styles = useStyles()
   const text = useThreadMeta(m => m.snippet) ?? ''
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} padding="medium" gap="small">
@@ -14,7 +15,7 @@ const ConversationError = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       errorText: {flexGrow: 1},

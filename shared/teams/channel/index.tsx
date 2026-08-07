@@ -144,6 +144,7 @@ const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
 }
 
 const ChannelBody = (props: OwnProps) => {
+  const styles = useStyles()
   const teamID = props.teamID
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
@@ -334,7 +335,7 @@ const Channel = (props: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       listContentContainer: Kb.Styles.platformStyles({

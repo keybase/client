@@ -8,6 +8,7 @@ import {cancelRecoverPassword, submitRecoverPasswordPaperKey} from './flow'
 type Props = {route: {params: {error?: string}}}
 
 const PaperKey = ({route}: Props) => {
+  const styles = useStyles()
   const {error} = route.params
   const onBack = () => {
     cancelRecoverPassword()
@@ -62,7 +63,7 @@ const PaperKey = ({route}: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   contents: {
     maxWidth: isMobile ? '100%' : 460,
   },
@@ -76,7 +77,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   inputText: {
     ...Kb.Styles.globalStyles.fontTerminal,
-    color: Kb.Styles.globalColors.black,
+    color: theme.black,
   },
 }))
 export default PaperKey

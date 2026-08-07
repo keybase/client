@@ -29,15 +29,19 @@ type RecsAndRecosProps = {
 
 export const numSectionLabel = '0-9'
 
-const SearchHintText = () => (
-  <Kb.Box2 direction="vertical" style={styles.searchHint}>
-    <Kb.Text type="BodySmall" center={true}>
-      Search anyone on Keybase by typing a username or a full name.
-    </Kb.Text>
-  </Kb.Box2>
-)
+const SearchHintText = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" style={styles.searchHint}>
+      <Kb.Text type="BodySmall" center={true}>
+        Search anyone on Keybase by typing a username or a full name.
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const TeamAlphabetIndex = ({recommendations, teamSoFar, sectionListRef}: TeamAlphabetIndexProps) => {
+  const styles = useStyles()
   let showNumSection = false
   let labels: Array<string> = []
   if (recommendations && recommendations.length > 0) {
@@ -94,6 +98,7 @@ const listIndexToSectionAndLocalIndex = (
   return
 }
 export const RecsAndRecos = (props: RecsAndRecosProps) => {
+  const styles = useStyles()
   const {highlightedIndex, recommendations, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
   const sectionListRef = React.useRef<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>>(null)
@@ -177,7 +182,7 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       alphabetIndex: {

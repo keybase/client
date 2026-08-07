@@ -14,6 +14,8 @@ import {useCurrentUserState} from '@/stores/current-user'
  */
 
 const PeopleResult = function PeopleResult(props: ResultProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const keybaseUsername: string | undefined = props.services['keybase']
   const serviceUsername = props.services[props.resultForService]
 
@@ -72,7 +74,7 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
         onChat()
       }}
     >
-      <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={theme.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 
@@ -117,6 +119,8 @@ const buildMenuItems = ({
   ].filter(Boolean) as Kb.MenuItems
 
 const DropdownButton = (p: DropdownProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const items = buildMenuItems(p)
 
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -144,14 +148,14 @@ const DropdownButton = (p: DropdownProps) => {
       direction="vertical"
     >
       <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
-        <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
+        <Kb.Icon color={theme.blue} type="iconfont-ellipsis" />
       </Kb.Button>
       {popup}
     </Kb.ClickableBox>
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
   rowContainer: {

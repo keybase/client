@@ -5,6 +5,7 @@ import {useDeleteAccount} from '../use-delete-account'
 import {usePasswordCheck} from '../use-password-check'
 
 const CheckPassphraseImpl = () => {
+  const styles = useStyles()
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
   const {checkPassword, checkPasswordIsCorrect} = usePasswordCheck()
@@ -78,15 +79,15 @@ const CheckPassphraseImpl = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       bodyText: {paddingBottom: Kb.Styles.globalMargins.tiny, textAlign: 'center'},
       buttonBar: {minHeight: undefined},
       checkbox: {paddingTop: Kb.Styles.globalMargins.tiny},
       container: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        backgroundColor: theme.blueGrey,
       },
       deleteButton: {marginTop: Kb.Styles.globalMargins.large},
       headerText: {marginBottom: Kb.Styles.globalMargins.small, textAlign: 'center'},

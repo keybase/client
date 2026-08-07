@@ -44,6 +44,8 @@ type Dims = {
 }
 
 function WithTooltip(p: Props) {
+  const desktopStyles = useDesktopStyles()
+  const nativeStyles = useNativeStyles()
   const {containerStyle, className, multiline, backgroundColor, toastStyle} = p
   const {disabled, toastClassName, children, position, textStyle, tooltip} = p
 
@@ -202,7 +204,7 @@ function WithTooltip(p: Props) {
 
 export default WithTooltip
 
-const desktopStyles = Styles.styleSheetCreate(() => ({
+const useDesktopStyles = Styles.createStyleHook(theme => ({
   container: Styles.platformStyles({
     isElectron: {
       borderRadius: Styles.borderRadius,
@@ -216,18 +218,18 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   },
   text: Styles.platformStyles({
     isElectron: {
-      color: Styles.globalColors.white,
+      color: theme.white,
       wordBreak: 'break-word',
     } as const,
   }),
 }))
 
-const nativeStyles = Styles.styleSheetCreate(() => ({
+const useNativeStyles = Styles.createStyleHook(theme => ({
   container: {
-    backgroundColor: Styles.globalColors.black,
+    backgroundColor: theme.black,
     borderRadius: Styles.borderRadius,
     maxWidth: 280,
     padding: Styles.globalMargins.xtiny,
   },
-  text: {color: Styles.globalColors.white},
+  text: {color: theme.white},
 }))

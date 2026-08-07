@@ -9,11 +9,13 @@ type Props = {
 }
 
 const ProgressIndicator = (p: Props) => {
+  const desktopStyles = useDesktopStyles()
+  const theme = Styles.useTheme()
   if (isMobile) {
     const size = p.type === 'Large' ? 'large' : 'small'
     return (
       <ActivityIndicator
-        color={p.white ? Styles.globalColors.whiteOrWhite : Styles.globalColors.black}
+        color={p.white ? theme.whiteOrWhite : theme.black}
         size={size}
         style={Styles.collapseStyles([nativeStyle, p.style])}
       />
@@ -36,7 +38,7 @@ const nativeStyle = {
   ...Styles.centered(),
 } as const
 
-const desktopStyles = Styles.styleSheetCreate(() => ({
+const useDesktopStyles = Styles.createStyleHook(() => ({
   huge: {
     ...Styles.size(Styles.globalMargins.xlarge),
   },

@@ -64,6 +64,8 @@ const getRequestMessageInfo = (
 }
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const you = useCurrentUserState(s => s.username)
   // Derive this message's info inside the selector so the row only re-renders when
   // its own entry changes, not on any accountsInfoMap identity churn.
@@ -98,7 +100,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           amount,
           approxWorth: paymentInfo.worthAtSendTime,
           balanceChange: '',
-          balanceChangeColor: Kb.Styles.globalColors.black,
+          balanceChangeColor: theme.black,
           canceled,
           icon: pending ? ('iconfont-clock' as const) : undefined,
           loading: false,
@@ -172,7 +174,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           {!!icon && (
             <Kb.Icon
               type={icon}
-              color={pending ? Kb.Styles.globalColors.purpleOrWhite : Kb.Styles.globalColors.purple}
+              color={pending ? theme.purpleOrWhite : theme.purple}
               fontSize={12}
             />
           )}
@@ -227,8 +229,8 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       amountContainer: Kb.Styles.platformStyles({
         isElectron: {
@@ -251,8 +253,8 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.size(22),
         },
       }),
-      purple: {color: Kb.Styles.globalColors.purpleDark},
-      purpleOrWhite: {color: Kb.Styles.globalColors.purpleDarkOrWhite},
+      purple: {color: theme.purpleDark},
+      purpleOrWhite: {color: theme.purpleDarkOrWhite},
     }) as const
 )
 

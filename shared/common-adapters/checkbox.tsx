@@ -25,6 +25,8 @@ const CHECKBOX_SIZE = 13
 const Kb = {Box2, ClickableBox, Icon, Switch, Text}
 
 const Checkbox = (props: Props) => {
+  const styles = useStyles()
+  const theme = Styles.useTheme()
   const {
     checkboxColor,
     checkboxStyle,
@@ -68,8 +70,8 @@ const Checkbox = (props: Props) => {
           <Kb.Icon
             type="iconfont-check"
             style={Styles.collapseStyles([styles.icon, !checked && styles.transparent])}
-            hoverColor={Styles.globalColors.white}
-            color={checkboxColor ?? Styles.globalColors.white}
+            hoverColor={theme.white}
+            color={checkboxColor ?? theme.white}
             fontSize={9}
           />
         </div>
@@ -99,13 +101,13 @@ const Checkbox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const useStyles = Styles.createStyleHook(theme => ({
   checkbox: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,
       ...Styles.transition('background'),
-      backgroundColor: Styles.globalColors.white,
-      ...Styles.border(Styles.globalColors.black_20, 1, 2),
+      backgroundColor: theme.white,
+      ...Styles.border(theme.black_20, 1, 2),
       flexShrink: 0,
       ...Styles.size(CHECKBOX_SIZE),
       justifyContent: 'center',
@@ -114,10 +116,10 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   checkboxChecked: {
-    backgroundColor: Styles.globalColors.blue,
-    borderColor: Styles.globalColors.blue,
+    backgroundColor: theme.blue,
+    borderColor: theme.blue,
   },
-  checkboxInactive: {borderColor: Styles.globalColors.black_10},
+  checkboxInactive: {borderColor: theme.black_10},
   clickable: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.clickable,

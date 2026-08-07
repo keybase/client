@@ -22,6 +22,7 @@ type Props = {
 }
 
 function Video(p: Props) {
+  const styles = useStyles()
   const {message, ordinal, showPopup} = p
   const {isCollapsed, submitState, title, transferProgress, transferState} = message
   const conversationIDKey = useConversationThreadID()
@@ -97,14 +98,14 @@ function Video(p: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
         paddingRight: isMobile ? 0 : Kb.Styles.globalMargins.tiny,
       },
       contentContainer: {
-        backgroundColor: Kb.Styles.globalColors.black_05_on_white,
+        backgroundColor: theme.black_05_on_white,
         borderRadius: Kb.Styles.borderRadius,
         maxWidth: isMobile ? '100%' : 356 + 3 * 2,
         padding: 3,

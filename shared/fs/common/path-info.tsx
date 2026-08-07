@@ -20,6 +20,7 @@ const useMountPointPath = (platformAfterMountPath: string) => {
 }
 
 const PathInfo = (props: PathInfoProps) => {
+  const styles = useStyles()
   const pathInfo = useFsPathInfo(props.path, props.knownPathInfo || FS.emptyPathInfo)
   const mountPointPath = useMountPointPath(pathInfo.platformAfterMountPath)
   return (
@@ -44,7 +45,7 @@ const PathInfo = (props: PathInfoProps) => {
 
 export default PathInfo
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       copyPath: {

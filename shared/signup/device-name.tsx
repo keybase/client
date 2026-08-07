@@ -116,6 +116,7 @@ const makeCleanDeviceName = (d: string) => {
 }
 
 const EnterDevicename = (props: EnterDevicenameProps) => {
+  const styles = useStyles()
   const {error, initialDevicename, onBack, onContinue: _onContinue, waiting} = props
 
   const [deviceName, setDeviceName] = React.useState(() => makeCleanDeviceName(initialDevicename || ''))
@@ -189,9 +190,9 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
     </SignupScreen>
   )
 }
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   deviceNameError: {
-    color: Kb.Styles.globalColors.redDark,
+    color: theme.redDark,
     marginLeft: 2,
   },
   input: desktopInputWidth,

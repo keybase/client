@@ -51,15 +51,19 @@ type Props = {
   }
 }
 
-const PlainTitle = ({title}: {title: React.ReactNode}) => (
-  <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
-    <Kb.Text style={styles.plainText} type="Header">
-      {title}
-    </Kb.Text>
-  </Kb.Box2>
-)
+const PlainTitle = ({title}: {title: React.ReactNode}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
+      <Kb.Text style={styles.plainText} type="Header">
+        {title}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
+  const styles = useStyles()
   const onMinimize = () => {
     minimizeWindow?.()
   }
@@ -105,6 +109,8 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
 }
 
 function DesktopHeader(p: Props) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {back, navigation, options, loggedIn, useNativeFrame, isMaximized} = p
   const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
@@ -157,10 +163,10 @@ function DesktopHeader(p: Props) {
     !back && styles.iconContainerInactive,
   ] as const)
   const iconColor = back
-    ? Kb.Styles.globalColors.black_50
+    ? theme.black_50
     : loggedIn
-      ? Kb.Styles.globalColors.black_10
-      : Kb.Styles.globalColors.transparent
+      ? theme.black_10
+      : theme.transparent
 
   const defaultBackButton = (
     <Kb.ClickableBox
@@ -275,8 +281,8 @@ function DesktopHeader(p: Props) {
           <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders
               negative={
-                p.style?.backgroundColor !== Kb.Styles.globalColors.transparent &&
-                p.style?.backgroundColor !== Kb.Styles.globalColors.white
+                p.style?.backgroundColor !== theme.transparent &&
+                p.style?.backgroundColor !== theme.white
               }
             />
             {!title && rightActions}
@@ -300,8 +306,8 @@ function DesktopHeader(p: Props) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       appIcon: Kb.Styles.platformStyles({
         isElectron: {
@@ -331,7 +337,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       headerBorder: {
-        ...Kb.Styles.bottomDivider(),
+        ...Kb.Styles.bottomDivider(theme),
       },
       headerContainer: Kb.Styles.platformStyles({
         isElectron: {

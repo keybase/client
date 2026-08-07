@@ -4,22 +4,17 @@ import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
 import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import {sharedStyles} from '../shared-styles'
+import {useSharedStyles} from '../shared-styles'
 import {useConversationCenterActions} from '../../center-context'
 
-let _sentHighlighted: Kb.Styles.StylesCrossPlatform | undefined
-const getSentHighlighted = () => {
-  _sentHighlighted ??= Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
-  return _sentHighlighted
-}
-
 const getStyle = (
+  sharedStyles: ReturnType<typeof useSharedStyles>,
   type: 'error' | 'sent' | 'pending',
   isEditing: boolean,
   isHighlighted?: boolean
 ): Kb.Styles.StylesCrossPlatform => {
   if (isHighlighted) {
-    return getSentHighlighted()
+    return Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
     return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
   } else {
@@ -45,6 +40,7 @@ function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; t
 }
 
 function WrapperText(p: Props) {
+  const sharedStyles = useSharedStyles()
   const {ordinal, isCenteredHighlight = false} = p
   const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {messageData} = wrapper
@@ -70,7 +66,7 @@ function WrapperText(p: Props) {
   }
   const reply = useReply(replyTo, onReplyClick)
 
-  const style = getStyle(textType, isEditing, showCenteredHighlight)
+  const style = getStyle(sharedStyles, textType, isEditing, showCenteredHighlight)
 
   const children = (
     <>

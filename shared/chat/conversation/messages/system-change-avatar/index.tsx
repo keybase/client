@@ -7,6 +7,7 @@ type Props = {
   message: T.Chat.MessageSystemChangeAvatar
 }
 const SystemChangeAvatar = (props: Props) => {
+  const styles = useStyles()
   const you = useCurrentUserState(s => s.username)
   return (
     <UserNotice>
@@ -18,7 +19,7 @@ const SystemChangeAvatar = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   text: {
     marginBottom: Kb.Styles.globalMargins.tiny,
   },

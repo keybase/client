@@ -5,6 +5,7 @@ import {joinConversation} from '../status-actions'
 import {useConversationThreadID, useThreadMeta} from '../thread-context'
 
 const Preview = () => {
+  const styles = useStyles()
   const conversationIDKey = useConversationThreadID()
   const channelname = useThreadMeta(m => m.channelname)
   const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
@@ -42,11 +43,11 @@ const Preview = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: {
-        backgroundColor: Kb.Styles.globalColors.blue,
+        backgroundColor: theme.blue,
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
       },
     }) as const

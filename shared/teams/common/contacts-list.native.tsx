@@ -75,6 +75,7 @@ const ContactRow = function ContactRow({
   onSelect,
   selected,
 }: ContactRowProps) {
+  const styles = useStyles()
   const topText = item.name || item.valueFormatted || item.value
   const bottomText = item.name ? (item.valueFormatted ?? item.value) : undefined
   const onCheck = (check: boolean) => onSelect(item, check)
@@ -145,7 +146,7 @@ const ContactsList = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(() => ({
   checkCircle: {
     marginRight: 24,
   },

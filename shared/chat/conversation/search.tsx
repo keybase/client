@@ -346,6 +346,8 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
 }
 
 const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const props = useCommon(p)
   const {conversationIDKey, submitSearch, hits, selectResult, onEnter} = props
   const {onUp, onDown, onChangedText, inProgress, hasResults} = props
@@ -438,12 +440,12 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
                   {noResults ? 'No results' : `${selectedIndex + 1} of ${hits.length}`}
                 </Kb.Text>
                 <Kb.Icon
-                  color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
+                  color={noResults ? theme.black_35 : theme.black_50}
                   onClick={!noResults ? onUp : undefined}
                   type="iconfont-arrow-up"
                 />
                 <Kb.Icon
-                  color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
+                  color={noResults ? theme.black_35 : theme.black_50}
                   onClick={!noResults ? onDown : undefined}
                   type="iconfont-arrow-down"
                 />
@@ -473,6 +475,8 @@ const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
 }
 
 const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const props = useCommon(p)
   const {numHits, onEnter, onUp, onDown, onChangedText, onToggleThreadSearch} = props
   const {inProgress, hasResults, selectedIndex, text, status} = props
@@ -534,12 +538,12 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="tiny">
           <Kb.Icon
-            color={numHits > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
+            color={numHits > 0 ? theme.blue : theme.black_50}
             onClick={onUp}
             type="iconfont-arrow-up"
           />
           <Kb.Icon
-            color={numHits > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
+            color={numHits > 0 ? theme.blue : theme.black_50}
             onClick={onDown}
             type="iconfont-arrow-down"
           />
@@ -549,16 +553,16 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
-      bareInput: {backgroundColor: Kb.Styles.globalColors.transparent, flex: 1, padding: 0, width: 'auto'},
-      done: {color: Kb.Styles.globalColors.blueDark},
+      bareInput: {backgroundColor: theme.transparent, flex: 1, padding: 0, width: 'auto'},
+      done: {color: theme.blueDark},
       hitList: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          backgroundColor: theme.blueLighter3,
           borderBottom: '1px solid',
-          borderColor: Kb.Styles.globalColors.black_20,
+          borderColor: theme.black_20,
           height: 4 * hitHeight,
         },
       }),
@@ -575,13 +579,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       mobileContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         paddingBottom: Kb.Styles.globalMargins.small,
       },
       inputContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.white,
-          ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.borderRadius),
+          backgroundColor: theme.white,
+          ...Kb.Styles.border(theme.black_20, 1, Kb.Styles.borderRadius),
           flex: 1,
         },
         isElectron: {
@@ -590,10 +594,10 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {padding: Kb.Styles.globalMargins.tiny},
       }),
       outerContainer: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        backgroundColor: theme.blueLighter3,
       },
       progress: {height: 16},
-      results: {color: Kb.Styles.globalColors.black_50},
+      results: {color: theme.black_50},
       time: {flexShrink: 0},
     }) as const
 )

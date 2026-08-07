@@ -13,10 +13,13 @@ import {FsBrowserEditProvider} from '../browser/edit-state'
 // items get the system liquid glass treatment. Android keeps the fully custom
 // header (mobile-header.tsx).
 
-const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
+const MaybePublicTag = ({path}: {path: T.FS.Path}) => {
+  const theme = Kb.Styles.useTheme()
+  return FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={theme.green} /> : null
+}
 
 const FilesTabStatusIcon = () => {
+  const styles = useStyles()
   const uploadIcon = Kbfs.useFilesTabUploadIcon()
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.statusIcon} /> : null
 }
@@ -164,7 +167,7 @@ export const IosHeaderMenu = (props: MenuProps) => (
   </FsBrowserEditProvider>
 )
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       statusIcon: Kb.Styles.size(Kb.Styles.globalMargins.small),

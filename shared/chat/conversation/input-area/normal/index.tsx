@@ -86,6 +86,7 @@ const useHintText = (p: {
 }
 
 const Input = function Input() {
+  const styles = useStyles()
   const showGiphySearch = InputState.useConversationInput(s => s.giphyWindow)
   const showCommandMarkdown = InputState.useConversationInput(s => !!s.commandMarkdown)
   const showCommandStatus = InputState.useConversationInput(s => !!s.commandStatus)
@@ -127,6 +128,7 @@ const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, 
 }
 
 const ConnectedPlatformInput = function ConnectedPlatformInput() {
+  const styles = useStyles()
   const route = useRoute()
   // infoPanel only exists on the desktop/tablet split-view chatRoot route
   const infoPanelShowing =
@@ -314,7 +316,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => {
+const useStyles = Kb.Styles.createStyleHook(() => {
   const suggestDesktop = {marginLeft: 15, marginRight: 15, marginTop: 'auto'}
   return {
     container: Kb.Styles.platformStyles({

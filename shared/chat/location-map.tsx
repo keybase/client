@@ -10,6 +10,7 @@ type Props = {
 }
 
 const LocationMap = (props: Props) => {
+  const styles = useStyles()
   const {height, mapSrc, width, onLoad: _onLoad} = props
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const [mapFailed, setMapFailed] = React.useState(false)
@@ -63,19 +64,19 @@ const LocationMap = (props: Props) => {
   return inner
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       banner: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         borderBottomWidth: 1,
-        borderColor: Kb.Styles.globalColors.black_10,
+        borderColor: theme.black_10,
         left: 0,
         position: 'absolute',
         top: 0,
       },
       error: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
       },
       container: Kb.Styles.platformStyles({
         common: {

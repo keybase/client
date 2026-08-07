@@ -39,6 +39,7 @@ const PhoneSection = (props: Props) => {
   )
 }
 const Notifications = (props: Props) => {
+  const styles = useStyles()
   const {onToggleUnsubscribeAll} = props
   const mobileHasPermissions = usePushState(s => s.hasPermissions)
   const hasLoadedGroups = props.groups.size > 0
@@ -89,7 +90,7 @@ const Notifications = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       divider: {

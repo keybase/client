@@ -8,6 +8,7 @@ import {useThreadMeta} from '../../thread-context'
 type OwnProps = {message: T.Chat.MessageSystemUsersAddedToConversation}
 
 function UsersAddedToConversationContainer(p: OwnProps) {
+  const styles = useStyles()
   const {usernames} = p.message
   const channelname = useThreadMeta(m => m.channelname)
   const you = useCurrentUserState(s => s.username)
@@ -69,7 +70,7 @@ export const getAddedUsernames = (usernames?: ReadonlyArray<string>) => {
   }, [])
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       text: {flexGrow: 1},

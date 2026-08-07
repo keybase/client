@@ -20,65 +20,68 @@ export const StillCommon = (
     writingToJournal: boolean
     uploadErrored?: boolean
   }
-) => (
-  <Kb.ListItem
-    type="Small"
-    testID={props.testID}
-    statusIcon={<PathStatusIcon path={props.path} />}
-    icon={
-      <ItemIcon
-        loadOnMount={false}
-        subscribe={false}
-        path={props.path}
-        size={32}
-        style={Kb.Styles.collapseStyles([
-          rowStyles.pathItemIcon,
-          props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
-        ])}
-        mixedMode={props.mixedMode}
-      />
-    }
-    firstItem={true /* we add divider in Rows */}
-    onClick={props.onOpen}
-    body={
-      props.body || (
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          flex={1}
-          justifyContent="center"
+) => {
+  const rowStyles = useRowStyles()
+  return (
+    <Kb.ListItem
+      type="Small"
+      testID={props.testID}
+      statusIcon={<PathStatusIcon path={props.path} />}
+      icon={
+        <ItemIcon
+          loadOnMount={false}
+          subscribe={false}
+          path={props.path}
+          size={32}
           style={Kb.Styles.collapseStyles([
-            rowStyles.itemBox,
+            rowStyles.pathItemIcon,
             props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
           ])}
-        >
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {props.content}
+          mixedMode={props.mixedMode}
+        />
+      }
+      firstItem={true /* we add divider in Rows */}
+      onClick={props.onOpen}
+      body={
+        props.body || (
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            flex={1}
+            justifyContent="center"
+            style={Kb.Styles.collapseStyles([
+              rowStyles.itemBox,
+              props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
+            ])}
+          >
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              {props.content}
+            </Kb.Box2>
+            {props.status || null}
           </Kb.Box2>
-          {props.status || null}
-        </Kb.Box2>
-      )
-    }
-    onlyShowActionOnHover="fade"
-    action={
-      !props.inDestinationPicker &&
-      !props.writingToJournal &&
-      T.FS.getPathLevel(props.path) > 2 && (
-        <Kb.Box2 direction="horizontal">
-          <OpenInSystemFileManager path={props.path} />
-          <PathItemAction
-            path={props.path}
-            clickable={{type: 'icon'}}
-            initView={T.FS.PathItemActionMenuView.Root}
-            mode="row"
-          />
-        </Kb.Box2>
-      )
-    }
-  />
-)
+        )
+      }
+      onlyShowActionOnHover="fade"
+      action={
+        !props.inDestinationPicker &&
+        !props.writingToJournal &&
+        T.FS.getPathLevel(props.path) > 2 && (
+          <Kb.Box2 direction="horizontal">
+            <OpenInSystemFileManager path={props.path} />
+            <PathItemAction
+              path={props.path}
+              clickable={{type: 'icon'}}
+              initView={T.FS.PathItemActionMenuView.Root}
+              mode="row"
+            />
+          </Kb.Box2>
+        )
+      }
+    />
+  )
+}
 
-export const rowStyles = Kb.Styles.styleSheetCreate(
+export const useRowStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       itemBox: {

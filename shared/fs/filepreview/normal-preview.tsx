@@ -9,27 +9,30 @@ type NormalPreviewProps = {
   onUrlError: (err: string) => void
 }
 
-const NormalPreview = (props: NormalPreviewProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-    <Kbfs.Errs />
-    <Kb.Box2 direction="vertical" centerChildren={true} flex={1} fullWidth={true} style={styles.container}>
-      <View path={props.path} onUrlError={props.onUrlError} />
+const NormalPreview = (props: NormalPreviewProps) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
+      <Kbfs.Errs />
+      <Kb.Box2 direction="vertical" centerChildren={true} flex={1} fullWidth={true} style={styles.container}>
+        <View path={props.path} onUrlError={props.onUrlError} />
+      </Kb.Box2>
+      <Footer path={props.path} />
     </Kb.Box2>
-    <Footer path={props.path} />
-  </Kb.Box2>
-)
+  )
+}
 
 export default NormalPreview
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       container: Kb.Styles.platformStyles({
         common: {
           flexShrink: 1,
         },
-        isElectron: {backgroundColor: Kb.Styles.globalColors.blueLighter3},
-        isMobile: {backgroundColor: Kb.Styles.globalColors.black},
+        isElectron: {backgroundColor: theme.blueLighter3},
+        isMobile: {backgroundColor: theme.black},
       }),
     }) as const
 )

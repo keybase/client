@@ -2,16 +2,22 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
 // blue illustration banner across the top of a wizard step
-export const WizardBanner = (props: {icon: Kb.IconType}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-    <Kb.ImageIcon type={props.icon} />
-  </Kb.Box2>
-)
+export const WizardBanner = (props: {icon: Kb.IconType}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
+      <Kb.ImageIcon type={props.icon} />
+    </Kb.Box2>
+  )
+}
 
 // the + button under a repeatable input list (create channels / subteams)
-export const AddRowButton = (props: {onAdd: () => void}) => (
-  <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={props.onAdd} style={styles.addButton} />
-)
+export const AddRowButton = (props: {onAdd: () => void}) => {
+  const styles = useStyles()
+  return (
+    <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={props.onAdd} style={styles.addButton} />
+  )
+}
 
 // editable list of strings backing the repeatable inputs
 export const useStringList = (initial: ReadonlyArray<string>) => {
@@ -24,14 +30,14 @@ export const useStringList = (initial: ReadonlyArray<string>) => {
   }
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   addButton: Kb.Styles.platformStyles({
     isElectron: {width: 42},
     isMobile: {width: 47},
     isTablet: {alignSelf: 'flex-start'},
   }),
   banner: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
+    common: {backgroundColor: theme.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
 }))

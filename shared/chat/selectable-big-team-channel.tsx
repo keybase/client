@@ -16,6 +16,8 @@ type OwnProps = {
 }
 
 const SelectableBigTeamChannel = (ownProps: OwnProps) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {conversationIDKey, isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const row = useInboxRowBig(conversationIDKey)
   const showBadge = row.hasBadge
@@ -70,7 +72,7 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
             type="BodySemibold"
             style={Kb.Styles.collapseStyles([
               styles.teamname,
-              {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
+              {color: props.isSelected ? theme.white : theme.black},
             ])}
             title={props.teamname}
             lineClamp={isMobile ? 1 : undefined}
@@ -83,7 +85,7 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
             style={Kb.Styles.collapseStyles([
               boldOverride,
               styles.channelname,
-              {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
+              {color: props.isSelected ? theme.white : theme.black},
             ])}
             title={`#${props.channelname}`}
             lineClamp={isMobile ? 1 : undefined}
@@ -124,7 +126,7 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
       style={Kb.Styles.collapseStyles([
         styles.filteredRow,
         {
-          backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+          backgroundColor: props.isSelected ? theme.blue : theme.white,
         },
       ])}
       onMouseLeave={_onMouseLeave}
@@ -137,11 +139,11 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
 
 const rowHeight = isMobile ? 64 : 56
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       badge: {
-        backgroundColor: Kb.Styles.globalColors.orange,
+        backgroundColor: theme.orange,
         borderRadius: 6,
         flexShrink: 0,
         height: Kb.Styles.globalMargins.tiny,
@@ -169,11 +171,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       selectedText: {
-        color: Kb.Styles.globalColors.white,
+        color: theme.white,
       },
       teamname: Kb.Styles.platformStyles({
         common: {
-          color: Kb.Styles.globalColors.black,
+          color: theme.black,
           flexShrink: 1,
         },
         isElectron: {

@@ -58,6 +58,7 @@ export const ContactsBanner = (props: {
   selectedService: T.TB.ServiceIdWithContact
   onRedoSearch: () => void
 }) => {
+  const styles = useStyles()
   const {onRedoSearch, selectedService} = props
   const {
     contactsImported,
@@ -131,6 +132,8 @@ export const ContactsBanner = (props: {
 }
 
 export const ContactsImportButton = () => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {contactsImported, contactsPermissionStatus, isImportPromptDismissed, onImportContacts} =
     useContactsProps()
 
@@ -146,22 +149,22 @@ export const ContactsImportButton = () => {
   return (
     <Kb.ClickableBox onClick={onImportContacts} direction="horizontal" fullWidth={true} alignItems="center" gap="small" style={styles.importContactsContainer}>
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.iconContactBookContainer}>
-        <Kb.Icon type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-contact-book" color={theme.black} />
       </Kb.Box2>
       <Kb.Text type="BodyBig" lineClamp={1}>
         Import phone contacts
       </Kb.Text>
-      <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Kb.Styles.globalColors.black} />
+      <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={theme.black} />
     </Kb.ClickableBox>
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       banner: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.blue,
+          backgroundColor: theme.blue,
           paddingBottom: Kb.Styles.globalMargins.xtiny,
           paddingRight: Kb.Styles.globalMargins.tiny,
           paddingTop: Kb.Styles.globalMargins.xtiny,
@@ -193,12 +196,12 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 64,
         justifyContent: 'flex-start',
       },
-      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
-      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      primaryOnBlue: {backgroundColor: theme.white},
+      primaryOnBlueLabel: {color: theme.blueDark},
       secondaryOnBlue: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        common: {backgroundColor: theme.black_20},
         isMobile: {borderWidth: 0},
       }),
-      secondaryOnBlueLabel: {color: Kb.Styles.globalColors.white},
+      secondaryOnBlueLabel: {color: theme.white},
     }) as const
 )

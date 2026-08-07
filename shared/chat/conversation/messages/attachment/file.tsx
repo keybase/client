@@ -19,6 +19,8 @@ type OwnProps = {
 }
 
 function FileContainer(p: OwnProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {isEditing, message, ordinal} = p
   const {attachmentDownload, messageAttachmentNativeShare} = useConversationAttachmentActions()
   const {
@@ -83,9 +85,9 @@ function FileContainer(p: OwnProps) {
   const arrowColor = isMobile
     ? ''
     : downloadPath
-      ? Kb.Styles.globalColors.green
+      ? theme.green
       : transferState === 'downloading'
-        ? Kb.Styles.globalColors.blue
+        ? theme.blue
         : ''
   const hasProgress = messageAttachmentHasProgress(transferState)
 
@@ -201,8 +203,8 @@ function FileContainer(p: OwnProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       containerStyle: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.clickable},
@@ -219,7 +221,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         right: Kb.Styles.globalMargins.small,
       },
-      error: {color: Kb.Styles.globalColors.redDark},
+      error: {color: theme.redDark},
       filename: Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.clickable}}),
       iconStyle: Kb.Styles.platformStyles({
         common: {
@@ -231,13 +233,13 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.desktopStyles.clickable,
         },
       }),
-      linkStyle: {color: Kb.Styles.globalColors.black_50},
+      linkStyle: {color: theme.black_50},
       progressLabelStyle: {
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
       progressOverlay: {
-        backgroundColor: Kb.Styles.globalColors.greyLight,
+        backgroundColor: theme.greyLight,
         bottom: 0,
         left: 0,
         opacity: 0.9,
@@ -245,10 +247,10 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 'auto',
       },
       retry: {
-        color: Kb.Styles.globalColors.redDark,
+        color: theme.redDark,
         textDecorationLine: 'underline',
       },
-      saltpackFileName: {color: Kb.Styles.globalColors.greenDark},
+      saltpackFileName: {color: theme.greenDark},
       saltpackOperation: Kb.Styles.platformStyles({isTablet: {alignSelf: 'flex-start'}}),
       saltpackOperationContainer: {
         marginTop: Kb.Styles.globalMargins.xtiny,

@@ -20,45 +20,49 @@ type BannerParagraphProps = {
   small?: boolean
 }
 
-export const BannerParagraph = (props: BannerParagraphProps) => (
-  <Text
-    type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
-    style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}
-  >
-    {(Array.isArray(props.content) ? props.content : [props.content])
-      .reduce<Array<_Segment | string>>((arr, s) => {
-        if (s) {
-          arr.push(s)
-        }
-        return arr
-      }, [])
-      .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
-      .map((segment: _Segment, index) =>
-        segment.text === ' ' ? (
-          <>&nbsp;</>
-        ) : (
-          <React.Fragment key={index.toString()}>
-            {segment.text.startsWith(' ') && <>&nbsp;</>}
-            <Text
-              selectable={props.selectable}
-              type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
-              style={Styles.collapseStyles([
-                colorToTextColorStyles[props.bannerColor],
-                !!segment.onClick && styles.underline,
-              ])}
-              className={Styles.classNames({
-                'underline-hover-no-underline': !!segment.onClick,
-              })}
-              onClick={segment.onClick}
-            >
-              {segment.text.trim()}
-            </Text>
-            {segment.text.endsWith(' ') && <>&nbsp;</>}
-          </React.Fragment>
-        )
-      )}
-  </Text>
-)
+export const BannerParagraph = (props: BannerParagraphProps) => {
+  const colorToTextColorStyles = useColorToTextColorStyles()
+  const styles = useStyles()
+  return (
+    <Text
+      type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
+      style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}
+    >
+      {(Array.isArray(props.content) ? props.content : [props.content])
+        .reduce<Array<_Segment | string>>((arr, s) => {
+          if (s) {
+            arr.push(s)
+          }
+          return arr
+        }, [])
+        .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
+        .map((segment: _Segment, index) =>
+          segment.text === ' ' ? (
+            <>&nbsp;</>
+          ) : (
+            <React.Fragment key={index.toString()}>
+              {segment.text.startsWith(' ') && <>&nbsp;</>}
+              <Text
+                selectable={props.selectable}
+                type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
+                style={Styles.collapseStyles([
+                  colorToTextColorStyles[props.bannerColor],
+                  !!segment.onClick && styles.underline,
+                ])}
+                className={Styles.classNames({
+                  'underline-hover-no-underline': !!segment.onClick,
+                })}
+                onClick={segment.onClick}
+              >
+                {segment.text.trim()}
+              </Text>
+              {segment.text.endsWith(' ') && <>&nbsp;</>}
+            </React.Fragment>
+          )
+        )}
+    </Text>
+  )
+}
 
 // red banner for local error state; renders nothing when there is no error
 export const ErrorBanner = (props: {error?: string | Error | null; onClose?: () => void}) => {
@@ -88,60 +92,66 @@ type BannerProps = {
   textContainerStyle?: Styles.StylesCrossPlatform | null
 }
 
-export const Banner = (props: BannerProps) => (
-  <Box2
-    direction="horizontal"
-    fullWidth={true}
-    style={Styles.collapseStyles([
-      styles.container,
-      colorToBackgroundColorStyles[props.color],
-      props.inline && styles.containerInline,
-      props.small && styles.containerSmall,
-      props.style,
-    ] as const)}
-  >
+export const Banner = (props: BannerProps) => {
+  const colorToBackgroundColorStyles = useColorToBackgroundColorStyles()
+  const colorToIconColor = useColorToIconColor()
+  const colorToIconHoverColor = useColorToIconHoverColor()
+  const styles = useStyles()
+  return (
     <Box2
-      key="textBox"
-      direction="vertical"
+      direction="horizontal"
+      fullWidth={true}
       style={Styles.collapseStyles([
-        props.narrow
-          ? styles.textContainer
-          : props.inline
-            ? styles.inlineTextContainer
-            : props.small
-              ? styles.smallTextContainer
-              : styles.textContainer,
-        props.textContainerStyle,
-      ])}
-      centerChildren={true}
+        styles.container,
+        colorToBackgroundColorStyles[props.color],
+        props.inline && styles.containerInline,
+        props.small && styles.containerSmall,
+        props.style,
+      ] as const)}
     >
-      {typeof props.children === 'string' ? (
-        <BannerParagraph
-          bannerColor={props.color}
-          content={props.children}
-          inline={props.inline}
-          small={props.small}
-        />
-      ) : (
-        props.children
+      <Box2
+        key="textBox"
+        direction="vertical"
+        style={Styles.collapseStyles([
+          props.narrow
+            ? styles.textContainer
+            : props.inline
+              ? styles.inlineTextContainer
+              : props.small
+                ? styles.smallTextContainer
+                : styles.textContainer,
+          props.textContainerStyle,
+        ])}
+        centerChildren={true}
+      >
+        {typeof props.children === 'string' ? (
+          <BannerParagraph
+            bannerColor={props.color}
+            content={props.children}
+            inline={props.inline}
+            small={props.small}
+          />
+        ) : (
+          props.children
+        )}
+      </Box2>
+      {!!props.onClose && (
+        <Box2 direction="vertical" key="iconBox" style={styles.iconContainer}>
+          <Icon
+            padding="xtiny"
+            sizeType="Small"
+            type="iconfont-close"
+            color={colorToIconColor[props.color]}
+            hoverColor={colorToIconHoverColor[props.color]}
+            onClick={props.onClose}
+          />
+        </Box2>
       )}
     </Box2>
-    {!!props.onClose && (
-      <Box2 direction="vertical" key="iconBox" style={styles.iconContainer}>
-        <Icon
-          padding="xtiny"
-          sizeType="Small"
-          type="iconfont-close"
-          color={colorToIconColor[props.color]}
-          hoverColor={colorToIconHoverColor[props.color]}
-          onClick={props.onClose}
-        />
-      </Box2>
-    )}
-  </Box2>
-)
+  )
+}
 
-const styles = Styles.styleSheetCreate(
+const useStyles = Styles.createStyleHook(
   () =>
     ({
       container: Styles.platformStyles({isElectron: {minHeight: 32}, isMobile: {minHeight: 40}}),
@@ -197,38 +207,38 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const colorToBackgroundColorStyles = Styles.styleSheetCreate(() => ({
-  blue: {backgroundColor: Styles.globalColors.blue},
-  green: {backgroundColor: Styles.globalColors.green},
-  grey: {backgroundColor: Styles.globalColors.blueGreyLight},
-  red: {backgroundColor: Styles.globalColors.red},
-  white: {backgroundColor: Styles.globalColors.white},
-  yellow: {backgroundColor: Styles.globalColors.yellow},
+const useColorToBackgroundColorStyles = Styles.createStyleHook(theme => ({
+  blue: {backgroundColor: theme.blue},
+  green: {backgroundColor: theme.green},
+  grey: {backgroundColor: theme.blueGreyLight},
+  red: {backgroundColor: theme.red},
+  white: {backgroundColor: theme.white},
+  yellow: {backgroundColor: theme.yellow},
 }))
 
-const colorToTextColorStyles = Styles.styleSheetCreate(() => ({
-  blue: {color: Styles.globalColors.white},
-  green: {color: Styles.globalColors.white},
-  grey: {color: Styles.globalColors.black_50},
-  red: {color: Styles.globalColors.white},
-  white: {color: Styles.globalColors.black_50},
-  yellow: {color: Styles.globalColors.brown_75},
+const useColorToTextColorStyles = Styles.createStyleHook(theme => ({
+  blue: {color: theme.white},
+  green: {color: theme.white},
+  grey: {color: theme.black_50},
+  red: {color: theme.white},
+  white: {color: theme.black_50},
+  yellow: {color: theme.brown_75},
 }))
 
-const colorToIconColor = {
-  blue: Styles.globalColors.white_90,
-  green: Styles.globalColors.white_90,
-  grey: Styles.globalColors.black_50,
-  red: Styles.globalColors.white_90,
-  white: Styles.globalColors.black_50,
-  yellow: Styles.globalColors.brown_75,
-}
+const useColorToIconColor = Styles.createThemedHook(theme => ({
+  blue: theme.white_90,
+  green: theme.white_90,
+  grey: theme.black_50,
+  red: theme.white_90,
+  white: theme.black_50,
+  yellow: theme.brown_75,
+}))
 
-const colorToIconHoverColor = {
-  blue: Styles.globalColors.white,
-  green: Styles.globalColors.white,
-  grey: Styles.globalColors.black,
-  red: Styles.globalColors.white,
-  white: Styles.globalColors.black,
-  yellow: Styles.globalColors.brown,
-}
+const useColorToIconHoverColor = Styles.createThemedHook(theme => ({
+  blue: theme.white,
+  green: theme.white,
+  grey: theme.black,
+  red: theme.white,
+  white: theme.black,
+  yellow: theme.brown,
+}))

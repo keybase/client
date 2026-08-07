@@ -101,6 +101,8 @@ const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 const rowHeight = Common.desktopRowHeight(18 + 17)
 
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
+  const styles = Common.useStyles()
+  const theme = Kb.Styles.useTheme()
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
   const botSettings = React.useContext(BotCommandSettingsContext)
@@ -129,8 +131,8 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
       fullWidth={true}
       alignItems="flex-start"
       style={Kb.Styles.collapseStyles([
-        Common.styles.suggestionBase,
-        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
+        styles.suggestionBase,
+        {backgroundColor: selected ? theme.blueLighter2 : theme.white},
       ])}
     >
       {!!command.username && <Kb.Avatar size={Common.avatarSize} username={command.username} />}
@@ -138,7 +140,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         fullWidth={true}
         direction="vertical"
         alignItems="flex-start"
-        style={Common.styles.fixSuggestionHeight}
+        style={styles.fixSuggestionHeight}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySemibold">
@@ -150,7 +152,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         {enabled ? (
           <Kb.Text type="BodySmall">{command.description}</Kb.Text>
         ) : (
-          <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
+          <Kb.Text type="BodySmall" style={{color: theme.redDark}}>
             Bot disabled from listening
           </Kb.Text>
         )}

@@ -39,7 +39,7 @@ const avatarUrl = (httpSrvAddress: string, httpSrvToken: string, username: strin
 const teamAvatarUrl = (httpSrvAddress: string, httpSrvToken: string, teamname: string, darkMode: boolean) =>
   `http://${httpSrvAddress}/av?typ=team&name=${teamname}&format=square_192&mode=${darkMode ? 'dark' : 'light'}&token=${httpSrvToken}&count=0`
 
-const getButtons = (props: Props) => {
+const getButtons = (props: Props, theme: Kb.Styles.Theme, styles: ReturnType<typeof useStyles>) => {
   const buttonClose = (
     <Kb.Button type="Dim" key="Close" label="Close" onClick={props.onClose} />
   )
@@ -48,7 +48,7 @@ const getButtons = (props: Props) => {
   )
   const buttonChat = (
     <Kb.Button key="Chat" label="Chat" onClick={props.onChat}>
-      <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={theme.whiteOrWhite} style={styles.chatIcon} />
     </Kb.Button>
   )
 
@@ -113,6 +113,8 @@ const siteIconToSrcSet = (set: T.Tracker.SiteIconSet) =>
 
 // Inline assertion rendering (store-free)
 const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {assertion: a} = props
   const isDarkMode = useColorScheme() === 'dark'
   const iconSet = isDarkMode ? a.siteIconDarkmode : a.siteIcon
@@ -135,7 +137,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
             style={Kb.Styles.collapseStyles([
               styles.assertionValue,
               a.state === 'revoked' && styles.strikeThrough,
-              {color: assertionColorToTextColor(a.color)},
+              {color: assertionColorToTextColor(a.color, theme)},
             ])}
           >
             {a.value}
@@ -145,14 +147,14 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
         <Kb.Icon
           type={stateToIcon(a.state)}
           fontSize={20}
-          color={assertionColorToColor(a.color)}
+          color={assertionColorToColor(a.color, theme)}
           onClick={a.proofURL ? () => { void openUrl(a.proofURL) } : undefined}
         />
       </Kb.Box2>
       {!!a.metas.length && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
           {a.metas.map(m => (
-            <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
+            <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color, theme)} title={m.label} />
           ))}
         </Kb.Box2>
       )}
@@ -161,6 +163,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
 }
 
 const TeamShowcase = (props: {name: string; httpSrvAddress: string; httpSrvToken: string}) => {
+  const styles = useStyles()
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
@@ -177,18 +180,20 @@ const TeamShowcase = (props: {name: string; httpSrvAddress: string; httpSrvToken
 }
 
 const Tracker = (props: Props) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const isDarkMode = useColorScheme() === 'dark'
 
   const sortedAssertions = props.assertions ? [...props.assertions].sort(sortAssertions) : null
 
   let backgroundColor: string
   if (['broken', 'error'].includes(props.state)) {
-    backgroundColor = Kb.Styles.globalColors.red
+    backgroundColor = theme.red
   } else {
-    backgroundColor = props.followThem ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.blue
+    backgroundColor = props.followThem ? theme.green : theme.blue
   }
 
-  const buttons = getButtons(props)
+  const buttons = getButtons(props, theme, styles)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} style={styles.container}>
@@ -197,7 +202,7 @@ const Tracker = (props: Props) => {
       </Kb.Text>
       {/* Close button must go after reason text for z-ordering on Linux */}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header} justifyContent="flex-end">
-        <Kb.Icon type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={props.onClose} style={styles.close} />
+        <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
         <Kb.Box2 direction="vertical">
@@ -263,19 +268,19 @@ const Tracker = (props: Props) => {
 
 const avatarSize = 96
 const barHeight = 62
+// color lives at the use sites below, where the sheet factory has the theme in scope
 const reason = {
   alignSelf: 'center' as const,
-  color: Kb.Styles.globalColors.white,
   flexShrink: 0,
   ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.medium),
   textAlign: 'center' as const,
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       assertionRow: {...Kb.Styles.paddingV(4)},
-      assertionSite: {color: Kb.Styles.globalColors.black_20},
+      assertionSite: {color: theme.black_20},
       assertionTextContainer: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
       }),
@@ -284,14 +289,14 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {wordBreak: 'break-all'},
       }),
       assertions: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         flexShrink: 0,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         paddingTop: Kb.Styles.globalMargins.small,
       },
       avatar: {borderRadius: '50%'} as const,
       avatarBackground: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         bottom: 0,
         left: 0,
         position: 'absolute',
@@ -301,7 +306,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttons: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.fillAbsolute,
-          backgroundColor: Kb.Styles.globalColors.white_90,
+          backgroundColor: theme.white_90,
           flexShrink: 0,
           height: barHeight,
           top: undefined,
@@ -316,7 +321,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       container: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
       },
       header: {
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
@@ -327,6 +332,7 @@ const styles = Kb.Styles.styleSheetCreate(
       reason: Kb.Styles.platformStyles({
         common: {
           ...reason,
+          color: theme.white,
           ...Kb.Styles.globalStyles.fillAbsolute,
           bottom: undefined,
           paddingBottom: reason.paddingBottom + avatarSize / 2,
@@ -337,6 +343,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       reasonInvisible: {
         ...reason,
+        color: theme.white,
         opacity: 0,
       },
       scrollView: Kb.Styles.platformStyles({
@@ -360,7 +367,7 @@ const styles = Kb.Styles.styleSheetCreate(
       strikeThrough: {textDecorationLine: 'line-through'},
       teamAvatar: {borderRadius: Kb.Styles.borderRadius},
       teamShowcases: {
-        backgroundColor: Kb.Styles.globalColors.white,
+        backgroundColor: theme.white,
         flexShrink: 0,
         paddingLeft: Kb.Styles.globalMargins.medium,
         paddingRight: Kb.Styles.globalMargins.small,

@@ -23,12 +23,15 @@ type OwnProps = {
 
 const channelNameToString = (channelName?: string) => (channelName ? `#${channelName}` : '#general')
 
-const CloneRow = (p: {url: string}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.cloneRow}>
-    <Kb.Text type="Body">Clone:</Kb.Text>
-    <Kb.CopyText text={p.url} containerStyle={styles.copyTextContainer} />
-  </Kb.Box2>
-)
+const CloneRow = (p: {url: string}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.cloneRow}>
+      <Kb.Text type="Body">Clone:</Kb.Text>
+      <Kb.CopyText text={p.url} containerStyle={styles.copyTextContainer} />
+    </Kb.Box2>
+  )
+}
 
 const LastPushRow = (p: {
   devicename: string
@@ -37,6 +40,7 @@ const LastPushRow = (p: {
   teamname?: string
   onClickDevice: () => void
 }) => {
+  const styles = useStyles()
   const {devicename, lastEditTime, lastEditUser, teamname, onClickDevice} = p
   return (
     <Kb.Box2
@@ -143,6 +147,8 @@ const ActionsRow = (p: {
   onBrowseGitRepo: () => void
   onShowDelete: () => void
 }) => {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {canDelete, onArchiveGitRepo, onBrowseGitRepo, onShowDelete} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.actionRow} gap="tiny">
@@ -157,7 +163,7 @@ const ActionsRow = (p: {
           <Kb.Icon
             type="iconfont-file"
             sizeType="Small"
-            color={Kb.Styles.globalColors.black_50}
+            color={theme.black_50}
             style={styles.iconXtiny}
           />
         )}
@@ -173,7 +179,7 @@ const ActionsRow = (p: {
           <Kb.Icon
             type="iconfont-mailbox"
             sizeType="Small"
-            color={Kb.Styles.globalColors.black_50}
+            color={theme.black_50}
             style={styles.iconXtiny}
           />
         )}
@@ -192,6 +198,8 @@ const ActionsRow = (p: {
 }
 
 function ConnectedRow(ownProps: OwnProps) {
+  const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {expanded, git, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_, reload, setError} = ownProps
   const {refreshToken} = ownProps
   const {id} = git
@@ -307,7 +315,7 @@ function ConnectedRow(ownProps: OwnProps) {
           noShrink={true}
           style={Kb.Styles.collapseStyles([
             styles.rowStyle,
-            expanded && {backgroundColor: Kb.Styles.globalColors.white},
+            expanded && {backgroundColor: theme.white},
           ])}
         >
           <Kb.ClickableBox
@@ -377,8 +385,8 @@ function ConnectedRow(ownProps: OwnProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
     ({
       actionRow: {marginTop: Kb.Styles.globalMargins.tiny},
       cloneRow: {maxWidth: '100%'},
@@ -397,10 +405,10 @@ const styles = Kb.Styles.styleSheetCreate(
       device: {
         ...Kb.Styles.globalStyles.fontSemibold,
         ...Kb.Styles.globalStyles.italic,
-        color: Kb.Styles.globalColors.black_50,
+        color: theme.black_50,
       },
       expandedSpacer: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        backgroundColor: theme.blueLighter3,
         height: 6,
       },
       lastEditAvatar: Kb.Styles.platformStyles({
@@ -410,7 +418,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexWrap: 'wrap',
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      repoName: {color: Kb.Styles.globalColors.black},
+      repoName: {color: theme.black},
       iconCaret: Kb.Styles.platformStyles({
         common: {
           marginBottom: 2,

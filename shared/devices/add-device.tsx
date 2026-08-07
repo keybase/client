@@ -15,6 +15,7 @@ const defaultIconNumbers = {
 } as const
 
 export default function AddDevice(ownProps: AddDeviceProps) {
+  const styles = useStyles()
   const highlight = ownProps.highlight ?? noHighlight
   const {data: iconNumbers = defaultIconNumbers} = useRPCLoad(
     T.RPCGen.deviceDeviceHistoryListRpcPromise,
@@ -93,38 +94,41 @@ const deviceOptionTypeMap = {
   'paper key': 'backup',
   phone: 'mobile',
 } as const
-const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => (
-  <Kb.ClickableBox
-    onClick={onClick}
-    className="hover_background_color_blueLighter2"
-    style={Kb.Styles.collapseStyles([
-      styles.deviceOption,
-      isMobile && highlight && styles.deviceOptionHighlighted,
-    ])}
-    direction="vertical"
-    centerChildren={true}
-    gap="xtiny"
-    gapEnd={!isMobile}
-    padding="tiny"
-  >
-    <Kb.ImageIcon type={getDeviceIconType(deviceOptionTypeMap[type], iconNumber ?? (1 as T.Devices.IconNumber), bigIcon ? 96 : 64)} />
-    <Kb.Text type="BodySemibold">
-      {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
-    </Kb.Text>
-  </Kb.ClickableBox>
-)
+const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => {
+  const styles = useStyles()
+  return (
+    <Kb.ClickableBox
+      onClick={onClick}
+      className="hover_background_color_blueLighter2"
+      style={Kb.Styles.collapseStyles([
+        styles.deviceOption,
+        isMobile && highlight && styles.deviceOptionHighlighted,
+      ])}
+      direction="vertical"
+      centerChildren={true}
+      gap="xtiny"
+      gapEnd={!isMobile}
+      padding="tiny"
+    >
+      <Kb.ImageIcon type={getDeviceIconType(deviceOptionTypeMap[type], iconNumber ?? (1 as T.Devices.IconNumber), bigIcon ? 96 : 64)} />
+      <Kb.Text type="BodySemibold">
+        {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+}
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
+const useStyles = Kb.Styles.createStyleHook(theme => ({
   deviceOption: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
+      ...Kb.Styles.border(theme.black_05, 1, Kb.Styles.borderRadius),
       width: isMobile ? 192 : 168,
     },
     isElectron: {
       ...Kb.Styles.transition('background-color'),
     },
   }),
-  deviceOptionHighlighted: {backgroundColor: Kb.Styles.globalColors.blueLighter2},
+  deviceOptionHighlighted: {backgroundColor: theme.blueLighter2},
   deviceOptions: Kb.Styles.platformStyles({
     isMobile: {paddingTop: Kb.Styles.globalMargins.medium},
   }),
