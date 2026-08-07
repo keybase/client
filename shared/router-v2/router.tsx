@@ -666,11 +666,12 @@ function NativeRouter() {
 
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   // Android resolves palette colors at read time, so a theme flip only reaches a
-  // component that happens to re-render; remount the whole tree instead. The suffix
+  // component that happens to re-render; remount the navigators instead. The suffix
   // must not be gated on navKey (empty unless a user switch already happened).
+  // Keyed inside NavigationContainer, not around it: the container owns the nav
+  // state, so remounting only its child repaints without losing where you were.
   const navKey = Common.useUserSwitchNavKey()
   const nativeDarkSuffix = isAndroid ? (isDarkMode ? '-dark' : '-light') : ''
-  const rootKey = `${navKey}${nativeDarkSuffix}`
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
   const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {
     setNavRef(ref)
@@ -704,7 +705,7 @@ function NativeRouter() {
   }
 
   return (
-    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={rootKey}>
+    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={navKey}>
       {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
@@ -719,7 +720,7 @@ function NativeRouter() {
         theme={isDarkMode ? darkTheme : lightTheme}
       >
         <LoadedTeamsListProvider>
-          <NativeRootComponent />
+          <NativeRootComponent key={nativeDarkSuffix} />
         </LoadedTeamsListProvider>
       </NavigationContainer>
     </Kb.Box2>
