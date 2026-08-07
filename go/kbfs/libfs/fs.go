@@ -1136,20 +1136,25 @@ func (fs *FS) Handle() *tlfhandle.Handle {
 	return fs.h
 }
 
-type folderHandleChangeObserver func()
+// folderHandleChangeObserver is a struct (rather than a bare func()) so it's
+// comparable by pointer identity - libkbfs.observerList.remove uses == to find
+// the entry to drop, which panics on func types.
+type folderHandleChangeObserver struct {
+	onChange func()
+}
 
-func (folderHandleChangeObserver) LocalChange(
+func (*folderHandleChangeObserver) LocalChange(
 	context.Context, libkbfs.Node, libkbfs.WriteRange) {
 }
 
-func (folderHandleChangeObserver) BatchChanges(
+func (*folderHandleChangeObserver) BatchChanges(
 	context.Context, []libkbfs.NodeChange, []libkbfs.NodeID) {
 }
 
-func (o folderHandleChangeObserver) TlfHandleChange(
+func (o *folderHandleChangeObserver) TlfHandleChange(
 	context.Context, *tlfhandle.Handle,
 ) {
-	o()
+	o.onChange()
 }
 
 // SubscribeToObsolete returns a channel that will be closed when this *FS
@@ -1168,8 +1173,9 @@ func (fs *FS) SubscribeToObsolete() (
 
 	c := make(chan struct{})
 	var closeOnce sync.Once
-	onHandleChange := folderHandleChangeObserver(
-		func() { closeOnce.Do(func() { close(c) }) })
+	onHandleChange := &folderHandleChangeObserver{
+		onChange: func() { closeOnce.Do(func() { close(c) }) },
+	}
 	fb := fs.root.GetFolderBranch()
 	if err := fs.config.Notifier().RegisterForChanges(
 		[]data.FolderBranch{fb}, onHandleChange); err != nil {
