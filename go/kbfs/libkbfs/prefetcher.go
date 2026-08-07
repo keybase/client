@@ -1346,14 +1346,21 @@ func (p *blockPrefetcher) handleAppStateChange(
 		p.setPaused(false)
 	}()
 
+	// Subscribe once per state transition; NextAppStateUpdate leaks channels
+	// into MobileAppState.updateChs when called each iteration and the state
+	// never changes (e.g. on servers).
+	var appStateCh <-chan keybase1.MobileAppState
 	// Pause the prefetcher when backgrounded.
 	for *appState != keybase1.MobileAppState_FOREGROUND {
 		p.setPaused(true)
 		p.log.CDebugf(
 			context.TODO(), "Pausing prefetcher while backgrounded")
+		if appStateCh == nil {
+			appStateCh = p.appStateUpdater.NextAppStateUpdate(appState)
+		}
 		select {
-		case *appState = <-p.appStateUpdater.NextAppStateUpdate(
-			appState):
+		case *appState = <-appStateCh:
+			appStateCh = nil
 		case req := <-p.prefetchStatusCh.Out():
 			p.handleStatusRequest(req.(*prefetchStatusRequest))
 			continue
@@ -1489,6 +1496,10 @@ func (p *blockPrefetcher) run(
 	first := true
 	appState := keybase1.MobileAppState_FOREGROUND
 	netState := keybase1.MobileNetworkState_NONE
+	// Subscribe once per state transition; MobileAppState.NextUpdate leaks
+	// channels into its subscriber slice if called every loop iteration.
+	appStateCh := p.appStateUpdater.NextAppStateUpdate(&appState)
+	netStateCh := p.appStateUpdater.NextNetworkStateUpdate(&netState)
 
 	// Subscribe to settings updates while waiting for the network to
 	// change.
@@ -1545,13 +1556,16 @@ func (p *blockPrefetcher) run(
 			p.log.Debug("shutting down, clearing in flight fetches")
 			ch := chInterface.(<-chan error)
 			<-ch
-		case appState = <-p.appStateUpdater.NextAppStateUpdate(&appState):
+		case appState = <-appStateCh:
+			appStateCh = p.appStateUpdater.NextAppStateUpdate(&appState)
 			p.handleAppStateChange(&appState)
-		case netState = <-p.appStateUpdater.NextNetworkStateUpdate(&netState):
+		case netState = <-netStateCh:
+			netStateCh = p.appStateUpdater.NextNetworkStateUpdate(&netState)
 			p.handleNetStateChange(&netState, subCh)
 		case <-subCh:
 			// Settings have changed, so recheck the network state.
 			netState = keybase1.MobileNetworkState_NONE
+			netStateCh = p.appStateUpdater.NextNetworkStateUpdate(&netState)
 		case ptrInt := <-p.prefetchCancelCh.Out():
 			ptr := ptrInt.(data.BlockPointer)
 			pre, ok := p.prefetches[ptr.ID]
