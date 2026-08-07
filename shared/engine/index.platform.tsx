@@ -1,6 +1,6 @@
 import logger from '@/logger'
 import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
-import {makeEOFError, type RPCMessage} from './rpc-transport'
+import type {RPCMessage} from './rpc-transport'
 import type {InvokeType, PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType} from '@/engine/rpc-transport'
 
 export type {PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType, InvokeType}
@@ -143,25 +143,88 @@ class NativeTransport extends TransportShared {
 class ProxyNativeTransport extends LocalTransport {
   protected writeMessage(message: RPCMessage) {
     const {engineSend} = KB2.functions
-    engineSend?.(message)
+    if (!engineSend) {
+      // Silently no-oping here reports success upstream (send() returns true)
+      // while the invocation is never delivered, leaving it outstanding
+      // forever. Throwing lets the transport fail it, same as mobile.
+      throw new Error('engineSend missing')
+    }
+    engineSend(message)
   }
   // On account-switch reset fail outstanding invocations so pre-switch RPC
   // callbacks can't fire later against post-switch state
   override reset() {
-    this.failOutstanding(makeEOFError(), {})
+    this.failAllOutstanding()
   }
 }
 
 // Mobile transport — only instantiated when isMobile
 class NativeTransportMobile extends LocalTransport {
   protected writeMessage(message: RPCMessage) {
-    try {
-      if (!global.rpcOnGo) {
-        logger.error('>>>> rpcOnGo send before rpcOnGo global?')
+    if (!global.rpcOnGo) {
+      throw new Error('rpcOnGo send before rpcOnGo global')
+    }
+    // Throwing rather than swallowing is load-bearing: the transport catches
+    // it and fails that invocation, instead of leaving the caller waiting on
+    // a reply that can never arrive. rpcOnGo returns false when the native
+    // write to Go failed.
+    if (!global.rpcOnGo(message)) {
+      throw new Error('native rpc write failed')
+    }
+  }
+  // Only reachable from the 'kb-engine-reset' meta event below: Go dropped
+  // the loopback connection (e.g. a stream desync detected natively), so
+  // nothing will answer the in-flight RPCs and hanging every caller is the
+  // alternative. Engine.reset() early-returns on mobile, so an account switch
+  // does NOT land here -- and must not: failing outstanding RPCs on a switch
+  // EOFs login.login, proven on device. Keep any new call site inside the
+  // meta-event handler, not in code shared with the account-switch path.
+  override reset() {
+    this.failAllOutstanding()
+  }
+}
+
+// Expands a native rpcOnJs batch into individual dispatchOne calls. Exported
+// so the mobile batch path (otherwise only reachable through the
+// isMobile-gated global.rpcOnJs assignment inside createClient) can be
+// exercised directly in tests.
+export const dispatchRpcBatch = (
+  objs: unknown,
+  count: number,
+  dispatchOne: (obj: unknown) => void,
+  logError: (msg: string, e?: unknown) => void
+) => {
+  // Outer guard: this is called from native, so throwing here would abort the
+  // whole batch delivery and unwind into native code.
+  try {
+    if (count > 1) {
+      if (!Array.isArray(objs)) {
+        // Native always sends an array when it batches, so this means the
+        // two sides disagree -- and count-1 messages would vanish silently.
+        logError(`rpcOnJs: count ${count} but payload is not an array`)
+        return
       }
-      global.rpcOnGo?.(message)
+      for (const obj of objs) {
+        dispatchOne(obj)
+      }
+    } else {
+      dispatchOne(objs)
+    }
+  } catch (e) {
+    logError('rpcOnJs: batch guard threw', e)
+  }
+}
+
+// Per-message try/catch: one bad message must not drop the rest of the batch
+// the native side handed over. Exported (alongside dispatchRpcBatch) so the
+// mobile-only wiring inside createClient's isMobile branch can be exercised
+// directly in tests without a mobile jest environment.
+export const makeDispatchOne = (client: {transport: {dispatchDecodedMessage: (obj: unknown) => void}}) => {
+  return (obj: unknown) => {
+    try {
+      client.transport.dispatchDecodedMessage(obj)
     } catch (e) {
-      logger.error('>>>> rpcOnGo JS thrown!', e)
+      logger.error('rpcOnJs: dispatch threw', e)
     }
   }
 }
@@ -176,26 +239,36 @@ function createClient(
       new NativeTransportMobile(incomingRPCCallback, connectCallback, disconnectCallback)
     )
 
+    const dispatchOne = makeDispatchOne(client)
+
     global.rpcOnJs = (objs: unknown, count: number) => {
-      try {
-        if (count > 1) {
-          const arr = objs as Array<unknown>
-          for (const obj of arr) {
-            client.transport.dispatchDecodedMessage(obj)
-          }
-        } else {
-          client.transport.dispatchDecodedMessage(objs)
-        }
-      } catch (e) {
-        logger.error('>>>> rpcOnJs JS thrown!', e)
-      }
+      dispatchRpcBatch(objs, count, dispatchOne, (msg, e) => logger.error(msg, e))
     }
 
     onMetaEvent((payload: string) => {
       try {
         switch (payload) {
           case 'kb-engine-reset':
-            connectCallback()
+            // Go dropped the loopback connection; anything in flight is dead.
+            // Report the disconnect before the reconnect so the engine cancels
+            // its sessions and the UI shows the reconnect state -- the desktop
+            // socket path does the same pair. disconnectCallback and
+            // connectCallback are isolated in their own try/catch: a throw
+            // from a session cancel handler inside disconnectCallback must
+            // not strand the UI on the disconnect banner by skipping
+            // connectCallback (which synchronously clears the daemon error
+            // via startHandshake()).
+            client.transport.reset()
+            try {
+              disconnectCallback()
+            } catch (e) {
+              logger.error('>>>> meta engine event: disconnectCallback threw', e)
+            }
+            try {
+              connectCallback()
+            } catch (e) {
+              logger.error('>>>> meta engine event: connectCallback threw', e)
+            }
         }
       } catch (e) {
         logger.error('>>>> meta engine event JS thrown!', e)
@@ -225,7 +298,7 @@ function createClient(
       try {
         client.transport.packetizeData(data as Uint8Array)
       } catch (e) {
-        logger.error('>>>> rpcOnJs JS thrown!', e)
+        logger.error('>>>> engineIncoming IPC JS thrown!', e)
       }
     })
 

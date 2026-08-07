@@ -20,8 +20,38 @@ Pod::Spec.new do |s|
       "cpp/**/*.{h,cpp}",
       "cpp/*.{h,cpp}"
   ]
+  # cpp/tests is a standalone plain-clang++ test binary (see
+  # rnmodules/react-native-kb/scripts/test-framing.sh), not part of the shipped module.
+  s.exclude_files = "cpp/tests/**/*"
 
   s.dependency "KBCommon"
+
+  # Kb.mm calls into keybasego.xcframework, which is a gitignored build artifact
+  # and so never arrives with a branch. Without this, checking out a branch that
+  # adds an exported func to go/bind fails the build on a missing C identifier
+  # with no hint that `yarn ios:gobuild` is the fix. Runs before Kb.mm compiles
+  # and no-ops (a `find -newer` probe) when the framework is already current.
+  # KB_SKIP_GOBUILD=1 opts out.
+  #
+  # This is only a BACKSTOP, for builds driven by something other than the
+  # shared schemes. The real check is a pre-action on each scheme in
+  # Keybase.xcodeproj/xcshareddata/xcschemes. A build phase is too late: the
+  # Keybase target links the xcframework, so Xcode plans a ProcessXCFramework
+  # copy into DerivedData at the start of the build, and a rebuild that happens
+  # after that lands in the source tree but not in the staged copy. The compile
+  # then succeeds (HEADER_SEARCH_PATHS below points at the source tree) and the
+  # link fails on undefined Keybase* symbols, fixing itself on the next build.
+  s.script_phase = {
+    :name => "Build Keybasego if stale",
+    # Off PODS_ROOT (shared/ios/Pods), not PODS_TARGET_SRCROOT: the pod source
+    # is the synced copy under shared/node_modules, so a path relative to it
+    # depends on where the copy landed.
+    :script => '"$PODS_ROOT/../../react-native/gobuild-if-needed.sh" ios',
+    :execution_position => :before_compile,
+    # No declared outputs: the check is the point, and it is cheap. Declaring
+    # the xcframework as an output would make Xcode skip the staleness probe.
+    :always_out_of_date => "1"
+  }
 
   # Use install_modules_dependencies helper to install the dependencies if React Native version >=0.71.0.
   # See https://github.com/facebook/react-native/blob/febf6b7f33fdb4904669f99d795eba4c0f95d7bf/scripts/cocoapods/new_architecture.rb#L79.

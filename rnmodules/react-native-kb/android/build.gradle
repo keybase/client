@@ -132,6 +132,10 @@ dependencies {
     implementation "androidx.media3:media3-transformer:1.4.1"
     implementation "androidx.media3:media3-effect:1.4.1"
     implementation "androidx.media3:media3-common:1.4.1"
+    // Plain JVM unit tests for the dependency-free reader-loop throttles
+    // (src/test/java/com/reactnativekb). Run with
+    // `./gradlew :react-native-kb:testDebugUnitTest` from shared/android.
+    testImplementation "junit:junit:4.13.2"
 }
 
 react {

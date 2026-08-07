@@ -55,6 +55,41 @@ package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
+# KB_GO_DEBUG=1 builds the Go side with its pointer-safety checks on, for
+# running the app under the Xcode ASan/TSan schemes.
+#
+# This is as far as instrumenting Go goes on mobile: -race, -asan and -msan are
+# all unsupported on ios/arm64 and darwin/arm64, which is exactly why a C++
+# sanitizer cannot see the Go runtime and shared/ios/tsan-suppressions.txt has
+# to exist. What is left still covers the interesting hazard here -- Go pointers
+# reaching C and outliving the call that passed them:
+#
+#   cgocheck2  every cgo pointer-passing rule, not just the cheap subset the
+#              default cgocheck applies. Catches a Go pointer stored into C
+#              memory, which is the failure mode WriteArr's defensive copy and
+#              ReadArr's copy-out both exist to prevent.
+#   checkptr   validates unsafe.Pointer arithmetic and alignment. Normally
+#              implied by -race; enabled here by hand since -race is unavailable.
+#
+# Expect a slower build and slower runtime. Violations panic with a stack, so
+# they land in the device log rather than in the sanitizer's report.
+gcflags=""
+if [[ -n ${KB_GO_DEBUG:-} && "${KB_GO_DEBUG}" != "0" ]]; then
+	echo "KB_GO_DEBUG: building with cgocheck2 + checkptr"
+	export GOEXPERIMENT="${GOEXPERIMENT:+$GOEXPERIMENT,}cgocheck2"
+	gcflags="all=-d=checkptr"
+	# The symbol table is what turns a violation's stack into something
+	# readable, and -s -w discards it.
+	#
+	# The +godebug suffix rides along in the build version so the variant is
+	# identifiable after the fact -- it shows up wherever PrereleaseBuild is
+	# logged or displayed. The artifact keeps its normal filename (the Xcode
+	# link phase and the podspec header search paths both hardcode
+	# keybasego.xcframework), so this string is the thing that tells you which
+	# variant is actually installed.
+	ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build+godebug"
+fi
+
 # gomobile shells out to `gobind` found in $PATH; install the go.mod-pinned
 # version. (Do not use `gomobile init` for this — it installs gobind@latest,
 # which can skew against the x/mobile version pinned in go.mod.)
@@ -66,7 +101,7 @@ if [ "$arg" = "ios" ]; then
 	# Keep in sync with IPHONEOS_DEPLOYMENT_TARGET
 	ios_version="15.1"
 	echo "Building for iOS ($ios_dest)..."
-	go tool gomobile bind -target=ios -iosversion="$ios_version" -tags="ios $tags" -trimpath -ldflags "$ldflags" -o "$ios_dest" "$package"
+	go tool gomobile bind -target=ios -iosversion="$ios_version" -tags="ios $tags" -trimpath ${gcflags:+-gcflags="$gcflags"} -ldflags "$ldflags" -o "$ios_dest" "$package"
 	# gobind emits `@import Foundation;` which breaks ObjC++ consumers (Kb.mm); rewrite to a plain include
 	find "$ios_dest" -name '*.objc.h' -exec sed -i '' 's/@import Foundation;/#include <Foundation\/Foundation.h>/' {} +
 elif [ "$arg" = "android" ]; then
@@ -80,7 +115,7 @@ elif [ "$arg" = "android" ]; then
 	# Override for faster local iteration, e.g. TARGETS=android/arm64.
 	android_targets=${TARGETS:-"android/arm,android/arm64,android/amd64"}
 	echo "Building for Android ($android_dest)..."
-	go tool gomobile bind -target="$android_targets" -androidapi "$android_api" -tags="android $tags" -trimpath -ldflags "$android_ldflags" -o "$android_dest" "$package"
+	go tool gomobile bind -target="$android_targets" -androidapi "$android_api" -tags="android $tags" -trimpath ${gcflags:+-gcflags="$gcflags"} -ldflags "$android_ldflags" -o "$android_dest" "$package"
 else
 	# Shouldn't get here.
 	echo "Nothing to build, you need to specify 'ios' or 'android'"

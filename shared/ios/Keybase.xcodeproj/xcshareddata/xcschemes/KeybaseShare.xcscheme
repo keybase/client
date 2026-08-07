@@ -6,6 +6,24 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Build Keybasego if stale"
+               scriptText = "&#10;# See the plain Keybase scheme for why this is a pre-action and not a build&#10;# phase. This scheme builds Keybase.app too, so it needs the same check.&#10;set -e&#10;&quot;$SRCROOT/../react-native/gobuild-if-needed.sh&quot; ios&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "279FB59B2139AB6A005E4864"
+                     BuildableName = "KeybaseShare.appex"
+                     BlueprintName = "KeybaseShare"
+                     ReferencedContainer = "container:Keybase.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"

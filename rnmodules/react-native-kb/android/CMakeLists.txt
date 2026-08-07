@@ -8,6 +8,7 @@ set (NODE_MODULES_DIR "${CMAKE_SOURCE_DIR}/../..")
 add_library(cpp
             SHARED
             ../cpp/react-native-kb.cpp
+            ../cpp/frame-parser.cpp
             cpp-adapter.cpp
 )
 

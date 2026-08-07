@@ -1,4 +1,5 @@
 import {decode, encode} from '@msgpack/msgpack'
+import logger from '@/logger'
 
 const MESSAGE_TYPE_INVOKE = 0
 const MESSAGE_TYPE_RESPONSE = 1
@@ -30,6 +31,11 @@ export type ResponseType = {
   seqid: number
   error?: (e?: ErrorType) => void
   result?: (r?: unknown) => void
+  // Read-only: true once error()/result() has settled this response. Lets a
+  // caller that catches after an intentional settle (e.g. a throwing
+  // reducer that runs after the auto-result() call) skip re-settling instead
+  // of tripping the double-settle guard below and logging a false alarm.
+  readonly settled?: boolean
 }
 
 export type PayloadType = {
@@ -272,10 +278,35 @@ export abstract class RPCTransport {
     }
   }
 
+  // Settles everything queued while disconnected. Detaching the array first is
+  // what makes this once-only: a later flushPending()/onConnected() sees an
+  // empty queue, so nothing is re-sent or settled twice. Queued raw send()s
+  // have no callback and nothing waiting on them, so they're just dropped.
+  protected failPending(err: unknown, data: unknown) {
+    const pending = this._pending
+    this._pending = []
+    for (const item of pending) {
+      if (item.type !== 'invoke') {
+        continue
+      }
+      try {
+        item.cb(err, data)
+      } catch (e) {
+        logger.error('failPending callback threw', e)
+      }
+    }
+  }
+
   protected failOutstanding(err: unknown, data: unknown) {
     const invocations = this._invocations
     this._invocations = new Map()
-    invocations.forEach(cb => cb(err, data))
+    invocations.forEach(cb => {
+      try {
+        cb(err, data)
+      } catch (e) {
+        logger.error('failOutstanding callback threw', e)
+      }
+    })
   }
 
   packetizeData(data: Uint8Array) {
@@ -326,7 +357,17 @@ export abstract class RPCTransport {
         }
         const payload = decode(payloadBytes)
         p.consumeBytes(payloadLen)
-        this.dispatchDecodedMessage(payload)
+
+        // Dispatch outside the framing try: an app-side handler that throws must
+        // not reach the catch below, which resets the packetizer and discards
+        // every buffered byte. That leaves parsing to resume at an arbitrary
+        // offset -- and on the renderer transport there is no socket to
+        // reconnect, so it never recovers.
+        try {
+          this.dispatchDecodedMessage(payload)
+        } catch (e) {
+          logger.error('dispatchDecodedMessage threw', e)
+        }
       }
     } catch (err) {
       p.reset()
@@ -354,7 +395,20 @@ export abstract class RPCTransport {
           response: this.makeResponse(seqid),
         }
         if (this._incomingRPCCallback) {
-          this._incomingRPCCallback(payload)
+          try {
+            this._incomingRPCCallback(payload)
+          } catch (e) {
+            logger.error('incoming invoke handler threw', e)
+            // If the handler already settled the response (e.g. an
+            // auto-result() call followed by a throwing reducer on the next
+            // line) it has already answered the service; settling again
+            // would only trip the double-settle guard and log a false
+            // alarm. Only settle here when nothing has answered yet -- the
+            // service side would otherwise wait forever on this seqid.
+            if (!payload.response.settled) {
+              payload.response.error?.(makeTransportError('UNKNOWN_METHOD'))
+            }
+          }
         } else {
           payload.response.error?.(makeTransportError('UNKNOWN_METHOD'))
         }
@@ -411,7 +465,12 @@ export abstract class RPCTransport {
     }
 
     if (this.isConnected()) {
-      this.writeMessage(message)
+      try {
+        this.writeMessage(message)
+      } catch (err) {
+        logger.error('Failed to write RPC message', err)
+        return false
+      }
       return true
     }
     if (this._explicitClose) {
@@ -450,7 +509,7 @@ export abstract class RPCTransport {
 
   close() {
     this.markExplicitClose()
-    this._pending = []
+    this.failPending(makeEOFError(), {})
     this._packetizer.reset()
     this.failOutstanding(makeEOFError(), {})
   }
@@ -459,26 +518,70 @@ export abstract class RPCTransport {
     return encodeFrame(message)
   }
 
+  // Fails every outstanding invocation. Transports that sit on a connection
+  // which can die underneath them (mobile JSI, renderer IPC) call this when
+  // the engine resets; without it the callbacks are never invoked and every
+  // in-flight RPC hangs forever.
+  failAllOutstanding(err: unknown = makeEOFError()) {
+    // Also drop any partial frame: on the renderer transport this runs on the
+    // account switch, and a half-delivered pre-switch frame would otherwise
+    // concatenate with post-switch bytes into one corrupt decode.
+    this._packetizer.reset()
+    this.failOutstanding(err, {})
+  }
+
   private invokeNow(method: string, args: [object], cb: InvocationCallback) {
     const seqid = this._seqid
     this._seqid += 1
     this._invocations.set(seqid, cb)
-    this.writeMessage([MESSAGE_TYPE_INVOKE, seqid, method, args])
+    try {
+      this.writeMessage([MESSAGE_TYPE_INVOKE, seqid, method, args])
+    } catch (err) {
+      // The message never left, so no response is coming. Fail the caller
+      // rather than leaving the seqid outstanding for the rest of the session.
+      // Shaped like every other transport-level failure (code/desc, not the
+      // raw exception) so downstream convertToError yields an RPCError with a
+      // code; the original message survives in desc.
+      this._invocations.delete(seqid)
+      cb({code: errors.EOF, desc: err instanceof Error ? err.message : String(err), name: 'EOF'}, {})
+    }
   }
 
   private makeResponse(seqid: number): ResponseType {
+    let settled = false
     return {
       cancelled: false,
+      get settled() {
+        return settled
+      },
       error: err => {
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])
+        if (settled) {
+          logger.error(`Attempted to settle response for seqid ${seqid} twice (error after already settled)`)
+          return
+        }
+        settled = true
+        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])) {
+          // The service is waiting on this reply and nothing else will tell
+          // it. The write already failed (send() logged that), so there's no
+          // connection left to retry on -- surface which seqid was lost.
+          logger.error(`failed to write error response for seqid ${seqid}`)
+        }
       },
       result: result => {
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])
+        if (settled) {
+          logger.error(`Attempted to settle response for seqid ${seqid} twice (result after already settled)`)
+          return
+        }
+        settled = true
+        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])) {
+          // Same as above: the write failed, the connection is gone, and
+          // nothing will retry this seqid.
+          logger.error(`failed to write response for seqid ${seqid}`)
+        }
       },
       seqid,
     }
   }
-
 }
 
 export {encodeFrame, makeEOFError, makeTransportError}
