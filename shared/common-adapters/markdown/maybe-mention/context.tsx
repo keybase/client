@@ -13,6 +13,7 @@ type ProviderProps = {
 }
 
 export const MaybeMentionProvider = (props: ProviderProps) => {
+  const {children} = props
   const [infoMap, setInfoMap] = React.useState<ReadonlyMap<string, MaybeMentionInfo>>(() => new Map())
 
   useEngineActionListener('chat.1.chatUi.chatMaybeMentionUpdate', action => {
@@ -29,7 +30,7 @@ export const MaybeMentionProvider = (props: ProviderProps) => {
     })
   })
 
-  return <MaybeMentionContext value={infoMap}>{props.children}</MaybeMentionContext>
+  return <MaybeMentionContext value={infoMap}>{children}</MaybeMentionContext>
 }
 
 export const useMaybeMentionInfo = (name: string, channel: string) => {

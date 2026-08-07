@@ -36,12 +36,13 @@ const LinkText = (p: {
   wrapStyle?: StylesTextCrossPlatform | undefined
 }) => {
   const {children, className = 'hover-underline hover_contained_color_blueDark', onClick, title, url} = p
+  const {wrapStyle, linkStyle: linkStyleOverride} = p
   const urlProps = useClickURL(url)
   return (
     <Text
       className={className}
       type="BodyPrimaryLink"
-      style={Styles.collapseStyles([p.wrapStyle, linkStyle, p.linkStyle])}
+      style={Styles.collapseStyles([wrapStyle, linkStyle, linkStyleOverride])}
       title={title}
       onClick={onClick}
       {...urlProps}
@@ -58,18 +59,19 @@ type KeybaseLinkProps = {
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
+  const {link, linkStyle: linkStyleOverride, wrapStyle} = props
   // Route through the linking config for keybase:// and https://keybase.io/ URLs
   // so React Navigation handles navigation declaratively.
   // emitDeepLink normalizes URLs and dispatches through the linking config,
   // falling back to handleAppLink for patterns not yet in the config.
   return (
     <LinkText
-      title={props.link}
-      linkStyle={props.linkStyle}
-      wrapStyle={props.wrapStyle}
-      onClick={() => emitDeepLink(props.link)}
+      title={link}
+      linkStyle={linkStyleOverride}
+      wrapStyle={wrapStyle}
+      onClick={() => emitDeepLink(link)}
     >
-      {props.link}
+      {link}
     </LinkText>
   )
 }
@@ -83,15 +85,15 @@ type WarningLinkProps = {
 }
 
 const WarningLink = (props: WarningLinkProps) => {
-  const {display, punycode, url} = props
+  const {display, punycode, url, linkStyle: linkStyleOverride, wrapStyle} = props
   const navigateAppend = C.Router2.navigateAppend
   if (isMobile) {
     return (
       <LinkText
         className="hover-underline"
         title={display}
-        linkStyle={props.linkStyle}
-        wrapStyle={props.wrapStyle}
+        linkStyle={linkStyleOverride}
+        wrapStyle={wrapStyle}
         onClick={() =>
           navigateAppend({name: 'chatConfirmNavigateExternal', params: {display, punycode, url}})
         }
@@ -104,8 +106,8 @@ const WarningLink = (props: WarningLinkProps) => {
     <LinkText
       className="hover-underline"
       title={display}
-      linkStyle={props.linkStyle}
-      wrapStyle={props.wrapStyle}
+      linkStyle={linkStyleOverride}
+      wrapStyle={wrapStyle}
       url={url}
     >
       <WithTooltip
