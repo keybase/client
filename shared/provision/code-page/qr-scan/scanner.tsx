@@ -11,6 +11,8 @@ type Props = {
 }
 
 const QRScannerMobile = (p: Props): React.ReactElement | null => {
+  const {notAuthorizedView, onBarCodeRead, style} = p
+
   const [scanned, setScanned] = React.useState(false)
   const [permission, requestPermission] = useCameraPermissions!()
 
@@ -24,11 +26,11 @@ const QRScannerMobile = (p: Props): React.ReactElement | null => {
 
   if (!permission) {
     return (
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([p.style, styles.gettingPermissions])} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([style, styles.gettingPermissions])} />
     )
   }
   if (!permission.granted) {
-    return p.notAuthorizedView || null
+    return notAuthorizedView || null
   }
 
   return (
@@ -37,9 +39,9 @@ const QRScannerMobile = (p: Props): React.ReactElement | null => {
       onBarcodeScanned={({data}) => {
         if (scanned) return
         setScanned(true)
-        p.onBarCodeRead(data)
+        onBarCodeRead(data)
       }}
-      style={p.style}
+      style={style}
     />
   )
 }

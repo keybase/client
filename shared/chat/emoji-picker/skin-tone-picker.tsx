@@ -35,22 +35,24 @@ const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
 }
 
 function SkinTonePicker(props: Props) {
+  const {currentSkinTone, onExpandChange, setSkinTone} = props
+
   const [expanded, _setExpanded] = React.useState(false)
   const setExpanded = (toSet: boolean) => {
     _setExpanded(toSet)
-    props.onExpandChange?.(toSet)
+    onExpandChange?.(toSet)
   }
-  const optionSkinTones = reorderedSkinTones(props.currentSkinTone).map((skinTone, index) => (
+  const optionSkinTones = reorderedSkinTones(currentSkinTone).map((skinTone, index) => (
     <Kb.ClickableBox
       direction="vertical"
       key={index.toString()}
       style={styles.dotContainerExpanded}
       onClick={() => {
-        props.setSkinTone(skinTone)
+        setSkinTone(skinTone)
         setExpanded(false)
       }}
     >
-      {circle(skinTone, true, isMobile && skinTone === props.currentSkinTone)}
+      {circle(skinTone, true, isMobile && skinTone === currentSkinTone)}
     </Kb.ClickableBox>
   ))
 
@@ -66,7 +68,7 @@ function SkinTonePicker(props: Props) {
       </Kb.Box2>
     ) : (
       <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
-        {circle(props.currentSkinTone, false, false)}
+        {circle(currentSkinTone, false, false)}
         <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
       </Kb.ClickableBox>
     )
@@ -79,7 +81,7 @@ function SkinTonePicker(props: Props) {
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
           <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
-            {circle(props.currentSkinTone, false, false)}
+            {circle(currentSkinTone, false, false)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}

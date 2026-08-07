@@ -23,7 +23,8 @@ const maxHeight = 224
 
 const SuggestionList = <I,>(props: Props<I>) => {
   const listRef = React.useRef<LegendListRef>(null)
-  const {selectedIndex} = props
+  const {items, keyExtractor, renderItem, rowHeight, selectedIndex, style, suggestBotCommandsUpdateStatus} =
+    props
 
   const lastIndexRef = React.useRef(selectedIndex)
   React.useEffect(() => {
@@ -34,49 +35,48 @@ const SuggestionList = <I,>(props: Props<I>) => {
   }, [selectedIndex, listRef])
 
   if (
-    !props.items.length &&
-    (!props.suggestBotCommandsUpdateStatus ||
-      props.suggestBotCommandsUpdateStatus === T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
+    !items.length &&
+    (!suggestBotCommandsUpdateStatus ||
+      suggestBotCommandsUpdateStatus === T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
   ) {
     return null
   }
 
   if (!isMobile) {
     const itemRenderer = (index: number) => {
-      const i = props.items[index]
-      return i ? (props.renderItem(index, i) as React.JSX.Element) : <></>
+      const i = items[index]
+      return i ? (renderItem(index, i) as React.JSX.Element) : <></>
     }
     const itemHeight = {type: 'trueVariable' as const}
-    const {rowHeight} = props
     const maxRows = Math.max(1, Math.floor(maxHeight / rowHeight))
-    const listHeight = Math.min(props.items.length, maxRows) * rowHeight
+    const listHeight = Math.min(items.length, maxRows) * rowHeight
 
     return (
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Kb.Styles.collapseStyles([desktopStyles.listContainer, props.style])}
+        style={Kb.Styles.collapseStyles([desktopStyles.listContainer, style])}
         testID={TestIDs.CHAT_SUGGESTION_LIST}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} style={{height: listHeight}}>
           <Kb.List
             ref={listRef}
             renderItem={itemRenderer}
-            items={props.items}
+            items={items}
             itemHeight={itemHeight}
             estimatedItemHeight={rowHeight}
             extraData={selectedIndex}
           />
         </Kb.Box2>
-        {props.suggestBotCommandsUpdateStatus &&
-        props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
+        {suggestBotCommandsUpdateStatus &&
+        suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
           <Kb.Box2
             style={desktopStyles.commandStatusContainer}
             fullWidth={true}
             direction="vertical"
             justifyContent="center"
           >
-            <BotCommandUpdateStatus status={props.suggestBotCommandsUpdateStatus} />
+            <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
           </Kb.Box2>
         ) : null}
       </Kb.Box2>
@@ -87,28 +87,28 @@ const SuggestionList = <I,>(props: Props<I>) => {
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      style={Kb.Styles.collapseStyles([nativeStyles.listContainer, props.style])}
+      style={Kb.Styles.collapseStyles([nativeStyles.listContainer, style])}
       testID={TestIDs.CHAT_SUGGESTION_LIST}
     >
       <FlatList
         alwaysBounceVertical={false}
-        renderItem={({index, item}) => props.renderItem(index, item)}
+        renderItem={({index, item}) => renderItem(index, item)}
         style={nativeStyles.noGrow}
-        data={props.items}
-        keyExtractor={props.keyExtractor || (item => String(item))}
+        data={items}
+        keyExtractor={keyExtractor || (item => String(item))}
         keyboardShouldPersistTaps="always"
         windowSize={10}
         onScrollToIndexFailed={noop}
       />
-      {props.suggestBotCommandsUpdateStatus &&
-      props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
+      {suggestBotCommandsUpdateStatus &&
+      suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
         <Kb.Box2
           style={nativeStyles.commandStatusContainer}
           fullWidth={true}
           direction="vertical"
           justifyContent="center"
         >
-          <BotCommandUpdateStatus status={props.suggestBotCommandsUpdateStatus} />
+          <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
         </Kb.Box2>
       ) : null}
     </Kb.Box2>

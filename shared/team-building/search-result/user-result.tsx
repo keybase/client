@@ -5,12 +5,13 @@ import YouResult from './you-result'
 import HellobotResult from './hellobot-result'
 
 const UserResult = function UserResult(props: ResultProps) {
-  if (props.isYou) {
+  const {inTeam, isPreExistingTeamMember, isYou, namespace, onAdd, onRemove, userId, username} = props
+  if (isYou) {
     return <YouResult {...props} />
   }
 
   // Fancy special case for new convo hellobot row
-  if (props.username === 'hellobot' && props.namespace === 'chat') {
+  if (username === 'hellobot' && namespace === 'chat') {
     return <HellobotResult {...props} />
   }
 
@@ -19,15 +20,15 @@ const UserResult = function UserResult(props: ResultProps) {
       {...props}
       rowStyle={rowContainerWithLargePadding}
       rightButtons={
-        !props.isPreExistingTeamMember && (
+        !isPreExistingTeamMember && (
           <ActionButton
-            inTeam={props.inTeam}
+            inTeam={inTeam}
             onAdd={(e?: React.BaseSyntheticEvent) => {
               e?.stopPropagation()
-              props.onAdd(props.userId)
+              onAdd(userId)
             }}
             onRemove={() => {
-              props.onRemove(props.userId)
+              onRemove(userId)
             }}
           />
         )

@@ -32,10 +32,23 @@ type Props = {
 // Desktop login
 
 const DesktopLogin = (props: Props) => {
+  const {
+    error,
+    needPassword,
+    onForgotPassword,
+    onSomeoneElse,
+    onSubmit,
+    password,
+    passwordChange,
+    selectedUser,
+    selectedUserChange,
+    users,
+  } = props
+
   const _inputRef = React.useRef<Kb.Input3Ref>(null)
 
   return (
-    <SignupScreen banners={errorBanner(props.error)} hideDesktopHeader={!isMobile}>
+    <SignupScreen banners={errorBanner(error)} hideDesktopHeader={!isMobile}>
       <Kb.Box2
         direction="vertical"
         fullHeight={true}
@@ -46,51 +59,51 @@ const DesktopLogin = (props: Props) => {
         style={desktopStyles.contentBox}
       >
         <UserCard
-          username={props.selectedUser}
+          username={selectedUser}
           outerStyle={desktopStyles.container}
           style={desktopStyles.userContainer}
         >
           <UserList
-            users={props.users}
-            selectedUser={props.selectedUser}
+            users={users}
+            selectedUser={selectedUser}
             onSelectUser={u => {
-              props.selectedUserChange(u)
+              selectedUserChange(u)
               _inputRef.current?.focus()
             }}
-            onSomeoneElse={props.onSomeoneElse}
+            onSomeoneElse={onSomeoneElse}
           />
-          {props.needPassword && (
+          {needPassword && (
             <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={desktopStyles.inputRow}>
               <Kb.Input3
                 textType="BodySemibold"
                 autoFocus={true}
                 placeholder="Password"
-                onChangeText={props.passwordChange}
-                onEnterKeyDown={props.onSubmit}
+                onChangeText={passwordChange}
+                onEnterKeyDown={onSubmit}
                 ref={_inputRef}
                 secureTextEntry={true}
-                value={props.password}
+                value={password}
               />
             </Kb.Box2>
           )}
           <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="flex-end" flex={1}>
             <Kb.Text
               type="BodySmallSecondaryLink"
-              onClick={props.onForgotPassword}
+              onClick={onForgotPassword}
               style={desktopStyles.forgotPassword}
             >
               Forgot password?
             </Kb.Text>
           </Kb.Box2>
-          {props.needPassword && (
+          {needPassword && (
             <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="flex-end" flex={1}>
               <Kb.WaitingButton
-                disabled={!props.password}
+                disabled={!password}
                 fullWidth={true}
                 waitingKey={C.waitingKeyConfigLogin}
                 style={desktopStyles.loginSubmitButton}
                 label="Log in"
-                onClick={props.onSubmit}
+                onClick={onSubmit}
               />
             </Kb.Box2>
           )}
@@ -134,16 +147,31 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 // Native login
 
 const NativeLoginRender = (props: Props) => {
-  const {passwordChange, onSubmit} = props
+  const {
+    passwordChange,
+    onSubmit,
+    error,
+    needPassword,
+    onFeedback,
+    onForgotPassword,
+    onSignup,
+    onSomeoneElse,
+    password,
+    selectedUser,
+    selectedUserChange,
+    showTyping,
+    showTypingChange,
+    users,
+  } = props
 
   const inputProps = {
     autoFocus: true,
-    error: !!props.error,
-    keyboardType: props.showTyping && isAndroid ? 'visible-password' : 'default',
+    error: !!error,
+    keyboardType: showTyping && isAndroid ? 'visible-password' : 'default',
     onChangeText: (password: string) => passwordChange(password),
     onEnterKeyDown: () => onSubmit(),
     placeholder: 'Password',
-    secureTextEntry: !props.showTyping,
+    secureTextEntry: !showTyping,
   } as const
 
   return (
@@ -160,7 +188,7 @@ const NativeLoginRender = (props: Props) => {
         justifyContent="flex-end"
         style={nativeStyles.createAccountRow}
       >
-        <Kb.Button small={true} label="Create account" mode="Secondary" onClick={props.onSignup} />
+        <Kb.Button small={true} label="Create account" mode="Secondary" onClick={onSignup} />
       </Kb.Box2>
       {isAndroid && !C.isDeviceSecureAndroid && !isAndroidNewerThanM && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.deviceNotSecureContainer}>
@@ -169,43 +197,43 @@ const NativeLoginRender = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      <Kb.ErrorBanner error={props.error} />
-      <UserCard username={props.selectedUser} outerStyle={nativeStyles.card} style={nativeStyles.cardInner}>
+      <Kb.ErrorBanner error={error} />
+      <UserCard username={selectedUser} outerStyle={nativeStyles.card} style={nativeStyles.cardInner}>
         <UserList
-          users={props.users}
-          selectedUser={props.selectedUser}
-          onSelectUser={props.selectedUserChange}
-          onSomeoneElse={props.onSomeoneElse}
+          users={users}
+          selectedUser={selectedUser}
+          onSelectUser={selectedUserChange}
+          onSomeoneElse={onSomeoneElse}
         />
-        {props.needPassword && (
+        {needPassword && (
           <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
             <Kb.Input3 textType="BodySemibold" {...inputProps} />
             <Kb.Checkbox
-              checked={props.showTyping}
+              checked={showTyping}
               label="Show typing"
-              onCheck={check => props.showTypingChange(check)}
+              onCheck={check => showTypingChange(check)}
               style={nativeStyles.formElements}
             />
           </Kb.Box2>
         )}
-        {props.needPassword && (
+        {needPassword && (
           <Kb.WaitingButton
-            disabled={!props.password}
+            disabled={!password}
             waitingKey={C.waitingKeyConfigLogin}
             fullWidth={true}
             label="Log in"
-            onClick={props.onSubmit}
+            onClick={onSubmit}
           />
         )}
         <Kb.Text
           type="BodySmallSecondaryLink"
           center={true}
-          onClick={props.onForgotPassword}
+          onClick={onForgotPassword}
           style={nativeStyles.forgotPassword}
         >
           Forgot password?
         </Kb.Text>
-        <Kb.Text center={true} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
+        <Kb.Text center={true} type="BodySmallSecondaryLink" onClick={onFeedback}>
           Problems logging in?
         </Kb.Text>
       </UserCard>

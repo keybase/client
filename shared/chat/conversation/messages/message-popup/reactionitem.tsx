@@ -8,16 +8,18 @@ type Props = {
 }
 
 const ReactionItem = (props: Props) => {
+  const {onHidden, onReact: _onReact, showPicker: _showPicker} = props
+
   const topReacjis = useReactionRowTopReacjis()
   const onReact = (emoji: string) => {
-    props.onReact(emoji)
-    props.onHidden()
+    _onReact(emoji)
+    onHidden()
   }
   const showPicker = () => {
-    props.onHidden()
+    onHidden()
     // MUST come after, else we'll dismiss the modal we just showed
     setTimeout(() => {
-      props.showPicker()
+      _showPicker()
     }, 100)
   }
   return (

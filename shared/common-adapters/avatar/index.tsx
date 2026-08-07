@@ -162,7 +162,18 @@ const borderTeamStyle = {
 // ── Component ────────────────────────────────────────────────────────────────
 
 function Avatar(p: Props) {
-  const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children, testID} = p
+  const {
+    size,
+    teamname,
+    username,
+    isTeam: _isTeam,
+    onClick: _onClick,
+    style,
+    children,
+    testID,
+    onError,
+    onLoad,
+  } = p
   const {showPlaceholder} = p
   const {imageOverrideUrl, crop} = p
   const isTeam = _isTeam || !!teamname
@@ -267,11 +278,11 @@ function Avatar(p: Props) {
             cachePolicy="memory-disk"
             onError={() => {
               setErrorUri(source.uri)
-              p.onError?.()
+              onError?.()
             }}
             onLoad={() => {
               setErrorUri(undefined)
-              p.onLoad?.()
+              onLoad?.()
             }}
           />
         </>

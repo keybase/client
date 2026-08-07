@@ -59,15 +59,34 @@ export type SearchFilterRef = {
   focus: () => void
 }
 function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
-  const {onChange, onBlur: _onBlur, onFocus: _onFocus, hotkey} = props
+  const {
+    onChange,
+    onBlur: _onBlur,
+    onFocus: _onFocus,
+    hotkey,
+    focusOnMount,
+    icon,
+    iconColor: _iconColor,
+    mobileCancelButton,
+    onClick,
+    onEnterKeyDown,
+    placeholderCentered,
+    placeholderText,
+    showXOverride,
+    size,
+    style,
+    value,
+    valueControlled,
+    waiting: _waiting,
+  } = props
   const {onKeyDown: _onKeyDown, onCancel, measureRef, ref} = props
-  const [focused, setFocused] = React.useState(props.focusOnMount || false)
+  const [focused, setFocused] = React.useState(focusOnMount || false)
   const [hover, setHover] = React.useState(false)
   const [text, setText] = React.useState('')
   const inputRef = React.useRef<Input3Ref>(null)
   const mounted = React.useRef(false)
 
-  const focusOnMountRef = React.useRef(props.focusOnMount)
+  const focusOnMountRef = React.useRef(focusOnMount)
 
   React.useEffect(() => {
     mounted.current = true
@@ -96,7 +115,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     _onFocus?.()
   }
 
-  const currentText = () => (props.valueControlled ? props.value : text)
+  const currentText = () => (valueControlled ? value : text)
 
   const focus = () => {
     inputRef.current?.focus()
@@ -132,15 +151,15 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
   const onHotkey = (cmd: string) => {
     if (hotkey && cmd.endsWith('+' + hotkey)) {
-      if (props.onClick) {
-        props.onClick()
+      if (onClick) {
+        onClick()
       } else {
         focus()
       }
     }
   }
 
-  Kb.useHotKey(props.hotkey ? `mod+${props.hotkey}` : '', onHotkey)
+  Kb.useHotKey(hotkey ? `mod+${hotkey}` : '', onHotkey)
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -152,22 +171,22 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   const typing = () => focused || !!currentText()
 
   const iconSizeType = () => {
-    return !isMobile && props.size === 'full-width' ? 'Default' : 'Small'
+    return !isMobile && size === 'full-width' ? 'Default' : 'Small'
   }
 
   const iconColor = () => {
-    return props.iconColor ? props.iconColor : Styles.globalColors.black_50
+    return _iconColor ? _iconColor : Styles.globalColors.black_50
   }
 
   const leftIcon = () => {
     return (
-      props.icon &&
+      icon &&
       !typing() && (
         <Kb.IconAuto
-          type={props.icon}
+          type={icon}
           sizeType={iconSizeType()}
           color={iconColor()}
-          style={Styles.collapseStyles([styles.icon, !isMobile && props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny])}
+          style={Styles.collapseStyles([styles.icon, !isMobile && size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny])}
         />
       )
     )
@@ -175,20 +194,18 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
   const input = () => {
     const hotkeyText =
-      props.hotkey && !focused && !isMobile
-        ? ` (${Platforms.shortcutSymbol}${props.hotkey.toUpperCase()})`
-        : ''
+      hotkey && !focused && !isMobile ? ` (${Platforms.shortcutSymbol}${hotkey.toUpperCase()})` : ''
     return (
       <Kb.Input3
         textType="BodySemibold"
-        autoFocus={props.focusOnMount}
+        autoFocus={focusOnMount}
         value={currentText()}
-        placeholder={props.placeholderText + hotkeyText}
+        placeholder={placeholderText + hotkeyText}
         onChangeText={update}
         onBlur={onBlur}
         onFocus={onFocus}
         onKeyDown={onKeyDown}
-        onEnterKeyDown={props.onEnterKeyDown}
+        onEnterKeyDown={onEnterKeyDown}
         ref={inputRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
@@ -199,14 +216,14 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
   const waiting = () => {
     return (
-      !!props.waiting &&
+      !!_waiting &&
       (isMobile ? (
         <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={false} />
       ) : (
         <Kb.Animation
           animationType={'spinner'}
           containerStyle={styles.icon}
-          style={props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
+          style={size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
         />
       ))
     )
@@ -214,10 +231,10 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
   const rightCancelIcon = () => {
     let show = typing()
-    if (props.showXOverride === true) {
+    if (showXOverride === true) {
       show = true
     }
-    if (props.showXOverride === false) {
+    if (showXOverride === false) {
       show = false
     }
     if (!show) {
@@ -225,7 +242,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
     if (isMobile) {
       return (
-        <Kb.ClickableBox onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
+        <Kb.ClickableBox onClick={mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
           <Kb.Icon
             type="iconfont-remove"
             sizeType={iconSizeType()}
@@ -240,7 +257,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
           onClick={() => {}}
           onMouseDown={cancel}
           direction="vertical"
-          style={props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth}
+          style={size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth}
         >
           <Kb.Icon
             type="iconfont-remove"
@@ -260,7 +277,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       fullWidth={!isMobile}
       // With onClick the input is display-only; block it from taking focus so
       // clicks hit the ClickableBox and window refocus can't refire onFocus.
-      pointerEvents={props.onClick ? 'none' : undefined}
+      pointerEvents={onClick ? 'none' : undefined}
     >
       {leftIcon()}
       {input()}
@@ -275,11 +292,11 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       direction="horizontal"
       style={Styles.collapseStyles([
         styles.container,
-        props.placeholderCentered && styles.containerCenter,
+        placeholderCentered && styles.containerCenter,
         styles.containerNonSmall,
         focused || hover ? styles.light : styles.dark,
       ])}
-      onClick={props.onClick || focus}
+      onClick={onClick || focus}
     >
       {inside}
     </Kb.ClickableBox>
@@ -287,18 +304,18 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     <Kb.ClickableBox
       data-search-filter={true}
       direction="horizontal"
-      alignSelf={props.size === 'full-width' ? 'stretch' : undefined}
+      alignSelf={size === 'full-width' ? 'stretch' : undefined}
       style={Styles.collapseStyles([
         styles.container,
-        props.placeholderCentered && styles.containerCenter,
-        props.size === 'small' && styles.containerSmall,
-        props.size === 'full-width' && styles.containerNonSmall,
+        placeholderCentered && styles.containerCenter,
+        size === 'small' && styles.containerSmall,
+        size === 'full-width' && styles.containerNonSmall,
         focused || hover ? styles.light : styles.dark,
-        props.style,
+        style,
       ])}
       onMouseOver={mouseOver}
       onMouseLeave={mouseLeave}
-      onClick={props.onClick || (!focused ? focus : undefined)}
+      onClick={onClick || (!focused ? focus : undefined)}
     >
       {inside}
     </Kb.ClickableBox>
@@ -307,11 +324,11 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   return isMobile ? (
     <Kb.Box2
       direction="horizontal"
-      style={Styles.collapseStyles([styles.containerMobile, props.style])}
+      style={Styles.collapseStyles([styles.containerMobile, style])}
       alignItems="center"
       gap="xsmall"
     >
-      {!!props.mobileCancelButton && typing() && (
+      {!!mobileCancelButton && typing() && (
         <Kb.Text type={'BodyBigLink'} onClick={cancel}>
           Cancel
         </Kb.Text>

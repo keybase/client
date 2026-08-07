@@ -69,16 +69,18 @@ function PopupPositioned(props: PopupProps) {
 }
 
 function PopupCentered(props: PopupProps) {
+  const {children, onHidden, style} = props
+
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
-    <EscapeHandler onESC={props.onHidden ?? (() => {})}>
+    <EscapeHandler onESC={onHidden ?? (() => {})}>
       <Box2
         direction="vertical"
         centerChildren={true}
-        style={Styles.collapseStyles([desktopStyles.cover, props.style])}
+        style={Styles.collapseStyles([desktopStyles.cover, style])}
         onMouseUp={() => {
           if (mouseDownOnCover) {
-            props.onHidden?.()
+            onHidden?.()
           }
         }}
         onMouseDown={() => {
@@ -99,7 +101,7 @@ function PopupCentered(props: PopupProps) {
             style={desktopStyles.clipContainer as React.CSSProperties}
             onClick={stopBubbling}
           >
-            {props.children}
+            {children}
           </div>
         </Box2>
       </Box2>

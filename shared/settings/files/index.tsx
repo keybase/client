@@ -18,9 +18,9 @@ const SyncNotificationSetting = (
     'spaceAvailableNotificationThreshold' | 'areSettingsLoading' | 'setSpaceAvailableNotificationThreshold'
   >
 ) => {
+  const {spaceAvailableNotificationThreshold, areSettingsLoading, setSpaceAvailableNotificationThreshold} = p
   const onChangedSyncNotifications = (selectedIdx: number) =>
-    p.setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
-  const {spaceAvailableNotificationThreshold, areSettingsLoading} = p
+    setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
   return (
     <Kb.Box2 direction="horizontal" alignItems="center">
       <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
@@ -130,7 +130,7 @@ const ThresholdDropdown = (
   const allowedThresholds = allowedNotificationThresholds.map(
     i => ({label: FS.humanizeBytes(i, 0), value: i}) as const
   )
-  const {spaceAvailableNotificationThreshold} = p
+  const {spaceAvailableNotificationThreshold, setSpaceAvailableNotificationThreshold} = p
   const [notificationThreshold, setNotificationThreshold] = React.useState(
     spaceAvailableNotificationThreshold
   )
@@ -143,7 +143,7 @@ const ThresholdDropdown = (
 
   const hide = () => setVisible(false)
   const done = () => {
-    p.setSpaceAvailableNotificationThreshold(notificationThreshold)
+    setSpaceAvailableNotificationThreshold(notificationThreshold)
     setVisible(false)
   }
   const select = (selectedVal?: number) => selectedVal && setNotificationThreshold(selectedVal)

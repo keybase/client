@@ -15,7 +15,7 @@ type PhoneSearchProps = {
 }
 
 const PhoneSearch = (props: PhoneSearchProps) => {
-  const {namespace} = props
+  const {namespace, continueLabel, search} = props
   const teamBuildingSearchResults = TB.useTBContext(s => s.searchResults)
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
@@ -27,7 +27,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setPhoneValidity(validity)
     setPhoneNumber(phoneNumber)
     if (validity) {
-      props.search(phoneNumber, 'phone')
+      search(phoneNumber, 'phone')
     }
   }
 
@@ -75,7 +75,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
         )}
         {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
       </Kb.Box2>
-      <ContinueButton label={props.continueLabel} onClick={_onContinue} disabled={!canSubmit} />
+      <ContinueButton label={continueLabel} onClick={_onContinue} disabled={!canSubmit} />
     </Kb.Box2>
   )
 }

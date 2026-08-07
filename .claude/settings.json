@@ -10,7 +10,6 @@
     "allow": [
       "Bash(yarn lint)",
       "Bash(yarn lint-warn:*)",
-      "Bash(yarn prettier:*)",
       "Bash(yarn build-*)",
       "Bash(yarn desktop:package)",
       "Bash(yarn desktop:start*)",

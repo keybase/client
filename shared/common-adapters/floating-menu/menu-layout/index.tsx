@@ -33,6 +33,8 @@ const MenuLayout = (props: MenuLayoutProps) => {
 }
 
 const DesktopMenuLayout = (props: MenuLayoutProps) => {
+  const {closeOnClick, header, items: _items, listStyle, onHidden, style} = props
+
   const renderDivider = (index: number) => (
     <Divider style={index === 0 ? desktopStyles.dividerFirst : desktopStyles.divider} key={index} />
   )
@@ -60,8 +62,8 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
         style={Styles.collapseStyles([desktopStyles.itemContainer, styleClickable])}
         onClick={() => {
           item.onClick?.()
-          if (props.closeOnClick) {
-            props.onHidden()
+          if (closeOnClick) {
+            onHidden()
           }
         }}
       >
@@ -112,7 +114,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
     )
   }
 
-  const items = props.items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
+  const items = _items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
     if (item === 'Divider' && arr.length && arr.at(-1) === 'Divider') {
       return arr
     }
@@ -130,15 +132,15 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
       direction="vertical"
       alignItems="stretch"
       fullWidth={true}
-      style={Styles.collapseStyles([desktopStyles.menuContainer, props.style])}
+      style={Styles.collapseStyles([desktopStyles.menuContainer, style])}
     >
-      {props.header}
+      {header}
       {items.some(item => item !== 'Divider') && (
         <Box2
           direction="vertical"
           fullWidth={true}
           noShrink={true}
-          style={Styles.collapseStyles([desktopStyles.menuItemList, props.listStyle])}
+          style={Styles.collapseStyles([desktopStyles.menuItemList, listStyle])}
         >
           {items.map(
             (item, index): React.ReactNode =>
@@ -162,87 +164,116 @@ type MenuRowProps = {
 
 const itemContainerHeight = 40
 
-const MenuRow = (props: MenuRowProps) => (
-  <TouchableOpacity
-    disabled={props.disabled}
-    onPress={() => {
-      if (!props.unWrapped) {
-        props.onHidden?.()
-        props.onClick?.()
-      }
-    }}
-    style={Styles.collapseStyles([
-      nativeStyles.itemContainer,
-      !props.unWrapped && nativeStyles.itemContainerWrapped,
-      !!props.subTitle && nativeStyles.itemContainerWithSubTitle,
-      props.backgroundColor && {backgroundColor: props.backgroundColor},
-    ])}
-  >
-    {props.view || (
-      <Box2
-        direction="horizontal"
-        fullWidth={true}
-        fullHeight={true}
-        gap={props.icon ? 'small' : undefined}
-      >
-        {props.icon || props.isSelected ? (
-          <Box2 direction="horizontal" fullHeight={true} centerChildren={true} style={nativeStyles.iconContainer}>
-            {props.isSelected && (
-              <Icon
-                type="iconfont-check"
-                color={Styles.globalColors.blue}
-                fontSize={16}
-                sizeType="Default"
-              />
-            )}
-            {props.icon &&
-              !props.isSelected &&
-              (props.inProgress ? (
-                <ProgressIndicator />
-              ) : (
-                <>
-                  <IconAuto
-                    color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
-                    style={Styles.collapseStyles([{alignSelf: 'center'}, props.iconStyle])}
-                    sizeType="Default"
-                    type={props.icon}
-                  />
-                  {props.isBadged && <Badge badgeStyle={nativeStyles.iconBadge} />}
-                </>
-              ))}
-          </Box2>
-        ) : null}
-        <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-          <Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
-            <Box2 direction="horizontal" fullWidth={true}>
-              <Text type="Body" style={Styles.collapseStyles([styleRowText(props), props.style])}>
-                {props.title}
-                {props.rightTitle ? (
-                  <Text type="BodyTinySemiboldItalic">{' ' + props.rightTitle}</Text>
-                ) : null}
-              </Text>
-              {props.newTag && (
-                <Meta
-                  title="New"
-                  size="Small"
-                  backgroundColor={Styles.globalColors.blue}
-                  style={nativeStyles.badge}
+const MenuRow = (props: MenuRowProps) => {
+  const {
+    backgroundColor,
+    danger,
+    decoration,
+    disabled,
+    icon,
+    iconStyle,
+    inProgress,
+    isBadged,
+    isHeader,
+    isSelected,
+    newTag,
+    onClick,
+    onHidden,
+    progressIndicator,
+    rightTitle,
+    style,
+    subTitle,
+    textColor,
+    title,
+    unWrapped,
+    view,
+  } = props
+  return (
+    <TouchableOpacity
+      disabled={disabled}
+      onPress={() => {
+        if (!unWrapped) {
+          onHidden?.()
+          onClick?.()
+        }
+      }}
+      style={Styles.collapseStyles([
+        nativeStyles.itemContainer,
+        !unWrapped && nativeStyles.itemContainerWrapped,
+        !!subTitle && nativeStyles.itemContainerWithSubTitle,
+        backgroundColor && {backgroundColor: backgroundColor},
+      ])}
+    >
+      {view || (
+        <Box2 direction="horizontal" fullWidth={true} fullHeight={true} gap={icon ? 'small' : undefined}>
+          {icon || isSelected ? (
+            <Box2
+              direction="horizontal"
+              fullHeight={true}
+              centerChildren={true}
+              style={nativeStyles.iconContainer}
+            >
+              {isSelected && (
+                <Icon
+                  type="iconfont-check"
+                  color={Styles.globalColors.blue}
+                  fontSize={16}
+                  sizeType="Default"
                 />
               )}
-              {props.decoration}
+              {icon &&
+                !isSelected &&
+                (inProgress ? (
+                  <ProgressIndicator />
+                ) : (
+                  <>
+                    <IconAuto
+                      color={danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
+                      style={Styles.collapseStyles([{alignSelf: 'center'}, iconStyle])}
+                      sizeType="Default"
+                      type={icon}
+                    />
+                    {isBadged && <Badge badgeStyle={nativeStyles.iconBadge} />}
+                  </>
+                ))}
             </Box2>
-            {!!props.subTitle && (
+          ) : null}
+          <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+            <Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
               <Box2 direction="horizontal" fullWidth={true}>
-                <Text type="BodyTiny">{props.subTitle}</Text>
+                <Text
+                  type="Body"
+                  style={Styles.collapseStyles([
+                    styleRowText({danger, disabled, isHeader, textColor}),
+                    style,
+                  ])}
+                >
+                  {title}
+                  {rightTitle ? <Text type="BodyTinySemiboldItalic">{' ' + rightTitle}</Text> : null}
+                </Text>
+                {newTag && (
+                  <Meta
+                    title="New"
+                    size="Small"
+                    backgroundColor={Styles.globalColors.blue}
+                    style={nativeStyles.badge}
+                  />
+                )}
+                {decoration}
               </Box2>
-            )}
+              {!!subTitle && (
+                <Box2 direction="horizontal" fullWidth={true}>
+                  <Text type="BodyTiny">{subTitle}</Text>
+                </Box2>
+              )}
+            </Box2>
           </Box2>
         </Box2>
-      </Box2>
-    )}
-    {!!props.progressIndicator && <ProgressIndicator style={nativeStyles.progressIndicator} />}
-  </TouchableOpacity>
-)
+      )}
+      {!!progressIndicator && <ProgressIndicator style={nativeStyles.progressIndicator} />}
+    </TouchableOpacity>
+  )
+}
 
 const NativeMenuLayout = (props: MenuLayoutProps) => {
   const {isModal} = props
@@ -271,7 +302,11 @@ const NativeMenuLayout = (props: MenuLayoutProps) => {
   const close = (
     <>
       <Divider style={nativeStyles.divider} />
-      <Box2 direction="vertical" fullWidth={true} style={Styles.collapseStyles([nativeStyles.menuGroup, props.listStyle])}>
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([nativeStyles.menuGroup, props.listStyle])}
+      >
         <MenuRow
           title={props.closeText || 'Close'}
           index={0}
@@ -298,11 +333,7 @@ const NativeMenuLayout = (props: MenuLayoutProps) => {
           nativeStyles.bottomSheetOuter,
         ])}
       >
-        <Box2
-          style={nativeStyles.bottomSheetContainer}
-          direction="vertical"
-          fullWidth={true}
-        >
+        <Box2 style={nativeStyles.bottomSheetContainer} direction="vertical" fullWidth={true}>
           {props.header}
           {items}
           {close}
@@ -336,7 +367,10 @@ const NativeMenuLayout = (props: MenuLayoutProps) => {
           {beginningDivider && <Divider />}
           <ScrollView
             alwaysBounceVertical={false}
-            style={Styles.collapseStyles([nativeStyles.scrollView, firstIsUnWrapped && nativeStyles.firstIsUnWrapped])}
+            style={Styles.collapseStyles([
+              nativeStyles.scrollView,
+              firstIsUnWrapped && nativeStyles.firstIsUnWrapped,
+            ])}
             contentContainerStyle={nativeStyles.menuGroup}
           >
             {items}

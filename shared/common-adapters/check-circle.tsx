@@ -22,35 +22,48 @@ type Props = {
 }
 
 const CheckCircle = (props: Props) => {
+  const {
+    checked,
+    checkedColor,
+    checkedHoverColor,
+    className,
+    color,
+    disabled,
+    disabledColor,
+    fontSize,
+    hoverColor,
+    onCheck,
+    style,
+  } = props
   const onClick = () => {
-    if (props.onCheck) {
-      if (!props.disabled) {
-        props.onCheck(!props.checked)
+    if (onCheck) {
+      if (!disabled) {
+        onCheck(!checked)
       }
     }
   }
 
   return (
     <Kb.Icon
-      type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
+      type={checked ? 'iconfont-success' : 'iconfont-circle'}
       onClick={onClick}
-      fontSize={props.fontSize}
+      fontSize={fontSize}
       color={
-        props.disabled
-          ? props.disabledColor || Styles.globalColors.black_05OrWhite_10
-          : props.checked
-            ? props.checkedColor || Styles.globalColors.blue
-            : props.color || Styles.globalColors.black_20OrWhite_20
+        disabled
+          ? disabledColor || Styles.globalColors.black_05OrWhite_10
+          : checked
+            ? checkedColor || Styles.globalColors.blue
+            : color || Styles.globalColors.black_20OrWhite_20
       }
       hoverColor={
-        props.disabled
-          ? props.disabledColor || Styles.globalColors.black_05OrWhite_10
-          : props.checked
-            ? props.checkedHoverColor || Styles.globalColors.blueDarkOrBlueLight
-            : props.hoverColor || Styles.globalColors.blue
+        disabled
+          ? disabledColor || Styles.globalColors.black_05OrWhite_10
+          : checked
+            ? checkedHoverColor || Styles.globalColors.blueDarkOrBlueLight
+            : hoverColor || Styles.globalColors.blue
       }
-      className={Styles.classNames(props.disabled && `checkCircle__disabled`, props.className)}
-      style={props.style}
+      className={Styles.classNames(disabled && `checkCircle__disabled`, className)}
+      style={style}
     />
   )
 }
