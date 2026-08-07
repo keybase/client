@@ -15,10 +15,17 @@ import Header from './header/index'
 // creates two different bar types; pushing between them slides two opaque slabs (visible seam
 // riding the header during the transition) instead of morphing one native bar. The native
 // appearance already draws the theme card color (same palette value as globalColors.white).
+// Colors go through getters: this object lives at module scope, so a plain read would
+// bake in whatever the theme was at import time (before initDarkMode runs) and Android
+// resolves the palette at read time.
 export const headerDefaultStyle = isAndroid
   ? {
-      backgroundColor: Kb.Styles.globalColors.white,
-      borderBottomColor: Kb.Styles.globalColors.black_10,
+      get backgroundColor() {
+        return Kb.Styles.globalColors.white
+      },
+      get borderBottomColor() {
+        return Kb.Styles.globalColors.black_10
+      },
       borderBottomWidth: Kb.Styles.hairlineWidth,
       height: 44,
     }
@@ -92,7 +99,9 @@ export const defaultNavigationOptions = isMobile
         ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
       },
       headerStyle: headerDefaultStyle,
-      headerTintColor: Kb.Styles.globalColors.black_50,
+      get headerTintColor() {
+        return Kb.Styles.globalColors.black_50
+      },
       headerTitle: (hp: {children: React.ReactNode}) => (
         <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
           {hp.children}

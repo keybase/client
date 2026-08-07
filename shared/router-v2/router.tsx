@@ -30,7 +30,7 @@ import {usePushState} from '@/stores/push'
 import {colors, darkColors} from '@/styles/colors'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
-import {Platform, StatusBar, View, useColorScheme} from 'react-native'
+import {Platform, StatusBar, View} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -490,8 +490,10 @@ const appTabsScreenOptions = (
       : {
           tabBarActiveIndicatorColor: 'rgba(255,255,255,0.15)',
           tabBarActiveIndicatorEnabled: true,
-          tabBarActiveTintColor: Kb.Styles.globalColors.white,
-          tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
+          // The bar is dark in both themes (greyDarkest/blueDark below), so the tints
+          // must not flip with the theme or the labels invert onto a dark background.
+          tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
+          tabBarInactiveTintColor: colors.blueLighter,
         }),
     tabBarIcon: getNativeTabIcon(routeName),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
@@ -663,11 +665,12 @@ function NativeRouter() {
   )
 
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
-  // Android also remounts on dark mode changes
-  const nativeIsDarkMode = useColorScheme() === 'dark'
+  // Android resolves palette colors at read time, so a theme flip only reaches a
+  // component that happens to re-render; remount the whole tree instead. The suffix
+  // must not be gated on navKey (empty unless a user switch already happened).
   const navKey = Common.useUserSwitchNavKey()
-  const nativeDarkSuffix = isAndroid ? (nativeIsDarkMode ? '-dark' : '-light') : ''
-  const rootKey = navKey ? `${navKey}${nativeDarkSuffix}` : ''
+  const nativeDarkSuffix = isAndroid ? (isDarkMode ? '-dark' : '-light') : ''
+  const rootKey = `${navKey}${nativeDarkSuffix}`
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
   const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {
     setNavRef(ref)
