@@ -35,7 +35,7 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
       // only pay for the time label when an orange line will actually render
       let orangeTime = ''
       if (orangeLineAbove && !isMobile) {
-        const showUsername = RowMetadata.getMessageShowUsername({
+        const {showUsername} = RowMetadata.getMessageShowUsername({
           message: m,
           messageMap: s.messageMap,
           messageOrdinals,

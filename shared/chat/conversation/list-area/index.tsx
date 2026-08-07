@@ -51,7 +51,8 @@ const keyExtractor = (ordinal: ItemType) => String(ordinal)
 // avatar + username header (~40px taller) than a grouped follow-on of the same render type. Without
 // splitting the pool, recycleItems reuses one container across both heights, so a recycled view
 // paints at the wrong height for a frame before re-measure — visible as rows overlapping during
-// scroll. Append ':hdr' so header and grouped rows pool separately.
+// scroll. Append ':hdr' so header and grouped rows pool separately. A row that reserves header
+// space after a scroll-back load is as tall as a headered one, so it belongs in the same pool.
 const useGetItemType = () => {
   const threadStore = useConversationThreadStore()
   const you = useCurrentUserState(s => s.username)
@@ -70,7 +71,7 @@ const useGetItemType = () => {
         return messageTypeMap.get(ordinal) ?? 'text'
       }
       const base = getMessageRowType(message, messageTypeMap.get(ordinal))
-      const showUsername = getMessageShowUsername({
+      const {reserveHeader, showUsername} = getMessageShowUsername({
         message,
         messageMap,
         messageOrdinals: messageOrdinals ?? noOrdinals,
@@ -78,7 +79,7 @@ const useGetItemType = () => {
         shownCache,
         you,
       })
-      return showUsername ? `${base}:hdr` : base
+      return showUsername || reserveHeader ? `${base}:hdr` : base
     },
     [threadStore, you, shownCache]
   )
