@@ -56,6 +56,10 @@ if [ -n "$client_commit" ]; then
 	cd "$client_dir"
 	echo "Checking out $client_commit on client (will reset to $client_branch)"
 	git fetch
+	# Builds dirty shared/ios/ (fastlane bumps build numbers, pod install rewrites
+	# Podfile.lock). If a previous run died before its reset trap, that dirt blocks
+	# the checkout below, so drop it first.
+	git checkout -- shared/ios/
 	git checkout "$client_commit"
 	git reset --hard "$client_commit"
 	git pull origin "$client_commit" --ff-only
@@ -63,6 +67,7 @@ else
 	echo "Checking out master on client"
 	cd "$client_dir"
 	git fetch
+	git checkout -- shared/ios/
 	git checkout "master"
 	git reset --hard "origin/master"
 	git pull origin master --ff-only
