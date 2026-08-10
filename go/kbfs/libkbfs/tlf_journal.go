@@ -2690,10 +2690,22 @@ func (j *tlfJournal) wait(ctx context.Context) error {
 	return nil
 }
 
+func (j *tlfJournal) getLastFlushErr() error {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	return j.lastFlushErr
+}
+
 func (j *tlfJournal) waitForCompleteFlush(ctx context.Context) error {
 	// Now we wait for the journal to completely empty.  Waiting on
 	// the wg isn't enough, because conflicts/squashes can cause the
 	// journal to pause and we'll be called too early.
+	//
+	// A failing flush returns as fast as it can fail, so this loop needs its
+	// own backoff.  Signaling work here cancels the background flusher's retry
+	// timer, so its backoff cannot throttle us.
+	retry := backoff.NewExponentialBackOff()
+	retry.MaxElapsedTime = 0
 	for {
 		blockEntryCount, mdEntryCount, err := j.getJournalEntryCounts()
 		if err != nil {
@@ -2712,9 +2724,30 @@ func (j *tlfJournal) waitForCompleteFlush(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		_, noLock := j.lastFlushErr.(kbfsmd.ServerErrorLockConflict)
+
+		flushErr := j.getLastFlushErr()
+		_, noLock := flushErr.(kbfsmd.ServerErrorLockConflict)
 		if noLock {
-			return j.lastFlushErr
+			return flushErr
+		}
+		if flushErr == nil {
+			// A conflict or squash pauses the journal and flushes nothing,
+			// which is not an error and is the reason this loop exists.
+			retry.Reset()
+			continue
+		}
+
+		// MaxElapsedTime is 0 above, so NextBackOff never returns
+		// backoff.Stop; we retry until the caller's context is done.
+		bTime := retry.NextBackOff()
+		j.log.CDebugf(ctx, "Flush failed for %s: %+v; retrying in %s",
+			j.tlfID, flushErr, bTime)
+		timer := time.NewTimer(bTime)
+		select {
+		case <-timer.C:
+		case <-ctx.Done():
+			timer.Stop()
+			return ctx.Err()
 		}
 	}
 }
