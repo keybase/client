@@ -1,5 +1,33 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index ca99e71..32720c3 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -6402,7 +6402,8 @@ var ScheduledWork = class {
+     const work = this.work.get(key);
+     if (work) {
+       this.work.delete(key);
+-      work[1](work[0]);
++      const [handle, cancelWork] = work;
++      cancelWork(handle);
+     }
+   }
+   has(key) {
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index 5315f44..5faff3c 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -6381,7 +6381,8 @@ var ScheduledWork = class {
+     const work = this.work.get(key);
+     if (work) {
+       this.work.delete(key);
+-      work[1](work[0]);
++      const [handle, cancelWork] = work;
++      cancelWork(handle);
+     }
+   }
+   has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index ea03488..3efcb9c 100644
+index ea03488..96edeb9 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -5254,17 +5254,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -57,8 +85,18 @@ index ea03488..3efcb9c 100644
        resizeObserver.disconnect();
        if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
          window.removeEventListener("resize", onWindowResize);
+@@ -7054,7 +7066,8 @@ var ScheduledWork = class {
+     const work = this.work.get(key);
+     if (work) {
+       this.work.delete(key);
+-      work[1](work[0]);
++      const [handle, cancelWork] = work;
++      cancelWork(handle);
+     }
+   }
+   has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index c96345b..9549a9c 100644
+index c96345b..a696431 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -5233,17 +5233,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -116,8 +154,18 @@ index c96345b..9549a9c 100644
        resizeObserver.disconnect();
        if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
          window.removeEventListener("resize", onWindowResize);
+@@ -7033,7 +7045,8 @@ var ScheduledWork = class {
+     const work = this.work.get(key);
+     if (work) {
+       this.work.delete(key);
+-      work[1](work[0]);
++      const [handle, cancelWork] = work;
++      cancelWork(handle);
+     }
+   }
+   has(key) {
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index ea03488..3efcb9c 100644
+index ea03488..96edeb9 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -5254,17 +5254,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -175,8 +223,18 @@ index ea03488..3efcb9c 100644
        resizeObserver.disconnect();
        if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
          window.removeEventListener("resize", onWindowResize);
+@@ -7054,7 +7066,8 @@ var ScheduledWork = class {
+     const work = this.work.get(key);
+     if (work) {
+       this.work.delete(key);
+-      work[1](work[0]);
++      const [handle, cancelWork] = work;
++      cancelWork(handle);
+     }
+   }
+   has(key) {
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index c96345b..9549a9c 100644
+index c96345b..a696431 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -5233,17 +5233,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -234,3 +292,13 @@ index c96345b..9549a9c 100644
        resizeObserver.disconnect();
        if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
          window.removeEventListener("resize", onWindowResize);
+@@ -7033,7 +7045,8 @@ var ScheduledWork = class {
+     const work = this.work.get(key);
+     if (work) {
+       this.work.delete(key);
+-      work[1](work[0]);
++      const [handle, cancelWork] = work;
++      cancelWork(handle);
+     }
+   }
+   has(key) {
