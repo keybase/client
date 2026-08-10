@@ -141,6 +141,7 @@ func TestHandlerQuery(t *testing.T) {
 
 	if result == nil {
 		t.Fatal("result is nil")
+		return
 	}
 
 	if result.Username != "sometestuser" {

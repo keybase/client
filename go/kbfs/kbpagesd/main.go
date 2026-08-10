@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	_ "net/http/pprof" // register /debug/pprof/* on http.DefaultServeMux; only reachable when -pprof-addr is set
+	_ "net/http/pprof" //nolint:gosec // register /debug/pprof/* on http.DefaultServeMux; only reachable when -pprof-addr is set
 	"os"
 	"strings"
 	"time"
