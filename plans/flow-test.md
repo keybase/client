@@ -299,6 +299,16 @@ All in the dedicated e2e team unless noted.
 
 ---
 
+## Bucket 26 — Dev debug pages (Typography, Markdown)
+
+`__DEV__`-only settings pages gated out of production builds; skipped automatically when the row is absent. Both are long catalogs, so coverage means one card per screenful (Electron) / per section (mobile) — the report keeps a single screenshot per test.
+
+- [x] Settings → Markdown, every section captured (Electron ✓, iOS ✓ settings-debug-pages.test.ts)
+- [x] Settings → Typography, every section captured (Electron ✓, iOS ✓ settings-debug-pages.test.ts)
+- [x] Typography control states: dark background, underline decoration, next sample (Electron ✓, iOS ✓)
+
+---
+
 ## Forbidden — never automate
 
 Not reproducible or account-damaging. Do not add tests for these.

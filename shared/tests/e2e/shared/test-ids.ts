@@ -74,6 +74,9 @@ export const SETTINGS_ROW_CHAT          = 'settings-row-chat'
 export const SETTINGS_ROW_FILES         = 'settings-row-files'
 export const SETTINGS_NOTIFICATIONS     = 'settings-notifications'
 export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
+// Dev-only debug pages (gated by __DEV__ in nav + routes)
+export const SETTINGS_TYPOGRAPHY        = 'settings-typography'
+export const SETTINGS_MARKDOWN          = 'settings-markdown'
 
 // People
 export const PEOPLE_FEED = 'people-feed'

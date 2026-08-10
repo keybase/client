@@ -1,6 +1,7 @@
 // Dev-only font debug screen. Gated by __DEV__ in nav and routes — never visible in production.
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {TextType} from '@/common-adapters/text.shared'
 
 // Font metrics after this PR (UPM=2048, electron)
@@ -425,7 +426,10 @@ const Typography = () => {
   const types: ReadonlyArray<TextType> = selectedType === 'all' ? textTypes : [selectedType]
 
   return (
-    <Kb.ScrollView style={Kb.Styles.collapseStyles([styles.container, darkBg ? styles.darkBg : styles.lightBg])}>
+    <Kb.ScrollView
+      style={Kb.Styles.collapseStyles([styles.container, darkBg ? styles.darkBg : styles.lightBg])}
+      testID={TestIDs.SETTINGS_TYPOGRAPHY}
+    >
       {/* Controls */}
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
@@ -451,7 +455,12 @@ const Typography = () => {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Background</Kb.Text>
-          <Kb.Switch on={darkBg} onClick={() => setDarkBg(v => !v)} label="Dark" />
+          <Kb.Switch
+            on={darkBg}
+            onClick={() => setDarkBg(v => !v)}
+            label="Dark"
+            allowLabelClick={true}
+          />
         </Kb.Box2>
       </Kb.Box2>
 
