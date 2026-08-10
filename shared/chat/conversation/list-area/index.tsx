@@ -219,9 +219,12 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {clearVersion, containsLatestMessage, messageOrdinals, loaded} = data
 
   // Centered loads (search hit, reply-quote jump, pinned message) clear the thread before
-  // refetching, so the list sees a non-empty -> empty -> non-empty transition. dataKey tells it
-  // that is a new logical dataset, which resets layout readiness and re-runs the initial scroll
-  // without throwing away measurement caches the way a remount does.
+  // refetching, so the list sees a non-empty -> empty -> non-empty transition. dataKey is the
+  // library's answer to that, but it cannot be used here: the fresh-data reset drops
+  // readyToRender and restores it inside one layout-effect pass, so the containers never render
+  // in the not-ready state that useFreshDataTransitionVisibility waits for before clearing its
+  // pending flag. The wrapper then stays at opacity 0 with the thread fully measured behind it.
+  // Remounting sidesteps it because a fresh mount seeds that flag from the current epoch.
   const datasetKey = `${conversationIDKey}:${clearVersion}`
 
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -526,7 +529,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         ref={wrapperRef}
       >
         <LegendList
-          dataKey={datasetKey}
+          key={datasetKey}
           ref={listRef as React.Ref<LegendListRef>}
           data={messageOrdinals as unknown as T.Chat.Ordinal[]}
           renderItem={renderItem}
