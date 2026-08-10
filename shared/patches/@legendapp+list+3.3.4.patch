@@ -1,7 +1,16 @@
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index ca99e71..32720c3 100644
+index ca99e71..6124734 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
+@@ -4833,7 +4833,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
+     if (!needsRecalculate && state.containerItemKeys.has(itemKey)) {
+       needsRecalculate = true;
+     }
+-    if (prevSizeKnown !== void 0 && Math.abs(prevSizeKnown - size) > 5) {
++    if (prevSizeKnown === void 0 || Math.abs(prevSizeKnown - size) > 5) {
+       shouldMaintainScrollAtEnd = true;
+     }
+     onItemSizeChanged == null ? void 0 : onItemSizeChanged({
 @@ -6402,7 +6402,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
@@ -13,9 +22,18 @@ index ca99e71..32720c3 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 5315f44..5faff3c 100644
+index 5315f44..a6bdaa8 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -4812,7 +4812,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
+     if (!needsRecalculate && state.containerItemKeys.has(itemKey)) {
+       needsRecalculate = true;
+     }
+-    if (prevSizeKnown !== void 0 && Math.abs(prevSizeKnown - size) > 5) {
++    if (prevSizeKnown === void 0 || Math.abs(prevSizeKnown - size) > 5) {
+       shouldMaintainScrollAtEnd = true;
+     }
+     onItemSizeChanged == null ? void 0 : onItemSizeChanged({
 @@ -6381,7 +6381,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
@@ -27,9 +45,18 @@ index 5315f44..5faff3c 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index ea03488..96edeb9 100644
+index ea03488..ebb54ae 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -4850,7 +4850,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
+     if (!needsRecalculate && state.containerItemKeys.has(itemKey)) {
+       needsRecalculate = true;
+     }
+-    if (prevSizeKnown !== void 0 && Math.abs(prevSizeKnown - size) > 5) {
++    if (prevSizeKnown === void 0 || Math.abs(prevSizeKnown - size) > 5) {
+       shouldMaintainScrollAtEnd = true;
+     }
+     onItemSizeChanged == null ? void 0 : onItemSizeChanged({
 @@ -5254,17 +5254,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
  var globalResizeObserver = null;
  function getGlobalResizeObserver() {
@@ -96,9 +123,18 @@ index ea03488..96edeb9 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index c96345b..a696431 100644
+index c96345b..1926b4c 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -4829,7 +4829,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
+     if (!needsRecalculate && state.containerItemKeys.has(itemKey)) {
+       needsRecalculate = true;
+     }
+-    if (prevSizeKnown !== void 0 && Math.abs(prevSizeKnown - size) > 5) {
++    if (prevSizeKnown === void 0 || Math.abs(prevSizeKnown - size) > 5) {
+       shouldMaintainScrollAtEnd = true;
+     }
+     onItemSizeChanged == null ? void 0 : onItemSizeChanged({
 @@ -5233,17 +5233,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
  var globalResizeObserver = null;
  function getGlobalResizeObserver() {
@@ -165,9 +201,18 @@ index c96345b..a696431 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index ea03488..96edeb9 100644
+index ea03488..ebb54ae 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
+@@ -4850,7 +4850,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
+     if (!needsRecalculate && state.containerItemKeys.has(itemKey)) {
+       needsRecalculate = true;
+     }
+-    if (prevSizeKnown !== void 0 && Math.abs(prevSizeKnown - size) > 5) {
++    if (prevSizeKnown === void 0 || Math.abs(prevSizeKnown - size) > 5) {
+       shouldMaintainScrollAtEnd = true;
+     }
+     onItemSizeChanged == null ? void 0 : onItemSizeChanged({
 @@ -5254,17 +5254,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
  var globalResizeObserver = null;
  function getGlobalResizeObserver() {
@@ -234,9 +279,18 @@ index ea03488..96edeb9 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index c96345b..a696431 100644
+index c96345b..1926b4c 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
+@@ -4829,7 +4829,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
+     if (!needsRecalculate && state.containerItemKeys.has(itemKey)) {
+       needsRecalculate = true;
+     }
+-    if (prevSizeKnown !== void 0 && Math.abs(prevSizeKnown - size) > 5) {
++    if (prevSizeKnown === void 0 || Math.abs(prevSizeKnown - size) > 5) {
+       shouldMaintainScrollAtEnd = true;
+     }
+     onItemSizeChanged == null ? void 0 : onItemSizeChanged({
 @@ -5233,17 +5233,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
  var globalResizeObserver = null;
  function getGlobalResizeObserver() {
