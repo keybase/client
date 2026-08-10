@@ -76,6 +76,7 @@ func TestGPGIndex2Dot1(t *testing.T) {
 	index := parse(t, gpg2dot1)
 	if index == nil {
 		t.Fatal("parsing failed")
+		return
 	}
 	keylist := index.Emails.Get("themax+test@gmail.com")
 	if keylist == nil {

@@ -257,6 +257,7 @@ func TestRevokeKey(t *testing.T) {
 	}
 	if pgpKey == nil {
 		t.Fatal("Expected to find PGP key")
+		return
 	}
 
 	err := doRevokeKey(tc, u, (*pgpKey).GetKID())
