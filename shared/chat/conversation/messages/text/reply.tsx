@@ -58,13 +58,18 @@ const ReplyText = () => {
         : ''
 
   return text ? (
-    <Kb.Text
-      type="BodySmall"
-      style={showCenteredHighlight ? styles.textHighlighted : undefined}
+    <Kb.Markdown
+      serviceOnly={true}
       lineClamp={3}
+      context={`reply-${replyTo.id}`}
+      style={
+        showCenteredHighlight
+          ? Kb.Styles.collapseStyles([styles.replyText, styles.replyTextHighlighted])
+          : styles.replyText
+      }
     >
       {text}
-    </Kb.Text>
+    </Kb.Markdown>
   ) : null
 }
 
@@ -134,8 +139,12 @@ const useStyles = Kb.Styles.createStyleHook(
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },
       replyEdited: {color: theme.black_35},
+      replyText: Kb.Styles.platformStyles({
+        common: {color: theme.black_50, fontSize: 15, lineHeight: 19},
+        isElectron: {whiteSpace: 'pre-wrap'},
+      }),
+      replyTextHighlighted: {color: theme.black_50OrBlack_50},
       replyUsername: {alignSelf: 'center'},
       replyUsernameHighlighted: {color: theme.blackOrBlack},
-      textHighlighted: {color: theme.black_50OrBlack_50},
     }) as const
 )
