@@ -2642,10 +2642,10 @@
   dependencies:
     "@khanacademy/perseus-utils" "2.1.5"
 
-"@legendapp/list@3.3.4":
-  version "3.3.4"
-  resolved "https://registry.yarnpkg.com/@legendapp/list/-/list-3.3.4.tgz#6d71d46d1026d92015116f00492839a629cc50b8"
-  integrity sha512-XsKCM7F8Fmy1jE7dZ9UEBCihouVOJ6B5pbAI1ssooadBu+YQHGoSQdxHs5dPXHb4qkGOIfUIAljIXnDzMYUCCQ==
+"@legendapp/list@3.3.5":
+  version "3.3.5"
+  resolved "https://registry.yarnpkg.com/@legendapp/list/-/list-3.3.5.tgz#a2a7b8e0c3897fc5bd159d7b87e0b62ef45a4f74"
+  integrity sha512-XTsLYtpg41SVb5uLBYA+YcDSA3w0tgoPq/W8ZggQ2tx+3lrC/rf+ehTP9KYHea9oFaZIuePAgzACs5/auVMJlQ==
   dependencies:
     use-sync-external-store "^1.5.0"
 
