@@ -1,5 +1,6 @@
 // Dev-only markdown debug screen. Gated by __DEV__ in nav and routes — never visible in production.
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {parseMarkdown} from '@/common-adapters/markdown'
 
 type SampleType = {name: string; source: string}
@@ -130,7 +131,7 @@ const Sample = ({name, source}: SampleType) => {
 const MarkdownDebug = () => {
   const styles = useStyles()
   return (
-    <Kb.ScrollView style={styles.scroll}>
+    <Kb.ScrollView style={styles.scroll} testID={TestIDs.SETTINGS_MARKDOWN}>
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
         {sections.map(section => (
           <Kb.Box2 key={section.title} direction="vertical" fullWidth={true} gap="tiny">

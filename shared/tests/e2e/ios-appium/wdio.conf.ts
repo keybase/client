@@ -3,6 +3,7 @@ import * as path from 'path'
 import {homedir} from 'os'
 import {iosCapabilities, udidForName, requireSmokeUser} from './helpers/app'
 import {escapeToTabs} from './helpers/navigate'
+import {consumeArtifactSkip} from './helpers/artifact'
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.
@@ -75,6 +76,15 @@ export const config: WebdriverIO.Config = {
   // Emit a screenshot + status json per test so generate-appium-report.mts can
   // build the unified HTML report (one card per test).
   afterTest: async (test, _context, result: {passed: boolean; duration: number; error?: Error}) => {
+    // A test that bailed out because it had nothing new to capture (e.g. a
+    // screenful past the end of a page) writes no artifacts, so the report
+    // doesn't gain a duplicate card. mocha's this.skip() can't drive this:
+    // wdio's afterTest never sees the pending flag.
+    if (consumeArtifactSkip()) {
+      // eslint-disable-next-line no-console
+      console.log(`- ${new Date().toLocaleTimeString()} ${test.title} (nothing new)`)
+      return
+    }
     // eslint-disable-next-line no-console
     console.log(
       `${result.passed ? '✓' : '✗'} ${new Date().toLocaleTimeString()} ${test.title} (${(result.duration / 1000).toFixed(1)}s)`
