@@ -44,8 +44,8 @@ require (
 	github.com/keybase/go-merkle-tree v0.0.0-20251212154157-5587f8273ef6
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/keybase/go-triplesec v0.0.0-20251211201629-aae48d5abcdf
-	github.com/keybase/go-triplesec-insecure v0.0.0-20251211202331-fd8270e51b94
+	github.com/keybase/go-triplesec v0.0.0-20260810140528-ab3b1ab35b9d
+	github.com/keybase/go-triplesec-insecure v0.0.0-20260810140530-0774afed5cdc
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
