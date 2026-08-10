@@ -1,5 +1,5 @@
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index ca99e71..6124734 100644
+index ca99e71..9127b2d 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
 @@ -4833,7 +4833,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
@@ -11,7 +11,25 @@ index ca99e71..6124734 100644
        shouldMaintainScrollAtEnd = true;
      }
      onItemSizeChanged == null ? void 0 : onItemSizeChanged({
-@@ -6402,7 +6402,8 @@ var ScheduledWork = class {
+@@ -5683,13 +5683,11 @@ var ContainerSlot = typedMemo(function ContainerSlot2(props) {
+   return /* @__PURE__ */ React2__namespace.createElement(ContainerSlotBase, { ...props });
+ });
+ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+-  const completedTransitionEpoch = React2.useRef(transitionEpoch);
+-  const isTransitionPending = completedTransitionEpoch.current !== transitionEpoch;
++  const [completedTransitionEpoch, setCompletedTransitionEpoch] = React2.useState(transitionEpoch);
++  const isTransitionPending = completedTransitionEpoch !== transitionEpoch;
+   React2.useLayoutEffect(() => {
+-    if (!readyToRender) {
+-      completedTransitionEpoch.current = transitionEpoch;
+-    }
+-  }, [readyToRender, transitionEpoch]);
++    setCompletedTransitionEpoch(transitionEpoch);
++  }, [transitionEpoch]);
+   return readyToRender && !isTransitionPending;
+ }
+ 
+@@ -6402,7 +6400,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
        this.work.delete(key);
@@ -22,7 +40,7 @@ index ca99e71..6124734 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 5315f44..a6bdaa8 100644
+index 5315f44..5776876 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
 @@ -4812,7 +4812,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
@@ -34,7 +52,25 @@ index 5315f44..a6bdaa8 100644
        shouldMaintainScrollAtEnd = true;
      }
      onItemSizeChanged == null ? void 0 : onItemSizeChanged({
-@@ -6381,7 +6381,8 @@ var ScheduledWork = class {
+@@ -5662,13 +5662,11 @@ var ContainerSlot = typedMemo(function ContainerSlot2(props) {
+   return /* @__PURE__ */ React2.createElement(ContainerSlotBase, { ...props });
+ });
+ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+-  const completedTransitionEpoch = useRef(transitionEpoch);
+-  const isTransitionPending = completedTransitionEpoch.current !== transitionEpoch;
++  const [completedTransitionEpoch, setCompletedTransitionEpoch] = useState(transitionEpoch);
++  const isTransitionPending = completedTransitionEpoch !== transitionEpoch;
+   useLayoutEffect(() => {
+-    if (!readyToRender) {
+-      completedTransitionEpoch.current = transitionEpoch;
+-    }
+-  }, [readyToRender, transitionEpoch]);
++    setCompletedTransitionEpoch(transitionEpoch);
++  }, [transitionEpoch]);
+   return readyToRender && !isTransitionPending;
+ }
+ 
+@@ -6381,7 +6379,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
        this.work.delete(key);
@@ -45,7 +81,7 @@ index 5315f44..a6bdaa8 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index ea03488..ebb54ae 100644
+index ea03488..e70e58c 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -4850,7 +4850,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
@@ -57,62 +93,25 @@ index ea03488..ebb54ae 100644
        shouldMaintainScrollAtEnd = true;
      }
      onItemSizeChanged == null ? void 0 : onItemSizeChanged({
-@@ -5254,17 +5254,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
- var globalResizeObserver = null;
- function getGlobalResizeObserver() {
-   if (!globalResizeObserver) {
-+    let pending = [];
-+    let timer = null;
-     globalResizeObserver = new ResizeObserver((entries) => {
--      batchItemSizeUpdates(() => {
--        for (const entry of entries) {
--          const callbacks = callbackMap.get(entry.target);
--          if (callbacks) {
--            for (const callback of callbacks) {
--              callback(entry);
-+      pending = pending.concat(entries);
-+      clearTimeout(timer);
-+      timer = setTimeout(() => {
-+        const toProcess = pending;
-+        pending = [];
-+        timer = null;
-+        batchItemSizeUpdates(() => {
-+          for (const entry of toProcess) {
-+            const callbacks = callbackMap.get(entry.target);
-+            if (callbacks) {
-+              for (const callback of callbacks) {
-+                callback(entry);
-+              }
-             }
-           }
--        }
--      });
-+        });
-+      }, 0);
-     });
-   }
-   return globalResizeObserver;
-@@ -6242,8 +6251,10 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
-       });
-     };
-     fireLayout();
-+    let layoutTimer = null;
-     const resizeObserver = new ResizeObserver(() => {
--      fireLayout();
-+      clearTimeout(layoutTimer);
-+      layoutTimer = setTimeout(() => fireLayout(), 0);
-     });
-     resizeObserver.observe(element);
-     const onWindowResize = () => {
-@@ -6253,6 +6264,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
-       window.addEventListener("resize", onWindowResize);
-     }
-     return () => {
-+      clearTimeout(layoutTimer);
-       resizeObserver.disconnect();
-       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
-         window.removeEventListener("resize", onWindowResize);
-@@ -7054,7 +7066,8 @@ var ScheduledWork = class {
+@@ -5750,13 +5750,11 @@ function useDOMOrder(ref) {
+   }, [ctx]);
+ }
+ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+-  const completedTransitionEpoch = React3.useRef(transitionEpoch);
+-  const isTransitionPending = completedTransitionEpoch.current !== transitionEpoch;
++  const [completedTransitionEpoch, setCompletedTransitionEpoch] = React3.useState(transitionEpoch);
++  const isTransitionPending = completedTransitionEpoch !== transitionEpoch;
+   React3.useLayoutEffect(() => {
+-    if (!readyToRender) {
+-      completedTransitionEpoch.current = transitionEpoch;
+-    }
+-  }, [readyToRender, transitionEpoch]);
++    setCompletedTransitionEpoch(transitionEpoch);
++  }, [transitionEpoch]);
+   return readyToRender && !isTransitionPending;
+ }
+ 
+@@ -7054,7 +7052,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
        this.work.delete(key);
@@ -123,7 +122,7 @@ index ea03488..ebb54ae 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index c96345b..1926b4c 100644
+index c96345b..e93d72d 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -4829,7 +4829,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
@@ -135,62 +134,25 @@ index c96345b..1926b4c 100644
        shouldMaintainScrollAtEnd = true;
      }
      onItemSizeChanged == null ? void 0 : onItemSizeChanged({
-@@ -5233,17 +5233,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
- var globalResizeObserver = null;
- function getGlobalResizeObserver() {
-   if (!globalResizeObserver) {
-+    let pending = [];
-+    let timer = null;
-     globalResizeObserver = new ResizeObserver((entries) => {
--      batchItemSizeUpdates(() => {
--        for (const entry of entries) {
--          const callbacks = callbackMap.get(entry.target);
--          if (callbacks) {
--            for (const callback of callbacks) {
--              callback(entry);
-+      pending = pending.concat(entries);
-+      clearTimeout(timer);
-+      timer = setTimeout(() => {
-+        const toProcess = pending;
-+        pending = [];
-+        timer = null;
-+        batchItemSizeUpdates(() => {
-+          for (const entry of toProcess) {
-+            const callbacks = callbackMap.get(entry.target);
-+            if (callbacks) {
-+              for (const callback of callbacks) {
-+                callback(entry);
-+              }
-             }
-           }
--        }
--      });
-+        });
-+      }, 0);
-     });
-   }
-   return globalResizeObserver;
-@@ -6221,8 +6230,10 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
-       });
-     };
-     fireLayout();
-+    let layoutTimer = null;
-     const resizeObserver = new ResizeObserver(() => {
--      fireLayout();
-+      clearTimeout(layoutTimer);
-+      layoutTimer = setTimeout(() => fireLayout(), 0);
-     });
-     resizeObserver.observe(element);
-     const onWindowResize = () => {
-@@ -6232,6 +6243,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
-       window.addEventListener("resize", onWindowResize);
-     }
-     return () => {
-+      clearTimeout(layoutTimer);
-       resizeObserver.disconnect();
-       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
-         window.removeEventListener("resize", onWindowResize);
-@@ -7033,7 +7045,8 @@ var ScheduledWork = class {
+@@ -5729,13 +5729,11 @@ function useDOMOrder(ref) {
+   }, [ctx]);
+ }
+ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+-  const completedTransitionEpoch = useRef(transitionEpoch);
+-  const isTransitionPending = completedTransitionEpoch.current !== transitionEpoch;
++  const [completedTransitionEpoch, setCompletedTransitionEpoch] = useState(transitionEpoch);
++  const isTransitionPending = completedTransitionEpoch !== transitionEpoch;
+   useLayoutEffect(() => {
+-    if (!readyToRender) {
+-      completedTransitionEpoch.current = transitionEpoch;
+-    }
+-  }, [readyToRender, transitionEpoch]);
++    setCompletedTransitionEpoch(transitionEpoch);
++  }, [transitionEpoch]);
+   return readyToRender && !isTransitionPending;
+ }
+ 
+@@ -7033,7 +7031,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
        this.work.delete(key);
@@ -201,7 +163,7 @@ index c96345b..1926b4c 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index ea03488..ebb54ae 100644
+index ea03488..e70e58c 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -4850,7 +4850,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
@@ -213,62 +175,25 @@ index ea03488..ebb54ae 100644
        shouldMaintainScrollAtEnd = true;
      }
      onItemSizeChanged == null ? void 0 : onItemSizeChanged({
-@@ -5254,17 +5254,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
- var globalResizeObserver = null;
- function getGlobalResizeObserver() {
-   if (!globalResizeObserver) {
-+    let pending = [];
-+    let timer = null;
-     globalResizeObserver = new ResizeObserver((entries) => {
--      batchItemSizeUpdates(() => {
--        for (const entry of entries) {
--          const callbacks = callbackMap.get(entry.target);
--          if (callbacks) {
--            for (const callback of callbacks) {
--              callback(entry);
-+      pending = pending.concat(entries);
-+      clearTimeout(timer);
-+      timer = setTimeout(() => {
-+        const toProcess = pending;
-+        pending = [];
-+        timer = null;
-+        batchItemSizeUpdates(() => {
-+          for (const entry of toProcess) {
-+            const callbacks = callbackMap.get(entry.target);
-+            if (callbacks) {
-+              for (const callback of callbacks) {
-+                callback(entry);
-+              }
-             }
-           }
--        }
--      });
-+        });
-+      }, 0);
-     });
-   }
-   return globalResizeObserver;
-@@ -6242,8 +6251,10 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
-       });
-     };
-     fireLayout();
-+    let layoutTimer = null;
-     const resizeObserver = new ResizeObserver(() => {
--      fireLayout();
-+      clearTimeout(layoutTimer);
-+      layoutTimer = setTimeout(() => fireLayout(), 0);
-     });
-     resizeObserver.observe(element);
-     const onWindowResize = () => {
-@@ -6253,6 +6264,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
-       window.addEventListener("resize", onWindowResize);
-     }
-     return () => {
-+      clearTimeout(layoutTimer);
-       resizeObserver.disconnect();
-       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
-         window.removeEventListener("resize", onWindowResize);
-@@ -7054,7 +7066,8 @@ var ScheduledWork = class {
+@@ -5750,13 +5750,11 @@ function useDOMOrder(ref) {
+   }, [ctx]);
+ }
+ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+-  const completedTransitionEpoch = React3.useRef(transitionEpoch);
+-  const isTransitionPending = completedTransitionEpoch.current !== transitionEpoch;
++  const [completedTransitionEpoch, setCompletedTransitionEpoch] = React3.useState(transitionEpoch);
++  const isTransitionPending = completedTransitionEpoch !== transitionEpoch;
+   React3.useLayoutEffect(() => {
+-    if (!readyToRender) {
+-      completedTransitionEpoch.current = transitionEpoch;
+-    }
+-  }, [readyToRender, transitionEpoch]);
++    setCompletedTransitionEpoch(transitionEpoch);
++  }, [transitionEpoch]);
+   return readyToRender && !isTransitionPending;
+ }
+ 
+@@ -7054,7 +7052,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
        this.work.delete(key);
@@ -279,7 +204,7 @@ index ea03488..ebb54ae 100644
    }
    has(key) {
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index c96345b..1926b4c 100644
+index c96345b..e93d72d 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -4829,7 +4829,7 @@ function applyItemSize(ctx, itemKey, sizeObj, resolvedMeasurementItem) {
@@ -291,62 +216,25 @@ index c96345b..1926b4c 100644
        shouldMaintainScrollAtEnd = true;
      }
      onItemSizeChanged == null ? void 0 : onItemSizeChanged({
-@@ -5233,17 +5233,26 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
- var globalResizeObserver = null;
- function getGlobalResizeObserver() {
-   if (!globalResizeObserver) {
-+    let pending = [];
-+    let timer = null;
-     globalResizeObserver = new ResizeObserver((entries) => {
--      batchItemSizeUpdates(() => {
--        for (const entry of entries) {
--          const callbacks = callbackMap.get(entry.target);
--          if (callbacks) {
--            for (const callback of callbacks) {
--              callback(entry);
-+      pending = pending.concat(entries);
-+      clearTimeout(timer);
-+      timer = setTimeout(() => {
-+        const toProcess = pending;
-+        pending = [];
-+        timer = null;
-+        batchItemSizeUpdates(() => {
-+          for (const entry of toProcess) {
-+            const callbacks = callbackMap.get(entry.target);
-+            if (callbacks) {
-+              for (const callback of callbacks) {
-+                callback(entry);
-+              }
-             }
-           }
--        }
--      });
-+        });
-+      }, 0);
-     });
-   }
-   return globalResizeObserver;
-@@ -6221,8 +6230,10 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
-       });
-     };
-     fireLayout();
-+    let layoutTimer = null;
-     const resizeObserver = new ResizeObserver(() => {
--      fireLayout();
-+      clearTimeout(layoutTimer);
-+      layoutTimer = setTimeout(() => fireLayout(), 0);
-     });
-     resizeObserver.observe(element);
-     const onWindowResize = () => {
-@@ -6232,6 +6243,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
-       window.addEventListener("resize", onWindowResize);
-     }
-     return () => {
-+      clearTimeout(layoutTimer);
-       resizeObserver.disconnect();
-       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
-         window.removeEventListener("resize", onWindowResize);
-@@ -7033,7 +7045,8 @@ var ScheduledWork = class {
+@@ -5729,13 +5729,11 @@ function useDOMOrder(ref) {
+   }, [ctx]);
+ }
+ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+-  const completedTransitionEpoch = useRef(transitionEpoch);
+-  const isTransitionPending = completedTransitionEpoch.current !== transitionEpoch;
++  const [completedTransitionEpoch, setCompletedTransitionEpoch] = useState(transitionEpoch);
++  const isTransitionPending = completedTransitionEpoch !== transitionEpoch;
+   useLayoutEffect(() => {
+-    if (!readyToRender) {
+-      completedTransitionEpoch.current = transitionEpoch;
+-    }
+-  }, [readyToRender, transitionEpoch]);
++    setCompletedTransitionEpoch(transitionEpoch);
++  }, [transitionEpoch]);
+   return readyToRender && !isTransitionPending;
+ }
+ 
+@@ -7033,7 +7031,8 @@ var ScheduledWork = class {
      const work = this.work.get(key);
      if (work) {
        this.work.delete(key);
