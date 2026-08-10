@@ -10,6 +10,10 @@ import type {RootParamList} from '@/router-v2/route-params'
 
 const isLiquidGlassActive = (isIOS && C.isPhone && _isLiquidGlassSupported) as boolean
 
+// True when BottomAccessory hosts its children in the tab bar's accessory row.
+// When false children render inline and must lay themselves out (no row context).
+export const isBottomAccessoryHosted = isLiquidGlassActive
+
 const useStyles = Styles.createStyleHook(() => ({
   container: {
     ...Styles.globalStyles.fillAbsolute,

@@ -12,7 +12,7 @@ export const LayoutAnimation: typeof NativeLayoutAnimation = isMobile
 export {default as Animation} from './animation'
 export {default as Avatar} from './avatar/index'
 export {default as AvatarLine} from './avatar/avatar-line'
-export {BottomAccessory} from './bottom-accessory'
+export {BottomAccessory, isBottomAccessoryHosted} from './bottom-accessory'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {Banner, BannerParagraph, ErrorBanner} from './banner'

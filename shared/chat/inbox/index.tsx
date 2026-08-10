@@ -278,6 +278,21 @@ const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) => {
     )
 }
 
+// The bottom-anchored bars (unread shortcut, big teams divider) position themselves
+// absolutely against this box. On iOS the tab screen draws edge-to-edge under the
+// native tab bar, so inset the bottom edge to clear it; Android already insets the
+// whole tab screen. box-none so the rest of the fill doesn't eat list touches.
+const NativeBottomBarsWrapper = ({children}: {children: React.ReactNode}) => {
+  const nativeStyles = useNativeStyles()
+  return isIOS ? (
+    <ScreensSafeAreaView edges={{bottom: true}} pointerEvents="box-none" style={nativeStyles.bottomBars}>
+      {children}
+    </ScreensSafeAreaView>
+  ) : (
+    <>{children}</>
+  )
+}
+
 const NativeNoRowsBuildTeam = () => {
   const isLoading = C.useWaitingState(s => [...s.counts.keys()].some(k => k.startsWith('chat:')))
   return isLoading ? null : <BuildTeam />
@@ -595,18 +610,35 @@ function NativeInboxBody(p: ControlledInboxProps) {
             </NativeNoChatsWrapper>
           )}
           {showFloatingDivider || showUnreadBanner ? (
-            <Kb.BottomAccessory>
-              {showUnreadBanner && (
-                <UnreadShortcut inlineLayout={true} onClick={scrollToUnread} unreadCount={unreadCount} />
-              )}
-              {showFloatingDivider && (
-                <BigTeamsDivider
-                  inlineLayout={true}
-                  toggle={scrollToBigTeams}
-                  onEdit={isIOS ? promptSmallTeamsNum : undefined}
-                />
-              )}
-            </Kb.BottomAccessory>
+            Kb.isBottomAccessoryHosted ? (
+              // Hosted in the tab bar accessory row: both bars sit side by side.
+              <Kb.BottomAccessory>
+                {showUnreadBanner && (
+                  <UnreadShortcut inlineLayout={true} onClick={scrollToUnread} unreadCount={unreadCount} />
+                )}
+                {showFloatingDivider && (
+                  <BigTeamsDivider
+                    inlineLayout={true}
+                    toggle={scrollToBigTeams}
+                    onEdit={isIOS ? promptSmallTeamsNum : undefined}
+                  />
+                )}
+              </Kb.BottomAccessory>
+            ) : (
+              // No accessory host: each bar pins itself to the bottom of the inbox, so
+              // only one can show at a time.
+              <NativeBottomBarsWrapper>
+                {showUnreadBanner && !showFloatingDivider && (
+                  <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />
+                )}
+                {showFloatingDivider && (
+                  <BigTeamsDivider
+                    toggle={scrollToBigTeams}
+                    onEdit={isIOS ? promptSmallTeamsNum : undefined}
+                  />
+                )}
+              </NativeBottomBarsWrapper>
+            )
           ) : (
             !noChats && rows.length === 0 && !neverLoaded && <NativeNoRowsBuildTeam />
           )}
@@ -773,6 +805,9 @@ const useNativeStyles = Kb.Styles.createStyleHook(
       // below it. On iOS the RNS SafeAreaView (forced flex: 1) applies the bottom inset as
       // margin, which lifts the buttons above the tab bar within this fill box.
       noChatsWrapper: {
+        ...Kb.Styles.globalStyles.fillAbsolute,
+      },
+      bottomBars: {
         ...Kb.Styles.globalStyles.fillAbsolute,
       },
     }) as const
