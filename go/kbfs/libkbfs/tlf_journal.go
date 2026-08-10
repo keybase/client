@@ -2737,10 +2737,9 @@ func (j *tlfJournal) waitForCompleteFlush(ctx context.Context) error {
 			continue
 		}
 
+		// MaxElapsedTime is 0 above, so NextBackOff never returns
+		// backoff.Stop; we retry until the caller's context is done.
 		bTime := retry.NextBackOff()
-		if bTime == backoff.Stop {
-			return flushErr
-		}
 		j.log.CDebugf(ctx, "Flush failed for %s: %+v; retrying in %s",
 			j.tlfID, flushErr, bTime)
 		timer := time.NewTimer(bTime)
