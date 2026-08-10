@@ -1,6 +1,8 @@
 import type * as React from 'react'
 import type {CustomStyles} from '@/styles'
-import type {LegendListRef as _LegendListRef} from '@legendapp/list/react'
+import type {LegendListRef} from '@legendapp/list/react'
+
+export type {LegendListRef}
 
 export type FixedHeight = {
   height: number
@@ -10,17 +12,6 @@ export type FixedHeight = {
 export type FixedListItemAuto = {
   sizeType: 'Small' | 'Large'
   type: 'fixedListItemAuto'
-}
-
-export type LegendListRef = _LegendListRef & {
-  getState: () => LegendListState
-}
-
-export type LegendListState = {
-  end: number
-  scroll: number
-  scrollLength: number
-  start: number
 }
 
 export type TrueVariable = {

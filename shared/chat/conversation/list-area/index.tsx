@@ -218,29 +218,14 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {centeredOrdinal} = useConversationCenter()
   const {clearVersion, containsLatestMessage, messageOrdinals, loaded} = data
 
-  // LegendList cannot recover from a non-empty -> empty -> non-empty data transition: it resets
-  // its layout state and then waits on a container layout event that never arrives, so
-  // readyToRender stays false and the thread renders blank forever. Centered loads (search hit,
-  // reply-quote jump, pinned message) clear the thread before refetching, so remount the list on
-  // every clear and let it take its fresh-mount path instead.
-  const listKey = `${conversationIDKey}:${clearVersion}`
-
-  // LegendList deadlock fix: when initialScrollAtEnd=true, data must not arrive
-  // before LegendList's internal ResizeObserver fires (sets queuedInitialLayout).
-  // If data arrives first, handleInitialScrollDataChange returns early and
-  // didFinishInitialScroll never becomes true, leaving readyToRender=false forever.
-  // Delaying data by one rAF ensures layout fires before data is fed in.
-  // We track which list instance has had its layout settle rather than using
-  // a boolean state, so the reset on remount is derived (no synchronous
-  // setState inside an effect).
-  const [layoutReadyKey, setLayoutReadyKey] = React.useState('')
-  const layoutReady = layoutReadyKey === listKey
-  React.useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      setLayoutReadyKey(listKey)
-    })
-    return () => cancelAnimationFrame(id)
-  }, [listKey])
+  // Centered loads (search hit, reply-quote jump, pinned message) clear the thread before
+  // refetching, so the list sees a non-empty -> empty -> non-empty transition. dataKey is the
+  // library's answer to that, but it cannot be used here: the fresh-data reset drops
+  // readyToRender and restores it inside one layout-effect pass, so the containers never render
+  // in the not-ready state that useFreshDataTransitionVisibility waits for before clearing its
+  // pending flag. The wrapper then stays at opacity 0 with the thread fully measured behind it.
+  // Remounting sidesteps it because a fresh mount seeds that flag from the current epoch.
+  const datasetKey = `${conversationIDKey}:${clearVersion}`
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
@@ -321,12 +306,12 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   // Scroll to centered ordinal when it changes (search / thread navigation).
   // Use a "last scrolled to" ref rather than a "did it change" ref so we still
   // scroll when loaded becomes true after centeredOrdinal was already set.
-  // Reset per list instance, not per conversation: re-centering on the ordinal we
-  // are already parked on still remounts the list, so it has to scroll again.
+  // Reset per dataset, not per conversation: re-centering on the ordinal we are already parked
+  // on still reloads the thread, so the list has to scroll to it again.
   const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
   React.useLayoutEffect(() => {
     lastScrolledCenteredRef.current = undefined
-  }, [listKey])
+  }, [datasetKey])
 
   // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
   // centering accurate arrive after it starts, so the loop must not be torn down by an effect
@@ -449,28 +434,12 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     markedReadRef.current = false
   }, [conversationIDKey])
 
-  // LegendList only re-pins to the bottom while the gap is within
-  // maintainScrollAtEndThreshold * viewport (default 0.1). While the thread is still settling,
-  // rows re-measure and the content size can jump by several viewports in a single frame; the
-  // gap lands outside that threshold, the deferred re-pin bails, and the thread is left parked
-  // short of the last message. Widen the threshold for the settle window only — restoring the
-  // default afterwards keeps an arriving message from yanking a user who has scrolled up.
-  const [settledKey, setSettledKey] = React.useState('')
-  const settled = settledKey === listKey
-  const endSettle = React.useCallback(() => {
-    setSettledKey(listKey)
-  }, [listKey])
-  const settleTimerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-  React.useEffect(() => () => clearTimeout(settleTimerRef.current), [])
-
   const onLoad = React.useCallback(() => {
     if (!markedReadRef.current) {
       markedReadRef.current = true
       markInitiallyLoadedThreadAsRead()
     }
-    clearTimeout(settleTimerRef.current)
-    settleTimerRef.current = setTimeout(endSettle, 1000)
-  }, [endSettle, markInitiallyLoadedThreadAsRead])
+  }, [markInitiallyLoadedThreadAsRead])
 
   const renderItem = React.useCallback(
     ({item: ordinal}: {item: T.Chat.Ordinal}) => <HighlightableRow ordinal={ordinal} />,
@@ -542,13 +511,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
-  // A wheel during the settle window means the user took over: stop centering and narrow the
-  // maintainScrollAtEnd threshold back down so we don't scroll them away from where they landed.
+  // A wheel means the user took over: stop centering so we don't scroll them away from where
+  // they landed.
   const onWheel = React.useCallback(() => {
     abortCentering()
-    clearTimeout(settleTimerRef.current)
-    endSettle()
-  }, [abortCentering, endSettle])
+  }, [abortCentering])
 
   return (
     <Kb.ErrorBoundary>
@@ -562,9 +529,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         ref={wrapperRef}
       >
         <LegendList
-          key={listKey}
+          key={datasetKey}
           ref={listRef as React.Ref<LegendListRef>}
-          data={(layoutReady ? messageOrdinals : noOrdinals) as unknown as T.Chat.Ordinal[]}
+          data={messageOrdinals as unknown as T.Chat.Ordinal[]}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           getItemType={getItemType}
@@ -581,7 +548,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
               ? false
               : {on: {dataChange: true, footerLayout: true, itemLayout: true}}
           }
-          maintainScrollAtEndThreshold={settled ? undefined : 5}
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
           maintainVisibleContentPosition={{data: true}}
