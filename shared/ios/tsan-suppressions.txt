@@ -1,0 +1,40 @@
+# ThreadSanitizer suppressions for running the Keybase app under the
+# "Keybase (TSan)" scheme. Referenced by TSAN_OPTIONS=suppressions=... there.
+#
+# Why this file has to exist at all: the Go half of the app ships as a prebuilt
+# gomobile framework and is NOT sanitizer-instrumented. TSan therefore cannot
+# see any of the Go runtime's happens-before edges -- channel sends, mutexes,
+# scheduler handoffs -- so every buffer that crosses the cgo boundary looks
+# like an unsynchronized access whether or not it actually is one. Without
+# these entries the report is all noise and the real C++ findings are buried.
+#
+# Read a surviving report this way:
+#   - only C++/ObjC frames (kb::, FrameParser, Kb.mm)  -> treat as real
+#   - any Go frame in either stack                     -> TSan cannot judge it;
+#                                                         reason it out by hand
+#
+# Keep this list as small as it can be. Every entry is a place TSan has been
+# told to stop looking.
+
+# The Go runtime and everything cgo generates around it.
+called_from_lib:keybase
+race:^_cgo
+race:^runtime\.
+race:^gopark
+race:^goexit
+
+# react-native-screens mutates a *shared* immutable State from
+# ComponentDescriptor::adopt(): getStateDataMutable() const_casts the
+# shared_ptr<const State>'s data and writes the RCTImageLoader weak_ptr on every
+# clone. Any two threads cloning the same node race on that field -- here the
+# main thread (reanimated's shadow-tree commit) against the JS thread
+# (UIManager::appendChild). Same pointer written both times, so it is benign in
+# practice, but it is an upstream bug and nothing we can fix from app code.
+race:RNSScreenStackHeaderConfigState::setImageLoader
+race:RNSTabsHostState::setImageLoader
+
+# Go's async preemption drives signals through pthread internals that TSan
+# attributes to whatever thread it lands on. The scheme also sets
+# GODEBUG=asyncpreemptoff=1, which removes most of this; the suppression
+# covers what remains when a signal still arrives.
+race:^_sigtramp

@@ -33,9 +33,7 @@ import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.IOException
 import java.lang.reflect.Method
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import keybase.Keybase
 import keybase.Keybase.readArr
 import keybase.Keybase.version
@@ -47,9 +45,12 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     @DoNotStrip
     external override fun getBindingsInstaller(): BindingsInstallerHolder
-    private external fun nativeOnDataFromGo(data: ByteArray)
+    private external fun nativeOnDataFromGo(data: ByteArray, epoch: Long)
+    // Returns true only if this module was still the one owning the installed
+    // adapter/bridge (see cpp-adapter's nativeInvalidate).
+    private external fun nativeInvalidate(): Boolean
+    private external fun nativeResetRecv()
 
-    private var executor: ExecutorService? = null
     private var lifecycleListenerRegistered = false
 
     override fun getName(): String {
@@ -300,9 +301,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     init {
         this.reactContext = reactContext!!
-        instance = this
         misTestDevice = isTestDevice(reactContext)
         Thread { cachedConstants }.start()
+        // Published last: the reader thread reads `instance` and must never
+        // see a partially constructed module.
+        instance = this
     }
 
     private fun normalizePath(path: String): String {
@@ -459,10 +462,17 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
+    // Synchronous, best-effort mirror of relayReset()'s own check, callable
+    // from the reader thread: lets a caller decide whether an emit has any
+    // chance of being delivered before committing to it.
+    internal fun canDeliverReset(): Boolean = reactContext.hasActiveReactInstance() && canEmit()
+
+    // No current caller (kept for future use).
     @ReactMethod
     override fun engineReset() {
         try {
             Keybase.reset()
+            nativeResetRecv()
             relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in engineReset", e)
@@ -473,17 +483,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     override fun notifyJSReady() {
         NativeLogger.info("JS signaled ready, starting ReadFromKBLib loop")
         try {
-            // Signal to Go that JS is ready
+            // Signal to Go that JS is ready. This is a sync.Once on the Go
+            // side, so calling it again after a reload is free.
             Keybase.notifyJSReady()
 
             startReadLoop()
 
-            // Register once; restart the read loop on resume, tear down on destroy.
+            // Register once; tear down the Go connection on destroy. The read
+            // loop itself is never restarted — see startReadLoop.
             if (!lifecycleListenerRegistered) {
                 lifecycleListenerRegistered = true
                 reactContext.addLifecycleEventListener(object : LifecycleEventListener {
                     override fun onHostResume() {
-                        startReadLoop()
                     }
 
                     override fun onHostPause() {
@@ -499,70 +510,227 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
+    // Exactly one reader exists for the life of the process. Go's readArr
+    // hands back a view of a single shared buffer and is documented as
+    // "called serially by the mobile run loops": a second concurrent reader
+    // corrupts both deliveries and the (not thread safe) msgpack unpacker
+    // behind nativeOnDataFromGo. Stopping it isn't possible either — a thread
+    // parked in the JNI readArr call ignores interrupts, so shutdownNow()
+    // returns while the old reader is still live and about to swallow one
+    // more message. So the loop outlives any module instance and forwards to
+    // whichever bridge is currently installed.
     private fun startReadLoop() {
-        if (executor == null) {
-            val ex = Executors.newSingleThreadExecutor()
-            executor = ex
-            ex.execute(ReadFromKBLib(reactContext))
+        if (readLoopStarted.compareAndSet(false, true)) {
+            Thread(ReadFromKBLib(), "ReadFromKBLib").apply {
+                isDaemon = true
+                start()
+            }
         }
     }
 
-    // JSI
-    private inner class ReadFromKBLib(private val reactContext: ReactApplicationContext) : Runnable {
+    // JSI. Deliberately not an inner class: the thread outlives every module
+    // instance, so capturing one would pin its ReactContext (and Activity) for
+    // the life of the process. It forwards to whichever module is current.
+    private class ReadFromKBLib : Runnable {
+        private var loggedEmptyRead = false
+        // See ReadLoopThrottles.kt for the arithmetic and its unit tests.
+        private val readErrorLog = ReadErrorLogThrottle()
+        private val emitThrottle = EngineResetEmitThrottle { android.os.SystemClock.elapsedRealtime() }
+
         override fun run() {
-            do {
+            while (true) {
                 try {
-                    Thread.currentThread().name = "ReadFromKBLib"
-                    val data: ByteArray = readArr()
-                    if (!reactContext.hasActiveReactInstance()) {
-                        NativeLogger.info("$NAME: JS Bridge is dead, dropping engine message")
+                    val data: ByteArray? = readArr()
+                    // Read immediately after readArr returns, not before it:
+                    // Go's ReadArr records the epoch of the connection it
+                    // actually read from under connMutex as part of the call,
+                    // and with exactly one permanent reader for the life of
+                    // the process (this loop) nothing can have started a
+                    // second readArr in between, so this is exact for the
+                    // bytes just returned -- unlike capturing the epoch
+                    // before the blocking call, which could race a redial
+                    // that happens while this read is in flight.
+                    val epoch = Keybase.lastReadEpoch()
+                    if (data == null || data.isEmpty()) {
+                        // Not the idle path: readArr blocks until there is
+                        // data, so an empty non-error result is degenerate --
+                        // reachable if Init never ran and the shared buffer is
+                        // zero-length, which would otherwise spin silently.
+                        if (!loggedEmptyRead) {
+                            NativeLogger.warn("$NAME: read returned no data; is Keybase initialized?")
+                            loggedEmptyRead = true
+                        }
+                        Thread.sleep(10)
                         continue
                     }
-                    nativeOnDataFromGo(data)
+                    readErrorLog.reset()
+                    emitThrottle.reset()
+                    instance?.nativeOnDataFromGo(data, epoch)
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    return
                 } catch (e: Exception) {
-                    if (e.message != null && e.message.equals("Read error: EOF")) {
-                        NativeLogger.info("Got EOF from read. Likely because of reset.")
-                    } else {
-                        NativeLogger.error("Exception in ReadFromKBLib.run", e)
+                    // readArr already called Reset() on the Go side, so the
+                    // connection JS thinks it has is gone and every in-flight
+                    // RPC is dead. EOF is the ordinary shape of this, not a
+                    // surprise -- but JS still has to be told, or its callers
+                    // hang forever.
+                    val isEof = e.message != null && e.message.equals("Read error: EOF")
+                    // EOF is the ordinary shape of a persistent-read outage,
+                    // not a surprise, but at this loop's ~100ms retry it is
+                    // still a ~10Hz flood into the uploadable log if left
+                    // unthrottled. Non-EOF gets its own counter -- see
+                    // ReadErrorLogThrottle.
+                    val logCount = readErrorLog.next(isEof)
+                    if (logCount != null) {
+                        if (isEof) {
+                            NativeLogger.info("Got EOF from read, connection reset (count=$logCount).")
+                        } else {
+                            NativeLogger.error("Exception in ReadFromKBLib.run (count=$logCount)", e)
+                        }
                     }
-                    // Back off on error to avoid spinning at full CPU speed when Go is
-                    // unavailable (e.g. during init or loopback restart).
-                    try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt() }
+                    val inst = instance
+                    if (inst != null) {
+                        inst.onRpcConnectionReset(emitThrottle.shouldEmit(inst.canDeliverReset()))
+                    }
+                    try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt(); return }
                 }
-            } while (!Thread.currentThread().isInterrupted && reactContext.hasActiveReactInstance())
+            }
         }
     }
 
     fun destroy() {
+        // `instance` is deliberately NOT cleared here. onHostDestroy fires when
+        // the last Activity goes away, but the ReactInstance and this module
+        // survive, so init{} never re-runs and nothing would ever restore it —
+        // every later inbound message would be dropped for the life of the
+        // process (back button to home, then reopen). It is only a gate: the
+        // JNI callee ignores the receiver and routes through g_bridge, so a
+        // stale instance delivers to the correct current bridge regardless.
+        // Bridge teardown belongs to invalidate() below, which fires on real
+        // ReactInstance teardown, not Activity death.
         try {
             Keybase.reset()
             relayReset()
         } catch (e: Exception) {
             NativeLogger.error("Exception in KeybaseEngine.destroy", e)
         }
-        try {
-            executor?.shutdownNow()
+    }
 
-            // We often hit this timeout during app resume, e.g. hit the back
-            // button to go to home screen and then tap Keybase app icon again.
-            if (executor?.awaitTermination(3, TimeUnit.SECONDS)== false) {
-                NativeLogger.warn("$NAME: Executor pool didn't shut down cleanly")
+    // Fires on real ReactInstance/TurboModule teardown (reload, instance
+    // recreation) — unlike onHostDestroy, which fires when the last Activity
+    // dies while the ReactInstance and this module survive. This is the only
+    // place that should ever clear the native bridge.
+    override fun invalidate() {
+        val wasCurrent = nativeInvalidate()
+        // Mirrors iOS invalidate's identity-gated KeybaseReset. Replacing the
+        // runtime replaces the JS transport: it starts with fresh seqids and
+        // an empty parser, while the still-live Go loopback may hold
+        // outstanding replies or a partial frame -- which would mis-settle a
+        // new invocation with an old response, or desync on the first read.
+        // Resetting the connection along with the bridge keeps the two ends in
+        // step.
+        //
+        // Gated on wasCurrent because a stale invalidate can run after the next
+        // module already installed its own bridge; resetting then would tear
+        // down a connection that module already owns and kill its in-flight
+        // RPCs for nothing.
+        if (wasCurrent) {
+            try {
+                Keybase.reset()
+            } catch (e: Exception) {
+                NativeLogger.error("Exception resetting connection in invalidate", e)
             }
-            executor = null
-        } catch (e: Exception) {
-            NativeLogger.error("Exception in JSI.destroy", e)
         }
+        super.invalidate()
     }
 
     // Called from JNI (cpp-adapter writeToGo), not from JS. DoNotStrip keeps it
     // from being removed/renamed by ProGuard since the only caller is reflective.
+    // Returns false when the payload never reached Go, so the caller can fail
+    // that RPC instead of leaving it outstanding forever.
     @DoNotStrip
-    fun rpcOnGo(arr: ByteArray) {
-        try {
+    fun rpcOnGo(arr: ByteArray): Boolean {
+        return try {
             writeArr(arr)
+            true
         } catch (e: Exception) {
             NativeLogger.error("Exception in GoJSIBridge.rpcOnGo", e)
+            false
         }
+    }
+
+    // Called from JNI when the incoming byte stream desyncs -- also true
+    // since this can escalate for a msgpack->JSI conversion failure or a
+    // missing rpcOnJs, arriving on the JS thread rather than the reader
+    // thread. Either way recv_ still holds bytes from the now-dead
+    // connection; nativeResetRecv() drops them so the next connection
+    // doesn't desync on its very first frame. Resetting the Go connection
+    // and relaying the meta event lets JS fail its outstanding RPCs instead
+    // of waiting on a channel that can no longer deliver.
+    @DoNotStrip
+    fun onRpcStreamFatal(epoch: Long) {
+        NativeLogger.warn("$NAME: rpc stream desync, resetting connection")
+        // Reset the Go connection before the parser: the reader thread is
+        // still live on this path, so clearing the parser first would leave a
+        // window where bytes from the OLD connection land in the
+        // freshly-reset unpacker mid-frame, causing a second desync.
+        //
+        // resetIfCurrentDidReset(epoch), not reset(): `epoch` is the epoch of
+        // the connection the desynced bytes actually came from, captured by
+        // the reader loop at read time. Three outcomes, and only one of them
+        // keeps the parser's bytes:
+        //  - true: the desynced connection was still current and Go reset it,
+        //    so the buffered partial frame belongs to a dead connection ->
+        //    nativeResetRecv().
+        //  - threw: we have no idea what state Go is in, and we already know
+        //    this stream desynced -> nativeResetRecv(); keeping the bytes
+        //    would feed old frame fragments into whatever connection exists
+        //    and re-desync immediately.
+        //  - false (stale epoch): Go already re-dialed (e.g. a concurrent
+        //    writeArr recovered first), so this is a no-op instead of tearing
+        //    down a connection that already worked -- and the buffered partial
+        //    frame belongs to that healthy current connection, so dropping it
+        //    would force a second, needless fatal/reset cycle. This is the
+        //    ONLY case that skips nativeResetRecv().
+        var didReset = false
+        var resetThrew = false
+        try {
+            didReset = Keybase.resetIfCurrentDidReset(epoch)
+        } catch (e: Exception) {
+            resetThrew = true
+            NativeLogger.error("Exception resetting after rpc desync", e)
+        }
+        if (didReset || resetThrew) {
+            nativeResetRecv()
+        }
+        reactContext.runOnUiQueueThread { relayReset() }
+    }
+
+    // Called from the reader thread when readArr failed and Go reset the
+    // connection underneath us. Unlike onRpcStreamFatal we must NOT call
+    // Keybase.reset() -- ReadArr already did, and a second reset would close a
+    // connection a concurrent writeArr may have just dialed.
+    //
+    // nativeResetRecv() runs every time regardless of `emit`: it is cheap and
+    // must happen on every failed read. `emit` only throttles the
+    // kb-engine-reset meta event, which the caller rate-limits with a
+    // backoff -- a connection that cannot be re-dialed retries this path at
+    // ~10Hz, and disconnectCallback/connectCallback on the JS side are not
+    // free to re-run at that rate.
+    fun onRpcConnectionReset(emit: Boolean) {
+        nativeResetRecv()
+        if (emit) {
+            reactContext.runOnUiQueueThread { relayReset() }
+        }
+    }
+
+    // Called from JNI. Routes native bridge errors into the uploadable log --
+    // __android_log_print only reaches logcat, which a field log send does not
+    // include.
+    @DoNotStrip
+    fun onNativeLog(message: String) {
+        NativeLogger.error("$NAME: $message")
     }
 
     @ReactMethod
@@ -596,9 +764,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
         const val NAME: String = "Kb"
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
+
+        // Process-wide, not per-instance: a reload creates a new KbModule but
+        // must not create a second reader for the one shared Go connection.
+        private val readLoopStarted = AtomicBoolean(false)
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
 
+        // Written on init/destroy, read on the permanent reader thread; needs a
+        // visibility guarantee so the reader never sees a stale instance.
+        @Volatile
         var instance: KbModule? = null
         @JvmStatic
         internal var initialNotificationBundle: Bundle? = null

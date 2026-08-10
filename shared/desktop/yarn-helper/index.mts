@@ -199,36 +199,22 @@ const decorateInfo = (info: Command) => {
   return temp
 }
 
+// msgpack-include.sh is the one place that knows the version, checksum, and
+// download; the native build scripts source the same file.
 const getMsgPack = () => {
-  if (process.platform === 'darwin') {
-    const ver = '7.0.0'
-    const shasum = '37bbdbf69ef44392c7af215b9cb419891a9e1c9c'
-    const file = `msgpack-cxx-${ver}.tar.gz`
-    const url = `https://github.com/msgpack/msgpack-c/releases/download/cpp-${ver}/${file}`
-    const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
-    const dlpath = path.resolve(prefix, '.cache')
-    const shacheckcmd = `echo '${shasum} *.cache/${file}' | shasum -c`
-    const checkAndUntar = `cd node_modules ; ${shacheckcmd} && tar -xf .cache/${file}`
-    const downloadMP = `curl -L -o ${dlpath}/${file} ${url}`
-
-    try {
-      fs.mkdirSync(dlpath)
-    } catch {}
-    if (!fs.existsSync(path.resolve(dlpath, file))) {
-      console.log('Missing msgpack-cpp, downloading')
-      exec(downloadMP)
-    }
-    if (!fs.existsSync(path.resolve(prefix, file))) {
-      try {
-        exec(checkAndUntar)
-      } catch {
-        console.log('untar failed, deleting, try building again. trying one more time')
-        exec(`cd node_modules ; rm .cache/${file}`)
-        exec(downloadMP)
-        exec(checkAndUntar)
-      }
-    }
-  }
+  if (process.platform === 'win32') return
+  const script = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'rnmodules',
+    'react-native-kb',
+    'scripts',
+    'msgpack-include.sh'
+  )
+  // it echoes the include path on success; only its stderr is interesting here
+  exec(`${script} >/dev/null`)
 }
 
 const clearAndroidBuild = () => {

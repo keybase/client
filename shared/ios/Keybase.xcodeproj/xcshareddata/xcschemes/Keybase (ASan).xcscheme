@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Keybase with AddressSanitizer + UBSan on, for memory errors in the native
+   bridge (Kb.mm, the JSI conversion, the frame parser). Shared (checked in) so
+   nobody has to rebuild the Diagnostics tab by hand. Notes:
+
+   - Mutually exclusive with "Keybase (TSan)"; run them as separate passes.
+   - detect_stack_use_after_return is deliberately OFF. It is valuable on a
+     pure-C++ binary (the standalone test scripts turn it on), but Go switches
+     stacks under the cgo boundary and ASan's fake-stack machinery reports
+     garbage when it does.
+   - Malloc Scribble / Guard Edges / Zombies are NOT set here: they replace the
+     allocator ASan has already replaced. For a non-ASan run of those, add
+     MallocScribble=1, MallocPreScribble=1, MallocGuardEdges=1,
+     MallocErrorAbort=1, NSZombieEnabled=YES to the plain Keybase scheme (or
+     DYLD_INSERT_LIBRARIES=/usr/lib/libgmalloc.dylib for full Guard Malloc,
+     which is drastically slower and best pointed at one known repro).
+   - halt_on_error + abort_on_error stop the process at the first report. The
+     SIGABRT lands in lldb with the faulting frame and the heap state still
+     intact, which is the whole reason to run this under the debugger; logging
+     and continuing leaves you reading a report about memory that has since
+     been reused.
+   - Expect roughly 2-3x runtime and ~3x memory.
+-->
+<Scheme
+   LastUpgradeVersion = "1640"
+   version = "1.3">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Build Keybasego if stale"
+               scriptText = "&#10;# See the plain Keybase scheme for why this is a pre-action and not a build&#10;# phase. KB_GO_DEBUG is set here rather than left to the script's&#10;# ENABLE_ADDRESS_SANITIZER sniff: a pre-action's environment does not carry the&#10;# scheme's sanitizer settings, so without this the pre-action would build (and&#10;# stamp) godebug=0 and the pod's backstop phase would then see &quot;build settings&#10;# changed&quot; and rebuild mid-build -- the exact stale-link race this avoids.&#10;set -e&#10;export KB_GO_DEBUG=1&#10;&quot;$SRCROOT/../react-native/gobuild-if-needed.sh&quot; ios&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
+                     BuildableName = "Keybase.app"
+                     BlueprintName = "Keybase"
+                     ReferencedContainer = "container:Keybase.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
+               BuildableName = "Keybase.app"
+               BlueprintName = "Keybase"
+               ReferencedContainer = "container:Keybase.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
+            BuildableName = "Keybase.app"
+            BlueprintName = "Keybase"
+            ReferencedContainer = "container:Keybase.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+      <Testables>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      enableAddressSanitizer = "YES"
+      enableUndefinedBehaviorSanitizer = "YES"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
+            BuildableName = "Keybase.app"
+            BlueprintName = "Keybase"
+            ReferencedContainer = "container:Keybase.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "ASAN_OPTIONS"
+            value = "detect_stack_use_after_return=0:strict_string_checks=1:halt_on_error=1:abort_on_error=1:print_stats=0"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "UBSAN_OPTIONS"
+            value = "print_stacktrace=1"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "MallocNanoZone"
+            value = "0"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "GODEBUG"
+            value = "asyncpreemptoff=1"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "OS_ACTIVITY_MODE"
+            value = "disable"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
+            BuildableName = "Keybase.app"
+            BlueprintName = "Keybase"
+            ReferencedContainer = "container:Keybase.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

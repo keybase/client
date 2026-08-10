@@ -1,2 +1,18 @@
 configurations.create("default")
-artifacts.add("default", file('keybaselib.aar'))
+
+// keybaselib.aar is a gitignored build artifact, so it never arrives with a
+// branch. Without this, checking out a branch that adds an exported func to
+// go/bind fails the build on a missing symbol with no hint that
+// `yarn android:gobuild` is the fix. The script is itself the staleness check
+// (a `find -newer` probe) and no-ops when the aar is current, so this is cheap
+// to hang off every build. KB_SKIP_GOBUILD=1 opts out.
+def gobuildIfNeeded = tasks.register("gobuildIfNeeded", Exec) {
+    commandLine "${rootDir}/../react-native/gobuild-if-needed.sh", "android"
+    // The script decides whether work is needed; Gradle must not decide for it
+    // by caching a previous run against unchanged declared inputs.
+    outputs.upToDateWhen { false }
+}
+
+artifacts.add("default", file('keybaselib.aar')) {
+    builtBy(gobuildIfNeeded)
+}

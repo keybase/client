@@ -16,9 +16,7 @@ import (
 )
 
 func TestUpgrade(t *testing.T) {
-	configDir, err := os.MkdirTemp(".", "kbpagesconfig-editor-test-")
-	require.NoError(t, err)
-	defer func() { _ = os.RemoveAll(configDir) }()
+	configDir := t.TempDir()
 	kbpConfigPath := filepath.Join(configDir, config.DefaultConfigFilename)
 
 	t.Logf("creating config with bcrypt pass at %s", kbpConfigPath)
