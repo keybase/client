@@ -54,22 +54,13 @@ export const getUsernameToShow = (
     return message.author
   }
 
-  if (
-    !(message.author || message.botUsername) ||
-    !(pMessage.author || pMessage.botUsername) ||
-    !message.timestamp ||
-    !pMessage.timestamp
-  ) {
-    // something totally wrong
-    logger.error('CHATDEBUG: getUsernameToShow FAILED', {
-      authors: message.author === pMessage.author,
-      botUsernames: message.botUsername === pMessage.botUsername,
-      mcollapsible: authorIsCollapsible(message.type),
-      mtime: message.timestamp,
-      pcollapsible: authorIsCollapsible(pMessage.type),
-      ptime: pMessage.timestamp,
+  // A zero timestamp is normal here: pending outbox messages and unbox-error messages carry ctime 0
+  // until the service stamps them, so only a missing author/bot on either side is actually wrong.
+  if (!(message.author || message.botUsername) || !(pMessage.author || pMessage.botUsername)) {
+    logger.error('getUsernameToShow: message with no author', {
+      mtype: message.type,
+      ptype: pMessage.type,
     })
-    return ''
   }
 
   return ''
