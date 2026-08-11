@@ -904,17 +904,6 @@
           "name": "skinTone"
         }
       ]
-    },
-    {
-      "type": "enum",
-      "name": "WotStatusType",
-      "symbols": [
-        "NONE_0",
-        "PROPOSED_1",
-        "ACCEPTED_2",
-        "REJECTED_3",
-        "REVOKED_4"
-      ]
     }
   ],
   "messages": {},

@@ -2495,14 +2495,6 @@ export enum UserOrTeamResult {
   user = 1,
   team = 2,
 }
-
-export enum WotStatusType {
-  none = 0,
-  proposed = 1,
-  accepted = 2,
-  rejected = 3,
-  revoked = 4,
-}
 export type APIRes = {readonly status: string,readonly body: string,readonly httpStatus: number,readonly appStatus: string,}
 export type APIUserKeybaseResult = {readonly username: string,readonly uid: UID,readonly pictureUrl?: string | null,readonly fullName?: string | null,readonly rawScore: number,readonly stellar?: string | null,readonly isFollowee: boolean,}
 export type APIUserSearchResult = {readonly score: number,readonly keybase?: APIUserKeybaseResult | null,readonly service?: APIUserServiceResult | null,readonly contact?: ProcessedContact | null,readonly imptofu?: ImpTofuSearchResult | null,readonly servicesSummary?: {[key: string]: APIUserServiceSummary} | null,readonly rawScore: number,}
@@ -2525,7 +2517,7 @@ export type AvatarClearCacheMsg = {readonly name: string,readonly formats?: Read
 export type AvatarFormat = string
 export type AvatarUrl = string
 export type BadgeConversationInfo = {readonly convID: ChatConversationID,readonly badgeCount: number,readonly unreadMessages: number,}
-export type BadgeState = {readonly newTlfs: number,readonly rekeysNeeded: number,readonly newFollowers: number,readonly inboxVers: number,readonly homeTodoItems: number,readonly unverifiedEmails: number,readonly unverifiedPhones: number,readonly smallTeamBadgeCount: number,readonly bigTeamBadgeCount: number,readonly newTeamAccessRequestCount: number,readonly newDevices?: ReadonlyArray<DeviceID> | null,readonly revokedDevices?: ReadonlyArray<DeviceID> | null,readonly conversations?: ReadonlyArray<BadgeConversationInfo> | null,readonly newGitRepoGlobalUniqueIDs?: ReadonlyArray<string> | null,readonly newTeams?: ReadonlyArray<TeamID> | null,readonly deletedTeams?: ReadonlyArray<DeletedTeamInfo> | null,readonly teamsWithResetUsers?: ReadonlyArray<TeamMemberOutReset> | null,readonly unreadWalletAccounts?: ReadonlyArray<WalletAccountInfo> | null,readonly wotUpdates?: {[key: string]: WotUpdate} | null,readonly resetState: ResetState,}
+export type BadgeState = {readonly newTlfs: number,readonly rekeysNeeded: number,readonly newFollowers: number,readonly inboxVers: number,readonly homeTodoItems: number,readonly unverifiedEmails: number,readonly unverifiedPhones: number,readonly smallTeamBadgeCount: number,readonly bigTeamBadgeCount: number,readonly newTeamAccessRequestCount: number,readonly newDevices?: ReadonlyArray<DeviceID> | null,readonly revokedDevices?: ReadonlyArray<DeviceID> | null,readonly conversations?: ReadonlyArray<BadgeConversationInfo> | null,readonly newGitRepoGlobalUniqueIDs?: ReadonlyArray<string> | null,readonly newTeams?: ReadonlyArray<TeamID> | null,readonly deletedTeams?: ReadonlyArray<DeletedTeamInfo> | null,readonly teamsWithResetUsers?: ReadonlyArray<TeamMemberOutReset> | null,readonly unreadWalletAccounts?: ReadonlyArray<WalletAccountInfo> | null,readonly resetState: ResetState,}
 export type BinaryKID = Uint8Array
 export type BinaryLinkID = Uint8Array
 export type BlockIdCombo = {readonly blockHash: string,readonly chargedTo: UserOrTeamID,readonly blockType: BlockType,}
@@ -3131,7 +3123,6 @@ export type VerifyAllEmailTodoExt = {readonly lastVerifyEmailDate: UnixTime,}
 export type VerifySessionRes = {readonly uid: UID,readonly sid: string,readonly generated: number,readonly lifetime: number,}
 export type WalletAccountInfo = {readonly accountID: string,readonly numUnread: number,}
 export type WebProof = {readonly hostname: string,readonly protocols?: ReadonlyArray<string> | null,}
-export type WotUpdate = {readonly voucher: string,readonly vouchee: string,readonly status: WotStatusType,}
 export type WriteArgs = {readonly opID: OpID,readonly path: Path,readonly offset: number,}
 
 type IncomingMethod = 'keybase.1.NotifyAudit.boxAuditError' | 'keybase.1.NotifyAudit.rootAuditError' | 'keybase.1.NotifyBadges.badgeState' | 'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' | 'keybase.1.NotifyFS.FSActivity' | 'keybase.1.NotifySession.loggedOut' | 'keybase.1.NotifyTracking.trackingChanged' | 'keybase.1.NotifyUsers.userChanged' | 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.pgpUi.finished' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.reachability.reachabilityChanged' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent'
@@ -3593,7 +3584,6 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.NotifyTeam.newlyAddedToTeam'
 // 'keybase.1.NotifyTeambot.newTeambotKey'
 // 'keybase.1.NotifyTeambot.teambotKeyNeeded'
-// 'keybase.1.NotifyUsers.webOfTrustChanged'
 // 'keybase.1.paperprovision.paperProvision'
 // 'keybase.1.pgp.pgpSign'
 // 'keybase.1.pgp.pgpPull'

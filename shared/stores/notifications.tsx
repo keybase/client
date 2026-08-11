@@ -58,11 +58,9 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   const newTeams = bs.newTeams ?? []
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
-  const wotUpdates = /*bs.wotUpdates ?? */ new Map<string, T.RPCGen.WotUpdate>()
-
   const counts = new Map<Tabs.Tab, number>()
 
-  counts.set(Tabs.peopleTab, bs.homeTodoItems + Object.keys(wotUpdates).length)
+  counts.set(Tabs.peopleTab, bs.homeTodoItems)
 
   const allDeviceChanges = new Set(newDevices)
   newDevices.forEach(d => allDeviceChanges.add(d))
