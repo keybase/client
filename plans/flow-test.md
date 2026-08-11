@@ -1,6 +1,6 @@
 # E2E Flow Test Coverage — Page Checklist
 
-**Skill:** Use the `keybase-e2e-tests` skill for testID conventions, Playwright gotchas, Maestro command patterns, and iOS navigation structure.
+**Skill:** Use the `keybase-e2e-tests` skill for testID conventions, Playwright gotchas, Appium/WebdriverIO patterns, and iOS navigation structure.
 
 Each bucket is a logical group for one or more PRs. Items are ordered easiest-first within each bucket. Validate after each bucket before moving on.
 

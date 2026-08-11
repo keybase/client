@@ -24,13 +24,12 @@ describe('teams inner', () => {
     await waitForTestID(T.TEAMS_SETTINGS_TAB, 3000)
     await expect(el(T.TEAMS_SETTINGS_TAB)).toExist()
 
-    // Bots tab — Maestro: tapOn text: "Bots"
+    // Bots tab
     await byText('Bots').click()
     await waitForTestID(T.TEAMS_BOTS_TAB, 3000)
     await expect(el(T.TEAMS_BOTS_TAB)).toExist()
 
     // Channels tab — only present for big teams or admins
-    // Maestro: nested runFlow when visible text: "Channels"
     const channelsTab = byText('Channels')
     if (await channelsTab.isExisting()) {
       await channelsTab.click()

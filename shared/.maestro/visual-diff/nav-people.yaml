@@ -1,6 +1,0 @@
-appId: keybase.ios
----
-- tapOn:
-    text: "People"
-- assertVisible:
-    text: "People"

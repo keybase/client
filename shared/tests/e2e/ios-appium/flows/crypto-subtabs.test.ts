@@ -7,7 +7,6 @@ describe('crypto subtabs', () => {
   it('all four crypto subtabs render their input', async () => {
     await escapeToTabs()
     await navigateToMore()
-    // Maestro: tapOn text: ".*Crypto" — label match for the Crypto menu item
     await tapSettingsRow('Crypto')
     await waitForTestID(T.CRYPTO_INPUT, 3000)
 

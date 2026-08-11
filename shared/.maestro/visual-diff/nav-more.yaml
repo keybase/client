@@ -1,8 +1,0 @@
-appId: keybase.ios
----
-- tapOn:
-    text: "More"
-- extendedWaitUntil:
-    visible:
-      text: ".*Crypto"
-    timeout: 30000

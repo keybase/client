@@ -34,7 +34,6 @@ config.resolver.blockList = [
       ? [config.resolver.blockList]
       : []),
   new RegExp(`^${rootRe}/tests/results/`),
-  new RegExp(`^${rootRe}/\\.maestro/`),
   new RegExp(`^${rootRe}/desktop/`),
   new RegExp(`^${rootRe}/ios/build/`),
   new RegExp(`^${rootRe}/ios/Pods/`),

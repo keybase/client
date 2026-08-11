@@ -150,7 +150,7 @@ const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\
 
 // CONTAINS, not ==, on purpose: many tappable rows (More menu items, team tabs)
 // are ClickableBoxes whose accessibility label is a merge of child labels, e.g.
-// ", Crypto" rather than "Crypto". This mirrors Maestro's substring text match.
+// ", Crypto" rather than "Crypto".
 // Android: a row's text can surface either as the TextView's text OR (when the
 // touchable is accessible) as the parent's content-desc, so match both; the
 // visible-text path uses textContains, the merged-label path content-desc.

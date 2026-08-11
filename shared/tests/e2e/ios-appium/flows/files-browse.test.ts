@@ -6,7 +6,7 @@ import * as T from '../../shared/test-ids'
 describe('files browse', () => {
   it('renders the files browser', async () => {
     await escapeToTabs()
-    // Maestro: tap Teams then Files to disambiguate from the More tab "Files" item
+    // Tap Teams then Files to disambiguate from the More tab "Files" item
     await tab('Teams').click()
     await tab('Files').click()
     await waitForTestID(T.FILES_BROWSER, 3000)
