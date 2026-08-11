@@ -419,11 +419,4 @@ protocol Common {
     ReacjiSkinTone skinTone;
   }
 
-  enum WotStatusType {
-    NONE_0,
-    PROPOSED_1,
-    ACCEPTED_2,
-    REJECTED_3,
-    REVOKED_4
-  }
 }
