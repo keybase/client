@@ -331,12 +331,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   // scroll when loaded becomes true after centeredOrdinal was already set.
   // Reset per dataset, not per conversation: re-centering on the ordinal we are already parked
   // on still reloads the thread, so the list has to scroll to it again.
-  // Records the index the target sat at when we last scrolled to it, not just the ordinal: a
-  // load-older prepend moves the target down by however many messages arrived above it, so the
-  // scroll we already issued no longer points at it and has to be re-issued.
-  const lastScrolledCenteredRef = React.useRef<{index: number; ordinal: T.Chat.Ordinal} | undefined>(
-    undefined
-  )
+  // Scrolls once per target and no more. Re-issuing when the target's index moves looks reasonable
+  // - a prepend does shift it - but scrolling is what triggers that prepend, so it re-centers the
+  // list out from under someone reading around the hit. The list itself keeps the target in place
+  // while rows measure, and maintainVisibleContentPosition holds it across prepends.
+  const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
   React.useLayoutEffect(() => {
     lastScrolledCenteredRef.current = undefined
   }, [datasetKey])
@@ -349,9 +348,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         centeredOrdinal as unknown as number
       )
       if (idx < 0) return
-      const last = lastScrolledCenteredRef.current
-      if (last?.ordinal === centeredOrdinal && last.index === idx) return
-      lastScrolledCenteredRef.current = {index: idx, ordinal: centeredOrdinal}
+      if (lastScrolledCenteredRef.current === centeredOrdinal) return
+      lastScrolledCenteredRef.current = centeredOrdinal
       void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
     } else if (lastScrolledCenteredRef.current !== undefined) {
       lastScrolledCenteredRef.current = undefined
@@ -671,23 +669,23 @@ const NativeConversationList = function NativeConversationList() {
   // Center on the search hit once it actually appears in the loaded list. Centering on the raw
   // centeredOrdinal change is unreliable: navigating to a hit reloads the thread centered on it,
   // so messageOrdinals is briefly empty (the target not yet present) when the ordinal changes.
-  // Tracks the index the target sat at, not just the ordinal: the centered load streams older
-  // messages in above it afterwards, which moves it out from under the scroll we already issued.
-  const lastCentered = React.useRef<{index: number; ordinal: T.Chat.Ordinal} | undefined>(undefined)
+  // Scrolls once per target and no more. Re-issuing when the target's index moves looks reasonable
+  // - a prepend does shift it - but scrolling up is what triggers that prepend, so it re-centers
+  // the list out from under someone reading around the hit. The list itself keeps the target in
+  // place while rows measure, and maintainVisibleContentPosition holds it across prepends.
+  const lastCenteredOrdinal = React.useRef<T.Chat.Ordinal | undefined>(undefined)
   React.useEffect(() => {
     if (centeredOrdinalOrNone <= 0) {
-      lastCentered.current = undefined
+      lastCenteredOrdinal.current = undefined
       return
     }
-    const index = messageOrdinals.indexOf(centeredOrdinalOrNone)
-    if (index < 0) {
+    if (lastCenteredOrdinal.current === centeredOrdinalOrNone) {
       return
     }
-    const last = lastCentered.current
-    if (last?.ordinal === centeredOrdinalOrNone && last.index === index) {
+    if (!messageOrdinals.includes(centeredOrdinalOrNone)) {
       return
     }
-    lastCentered.current = {index, ordinal: centeredOrdinalOrNone}
+    lastCenteredOrdinal.current = centeredOrdinalOrNone
     scrollToCentered()
   }, [centeredOrdinalOrNone, messageOrdinals, scrollToCentered])
 
