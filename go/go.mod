@@ -41,7 +41,7 @@ require (
 	github.com/keybase/go-kext v0.0.0-20251211195321-cdcb1aed632b
 	github.com/keybase/go-keychain v0.0.2-0.20260716175100-8615c072de2a
 	github.com/keybase/go-logging v0.0.0-20251211195308-ca8e152456e3
-	github.com/keybase/go-merkle-tree v0.0.0-20251212154157-5587f8273ef6
+	github.com/keybase/go-merkle-tree v0.0.0-20260811140106-cab7e0795a81
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/keybase/go-triplesec v0.0.0-20260810140528-ab3b1ab35b9d

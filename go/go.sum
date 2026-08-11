@@ -290,8 +290,8 @@ github.com/keybase/go-keychain v0.0.2-0.20260716175100-8615c072de2a h1:YBlSR49O9
 github.com/keybase/go-keychain v0.0.2-0.20260716175100-8615c072de2a/go.mod h1:nlXxGe338lr5BwLC53H7sxM+C/mLPxIQ4TSbQriLqsQ=
 github.com/keybase/go-logging v0.0.0-20251211195308-ca8e152456e3 h1:oiun9DozNbKAQ8vfCJ2gEb6xlMmglhHIr6v6Kjb+4cU=
 github.com/keybase/go-logging v0.0.0-20251211195308-ca8e152456e3/go.mod h1:h/7KP3cUc84ErXwrOAxyCh5HdM0GT/2YrTLKXy4HoKM=
-github.com/keybase/go-merkle-tree v0.0.0-20251212154157-5587f8273ef6 h1:HH/Jm3myP6BbjdvQ5Q42bCtrhzN/4tH3NsGIytCWi2k=
-github.com/keybase/go-merkle-tree v0.0.0-20251212154157-5587f8273ef6/go.mod h1:znmuuWTEe8hFEZh4j6oPZoaqxmCBNzoQOLEuNGFjxok=
+github.com/keybase/go-merkle-tree v0.0.0-20260811140106-cab7e0795a81 h1:7I+z+vzuUj7vezwKCgyqkg90LMTmir9gdbcQddpo0A0=
+github.com/keybase/go-merkle-tree v0.0.0-20260811140106-cab7e0795a81/go.mod h1:in8jJh9DVx851JNcIW+yYeEO5XRwK5Tc2vuoKbIuuZE=
 github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7 h1:gYjyv59w3fgc5oY8ktBKp6V50EuLdYujpWyNI3d2ghU=
 github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7/go.mod h1:4ZEXiGFpvjOEuVLyAcOYrHKJ4rHvn1fFsTaiQ3gnHnM=
 github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19 h1:WjT3fLi9n8YWh/Ih8Q1LHAPsTqGddPcHqscN+PJ3i68=
