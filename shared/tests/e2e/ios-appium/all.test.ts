@@ -4,6 +4,7 @@
 // each) and the app stays warm between flows.
 import './flows/android-activity-restart.test'
 import './flows/chat-conversation.test'
+import './flows/chat-search-hit.test'
 import './flows/chat-send-message.test'
 import './flows/crypto-outputs.test'
 import './flows/crypto-subtabs.test'

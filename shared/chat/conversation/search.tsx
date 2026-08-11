@@ -15,6 +15,7 @@ import {
 } from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
 import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
 type CommonProps = OwnProps & {
@@ -506,7 +507,12 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer} onLayout={onLayout}>
       <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" padding="tiny" style={styles.outerContainer} gap="tiny">
-        <Kb.Box2 direction="horizontal" centerChildren={true} noShrink={true}>
+        <Kb.Box2
+          direction="horizontal"
+          centerChildren={true}
+          noShrink={true}
+          testID={TestIDs.CHAT_THREAD_SEARCH_CANCEL}
+        >
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
             Cancel
           </Kb.Text>
@@ -541,11 +547,13 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
             color={numHits > 0 ? theme.blue : theme.black_50}
             onClick={onUp}
             type="iconfont-arrow-up"
+            testID={TestIDs.CHAT_THREAD_SEARCH_PREV}
           />
           <Kb.Icon
             color={numHits > 0 ? theme.blue : theme.black_50}
             onClick={onDown}
             type="iconfont-arrow-down"
+            testID={TestIDs.CHAT_THREAD_SEARCH_NEXT}
           />
         </Kb.Box2>
       </Kb.Box2>

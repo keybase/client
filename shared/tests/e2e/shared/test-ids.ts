@@ -31,6 +31,13 @@ export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
+export const CHAT_HEADER_SEARCH_BUTTON   = 'chat-header-search-button'
+export const CHAT_THREAD_SEARCH_CANCEL   = 'chat-thread-search-cancel'
+export const CHAT_THREAD_SEARCH_PREV     = 'chat-thread-search-prev'
+export const CHAT_THREAD_SEARCH_NEXT     = 'chat-thread-search-next'
+// The message a thread search is currently sitting on. Present only while that row is highlighted,
+// so asserting it exists is asserting the hit is on screen.
+export const CHAT_SEARCH_HIT             = 'chat-search-hit'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
