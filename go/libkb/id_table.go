@@ -1668,11 +1668,13 @@ const (
 	IdentifyTableModeActive  IdentifyTableMode = iota
 )
 
-func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
+// requestedAt is when the identify this table walk belongs to was asked for. It
+// bounds which newly cached remote proof results a forced check may reuse.
+func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteCheck bool, requestedAt time.Time, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
 	errs := make(chan error, len(is.res.ProofChecks))
 	for _, lcr := range is.res.ProofChecks {
 		go func(l *LinkCheckResult) {
-			errs <- idt.identifyActiveProof(m, l, is, forceRemoteCheck, ui, ccl, itm)
+			errs <- idt.identifyActiveProof(m, l, is, forceRemoteCheck, requestedAt, ui, ccl, itm)
 		}(lcr)
 	}
 
@@ -1701,8 +1703,8 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 
 // =========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
-	idt.proofRemoteCheck(m, is.HasPreviousTrack(), forceRemoteCheck, lcr, itm)
+func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, requestedAt time.Time, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
+	idt.proofRemoteCheck(m, is.HasPreviousTrack(), forceRemoteCheck, requestedAt, lcr, itm)
 	if ccl != nil {
 		ccl.CCLCheckCompleted(lcr)
 	}
@@ -1726,6 +1728,7 @@ type LinkCheckResult struct {
 	tmpTrackExpireTime   time.Time
 	position             int
 	torWarning           bool
+	proofCacheRequestKey *proofCacheRequestKey
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff        { return l.diff }
@@ -1763,11 +1766,12 @@ func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybas
 	return ret
 }
 
-func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult, itm IdentifyTableMode) {
+func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forceRemoteCheck bool, requestedAt time.Time, res *LinkCheckResult, itm IdentifyTableMode) {
 	p := res.link
 
 	m.Debug("+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
+	checkCompleted := false
 	pvlHashUsed := keybase1.MerkleStoreKitHash("")
 	sid := p.GetSigID()
 
@@ -1785,6 +1789,11 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 		}
 
 		if doCache {
+			// Only make a result eligible for request coalescing when the check
+			// returned normally and its caller's context is still live.
+			if !checkCompleted || m.Ctx().Err() != nil {
+				res.proofCacheRequestKey = nil
+			}
 			m.Debug("| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
 			if cacheErr := idt.G().ProofCache.Put(sid, res, pvlHashUsed); cacheErr != nil {
 				m.Warning("proof cache put error: %s", cacheErr)
@@ -1828,21 +1837,6 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 		}
 	}
 
-	if !forceRemoteCheck {
-		res.cached = m.G().ProofCache.Get(sid, pvlU.Hash)
-		m.Debug("| Proof cache lookup for %s: %+v", sid, res.cached)
-		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
-			res.err = res.cached.Status
-			res.verifiedHint = res.cached.VerifiedHint
-			m.Debug("| Early exit after proofCache hit for %s", sid)
-			return
-		}
-	}
-
-	// From this point on in the function, we'll be putting our results into
-	// cache (in the defer above).
-	doCache = true
-
 	// ProofCheckerModeActive or Passive mainly decides whether we need to reach out to
 	// self-hosted services. We want to avoid so doing when the user is acting passively
 	// (such as when receiving a message).
@@ -1854,7 +1848,40 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	if res.hint != nil {
 		hint = *res.hint
 	}
+	requestKey := proofCacheRequestKey{
+		mode:      pcm,
+		apiURL:    hint.GetAPIURL(),
+		checkText: hint.GetCheckText(),
+	}
+
+	var cached *CheckResult
+	if forceRemoteCheck {
+		cached = m.G().ProofCache.getForRequest(sid, pvlU.Hash, requestedAt, requestKey)
+		m.Debug("| Proof request cache lookup for %s: %+v", sid, cached)
+	} else {
+		cached = m.G().ProofCache.Get(sid, pvlU.Hash)
+		m.Debug("| Proof cache lookup for %s: %+v", sid, cached)
+		// Preserve the cached result for the soft-error fallback below even when
+		// it is too old for the normal early return.
+		res.cached = cached
+	}
+	if cached != nil && (forceRemoteCheck || cached.Freshness() == keybase1.CheckResultFreshness_FRESH) {
+		res.err = cached.Status
+		res.verifiedHint = cached.VerifiedHint
+		if forceRemoteCheck {
+			m.Debug("| Early exit after proofCache hit produced during this request for %s", sid)
+		} else {
+			m.Debug("| Early exit after proofCache hit for %s", sid)
+		}
+		return
+	}
+
+	// From this point on in the function, we'll be putting our results into
+	// cache (in the defer above).
+	doCache = true
+	res.proofCacheRequestKey = &requestKey
 	res.verifiedHint, res.err = pc.CheckStatus(m, hint, pcm, pvlU)
+	checkCompleted = true
 
 	// If no error than all good
 	if res.err == nil {

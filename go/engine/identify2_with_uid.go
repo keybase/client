@@ -252,6 +252,10 @@ type Identify2WithUID struct {
 
 	resultCh chan<- error
 
+	// When this identify was asked for. If it waits behind another identify of
+	// the same user, it may reuse proof results produced after this point.
+	requestedAt time.Time
+
 	// For eagerly checking remote Assertions as they come in, these
 	// member variables maintain state, protected by the remotesMutex.
 	remotesMutex     sync.Mutex
@@ -328,6 +332,13 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 
 	if e.arg.Uid.IsNil() {
 		return libkb.NoUIDError{}
+	}
+
+	// This identify may reuse proof results produced by an identify already
+	// running for the same user, but only results completed after it was
+	// requested. ResolveThenIdentify2 records this before assertion resolution.
+	if e.requestedAt.IsZero() {
+		e.requestedAt = m.G().Clock().Now()
 	}
 
 	// Only the first send matters, but we don't want to block the subsequent no-op
@@ -884,7 +895,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	e.metaContext = m
 	if them.IDTable() == nil {
 		m.Debug("| No IDTable for user")
-	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), iui, e, identifyTableMode); err != nil {
+	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), e.requestedAt, iui, e, identifyTableMode); err != nil {
 		m.Debug("| Failure in running IDTable")
 		return err
 	}
