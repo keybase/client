@@ -71,7 +71,6 @@ export const noDetails: T.Tracker.Details = {
   stellarHidden: false,
   teamShowcase: [],
   username: '',
-  webOfTrustEntries: [],
 }
 
 export const makeDetails = (username: string): T.Tracker.Details => ({
@@ -79,7 +78,6 @@ export const makeDetails = (username: string): T.Tracker.Details => ({
   assertions: new Map(),
   teamShowcase: [],
   username,
-  webOfTrustEntries: [],
 })
 
 export const cloneDetails = (details: T.Tracker.Details): T.Tracker.Details => ({
@@ -88,7 +86,6 @@ export const cloneDetails = (details: T.Tracker.Details): T.Tracker.Details => (
   followers: details.followers ? new Set(details.followers) : details.followers,
   following: details.following ? new Set(details.following) : details.following,
   teamShowcase: [...(details.teamShowcase ?? [])],
-  webOfTrustEntries: [...(details.webOfTrustEntries ?? [])],
 })
 
 export const noNonUserDetails: T.Tracker.NonUserDetails = {
@@ -192,7 +189,6 @@ export const rpcAssertionToAssertion = (row: T.RPCGen.Identify3Row): T.Tracker.A
   timestamp: row.ctime,
   type: row.key,
   value: row.value,
-  wotProof: row.wotProof ?? undefined,
 })
 
 export const updateTrackerDetailsResult = (
@@ -304,6 +300,3 @@ export const updateTrackerDetailsSummary = (
   prev: T.Tracker.Details,
   summary: T.RPCGen.Identify3Summary
 ): T.Tracker.Details => ({...cloneDetails(prev), numAssertionsExpected: summary.numProofsToCheck})
-
-export const showableWotEntry = (entry: T.Tracker.WebOfTrustEntry): boolean =>
-  entry.status === T.RPCGen.WotStatusType.accepted || entry.status === T.RPCGen.WotStatusType.proposed

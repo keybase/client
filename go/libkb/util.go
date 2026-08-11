@@ -1212,59 +1212,6 @@ func ThrottleBatch(f func(any), batcher func(any, any) any,
 	}
 }
 
-// Format a proof for web-of-trust. Does not support all proof types.
-func NewWotProof(proofType keybase1.ProofType, key, value string) (res keybase1.WotProof, err error) {
-	switch proofType {
-	case keybase1.ProofType_TWITTER, keybase1.ProofType_GITHUB, keybase1.ProofType_REDDIT,
-		keybase1.ProofType_COINBASE, keybase1.ProofType_HACKERNEWS, keybase1.ProofType_FACEBOOK,
-		keybase1.ProofType_GENERIC_SOCIAL, keybase1.ProofType_ROOTER:
-		return keybase1.WotProof{
-			ProofType: proofType,
-			Name:      key,
-			Username:  value,
-		}, nil
-	case keybase1.ProofType_GENERIC_WEB_SITE:
-		return keybase1.WotProof{
-			ProofType: proofType,
-			Protocol:  key,
-			Hostname:  value,
-		}, nil
-	case keybase1.ProofType_DNS:
-		return keybase1.WotProof{
-			ProofType: proofType,
-			Protocol:  key,
-			Domain:    value,
-		}, nil
-	default:
-		return res, fmt.Errorf("unexpected proof type: %v", proofType)
-	}
-}
-
-// Format a web-of-trust proof for gui display.
-func NewWotProofUI(mctx MetaContext, proof keybase1.WotProof) (res keybase1.WotProofUI, err error) {
-	iconKey := ProofIconKey(mctx, proof.ProofType, proof.Name)
-	res = keybase1.WotProofUI{
-		SiteIcon:         MakeProofIcons(mctx, iconKey, ProofIconTypeSmall, 16),
-		SiteIconDarkmode: MakeProofIcons(mctx, iconKey, ProofIconTypeSmallDarkmode, 16),
-	}
-	switch proof.ProofType {
-	case keybase1.ProofType_TWITTER, keybase1.ProofType_GITHUB, keybase1.ProofType_REDDIT,
-		keybase1.ProofType_COINBASE, keybase1.ProofType_HACKERNEWS, keybase1.ProofType_FACEBOOK,
-		keybase1.ProofType_GENERIC_SOCIAL, keybase1.ProofType_ROOTER:
-		res.Type = proof.Name
-		res.Value = proof.Username
-	case keybase1.ProofType_GENERIC_WEB_SITE:
-		res.Type = proof.Protocol
-		res.Value = proof.Hostname
-	case keybase1.ProofType_DNS:
-		res.Type = "dns"
-		res.Value = proof.Domain
-	default:
-		return res, fmt.Errorf("unexpected proof type: %v", proof.ProofType)
-	}
-	return res, nil
-}
-
 func ProofIconKey(mctx MetaContext, proofType keybase1.ProofType, genericKeyAndFallback string) (iconKey string) {
 	switch proofType {
 	case keybase1.ProofType_TWITTER:

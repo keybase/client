@@ -148,7 +148,6 @@ type Identify3Row struct {
 	Metas                []Identify3RowMeta `codec:"metas" json:"metas"`
 	Color                Identify3RowColor  `codec:"color" json:"color"`
 	Kid                  *KID               `codec:"kid,omitempty" json:"kid,omitempty"`
-	WotProof             *WotProof          `codec:"wotProof,omitempty" json:"wotProof,omitempty"`
 }
 
 func (o Identify3Row) DeepCopy() Identify3Row {
@@ -225,13 +224,6 @@ func (o Identify3Row) DeepCopy() Identify3Row {
 			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Kid),
-		WotProof: (func(x *WotProof) *WotProof {
-			if x == nil {
-				return nil
-			}
-			tmp := x.DeepCopy()
-			return &tmp
-		})(o.WotProof),
 	}
 }
 
