@@ -39,19 +39,19 @@ require (
 	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260721184639-b53150efbe46
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
 	github.com/keybase/go-kext v0.0.0-20251211195321-cdcb1aed632b
-	github.com/keybase/go-keychain v0.0.2-0.20251211175755-d1c5bf371db7
+	github.com/keybase/go-keychain v0.0.2-0.20260716175100-8615c072de2a
 	github.com/keybase/go-logging v0.0.0-20251211195308-ca8e152456e3
-	github.com/keybase/go-merkle-tree v0.0.0-20251212154157-5587f8273ef6
+	github.com/keybase/go-merkle-tree v0.0.0-20260811140106-cab7e0795a81
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/keybase/go-triplesec v0.0.0-20251211201629-aae48d5abcdf
-	github.com/keybase/go-triplesec-insecure v0.0.0-20251211202331-fd8270e51b94
+	github.com/keybase/go-triplesec v0.0.0-20260810140528-ab3b1ab35b9d
+	github.com/keybase/go-triplesec-insecure v0.0.0-20260810140530-0774afed5cdc
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
 	github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee
-	github.com/keybase/saltpack v0.0.0-20251212154201-989135827042
+	github.com/keybase/saltpack v0.0.0-20260731163415-735fecfa1520
 	github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
@@ -207,7 +207,7 @@ replace (
 	//   2. dotgit setref recovery: restore original ref file on lock/close
 	//      failure, hardening for KBFS networked filesystem (KBFS-3703).
 	// Fork also preserves FetchOptions.PackRefs from the v4 Keybase fork.
-	github.com/go-git/go-git/v5 => github.com/keybase/go-git/v5 v5.19.1-keybase.2
+	github.com/go-git/go-git/v5 => github.com/keybase/go-git/v5 v5.19.1-keybase.3
 	github.com/stellar/go => github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7
 	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20221007195407-9881c0c26e65
 	mvdan.cc/xurls/v2 => github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c
