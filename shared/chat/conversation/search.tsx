@@ -511,6 +511,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
           direction="horizontal"
           centerChildren={true}
           noShrink={true}
+          collapsable={false}
           testID={TestIDs.CHAT_THREAD_SEARCH_CANCEL}
         >
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
@@ -518,7 +519,16 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
-          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
+          {/* collapsable={false}: keep this testID'd wrapper (and the EditText under it) as a real
+              view on Android, where view flattening would otherwise render it as an empty leaf. */}
+          <Kb.Box2
+            direction="horizontal"
+            gap="xtiny"
+            flex={1}
+            centerChildren={true}
+            collapsable={false}
+            testID={TestIDs.CHAT_THREAD_SEARCH_INPUT}
+          >
             <Kb.Input3
               ref={inputRef}
               autoFocus={false}

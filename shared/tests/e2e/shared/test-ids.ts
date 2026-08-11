@@ -33,11 +33,19 @@ export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
 export const CHAT_HEADER_SEARCH_BUTTON   = 'chat-header-search-button'
 export const CHAT_THREAD_SEARCH_CANCEL   = 'chat-thread-search-cancel'
+// The thread search query field. It focuses itself a beat after mounting, so a test types into it
+// rather than sending keys and hoping the focus landed.
+export const CHAT_THREAD_SEARCH_INPUT    = 'chat-thread-search-input'
 export const CHAT_THREAD_SEARCH_PREV     = 'chat-thread-search-prev'
 export const CHAT_THREAD_SEARCH_NEXT     = 'chat-thread-search-next'
-// The message a thread search is currently sitting on. Present only while that row is highlighted,
-// so asserting it exists is asserting the hit is on screen.
+// The row a thread search is currently sitting on. Really "the centre-highlighted row": pinned
+// messages, reply jumps and permalinks highlight one too, so this only means "search hit" inside a
+// search flow. Present only while the row is highlighted.
 export const CHAT_SEARCH_HIT             = 'chat-search-hit'
+// The header above the oldest loaded message. Mounted in every state - loading, more to load, start
+// of the conversation - so its position is readable throughout, which is how a test sees a page of
+// older messages arrive.
+export const CHAT_THREAD_TOP             = 'chat-thread-top'
 
 // Files
 export const FILES_BROWSER = 'files-browser'

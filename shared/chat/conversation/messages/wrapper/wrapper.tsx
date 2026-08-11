@@ -1023,6 +1023,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
       direction="vertical"
       relative={true}
       fullWidth={true}
+      collapsable={false}
       testID={showCenteredHighlight ? TestIDs.CHAT_SEARCH_HIT : undefined}
     >
       <AuthorHeader
