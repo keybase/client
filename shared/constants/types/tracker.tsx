@@ -1,6 +1,4 @@
 import type * as T from '.'
-import type {WebOfTrustVerificationType} from './more'
-import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 
 export type TeamShowcase = {
   description: string
@@ -43,7 +41,6 @@ export type Assertion = {
   timestamp: number // can be 0,
   type: string // twitter,
   value: string // bob
-  wotProof?: RPCTypes.WotProof
 }
 
 export type DetailsState =
@@ -74,7 +71,6 @@ export type Details = T.Immutable<{
   teamShowcase?: ReadonlyArray<TeamShowcase>
   username: string
   resetBrokeTrack: boolean
-  webOfTrustEntries?: ReadonlyArray<WebOfTrustEntry>
 }>
 
 // Details for SBS profiles
@@ -97,14 +93,3 @@ export type NonUserDetails = T.Immutable<{
   siteIconFullDarkmode: SiteIconSet
   siteURL: string // https://twitter.com/bob,
 }>
-
-export type WebOfTrustEntry = {
-  attestation: string
-  attestingUser: string
-  otherText: string
-  proofID: RPCTypes.SigID
-  proofs?: ReadonlyArray<RPCTypes.WotProofUI>
-  status: RPCTypes.WotStatusType
-  verificationType: WebOfTrustVerificationType
-  vouchedAt: number
-}

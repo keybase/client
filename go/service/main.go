@@ -196,7 +196,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, contactsProv)),
 		keybase1.BotProtocol(NewBotHandler(xp, g)),
 		keybase1.FeaturedBotProtocol(NewFeaturedBotHandler(xp, g)),
-		keybase1.WotProtocol(NewWebOfTrustHandler(xp, g)),
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
