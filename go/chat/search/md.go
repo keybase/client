@@ -9,7 +9,14 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-const indexMetadataVersion = 3
+// Bumping this forces a full reindex by discarding all SeenIDs. This fixes damaged
+// indexes where messages were marked indexed but their tokens never reached disk.
+//
+// Bumps metadata only (not indexVersion) to keep search working during repair:
+// reindexing atop surviving tokens keeps results live instead of going dark until
+// rebuild completes. Tradeoff: inflated alias refcounts and stale deleted-message
+// entries, filtered at search time (costs a lookup, not a wrong result).
+const indexMetadataVersion = 4
 
 type indexMetadata struct {
 	SeenIDs map[chat1.MessageID]chat1.EmptyStruct `codec:"s"`
