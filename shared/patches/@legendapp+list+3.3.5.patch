@@ -1,5 +1,5 @@
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index b3c5a30..d256c30 100644
+index b3c5a30..220444d 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
 @@ -457,611 +457,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -1135,7 +1135,15 @@ index b3c5a30..d256c30 100644
  // src/core/doMaintainScrollAtEnd.ts
  function doMaintainScrollAtEnd(ctx) {
    const state = ctx.state;
-@@ -1977,6 +1774,27 @@ var flushSync = (fn) => {
+@@ -1580,6 +1377,7 @@ function doMaintainScrollAtEnd(ctx) {
+         const didScrollSinceRequest = state.scroll !== scrollAtRequest;
+         if (isStillWithinThreshold || !didScrollSinceRequest) {
+           state.maintainingScrollAtEnd = activeState;
++          clearScrollTargetSettle(state);
+           const scroller = refScroller.current;
+           if (state.props.horizontal && isHorizontalRTL(state)) {
+             const currentContentSize = getContentSize(ctx);
+@@ -1977,6 +1775,27 @@ var flushSync = (fn) => {
    fn();
  };
  
@@ -1163,7 +1171,25 @@ index b3c5a30..d256c30 100644
  // src/utils/getScrollVelocity.ts
  var MAX_SCROLL_VELOCITY_WINDOW_MS = 1e3;
  var SCROLL_VELOCITY_HALF_LIFE_MS = 200;
-@@ -2224,7 +2042,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
+@@ -2026,6 +1845,7 @@ function isInMVCPActiveMode(state) {
+ }
+ 
+ // src/core/updateScroll.ts
++var SETTLE_RELEASE_EPSILON = 2;
+ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   var _a3;
+   const state = ctx.state;
+@@ -2061,6 +1881,9 @@ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   state.scrollPrevTime = state.scrollTime;
+   state.scroll = newScroll;
+   state.scrollTime = currentTime;
++  if (state.scrollTargetSettle && (options == null ? void 0 : options.fromNativeScrollEvent) && !adjustChanged && !state.pendingNativeMVCPAdjust && Math.abs(newScroll - state.scrollPending) > SETTLE_RELEASE_EPSILON) {
++    clearScrollTargetSettle(state);
++  }
+   const scrollDelta = Math.abs(newScroll - prevScroll);
+   const isUserScrollEvent = !!(options == null ? void 0 : options.fromNativeScrollEvent) && scrollDelta > 0.1 && !adjustChanged && scrollingTo === void 0 && !state.pendingNativeMVCPAdjust;
+   const allowedEdge = isUserScrollEvent ? beginReachedEdgeUserScroll(ctx, newScroll - prevScroll) : void 0;
+@@ -2224,7 +2047,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
    }
  }
  function scrollTo(ctx, params) {
@@ -1172,11 +1198,11 @@ index b3c5a30..d256c30 100644
    const state = ctx.state;
    const { noScrollingTo, forceScroll, ...scrollTarget } = params;
    const {
-@@ -2256,6 +2074,15 @@ function scrollTo(ctx, params) {
+@@ -2256,6 +2079,15 @@ function scrollTo(ctx, params) {
      };
      if (!isInitialScroll) {
        pinScrollTargetRenderRange(ctx, targetOffset, scrollTarget.index);
-+      if (scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
++      if (!animated && scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
 +        beginScrollTargetSettle(ctx, {
 +          index: scrollTarget.index,
 +          viewOffset: (_b = scrollTarget.viewOffset) != null ? _b : 0,
@@ -1188,7 +1214,7 @@ index b3c5a30..d256c30 100644
      }
    }
    state.scrollPending = targetOffset;
-@@ -2263,7 +2090,7 @@ function scrollTo(ctx, params) {
+@@ -2263,7 +2095,7 @@ function scrollTo(ctx, params) {
    if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
      if (animated) {
        if (state.scrollTargetPinnedRange) {
@@ -1197,7 +1223,7 @@ index b3c5a30..d256c30 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2276,6 +2103,274 @@ function scrollTo(ctx, params) {
+@@ -2276,6 +2108,289 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -1209,6 +1235,7 @@ index b3c5a30..d256c30 100644
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
 +  state.scrollTargetSettle = void 0;
++  state.scheduledWork.cancel("scrollTargetSettle");
 +}
 +function beginScrollTargetSettle(ctx, params) {
 +  const state = ctx.state;
@@ -1236,6 +1263,27 @@ index b3c5a30..d256c30 100644
 +function getSettleTargetOffset(ctx, settle, index, position) {
 +  const params = { index, viewOffset: settle.viewOffset, viewPosition: settle.viewPosition };
 +  return clampScrollOffset(ctx, calculateOffsetWithOffsetPosition(ctx, position, params), params);
++}
++function applyScrollTargetCorrection(ctx, id) {
++  const state = ctx.state;
++  const settle = state.scrollTargetSettle;
++  if (!settle || settle.id !== id) {
++    return;
++  }
++  const index = state.indexByKey.get(id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0 || Date.now() > settle.deadline) {
++    clearScrollTargetSettle(state);
++    return;
++  }
++  scrollTo(ctx, {
++    animated: false,
++    index,
++    itemSize: getItemSizeAtIndex(ctx, index),
++    offset: position,
++    viewOffset: settle.viewOffset,
++    viewPosition: settle.viewPosition
++  });
 +}
 +function settleScrollTarget(ctx, isCompensating) {
 +  const state = ctx.state;
@@ -1275,14 +1323,7 @@ index b3c5a30..d256c30 100644
 +  settle.quietPasses = 0;
 +  settle.corrections++;
 +  settle.expiresAt = now + SETTLE_TTL_MS;
-+  scrollTo(ctx, {
-+    animated: false,
-+    index,
-+    itemSize: getItemSizeAtIndex(ctx, index),
-+    offset: position,
-+    viewOffset: settle.viewOffset,
-+    viewPosition: settle.viewPosition
-+  });
++  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
 +
@@ -1472,68 +1513,22 @@ index b3c5a30..d256c30 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4337,7 +4432,10 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4337,7 +4452,13 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
 -    const didMVCPAdjustScroll = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || ((_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0) !== scrollAdjustPendingBeforeMVCP);
 +    const scrollAdjustPendingAfterMVCP = (_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0;
 +    const didMVCPAdjust = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || scrollAdjustPendingAfterMVCP !== scrollAdjustPendingBeforeMVCP);
-+    const didSettleScrollTarget = suppressInitialScrollSideEffects ? false : settleScrollTarget(ctx, didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0);
-+    const didMVCPAdjustScroll = didMVCPAdjust || didSettleScrollTarget;
++    const isCompensating = didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0 || !!state.pendingNativeMVCPAdjust;
++    if (!suppressInitialScrollSideEffects) {
++      settleScrollTarget(ctx, isCompensating);
++    }
++    const didMVCPAdjustScroll = didMVCPAdjust;
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
-@@ -6557,6 +6655,22 @@ function createColumnWrapperStyle(contentContainerStyle) {
-   }
- }
- 
-+// src/core/isScrollExtentSynced.ts
-+var SCROLL_EXTENT_EPSILON = 1;
-+function isScrollExtentSynced(ctx) {
-+  var _a3, _b;
-+  const state = ctx.state;
-+  const platformMaxOffset = (_b = (_a3 = state.refScroller.current) == null ? void 0 : _a3.getMaxScrollOffset) == null ? void 0 : _b.call(_a3);
-+  if (platformMaxOffset === void 0) {
-+    return true;
-+  }
-+  if (state.scrollLength <= 0) {
-+    return true;
-+  }
-+  const contentMaxOffset = Math.max(0, getContentSize(ctx) - state.scrollLength);
-+  return platformMaxOffset >= contentMaxOffset - SCROLL_EXTENT_EPSILON;
-+}
-+
- // src/core/scrollToEnd.ts
- function scrollToEnd(ctx, options) {
-   const state = ctx.state;
-@@ -6606,6 +6720,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-   const IMPERATIVE_SCROLL_SETTLE_STABLE_FRAMES = 2;
-   let imperativeScrollToken = 0;
-   const isSettlingAfterDataChange = () => !!state.didDataChange || !!state.didColumnsChange || state.scheduledWork.has("mvcpRecalculate") || state.ignoreScrollFromMVCP !== void 0;
-+  const isScrollBlocked = () => isSettlingAfterDataChange() || !isScrollExtentSynced(ctx);
-   const isScrollToIndexReady = (targetIndex, allowEmpty = false) => {
-     var _a3;
-     const props = state.props;
-@@ -6629,7 +6744,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-       if (token !== imperativeScrollToken) {
-         return;
-       }
--      if (isSettlingAfterDataChange() || !isReady()) {
-+      if (isScrollBlocked() || !isReady()) {
-         stableFrames = 0;
-       } else {
-         stableFrames += 1;
-@@ -6656,7 +6771,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-         resolve();
-       }
-     };
--    if (isSettlingAfterDataChange() || !isReady()) {
-+    if (isScrollBlocked() || !isReady()) {
-       runWhenReady(token, runNow, isReady);
-     } else {
-       runNow();
-@@ -7652,6 +7767,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -7652,6 +7773,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -1542,7 +1537,7 @@ index b3c5a30..d256c30 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 40e87cd..af27abe 100644
+index 40e87cd..1581522 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
 @@ -436,611 +436,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -2678,7 +2673,15 @@ index 40e87cd..af27abe 100644
  // src/core/doMaintainScrollAtEnd.ts
  function doMaintainScrollAtEnd(ctx) {
    const state = ctx.state;
-@@ -1956,6 +1753,27 @@ var flushSync = (fn) => {
+@@ -1559,6 +1356,7 @@ function doMaintainScrollAtEnd(ctx) {
+         const didScrollSinceRequest = state.scroll !== scrollAtRequest;
+         if (isStillWithinThreshold || !didScrollSinceRequest) {
+           state.maintainingScrollAtEnd = activeState;
++          clearScrollTargetSettle(state);
+           const scroller = refScroller.current;
+           if (state.props.horizontal && isHorizontalRTL(state)) {
+             const currentContentSize = getContentSize(ctx);
+@@ -1956,6 +1754,27 @@ var flushSync = (fn) => {
    fn();
  };
  
@@ -2706,7 +2709,25 @@ index 40e87cd..af27abe 100644
  // src/utils/getScrollVelocity.ts
  var MAX_SCROLL_VELOCITY_WINDOW_MS = 1e3;
  var SCROLL_VELOCITY_HALF_LIFE_MS = 200;
-@@ -2203,7 +2021,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
+@@ -2005,6 +1824,7 @@ function isInMVCPActiveMode(state) {
+ }
+ 
+ // src/core/updateScroll.ts
++var SETTLE_RELEASE_EPSILON = 2;
+ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   var _a3;
+   const state = ctx.state;
+@@ -2040,6 +1860,9 @@ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   state.scrollPrevTime = state.scrollTime;
+   state.scroll = newScroll;
+   state.scrollTime = currentTime;
++  if (state.scrollTargetSettle && (options == null ? void 0 : options.fromNativeScrollEvent) && !adjustChanged && !state.pendingNativeMVCPAdjust && Math.abs(newScroll - state.scrollPending) > SETTLE_RELEASE_EPSILON) {
++    clearScrollTargetSettle(state);
++  }
+   const scrollDelta = Math.abs(newScroll - prevScroll);
+   const isUserScrollEvent = !!(options == null ? void 0 : options.fromNativeScrollEvent) && scrollDelta > 0.1 && !adjustChanged && scrollingTo === void 0 && !state.pendingNativeMVCPAdjust;
+   const allowedEdge = isUserScrollEvent ? beginReachedEdgeUserScroll(ctx, newScroll - prevScroll) : void 0;
+@@ -2203,7 +2026,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
    }
  }
  function scrollTo(ctx, params) {
@@ -2715,11 +2736,11 @@ index 40e87cd..af27abe 100644
    const state = ctx.state;
    const { noScrollingTo, forceScroll, ...scrollTarget } = params;
    const {
-@@ -2235,6 +2053,15 @@ function scrollTo(ctx, params) {
+@@ -2235,6 +2058,15 @@ function scrollTo(ctx, params) {
      };
      if (!isInitialScroll) {
        pinScrollTargetRenderRange(ctx, targetOffset, scrollTarget.index);
-+      if (scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
++      if (!animated && scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
 +        beginScrollTargetSettle(ctx, {
 +          index: scrollTarget.index,
 +          viewOffset: (_b = scrollTarget.viewOffset) != null ? _b : 0,
@@ -2731,7 +2752,7 @@ index 40e87cd..af27abe 100644
      }
    }
    state.scrollPending = targetOffset;
-@@ -2242,7 +2069,7 @@ function scrollTo(ctx, params) {
+@@ -2242,7 +2074,7 @@ function scrollTo(ctx, params) {
    if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
      if (animated) {
        if (state.scrollTargetPinnedRange) {
@@ -2740,7 +2761,7 @@ index 40e87cd..af27abe 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2255,6 +2082,274 @@ function scrollTo(ctx, params) {
+@@ -2255,6 +2087,289 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -2752,6 +2773,7 @@ index 40e87cd..af27abe 100644
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
 +  state.scrollTargetSettle = void 0;
++  state.scheduledWork.cancel("scrollTargetSettle");
 +}
 +function beginScrollTargetSettle(ctx, params) {
 +  const state = ctx.state;
@@ -2779,6 +2801,27 @@ index 40e87cd..af27abe 100644
 +function getSettleTargetOffset(ctx, settle, index, position) {
 +  const params = { index, viewOffset: settle.viewOffset, viewPosition: settle.viewPosition };
 +  return clampScrollOffset(ctx, calculateOffsetWithOffsetPosition(ctx, position, params), params);
++}
++function applyScrollTargetCorrection(ctx, id) {
++  const state = ctx.state;
++  const settle = state.scrollTargetSettle;
++  if (!settle || settle.id !== id) {
++    return;
++  }
++  const index = state.indexByKey.get(id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0 || Date.now() > settle.deadline) {
++    clearScrollTargetSettle(state);
++    return;
++  }
++  scrollTo(ctx, {
++    animated: false,
++    index,
++    itemSize: getItemSizeAtIndex(ctx, index),
++    offset: position,
++    viewOffset: settle.viewOffset,
++    viewPosition: settle.viewPosition
++  });
 +}
 +function settleScrollTarget(ctx, isCompensating) {
 +  const state = ctx.state;
@@ -2818,14 +2861,7 @@ index 40e87cd..af27abe 100644
 +  settle.quietPasses = 0;
 +  settle.corrections++;
 +  settle.expiresAt = now + SETTLE_TTL_MS;
-+  scrollTo(ctx, {
-+    animated: false,
-+    index,
-+    itemSize: getItemSizeAtIndex(ctx, index),
-+    offset: position,
-+    viewOffset: settle.viewOffset,
-+    viewPosition: settle.viewPosition
-+  });
++  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
 +
@@ -3015,68 +3051,22 @@ index 40e87cd..af27abe 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4316,7 +4411,10 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4316,7 +4431,13 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
 -    const didMVCPAdjustScroll = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || ((_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0) !== scrollAdjustPendingBeforeMVCP);
 +    const scrollAdjustPendingAfterMVCP = (_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0;
 +    const didMVCPAdjust = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || scrollAdjustPendingAfterMVCP !== scrollAdjustPendingBeforeMVCP);
-+    const didSettleScrollTarget = suppressInitialScrollSideEffects ? false : settleScrollTarget(ctx, didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0);
-+    const didMVCPAdjustScroll = didMVCPAdjust || didSettleScrollTarget;
++    const isCompensating = didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0 || !!state.pendingNativeMVCPAdjust;
++    if (!suppressInitialScrollSideEffects) {
++      settleScrollTarget(ctx, isCompensating);
++    }
++    const didMVCPAdjustScroll = didMVCPAdjust;
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
-@@ -6536,6 +6634,22 @@ function createColumnWrapperStyle(contentContainerStyle) {
-   }
- }
- 
-+// src/core/isScrollExtentSynced.ts
-+var SCROLL_EXTENT_EPSILON = 1;
-+function isScrollExtentSynced(ctx) {
-+  var _a3, _b;
-+  const state = ctx.state;
-+  const platformMaxOffset = (_b = (_a3 = state.refScroller.current) == null ? void 0 : _a3.getMaxScrollOffset) == null ? void 0 : _b.call(_a3);
-+  if (platformMaxOffset === void 0) {
-+    return true;
-+  }
-+  if (state.scrollLength <= 0) {
-+    return true;
-+  }
-+  const contentMaxOffset = Math.max(0, getContentSize(ctx) - state.scrollLength);
-+  return platformMaxOffset >= contentMaxOffset - SCROLL_EXTENT_EPSILON;
-+}
-+
- // src/core/scrollToEnd.ts
- function scrollToEnd(ctx, options) {
-   const state = ctx.state;
-@@ -6585,6 +6699,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-   const IMPERATIVE_SCROLL_SETTLE_STABLE_FRAMES = 2;
-   let imperativeScrollToken = 0;
-   const isSettlingAfterDataChange = () => !!state.didDataChange || !!state.didColumnsChange || state.scheduledWork.has("mvcpRecalculate") || state.ignoreScrollFromMVCP !== void 0;
-+  const isScrollBlocked = () => isSettlingAfterDataChange() || !isScrollExtentSynced(ctx);
-   const isScrollToIndexReady = (targetIndex, allowEmpty = false) => {
-     var _a3;
-     const props = state.props;
-@@ -6608,7 +6723,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-       if (token !== imperativeScrollToken) {
-         return;
-       }
--      if (isSettlingAfterDataChange() || !isReady()) {
-+      if (isScrollBlocked() || !isReady()) {
-         stableFrames = 0;
-       } else {
-         stableFrames += 1;
-@@ -6635,7 +6750,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-         resolve();
-       }
-     };
--    if (isSettlingAfterDataChange() || !isReady()) {
-+    if (isScrollBlocked() || !isReady()) {
-       runWhenReady(token, runNow, isReady);
-     } else {
-       runNow();
-@@ -7631,6 +7746,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -7631,6 +7752,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -3084,20 +3074,8 @@ index 40e87cd..af27abe 100644
          (_b2 = (_a4 = state.props).onScrollBeginDrag) == null ? void 0 : _b2.call(_a4, event);
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
-diff --git a/node_modules/@legendapp/list/react-native.web.d.ts b/node_modules/@legendapp/list/react-native.web.d.ts
-index b6c7481..0ec3d1e 100644
---- a/node_modules/@legendapp/list/react-native.web.d.ts
-+++ b/node_modules/@legendapp/list/react-native.web.d.ts
-@@ -6,6 +6,7 @@ type ScrollEventTarget = Window | HTMLElement;
- interface ScrollViewMethods {
-     getBoundingClientRect(): DOMRect | null | undefined;
-     getCurrentScrollOffset(): number;
-+    getMaxScrollOffset(): number;
-     getScrollableNode(): HTMLElement;
-     getScrollEventTarget(): ScrollEventTarget | null;
-     getScrollResponder(): HTMLElement | null;
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index 914d2da..e11dd28 100644
+index 914d2da..da09324 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -434,605 +434,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -4026,14 +4004,10 @@ index 914d2da..e11dd28 100644
  }
  
  // src/core/finishScrollTo.ts
-@@ -1422,7 +1038,182 @@ function listenForScrollEnd(ctx, params) {
-   } else {
-     idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
-   }
--  scheduledWork.register("platformScrollCompletion", cancel);
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
+@@ -1425,6 +1041,181 @@ function listenForScrollEnd(ctx, params) {
+   scheduledWork.register("platformScrollCompletion", cancel);
+ }
+ 
 +// src/core/initialScrollSession.ts
 +var INITIAL_SCROLL_MIN_TARGET_OFFSET = 1;
 +function hasInitialScrollSessionCompletion(completion) {
@@ -4207,10 +4181,20 @@ index 914d2da..e11dd28 100644
 +      resetAdaptiveRender(ctx);
 +    }
 +  }
- }
- 
++}
++
  // src/core/doMaintainScrollAtEnd.ts
-@@ -1809,6 +1600,27 @@ function prepareMVCP(ctx, dataChanged) {
+ function doMaintainScrollAtEnd(ctx) {
+   const state = ctx.state;
+@@ -1456,6 +1247,7 @@ function doMaintainScrollAtEnd(ctx) {
+         const didScrollSinceRequest = state.scroll !== scrollAtRequest;
+         if (isStillWithinThreshold || !didScrollSinceRequest) {
+           state.maintainingScrollAtEnd = activeState;
++          clearScrollTargetSettle(state);
+           const scroller = refScroller.current;
+           if (state.props.horizontal && isHorizontalRTL(state)) {
+             const currentContentSize = getContentSize(ctx);
+@@ -1809,6 +1601,27 @@ function prepareMVCP(ctx, dataChanged) {
    }
  }
  
@@ -4238,7 +4222,25 @@ index 914d2da..e11dd28 100644
  // src/utils/getScrollVelocity.ts
  var MAX_SCROLL_VELOCITY_WINDOW_MS = 1e3;
  var SCROLL_VELOCITY_HALF_LIFE_MS = 200;
-@@ -2069,7 +1881,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
+@@ -1871,6 +1684,7 @@ function isInMVCPActiveMode(state) {
+ }
+ 
+ // src/core/updateScroll.ts
++var SETTLE_RELEASE_EPSILON = 2;
+ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   var _a3;
+   const state = ctx.state;
+@@ -1906,6 +1720,9 @@ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   state.scrollPrevTime = state.scrollTime;
+   state.scroll = newScroll;
+   state.scrollTime = currentTime;
++  if (state.scrollTargetSettle && (options == null ? void 0 : options.fromNativeScrollEvent) && !adjustChanged && !state.pendingNativeMVCPAdjust && Math.abs(newScroll - state.scrollPending) > SETTLE_RELEASE_EPSILON) {
++    clearScrollTargetSettle(state);
++  }
+   const scrollDelta = Math.abs(newScroll - prevScroll);
+   const isUserScrollEvent = !!(options == null ? void 0 : options.fromNativeScrollEvent) && scrollDelta > 0.1 && !adjustChanged && scrollingTo === void 0 && !state.pendingNativeMVCPAdjust;
+   const allowedEdge = isUserScrollEvent ? beginReachedEdgeUserScroll(ctx, newScroll - prevScroll) : void 0;
+@@ -2069,7 +1886,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
    }
  }
  function scrollTo(ctx, params) {
@@ -4247,11 +4249,11 @@ index 914d2da..e11dd28 100644
    const state = ctx.state;
    const { noScrollingTo, forceScroll, ...scrollTarget } = params;
    const {
-@@ -2101,6 +1913,15 @@ function scrollTo(ctx, params) {
+@@ -2101,6 +1918,15 @@ function scrollTo(ctx, params) {
      };
      if (!isInitialScroll) {
        pinScrollTargetRenderRange(ctx, targetOffset, scrollTarget.index);
-+      if (scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
++      if (!animated && scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
 +        beginScrollTargetSettle(ctx, {
 +          index: scrollTarget.index,
 +          viewOffset: (_b = scrollTarget.viewOffset) != null ? _b : 0,
@@ -4263,7 +4265,7 @@ index 914d2da..e11dd28 100644
      }
    }
    state.scrollPending = targetOffset;
-@@ -2108,7 +1929,7 @@ function scrollTo(ctx, params) {
+@@ -2108,7 +1934,7 @@ function scrollTo(ctx, params) {
    if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
      if (animated) {
        if (state.scrollTargetPinnedRange) {
@@ -4272,7 +4274,7 @@ index 914d2da..e11dd28 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2121,6 +1942,280 @@ function scrollTo(ctx, params) {
+@@ -2121,6 +1947,295 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -4284,6 +4286,7 @@ index 914d2da..e11dd28 100644
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
 +  state.scrollTargetSettle = void 0;
++  state.scheduledWork.cancel("scrollTargetSettle");
 +}
 +function beginScrollTargetSettle(ctx, params) {
 +  const state = ctx.state;
@@ -4311,6 +4314,27 @@ index 914d2da..e11dd28 100644
 +function getSettleTargetOffset(ctx, settle, index, position) {
 +  const params = { index, viewOffset: settle.viewOffset, viewPosition: settle.viewPosition };
 +  return clampScrollOffset(ctx, calculateOffsetWithOffsetPosition(ctx, position, params), params);
++}
++function applyScrollTargetCorrection(ctx, id) {
++  const state = ctx.state;
++  const settle = state.scrollTargetSettle;
++  if (!settle || settle.id !== id) {
++    return;
++  }
++  const index = state.indexByKey.get(id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0 || Date.now() > settle.deadline) {
++    clearScrollTargetSettle(state);
++    return;
++  }
++  scrollTo(ctx, {
++    animated: false,
++    index,
++    itemSize: getItemSizeAtIndex(ctx, index),
++    offset: position,
++    viewOffset: settle.viewOffset,
++    viewPosition: settle.viewPosition
++  });
 +}
 +function settleScrollTarget(ctx, isCompensating) {
 +  const state = ctx.state;
@@ -4350,14 +4374,7 @@ index 914d2da..e11dd28 100644
 +  settle.quietPasses = 0;
 +  settle.corrections++;
 +  settle.expiresAt = now + SETTLE_TTL_MS;
-+  scrollTo(ctx, {
-+    animated: false,
-+    index,
-+    itemSize: getItemSizeAtIndex(ctx, index),
-+    offset: position,
-+    viewOffset: settle.viewOffset,
-+    viewPosition: settle.viewPosition
-+  });
++  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
 +
@@ -4553,76 +4570,112 @@ index 914d2da..e11dd28 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4367,7 +4462,10 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4367,7 +4482,13 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
 -    const didMVCPAdjustScroll = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || ((_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0) !== scrollAdjustPendingBeforeMVCP);
 +    const scrollAdjustPendingAfterMVCP = (_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0;
 +    const didMVCPAdjust = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || scrollAdjustPendingAfterMVCP !== scrollAdjustPendingBeforeMVCP);
-+    const didSettleScrollTarget = suppressInitialScrollSideEffects ? false : settleScrollTarget(ctx, didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0);
-+    const didMVCPAdjustScroll = didMVCPAdjust || didSettleScrollTarget;
++    const isCompensating = didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0 || !!state.pendingNativeMVCPAdjust;
++    if (!suppressInitialScrollSideEffects) {
++      settleScrollTarget(ctx, isCompensating);
++    }
++    const didMVCPAdjustScroll = didMVCPAdjust;
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
-@@ -6132,6 +6230,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
-         return (_a4 = scrollRef.current) == null ? void 0 : _a4.getBoundingClientRect();
-       },
-       getCurrentScrollOffset,
-+      getMaxScrollOffset,
-       getScrollableNode: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-       getScrollEventTarget: () => getScrollTarget(),
-       getScrollResponder: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-@@ -7205,6 +7304,22 @@ function createColumnWrapperStyle(contentContainerStyle) {
-   }
- }
- 
-+// src/core/isScrollExtentSynced.ts
-+var SCROLL_EXTENT_EPSILON = 1;
-+function isScrollExtentSynced(ctx) {
-+  var _a3, _b;
-+  const state = ctx.state;
-+  const platformMaxOffset = (_b = (_a3 = state.refScroller.current) == null ? void 0 : _a3.getMaxScrollOffset) == null ? void 0 : _b.call(_a3);
-+  if (platformMaxOffset === void 0) {
-+    return true;
-+  }
-+  if (state.scrollLength <= 0) {
-+    return true;
-+  }
-+  const contentMaxOffset = Math.max(0, getContentSize(ctx) - state.scrollLength);
-+  return platformMaxOffset >= contentMaxOffset - SCROLL_EXTENT_EPSILON;
-+}
-+
- // src/core/scrollToEnd.ts
- function scrollToEnd(ctx, options) {
-   const state = ctx.state;
-@@ -7250,6 +7365,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-   const IMPERATIVE_SCROLL_SETTLE_STABLE_FRAMES = 2;
-   let imperativeScrollToken = 0;
-   const isSettlingAfterDataChange = () => !!state.didDataChange || !!state.didColumnsChange || state.scheduledWork.has("mvcpRecalculate") || state.ignoreScrollFromMVCP !== void 0;
-+  const isScrollBlocked = () => isSettlingAfterDataChange() || !isScrollExtentSynced(ctx);
-   const isScrollToIndexReady = (targetIndex, allowEmpty = false) => {
-     var _a3;
-     const props = state.props;
-@@ -7273,7 +7389,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-       if (token !== imperativeScrollToken) {
+@@ -6006,6 +6127,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+ // src/components/ListComponentScrollView.tsx
+ var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
+ var SCROLL_END_FALLBACK_MS = 200;
++var SCROLL_CLAMP_EPSILON = 1;
++var SCROLL_CLAMP_RETRY_FRAMES = 10;
+ var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
+ function ensureScrollbarHiddenStyle() {
+   if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
+@@ -6094,36 +6217,59 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+     }
+     return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
+   }, [getMaxScrollOffset, horizontal, isWindowScroll]);
++  const scrollRetryToken = React3.useRef(0);
+   const scrollToLocalOffset = React3.useCallback(
+     (offset, animated) => {
+-      const scrollElement = scrollRef.current;
+       const target = getScrollTarget();
+       if (!target || typeof target.scrollTo !== "function") {
          return;
        }
--      if (isSettlingAfterDataChange() || !isReady()) {
-+      if (isScrollBlocked() || !isReady()) {
-         stableFrames = 0;
-       } else {
-         stableFrames += 1;
-@@ -7300,7 +7416,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-         resolve();
-       }
-     };
--    if (isSettlingAfterDataChange() || !isReady()) {
-+    if (isScrollBlocked() || !isReady()) {
-       runWhenReady(token, runNow, isReady);
-     } else {
-       runNow();
-@@ -8288,6 +8404,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+-      const options = { behavior };
+-      if (isWindowScroll) {
+-        const scroll = getWindowScrollPosition();
+-        const listPos = getElementDocumentPosition(scrollElement, scroll);
+-        const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
+-          horizontal,
+-          listPos,
+-          scroll
++      const token = ++scrollRetryToken.current;
++      const apply = (attempt) => {
++        if (token !== scrollRetryToken.current) {
++          return;
++        }
++        const scrollElement = scrollRef.current;
++        const maxOffset = getMaxScrollOffset();
++        const clampedOffset = clampOffset(offset, maxOffset);
++        const options = { behavior };
++        if (isWindowScroll) {
++          const scroll = getWindowScrollPosition();
++          const listPos = getElementDocumentPosition(scrollElement, scroll);
++          const { left, top } = resolveWindowScrollTarget({
++            clampedOffset,
++            horizontal,
++            listPos,
++            scroll
++          });
++          options.left = left;
++          options.top = top;
++        } else if (horizontal) {
++          options.left = clampedOffset;
++        } else {
++          options.top = clampedOffset;
++        }
++        target.scrollTo(options);
++        if (animated || clampedOffset >= offset - SCROLL_CLAMP_EPSILON) {
++          return;
++        }
++        if (attempt >= SCROLL_CLAMP_RETRY_FRAMES) {
++          return;
++        }
++        requestAnimationFrame(() => {
++          if (token !== scrollRetryToken.current) {
++            return;
++          }
++          if (Math.abs(getCurrentScrollOffset() - clampedOffset) > SCROLL_CLAMP_EPSILON) {
++            return;
++          }
++          apply(attempt + 1);
+         });
+-        options.left = left;
+-        options.top = top;
+-      } else if (horizontal) {
+-        options.left = clampedOffset;
+-      } else {
+-        options.top = clampedOffset;
+-      }
+-      target.scrollTo(options);
++      };
++      apply(0);
+     },
+-    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
++    [getCurrentScrollOffset, getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
+   );
+   React3.useImperativeHandle(ref, () => {
+     const api = {
+@@ -8288,6 +8434,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -4631,7 +4684,7 @@ index 914d2da..e11dd28 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index 95465f2..a3e870c 100644
+index 95465f2..d2ebd71 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -413,605 +413,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -5560,14 +5613,10 @@ index 95465f2..a3e870c 100644
  }
  
  // src/core/finishScrollTo.ts
-@@ -1401,7 +1017,182 @@ function listenForScrollEnd(ctx, params) {
-   } else {
-     idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
-   }
--  scheduledWork.register("platformScrollCompletion", cancel);
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
+@@ -1404,6 +1020,181 @@ function listenForScrollEnd(ctx, params) {
+   scheduledWork.register("platformScrollCompletion", cancel);
+ }
+ 
 +// src/core/initialScrollSession.ts
 +var INITIAL_SCROLL_MIN_TARGET_OFFSET = 1;
 +function hasInitialScrollSessionCompletion(completion) {
@@ -5741,10 +5790,20 @@ index 95465f2..a3e870c 100644
 +      resetAdaptiveRender(ctx);
 +    }
 +  }
- }
- 
++}
++
  // src/core/doMaintainScrollAtEnd.ts
-@@ -1788,6 +1579,27 @@ function prepareMVCP(ctx, dataChanged) {
+ function doMaintainScrollAtEnd(ctx) {
+   const state = ctx.state;
+@@ -1435,6 +1226,7 @@ function doMaintainScrollAtEnd(ctx) {
+         const didScrollSinceRequest = state.scroll !== scrollAtRequest;
+         if (isStillWithinThreshold || !didScrollSinceRequest) {
+           state.maintainingScrollAtEnd = activeState;
++          clearScrollTargetSettle(state);
+           const scroller = refScroller.current;
+           if (state.props.horizontal && isHorizontalRTL(state)) {
+             const currentContentSize = getContentSize(ctx);
+@@ -1788,6 +1580,27 @@ function prepareMVCP(ctx, dataChanged) {
    }
  }
  
@@ -5772,7 +5831,25 @@ index 95465f2..a3e870c 100644
  // src/utils/getScrollVelocity.ts
  var MAX_SCROLL_VELOCITY_WINDOW_MS = 1e3;
  var SCROLL_VELOCITY_HALF_LIFE_MS = 200;
-@@ -2048,7 +1860,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
+@@ -1850,6 +1663,7 @@ function isInMVCPActiveMode(state) {
+ }
+ 
+ // src/core/updateScroll.ts
++var SETTLE_RELEASE_EPSILON = 2;
+ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   var _a3;
+   const state = ctx.state;
+@@ -1885,6 +1699,9 @@ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   state.scrollPrevTime = state.scrollTime;
+   state.scroll = newScroll;
+   state.scrollTime = currentTime;
++  if (state.scrollTargetSettle && (options == null ? void 0 : options.fromNativeScrollEvent) && !adjustChanged && !state.pendingNativeMVCPAdjust && Math.abs(newScroll - state.scrollPending) > SETTLE_RELEASE_EPSILON) {
++    clearScrollTargetSettle(state);
++  }
+   const scrollDelta = Math.abs(newScroll - prevScroll);
+   const isUserScrollEvent = !!(options == null ? void 0 : options.fromNativeScrollEvent) && scrollDelta > 0.1 && !adjustChanged && scrollingTo === void 0 && !state.pendingNativeMVCPAdjust;
+   const allowedEdge = isUserScrollEvent ? beginReachedEdgeUserScroll(ctx, newScroll - prevScroll) : void 0;
+@@ -2048,7 +1865,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
    }
  }
  function scrollTo(ctx, params) {
@@ -5781,11 +5858,11 @@ index 95465f2..a3e870c 100644
    const state = ctx.state;
    const { noScrollingTo, forceScroll, ...scrollTarget } = params;
    const {
-@@ -2080,6 +1892,15 @@ function scrollTo(ctx, params) {
+@@ -2080,6 +1897,15 @@ function scrollTo(ctx, params) {
      };
      if (!isInitialScroll) {
        pinScrollTargetRenderRange(ctx, targetOffset, scrollTarget.index);
-+      if (scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
++      if (!animated && scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
 +        beginScrollTargetSettle(ctx, {
 +          index: scrollTarget.index,
 +          viewOffset: (_b = scrollTarget.viewOffset) != null ? _b : 0,
@@ -5797,7 +5874,7 @@ index 95465f2..a3e870c 100644
      }
    }
    state.scrollPending = targetOffset;
-@@ -2087,7 +1908,7 @@ function scrollTo(ctx, params) {
+@@ -2087,7 +1913,7 @@ function scrollTo(ctx, params) {
    if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
      if (animated) {
        if (state.scrollTargetPinnedRange) {
@@ -5806,7 +5883,7 @@ index 95465f2..a3e870c 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2100,6 +1921,280 @@ function scrollTo(ctx, params) {
+@@ -2100,6 +1926,295 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -5818,6 +5895,7 @@ index 95465f2..a3e870c 100644
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
 +  state.scrollTargetSettle = void 0;
++  state.scheduledWork.cancel("scrollTargetSettle");
 +}
 +function beginScrollTargetSettle(ctx, params) {
 +  const state = ctx.state;
@@ -5845,6 +5923,27 @@ index 95465f2..a3e870c 100644
 +function getSettleTargetOffset(ctx, settle, index, position) {
 +  const params = { index, viewOffset: settle.viewOffset, viewPosition: settle.viewPosition };
 +  return clampScrollOffset(ctx, calculateOffsetWithOffsetPosition(ctx, position, params), params);
++}
++function applyScrollTargetCorrection(ctx, id) {
++  const state = ctx.state;
++  const settle = state.scrollTargetSettle;
++  if (!settle || settle.id !== id) {
++    return;
++  }
++  const index = state.indexByKey.get(id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0 || Date.now() > settle.deadline) {
++    clearScrollTargetSettle(state);
++    return;
++  }
++  scrollTo(ctx, {
++    animated: false,
++    index,
++    itemSize: getItemSizeAtIndex(ctx, index),
++    offset: position,
++    viewOffset: settle.viewOffset,
++    viewPosition: settle.viewPosition
++  });
 +}
 +function settleScrollTarget(ctx, isCompensating) {
 +  const state = ctx.state;
@@ -5884,14 +5983,7 @@ index 95465f2..a3e870c 100644
 +  settle.quietPasses = 0;
 +  settle.corrections++;
 +  settle.expiresAt = now + SETTLE_TTL_MS;
-+  scrollTo(ctx, {
-+    animated: false,
-+    index,
-+    itemSize: getItemSizeAtIndex(ctx, index),
-+    offset: position,
-+    viewOffset: settle.viewOffset,
-+    viewPosition: settle.viewPosition
-+  });
++  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
 +
@@ -6087,76 +6179,112 @@ index 95465f2..a3e870c 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4346,7 +4441,10 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4346,7 +4461,13 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
 -    const didMVCPAdjustScroll = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || ((_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0) !== scrollAdjustPendingBeforeMVCP);
 +    const scrollAdjustPendingAfterMVCP = (_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0;
 +    const didMVCPAdjust = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || scrollAdjustPendingAfterMVCP !== scrollAdjustPendingBeforeMVCP);
-+    const didSettleScrollTarget = suppressInitialScrollSideEffects ? false : settleScrollTarget(ctx, didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0);
-+    const didMVCPAdjustScroll = didMVCPAdjust || didSettleScrollTarget;
++    const isCompensating = didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0 || !!state.pendingNativeMVCPAdjust;
++    if (!suppressInitialScrollSideEffects) {
++      settleScrollTarget(ctx, isCompensating);
++    }
++    const didMVCPAdjustScroll = didMVCPAdjust;
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
-@@ -6111,6 +6209,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
-         return (_a4 = scrollRef.current) == null ? void 0 : _a4.getBoundingClientRect();
-       },
-       getCurrentScrollOffset,
-+      getMaxScrollOffset,
-       getScrollableNode: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-       getScrollEventTarget: () => getScrollTarget(),
-       getScrollResponder: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-@@ -7184,6 +7283,22 @@ function createColumnWrapperStyle(contentContainerStyle) {
-   }
- }
- 
-+// src/core/isScrollExtentSynced.ts
-+var SCROLL_EXTENT_EPSILON = 1;
-+function isScrollExtentSynced(ctx) {
-+  var _a3, _b;
-+  const state = ctx.state;
-+  const platformMaxOffset = (_b = (_a3 = state.refScroller.current) == null ? void 0 : _a3.getMaxScrollOffset) == null ? void 0 : _b.call(_a3);
-+  if (platformMaxOffset === void 0) {
-+    return true;
-+  }
-+  if (state.scrollLength <= 0) {
-+    return true;
-+  }
-+  const contentMaxOffset = Math.max(0, getContentSize(ctx) - state.scrollLength);
-+  return platformMaxOffset >= contentMaxOffset - SCROLL_EXTENT_EPSILON;
-+}
-+
- // src/core/scrollToEnd.ts
- function scrollToEnd(ctx, options) {
-   const state = ctx.state;
-@@ -7229,6 +7344,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-   const IMPERATIVE_SCROLL_SETTLE_STABLE_FRAMES = 2;
-   let imperativeScrollToken = 0;
-   const isSettlingAfterDataChange = () => !!state.didDataChange || !!state.didColumnsChange || state.scheduledWork.has("mvcpRecalculate") || state.ignoreScrollFromMVCP !== void 0;
-+  const isScrollBlocked = () => isSettlingAfterDataChange() || !isScrollExtentSynced(ctx);
-   const isScrollToIndexReady = (targetIndex, allowEmpty = false) => {
-     var _a3;
-     const props = state.props;
-@@ -7252,7 +7368,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-       if (token !== imperativeScrollToken) {
+@@ -5985,6 +6106,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+ // src/components/ListComponentScrollView.tsx
+ var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
+ var SCROLL_END_FALLBACK_MS = 200;
++var SCROLL_CLAMP_EPSILON = 1;
++var SCROLL_CLAMP_RETRY_FRAMES = 10;
+ var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
+ function ensureScrollbarHiddenStyle() {
+   if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
+@@ -6073,36 +6196,59 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+     }
+     return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
+   }, [getMaxScrollOffset, horizontal, isWindowScroll]);
++  const scrollRetryToken = useRef(0);
+   const scrollToLocalOffset = useCallback(
+     (offset, animated) => {
+-      const scrollElement = scrollRef.current;
+       const target = getScrollTarget();
+       if (!target || typeof target.scrollTo !== "function") {
          return;
        }
--      if (isSettlingAfterDataChange() || !isReady()) {
-+      if (isScrollBlocked() || !isReady()) {
-         stableFrames = 0;
-       } else {
-         stableFrames += 1;
-@@ -7279,7 +7395,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-         resolve();
-       }
-     };
--    if (isSettlingAfterDataChange() || !isReady()) {
-+    if (isScrollBlocked() || !isReady()) {
-       runWhenReady(token, runNow, isReady);
-     } else {
-       runNow();
-@@ -8267,6 +8383,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+-      const options = { behavior };
+-      if (isWindowScroll) {
+-        const scroll = getWindowScrollPosition();
+-        const listPos = getElementDocumentPosition(scrollElement, scroll);
+-        const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
+-          horizontal,
+-          listPos,
+-          scroll
++      const token = ++scrollRetryToken.current;
++      const apply = (attempt) => {
++        if (token !== scrollRetryToken.current) {
++          return;
++        }
++        const scrollElement = scrollRef.current;
++        const maxOffset = getMaxScrollOffset();
++        const clampedOffset = clampOffset(offset, maxOffset);
++        const options = { behavior };
++        if (isWindowScroll) {
++          const scroll = getWindowScrollPosition();
++          const listPos = getElementDocumentPosition(scrollElement, scroll);
++          const { left, top } = resolveWindowScrollTarget({
++            clampedOffset,
++            horizontal,
++            listPos,
++            scroll
++          });
++          options.left = left;
++          options.top = top;
++        } else if (horizontal) {
++          options.left = clampedOffset;
++        } else {
++          options.top = clampedOffset;
++        }
++        target.scrollTo(options);
++        if (animated || clampedOffset >= offset - SCROLL_CLAMP_EPSILON) {
++          return;
++        }
++        if (attempt >= SCROLL_CLAMP_RETRY_FRAMES) {
++          return;
++        }
++        requestAnimationFrame(() => {
++          if (token !== scrollRetryToken.current) {
++            return;
++          }
++          if (Math.abs(getCurrentScrollOffset() - clampedOffset) > SCROLL_CLAMP_EPSILON) {
++            return;
++          }
++          apply(attempt + 1);
+         });
+-        options.left = left;
+-        options.top = top;
+-      } else if (horizontal) {
+-        options.left = clampedOffset;
+-      } else {
+-        options.top = clampedOffset;
+-      }
+-      target.scrollTo(options);
++      };
++      apply(0);
+     },
+-    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
++    [getCurrentScrollOffset, getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
+   );
+   useImperativeHandle(ref, () => {
+     const api = {
+@@ -8267,6 +8413,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -6164,20 +6292,8 @@ index 95465f2..a3e870c 100644
          (_b2 = (_a4 = state.props).onScrollBeginDrag) == null ? void 0 : _b2.call(_a4, event);
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
-diff --git a/node_modules/@legendapp/list/react.d.ts b/node_modules/@legendapp/list/react.d.ts
-index b6c7481..0ec3d1e 100644
---- a/node_modules/@legendapp/list/react.d.ts
-+++ b/node_modules/@legendapp/list/react.d.ts
-@@ -6,6 +6,7 @@ type ScrollEventTarget = Window | HTMLElement;
- interface ScrollViewMethods {
-     getBoundingClientRect(): DOMRect | null | undefined;
-     getCurrentScrollOffset(): number;
-+    getMaxScrollOffset(): number;
-     getScrollableNode(): HTMLElement;
-     getScrollEventTarget(): ScrollEventTarget | null;
-     getScrollResponder(): HTMLElement | null;
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index 914d2da..e11dd28 100644
+index 914d2da..da09324 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -434,605 +434,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -7106,14 +7222,10 @@ index 914d2da..e11dd28 100644
  }
  
  // src/core/finishScrollTo.ts
-@@ -1422,7 +1038,182 @@ function listenForScrollEnd(ctx, params) {
-   } else {
-     idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
-   }
--  scheduledWork.register("platformScrollCompletion", cancel);
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
+@@ -1425,6 +1041,181 @@ function listenForScrollEnd(ctx, params) {
+   scheduledWork.register("platformScrollCompletion", cancel);
+ }
+ 
 +// src/core/initialScrollSession.ts
 +var INITIAL_SCROLL_MIN_TARGET_OFFSET = 1;
 +function hasInitialScrollSessionCompletion(completion) {
@@ -7287,10 +7399,20 @@ index 914d2da..e11dd28 100644
 +      resetAdaptiveRender(ctx);
 +    }
 +  }
- }
- 
++}
++
  // src/core/doMaintainScrollAtEnd.ts
-@@ -1809,6 +1600,27 @@ function prepareMVCP(ctx, dataChanged) {
+ function doMaintainScrollAtEnd(ctx) {
+   const state = ctx.state;
+@@ -1456,6 +1247,7 @@ function doMaintainScrollAtEnd(ctx) {
+         const didScrollSinceRequest = state.scroll !== scrollAtRequest;
+         if (isStillWithinThreshold || !didScrollSinceRequest) {
+           state.maintainingScrollAtEnd = activeState;
++          clearScrollTargetSettle(state);
+           const scroller = refScroller.current;
+           if (state.props.horizontal && isHorizontalRTL(state)) {
+             const currentContentSize = getContentSize(ctx);
+@@ -1809,6 +1601,27 @@ function prepareMVCP(ctx, dataChanged) {
    }
  }
  
@@ -7318,7 +7440,25 @@ index 914d2da..e11dd28 100644
  // src/utils/getScrollVelocity.ts
  var MAX_SCROLL_VELOCITY_WINDOW_MS = 1e3;
  var SCROLL_VELOCITY_HALF_LIFE_MS = 200;
-@@ -2069,7 +1881,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
+@@ -1871,6 +1684,7 @@ function isInMVCPActiveMode(state) {
+ }
+ 
+ // src/core/updateScroll.ts
++var SETTLE_RELEASE_EPSILON = 2;
+ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   var _a3;
+   const state = ctx.state;
+@@ -1906,6 +1720,9 @@ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   state.scrollPrevTime = state.scrollTime;
+   state.scroll = newScroll;
+   state.scrollTime = currentTime;
++  if (state.scrollTargetSettle && (options == null ? void 0 : options.fromNativeScrollEvent) && !adjustChanged && !state.pendingNativeMVCPAdjust && Math.abs(newScroll - state.scrollPending) > SETTLE_RELEASE_EPSILON) {
++    clearScrollTargetSettle(state);
++  }
+   const scrollDelta = Math.abs(newScroll - prevScroll);
+   const isUserScrollEvent = !!(options == null ? void 0 : options.fromNativeScrollEvent) && scrollDelta > 0.1 && !adjustChanged && scrollingTo === void 0 && !state.pendingNativeMVCPAdjust;
+   const allowedEdge = isUserScrollEvent ? beginReachedEdgeUserScroll(ctx, newScroll - prevScroll) : void 0;
+@@ -2069,7 +1886,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
    }
  }
  function scrollTo(ctx, params) {
@@ -7327,11 +7467,11 @@ index 914d2da..e11dd28 100644
    const state = ctx.state;
    const { noScrollingTo, forceScroll, ...scrollTarget } = params;
    const {
-@@ -2101,6 +1913,15 @@ function scrollTo(ctx, params) {
+@@ -2101,6 +1918,15 @@ function scrollTo(ctx, params) {
      };
      if (!isInitialScroll) {
        pinScrollTargetRenderRange(ctx, targetOffset, scrollTarget.index);
-+      if (scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
++      if (!animated && scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
 +        beginScrollTargetSettle(ctx, {
 +          index: scrollTarget.index,
 +          viewOffset: (_b = scrollTarget.viewOffset) != null ? _b : 0,
@@ -7343,7 +7483,7 @@ index 914d2da..e11dd28 100644
      }
    }
    state.scrollPending = targetOffset;
-@@ -2108,7 +1929,7 @@ function scrollTo(ctx, params) {
+@@ -2108,7 +1934,7 @@ function scrollTo(ctx, params) {
    if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
      if (animated) {
        if (state.scrollTargetPinnedRange) {
@@ -7352,7 +7492,7 @@ index 914d2da..e11dd28 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2121,6 +1942,280 @@ function scrollTo(ctx, params) {
+@@ -2121,6 +1947,295 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -7364,6 +7504,7 @@ index 914d2da..e11dd28 100644
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
 +  state.scrollTargetSettle = void 0;
++  state.scheduledWork.cancel("scrollTargetSettle");
 +}
 +function beginScrollTargetSettle(ctx, params) {
 +  const state = ctx.state;
@@ -7391,6 +7532,27 @@ index 914d2da..e11dd28 100644
 +function getSettleTargetOffset(ctx, settle, index, position) {
 +  const params = { index, viewOffset: settle.viewOffset, viewPosition: settle.viewPosition };
 +  return clampScrollOffset(ctx, calculateOffsetWithOffsetPosition(ctx, position, params), params);
++}
++function applyScrollTargetCorrection(ctx, id) {
++  const state = ctx.state;
++  const settle = state.scrollTargetSettle;
++  if (!settle || settle.id !== id) {
++    return;
++  }
++  const index = state.indexByKey.get(id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0 || Date.now() > settle.deadline) {
++    clearScrollTargetSettle(state);
++    return;
++  }
++  scrollTo(ctx, {
++    animated: false,
++    index,
++    itemSize: getItemSizeAtIndex(ctx, index),
++    offset: position,
++    viewOffset: settle.viewOffset,
++    viewPosition: settle.viewPosition
++  });
 +}
 +function settleScrollTarget(ctx, isCompensating) {
 +  const state = ctx.state;
@@ -7430,14 +7592,7 @@ index 914d2da..e11dd28 100644
 +  settle.quietPasses = 0;
 +  settle.corrections++;
 +  settle.expiresAt = now + SETTLE_TTL_MS;
-+  scrollTo(ctx, {
-+    animated: false,
-+    index,
-+    itemSize: getItemSizeAtIndex(ctx, index),
-+    offset: position,
-+    viewOffset: settle.viewOffset,
-+    viewPosition: settle.viewPosition
-+  });
++  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
 +
@@ -7633,76 +7788,112 @@ index 914d2da..e11dd28 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4367,7 +4462,10 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4367,7 +4482,13 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
 -    const didMVCPAdjustScroll = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || ((_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0) !== scrollAdjustPendingBeforeMVCP);
 +    const scrollAdjustPendingAfterMVCP = (_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0;
 +    const didMVCPAdjust = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || scrollAdjustPendingAfterMVCP !== scrollAdjustPendingBeforeMVCP);
-+    const didSettleScrollTarget = suppressInitialScrollSideEffects ? false : settleScrollTarget(ctx, didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0);
-+    const didMVCPAdjustScroll = didMVCPAdjust || didSettleScrollTarget;
++    const isCompensating = didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0 || !!state.pendingNativeMVCPAdjust;
++    if (!suppressInitialScrollSideEffects) {
++      settleScrollTarget(ctx, isCompensating);
++    }
++    const didMVCPAdjustScroll = didMVCPAdjust;
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
-@@ -6132,6 +6230,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
-         return (_a4 = scrollRef.current) == null ? void 0 : _a4.getBoundingClientRect();
-       },
-       getCurrentScrollOffset,
-+      getMaxScrollOffset,
-       getScrollableNode: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-       getScrollEventTarget: () => getScrollTarget(),
-       getScrollResponder: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-@@ -7205,6 +7304,22 @@ function createColumnWrapperStyle(contentContainerStyle) {
-   }
- }
- 
-+// src/core/isScrollExtentSynced.ts
-+var SCROLL_EXTENT_EPSILON = 1;
-+function isScrollExtentSynced(ctx) {
-+  var _a3, _b;
-+  const state = ctx.state;
-+  const platformMaxOffset = (_b = (_a3 = state.refScroller.current) == null ? void 0 : _a3.getMaxScrollOffset) == null ? void 0 : _b.call(_a3);
-+  if (platformMaxOffset === void 0) {
-+    return true;
-+  }
-+  if (state.scrollLength <= 0) {
-+    return true;
-+  }
-+  const contentMaxOffset = Math.max(0, getContentSize(ctx) - state.scrollLength);
-+  return platformMaxOffset >= contentMaxOffset - SCROLL_EXTENT_EPSILON;
-+}
-+
- // src/core/scrollToEnd.ts
- function scrollToEnd(ctx, options) {
-   const state = ctx.state;
-@@ -7250,6 +7365,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-   const IMPERATIVE_SCROLL_SETTLE_STABLE_FRAMES = 2;
-   let imperativeScrollToken = 0;
-   const isSettlingAfterDataChange = () => !!state.didDataChange || !!state.didColumnsChange || state.scheduledWork.has("mvcpRecalculate") || state.ignoreScrollFromMVCP !== void 0;
-+  const isScrollBlocked = () => isSettlingAfterDataChange() || !isScrollExtentSynced(ctx);
-   const isScrollToIndexReady = (targetIndex, allowEmpty = false) => {
-     var _a3;
-     const props = state.props;
-@@ -7273,7 +7389,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-       if (token !== imperativeScrollToken) {
+@@ -6006,6 +6127,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+ // src/components/ListComponentScrollView.tsx
+ var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
+ var SCROLL_END_FALLBACK_MS = 200;
++var SCROLL_CLAMP_EPSILON = 1;
++var SCROLL_CLAMP_RETRY_FRAMES = 10;
+ var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
+ function ensureScrollbarHiddenStyle() {
+   if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
+@@ -6094,36 +6217,59 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+     }
+     return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
+   }, [getMaxScrollOffset, horizontal, isWindowScroll]);
++  const scrollRetryToken = React3.useRef(0);
+   const scrollToLocalOffset = React3.useCallback(
+     (offset, animated) => {
+-      const scrollElement = scrollRef.current;
+       const target = getScrollTarget();
+       if (!target || typeof target.scrollTo !== "function") {
          return;
        }
--      if (isSettlingAfterDataChange() || !isReady()) {
-+      if (isScrollBlocked() || !isReady()) {
-         stableFrames = 0;
-       } else {
-         stableFrames += 1;
-@@ -7300,7 +7416,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-         resolve();
-       }
-     };
--    if (isSettlingAfterDataChange() || !isReady()) {
-+    if (isScrollBlocked() || !isReady()) {
-       runWhenReady(token, runNow, isReady);
-     } else {
-       runNow();
-@@ -8288,6 +8404,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+-      const options = { behavior };
+-      if (isWindowScroll) {
+-        const scroll = getWindowScrollPosition();
+-        const listPos = getElementDocumentPosition(scrollElement, scroll);
+-        const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
+-          horizontal,
+-          listPos,
+-          scroll
++      const token = ++scrollRetryToken.current;
++      const apply = (attempt) => {
++        if (token !== scrollRetryToken.current) {
++          return;
++        }
++        const scrollElement = scrollRef.current;
++        const maxOffset = getMaxScrollOffset();
++        const clampedOffset = clampOffset(offset, maxOffset);
++        const options = { behavior };
++        if (isWindowScroll) {
++          const scroll = getWindowScrollPosition();
++          const listPos = getElementDocumentPosition(scrollElement, scroll);
++          const { left, top } = resolveWindowScrollTarget({
++            clampedOffset,
++            horizontal,
++            listPos,
++            scroll
++          });
++          options.left = left;
++          options.top = top;
++        } else if (horizontal) {
++          options.left = clampedOffset;
++        } else {
++          options.top = clampedOffset;
++        }
++        target.scrollTo(options);
++        if (animated || clampedOffset >= offset - SCROLL_CLAMP_EPSILON) {
++          return;
++        }
++        if (attempt >= SCROLL_CLAMP_RETRY_FRAMES) {
++          return;
++        }
++        requestAnimationFrame(() => {
++          if (token !== scrollRetryToken.current) {
++            return;
++          }
++          if (Math.abs(getCurrentScrollOffset() - clampedOffset) > SCROLL_CLAMP_EPSILON) {
++            return;
++          }
++          apply(attempt + 1);
+         });
+-        options.left = left;
+-        options.top = top;
+-      } else if (horizontal) {
+-        options.left = clampedOffset;
+-      } else {
+-        options.top = clampedOffset;
+-      }
+-      target.scrollTo(options);
++      };
++      apply(0);
+     },
+-    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
++    [getCurrentScrollOffset, getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
+   );
+   React3.useImperativeHandle(ref, () => {
+     const api = {
+@@ -8288,6 +8434,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -7711,7 +7902,7 @@ index 914d2da..e11dd28 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index 95465f2..a3e870c 100644
+index 95465f2..d2ebd71 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -413,605 +413,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -8640,14 +8831,10 @@ index 95465f2..a3e870c 100644
  }
  
  // src/core/finishScrollTo.ts
-@@ -1401,7 +1017,182 @@ function listenForScrollEnd(ctx, params) {
-   } else {
-     idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
-   }
--  scheduledWork.register("platformScrollCompletion", cancel);
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
+@@ -1404,6 +1020,181 @@ function listenForScrollEnd(ctx, params) {
+   scheduledWork.register("platformScrollCompletion", cancel);
+ }
+ 
 +// src/core/initialScrollSession.ts
 +var INITIAL_SCROLL_MIN_TARGET_OFFSET = 1;
 +function hasInitialScrollSessionCompletion(completion) {
@@ -8821,10 +9008,20 @@ index 95465f2..a3e870c 100644
 +      resetAdaptiveRender(ctx);
 +    }
 +  }
- }
- 
++}
++
  // src/core/doMaintainScrollAtEnd.ts
-@@ -1788,6 +1579,27 @@ function prepareMVCP(ctx, dataChanged) {
+ function doMaintainScrollAtEnd(ctx) {
+   const state = ctx.state;
+@@ -1435,6 +1226,7 @@ function doMaintainScrollAtEnd(ctx) {
+         const didScrollSinceRequest = state.scroll !== scrollAtRequest;
+         if (isStillWithinThreshold || !didScrollSinceRequest) {
+           state.maintainingScrollAtEnd = activeState;
++          clearScrollTargetSettle(state);
+           const scroller = refScroller.current;
+           if (state.props.horizontal && isHorizontalRTL(state)) {
+             const currentContentSize = getContentSize(ctx);
+@@ -1788,6 +1580,27 @@ function prepareMVCP(ctx, dataChanged) {
    }
  }
  
@@ -8852,7 +9049,25 @@ index 95465f2..a3e870c 100644
  // src/utils/getScrollVelocity.ts
  var MAX_SCROLL_VELOCITY_WINDOW_MS = 1e3;
  var SCROLL_VELOCITY_HALF_LIFE_MS = 200;
-@@ -2048,7 +1860,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
+@@ -1850,6 +1663,7 @@ function isInMVCPActiveMode(state) {
+ }
+ 
+ // src/core/updateScroll.ts
++var SETTLE_RELEASE_EPSILON = 2;
+ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   var _a3;
+   const state = ctx.state;
+@@ -1885,6 +1699,9 @@ function updateScroll(ctx, newScroll, forceUpdate, options) {
+   state.scrollPrevTime = state.scrollTime;
+   state.scroll = newScroll;
+   state.scrollTime = currentTime;
++  if (state.scrollTargetSettle && (options == null ? void 0 : options.fromNativeScrollEvent) && !adjustChanged && !state.pendingNativeMVCPAdjust && Math.abs(newScroll - state.scrollPending) > SETTLE_RELEASE_EPSILON) {
++    clearScrollTargetSettle(state);
++  }
+   const scrollDelta = Math.abs(newScroll - prevScroll);
+   const isUserScrollEvent = !!(options == null ? void 0 : options.fromNativeScrollEvent) && scrollDelta > 0.1 && !adjustChanged && scrollingTo === void 0 && !state.pendingNativeMVCPAdjust;
+   const allowedEdge = isUserScrollEvent ? beginReachedEdgeUserScroll(ctx, newScroll - prevScroll) : void 0;
+@@ -2048,7 +1865,7 @@ function pinScrollTargetRenderRange(ctx, targetOffset, targetIndex) {
    }
  }
  function scrollTo(ctx, params) {
@@ -8861,11 +9076,11 @@ index 95465f2..a3e870c 100644
    const state = ctx.state;
    const { noScrollingTo, forceScroll, ...scrollTarget } = params;
    const {
-@@ -2080,6 +1892,15 @@ function scrollTo(ctx, params) {
+@@ -2080,6 +1897,15 @@ function scrollTo(ctx, params) {
      };
      if (!isInitialScroll) {
        pinScrollTargetRenderRange(ctx, targetOffset, scrollTarget.index);
-+      if (scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
++      if (!animated && scrollTarget.index !== void 0 && scrollTarget.viewPosition !== void 0) {
 +        beginScrollTargetSettle(ctx, {
 +          index: scrollTarget.index,
 +          viewOffset: (_b = scrollTarget.viewOffset) != null ? _b : 0,
@@ -8877,7 +9092,7 @@ index 95465f2..a3e870c 100644
      }
    }
    state.scrollPending = targetOffset;
-@@ -2087,7 +1908,7 @@ function scrollTo(ctx, params) {
+@@ -2087,7 +1913,7 @@ function scrollTo(ctx, params) {
    if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
      if (animated) {
        if (state.scrollTargetPinnedRange) {
@@ -8886,7 +9101,7 @@ index 95465f2..a3e870c 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2100,6 +1921,280 @@ function scrollTo(ctx, params) {
+@@ -2100,6 +1926,295 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -8898,6 +9113,7 @@ index 95465f2..a3e870c 100644
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
 +  state.scrollTargetSettle = void 0;
++  state.scheduledWork.cancel("scrollTargetSettle");
 +}
 +function beginScrollTargetSettle(ctx, params) {
 +  const state = ctx.state;
@@ -8925,6 +9141,27 @@ index 95465f2..a3e870c 100644
 +function getSettleTargetOffset(ctx, settle, index, position) {
 +  const params = { index, viewOffset: settle.viewOffset, viewPosition: settle.viewPosition };
 +  return clampScrollOffset(ctx, calculateOffsetWithOffsetPosition(ctx, position, params), params);
++}
++function applyScrollTargetCorrection(ctx, id) {
++  const state = ctx.state;
++  const settle = state.scrollTargetSettle;
++  if (!settle || settle.id !== id) {
++    return;
++  }
++  const index = state.indexByKey.get(id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0 || Date.now() > settle.deadline) {
++    clearScrollTargetSettle(state);
++    return;
++  }
++  scrollTo(ctx, {
++    animated: false,
++    index,
++    itemSize: getItemSizeAtIndex(ctx, index),
++    offset: position,
++    viewOffset: settle.viewOffset,
++    viewPosition: settle.viewPosition
++  });
 +}
 +function settleScrollTarget(ctx, isCompensating) {
 +  const state = ctx.state;
@@ -8964,14 +9201,7 @@ index 95465f2..a3e870c 100644
 +  settle.quietPasses = 0;
 +  settle.corrections++;
 +  settle.expiresAt = now + SETTLE_TTL_MS;
-+  scrollTo(ctx, {
-+    animated: false,
-+    index,
-+    itemSize: getItemSizeAtIndex(ctx, index),
-+    offset: position,
-+    viewOffset: settle.viewOffset,
-+    viewPosition: settle.viewPosition
-+  });
++  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
 +
@@ -9167,76 +9397,112 @@ index 95465f2..a3e870c 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4346,7 +4441,10 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4346,7 +4461,13 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
 -    const didMVCPAdjustScroll = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || ((_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0) !== scrollAdjustPendingBeforeMVCP);
 +    const scrollAdjustPendingAfterMVCP = (_g = peek$(ctx, "scrollAdjustPending")) != null ? _g : 0;
 +    const didMVCPAdjust = !!checkMVCP && (state.scroll !== scrollBeforeMVCP || scrollAdjustPendingAfterMVCP !== scrollAdjustPendingBeforeMVCP);
-+    const didSettleScrollTarget = suppressInitialScrollSideEffects ? false : settleScrollTarget(ctx, didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0);
-+    const didMVCPAdjustScroll = didMVCPAdjust || didSettleScrollTarget;
++    const isCompensating = didMVCPAdjust || scrollAdjustPendingAfterMVCP !== 0 || !!state.pendingNativeMVCPAdjust;
++    if (!suppressInitialScrollSideEffects) {
++      settleScrollTarget(ctx, isCompensating);
++    }
++    const didMVCPAdjustScroll = didMVCPAdjust;
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
-@@ -6111,6 +6209,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
-         return (_a4 = scrollRef.current) == null ? void 0 : _a4.getBoundingClientRect();
-       },
-       getCurrentScrollOffset,
-+      getMaxScrollOffset,
-       getScrollableNode: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-       getScrollEventTarget: () => getScrollTarget(),
-       getScrollResponder: () => resolveScrollableNode(scrollRef.current, isWindowScroll),
-@@ -7184,6 +7283,22 @@ function createColumnWrapperStyle(contentContainerStyle) {
-   }
- }
- 
-+// src/core/isScrollExtentSynced.ts
-+var SCROLL_EXTENT_EPSILON = 1;
-+function isScrollExtentSynced(ctx) {
-+  var _a3, _b;
-+  const state = ctx.state;
-+  const platformMaxOffset = (_b = (_a3 = state.refScroller.current) == null ? void 0 : _a3.getMaxScrollOffset) == null ? void 0 : _b.call(_a3);
-+  if (platformMaxOffset === void 0) {
-+    return true;
-+  }
-+  if (state.scrollLength <= 0) {
-+    return true;
-+  }
-+  const contentMaxOffset = Math.max(0, getContentSize(ctx) - state.scrollLength);
-+  return platformMaxOffset >= contentMaxOffset - SCROLL_EXTENT_EPSILON;
-+}
-+
- // src/core/scrollToEnd.ts
- function scrollToEnd(ctx, options) {
-   const state = ctx.state;
-@@ -7229,6 +7344,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-   const IMPERATIVE_SCROLL_SETTLE_STABLE_FRAMES = 2;
-   let imperativeScrollToken = 0;
-   const isSettlingAfterDataChange = () => !!state.didDataChange || !!state.didColumnsChange || state.scheduledWork.has("mvcpRecalculate") || state.ignoreScrollFromMVCP !== void 0;
-+  const isScrollBlocked = () => isSettlingAfterDataChange() || !isScrollExtentSynced(ctx);
-   const isScrollToIndexReady = (targetIndex, allowEmpty = false) => {
-     var _a3;
-     const props = state.props;
-@@ -7252,7 +7368,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-       if (token !== imperativeScrollToken) {
+@@ -5985,6 +6106,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+ // src/components/ListComponentScrollView.tsx
+ var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
+ var SCROLL_END_FALLBACK_MS = 200;
++var SCROLL_CLAMP_EPSILON = 1;
++var SCROLL_CLAMP_RETRY_FRAMES = 10;
+ var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
+ function ensureScrollbarHiddenStyle() {
+   if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
+@@ -6073,36 +6196,59 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+     }
+     return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
+   }, [getMaxScrollOffset, horizontal, isWindowScroll]);
++  const scrollRetryToken = useRef(0);
+   const scrollToLocalOffset = useCallback(
+     (offset, animated) => {
+-      const scrollElement = scrollRef.current;
+       const target = getScrollTarget();
+       if (!target || typeof target.scrollTo !== "function") {
          return;
        }
--      if (isSettlingAfterDataChange() || !isReady()) {
-+      if (isScrollBlocked() || !isReady()) {
-         stableFrames = 0;
-       } else {
-         stableFrames += 1;
-@@ -7279,7 +7395,7 @@ function createImperativeHandle(ctx, scheduleImperativeScrollCommit) {
-         resolve();
-       }
-     };
--    if (isSettlingAfterDataChange() || !isReady()) {
-+    if (isScrollBlocked() || !isReady()) {
-       runWhenReady(token, runNow, isReady);
-     } else {
-       runNow();
-@@ -8267,6 +8383,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+-      const options = { behavior };
+-      if (isWindowScroll) {
+-        const scroll = getWindowScrollPosition();
+-        const listPos = getElementDocumentPosition(scrollElement, scroll);
+-        const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
+-          horizontal,
+-          listPos,
+-          scroll
++      const token = ++scrollRetryToken.current;
++      const apply = (attempt) => {
++        if (token !== scrollRetryToken.current) {
++          return;
++        }
++        const scrollElement = scrollRef.current;
++        const maxOffset = getMaxScrollOffset();
++        const clampedOffset = clampOffset(offset, maxOffset);
++        const options = { behavior };
++        if (isWindowScroll) {
++          const scroll = getWindowScrollPosition();
++          const listPos = getElementDocumentPosition(scrollElement, scroll);
++          const { left, top } = resolveWindowScrollTarget({
++            clampedOffset,
++            horizontal,
++            listPos,
++            scroll
++          });
++          options.left = left;
++          options.top = top;
++        } else if (horizontal) {
++          options.left = clampedOffset;
++        } else {
++          options.top = clampedOffset;
++        }
++        target.scrollTo(options);
++        if (animated || clampedOffset >= offset - SCROLL_CLAMP_EPSILON) {
++          return;
++        }
++        if (attempt >= SCROLL_CLAMP_RETRY_FRAMES) {
++          return;
++        }
++        requestAnimationFrame(() => {
++          if (token !== scrollRetryToken.current) {
++            return;
++          }
++          if (Math.abs(getCurrentScrollOffset() - clampedOffset) > SCROLL_CLAMP_EPSILON) {
++            return;
++          }
++          apply(attempt + 1);
+         });
+-        options.left = left;
+-        options.top = top;
+-      } else if (horizontal) {
+-        options.left = clampedOffset;
+-      } else {
+-        options.top = clampedOffset;
+-      }
+-      target.scrollTo(options);
++      };
++      apply(0);
+     },
+-    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
++    [getCurrentScrollOffset, getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
+   );
+   useImperativeHandle(ref, () => {
+     const api = {
+@@ -8267,6 +8413,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
