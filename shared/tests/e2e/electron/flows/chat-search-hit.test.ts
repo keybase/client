@@ -1,5 +1,5 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {openFirstConversation} from '@/tests/e2e/electron/helpers/navigate'
+import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // Searching a thread has to land on the hit, and then leave the thread alone. Both were manual
@@ -11,7 +11,18 @@ import * as T from '@/tests/e2e/shared/test-ids'
 // first half again.
 test('lands on every search hit, then stays where the reader scrolls it', async ({page}) => {
   test.setTimeout(120_000)
-  expect(await openFirstConversation(page)).toBe(true)
+  // Named, not "whichever row is first". The inbox is ordered by recency and the suites send
+  // messages of their own, so the first row is a different conversation from one run to the next —
+  // and with it the hit count and which words match at all.
+  const smokeUser = process.env['KB_SMOKE_USER']
+  expect(smokeUser, 'KB_SMOKE_USER is not set').toBeTruthy()
+  await navigateToChat(page)
+  const row = page
+    .getByTestId(T.CHAT_INBOX_ROW)
+    .filter({hasText: smokeUser!})
+    .first()
+  await row.click({timeout: 10_000})
+  await page.waitForSelector(`[data-testid="${T.CHAT_MESSAGE_LIST}"]`, {timeout: 5_000})
 
   // force: the conversation header sits in the window's WebkitAppRegion drag region, which makes
   // playwright's actionability check wait forever on a control that is perfectly clickable.

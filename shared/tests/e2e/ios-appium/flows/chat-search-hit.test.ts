@@ -1,7 +1,7 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
-import {anyExist, el, els, tab, waitForTestID, enterText} from '../helpers/elements'
+import {anyExist, byTextWithin, el, tab, waitForTestID, enterText} from '../helpers/elements'
 import {dismissKeyboard, escapeToTabs} from '../helpers/navigate'
 import * as T from '../../shared/test-ids'
 
@@ -10,8 +10,7 @@ const QUERY = 'one'
 // A word whose hit sits among the messages already on screen: jumping a few rows is the case where
 // the list has nothing to load and the scroll lands against a content size that has not caught up.
 // Taken from the messages this suite itself sends ("e2e-test-<timestamp>"), so it is both present
-// and recent. A word picked out of the conversation's history instead is a word that can stop
-// matching — one did, and the flow then reported it as the hit row never rendering.
+// and recent in whatever conversation the run is pointed at.
 const SAME_SCREEN_QUERY = 'test'
 // Flings back through the thread until a page of older messages arrives.
 const MAX_FLINGS = 20
@@ -242,14 +241,27 @@ const dragUntilHitLeaves = async () => {
 // Each test starts from the tab root: the suite returns there between tests, so a flow cannot
 // assume the conversation another one left open. The conversation needs enough history to page in
 // and enough matches for both queries, which is the smoke account's own chat with itself.
-const openFirstConversation = async (): Promise<boolean> => {
+// Named, not "whichever row is first". The inbox is ordered by recency and this suite sends
+// messages of its own, so the first row is a different conversation from one run to the next — and
+// then so are the hit count and which words match at all. That drift reads as this flow failing.
+//
+// The smoke user's own chat is the stable choice: it always exists, its name is the username the
+// run was given, and it has the history these cases need.
+const openSearchConversation = async (): Promise<boolean> => {
+  const smokeUser = requireSmokeUser()
   await escapeToTabs()
   await tab('Teams').click()
   await tab('Chat').click()
   await waitForTestID(T.CHAT_INBOX_LIST, 5000)
 
   if (!(await anyExist(T.CHAT_INBOX_ROW))) return false
-  await els(T.CHAT_INBOX_ROW)[0]!.click()
+  // Scoped to the inbox: the signed-in username is also on the header avatar above it, and tapping
+  // that opens the account switcher.
+  const row = byTextWithin(el(T.CHAT_INBOX_LIST), smokeUser)
+  if (!(await row.isExisting())) {
+    throw new Error(`no conversation named "${smokeUser}" in the inbox`)
+  }
+  await row.click()
   await waitForTestID(T.CHAT_MESSAGE_LIST, 5000)
   await dismissKeyboard()
   return true
@@ -263,7 +275,7 @@ describe('chat thread search', function () {
 
   it('keeps every hit it lands on visible, including wrapping around', async () => {
     requireSmokeUser()
-    if (!(await openFirstConversation())) throw new Error('no conversations in the inbox')
+    if (!(await openSearchConversation())) throw new Error('no conversations in the inbox')
 
     const hits = await startSearch(QUERY)
     // Next from the hit the search lands on wraps straight to the far end of the thread, which is
@@ -281,7 +293,7 @@ describe('chat thread search', function () {
 
   it('lands on a hit that is already on screen', async () => {
     requireSmokeUser()
-    if (!(await openFirstConversation())) throw new Error('no conversations in the inbox')
+    if (!(await openSearchConversation())) throw new Error('no conversations in the inbox')
 
     // No native mutation has been found that makes this case fail on its own - it is here because
     // it is the case people report on desktop, where it does fail. Treat a green here as coverage
@@ -293,7 +305,7 @@ describe('chat thread search', function () {
 
   it('leaves the thread where the user drags it after a hit', async () => {
     requireSmokeUser()
-    if (!(await openFirstConversation())) throw new Error('no conversations in the inbox')
+    if (!(await openSearchConversation())) throw new Error('no conversations in the inbox')
     await startSearch(SAME_SCREEN_QUERY)
 
     // A moment after landing is when the list is still measuring, and where anything holding the
