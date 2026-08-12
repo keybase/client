@@ -27,10 +27,10 @@ export const config: WebdriverIO.Config = {
   capabilities: [androidCapabilities(serial)],
   logLevel: 'warn',
   framework: 'mocha',
-  // Mirrors the iOS config: the one-session suite accumulates load over many
-  // flows; retries: 2 (each with a fresh escapeToTabs reset) absorbs transient
-  // nav/list flake without masking real failures. Retries run ONLY on failure.
-  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 2},
+  // retries: 0, matching the iOS config - see wdio.conf.ts for why. A flow that
+  // genuinely needs a retry asks for one in its own describe, where the reason is
+  // visible to whoever reads the failure.
+  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 0},
   reporters: ['spec'],
   // relaxedSecurity lets Appium run privileged commands such as `mobile: shell`.
   // android-activity-restart.test.ts needs it (pidof) to prove the app process

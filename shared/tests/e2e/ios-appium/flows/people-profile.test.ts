@@ -4,7 +4,12 @@ import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
 import {byText, el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
-describe('people profile', () => {
+describe('people profile', function () {
+  // The feed renders from a network load that is slow often enough to miss the wait on a busy
+  // machine, and a re-run is a fair way to tell that apart from a broken feed - nothing here
+  // depends on state the first attempt left behind.
+  this.retries(2)
+
   it('renders the feed and opens own profile when visible', async () => {
     const smokeUser = requireSmokeUser()
     await escapeToTabs()
