@@ -1,7 +1,7 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
-import {byText, el, waitForTestID} from '../helpers/elements'
+import {el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 describe('people profile', function () {
@@ -18,7 +18,13 @@ describe('people profile', function () {
 
     // Your own username appearing in your own feed is genuinely conditional
     // (the feed surfaces others' activity), so guard rather than hard-wait.
-    const userEl = byText(smokeUser)
+    //
+    // Scoped to the feed, not matched across the screen: the People header's avatar carries the
+    // username too, and tapping that opens the account switcher rather than a profile - which then
+    // fails here on a missing profile page, and leaves a modal up for whatever runs next.
+    const userEl = el(T.PEOPLE_FEED).$(
+      `-ios predicate string:label CONTAINS "${smokeUser}" OR name CONTAINS "${smokeUser}"`
+    )
     if (!(await userEl.isExisting())) return
     await userEl.click()
     await waitForTestID(T.PROFILE_PAGE, 10000)
