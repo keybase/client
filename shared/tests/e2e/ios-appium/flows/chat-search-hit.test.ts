@@ -221,7 +221,13 @@ const openFirstConversation = async (): Promise<boolean> => {
   return true
 }
 
-describe('chat thread search', () => {
+describe('chat thread search', function () {
+  // No retries here. The suite retries by default to absorb load on a long single-session run, but
+  // a re-run cannot tell a slow sim from a thread that scrolled itself: the failures this flow
+  // exists to catch are exactly the ones a retry papers over. It has been measured stable without
+  // them - see the commit that dragged until the hit is gone.
+  this.retries(0)
+
   it('keeps every hit it lands on visible, including wrapping around', async () => {
     requireSmokeUser()
     if (!(await openFirstConversation())) throw new Error('no conversations in the inbox')
