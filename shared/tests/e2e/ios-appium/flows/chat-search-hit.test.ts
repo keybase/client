@@ -21,6 +21,11 @@ const PREPEND_MIN_SHIFT = 600
 // end: a jump back to the hit can be brief.
 const SNAP_BACK_SAMPLES = 8
 const SNAP_BACK_SAMPLE_MS = 400
+// How far the hit row may travel back toward the viewport after the drag before that is the thread
+// scrolling itself rather than settling. maintainVisibleContentPosition holds the visible content
+// in place across the page-in, so a row that marches back by this much moved because something
+// scrolled the list.
+const SNAP_BACK_TOLERANCE = 150
 
 // iOS puts the conversation's header actions in a native overflow menu, so there is no React view
 // to carry a testID - the bar button and its menu item are addressed by the accessibility labels
@@ -234,14 +239,24 @@ describe('chat thread search', () => {
     await browser.pause(1000)
     expect(await hitOnScreen()).toBeDefined()
 
-    // Travel back toward older messages until a page of them actually arrives. The page-in is the
-    // point: the prepend shifts every row's index, and an index-keyed re-centre reads that as a new
-    // target and yanks the thread back to the hit.
-    let previousTop = await topOfThreadPosition()
+    // The reader moves away from the hit.
+    await dragThread()
+    await browser.pause(400)
+    if (await hitOnScreen()) throw new Error(`the hit never left the viewport: ${await describeHit()}`)
+
+    // ...and keeps reading back through older messages, which is what asks the thread for another
+    // page. The order matters: the prepend has to arrive *after* the reader has moved, because the
+    // reported failure is "search, wait, scroll, and it pops back". Every index shifts when the page
+    // lands, and an index-keyed re-centre reads that as a new target.
     let pagedIn = false
+    let previousTop = await topOfThreadPosition()
     for (let fling = 0; fling < MAX_FLINGS && !pagedIn; fling++) {
       await flingThread()
       await browser.pause(200)
+      // At no point during this should the thread take itself back to the hit.
+      const returned = await hitOnScreen()
+      if (returned) throw new Error(`the thread scrolled back to the hit while reading: ${await describeHit()}`)
+
       const top = await topOfThreadPosition()
       // A fling moves the top of the thread toward the viewport; only a prepend moves it away, and
       // by a page's worth rather than a gesture's.
@@ -254,22 +269,32 @@ describe('chat thread search', () => {
     // Not provoking a page-in proves nothing about snapping back, so fail instead of passing.
     if (!pagedIn) throw new Error('flinging never loaded another page of older messages')
 
-    // End on a controlled drag so the thread rests where the user left it rather than coasting.
+    // Settle where the reader left it, and watch rather than look once: a re-centre lands whenever
+    // the page finishes measuring, and it does not necessarily stay.
     await dragThread()
     await browser.pause(400)
-    if (await hitOnScreen()) throw new Error(`the hit never left the viewport: ${await describeHit()}`)
+    const restingPosition = (await maybeBoundsOf(el(T.CHAT_SEARCH_HIT)))?.y
 
-    // Watch rather than look once. A re-centre lands at whatever moment the page finishes settling,
-    // and it does not necessarily stay: sampling only at the end lets a thread that jumped back and
-    // was then dragged on by momentum read as if nothing happened.
-    let snappedBack: Bounds | undefined
+    let snappedBack: string | undefined
     for (let sample = 0; sample < SNAP_BACK_SAMPLES && !snappedBack; sample++) {
       await browser.pause(SNAP_BACK_SAMPLE_MS)
-      snappedBack = await hitOnScreen()
+      const visible = await hitOnScreen()
+      if (visible) {
+        snappedBack = `the hit is back on screen at ${visible.y}`
+        break
+      }
+      // Whether the hit is *visible* depends on the search bar and the keyboard; whether the thread
+      // travelled back toward it does not. maintainVisibleContentPosition holds the visible content
+      // in place across a page-in, so a row that marches back moved because something scrolled.
+      const position = (await maybeBoundsOf(el(T.CHAT_SEARCH_HIT)))?.y
+      if (restingPosition !== undefined && position !== undefined) {
+        const travelled = Math.abs(position - restingPosition)
+        if (travelled > SNAP_BACK_TOLERANCE) {
+          snappedBack = `the hit moved ${Math.round(travelled)} back toward the viewport (${restingPosition} -> ${position})`
+        }
+      }
     }
-    if (snappedBack) {
-      console.log(`thread snapped back to the hit: row at ${snappedBack.y} after being dragged away`)
-    }
+    if (snappedBack) console.log(`thread scrolled itself after the drag: ${snappedBack}`)
     expect(snappedBack).toBeUndefined()
 
     await closeThreadSearch()
