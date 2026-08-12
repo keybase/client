@@ -12,6 +12,9 @@ const QUERY = 'one'
 const SAME_SCREEN_QUERY = 'working'
 // Flings back through the thread until a page of older messages arrives.
 const MAX_FLINGS = 20
+// Drags needed to move a hit clear of the viewport. One drag moves about a third of a screen, and
+// the hit starts centred, so this is "enough to be sure" rather than a tuned number.
+const MAX_DRAGS_AWAY = 6
 // A row has to be visible by more than a hairline to count as landed on.
 const MIN_VISIBLE_HEIGHT = 24
 // How far the top of the thread has to jump away from the viewport to be a page of older messages
@@ -189,6 +192,19 @@ const dragThread = async () => {
     .perform()
 }
 
+// Drag until the hit is off screen, which is the state the rest of the case depends on. Failing here
+// is a real failure: with the thread re-centring itself on the hit, this is where that shows up.
+const dragUntilHitLeaves = async () => {
+  for (let attempt = 0; attempt < MAX_DRAGS_AWAY; attempt++) {
+    await dragThread()
+    await browser.pause(400)
+    if (!(await hitOnScreen())) return
+  }
+  throw new Error(
+    `the hit never left the viewport after ${MAX_DRAGS_AWAY} drags: ${await describeHit()}`
+  )
+}
+
 // Each test starts from the tab root: the suite returns there between tests, so a flow cannot
 // assume the conversation another one left open. The conversation needs enough history to page in
 // and enough matches for both queries, which is the smoke account's own chat with itself.
@@ -239,10 +255,10 @@ describe('chat thread search', () => {
     await browser.pause(1000)
     expect(await hitOnScreen()).toBeDefined()
 
-    // The reader moves away from the hit.
-    await dragThread()
-    await browser.pause(400)
-    if (await hitOnScreen()) throw new Error(`the hit never left the viewport: ${await describeHit()}`)
+    // The reader moves away from the hit. Dragged until the row is genuinely gone rather than a
+    // fixed number of times: how far one drag carries a hit depends on the row's height and the
+    // screen's, and a hit still clinging to the bottom edge is not the state this test is about.
+    await dragUntilHitLeaves()
 
     // ...and keeps reading back through older messages, which is what asks the thread for another
     // page. The order matters: the prepend has to arrive *after* the reader has moved, because the
@@ -271,8 +287,7 @@ describe('chat thread search', () => {
 
     // Settle where the reader left it, and watch rather than look once: a re-centre lands whenever
     // the page finishes measuring, and it does not necessarily stay.
-    await dragThread()
-    await browser.pause(400)
+    await dragUntilHitLeaves()
     const restingPosition = (await maybeBoundsOf(el(T.CHAT_SEARCH_HIT)))?.y
 
     let snappedBack: string | undefined
