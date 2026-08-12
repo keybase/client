@@ -30,11 +30,9 @@ import {copyToClipboard} from '@/util/storeless-actions'
 import noop from 'lodash/noop'
 import {LegendList} from '@legendapp/list/react'
 import type {LegendListRef} from '@/common-adapters'
-import type {View} from 'react-native'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {
   KeyboardAwareLegendList,
-  useKeyboardChatComposerInset,
   useKeyboardScrollToEnd,
 } from '@legendapp/list/keyboard'
 import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
@@ -228,7 +226,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {clearVersion, containsLatestMessage, messageOrdinals, loaded} = data
 
   // Centered loads (search hit, reply-quote jump, pinned message) clear the thread before
-  // refetching, so the list sees a non-empty -> empty -> non-empty transition.
+  // refetching, so the list sees a non-empty -> empty -> non-empty transition it cannot recover
+  // from on its own. dataKey tells it the data is a new dataset, which is what makes it reset
+  // rather than wait for a container layout that never comes.
   const datasetKey = `${conversationIDKey}:${clearVersion}`
 
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -605,7 +605,11 @@ const NativeConversationList = function NativeConversationList() {
   const {centeredOrdinal} = useConversationCenter()
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
-  const {loaded, containsLatestMessage, messageOrdinals} = listData
+  const {clearVersion, loaded, containsLatestMessage, messageOrdinals} = listData
+  // Same reason as desktop: a centered load empties the thread before refilling it, and the list
+  // needs to be told that is a new dataset rather than left waiting on layout for rows it already
+  // threw away.
+  const datasetKey = `${conversationIDKey}:${clearVersion}`
   const hasCentered = centeredOrdinal !== undefined
 
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -650,12 +654,6 @@ const NativeConversationList = function NativeConversationList() {
     messageOrdinals,
   })
 
-  // The bottom clearance for the input bar is reserved statically via contentContainerStyle
-  // (listContentStyle) below, so this composer inset is seeded to 0 — otherwise the two stack
-  // and leave a large empty gap below the newest message on cold start. composerRef is null
-  // (the composer lives in a sibling subtree, not this list) so measure() is never called.
-  const composerRef = React.useRef<View | null>(null)
-  const {contentInsetEndAdjustment} = useKeyboardChatComposerInset(listRef, composerRef, 0)
   const {freeze, scrollMessageToEnd} = useKeyboardScrollToEnd({listRef})
 
   const {scrollToCentered, scrollToBottom} = useNativeScrolling({
@@ -674,6 +672,11 @@ const NativeConversationList = function NativeConversationList() {
   // the list out from under someone reading around the hit. The list itself keeps the target in
   // place while rows measure, and maintainVisibleContentPosition holds it across prepends.
   const lastCenteredOrdinal = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  // Reset per dataset, not per conversation: re-centering on the ordinal already stored still
+  // clears and reloads the thread, so the list has to be sent to it again.
+  React.useLayoutEffect(() => {
+    lastCenteredOrdinal.current = undefined
+  }, [datasetKey])
   React.useEffect(() => {
     if (centeredOrdinalOrNone <= 0) {
       lastCenteredOrdinal.current = undefined
@@ -732,7 +735,7 @@ const NativeConversationList = function NativeConversationList() {
       <PerfProfiler id="MessageList">
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <KeyboardAwareLegendList
-            dataKey={conversationIDKey}
+            dataKey={datasetKey}
             testID={TestIDs.CHAT_MESSAGE_LIST}
             ref={listRef as never}
             data={messageOrdinals as T.Chat.Ordinal[]}
@@ -768,7 +771,6 @@ const NativeConversationList = function NativeConversationList() {
             onEndReached={onEndReached}
             contentContainerStyle={listContentStyle}
             scrollIndicatorInsets={scrollIndicatorInsets}
-            contentInsetEndAdjustment={contentInsetEndAdjustment}
             freeze={freeze}
             keyboardOffset={insets.bottom}
           />
