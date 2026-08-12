@@ -164,6 +164,17 @@ export const byText = (text: string): ChainablePromiseElement => {
   return browser.$(`-ios predicate string:label CONTAINS "${t}" OR name CONTAINS "${t}"`)
 }
 
+// byText, scoped to a subtree, with the same platform split. Use it when the text you mean also
+// appears in the chrome around the content: the People header's avatar carries the signed-in
+// username, and tapping that opens the account switcher rather than a profile.
+export const byTextWithin = (root: ChainablePromiseElement, text: string): ChainablePromiseElement => {
+  const t = escapePredicate(text)
+  if (browser.isAndroid) {
+    return root.$(`.//*[contains(@text, "${t}") or contains(@content-desc, "${t}")]`)
+  }
+  return root.$(`-ios predicate string:label CONTAINS "${t}" OR name CONTAINS "${t}"`)
+}
+
 // Tab-bar buttons. iOS exposes the native UITabBarItem by its title as the
 // accessibility id. Android's tab bar is a native Material BottomNavigationView:
 // target the ITEM view via its content-desc — the label, plus an optional badge

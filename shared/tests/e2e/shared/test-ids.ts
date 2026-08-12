@@ -36,6 +36,9 @@ export const CHAT_THREAD_SEARCH_CANCEL   = 'chat-thread-search-cancel'
 // The thread search query field. It focuses itself a beat after mounting, so a test types into it
 // rather than sending keys and hoping the focus landed.
 export const CHAT_THREAD_SEARCH_INPUT    = 'chat-thread-search-input'
+// "3 of 18" in the thread search bar. Read through this rather than matching " of " on screen: the
+// thread behind the bar is full of message text and a body containing " of " matches first.
+export const CHAT_THREAD_SEARCH_COUNT    = 'chat-thread-search-count'
 export const CHAT_THREAD_SEARCH_PREV     = 'chat-thread-search-prev'
 export const CHAT_THREAD_SEARCH_NEXT     = 'chat-thread-search-next'
 // The row a thread search is currently sitting on. Really "the centre-highlighted row": pinned

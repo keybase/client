@@ -435,8 +435,15 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
+            {/* collapsable={false}: Android view flattening would drop this testID'd wrapper and
+                leave the count unreadable to the e2e suite. */}
             {hasResults && (
-              <Kb.Box2 direction="horizontal" gap="tiny">
+              <Kb.Box2
+                direction="horizontal"
+                gap="tiny"
+                collapsable={false}
+                testID={TestIDs.CHAT_THREAD_SEARCH_COUNT}
+              >
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {noResults ? 'No results' : `${selectedIndex + 1} of ${hits.length}`}
                 </Kb.Text>
@@ -543,8 +550,15 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
+            {/* collapsable={false}: Android view flattening would drop this testID'd wrapper and
+                leave the count unreadable to the e2e suite. */}
             {hasResults && (
-              <Kb.Box2 direction="horizontal" gap="tiny">
+              <Kb.Box2
+                direction="horizontal"
+                gap="tiny"
+                collapsable={false}
+                testID={TestIDs.CHAT_THREAD_SEARCH_COUNT}
+              >
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {status === 'done' && numHits === 0 ? 'No results' : `${selectedIndex + 1} of ${numHits}`}
                 </Kb.Text>

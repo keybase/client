@@ -94,24 +94,40 @@ export async function dismissKeyboard(): Promise<void> {
   if (!(await browser.isKeyboardShown().catch(() => false))) return
 
   // WDA answers "Did not know how to dismiss the keyboard" for the chat composer — it has no Done
-  // key and no accessory to press. Blur it the way a person would, by tapping the content above it.
-  // This is not cosmetic: while the keyboard is up the screen's own controls stop reporting as
-  // hittable, so the back chevron is invisible to tapNavBack and the left-edge pop does not take,
-  // and escapeToTabs burns its whole budget on a conversation it cannot leave. Every flow after it
-  // then starts from the wrong screen.
+  // key and no accessory to press. This is not cosmetic: while the keyboard is up the screen's own
+  // controls stop reporting as hittable, so the back chevron is invisible to tapNavBack and the
+  // left-edge pop does not take, and escapeToTabs burns its whole budget on a conversation it
+  // cannot leave. Every flow after it then starts from the wrong screen.
+  //
+  // Dismiss it with a drag rather than a tap. The chat list sets keyboardDismissMode="on-drag", so
+  // a drag is the gesture it listens for; it also sets keyboardShouldPersistTaps="handled", which
+  // means a tap landing on a row is handled BY that row and does not dismiss the keyboard — while
+  // still doing whatever the row does (opening an attachment, following a link). A drag cannot
+  // activate a touchable, so it has no such side effect on any screen this runs from.
   const {height, width} = await browser.getWindowRect()
+  const x = Math.round(width / 2)
   await browser
     .action('pointer')
-    .move({x: Math.round(width / 2), y: Math.round(height * 0.3)})
+    .move({x, y: Math.round(height * 0.45)})
     .down()
+    .pause(60)
+    .move({duration: 250, x, y: Math.round(height * 0.25)})
     .up()
     .perform()
     .catch(() => {})
-  await browser.waitUntil(async () => !(await browser.isKeyboardShown().catch(() => false)), {
-    interval: 100,
-    timeout: 2000,
-  })
-    .catch(() => {})
+  const dismissed = await browser
+    .waitUntil(async () => !(await browser.isKeyboardShown().catch(() => false)), {
+      interval: 100,
+      timeout: 2000,
+    })
+    .then(() => true)
+    .catch(() => false)
+  if (!dismissed) {
+    // Say so rather than leaving escapeToTabs to spend its whole budget on a screen whose controls
+    // are not hittable — a 50s stall with nothing in the log to explain it.
+    // eslint-disable-next-line no-console
+    console.log(`dismissKeyboard: keyboard still up after drag at ${new Date().toISOString()}`)
+  }
 }
 
 // Tap the leading (leftmost) button of a native NavigationBar — the back
@@ -153,6 +169,13 @@ async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
 // element type — cheaper than three separate searches.
 // visible == 1: hidden nav-stack screens and keyboard toolbars can carry their
 // own Done/Close/Cancel — clicking one is a silent no-op that loops forever.
+// The pre-loop's own predicate: an EXACT name, unlike DISMISS_PRED's substring match. This one
+// clicks unattended before every test, so it must never match a button that happens to contain the
+// word — a "Close team" or "Cancel invite" shipped later would otherwise become a destructive click
+// in the reset. Buttons and menu items only, since a sheet's dismiss is always one of those.
+const MODAL_DISMISS_PRED =
+  '-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem") AND (name == "Done" OR name == "Close" OR name == "Cancel" OR label == "Done" OR label == "Close" OR label == "Cancel") AND visible == 1'
+
 const DISMISS_PRED =
   '-ios predicate string:(label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel") AND visible == 1'
 
@@ -201,21 +224,29 @@ export async function escapeToTabs(): Promise<void> {
     throw new Error('escapeToTabs(android): root tab bar not reached after 12 attempts')
   }
   // Dismiss anything presented over the tabs BEFORE asking whether we are at the root. A modal
-  // leaves the tab bar - and the whole screen behind it - in the accessibility tree, so atTabs reads
+  // leaves the tab bar — and the whole screen behind it — in the accessibility tree, so atTabs reads
   // "already home" while a New chat or account-switcher modal is still up; the reset then returns
   // with it still there, the next flow taps rows belonging to the modal, and every test after it
   // fails somewhere unrelated. It outlives the run too: the app restores its last screen, so a
   // leaked modal wedges the NEXT run from its first test. Bounded, and only ever clicks a control
-  // that is on screen - at a real root there is nothing to click and this costs one query.
+  // that is on screen — at a real root there is nothing to click and this costs one query.
   for (let i = 0; i < 3; i++) {
-    const controls = browser.$$(DISMISS_PRED)
-    if ((await controls.length) === 0) break
-    const ctrl = controls[0]!
+    const controls = await browser.$$(MODAL_DISMISS_PRED).getElements()
+    if (controls.length === 0) break
+    // The LAST match, not the first: a modal that only partly covers the screen leaves the
+    // background's controls in the tree, and those come first — its view controller is appended
+    // after. Clicking the first can click straight through the sheet.
+    const ctrl = controls[controls.length - 1]!
     await ctrl.click().catch(() => {})
-    await settleAfter(ctrl)
-    // A control that survives its own click is not a modal dismiss - leave it to the loop below
+    // Waiting on atTabs here would be circular: that is the predicate this loop exists because it
+    // lies while a modal is up. Wait for the control itself to go.
+    const gone = await browser
+      .waitUntil(async () => !(await ctrl.isExisting().catch(() => false)), {interval: 100, timeout: 3000})
+      .then(() => true)
+      .catch(() => false)
+    // A control that survives its own click is not a modal dismiss — leave it to the loop below
     // rather than clicking it forever.
-    if (await ctrl.isExisting().catch(() => false)) break
+    if (!gone) break
   }
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return

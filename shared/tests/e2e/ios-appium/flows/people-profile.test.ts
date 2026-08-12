@@ -1,15 +1,10 @@
 import {expect} from '@wdio/globals'
 import {requireSmokeUser} from '../helpers/app'
 import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
-import {el, waitForTestID} from '../helpers/elements'
+import {byTextWithin, el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
-describe('people profile', function () {
-  // The feed renders from a network load that is slow often enough to miss the wait on a busy
-  // machine, and a re-run is a fair way to tell that apart from a broken feed - nothing here
-  // depends on state the first attempt left behind.
-  this.retries(2)
-
+describe('people profile', () => {
   it('renders the feed and opens own profile when visible', async () => {
     const smokeUser = requireSmokeUser()
     await escapeToTabs()
@@ -22,10 +17,19 @@ describe('people profile', function () {
     // Scoped to the feed, not matched across the screen: the People header's avatar carries the
     // username too, and tapping that opens the account switcher rather than a profile - which then
     // fails here on a missing profile page, and leaves a modal up for whatever runs next.
-    const userEl = el(T.PEOPLE_FEED).$(
-      `-ios predicate string:label CONTAINS "${smokeUser}" OR name CONTAINS "${smokeUser}"`
-    )
-    if (!(await userEl.isExisting())) return
+    const userEl = byTextWithin(el(T.PEOPLE_FEED), smokeUser)
+    // The feed container mounts empty and immediately, so waiting on it says nothing about whether
+    // the feed has arrived. Wait for the row itself instead - a bounded wait rather than the retries
+    // this flow used to carry, which re-ran the whole test to buy the same time.
+    const present = await browser
+      .waitUntil(async () => userEl.isExisting(), {interval: 250, timeout: 10000})
+      .then(() => true)
+      .catch(() => false)
+    if (!present) {
+      // eslint-disable-next-line no-console
+      console.log(`people profile: ${smokeUser} is not in its own feed, skipping the profile open`)
+      return
+    }
     await userEl.click()
     await waitForTestID(T.PROFILE_PAGE, 10000)
     await expect(el(T.PROFILE_PAGE)).toExist()

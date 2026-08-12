@@ -107,15 +107,27 @@ const describeHit = async (): Promise<string> => {
 const topOfThreadPosition = async (): Promise<number | undefined> => (await maybeBoundsOf(el(T.CHAT_THREAD_TOP)))?.y
 
 // "3 of 18" in the search bar. The count is what makes the wrap-around case honest: stepping a
-// fixed number of times proves nothing if the thread happens to have more hits than that.
+// fixed number of times proves nothing if the thread happens to have more hits than that. Read
+// through the bar's own testID — matching " of " across the screen finds message text first, and
+// the thread behind the bar is full of it.
+//
+// The testID is on the wrapper, and a wrapper reports no text of its own on iOS, so read the text
+// element inside it.
 const readHitCount = async (): Promise<number> => {
-  const bar = browser.$('-ios predicate string:name CONTAINS " of "')
-  if (browser.isAndroid) {
-    const label = await browser.$('//*[contains(@text, " of ")]').getText().catch(() => '')
-    return Number(/of (\d+)/.exec(label)?.[1] ?? 0)
+  const wrapper = el(T.CHAT_THREAD_SEARCH_COUNT)
+  const inner = browser.isAndroid
+    ? wrapper.$('.//android.widget.TextView')
+    : wrapper.$('-ios class chain:**/XCUIElementTypeStaticText')
+  const label =
+    (await inner.getText().catch(() => '')) ||
+    (await wrapper.getText().catch(() => '')) ||
+    (await wrapper.getAttribute('label').catch(() => '')) ||
+    ''
+  const count = Number(/of (\d+)/.exec(label)?.[1] ?? 0)
+  if (count === 0) {
+    console.log(`readHitCount: could not read the counter, saw "${label}" at ${new Date().toISOString()}`)
   }
-  const label = await bar.getAttribute('name').catch(() => '')
-  return Number(/of (\d+)/.exec(label ?? '')?.[1] ?? 0)
+  return count
 }
 
 const startSearch = async (query: string): Promise<number> => {
