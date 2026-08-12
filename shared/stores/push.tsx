@@ -138,7 +138,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
           convID: conversationIDKey,
           membersType,
           payload: unboxPayload,
-          shouldAck: false,
         })
       } catch {
         logger.info('[Push] failed to unbox message from payload')
