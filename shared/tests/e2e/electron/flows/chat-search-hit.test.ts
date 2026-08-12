@@ -1,0 +1,76 @@
+import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {openFirstConversation} from '@/tests/e2e/electron/helpers/navigate'
+import * as T from '@/tests/e2e/shared/test-ids'
+
+// Searching a thread has to land on the hit, and then leave the thread alone. Both were manual
+// checks until now: the list was landing with the hit far below the viewport, and after that was
+// fixed a thread the reader had scrolled away from could still pull itself back.
+//
+// One test rather than two, because the second half depends on the state the first leaves: the
+// search bar is open and a hit is selected, and re-entering that from scratch would just be the
+// first half again.
+test('lands on every search hit, then stays where the reader scrolls it', async ({page}) => {
+  test.setTimeout(120_000)
+  expect(await openFirstConversation(page)).toBe(true)
+
+  // force: the conversation header sits in the window's WebkitAppRegion drag region, which makes
+  // playwright's actionability check wait forever on a control that is perfectly clickable.
+  await page.getByTestId(T.CHAT_HEADER_SEARCH_BUTTON).first().click({force: true})
+  await page.waitForTimeout(1_000)
+  // A word common enough to hit repeatedly in any conversation with history.
+  await page.keyboard.type('the')
+  await page.waitForTimeout(4_000)
+
+  // Enter steps to the next hit, wrapping around at the end — which is the case that used to land
+  // off screen, since wrapping jumps the furthest.
+  let checked = 0
+  for (let i = 0; i < 12; i++) {
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(900)
+    const hit = await page
+      .getByTestId(T.CHAT_SEARCH_HIT)
+      .first()
+      .boundingBox({timeout: 3_000})
+      .catch(() => null)
+    const list = await page.getByTestId(T.CHAT_MESSAGE_LIST).first().boundingBox()
+    if (!hit || !list) continue
+    checked++
+    const onScreen = hit.y + hit.height > list.y && hit.y < list.y + list.height
+    expect(
+      onScreen,
+      `step ${i}: hit at y=${Math.round(hit.y)} h=${Math.round(hit.height)} is outside the list (y=${Math.round(list.y)} h=${Math.round(list.height)})`
+    ).toBe(true)
+  }
+  // Without this the loop above passes by never measuring anything.
+  expect(checked, 'no hit was ever measurable, so nothing was checked').toBeGreaterThan(0)
+
+  const listBox = await page.getByTestId(T.CHAT_MESSAGE_LIST).first().boundingBox()
+  expect(listBox).not.toBeNull()
+  await page.mouse.move(listBox!.x + listBox!.width / 2, listBox!.y + listBox!.height / 2)
+  for (let i = 0; i < 10; i++) {
+    await page.mouse.wheel(0, -600)
+    await page.waitForTimeout(150)
+  }
+  await page.waitForTimeout(1_500)
+
+  const readHit = async () =>
+    page
+      .getByTestId(T.CHAT_SEARCH_HIT)
+      .first()
+      .boundingBox({timeout: 3_000})
+      .catch(() => null)
+
+  // Watch rather than look once: a re-centre lands whenever the rows scrolled past finish
+  // measuring, which is after the gesture rather than during it.
+  const settled = await readHit()
+  await page.waitForTimeout(3_000)
+  const after = await readHit()
+
+  if (settled && after) {
+    const moved = Math.abs(after.y - settled.y)
+    expect(moved, `the thread scrolled itself ${Math.round(moved)}px back toward the hit`).toBeLessThanOrEqual(8)
+  } else if (!settled && after) {
+    // Scrolled far enough to unmount the row, and then it came back — which only a scroll does.
+    throw new Error('the hit came back into the render window after being scrolled away from')
+  }
+})

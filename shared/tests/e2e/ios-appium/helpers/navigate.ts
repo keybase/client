@@ -211,11 +211,12 @@ async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
 // The pre-loop's own predicate: an EXACT name, unlike DISMISS_PRED's substring match. This one
 // clicks unattended before every test, so it must never match a control that merely contains the
 // word — a "Close team" or "Cancel invite" shipped later would otherwise become a destructive click
-// in the reset. StaticText is in the type list because the thread search bar's Cancel is a Kb.Text
-// with an onClick, and on iPad that bar is the only thing the reset has to close: atTabs is already
-// true inside the Chat tab, so the loop below never runs.
+// in the reset. Buttons and menu items only: a StaticText matching by name would also match a chat
+// message whose whole body is "Cancel", and the reset runs with the suite parked in a thread. The
+// one StaticText that did need dismissing — the thread search bar's Cancel, a Kb.Text with an
+// onClick — is closed by its own testID above instead.
 const MODAL_DISMISS_PRED =
-  '-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeStaticText") AND (name == "Done" OR name == "Close" OR name == "Cancel" OR label == "Done" OR label == "Close" OR label == "Cancel") AND visible == 1'
+  '-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem") AND (name == "Done" OR name == "Close" OR name == "Cancel" OR label == "Done" OR label == "Close" OR label == "Cancel") AND visible == 1'
 
 const DISMISS_PRED =
   '-ios predicate string:(label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel") AND visible == 1'
@@ -271,6 +272,15 @@ export async function escapeToTabs(): Promise<void> {
   // fails somewhere unrelated. It outlives the run too: the app restores its last screen, so a
   // leaked modal wedges the NEXT run from its first test. Bounded, and only ever clicks a control
   // that is on screen — at a real root there is nothing to click and this costs one query.
+  // The thread search bar first, by its own testID. It is a Kb.Text with an onClick rather than a
+  // button, so nothing in MODAL_DISMISS_PRED reaches it, and on iPad it is the only thing the reset
+  // has to close — atTabs is already true inside the Chat tab, so the loop below never runs.
+  const searchCancel = els(T.CHAT_THREAD_SEARCH_CANCEL)
+  if ((await searchCancel.length) > 0) {
+    const ctrl = searchCancel[0]!
+    await ctrl.click().catch(() => {})
+    await settleAfter(ctrl)
+  }
   for (let i = 0; i < 3; i++) {
     const controls = await browser.$$(MODAL_DISMISS_PRED).getElements()
     if (controls.length === 0) break
@@ -302,7 +312,6 @@ export async function escapeToTabs(): Promise<void> {
     // so its Done/Close/Cancel must win.
     if ((await browser.$$(DISMISS_PRED).length) > 0) {
       const ctrl = browser.$$(DISMISS_PRED)[0]!
-       
       if (debug) console.log(`  escapeToTabs[${i}]: dismissing "${await ctrl.getAttribute('label').catch(() => '?')}"`)
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
@@ -310,10 +319,8 @@ export async function escapeToTabs(): Promise<void> {
       // whose click no-ops (still present, still not at tabs) must fall through
       // to the back/pop path or we'd click it forever.
       if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
-       
       if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
     } else if (debug) {
-       
       console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
     }
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {

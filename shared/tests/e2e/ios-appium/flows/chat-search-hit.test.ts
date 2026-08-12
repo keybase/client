@@ -318,6 +318,9 @@ describe('chat thread search', function () {
     // Settle where the reader left it, and watch rather than look once: a re-centre lands whenever
     // the page finishes measuring, and it does not necessarily stay.
     await dragUntilHitLeaves()
+    // Undefined means the drag pushed the row clean out of the render window, which is the usual
+    // outcome — the drags keep going until it is off screen, and off screen far enough is unmounted.
+    // The samples below handle both cases rather than skipping the check in one of them.
     const restingPosition = (await maybeBoundsOf(el(T.CHAT_SEARCH_HIT)))?.y
 
     let snappedBack: string | undefined
@@ -332,7 +335,14 @@ describe('chat thread search', function () {
       // travelled back toward it does not. maintainVisibleContentPosition holds the visible content
       // in place across a page-in, so a row that marches back moved because something scrolled.
       const position = (await maybeBoundsOf(el(T.CHAT_SEARCH_HIT)))?.y
-      if (restingPosition !== undefined && position !== undefined) {
+      if (restingPosition === undefined) {
+        // It was outside the render window when the reader stopped dragging. Coming back into it is
+        // itself the movement this is watching for: a prepend does not carry a row toward the
+        // viewport, so something scrolled to bring it back within drawDistance of it.
+        if (position !== undefined) {
+          snappedBack = `the hit came back into the render window at ${position} after being dragged out of it`
+        }
+      } else if (position !== undefined) {
         const travelled = Math.abs(position - restingPosition)
         if (travelled > SNAP_BACK_TOLERANCE) {
           snappedBack = `the hit moved ${Math.round(travelled)} back toward the viewport (${restingPosition} -> ${position})`
