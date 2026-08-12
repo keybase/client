@@ -9,7 +9,10 @@ import * as T from '../../shared/test-ids'
 const QUERY = 'one'
 // A word whose hit sits among the messages already on screen: jumping a few rows is the case where
 // the list has nothing to load and the scroll lands against a content size that has not caught up.
-const SAME_SCREEN_QUERY = 'working'
+// Taken from the messages this suite itself sends ("e2e-test-<timestamp>"), so it is both present
+// and recent. A word picked out of the conversation's history instead is a word that can stop
+// matching — one did, and the flow then reported it as the hit row never rendering.
+const SAME_SCREEN_QUERY = 'test'
 // Flings back through the thread until a page of older messages arrives.
 const MAX_FLINGS = 20
 // Drags needed to move a hit clear of the viewport. One drag moves about a third of a screen, and
@@ -163,9 +166,15 @@ const startSearch = async (query: string): Promise<number> => {
   return hits
 }
 
-const stepThroughHits = async (steps: number) => {
+// Walking the whole ring is what this used to do, and its cost grows with the conversation: once
+// the thread has enough hits the walk runs past the suite's per-test budget, and the timeout is
+// reported as "the hit drifted off screen" rather than as this having run out of time. The wrap is
+// forced directly now, and the walk after it is bounded.
+const MAX_HIT_STEPS = 12
+
+const stepThroughHits = async (steps: number, control: string = T.CHAT_THREAD_SEARCH_PREV) => {
   for (let step = 0; step < steps; step++) {
-    await el(T.CHAT_THREAD_SEARCH_PREV).click()
+    await el(control).click()
 
     // Give the jump, and the measurements that follow it, time to land.
     const landed = await browser
@@ -256,10 +265,17 @@ describe('chat thread search', function () {
     requireSmokeUser()
     if (!(await openFirstConversation())) throw new Error('no conversations in the inbox')
 
-    // Two past the end, so the search wraps and lands on hits it has already visited from a
-    // different scroll position - the case that used to leave the hit off screen.
     const hits = await startSearch(QUERY)
-    await stepThroughHits(hits + 2)
+    // Next from the hit the search lands on wraps straight to the far end of the thread, which is
+    // the longest jump the list is ever asked to make - and the case that used to leave the hit off
+    // screen. Forced first rather than reached by walking the whole ring to it.
+    await stepThroughHits(1, T.CHAT_THREAD_SEARCH_NEXT)
+    const walk = Math.min(hits + 2, MAX_HIT_STEPS)
+    if (walk < hits + 2) {
+      // Said out loud: a bound nobody can see reads as "every hit was checked" when it was not.
+      console.log(`stepping ${walk} of ${hits + 2} hits — the rest costs more than the test budget`)
+    }
+    await stepThroughHits(walk)
     await closeThreadSearch()
   })
 
