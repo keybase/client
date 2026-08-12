@@ -374,7 +374,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	// scoped error to signal that one of the links failed to import. Last writer wins here.
 	if linkErr != nil {
 		m.Debug("SigChain#LoadServerBody: failing due to bad chainlink: %s", linkErr)
-		return nil, err
+		return nil, linkErr
 	}
 
 	// travErr is generated when ArrayEach hit a failure (not the callback we pass to it).

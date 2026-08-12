@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
@@ -3841,7 +3842,7 @@ func openCRDBInternal(config Config) (*ldbutils.LevelDb, error) {
 	}
 	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
-		os.ModePerm)
+		libkb.PermDir)
 	if err != nil {
 		return nil, err
 	}

@@ -182,6 +182,9 @@ func (s *FileErasableKVStore) Put(mctx MetaContext, key string, val any) (err er
 	defer s.Unlock()
 
 	noiseBytes, err := MakeNoise()
+	if err != nil {
+		return err
+	}
 	data, err := s.box(mctx, val, noiseBytes)
 	if err != nil {
 		return err

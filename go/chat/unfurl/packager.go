@@ -133,7 +133,7 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 	if contentLength > 0 && contentLength > p.maxAssetSize {
 		return res, fmt.Errorf("asset too large: %d > %d", contentLength, p.maxAssetSize)
 	}
-	dat, err := io.ReadAll(body)
+	dat, err := io.ReadAll(io.LimitReader(body, p.maxAssetSize+1))
 	if err != nil {
 		return res, err
 	}
@@ -186,9 +186,12 @@ func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat
 func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body io.ReadCloser, size int64, video chat1.UnfurlVideo,
 ) (res chat1.Asset, err error) {
-	dat, err := io.ReadAll(body)
+	dat, err := io.ReadAll(io.LimitReader(body, p.maxAssetSize+1))
 	if err != nil {
 		return res, err
+	}
+	if int64(len(dat)) > p.maxAssetSize {
+		return res, fmt.Errorf("video asset too large: %d > %d", len(dat), p.maxAssetSize)
 	}
 	return p.uploadAsset(ctx, uid, convID, attachments.NewBufReadResetter(dat), "video.mp4",
 		size, chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{

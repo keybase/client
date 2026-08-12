@@ -803,7 +803,7 @@ func RenameRepo(
 
 	// Make the new repo subdir just so we can take the lock inside
 	// the new repo.  (We'll delete the new dir before the rename.)
-	err = fs.MkdirAll(normalizedNewRepoName, 0o777)
+	err = fs.MkdirAll(normalizedNewRepoName, 0o755)
 	if err != nil {
 		return err
 	}

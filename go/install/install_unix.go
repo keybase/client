@@ -8,7 +8,7 @@ package install
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -58,15 +58,15 @@ file exists, the autostart file won't be automatically recreated.
 
 func autostartDir(context Context) string {
 	// strip off the "keybase" folder on the end of the config dir
-	return path.Join(context.GetConfigDir(), "..", "autostart")
+	return filepath.Join(context.GetConfigDir(), "..", "autostart")
 }
 
 func autostartFilePath(context Context) string {
-	return path.Join(autostartDir(context), "keybase_autostart.desktop")
+	return filepath.Join(autostartDir(context), "keybase_autostart.desktop")
 }
 
 func sentinelFilePath(context Context) string {
-	return path.Join(context.GetConfigDir(), "autostart_created")
+	return filepath.Join(context.GetConfigDir(), "autostart_created")
 }
 
 func ToggleAutostart(context Context, on bool, forAutoinstall bool) error {

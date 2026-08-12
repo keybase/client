@@ -76,8 +76,15 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 	ret, err = net.Listen("unix", bindFile)
 	if err != nil {
 		s.log.Warning("net.Listen failed with: %s", err.Error())
+		return ret, err
 	}
-	return ret, err
+	// Set restrictive permissions on socket file
+	if err = os.Chmod(bindFile, PermFile); err != nil {
+		s.log.Warning("os.Chmod failed with: %s", err.Error())
+		ret.Close()
+		return nil, err
+	}
+	return ret, nil
 }
 
 func (s SocketInfo) DialSocket() (net.Conn, error) {
