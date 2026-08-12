@@ -325,9 +325,9 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	shutdown := false
 	select {
 	case <-ch:
-		t.Fatal("Expected not to retrieve a result from the Request.")
+		require.FailNow(t, "Expected not to retrieve a result from the Request.")
 	case continueCh <- nil:
-		t.Fatal("Expected the block getter not to be receiving.")
+		require.FailNow(t, "Expected the block getter not to be receiving.")
 	default:
 		shutdown = true
 	}
@@ -342,7 +342,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	}()
 	select {
 	case <-timer.C:
-		t.Fatal("Expected another Shutdown not to block.")
+		require.FailNow(t, "Expected another Shutdown not to block.")
 	case <-doneCh:
 	}
 }

@@ -59,7 +59,7 @@ func TestExecTimeout(t *testing.T) {
 	elapsed := time.Since(start)
 	t.Logf("We elapsed %s", elapsed)
 	if elapsed < timeout {
-		t.Error("We didn't actually sleep more than a second")
+		require.Fail(t, "We didn't actually sleep more than a second")
 	}
 	assert.Equal(t, result.Stdout.String(), "")
 	assert.Equal(t, result.Stderr.String(), "")
@@ -108,7 +108,7 @@ func TestExecForJSON(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("Out: %#v", testValOut)
 	if !reflect.DeepEqual(testVal, testValOut) {
-		t.Errorf("Invalid object: %#v", testValOut)
+		require.Fail(t, "Invalid object: %#v", testValOut)
 	}
 }
 
@@ -134,7 +134,7 @@ func TestExecForJSONAddingInvalidInput(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("Out: %#v", testValOut)
 	if !reflect.DeepEqual(testVal, testValOut) {
-		t.Errorf("Invalid object: %#v", testValOut)
+		require.Fail(t, "Invalid object: %#v", testValOut)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func runUntrack(tc libkb.TestContext, fu *FakeUser, username string, sigVersion libkb.SigVersion) error {
@@ -26,44 +27,30 @@ func runUntrack(tc libkb.TestContext, fu *FakeUser, username string, sigVersion 
 
 func assertUntracked(tc libkb.TestContext, username string) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	m := NewMetaContextForTest(tc)
 	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if s != nil {
-		tc.T.Fatal("expected not to get a tracking statement; but got one")
-	}
+	require.NoError(tc.T, err)
+	require.Nil(tc.T, s,
+		"expected not to get a tracking statement; but got one")
 
 	s, err = libkb.LocalTrackChainLinkFor(m, me.GetUID(), them.GetUID())
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if s != nil {
-		tc.T.Fatal("expected not to get a local tracking statement; but got one")
-	}
+	require.NoError(tc.T, err)
+	require.Nil(tc.T, s,
+		"expected not to get a local tracking statement; but got one")
 }
 
 func untrackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
 	err := runUntrack(tc, fu, "t_alice", sigVersion)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 }
 
 func untrackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
 	err := runUntrack(tc, fu, "t_bob", sigVersion)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 }
 
 func TestUntrack(t *testing.T) {
@@ -98,16 +85,20 @@ func _testUntrack(t *testing.T, sigVersion libkb.SigVersion) {
 	// Assert that we gracefully handle cases where there is nothing to untrack.
 	err := runUntrack(tc, fu, "t_alice", sigVersion)
 	if err == nil {
-		t.Fatal("expected untrack error; got no error")
+		require.Error(t, err,
+			"expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
-		t.Fatalf("expected an UntrackError; got %s", err)
+		require.True(t, ok,
+			"expected an UntrackError; got %s", err)
 	}
 
 	err = runUntrack(tc, fu, "t_bob", sigVersion)
 	if err == nil {
-		t.Fatal("expected untrack error; got no error")
+		require.Error(t, err,
+			"expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
-		t.Fatalf("expected an UntrackError; got %s", err)
+		require.True(t, ok,
+			"expected an UntrackError; got %s", err)
 	}
 }
 

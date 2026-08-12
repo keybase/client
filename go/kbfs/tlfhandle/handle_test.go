@@ -261,7 +261,7 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 		name, tlf.Private)
 	require.NoError(t, err)
 
-	require.False(t, h.Type() == tlf.Public)
+	require.NotEqual(t, tlf.Public, h.Type())
 
 	require.True(t, h.IsWriter(localUsers[0].UID))
 	require.True(t, h.IsReader(localUsers[0].UID))
@@ -838,9 +838,7 @@ func TestResolveAgainConflict(t *testing.T) {
 
 	daemon.AddNewAssertionForTestOrBust("u3", "u3@twitter")
 	ext, err := tlf.NewHandleExtension(tlf.HandleExtensionConflict, 1, "", time.Now())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	h.conflictInfo = ext
 	newH, err := h.ResolveAgain(ctx, kbpki, nil, nil)
 	require.NoError(t, err)

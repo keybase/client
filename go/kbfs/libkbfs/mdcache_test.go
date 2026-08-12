@@ -57,9 +57,8 @@ func testMdcachePut(t *testing.T, tlfID tlf.ID, rev kbfsmd.Revision,
 	// put the md
 	irmd := MakeImmutableRootMetadata(
 		rmd, signingKey.GetVerifyingKey(), kbfsmd.FakeID(1), time.Now(), true)
-	if err := mdcache.Put(irmd); err != nil {
-		t.Errorf("Got error on put on md %v: %v", tlfID, err)
-	}
+	err = mdcache.Put(irmd)
+	require.NoError(t, err, "Got error on put on md %v: %v", tlfID, err)
 
 	// make sure we can get it successfully
 	irmd2, err := mdcache.Get(tlfID, rev, bid)

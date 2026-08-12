@@ -5,6 +5,7 @@ package systests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/client"
@@ -154,7 +155,7 @@ func TestTrackingNotifications(t *testing.T) {
 	<-startCh
 
 	if err := signup.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	nh := newTrackingNotifyHandler()
 
@@ -187,9 +188,7 @@ func TestTrackingNotifications(t *testing.T) {
 	trackCmd.SetUser("t_alice")
 	trackCmd.SetOptions(keybase1.TrackOptions{BypassConfirm: true})
 	err := trackCmd.Run()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Do a check for new tracking statements that should fire off a
 	// notification. Currently the track command above does not fetch the new
@@ -198,9 +197,7 @@ func TestTrackingNotifications(t *testing.T) {
 	// making this call unnecessary.
 	checkTrackingCmd := client.NewCmdCheckTrackingRunner(tc2.G)
 	err = checkTrackingCmd.Run()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Wait to get a notification back as we expect.
 	// NOTE: If this test ever starts deadlocking here, it's possible that
@@ -212,31 +209,29 @@ func TestTrackingNotifications(t *testing.T) {
 	for range 2 {
 		select {
 		case err := <-nh.errCh:
-			t.Fatalf("Error before notify: %v", err)
+			require.FailNow(t, fmt.Sprintf("Error before notify: %v", err))
 		case arg := <-nh.trackingCh:
 			tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
 			tc.G.Log.Debug("Got tracking changed notification (%#v)", arg)
 			if arg.Username == "t_alice" {
-				if !tAliceUID.Equal(arg.Uid) {
-					t.Fatalf("Bad UID back: %s != %s", tAliceUID, arg.Uid)
-				}
+				require.True(t, tAliceUID.Equal(arg.Uid),
+					"Bad UID back: %s != %s", tAliceUID, arg.Uid)
 			} else if userInfo.username == arg.Username {
-				if !tc.G.Env.GetUID().Equal(arg.Uid) {
-					t.Fatalf("Bad UID back: %s != %s", tc.G.Env.GetUID(), arg.Uid)
-				}
+				require.True(t, tc.G.Env.GetUID().Equal(arg.Uid),
+					"Bad UID back: %s != %s", tc.G.Env.GetUID(), arg.Uid)
 			} else {
-				t.Fatalf("Bad username back: %s != %s || %s", arg.Username, "t_alice", userInfo.username)
+				require.FailNow(t, fmt.Sprintf("Bad username back: %s != %s || %s", arg.Username, "t_alice", userInfo.username))
 			}
 		}
 	}
 
 	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 

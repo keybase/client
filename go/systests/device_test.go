@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRevokeDevices(t *testing.T) {
@@ -53,21 +54,20 @@ func TestRevokeDevices(t *testing.T) {
 		ActingDevice: dev1.deviceID,
 		TargetDevice: dev2.deviceID,
 	})
-	if err != nil {
-		t.Fatalf("Bad answer from RPC: %s", err)
-	}
+	require.NoError(t, err,
+		"Bad answer from RPC: %s", err)
 
 	if n := len(res.EndangeredTLFs); n != 1 {
-		t.Fatalf("Expected 1 endangered TLF: got %d", n)
+		require.FailNow(t, fmt.Sprintf("Expected 1 endangered TLF: got %d", n))
 	}
 
 	if id := res.EndangeredTLFs[0].Id; id != tlf2.id {
-		t.Fatalf("Got wrong TLF ID; wanted %s; but got %s", tlf2.id, id)
+		require.FailNow(t, fmt.Sprintf("Got wrong TLF ID; wanted %s; but got %s", tlf2.id, id))
 	}
 
 	expectedName := fmt.Sprintf("private/%s#%s", set.username, "t_mike")
 	if nm := res.EndangeredTLFs[0].Name; nm != expectedName {
-		t.Fatalf("Got wrong TLF name; wanted %q; but got %q", expectedName, nm)
+		require.FailNow(t, fmt.Sprintf("Got wrong TLF name; wanted %q; but got %q", expectedName, nm))
 	}
 
 	run := func(accept bool) {
@@ -91,13 +91,10 @@ func TestRevokeDevices(t *testing.T) {
 		runner.SetIDOrName(dev2.deviceName)
 		err = runner.Run()
 
-		if (err == nil) != accept {
-			t.Fatalf("With accept=%v, got unexpected error: %v", accept, err)
-		}
+		require.Equal(t, accept, err == nil, "With accept=%v, got unexpected error: %v", accept, err)
 
-		if !strings.Contains(prompt, expectedName) {
-			t.Fatalf("didn't find expected TLF name %q", expectedName)
-		}
+		require.True(t, strings.Contains(prompt, expectedName),
+			"didn't find expected TLF name %q", expectedName)
 	}
 	run(false)
 	run(true)

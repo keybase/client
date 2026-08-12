@@ -95,7 +95,7 @@ func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
 			return
 		}
 	}
-	t.Errorf("Test did not succeed any of the %v times", n)
+	require.Fail(t, "Test did not succeed any of the %v times", n)
 }
 
 func TestHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) {

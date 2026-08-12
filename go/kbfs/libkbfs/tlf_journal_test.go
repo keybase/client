@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"os"
 	"reflect"
@@ -571,7 +572,7 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	case err := <-errCh:
 		require.NoError(t, err)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 }
 
@@ -612,7 +613,7 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	case err := <-errCh:
 		require.NoError(t, err)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 }
 
@@ -651,7 +652,7 @@ func testTLFJournalBlockOpDiskQuotaLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	case err := <-errCh:
 		require.NoError(t, err)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	usedQuotaBytes, quotaBytes = tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
@@ -709,7 +710,7 @@ func testTLFJournalBlockOpDiskQuotaLimitResolve(t *testing.T, ver kbfsmd.Metadat
 	case err := <-errCh:
 		require.NoError(t, err)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	usedQuotaBytes, quotaBytes = tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
@@ -1555,7 +1556,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	select {
 	case <-branchCh:
 	case <-ctx.Done():
-		t.Fatalf("Timeout while waiting for branch change")
+		require.FailNow(t, "Timeout while waiting for branch change")
 	}
 
 	return firstRev, firstRoot, unpauseBlockPutCh, errCh,
@@ -1912,7 +1913,7 @@ func testTLFJournalSingleOp(t *testing.T, ver kbfsmd.MetadataVer) {
 	case err := <-errCh:
 		require.NoError(t, err)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err().Error())
+		require.FailNow(t, fmt.Sprint(ctx.Err().Error()))
 	}
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSecretKeys(t *testing.T) {
@@ -25,9 +26,7 @@ func TestSecretKeys(t *testing.T) {
 	e := NewSecretKeysEngine(tc.G)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, e)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	signing := e.Result().Signing
 
 	// Now we want to check that the keys we got actually belong to the user.
@@ -44,10 +43,9 @@ func TestSecretKeys(t *testing.T) {
 
 	// Check the signing keypair's KID is in the user's KeyFamily.
 	testUser, err := libkb.LoadUser(libkb.NewLoadUserArg(tc.G).WithName(u.Username))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if found := testUser.GetKeyFamily().AllKIDs[pair.GetKID()]; !found {
-		t.Fatalf("Failed to find %s in the user's key family.", pair.GetKID().String())
+		require.True(t, found,
+			"Failed to find %s in the user's key family.", pair.GetKID().String())
 	}
 }

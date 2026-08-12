@@ -21,35 +21,29 @@ var testLog = logger.New("test")
 func TestCommandLine(t *testing.T) {
 	testDir, err := os.MkdirTemp("", "kbbin")
 	defer os.RemoveAll(testDir)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
+	require.NoError(t, err,
+		"%s", err)
 
 	binPath, err := filepath.Abs(os.Args[0])
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
+	require.NoError(t, err,
+		"%s", err)
 	linkPath := filepath.Join(testDir, "kbtest")
 
 	// Install
 	err = installCommandLineForBinPath(binPath, linkPath, true, testLog)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
+	require.NoError(t, err,
+		"%s", err)
 	_, err = os.Stat(linkPath)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
+	require.NoError(t, err,
+		"%s", err)
 
 	// Install again
 	err = installCommandLineForBinPath(binPath, linkPath, true, testLog)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
+	require.NoError(t, err,
+		"%s", err)
 	_, err = os.Stat(linkPath)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
+	require.NoError(t, err,
+		"%s", err)
 }
 
 func TestLastModifiedMatchingFile(t *testing.T) {

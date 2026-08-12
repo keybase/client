@@ -117,7 +117,7 @@ func getCannedMessage(t *testing.T, tag string) cannedMessage {
 		}
 	}
 	errStr := fmt.Sprintf("Cannot find canned message: %q", tag)
-	t.Fatalf("%s", errStr)
+	require.FailNow(t, errStr)
 	return cannedMessage{}
 }
 

@@ -38,18 +38,14 @@ var nameCmpTest = []cmpTest{
 func TestNameCmp(t *testing.T) {
 	for _, test := range nameCmpTest {
 		eq := NameCmp(test.a, test.b)
-		if eq != test.eq {
-			t.Errorf("name compare %q == %q => %v, expected %v", test.a, test.b, eq, test.eq)
-		}
+		require.Equal(t, test.eq, eq, "name compare %q == %q => %v, expected %v", test.a, test.b, eq, test.eq)
 	}
 }
 
 func TestCombineErrors(t *testing.T) {
 	err := CombineErrors(fmt.Errorf("error1"), nil, fmt.Errorf("error3"))
 	expected := "There were multiple errors: error1; error3"
-	if err.Error() != expected {
-		t.Errorf("Wrong output for combine errors: %#v != %#v", err.Error(), expected)
-	}
+	require.Equal(t, expected, err.Error(), "Wrong output for combine errors: %#v != %#v", err.Error(), expected)
 }
 
 func TestWhitespaceNormalize(t *testing.T) {
@@ -68,9 +64,7 @@ func TestWhitespaceNormalize(t *testing.T) {
 
 	for i, p := range data {
 		out := WhitespaceNormalize(p.in)
-		if out != p.out {
-			t.Errorf("Failed on test %d: %s != %s", i, out, p.out)
-		}
+		require.Equal(t, p.out, out, "Failed on test %d: %s != %s", i, out, p.out)
 	}
 }
 

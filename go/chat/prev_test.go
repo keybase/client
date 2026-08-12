@@ -15,12 +15,9 @@ type dummyMessage struct {
 }
 
 func expectCode(t *testing.T, err ChatThreadConsistencyError, code ConsistencyErrorCode) {
-	if err == nil {
-		t.Fatalf("Expected an error. Got nil.")
-	}
-	if err.Code() != code {
-		t.Fatalf("Expected a code %d, but found %d.", code, err.Code())
-	}
+	require.Error(t, err,
+		"Expected an error. Got nil.")
+	require.Equal(t, code, err.Code(), "Expected a code %d, but found %d.", code, err.Code())
 }
 
 func threadViewFromDummies(dummies []dummyMessage) chat1.ThreadView {
@@ -70,13 +67,9 @@ func TestPrevGood(t *testing.T) {
 	})
 
 	unpreved, _, err := CheckPrevPointersAndGetUnpreved(&thread)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if len(unpreved) != 1 {
-		t.Fatalf("Expected 1 unpreved message, found %d", len(unpreved))
-	}
+	require.Len(t, unpreved, 1, "Expected 1 unpreved message, found %d", len(unpreved))
 }
 
 func TestPrevDuplicateID(t *testing.T) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -13,6 +12,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type testUser struct {
@@ -162,24 +162,14 @@ func TestSimple(t *testing.T) {
 	key0 := u0.sibkeys[0]
 	key1 := u0.sibkeys[1]
 
-	if state.numGets != 0 {
-		t.Fatal("expected 0 gets")
-	}
+	require.Equal(t, 0, state.numGets, "expected 0 gets")
 
 	err := credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if state.numGets != 1 {
-		t.Fatal("expected 1 get")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 1, state.numGets, "expected 1 get")
 	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if state.numGets != 1 {
-		t.Fatal("expected 1 get")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 1, state.numGets, "expected 1 get")
 
 	state.mutateUser(u0.uid, func(u *testUser) {
 		u.sibkeys = u.sibkeys[1:]
@@ -191,47 +181,34 @@ func TestSimple(t *testing.T) {
 
 	// wait for the first eviction
 	uid := <-state.evictCh
-	if uid != u0.uid {
-		t.Fatalf("Wrong UID on eviction: %s != %s\n", uid, u0.uid)
-	}
+	require.Equal(t, u0.uid, uid, "Wrong UID on eviction: %s != %s\n", uid, u0.uid)
 
 	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0, false)
-	if err == nil {
-		t.Fatal("Expected an error")
-	}
+	require.Error(t, err,
+		"Expected an error")
 	bke, ok := err.(BadKeyError)
 	switch {
 	case !ok:
-		t.Fatal("Expected a bad key error")
+		require.FailNow(t, "Expected a bad key error")
 	case bke.uid != u0.uid:
-		t.Fatalf("Expected a bad key error on %s (not %s)", u0.uid, bke.uid)
+		require.FailNow(t, fmt.Sprintf("Expected a bad key error on %s (not %s)", u0.uid, bke.uid))
 	case bke.kid != key0:
-		t.Fatalf("Expected a bad key error on key %s (not %s)", key0, bke.kid)
+		require.FailNow(t, fmt.Sprintf("Expected a bad key error on key %s (not %s)", key0, bke.kid))
 	}
 
 	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key1, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if state.numGets != 2 {
-		t.Fatal("expected 2 gets")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 2, state.numGets, "expected 2 gets")
 	state.tick(userTimeout + time.Millisecond)
 	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key1, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if state.numGets != 3 {
-		t.Fatal("expected 3 gets")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 3, state.numGets, "expected 3 gets")
 	state.tick(cacheTimeout + time.Millisecond)
 
 	// u0 should now be gone since we haven't touched him in over cacheTimeout
 	// duration.
 	uid = <-state.evictCh
-	if uid != u0.uid {
-		t.Fatalf("Wrong UID on eviction: %s != %s\n", uid, u0.uid)
-	}
+	require.Equal(t, u0.uid, uid, "Wrong UID on eviction: %s != %s\n", uid, u0.uid)
 
 	// Make a new user -- u1!
 	u1 := state.newTestUser(4)
@@ -239,45 +216,33 @@ func TestSimple(t *testing.T) {
 	ng := 3
 	for range 10 {
 		err = credentialAuthority.CheckUserKey(context.TODO(), u1.uid, &u1.username, &u1.sibkeys[0], false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		ng++
-		if state.numGets != ng {
-			t.Fatalf("expected %d gets, got %d", ng, state.numGets)
-		}
+		require.Equal(t, ng, state.numGets, "expected %d gets, got %d", ng, state.numGets)
 		state.tick(userTimeout + time.Millisecond)
 
 		select {
 		case uid = <-state.evictCh:
-			t.Fatalf("Got unwanted eviction for %s", uid)
+			require.FailNow(t, fmt.Sprintf("Got unwanted eviction for %s", uid))
 		default:
 		}
 	}
 
 	state.tick(cacheTimeout - userTimeout + 3*time.Millisecond)
 	uid = <-state.evictCh
-	if uid != u1.uid {
-		t.Fatalf("Got wrong eviction: wanted %s but got %s\n", u1.uid, uid)
-	}
+	require.Equal(t, u1.uid, uid, "Got wrong eviction: wanted %s but got %s\n", u1.uid, uid)
 
 	// Make a new user -- u2!
 	u2 := state.newTestUser(4)
 	err = credentialAuthority.CheckUserKey(context.TODO(), u2.uid, &u2.username, &u2.sibkeys[0], false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	ng++
-	if state.numGets != ng {
-		t.Fatalf("expected %d gets, got %d", ng, state.numGets)
-	}
+	require.Equal(t, ng, state.numGets, "expected %d gets, got %d", ng, state.numGets)
 
 	// Check that u2 is evicted properly after we shutdown the CA.
 	credentialAuthority.Shutdown()
 	uid = <-state.evictCh
-	if uid != u2.uid {
-		t.Fatalf("Got wrong eviction: wanted %s but got %s\n", u2.uid, uid)
-	}
+	require.Equal(t, u2.uid, uid, "Got wrong eviction: wanted %s but got %s\n", u2.uid, uid)
 }
 
 func TestCheckUsers(t *testing.T) {
@@ -291,31 +256,18 @@ func TestCheckUsers(t *testing.T) {
 	}
 	usersWithDud = append(usersWithDud, libkb.UsernameToUID(genUsername()))
 
-	if state.numGets != 0 {
-		t.Fatal("expected 0 gets")
-	}
+	require.Equal(t, 0, state.numGets, "expected 0 gets")
 
 	err := credentialAuthority.CheckUsers(context.TODO(), users)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if state.numGets != 10 {
-		t.Fatal("expected 10 gets")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 10, state.numGets, "expected 10 gets")
 	err = credentialAuthority.CheckUsers(context.TODO(), users)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if state.numGets != 10 {
-		t.Fatal("expected 10 gets")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 10, state.numGets, "expected 10 gets")
 
 	err = credentialAuthority.CheckUsers(context.TODO(), usersWithDud)
-	if err == nil {
-		t.Fatal("Expected an error")
-	} else if _, ok := err.(userNotFoundError); !ok {
-		t.Fatal("Expected a user not found error")
-	}
+	require.Error(t, err, "Expected an error")
+	require.IsType(t, userNotFoundError{}, err, "Expected a user not found error")
 	credentialAuthority.Shutdown()
 }
 
@@ -324,30 +276,22 @@ func TestCompareKeys(t *testing.T) {
 	u := state.newTestUser(10)
 
 	err := credentialAuthority.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, u.subkeys)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, nil, u.subkeys)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	missingSibkey := u.sibkeys[1:]
 	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, missingSibkey, u.subkeys)
-	if !errors.Is(err, ErrKeysNotEqual) {
-		t.Fatal("Expected an ErrKeysNotEqual")
-	}
+	require.ErrorIs(t, err, ErrKeysNotEqual,
+		"Expected an ErrKeysNotEqual")
 
 	missingSubkey := u.subkeys[1:]
 	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, missingSubkey)
-	if !errors.Is(err, ErrKeysNotEqual) {
-		t.Fatal("Expected an ErrKeysNotEqual")
-	}
+	require.ErrorIs(t, err, ErrKeysNotEqual,
+		"Expected an ErrKeysNotEqual")
 	credentialAuthority.Shutdown()
 }

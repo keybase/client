@@ -7,6 +7,8 @@ import (
 
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+
+	"github.com/stretchr/testify/require"
 )
 
 type atest struct {
@@ -92,12 +94,12 @@ func TestTransformToAirdropStatus(t *testing.T) {
 	for _, test := range atests {
 		var api remote.AirdropStatusAPI
 		if err := json.Unmarshal([]byte(test.json), &api); err != nil {
-			t.Errorf("%s: error: %s", test.name, err)
+			require.Fail(t, "%s: error: %s", test.name, err)
 			continue
 		}
 		out := TransformToAirdropStatus(api)
 		if !reflect.DeepEqual(out, test.status) {
-			t.Errorf("%s: transform output didn't match, expected %+v, got %+v", test.name, test.status, out)
+			require.Fail(t, "%s: transform output didn't match, expected %+v, got %+v", test.name, test.status, out)
 		}
 	}
 }

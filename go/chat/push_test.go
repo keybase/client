@@ -20,7 +20,7 @@ import (
 func randBytes(t *testing.T, n int) []byte {
 	buf := make([]byte, n)
 	if _, err := rand.Read(buf); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	return buf
 }

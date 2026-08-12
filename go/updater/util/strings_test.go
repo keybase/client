@@ -6,12 +6,14 @@ package util
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestJoinPredicate(t *testing.T) {
 	f := func(s string) bool { return strings.HasPrefix(s, "f") }
 	s := JoinPredicate([]string{"foo", "bar", "faa"}, "-", f)
 	if s != "foo-faa" {
-		t.Errorf("Unexpected output: %s", s)
+		require.Fail(t, "Unexpected output: %s", s)
 	}
 }

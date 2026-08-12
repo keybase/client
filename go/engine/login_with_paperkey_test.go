@@ -204,7 +204,7 @@ func CreateAndSignupLPK(tc libkb.TestContext, prefix string) (*FakeUser, string)
 	beng := NewPaperKey(tc.G)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, beng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 
 	backupPassphrase := beng.Passphrase()

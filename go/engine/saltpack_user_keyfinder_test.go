@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 // Note: a lot of the functionality of SaltpackUserKeyfinder is tested through the SaltpackRecipientKeyfinderEngine (in go/saltpackkeys),
@@ -35,11 +36,9 @@ func TestSaltpackUserKeyfinder(t *testing.T) {
 	eng := NewSaltpackUserKeyfinder(arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	up := eng.GetPublicKIDs()
-	if len(up) != 3 {
-		t.Errorf("number of users found: %d, expected 3", len(up))
-	}
+	require.Equal(t, 3, len(up), "number of users found: %d, expected 3", len(up))
 }

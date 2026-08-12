@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"runtime"
 	"testing"
@@ -172,7 +173,7 @@ func waitForPrefetchOrBust(
 	select {
 	case <-ch:
 	case <-time.After(time.Second):
-		t.Fatal("Failed to wait for prefetch. Stack:\n" + getStack())
+		require.FailNow(t, fmt.Sprint("Failed to wait for prefetch. Stack:\n"+getStack()))
 	}
 }
 
@@ -188,7 +189,7 @@ func notifySyncCh(t *testing.T, ch chan<- struct{}) {
 	case ch <- struct{}{}:
 		t.Log("Notified sync channel.")
 	case <-time.After(time.Second):
-		t.Fatal("Error notifying sync channel. Stack:\n" + getStack())
+		require.FailNow(t, fmt.Sprint("Error notifying sync channel. Stack:\n"+getStack()))
 	}
 }
 
@@ -722,7 +723,7 @@ func testPrefetcherForSyncedTLF(
 	case waitCh = <-waitChCh:
 		require.NotNil(t, waitCh)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 	// Release after getting waitCh.
 	notifySyncCh(t, prefetchSyncCh)
@@ -734,7 +735,7 @@ func testPrefetcherForSyncedTLF(
 		require.Equal(t, uint64(0), status.SubtreeBytesFetched)
 		require.Equal(t, config.Clock().Now(), status.Start)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 	select {
 	case overallStatus := <-statusCh:
@@ -746,7 +747,7 @@ func testPrefetcherForSyncedTLF(
 			t, uint64(1*testFakeBlockSize), overallStatus.SubtreeBytesFetched)
 		require.Equal(t, config.Clock().Now(), overallStatus.Start)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 	// Release after prefetching fileC
 	notifySyncCh(t, prefetchSyncCh)
@@ -765,7 +766,7 @@ func testPrefetcherForSyncedTLF(
 	select {
 	case <-waitCh:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	t.Log("Ensure that the prefetched blocks are all in the cache.")
@@ -1844,7 +1845,7 @@ func waitDoneCh(ctx context.Context, t *testing.T, doneCh <-chan struct{}) {
 	select {
 	case <-doneCh:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 }
 
@@ -2206,7 +2207,7 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 	select {
 	case <-waitCh:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
@@ -2298,7 +2299,7 @@ func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
 	select {
 	case <-getA1:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	t.Log("Cancel the first TLF's prefetches")

@@ -2,7 +2,6 @@ package teams
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"testing"
@@ -455,11 +454,11 @@ func TestTeamPlayerNoInvitelinksForAdmins(t *testing.T) {
 	requirePrecheckError(t, err)
 
 	var ie InviteError
-	require.True(t, errors.As(err, &ie))
+	require.ErrorAs(t, err, &ie)
 	require.Equal(t, inviteID, SCTeamInviteID(ie.id))
 
 	var ile InvitelinkBadRoleError
-	require.True(t, errors.As(err, &ile))
+	require.ErrorAs(t, err, &ile)
 	require.Equal(t, keybase1.TeamRole_ADMIN, ile.role)
 }
 

@@ -296,9 +296,8 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 		checkIcon(t, row.Key, row.SiteIconDarkmode)
 		checkIcon(t, row.Key, row.SiteIconFull)
 		checkIcon(t, row.Key, row.SiteIconFullDarkmode)
-		if row.Priority == 0 || row.Priority == 9999999 {
-			t.Fatalf("unexpected priority %v %v", row.Key, row.Priority)
-		}
+		require.False(t, row.Priority == 0 || row.Priority == 9999999,
+			"unexpected priority %v %v", row.Key, row.Priority)
 	}
 	return res
 }
@@ -335,9 +334,8 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 	}
 	require.Len(t, icon, 2, "%v", service)
 	for _, icon := range icon {
-		if icon.Width < 2 {
-			t.Fatalf("unreasonable icon size")
-		}
+		require.False(t, icon.Width < 2,
+			"unreasonable icon size")
 		if kbtest.SkipIconRemoteTest() {
 			t.Logf("Skipping icon remote test")
 			require.True(t, len(icon.Path) > 8)
@@ -349,9 +347,8 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 			require.NoError(t, err)
 			body, err := io.ReadAll(resp.Body)
 			require.NoError(t, err)
-			if len(body) < 150 {
-				t.Fatalf("unreasonable icon payload size")
-			}
+			require.False(t, len(body) < 150,
+				"unreasonable icon payload size")
 		}
 	}
 }

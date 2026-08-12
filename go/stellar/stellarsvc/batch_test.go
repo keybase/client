@@ -67,11 +67,11 @@ func TestPrepareBatchRelays(t *testing.T) {
 			require.NotEmpty(t, p.TxID)
 			require.Equal(t, batchID, p.Direct.BatchID)
 		default:
-			t.Fatalf("unknown username in result: %s", p.Username)
+			require.FailNow(t, fmt.Sprintf("unknown username in result: %s", p.Username))
 		}
 	}
 	if prepared[0].Seqno > prepared[1].Seqno {
-		t.Errorf("prepared sort failed (seqnos out of order)")
+		require.Fail(t, "prepared sort failed (seqnos out of order)")
 	}
 }
 
@@ -122,7 +122,7 @@ func TestPrepareBatchLowAmounts(t *testing.T) {
 			require.Empty(t, p.Seqno)
 			require.Empty(t, p.TxID)
 		default:
-			t.Fatalf("unknown username in result: %s", p.Username)
+			require.FailNow(t, fmt.Sprintf("unknown username in result: %s", p.Username))
 		}
 	}
 }
@@ -172,7 +172,7 @@ func TestBatchMultiDirect(t *testing.T) {
 			if p.Status == stellar1.PaymentStatus_ERROR {
 				t.Logf("payment %d error: %s (%d)", i, p.Error.Message, p.Error.Code)
 			}
-			t.Errorf("payment %d not complete: %+v", i, p)
+			require.Fail(t, "payment %d not complete: %+v", i, p)
 		}
 
 		var msg *paymentMsg
@@ -183,9 +183,9 @@ func TestBatchMultiDirect(t *testing.T) {
 			}
 		}
 		if msg == nil {
-			t.Errorf("payment %d no chat message found: %+v", i, p)
+			require.Fail(t, "payment %d no chat message found: %+v", i, p)
 		} else if msg.PaymentID != stellar1.PaymentID(p.TxID) {
-			t.Errorf("payment %d chat msg tx id: %q, expected %q", i, msg.PaymentID, p.TxID)
+			require.Fail(t, "payment %d chat msg tx id: %q, expected %q", i, msg.PaymentID, p.TxID)
 		}
 	}
 }

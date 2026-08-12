@@ -492,29 +492,19 @@ func TestOpSerialization(t *testing.T) {
 	ops.Ops = append(ops.Ops, co, ro)
 
 	buf, err := c.Encode(ops)
-	if err != nil {
-		t.Errorf("Couldn't encode ops: %v", err)
-	}
+	require.NoError(t, err, "Couldn't encode ops: %v", err)
 
 	ops2 := testOps{}
 	err = c.Decode(buf, &ops2)
-	if err != nil {
-		t.Errorf("Couldn't decode ops: %v", err)
-	}
+	require.NoError(t, err, "Couldn't decode ops: %v", err)
 
 	op1, ok := ops2.Ops[0].(createOp)
-	if !ok {
-		t.Errorf("Couldn't decode createOp: %v", reflect.TypeOf(ops2.Ops[0]))
-	} else if op1.NewName != "test1" {
-		t.Errorf("Wrong name in createOp: %s", op1.NewName)
-	}
+	require.True(t, ok, "Couldn't decode createOp: %v", reflect.TypeOf(ops2.Ops[0]))
+	require.Equal(t, "test1", op1.NewName, "Wrong name in createOp: %s", op1.NewName)
 
 	op2, ok := ops2.Ops[1].(rmOp)
-	if !ok {
-		t.Errorf("Couldn't decode rmOp: %v", reflect.TypeOf(ops2.Ops[1]))
-	} else if op2.OldName != "test2" {
-		t.Errorf("Wrong name in rmOp: %s", op2.OldName)
-	}
+	require.True(t, ok, "Couldn't decode rmOp: %v", reflect.TypeOf(ops2.Ops[1]))
+	require.Equal(t, "test2", op2.OldName, "Wrong name in rmOp: %s", op2.OldName)
 }
 
 func TestOpInversion(t *testing.T) {
@@ -537,7 +527,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	ro, ok := iop1.(*rmOp)
 	if !ok || !reflect.DeepEqual(*ro, *expectedIOp) {
-		t.Errorf("createOp didn't invert properly, expected %v, got %v",
+		require.Fail(t, "createOp didn't invert properly, expected %v, got %v",
 			expectedIOp, iop1)
 	}
 
@@ -547,7 +537,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	co, ok := iop2.(*createOp)
 	if !ok || !reflect.DeepEqual(*co, *cop) {
-		t.Errorf("rmOp didn't invert properly, expected %v, got %v",
+		require.Fail(t, "rmOp didn't invert properly, expected %v, got %v",
 			expectedIOp, iop2)
 	}
 
@@ -565,7 +555,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	iRenameOp, ok := iop3.(*renameOp)
 	if !ok || !reflect.DeepEqual(*iRenameOp, *expectedIOp3) {
-		t.Errorf("renameOp didn't invert properly, expected %v, got %v",
+		require.Fail(t, "renameOp didn't invert properly, expected %v, got %v",
 			expectedIOp3, iop3)
 	}
 
@@ -584,7 +574,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	so, ok := iop4.(*syncOp)
 	if !ok || !reflect.DeepEqual(*so, *expectedIOp4) {
-		t.Errorf("syncOp didn't invert properly, expected %v, got %v",
+		require.Fail(t, "syncOp didn't invert properly, expected %v, got %v",
 			expectedIOp4, iop4)
 	}
 
@@ -599,7 +589,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	sao, ok := iop5.(*setAttrOp)
 	if !ok || !reflect.DeepEqual(*sao, *expectedIOp5) {
-		t.Errorf("setAttrOp didn't invert properly, expected %v, got %v",
+		require.Fail(t, "setAttrOp didn't invert properly, expected %v, got %v",
 			expectedIOp5, iop5)
 	}
 
@@ -615,7 +605,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	iRenameOp, ok = iop6.(*renameOp)
 	if !ok || !reflect.DeepEqual(*iRenameOp, *expectedIOp6) {
-		t.Errorf("renameOp didn't invert properly, expected %v, got %v",
+		require.Fail(t, "renameOp didn't invert properly, expected %v, got %v",
 			expectedIOp6, iop6)
 	}
 }
@@ -697,15 +687,12 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 		}
 
 		// Verify that the write range represents what's in the file.
-		if g, e := len(wrComputed), len(wrExpected); g != e {
-			t.Errorf("Range lengths differ (%d vs %d)", g, e)
-			continue
-		}
+		g, e := len(wrComputed), len(wrExpected)
+		require.Equal(t, e, g, "Range lengths differ (%d vs %d)", g, e)
 		for j, wc := range wrComputed {
 			we := wrExpected[j]
-			if wc.Off != we.Off && wc.Len != we.Len {
-				t.Errorf("Writes differ at index %d (%v vs %v)", j, we, wc)
-			}
+			require.Equal(t, we.Off, wc.Off, "Writes differ at index %d (%v vs %v)", j, we, wc)
+			require.Equal(t, we.Len, wc.Len, "Writes differ at index %d (%v vs %v)", j, we, wc)
 		}
 	}
 }

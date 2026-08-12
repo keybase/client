@@ -6,6 +6,7 @@ package libgit
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -181,7 +182,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	select {
 	case <-onStalled:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	t.Log("Start 2nd create and wait for it to try to get the lock")
@@ -199,7 +200,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	select {
 	case <-onStalled2:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	close(unstall)
@@ -207,7 +208,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	case err := <-err1ch:
 		require.NoError(t, err)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	close(unstall2)
@@ -215,7 +216,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	case err := <-err2ch:
 		require.IsType(t, libkb.RepoAlreadyExistsError{}, errors.Cause(err))
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	jManager, err := libkbfs.GetJournalManager(config)

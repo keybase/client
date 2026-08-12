@@ -566,7 +566,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	// Try saving
 	var err error
 	if err = h.gregorCli.Save(context.TODO()); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Create a new gregor handler, this will restore our saved state
@@ -617,7 +617,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	// Try saving
 	var err error
 	if err = h.gregorCli.Save(context.TODO()); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Create a new gregor handler, this will restore our saved state
@@ -952,9 +952,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	tc.G.SetService()
 
 	u, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid := gregor1.UID(u.GetUID().ToBytes())
 
 	h := newGregorHandler(g)
@@ -964,18 +962,14 @@ func TestBroadcastRepeat(t *testing.T) {
 	require.NoError(t, err)
 
 	m, err := grutils.TemplateMessage(uid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	m.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
 		Category_: gregor1.Category("mike"),
 		Body_:     gregor1.Body([]byte("mike")),
 	}
 
 	m2, err := grutils.TemplateMessage(uid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	m2.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
 		Category_: gregor1.Category("mike!!"),
 		Body_:     gregor1.Body([]byte("mike!!")),

@@ -85,7 +85,7 @@ func (fu FakeUser) UserVersion() keybase1.UserVersion {
 func NewFakeUserOrBust(tb libkb.TestingTB, prefix string) (fu *FakeUser) {
 	var err error
 	if fu, err = NewFakeUser(prefix); err != nil {
-		tb.Fatal(err)
+		require.NoError(tb, err)
 	}
 	return fu
 }
@@ -174,7 +174,7 @@ func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUs
 func CreateAndSignupFakeUserGPG(tc libkb.TestContext, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipGPG = false
@@ -186,9 +186,7 @@ func CreateAndSignupFakeUserGPG(tc libkb.TestContext, prefix string) *FakeUser {
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return fu
 }
 
@@ -214,9 +212,7 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return fu, s.signingKey, s.encryptionKey
 }
 
@@ -274,7 +270,7 @@ func (fu *FakeUser) SwitchTo(g *libkb.GlobalContext, withPassword bool) error {
 
 func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {
 	if err := fu.Login(tc.G); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 }
 
@@ -319,7 +315,8 @@ func LoggedIn(tc libkb.TestContext) bool {
 func Logout(tc libkb.TestContext) {
 	mctx := libkb.NewMetaContextForTest(tc)
 	if err := mctx.LogoutKillSecrets(); err != nil {
-		tc.T.Fatalf("logout error: %s", err)
+		require.NoError(tc.T, err,
+			"logout error: %s", err)
 	}
 }
 
@@ -345,9 +342,8 @@ func testEngineWithSecretStore(
 	}
 	runEngine(tc, fu, &testSecretUI)
 
-	if testSecretUI.CalledGetPassphrase {
-		t.Fatal("GetPassphrase() unexpectedly called")
-	}
+	require.False(t, testSecretUI.CalledGetPassphrase,
+		"GetPassphrase() unexpectedly called")
 }
 
 func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestContext, dev2 libkb.TestContext, cleanup func()) {
@@ -355,9 +351,8 @@ func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestCo
 }
 
 func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestContext)) (user *FakeUser, dev1 libkb.TestContext, dev2 libkb.TestContext, cleanup func()) {
-	if len(nm) > 5 {
-		t.Fatalf("Sorry, test name must be fewer than 6 chars (got %q)", nm)
-	}
+	require.False(t, len(nm) > 5,
+		"Sorry, test name must be fewer than 6 chars (got %q)", nm)
 
 	// device X (provisioner) context:
 	dev1 = SetupEngineTest(t, nm)
@@ -380,15 +375,11 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 	}
 	s := NewSignupEngine(dev1.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(dev1).WithUIs(uis), s)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	assertNumDevicesAndKeys(dev1, user, 2, 4)
 
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.NotEmpty(t, loginUI.PaperPhrase, "login ui has no paper key phrase")
 
 	secUI := user.NewSecretUI()
 	secUI.Passphrase = loginUI.PaperPhrase
@@ -404,7 +395,7 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 	eng := NewLogin(dev2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(dev2).WithUIs(uis)
 	if err := RunEngine2(m2, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(dev2)
@@ -412,7 +403,7 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 	assertNumDevicesAndKeys(dev2, user, 3, 6)
 
 	if err := AssertProvisioned(dev2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	cleanup = func() {
@@ -439,9 +430,8 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 func ResetAccountNoLogout(tc libkb.TestContext, u *FakeUser) {
 	m := NewMetaContextForTest(tc)
 	err := libkb.ResetAccount(m, u.NormalizedUsername(), u.Passphrase)
-	if err != nil {
-		tc.T.Fatalf("In account reset: %s", err)
-	}
+	require.NoError(tc.T, err,
+		"In account reset: %s", err)
 	tc.T.Logf("Account reset for user %s", u.Username)
 }
 
@@ -453,7 +443,7 @@ func ForcePUK(tc libkb.TestContext) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 }
 

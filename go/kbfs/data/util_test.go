@@ -6,14 +6,15 @@ package data
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func testSplitExtension(t *testing.T, s, base, ext string) {
 	// t.Logf("splitExtension(%q)", s)
 	a, b := SplitFileExtension(s)
-	if a != base || b != ext {
-		t.Errorf("splitExtension(%q) => %q,%q, expected %q,%q", s, a, b, base, ext)
-	}
+	require.Equal(t, base, a, "splitExtension(%q) => %q,%q, expected %q,%q", s, a, b, base, ext)
+	require.Equal(t, ext, b, "splitExtension(%q) => %q,%q, expected %q,%q", s, a, b, base, ext)
 }
 
 func TestSplitExtension(t *testing.T) {

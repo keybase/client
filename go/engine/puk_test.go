@@ -24,7 +24,7 @@ func TestPerUserKeySignupAndPullKeys(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "se")
 
 	if err = AssertLoggedIn(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	kr, err := libkb.NewPerUserKeyring(tc.G, fu.UID())
@@ -67,7 +67,7 @@ func TestPerUserKeySignupPlusPaper(t *testing.T) {
 	fu := CreateAndSignupFakeUserPaper(tc, "se")
 
 	if err = AssertLoggedIn(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	kr, err := libkb.NewPerUserKeyring(tc.G, fu.UID())

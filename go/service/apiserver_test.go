@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAPIServerGet(t *testing.T) {
@@ -15,9 +16,7 @@ func TestAPIServerGet(t *testing.T) {
 	tc.G.SetService()
 
 	_, err := kbtest.CreateAndSignupFakeUser("apivr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	harg := []keybase1.StringKVPair{
 		{Key: "username", Value: "t_alice"},
@@ -31,24 +30,16 @@ func TestAPIServerGet(t *testing.T) {
 	mctx := libkb.NewMetaContextForTest(tc)
 	handler := NewAPIServerHandler(nil, tc.G)
 	res, err := handler.doGet(mctx, arg, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	jw, err := jsonw.Unmarshal([]byte(res.Body))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	usernamew := jw.AtKey("them").AtKey("basics").AtKey("username")
 	username, err := usernamew.GetString()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if username != "t_alice" {
-		t.Fatalf("wrong username returned: %s != %s", username, "t_alice")
-	}
+	require.Equal(t, "t_alice", username, "wrong username returned: %s != %s", username, "t_alice")
 }
 
 func TestAPIServerPost(t *testing.T) {
@@ -57,9 +48,7 @@ func TestAPIServerPost(t *testing.T) {
 	tc.G.SetService()
 
 	_, err := kbtest.CreateAndSignupFakeUser("apivr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	harg := []keybase1.StringKVPair{
 		{Key: "email_or_username", Value: "t_alice"},
@@ -73,24 +62,16 @@ func TestAPIServerPost(t *testing.T) {
 	handler := NewAPIServerHandler(nil, tc.G)
 	mctx := libkb.NewMetaContextForTest(tc)
 	res, err := handler.doPost(mctx, arg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	jw, err := jsonw.Unmarshal([]byte(res.Body))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	namew := jw.AtKey("status").AtKey("name")
 	name, err := namew.GetString()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if name != "OK" {
-		t.Fatalf("wrong name returned: %s != %s", name, "OK")
-	}
+	require.Equal(t, "OK", name, "wrong name returned: %s != %s", name, "OK")
 }
 
 func TestAPIServerPostJSON(t *testing.T) {
@@ -99,9 +80,7 @@ func TestAPIServerPostJSON(t *testing.T) {
 	tc.G.SetService()
 
 	_, err := kbtest.CreateAndSignupFakeUser("apivr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	jsonPayload := []keybase1.StringKVPair{
 		{Key: "sigs", Value: "[]"},
@@ -114,22 +93,14 @@ func TestAPIServerPostJSON(t *testing.T) {
 
 	handler := NewAPIServerHandler(nil, tc.G)
 	res, err := handler.doPostJSON(libkb.NewMetaContextForTest(tc), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	jw, err := jsonw.Unmarshal([]byte(res.Body))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	namew := jw.AtKey("status").AtKey("name")
 	name, err := namew.GetString()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if name != "OK" {
-		t.Fatalf("wrong name returned: %s != %s", name, "OK")
-	}
+	require.Equal(t, "OK", name, "wrong name returned: %s != %s", name, "OK")
 }

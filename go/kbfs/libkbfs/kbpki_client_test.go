@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
 
 type keybaseServiceSelfOwner struct {
@@ -72,12 +73,8 @@ func TestKBPKIClientIdentify(t *testing.T) {
 	_, id, err := c.Identify(
 		context.Background(), "test_name1", "",
 		keybase1.OfflineAvailability_NONE)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if id == keybase1.UserOrTeamID("") {
-		t.Fatal("empty user")
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, keybase1.UserOrTeamID(""), id, "empty user")
 }
 
 func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
@@ -86,12 +83,8 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 	name, err := c.GetNormalizedUsername(
 		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam(),
 		keybase1.OfflineAvailability_NONE)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if name == kbname.NormalizedUsername("") {
-		t.Fatal("empty user")
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, kbname.NormalizedUsername(""), name, "empty user")
 }
 
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
@@ -101,17 +94,13 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 		context.Background(), keybase1.MakeTestUID(1),
 		localUsers[0].VerifyingKeys[0], time.Now(),
 		keybase1.OfflineAvailability_NONE)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err, err)
 
 	err = c.HasVerifyingKey(
 		context.Background(), keybase1.MakeTestUID(1),
 		kbfscrypto.VerifyingKey{}, time.Now(),
 		keybase1.OfflineAvailability_NONE)
-	if err == nil {
-		t.Error("HasVerifyingKey unexpectedly succeeded")
-	}
+	require.NotNil(t, err, "HasVerifyingKey unexpectedly succeeded")
 }
 
 func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
@@ -129,17 +118,14 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 		context.Background(), keybase1.MakeTestUID(1),
 		revokedKey, revokeTime.Add(-10*time.Second),
 		keybase1.OfflineAvailability_NONE)
-	if _, ok := errors.Cause(err).(RevokedDeviceVerificationError); !ok {
-		t.Error(err)
-	}
+	_, ok := errors.Cause(err).(RevokedDeviceVerificationError)
+	require.True(t, ok, err)
 
 	// Something verified after the key was revoked
 	err = c.HasVerifyingKey(
 		context.Background(), keybase1.MakeTestUID(1), revokedKey,
 		revokeTime.Add(70*time.Second), keybase1.OfflineAvailability_NONE)
-	if err == nil {
-		t.Error("HasVerifyingKey unexpectedly succeeded")
-	}
+	require.NotNil(t, err, "HasVerifyingKey unexpectedly succeeded")
 }
 
 // Test that KBPKI forces a cache flush one time if it can't find a
@@ -175,9 +161,7 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	err := c.HasVerifyingKey(
 		context.Background(), u, key2, time.Now(),
 		keybase1.OfflineAvailability_NONE)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err, err)
 }
 
 func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
@@ -186,56 +170,41 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 	cryptPublicKeys, err := c.GetCryptPublicKeys(
 		context.Background(), keybase1.MakeTestUID(1),
 		keybase1.OfflineAvailability_NONE)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if len(cryptPublicKeys) != 1 {
-		t.Fatalf("Expected 1 crypt public key, got %d", len(cryptPublicKeys))
-	}
+	require.Len(t, cryptPublicKeys, 1,
+		"Expected 1 crypt public key, got %d", len(cryptPublicKeys))
 
 	key := cryptPublicKeys[0]
 	expectedKey := localUsers[0].CryptPublicKeys[0]
-	if key != expectedKey {
-		t.Errorf("Expected %s, got %s", expectedKey, key)
-	}
+	require.Equal(t, expectedKey, key, "Expected %s, got %s", expectedKey, key)
 }
 
 func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
 	session, err := c.GetCurrentSession(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	kid := session.CryptPublicKey.KID()
 	expectedKID := localUsers[0].GetCurrentCryptPublicKey().KID()
-	if kid != expectedKID {
-		t.Errorf("Expected %s, got %s", expectedKID, kid)
-	}
+	require.Equal(t, expectedKID, kid, "Expected %s, got %s", expectedKID, kid)
 }
 
 func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 	c, _, _, localTeams := makeTestKBPKIClient(t)
 
-	if len(localTeams) == 0 {
-		t.Error("No local teams were generated")
-	}
+	require.False(t, len(localTeams) == 0, "No local teams were generated")
 
 	for _, team := range localTeams {
 		keys, keyGen, err := c.GetTeamTLFCryptKeys(
 			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen,
 			keybase1.OfflineAvailability_NONE)
-		if err != nil {
-			t.Error(err)
-		}
+		require.NoError(t, err, err)
 		if !reflect.DeepEqual(team.CryptKeys, keys) {
-			t.Errorf("Team TLF crypt keys don't match: %v vs %v",
+			require.Fail(t, "Team TLF crypt keys don't match: %v vs %v",
 				team.CryptKeys, keys)
 		}
-		if keyGen != kbfsmd.FirstValidKeyGen {
-			t.Errorf("Unexpected team key gen: %v", keyGen)
-		}
+		require.Equal(t, kbfsmd.FirstValidKeyGen, keyGen, "Unexpected team key gen: %v", keyGen)
 	}
 }

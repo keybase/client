@@ -2,6 +2,7 @@ package systests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -206,7 +207,7 @@ func TestTeamListOpenTeams(t *testing.T) {
 			case id2:
 				require.True(t, teamInfo.IsOpenTeam)
 			default:
-				t.Fatalf("Unexpected team name %v", teamInfo)
+				require.FailNow(t, fmt.Sprintf("Unexpected team name %v", teamInfo))
 			}
 
 			require.Equal(t, 1, teamInfo.MemberCount)

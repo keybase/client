@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func randChainLink() ChainLink {
@@ -30,35 +32,25 @@ func TestLinkCacheBasics(t *testing.T) {
 
 	c.Put(m, link.id, link)
 
-	if c.Len() != 1 {
-		t.Errorf("c.cache len: %d, expected 1", c.Len())
-	}
+	require.Equal(t, 1, c.Len(), "c.cache len: %d, expected 1", c.Len())
 
 	_, ok := c.Get(link.id)
-	if !ok {
-		t.Errorf("Get failed after Put")
-	}
+	require.True(t, ok, "Get failed after Put")
 
 	for range 50 {
 		nlink := randChainLink()
 		c.Put(m, nlink.id, nlink)
 	}
 
-	if c.Len() != 51 {
-		t.Errorf("c.cache len: %d, expected 51", c.Len())
-	}
+	require.Equal(t, 51, c.Len(), "c.cache len: %d, expected 51", c.Len())
 
 	c.Clean()
 
-	if c.Len() != 10 {
-		t.Errorf("c.cache len: %d, expected 10", c.Len())
-	}
+	require.Equal(t, 10, c.Len(), "c.cache len: %d, expected 10", c.Len())
 
 	// the first inserted link should be gone
 	_, ok = c.Get(link.id)
-	if ok {
-		t.Errorf("expected first link to be gone")
-	}
+	require.False(t, ok, "expected first link to be gone")
 }
 
 func TestLinkCacheAtime(t *testing.T) {
@@ -71,14 +63,10 @@ func TestLinkCacheAtime(t *testing.T) {
 	link := randChainLink()
 	c.Put(m, link.id, link)
 
-	if c.Len() != 1 {
-		t.Errorf("c.cache len: %d, expected 1", c.Len())
-	}
+	require.Equal(t, 1, c.Len(), "c.cache len: %d, expected 1", c.Len())
 
 	_, ok := c.Get(link.id)
-	if !ok {
-		t.Errorf("Get failed after Put")
-	}
+	require.True(t, ok, "Get failed after Put")
 
 	for range 50 {
 		nlink := randChainLink()
@@ -87,25 +75,17 @@ func TestLinkCacheAtime(t *testing.T) {
 
 	// get the first inserted one to make it LRU
 	_, ok = c.Get(link.id)
-	if !ok {
-		t.Errorf("Get failed after Put of 50")
-	}
+	require.True(t, ok, "Get failed after Put of 50")
 
-	if c.Len() != 51 {
-		t.Errorf("c.cache len: %d, expected 51", c.Len())
-	}
+	require.Equal(t, 51, c.Len(), "c.cache len: %d, expected 51", c.Len())
 
 	c.Clean()
 
-	if c.Len() != 10 {
-		t.Errorf("c.cache len: %d, expected 10", c.Len())
-	}
+	require.Equal(t, 10, c.Len(), "c.cache len: %d, expected 10", c.Len())
 
 	// the first inserted link should still be there
 	_, ok = c.Get(link.id)
-	if !ok {
-		t.Errorf("expected first link to be cached")
-	}
+	require.True(t, ok, "expected first link to be cached")
 }
 
 // mainly useful when run with -race flag
@@ -124,9 +104,7 @@ func TestLinkCacheConcurrent(t *testing.T) {
 				link := randChainLink()
 				c.Put(m, link.id, link)
 				_, ok := c.Get(link.id)
-				if !ok {
-					t.Errorf("concurrent Get failed")
-				}
+				require.True(t, ok, "concurrent Get failed")
 			}
 			wg.Done()
 		}()

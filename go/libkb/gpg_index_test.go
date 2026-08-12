@@ -5,8 +5,11 @@ package libkb
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func parse(t *testing.T, kr string) *GpgKeyIndex {
@@ -14,17 +17,10 @@ func parse(t *testing.T, kr string) *GpgKeyIndex {
 	defer tc.Cleanup()
 	buf := bytes.NewBufferString(kr)
 	i, w, e := ParseGpgIndexStream(tc.MetaContext(), buf)
-	if e != nil {
-		t.Fatalf("failure in parse: %s", e)
-	}
+	require.Nil(t, e,
+		"failure in parse: %s", e)
 
-	if !w.IsEmpty() {
-		t.Errorf("Warnings in parsing:")
-		for _, e := range w.Warnings() {
-			t.Errorf(" - %s", e)
-		}
-		return nil
-	}
+	require.True(t, w.IsEmpty(), "Warnings in parsing")
 	return i
 }
 
@@ -36,82 +32,59 @@ func TestFindMax(t *testing.T) {
 	t.Skip("all keys were expired")
 	index := parse(t, myKeyring)
 	keylist := index.Emails.Get("max1@keybase.io")
-	if keylist == nil {
-		t.Errorf("nil keylist was not expected")
-	} else if len(keylist) != 1 {
-		t.Errorf("expected one key for max, found %d", len(keylist))
-	} else {
-		expected := map[string]bool{
-			"F544F89FB9AFC481DCB26730D28390C6F7CDD0BA": true,
-		}
-		for _, k := range keylist {
-			if fp := k.GetFingerprint(); fp == nil {
-				t.Errorf("Unexpected empty fingerprint")
-			} else if ok, found := expected[strings.ToUpper(fp.String())]; !ok || !found {
-				t.Errorf("Unexpected fingerprint: %s", fp.String())
-			}
-		}
+	require.NotNil(t, keylist, "nil keylist was not expected")
+	require.Equal(t, 1, len(keylist), "expected one key for max, found %d", len(keylist))
+	expected := map[string]bool{
+		"F544F89FB9AFC481DCB26730D28390C6F7CDD0BA": true,
+	}
+	for _, k := range keylist {
+		fp := k.GetFingerprint()
+		require.NotNil(t, fp, "Unexpected empty fingerprint")
+		ok, found := expected[strings.ToUpper(fp.String())]
+		require.True(t, ok && found, "Unexpected fingerprint: %s", fp.String())
 	}
 }
 
 func TestYubikeyFixedSecretKeys(t *testing.T) {
 	index := parse(t, yubikey4fixed)
 	keylist := index.Emails.Get("dain@yubico.com")
-	if keylist == nil {
-		t.Errorf("nil keylist was not expected")
-	} else if len(keylist) != 1 {
-		t.Errorf("expected two keys for max")
-	}
+	require.NotNil(t, keylist, "nil keylist was not expected")
+	require.Equal(t, 1, len(keylist), "expected two keys for max")
 }
 
 func TestYubikeyOrigSecretKeys(t *testing.T) {
 	index := parse(t, yubikey4orig)
 	keylist := index.Emails.Get("dain@yubico.com")
-	if keylist != nil {
-		t.Errorf("nil keylist was expected")
-	}
+	require.False(t, keylist != nil, "nil keylist was expected")
 }
 
 func TestGPGIndex2Dot1(t *testing.T) {
 	index := parse(t, gpg2dot1)
-	if index == nil {
-		t.Fatal("parsing failed")
-		return
-	}
+	require.NotNil(t, index,
+		"parsing failed")
 	keylist := index.Emails.Get("themax+test@gmail.com")
-	if keylist == nil {
-		t.Errorf("nil keylist was not expected")
-	} else if len(keylist) != 1 {
-		t.Errorf("expected one key for max")
-	}
+	require.NotNil(t, keylist, "nil keylist was not expected")
+	require.Equal(t, 1, len(keylist), "expected one key for max")
 }
 
 func TestGPGFindGreg(t *testing.T) {
 	index := parse(t, greg)
-	if index == nil {
-		t.Fatal("parsing failed")
-	}
+	require.NotNil(t, index,
+		"parsing failed")
 	keys := index.Fingerprints.Get("6A457A06CB07E916EC88EC741193ACD196ED61F2")
-	if len(keys) == 0 {
-		t.Fatal("expected to find greg's key")
-	}
+	require.NotEmpty(t, keys, "expected to find greg's key")
 }
 
 func TestGPGRevokedID(t *testing.T) {
 	index := parse(t, keyringRevokedID)
-	if index == nil {
-		t.Fatal("parsing failed")
-	}
+	require.NotNil(t, index,
+		"parsing failed")
 	keys := index.Fingerprints.Get("582AB5DE7B6BB11F6E2B7075851B3498422B2DFA")
-	if len(keys) != 1 {
-		t.Fatal("expected to find one key")
-	}
+	require.Len(t, keys, 1, "expected to find one key")
 	if numIDs := len(keys[0].identities); numIDs != 1 {
-		t.Fatalf("expected to have one identity (got %v)", numIDs)
+		require.FailNow(t, fmt.Sprintf("expected to have one identity (got %v)", numIDs))
 	}
-	if keys[0].identities[0].Format() != "This One WIll be rev0ked" {
-		t.Fatalf("Invalid identity: %v", keys[0].identities[0])
-	}
+	require.Equal(t, "This One WIll be rev0ked", keys[0].identities[0].Format(), "Invalid identity: %v", keys[0].identities[0])
 }
 
 const myKeyring = `

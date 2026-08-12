@@ -22,9 +22,7 @@ func TestTeamGet(t *testing.T) {
 	name := createTeam(tc)
 
 	_, err = GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestTeamApplicationKey(t *testing.T) {
@@ -39,23 +37,13 @@ func TestTeamApplicationKey(t *testing.T) {
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name: name,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	chatKey, err := team.ChatKey(context.TODO())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if chatKey.Application != keybase1.TeamApplication_CHAT {
-		t.Errorf("key application: %d, expected %d", chatKey.Application, keybase1.TeamApplication_CHAT)
-	}
-	if chatKey.Generation() != 1 {
-		t.Errorf("key generation: %d, expected 1", chatKey.Generation())
-	}
-	if len(chatKey.Key) != 32 {
-		t.Errorf("key length: %d, expected 32", len(chatKey.Key))
-	}
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamApplication_CHAT, chatKey.Application, "key application: %d, expected %d", chatKey.Application, keybase1.TeamApplication_CHAT)
+	require.Equal(t, 1, chatKey.Generation(), "key generation: %d, expected 1", chatKey.Generation())
+	require.Equal(t, 32, len(chatKey.Key), "key length: %d, expected 32", len(chatKey.Key))
 }
 
 func TestTeamGetRepeat(t *testing.T) {
@@ -71,9 +59,7 @@ func TestTeamGetRepeat(t *testing.T) {
 		name := createTeam(tc)
 
 		_, err = GetForTestByStringName(context.TODO(), tc.G, name)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 }
 
@@ -94,9 +80,7 @@ func TestTeamGetWhileCreate(t *testing.T) {
 
 	for range 100 {
 		_, err := GetForTestByStringName(context.TODO(), tc.G, name)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 }
 
@@ -235,9 +219,7 @@ func teamGet(t *testing.T) {
 	name := createTeam(tc)
 
 	_, err = GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func createTeam(tc libkb.TestContext) string {

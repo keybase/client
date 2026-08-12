@@ -7,45 +7,37 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 // TestParse parses the hardcoded string
 func TestParse(t *testing.T) {
 	p, err := parse(testPvlString)
-	if err != nil {
-		t.Fatalf("parse failed: %v", err)
-	}
-	if p.PvlVersion < 0 {
-		t.Fatalf("version should be >=0: %v", p.PvlVersion)
-	}
+	require.NoError(t, err,
+		"parse failed: %v", err)
+	require.False(t, p.PvlVersion < 0,
+		"version should be >=0: %v", p.PvlVersion)
 }
 
 // TestParse2 checks a few of the parse output's details.
 func TestParse2(t *testing.T) {
 	p, err := parse(testPvlString)
-	if err != nil {
-		t.Fatalf("parse failed: %v", err)
-	}
-	if p.PvlVersion != 1 {
-		t.Fatalf("version should be 1 got %v", p.PvlVersion)
-	}
-	if p.Revision != 1 {
-		t.Fatalf("revision should be 1")
-	}
+	require.NoError(t, err,
+		"parse failed: %v", err)
+	require.Equal(t, 1, p.PvlVersion,
+		"version should be 1 got %v", p.PvlVersion)
+	require.Equal(t, 1, p.Revision,
+		"revision should be 1")
 	cbss, ok := p.Services.Map[keybase1.ProofType_TWITTER]
-	if !ok {
-		t.Fatalf("no twittter service entry")
-	}
-	if len(cbss) < 1 {
-		t.Fatalf("no scripts")
-	}
+	require.True(t, ok,
+		"no twittter service entry")
+	require.False(t, len(cbss) < 1,
+		"no scripts")
 	cbs := cbss[0]
-	if len(cbs.Instructions) < 1 {
-		t.Fatalf("empty script")
-	}
-	if cbs.Instructions[0].RegexCapture == nil {
-		t.Fatalf("first instruction is not a regex capture")
-	}
+	require.False(t, len(cbs.Instructions) < 1,
+		"empty script")
+	require.NotNil(t, cbs.Instructions[0].RegexCapture,
+		"first instruction is not a regex capture")
 }
 
 var testPvlString = `

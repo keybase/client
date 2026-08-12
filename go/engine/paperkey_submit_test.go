@@ -33,7 +33,7 @@ func TestPaperKeySubmit(t *testing.T) {
 	s := NewSignupEngine(tc.G, &arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, s); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
@@ -41,9 +41,7 @@ func TestPaperKeySubmit(t *testing.T) {
 	Logout(tc)
 
 	paperkey := loginUI.PaperPhrase
-	if len(paperkey) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.NotEmpty(t, paperkey, "login ui has no paper key phrase")
 
 	fu.LoginOrBust(tc)
 
@@ -53,17 +51,13 @@ func TestPaperKeySubmit(t *testing.T) {
 	m = NewMetaContextForTestWithLogUI(tc)
 	eng := NewPaperKeySubmit(tc.G, paperkey)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	assertPaperKeyCached(m, t, true)
 
-	if len(listener.paperEncKIDs) != 1 {
-		t.Fatalf("num paperkey notifications: %d, expected 1", len(listener.paperEncKIDs))
-	}
-	if listener.paperEncKIDs[0].NotEqual(eng.deviceWithKeys.EncryptionKey().GetKID()) {
-		t.Errorf("enc kid from notify: %s, expected %s", listener.paperEncKIDs[0], eng.deviceWithKeys.EncryptionKey().GetKID())
-	}
+	require.Len(t, listener.paperEncKIDs, 1, "num paperkey notifications: %d, expected 1", len(listener.paperEncKIDs))
+	require.False(t, listener.paperEncKIDs[0].NotEqual(eng.deviceWithKeys.EncryptionKey().GetKID()), "enc kid from notify: %s, expected %s", listener.paperEncKIDs[0], eng.deviceWithKeys.EncryptionKey().GetKID())
 }
 
 func assertPaperKeyCached(m libkb.MetaContext, t *testing.T, wantCached bool) {

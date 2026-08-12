@@ -127,10 +127,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		provisioner := engine.NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
 		mctxX = mctxX.WithUIs(uis)
-		if err := engine.RunEngine2(mctxX, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := engine.RunEngine2(mctxX, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 
 	wg.Wait()

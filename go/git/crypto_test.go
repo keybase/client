@@ -100,9 +100,8 @@ func testCryptoUnbox(t *testing.T, implicit, public bool) {
 	if implicit {
 		teamID = createImplicitTeam(tc, public)
 	} else {
-		if public {
-			t.Fatalf("public teams not supported")
-		}
+		require.False(t, public,
+			"public teams not supported")
 		teamID = createRootTeam(tc)
 	}
 	require.Equal(t, public, teamID.IsPublic())
@@ -229,9 +228,8 @@ func TestCryptoData(t *testing.T) {
 	tc, c, teamSpec, boxed := setupBox(t)
 	defer tc.Cleanup()
 
-	if len(boxed.E) < 4 {
-		tc.T.Fatalf("very small encrypted data size: %d", len(boxed.E))
-	}
+	require.False(tc.T, len(boxed.E) < 4,
+		"very small encrypted data size: %d", len(boxed.E))
 
 	// flip data bit
 	boxed.E[3] ^= 0x10

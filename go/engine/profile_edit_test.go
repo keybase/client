@@ -30,9 +30,7 @@ func TestProfileEdit(t *testing.T) {
 		waiter := launchWaiter(t, i.finishCh)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		err := eng.Run(m)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		waiter()
 		return i.card
 	}
@@ -41,9 +39,7 @@ func TestProfileEdit(t *testing.T) {
 		eng := NewProfileEdit(tc.G, keybase1.ProfileEditArg{Location: l, FullName: n, Bio: b})
 		m := NewMetaContextForTest(tc)
 		err := eng.Run(m)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 
 	check := func(card keybase1.UserCard, b, n, l string) {

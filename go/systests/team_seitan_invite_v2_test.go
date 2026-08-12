@@ -2,6 +2,7 @@ package systests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -66,7 +67,7 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 		token = string(ikey)
 		require.NoError(t, err)
 	default:
-		t.Fatalf("Invalid seitan version %v", seitanVersion)
+		require.FailNow(t, fmt.Sprintf("Invalid seitan version %v", seitanVersion))
 	}
 
 	t.Logf("Created token %q", token)

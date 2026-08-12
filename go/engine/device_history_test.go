@@ -4,10 +4,12 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceHistoryBasic(t *testing.T) {
@@ -19,12 +21,10 @@ func TestDeviceHistoryBasic(t *testing.T) {
 	eng := NewDeviceHistorySelf(tc.G)
 	m := NewMetaContextForTest(tc)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	devs := eng.Devices()
-	if len(devs) != 2 {
-		t.Errorf("num devices: %d, expected 2", len(devs))
-	}
+	require.Equal(t, 2, len(devs), "num devices: %d, expected 2", len(devs))
 
 	var desktop keybase1.DeviceDetail
 	var paper keybase1.DeviceDetail
@@ -36,25 +36,20 @@ func TestDeviceHistoryBasic(t *testing.T) {
 		case keybase1.DeviceTypeV2_DESKTOP:
 			desktop = d
 		default:
-			t.Fatalf("unexpected device type %s", d.Device.Type)
+			require.FailNow(t, fmt.Sprintf("unexpected device type %s", d.Device.Type))
 		}
 	}
 
 	// paper's provisioner should be desktop
-	if paper.Provisioner == nil {
-		t.Fatal("paper device has no provisioner")
-	}
-	if paper.Provisioner.DeviceID != desktop.Device.DeviceID {
-		t.Errorf("paper provisioned id: %s, expected %s", paper.Provisioner.DeviceID, desktop.Device.DeviceID)
-		t.Logf("desktop: %+v", desktop)
-		t.Logf("paper:   %+v", paper)
-	}
+	require.NotNil(t, paper.Provisioner,
+		"paper device has no provisioner")
+	require.Equal(t, desktop.Device.DeviceID, paper.Provisioner.DeviceID, "paper provisioned id: %s, expected %s", paper.Provisioner.DeviceID, desktop.Device.DeviceID)
+	t.Logf("desktop: %+v", desktop)
+	t.Logf("paper:   %+v", paper)
 
 	// Check that LastUsedTime is set (since we're fetching our own device history)
 	for _, d := range devs {
-		if d.Device.LastUsedTime == 0 {
-			t.Fatal("last used time not set")
-		}
+		require.NotZero(t, d.Device.LastUsedTime, "last used time not set")
 	}
 }
 
@@ -67,7 +62,7 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 	eng := NewDeviceHistorySelf(tc.G)
 	m := NewMetaContextForTest(tc)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var desktop keybase1.DeviceDetail
@@ -80,19 +75,16 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 		case keybase1.DeviceTypeV2_DESKTOP:
 			desktop = d
 		default:
-			t.Fatalf("unexpected device type %s", d.Device.Type)
+			require.FailNow(t, fmt.Sprintf("unexpected device type %s", d.Device.Type))
 		}
 	}
 
 	// paper's provisioner should be desktop
-	if paper.Provisioner == nil {
-		t.Fatal("paper device has no provisioner")
-	}
-	if paper.Provisioner.DeviceID != desktop.Device.DeviceID {
-		t.Errorf("paper provisioned id: %s, expected %s", paper.Provisioner.DeviceID, desktop.Device.DeviceID)
-		t.Logf("desktop: %+v", desktop)
-		t.Logf("paper:   %+v", paper)
-	}
+	require.NotNil(t, paper.Provisioner,
+		"paper device has no provisioner")
+	require.Equal(t, desktop.Device.DeviceID, paper.Provisioner.DeviceID, "paper provisioned id: %s, expected %s", paper.Provisioner.DeviceID, desktop.Device.DeviceID)
+	t.Logf("desktop: %+v", desktop)
+	t.Logf("paper:   %+v", paper)
 
 	// revoke the paper device
 	uis := libkb.UIs{
@@ -102,13 +94,13 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	reng := NewRevokeDeviceEngine(tc.G, RevokeDeviceEngineArgs{ID: paper.Device.DeviceID})
 	if err := RunEngine2(m, reng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// get history after revoke
 	eng = NewDeviceHistorySelf(tc.G)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var desktop2 keybase1.DeviceDetail
@@ -121,37 +113,27 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 		case keybase1.DeviceTypeV2_DESKTOP:
 			desktop2 = d
 		default:
-			t.Fatalf("unexpected device type %s", d.Device.Type)
+			require.FailNow(t, fmt.Sprintf("unexpected device type %s", d.Device.Type))
 		}
 	}
 
 	// paper's provisioner should (still) be desktop
-	if paper2.Provisioner == nil {
-		t.Fatal("paper device has no provisioner")
-	}
-	if paper2.Provisioner.DeviceID != desktop2.Device.DeviceID {
-		t.Errorf("paper provisioned id: %s, expected %s", paper2.Provisioner.DeviceID, desktop2.Device.DeviceID)
-		t.Logf("desktop: %+v", desktop2)
-		t.Logf("paper:   %+v", paper2)
-	}
+	require.NotNil(t, paper2.Provisioner,
+		"paper device has no provisioner")
+	require.Equal(t, desktop2.Device.DeviceID, paper2.Provisioner.DeviceID, "paper provisioned id: %s, expected %s", paper2.Provisioner.DeviceID, desktop2.Device.DeviceID)
+	t.Logf("desktop: %+v", desktop2)
+	t.Logf("paper:   %+v", paper2)
 
-	if paper2.RevokedAt == nil {
-		t.Fatal("paper device RevokedAt is nil")
-	}
-	if paper2.RevokedBy.IsNil() {
-		t.Fatal("paper device RevokedBy is nil")
-	}
-	if paper2.RevokedByDevice == nil {
-		t.Fatal("paper device RevokedByDevice is nil")
-	}
-	if paper2.RevokedByDevice.DeviceID != desktop.Device.DeviceID {
-		t.Fatalf("paper revoked by wrong device, %s != %s", paper2.RevokedByDevice.DeviceID,
-			desktop.Device.DeviceID)
-	}
-	if paper2.RevokedByDevice.Name != desktop.Device.Name {
-		t.Fatalf("paper revoked by wrong device, %s != %s", paper2.RevokedByDevice.Name,
-			desktop.Device.Name)
-	}
+	require.NotNil(t, paper2.RevokedAt,
+		"paper device RevokedAt is nil")
+	require.False(t, paper2.RevokedBy.IsNil(),
+		"paper device RevokedBy is nil")
+	require.NotNil(t, paper2.RevokedByDevice,
+		"paper device RevokedByDevice is nil")
+	require.Equal(t, desktop.Device.DeviceID, paper2.RevokedByDevice.DeviceID, "paper revoked by wrong device, %s != %s", paper2.RevokedByDevice.DeviceID,
+		desktop.Device.DeviceID)
+	require.Equal(t, desktop.Device.Name, paper2.RevokedByDevice.Name, "paper revoked by wrong device, %s != %s", paper2.RevokedByDevice.Name,
+		desktop.Device.Name)
 }
 
 func TestDeviceHistoryPGP(t *testing.T) {
@@ -175,15 +157,13 @@ func TestDeviceHistoryPGP(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	heng := NewDeviceHistorySelf(tc.G)
 	if err := RunEngine2(m, heng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	devs := heng.Devices()
-	if len(devs) != 1 {
-		t.Errorf("num devices: %d, expected 1", len(devs))
-	}
+	require.Equal(t, 1, len(devs), "num devices: %d, expected 1", len(devs))
 }

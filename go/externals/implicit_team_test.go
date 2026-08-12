@@ -52,7 +52,7 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	secondSocial := name.Writers.UnresolvedUsers[1]
 	aliceExpected := keybase1.SocialAssertion{User: "alice", Service: keybase1.SocialAssertionService("twitter")}
 	bobExpected := keybase1.SocialAssertion{User: "bob", Service: keybase1.SocialAssertionService("facebook")}
-	require.True(t, firstSocial != secondSocial)
+	require.NotEqual(t, firstSocial, secondSocial)
 	require.True(t, firstSocial == aliceExpected || firstSocial == bobExpected)
 	require.True(t, secondSocial == aliceExpected || secondSocial == bobExpected)
 

@@ -266,7 +266,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	case created := <-ch:
 		require.True(t, created)
 	case <-time.After(time.Second * 20):
-		t.Fatalf("teamEK background creation failed")
+		require.FailNow(t, "teamEK background creation failed")
 	}
 
 	expectedDeviceEKGen++
@@ -315,7 +315,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	case created := <-ch:
 		require.True(t, created)
 	case <-time.After(time.Second * 20):
-		t.Fatalf("teamEK background creation failed")
+		require.FailNow(t, "teamEK background creation failed")
 	}
 	close(ch)
 	expectedTeamEKGen++

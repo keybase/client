@@ -187,7 +187,8 @@ func (d *testDevice) startClient() {
 	}
 
 	if err := launch(); err != nil {
-		d.t.Fatalf("Failed to launch rekey UI: %s", err)
+		require.NoError(d.t, err,
+			"Failed to launch rekey UI: %s", err)
 	}
 }
 
@@ -266,9 +267,8 @@ func (s *testDeviceSet) newDevice(nm string) *testDevice {
 func (d *testDevice) loadEncryptionKIDs() (devices []keybase1.KID, backups []backupKey) {
 	keyMap := make(map[keybase1.KID]keybase1.PublicKey)
 	keys, err := d.userClient.LoadMyPublicKeys(context.TODO(), 0)
-	if err != nil {
-		d.t.Fatalf("Failed to LoadMyPublicKeys: %s", err)
-	}
+	require.NoError(d.t, err,
+		"Failed to LoadMyPublicKeys: %s", err)
 	for _, key := range keys {
 		keyMap[key.KID] = key
 	}
@@ -296,9 +296,8 @@ func (d *testDevice) loadEncryptionKIDs() (devices []keybase1.KID, backups []bac
 func (d *testDevice) loadDeviceList() []keybase1.Device {
 	cli := keybase1.DeviceClient{Cli: d.cli}
 	devices, err := cli.DeviceList(context.TODO(), 0)
-	if err != nil {
-		d.t.Fatalf("devices: %s", err)
-	}
+	require.NoError(d.t, err,
+		"devices: %s", err)
 	var ret []keybase1.Device
 	for _, device := range devices {
 		if device.Type == keybase1.DeviceTypeV2_DESKTOP {
@@ -327,28 +326,22 @@ func (s *testDeviceSet) signupUserWithRandomPassphrase(dev *testDevice, randomPa
 		signup.SetNoPassphrasePrompt()
 	}
 	if err := signup.Run(); err != nil {
-		s.t.Fatal(err)
+		require.NoError(s.t, err)
 	}
 	s.t.Logf("signed up %s", userInfo.username)
 	s.username = userInfo.username
 	s.uid = libkb.UsernameToUID(s.username)
 	var backupKey backupKey
 	deviceKeys, backups := dev.loadEncryptionKIDs()
-	if len(deviceKeys) != 1 {
-		s.t.Fatalf("Expected 1 device back; got %d", len(deviceKeys))
-	}
-	if len(backups) != 1 {
-		s.t.Fatalf("Expected 1 backup back; got %d", len(backups))
-	}
+	require.Len(s.t, deviceKeys, 1, "Expected 1 device back; got %d", len(deviceKeys))
+	require.Len(s.t, backups, 1, "Expected 1 backup back; got %d", len(backups))
 	dev.deviceKey.KID = deviceKeys[0]
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	s.backupKeys = append(s.backupKeys, backupKey)
 
 	devices := dev.loadDeviceList()
-	if len(devices) != 1 {
-		s.t.Fatalf("Expected 1 device back; got %d", len(devices))
-	}
+	require.Len(s.t, devices, 1, "Expected 1 device back; got %d", len(devices))
 	dev.deviceID = devices[0].DeviceID
 }
 
@@ -508,26 +501,22 @@ func (s *testDeviceSet) provision(d *testDevice) {
 	}
 
 	if err := launch(); err != nil {
-		s.t.Fatalf("Failed to login rekey UI: %s", err)
+		require.NoError(s.t, err,
+			"Failed to login rekey UI: %s", err)
 	}
 	cmd := client.NewCmdLoginRunner(g)
 	if err := cmd.Run(); err != nil {
-		s.t.Fatalf("Login failed: %s\n", err)
+		require.NoError(s.t, err,
+			"Login failed: %s\n", err)
 	}
 
 	deviceKeys, backups := d.loadEncryptionKIDs()
 	deviceKeys = s.findNewKIDs(deviceKeys)
-	if len(deviceKeys) != 1 {
-		s.t.Fatalf("expected 1 new device encryption key")
-	}
+	require.Len(s.t, deviceKeys, 1, "expected 1 new device encryption key")
 	d.deviceKey.KID = deviceKeys[0]
-	if len(backups) != 1 {
-		s.t.Fatalf("expected 1 backup key only")
-	}
+	require.Len(s.t, backups, 1, "expected 1 backup key only")
 	devices := s.findNewDevices(d.loadDeviceList())
-	if len(devices) != 1 {
-		s.t.Fatalf("expected 1 device ID; got %d", len(devices))
-	}
+	require.Len(s.t, devices, 1, "expected 1 device ID; got %d", len(devices))
 	d.deviceID = devices[0].DeviceID
 }
 
@@ -602,9 +591,8 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 	}
 	g := d.tctx.G
 	b, err := json.Marshal(up)
-	if err != nil {
-		d.t.Fatalf("error marshalling: %s", err)
-	}
+	require.NoError(d.t, err,
+		"error marshalling: %s", err)
 	mctx := libkb.NewMetaContextTODO(g)
 	apiArg := libkb.APIArg{
 		Endpoint: "test/fake_generic_tlf",
@@ -614,7 +602,6 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	_, err = g.API.Post(mctx, apiArg)
-	if err != nil {
-		d.t.Fatalf("post error: %s", err)
-	}
+	require.NoError(d.t, err,
+		"post error: %s", err)
 }

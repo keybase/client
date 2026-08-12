@@ -42,15 +42,15 @@ func TestAccountDelete(t *testing.T) {
 	require.Error(t, err)
 
 	if _, ok := err.(libkb.UserDeletedError); !ok {
-		t.Fatal("expected a libkb.UserDeletedError")
+		require.True(t, ok,
+			"expected a libkb.UserDeletedError")
 	}
 
 	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
 	require.Error(t, err)
 
-	if _, ok := err.(libkb.UserDeletedError); !ok {
-		t.Errorf("loading deleted user error type: %T, expected libkb.UserDeletedError", err)
-	}
+	_, ok := err.(libkb.UserDeletedError)
+	require.True(t, ok, "loading deleted user error type: %T, expected libkb.UserDeletedError", err)
 }
 
 func TestAccountDeleteBadPassphrase(t *testing.T) {
@@ -115,9 +115,8 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	err = RunEngine2(m, ieng)
 	require.Error(t, err)
 
-	if _, ok := err.(libkb.UserDeletedError); !ok {
-		t.Errorf("identify2 error: %T, expected libkb.UserDeletedError", err)
-	}
+	_, ok := err.(libkb.UserDeletedError)
+	require.True(t, ok, "identify2 error: %T, expected libkb.UserDeletedError", err)
 }
 
 func TestAccountDeleteAfterRestart(t *testing.T) {
@@ -136,12 +135,10 @@ func TestAccountDeleteAfterRestart(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
-	if err == nil {
-		t.Fatal("no error loading deleted user")
-	}
-	if _, ok := err.(libkb.UserDeletedError); !ok {
-		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
-	}
+	require.Error(t, err,
+		"no error loading deleted user")
+	_, ok := err.(libkb.UserDeletedError)
+	require.True(t, ok, "loading deleted user error type: %T, expected libkb.DeletedError", err)
 }
 
 func TestAccountDeleteWithPassphrase(t *testing.T) {
@@ -167,13 +164,13 @@ func TestAccountDeleteWithPassphrase(t *testing.T) {
 	require.Error(t, err)
 
 	if _, ok := err.(libkb.UserDeletedError); !ok {
-		t.Fatal("expected a libkb.UserDeletedError")
+		require.True(t, ok,
+			"expected a libkb.UserDeletedError")
 	}
 
 	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
 	require.Error(t, err)
 
-	if _, ok := err.(libkb.UserDeletedError); !ok {
-		t.Errorf("loading deleted user error type: %T, expected libkb.UserDeletedError", err)
-	}
+	_, ok := err.(libkb.UserDeletedError)
+	require.True(t, ok, "loading deleted user error type: %T, expected libkb.UserDeletedError", err)
 }

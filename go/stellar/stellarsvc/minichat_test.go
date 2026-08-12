@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -143,7 +144,7 @@ func TestSpecMiniChatPayments(t *testing.T) {
 	for i, st := range specTests {
 		out, err := stellar.SpecMiniChatPayments(mctx, tc.Srv.walletState, st.payments)
 		if err != nil {
-			t.Errorf("test %d: unexpected error: %s", i, err)
+			require.Fail(t, "test %d: unexpected error: %s", i, err)
 			continue
 		}
 		require.NotNil(t, out)
@@ -196,7 +197,7 @@ func TestPrepareMiniChatRelays(t *testing.T) {
 			require.Nil(t, p.Relay)
 			require.True(t, p.Direct.QuickReturn)
 		default:
-			t.Fatalf("unknown username in result: %s", p.Username)
+			require.FailNow(t, fmt.Sprintf("unknown username in result: %s", p.Username))
 		}
 	}
 }
@@ -246,7 +247,7 @@ func TestPrepareMiniChatLowAmounts(t *testing.T) {
 			require.Empty(t, p.Seqno)
 			require.Empty(t, p.TxID)
 		default:
-			t.Fatalf("unknown username in result: %s", p.Username)
+			require.FailNow(t, fmt.Sprintf("unknown username in result: %s", p.Username))
 		}
 	}
 }

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -65,9 +66,8 @@ func testQuotaReclamation(ctx context.Context, t *testing.T, config Config,
 		bserver = jbserver.BlockServer
 	}
 	bserverLocal, ok := bserver.(blockServerLocal)
-	if !ok {
-		t.Fatalf("Bad block server")
-	}
+	require.True(t, ok,
+		"Bad block server")
 	preQR1Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
@@ -81,10 +81,9 @@ func testQuotaReclamation(ctx context.Context, t *testing.T, config Config,
 		ctx, rootNode.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
-	if !reflect.DeepEqual(preQR1Blocks, postQR1Blocks) {
-		t.Fatalf("Blocks deleted too early (%v vs %v)!",
-			preQR1Blocks, postQR1Blocks)
-	}
+	require.True(t, reflect.DeepEqual(preQR1Blocks, postQR1Blocks),
+		"Blocks deleted too early (%v vs %v)!",
+		preQR1Blocks, postQR1Blocks)
 
 	// Increase the time and make a new revision, but don't run quota
 	// reclamation yet.
@@ -181,9 +180,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	// Make sure the MD has an unembedded change block.
 	md, err := config.MDOps().GetForTLF(ctx, ops.id(), nil)
 	require.NoError(t, err, "Couldn't get MD: %+v", err)
-	if md.data.cachedChanges.Info.BlockPointer == data.ZeroPtr {
-		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
-	}
+	require.NotEqual(t, data.ZeroPtr, md.data.cachedChanges.Info.BlockPointer, "No unembedded changes for ops %v", md.data.Changes.Ops)
 }
 
 // Just like the simple case, except tests that it unembeds large sets
@@ -271,17 +268,14 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	bserverLocal, ok := config.BlockServer().(blockServerLocal)
-	if !ok {
-		t.Fatalf("Bad block server")
-	}
+	require.True(t, ok,
+		"Bad block server")
 	blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	b := totalBlockRefs(blocks)
-	if b <= 1 {
-		t.Errorf("Too many blocks left after first QR: %d", b)
-	}
+	require.False(t, b <= 1, "Too many blocks left after first QR: %d", b)
 
 	// Now let it run to completion
 	for b > 1 {
@@ -294,10 +288,9 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 		require.NoError(t, err, "Couldn't get blocks: %+v", err)
 		oldB := b
 		b = totalBlockRefs(blocks)
-		if b >= oldB {
-			t.Fatalf("Blocks didn't shrink after reclamation: %d vs. %d",
-				b, oldB)
-		}
+		require.False(t, b >= oldB,
+			"Blocks didn't shrink after reclamation: %d vs. %d",
+			b, oldB)
 	}
 }
 
@@ -348,17 +341,15 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	data2 := make([]byte, len(data1))
 	_, err = kbfsOps2.Read(ctx, aNode2, data2, 0)
 	require.NoError(t, err, "Couldn't read file: %+v", err)
-	if !bytes.Equal(data1, data2) {
-		t.Fatalf("Read bad data: %v", data2)
-	}
+	require.True(t, bytes.Equal(data1, data2),
+		"Read bad data: %v", data2)
 	bNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("b"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
 	data2 = make([]byte, len(data1))
 	_, err = kbfsOps2.Read(ctx, bNode2, data2, 0)
 	require.NoError(t, err, "Couldn't read file: %+v", err)
-	if !bytes.Equal(otherData, data2) {
-		t.Fatalf("Read bad data: %v", data2)
-	}
+	require.True(t, bytes.Equal(otherData, data2),
+		"Read bad data: %v", data2)
 
 	// Remove two of the files
 	err = kbfsOps1.RemoveEntry(ctx, rootNode1, testPPS("a"))
@@ -375,9 +366,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	// Get the current set of blocks
 	bserverLocal, ok := config1.BlockServer().(blockServerLocal)
-	if !ok {
-		t.Fatalf("Bad block server")
-	}
+	require.True(t, ok,
+		"Bad block server")
 	preQRBlocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode1.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
@@ -394,7 +384,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	if pre, post := totalBlockRefs(preQRBlocks),
 		totalBlockRefs(postQRBlocks); post >= pre {
-		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
+		require.Fail(t, "Blocks didn't shrink after reclamation: pre: %d, post %d",
 			pre, post)
 	}
 
@@ -473,7 +463,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// reference.
 	if pre, post := totalBlockRefs(postQRBlocks),
 		totalBlockRefs(endBlocks); post != pre+8 {
-		t.Errorf("Different number of blocks than expected: pre: %d, post %d",
+		require.Fail(t, "Different number of blocks than expected: pre: %d, post %d",
 			pre, post)
 	}
 	oneDedupFound := false
@@ -489,18 +479,13 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 			continue
 		}
 		if len(refs) > 2 {
-			t.Errorf("Block %v unexpectedly had %d refs %+v", id, len(refs), refs)
+			require.Fail(t, "Block %v unexpectedly had %d refs %+v", id, len(refs), refs)
 		} else if len(refs) == 2 {
-			if oneDedupFound {
-				t.Errorf("Extra dedup block %v with refs %+v", id, refs)
-			} else {
-				oneDedupFound = true
-			}
+			require.False(t, oneDedupFound, "Extra dedup block %v with refs %+v", id, refs)
+			oneDedupFound = true
 		}
 	}
-	if !oneDedupFound {
-		t.Error("No dedup reference found")
-	}
+	require.True(t, oneDedupFound, "No dedup reference found")
 }
 
 // Test that quota reclamation doesn't happen while waiting for a
@@ -515,9 +500,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// Create a shared folder.
@@ -538,7 +521,8 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// Request a rekey from the new device, which will only be
@@ -554,7 +538,8 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	ops.fbm.reclamationGroup.Add(1)
 	err = ops.fbm.doReclamation(timer)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Unexpected rekey error: %+v", err)
+		require.True(t, ok,
+			"Unexpected rekey error: %+v", err)
 	}
 
 	// Rekey from another device.
@@ -651,10 +636,9 @@ func TestQuotaReclamationMissingRootBlock(t *testing.T) {
 		ctx, rootNode2.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
-	if !reflect.DeepEqual(preQR1Blocks, postQR1Blocks) {
-		t.Fatalf("Blocks deleted despite error (%v vs %v)!",
-			preQR1Blocks, postQR1Blocks)
-	}
+	require.True(t, reflect.DeepEqual(preQR1Blocks, postQR1Blocks),
+		"Blocks deleted despite error (%v vs %v)!",
+		preQR1Blocks, postQR1Blocks)
 
 	// Skip state-checking.
 	config1.MDServer().Shutdown()
@@ -700,9 +684,8 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	// Make sure no blocks are deleted before there's a new-enough update.
 	bserverLocal, ok := config2.BlockServer().(blockServerLocal)
-	if !ok {
-		t.Fatalf("Bad block server")
-	}
+	require.True(t, ok,
+		"Bad block server")
 	preQR1Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
@@ -716,10 +699,9 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 		ctx, rootNode2.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
-	if !reflect.DeepEqual(preQR1Blocks, postQR1Blocks) {
-		t.Fatalf("Blocks deleted too early (%v vs %v)!",
-			preQR1Blocks, postQR1Blocks)
-	}
+	require.True(t, reflect.DeepEqual(preQR1Blocks, postQR1Blocks),
+		"Blocks deleted too early (%v vs %v)!",
+		preQR1Blocks, postQR1Blocks)
 
 	// Increase the time again and make sure it does run.
 	clock.Add(2 * config2.Mode().QuotaReclamationMinHeadAge())
@@ -738,7 +720,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	if pre, post := totalBlockRefs(preQR2Blocks),
 		totalBlockRefs(postQR2Blocks); post >= pre {
-		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
+		require.Fail(t, "Blocks didn't shrink after reclamation: pre: %d, post %d",
 			pre, post)
 	}
 
@@ -767,7 +749,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	if pre, post := totalBlockRefs(preQR3Blocks),
 		totalBlockRefs(postQR3Blocks); post >= pre {
-		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
+		require.Fail(t, "Blocks didn't shrink after reclamation: pre: %d, post %d",
 			pre, post)
 	}
 }
@@ -834,20 +816,19 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	}
 
 	if g, e := count, numCycles+1; g != e {
-		t.Fatalf("Wrong number of forced QRs: %d vs %d", g, e)
+		require.FailNow(t, fmt.Sprintf("Wrong number of forced QRs: %d vs %d", g, e))
 	}
 
 	if g, e := len(md.data.Changes.Ops), 1; g != e {
-		t.Fatalf("Unexpected number of ops: %d vs %d", g, e)
+		require.FailNow(t, fmt.Sprintf("Unexpected number of ops: %d vs %d", g, e))
 	}
 
 	gcOp, ok := md.data.Changes.Ops[0].(*GCOp)
-	if !ok {
-		t.Fatalf("No GCOp: %s", md.data.Changes.Ops[0])
-	}
+	require.True(t, ok,
+		"No GCOp: %s", md.data.Changes.Ops[0])
 
 	if g, e := gcOp.LatestRev, md.Revision()-1; g != e {
-		t.Fatalf("Last GCOp revision was unexpected: %d vs %d", g, e)
+		require.FailNow(t, fmt.Sprintf("Last GCOp revision was unexpected: %d vs %d", g, e))
 	}
 }
 

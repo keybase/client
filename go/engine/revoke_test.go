@@ -107,17 +107,14 @@ func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 
 	// Revoking the current device should fail.
 	err := doRevokeDevice(tc, u, thisDevice.ID, false, false)
-	if err == nil {
-		tc.T.Fatal("Expected revoking the current device to fail.")
-	}
+	require.Error(tc.T, err,
+		"Expected revoking the current device to fail.")
 
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
 	// But it should succeed with the --force flag.
 	err = doRevokeDevice(tc, u, thisDevice.ID, true, false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 }
@@ -246,24 +243,18 @@ func TestRevokeKey(t *testing.T) {
 	assertNumDevicesAndKeys(tc, u, 2, 5)
 
 	_, keys := getActiveDevicesAndKeys(tc, u)
-	var pgpKey *libkb.GenericKey
-	for i, key := range keys {
+	var pgpKey libkb.GenericKey
+	for _, key := range keys {
 		if libkb.IsPGP(key) {
-			// XXX: Don't use &key. That refers to the loop variable, which
-			// gets overwritten.
-			pgpKey = &keys[i] //
+			pgpKey = key
 			break
 		}
 	}
-	if pgpKey == nil {
-		t.Fatal("Expected to find PGP key")
-		return
-	}
+	require.NotNil(t, pgpKey,
+		"Expected to find PGP key")
 
-	err := doRevokeKey(tc, u, (*pgpKey).GetKID())
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	err := doRevokeKey(tc, u, pgpKey.GetKID())
+	require.NoError(tc.T, err)
 
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 }
@@ -325,12 +316,10 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	// Still logged in on tc1.  Try to use it to track someone.  It should fail
 	// with a KeyRevokedError.
 	_, _, err = runTrack(tc1, u, "t_alice", sigVersion)
-	if err == nil {
-		t.Fatal("expected runTrack to return an error")
-	}
-	if _, ok := err.(libkb.BadSessionError); !ok {
-		t.Errorf("expected libkb.BadSessionError, got %T", err)
-	}
+	require.Error(t, err,
+		"expected runTrack to return an error")
+	_, ok := err.(libkb.BadSessionError)
+	require.True(t, ok, "expected libkb.BadSessionError, got %T", err)
 }
 
 func TestSignAfterRevoke(t *testing.T) {
@@ -387,17 +376,13 @@ func TestSignAfterRevoke(t *testing.T) {
 	ret, err := SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, kbcrypto.NaclSignature(ret.Sig)) {
-		t.Error(kbcrypto.VerificationError{})
-	}
+	require.True(t, publicKey.Verify(msg, kbcrypto.NaclSignature(ret.Sig)), kbcrypto.VerificationError{})
 
 	// This should log out tc1:
 	if err := NewMetaContextForTest(tc1).LogoutAndDeprovisionIfRevoked(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	err = AssertLoggedOut(tc1)
@@ -407,12 +392,10 @@ func TestSignAfterRevoke(t *testing.T) {
 	ret, err = SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
-	if err == nil {
-		t.Fatal("nil error signing after LogoutAndDeprovisionIfRevoked")
-	}
-	if _, ok := err.(libkb.LoginRequiredError); !ok {
-		t.Errorf("error type: %T, expected libkb.LoginRequiredError", err)
-	}
+	require.Error(t, err,
+		"nil error signing after LogoutAndDeprovisionIfRevoked")
+	_, ok := err.(libkb.LoginRequiredError)
+	require.True(t, ok, "error type: %T, expected libkb.LoginRequiredError", err)
 }
 
 // Check that if not on a revoked device that LogoutAndDeprovisionIfRevoked doesn't do anything.
@@ -426,7 +409,7 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	require.NoError(t, err)
 
 	if err := NewMetaContextForTest(tc).LogoutAndDeprovisionIfRevoked(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	err = AssertLoggedIn(tc)
@@ -436,13 +419,9 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	ret, err := SignED25519(context.TODO(), tc.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, kbcrypto.NaclSignature(ret.Sig)) {
-		t.Error(kbcrypto.VerificationError{})
-	}
+	require.True(t, publicKey.Verify(msg, kbcrypto.NaclSignature(ret.Sig)), kbcrypto.VerificationError{})
 }
 
 func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
@@ -475,25 +454,21 @@ func TestRevokeLastDevice(t *testing.T) {
 
 	// Revoking the current device should fail.
 	err := doRevokeDevice(tc, u, thisDevice.ID, false, false)
-	if err == nil {
-		t.Fatal("Expected revoking the current device to fail.")
-	}
+	require.Error(t, err,
+		"Expected revoking the current device to fail.")
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
 	// Since this is the last device, it should fail with `force` too:
 	err = doRevokeDevice(tc, u, thisDevice.ID, true, false)
-	if err == nil {
-		t.Fatal("Expected revoking the current last device to fail.")
-	}
+	require.Error(t, err,
+		"Expected revoking the current last device to fail.")
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
 	// With `force` and `forceLast`, the revoke should succeed
 	err = doRevokeDevice(tc, u, thisDevice.ID, true, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	assertNumDevicesAndKeys(tc, u, 0, 0)
 }
@@ -518,12 +493,12 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	testUserHasDeviceKey(tc)
 	hasZeroPaperDev(tc, u1)
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	devices, _ := getActiveDevicesAndKeys(tc, u1)
@@ -531,34 +506,25 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 
 	// Revoking the current device should fail.
 	err := doRevokeDevice(tc, u1, thisDevice.ID, false, false)
-	if err == nil {
-		t.Fatal("Expected revoking the current device to fail.")
-	}
-	if _, ok := err.(libkb.RevokeLastDevicePGPError); !ok {
-		t.Fatalf("expected libkb.RevokeLastDevicePGPError, got %T", err)
-	}
+	require.Error(t, err,
+		"Expected revoking the current device to fail.")
+	require.IsType(t, libkb.RevokeLastDevicePGPError{}, err, "expected libkb.RevokeLastDevicePGPError, got %T", err)
 
 	assertNumDevicesAndKeys(tc, u1, 1, 3)
 
 	// Since this is the last device, it should fail with `force` too:
 	err = doRevokeDevice(tc, u1, thisDevice.ID, true, false)
-	if err == nil {
-		t.Fatal("Expected revoking the current last device to fail.")
-	}
-	if _, ok := err.(libkb.RevokeLastDevicePGPError); !ok {
-		t.Fatalf("expected libkb.RevokeLastDevicePGPError, got %T", err)
-	}
+	require.Error(t, err,
+		"Expected revoking the current last device to fail.")
+	require.IsType(t, libkb.RevokeLastDevicePGPError{}, err, "expected libkb.RevokeLastDevicePGPError, got %T", err)
 
 	assertNumDevicesAndKeys(tc, u1, 1, 3)
 
 	// With `force` and `forceLast`, the revoke should also fail because of pgp key
 	err = doRevokeDevice(tc, u1, thisDevice.ID, true, true)
-	if err == nil {
-		t.Fatal("Expected revoking current last device with forceLast to fail")
-	}
-	if _, ok := err.(libkb.RevokeLastDevicePGPError); !ok {
-		t.Fatalf("expected libkb.RevokeLastDevicePGPError, got %T", err)
-	}
+	require.Error(t, err,
+		"Expected revoking current last device with forceLast to fail")
+	require.IsType(t, libkb.RevokeLastDevicePGPError{}, err, "expected libkb.RevokeLastDevicePGPError, got %T", err)
 
 	assertNumDevicesAndKeys(tc, u1, 1, 3)
 }

@@ -76,7 +76,7 @@ func TestFormatAmount(t *testing.T) {
 		switch test.rounding {
 		case "", "round", "truncate":
 		default:
-			t.Fatalf("%v: invalid rounding '%v'", i, test.rounding)
+			require.FailNow(t, fmt.Sprintf("%v: invalid rounding '%v'", i, test.rounding))
 		}
 		for _, rounding := range []stellarnet.FmtRoundingBehavior{stellarnet.Round, stellarnet.Truncate} {
 			if test.rounding == "round" && rounding == stellarnet.Truncate {

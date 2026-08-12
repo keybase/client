@@ -4,7 +4,11 @@
 
 package libkbfs
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestSizeFlag(t *testing.T) {
 	for _, v := range []int64{
@@ -14,26 +18,20 @@ func TestSizeFlag(t *testing.T) {
 	} {
 		var x int64
 		err := SizeFlag{&x}.Set(SizeFlag{&v}.String())
-		if v != x || err != nil {
-			t.Errorf("SizeFlag comparison error: v=%d x=%d err=%v", v, x, err)
-		}
+		require.False(t, v != x || err != nil, "SizeFlag comparison error: v=%d x=%d err=%v", v, x, err)
 	}
 	mult := int64(1000)
 	for _, ch := range "kmgt" {
 		v := mult * 77
 		r := SizeFlag{&v}
-		if r.String() != "77"+string(ch) {
-			t.Errorf("SizeFlag to string error: got %v, expected %v", r.String(), "77"+string(ch))
-		}
+		require.Equal(t, "77"+string(ch), r.String(), "SizeFlag to string error: got %v, expected %v", r.String(), "77"+string(ch))
 		mult *= 1000
 	}
 	mult = 1024
 	for _, ch := range "kmgt" {
 		v := mult * 77
 		r := SizeFlag{&v}
-		if r.String() != "77"+string(ch)+"i" {
-			t.Errorf("SizeFlag to string error: got %v, expected %v", r.String(), "77"+string(ch)+"i")
-		}
+		require.Equal(t, "77"+string(ch)+"i", r.String(), "SizeFlag to string error: got %v, expected %v", r.String(), "77"+string(ch)+"i")
 		mult *= 1024
 	}
 }
@@ -41,7 +39,5 @@ func TestSizeFlag(t *testing.T) {
 func TestSizeFlagZero(t *testing.T) {
 	var f SizeFlag
 	s := f.String()
-	if s != "0" {
-		t.Errorf("Expected 0, got %s", s)
-	}
+	require.Equal(t, "0", s, "Expected 0, got %s", s)
 }

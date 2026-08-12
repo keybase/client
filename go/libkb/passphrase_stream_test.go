@@ -6,6 +6,8 @@ package libkb
 import (
 	"encoding/hex"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type dktest struct {
@@ -51,21 +53,10 @@ var dktests = []dktest{
 func TestTSPassKey(t *testing.T) {
 	for _, test := range dktests {
 		_, dk, err := StretchPassphrase(nil, test.passphrase, []byte(test.salt))
-		if err != nil {
-			t.Errorf("%s: got unexpected error: %s", test.name, err)
-			continue
-		}
-		if hex.EncodeToString(dk.PWHash()) != test.pwh {
-			t.Errorf("%s: pwh = %x, expected %q", test.name, dk.PWHash(), test.pwh)
-		}
-		if hex.EncodeToString(dk.EdDSASeed()) != test.ekey {
-			t.Errorf("%s: eddsa = %x, expected %q", test.name, dk.EdDSASeed(), test.ekey)
-		}
-		if hex.EncodeToString(dk.DHSeed()) != test.dkey {
-			t.Errorf("%s: dh = %x, expected %q", test.name, dk.DHSeed(), test.dkey)
-		}
-		if hex.EncodeToString(dk.LksClientHalf().Bytes()) != test.lkey {
-			t.Errorf("%s: lks = %x, expected %q", test.name, dk.LksClientHalf().Bytes(), test.lkey)
-		}
+		require.NoError(t, err, "%s: got unexpected error: %s", test.name, err)
+		require.Equal(t, test.pwh, hex.EncodeToString(dk.PWHash()), "%s: pwh = %x, expected %q", test.name, dk.PWHash(), test.pwh)
+		require.Equal(t, test.ekey, hex.EncodeToString(dk.EdDSASeed()), "%s: eddsa = %x, expected %q", test.name, dk.EdDSASeed(), test.ekey)
+		require.Equal(t, test.dkey, hex.EncodeToString(dk.DHSeed()), "%s: dh = %x, expected %q", test.name, dk.DHSeed(), test.dkey)
+		require.Equal(t, test.lkey, hex.EncodeToString(dk.LksClientHalf().Bytes()), "%s: lks = %x, expected %q", test.name, dk.LksClientHalf().Bytes(), test.lkey)
 	}
 }

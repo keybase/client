@@ -229,9 +229,7 @@ func TestBlockDiskStoreRemove(t *testing.T) {
 	err = filepath.Walk(s.dir,
 		func(path string, info os.FileInfo, _ error) error {
 			// We should only find the blocks directory here.
-			if path != s.dir {
-				t.Errorf("Found unexpected block path: %s", path)
-			}
+			require.Equal(t, s.dir, path, "Found unexpected block path: %s", path)
 			return nil
 		})
 	require.NoError(t, err)

@@ -60,7 +60,7 @@ func makeUserStandalone(t *testing.T, tt *teamTester, pre string, opts standalon
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTest()
 	if err := signup.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	t.Logf("signed up %s", userInfo.username)
 

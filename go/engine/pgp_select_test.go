@@ -18,7 +18,7 @@ func TestSelectEngine(t *testing.T) {
 
 	fu := NewFakeUserOrBust(t, "se")
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipGPG = false
@@ -32,18 +32,14 @@ func TestSelectEngine(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, s); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	fuUser, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	publicKeys := fuUser.GetActivePGPKeys(false)
-	if len(publicKeys) != 1 {
-		tc.T.Fatal("There should be one generated PGP key")
-	}
+	require.Len(tc.T, publicKeys, 1, "There should be one generated PGP key")
 
 	key := publicKeys[0]
 	fp := key.GetFingerprint().String()
@@ -60,15 +56,10 @@ func TestSelectEngine(t *testing.T) {
 	// The GPGImportKeyEngine converts a multi select on the same key into
 	// an update, so our test checks that the update code ran, by counting
 	// on the test version of the update key prompt.
-	if testui.keyChosenCount != 1 {
-		tc.T.Fatal("Selected the same key twice and no update happened")
-	}
-	if len(gpg.duplicatedFingerprints) != 1 {
-		tc.T.Fatal("Server didn't return an error while updating")
-	}
-	if !key.GetFingerprint().Eq(gpg.duplicatedFingerprints[0]) {
-		tc.T.Fatal("Our fingerprint ID wasn't returned as up to date")
-	}
+	require.Equal(tc.T, 1, testui.keyChosenCount, "Selected the same key twice and no update happened")
+	require.Len(tc.T, gpg.duplicatedFingerprints, 1, "Server didn't return an error while updating")
+	require.True(tc.T, key.GetFingerprint().Eq(gpg.duplicatedFingerprints[0]),
+		"Our fingerprint ID wasn't returned as up to date")
 }
 
 func TestPGPSelectThenPushSecret(t *testing.T) {

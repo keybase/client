@@ -212,18 +212,14 @@ func (rkt *rekeyTester) signupUser(dw *deviceWrapper) {
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTest()
 	if err := signup.Run(); err != nil {
-		rkt.t.Fatal(err)
+		require.NoError(rkt.t, err)
 	}
 	rkt.t.Logf("signed up %s", userInfo.username)
 	rkt.username = userInfo.username
 	var backupKey backupKey
 	devices, backups := rkt.loadEncryptionKIDs()
-	if len(devices) != 1 {
-		rkt.t.Fatalf("Expected 1 device back; got %d", len(devices))
-	}
-	if len(backups) != 1 {
-		rkt.t.Fatalf("Expected 1 backup back; got %d", len(backups))
-	}
+	require.Len(rkt.t, devices, 1, "Expected 1 device back; got %d", len(devices))
+	require.Len(rkt.t, backups, 1, "Expected 1 backup back; got %d", len(backups))
 	dw.deviceKey.KID = devices[0]
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
@@ -257,7 +253,8 @@ func (rkt *rekeyTester) startUIsAndClients(dw *deviceWrapper) {
 	}
 
 	if err := launch(); err != nil {
-		rkt.t.Fatalf("Failed to launch rekey UI: %s", err)
+		require.NoError(rkt.t, err,
+			"Failed to launch rekey UI: %s", err)
 	}
 }
 
@@ -268,7 +265,7 @@ func (rkt *rekeyTester) confirmNoRekeyUIActivity(dw *deviceWrapper, hours int, f
 			case ev := <-dw.rekeyUI.events:
 				rkt.log.Debug("Hour %d: got rekey event: %+v", hour, ev)
 			case <-dw.rekeyUI.refreshes:
-				rkt.t.Fatalf("Didn't expect any rekeys; got one at hour %d\n", hour)
+				require.FailNow(rkt.t, fmt.Sprintf("Didn't expect any rekeys; got one at hour %d\n", hour))
 			default:
 				return
 			}
@@ -281,7 +278,7 @@ func (rkt *rekeyTester) confirmNoRekeyUIActivity(dw *deviceWrapper, hours int, f
 	}
 	err := dw.rekeyClient.RekeySync(context.TODO(), keybase1.RekeySyncArg{SessionID: 0, Force: force})
 	if err != nil {
-		rkt.t.Errorf("Error syncing rekey: %s", err)
+		require.Fail(rkt.t,"Error syncing rekey: %s", err)
 	}
 	assertNoActivity(hours + 1)
 }
@@ -322,9 +319,8 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	_, err := g.API.Post(mctx, apiArg)
-	if err != nil {
-		rkt.t.Fatalf("Failed to post fake TLF: %s", err)
-	}
+	require.NoError(rkt.t, err,
+		"Failed to post fake TLF: %s", err)
 }
 
 func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
@@ -345,9 +341,8 @@ func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
 
 	mctx := libkb.NewMetaContextBackground(g)
 	_, err := g.API.Post(mctx, apiArg)
-	if err != nil {
-		rkt.t.Fatalf("Failed to bump rekey to front of line: %s", err)
-	}
+	require.NoError(rkt.t, err,
+		"Failed to bump rekey to front of line: %s", err)
 }
 
 func (rkt *rekeyTester) kickRekeyd() {
@@ -364,7 +359,7 @@ func (rkt *rekeyTester) kickRekeyd() {
 	mctx := libkb.NewMetaContextBackground(g)
 	_, err := g.API.Post(mctx, apiArg)
 	if err != nil {
-		rkt.t.Errorf("Failed to accelerate rekeyd: %s", err)
+		require.Fail(rkt.t,"Failed to accelerate rekeyd: %s", err)
 	}
 }
 
@@ -373,7 +368,7 @@ func (rkt *rekeyTester) assertRekeyWindowPushed(dw *deviceWrapper) {
 	select {
 	case <-dw.rekeyUI.refreshes:
 	case <-time.After(30 * time.Second):
-		rkt.t.Fatalf("no gregor came in after 30s; something is broken")
+		require.FailNow(rkt.t, "no gregor came in after 30s; something is broken")
 	}
 	rkt.log.Debug("- assertRekeyWindowPushed")
 }
@@ -413,16 +408,14 @@ func (rkt *rekeyTester) snoozeRekeyWindow(dw *deviceWrapper) {
 	defer rkt.log.Debug("- -------- snoozeRekeyWindow ---------")
 
 	_, err := dw.rekeyClient.RekeyStatusFinish(context.TODO(), 0)
-	if err != nil {
-		rkt.t.Fatalf("Failed to finish rekey: %s\n", err)
-	}
+	require.NoError(rkt.t, err,
+		"Failed to finish rekey: %s\n", err)
 
 	// There might be a few stragglers --- that's OK, just clear
 	// them out, but no more once we advance the clock!
 	err = dw.rekeyClient.RekeySync(context.TODO(), keybase1.RekeySyncArg{SessionID: 0, Force: false})
-	if err != nil {
-		rkt.t.Fatalf("Failed to sync: %s", err)
-	}
+	require.NoError(rkt.t, err,
+		"Failed to sync: %s", err)
 	rkt.clearAllEvents(dw)
 
 	// Our snooze should be 23 hours long, and should be resistant
@@ -450,12 +443,11 @@ func (rkt *rekeyTester) confirmRekeyWakesUp(dw *deviceWrapper) {
 
 	// Now sync so that we're sure we get a full run through the loop.
 	err := dw.rekeyClient.RekeySync(context.TODO(), keybase1.RekeySyncArg{SessionID: 0, Force: false})
-	if err != nil {
-		rkt.t.Fatalf("Error syncing rekey: %s", err)
-	}
+	require.NoError(rkt.t, err,
+		"Error syncing rekey: %s", err)
 
 	if numRefreshes := rkt.consumeAllRekeyRefreshes(dw); numRefreshes == 0 {
-		rkt.t.Fatal("snoozed rekey window never came back")
+		require.FailNow(rkt.t, "snoozed rekey window never came back")
 	} else {
 		rkt.log.Debug("Got %d refreshes", numRefreshes)
 	}
@@ -564,13 +556,12 @@ func (rkt *rekeyTester) generateNewBackupKey(dw *deviceWrapper) {
 	g.SetUI(&ui)
 	paperGen := client.NewCmdPaperKeyRunner(g)
 	if err := paperGen.Run(); err != nil {
-		rkt.t.Fatal(err)
+		require.NoError(rkt.t, err)
 	}
 	_, backups := rkt.loadEncryptionKIDs()
 	backupKey, found := rkt.findNewBackupKey(backups)
-	if !found {
-		rkt.t.Fatalf("didn't find a new backup key!")
-	}
+	require.True(rkt.t, found,
+		"didn't find a new backup key!")
 	backupKey.secret = ui.secret
 	g.Log.Debug("New backup key is: %s", backupKey.KID)
 
@@ -593,11 +584,11 @@ func (rkt *rekeyTester) expectAlreadyKeyedNoop(dw *deviceWrapper) {
 			case keybase1.RekeyEventType_NO_GREGOR_MESSAGES, keybase1.RekeyEventType_NO_PROBLEMS:
 				rkt.log.Debug("| In waiting for 'CURRENT_DEVICE_CAN_REKEY': %+v", ev)
 			default:
-				rkt.t.Fatalf("Got wrong event type: %+v", ev)
+				require.FailNow(rkt.t, fmt.Sprintf("Got wrong event type: %+v", ev))
 				done = true
 			}
 		case <-time.After(30 * time.Second):
-			rkt.t.Fatal("Didn't get an event before 30s timeout")
+			require.FailNow(rkt.t, "Didn't get an event before 30s timeout")
 		}
 	}
 	rkt.confirmNoRekeyUIActivity(dw, 28, false)
@@ -737,19 +728,20 @@ func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
 	}
 
 	if err := launch(); err != nil {
-		rkt.t.Fatalf("Failed to login rekey UI: %s", err)
+		require.NoError(rkt.t, err,
+			"Failed to login rekey UI: %s", err)
 	}
 	cmd := client.NewCmdLoginRunner(g)
 	if err := cmd.Run(); err != nil {
-		rkt.t.Fatalf("Login failed: %s\n", err)
+		require.NoError(rkt.t, err,
+			"Login failed: %s\n", err)
 	}
 
 	var found bool
 	devices, _ := rkt.loadEncryptionKIDs()
 	dev2.deviceKey.KID, found = rkt.findNewDeviceKey(devices)
-	if !found {
-		rkt.t.Fatalf("Failed to failed device kid for new device")
-	}
+	require.True(rkt.t, found,
+		"Failed to failed device kid for new device")
 	rkt.log.Debug("new device KID: %s", dev2.deviceKey.KID)
 
 	// Clear the paper key because we don't want it hanging around to
@@ -785,9 +777,8 @@ func (rkt *rekeyTester) bumpTLFAndAssertRekeyWindowPushed(dw *deviceWrapper) {
 
 func (rkt *rekeyTester) confirmRekeyDismiss(dw *deviceWrapper) {
 	err := dw.rekeyClient.RekeySync(context.TODO(), keybase1.RekeySyncArg{SessionID: 0, Force: false})
-	if err != nil {
-		rkt.t.Fatalf("failed to sync: %s", err)
-	}
+	require.NoError(rkt.t, err,
+		"failed to sync: %s", err)
 	found := false
 	done := false
 	for !found && !done {
@@ -803,9 +794,8 @@ func (rkt *rekeyTester) confirmRekeyDismiss(dw *deviceWrapper) {
 			done = true
 		}
 	}
-	if !found {
-		rkt.t.Fatalf("failed to find a refresh UI dismissal")
-	}
+	require.True(rkt.t, found,
+		"failed to find a refresh UI dismissal")
 }
 
 func (rkt *rekeyTester) isGregorStateEmpty() (ret bool) {
@@ -846,7 +836,7 @@ func (rkt *rekeyTester) confirmGregorStateIsClean() {
 		time.Sleep(delay)
 		i++
 	}
-	rkt.t.Fatal("Failed to find a clean gregor state")
+	require.FailNow(rkt.t, "Failed to find a clean gregor state")
 }
 
 func (rkt *rekeyTester) fullyRekeyAndAssertCleared(dw *deviceWrapper) {

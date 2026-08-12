@@ -69,7 +69,7 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var wg sync.WaitGroup
@@ -85,9 +85,8 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 	}
 	eng := NewDeviceAdd(tcX.G)
 	m := NewMetaContextForTest(tcX).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Errorf("device add error: %s", err)
-	}
+	err := RunEngine2(m, eng)
+	require.NoError(t, err, "device add error: %s", err)
 
 	wg.Wait()
 }
@@ -117,9 +116,7 @@ func testDeviceAddPhrase(t *testing.T, typ libkb.Kex2SecretType) {
 	userX := CreateAndSignupFakeUser(tcX, "login")
 
 	secretY, err := libkb.NewKex2SecretFromTypeAndUID(typ, userX.UID())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var wg sync.WaitGroup
 
@@ -134,9 +131,8 @@ func testDeviceAddPhrase(t *testing.T, typ libkb.Kex2SecretType) {
 	}
 	eng := NewDeviceAdd(tcX.G)
 	m := NewMetaContextForTest(tcX).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Errorf("device add error: %s", err)
-	}
+	err = RunEngine2(m, eng)
+	require.NoError(t, err, "device add error: %s", err)
 
 	wg.Wait()
 }
@@ -155,7 +151,7 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var wg sync.WaitGroup
@@ -173,15 +169,13 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 	}
 	eng := NewDeviceAdd(tcX.G)
 	m := NewMetaContextForTest(tcX).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Errorf("device add error: %s", err)
-	}
+	err := RunEngine2(m, eng)
+	require.NoError(t, err, "device add error: %s", err)
 
 	wg.Wait()
 
-	if testSecretUI.CalledGetPassphrase {
-		t.Fatal("GetPassphrase() unexpectedly called")
-	}
+	require.False(t, testSecretUI.CalledGetPassphrase,
+		"GetPassphrase() unexpectedly called")
 }
 
 type testXProvisionUI struct {

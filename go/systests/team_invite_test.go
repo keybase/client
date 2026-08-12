@@ -45,19 +45,11 @@ func TestTeamInviteRooter(t *testing.T) {
 
 	// the team should have user 1 in it now as a writer
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(writers) != 1 {
-		t.Fatalf("num writers: %d, expected 1", len(writers))
-	}
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.NoError(t, err)
+	require.Len(t, writers, 1, "num writers: %d, expected 1", len(writers))
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(tt.users[1].username), "rooter")
@@ -94,19 +86,11 @@ func TestTeamInviteGenericSocial(t *testing.T) {
 
 	// the team should have user 1 in it now as a writer
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(writers) != 1 {
-		t.Fatalf("num writers: %d, expected 1", len(writers))
-	}
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.NoError(t, err)
+	require.Len(t, writers, 1, "num writers: %d, expected 1", len(writers))
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(tt.users[1].username), "gubble.social")
@@ -147,28 +131,16 @@ func TestTeamInviteEmail(t *testing.T) {
 
 	// the team should have user 1 in it now as a writer
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(writers) != 1 {
-		t.Fatalf("num writers: %d, expected 1", len(writers))
-	}
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.NoError(t, err)
+	require.Len(t, writers, 1, "num writers: %d, expected 1", len(writers))
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(email), "email")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if exists {
-		t.Error("after accepting invite, active invite still exists")
-	}
+	require.NoError(t, err)
+	require.False(t, exists, "after accepting invite, active invite still exists")
 }
 
 func TestTeamInviteAcceptOrRequest(t *testing.T) {
@@ -210,9 +182,7 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 	require.Len(t, writers, 1)
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 }
 
 // bob resets and added to team with no keys, logs in and invite should

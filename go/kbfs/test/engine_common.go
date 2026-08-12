@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/stretchr/testify/require"
 )
 
 func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSize int64) {
@@ -20,22 +21,19 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 		if blockSize == 0 {
 			blockSize = 512 * 1024
 		}
-		if blockChangeSize < 0 {
-			t.Fatal("Can't handle negative blockChangeSize")
-		}
+		require.False(t, blockChangeSize < 0,
+			"Can't handle negative blockChangeSize")
 		if blockChangeSize == 0 {
 			blockChangeSize = 8 * 1024
 		}
 		bsplit, err := data.NewBlockSplitterSimple(blockSize,
 			uint64(blockChangeSize), config.Codec()) //nolint:gosec // G115: Test config with bounded values
-		if err != nil {
-			t.Fatalf("Couldn't make block splitter for block size %d,"+
+		require.NoError(t, err,
+			"Couldn't make block splitter for block size %d,"+
 				" blockChangeSize %d: %v", blockSize, blockChangeSize, err)
-		}
 		err = bsplit.SetMaxDirEntriesByBlockSize(config.Codec())
-		if err != nil {
-			t.Fatalf("Couldn't set max dir entries: %v", err)
-		}
+		require.NoError(t, err,
+			"Couldn't set max dir entries: %v", err)
 		config.SetBlockSplitter(bsplit)
 	}
 }
@@ -80,9 +78,7 @@ func makeImplicitTeams(t testing.TB, config libkbfs.Config, e Engine,
 ) {
 	if len(implicitTeams) > 0 {
 		err := libkbfs.EnableImplicitTeamsForTest(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 
 	counter := byte(1)

@@ -281,17 +281,14 @@ func (d *smuDeviceWrapper) startClient() {
 	var err error
 	tctx := d.popClone()
 	d.cli, d.xp, err = client.GetRPCClientWithContext(tctx.G)
-	if err != nil {
-		d.ctx.t.Fatal(err)
-	}
+	require.NoError(d.ctx.t, err)
 }
 
 func (d *smuDeviceWrapper) loadEncryptionKIDs() (devices []keybase1.KID, backups []backupKey) {
 	keyMap := make(map[keybase1.KID]keybase1.PublicKey)
 	keys, err := d.userClient().LoadMyPublicKeys(context.TODO(), 0)
-	if err != nil {
-		d.ctx.t.Fatalf("Failed to LoadMyPublicKeys: %s", err)
-	}
+	require.NoError(d.ctx.t, err,
+		"Failed to LoadMyPublicKeys: %s", err)
 	for _, key := range keys {
 		keyMap[key.KID] = key
 	}
@@ -340,20 +337,16 @@ func (u *smuUser) signupHelper(puk, paper bool) {
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTestWithPaper(paper)
 	if err := signup.Run(); err != nil {
-		ctx.t.Fatal(err)
+		require.NoError(ctx.t, err)
 	}
 	ctx.t.Logf("signed up %s", userInfo.username)
 	u.username = userInfo.username
 	var backupKey backupKey
 	devices, backups := dw.loadEncryptionKIDs()
-	if len(devices) != 1 {
-		ctx.t.Fatalf("Expected 1 device back; got %d", len(devices))
-	}
+	require.Len(ctx.t, devices, 1, "Expected 1 device back; got %d", len(devices))
 	dw.deviceKey.KID = devices[0]
 	if paper {
-		if len(backups) != 1 {
-			ctx.t.Fatalf("Expected 1 backup back; got %d", len(backups))
-		}
+		require.Len(ctx.t, backups, 1, "Expected 1 backup back; got %d", len(backups))
 		backupKey = backups[0]
 		backupKey.secret = signupUI.info.displayedPaperKey
 		u.backupKeys = append(u.backupKeys, backupKey)
@@ -395,11 +388,11 @@ func (u *smuUser) registerForNotifications() {
 	u.notifications = newTeamNotifyHandler()
 	srv := rpc.NewServer(u.primaryDevice().transport(), nil)
 	if err := srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
-		u.ctx.t.Fatal(err)
+		require.NoError(u.ctx.t, err)
 	}
 	ncli := keybase1.NotifyCtlClient{Cli: u.primaryDevice().rpcClient()}
 	if err := ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Team: true}); err != nil {
-		u.ctx.t.Fatal(err)
+		require.NoError(u.ctx.t, err)
 	}
 }
 
@@ -420,7 +413,7 @@ func (u *smuUser) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.getPrimaryGlobalContext())):
 		}
 	}
-	u.ctx.t.Fatalf("timed out waiting for team newly added %s", teamID)
+	require.FailNow(u.ctx.t, fmt.Sprintf("timed out waiting for team newly added %s", teamID))
 }
 
 func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
@@ -439,7 +432,7 @@ func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.getPrimaryGlobalContext())):
 		}
 	}
-	u.ctx.t.Fatalf("timed out waiting for team abandon %s", teamID)
+	require.FailNow(u.ctx.t, fmt.Sprintf("timed out waiting for team abandon %s", teamID))
 }
 
 func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
@@ -455,9 +448,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, keyGen keybase1.PerTeamK
 	for {
 		cli := u.getTeamsClient()
 		details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name})
-		if err != nil {
-			u.ctx.t.Fatal(err)
-		}
+		require.NoError(u.ctx.t, err)
 		// If the caller specified a "poller" that means we should keep polling until
 		// the predicate turns true
 		if details.KeyGeneration == keyGen && (poller == nil || poller(details)) {
@@ -486,9 +477,8 @@ func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
 			Name:        team.name,
 			ForceRepoll: true,
 		})
-		if err != nil {
-			u.ctx.t.Fatalf("error while loading team %q: %v", team.name, err)
-		}
+		require.NoError(u.ctx.t, err,
+			"error while loading team %q: %v", team.name, err)
 
 		if details.CurrentSeqno() >= toSeqno {
 			u.ctx.t.Logf("Found new seqno %d at poll loop iter %d", details.CurrentSeqno(), i)
@@ -498,7 +488,7 @@ func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	u.ctx.t.Fatalf("timed out waiting for team %s seqno link %d", team, toSeqno)
+	require.FailNow(u.ctx.t, fmt.Sprintf("timed out waiting for team %s seqno link %d", team, toSeqno))
 }
 
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
@@ -539,9 +529,7 @@ func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public boo
 	} else {
 		res, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 	return smuImplicitTeam{ID: res.TeamID}
 }
 
@@ -600,9 +588,7 @@ func (u *smuUser) reset() {
 	g.SetUI(&ui)
 	cmd := client.NewCmdAccountResetRunner(g)
 	err := cmd.Run()
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) delete() {
@@ -615,9 +601,7 @@ func (u *smuUser) delete() {
 	g.SetUI(&ui)
 	cmd := client.NewCmdAccountDeleteRunner(g)
 	err := cmd.Run()
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) dbNuke() {
@@ -746,9 +730,7 @@ func (u *smuUser) openTeam(team smuTeam, role keybase1.TeamRole) {
 			JoinAs: role,
 		},
 	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) requestAccess(team smuTeam) {
@@ -756,9 +738,7 @@ func (u *smuUser) requestAccess(team smuTeam) {
 	_, err := cli.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{
 		Name: team.name,
 	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) readChatsWithError(team smuTeam) (messages []chat1.MessageUnboxed, err error) {
@@ -841,7 +821,5 @@ func (u *smuUser) sendChat(t smuTeam, msg string) {
 	runner.SetTeamChatForTest(t.name)
 	runner.SetMessage(msg)
 	err := runner.Run()
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }

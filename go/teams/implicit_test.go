@@ -57,7 +57,7 @@ func TestImplicitRaceCreateTLFs(t *testing.T) {
 		select {
 		case <-doneCh:
 		case <-time.After(time.Minute):
-			t.Fatal("failed to get racing racers back")
+			require.FailNow(t, "failed to get racing racers back")
 		}
 		tc.G.Log.Debug("Got finisher %d", i)
 	}

@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
+	"github.com/stretchr/testify/require"
 )
 
 const fakeResponse = `{
@@ -98,15 +99,11 @@ func TestLoginSessionTimeout(t *testing.T) {
 
 	sesh := NewLoginSession(tc.G, "logintest")
 	err := sesh.Load(NewMetaContextForTest(tc))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !sesh.NotExpired() {
-		t.Fatal("Fresh LoginSession says expired")
-	}
+	require.NoError(t, err)
+	require.True(t, sesh.NotExpired(),
+		"Fresh LoginSession says expired")
 	c.Advance(LoginSessionMemoryTimeout + 1*time.Second)
 	tc.G.SetClock(c) // ??
-	if sesh.NotExpired() {
-		t.Fatal("Stale LoginSession says not expired")
-	}
+	require.False(t, sesh.NotExpired(),
+		"Stale LoginSession says not expired")
 }

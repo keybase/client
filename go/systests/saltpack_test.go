@@ -100,13 +100,11 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
 	m2 := libkb.NewMetaContextForTest(tc).WithUIs(uis2)
 	if err := engine.RunEngine2(m2, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	out := sink.String()
-	if len(out) == 0 {
-		t.Fatal("no output")
-	}
+	require.NotEmpty(t, out, "no output")
 
 	t.Logf("encrypted data: %s", out)
 
@@ -124,7 +122,7 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	}
 	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m1))
 	if err := engine.RunEngine2(m1, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
 	require.Equal(t, msg, decmsg)
@@ -162,13 +160,11 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
 	m1 := libkb.NewMetaContextForTest(*u1.tc).WithUIs(uis1)
 	if err := engine.RunEngine2(m1, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	out := sink.String()
-	if len(out) == 0 {
-		t.Fatal("no output")
-	}
+	require.NotEmpty(t, out, "no output")
 
 	t.Logf("encrypted data: %s", out)
 
@@ -180,7 +176,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	}
 	dec1 := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m1))
 	if err := engine.RunEngine2(m1, dec1); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
 	require.Equal(t, msg, decmsg)
@@ -196,7 +192,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	}
 	dec2 := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
 	if err := engine.RunEngine2(m2, dec2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg = decoded2.String()
 	require.Equal(t, msg, decmsg)
@@ -226,7 +222,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	}
 	dec2 = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
 	if err := engine.RunEngine2(m2, dec2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg = decoded4.String()
 	require.Equal(t, msg, decmsg)
@@ -243,7 +239,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	}
 	dec3 := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m3))
 	if err := engine.RunEngine2(m3, dec3); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg = decoded5.String()
 	require.Equal(t, msg, decmsg)
@@ -277,13 +273,11 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
 	m1 := libkb.NewMetaContextForTest(*u1.tc).WithUIs(uis1)
 	if err := engine.RunEngine2(m1, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	out := sink.String()
-	if len(out) == 0 {
-		t.Fatal("no output")
-	}
+	require.NotEmpty(t, out, "no output")
 
 	t.Logf("encrypted data: %s", out)
 
@@ -321,7 +315,7 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	}
 	dec = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
 	if err := engine.RunEngine2(m2, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
 	require.Equal(t, msg, decmsg)

@@ -132,7 +132,7 @@ func TestBasicSecretStore(t *testing.T) {
 
 	m, skb = makeTestSKB(t, m, lks, tc.G)
 	skb.newLKSecForTest = func(_ LKSecClientHalf) *LKSec {
-		t.Errorf("newLKSecForTest unexpectedly called")
+		require.Fail(t, "newLKSecForTest unexpectedly called")
 		return lks
 	}
 	testPromptAndUnlock(t, m, skb)

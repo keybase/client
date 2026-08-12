@@ -33,7 +33,7 @@ func TestSaltpackVerifyErrors(t *testing.T) {
 
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	sig := sink.String()
@@ -51,7 +51,7 @@ func TestSaltpackVerifyErrors(t *testing.T) {
 	m = m.WithSaltpackUI(fakeSaltpackUI{})
 	veng := NewSaltpackVerify(tc.G, varg)
 	if err := RunEngine2(m, veng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	invalidFormatMsg := `BEGIN KEYBASE SALTPACK SIGNED MESSAGE. kXR7VktZdyH7rvq v5weRa0zkUpZbPl nShyKLCCGSyBcvL sg7Gi9ySjlkxHPS RUM4Vm3DUD635GV a9LihWKrvns0JGJ RmkXOCgHdP3xfwr if6ynJGBkv7cOUC xLo6Q4zPrJ4TAKG bIc1OaeFW8rmpBo OyWcfzK9cRARuy5 hP0TMta2T2mgL0P 3Dwjg3VFKL. END KEYBASE SALTPACK SIGNED.`

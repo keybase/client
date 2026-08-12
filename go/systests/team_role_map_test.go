@@ -33,7 +33,7 @@ func TestTeamRoleMap(t *testing.T) {
 		t.Logf("got notification")
 		require.Equal(t, expected.Version, vers)
 	case <-time.After(10 * time.Second):
-		t.Fatal("failed to get notification after 10s wait")
+		require.FailNow(t, "failed to get notification after 10s wait")
 	}
 
 	pollForTrue(t, tt.users[1].tc.G, func(i int) bool {

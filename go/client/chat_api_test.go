@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/stretchr/testify/require"
 )
 
 type handlerTracker struct {
@@ -458,82 +459,48 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		var buf bytes.Buffer
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
-			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
-				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
-				continue
-			}
+			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: error type %T, expected %T", i, err, test.err)
+			continue
 		} else if err != nil {
-			t.Errorf("test %d: input %s => error %s", i, test.input, err)
+			require.Fail(t, "test %d: input %s => error %s", i, test.input, err)
 			continue
 		}
-		if h.listV1 != test.listV1 {
-			t.Errorf("test %d: input %s => listV1 = %d, expected %d", i, test.input, h.listV1, test.listV1)
-		}
-		if h.readV1 != test.readV1 {
-			t.Errorf("test %d: input %s => readV1 = %d, expected %d", i, test.input, h.readV1, test.readV1)
-		}
-		if h.sendV1 != test.sendV1 {
-			t.Errorf("test %d: input %s => sendV1 = %d, expected %d", i, test.input, h.sendV1, test.sendV1)
-		}
-		if h.editV1 != test.editV1 {
-			t.Errorf("test %d: input %s => editV1 = %d, expected %d", i, test.input, h.editV1, test.editV1)
-		}
-		if h.reactionV1 != test.reactionV1 {
-			t.Errorf("test %d: input %s => reactionV1 = %d, expected %d", i, test.input, h.reactionV1, test.reactionV1)
-		}
-		if h.deleteV1 != test.deleteV1 {
-			t.Errorf("test %d: input %s => deleteV1 = %d, expected %d", i, test.input, h.deleteV1, test.deleteV1)
-		}
-		if h.attachV1 != test.attachV1 {
-			t.Errorf("test %d: input %s => attachV1 = %d, expected %d", i, test.input, h.attachV1, test.attachV1)
-		}
-		if h.downloadV1 != test.downloadV1 {
-			t.Errorf("test %d: input %s => downloadV1 = %d, expected %d", i, test.input, h.downloadV1, test.downloadV1)
-		}
-		if h.markV1 != test.markV1 {
-			t.Errorf("test %d: input %s => markV1 = %d, expected %d", i, test.input, h.markV1, test.markV1)
-		}
-		if h.searchInboxV1 != test.searchInboxV1 {
-			t.Errorf("test %d: input %s => searchInboxV1 = %d, expected %d", i, test.input, h.searchInboxV1, test.searchInboxV1)
-		}
-		if h.searchRegexpV1 != test.searchRegexpV1 {
-			t.Errorf("test %d: input %s => searchRegexpV1 = %d, expected %d", i, test.input, h.searchRegexpV1, test.searchRegexpV1)
-		}
-		if h.joinV1 != test.joinV1 {
-			t.Errorf("test %d: input %s => joinV1 = %d, expected %d", i, test.input, h.joinV1, test.joinV1)
-		}
-		if h.leaveV1 != test.leaveV1 {
-			t.Errorf("test %d: input %s => leaveV1 = %d, expected %d", i, test.input, h.leaveV1, test.leaveV1)
-		}
-		if h.addToChannelV1 != test.addToChannelV1 {
-			t.Errorf("test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
-		}
-		if h.removeFromChannelV1 != test.removeFromChannelV1 {
-			t.Errorf("test %d: input %s => removeFromChannelV1 = %d, expected %d", i, test.input, h.removeFromChannelV1, test.removeFromChannelV1)
-		}
+		require.Equal(t, test.listV1, h.listV1, "test %d: input %s => listV1 = %d, expected %d", i, test.input, h.listV1, test.listV1)
+		require.Equal(t, test.readV1, h.readV1, "test %d: input %s => readV1 = %d, expected %d", i, test.input, h.readV1, test.readV1)
+		require.Equal(t, test.sendV1, h.sendV1, "test %d: input %s => sendV1 = %d, expected %d", i, test.input, h.sendV1, test.sendV1)
+		require.Equal(t, test.editV1, h.editV1, "test %d: input %s => editV1 = %d, expected %d", i, test.input, h.editV1, test.editV1)
+		require.Equal(t, test.reactionV1, h.reactionV1, "test %d: input %s => reactionV1 = %d, expected %d", i, test.input, h.reactionV1, test.reactionV1)
+		require.Equal(t, test.deleteV1, h.deleteV1, "test %d: input %s => deleteV1 = %d, expected %d", i, test.input, h.deleteV1, test.deleteV1)
+		require.Equal(t, test.attachV1, h.attachV1, "test %d: input %s => attachV1 = %d, expected %d", i, test.input, h.attachV1, test.attachV1)
+		require.Equal(t, test.downloadV1, h.downloadV1, "test %d: input %s => downloadV1 = %d, expected %d", i, test.input, h.downloadV1, test.downloadV1)
+		require.Equal(t, test.markV1, h.markV1, "test %d: input %s => markV1 = %d, expected %d", i, test.input, h.markV1, test.markV1)
+		require.Equal(t, test.searchInboxV1, h.searchInboxV1, "test %d: input %s => searchInboxV1 = %d, expected %d", i, test.input, h.searchInboxV1, test.searchInboxV1)
+		require.Equal(t, test.searchRegexpV1, h.searchRegexpV1, "test %d: input %s => searchRegexpV1 = %d, expected %d", i, test.input, h.searchRegexpV1, test.searchRegexpV1)
+		require.Equal(t, test.joinV1, h.joinV1, "test %d: input %s => joinV1 = %d, expected %d", i, test.input, h.joinV1, test.joinV1)
+		require.Equal(t, test.leaveV1, h.leaveV1, "test %d: input %s => leaveV1 = %d, expected %d", i, test.input, h.leaveV1, test.leaveV1)
+		require.Equal(t, test.addToChannelV1, h.addToChannelV1, "test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
+		require.Equal(t, test.removeFromChannelV1, h.removeFromChannelV1, "test %d: input %s => removeFromChannelV1 = %d, expected %d", i, test.input, h.removeFromChannelV1, test.removeFromChannelV1)
 		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
-			t.Errorf("test %d: input %s => listConvsOnNameV1 = %d, expected %d",
+			require.Fail(t, "test %d: input %s => listConvsOnNameV1 = %d, expected %d",
 				i, test.input, h.listConvsOnNameV1, test.listConvsOnNameV1)
 		}
 		if h.pinV1 != test.pinV1 {
-			t.Errorf("test %d: input %s => pinV1 = %d, expected %d",
+			require.Fail(t, "test %d: input %s => pinV1 = %d, expected %d",
 				i, test.input, h.pinV1, test.pinV1)
 		}
 		if h.unpinV1 != test.unpinV1 {
-			t.Errorf("test %d: input %s => unpinV1 = %d, expected %d",
+			require.Fail(t, "test %d: input %s => unpinV1 = %d, expected %d",
 				i, test.input, h.unpinV1, test.unpinV1)
 		}
 		if h.getDeviceInfoV1 != test.getDeviceInfoV1 {
-			t.Errorf("test %d: input %s => getDeviceInfoV1 = %d, expected %d",
+			require.Fail(t, "test %d: input %s => getDeviceInfoV1 = %d, expected %d",
 				i, test.input, h.getDeviceInfoV1, test.getDeviceInfoV1)
 		}
 		if h.listMembersV1 != test.listMembersV1 {
-			t.Errorf("test %d: input %s => listMembersV1 = %d, expected %d",
+			require.Fail(t, "test %d: input %s => listMembersV1 = %d, expected %d",
 				i, test.input, h.listMembersV1, test.listMembersV1)
 		}
-		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
-			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
-		}
+		require.Equal(t, strings.TrimSpace(test.output), strings.TrimSpace(buf.String()), "test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
 	}
 }
 
@@ -811,19 +778,13 @@ func TestChatAPIVersionHandlerOptions(t *testing.T) {
 		var buf bytes.Buffer
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
-			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
-				t.Errorf("test %d: input: %s", i, test.input)
-				t.Errorf("test %d: error type %T, expected %T (%v)", i, err, test.err, err)
-				continue
-			}
+			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: input: %s", i, test.input)
+			continue
 		} else if err != nil {
-			t.Errorf("test %d: input %s => error %s", i, test.input, err)
+			require.Fail(t, "test %d: input %s => error %s", i, test.input, err)
 			continue
 		}
-		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
-			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
-			// continue
-		}
+		require.Equal(t, strings.TrimSpace(test.output), strings.TrimSpace(buf.String()), "test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
 	}
 }
 
@@ -941,18 +902,13 @@ func TestChatAPIEcho(t *testing.T) {
 		c := &cmdAPI{}
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
-			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
-				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
-				continue
-			}
+			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: error type %T, expected %T", i, err, test.err)
+			continue
 		} else if err != nil {
-			t.Errorf("test %d: input %s => error %s", i, test.input, err)
+			require.Fail(t, "test %d: input %s => error %s", i, test.input, err)
 			continue
 		}
 
-		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
-			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
-			continue
-		}
+		require.Equal(t, strings.TrimSpace(test.output), strings.TrimSpace(buf.String()), "test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
 	}
 }

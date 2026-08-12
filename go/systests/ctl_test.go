@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/stretchr/testify/require"
 )
 
 func (v *versionUI) GetDumbOutputUI() libkb.DumbOutputUI {
@@ -41,20 +42,13 @@ type versionUI struct {
 func (v *versionUI) checkVersionOutput(t *testing.T) {
 	rx := regexp.MustCompile(`:\s*`)
 	n := len(v.outbuf)
-	if n < 2 {
-		t.Fatalf("expected >= 2 lines of output; got %d\n", n)
-	}
+	require.False(t, n < 2,
+		"expected >= 2 lines of output; got %d\n", n)
 	s := rx.Split(v.outbuf[n-1], -1)
 	c := rx.Split(v.outbuf[n-2], -1)
-	if s[0] != "Service" {
-		t.Fatalf("%s != Service", s[0])
-	}
-	if c[0] != "Client" {
-		t.Fatalf("%s != Client", c[0])
-	}
-	if c[1] != s[1] {
-		t.Fatalf("version mismatch: %s != %s", c[1], s[1])
-	}
+	require.Equal(t, "Service", s[0], "%s != Service", s[0])
+	require.Equal(t, "Client", c[0], "%s != Client", c[0])
+	require.Equal(t, s[1], c[1], "version mismatch: %s != %s", c[1], s[1])
 }
 
 func TestVersionAndStop(t *testing.T) {
@@ -85,18 +79,18 @@ func TestVersionAndStop(t *testing.T) {
 	version := client.NewCmdVersionRunner(tc2.G)
 
 	if err := version.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	vui.checkVersionOutput(t)
 
 	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 

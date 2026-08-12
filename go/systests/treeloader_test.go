@@ -77,7 +77,7 @@ loop:
 			}
 			require.Equal(t, guid, res.Guid)
 		case <-time.After(10 * time.Second):
-			t.Fatalf("timed out waiting for team tree notifications")
+			require.FailNow(t, "timed out waiting for team tree notifications")
 		}
 		if expectedCount != nil && *expectedCount == got {
 			break loop
@@ -114,7 +114,7 @@ func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 		case keybase1.TeamTreeMembershipStatus_HIDDEN:
 			require.Contains(t, hiddenTeamNames, result.TeamName)
 		default:
-			t.Errorf("got an unknown result status %s", s)
+			require.Fail(t, "got an unknown result status %s", s)
 		}
 	}
 }

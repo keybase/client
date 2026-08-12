@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFileSave(t *testing.T) {
@@ -19,9 +20,7 @@ func TestFileSave(t *testing.T) {
 	file := NewFile(filename, []byte("test data"), 0o644)
 	t.Logf("Saving")
 	err := file.Save(logger.NewTestLogger(t))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestFileSaveConcurrent(t *testing.T) {
@@ -40,9 +39,7 @@ func TestFileSaveConcurrent(t *testing.T) {
 			file := NewFile(filename, []byte("test data"), 0o644)
 			t.Logf("Saving")
 			err := file.Save(log)
-			if err != nil {
-				t.Errorf("save err: %s", err)
-			}
+			require.NoError(t, err, "save err: %s", err)
 			wg.Done()
 		}()
 	}
@@ -54,9 +51,7 @@ func TestFileSaveConcurrent(t *testing.T) {
 		wg2.Add(1)
 		go func() {
 			err := file.Save(log)
-			if err != nil {
-				t.Errorf("save err: %s", err)
-			}
+			require.NoError(t, err, "save err: %s", err)
 			wg2.Done()
 		}()
 	}

@@ -41,12 +41,12 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var wg sync.WaitGroup
@@ -91,10 +91,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		go provisioner.AddSecret(secretY)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 
 	wg.Wait()
@@ -117,12 +115,12 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var wg sync.WaitGroup
@@ -167,10 +165,8 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
 		m := NewMetaContextForTest(*tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 
 	wg.Wait()

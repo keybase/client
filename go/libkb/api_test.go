@@ -17,18 +17,15 @@ import (
 func TestIsReddit(t *testing.T) {
 	// Test both with and without a subdomain.
 	req, _ := http.NewRequest("GET", "http://reddit.com", nil)
-	if !isReddit(req) {
-		t.Fatal("should be a reddit URL")
-	}
+	require.True(t, isReddit(req),
+		"should be a reddit URL")
 	req, _ = http.NewRequest("GET", "http://www.reddit.com", nil)
-	if !isReddit(req) {
-		t.Fatal("should be a reddit URL")
-	}
+	require.True(t, isReddit(req),
+		"should be a reddit URL")
 	// Test a non-reddit URL.
 	req, _ = http.NewRequest("GET", "http://github.com", nil)
-	if isReddit(req) {
-		t.Fatal("should NOT be a reddit URL")
-	}
+	require.False(t, isReddit(req),
+		"should NOT be a reddit URL")
 }
 
 const (
@@ -47,9 +44,7 @@ func TestProductionCA(t *testing.T) {
 	serverURI, err := tc.G.Env.GetServerURI()
 	require.NoError(t, err)
 
-	if serverURI != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
-	}
+	require.Equal(t, uriExpected, serverURI, "production server uri: %s, expected %s", serverURI, uriExpected)
 
 	err = tc.G.ConfigureAPI()
 	require.NoError(t, err)
@@ -57,23 +52,16 @@ func TestProductionCA(t *testing.T) {
 	// make sure endpoint is correct:
 	arg := APIArg{Endpoint: "ping"}
 	internal, ok := tc.G.API.(*InternalAPIEngine)
-	if !ok {
-		t.Fatal("failed to cast API to internal api engine")
-	}
+	require.True(t, ok,
+		"failed to cast API to internal api engine")
 	url := internal.getURL(arg, false)
-	if url.String() != pingExpected {
-		t.Fatalf("api url: %s, expected %s", url.String(), pingExpected)
-	}
+	require.Equal(t, pingExpected, url.String(), "api url: %s, expected %s", url.String(), pingExpected)
 
 	_, err = tc.G.API.Post(mctx, arg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	_, err = tc.G.API.Get(mctx, arg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestProductionBadCA(t *testing.T) {
@@ -87,9 +75,7 @@ func TestProductionBadCA(t *testing.T) {
 	serverURI, err := tc.G.Env.GetServerURI()
 	require.NoError(t, err)
 
-	if serverURI != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
-	}
+	require.Equal(t, uriExpected, serverURI, "production server uri: %s, expected %s", serverURI, uriExpected)
 
 	// change the api CA to one that api.keybase.io doesn't know:
 	apiCAOverrideForTest = unknownCA
@@ -103,51 +89,35 @@ func TestProductionBadCA(t *testing.T) {
 	// make sure endpoint is correct:
 	arg := APIArg{Endpoint: "ping"}
 	internal, ok := tc.G.API.(*InternalAPIEngine)
-	if !ok {
-		t.Fatal("failed to cast API to internal api engine")
-	}
+	require.True(t, ok,
+		"failed to cast API to internal api engine")
 	iurl := internal.getURL(arg, false)
-	if iurl.String() != pingExpected {
-		t.Fatalf("api url: %s, expected %s", iurl.String(), pingExpected)
-	}
+	require.Equal(t, pingExpected, iurl.String(), "api url: %s, expected %s", iurl.String(), pingExpected)
 
 	_, err = tc.G.API.Post(mctx, arg)
-	if err == nil {
-		t.Errorf("api ping POST worked with unknown CA")
-	} else {
-		checkX509Err(t, err)
-	}
+	require.NotNil(t, err, "api ping POST worked with unknown CA")
+	checkX509Err(t, err)
 
 	_, err = tc.G.API.Get(mctx, arg)
-	if err == nil {
-		t.Errorf("api ping GET worked with unknown CA")
-	} else {
+	require.NotNil(t, err, "api ping GET worked with unknown CA")
+	if err != nil {
 		checkX509Err(t, err)
 	}
 }
 
 // this error is buried, so dig for it:
 func checkX509Err(t *testing.T, err error) {
-	if err == nil {
-		t.Fatal("isX509Err called with nil error")
-	}
+	require.Error(t, err,
+		"isX509Err called with nil error")
 
 	a, ok := err.(APINetError)
-	if !ok {
-		t.Errorf("invalid error type: %T, expected libkb.APINetError", err)
-		return
-	}
+	require.True(t, ok, "invalid error type: %T, expected libkb.APINetError", err)
 
 	b, ok := a.Err.(*url.Error)
-	if !ok {
-		t.Errorf("APINetError err field type: %T, expected *url.Error", a.Err)
-		return
-	}
+	require.True(t, ok, "APINetError err field type: %T, expected *url.Error", a.Err)
 
 	_, ok = b.Err.(*tls.CertificateVerificationError)
-	if !ok {
-		t.Errorf("url.Error Err field type: %T, expected x509.UnknownAuthorityError", b.Err)
-	}
+	require.True(t, ok, "url.Error Err field type: %T, expected x509.UnknownAuthorityError", b.Err)
 }
 
 const unknownCA = `-----BEGIN CERTIFICATE-----
@@ -212,33 +182,21 @@ func TestInstallIDHeaders(t *testing.T) {
 	tc.G.Env.updaterConfig = &DummyUpdaterConfigReader{}
 
 	api, err := NewInternalAPIEngine(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	res, err := api.Get(mctx, APIArg{
 		Endpoint:    "pkg/show",
 		SessionType: APISessionTypeOPTIONAL,
 		Args:        HTTPArgs{},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	deviceID, err := res.Body.AtKey("device_id").GetString()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if deviceID != "dummy-device-id" {
-		t.Fatalf("expected device ID to be reflected back, got %s", res.Body.MarshalPretty())
-	}
+	require.NoError(t, err)
+	require.Equal(t, "dummy-device-id", deviceID, "expected device ID to be reflected back, got %s", res.Body.MarshalPretty())
 
 	installID, err := res.Body.AtKey("install_id").GetString()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if installID != "dummy-install-id" {
-		t.Fatalf("expected install ID to be reflected back, got %s", res.Body.MarshalPretty())
-	}
+	require.NoError(t, err)
+	require.Equal(t, "dummy-install-id", installID, "expected install ID to be reflected back, got %s", res.Body.MarshalPretty())
 }
 
 func TestInstallIDHeadersAnon(t *testing.T) {
@@ -251,25 +209,19 @@ func TestInstallIDHeadersAnon(t *testing.T) {
 	tc.G.Env.updaterConfig = &DummyUpdaterConfigReader{}
 
 	api, err := NewInternalAPIEngine(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	res, err := api.Get(mctx, APIArg{
 		Endpoint:    "pkg/show",
 		SessionType: APISessionTypeNONE,
 		Args:        HTTPArgs{},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	_, err = res.Body.AtKey("device_id").GetString()
-	if err == nil {
-		t.Fatal("Device ID should not be here")
-	}
+	require.Error(t, err,
+		"Device ID should not be here")
 
 	_, err = res.Body.AtKey("install_id").GetString()
-	if err == nil {
-		t.Fatal("Install ID should not be here")
-	}
+	require.Error(t, err,
+		"Install ID should not be here")
 }

@@ -885,7 +885,7 @@ func TestCopyProgress(t *testing.T) {
 		select {
 		case <-waitCh:
 		case <-ctx.Done():
-			t.Fatal(ctx.Err())
+			require.FailNow(t, fmt.Sprint(ctx.Err()))
 		}
 	}
 	waitFn()
@@ -1240,7 +1240,7 @@ func (sr *subscriptionReporter) waitForNotification(t *testing.T) {
 	select {
 	case <-sr.lastPathNotify:
 	case <-time.After(10 * time.Millisecond):
-		t.Fatal("Timed out while waiting for notification")
+		require.FailNow(t, "Timed out while waiting for notification")
 	}
 }
 
@@ -1248,7 +1248,7 @@ func (sr *subscriptionReporter) requireNoNotification(t *testing.T) {
 	t.Helper()
 	select {
 	case <-sr.lastPathNotify:
-		t.Fatalf("Got notification but expected none: %q", sr.lastPath)
+		require.FailNow(t, fmt.Sprintf("Got notification but expected none: %q", sr.lastPath))
 	case <-time.After(10 * time.Millisecond):
 	}
 }

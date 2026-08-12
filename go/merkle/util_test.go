@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestComputeSkipPointers(t *testing.T) {
@@ -37,7 +39,7 @@ func TestComputeSkipPointers(t *testing.T) {
 		t.Run(fmt.Sprintf("%+v", tt.in), func(t *testing.T) {
 			actual := ComputeSkipPointers(tt.in)
 			if !reflect.DeepEqual(actual, tt.out) {
-				t.Errorf("(%d): expected %#v, actual %#v", tt.in, tt.out, actual)
+				require.Fail(t, "(%d): expected %#v, actual %#v", tt.in, tt.out, actual)
 			}
 		})
 	}
@@ -56,8 +58,7 @@ func TestComputeSkipPath(t *testing.T) {
 	}
 	for _, test := range tests {
 		got := ComputeSkipPath(test.start, test.end)
-		if !reflect.DeepEqual(got, test.expected) {
-			t.Fatalf("Failed on input (%d, %d), expected %v, got %v.", test.start, test.end, test.expected, got)
-		}
+		require.True(t, reflect.DeepEqual(got, test.expected),
+			"Failed on input (%d, %d), expected %v, got %v.", test.start, test.end, test.expected, got)
 	}
 }

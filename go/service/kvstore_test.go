@@ -201,17 +201,13 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	require.Contains(t, err.Error(), "You are not a member of this team (error 2623)")
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ := err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamReadError {
-		t.Fatalf("expected an SCTeamReadError error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamReadError, aerr.Code, "expected an SCTeamReadError error but got %v", err)
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
 	_, err = bobHandler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.Error(t, err)
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ = err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamReadError {
-		t.Fatalf("expected an SCTeamReadError error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamReadError, aerr.Code, "expected an SCTeamReadError error but got %v", err)
 	t.Logf("bob can no longer GET or LIST the entry")
 
 	// New user to the team can overwrite the existing entry without specifying a revision
@@ -270,9 +266,7 @@ func TestKVDelete(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ := err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamStorageNotFound {
-		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamStorageNotFound, aerr.Code, "expected an SCTeamStorageNotFound error but got %v", err)
 	t.Logf("attempting to delete a non-existent entry errors")
 
 	// create the new entry
@@ -312,9 +306,7 @@ func TestKVDelete(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ = err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamStorageNotFound {
-		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamStorageNotFound, aerr.Code, "expected an SCTeamStorageNotFound error but got %v", err)
 	t.Logf("attempting to delete a deleted entry errors")
 
 	// recreate it after deletion

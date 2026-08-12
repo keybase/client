@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestWaitForServiceInfoOK(t *testing.T) {
@@ -14,12 +16,9 @@ func TestWaitForServiceInfoOK(t *testing.T) {
 		return &ServiceInfo{Label: "ok", Pid: 1}, nil
 	}
 	info, err := waitForServiceInfo(time.Second, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if info == nil || info.Label != "ok" {
-		t.Fatalf("Invalid info")
-	}
+	require.NoError(t, err)
+	require.False(t, info == nil || info.Label != "ok",
+		"Invalid info")
 }
 
 func TestWaitForServiceInfoDelayed(t *testing.T) {
@@ -32,12 +31,9 @@ func TestWaitForServiceInfoDelayed(t *testing.T) {
 		return nil, nil
 	}
 	info, err := waitForServiceInfo(time.Second, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if info == nil || info.Label != "ok_delayed" {
-		t.Fatalf("Invalid status")
-	}
+	require.NoError(t, err)
+	require.False(t, info == nil || info.Label != "ok_delayed",
+		"Invalid status")
 }
 
 func TestWaitForServiceInfoErrored(t *testing.T) {
@@ -45,12 +41,9 @@ func TestWaitForServiceInfoErrored(t *testing.T) {
 		return nil, fmt.Errorf("info error")
 	}
 	_, err := waitForServiceInfo(time.Second, time.Millisecond, fn)
-	if err == nil {
-		t.Fatal("Expected error")
-	}
-	if err.Error() != "info error" {
-		t.Fatal("Expected error returned from fn above")
-	}
+	require.Error(t, err,
+		"Expected error")
+	require.Equal(t, "info error", err.Error(), "Expected error returned from fn above")
 }
 
 func TestWaitForServiceInfoTimeout(t *testing.T) {
@@ -58,10 +51,7 @@ func TestWaitForServiceInfoTimeout(t *testing.T) {
 		return nil, nil
 	}
 	status, err := waitForServiceInfo(5*time.Millisecond, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if status != nil {
-		t.Fatalf("Info should be nil (timed out): %#v", status)
-	}
+	require.NoError(t, err)
+	require.Nil(t, status,
+		"Info should be nil (timed out): %#v", status)
 }

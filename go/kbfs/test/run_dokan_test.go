@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libdokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
+	"github.com/stretchr/testify/require"
 )
 
 type dokanEngine struct {
@@ -53,9 +54,7 @@ func createUserDokan(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	ctx := context.Background()
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		tb.Fatal(err)
-	}
+	require.NoError(tb, err)
 
 	ctx, cancelFn := context.WithCancel(ctx)
 	logTags := logger.CtxLogTags{
@@ -65,9 +64,7 @@ func createUserDokan(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	ctx = context.WithValue(ctx, CtxUserKey, session.Name)
 
 	fs, err := libdokan.NewFS(ctx, config, logger.NewTestLogger(tb))
-	if err != nil {
-		tb.Fatal(err)
-	}
+	require.NoError(tb, err)
 
 	if opTimeout > 0 {
 		tb.Logf("Ignoring op timeout for Dokan test")
@@ -78,9 +75,7 @@ func createUserDokan(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 		Path:       string([]byte{driveLetter, ':'}),
 		MountFlags: libdokan.DefaultMountFlags,
 	})
-	if err != nil {
-		tb.Fatal(err)
-	}
+	require.NoError(tb, err)
 
 	createSuccess = true
 	return &fsUser{

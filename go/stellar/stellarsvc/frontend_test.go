@@ -899,7 +899,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
 		require.Equal(t, info.Info.StatusDescription, "completed")
 	case <-time.After(20 * time.Second):
-		t.Fatal("timed out waiting for chat payment info notification to sender")
+		require.FailNow(t, "timed out waiting for chat payment info notification to sender")
 	}
 
 	// check the recipient chat notification
@@ -917,7 +917,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
 		require.Equal(t, info.Info.StatusDescription, "completed")
 	case <-time.After(20 * time.Second):
-		t.Fatal("timed out waiting for chat payment info notification to sender")
+		require.FailNow(t, "timed out waiting for chat payment info notification to sender")
 	}
 
 	// check the details
@@ -2623,7 +2623,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.Equal(t, "this payment has not been reviewed", errString)
 
 		default:
-			t.Fatalf("unknown case %v", unit.Key)
+			require.FailNow(t, fmt.Sprintf("unknown case %v", unit.Key))
 		}
 	}
 }
@@ -2829,7 +2829,7 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 		require.Nil(t, info.Info.Currency)
 		require.Equal(t, stellar1.RequestStatus_OK, info.Info.Status)
 	case <-time.After(20 * time.Second):
-		t.Fatal("timed out waiting for chat request info notification to sender")
+		require.FailNow(t, "timed out waiting for chat request info notification to sender")
 	}
 
 	// check the recipient chat notification
@@ -2846,14 +2846,14 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 		require.Nil(t, info.Info.Currency)
 		require.Equal(t, stellar1.RequestStatus_OK, info.Info.Status)
 	case <-time.After(20 * time.Second):
-		t.Fatal("timed out waiting for chat request info notification to sender")
+		require.FailNow(t, "timed out waiting for chat request info notification to sender")
 	}
 
 	// load it again, should not get another notification
 	loaderRecip.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
 	select {
 	case info := <-listenerRecip.requestInfos:
-		t.Fatalf("received request notification on second load: %+v", info)
+		require.FailNow(t, fmt.Sprintf("received request notification on second load: %+v", info))
 	case <-time.After(100 * time.Millisecond):
 	}
 }

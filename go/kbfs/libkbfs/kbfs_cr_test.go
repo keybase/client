@@ -390,12 +390,12 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	select {
 	case <-c:
 	default:
-		t.Fatal("No update!")
+		require.FailNow(t, "No update!")
 	}
 	select {
 	case <-c:
 	default:
-		t.Fatal("No 2nd update!")
+		require.FailNow(t, "No 2nd update!")
 	}
 	// make sure we see two sync op changes, on the same node
 	assert.Equal(t, 2, len(cro.changes))
@@ -1860,7 +1860,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	timer := time.After(20 * time.Millisecond)
 	select {
 	case <-writeErrCh:
-		t.Fatalf("Write finished without blocking")
+		require.FailNow(t, "Write finished without blocking")
 	case <-timer:
 	}
 

@@ -6,6 +6,8 @@ package client
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 const noMatchGPGSingleOut = `Sorry, your account is already established with a PGP public key, but this
@@ -35,11 +37,7 @@ You need to prove you're you. We suggest one of the following:
 func TestErrNoMatchingGPGKeys(t *testing.T) {
 	c := &CmdLogin{}
 	e1 := c.errNoMatchingGPGKeys([]string{"ababababab"})
-	if strings.TrimSpace(e1.Error()) != strings.TrimSpace(noMatchGPGSingleOut) {
-		t.Errorf("single fingerprint output didn't match:\n%s\n", e1.Error())
-	}
+	require.Equal(t, strings.TrimSpace(noMatchGPGSingleOut), strings.TrimSpace(e1.Error()), "single fingerprint output didn't match:\n%s\n", e1.Error())
 	e2 := c.errNoMatchingGPGKeys([]string{"ababababab", "cdcdcdcdcd"})
-	if strings.TrimSpace(e2.Error()) != strings.TrimSpace(noMatchGPGMultipleOut) {
-		t.Errorf("multiple fingerprint output didn't match:\n%s\n", e2.Error())
-	}
+	require.Equal(t, strings.TrimSpace(noMatchGPGMultipleOut), strings.TrimSpace(e2.Error()), "multiple fingerprint output didn't match:\n%s\n", e2.Error())
 }

@@ -20,9 +20,8 @@ import (
 
 func TestDiscardAndCloseBodyNil(t *testing.T) {
 	err := DiscardAndCloseBody(nil)
-	if err == nil {
-		t.Fatal("Should have errored")
-	}
+	require.Error(t, err,
+		"Should have errored")
 }
 
 func testServer(t *testing.T, data string, delay time.Duration) *httptest.Server {

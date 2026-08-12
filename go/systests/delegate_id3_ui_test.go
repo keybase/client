@@ -143,7 +143,7 @@ func (d *delegateID3UI) checkSuccess() {
 		time.Sleep(wait)
 		wait *= 2
 	}
-	d.T.Fatalf("Tried %d times to get successes and failed", n)
+	require.FailNow(d.T, fmt.Sprintf("Tried %d times to get successes and failed", n))
 }
 
 func TestDelegateIdentify3UI(t *testing.T) {

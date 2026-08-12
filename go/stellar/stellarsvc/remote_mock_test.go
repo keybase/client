@@ -381,9 +381,8 @@ func (a *FakeAccount) Check() bool {
 
 func (a *FakeAccount) availableBalance() string {
 	b, err := stellarnet.AvailableBalance(a.balance.Amount, a.subentries)
-	if err != nil {
-		a.T.Fatalf("AvailableBalance error: %s", err)
-	}
+	require.NoError(a.T, err,
+		"AvailableBalance error: %s", err)
 	return b
 }
 
@@ -699,7 +698,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	if post.QuickReturn {
 		msg := "SubmitPayment with QuickReturn not implemented on BackendMock"
-		r.T.Fatalf("%s", msg)
+		require.FailNow(r.T, msg)
 		return res, errors.New(msg)
 	}
 
@@ -798,7 +797,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 
 	if post.QuickReturn {
 		msg := "SubmitRelayPayment with QuickReturn not implemented on BackendMock"
-		r.T.Fatalf("%s", msg)
+		require.FailNow(r.T, msg)
 		return res, errors.New(msg)
 	}
 
@@ -1297,7 +1296,7 @@ func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestConte
 	accountID := stellar1.AccountID(unpackedTx.Tx.SourceAccount.Address())
 	account, ok := r.accounts[accountID]
 	require.True(tc.T, ok)
-	require.True(tc.T, account.availableBalance() != "0", "inflation on empty account won't work")
+	require.NotEqual(tc.T, "0", account.availableBalance(), "inflation on empty account won't work")
 
 	require.Len(tc.T, unpackedTx.Tx.Operations, 1)
 	op := unpackedTx.Tx.Operations[0]

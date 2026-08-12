@@ -316,9 +316,7 @@ func TestBalances(t *testing.T) {
 	accountID := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 
 	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	require.Len(t, balances, 1)
 	require.Equal(t, balances[0].Asset.Type, "native")
@@ -373,15 +371,11 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	require.NoError(t, err)
 
 	balances, err := srv.BalancesLocal(context.Background(), accountIDSender)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, balances[0].Amount, "9899.9999900")
 
 	balances, err = srv.BalancesLocal(context.Background(), accountIDRecip)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, balances[0].Amount, "10100.0000000")
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
@@ -1009,19 +1003,18 @@ func TestBundleFlows(t *testing.T) {
 	_, err = remote.FetchAccountBundle(mctx, a2)
 	require.Error(t, err)
 	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
+	require.True(t, ok,
+		"invalid error type %T", err)
 	require.Equal(t, libkb.SCStellarMissingAccount, aerr.Code)
 	// fetching everything should yield a bundle that
 	// does not include this account
 	bundle, err = fetchWholeBundleForTesting(mctx)
 	require.NoError(t, err)
 	for _, acc := range bundle.Accounts {
-		require.False(t, acc.AccountID == a2)
+		require.NotEqual(t, a2, acc.AccountID)
 	}
 	for accID := range bundle.AccountBundles {
-		require.False(t, accID == a2)
+		require.NotEqual(t, a2, accID)
 	}
 
 	// CreateNewAccount
@@ -1363,9 +1356,8 @@ func TestAutoClaimLoop(t *testing.T) {
 		}
 	}
 
-	if !found {
-		t.Fatal("Timed out waiting for auto claim")
-	}
+	require.True(t, found,
+		"Timed out waiting for auto claim")
 
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "96.9999900")
 	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
@@ -1380,14 +1372,10 @@ func TestShutdown(t *testing.T) {
 	tcs[0].Srv.walletState.SeqnoLock()
 	_, err := tcs[0].Srv.walletState.AccountSeqnoAndBump(context.Background(), accountID)
 	tcs[0].Srv.walletState.SeqnoUnlock()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	require.Len(t, balances, 1)
 	require.Equal(t, balances[0].Asset.Type, "native")
@@ -1400,7 +1388,7 @@ func TestShutdown(t *testing.T) {
 			time.Sleep(time.Duration(index*10) * time.Millisecond)
 			_, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
 			if err != nil {
-				t.Error(err)
+				require.Fail(t, err.Error())
 			}
 			wg.Done()
 		}(i)

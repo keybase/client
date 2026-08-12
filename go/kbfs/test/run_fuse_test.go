@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfuse"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
+	"github.com/stretchr/testify/require"
 )
 
 type fuseEngine struct {
@@ -59,9 +60,7 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 			return ctx
 		},
 	}, options...)
-	if err != nil {
-		tb.Fatal(err)
-	}
+	require.NoError(tb, err)
 	tb.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
 
 	ctx, cancelFn := context.WithCancel(context.Background())
@@ -70,14 +69,10 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 			ctx, func(c context.Context) context.Context {
 				return ctx
 			}))
-	if err != nil {
-		tb.Fatal(err)
-	}
+	require.NoError(tb, err)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		tb.Fatal(err)
-	}
+	require.NoError(tb, err)
 
 	logTags := logger.CtxLogTags{
 		CtxUserKey: CtxOpUser,

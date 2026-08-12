@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/utils"
+	"github.com/stretchr/testify/require"
 )
 
 func validExecutableForTest() (string, error) {
@@ -22,9 +23,7 @@ func validExecutableForTest() (string, error) {
 
 func TestPlist(t *testing.T) {
 	binPath, err := validExecutableForTest()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	envVars := []EnvVar{
 		NewEnvVar("TESTVAR1", "1"),
 		NewEnvVar("TESTVAR2", "2"),
@@ -37,9 +36,7 @@ func TestPlist(t *testing.T) {
 	var i any
 	// This tests valid XML but not actual values
 	err = xml.Unmarshal([]byte(data), &i)
-	if err != nil {
-		t.Errorf("Bad plist: %s", err)
-	}
+	require.NoError(t, err, "Bad plist: %s", err)
 }
 
 func TestCheckPlist(t *testing.T) {
@@ -49,58 +46,40 @@ func TestCheckPlist(t *testing.T) {
 	defer os.Remove(service.plistDestination())
 
 	binPath, err := validExecutableForTest()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	envVars := []EnvVar{
 		NewEnvVar("TESTVAR1", "1"),
 		NewEnvVar("TESTVAR2", "2"),
 	}
 	plist := NewPlist(label, binPath, []string{}, envVars, "keybase.testing.log", "")
 	plistIsValid, err := service.CheckPlist(plist)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if plistIsValid {
-		t.Fatalf("We shouldn't have a plist")
-	}
+	require.NoError(t, err)
+	require.False(t, plistIsValid,
+		"We shouldn't have a plist")
 
 	err = service.savePlist(plist)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Check valid plist after save
 	plistIsValidAfter, err := service.CheckPlist(plist)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !plistIsValidAfter {
-		t.Fatalf("Plist was invalid after install")
-	}
+	require.NoError(t, err)
+	require.True(t, plistIsValidAfter,
+		"Plist was invalid after install")
 
 	// Check a new plist
 	plistNew := NewPlist(label, binPath, []string{"differentArgs"}, envVars, "keybase.testing.log", "")
 	plistNewIsValid, err := service.CheckPlist(plistNew)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if plistNewIsValid {
-		t.Fatal("New plist should be invalid")
-	}
+	require.NoError(t, err)
+	require.False(t, plistNewIsValid,
+		"New plist should be invalid")
 
 	err = service.savePlist(plistNew)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	plistNewIsValidAfterInstall, err := service.CheckPlist(plistNew)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !plistNewIsValidAfterInstall {
-		t.Fatalf("New plist should be valid after install")
-	}
+	require.NoError(t, err)
+	require.True(t, plistNewIsValidAfterInstall,
+		"New plist should be valid after install")
 }
 
 func randStringBytes(n int) string {
@@ -117,12 +96,9 @@ func TestWaitForStatusOK(t *testing.T) {
 		return &ServiceStatus{label: "ok", pid: "1"}, nil
 	}
 	status, err := waitForStatus(time.Second, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if status == nil || status.label != "ok" {
-		t.Fatalf("Invalid status")
-	}
+	require.NoError(t, err)
+	require.False(t, status == nil || status.label != "ok",
+		"Invalid status")
 }
 
 func TestWaitForStatusDelayed(t *testing.T) {
@@ -135,15 +111,10 @@ func TestWaitForStatusDelayed(t *testing.T) {
 		return nil, nil
 	}
 	status, err := waitForStatus(time.Second, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if status == nil {
-		t.Fatalf("Wait timed out")
-	}
-	if status.label != "ok_delayed" {
-		t.Fatalf("Invalid status")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, status,
+		"Wait timed out")
+	require.Equal(t, "ok_delayed", status.label, "Invalid status")
 }
 
 func TestWaitForStatusErrored(t *testing.T) {
@@ -151,12 +122,9 @@ func TestWaitForStatusErrored(t *testing.T) {
 		return nil, fmt.Errorf("status error")
 	}
 	_, err := waitForStatus(time.Second, time.Millisecond, fn)
-	if err == nil {
-		t.Fatal("Expected error")
-	}
-	if err.Error() != "status error" {
-		t.Fatal("Expected error returned from fn above")
-	}
+	require.Error(t, err,
+		"Expected error")
+	require.Equal(t, "status error", err.Error(), "Expected error returned from fn above")
 }
 
 func TestWaitForStatusTimeout(t *testing.T) {
@@ -164,12 +132,9 @@ func TestWaitForStatusTimeout(t *testing.T) {
 		return nil, nil
 	}
 	status, err := waitForStatus(5*time.Millisecond, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if status != nil {
-		t.Fatalf("Status should be nil (timed out): %#v", status)
-	}
+	require.NoError(t, err)
+	require.Nil(t, status,
+		"Status should be nil (timed out): %#v", status)
 }
 
 func TestWaitForExitOK(t *testing.T) {
@@ -177,9 +142,7 @@ func TestWaitForExitOK(t *testing.T) {
 		return nil, nil
 	}
 	err := waitForExit(time.Second, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestWaitForExitDelayed(t *testing.T) {
@@ -192,9 +155,7 @@ func TestWaitForExitDelayed(t *testing.T) {
 		return nil, nil
 	}
 	err := waitForExit(time.Second, time.Millisecond, fn)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestWaitForExitErrored(t *testing.T) {
@@ -202,9 +163,8 @@ func TestWaitForExitErrored(t *testing.T) {
 		return nil, fmt.Errorf("status error")
 	}
 	err := waitForExit(time.Second, time.Millisecond, fn)
-	if err == nil {
-		t.Fatal("Expected error")
-	}
+	require.Error(t, err,
+		"Expected error")
 }
 
 func TestWaitForExitTimeout(t *testing.T) {
@@ -212,10 +172,7 @@ func TestWaitForExitTimeout(t *testing.T) {
 		return &ServiceStatus{label: "never_exit", pid: "1"}, nil
 	}
 	err := waitForExit(5*time.Millisecond, time.Millisecond, fn)
-	if err == nil {
-		t.Fatal("Should have timed out")
-	}
-	if err.Error() != "Waiting for service exit timed out" {
-		t.Fatal("Should have timed out error")
-	}
+	require.Error(t, err,
+		"Should have timed out")
+	require.Equal(t, "Waiting for service exit timed out", err.Error(), "Should have timed out error")
 }

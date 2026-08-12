@@ -354,21 +354,19 @@ func TestSignupLogout(t *testing.T) {
 	case <-nh.startCh:
 		t.Logf("notify handler server started")
 	case err := <-nh.errCh:
-		t.Fatalf("Error starting notify handler server: %v", err)
+		require.FailNow(t, fmt.Sprintf("Error starting notify handler server: %v", err))
 	case <-time.After(20 * time.Second):
-		t.Fatalf("timed out waiting for notify handler server to start")
+		require.FailNow(t, "timed out waiting for notify handler server to start")
 	}
 
 	if err := signup.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	select {
 	case err := <-nh.errCh:
-		t.Fatalf("Error before notify: %v", err)
+		require.FailNow(t, fmt.Sprintf("Error before notify: %v", err))
 	case u := <-nh.loginCh:
-		if u.Username != userInfo.username {
-			t.Fatalf("bad username in login notification: %q != %q", u.Username, userInfo.username)
-		}
+		require.Equal(t, userInfo.username, u.Username, "bad username in login notification: %q != %q", u.Username, userInfo.username)
 		tc.G.Log.Debug("Got notification of login for %q", u.Username)
 	}
 
@@ -386,35 +384,36 @@ func TestSignupLogout(t *testing.T) {
 	select {
 	case <-nh.logoutCh:
 	case <-time.After(20 * time.Second):
-		t.Fatal("timed out waiting for signup's logout notification")
+		require.FailNow(t, "timed out waiting for signup's logout notification")
 	}
 
 	btc := client.NewCmdCurrencyAddRunner(tc2.G)
 	btc.SetAddress("1HUCBSJeHnkhzrVKVjaVmWg2QtZS1mdfaz")
 	if err := btc.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Now let's be sure that we get a notification back as we expect.
 	select {
 	case err := <-nh.errCh:
-		t.Fatalf("Error before notify: %v", err)
+		require.FailNow(t, fmt.Sprintf("Error before notify: %v", err))
 	case uid := <-nh.userCh:
 		tc.G.Log.Debug("Got notification from user changed handled (%s)", uid)
 		if e := libkb.CheckUIDAgainstUsername(uid, userInfo.username); e != nil {
-			t.Fatalf("Bad UID back: %s != %s (%s)", uid, userInfo.username, e)
+			require.Nil(t, e,
+				"Bad UID back: %s != %s (%s)", uid, userInfo.username, e)
 		}
 	}
 
 	// Fire a logout
 	if err := logout.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Now let's be sure that we get a notification back as we expect.
 	select {
 	case err := <-nh.errCh:
-		t.Fatalf("Error before notify: %v", err)
+		require.FailNow(t, fmt.Sprintf("Error before notify: %v", err))
 	case <-nh.logoutCh:
 		tc.G.Log.Debug("Got notification from logout handler")
 	}
@@ -422,14 +421,14 @@ func TestSignupLogout(t *testing.T) {
 	tc.G.Log.Debug("Waiting for tc2 Ctl service stop")
 
 	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	tc.G.Log.Debug("Waiting for msg on stopCh")
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	tc.G.Log.Debug("Waiting for msg on logoutCh")
@@ -437,9 +436,8 @@ func TestSignupLogout(t *testing.T) {
 	// Check that we only get one notification, not two
 	select {
 	case _, ok := <-nh.logoutCh:
-		if ok {
-			t.Fatal("Received an extra logout notification!")
-		}
+		require.False(t, ok,
+			"Received an extra logout notification!")
 	default:
 	}
 }

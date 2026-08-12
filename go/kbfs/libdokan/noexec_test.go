@@ -8,6 +8,7 @@ package libdokan
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -18,6 +19,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbun"
+	"github.com/stretchr/testify/require"
 )
 
 func findGoExe() (string, error) {
@@ -76,34 +78,25 @@ func testNoExec(t *testing.T, users []string) error {
 	defer cancelFn()
 
 	exe, err := findGoExe()
-	if err != nil {
-		t.Fatal("Error finding go.exe: ", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Error finding go.exe: ", err))
 
 	tlfName := strings.Join(users, ",")
 	targetPath := filepath.Join(mnt.Dir, PrivateName, tlfName, "test.exe")
 
 	err = copyFile(exe, targetPath)
-	if err != nil {
-		t.Fatal("Error copying go.exe to kbfs: ", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Error copying go.exe to kbfs: ", err))
 
 	return exec.Command(targetPath, "version").Run()
 }
 
 func TestNoExec(t *testing.T) {
 	err := testNoExec(t, []string{"jdoe", "janedoe"})
-	if err == nil {
-		t.Fatal("Unexpected success executing go on kbfs, expected fail (noexec)")
-	}
-	if !os.IsPermission(err) {
-		t.Fatal("Wrong error trying to execute go on kbfs: ", err)
-	}
+	require.Error(t, err,
+		"Unexpected success executing go on kbfs, expected fail (noexec)")
+	require.True(t, os.IsPermission(err), fmt.Sprint("Wrong error trying to execute go on kbfs: ", err))
 }
 
 func TestNoExecWhitelist(t *testing.T) {
 	err := testNoExec(t, []string{"jdoe"})
-	if err != nil {
-		t.Fatal("Unexpected failure executing go on kbfs, expected success (whitelist): ", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Unexpected failure executing go on kbfs, expected success (whitelist): ", err))
 }

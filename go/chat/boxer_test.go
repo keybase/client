@@ -115,9 +115,7 @@ func getSigningKeyPairForTest(t *testing.T, tc *kbtest.ChatTestContext, u *kbtes
 func getActiveDevicesAndKeys(tc *kbtest.ChatTestContext, u *kbtest.FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
 	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
 
@@ -157,7 +155,7 @@ func TestChatMessageBox(t *testing.T) {
 
 		require.Equal(t, mbVersion, boxed.Version)
 		if len(boxed.BodyCiphertext.E) == 0 {
-			t.Error("after boxMessage, BodyCipherText.E is empty")
+			require.Fail(t, "after boxMessage, BodyCipherText.E is empty")
 		}
 	})
 }
@@ -186,9 +184,7 @@ func TestChatMessageUnbox(t *testing.T) {
 		require.NoError(t, err)
 		boxed = remarshalBoxed(t, boxed)
 
-		if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
-			t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
-		}
+		require.NotEqual(t, msg.ClientHeader.OutboxID, boxed.ClientHeader.OutboxID, "defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
 
 		// need to give it a server header...
 		boxed.ServerHeader = &chat1.MessageServerHeader{
@@ -421,9 +417,7 @@ func TestChatMessageMissingOutboxID(t *testing.T) {
 	require.NoError(t, err)
 	boxed = remarshalBoxed(t, boxed)
 
-	if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
-		t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
-	}
+	require.NotEqual(t, msg.ClientHeader.OutboxID, boxed.ClientHeader.OutboxID, "defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
 	// omit outbox id
 	boxed.ClientHeader.OutboxID = nil
 
@@ -1690,9 +1684,7 @@ func TestRemarshalBoxed(t *testing.T) {
 	require.NotEqual(t, chat1.MessageBoxed{}, boxed2, "second shouldn't be zeroed")
 	require.Equal(t, boxed1.ClientHeader.OutboxID == nil, boxed2.ClientHeader.OutboxID == nil, "obids should have same nility")
 
-	if boxed1.ClientHeader.OutboxID == boxed2.ClientHeader.OutboxID {
-		t.Fatalf("obids should not have same address")
-	}
+	require.NotEqual(t, boxed1.ClientHeader.OutboxID, boxed2.ClientHeader.OutboxID, "obids should not have same address")
 
 	require.NotNil(t, boxed1.ClientHeader.OutboxID, "obid1 should not be nil")
 	require.NotNil(t, boxed2.ClientHeader.OutboxID, "obid2 should not be nil")

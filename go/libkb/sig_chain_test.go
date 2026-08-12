@@ -148,28 +148,19 @@ func TestAllChains(t *testing.T) {
 
 func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	inputJSON, exists := testvectors.ChainTestInputs[testCase.Input]
-	if !exists {
-		t.Fatal("missing test input: " + testCase.Input)
-	}
+	require.True(t, exists,
+		"missing test input: "+testCase.Input)
 	// Unmarshal test input in two ways: once for the structured data and once
 	// for the chain link blobs.
 	var input TestInput
 	err := json.Unmarshal([]byte(inputJSON), &input)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	inputBlob, err := jsonw.Unmarshal([]byte(inputJSON))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid, err := UIDFromHex(input.UID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	chainLen, err := inputBlob.AtKey("chain").Len()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Get the eldest key. This is assumed to be the first key in the list of
 	// bundles, unless the "eldest" field is given in the test description, in
@@ -177,23 +168,18 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	var eldestKID keybase1.KID
 	if testCase.Eldest == "" {
 		eldestKey, _, err := ParseGenericKey(input.Keys[0])
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		eldestKID = eldestKey.GetKID()
 	} else {
 		eldestKIDStr, found := input.LabelKids[testCase.Eldest]
-		if !found {
-			t.Fatalf("No KID found for label %s", testCase.Eldest)
-		}
+		require.True(t, found,
+			"No KID found for label %s", testCase.Eldest)
 		eldestKID = keybase1.KIDFromString(eldestKIDStr)
 	}
 
 	// Parse all the key bundles.
 	keyFamily, err := createKeyFamily(tc.G, input.Keys)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Run the actual sigchain parsing and verification. This is most of the
 	// code that's actually being tested.
@@ -231,16 +217,15 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	// Some tests expect an error. If we get one, make sure it's the right
 	// type.
 	if testCase.ErrType != "" {
-		if sigchainErr == nil {
-			t.Fatalf("Expected %s error from VerifySigsAndComputeKeys. No error returned.", testCase.ErrType)
-		}
+		require.NotNil(t, sigchainErr,
+			"Expected %s error from VerifySigsAndComputeKeys. No error returned.", testCase.ErrType)
 		foundType := reflect.TypeOf(sigchainErr)
 		expectedTypes := getErrorTypesMap()[testCase.ErrType]
 		if len(expectedTypes) == 0 {
 			msg := "No Go error types defined for expected failure %s.\n" +
 				"This could be because of new test cases in github.com/keybase/keybase-test-vectors.\n" +
 				"Go error returned: %s"
-			t.Fatalf(msg, testCase.ErrType, foundType)
+			require.FailNow(t, fmt.Sprintf(msg, testCase.ErrType, foundType))
 		}
 		if expectedTypes[foundType] {
 			// Success! We found the error we expected. This test is done.
@@ -251,24 +236,20 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		// Got an error, but one of the wrong type. Tests with error names
 		// that are missing from the map (maybe because we add new test
 		// cases in the future) will also hit this branch.
-		t.Fatalf("Wrong error type encountered. Expected %v (%s), got %s: %s",
-			expectedTypes, testCase.ErrType, foundType, sigchainErr)
+		require.FailNow(t, fmt.Sprintf("Wrong error type encountered. Expected %v (%s), got %s: %s",
+			expectedTypes, testCase.ErrType, foundType, sigchainErr))
 
 	}
 
 	// Tests that expected an error terminated above. Tests that get here
 	// should succeed without errors.
-	if sigchainErr != nil {
-		t.Fatal(sigchainErr)
-	}
+	require.Nil(t, sigchainErr)
 
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0
 
 	idtable, err := NewIdentityTable(NewMetaContextForTest(tc), eldestKID, &sigchain, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	for _, link := range idtable.links {
 		if !link.IsDirectlyRevoked() {
 			unrevokedCount++
@@ -294,31 +275,21 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		fatalStr += fmt.Sprintf("Expected %d subkeys, got %d\n", testCase.Subkeys, numSubkeys)
 	}
 
-	if fatalStr != "" {
-		t.Fatal(fatalStr)
-	}
+	require.Empty(t, fatalStr, fatalStr)
 
-	if testCase.EldestSeqno != nil && sigchain.EldestSeqno() != *testCase.EldestSeqno {
-		t.Fatalf("wrong eldest seqno: wanted %d but got %d", *testCase.EldestSeqno, sigchain.EldestSeqno())
+	if testCase.EldestSeqno != nil {
+		require.Equal(t, *testCase.EldestSeqno, sigchain.EldestSeqno(), "wrong eldest seqno: wanted %d but got %d", *testCase.EldestSeqno, sigchain.EldestSeqno())
 	}
 	if testCase.PrevSubchains != nil {
-		if len(testCase.PrevSubchains) != len(sigchain.prevSubchains) {
-			t.Fatalf("wrong number of historical subchains; wanted %d but got %d", len(testCase.PrevSubchains), len(sigchain.prevSubchains))
-		}
+		require.Len(t, sigchain.prevSubchains, len(testCase.PrevSubchains), "wrong number of historical subchains; wanted %d but got %d", len(testCase.PrevSubchains), len(sigchain.prevSubchains))
 		for i, expected := range testCase.PrevSubchains {
 			received := sigchain.prevSubchains[i]
-			if received.EldestSeqno() != expected.EldestSeqno {
-				t.Fatalf("For historical subchain %d, wrong eldest seqno; wanted %d but got %d", i, expected.EldestSeqno, received.EldestSeqno())
-			}
+			require.Equal(t, expected.EldestSeqno, received.EldestSeqno(), "For historical subchain %d, wrong eldest seqno; wanted %d but got %d", i, expected.EldestSeqno, received.EldestSeqno())
 			ckf := ComputedKeyFamily{kf: keyFamily, cki: received.GetComputedKeyInfos()}
 			n := len(ckf.GetAllSibkeysUnchecked())
-			if n != expected.Sibkeys {
-				t.Fatalf("For historical subchain %d, wrong number of sibkeys; wanted %d but got %d", i, expected.Sibkeys, n)
-			}
+			require.Equal(t, expected.Sibkeys, n, "For historical subchain %d, wrong number of sibkeys; wanted %d but got %d", i, expected.Sibkeys, n)
 			m := len(ckf.GetAllSubkeysUnchecked())
-			if m != expected.Subkeys {
-				t.Fatalf("For historical subchain %d, wrong number of subkeys; wanted %d but got %d", i, expected.Sibkeys, m)
-			}
+			require.Equal(t, expected.Subkeys, m, "For historical subchain %d, wrong number of subkeys; wanted %d but got %d", i, expected.Sibkeys, m)
 		}
 	}
 
@@ -328,9 +299,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 
 func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 	err := chain.Store(NewMetaContextForTest(tc))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	sgl := SigChainLoader{
 		user: &User{
 			name: chain.username.String(),
@@ -347,9 +316,7 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 	sgl.chain = chain
 	sgl.dirtyTail = chain.GetCurrentTailTriple()
 	err = sgl.Store()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	sgl.chain = nil
 	sgl.dirtyTail = nil
 	var sc2 *SigChain
@@ -358,9 +325,7 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 	tc.G.linkCache = NewLinkCache(1000, time.Hour)
 	tc.G.cacheMu.Unlock()
 	sc2, err = sgl.Load()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Loading sigchains from cache doesn't benefit from knowing the current
 	// eldest KID from the Merkle tree. That means if the account just reset,
@@ -372,16 +337,10 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 		// would give us a different answer.
 		return
 	}
-	if chain.currentSubchainStart != sc2.currentSubchainStart {
-		t.Fatalf("disagreement about currentSubchainStart: %d != %d", chain.currentSubchainStart, sc2.currentSubchainStart)
-	}
-	if len(chain.chainLinks) != len(sc2.chainLinks) {
-		t.Fatalf("subchains don't have the same length: %d != %d", len(chain.chainLinks), len(sc2.chainLinks))
-	}
+	require.Equal(t, sc2.currentSubchainStart, chain.currentSubchainStart, "disagreement about currentSubchainStart: %d != %d", chain.currentSubchainStart, sc2.currentSubchainStart)
+	require.Len(t, chain.chainLinks, len(sc2.chainLinks), "subchains don't have the same length: %d != %d", len(chain.chainLinks), len(sc2.chainLinks))
 	for i := 0; i < len(chain.chainLinks); i++ {
-		if chain.chainLinks[i].GetSeqno() != sc2.chainLinks[i].GetSeqno() {
-			t.Fatalf("stored and loaded chains mismatched links: %d != %d", chain.chainLinks[i].GetSeqno(), sc2.chainLinks[i].GetSeqno())
-		}
+		require.Equal(t, sc2.chainLinks[i].GetSeqno(), chain.chainLinks[i].GetSeqno(), "stored and loaded chains mismatched links: %d != %d", chain.chainLinks[i].GetSeqno(), sc2.chainLinks[i].GetSeqno())
 	}
 }
 

@@ -123,9 +123,7 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	// Load the full user so that we can grab their devices.
 	arg := libkb.NewLoadUserByNameArg(tc.G, user.Username)
 	fullUser, err := libkb.LoadUser(arg)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	paperKey := fullUser.GetComputedKeyInfos().PaperDevices()[0]
 
 	// Revoke the paper key.

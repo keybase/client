@@ -1392,13 +1392,11 @@ func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, co
 }
 
 func MockSentMessages(g *libkb.GlobalContext, t libkb.TestingTB) []MockMessage {
-	if g.ChatHelper == nil {
-		t.Fatal("ChatHelper is nil")
-	}
+	require.NotNil(t, g.ChatHelper,
+		"ChatHelper is nil")
 	mch, ok := g.ChatHelper.(*MockChatHelper)
-	if !ok {
-		t.Fatalf("ChatHelper isn't a mock: %T", g.ChatHelper)
-	}
+	require.True(t, ok,
+		"ChatHelper isn't a mock: %T", g.ChatHelper)
 	return mch.SentMessages
 }
 

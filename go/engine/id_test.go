@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -67,32 +68,25 @@ func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.Us
 
 func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, _ string, expectedProofs map[string]string) {
 	if them == nil {
-		tb.Fatal("nil 'them' user")
+		require.NotNil(tb, them,
+			"nil 'them' user")
 	} else {
 		exported := &keybase1.User{
 			Uid:      them.GetUID(),
 			Username: them.GetName(),
 		}
-		if !reflect.DeepEqual(idUI.User, exported) {
-			tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
-		}
+		require.True(tb, reflect.DeepEqual(idUI.User, exported), fmt.Sprint("LaunchNetworkChecks User not equal to result user.", idUI.User, exported))
 	}
 
-	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
-		tb.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
-	}
+	require.True(tb, reflect.DeepEqual(expectedProofs, idUI.Proofs), fmt.Sprint("Wrong proofs.", expectedProofs, idUI.Proofs))
 }
 
 func checkDisplayKeys(t *testing.T, idUI *FakeIdentifyUI, callCount, keyCount int) {
-	if idUI.DisplayKeyCalls != callCount {
-		t.Errorf("DisplayKey calls: %d.  expected %d.", idUI.DisplayKeyCalls, callCount)
-	}
+	require.Equal(t, callCount, idUI.DisplayKeyCalls, "DisplayKey calls: %d.  expected %d.", idUI.DisplayKeyCalls, callCount)
 
-	if len(idUI.Keys) != keyCount {
-		t.Errorf("keys: %d, expected %d.", len(idUI.Keys), keyCount)
-		for k, v := range idUI.Keys {
-			t.Logf("key: %+v, %+v", k, v)
-		}
+	require.Equal(t, keyCount, len(idUI.Keys), "keys: %d, expected %d.", len(idUI.Keys), keyCount)
+	for k, v := range idUI.Keys {
+		t.Logf("key: %+v, %+v", k, v)
 	}
 }
 

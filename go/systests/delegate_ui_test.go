@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/service"
+	"github.com/stretchr/testify/require"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -217,36 +218,33 @@ func TestDelegateUI(t *testing.T) {
 
 	// Launch the delegate UI
 	if err := launchDelegateUI(dui); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	id := client.NewCmdIDRunner(tc1.G)
 	id.SetUser("t_alice")
 	id.UseDelegateUI()
 	if err := id.Run(); err != nil {
-		t.Fatalf("Error in Run: %v", err)
+		require.NoError(t, err,
+			"Error in Run: %v", err)
 	}
 
 	// We should get either a 'done' or an 'error' from the delegateUI.
 	select {
 	case err, ok := <-dui.ch:
-		if err != nil {
-			t.Errorf("Error with delegate UI: %v", err)
-		} else if ok {
-			t.Errorf("Delegate UI didn't close the channel properly")
-		} else if err = dui.checkSuccess(); err != nil {
-			t.Error(err)
-		}
+		require.NoError(t, err, "Error with delegate UI: %v", err)
+		require.False(t, ok, "Delegate UI didn't close the channel properly")
+		err = dui.checkSuccess()
+		require.NoError(t, err)
 	case <-time.After(20 * time.Second):
-		t.Fatal("no callback from delegate UI")
+		require.FailNow(t, "no callback from delegate UI")
 	}
 
-	if err := CtlStop(tc1.G); err != nil {
-		t.Errorf("Error in stopping service: %v", err)
-	}
+	err := CtlStop(tc1.G)
+	require.NoError(t, err, "Error in stopping service: %v", err)
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }

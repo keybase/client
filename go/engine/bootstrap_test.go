@@ -44,39 +44,23 @@ func TestBootstrap(t *testing.T) {
 	eng := NewLoginOffline(tc.G)
 	m := NewMetaContextForTest(tc)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	beng := NewBootstrap(tc.G)
 	if err := RunEngine2(m, beng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	status := beng.Status()
 
-	if !status.Registered {
-		t.Error("registered false")
-	}
-	if !status.LoggedIn {
-		t.Error("not logged in")
-	}
-	if status.Uid.IsNil() {
-		t.Errorf("uid nil")
-	}
-	if !status.Uid.Equal(uid) {
-		t.Errorf("uid: %s, expected %s", status.Uid, uid)
-	}
-	if status.Username == "" {
-		t.Errorf("username empty")
-	}
-	if status.Username != username.String() {
-		t.Errorf("username: %q, expected %q", status.Username, username)
-	}
-	if !status.DeviceID.Eq(deviceID) {
-		t.Errorf("device id: %q, expected %q", status.DeviceID, deviceID)
-	}
-	if status.DeviceName != defaultDeviceName {
-		t.Errorf("device name: %q, expected %q", status.DeviceName, defaultDeviceName)
-	}
+	require.True(t, status.Registered, "registered false")
+	require.True(t, status.LoggedIn, "not logged in")
+	require.False(t, status.Uid.IsNil(), "uid nil")
+	require.True(t, status.Uid.Equal(uid), "uid: %s, expected %s", status.Uid, uid)
+	require.False(t, status.Username == "", "username empty")
+	require.Equal(t, username.String(), status.Username, "username: %q, expected %q", status.Username, username)
+	require.True(t, status.DeviceID.Eq(deviceID), "device id: %q, expected %q", status.DeviceID, deviceID)
+	require.Equal(t, defaultDeviceName, status.DeviceName, "device name: %q, expected %q", status.DeviceName, defaultDeviceName)
 }
 
 func TestBootstrapAfterSignup(t *testing.T) {
@@ -88,37 +72,21 @@ func TestBootstrapAfterSignup(t *testing.T) {
 	beng := NewBootstrap(tc.G)
 	m := NewMetaContextForTest(tc)
 	if err := RunEngine2(m, beng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	status := beng.Status()
 
 	uid := tc.G.Env.GetUID()
 	deviceID := tc.G.Env.GetDeviceID()
 
-	if !status.Registered {
-		t.Error("registered false")
-	}
-	if !status.LoggedIn {
-		t.Error("not logged in")
-	}
-	if status.Uid.IsNil() {
-		t.Errorf("uid nil")
-	}
-	if !status.Uid.Equal(uid) {
-		t.Errorf("uid: %s, expected %s", status.Uid, uid)
-	}
-	if status.Username == "" {
-		t.Errorf("username empty")
-	}
-	if status.Username != u1.Username {
-		t.Errorf("username: %q, expected %q", status.Username, u1.Username)
-	}
-	if !status.DeviceID.Eq(deviceID) {
-		t.Errorf("device id: %q, expected %q", status.DeviceID, deviceID)
-	}
-	if status.DeviceName != defaultDeviceName {
-		t.Errorf("device name: %q, expected %q", status.DeviceName, defaultDeviceName)
-	}
+	require.True(t, status.Registered, "registered false")
+	require.True(t, status.LoggedIn, "not logged in")
+	require.False(t, status.Uid.IsNil(), "uid nil")
+	require.True(t, status.Uid.Equal(uid), "uid: %s, expected %s", status.Uid, uid)
+	require.False(t, status.Username == "", "username empty")
+	require.Equal(t, u1.Username, status.Username, "username: %q, expected %q", status.Username, u1.Username)
+	require.True(t, status.DeviceID.Eq(deviceID), "device id: %q, expected %q", status.DeviceID, deviceID)
+	require.Equal(t, defaultDeviceName, status.DeviceName, "device name: %q, expected %q", status.DeviceName, defaultDeviceName)
 }
 
 type OfflineConnectivityMonitor struct{}

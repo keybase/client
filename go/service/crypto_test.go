@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type nullSecretUI struct{}
@@ -24,21 +25,18 @@ func TestCryptoSecretUI(t *testing.T) {
 	// error.
 	tc.G.SetUIRouter(fakeUIRouter{secretUIErr: errors.New("fake error")})
 	secretUI := c.getSecretUI(0, "")
-	if _, ok := secretUI.(errorSecretUI); !ok {
-		t.Errorf("secretUI %v is not an errorSecretUI", secretUI)
-	}
+	_, ok := secretUI.(errorSecretUI)
+	require.True(t, ok, "secretUI %v is not an errorSecretUI", secretUI)
 
 	// Should return errorSecretUI because UIRouter returned nil.
 	tc.G.SetUIRouter(fakeUIRouter{})
 	secretUI = c.getSecretUI(0, "")
-	if _, ok := secretUI.(errorSecretUI); !ok {
-		t.Errorf("secretUI %v is not an errorSecretUI", secretUI)
-	}
+	_, ok = secretUI.(errorSecretUI)
+	require.True(t, ok, "secretUI %v is not an errorSecretUI", secretUI)
 
 	// Should return nullSecretUI..
 	tc.G.SetUIRouter(fakeUIRouter{secretUI: nullSecretUI{}})
 	secretUI = c.getSecretUI(0, "")
-	if _, ok := secretUI.(nullSecretUI); !ok {
-		t.Errorf("secretUI %v is not a nullSecretUI", secretUI)
-	}
+	_, ok = secretUI.(nullSecretUI)
+	require.True(t, ok, "secretUI %v is not a nullSecretUI", secretUI)
 }

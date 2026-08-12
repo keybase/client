@@ -198,7 +198,7 @@ func TestLevelDb(t *testing.T) {
 						defer wg.Done()
 						select {
 						case <-time.After(8 * time.Second):
-							t.Error("doWhileOpenAndNukeIfCorrupted is not concurrent")
+							require.Fail(t, "doWhileOpenAndNukeIfCorrupted is not concurrent")
 						case <-ch:
 						}
 						return nil
@@ -209,7 +209,7 @@ func TestLevelDb(t *testing.T) {
 						defer wg.Done()
 						select {
 						case <-time.After(8 * time.Second):
-							t.Error("doWhileOpenAndNukeIfCorrupted does not support concurrent ops")
+							require.Fail(t, "doWhileOpenAndNukeIfCorrupted does not support concurrent ops")
 						case ch <- struct{}{}:
 						}
 						return nil
@@ -283,19 +283,16 @@ func TestLevelDb(t *testing.T) {
 					defer wg.Done()
 
 					tr, err := db.OpenTransaction()
-					if err != nil {
-						t.Error(err)
-					}
+					require.NoError(t, err, err)
 
 					select {
 					case <-time.After(8 * time.Second):
-						t.Errorf("timeout")
+						require.Fail(t, "timeout")
 					case chOpen <- struct{}{}:
 					}
 
-					if err = tr.Put(key, nil, []byte{41}); err != nil {
-						t.Error(err)
-					}
+					err = tr.Put(key, nil, []byte{41})
+					require.NoError(t, err)
 
 					// We do some IO here to give Go's runtime a chance to schedule
 					// different routines and channel operations, to *hopefully* make
@@ -304,17 +301,15 @@ func TestLevelDb(t *testing.T) {
 					// 2) If there exists, any broken OpenTransaction() implementation
 					//		that does not block until this transaction finishes, the broken
 					//		OpenTransaction() would have has returned
-					if err = doSomeIO(); err != nil {
-						t.Error(err)
-					}
+					err = doSomeIO()
+					require.NoError(t, err)
 
 					// we send to a buffered channel right before Commit() to make sure
 					// the channel is ready to read right after the commit
 					chCommitted <- struct{}{}
 
-					if err = tr.Commit(); err != nil {
-						t.Error(err)
-					}
+					err = tr.Commit()
+					require.NoError(t, err)
 				}()
 
 				go func() {
@@ -323,7 +318,7 @@ func TestLevelDb(t *testing.T) {
 					// wait until the other transaction has opened
 					select {
 					case <-time.After(8 * time.Second):
-						t.Error("timeout")
+						require.Fail(t, "timeout")
 					case <-chOpen:
 					}
 
@@ -332,26 +327,18 @@ func TestLevelDb(t *testing.T) {
 					case <-chCommitted:
 						// fine
 					default:
-						t.Error("second transaction did not block until first one finished")
+						require.Fail(t, "second transaction did not block until first one finished")
 					}
-					if err != nil {
-						t.Error(err)
-					}
+					require.NoError(t, err, err)
 
 					d, found, err := tr.Get(key)
-					if err != nil {
-						t.Error(err)
-					}
-					if !found {
-						t.Errorf("key %v is not found", found)
-					}
+					require.NoError(t, err, err)
+					require.True(t, found, "key %v is not found", found)
 
-					if err = tr.Put(key, nil, []byte{d[0] + 1}); err != nil {
-						t.Error(err)
-					}
-					if err = tr.Commit(); err != nil {
-						t.Error(err)
-					}
+					err = tr.Put(key, nil, []byte{d[0] + 1})
+					require.NoError(t, err)
+					err = tr.Commit()
+					require.NoError(t, err)
 				}()
 
 				wg.Wait()

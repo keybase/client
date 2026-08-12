@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -27,46 +28,37 @@ func checkExpectedChains(t *testing.T, expected map[data.BlockPointer]data.Block
 	expectedRenames map[data.BlockPointer]renameInfo, expectedRoot data.BlockPointer,
 	cc *crChains, checkTailPtr bool,
 ) {
-	if g, e := len(cc.byOriginal), len(expected); g != e {
-		t.Errorf("Wrong number of originals, %v vs %v", g, e)
-	}
+	e, g := len(cc.byOriginal), len(expected)
+	require.Equal(t, e, g, "Wrong number of originals, %v vs %v", g, e)
 
-	if g, e := len(cc.byMostRecent), len(expected); g != e {
-		t.Errorf("Wrong number of most recents, %v vs %v", g, e)
-	}
+	e, g = len(cc.byMostRecent), len(expected)
+	require.Equal(t, e, g, "Wrong number of most recents, %v vs %v", g, e)
 
-	if g, e := len(cc.renamedOriginals), len(expectedRenames); g != e {
-		t.Errorf("Wrong number of renames, %v vs %v", g, e)
-	}
+	e, g = len(cc.renamedOriginals), len(expectedRenames)
+	require.Equal(t, e, g, "Wrong number of renames, %v vs %v", g, e)
 
-	if cc.originalRoot != expectedRoot {
-		t.Fatalf("Root pointer incorrect for multi RMDs, %v vs %v",
-			cc.originalRoot, expectedRoot)
-	}
+	require.Equal(t, expectedRoot, cc.originalRoot, "Root pointer incorrect for multi RMDs, %v vs %v",
+		cc.originalRoot, expectedRoot)
 
 	for original, mostRecent := range expected {
 		chain, ok := cc.byOriginal[original]
-		if !ok {
-			t.Fatalf("No original for %v", original)
-		}
+		require.True(t, ok,
+			"No original for %v", original)
 
-		if checkTailPtr && chain.mostRecent != mostRecent {
-			t.Fatalf("Chain for %v does not end in %v", original, mostRecent)
+		if checkTailPtr {
+			require.Equal(t, mostRecent, chain.mostRecent, "Chain for %v does not end in %v", original, mostRecent)
 		}
 
 		mrChain, ok := cc.byMostRecent[mostRecent]
-		if !ok {
-			t.Fatalf("No most recent for %v", mostRecent)
-		}
+		require.True(t, ok,
+			"No most recent for %v", mostRecent)
 
-		if chain != mrChain {
-			t.Fatalf("Chain from %v does not end in most recent %v "+
-				"(%v) vs. (%v)", original, mostRecent, chain, mrChain)
-		}
+		require.Equal(t, mrChain, chain, "Chain from %v does not end in most recent %v "+
+			"(%v) vs. (%v)", original, mostRecent, chain, mrChain)
 	}
 
 	if !reflect.DeepEqual(cc.renamedOriginals, expectedRenames) {
-		t.Errorf("Actual renames don't match the expected renames: %v vs %v",
+		require.Fail(t, "Actual renames don't match the expected renames: %v vs %v",
 			cc.renamedOriginals, expectedRenames)
 	}
 }
@@ -105,12 +97,11 @@ func testCRCheckOps(t *testing.T, cc *crChains, original data.BlockPointer,
 	expectedOps []op,
 ) {
 	chain, ok := cc.byOriginal[original]
-	if !ok {
-		t.Fatalf("No chain at %v", original)
-	}
+	require.True(t, ok,
+		"No chain at %v", original)
 
 	if g, e := len(chain.ops), len(expectedOps); g != e {
-		t.Fatalf("Wrong number of operations: %d vs %d: %v", g, e, chain.ops)
+		require.FailNow(t, fmt.Sprintf("Wrong number of operations: %d vs %d: %v", g, e, chain.ops))
 	}
 
 	codec := kbfscodec.NewMsgpack()
@@ -119,34 +110,29 @@ func testCRCheckOps(t *testing.T, cc *crChains, original data.BlockPointer,
 		// First check for rename create ops.
 		if co, ok := op.(*createOp); ok && co.renamed {
 			eCOp, ok := eOp.(*createOp)
-			if !ok {
-				t.Errorf("Expected op isn't a create for %v[%d]", original, i)
-			}
+			require.True(t, ok, "Expected op isn't a create for %v[%d]", original, i)
 
 			if co.NewName != eCOp.NewName || co.Dir.Unref != eCOp.Dir.Unref ||
 				!eCOp.renamed {
-				t.Errorf("Bad create op after rename: %v", co)
+				require.Fail(t, "Bad create op after rename: %v", co)
 			}
 		} else if ro, ok := op.(*rmOp); ok &&
 			// We can tell the rm half of a rename because the updates
 			// aren't initialized.
 			len(ro.Updates) == 0 {
 			eROp, ok := eOp.(*rmOp)
-			if !ok {
-				t.Errorf("Expected op isn't an rm for %v[%d]", original, i)
-			}
+			require.True(t, ok, "Expected op isn't an rm for %v[%d]", original, i)
 
 			if ro.OldName != eROp.OldName || ro.Dir.Unref != eROp.Dir.Unref ||
 				eROp.Dir.Ref.IsInitialized() {
-				t.Errorf("Bad create op after rename: %v", ro)
+				require.Fail(t, "Bad create op after rename: %v", ro)
 			}
 		} else {
 			ok, err := kbfscodec.Equal(codec, op, eOp)
-			if err != nil {
-				t.Fatalf("Couldn't compare ops: %v", err)
-			}
+			require.NoError(t, err,
+				"Couldn't compare ops: %v", err)
 			if !ok {
-				t.Errorf("Unexpected op %v at %v[%d]; expected %v", op,
+				require.Fail(t, "Unexpected op %v at %v[%d]; expected %v", op,
 					original, i, eOp)
 			}
 		}
@@ -205,9 +191,8 @@ func TestCRChainsSingleOp(t *testing.T) {
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
 		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
-	if err != nil {
-		t.Fatalf("Error making chains: %v", err)
-	}
+	require.NoError(t, err,
+		"Error making chains: %v", err)
 	checkExpectedChains(t, expected, make(map[data.BlockPointer]renameInfo),
 		rootPtrUnref, cc, true)
 
@@ -239,9 +224,8 @@ func TestCRChainsRenameOp(t *testing.T) {
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
 		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
-	if err != nil {
-		t.Fatalf("Error making chains: %v", err)
-	}
+	require.NoError(t, err,
+		"Error making chains: %v", err)
 
 	checkExpectedChains(t, expected, expectedRenames, rootPtrUnref, cc, true)
 
@@ -349,9 +333,8 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, data.BlockPointer) {
 	chainMDs := []chainMetadata{bigChainMD}
 	cc, err := newCRChains(
 		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
-	if err != nil {
-		t.Fatalf("Error making chains for big chainMD: %v", err)
-	}
+	require.NoError(t, err,
+		"Error making chains for big chainMD: %v", err)
 	checkExpectedChains(t, expected, expectedRenames, rootPtrUnref, cc, true)
 
 	// root should have no direct ops
@@ -380,21 +363,16 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, data.BlockPointer) {
 	// now make sure the chain of MDs gets the same answers
 	mcc, err := newCRChains(
 		context.Background(), makeChainCodec(), nil, multiChainMDs, nil, true)
-	if err != nil {
-		t.Fatalf("Error making chains for multi chainMDs: %v", err)
-	}
-	if !reflect.DeepEqual(cc.byOriginal, mcc.byOriginal) {
-		t.Fatalf("Heads for multi chainMDs does not match original for big chainMD: %v",
-			mcc.byOriginal)
-	}
-	if !reflect.DeepEqual(cc.byMostRecent, mcc.byMostRecent) {
-		t.Fatalf("Tails for multi chainMDs does not match most recents for "+
+	require.NoError(t, err,
+		"Error making chains for multi chainMDs: %v", err)
+	require.True(t, reflect.DeepEqual(cc.byOriginal, mcc.byOriginal),
+		"Heads for multi chainMDs does not match original for big chainMD: %v",
+		mcc.byOriginal)
+	require.True(t, reflect.DeepEqual(cc.byMostRecent, mcc.byMostRecent),
+		"Tails for multi chainMDs does not match most recents for "+
 			"big chainMD: %v", mcc.byMostRecent)
-	}
-	if mcc.originalRoot != rootPtrUnref {
-		t.Fatalf("Root pointer incorrect for multi chainMDs, %v vs %v",
-			mcc.originalRoot, rootPtrUnref)
-	}
+	require.Equal(t, rootPtrUnref, mcc.originalRoot, "Root pointer incorrect for multi chainMDs, %v vs %v",
+		mcc.originalRoot, rootPtrUnref)
 	return multiChainMDs, file4Unref
 }
 
@@ -513,9 +491,8 @@ func TestCRChainsCollapse(t *testing.T) {
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
 		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
-	if err != nil {
-		t.Fatalf("Error making chains: %v", err)
-	}
+	require.NoError(t, err,
+		"Error making chains: %v", err)
 	checkExpectedChains(t, expected, expectedRenames, rootPtrUnref, cc,
 		false /*tail ref pointer won't match due to collapsing*/)
 
@@ -547,9 +524,8 @@ func TestCRChainsRemove(t *testing.T) {
 
 	ccs, err := newCRChains(
 		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
-	if err != nil {
-		t.Fatalf("Error making chains: %v", err)
-	}
+	require.NoError(t, err,
+		"Error making chains: %v", err)
 
 	// This should remove the write operation.
 	removedChains := ccs.remove(context.Background(),
@@ -601,9 +577,8 @@ func TestCRChainsCollapsedSyncOps(t *testing.T) {
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
 		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
-	if err != nil {
-		t.Fatalf("Error making chains: %v", err)
-	}
+	require.NoError(t, err,
+		"Error making chains: %v", err)
 	checkExpectedChains(t, expected, make(map[data.BlockPointer]renameInfo),
 		rootPtrUnref, cc, true)
 

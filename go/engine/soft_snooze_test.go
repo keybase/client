@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 )
 
 type flakeyRooterAPI struct {
@@ -81,7 +82,7 @@ func TestSoftSnooze(t *testing.T) {
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
@@ -92,7 +93,7 @@ func TestSoftSnooze(t *testing.T) {
 	// Track tracy
 	teng := NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
@@ -110,14 +111,14 @@ func TestSoftSnooze(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	// Should not get an error
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	result, found := idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	if pe := libkb.ImportProofError(result.SnoozedResult); pe == nil {
-		t.Fatal("expected a snoozed error result")
+		require.NotNil(t, pe,
+			"expected a snoozed error result")
 	}
 
 	// Now time out the success that allowed us to circumvent
@@ -128,19 +129,19 @@ func TestSoftSnooze(t *testing.T) {
 	idUI = &FakeIdentifyUI{}
 	m = m.WithIdentifyUI(idUI)
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("Expected a failure in our proof")
+		require.Error(t, err,
+			"Expected a failure in our proof")
 	}
 
 	result, found = idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
+		require.NotNil(t, pe,
+			"expected a Rooter error result")
 	}
-	if !idUI.BrokenTracking {
-		t.Fatal("expected broken tracking!")
-	}
+	require.True(t, idUI.BrokenTracking,
+		"expected broken tracking!")
 
 	assertTracking(tc, username)
 }

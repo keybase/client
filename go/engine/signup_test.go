@@ -38,80 +38,73 @@ func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 	fu := CreateAndSignupFakeUser(tc, "se")
 
 	if err = AssertLoggedIn(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	if err = AssertDeviceID(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if me.GetEldestKID().IsNil() {
-		t.Fatal("after signup, eldest kid is nil")
-	}
+	require.NoError(t, err)
+	require.False(t, me.GetEldestKID().IsNil(),
+		"after signup, eldest kid is nil")
 
 	// Now try to logout and log back in
 	Logout(tc)
 
 	if err = AssertDeviceID(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	if err := AssertLoggedOut(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	fu.LoginOrBust(tc)
 
 	if err = AssertDeviceID(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	if err = AssertLoggedIn(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	if err = AssertDeviceID(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Now try to logout and log back in
 	Logout(tc)
 
 	if err := AssertLoggedOut(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secretUI := fu.NewSecretUI()
 	err = fu.LoginWithSecretUI(secretUI, tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if !secretUI.CalledGetPassphrase {
-		t.Errorf("secretUI.GetKeybasePassphrase() not called")
-	}
+	require.True(t, secretUI.CalledGetPassphrase, "secretUI.GetKeybasePassphrase() not called")
 
 	if err = AssertDeviceID(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	if err = AssertLoggedIn(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Now try to logout to make sure we logged out OK
 	Logout(tc)
 
 	if err = AssertDeviceID(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	if err = AssertLoggedOut(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -136,7 +129,7 @@ func TestSignupWithGPG(t *testing.T) {
 
 	fu := NewFakeUserOrBust(t, "se")
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipGPG = false
@@ -148,7 +141,7 @@ func TestSignupWithGPG(t *testing.T) {
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -165,28 +158,22 @@ func TestLocalKeySecurity(t *testing.T) {
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	m := NewMetaContextForTest(tc)
 	lks := libkb.NewLKSec(s.ppStream, s.uid)
 	if err := lks.Load(m); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	text := "the people on the bus go up and down, up and down, up and down"
 	enc, err := lks.Encrypt(m, []byte(text))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	dec, _, _, err := lks.Decrypt(m, enc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(dec) != text {
-		t.Errorf("decrypt: %q, expected %q", string(dec), text)
-	}
+	require.NoError(t, err)
+	require.Equal(t, text, string(dec), "decrypt: %q, expected %q", string(dec), text)
 }
 
 // Test that the signup engine stores the secret correctly when
@@ -203,32 +190,23 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	}
 
 	_, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
-	if err == nil {
-		t.Fatal("User unexpectedly has secret")
-	}
+	require.Error(t, err,
+		"User unexpectedly has secret")
 
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
 	s := SignupFakeUserWithArg(tc, fu, arg)
 
 	secret, err := s.lks.GetSecret(mctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	storedSecret, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err, err)
 
-	if !secret.Equal(storedSecret) {
-		t.Errorf("Expected %v, got %v", secret, storedSecret)
-	}
+	require.True(t, secret.Equal(storedSecret), "Expected %v, got %v", secret, storedSecret)
 
 	err = tc.G.SecretStore().ClearSecret(NewMetaContextForTest(tc), fu.NormalizedUsername())
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err, err)
 }
 
 func TestIssue280(t *testing.T) {
@@ -262,9 +240,7 @@ func TestIssue280(t *testing.T) {
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestSignupGeneratesPaperKey(t *testing.T) {
@@ -298,11 +274,11 @@ func TestSignupShortPassphrase(t *testing.T) {
 	t.Logf("signup arg: %+v", arg)
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err == nil {
-		t.Fatal("signup worked with short passphrase")
-	}
+	require.Error(t, err,
+		"signup worked with short passphrase")
 	if _, ok := err.(libkb.PassphraseError); !ok {
-		t.Fatalf("error type: %T, expected libkb.PassphraseError", err)
+		require.True(t, ok,
+			"error type: %T, expected libkb.PassphraseError", err)
 	}
 }
 

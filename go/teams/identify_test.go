@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIdentifyLite(t *testing.T) {
@@ -13,60 +14,36 @@ func TestIdentifyLite(t *testing.T) {
 	defer tc.Cleanup()
 
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// test identify by assertion only
 	assertions := []string{"team:" + name, "tid:" + team.ID.String()}
 	for _, assertion := range assertions {
 		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G)), assertion, true)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		res, err := IdentifyLite(context.Background(), tc.G, keybase1.IdentifyLiteArg{Assertion: assertion}, au)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if res.Ul.Name != name {
-			t.Errorf("assertion: %s, id lite name: %s, expected %s", assertion, res.Ul.Name, name)
-		}
+		require.NoError(t, err)
+		require.Equal(t, name, res.Ul.Name, "assertion: %s, id lite name: %s, expected %s", assertion, res.Ul.Name, name)
 
-		if res.Ul.Id.String() != team.ID.String() {
-			t.Errorf("assertion: %s, id lite id: %s, expected %s", assertion, res.Ul.Id, team.ID)
-		}
+		require.Equal(t, team.ID.String(), res.Ul.Id.String(), "assertion: %s, id lite id: %s, expected %s", assertion, res.Ul.Id, team.ID)
 	}
 
 	// test identify by id and assertions
 	for _, assertion := range assertions {
 		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G)), assertion, true)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		res, err := IdentifyLite(context.Background(), tc.G, keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam(), Assertion: assertion}, au)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if res.Ul.Name != name {
-			t.Errorf("assertion: %s, id lite name: %s, expected %s", assertion, res.Ul.Name, name)
-		}
+		require.NoError(t, err)
+		require.Equal(t, name, res.Ul.Name, "assertion: %s, id lite name: %s, expected %s", assertion, res.Ul.Name, name)
 
-		if res.Ul.Id.String() != team.ID.String() {
-			t.Errorf("assertion: %s, id lite id: %s, expected %s", assertion, res.Ul.Id, team.ID)
-		}
+		require.Equal(t, team.ID.String(), res.Ul.Id.String(), "assertion: %s, id lite id: %s, expected %s", assertion, res.Ul.Id, team.ID)
 	}
 
 	// test identify by id only
 	var empty libkb.AssertionKeybase
 	res, err := IdentifyLite(context.Background(), tc.G, keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam()}, empty)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.Ul.Name != name {
-		t.Errorf("id lite name: %s, expected %s", res.Ul.Name, name)
-	}
+	require.NoError(t, err)
+	require.Equal(t, name, res.Ul.Name, "id lite name: %s, expected %s", res.Ul.Name, name)
 
-	if res.Ul.Id.String() != team.ID.String() {
-		t.Errorf("id lite id: %s, expected %s", res.Ul.Id, team.ID)
-	}
+	require.Equal(t, team.ID.String(), res.Ul.Id.String(), "id lite id: %s, expected %s", res.Ul.Id, team.ID)
 }

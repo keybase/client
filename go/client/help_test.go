@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/stretchr/testify/require"
 )
 
 func helpLines(buf bytes.Buffer) []string {
@@ -33,12 +34,9 @@ func TestHelp(t *testing.T) {
 	cl.SetOutputWriter(&buf)
 	cl.AddCommands(GetCommands(cl, externals.NewGlobalContextInit()))
 	cmd, err := cl.Parse(strings.Fields("keybase pgp help"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cmd != nil {
-		t.Fatalf("expected nil command, got %T", cmd)
-	}
+	require.NoError(t, err)
+	require.Nil(t, cmd,
+		"expected nil command, got %T", cmd)
 }
 
 // test that `keybase pgp help`, `keybase help pgp`, `keybase pgp` output the
@@ -50,47 +48,32 @@ func TestParentHelp(t *testing.T) {
 	cl.AddCommands(GetCommands(cl, externals.NewGlobalContextInit()))
 
 	cmd, err := cl.Parse(strings.Fields("keybase pgp help"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cmd != nil {
-		t.Fatalf("expected nil command, got %T", cmd)
-	}
+	require.NoError(t, err)
+	require.Nil(t, cmd,
+		"expected nil command, got %T", cmd)
 	help1 := helpFilter(buf1)
 
 	var buf2 bytes.Buffer
 	cl.SetOutputWriter(&buf2)
 	cmd, err = cl.Parse(strings.Fields("keybase help pgp"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cmd != nil {
-		t.Fatalf("expected nil command, got %T", cmd)
-	}
+	require.NoError(t, err)
+	require.Nil(t, cmd,
+		"expected nil command, got %T", cmd)
 	help2 := helpFilter(buf2)
 
-	if help1 != help2 {
-		t.Errorf("`keybase pgp help` and `keybase help pgp` output differed")
-	}
+	require.Equal(t, help2, help1, "`keybase pgp help` and `keybase help pgp` output differed")
 
 	var buf3 bytes.Buffer
 	cl.SetOutputWriter(&buf3)
 	cmd, err = cl.Parse(strings.Fields("keybase pgp"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cmd != nil {
-		t.Fatalf("expected nil command, got %T", cmd)
-	}
+	require.NoError(t, err)
+	require.Nil(t, cmd,
+		"expected nil command, got %T", cmd)
 	help3 := helpFilter(buf3)
 
-	if help1 != help3 {
-		t.Errorf("`keybase pgp help` and `keybase pgp` output differed")
-	}
+	require.Equal(t, help3, help1, "`keybase pgp help` and `keybase pgp` output differed")
 
-	if help2 != help3 {
-		t.Errorf("`keybase help pgp` and `keybase pgp` output differed")
-	}
+	require.Equal(t, help3, help2, "`keybase help pgp` and `keybase pgp` output differed")
 
 	t.Logf("keybase pgp help:\n%s\n\n", help1)
 	t.Logf("keybase help pgp:\n%s\n\n", help2)

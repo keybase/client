@@ -312,17 +312,15 @@ func testMDOpsGetIDForUnresolvedHandlePublicSuccess(
 
 	// First time should fail.
 	_, err = config.MDOps().GetIDForHandle(ctx, hUnresolved)
-	if _, ok := err.(tlfhandle.HandleMismatchError); !ok {
-		t.Errorf("Got unexpected error on bad handle check test: %v", err)
-	}
+	_, ok := err.(tlfhandle.HandleMismatchError)
+	require.True(t, ok, "Got unexpected error on bad handle check test: %v", err)
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.AddNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Second time should succeed.
-	if _, err := config.MDOps().GetIDForHandle(ctx, hUnresolved); err != nil {
-		t.Errorf("Got error on get: %v", err)
-	}
+	_, err = config.MDOps().GetIDForHandle(ctx, hUnresolved)
+	require.NoError(t, err, "Got error on get: %v", err)
 }
 
 func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
@@ -371,9 +369,8 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 
 	// First time should fail.
 	_, err = config.MDOps().GetIDForHandle(ctx, h)
-	if _, ok := err.(tlfhandle.HandleMismatchError); !ok {
-		t.Errorf("Got unexpected error on bad handle check test: %v", err)
-	}
+	_, ok := err.(tlfhandle.HandleMismatchError)
+	require.True(t, ok, "Got unexpected error on bad handle check test: %v", err)
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.AddNewAssertionForTestOrBust("bob", "bob@twitter")
@@ -383,16 +380,14 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 		kbfsmd.Merged, nil).Return(id, rmds2, nil)
 
 	// Second time should succeed.
-	if _, err := config.MDOps().GetIDForHandle(ctx, h); err != nil {
-		t.Errorf("Got error on get: %v", err)
-	}
+	_, err = config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err, "Got error on get: %v", err)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		kbfsmd.Merged, nil).Return(id, rmds3, nil)
 
-	if _, err := config.MDOps().GetIDForHandle(ctx, h); err != nil {
-		t.Errorf("Got error on get: %v", err)
-	}
+	_, err = config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err, "Got error on get: %v", err)
 }
 
 func testMDOpsGetIDForUnresolvedHandlePublicFailure(
@@ -420,9 +415,8 @@ func testMDOpsGetIDForUnresolvedHandlePublicFailure(
 
 	// Should still fail.
 	_, err = config.MDOps().GetIDForHandle(ctx, hUnresolved)
-	if _, ok := err.(tlfhandle.HandleMismatchError); !ok {
-		t.Errorf("Got unexpected error on bad handle check test: %v", err)
-	}
+	_, ok := err.(tlfhandle.HandleMismatchError)
+	require.True(t, ok, "Got unexpected error on bad handle check test: %v", err)
 }
 
 func testMDOpsGetIDForHandlePublicFailFindKey(
@@ -443,9 +437,8 @@ func testMDOpsGetIDForHandlePublicFailFindKey(
 		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
 	_, err := config.MDOps().GetIDForHandle(ctx, h)
-	if _, ok := err.(UnverifiableTlfUpdateError); !ok {
-		t.Errorf("Got unexpected error on get: %v", err)
-	}
+	_, ok := err.(UnverifiableTlfUpdateError)
+	require.True(t, ok, "Got unexpected error on get: %v", err)
 }
 
 func testMDOpsGetIDForHandlePublicFailVerify(
@@ -483,9 +476,8 @@ func testMDOpsGetIDForHandleFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		kbfsmd.Merged, nil).Return(tlf.NullID, nil, err)
 
-	if _, err2 := config.MDOps().GetIDForHandle(ctx, h); err2 != err {
-		t.Errorf("Got bad error on get: %v", err2)
-	}
+	_, err2 := config.MDOps().GetIDForHandle(ctx, h)
+	require.Equal(t, err, err2, "Got bad error on get: %v", err2)
 }
 
 func testMDOpsGetIDForHandleFailHandleCheck(
@@ -507,9 +499,8 @@ func testMDOpsGetIDForHandleFailHandleCheck(
 	expectGetKeyBundles(ctx, config, extra)
 
 	_, err := config.MDOps().GetIDForHandle(ctx, otherH)
-	if _, ok := err.(tlfhandle.HandleMismatchError); !ok {
-		t.Errorf("Got unexpected error on bad handle check test: %v", err)
-	}
+	_, ok := err.(tlfhandle.HandleMismatchError)
+	require.True(t, ok, "Got unexpected error on bad handle check test: %v", err)
 }
 
 func testMDOpsGetSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -548,9 +539,8 @@ func testMDOpsGetBlankSigFailure(t *testing.T, ver kbfsmd.MetadataVer) {
 		kbfsmd.Merged, nil).Return(rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
 
-	if _, err := config.MDOps().GetForTLF(ctx, rmds.MD.TlfID(), nil); err == nil {
-		t.Error("Got no error on get")
-	}
+	_, err := config.MDOps().GetForTLF(ctx, rmds.MD.TlfID(), nil)
+	require.NotNil(t, err, "Got no error on get")
 }
 
 func testMDOpsGetFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -564,9 +554,8 @@ func testMDOpsGetFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mockMdserv.EXPECT().GetForTLF(ctx, id, kbfsmd.NullBranchID,
 		kbfsmd.Merged, nil).Return(nil, err)
 
-	if _, err2 := config.MDOps().GetForTLF(ctx, id, nil); err2 != err {
-		t.Errorf("Got bad error on get: %v", err2)
-	}
+	_, err2 := config.MDOps().GetForTLF(ctx, id, nil)
+	require.Equal(t, err, err2, "Got bad error on get: %v", err2)
 }
 
 func testMDOpsGetFailIDCheck(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -583,9 +572,8 @@ func testMDOpsGetFailIDCheck(t *testing.T, ver kbfsmd.MetadataVer) {
 		kbfsmd.Merged, nil).Return(rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
 
-	if _, err := config.MDOps().GetForTLF(ctx, id2, nil); err == nil {
-		t.Errorf("Got no error on bad id check test")
-	}
+	_, err := config.MDOps().GetForTLF(ctx, id2, nil)
+	require.NotNil(t, err, "Got no error on bad id check test")
 }
 
 func makeRMDSRange(t *testing.T, config Config,
@@ -596,9 +584,7 @@ func makeRMDSRange(t *testing.T, config Config,
 	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	for i := range count {
 		rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		addFakeRMDData(t, config.Codec(), rmd, h)
 		rmd.SetPrevRoot(prevID)
@@ -902,7 +888,7 @@ func testMDOpsPutPrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("test key")
 	if _, err := config.MDOps().Put(
 		ctx, rmd, key, nil, keybase1.MDPriorityNormal, nil); err != nil {
-		t.Errorf("Got error on put: %v", err)
+		require.Fail(t, "Got error on put: %v", err)
 	}
 }
 
@@ -939,7 +925,7 @@ func testMDOpsPutFailEncode(t *testing.T, ver kbfsmd.MetadataVer) {
 	if _, err2 := config.MDOps().Put(
 		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal,
 		nil); err2 != err {
-		t.Errorf("Got bad error on put: %v", err2)
+		require.Fail(t, "Got bad error on put: %v", err2)
 	}
 }
 

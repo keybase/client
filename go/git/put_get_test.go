@@ -290,9 +290,7 @@ func TestPutAndGetWritersCantDelete(t *testing.T) {
 	_, err = teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
 	_, err = teams.AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Create a git repo for that team
 	doPut(t, tc.G, teamName, "abc123", "dummyRepoName")

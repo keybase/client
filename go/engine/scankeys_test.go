@@ -19,13 +19,9 @@ func TestScanKeys(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithSecretUI(fu.NewSecretUI())
 
 	sk, err := NewScanKeys(m)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if sk.Count() != 0 {
-		t.Errorf("scankey count: %d, expected 0", sk.Count())
-	}
+	require.Equal(t, 0, sk.Count(), "scankey count: %d, expected 0", sk.Count())
 }
 
 // TestScanKeysSync checks a user with a synced PGP key
@@ -54,7 +50,5 @@ func TestScanKeysSync(t *testing.T) {
 	sk, err := NewScanKeys(m)
 	require.NoError(t, err, "scanning keys worked")
 
-	if sk.Count() != 1 {
-		t.Errorf("scankey count: %d, expected 1", sk.Count())
-	}
+	require.Equal(t, 1, sk.Count(), "scankey count: %d, expected 1", sk.Count())
 }

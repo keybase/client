@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 // TestTrackerList2 creates a new fake user and has that user track
@@ -30,12 +31,10 @@ func _testListTrackers2(t *testing.T, sigVersion libkb.SigVersion) {
 	e := NewListTrackersUnverifiedEngine(tc.G, ListTrackersUnverifiedEngineArg{Assertion: "t_alice"})
 	m := NewMetaContextForTestWithLogUI(tc)
 	if err := RunEngine2(m, e); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	res := e.GetResults()
-	if len(res.Users) == 0 {
-		t.Errorf("t_alice tracker count: 0. expected > 0.")
-	}
+	require.False(t, len(res.Users) == 0, "t_alice tracker count: 0. expected > 0.")
 
 	found := false
 	for _, x := range res.Users {
@@ -44,11 +43,9 @@ func _testListTrackers2(t *testing.T, sigVersion libkb.SigVersion) {
 			break
 		}
 	}
-	if !found {
-		t.Errorf("fake user %q not included in list of t_alice trackers.", fu.Username)
-		t.Logf("tracker list:")
-		for i, x := range res.Users {
-			t.Logf("%d: %s", i, x.Username)
-		}
+	require.True(t, found, "fake user %q not included in list of t_alice trackers.", fu.Username)
+	t.Logf("tracker list:")
+	for i, x := range res.Users {
+		t.Logf("%d: %s", i, x.Username)
 	}
 }

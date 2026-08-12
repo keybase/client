@@ -5,12 +5,14 @@ package pvl
 
 import (
 	b64 "encoding/base64"
+	"fmt"
 	"log"
 	"strings"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func check(err error) {
@@ -63,11 +65,11 @@ func TestServiceToString(t *testing.T) {
 		name, err := serviceToString(test.service)
 		switch {
 		case (err == nil) != test.shouldwork:
-			t.Fatalf("%v err %v", i, err)
+			require.FailNow(t, fmt.Sprintf("%v err %v", i, err))
 		case !test.shouldwork && (err.GetProofStatus() != test.status):
-			t.Fatalf("%v status %v", i, err.GetProofStatus())
+			require.FailNow(t, fmt.Sprintf("%v status %v", i, err.GetProofStatus()))
 		case test.name != name:
-			t.Fatalf("%v name %v %v", i, test.name, name)
+			require.FailNow(t, fmt.Sprintf("%v name %v %v", i, test.name, name))
 		}
 	}
 }
@@ -151,13 +153,11 @@ func TestSubstitute(t *testing.T) {
 		} else {
 			res, err = substituteExact(test.a, state)
 		}
-		if (err == nil) != test.shouldwork {
-			t.Fatalf("%v error mismatch: %v ; %v ; '%v'", i, test.shouldwork, err, res)
-		}
+		require.Equal(t, test.shouldwork, err == nil, "%v error mismatch: %v ; %v ; '%v'", i, test.shouldwork, err, res)
 		if err == nil && res != test.b {
 			t.Logf("%v lens: %v %v", i, len(res), len(test.b))
-			t.Fatalf("%v wrong substitute result\n%v\n%v\n%v",
-				i, test.a, res, test.b)
+			require.FailNow(t, fmt.Sprintf("%v wrong substitute result\n%v\n%v\n%v",
+				i, test.a, res, test.b))
 		}
 	}
 }
@@ -204,9 +204,7 @@ func TestSelectionContents(t *testing.T) {
 		default:
 			out = selectionText(sel)
 		}
-		if out != test.out {
-			t.Fatalf("%v mismatch\n'%v'\n'%v'", i, out, test.out)
-		}
+		require.Equal(t, test.out, out, "%v mismatch\n'%v'\n'%v'", i, out, test.out)
 	}
 }
 
@@ -254,9 +252,7 @@ func TestValidateDomain(t *testing.T) {
 
 	for i, test := range tests {
 		ans := validateDomain(test.s)
-		if ans != test.ok {
-			t.Fatalf("%v mismatch: %v\ngot      : %v\nexpected : %v\n", i, test.s, ans, test.ok)
-		}
+		require.Equal(t, test.ok, ans, "%v mismatch: %v\ngot      : %v\nexpected : %v\n", i, test.s, ans, test.ok)
 	}
 }
 
@@ -279,10 +275,9 @@ func TestValidateProtocol(t *testing.T) {
 
 	for i, test := range tests {
 		a, b := validateProtocol(test.s, test.allowed)
-		if a != test.expected || b != test.ok {
-			t.Fatalf("%v mismatch: %v\ngot      : %v %v\nexpected : %v %v\n",
-				i, test.s, test.expected, test.ok, a, b)
-		}
+		require.False(t, a != test.expected || b != test.ok,
+			"%v mismatch: %v\ngot      : %v %v\nexpected : %v %v\n",
+			i, test.s, test.expected, test.ok, a, b)
 	}
 }
 

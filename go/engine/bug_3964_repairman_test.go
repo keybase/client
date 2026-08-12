@@ -206,10 +206,10 @@ func checkAuditLogForBug3964Recovery(t *testing.T, log []string, deviceID keybas
 			if log[i+1] == "| Success" {
 				return
 			}
-			t.Fatalf("Found %q but it wasn't followed by '| Success'", needle)
+			require.FailNow(t, fmt.Sprintf("Found %q but it wasn't followed by '| Success'", needle))
 		}
 	}
-	t.Fatalf("Didn't find evidence of %q", needle)
+	require.FailNow(t, fmt.Sprintf("Didn't find evidence of %q", needle))
 }
 
 func findLine(t *testing.T, haystack []string, needle string) []string {
@@ -218,7 +218,7 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 			return haystack[(i + 1):]
 		}
 	}
-	t.Fatalf("Didn't find line %q", needle)
+	require.FailNow(t, fmt.Sprintf("Didn't find line %q", needle))
 	return nil
 }
 
@@ -244,26 +244,22 @@ func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 	eng := NewLogin(dev.G, keybase1.DeviceTypeV2_DESKTOP, user.Username, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(dev).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
 func checkAuditLogCleanLogin(t *testing.T, log []string) {
-	if len(limitToTrace(log, "LKSec#Decrypt()")) == 0 {
-		t.Fatalf("at least expected a login call")
-	}
+	require.NotEmpty(t, limitToTrace(log, "LKSec#Decrypt()"), "at least expected a login call")
 	for _, line := range log {
-		if strings.HasPrefix(line, "+ LKSec#tryAllDevicesForBug3964Recovery()") {
-			t.Fatalf("found attempt to try bug 3964 recovery after a full repair")
-		}
+		require.False(t, strings.HasPrefix(line, "+ LKSec#tryAllDevicesForBug3964Recovery()"),
+			"found attempt to try bug 3964 recovery after a full repair")
 	}
 }
 
 func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
 	for _, line := range log {
-		if strings.HasPrefix(line, "| Repairman wasn't short-circuited") {
-			t.Fatalf("short-circuit mechanism failed")
-		}
+		require.False(t, strings.HasPrefix(line, "| Repairman wasn't short-circuited"),
+			"short-circuit mechanism failed")
 	}
 	found := false
 	for _, line := range log {
@@ -272,9 +268,8 @@ func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
 			break
 		}
 	}
-	if !found {
-		t.Fatalf("Didn't find a mention of short-circuiting")
-	}
+	require.True(t, found,
+		"Didn't find a mention of short-circuiting")
 }
 
 func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
@@ -282,9 +277,7 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 		SecretUI: u.NewSecretUI(),
 	}
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(NewMetaContextForTest(tctx)))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	// need unlocked signing key
 	ska := libkb.SecretKeyArg{
 		Me:      me,
@@ -293,28 +286,20 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	m := NewMetaContextForTest(tctx).WithUIs(uis)
 	arg := m.SecretKeyPromptArg(ska, "tracking signature")
 	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(NewMetaContextForTest(tctx), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if encKey == nil {
-		t.Fatal("got back a nil decryption key")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, encKey,
+		"got back a nil decryption key")
 	_, clientHalf, err := fetchLKS(m, encKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	pps, err := libkb.GetPassphraseStreamStored(m)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if pps == nil {
-		t.Fatal("failed to get passphrase stream")
+		require.FailNow(t, "failed to get passphrase stream")
 		return
 	}
 	clientHalfExpected := pps.LksClientHalf()
-	if !clientHalf.Equal(clientHalfExpected) {
-		t.Fatal("got bad passphrase from LKS recovery")
-	}
+	require.True(t, clientHalf.Equal(clientHalfExpected),
+		"got bad passphrase from LKS recovery")
 }
 
 func TestBug3964Repairman(t *testing.T) {
@@ -328,9 +313,7 @@ func TestBug3964Repairman(t *testing.T) {
 
 	t.Logf("-------------- Checkpoint 1 -----------------------")
 	dev1Key, err := corruptDevice2(dev1, dev2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	dev2.G.TestOptions.NoBug3964Repair = true
 	logoutLogin(t, user, dev2)

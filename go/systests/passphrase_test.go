@@ -50,7 +50,7 @@ func TestPassphraseChange(t *testing.T) {
 	signup.SetTest()
 
 	if err := signup.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	m := libkb.NewMetaContextForTest(*tc)
@@ -63,7 +63,7 @@ func TestPassphraseChange(t *testing.T) {
 	change := client.NewCmdPassphraseChangeRunner(tc2.G)
 
 	if err := change.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	_, err = libkb.VerifyPassphraseForLoggedInUser(m, newPassphrase)
@@ -72,12 +72,12 @@ func TestPassphraseChange(t *testing.T) {
 	require.Error(t, err, "old passphrase failed to verify")
 
 	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 

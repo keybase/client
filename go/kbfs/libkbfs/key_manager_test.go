@@ -165,34 +165,28 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	tlfCryptKey, err := config.KeyManager().
 		GetTLFCryptKeyForEncryption(ctx, kmd)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
-		t.Errorf("got %v, expected %v",
+		require.Fail(t, "got %v, expected %v",
 			tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
 	}
 
 	tlfCryptKey, err = config.KeyManager().
 		GetTLFCryptKeyForMDDecryption(ctx, kmd, kmd)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
-		t.Errorf("got %v, expected %v",
+		require.Fail(t, "got %v, expected %v",
 			tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
 	}
 
 	tlfCryptKey, err = config.KeyManager().
 		GetTLFCryptKeyForBlockDecryption(ctx, kmd, data.BlockPointer{})
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
-		t.Errorf("got %v, expected %v",
+		require.Fail(t, "got %v, expected %v",
 			tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
 	}
 }
@@ -386,11 +380,10 @@ func testKeyManagerRekeySuccessPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	tlfCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 	expectRekey(config, h.ToBareHandleOrBust(), 1, false, true, tlfCryptKey)
 
-	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Errorf("Got error on rekey: %t, %+v", done, err)
-	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
-		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
-	}
+	done, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.True(t, done, "Got error on rekey: %t, %+v", done, err)
+	require.NoError(t, err, "Got error on rekey: %t, %+v", done, err)
+	require.Equal(t, oldKeyGen+1, rmd.LatestKeyGeneration(), "Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 }
 
 func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -478,9 +471,7 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), tlfhandle.ConstIDGetter{ID: id}, nil,
 		"alice,bob@twitter,dave@twitter#charlie@twitter", tlf.Private)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
@@ -495,12 +486,10 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 	daemon.AddNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %+v", done, err)
+		require.FailNow(t, fmt.Sprintf("Got error on rekey: %t, %+v", done, err))
 	}
 
-	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
-		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
-	}
+	require.Equal(t, oldKeyGen+1, rmd.LatestKeyGeneration(), "Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t, tlf.CanonicalName("alice,bob,dave@twitter#charlie"),
@@ -529,13 +518,11 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(3)
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %+v", done, err)
+		require.FailNow(t, fmt.Sprintf("Got error on rekey: %t, %+v", done, err))
 	}
 
-	if rmd.LatestKeyGeneration() != oldKeyGen {
-		t.Fatalf("Bad key generation after rekey: %d",
-			rmd.LatestKeyGeneration())
-	}
+	require.Equal(t, oldKeyGen, rmd.LatestKeyGeneration(), "Bad key generation after rekey: %d",
+		rmd.LatestKeyGeneration())
 
 	newH = rmd.GetTlfHandle()
 	require.Equal(t, tlf.CanonicalName("alice,bob,dave#charlie"),
@@ -710,9 +697,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), tlfhandle.ConstIDGetter{ID: id}, nil,
 		"alice,dave@twitter#bob@twitter,charlie@twitter", tlf.Private)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
@@ -723,12 +708,10 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %+v", done, err)
+		require.FailNow(t, fmt.Sprintf("Got error on rekey: %t, %+v", done, err))
 	}
 
-	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
-		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
-	}
+	require.Equal(t, oldKeyGen+1, rmd.LatestKeyGeneration(), "Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t,
@@ -764,13 +747,11 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil)
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %+v", done, err)
+		require.FailNow(t, fmt.Sprintf("Got error on rekey: %t, %+v", done, err))
 	}
 
-	if rmd.LatestKeyGeneration() != oldKeyGen {
-		t.Fatalf("Bad key generation after rekey: %d",
-			rmd.LatestKeyGeneration())
-	}
+	require.Equal(t, oldKeyGen, rmd.LatestKeyGeneration(), "Bad key generation after rekey: %d",
+		rmd.LatestKeyGeneration())
 
 	// bob shouldn't have been able to resolve other users since he's
 	// just a reader.
@@ -793,9 +774,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), tlfhandle.ConstIDGetter{ID: id}, nil,
 		"alice,bob,bob@twitter", tlf.Private)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
@@ -806,12 +785,10 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %+v", done, err)
+		require.FailNow(t, fmt.Sprintf("Got error on rekey: %t, %+v", done, err))
 	}
 
-	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
-		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
-	}
+	require.Equal(t, oldKeyGen+1, rmd.LatestKeyGeneration(), "Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t,
@@ -834,13 +811,11 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(2)
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %+v", done, err)
+		require.FailNow(t, fmt.Sprintf("Got error on rekey: %t, %+v", done, err))
 	}
 
-	if rmd.LatestKeyGeneration() != oldKeyGen {
-		t.Fatalf("Bad key generation after rekey: %d",
-			rmd.LatestKeyGeneration())
-	}
+	require.Equal(t, oldKeyGen, rmd.LatestKeyGeneration(), "Bad key generation after rekey: %d",
+		rmd.LatestKeyGeneration())
 
 	// bob shouldn't have been able to resolve other users since he's
 	// just a reader.
@@ -866,9 +841,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// Create a shared folder
@@ -880,13 +853,11 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
@@ -894,13 +865,11 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 
 	// user 2 creates a file
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -916,17 +885,18 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// GetTLFCryptKeys needs to return the same error.
 	rmd, err := config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf, nil)
-	if err != nil {
-		t.Fatalf("Couldn't get latest md: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't get latest md: %+v", err)
 	_, _, err = config2Dev2.KBFSOps().GetTLFCryptKeys(ctx, rmd.GetTlfHandle())
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// Set the KBPKI so we can count the identify calls
@@ -941,30 +911,27 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// Only u2 should be identified as part of the rekey.
-	if g, e := countKBPKI.getIdentifyCalls(), 1; g != e {
-		t.Errorf("Expected %d identify calls, but got %d", e, g)
-	}
+	e, g := countKBPKI.getIdentifyCalls(), 1
+	require.Equal(t, e, g, "Expected %d identify calls, but got %d", e, g)
 
 	// u2 syncs after the rekey
 	if err := kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil); err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
+		require.NoError(t, err,
+			"Couldn't sync from server: %+v", err)
 	}
 
 	// user 2 creates another file
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("c"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	// add a third device for user 2
 	config2Dev3 := ConfigAsUser(config1, u2)
@@ -997,37 +964,31 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	// able to set the rekey bit (copying the root MD).
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		config2Dev3.KBFSOps(), rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	// rekey again
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// Only u2 should be identified again as part of the rekey.
-	if g, e := countKBPKI.getIdentifyCalls(), 2; g != e {
-		t.Errorf("Expected %d identify calls, but got %d", e, g)
-	}
+	e, g = countKBPKI.getIdentifyCalls(), 2
+	require.Equal(t, e, g, "Expected %d identify calls, but got %d", e, g)
 
 	// force re-encryption of the root dir
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("d"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	// this device should be able to read now
 	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
@@ -1035,9 +996,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.SyncFromServer(ctx,
 		root2Dev2.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	// device 2 should still work
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
@@ -1045,7 +1005,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2Dev2)
 	require.NoError(t, err)
 	if _, ok := children[rootNode2Dev2.ChildName("d")]; !ok {
-		t.Fatalf("Device 2 couldn't see the new dir entry")
+		require.True(t, ok,
+			"Device 2 couldn't see the new dir entry")
 	}
 
 	// But device 1 should now fail to see any updates.  TODO: when a
@@ -1058,14 +1019,16 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	if err == nil {
 		// This is not expected to succeed; the node will be unable to
 		// deserialize the private MD.
-		t.Fatalf("Unexpectedly could sync from server")
+		require.Error(t, err,
+
+			"Unexpectedly could sync from server")
 	}
 	// Should still be seeing the old children, since the updates from
 	// the latest revision were never applied.
 	children, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
 	if _, ok := children[rootNode2.ChildName("d")]; ok {
-		t.Fatalf("Found c unexpectedly: %v", children)
+		require.FailNow(t, fmt.Sprintf("Found c unexpectedly: %v", children))
 	}
 
 	// meanwhile, device 3 should be able to read both the new and the
@@ -1078,44 +1041,36 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 
 	kbfsOps2Dev3 := config2Dev3.KBFSOps()
 	aNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, testPPS("a"))
-	if err != nil {
-		t.Fatalf("Device 3 couldn't lookup a: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 3 couldn't lookup a: %+v", err)
 
 	buf := []byte{0}
 	_, err = kbfsOps2Dev3.Read(ctx, aNode, buf, 0)
-	if err != nil {
-		t.Fatalf("Device 3 couldn't read a: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 3 couldn't read a: %+v", err)
 
 	bNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, testPPS("b"))
-	if err != nil {
-		t.Fatalf("Device 3 couldn't lookup b: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 3 couldn't lookup b: %+v", err)
 
 	_, err = kbfsOps2Dev3.Read(ctx, bNode, buf, 0)
-	if err != nil {
-		t.Fatalf("Device 3 couldn't read b: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 3 couldn't read b: %+v", err)
 
 	// Make sure the server-side keys for the revoked device are gone
 	// for all keygens.
 	rmd, err = config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf, nil)
-	if err != nil {
-		t.Fatalf("Couldn't get latest md: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't get latest md: %+v", err)
 	currKeyGen := rmd.LatestKeyGeneration()
 	// clear the key cache
 	config2.SetKeyCache(NewKeyCacheStandard(5000))
 	km2, ok := config2.KeyManager().(*KeyManagerStandard)
-	if !ok {
-		t.Fatal("Wrong kind of key manager for config2")
-	}
+	require.True(t, ok,
+		"Wrong kind of key manager for config2")
 	for keyGen := kbfsmd.FirstValidKeyGen; keyGen <= currKeyGen; keyGen++ {
 		_, err = km2.getTLFCryptKeyUsingCurrentDevice(ctx, rmd.ReadOnly(), keyGen, true)
-		if err == nil {
-			t.Errorf("User 2 could still fetch a key for keygen %d", keyGen)
-		}
+		require.NotNil(t, err, "User 2 could still fetch a key for keygen %d", keyGen)
 	}
 }
 
@@ -1129,9 +1084,8 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 	// Revoke user 3's device for now, to test the "other" rekey error.
 	_, id3, err := config1.KBPKI().Resolve(
 		ctx, u3.String(), keybase1.OfflineAvailability_NONE)
-	if err != nil {
-		t.Fatalf("Couldn't resolve u3: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't resolve u3: %+v", err)
 	uid3, err := id3.AsUser()
 	require.NoError(t, err)
 
@@ -1140,9 +1094,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// Create a shared folder
@@ -1154,17 +1106,14 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -1189,11 +1138,13 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 	// created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 	_, err = GetRootNodeForTest(ctx, config3, name, tlf.Private)
 	if _, ok := err.(NeedOtherRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// Set the KBPKI so we can count the identify calls
@@ -1209,20 +1160,17 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 	// now user 1 should rekey
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// u2 and u3 should be identified as part of the rekey.
-	if g, e := countKBPKI.getIdentifyCalls(), 2; g != e {
-		t.Errorf("Expected %d identify calls, but got %d", e, g)
-	}
+	e, g := countKBPKI.getIdentifyCalls(), 2
+	require.Equal(t, e, g, "Expected %d identify calls, but got %d", e, g)
 
 	// The new devices should be able to read now.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
-	if err != nil {
-		t.Fatalf("Got unexpected error after rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Got unexpected error after rekey: %+v", err)
 
 	_ = GetRootNodeOrBust(ctx, t, config3, name, tlf.Private)
 }
@@ -1237,9 +1185,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	t.Log("Create a shared folder")
@@ -1251,13 +1197,11 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 
 	t.Log("User 1 creates a file")
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	t.Log("User 2 adds a device")
 	// The configs don't share a Keybase Daemon so we have to do it in all
@@ -1274,7 +1218,8 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 rekeys from device 1")
@@ -1283,9 +1228,8 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 	kbfsOps2 := config2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2, root2dev1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	t.Log("User 2 device 2 should be able to read now")
 	root2dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
@@ -1295,32 +1239,31 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
 	require.NoError(t, err)
 	if _, ok := children2[root2dev2.ChildName("a")]; !ok {
-		t.Fatalf("Device 2 couldn't see user 1's dir entry")
+		require.True(t, ok,
+			"Device 2 couldn't see user 1's dir entry")
 	}
 
 	t.Log("User 2 device 2 creates a file")
 	_, _, err = kbfsOps2Dev2.CreateFile(
 		ctx, root2dev2, testPPS("b"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps2Dev2.SyncAll(ctx, root2dev2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	t.Log("User 1 syncs from the server")
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	t.Log("User 1 should be able to read the file that user 2 device 2 created")
 	children1, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
 	require.NoError(t, err)
 	if _, ok := children1[rootNode1.ChildName("b")]; !ok {
-		t.Fatalf("Device 1 couldn't see the new dir entry")
+		require.True(t, ok,
+			"Device 1 couldn't see the new dir entry")
 	}
 }
 
@@ -1336,9 +1279,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	t.Log("Create a shared folder")
@@ -1350,13 +1291,11 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	t.Log("User 1 creates a file")
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	t.Log("User 1 adds a device")
 	// The configs don't share a Keybase Daemon so we have to do it in all
@@ -1385,7 +1324,8 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 rekeys from device 1")
@@ -1394,9 +1334,8 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	kbfsOps2 := config2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2, root2dev1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Expected reader rekey to partially complete. Actual error: %#v", err)
-	}
+	require.NoError(t, err,
+		"Expected reader rekey to partially complete. Actual error: %#v", err)
 
 	t.Log("User 2 device 2 should be able to read now")
 	root2dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
@@ -1404,14 +1343,16 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	t.Log("User 1 device 2 should still be unable to read")
 	_, err = GetRootNodeForTest(ctx, config1Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 device 2 reads user 1's file")
 	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
 	require.NoError(t, err)
 	if _, ok := children2[root2dev2.ChildName("a")]; !ok {
-		t.Fatalf("Device 2 couldn't see user 1's dir entry")
+		require.True(t, ok,
+			"Device 2 couldn't see user 1's dir entry")
 	}
 }
 
@@ -1427,9 +1368,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// The reader has a second device at the start.
@@ -1448,13 +1387,11 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	t.Log("User 1 creates a file")
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	t.Log("User 2 adds a device")
 	// The configs don't share a Keybase Daemon so we have to do it in all
@@ -1477,7 +1414,8 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev3, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 rekeys from device 2")
@@ -1485,10 +1423,9 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, root2Dev2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Expected reader rekey to partially complete. "+
+	require.NoError(t, err,
+		"Expected reader rekey to partially complete. "+
 			"Actual error: %#v", err)
-	}
 
 	t.Log("User 2 device 3 should be able to read now")
 	GetRootNodeOrBust(ctx, t, config2Dev3, name, tlf.Private)
@@ -1501,14 +1438,11 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	rev1 := ops.head.Revision()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, root2Dev2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Expected reader rekey to partially complete. "+
+	require.NoError(t, err,
+		"Expected reader rekey to partially complete. "+
 			"Actual error: %#v", err)
-	}
 	rev2 := ops.head.Revision()
-	if rev1 != rev2 {
-		t.Fatalf("Reader rekey made two incomplete rekeys in a row.")
-	}
+	require.Equal(t, rev2, rev1, "Reader rekey made two incomplete rekeys in a row.")
 }
 
 func keyManagerTestSimulateSelfRekeyBit(
@@ -1529,14 +1463,11 @@ func keyManagerTestSimulateSelfRekeyBit(
 	<-rekeyWaiter
 	rev2 := ops.head.Revision()
 
-	if rev1 != rev2 {
-		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
-	}
+	require.Equal(t, rev2, rev1, "Revision changed after second rekey: %v vs %v", rev1, rev2)
 
 	// Make sure just the rekey bit is set
-	if !ops.head.IsRekeySet() {
-		t.Fatalf("Couldn't set rekey bit")
-	}
+	require.True(t, ops.head.IsRekeySet(),
+		"Couldn't set rekey bit")
 }
 
 // This tests 2 variations of the situation where clients w/o the folder key set the rekey bit.
@@ -1558,9 +1489,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	config2.MDServer().DisableRekeyUpdatesForTesting()
@@ -1568,9 +1497,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	config3 := ConfigAsUser(config1, u3)
 	defer CheckConfigAndShutdown(ctx, t, config3)
 	session3, err := config3.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid3 := session3.UID
 
 	config3.MDServer().DisableRekeyUpdatesForTesting()
@@ -1584,13 +1511,11 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	// we don't check the config because this device can't read all of the md blocks.
@@ -1609,16 +1534,16 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// now user 2 should set the rekey bit
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.
@@ -1628,39 +1553,34 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	// user 1 syncs from server
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	// user 1 should try to rekey
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// user 2 syncs from server
 	err = kbfsOps2Dev2.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	// this device should be able to read now
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 
 	// look for the file
 	aNode, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, testPPS("a"))
-	if err != nil {
-		t.Fatalf("Device 2 couldn't lookup a: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 2 couldn't lookup a: %+v", err)
 
 	// read it
 	buf := []byte{0}
 	_, err = kbfsOps2Dev2.Read(ctx, aNode, buf, 0)
-	if err != nil {
-		t.Fatalf("Device 2 couldn't read a: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 2 couldn't read a: %+v", err)
 
 	config3Dev2 := ConfigAsUser(config1, u3)
 	// we don't check the config because this device can't read all of the md blocks.
@@ -1679,53 +1599,48 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config3Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// now user 3 dev 2 should set the rekey bit
 	kbfsOps3Dev2 := config3Dev2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps3Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// user 2 dev 2 syncs from server
 	err = kbfsOps2Dev2.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	// user 2 dev 2 should try to rekey
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// user 3 dev 2 syncs from server
 	err = kbfsOps3Dev2.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	// this device should be able to read now
 	rootNode3Dev2 := GetRootNodeOrBust(ctx, t, config3Dev2, name, tlf.Private)
 
 	// look for the file
 	a2Node, _, err := kbfsOps3Dev2.Lookup(ctx, rootNode3Dev2, testPPS("a"))
-	if err != nil {
-		t.Fatalf("Device 3 couldn't lookup a: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 3 couldn't lookup a: %+v", err)
 
 	// read it
 	buf = []byte{0}
 	_, err = kbfsOps3Dev2.Read(ctx, a2Node, buf, 0)
-	if err != nil {
-		t.Fatalf("Device 3 couldn't read a: %+v", err)
-	}
+	require.NoError(t, err,
+		"Device 3 couldn't read a: %+v", err)
 
 	// Explicitly run the checks with config1 before the deferred shutdowns begin.
 	// This way the shared mdserver hasn't been shutdown.
@@ -1748,9 +1663,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// create a shared folder
@@ -1762,13 +1675,11 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -1784,15 +1695,15 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// now user 1 should rekey
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// this device should be able to read now
 	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
@@ -1813,62 +1724,59 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	}()
 	select {
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	case <-onPutStalledCh:
 	}
 
 	// rekey again but with user 2 device 2
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, root2Dev2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	// Make sure user 1's rekey failed.
 	select {
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	case putUnstallCh <- struct{}{}:
 	}
 	select {
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	case err = <-errChan:
 	}
 	if _, isConflict := err.(RekeyConflictError); !isConflict {
-		t.Fatalf("Expected failure due to conflict")
+		require.True(t, isConflict,
+			"Expected failure due to conflict")
 	}
 
 	err = kbfsOps2Dev2.SyncFromServer(ctx,
 		root2Dev2.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	// force re-encryption of the root dir
 	_, _, err = kbfsOps2Dev2.CreateFile(
 		ctx, root2Dev2, testPPS("b"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps2Dev2.SyncAll(ctx, root2Dev2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	// device 1 should still work
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	rootNode1 = GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	children, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
 	require.NoError(t, err)
 	if _, ok := children[rootNode1.ChildName("b")]; !ok {
-		t.Fatalf("Device 1 couldn't see the new dir entry")
+		require.True(t, ok,
+			"Device 1 couldn't see the new dir entry")
 	}
 }
 
@@ -1906,9 +1814,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// Create a shared folder
@@ -1920,13 +1826,11 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -1947,9 +1851,8 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("First rekey failed %+v", err)
-	}
+	require.NoError(t, err,
+		"First rekey failed %+v", err)
 
 	t.Log("Doing second rekey")
 
@@ -1970,7 +1873,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 	select {
 	case <-c:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	// Take the mdWriterLock to ensure that the rekeyWithPrompt finishes.
@@ -1986,29 +1889,28 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
 	require.NoError(t, err)
 	if _, ok := children[rootNode2Dev2.ChildName("a")]; !ok {
-		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
+		require.True(t, ok,
+			"Device 2 couldn't see the dir entry after rekey")
 	}
 	// user 2 creates another file to make a new revision
 	_, _, err = kbfsOps2.CreateFile(
 		ctx, rootNode2Dev2, testPPS("b"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2Dev2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	// device 1 should be able to read the new file
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 	children, err = kbfsOps1.GetDirChildren(ctx, rootNode1)
 	require.NoError(t, err)
 	if _, ok := children[rootNode1.ChildName("b")]; !ok {
-		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
+		require.True(t, ok,
+			"Device 2 couldn't see the dir entry after rekey")
 	}
 }
 
@@ -2024,9 +1926,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// Create a shared folder
@@ -2038,13 +1938,11 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -2075,9 +1973,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("First rekey failed %+v", err)
-	}
+	require.NoError(t, err,
+		"First rekey failed %+v", err)
 
 	t.Log("Doing second rekey")
 
@@ -2096,9 +1993,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	// will be on a non-nil timer).
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Third rekey failed %+v", err)
-	}
+	require.NoError(t, err,
+		"Third rekey failed %+v", err)
 
 	t.Log("Switching crypto")
 
@@ -2111,7 +2007,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	select {
 	case <-c:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	// Take the mdWriterLock to ensure that the rekeyWithPrompt finishes.
@@ -2127,18 +2023,17 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
 	require.NoError(t, err)
 	if _, ok := children[rootNode2Dev2.ChildName("a")]; !ok {
-		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
+		require.True(t, ok,
+			"Device 2 couldn't see the dir entry after rekey")
 	}
 	// user 2 creates another file to make a new revision
 	_, _, err = kbfsOps2.CreateFile(
 		ctx, rootNode2Dev2, testPPS("b"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2Dev2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 }
 
 func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -2151,9 +2046,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// Create a shared folder
@@ -2179,16 +2072,14 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("First rekey failed %+v", err)
-	}
+	require.NoError(t, err,
+		"First rekey failed %+v", err)
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	// Make sure just the rekey bit is set
-	if !ops.head.IsRekeySet() {
-		t.Fatalf("Couldn't set rekey bit")
-	}
+	require.True(t, ops.head.IsRekeySet(),
+		"Couldn't set rekey bit")
 
 	t.Log("Switching crypto")
 
@@ -2201,7 +2092,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 	select {
 	case <-c:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 	// Make sure the rekey attempt is finished by taking the lock.
 	// Keep the lock for a while, to control when the second rekey starts.
@@ -2223,10 +2114,11 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 		select {
 		case err = <-errCh:
 		case <-ctx.Done():
-			t.Fatal(ctx.Err())
+			require.FailNow(t, fmt.Sprint(ctx.Err()))
 		}
 		if _, ok := err.(NeedSelfRekeyError); !ok {
-			t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+			require.True(t, ok,
+				"Got unexpected error when reading with new key: %+v", err)
 		}
 
 		t.Log("Switching crypto again")
@@ -2242,7 +2134,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 	select {
 	case <-c:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 	// Make sure the rekey attempt is finished
 	ops.mdWriterLock.Lock(lState)
@@ -2266,9 +2158,7 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	config2 := ConfigAsUserWithMode(config1, u2, InitMinimal)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// Create a shared folder
@@ -2280,13 +2170,11 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	// Device 2 is in default mode, so we can check that the rekey
 	// worked.
@@ -2304,28 +2192,28 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+		require.True(t, ok,
+			"Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// Have the minimal instance do the rekey.
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		config2.KBFSOps(), rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rekey: %+v", err)
 
 	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.SyncFromServer(ctx,
 		root2Dev2.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server: %+v", err)
 
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, root2Dev2)
 	require.NoError(t, err)
 	if _, ok := children[root2Dev2.ChildName("a")]; !ok {
-		t.Fatalf("Device 2 couldn't see the dir entry")
+		require.True(t, ok,
+			"Device 2 couldn't see the dir entry")
 	}
 }
 
@@ -2357,9 +2245,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	// These are deterministic, and should add the same TeamInfos for

@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/data"
+
+	"github.com/stretchr/testify/require"
 )
 
 func testPPS(s string) data.PathPartString {
@@ -38,9 +40,7 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 	}
 
 	newList := al.collapse()
-	if !reflect.DeepEqual(al, newList) {
-		t.Errorf("Collapse returned different list: %v vs %v", al, newList)
-	}
+	require.True(t, reflect.DeepEqual(al, newList), "Collapse returned different list: %v vs %v", al, newList)
 }
 
 func TestCRActionsCollapseEntry(t *testing.T) {
@@ -65,7 +65,7 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 
 	newList := al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		t.Errorf("Collapse returned unexpected list: %v vs %v",
+		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
 			expected, newList)
 	}
 
@@ -74,7 +74,7 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 
 	newList = al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		t.Errorf("Collapse returned unexpected list: %v vs %v",
+		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
 			expected, newList)
 	}
 
@@ -84,7 +84,7 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 
 	newList = al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		t.Errorf("Collapse returned unexpected list: %v vs %v",
+		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
 			expected, newList)
 	}
 }
@@ -112,7 +112,7 @@ func TestCRActionsCollapseAttr(t *testing.T) {
 
 	newList := al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		t.Errorf("Collapse returned unexpected list: %v vs %v",
+		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
 			expected, newList)
 	}
 }

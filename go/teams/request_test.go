@@ -67,12 +67,9 @@ func TestAccessRequestAccept(t *testing.T) {
 	_, err = RequestAccess(context.Background(), tc.G, teamName)
 	require.Error(t, err)
 	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("error %s (%T), expected libkb.AppStatusError", err, err)
-	}
-	if aerr.Code != libkb.SCTeamMemberExists {
-		t.Errorf("status code: %d, expected %d", aerr.Code, libkb.SCTeamMemberExists)
-	}
+	require.True(t, ok,
+		"error %s (%T), expected libkb.AppStatusError", err, err)
+	require.Equal(t, libkb.SCTeamMemberExists, aerr.Code, "status code: %d, expected %d", aerr.Code, libkb.SCTeamMemberExists)
 	err = tc.Logout()
 	require.NoError(t, err)
 

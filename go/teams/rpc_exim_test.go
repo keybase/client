@@ -17,36 +17,24 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 	defer tc.Cleanup()
 
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	name := createTeam(tc)
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name: name,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	exported, err := team.ExportToTeamPlusApplicationKeys(context.TODO(), keybase1.Time(0),
 		keybase1.TeamApplication_KBFS, true)
-	if err != nil {
-		t.Fatalf("Error during export: %s", err)
-	}
-	if exported.Name != team.Name().String() {
-		t.Fatalf("Got name %s, expected %s", exported.Name, team.Name())
-	}
-	if !exported.Id.Eq(team.ID) {
-		t.Fatalf("Got id %q, expected %q", exported.Id, team.ID)
-	}
+	require.NoError(t, err,
+		"Error during export: %s", err)
+	require.Equal(t, team.Name().String(), exported.Name, "Got name %s, expected %s", exported.Name, team.Name())
+	require.True(t, exported.Id.Eq(team.ID),
+		"Got id %q, expected %q", exported.Id, team.ID)
 	expectedKeys, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_KBFS)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(exported.ApplicationKeys) != len(expectedKeys) {
-		t.Fatalf("Got %v applicationKeys, expected %v", len(exported.ApplicationKeys), len(expectedKeys))
-	}
+	require.NoError(t, err)
+	require.Len(t, exported.ApplicationKeys, len(expectedKeys), "Got %v applicationKeys, expected %v", len(exported.ApplicationKeys), len(expectedKeys))
 }
 
 func TestImplicitTeamLTPAK(t *testing.T) {

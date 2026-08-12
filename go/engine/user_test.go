@@ -20,16 +20,10 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 
 	CreateAndSignupFakeUserPaper(tc, "login")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(up.DeviceKeys) != 4 {
-		t.Errorf("num device keys: %d, expected 4", len(up.DeviceKeys))
-	}
+	require.NoError(t, err)
+	require.Equal(t, 4, len(up.DeviceKeys), "num device keys: %d, expected 4", len(up.DeviceKeys))
 }
 
 func TestLoadUserPlusKeysRevoked(t *testing.T) {
@@ -40,20 +34,12 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 
 	fu := CreateAndSignupFakeUserPaper(tc, "login")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if len(up.DeviceKeys) != 4 {
-		t.Errorf("device keys: %d, expected 4", len(up.DeviceKeys))
-	}
-	if len(up.RevokedDeviceKeys) != 0 {
-		t.Errorf("revoked keys: %d, expected 0", len(up.RevokedDeviceKeys))
-	}
+	require.Equal(t, 4, len(up.DeviceKeys), "device keys: %d, expected 4", len(up.DeviceKeys))
+	require.Equal(t, 0, len(up.RevokedDeviceKeys), "revoked keys: %d, expected 0", len(up.RevokedDeviceKeys))
 
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var paper *libkb.Device
@@ -65,21 +51,15 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	}
 
 	if err := doRevokeDevice(tc, fu, paper.ID, false, false); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	fakeClock.Advance(libkb.CachedUserTimeout + 2*time.Second)
 
 	up2, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if len(up2.DeviceKeys) != 2 {
-		t.Errorf("device keys: %d, expected 2", len(up2.DeviceKeys))
-	}
-	if len(up2.RevokedDeviceKeys) != 2 {
-		t.Errorf("revoked keys: %d, expected 2", len(up2.RevokedDeviceKeys))
-	}
+	require.Equal(t, 2, len(up2.DeviceKeys), "device keys: %d, expected 2", len(up2.DeviceKeys))
+	require.Equal(t, 2, len(up2.RevokedDeviceKeys), "revoked keys: %d, expected 2", len(up2.RevokedDeviceKeys))
 }
 
 // TestMerkleHashMetaAndFirstAppearedInKeyFamily tests new user & key family features:
@@ -120,9 +100,7 @@ func TestMerkleHashMetaAndFirstAppearedInKeyFamily(t *testing.T) {
 
 func assertPostedHighSkipSeqno(t *testing.T, tc libkb.TestContext, name string, seqno int) {
 	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, name))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	highSkip := u.GetLastLink().GetHighSkip()
 	require.Equal(t, highSkip.Seqno, keybase1.Seqno(seqno))
@@ -156,7 +134,7 @@ func TestPaperUserHighSkip(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	assertPostedHighSkipSeqno(t, tc, i.Username, 7)
 }

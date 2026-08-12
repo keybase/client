@@ -69,7 +69,7 @@ func TestStorageDisk(t *testing.T) {
 		st.ClearMem()
 		res, _, _ = st.Get(mctx, teamID, public)
 		require.NotNil(t, res, "cache miss")
-		require.False(t, res == &obj, "should be the a different object read from disk")
+		require.NotEqual(t, &obj, res, "should be the a different object read from disk")
 		require.Equal(t, teamID, res.Chain.Id)
 		require.Equal(t, public, res.Chain.Public)
 	}

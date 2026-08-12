@@ -59,7 +59,7 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 	err = u.Login(tc.G)
 	require.NoError(t, err)
 	if err = kbtest.AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	teamName := u.Username + "T"

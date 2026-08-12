@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 // Test the export of the keys.
@@ -28,12 +29,10 @@ func TestPGPPurgeLksec(t *testing.T) {
 	eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{})
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if len(eng.KeyFiles()) != 1 {
-		t.Fatalf("number of exported key files: %d, expected 1", len(eng.KeyFiles()))
-	}
+	require.Len(t, eng.KeyFiles(), 1, "number of exported key files: %d, expected 1", len(eng.KeyFiles()))
 }
 
 // Test the removal of the keys.
@@ -54,31 +53,26 @@ func TestPGPPurgeRemove(t *testing.T) {
 	eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{DoPurge: true})
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if len(eng.KeyFiles()) != 1 {
-		t.Fatalf("number of exported key files: %d, expected 1", len(eng.KeyFiles()))
-	}
+	require.Len(t, eng.KeyFiles(), 1, "number of exported key files: %d, expected 1", len(eng.KeyFiles()))
 
 	kr := libkb.NewSKBKeyringFile(tc.G, libkb.NewNormalizedUsername(u.Username))
 	if err := kr.LoadAndIndex(m.Ctx()); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if kr.HasPGPKeys() {
-		t.Fatal("after purge, keyring has pgp keys")
-	}
+	require.False(t, kr.HasPGPKeys(),
+		"after purge, keyring has pgp keys")
 
 	// redo, should purge 0 files
 
 	eng = NewPGPPurge(tc.G, keybase1.PGPPurgeArg{DoPurge: true})
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if len(eng.KeyFiles()) != 0 {
-		t.Fatalf("number of exported key files: %d, expected 0", len(eng.KeyFiles()))
-	}
+	require.Empty(t, eng.KeyFiles(), "number of exported key files: %d, expected 0", len(eng.KeyFiles()))
 }
 
 // Create a user with a synced PGP key.  PGPPurge shouldn't touch it.
@@ -101,7 +95,7 @@ func TestPGPPurgeSync(t *testing.T) {
 	leng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, leng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// user has device keys + synced 3sec pgp key
@@ -117,10 +111,8 @@ func TestPGPPurgeSync(t *testing.T) {
 	eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{})
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if len(eng.KeyFiles()) != 0 {
-		t.Fatalf("number of exported key files: %d, expected 0", len(eng.KeyFiles()))
-	}
+	require.Empty(t, eng.KeyFiles(), "number of exported key files: %d, expected 0", len(eng.KeyFiles()))
 }

@@ -13,6 +13,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 )
 
 func doWithSigChainVersions(f func(libkb.SigVersion)) {
@@ -46,7 +47,7 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
@@ -55,7 +56,7 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 	}
 	teng := NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 
 	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
@@ -92,7 +93,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
@@ -103,7 +104,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	// Track tracy
 	teng := NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
@@ -122,15 +123,16 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 
 	// Should  get an error
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("Expected identify error")
+		require.Error(t, err,
+			"Expected identify error")
 	}
 
 	result, found := idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
+		require.NotNil(t, pe,
+			"expected a Rooter error result")
 	}
 
 	// This is like the UI saying to store the local track
@@ -139,7 +141,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	// Track tracy
 	teng = NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Identify should work once more because we signed with failures
@@ -149,21 +151,18 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	// Should not get an error
 	if err = RunEngine2(m, eng); err != nil {
 		t.Logf("Identify failure: %v", err)
-		t.Fatal("Expected to pass identify")
+		require.FailNow(t, "Expected to pass identify")
 	}
 
 	result, found = idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
-	if result.Diff == nil {
-		t.Fatal("Failed to find a rooter proof result diff")
-	}
-	if result.Diff.Type != keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
-		t.Fatal("Failed to find a rooter proof result diff of type TrackDiffType_NONE_VIA_TEMPORARY")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
+	require.NotNil(t, result.Diff,
+		"Failed to find a rooter proof result diff")
+	require.Equal(t, keybase1.TrackDiffType_NONE_VIA_TEMPORARY, result.Diff.Type, "Failed to find a rooter proof result diff of type TrackDiffType_NONE_VIA_TEMPORARY")
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
+		require.NotNil(t, pe,
+			"expected a Rooter error result")
 	}
 
 	// Advance so that our temporary track is discarded
@@ -174,16 +173,17 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	// Should get an error
 	if err = RunEngine2(m, eng); err == nil {
-		t.Fatal("Expected rooter to fail")
+		require.Error(t, err,
+			"Expected rooter to fail")
 	}
 	t.Logf("Identify failure: %v", err)
 
 	result, found = idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
+		require.NotNil(t, pe,
+			"expected a Rooter error result")
 	}
 
 	assertTracking(tc, username)
@@ -225,7 +225,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	// Leaving LocalOnly off here will result in remote tracking
 	sv := keybase1.SigVersion(sigVersion)
@@ -237,7 +237,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	// Track tracy
 	teng := NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
@@ -256,15 +256,16 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// Should  get an error
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("Expected identify error")
+		require.Error(t, err,
+			"Expected identify error")
 	}
 
 	result, found := idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
+		require.NotNil(t, pe,
+			"expected a Rooter error result")
 	}
 
 	// This is like the UI saying to store the local track
@@ -273,7 +274,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	// Track tracy
 	teng = NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Identify should work once more because we signed with failures
@@ -283,15 +284,15 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	// Should not get an error
 	if err = RunEngine2(m, eng); err != nil {
 		t.Logf("Identify failure: %v", err)
-		t.Fatal("Expected to pass identify")
+		require.FailNow(t, "Expected to pass identify")
 	}
 
 	result, found = idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
+		require.NotNil(t, pe,
+			"expected a Rooter error result")
 	}
 
 	// Advance so that our temporary track is discarded
@@ -303,16 +304,17 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	// Should get an error
 	if err = RunEngine2(m, eng); err == nil {
-		t.Fatal("Expected rooter to fail")
+		require.Error(t, err,
+			"Expected rooter to fail")
 	}
 	t.Logf("Identify failure: %v", err)
 
 	result, found = idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
+		require.NotNil(t, pe,
+			"expected a Rooter error result")
 	}
 
 	assertTracking(tc, username)
@@ -348,7 +350,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
@@ -359,7 +361,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	// Track tracy
 	teng := NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
@@ -378,17 +380,16 @@ func TestTrackFailTempRecover(t *testing.T) {
 
 	// Should  get an error
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("Expected identify error")
+		require.Error(t, err,
+			"Expected identify error")
 	}
 
 	result, found := idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
+	require.True(t, found,
+		"Failed to find a rooter proof")
 	pe := libkb.ImportProofError(result.ProofResult)
-	if pe == nil {
-		t.Fatal("expected a Rooter error result")
-	}
+	require.NotNil(t, pe,
+		"expected a Rooter error result")
 
 	t.Logf("Rooter proof result, error: %v, -- %v", result, pe)
 	if result.Diff != nil {
@@ -401,7 +402,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	// Track tracy
 	teng = NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Now make her Rooter proof work again
@@ -414,28 +415,25 @@ func TestTrackFailTempRecover(t *testing.T) {
 	// Should not get an error
 	if err = RunEngine2(m, eng); err != nil {
 		t.Logf("Identify failure: %v", err)
-		t.Fatal("Expected to pass identify")
+		require.FailNow(t, "Expected to pass identify")
 	}
 
 	// There shouldn't be a Diff in the result, but if there is, make sure
 	// it isn't due to temporary tracking
 	result, found = idUI.ProofResults["rooter"]
-	if !found || result.Diff.Type != keybase1.TrackDiffType_NONE {
-		t.Fatalf("Expected a TrackDiffType_NONE")
-	}
+	require.False(t, !found || result.Diff.Type != keybase1.TrackDiffType_NONE,
+		"Expected a TrackDiffType_NONE")
 
 	// Advance the clock to make sure local temp track goes away
 	fakeClock.Advance(tc.G.Env.GetLocalTrackMaxAge() + time.Minute)
 
 	if err := eng.i2eng.createIdentifyState(m); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if eng.i2eng.state.TrackLookup() == nil {
-		t.Fatalf("Expected permanent LocalTrackChainLinkFor %s", username)
-	}
-	if eng.i2eng.state.TmpTrackLookup() != nil {
-		t.Fatalf("Expected no temporary LocalTrackChainLinkFor %s", username)
-	}
+	require.NotNil(t, eng.i2eng.state.TrackLookup(),
+		"Expected permanent LocalTrackChainLinkFor %s", username)
+	require.Nil(t, eng.i2eng.state.TmpTrackLookup(),
+		"Expected no temporary LocalTrackChainLinkFor %s", username)
 	assertTracking(tc, username)
 }
 
@@ -505,7 +503,7 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	eng.SetResponsibleGregorItem(&responsibleGregorItem)
 	if err := RunEngine2(m, eng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
@@ -514,11 +512,9 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 	}
 	teng := NewTrackToken(tc.G, &targ)
 	if err := RunEngine2(m, teng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 
 	// Check that the dismissed ID matches what we defined above.
-	if msgID.String() != dismisser.dismissedMsgID.String() {
-		tc.T.Fatalf("Dismissed msgID (%s) != responsible msgID (%s)", msgID.String(), dismisser.dismissedMsgID.String())
-	}
+	require.Equal(tc.T, dismisser.dismissedMsgID.String(), msgID.String(), "Dismissed msgID (%s) != responsible msgID (%s)", msgID.String(), dismisser.dismissedMsgID.String())
 }

@@ -186,7 +186,8 @@ func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 func Logout(tc libkb.TestContext) {
 	mctx := libkb.NewMetaContextForTest(tc)
 	if err := mctx.LogoutKillSecrets(); err != nil {
-		tc.T.Fatalf("logout error: %s", err)
+		require.NoError(tc.T, err,
+			"logout error: %s", err)
 	}
 }
 
@@ -256,12 +257,12 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var wg sync.WaitGroup
@@ -414,7 +415,7 @@ func CheckTeamMiscNotifications(tc libkb.TestContext, notifications *TeamNotifyL
 		case arg := <-notifications.changeByNameCh:
 			changeByName = arg.Changes.Misc
 		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
-			tc.T.Fatal("no notification on teamSetSettings")
+			require.FailNow(tc.T, "no notification on teamSetSettings")
 		}
 		if changeByID && changeByName {
 			return

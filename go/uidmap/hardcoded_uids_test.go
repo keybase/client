@@ -36,16 +36,13 @@ func TestFindAndCheck(t *testing.T) {
 
 	for _, findTest := range findTests {
 		uid, err := keybase1.UIDFromString(findTest.uid)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		found := findHardcoded(uid)
 		expected := libkb.NewNormalizedUsername(findTest.username)
-		if !found.Eq(expected) {
-			t.Fatalf("Failure for %v: %s != %s", uid, expected, found)
-		}
-		if !expected.IsNil() && !checkUIDAgainstUsername(uid, expected) {
-			t.Fatalf("UID mismatch for %v/%s", uid, expected)
+		require.True(t, found.Eq(expected),
+			"Failure for %v: %s != %s", uid, expected, found)
+		if !expected.IsNil() {
+			require.True(t, checkUIDAgainstUsername(uid, expected), "UID mismatch for %v/%s", uid, expected)
 		}
 	}
 }
@@ -67,26 +64,19 @@ func TestCheck(t *testing.T) {
 
 	for _, checkTest := range checkTests {
 		uid, err := keybase1.UIDFromString(checkTest.uid)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		username := libkb.NewNormalizedUsername(checkTest.username)
-		if !checkUIDAgainstUsername(uid, username) {
-			t.Fatalf("Failure for %v/%s", uid, username)
-		}
+		require.True(t, checkUIDAgainstUsername(uid, username),
+			"Failure for %v/%s", uid, username)
 		bad := libkb.NewNormalizedUsername("baaad")
-		if checkUIDAgainstUsername(uid, bad) {
-			t.Fatalf("Baddie failed: %v", uid)
-		}
+		require.False(t, checkUIDAgainstUsername(uid, bad),
+			"Baddie failed: %v", uid)
 	}
 	uid, err := keybase1.UIDFromString("06f246cc34d13b7f23bb8a53547bb800")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	username := libkb.NewNormalizedUsername("max")
-	if checkUIDAgainstUsername(uid, username) {
-		t.Fatal("Wanted a max failure")
-	}
+	require.False(t, checkUIDAgainstUsername(uid, username),
+		"Wanted a max failure")
 }
 
 func TestUsernameSort(t *testing.T) {

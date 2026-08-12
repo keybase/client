@@ -9,6 +9,7 @@ package dokan
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -29,9 +30,7 @@ func TestEmptyFS(t *testing.T) {
 	defer fsTableFree(s0)
 	fs := newTestFS()
 	mnt, err := Mount(&Config{FileSystem: fs, Path: `T:\`})
-	if err != nil {
-		t.Fatal("Mount failed:", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Mount failed:", err))
 	defer mnt.Close()
 	time.Sleep(5 * time.Second)
 	testShouldNotExist(t)
@@ -44,65 +43,45 @@ func TestEmptyFS(t *testing.T) {
 
 func testShouldNotExist(t *testing.T) {
 	_, err := os.Open(`T:\should-not-exist`)
-	if !ioutil.IsNotExist(err) {
-		t.Fatal("Opening non-existent file:", err)
-	}
+	require.True(t, ioutil.IsNotExist(err), fmt.Sprint("Opening non-existent file:", err))
 }
 
 func testHelloTxt(t *testing.T) {
 	f, err := os.Open(`T:\hello.txt`)
-	if err != nil {
-		t.Fatal("Opening hello.txt file:", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Opening hello.txt file:", err))
 	defer f.Close()
 	bs := make([]byte, 256)
 	n, err := f.Read(bs)
-	if err != nil {
-		t.Fatal("Reading hello.txt file:", err)
-	}
-	if string(bs[:n]) != helloStr {
-		t.Fatal("Read returned wrong bytes:", bs[:n])
-	}
+	require.NoError(t, err, fmt.Sprint("Reading hello.txt file:", err))
+	require.Equal(t, helloStr, string(bs[:n]), fmt.Sprint("Read returned wrong bytes:", bs[:n]))
 	statIsLike(t, f, int64(len(helloStr)), nil)
 }
 
 func testRAMFile(t *testing.T) {
 	f, err := os.Create(`T:\ram.txt`)
-	if err != nil {
-		t.Fatal("Opening ram.txt file:", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Opening ram.txt file:", err))
 	defer f.Close()
 	bs := make([]byte, 256)
 	n, err := f.Read(bs)
-	if n != 0 || err != io.EOF {
-		t.Fatal("Reading empty ram.txt file:", n, err)
-	}
+	require.False(t, n != 0 || err != io.EOF, fmt.Sprint("Reading empty ram.txt file:", n, err))
 	n, err = f.WriteAt([]byte(helloStr), 4)
-	if n != len(helloStr) || err != nil {
-		t.Fatal("WriteAt ram.txt file:", n, err)
-	}
+	require.False(t, n != len(helloStr) || err != nil, fmt.Sprint("WriteAt ram.txt file:", n, err))
 	n, err = f.ReadAt(bs, 4)
-	if err != nil && err != io.EOF {
-		t.Fatal("ReadAt ram.txt file:", err)
+	if err != nil {
+		require.ErrorIs(t, err, io.EOF, fmt.Sprint("ReadAt ram.txt file:", err))
 	}
-	if string(bs[:n]) != helloStr {
-		t.Fatal("ReadAt ram.txt returned wrong bytes:", bs[:n])
-	}
+	require.Equal(t, helloStr, string(bs[:n]), fmt.Sprint("ReadAt ram.txt returned wrong bytes:", bs[:n]))
 	n, err = f.Read(bs)
-	if err != nil && err != io.EOF {
-		t.Fatal("Reading ram.txt file:", err)
+	if err != nil {
+		require.ErrorIs(t, err, io.EOF, fmt.Sprint("Reading ram.txt file:", err))
 	}
-	if string(bs[:n]) != string([]byte{0, 0, 0, 0})+helloStr {
-		t.Fatal("Read ram.txt returned wrong bytes:", bs[:n])
-	}
+	require.Equal(t, string([]byte{0, 0, 0, 0})+helloStr, string(bs[:n]), fmt.Sprint("Read ram.txt returned wrong bytes:", bs[:n]))
 	t0 := time.Now()
 	statIsLike(t, f, int64(len(helloStr)+4), &t0)
 	tp := time.Date(2007, 1, 2, 3, 4, 5, 6, time.UTC)
 	ft := syscall.NsecToFiletime(tp.UnixNano())
 	err = syscall.SetFileTime(syscall.Handle(f.Fd()), nil, nil, &ft)
-	if err != nil {
-		t.Fatal("SetFileTime ram.txt file:", err)
-	}
+	require.NoError(t, err, fmt.Sprint("SetFileTime ram.txt file:", err))
 	statIsLike(t, f, int64(len(helloStr)+4), &tp)
 	testLock(t, f)
 	testUnlock(t, f)
@@ -112,14 +91,10 @@ func testRAMFile(t *testing.T) {
 
 func statIsLike(t *testing.T, f *os.File, sz int64, timptr *time.Time) {
 	st, err := f.Stat()
-	if err != nil {
-		t.Fatal("Statting ", f.Name(), err)
-	}
-	if st.Size() != sz {
-		t.Fatal("Size returned wrong size", f.Name(), st.Size(), "vs", len(helloStr))
-	}
-	if timptr != nil && !isNearTime(*timptr, st.ModTime()) {
-		t.Fatal("Modification time returned by stat is wrong", f.Name(), st.ModTime(), "vs", *timptr)
+	require.NoError(t, err, fmt.Sprint("Statting ", f.Name(), err))
+	require.Equal(t, sz, st.Size(), fmt.Sprint("Size returned wrong size", f.Name(), st.Size(), "vs", len(helloStr)))
+	if timptr != nil {
+		require.True(t, isNearTime(*timptr, st.ModTime()), fmt.Sprint("Modification time returned by stat is wrong", f.Name(), st.ModTime(), "vs", *timptr))
 	}
 }
 
@@ -141,56 +116,38 @@ var (
 
 func testLock(t *testing.T, f *os.File) {
 	res, _, err := syscall.Syscall6(procLockFile.Addr(), 5, f.Fd(), 1, 0, 2, 0, 0)
-	if res == 0 {
-		t.Fatal("LockFile failed with:", err)
-	}
+	require.NotEqual(t, uintptr(0), res, fmt.Sprint("LockFile failed with:", err))
 }
 
 func testUnlock(t *testing.T, f *os.File) {
 	res, _, err := syscall.Syscall6(procUnlockFile.Addr(), 5, f.Fd(), 1, 0, 2, 0, 0)
-	if res == 0 {
-		t.Fatal("UnlockFile failed with:", err)
-	}
+	require.NotEqual(t, uintptr(0), res, fmt.Sprint("UnlockFile failed with:", err))
 }
 
 func testSync(t *testing.T, f *os.File) {
 	err := f.Sync()
-	if err != nil {
-		t.Fatal("Syncing ", f.Name(), err)
-	}
+	require.NoError(t, err, fmt.Sprint("Syncing ", f.Name(), err))
 }
 
 func testTruncate(t *testing.T, f *os.File) {
 	for _, size := range []int64{400, 2, 0, 1, 5, 77, 13} {
 		err := f.Truncate(size)
-		if err != nil {
-			t.Fatal("Truncating ", f.Name(), "to", size, err)
-		}
+		require.NoError(t, err, fmt.Sprint("Truncating ", f.Name(), "to", size, err))
 		statIsLike(t, f, size, nil)
 	}
 }
 
 func testReaddir(t *testing.T) {
 	f, err := os.Open(`T:\`)
-	if err != nil {
-		t.Fatal("Opening root directory:", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Opening root directory:", err))
 	defer f.Close()
 	debug("Starting readdir")
 	fs, err := f.Readdir(-1)
-	if err != nil {
-		t.Fatal("Readdir root directory:", err)
-	}
-	if len(fs) != 1 {
-		t.Fatal("Readdir root directory element number mismatch: ", len(fs))
-	}
+	require.NoError(t, err, fmt.Sprint("Readdir root directory:", err))
+	require.Len(t, fs, 1, fmt.Sprint("Readdir root directory element number mismatch: ", len(fs)))
 	st := fs[0]
-	if st.Name() != `hello.txt` {
-		t.Fatal("Readdir invalid name:", st.Name())
-	}
-	if st.Size() != int64(len(helloStr)) {
-		t.Fatal("Size returned wrong size:", st.Size(), "vs", len(helloStr))
-	}
+	require.Equal(t, `hello.txt`, st.Name(), fmt.Sprint("Readdir invalid name:", st.Name()))
+	require.Equal(t, int64(len(helloStr)), st.Size(), fmt.Sprint("Size returned wrong size:", st.Size(), "vs", len(helloStr)))
 }
 
 func testPlaceHolderRemoveRename(t *testing.T) {
@@ -211,18 +168,10 @@ func testDiskFreeSpace(t *testing.T) {
 		uintptr(unsafe.Pointer(&free)),
 		uintptr(unsafe.Pointer(&total)),
 		uintptr(unsafe.Pointer(&totalFree)), 0, 0)
-	if res == 0 {
-		t.Fatal("GetDiskFreeSpaceEx failed with:", err)
-	}
-	if free != testFreeAvail {
-		t.Fatalf("GetDiskFreeSpace: %X vs %X", free, uint64(testFreeAvail))
-	}
-	if total != testTotalBytes {
-		t.Fatalf("GetDiskFreeSpace: %X vs %X", total, uint64(testTotalBytes))
-	}
-	if totalFree != testTotalFree {
-		t.Fatalf("GetDiskFreeSpace: %X vs %X", totalFree, uint64(testTotalFree))
-	}
+	require.NotEqual(t, uintptr(0), res, fmt.Sprint("GetDiskFreeSpaceEx failed with:", err))
+	require.Equal(t, uint64(testFreeAvail), free, "GetDiskFreeSpace: %X vs %X", free, uint64(testFreeAvail))
+	require.Equal(t, uint64(testTotalBytes), total, "GetDiskFreeSpace: %X vs %X", total, uint64(testTotalBytes))
+	require.Equal(t, uint64(testTotalFree), totalFree, "GetDiskFreeSpace: %X vs %X", totalFree, uint64(testTotalFree))
 }
 
 var _ FileSystem = emptyFS{}

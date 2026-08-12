@@ -229,9 +229,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	} else {
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
-		if err != nil {
-			t.Fatalf("%s", err.Error())
-		}
+		require.NoError(t, err,
+			"%s", err.Error())
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
@@ -887,18 +886,13 @@ func TestDeletionHeaders(t *testing.T) {
 	for _, id := range preparedDeletion.ClientHeader.Deletes {
 		deletedIDs[id] = true
 	}
-	if len(deletedIDs) != 3 {
-		t.Fatalf("expected 3 deleted IDs, found %d", len(deletedIDs))
-	}
-	if !deletedIDs[firstMessageID] {
-		t.Fatalf("expected message #%d to be deleted", firstMessageID)
-	}
-	if !deletedIDs[editID] {
-		t.Fatalf("expected message #%d to be deleted", editID)
-	}
-	if !deletedIDs[editID2] {
-		t.Fatalf("expected message #%d to be deleted", editID2)
-	}
+	require.Len(t, deletedIDs, 3, "expected 3 deleted IDs, found %d", len(deletedIDs))
+	require.True(t, deletedIDs[firstMessageID],
+		"expected message #%d to be deleted", firstMessageID)
+	require.True(t, deletedIDs[editID],
+		"expected message #%d to be deleted", editID)
+	require.True(t, deletedIDs[editID2],
+		"expected message #%d to be deleted", editID2)
 }
 
 func TestAtMentionsText(t *testing.T) {
@@ -1317,27 +1311,21 @@ func TestDeletionAssets(t *testing.T) {
 	for _, id := range preparedDeletion.ClientHeader.Deletes {
 		deletedIDs[id] = true
 	}
-	if len(deletedIDs) != 4 {
-		t.Fatalf("expected 4 deleted IDs, found %d", len(deletedIDs))
-	}
-	if !deletedIDs[firstMessageID] {
-		t.Fatalf("expected message #%d to be deleted", firstMessageID)
-	}
-	if !deletedIDs[edit1ID] {
-		t.Fatalf("expected message #%d to be deleted", edit1ID)
-	}
-	if !deletedIDs[edit2ID] {
-		t.Fatalf("expected message #%d to be deleted", edit2ID)
-	}
-	if !deletedIDs[edit3ID] {
-		t.Fatalf("expected message #%d to be deleted", edit3ID)
-	}
+	require.Len(t, deletedIDs, 4, "expected 4 deleted IDs, found %d", len(deletedIDs))
+	require.True(t, deletedIDs[firstMessageID],
+		"expected message #%d to be deleted", firstMessageID)
+	require.True(t, deletedIDs[edit1ID],
+		"expected message #%d to be deleted", edit1ID)
+	require.True(t, deletedIDs[edit2ID],
+		"expected message #%d to be deleted", edit2ID)
+	require.True(t, deletedIDs[edit3ID],
+		"expected message #%d to be deleted", edit3ID)
 }
 
 func assertAssetSetsEqual(t *testing.T, got []chat1.Asset, expected []chat1.Asset) {
 	if !compareAssetLists(t, got, expected, false) {
 		compareAssetLists(t, got, expected, true)
-		t.Fatalf("asset lists not equal")
+		require.FailNow(t, "asset lists not equal")
 	}
 }
 

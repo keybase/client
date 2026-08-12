@@ -152,22 +152,16 @@ func TestCreateFakeUserNoKeys(t *testing.T) {
 	createFakeUserWithNoKeys(tc)
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	kf := me.GetKeyFamily()
-	if kf == nil {
-		t.Fatal("user has a nil key family")
-	}
-	if me.GetEldestKID().Exists() {
-		t.Fatalf("user has an eldest key, they should have no keys: %s", me.GetEldestKID())
-	}
+	require.NotNil(t, kf,
+		"user has a nil key family")
+	require.False(t, me.GetEldestKID().Exists(),
+		"user has an eldest key, they should have no keys: %s", me.GetEldestKID())
 
 	ckf := me.GetComputedKeyFamily()
-	if ckf.HasActiveKey() {
-		t.Errorf("user has an active key, but they should have no keys")
-	}
+	require.False(t, ckf.HasActiveKey(), "user has an active key, but they should have no keys")
 }
 
 func testUserHasDeviceKey(tc libkb.TestContext) {
@@ -195,12 +189,8 @@ func TestUserEmails(t *testing.T) {
 
 	CreateAndSignupFakeUser(tc, "login")
 	emails, err := libkb.LoadUserEmails(NewMetaContextForTest(tc))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(emails) == 0 {
-		t.Errorf("No emails for user")
-	}
+	require.NoError(t, err)
+	require.False(t, len(emails) == 0, "No emails for user")
 }
 
 func TestProvisionDesktopAfterSwitch(t *testing.T) {
@@ -308,7 +298,7 @@ func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
 
 	t.Logf("asserts")
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// after provisioning, the passphrase stream should be cached
@@ -350,7 +340,7 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secretCh := make(chan kex2.Secret)
@@ -375,10 +365,8 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -393,10 +381,8 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 
 	secretFromY := <-secretCh
@@ -410,7 +396,7 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 
 	t.Logf("asserts")
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// after provisioning, the passphrase stream should be cached
@@ -446,7 +432,7 @@ func TestProvisionMobile(t *testing.T) {
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secretCh := make(chan kex2.Secret)
@@ -468,10 +454,8 @@ func TestProvisionMobile(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -485,10 +469,8 @@ func TestProvisionMobile(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 
 	secretFromY := <-secretCh
@@ -498,7 +480,7 @@ func TestProvisionMobile(t *testing.T) {
 	wg.Wait()
 
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -515,7 +497,7 @@ func TestProvisionWithRevoke(t *testing.T) {
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secretCh := make(chan kex2.Secret)
@@ -537,10 +519,8 @@ func TestProvisionWithRevoke(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -554,26 +534,23 @@ func TestProvisionWithRevoke(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 
 	secretFromY := <-secretCh
 
 	// x is going to revoke a device here to change the sigchain
 	revoked := revokeAnyPaperKey(tcX, userX)
-	if revoked == nil {
-		t.Fatal("revokeAnyPaperKey for user x did not revoke anything")
-	}
+	require.NotNil(t, revoked,
+		"revokeAnyPaperKey for user x did not revoke anything")
 
 	provisioner.AddSecret(secretFromY)
 
 	wg.Wait()
 
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -698,7 +675,7 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, upgradePerUserKey bool) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
@@ -708,7 +685,7 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, upgradePerUserKey bool) {
 	hasZeroPaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// secret should be stored
@@ -764,7 +741,7 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any device keys, login should have fixed that:
@@ -774,7 +751,7 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	hasZeroPaperDev(tc, u1)
 
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// after provisioning, the secret should be stored
@@ -835,9 +812,10 @@ func TestProvisionSyncedPGPBadPassphrase(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("sync pgp provision worked with bad passphrase")
+		require.Error(t, err,
+			"sync pgp provision worked with bad passphrase")
 	} else if _, ok := err.(libkb.PassphraseError); !ok {
-		t.Errorf("error: %T, expected libkb.PassphraseError", err)
+		require.Fail(t, "error: %T, expected libkb.PassphraseError", err)
 	}
 }
 
@@ -870,7 +848,7 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, username, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
@@ -884,7 +862,7 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	t.Logf("user has paper device")
 
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// after provisioning, the secret should be stored
@@ -915,13 +893,13 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any device keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// force them to have a puk
@@ -965,7 +943,7 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 
 	// we need the gpg keyring that's in the first homedir
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// run login on new device
@@ -979,12 +957,12 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tc2)
 	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// force them to have a puk
@@ -996,7 +974,7 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 
 	// we need the gpg keyring
 	if err := tc2.MoveGpgKeyringTo(tc3); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// run login on new device
@@ -1105,7 +1083,7 @@ func testSign(t *testing.T, tc libkb.TestContext) {
 
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, signEng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -1147,17 +1125,13 @@ func testProvisionPaperOnly(t *testing.T, changePaperkey func(s string) string) 
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 
 	Logout(tc)
 
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.NotEmpty(t, loginUI.PaperPhrase, "login ui has no paper key phrase")
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
@@ -1180,7 +1154,7 @@ func testProvisionPaperOnly(t *testing.T, changePaperkey func(s string) string) 
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tc2)
@@ -1188,15 +1162,11 @@ func testProvisionPaperOnly(t *testing.T, changePaperkey func(s string) string) 
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
 
 	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if provUI.calledChooseDeviceType != 0 {
-		t.Errorf("expected 0 calls to ChooseDeviceType, got %d", provUI.calledChooseDeviceType)
-	}
-	if provLoginUI.CalledGetEmailOrUsername != 1 {
-		t.Errorf("expected 1 call to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
-	}
+	require.Equal(t, 0, provUI.calledChooseDeviceType, "expected 0 calls to ChooseDeviceType, got %d", provUI.calledChooseDeviceType)
+	require.Equal(t, 1, provLoginUI.CalledGetEmailOrUsername, "expected 1 call to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
 	var device *libkb.DeviceWithKeys
 
 	ch := make(chan struct{})
@@ -1210,17 +1180,14 @@ func testProvisionPaperOnly(t *testing.T, changePaperkey func(s string) string) 
 		wrapper.SetTestPostCleanHook(pch)
 	}
 
-	if device == nil || device.EncryptionKey() == nil {
-		t.Errorf("Got a null paper encryption key")
-	}
+	require.NotNil(t, device, "Got a null device")
+	require.NotNil(t, device.EncryptionKey(), "Got a null paper encryption key")
 
 	fakeClock.Advance(libkb.ProvisioningKeyMemoryTimeout + 1*time.Minute)
 	<-ch
 
 	device = m2.ActiveDevice().ProvisioningKey(m2)
-	if device != nil {
-		t.Errorf("Got a non-null paper encryption key after timeout")
-	}
+	require.False(t, device != nil, "Got a non-null paper encryption key after timeout")
 
 	testSign(t, tc2)
 
@@ -1465,7 +1432,7 @@ func TestProvisionGPGImportOK(t *testing.T) {
 
 	// we need the gpg keyring that's in the first homedir
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// run login on new device
@@ -1479,7 +1446,7 @@ func TestProvisionGPGImportOK(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tc2)
@@ -1488,14 +1455,12 @@ func TestProvisionGPGImportOK(t *testing.T) {
 	hasZeroPaperDev(tc2, u1)
 
 	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since they imported their pgp key, they should be able to pgp sign something:
-	if err := signString(tc2, "sign me", u1.NewSecretUI()); err != nil {
-		t.Error("pgp sign failed after gpg provision w/ import")
-		t.Fatal(err)
-	}
+	err := signString(tc2, "sign me", u1.NewSecretUI())
+	require.NoError(t, err, "pgp sign failed after gpg provision w/ import")
 
 	// after provisioning, the secret should be stored
 	assertSecretStored(tc2, u1.Username)
@@ -1517,7 +1482,7 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 
 	// we need the gpg keyring that's in the first homedir
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// run login on new device
@@ -1531,7 +1496,7 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tc2)
@@ -1540,14 +1505,12 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 	hasZeroPaperDev(tc2, u1)
 
 	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since they imported their pgp key, they should be able to pgp sign something:
-	if err := signString(tc2, "sign me", u1.NewSecretUI()); err != nil {
-		t.Error("pgp sign failed after gpg provision w/ import")
-		t.Fatal(err)
-	}
+	err := signString(tc2, "sign me", u1.NewSecretUI())
+	require.NoError(t, err, "pgp sign failed after gpg provision w/ import")
 
 	// after provisioning, the secret should be stored
 	assertSecretStored(tc2, u1.Username)
@@ -1577,7 +1540,7 @@ func TestProvisionGPGSign(t *testing.T) {
 
 		// we need the gpg keyring that's in the first homedir
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// run login on new device
@@ -1603,7 +1566,7 @@ func TestProvisionGPGSign(t *testing.T) {
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// after provisioning, the secret should be stored
@@ -1612,16 +1575,14 @@ func TestProvisionGPGSign(t *testing.T) {
 		checkPerUserKeyCount(&tc2, 1)
 
 		// since they *did not* import a pgp key, they should *not* be able to pgp sign something:
-		if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
-			t.Error("pgp sign worked after gpg provision w/o import")
-			t.Fatal(err)
-		}
+		err := signString(tc2, "sign me", u1.NewSecretUI())
+		require.NotNil(t, err, "pgp sign worked after gpg provision w/o import")
 
 		t.Logf("test run %d: all checks passed, returning", i+1)
 		return
 	}
 
-	t.Fatalf("TestProvisionGPGSign failed %d times", attempts)
+	require.FailNow(t, fmt.Sprintf("TestProvisionGPGSign failed %d times", attempts))
 }
 
 func TestProvisionGPGSignFailedSign(t *testing.T) {
@@ -1637,7 +1598,7 @@ func TestProvisionGPGSignFailedSign(t *testing.T) {
 
 	// we need the gpg keyring that's in the first homedir
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// run login on new device
@@ -1651,18 +1612,18 @@ func TestProvisionGPGSignFailedSign(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err == nil {
-		t.Fatal("expected a failure in login")
+		require.Error(t, err,
+			"expected a failure in login")
 	}
 
 	cf := tc2.G.Env.GetConfigFilename()
 	jf := libkb.NewJSONConfigFile(tc2.G, cf)
 	if err := jf.Load(true); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	devid := jf.GetDeviceID()
-	if !devid.IsNil() {
-		t.Fatalf("got a non-nil Device ID after failed GPG provision (%v)", devid)
-	}
+	require.True(t, devid.IsNil(),
+		"got a non-nil Device ID after failed GPG provision (%v)", devid)
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -1689,7 +1650,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 
 		// we need the gpg keyring that's in the first homedir
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// create a secret UI that stores the secret
@@ -1719,7 +1680,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// after provisioning, the secret should be stored
@@ -1729,7 +1690,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 		return
 	}
 
-	t.Fatalf("TestProvisionGPGSignSecretStore failed %d times", attempts)
+	require.FailNow(t, fmt.Sprintf("TestProvisionGPGSignSecretStore failed %d times", attempts))
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -1756,14 +1717,12 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 
 		// we need the gpg keyring that's in the first homedir
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// load the user (bypassing LoginUsername for this test...)
 		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		// run login on new device
 		uis := libkb.UIs{
@@ -1798,7 +1757,7 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// after provisioning, the secret should be stored
@@ -1807,13 +1766,14 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		// since they did not import their pgp key, they should not be able
 		// to pgp sign something:
 		if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
-			t.Fatal("pgp sign worked after gpg sign provisioning")
+			require.Error(t, err,
+				"pgp sign worked after gpg sign provisioning")
 		}
 		t.Logf("test run %d: all checks passed, returning", i+1)
 		return
 	}
 
-	t.Fatalf("TestProvisionGPGSwitchToSign failed %d times", attempts)
+	require.FailNow(t, fmt.Sprintf("TestProvisionGPGSwitchToSign failed %d times", attempts))
 }
 
 // Try provision device using a private GPG key (not synced to keybase
@@ -1832,14 +1792,12 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 
 	// we need the gpg keyring that's in the first homedir
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// load the user (bypassing LoginUsername for this test...)
 	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// instruct provisioning ui to not allow the switch to gpg sign:
 	provUI := newTestProvisionUIGPGImport()
@@ -1867,7 +1825,8 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 	m := NewMetaContextForTest(tc2).WithUIs(uis)
 
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("provisioning worked despite not allowing switch to gpg sign")
+		require.Error(t, err,
+			"provisioning worked despite not allowing switch to gpg sign")
 	}
 }
 
@@ -1893,9 +1852,10 @@ func TestProvisionGPGNoKeyring(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err == nil {
-		t.Fatal("provision worked without gpg keyring")
+		require.Error(t, err,
+			"provision worked without gpg keyring")
 	} else if _, ok := err.(libkb.NoMatchingGPGKeysError); !ok {
-		t.Errorf("error %T, expected libkb.NoMatchingGPGKeysError", err)
+		require.Fail(t, "error %T, expected libkb.NoMatchingGPGKeysError", err)
 	}
 }
 
@@ -1913,7 +1873,7 @@ func TestProvisionGPGNoMatch(t *testing.T) {
 
 	// make a new keyring, not associated with keybase
 	if err := tc2.GenerateGPGKeyring(u1.Email); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// run login on new device
@@ -1927,9 +1887,10 @@ func TestProvisionGPGNoMatch(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err == nil {
-		t.Fatal("provision worked without matching gpg key")
+		require.Error(t, err,
+			"provision worked without matching gpg key")
 	} else if _, ok := err.(libkb.NoMatchingGPGKeysError); !ok {
-		t.Errorf("error %T, expected libkb.NoMatchingGPGKeysError", err)
+		require.Fail(t, "error %T, expected libkb.NoMatchingGPGKeysError", err)
 	}
 }
 
@@ -1958,12 +1919,10 @@ func TestProvisionGPGNoGPGExecutable(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	err := RunEngine2(m2, eng)
-	if err == nil {
-		t.Fatal("provision worked without gpg")
-	}
-	if _, ok := err.(libkb.GPGUnavailableError); !ok {
-		t.Errorf("login run err type: %T, expected libkb.GPGUnavailableError", err)
-	}
+	require.Error(t, err,
+		"provision worked without gpg")
+	_, ok := err.(libkb.GPGUnavailableError)
+	require.True(t, ok, "login run err type: %T, expected libkb.GPGUnavailableError", err)
 }
 
 // User with pgp keys, but on a device where gpg executable
@@ -1992,12 +1951,10 @@ func TestProvisionGPGNoGPGFound(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	err := RunEngine2(m2, eng)
-	if err == nil {
-		t.Fatal("provision worked without gpg")
-	}
-	if _, ok := err.(libkb.GPGUnavailableError); !ok {
-		t.Errorf("login run err type: %T, expected libkb.GPGUnavailableError", err)
-	}
+	require.Error(t, err,
+		"provision worked without gpg")
+	_, ok := err.(libkb.GPGUnavailableError)
+	require.True(t, ok, "login run err type: %T, expected libkb.GPGUnavailableError", err)
 }
 
 func TestProvisionDupDevice(t *testing.T) {
@@ -2028,19 +1985,16 @@ func TestProvisionDupDevice(t *testing.T) {
 	m := NewMetaContextForTest(tcY).WithUIs(uis)
 
 	// start provisionee
-	if err := RunEngine2(m, eng); err == nil {
-		t.Errorf("login ran without error")
-		return
-	}
+	err := RunEngine2(m, eng)
+	require.NotNil(t, err, "login ran without error")
 
 	// Note: there is no need to start the provisioner as the provisionee will
 	// fail because of the duplicate device name before the provisioner
 	// is needed.
 
 	// double-check that provisioning failed
-	if err := AssertProvisioned(tcY); err == nil {
-		t.Fatal("device provisioned using existing name")
-	}
+	err = AssertProvisioned(tcY)
+	require.Error(t, err, "device provisioned using existing name")
 }
 
 // If a user has no keys, provision via passphrase should work.
@@ -2072,7 +2026,7 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, username, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
@@ -2082,7 +2036,7 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	hasZeroPaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// after provisioning, the secret should be stored
@@ -2097,22 +2051,19 @@ func TestLoginStreamCache(t *testing.T) {
 	u1 := SignupFakeUserStoreSecret(tc, "login")
 	assertSecretStored(tc, u1.Username)
 
-	if !assertStreamCache(tc, true) {
-		t.Fatal("expected valid stream cache after signup")
-	}
+	require.True(t, assertStreamCache(tc, true),
+		"expected valid stream cache after signup")
 
 	clearCaches(tc.G)
 
-	if !assertStreamCache(tc, false) {
-		t.Fatal("expected invalid stream cache after clear")
-	}
+	require.True(t, assertStreamCache(tc, false),
+		"expected invalid stream cache after clear")
 
 	// This should not unlock the stream cache
 	u1.LoginOrBust(tc)
 
-	if !assertStreamCache(tc, false) {
-		t.Fatal("expected no valid stream cache after login")
-	}
+	require.True(t, assertStreamCache(tc, false),
+		"expected no valid stream cache after login")
 	assertDeviceKeysCached(tc)
 	assertSecretStored(tc, u1.Username)
 }
@@ -2139,9 +2090,10 @@ func TestLoginInvalidDeviceType(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_PAPER, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("login with paper device type worked")
+		require.Error(t, err,
+			"login with paper device type worked")
 	} else if _, ok := err.(libkb.InvalidArgumentError); !ok {
-		t.Errorf("err type: %T, expected libkb.InvalidArgumentError", err)
+		require.Fail(t, "err type: %T, expected libkb.InvalidArgumentError", err)
 	}
 }
 
@@ -2165,9 +2117,10 @@ func TestProvisionNilUser(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("loginprovision with nil user worked")
+		require.Error(t, err,
+			"loginprovision with nil user worked")
 	} else if _, ok := err.(libkb.InvalidArgumentError); !ok {
-		t.Errorf("err type: %T, expected libkb.InvalidArgumentError", err)
+		require.Fail(t, "err type: %T, expected libkb.InvalidArgumentError", err)
 	}
 }
 
@@ -2186,7 +2139,7 @@ func userPlusPaper(t *testing.T) (*FakeUser, string) {
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	Logout(tc)
 	return fu, loginUI.PaperPhrase
@@ -2215,7 +2168,8 @@ func TestProvisionPaperFailures(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err == nil {
-		t.Fatal("provision with another user's paper key worked")
+		require.Error(t, err,
+			"provision with another user's paper key worked")
 	}
 
 	// try provision as ux on a new device with swapped word paper key
@@ -2232,9 +2186,8 @@ func TestProvisionPaperFailures(t *testing.T) {
 			break
 		}
 	}
-	if !didSwap {
-		t.Fatalf("paper key words were all the same; could not swap: %s", uxPaper)
-	}
+	require.True(t, didSwap,
+		"paper key words were all the same; could not swap: %s", uxPaper)
 	swapped := strings.Join(words, " ")
 	secUI = ux.NewSecretUI()
 	secUI.Passphrase = swapped
@@ -2250,11 +2203,11 @@ func TestProvisionPaperFailures(t *testing.T) {
 	eng = NewLogin(tcSwap.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tcSwap).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("provision with swapped word paper key worked")
-	}
+	require.Error(t, err,
+		"provision with swapped word paper key worked")
 	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Fatalf("error type: %T, expected libkb.NotFoundError", err)
+		require.True(t, ok,
+			"error type: %T, expected libkb.NotFoundError", err)
 	}
 
 	// try provision as ux on a new device first with fu's paper key
@@ -2277,11 +2230,9 @@ func TestProvisionPaperFailures(t *testing.T) {
 	eng = NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc2).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if retrySecUI.index != len(retrySecUI.Passphrases) {
-		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
-	}
+	require.Equal(t, len(retrySecUI.Passphrases), retrySecUI.index, "retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
 
 	// try provision as ux on a new device first with garbage paper key
 	// then with ux's paper key (testing retry works)
@@ -2303,11 +2254,9 @@ func TestProvisionPaperFailures(t *testing.T) {
 	eng = NewLogin(tc3.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc3).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if retrySecUI.index != len(retrySecUI.Passphrases) {
-		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
-	}
+	require.Equal(t, len(retrySecUI.Passphrases), retrySecUI.index, "retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
 
 	// try provision as ux on a new device first with invalid version paper key
 	// then with ux's paper key (testing retry works)
@@ -2315,9 +2264,7 @@ func TestProvisionPaperFailures(t *testing.T) {
 	defer tc4.Cleanup()
 
 	paperNextVer, err := libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion + 1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	retrySecUI = &testRetrySecretUI{
 		Passphrases: []string{paperNextVer.String(), uxPaper},
 	}
@@ -2333,11 +2280,9 @@ func TestProvisionPaperFailures(t *testing.T) {
 	eng = NewLogin(tc4.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc4).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if retrySecUI.index != len(retrySecUI.Passphrases) {
-		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
-	}
+	require.Equal(t, len(retrySecUI.Passphrases), retrySecUI.index, "retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
 }
 
 // After kex provisioning, try using a synced pgp key to sign
@@ -2355,7 +2300,7 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	userX := createFakeUserWithPGPSibkeyPushedPaper(tcX)
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secretCh := make(chan kex2.Secret)
@@ -2377,10 +2322,8 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -2394,10 +2337,8 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -2405,7 +2346,7 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	wg.Wait()
 
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("%s", strings.Repeat("*", 100))
@@ -2417,13 +2358,15 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	// tsec isn't cached on device Y, so this should fail since the
 	// secret ui doesn't know the passphrase:
 	if err := signString(tcY, "sign me", &libkb.TestSecretUI{}); err == nil {
-		t.Fatal("sign worked on device Y after provisioning without knowing passphrase")
+		require.Error(t, err,
+			"sign worked on device Y after provisioning without knowing passphrase")
 	}
 
 	// but if we know the passphrase, it should prompt for it
 	// and use it
 	if err := signString(tcY, "sign me", userX.NewSecretUI()); err != nil {
-		t.Fatalf("sign failed on device Y with passphrase in secret ui: %s", err)
+		require.NoError(t, err,
+			"sign failed on device Y with passphrase in secret ui: %s", err)
 	}
 }
 
@@ -2452,13 +2395,13 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tc)
 	hasZeroPaperDev(tc, users[0])
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	Logout(tc)
@@ -2474,13 +2417,13 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	eng = NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, users[1].Username, keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tc)
 	hasZeroPaperDev(tc, users[1])
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	Logout(tc)
@@ -2496,13 +2439,13 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	eng = NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, users[2].Username, keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tc)
 	hasZeroPaperDev(tc, users[2])
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	Logout(tc)
@@ -2535,14 +2478,12 @@ func TestResetAccount(t *testing.T) {
 	// this will reprovision as an eldest device:
 	u.LoginOrBust(tc)
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	newDevice := tc.G.Env.GetDeviceID()
 
-	if newDevice == originalDevice {
-		t.Errorf("device id did not change: %s", newDevice)
-	}
+	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tc)
 }
@@ -2559,14 +2500,12 @@ func TestResetAccountNoLogout(t *testing.T) {
 	// this will reprovision as an eldest device:
 	u.LoginOrBust(tc)
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	newDevice := tc.G.Env.GetDeviceID()
 
-	if newDevice == originalDevice {
-		t.Errorf("device id did not change: %s", newDevice)
-	}
+	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tc)
 }
@@ -2592,14 +2531,12 @@ func TestResetAccountNoLogoutSelfCache(t *testing.T) {
 	// this will reprovision as an eldest device:
 	u.LoginOrBust(tc)
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	newDevice := tc.G.Env.GetDeviceID()
 
-	if newDevice == originalDevice {
-		t.Errorf("device id did not change: %s", newDevice)
-	}
+	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tc)
 }
@@ -2617,14 +2554,12 @@ func TestResetAccountNewHome(t *testing.T) {
 	// this will reprovision as an eldest device:
 	u.LoginOrBust(tcp)
 	if err := AssertProvisioned(tcp); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	newDevice := tcp.G.Env.GetDeviceID()
 
-	if newDevice == originalDevice {
-		t.Errorf("device id did not change: %s", newDevice)
-	}
+	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tcp)
 }
@@ -2650,12 +2585,10 @@ func TestResetAccountPaper(t *testing.T) {
 	li := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, u.Username, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, li); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	paper := loginUI.PaperPhrase
-	if len(paper) != 0 {
-		t.Fatal("paper phrase exists in login ui")
-	}
+	require.Empty(t, paper, "paper phrase exists in login ui")
 	testUserHasDeviceKey(tc)
 
 	uis = libkb.UIs{
@@ -2666,11 +2599,10 @@ func TestResetAccountPaper(t *testing.T) {
 	peng := NewPaperKey(tc.G)
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, peng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if len(peng.Passphrase()) == 0 {
-		t.Fatal("empty paper phrase")
-	}
+	require.False(t, len(peng.Passphrase()) == 0,
+		"empty paper phrase")
 	paper = peng.Passphrase()
 
 	// provision on new device with paper key
@@ -2691,7 +2623,7 @@ func TestResetAccountPaper(t *testing.T) {
 	eng := NewLogin(tcp.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tcp).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	testUserHasDeviceKey(tcp)
@@ -2712,12 +2644,12 @@ func TestResetAccountKexProvision(t *testing.T) {
 	// this will reprovision as an eldest device:
 	u.LoginOrBust(tcX)
 	if err := AssertProvisioned(tcX); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	testUserHasDeviceKey(tcX)
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	secretCh := make(chan kex2.Secret)
 
@@ -2742,10 +2674,8 @@ func TestResetAccountKexProvision(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -2759,10 +2689,8 @@ func TestResetAccountKexProvision(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -2798,7 +2726,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any device keys, login should have fixed that:
@@ -2826,7 +2754,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 	})
 
 	if err := RunEngine2(m, peng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 
 	m = m.CommitProvisionalLogin()
@@ -2835,7 +2763,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 	// Now finally try a login
 	eng = NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any device keys, login should have fixed that:
@@ -2866,7 +2794,7 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// since this user didn't have any device keys, login should have fixed that:
@@ -2882,12 +2810,12 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	// this will reprovision as an eldest device:
 	u.LoginOrBust(tcX)
 	if err := AssertProvisioned(tcX); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	testUserHasDeviceKey(tcX)
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	secretCh := make(chan kex2.Secret)
 
@@ -2912,10 +2840,8 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -2929,10 +2855,8 @@ func TestResetAccountLikeNistur(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -2952,12 +2876,12 @@ func TestResetMultipleDevices(t *testing.T) {
 	// create provisioner device
 	u := CreateAndSignupFakeUser(tcX, "login")
 	if err := AssertProvisioned(tcX); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	testUserHasDeviceKey(tcX)
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	secretCh := make(chan kex2.Secret)
 
@@ -2982,10 +2906,8 @@ func TestResetMultipleDevices(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -2999,10 +2921,8 @@ func TestResetMultipleDevices(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3010,7 +2930,7 @@ func TestResetMultipleDevices(t *testing.T) {
 	wg.Wait()
 
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// have two devices in contexts tcX and tcY
@@ -3026,12 +2946,10 @@ func TestResetMultipleDevices(t *testing.T) {
 	u.LoginOrBust(tcX)
 
 	if err := AssertProvisioned(tcX); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if tcX.G.Env.GetDeviceID() == deviceX {
-		t.Error("device id did not change")
-	}
+	require.False(t, tcX.G.Env.GetDeviceID() == deviceX, "device id did not change")
 }
 
 // If there is a bad device id in the config file, provisioning
@@ -3053,24 +2971,20 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// copy the config info from device X to device Y
 	uc, err := tcX.G.Env.GetConfig().GetUserConfig()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if err := tcY.G.Env.GetConfigWriter().SetUserConfig(uc, true); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	// but give device Y a new random device ID that doesn't exist:
 	newID, err := libkb.NewDeviceID()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if err := tcY.G.Env.GetConfigWriter().SetDeviceID(newID); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secretCh := make(chan kex2.Secret)
@@ -3092,10 +3006,8 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "login error: %s", err)
 	}()
 
 	// start provisioner
@@ -3109,22 +3021,16 @@ func TestProvisionWithBadConfig(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
 	wg.Wait()
 
-	if tcY.G.Env.GetDeviceID() == newID {
-		t.Errorf("y device id: %s, same as %s.  expected it to change.", tcY.G.Env.GetDeviceID(), newID)
-	}
-	if tcY.G.Env.GetDeviceID() == tcX.G.Env.GetDeviceID() {
-		t.Error("y device id matches x device id, they should be different")
-	}
+	require.False(t, tcY.G.Env.GetDeviceID() == newID, "y device id: %s, same as %s.  expected it to change.", tcY.G.Env.GetDeviceID(), newID)
+	require.False(t, tcY.G.Env.GetDeviceID() == tcX.G.Env.GetDeviceID(), "y device id matches x device id, they should be different")
 
 	err = AssertProvisioned(tcY)
 	require.NoError(t, err)
@@ -3147,7 +3053,7 @@ func TestProvisionerSecretStore(t *testing.T) {
 	// userX := CreateAndSignupFakeUser(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	clearCaches(tcX.G)
 
@@ -3188,14 +3094,12 @@ func TestProvisionerSecretStore(t *testing.T) {
 	for {
 		select {
 		case e := <-errY:
-			if e != nil {
-				t.Fatalf("provisionee error: %s", e)
-			}
+			require.Nil(t, e,
+				"provisionee error: %s", e)
 			yDone = true
 		case e := <-errX:
-			if e != nil {
-				t.Fatalf("provisioner error: %s", e)
-			}
+			require.Nil(t, e,
+				"provisioner error: %s", e)
 			xDone = true
 		}
 		if xDone && yDone {
@@ -3204,7 +3108,7 @@ func TestProvisionerSecretStore(t *testing.T) {
 	}
 
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// On device Y, logout and login. This should tickle Bug3964
@@ -3219,7 +3123,7 @@ func TestProvisionerSecretStore(t *testing.T) {
 	eng = NewLogin(tcY.G, keybase1.DeviceTypeV2_DESKTOP, userX.Username, keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tcY).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -3237,7 +3141,7 @@ func TestProvisionGPGMobile(t *testing.T) {
 
 	// we need the gpg keyring that's in the first homedir
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// run login on new device
@@ -3251,12 +3155,10 @@ func TestProvisionGPGMobile(t *testing.T) {
 	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_MOBILE, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc2).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("no error provisioning with gpg on mobile")
-	}
-	if _, ok := err.(libkb.GPGUnavailableError); !ok {
-		t.Errorf("error type: %T, expected libkb.GPGUnavailableError", err)
-	}
+	require.Error(t, err,
+		"no error provisioning with gpg on mobile")
+	_, ok := err.(libkb.GPGUnavailableError)
+	require.True(t, ok, "error type: %T, expected libkb.GPGUnavailableError", err)
 }
 
 func TestProvisionEnsureNoPaperKey(t *testing.T) {
@@ -3288,7 +3190,7 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("check for initial paper key")
@@ -3334,10 +3236,8 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("provisionee login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "provisionee login error: %s", err)
 	}()
 
 	// start provisioner
@@ -3351,10 +3251,8 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3364,7 +3262,7 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	require.False(t, t.Failed(), "prior failure in a goroutine")
 
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("kex finished")
@@ -3405,7 +3303,7 @@ func TestProvisionAndRevoke(t *testing.T) {
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("check for initial paper key")
@@ -3432,10 +3330,8 @@ func TestProvisionAndRevoke(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("provisionee login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "provisionee login error: %s", err)
 	}()
 
 	// start provisioner
@@ -3449,10 +3345,8 @@ func TestProvisionAndRevoke(t *testing.T) {
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3462,7 +3356,7 @@ func TestProvisionAndRevoke(t *testing.T) {
 	require.False(t, t.Failed(), "prior failure in a goroutine")
 
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("kex finished")
@@ -3529,7 +3423,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 
 		// we need the gpg keyring that's in the first homedir
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// run login on new device
@@ -3555,7 +3449,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// do a upak load to make sure it is cached
@@ -3572,30 +3466,25 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 		// Since this was GPG sign, there will be no secret stored.
 		oeng := NewLoginOffline(tc2.G)
 		oerr := RunEngine2(m, oeng)
-		if oerr != nil {
-			t.Fatalf("LoginOffline failed after gpg sign + svc restart: %s", oerr)
-		}
+		require.Nil(t, oerr,
+			"LoginOffline failed after gpg sign + svc restart: %s", oerr)
 
 		// GetBootstrapStatus should return without error and with LoggedIn set
 		// to true.
 		beng := NewBootstrap(tc2.G)
 		m = NewMetaContextForTest(tc2)
 		if err := RunEngine2(m, beng); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		status := beng.Status()
-		if status.LoggedIn != true {
-			t.Error("bootstrap status -> logged out, expected logged in")
-		}
-		if !status.Registered {
-			t.Error("registered false")
-		}
+		require.Equal(t, true, status.LoggedIn, "bootstrap status -> logged out, expected logged in")
+		require.True(t, status.Registered, "registered false")
 
 		t.Logf("test run %d: all checks passed, returning", i+1)
 		return
 	}
 
-	t.Fatalf("TestBootstrapAfterGPGSign failed %d times", attempts)
+	require.FailNow(t, fmt.Sprintf("TestBootstrapAfterGPGSign failed %d times", attempts))
 }
 
 func TestLoginAlready(t *testing.T) {
@@ -3608,17 +3497,17 @@ func TestLoginAlready(t *testing.T) {
 
 	// Logging in again with same username should not return an error
 	if err := u1.Login(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Logging in with a different username should returh LoggedInError
 	u1.Username = "x" + u1.Username
 	err := u1.Login(tc.G)
-	if err == nil {
-		t.Fatal("login with different username should return an error")
-	}
+	require.Error(t, err,
+		"login with different username should return an error")
 	if _, ok := err.(libkb.LoggedInError); !ok {
-		t.Fatalf("err type: %T (%s), expected libkb.LoggedInError", err, err)
+		require.True(t, ok,
+			"err type: %T (%s), expected libkb.LoggedInError", err, err)
 	}
 }
 
@@ -3640,7 +3529,8 @@ func TestLoginUsernameOnProvisionedDevice(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, u1.Username, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatalf("login with email should work now, got error: %s (%T)", err, err)
+		require.NoError(t, err,
+			"login with email should work now, got error: %s (%T)", err, err)
 	}
 
 	assertPassphraseStreamCache(tc)
@@ -3696,15 +3586,9 @@ func TestBeforeResetDeviceName(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Errorf("Login worked with pre-reset device name")
-	}
-	if len(provui.ExistingDevicesFromArg) == 0 {
-		t.Fatalf("no existing devices provided to provision ui, expected 1 (pre reset)")
-	}
-	if provui.ExistingDevicesFromArg[0] != originalDeviceName {
-		t.Errorf("existing device name 0: %q, expected %q", provui.ExistingDevicesFromArg[0], originalDeviceName)
-	}
+	require.NotNil(t, err, "Login worked with pre-reset device name")
+	require.NotEmpty(t, provui.ExistingDevicesFromArg, "no existing devices provided to provision ui, expected 1 (pre reset)")
+	require.Equal(t, originalDeviceName, provui.ExistingDevicesFromArg[0], "existing device name 0: %q, expected %q", provui.ExistingDevicesFromArg[0], originalDeviceName)
 }
 
 func TestProvisioningWithSmartPunctuationDeviceName(t *testing.T) {
@@ -3719,19 +3603,12 @@ func TestProvisioningWithSmartPunctuationDeviceName(t *testing.T) {
 	arg.DeviceName += "’s test‘s cool—thing–device"
 	SignupFakeUserWithArg(tc, fu, arg)
 	fu.LoginOrBust(tc)
-	if err := fu.LoadUser(tc); err != nil {
-		t.Errorf("unable to load user: %q", err)
-	}
+	err := fu.LoadUser(tc)
+	require.NoError(t, err, "unable to load user: %q", err)
 	deviceNames, err := fu.User.DeviceNames()
-	if err != nil {
-		t.Errorf("unable to list device names: %q", err)
-	}
-	if len(deviceNames) < 1 {
-		t.Error("no devices returned")
-	}
-	if deviceNames[0] != desiredName {
-		t.Errorf("device name 0: %q, should be %q", deviceNames[0], desiredName)
-	}
+	require.NoError(t, err, "unable to list device names: %q", err)
+	require.False(t, len(deviceNames) < 1, "no devices returned")
+	require.Equal(t, desiredName, deviceNames[0], "device name 0: %q, should be %q", deviceNames[0], desiredName)
 }
 
 func TestProvisionAutomatedPaperKey(t *testing.T) {
@@ -3750,17 +3627,13 @@ func TestProvisionAutomatedPaperKey(t *testing.T) {
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 
 	Logout(tc)
 
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.NotEmpty(t, loginUI.PaperPhrase, "login ui has no paper key phrase")
 
 	// redo SetupEngineTest to get a new home directory
 	tc2 := SetupEngineTest(t, "login")
@@ -3809,7 +3682,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("kex#1 starting")
@@ -3833,10 +3706,8 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		eng := NewLogin(tcY.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("provisionee login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "provisionee login error: %s", err)
 	}()
 
 	// start provisioner for step #1
@@ -3847,10 +3718,8 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3861,7 +3730,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 
 	// 2nd device should be provisioned
 	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("kex#1 finished")
@@ -3897,16 +3766,14 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcZ).WithUIs(uis)
 		eng := NewLogin(tcZ.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("provisionee login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "provisionee login error: %s", err)
 	}()
 
 	// start provisioner for step #2
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	provisioner = NewKex2Provisioner(tcY.G, secretY, nil)
 	wg.Add(1)
@@ -3916,10 +3783,8 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		// m.ActiveDevice().ClearPassphraseStreamCache()
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		require.NoError(t, err, "provisioner error: %s", err)
 	}()
 	secretFromZ := <-secretCh
 	provisioner.AddSecret(secretFromZ)
@@ -3930,7 +3795,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 
 	// 3rd device should be provisioned
 	if err := AssertProvisioned(tcZ); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("kex#2 finished")
@@ -4223,17 +4088,13 @@ func skipOldGPG(tc libkb.TestContext) {
 		tc.T.Skip(fmt.Sprintf("skipping test due to gpg configure error: %s", err))
 	}
 	ok, err := gpg.VersionAtLeast("2.0.29")
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	if ok {
 		return
 	}
 
 	v, err := gpg.SemanticVersion()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	tc.T.Skip(fmt.Sprintf("skipping test due to gpg version < 2.0.29 (%v)", v))
 }
 
@@ -4252,9 +4113,8 @@ func assertPassphraseStreamCache(tc libkb.TestContext) {
 	if ppsc := tc.G.ActiveDevice.PassphraseStreamCache(); ppsc != nil {
 		ppsValid = ppsc.ValidPassphraseStream()
 	}
-	if !ppsValid {
-		tc.T.Fatal("passphrase stream not cached")
-	}
+	require.True(tc.T, ppsValid,
+		"passphrase stream not cached")
 }
 
 func assertSecretStored(tc libkb.TestContext, username string) {

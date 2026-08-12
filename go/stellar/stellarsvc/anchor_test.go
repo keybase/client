@@ -12,6 +12,8 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
+
+	"github.com/stretchr/testify/require"
 )
 
 type anchorTest struct {
@@ -228,12 +230,12 @@ func TestAnchorInteractor(t *testing.T) {
 		ai.httpGetClient = test.MockTransferGet
 		_, err := ai.Deposit(tc.MetaContext())
 		if err == nil {
-			t.Errorf("err test %d [%s]: Deposit returned no error, but expected one", i, test.Name)
+			require.Fail(t, "err test %d [%s]: Deposit returned no error, but expected one", i, test.Name)
 			continue
 		}
 		_, err = ai.Withdraw(tc.MetaContext())
 		if err == nil {
-			t.Errorf("err test %d [%s]: Withdraw returned no error, but expected one", i, test.Name)
+			require.Fail(t, "err test %d [%s]: Withdraw returned no error, but expected one", i, test.Name)
 			continue
 		}
 	}
@@ -254,25 +256,25 @@ func TestAnchorInteractor(t *testing.T) {
 		if test.Asset.ShowDepositButton {
 			res, err := ai.Deposit(tc.MetaContext())
 			if err != nil {
-				t.Errorf("valid test %d [%s]: Deposit returned an error: %s", i, test.Name, err)
+				require.Fail(t, "valid test %d [%s]: Deposit returned an error: %s", i, test.Name, err)
 				continue
 			}
 			if res.ExternalUrl == nil && res.MessageFromAnchor == nil {
-				t.Errorf("valid test %d [%s] deposit: result fields are all nil", i, test.Name)
+				require.Fail(t, "valid test %d [%s] deposit: result fields are all nil", i, test.Name)
 				continue
 			}
 			if test.DepositExternalURL != "" && res.ExternalUrl == nil {
-				t.Errorf("valid test %d [%s] deposit: result external url field is nil, expected %s", i, test.Name, test.DepositExternalURL)
+				require.Fail(t, "valid test %d [%s] deposit: result external url field is nil, expected %s", i, test.Name, test.DepositExternalURL)
 				continue
 			}
 			if res.ExternalUrl != nil {
 				if test.DepositExternalURL != *res.ExternalUrl {
-					t.Errorf("valid test %d [%s] deposit: result external url field %s, expected %s", i, test.Name, *res.ExternalUrl, test.DepositExternalURL)
+					require.Fail(t, "valid test %d [%s] deposit: result external url field %s, expected %s", i, test.Name, *res.ExternalUrl, test.DepositExternalURL)
 				}
 			}
 			if res.MessageFromAnchor != nil {
 				if test.DepositMessage != *res.MessageFromAnchor {
-					t.Errorf("valid test %d [%s] deposit: result message %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.DepositMessage)
+					require.Fail(t, "valid test %d [%s] deposit: result message %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.DepositMessage)
 				}
 			}
 		}
@@ -280,25 +282,25 @@ func TestAnchorInteractor(t *testing.T) {
 		if test.Asset.ShowWithdrawButton {
 			res, err := ai.Withdraw(tc.MetaContext())
 			if err != nil {
-				t.Errorf("valid test %d [%s]: Withdraw returned an error: %s", i, test.Name, err)
+				require.Fail(t, "valid test %d [%s]: Withdraw returned an error: %s", i, test.Name, err)
 				continue
 			}
 			if res.ExternalUrl == nil && res.MessageFromAnchor == nil {
-				t.Errorf("valid test %d [%s] withdraw: result fields are all nil", i, test.Name)
+				require.Fail(t, "valid test %d [%s] withdraw: result fields are all nil", i, test.Name)
 				continue
 			}
 			if test.WithdrawExternalURL != "" && res.ExternalUrl == nil {
-				t.Errorf("valid test %d [%s] withdraw: result external url field is nil, expected %s", i, test.Name, test.WithdrawExternalURL)
+				require.Fail(t, "valid test %d [%s] withdraw: result external url field is nil, expected %s", i, test.Name, test.WithdrawExternalURL)
 				continue
 			}
 			if res.ExternalUrl != nil {
 				if test.WithdrawExternalURL != *res.ExternalUrl {
-					t.Errorf("valid test %d [%s] withdraw: result external url field %s, expected %s", i, test.Name, *res.ExternalUrl, test.WithdrawExternalURL)
+					require.Fail(t, "valid test %d [%s] withdraw: result external url field %s, expected %s", i, test.Name, *res.ExternalUrl, test.WithdrawExternalURL)
 				}
 			}
 			if res.MessageFromAnchor != nil {
 				if test.WithdrawMessage != *res.MessageFromAnchor {
-					t.Errorf("valid test %d [%s] withdraw: result message %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.WithdrawMessage)
+					require.Fail(t, "valid test %d [%s] withdraw: result message %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.WithdrawMessage)
 				}
 			}
 		}

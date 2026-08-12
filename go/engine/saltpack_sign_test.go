@@ -13,6 +13,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/saltpack"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSaltpackSignDeviceRequired(t *testing.T) {
@@ -25,12 +26,10 @@ func TestSaltpackSignDeviceRequired(t *testing.T) {
 	eng := NewSaltpackSign(tc.G, nil)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("sign not logged in returned no error")
-	}
-	if _, ok := err.(libkb.DeviceRequiredError); !ok {
-		t.Errorf("error type: %T, expected DeviceRequiredError", err)
-	}
+	require.Error(t, err,
+		"sign not logged in returned no error")
+	_, ok := err.(libkb.DeviceRequiredError)
+	require.True(t, ok, "error type: %T, expected DeviceRequiredError", err)
 }
 
 func TestSaltpackSignVerify(t *testing.T) {
@@ -56,16 +55,12 @@ func TestSaltpackSignVerify(t *testing.T) {
 		}
 
 		m := NewMetaContextForTest(tc).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("%s: run error: %s", test.name, err)
-			continue
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "%s: run error: %s", test.name, err)
 
 		sig := sink.String()
 
-		if len(sig) == 0 {
-			t.Errorf("%s: empty sig", test.name)
-		}
+		require.False(t, len(sig) == 0, "%s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -75,10 +70,8 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		m = m.WithSaltpackUI(fakeSaltpackUI{})
 
-		if err := RunEngine2(m, veng); err != nil {
-			t.Errorf("%s: verify error: %s", test.name, err)
-			continue
-		}
+		err = RunEngine2(m, veng)
+		require.NoError(t, err, "%s: verify error: %s", test.name, err)
 
 		// test SignedBy option:
 		varg = &SaltpackVerifyArg{
@@ -89,10 +82,8 @@ func TestSaltpackSignVerify(t *testing.T) {
 			},
 		}
 		veng = NewSaltpackVerify(tc.G, varg)
-		if err := RunEngine2(m, veng); err != nil {
-			t.Errorf("%s: verify w/ SignedBy error: %s", test.name, err)
-			continue
-		}
+		err = RunEngine2(m, veng)
+		require.NoError(t, err, "%s: verify w/ SignedBy error: %s", test.name, err)
 
 		varg = &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -102,10 +93,8 @@ func TestSaltpackSignVerify(t *testing.T) {
 			},
 		}
 		veng = NewSaltpackVerify(tc.G, varg)
-		if err := RunEngine2(m, veng); err == nil {
-			t.Errorf("%s: verify w/ SignedBy=unknown worked, should have failed", test.name)
-			continue
-		}
+		err = RunEngine2(m, veng)
+		require.NotNil(t, err, "%s: verify w/ SignedBy=unknown worked, should have failed", test.name)
 	}
 
 	// now try the same messages, but generate detached signatures
@@ -126,16 +115,12 @@ func TestSaltpackSignVerify(t *testing.T) {
 			SecretUI:   fu.NewSecretUI(),
 		}
 		m := NewMetaContextForTest(tc).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("(detached) %s: run error: %s", test.name, err)
-			continue
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "(detached) %s: run error: %s", test.name, err)
 
 		sig := sink.Bytes()
 
-		if len(sig) == 0 {
-			t.Errorf("(detached) %s: empty sig", test.name)
-		}
+		require.False(t, len(sig) == 0, "(detached) %s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -147,10 +132,8 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		veng := NewSaltpackVerify(tc.G, varg)
 		m = m.WithSaltpackUI(fakeSaltpackUI{})
-		if err := RunEngine2(m, veng); err != nil {
-			t.Errorf("(detached) %s: verify error: %s", test.name, err)
-			continue
-		}
+		err = RunEngine2(m, veng)
+		require.NoError(t, err, "(detached) %s: verify error: %s", test.name, err)
 	}
 }
 
@@ -179,16 +162,12 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 			SecretUI:   fu.NewSecretUI(),
 		}
 		m := NewMetaContextForTest(tc).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("%s: run error: %s", test.name, err)
-			continue
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "%s: run error: %s", test.name, err)
 
 		sig := sink.String()
 
-		if len(sig) == 0 {
-			t.Errorf("%s: empty sig", test.name)
-		}
+		require.False(t, len(sig) == 0, "%s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -198,10 +177,8 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 
 		m = m.WithSaltpackUI(fakeSaltpackUI{})
 
-		if err := RunEngine2(m, veng); err != nil {
-			t.Errorf("%s: verify error: %s", test.name, err)
-			continue
-		}
+		err = RunEngine2(m, veng)
+		require.NoError(t, err, "%s: verify error: %s", test.name, err)
 	}
 
 	// now try the same messages, but generate detached signatures
@@ -223,16 +200,12 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 			SecretUI:   fu.NewSecretUI(),
 		}
 		m := NewMetaContextForTest(tc).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("(detached) %s: run error: %s", test.name, err)
-			continue
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err, "(detached) %s: run error: %s", test.name, err)
 
 		sig := sink.Bytes()
 
-		if len(sig) == 0 {
-			t.Errorf("(detached) %s: empty sig", test.name)
-		}
+		require.False(t, len(sig) == 0, "(detached) %s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -244,10 +217,8 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 		veng := NewSaltpackVerify(tc.G, varg)
 		m = m.WithSaltpackUI(fakeSaltpackUI{})
 
-		if err := RunEngine2(m, veng); err != nil {
-			t.Errorf("(detached) %s: verify error: %s", test.name, err)
-			continue
-		}
+		err = RunEngine2(m, veng)
+		require.NoError(t, err, "(detached) %s: verify error: %s", test.name, err)
 	}
 }
 
@@ -272,14 +243,12 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	sig := sink.String()
 
-	if len(sig) == 0 {
-		t.Fatal("empty sig")
-	}
+	require.NotEmpty(t, sig, "empty sig")
 
 	Logout(tc)
 
@@ -295,7 +264,8 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 	m = m.WithSaltpackUI(fakeSaltpackUI{})
 
 	if err := RunEngine2(m, veng); err != nil {
-		t.Fatalf("verify error: %s", err)
+		require.NoError(t, err,
+			"verify error: %s", err)
 	}
 
 	// valid user assertion
@@ -308,7 +278,8 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 	}
 	veng = NewSaltpackVerify(tc.G, varg)
 	if err := RunEngine2(m, veng); err != nil {
-		t.Fatalf("verify w/ SignedBy error: %s", err)
+		require.NoError(t, err,
+			"verify w/ SignedBy error: %s", err)
 	}
 
 	// invalid user assertion
@@ -320,9 +291,8 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 		},
 	}
 	veng = NewSaltpackVerify(tc.G, varg)
-	if err := RunEngine2(m, veng); err == nil {
-		t.Errorf("verify w/ SignedBy unknown didn't fail")
-	}
+	err := RunEngine2(m, veng)
+		require.NotNil(t, err, "verify w/ SignedBy unknown didn't fail")
 }
 
 func TestSaltpackVerifyRevoked(t *testing.T) {
@@ -347,33 +317,28 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Get the current device
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
-	if len(devices) != 1 {
-		t.Fatalf("Expected a single device, but found %d", len(devices))
-	}
+	require.Len(t, devices, 1, "Expected a single device, but found %d", len(devices))
 	currentDevice := devices[0]
 
 	// Delegate a new paper key so that we have something active after we
 	// revoke the current device.
 	paperEng := NewPaperKey(tc.G)
 	if err := RunEngine2(m, paperEng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Revoke the current device.
 	err := doRevokeDevice(tc, fu, currentDevice.ID, false, false)
-	if err == nil {
-		tc.T.Fatal("Expected revoking the current device to fail.")
-	}
+	require.Error(tc.T, err,
+		"Expected revoking the current device to fail.")
 	// force=true is required for the current device
 	err = doRevokeDevice(tc, fu, currentDevice.ID, true, false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+		require.NoError(tc.T, err)
 
 	// Finally verify the sig. This should be an error, because the signing
 	// device is revoked. The revoked status will get passed to our
@@ -382,9 +347,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	// force option here, because that's implemented in the real client
 	// SaltpackUI.
 	sig := sink.String()
-	if len(sig) == 0 {
-		t.Fatal("empty sig")
-	}
+	require.NotEmpty(t, sig, "empty sig")
 	varg := &SaltpackVerifyArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
 		Source: strings.NewReader(sig),
@@ -392,21 +355,16 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	veng := NewSaltpackVerify(tc.G, varg)
 	m = m.WithSaltpackUI(fakeSaltpackUI{})
 	err = RunEngine2(m, veng)
-	if err == nil {
-		t.Fatal("expected error during verify")
-	}
+	require.Error(t, err,
+		"expected error during verify")
 	verificationError, ok := err.(libkb.VerificationError)
-	if !ok {
-		t.Fatal("expected VerificationError during verify")
-	}
+	require.True(t, ok,
+		"expected VerificationError during verify")
 	badSenderError, ok := verificationError.Cause.Err.(*FakeBadSenderError)
-	if !ok {
-		t.Fatal("expected FakeBadSenderError during verify")
-	}
+	require.True(t, ok,
+		"expected FakeBadSenderError during verify")
 
-	if badSenderError.senderType != keybase1.SaltpackSenderType_REVOKED {
-		t.Fatalf("expected keybase1.SaltpackSenderType_REVOKED, got %s", badSenderError.senderType.String())
-	}
+	require.Equal(t, keybase1.SaltpackSenderType_REVOKED, badSenderError.senderType, "expected keybase1.SaltpackSenderType_REVOKED, got %s", badSenderError.senderType.String())
 }
 
 func TestSaltpackSignForceVersion(t *testing.T) {
@@ -435,7 +393,7 @@ func TestSaltpackSignForceVersion(t *testing.T) {
 			}
 			m := NewMetaContextForTest(tc).WithUIs(uis)
 			if err := RunEngine2(m, eng); err != nil {
-				t.Fatal(err)
+				require.NoError(t, err)
 			}
 
 			// Double decode the header and inspect it.
@@ -443,16 +401,14 @@ func TestSaltpackSignForceVersion(t *testing.T) {
 			dec := codec.NewDecoderBytes(sink.Bytes(), &codec.MsgpackHandle{WriteExt: true})
 			var b []byte
 			if err := dec.Decode(&b); err != nil {
-				t.Fatal(err)
+				require.NoError(t, err)
 			}
 			dec = codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true})
 			if err := dec.Decode(&header); err != nil {
-				t.Fatal(err)
+				require.NoError(t, err)
 			}
 
-			if header.Version.Major != majorVersionExpected {
-				t.Fatalf("passed saltpack version %d (attached: %t) and expected major version %d, found %d", versionFlag, isAttached, majorVersionExpected, header.Version.Major)
-			}
+			require.Equal(t, majorVersionExpected, header.Version.Major, "passed saltpack version %d (attached: %t) and expected major version %d, found %d", versionFlag, isAttached, majorVersionExpected, header.Version.Major)
 		}
 	}
 

@@ -576,7 +576,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 			name = tn
 		}
 	default:
-		t.Fatalf("unhandled membersType: %v", membersType)
+		require.FailNow(t, fmt.Sprintf("unhandled membersType: %v", membersType))
 	}
 
 	tc := ctc.as(t, creator)
@@ -927,13 +927,10 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 			},
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
-		if err != nil {
-			t.Fatalf("GetInboxAndUnboxLocal error: %v", err)
-		}
+		require.NoError(t, err,
+			"GetInboxAndUnboxLocal error: %v", err)
 		conversations := gilres.Conversations
-		if len(conversations) != 1 {
-			t.Fatalf("unexpected response from GetInboxAndUnboxLocal. expected 1 items, got %d\n", len(conversations))
-		}
+		require.Len(t, conversations, 1, "unexpected response from GetInboxAndUnboxLocal. expected 1 items, got %d\n", len(conversations))
 
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
@@ -941,15 +938,10 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 		conv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		if conversations[0].Info.TlfName != conv.Conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.Conv.MaxMsgSummaries[0].TlfName, mt)
-		}
-		if !conversations[0].Info.Id.Eq(created.Id) {
-			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
-		}
-		if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
-			t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
-		}
+		require.Equal(t, conv.Conv.MaxMsgSummaries[0].TlfName, conversations[0].Info.TlfName, "unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.Conv.MaxMsgSummaries[0].TlfName, mt)
+		require.True(t, conversations[0].Info.Id.Eq(created.Id),
+			"unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
+		require.Equal(t, chat1.TopicType_CHAT, conversations[0].Info.Triple.TopicType, "unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
 	})
 }
 
@@ -1788,19 +1780,16 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		tc.Context().UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
 			return ri
 		})
-		if err != nil {
-			t.Fatalf("GetThreadLocal error: %v", err)
-		}
+		require.NoError(t, err,
+			"GetThreadLocal error: %v", err)
 
 		require.Len(t, tv.Thread.Messages, 3,
 			"unexpected response from GetThreadLocal . number of messages")
 
-		if tv.Thread.Messages[0].IsValid() || len(tv.Thread.Messages[0].Error().ErrMsg) == 0 {
-			t.Fatalf("unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Thread.Messages[0])
-		}
-		if !tv.Thread.Messages[1].IsValid() || tv.Thread.Messages[1].Valid().MessageBody.Text().Body != "innocent hello" {
-			t.Fatalf("unexpected response from GetThreadLocal. expected 'innocent hello' got %#+v\n", tv.Thread.Messages[1].Valid())
-		}
+		require.False(t, tv.Thread.Messages[0].IsValid() || len(tv.Thread.Messages[0].Error().ErrMsg) == 0,
+			"unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Thread.Messages[0])
+		require.False(t, !tv.Thread.Messages[1].IsValid() || tv.Thread.Messages[1].Valid().MessageBody.Text().Body != "innocent hello",
+			"unexpected response from GetThreadLocal. expected 'innocent hello' got %#+v\n", tv.Thread.Messages[1].Valid())
 	})
 }
 
@@ -1836,15 +1825,11 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			After:     "1d",
 			TopicType: chat1.TopicType_CHAT,
 		})
-		if err != nil {
-			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
-		}
-		if len(res.Conversations) != 5 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 3 items, got %d\n", len(res.Conversations))
-		}
-		if !res.Conversations[0].Info.Id.Eq(withUser123.Id) {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; newest updated conversation is not the first in response.\n")
-		}
+		require.NoError(t, err,
+			"GetInboxSummaryForCLILocal error: %v", err)
+		require.Len(t, res.Conversations, 5, "unexpected response from GetInboxSummaryForCLILocal . expected 3 items, got %d\n", len(res.Conversations))
+		require.True(t, res.Conversations[0].Info.Id.Eq(withUser123.Id),
+			"unexpected response from GetInboxSummaryForCLILocal; newest updated conversation is not the first in response.\n")
 		// TODO: fix this when merging master back in... (what?)
 		expectedMessages := 2
 		require.Len(t, res.Conversations[0].MaxMessages, expectedMessages,
@@ -1854,23 +1839,17 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			ActivitySortedLimit: 2,
 			TopicType:           chat1.TopicType_CHAT,
 		})
-		if err != nil {
-			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
-		}
-		if len(res.Conversations) != 2 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
-		}
+		require.NoError(t, err,
+			"GetInboxSummaryForCLILocal error: %v", err)
+		require.Len(t, res.Conversations, 2, "unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 
 		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx, chat1.GetInboxSummaryForCLILocalQuery{
 			ActivitySortedLimit: 2,
 			TopicType:           chat1.TopicType_CHAT,
 		})
-		if err != nil {
-			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
-		}
-		if len(res.Conversations) != 2 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
-		}
+		require.NoError(t, err,
+			"GetInboxSummaryForCLILocal error: %v", err)
+		require.Len(t, res.Conversations, 2, "unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 
 		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx,
 			chat1.GetInboxSummaryForCLILocalQuery{
@@ -1882,15 +1861,11 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 				},
 				TopicType: chat1.TopicType_CHAT,
 			})
-		if err != nil {
-			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
-		}
-		if len(res.Conversations) != 2 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
-		}
-		if !res.Conversations[0].Info.Id.Eq(withUser1.Id) {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; unread conversation is not the first in response.\n")
-		}
+		require.NoError(t, err,
+			"GetInboxSummaryForCLILocal error: %v", err)
+		require.Len(t, res.Conversations, 2, "unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
+		require.True(t, res.Conversations[0].Info.Id.Eq(withUser1.Id),
+			"unexpected response from GetInboxSummaryForCLILocal; unread conversation is not the first in response.\n")
 
 		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx, chat1.GetInboxSummaryForCLILocalQuery{
 			UnreadFirst: true,
@@ -1901,12 +1876,9 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			},
 			TopicType: chat1.TopicType_CHAT,
 		})
-		if err != nil {
-			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
-		}
-		if len(res.Conversations) != 2 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 item, got %d\n", len(res.Conversations))
-		}
+		require.NoError(t, err,
+			"GetInboxSummaryForCLILocal error: %v", err)
+		require.Len(t, res.Conversations, 2, "unexpected response from GetInboxSummaryForCLILocal . expected 1 item, got %d\n", len(res.Conversations))
 
 		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx, chat1.GetInboxSummaryForCLILocalQuery{
 			UnreadFirst: true,
@@ -1917,12 +1889,9 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			},
 			TopicType: chat1.TopicType_CHAT,
 		})
-		if err != nil {
-			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
-		}
-		if len(res.Conversations) != 3 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 item, got %d\n", len(res.Conversations))
-		}
+		require.NoError(t, err,
+			"GetInboxSummaryForCLILocal error: %v", err)
+		require.Len(t, res.Conversations, 3, "unexpected response from GetInboxSummaryForCLILocal . expected 1 item, got %d\n", len(res.Conversations))
 	})
 }
 
@@ -1947,21 +1916,15 @@ func TestChatSrvGetMessagesLocal(t *testing.T) {
 			ConversationID: created.Id,
 			MessageIDs:     getIDs,
 		})
-		if err != nil {
-			t.Fatalf("GetMessagesLocal error: %v", err)
-		}
+		require.NoError(t, err,
+			"GetMessagesLocal error: %v", err)
 		for i, msg := range res.Messages {
-			if !msg.IsValid() {
-				t.Fatalf("Missing message: %v", getIDs[i])
-			}
+			require.True(t, msg.IsValid(),
+				"Missing message: %v", getIDs[i])
 			msgID := msg.GetMessageID()
-			if msgID != getIDs[i] {
-				t.Fatalf("Wrong message ID: got %v but expected %v", msgID, getIDs[i])
-			}
+			require.Equal(t, getIDs[i], msgID, "Wrong message ID: got %v but expected %v", msgID, getIDs[i])
 		}
-		if len(res.Messages) != len(getIDs) {
-			t.Fatalf("GetMessagesLocal got %v items but expected %v", len(res.Messages), len(getIDs))
-		}
+		require.Equal(t, len(getIDs), len(res.Messages), "GetMessagesLocal got %v items but expected %v", len(res.Messages), len(getIDs))
 	})
 }
 
@@ -6306,9 +6269,8 @@ func TestChatSrvImpTeamExistingKBFS(t *testing.T) {
 	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
 
 	t.Logf("c1: %v c2: %v", c1, c2)
-	if !c2.Id.Eq(c1.Id) {
-		t.Fatalf("2nd call to NewConversationLocal as IMPTEAM for a KBFS conversation did not return the same conversation ID")
-	}
+	require.True(t, c2.Id.Eq(c1.Id),
+		"2nd call to NewConversationLocal as IMPTEAM for a KBFS conversation did not return the same conversation ID")
 }
 
 func TestChatSrvTeamTypeChanged(t *testing.T) {
@@ -6527,9 +6489,8 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	}
 
 	_, err := g.API.Post(mctx, apiArg)
-	if err != nil {
-		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
-	}
+	require.NoError(t, err,
+		"Failed to accelerate team rekeyd: %s", err)
 }
 
 func logout(g *libkb.GlobalContext) error {

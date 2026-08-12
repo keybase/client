@@ -261,13 +261,9 @@ func testRootMetadataLatestKeyGenerationPrivate(t *testing.T, ver kbfsmd.Metadat
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
-	if rmd.LatestKeyGeneration() != 0 {
-		t.Errorf("Expected key generation to be invalid (0)")
-	}
+	require.Equal(t, 0, rmd.LatestKeyGeneration(), "Expected key generation to be invalid (0)")
 	rmd.fakeInitialRekey()
-	if rmd.LatestKeyGeneration() != kbfsmd.FirstValidKeyGen {
-		t.Errorf("Expected key generation to be valid(%d)", kbfsmd.FirstValidKeyGen)
-	}
+	require.Equal(t, kbfsmd.FirstValidKeyGen, rmd.LatestKeyGeneration(), "Expected key generation to be valid(%d)", kbfsmd.FirstValidKeyGen)
 }
 
 // Test that key generations work as expected for public TLFs.
@@ -277,9 +273,7 @@ func testRootMetadataLatestKeyGenerationPublic(t *testing.T, ver kbfsmd.Metadata
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
-	if rmd.LatestKeyGeneration() != kbfsmd.PublicKeyGen {
-		t.Errorf("Expected key generation to be public (%d)", kbfsmd.PublicKeyGen)
-	}
+	require.Equal(t, kbfsmd.PublicKeyGen, rmd.LatestKeyGeneration(), "Expected key generation to be public (%d)", kbfsmd.PublicKeyGen)
 }
 
 func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {

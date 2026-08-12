@@ -367,8 +367,8 @@ func TestStorageDeleteHistory(t *testing.T) {
 			require.True(t, m.IsValid(), "[%v] message should be valid", x.Name)
 			require.Equal(t, x.MsgID, m.Valid().ServerHeader.MessageID, "[%v] message ID", x.Name)
 			if m.GetMessageType() != chat1.MessageType_TLFNAME {
-				if !x.BodyPresent && x.SupersededBy == 0 {
-					t.Fatalf("You expected the body to be deleted but the message not to be superseded. Are you sure?")
+				if !x.BodyPresent {
+					require.NotZero(t, x.SupersededBy, "If body is deleted, message must be superseded")
 				}
 			}
 			require.Equal(t, x.SupersededBy, m.Valid().ServerHeader.SupersededBy, "[%v] superseded by", x.Name)
@@ -539,8 +539,8 @@ func TestStorageExpunge(t *testing.T) {
 			m := res.Messages[len(res.Messages)-1-i]
 			require.True(t, m.IsValid(), "[%v] message should be valid", x.Name)
 			require.Equal(t, x.MsgID, m.Valid().ServerHeader.MessageID, "[%v] message ID", x.Name)
-			if m.GetMessageType() != chat1.MessageType_TLFNAME && !x.BodyPresent && x.SupersededBy == 0 {
-				t.Fatalf("You expected the body to be deleted but the message not to be superseded. Are you sure?")
+			if m.GetMessageType() != chat1.MessageType_TLFNAME && !x.BodyPresent {
+				require.NotZero(t, x.SupersededBy, "If body is deleted, message must be superseded")
 			}
 			if x.SupersededBy != dontCare {
 				require.Equal(t, x.SupersededBy, m.Valid().ServerHeader.SupersededBy, "[%v] superseded by", x.Name)
