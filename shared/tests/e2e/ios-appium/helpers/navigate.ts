@@ -93,6 +93,12 @@ export async function dismissKeyboard(): Promise<void> {
   await browser.execute('mobile: hideKeyboard').catch(() => {})
   if (!(await browser.isKeyboardShown().catch(() => false))) return
 
+  // Naming the keys to press gets WDA past "Did not know how to dismiss the keyboard" on the
+  // screens whose keyboard carries one of them (search fields show Search, the team wizard's
+  // shows Done).
+  await browser.execute('mobile: hideKeyboard', {keys: ['Done', 'Search', 'Go', 'Return']}).catch(() => {})
+  if (!(await browser.isKeyboardShown().catch(() => false))) return
+
   // WDA answers "Did not know how to dismiss the keyboard" for the chat composer — it has no Done
   // key and no accessory to press. This is not cosmetic: while the keyboard is up the screen's own
   // controls stop reporting as hittable, so the back chevron is invisible to tapNavBack and the
@@ -106,28 +112,61 @@ export async function dismissKeyboard(): Promise<void> {
   // activate a touchable, so it has no such side effect on any screen this runs from.
   const {height, width} = await browser.getWindowRect()
   const x = Math.round(width / 2)
+  const keyboardGone = async () => !(await browser.isKeyboardShown().catch(() => false))
+  // Start well above the keyboard: on an iPad in landscape its top edge sits around 55% of the
+  // screen, and an accessory or autocorrect bar raises it further.
   await browser
     .action('pointer')
-    .move({x, y: Math.round(height * 0.45)})
+    .move({x, y: Math.round(height * 0.35)})
     .down()
     .pause(60)
-    .move({duration: 250, x, y: Math.round(height * 0.25)})
+    .move({duration: 250, x, y: Math.round(height * 0.15)})
     .up()
     .perform()
     .catch(() => {})
-  const dismissed = await browser
-    .waitUntil(async () => !(await browser.isKeyboardShown().catch(() => false)), {
-      interval: 100,
-      timeout: 2000,
-    })
-    .then(() => true)
-    .catch(() => false)
-  if (!dismissed) {
-    // Say so rather than leaving escapeToTabs to spend its whole budget on a screen whose controls
-    // are not hittable — a 50s stall with nothing in the log to explain it.
-    // eslint-disable-next-line no-console
-    console.log(`dismissKeyboard: keyboard still up after drag at ${new Date().toISOString()}`)
+  if (
+    await browser
+      .waitUntil(keyboardGone, {interval: 100, timeout: 2000})
+      .then(() => true)
+      .catch(() => false)
+  ) {
+    return
   }
+
+  // The drag is what the CHAT list listens for - it is the one screen that sets
+  // keyboardDismissMode="on-drag", and the one where a tap is unsafe because
+  // keyboardShouldPersistTaps="handled" lets a row swallow it and act on it. Everywhere else
+  // (feedback, crypto) there is no dismiss-on-drag and the default persist-taps is "never", so a
+  // tap is both safe and the only thing that works. Try it when this is not the chat list.
+  const onChatList = await el(T.CHAT_MESSAGE_LIST)
+    .isExisting()
+    .catch(() => false)
+  if (!onChatList) {
+    // 30%, the same place the tap used to land before this became a drag: it is above the keyboard
+    // on every screen this runs from and below their headers and inputs.
+    await browser
+      .action('pointer')
+      .move({x, y: Math.round(height * 0.3)})
+      .down()
+      .pause(60)
+      .up()
+      .perform()
+      .catch(() => {})
+    if (
+      await browser
+        .waitUntil(keyboardGone, {interval: 100, timeout: 2000})
+        .then(() => true)
+        .catch(() => false)
+    ) {
+      return
+    }
+  }
+
+  // Say so rather than leaving escapeToTabs to spend its whole budget on a screen whose controls
+  // are not hittable - a 50s stall with nothing in the log to explain it.
+  console.log(
+    `dismissKeyboard: keyboard still up after drag${onChatList ? '' : ' and tap'} at ${new Date().toISOString()}`
+  )
 }
 
 // Tap the leading (leftmost) button of a native NavigationBar — the back
@@ -170,11 +209,13 @@ async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
 // visible == 1: hidden nav-stack screens and keyboard toolbars can carry their
 // own Done/Close/Cancel — clicking one is a silent no-op that loops forever.
 // The pre-loop's own predicate: an EXACT name, unlike DISMISS_PRED's substring match. This one
-// clicks unattended before every test, so it must never match a button that happens to contain the
+// clicks unattended before every test, so it must never match a control that merely contains the
 // word — a "Close team" or "Cancel invite" shipped later would otherwise become a destructive click
-// in the reset. Buttons and menu items only, since a sheet's dismiss is always one of those.
+// in the reset. StaticText is in the type list because the thread search bar's Cancel is a Kb.Text
+// with an onClick, and on iPad that bar is the only thing the reset has to close: atTabs is already
+// true inside the Chat tab, so the loop below never runs.
 const MODAL_DISMISS_PRED =
-  '-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem") AND (name == "Done" OR name == "Close" OR name == "Cancel" OR label == "Done" OR label == "Close" OR label == "Cancel") AND visible == 1'
+  '-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeStaticText") AND (name == "Done" OR name == "Close" OR name == "Cancel" OR label == "Done" OR label == "Close" OR label == "Cancel") AND visible == 1'
 
 const DISMISS_PRED =
   '-ios predicate string:(label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel") AND visible == 1'
@@ -239,9 +280,12 @@ export async function escapeToTabs(): Promise<void> {
     const ctrl = controls[controls.length - 1]!
     await ctrl.click().catch(() => {})
     // Waiting on atTabs here would be circular: that is the predicate this loop exists because it
-    // lies while a modal is up. Wait for the control itself to go.
+    // lies while a modal is up. Wait for THIS control to go - isDisplayed goes through the element
+    // id, where isExisting re-runs the selector and would answer "still there" for any other
+    // Done/Close/Cancel on screen (the layer behind, a second sheet, the keyboard's own toolbar).
+    // A stale element throws, which is the clearest "it is gone" there is.
     const gone = await browser
-      .waitUntil(async () => !(await ctrl.isExisting().catch(() => false)), {interval: 100, timeout: 3000})
+      .waitUntil(async () => !(await ctrl.isDisplayed().catch(() => false)), {interval: 100, timeout: 3000})
       .then(() => true)
       .catch(() => false)
     // A control that survives its own click is not a modal dismiss — leave it to the loop below
@@ -258,7 +302,7 @@ export async function escapeToTabs(): Promise<void> {
     // so its Done/Close/Cancel must win.
     if ((await browser.$$(DISMISS_PRED).length) > 0) {
       const ctrl = browser.$$(DISMISS_PRED)[0]!
-      // eslint-disable-next-line no-console
+       
       if (debug) console.log(`  escapeToTabs[${i}]: dismissing "${await ctrl.getAttribute('label').catch(() => '?')}"`)
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
@@ -266,10 +310,10 @@ export async function escapeToTabs(): Promise<void> {
       // whose click no-ops (still present, still not at tabs) must fall through
       // to the back/pop path or we'd click it forever.
       if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
-      // eslint-disable-next-line no-console
+       
       if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
     } else if (debug) {
-      // eslint-disable-next-line no-console
+       
       console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
     }
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {

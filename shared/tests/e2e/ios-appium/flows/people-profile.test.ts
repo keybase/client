@@ -17,19 +17,22 @@ describe('people profile', () => {
     // Scoped to the feed, not matched across the screen: the People header's avatar carries the
     // username too, and tapping that opens the account switcher rather than a profile - which then
     // fails here on a missing profile page, and leaves a modal up for whatever runs next.
-    const userEl = byTextWithin(el(T.PEOPLE_FEED), smokeUser)
     // The feed container mounts empty and immediately, so waiting on it says nothing about whether
     // the feed has arrived. Wait for the row itself instead - a bounded wait rather than the retries
     // this flow used to carry, which re-ran the whole test to buy the same time.
+    //
+    // Rebuilt on every poll: a scoped element caches its parent's id, so a feed that re-renders
+    // makes the scoped lookup throw stale forever, and the swallowed error reads as "not there".
+    const findUser = () => byTextWithin(el(T.PEOPLE_FEED), smokeUser)
     const present = await browser
-      .waitUntil(async () => userEl.isExisting(), {interval: 250, timeout: 10000})
+      .waitUntil(async () => findUser().isExisting().catch(() => false), {interval: 250, timeout: 10000})
       .then(() => true)
       .catch(() => false)
     if (!present) {
-      // eslint-disable-next-line no-console
       console.log(`people profile: ${smokeUser} is not in its own feed, skipping the profile open`)
       return
     }
+    const userEl = findUser()
     await userEl.click()
     await waitForTestID(T.PROFILE_PAGE, 10000)
     await expect(el(T.PROFILE_PAGE)).toExist()

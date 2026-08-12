@@ -111,23 +111,35 @@ const topOfThreadPosition = async (): Promise<number | undefined> => (await mayb
 // through the bar's own testID — matching " of " across the screen finds message text first, and
 // the thread behind the bar is full of it.
 //
-// The testID is on the wrapper, and a wrapper reports no text of its own on iOS, so read the text
-// element inside it.
-const readHitCount = async (): Promise<number> => {
+// undefined means the counter could not be read, which is a different thing from a search with no
+// results, and the caller says so differently.
+const readHitCount = async (): Promise<number | undefined> => {
   const wrapper = el(T.CHAT_THREAD_SEARCH_COUNT)
   const inner = browser.isAndroid
     ? wrapper.$('.//android.widget.TextView')
     : wrapper.$('-ios class chain:**/XCUIElementTypeStaticText')
-  const label =
-    (await inner.getText().catch(() => '')) ||
-    (await wrapper.getText().catch(() => '')) ||
-    (await wrapper.getAttribute('label').catch(() => '')) ||
-    ''
-  const count = Number(/of (\d+)/.exec(label)?.[1] ?? 0)
-  if (count === 0) {
+  const label = (await inner.getText().catch(() => '')) || (await wrapper.getText().catch(() => ''))
+  if (/no results/i.test(label)) return 0
+  const parsed = /of (\d+)/.exec(label)
+  if (!parsed) {
     console.log(`readHitCount: could not read the counter, saw "${label}" at ${new Date().toISOString()}`)
+    return undefined
   }
-  return count
+  return Number(parsed[1])
+}
+
+// Results stream in, and the counter renders as soon as the first ones land - so a count read too
+// early is a partial count, and stepping by it would quietly stop exercising the wrap-around.
+// Settled means two reads in a row agree.
+const readSettledHitCount = async (): Promise<number | undefined> => {
+  let previous = await readHitCount()
+  for (let attempt = 0; attempt < 10; attempt++) {
+    await browser.pause(500)
+    const next = await readHitCount()
+    if (next !== undefined && next === previous) return next
+    previous = next
+  }
+  return previous
 }
 
 const startSearch = async (query: string): Promise<number> => {
@@ -145,7 +157,8 @@ const startSearch = async (query: string): Promise<number> => {
     .then(() => true)
     .catch(() => false)
   if (!landed) throw new Error(`the first hit never came on screen: ${await describeHit()}`)
-  const hits = await readHitCount()
+  const hits = await readSettledHitCount()
+  if (hits === undefined) throw new Error(`could not read the hit counter while searching "${query}"`)
   if (hits === 0) throw new Error(`"${query}" found no hits in this conversation`)
   return hits
 }
