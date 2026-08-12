@@ -5709,17 +5709,6 @@
         {
           "name": "membersType",
           "type": "ConversationMembersType"
-        },
-        {
-          "name": "pushIDs",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
-        },
-        {
-          "name": "shouldAck",
-          "type": "boolean"
         }
       ],
       "response": "string"

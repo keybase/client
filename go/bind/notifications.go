@@ -155,9 +155,13 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
 	pusher PushNotifier, showIfStale bool, targetUID string,
 ) (err error) {
-	if err := waitForInit(10 * time.Second); err != nil {
+	// iOS gives roughly 30 seconds of background time for a remote
+	// notification; leave enough of that budget for unboxing and acking.
+	start := time.Now()
+	if err := waitForInit(15 * time.Second); err != nil {
 		return err
 	}
+	initDuration := time.Since(start)
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
@@ -165,6 +169,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%s,%v,%d,%d,%s,%d,%d)",
 		strConvID, sender, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime), &err)()
 	defer func() { err = flattenError(err) }()
+	kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: waitForInit took %v", initDuration)
 
 	// Unbox
 	if !kbCtx.ActiveDevice.HaveKeys() {
@@ -198,7 +203,9 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	if isDup {
 		// Cancel any duplicate visible notifications
 		if len(pushID) > 0 {
-			mp.AckNotificationSuccess(ctx, []string{pushID})
+			ack := chat.NewPushAck(ctx, gc)
+			defer ack.Shutdown()
+			ack.Ack(ctx, []string{pushID})
 		}
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
 		// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
@@ -209,6 +216,16 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID, err)
 		return err
+	}
+	// Pre-dial the gregor connection used to ack this push: the connection
+	// starts its TLS/auth handshake at construction, so it connects in
+	// parallel with the conversation fetch and unbox below. The ack races the
+	// server's fallback timeout, after which it delivers the generic
+	// notification.
+	var ack *chat.PushAck
+	if len(pushID) > 0 {
+		ack = chat.NewPushAck(ctx, gc)
+		defer ack.Shutdown()
 	}
 	membersType := chat1.ConversationMembersType(intMembersType)
 	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceLocalOnly)
@@ -306,8 +323,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		defer seenNotificationsMtx.Unlock()
 		if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
 			// Cancel any duplicate visible notifications
-			if len(pushID) > 0 {
-				mp.AckNotificationSuccess(ctx, []string{pushID})
+			if ack != nil {
+				ack.Ack(ctx, []string{pushID})
 			}
 			kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
 			// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
@@ -318,8 +335,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		// see the entry and bail out rather than displaying a duplicate.
 		getSeenNotificationsCache().Add(dupKey, struct{}{})
 		pusher.DisplayChatNotification(&chatNotification)
-		if len(pushID) > 0 {
-			mp.AckNotificationSuccess(ctx, []string{pushID})
+		if ack != nil {
+			ack.Ack(ctx, []string{pushID})
 		}
 	}
 	return nil

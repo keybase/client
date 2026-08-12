@@ -604,7 +604,7 @@ export type MessageTypes = {
     outParam: TrackGiphySelectRes,
   },
   'chat.1.local.unboxMobilePushNotification': {
-    inParam: {readonly payload: string,readonly convID: string,readonly membersType: ConversationMembersType,readonly pushIDs?: ReadonlyArray<string> | null,readonly shouldAck: boolean},
+    inParam: {readonly payload: string,readonly convID: string,readonly membersType: ConversationMembersType},
     outParam: string,
   },
   'chat.1.local.unpinMessage': {

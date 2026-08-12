@@ -34,6 +34,25 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
     }
   }
 
+  // If we lost the race against the server's fallback timeout, the generic
+  // "you have a new message" push for this message is already in Notification
+  // Center. The local plaintext notification supersedes it, so remove it.
+  private func removeDeliveredGenericNotification(convID: String, msgID: Int) {
+    let center = UNUserNotificationCenter.current()
+    center.getDeliveredNotifications { delivered in
+      let ids = delivered.filter { note in
+        let info = note.request.content.userInfo
+        guard let type = info["type"] as? String, type == "chat.newmessage" else { return false }
+        guard let c = info["convID"] as? String, c == convID else { return false }
+        let m = (info["msgID"] as? NSNumber)?.intValue ?? Int(info["msgID"] as? String ?? "")
+        return m == msgID
+      }.map { $0.request.identifier }
+      if !ids.isEmpty {
+        center.removeDeliveredNotifications(withIdentifiers: ids)
+      }
+    }
+  }
+
   func display(_ n: KeybaseChatNotification?) {
     guard let notification = n else { return }
     guard let message = notification.message else { return }
@@ -61,5 +80,6 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
       typ: "chat.newmessage",
       uid: uid
     )
+    removeDeliveredGenericNotification(convID: notification.convID, msgID: Int(message.id_))
   }
 }

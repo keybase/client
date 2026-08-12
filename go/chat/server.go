@@ -1935,9 +1935,6 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	if _, err := utils.GetVerifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll); err != nil {
 		return "", err
 	}
-	if arg.ShouldAck {
-		mp.AckNotificationSuccess(ctx, arg.PushIDs)
-	}
 
 	if msg.IsValid() {
 		body := msg.Valid().MessageBody
