@@ -85,10 +85,33 @@ async function atTabs(): Promise<boolean> {
 export async function dismissKeyboard(): Promise<void> {
   // isKeyboardShown is a direct Appium endpoint (fast) — avoid an
   // //XCUIElementTypeKeyboard xpath, which is a slow full-tree search per call.
-  if (await browser.isKeyboardShown().catch(() => false)) {
-    if (browser.isAndroid) await browser.hideKeyboard().catch(() => {})
-    else await browser.execute('mobile: hideKeyboard').catch(() => {})
+  if (!(await browser.isKeyboardShown().catch(() => false))) return
+  if (browser.isAndroid) {
+    await browser.hideKeyboard().catch(() => {})
+    return
   }
+  await browser.execute('mobile: hideKeyboard').catch(() => {})
+  if (!(await browser.isKeyboardShown().catch(() => false))) return
+
+  // WDA answers "Did not know how to dismiss the keyboard" for the chat composer — it has no Done
+  // key and no accessory to press. Blur it the way a person would, by tapping the content above it.
+  // This is not cosmetic: while the keyboard is up the screen's own controls stop reporting as
+  // hittable, so the back chevron is invisible to tapNavBack and the left-edge pop does not take,
+  // and escapeToTabs burns its whole budget on a conversation it cannot leave. Every flow after it
+  // then starts from the wrong screen.
+  const {height, width} = await browser.getWindowRect()
+  await browser
+    .action('pointer')
+    .move({x: Math.round(width / 2), y: Math.round(height * 0.3)})
+    .down()
+    .up()
+    .perform()
+    .catch(() => {})
+  await browser.waitUntil(async () => !(await browser.isKeyboardShown().catch(() => false)), {
+    interval: 100,
+    timeout: 2000,
+  })
+    .catch(() => {})
 }
 
 // Tap the leading (leftmost) button of a native NavigationBar — the back
@@ -176,6 +199,23 @@ export async function escapeToTabs(): Promise<void> {
       await browser.pause(800)
     }
     throw new Error('escapeToTabs(android): root tab bar not reached after 12 attempts')
+  }
+  // Dismiss anything presented over the tabs BEFORE asking whether we are at the root. A modal
+  // leaves the tab bar - and the whole screen behind it - in the accessibility tree, so atTabs reads
+  // "already home" while a New chat or account-switcher modal is still up; the reset then returns
+  // with it still there, the next flow taps rows belonging to the modal, and every test after it
+  // fails somewhere unrelated. It outlives the run too: the app restores its last screen, so a
+  // leaked modal wedges the NEXT run from its first test. Bounded, and only ever clicks a control
+  // that is on screen - at a real root there is nothing to click and this costs one query.
+  for (let i = 0; i < 3; i++) {
+    const controls = browser.$$(DISMISS_PRED)
+    if ((await controls.length) === 0) break
+    const ctrl = controls[0]!
+    await ctrl.click().catch(() => {})
+    await settleAfter(ctrl)
+    // A control that survives its own click is not a modal dismiss - leave it to the loop below
+    // rather than clicking it forever.
+    if (await ctrl.isExisting().catch(() => false)) break
   }
   for (let i = 0; i < 10; i++) {
     if (await atTabs()) return
