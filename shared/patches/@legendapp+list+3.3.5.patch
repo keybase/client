@@ -3,7 +3,7 @@ deleted file mode 100644
 index b86e710..0000000
 Binary files a/node_modules/@legendapp/list/.DS_Store and /dev/null differ
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index b3c5a30..6d323a3 100644
+index b3c5a30..a53b48c 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
 @@ -457,611 +457,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -1227,7 +1227,7 @@ index b3c5a30..6d323a3 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2276,6 +2105,322 @@ function scrollTo(ctx, params) {
+@@ -2276,6 +2105,321 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -1260,7 +1260,6 @@ index b3c5a30..6d323a3 100644
 +    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
-+    ownsScrollingTo: state.scrollingTo !== void 0,
 +    quietPasses: 0,
 +    viewOffset,
 +    viewPosition
@@ -1303,7 +1302,7 @@ index b3c5a30..6d323a3 100644
 +    viewPosition: settle.viewPosition
 +  });
 +  const scrollingTo = state.scrollingTo;
-+  if (scrollingTo && settle.ownsScrollingTo) {
++  if (scrollingTo) {
 +    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
 +    scrollingTo.targetOffset = correctedOffset;
 +    scrollingTo.offset = position;
@@ -1550,7 +1549,7 @@ index b3c5a30..6d323a3 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4320,6 +4465,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4320,6 +4464,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -1558,7 +1557,7 @@ index b3c5a30..6d323a3 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4337,8 +4483,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4337,8 +4482,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -1579,7 +1578,7 @@ index b3c5a30..6d323a3 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -7652,6 +7808,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -7652,6 +7807,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -1588,7 +1587,7 @@ index b3c5a30..6d323a3 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 40e87cd..877e5d4 100644
+index 40e87cd..1efaf26 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
 @@ -436,611 +436,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -2812,7 +2811,7 @@ index 40e87cd..877e5d4 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2255,6 +2084,322 @@ function scrollTo(ctx, params) {
+@@ -2255,6 +2084,321 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -2845,7 +2844,6 @@ index 40e87cd..877e5d4 100644
 +    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
-+    ownsScrollingTo: state.scrollingTo !== void 0,
 +    quietPasses: 0,
 +    viewOffset,
 +    viewPosition
@@ -2888,7 +2886,7 @@ index 40e87cd..877e5d4 100644
 +    viewPosition: settle.viewPosition
 +  });
 +  const scrollingTo = state.scrollingTo;
-+  if (scrollingTo && settle.ownsScrollingTo) {
++  if (scrollingTo) {
 +    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
 +    scrollingTo.targetOffset = correctedOffset;
 +    scrollingTo.offset = position;
@@ -3135,7 +3133,7 @@ index 40e87cd..877e5d4 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4299,6 +4444,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4299,6 +4443,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -3143,7 +3141,7 @@ index 40e87cd..877e5d4 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4316,8 +4462,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4316,8 +4461,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -3164,7 +3162,7 @@ index 40e87cd..877e5d4 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -7631,6 +7787,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -7631,6 +7786,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -3173,7 +3171,7 @@ index 40e87cd..877e5d4 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index 914d2da..eed3566 100644
+index 914d2da..8a87d1e 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -434,605 +434,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -4362,7 +4360,7 @@ index 914d2da..eed3566 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2121,6 +1944,328 @@ function scrollTo(ctx, params) {
+@@ -2121,6 +1944,327 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -4395,7 +4393,6 @@ index 914d2da..eed3566 100644
 +    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
-+    ownsScrollingTo: state.scrollingTo !== void 0,
 +    quietPasses: 0,
 +    viewOffset,
 +    viewPosition
@@ -4438,7 +4435,7 @@ index 914d2da..eed3566 100644
 +    viewPosition: settle.viewPosition
 +  });
 +  const scrollingTo = state.scrollingTo;
-+  if (scrollingTo && settle.ownsScrollingTo) {
++  if (scrollingTo) {
 +    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
 +    scrollingTo.targetOffset = correctedOffset;
 +    scrollingTo.offset = position;
@@ -4691,7 +4688,7 @@ index 914d2da..eed3566 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4350,6 +4495,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4350,6 +4494,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -4699,7 +4696,7 @@ index 914d2da..eed3566 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4367,8 +4513,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4367,8 +4512,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -4720,7 +4717,7 @@ index 914d2da..eed3566 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -6006,6 +6162,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -6006,6 +6161,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -4729,7 +4726,7 @@ index 914d2da..eed3566 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6094,6 +6252,23 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6094,6 +6251,26 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -4738,10 +4735,13 @@ index 914d2da..eed3566 100644
 +    (offset, animated, run) => {
 +      cancelAnimationFrame(reissueHandleRef.current);
 +      let attempts = 0;
++      let previousMaxOffset = Number.NEGATIVE_INFINITY;
 +      const attempt = () => {
 +        const liveMaxOffset = getMaxScrollOffset();
 +        run(clampOffset(offset, liveMaxOffset));
-+        if (!animated && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
++        const isStillCommitting = liveMaxOffset > previousMaxOffset;
++        previousMaxOffset = liveMaxOffset;
++        if (!animated && isStillCommitting && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
 +          reissueHandleRef.current = requestAnimationFrame(attempt);
 +        }
 +      };
@@ -4753,7 +4753,7 @@ index 914d2da..eed3566 100644
    const scrollToLocalOffset = React3.useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6116,14 +6291,21 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6116,14 +6293,21 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
          });
          options.left = left;
          options.top = top;
@@ -4780,7 +4780,7 @@ index 914d2da..eed3566 100644
    );
    React3.useImperativeHandle(ref, () => {
      const api = {
-@@ -6149,8 +6331,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6149,8 +6333,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -4790,7 +4790,7 @@ index 914d2da..eed3566 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8288,6 +8469,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8288,6 +8471,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -4799,7 +4799,7 @@ index 914d2da..eed3566 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index 95465f2..31c9d25 100644
+index 95465f2..48d7741 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -413,605 +413,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -5988,7 +5988,7 @@ index 95465f2..31c9d25 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2100,6 +1923,328 @@ function scrollTo(ctx, params) {
+@@ -2100,6 +1923,327 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -6021,7 +6021,6 @@ index 95465f2..31c9d25 100644
 +    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
-+    ownsScrollingTo: state.scrollingTo !== void 0,
 +    quietPasses: 0,
 +    viewOffset,
 +    viewPosition
@@ -6064,7 +6063,7 @@ index 95465f2..31c9d25 100644
 +    viewPosition: settle.viewPosition
 +  });
 +  const scrollingTo = state.scrollingTo;
-+  if (scrollingTo && settle.ownsScrollingTo) {
++  if (scrollingTo) {
 +    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
 +    scrollingTo.targetOffset = correctedOffset;
 +    scrollingTo.offset = position;
@@ -6317,7 +6316,7 @@ index 95465f2..31c9d25 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4329,6 +4474,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4329,6 +4473,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -6325,7 +6324,7 @@ index 95465f2..31c9d25 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4346,8 +4492,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4346,8 +4491,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -6346,7 +6345,7 @@ index 95465f2..31c9d25 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -5985,6 +6141,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -5985,6 +6140,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -6355,7 +6354,7 @@ index 95465f2..31c9d25 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6073,6 +6231,23 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6073,6 +6230,26 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -6364,10 +6363,13 @@ index 95465f2..31c9d25 100644
 +    (offset, animated, run) => {
 +      cancelAnimationFrame(reissueHandleRef.current);
 +      let attempts = 0;
++      let previousMaxOffset = Number.NEGATIVE_INFINITY;
 +      const attempt = () => {
 +        const liveMaxOffset = getMaxScrollOffset();
 +        run(clampOffset(offset, liveMaxOffset));
-+        if (!animated && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
++        const isStillCommitting = liveMaxOffset > previousMaxOffset;
++        previousMaxOffset = liveMaxOffset;
++        if (!animated && isStillCommitting && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
 +          reissueHandleRef.current = requestAnimationFrame(attempt);
 +        }
 +      };
@@ -6379,7 +6381,7 @@ index 95465f2..31c9d25 100644
    const scrollToLocalOffset = useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6095,14 +6270,21 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6095,14 +6272,21 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
          });
          options.left = left;
          options.top = top;
@@ -6406,7 +6408,7 @@ index 95465f2..31c9d25 100644
    );
    useImperativeHandle(ref, () => {
      const api = {
-@@ -6128,8 +6310,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6128,8 +6312,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -6416,7 +6418,7 @@ index 95465f2..31c9d25 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8267,6 +8448,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8267,6 +8450,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -6425,7 +6427,7 @@ index 95465f2..31c9d25 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index 914d2da..eed3566 100644
+index 914d2da..8a87d1e 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -434,605 +434,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -7614,7 +7616,7 @@ index 914d2da..eed3566 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2121,6 +1944,328 @@ function scrollTo(ctx, params) {
+@@ -2121,6 +1944,327 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -7647,7 +7649,6 @@ index 914d2da..eed3566 100644
 +    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
-+    ownsScrollingTo: state.scrollingTo !== void 0,
 +    quietPasses: 0,
 +    viewOffset,
 +    viewPosition
@@ -7690,7 +7691,7 @@ index 914d2da..eed3566 100644
 +    viewPosition: settle.viewPosition
 +  });
 +  const scrollingTo = state.scrollingTo;
-+  if (scrollingTo && settle.ownsScrollingTo) {
++  if (scrollingTo) {
 +    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
 +    scrollingTo.targetOffset = correctedOffset;
 +    scrollingTo.offset = position;
@@ -7943,7 +7944,7 @@ index 914d2da..eed3566 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4350,6 +4495,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4350,6 +4494,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -7951,7 +7952,7 @@ index 914d2da..eed3566 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4367,8 +4513,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4367,8 +4512,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -7972,7 +7973,7 @@ index 914d2da..eed3566 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -6006,6 +6162,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -6006,6 +6161,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -7981,7 +7982,7 @@ index 914d2da..eed3566 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6094,6 +6252,23 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6094,6 +6251,26 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -7990,10 +7991,13 @@ index 914d2da..eed3566 100644
 +    (offset, animated, run) => {
 +      cancelAnimationFrame(reissueHandleRef.current);
 +      let attempts = 0;
++      let previousMaxOffset = Number.NEGATIVE_INFINITY;
 +      const attempt = () => {
 +        const liveMaxOffset = getMaxScrollOffset();
 +        run(clampOffset(offset, liveMaxOffset));
-+        if (!animated && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
++        const isStillCommitting = liveMaxOffset > previousMaxOffset;
++        previousMaxOffset = liveMaxOffset;
++        if (!animated && isStillCommitting && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
 +          reissueHandleRef.current = requestAnimationFrame(attempt);
 +        }
 +      };
@@ -8005,7 +8009,7 @@ index 914d2da..eed3566 100644
    const scrollToLocalOffset = React3.useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6116,14 +6291,21 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6116,14 +6293,21 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
          });
          options.left = left;
          options.top = top;
@@ -8032,7 +8036,7 @@ index 914d2da..eed3566 100644
    );
    React3.useImperativeHandle(ref, () => {
      const api = {
-@@ -6149,8 +6331,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6149,8 +6333,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -8042,7 +8046,7 @@ index 914d2da..eed3566 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8288,6 +8469,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8288,6 +8471,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -8051,7 +8055,7 @@ index 914d2da..eed3566 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index 95465f2..31c9d25 100644
+index 95465f2..48d7741 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -413,605 +413,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -9240,7 +9244,7 @@ index 95465f2..31c9d25 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2100,6 +1923,328 @@ function scrollTo(ctx, params) {
+@@ -2100,6 +1923,327 @@ function scrollTo(ctx, params) {
    }
  }
  
@@ -9273,7 +9277,6 @@ index 95465f2..31c9d25 100644
 +    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
-+    ownsScrollingTo: state.scrollingTo !== void 0,
 +    quietPasses: 0,
 +    viewOffset,
 +    viewPosition
@@ -9316,7 +9319,7 @@ index 95465f2..31c9d25 100644
 +    viewPosition: settle.viewPosition
 +  });
 +  const scrollingTo = state.scrollingTo;
-+  if (scrollingTo && settle.ownsScrollingTo) {
++  if (scrollingTo) {
 +    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
 +    scrollingTo.targetOffset = correctedOffset;
 +    scrollingTo.offset = position;
@@ -9569,7 +9572,7 @@ index 95465f2..31c9d25 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4329,6 +4474,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4329,6 +4473,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -9577,7 +9580,7 @@ index 95465f2..31c9d25 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4346,8 +4492,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4346,8 +4491,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -9598,7 +9601,7 @@ index 95465f2..31c9d25 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -5985,6 +6141,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -5985,6 +6140,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -9607,7 +9610,7 @@ index 95465f2..31c9d25 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6073,6 +6231,23 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6073,6 +6230,26 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -9616,10 +9619,13 @@ index 95465f2..31c9d25 100644
 +    (offset, animated, run) => {
 +      cancelAnimationFrame(reissueHandleRef.current);
 +      let attempts = 0;
++      let previousMaxOffset = Number.NEGATIVE_INFINITY;
 +      const attempt = () => {
 +        const liveMaxOffset = getMaxScrollOffset();
 +        run(clampOffset(offset, liveMaxOffset));
-+        if (!animated && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
++        const isStillCommitting = liveMaxOffset > previousMaxOffset;
++        previousMaxOffset = liveMaxOffset;
++        if (!animated && isStillCommitting && Number.isFinite(offset) && offset - liveMaxOffset > SCROLL_EXTENT_EPSILON && ++attempts < REACHABLE_RETRY_FRAMES) {
 +          reissueHandleRef.current = requestAnimationFrame(attempt);
 +        }
 +      };
@@ -9631,7 +9637,7 @@ index 95465f2..31c9d25 100644
    const scrollToLocalOffset = useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6095,14 +6270,21 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6095,14 +6272,21 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
          });
          options.left = left;
          options.top = top;
@@ -9658,7 +9664,7 @@ index 95465f2..31c9d25 100644
    );
    useImperativeHandle(ref, () => {
      const api = {
-@@ -6128,8 +6310,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6128,8 +6312,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -9668,7 +9674,7 @@ index 95465f2..31c9d25 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8267,6 +8448,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8267,6 +8450,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
