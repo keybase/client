@@ -544,8 +544,7 @@ func TestMountAgain(t *testing.T) {
 		buf, err := ioutil.ReadFile(p)
 		require.NoError(t, err,
 			"read error: %v", err)
-		e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+		require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 	}()
 }
 
@@ -629,8 +628,7 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 		buf, err := ioutil.ReadFile(p)
 		require.NoError(t, err,
 			"read error: %v", err)
-		e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+		require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 	}()
 }
 
@@ -814,8 +812,7 @@ func TestRenameCrossFolder(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(p1)
 	require.NoError(t, err, "read error: %v", err)
-	e, g = string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 
 	_, err = ioutil.ReadFile(p2)
 	require.True(t, ioutil.IsNotExist(err), "new name exists even on error: %v", err)
@@ -1208,8 +1205,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 
 	buf, err = ioutil.ReadFile(p1)
 	require.NoError(t, err, "read error: %v", err)
-	e, g = string(buf), inputOther
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, inputOther, string(buf), "bad file contents: %q != %q", string(buf), inputOther)
 }
 
 func TestTruncateGrow(t *testing.T) {
@@ -1767,8 +1763,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
 	const input2 = "second round of content"
@@ -1786,8 +1781,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input2, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input2)
 	}
 }
 
@@ -1822,8 +1816,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
 	const input2 = "second round of content"
@@ -1841,8 +1834,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input2, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input2)
 	}
 }
 
@@ -1877,8 +1869,7 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
 	const newSize = 3
@@ -1896,8 +1887,7 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input1[:newSize]
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1[:newSize], string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1[:newSize])
 	}
 }
 
@@ -1928,8 +1918,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
 	const input2 = "second round of content"
@@ -1955,8 +1944,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input2, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input2)
 	}
 }
 
@@ -2254,8 +2242,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 		require.ErrorIs(t, err, io.EOF,
 			err)
 	}
-		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
 	// now rename the second into a directory that user 2 hasn't seen
@@ -2659,16 +2646,14 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 		n, err := f1.ReadAt(buf, 0)
 		require.False(t, err != nil || n != len(input1),
 			err)
-		e, g := string(buf), input1
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
 	}
 	{
 		buf := make([]byte, len(input2))
 		n, err := f2.ReadAt(buf, 0)
 		require.False(t, err != nil || n != len(input2),
 			err)
-		e, g := string(buf), input2
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, input2, string(buf), "bad file contents: %q != %q", string(buf), input2)
 	}
 
 	// They should see the conflict.
@@ -2734,14 +2719,12 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 			require.FailNow(t, err)
 		}
 		require.FailNow(t, "END END END")
-		e, g := string(buf), input2+input4
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input2+input4, string(buf), "bad file contents: %q != %q", string(buf), input2+input4)
 		buf, err = ioutil.ReadFile(filec2)
 		if err != nil {
 			require.FailNow(t, err)
 		}
-		e, g := string(buf), input2+input4
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input2+input4, string(buf), "bad file contents: %q != %q", string(buf), input2+input4)
 	*/
 }
 
@@ -2832,16 +2815,14 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 		n, err := f1.ReadAt(buf, 0)
 		require.False(t, err != nil || n != len(input1),
 			err)
-		e, g := string(buf), input1
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
 	}
 	{
 		buf := make([]byte, len(input2))
 		n, err := f2.ReadAt(buf, 0)
 		require.False(t, err != nil || n != len(input2),
 			err)
-		e, g := string(buf), input2
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, input2, string(buf), "bad file contents: %q != %q", string(buf), input2)
 	}
 
 	// They should see the conflict.
@@ -2902,14 +2883,12 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 		if err != nil {
 			require.FailNow(t, err)
 		}
-		e, g := string(buf), input1+input3
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1+input3, string(buf), "bad file contents: %q != %q", string(buf), input1+input3)
 		buf, err = ioutil.ReadFile(filec2)
 		if err != nil {
 			require.FailNow(t, err)
 		}
-		e, g := string(buf), input1+input3
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, input1+input3, string(buf), "bad file contents: %q != %q", string(buf), input1+input3)
 	*/
 }
 
