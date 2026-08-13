@@ -8704,3 +8704,135 @@ func TestChatSrvGitTeamRepoChatSettings(t *testing.T) {
 		require.Nil(t, settings.ChannelName, "deleting the conv should clear the channel")
 	})
 }
+
+// TestMarkTLFAsReadLocal tests the MarkTLFAsReadLocal function with parallel execution
+func TestMarkTLFAsReadLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE:
+			return // Skip for this test
+		}
+
+		ctc := makeChatTestContext(t, "MarkTLFAsReadLocal", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Create multiple conversations (will be in the same team for TEAM type)
+		numConvs := 5
+		var tlfID chat1.TLFID
+		for i := 0; i < numConvs; i++ {
+			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+
+			// Get TLF ID from first conversation
+			if i == 0 {
+				tlfID = conv.Triple.Tlfid
+			}
+
+			// Post some messages
+			for j := 0; j < 3; j++ {
+				mustPostLocalForTest(t, ctc, users[0], conv,
+					chat1.NewMessageBodyWithText(chat1.MessageText{
+						Body: fmt.Sprintf("Message %d in conv %d", j, i),
+					}))
+			}
+		}
+
+		ctx1 := ctc.as(t, users[1]).startCtx
+
+		// Mark all as read using MarkTLFAsReadLocal
+		_, err := ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
+			chat1.MarkTLFAsReadLocalArg{
+				TlfID: tlfID,
+			})
+		require.NoError(t, err)
+
+		// Wait for async state updates to propagate
+		// The mark-as-read operations queue remote calls and update badges asynchronously
+		// The markAsReadDeliverLoop has a 5 second flush delay, so we need to wait at least that long
+		time.Sleep(6 * time.Second)
+
+		// Verify all conversations in this TLF are now read
+		inbox, err := ctc.as(t, users[1]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx1,
+			chat1.GetInboxSummaryForCLILocalQuery{
+				TopicType: chat1.TopicType_CHAT,
+			})
+		require.NoError(t, err)
+
+		for _, conv := range inbox.Conversations {
+			if conv.Info.Triple.Tlfid.Eq(tlfID) {
+				require.Equal(t, conv.ReaderInfo.ReadMsgid, conv.ReaderInfo.MaxMsgid,
+					"Conversation %s should be fully read", conv.Info.Id)
+			}
+		}
+	})
+}
+
+// TestMarkTLFAsReadLocalSkipsAlreadyRead verifies that already-read conversations are skipped
+func TestMarkTLFAsReadLocalSkipsAlreadyRead(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "MarkTLFSkipsRead", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Create a conversation and post messages
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+		tlfID := conv.Triple.Tlfid
+
+		for i := 0; i < 3; i++ {
+			mustPostLocalForTest(t, ctc, users[0], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: fmt.Sprintf("Message %d", i),
+				}))
+		}
+
+		ctx1 := ctc.as(t, users[1]).startCtx
+
+		// First call: should mark as read
+		_, err := ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
+			chat1.MarkTLFAsReadLocalArg{
+				TlfID: tlfID,
+			})
+		require.NoError(t, err)
+
+		// Wait for async state updates
+		time.Sleep(6 * time.Second)
+
+		// Verify it's read
+		inbox, err := ctc.as(t, users[1]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx1,
+			chat1.GetInboxSummaryForCLILocalQuery{
+				TopicType: chat1.TopicType_CHAT,
+			})
+		require.NoError(t, err)
+
+		for _, c := range inbox.Conversations {
+			if c.Info.Triple.Tlfid.Eq(tlfID) {
+				require.Equal(t, c.ReaderInfo.ReadMsgid, c.ReaderInfo.MaxMsgid,
+					"Conversation should be fully read after first call")
+			}
+		}
+
+		// Second call: should skip (already read)
+		// This should complete quickly since no RPCs are made
+		_, err = ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
+			chat1.MarkTLFAsReadLocalArg{
+				TlfID: tlfID,
+			})
+		require.NoError(t, err)
+
+		// Should still be read (no change)
+		inbox, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx1,
+			chat1.GetInboxSummaryForCLILocalQuery{
+				TopicType: chat1.TopicType_CHAT,
+			})
+		require.NoError(t, err)
+
+		for _, c := range inbox.Conversations {
+			if c.Info.Triple.Tlfid.Eq(tlfID) {
+				require.Equal(t, c.ReaderInfo.ReadMsgid, c.ReaderInfo.MaxMsgid,
+					"Conversation should still be fully read after second call")
+			}
+		}
+	})
+}

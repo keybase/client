@@ -266,14 +266,22 @@ func (h *Server) MarkTLFAsReadLocal(ctx context.Context, arg chat1.MarkTLFAsRead
 	if err != nil {
 		return res, err
 	}
+
+	// Mark each conversation as read, skipping ones that are already fully read
 	epick := libkb.FirstErrorPicker{}
 	for _, conv := range convs {
+		// Skip conversations that are already fully read
+		if conv.ReaderInfo.ReadMsgid >= conv.ReaderInfo.MaxMsgid {
+			continue
+		}
+
 		_, err = h.MarkAsReadLocal(ctx, chat1.MarkAsReadLocalArg{
 			ConversationID: conv.GetConvID(),
 			MsgID:          &conv.ReaderInfo.MaxMsgid,
 		})
 		epick.Push(err)
 	}
+
 	return chat1.MarkTLFAsReadLocalRes{
 		Offline: h.G().InboxSource.IsOffline(ctx),
 	}, epick.Error()
