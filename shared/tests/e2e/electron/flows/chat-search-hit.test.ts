@@ -9,6 +9,9 @@ import * as T from '@/tests/e2e/shared/test-ids'
 // One test rather than two, because the second half depends on the state the first leaves: the
 // search bar is open and a hit is selected, and re-entering that from scratch would just be the
 // first half again.
+// A row has to be visible by more than a hairline to count as landed on, matching the iOS flow.
+const MIN_VISIBLE_HEIGHT = 24
+
 test('lands on every search hit, then stays where the reader scrolls it', async ({page}) => {
   test.setTimeout(120_000)
   // Named, not "whichever row is first". The inbox is ordered by recency and the suites send
@@ -46,7 +49,10 @@ test('lands on every search hit, then stays where the reader scrolls it', async 
     const list = await page.getByTestId(T.CHAT_MESSAGE_LIST).first().boundingBox()
     if (!hit || !list) continue
     checked++
-    const onScreen = hit.y + hit.height > list.y && hit.y < list.y + list.height
+    // By more than a hairline: a row overlapping the viewport by a pixel has not "landed on the
+    // hit", and the iOS flow holds the same line.
+    const visibleHeight = Math.min(hit.y + hit.height, list.y + list.height) - Math.max(hit.y, list.y)
+    const onScreen = visibleHeight >= Math.min(hit.height, MIN_VISIBLE_HEIGHT)
     expect(
       onScreen,
       `step ${i}: hit at y=${Math.round(hit.y)} h=${Math.round(hit.height)} is outside the list (y=${Math.round(list.y)} h=${Math.round(list.height)})`
@@ -73,9 +79,22 @@ test('lands on every search hit, then stays where the reader scrolls it', async 
 
   // Watch rather than look once: a re-centre lands whenever the rows scrolled past finish
   // measuring, which is after the gesture rather than during it.
+  // The row is often scrolled clean out of the render window, so its position is not always
+  // readable. The top of the thread is, in every state — without a second reading like it, both
+  // branches below can be skipped and this half of the test asserts nothing at all.
+  const readThreadTop = async () =>
+    page
+      .getByTestId(T.CHAT_THREAD_TOP)
+      .first()
+      .boundingBox({timeout: 3_000})
+      .then(b => (b ? b.y : null))
+      .catch(() => null)
+
   const settled = await readHit()
+  const settledTop = await readThreadTop()
   await page.waitForTimeout(3_000)
   const after = await readHit()
+  const afterTop = await readThreadTop()
 
   if (settled && after) {
     const moved = Math.abs(after.y - settled.y)
@@ -83,5 +102,10 @@ test('lands on every search hit, then stays where the reader scrolls it', async 
   } else if (!settled && after) {
     // Scrolled far enough to unmount the row, and then it came back — which only a scroll does.
     throw new Error('the hit came back into the render window after being scrolled away from')
+  } else if (settledTop !== null && afterTop !== null) {
+    const moved = Math.abs(afterTop - settledTop)
+    expect(moved, `the thread moved ${Math.round(moved)}px on its own after the drag`).toBeLessThanOrEqual(8)
+  } else {
+    throw new Error('neither the hit nor the top of the thread could be measured, so nothing was checked')
   }
 })
