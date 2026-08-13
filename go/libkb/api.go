@@ -385,12 +385,12 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 		arg.RetryCount = 0
 	}
 
-	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
-		res, err = ctxhttp.Do(m.Ctx(), cli.cli, req)
-		return res, nil, err
+	// Determine timeout with precedence: arg.InitialTimeout > config.Timeout > HTTPDefaultTimeout.
+	// This preserves custom timeouts from KEYBASE_API_TIMEOUT env var while allowing per-request overrides.
+	timeout := HTTPDefaultTimeout
+	if cli.config != nil && cli.config.Timeout != 0 {
+		timeout = cli.config.Timeout
 	}
-
-	timeout := cli.cli.Timeout
 	if arg.InitialTimeout != 0 {
 		timeout = arg.InitialTimeout
 	}
@@ -429,7 +429,9 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 		}
 	}
 
-	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
+	// Return the original error to preserve its type (e.g., *url.Error for TLS errors).
+	// The retry context is already logged via Debug statements above.
+	return nil, nil, lastErr
 }
 
 // doTimeout does the http request with a timeout. It returns the response from making the HTTP request,
