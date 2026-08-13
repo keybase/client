@@ -8838,10 +8838,11 @@ func TestMarkTLFAsReadLocalSkipsAlreadyRead(t *testing.T) {
 }
 
 // A conv's topic name is only known from its max METADATA message, so a
-// delete-history that purges that message leaves the name cached as whatever was
-// there before - or empty. #general is looked up by topic name, so a stale or
-// missing name used to lose the conv entirely, taking the team's emoji list and
-// bot install with it. The conv is marked as the default one regardless.
+// delete-history that purges that message leaves the cache holding whatever name
+// was there before - or none. #general is looked up by topic name, so that cache
+// is the only thing standing between a team and its emoji list or bot install.
+// The conv carries IsDefaultConv whatever the cache says, so the lookup can fall
+// back to it.
 func TestChatSrvFindGeneralConvStaleTopicName(t *testing.T) {
 	ctc := makeChatTestContext(t, "TestChatSrvFindGeneralConvStaleTopicName", 1)
 	defer ctc.cleanup()
@@ -8855,35 +8856,49 @@ func TestChatSrvFindGeneralConvStaleTopicName(t *testing.T) {
 		chat1.ConversationMembersType_TEAM)
 	teamID := keybase1.TeamID(conv.Triple.Tlfid.String())
 
-	// the mock does not mark the team's first conv as the default one, and that
-	// flag is the whole point of the fallback below
+	// the mock does not mark the team's first conv as the default one, which is
+	// what the fallback selects on
 	inbox := storage.NewInbox(tc.Context())
-	ctc.world.GetConversationByID(conv.Id).Metadata.IsDefaultConv = true
+	mockConv := ctc.world.GetConversationByID(conv.Id)
+	require.NotNil(t, mockConv)
+	mockConv.Metadata.IsDefaultConv = true
 	require.NoError(t, inbox.Clear(ctx, uid))
 
 	res, err := ctc.as(t, users[0]).chatLocalHandler().FindGeneralConvFromTeamID(ctx, teamID)
 	require.NoError(t, err)
 	require.Equal(t, conv.Id.ConvIDStr(), res.ConvID)
 
-	t.Logf("cached topic name no longer says general")
-	require.NoError(t, inbox.MergeLocalMetadata(ctx, uid, []chat1.ConversationLocal{{
-		Info: chat1.ConversationInfoLocal{
-			Id:            conv.Id,
-			Triple:        conv.Triple,
-			TlfName:       conv.TlfName,
-			TopicName:     "notgeneral",
-			IsDefaultConv: true,
-			MembersType:   chat1.ConversationMembersType_TEAM,
-		},
-	}}))
-	_, convs, err := inbox.Read(ctx, uid, &chat1.GetInboxQuery{ConvID: &conv.Id})
-	require.NoError(t, err)
-	require.Len(t, convs, 1)
-	require.NotNil(t, convs[0].LocalMetadata)
-	require.Equal(t, "notgeneral", convs[0].LocalMetadata.TopicName)
+	t.Logf("cache holds a name that is not the one the lookup queries for")
+	poison := func() {
+		require.NoError(t, inbox.MergeLocalMetadata(ctx, uid, []chat1.ConversationLocal{{
+			Info: chat1.ConversationInfoLocal{
+				Id:            conv.Id,
+				Triple:        conv.Triple,
+				TlfName:       conv.TlfName,
+				TopicName:     "notgeneral",
+				IsDefaultConv: true,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			},
+		}}))
+		cached, err := inbox.GetConversation(ctx, uid, conv.Id)
+		require.NoError(t, err)
+		require.NotNil(t, cached.LocalMetadata)
+		require.Equal(t, "notgeneral", cached.LocalMetadata.TopicName)
+	}
+	poison()
 
 	res, err = ctc.as(t, users[0]).chatLocalHandler().FindGeneralConvFromTeamID(ctx, teamID)
 	require.NoError(t, err)
 	require.Equal(t, conv.Id.ConvIDStr(), res.ConvID)
 	require.True(t, res.IsDefaultConv)
+
+	t.Logf("a team with no default conv is a miss, not the nearest conv")
+	mockConv.Metadata.IsDefaultConv = false
+	require.NoError(t, inbox.Clear(ctx, uid))
+	_, err = ctc.as(t, users[0]).chatLocalHandler().FindGeneralConvFromTeamID(ctx, teamID)
+	require.NoError(t, err, "the lookup still works while the cached name is right")
+	poison()
+	_, err = ctc.as(t, users[0]).chatLocalHandler().FindGeneralConvFromTeamID(ctx, teamID)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }

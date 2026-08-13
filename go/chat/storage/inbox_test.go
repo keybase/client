@@ -950,16 +950,16 @@ func makeLocalConvForMetadata(rc types.RemoteConversation, topicName string,
 }
 
 func mergedTopicName(t *testing.T, inbox *Inbox, uid gregor1.UID, convID chat1.ConversationID) string {
-	_, convs, err := inbox.Read(context.TODO(), uid, nil)
+	conv, err := inbox.GetConversation(context.TODO(), uid, convID)
 	require.NoError(t, err)
-	for _, conv := range convs {
-		if conv.GetConvID().Eq(convID) {
-			require.NotNil(t, conv.LocalMetadata)
-			return conv.LocalMetadata.TopicName
-		}
-	}
-	require.Fail(t, "conv not found in inbox")
-	return ""
+	require.NotNil(t, conv.LocalMetadata)
+	return conv.LocalMetadata.TopicName
+}
+
+func mergeLocalMetadata(t *testing.T, inbox *Inbox, uid gregor1.UID, rc types.RemoteConversation,
+	topicName string, isDefaultConv bool) {
+	require.NoError(t, inbox.MergeLocalMetadata(context.TODO(), uid,
+		[]chat1.ConversationLocal{makeLocalConvForMetadata(rc, topicName, isDefaultConv)}))
 }
 
 // The topic name is only known from the conv's max METADATA message, so a
@@ -973,41 +973,40 @@ func TestInboxMergeLocalMetadataTopicName(t *testing.T) {
 
 	named := makeConvo(gregor1.Time(1), 1, 1)
 	defaultConv := makeConvo(gregor1.Time(2), 1, 1)
-	defaultConv.Conv.Metadata.IsDefaultConv = true
-	unnamed := makeConvo(gregor1.Time(3), 1, 1)
+	stale := makeConvo(gregor1.Time(3), 1, 1)
+	unnamed := makeConvo(gregor1.Time(4), 1, 1)
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1,
-		[]chat1.Conversation{named.Conv, defaultConv.Conv, unnamed.Conv}, nil))
+		[]chat1.Conversation{named.Conv, defaultConv.Conv, stale.Conv, unnamed.Conv}, nil))
 
 	// a conv whose name we already know keeps it when a later localize comes back
-	// empty
-	require.NoError(t, inbox.MergeLocalMetadata(context.TODO(), uid,
-		[]chat1.ConversationLocal{makeLocalConvForMetadata(named, "general", false)}))
-	require.Equal(t, "general", mergedTopicName(t, inbox, uid, named.GetConvID()))
-	require.NoError(t, inbox.MergeLocalMetadata(context.TODO(), uid,
-		[]chat1.ConversationLocal{makeLocalConvForMetadata(named, "", false)}))
-	require.Equal(t, "general", mergedTopicName(t, inbox, uid, named.GetConvID()))
+	// empty, whatever the name is
+	mergeLocalMetadata(t, inbox, uid, named, "somechannel", false)
+	require.Equal(t, "somechannel", mergedTopicName(t, inbox, uid, named.GetConvID()))
+	mergeLocalMetadata(t, inbox, uid, named, "", false)
+	require.Equal(t, "somechannel", mergedTopicName(t, inbox, uid, named.GetConvID()))
 
-	// a team's default conv has to be #general, so an empty name is repaired even
-	// when we never had one - this is the state a pre-fix client left behind
-	require.NoError(t, inbox.MergeLocalMetadata(context.TODO(), uid,
-		[]chat1.ConversationLocal{makeLocalConvForMetadata(defaultConv, "", true)}))
+	// a team's default conv is #general, so an empty name is repaired even when we
+	// have nothing cached to fall back on
+	mergeLocalMetadata(t, inbox, uid, defaultConv, "", true)
 	require.Equal(t, globals.DefaultTeamTopic,
 		mergedTopicName(t, inbox, uid, defaultConv.GetConvID()))
 
+	// the cached name wins over that repair: it came from a localize that could
+	// read the METADATA message, so it is better evidence than the default
+	mergeLocalMetadata(t, inbox, uid, stale, "renamed", true)
+	mergeLocalMetadata(t, inbox, uid, stale, "", true)
+	require.Equal(t, "renamed", mergedTopicName(t, inbox, uid, stale.GetConvID()))
+
 	// any other conv keeps an empty name rather than getting one invented for it
-	require.NoError(t, inbox.MergeLocalMetadata(context.TODO(), uid,
-		[]chat1.ConversationLocal{makeLocalConvForMetadata(unnamed, "", false)}))
+	mergeLocalMetadata(t, inbox, uid, unnamed, "", false)
 	require.Equal(t, "", mergedTopicName(t, inbox, uid, unnamed.GetConvID()))
 
-	// the point of all of the above: a query by topic name finds the default conv
+	// the point of all of the above: a query by topic name finds the default conv.
+	// Read only answers queries it has seen, so merge this one in first.
 	query := &chat1.GetInboxQuery{TopicName: &globals.DefaultTeamTopic}
+	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, []chat1.Conversation{}, query))
 	_, convs, err := inbox.Read(context.TODO(), uid, query)
 	require.NoError(t, err)
-	found := false
-	for _, conv := range convs {
-		if conv.GetConvID().Eq(defaultConv.GetConvID()) {
-			found = true
-		}
-	}
-	require.True(t, found, "default conv should match a query for #general")
+	require.Len(t, convs, 1)
+	require.Equal(t, defaultConv.GetConvID(), convs[0].GetConvID())
 }

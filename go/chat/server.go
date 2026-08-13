@@ -1554,9 +1554,10 @@ func (h *Server) FindGeneralConvFromTeamID(ctx context.Context, teamID keybase1.
 		// conv is marked as such regardless, so ask again without the name.
 		h.Debug(ctx, "FindGeneralConvFromTeamID: %d convs by topic name, retrying by default conv",
 			len(ib.Convs))
-		query.TopicName = nil
+		defaultConvQuery := *query
+		defaultConvQuery.TopicName = nil
 		ib, _, err = h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-			types.InboxSourceDataSourceAll, nil, query)
+			types.InboxSourceDataSourceAll, nil, &defaultConvQuery)
 		if err != nil {
 			return res, err
 		}
