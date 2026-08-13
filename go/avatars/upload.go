@@ -9,7 +9,6 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
-	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/utils"
@@ -125,10 +124,9 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	mctx.Debug("Running POST to %s", endpoint)
 
 	arg := libkb.APIArg{
-		Endpoint:       endpoint,
-		SessionType:    libkb.APISessionTypeREQUIRED,
-		InitialTimeout: 5 * time.Minute,
-		RetryCount:     1,
+		Endpoint:    endpoint,
+		SessionType: libkb.APISessionTypeREQUIRED,
+		RetryCount:  1,
 	}
 
 	_, err = mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)
