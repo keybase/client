@@ -453,8 +453,8 @@ func testOneCreateThenRead(t *testing.T, p string) {
 	buf, err := ioutil.ReadFile(p)
 	require.NoError(t, err,
 		"read error: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
+
 }
 
 func TestCreateThenRead(t *testing.T) {
@@ -512,8 +512,8 @@ func TestReadUnflushed(t *testing.T) {
 	buf, err := ioutil.ReadFile(p)
 	require.NoError(t, err,
 		"read error: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
+
 }
 
 func TestMountAgain(t *testing.T) {
@@ -694,8 +694,7 @@ func TestRename(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(p2)
 	require.NoError(t, err, "read error: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 
 	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
@@ -732,8 +731,7 @@ func TestRenameOverwrite(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(p2)
 	require.NoError(t, err, "read error: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 
 	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
@@ -773,8 +771,7 @@ func TestRenameCrossDir(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(p2)
 	require.NoError(t, err, "read error: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 
 	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
@@ -869,8 +866,7 @@ func TestWriteThenRename(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(p2)
 	require.NoError(t, err, "read error: %v", err)
-	e, g := string(buf), input+input2
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input+input2, string(buf), "bad file contents: %q != %q", string(buf), input+input2)
 
 	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
@@ -928,10 +924,9 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(p2)
 	require.NoError(t, err, "read error: %v", err)
-	e, g := string(buf), input+input2
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input+input2, string(buf), "bad file contents: %q != %q", string(buf), input+input2)
 
-	_, err := ioutil.ReadFile(p1)
+	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
 }
 
@@ -1008,7 +1003,7 @@ func TestRemoveDirNotEmpty(t *testing.T) {
 	require.Error(t, err,
 		"no error from rmdir")
 
-	err := ioutil.ReadFile(pFile)
+	_, err = ioutil.ReadFile(pFile)
 	require.NoError(t, err, "file was lost: %v", err)
 }
 
@@ -1044,7 +1039,7 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{})
 
-	_, err := ioutil.ReadFile(p)
+	_, err = ioutil.ReadFile(p)
 	require.True(t, ioutil.IsNotExist(err), "file still exists: %v", err)
 }
 
@@ -1077,8 +1072,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	buf, err := ioutil.ReadAll(f)
 	require.NoError(t, err,
 		"cannot read unlinked file: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "read wrong content: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 
 	if err := f.Close(); err != nil {
 		require.NoError(t, err,
@@ -1087,7 +1081,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{})
 
-	_, err := ioutil.ReadFile(p)
+	_, err = ioutil.ReadFile(p)
 	require.True(t, ioutil.IsNotExist(err), "file still exists: %v", err)
 }
 
@@ -1133,8 +1127,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	buf, err := ioutil.ReadAll(f)
 	require.NoError(t, err,
 		"cannot read unlinked file: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "read wrong content: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 
 	if err := f.Close(); err != nil {
 		require.NoError(t, err,
@@ -1144,7 +1137,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	checkDir(t, filepath.Join(mnt1.Dir, PrivateName, "user1,user2"),
 		map[string]fileInfoCheck{})
 
-	_, err := ioutil.ReadFile(p1)
+	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "file still exists: %v", err)
 }
 
@@ -1198,8 +1191,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	buf, err := ioutil.ReadAll(f)
 	require.NoError(t, err,
 		"cannot read unlinked file: %v", err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "read wrong content: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
 
 	if err := f.Close(); err != nil {
 		require.NoError(t, err,
@@ -1211,12 +1203,12 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 			"myfile": nil,
 		})
 
-	_, err := ioutil.ReadFile(p1Other)
+	_, err = ioutil.ReadFile(p1Other)
 	require.True(t, ioutil.IsNotExist(err), "other file still exists: %v", err)
 
 	buf, err = ioutil.ReadFile(p1)
 	require.NoError(t, err, "read error: %v", err)
-	e, g := string(buf), inputOther
+	e, g = string(buf), inputOther
 	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 }
 
@@ -1250,8 +1242,7 @@ func TestTruncateGrow(t *testing.T) {
 	buf, err := ioutil.ReadFile(p)
 	require.NoError(t, err,
 		"cannot read unlinked file: %v", err)
-	e, g := string(buf), input+strings.Repeat("\x00", newSize-len(input))
-	require.Equal(t, e, g, "read wrong content: %q != %q", g, e)
+	require.Equal(t, input+strings.Repeat("\x00", newSize-len(input)), string(buf), "read wrong content: %q != %q", string(buf), input+strings.Repeat("\x00", newSize-len(input)))
 }
 
 func TestTruncateShrink(t *testing.T) {
@@ -1284,8 +1275,7 @@ func TestTruncateShrink(t *testing.T) {
 	buf, err := ioutil.ReadFile(p)
 	require.NoError(t, err,
 		"cannot read unlinked file: %v", err)
-	e, g := string(buf), input[:newSize]
-	require.Equal(t, e, g, "read wrong content: %q != %q", g, e)
+	require.Equal(t, input[:newSize], string(buf), "read wrong content: %q != %q", string(buf), input[:newSize])
 }
 
 func TestSetattrFileMtime(t *testing.T) {
@@ -1662,8 +1652,8 @@ func TestReadPublicFile(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(filepath.Join(mnt.Dir, PublicName, "jdoe", "myfile"))
 	require.NoError(t, err)
-	e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+	require.Equal(t, input, string(buf), "bad file contents: %q != %q", string(buf), input)
+
 }
 
 func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
@@ -1992,8 +1982,7 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 	syncFolderToServer(t, "jdoe", fs2)
 	buf, err := ioutil.ReadFile(filepath.Join(mnt2.Dir, PrivateName, "jdoe", "myfile"))
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
 
 	if err := ioutil.Remove(filepath.Join(mnt1.Dir, PrivateName, "jdoe", "myfile")); err != nil {
 		require.NoError(t, err)
@@ -2121,15 +2110,13 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	myfile2 := filepath.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
 	buf, err := ioutil.ReadFile(myfile2)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
 
 	mydir2 := filepath.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir")
 	mydira2 := filepath.Join(mydir2, "a")
 	buf, err = ioutil.ReadFile(mydira2)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
 
 	// now remove the first file, and rename the second
 	if err := ioutil.Remove(myfile1); err != nil {
@@ -2162,8 +2149,8 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	mydirb2 := filepath.Join(mydir2, "b")
 	buf, err = ioutil.ReadFile(mydirb2)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
+
 }
 
 func TestInvalidateAppendAcrossMounts(t *testing.T) {
@@ -2193,8 +2180,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	myfile2 := filepath.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
 	buf, err := ioutil.ReadFile(myfile2)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
 
 	// user 1 append using libkbfs, to ensure that it doesn't flush
 	// the whole page.
@@ -2222,8 +2208,8 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	// check everything from user 2's perspective
 	buf, err = ioutil.ReadFile(myfile2)
 	require.NoError(t, err)
-	e, g := string(buf), input1+input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1+input2, string(buf), "bad file contents: %q != %q", string(buf), input1+input2)
+
 }
 
 func TestInvalidateRenameToUncachedDir(t *testing.T) {
@@ -2295,8 +2281,8 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(mydirfile1)
 	require.NoError(t, err)
-	e, g := string(buf), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input2, string(buf), "bad file contents: %q != %q", string(buf), input2)
+
 }
 
 func TestStatusFile(t *testing.T) {
@@ -2440,12 +2426,12 @@ func TestUnstageFile(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(myfile1)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
+
 	buf, err = ioutil.ReadFile(myfile2)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
+
 }
 
 func TestSimpleCRNoConflict(t *testing.T) {
@@ -2572,23 +2558,22 @@ func TestSimpleCRNoConflict(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(file1)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
+
 	file2u1 := filepath.Join(mnt1.Dir, PrivateName, "user1,user2", "file2")
 	buf, err = ioutil.ReadFile(file2u1)
 	require.NoError(t, err)
-	e, g := string(buf), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input2, string(buf), "bad file contents: %q != %q", string(buf), input2)
 
 	file1u2 := filepath.Join(mnt2.Dir, PrivateName, "user1,user2", "file1")
 	buf, err = ioutil.ReadFile(file1u2)
 	require.NoError(t, err)
-	e, g := string(buf), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1, string(buf), "bad file contents: %q != %q", string(buf), input1)
+
 	buf, err = ioutil.ReadFile(file2)
 	require.NoError(t, err)
-	e, g := string(buf), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input2, string(buf), "bad file contents: %q != %q", string(buf), input2)
+
 }
 
 func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
@@ -2731,12 +2716,11 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(file1)
 	require.NoError(t, err)
-	e, g := string(buf), input1+input3
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1+input3, string(buf), "bad file contents: %q != %q", string(buf), input1+input3)
+
 	buf, err = ioutil.ReadFile(file2)
 	require.NoError(t, err)
-	e, g := string(buf), input1+input3
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input1+input3, string(buf), "bad file contents: %q != %q", string(buf), input1+input3)
 
 	// TODO: timestamps without ':', see KBFS-516
 	/*
@@ -2902,12 +2886,11 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	file2u1 := filepath.Join(mnt1.Dir, PrivateName, "user1,user2", "f", "foo")
 	buf, err := ioutil.ReadFile(file2u1)
 	require.NoError(t, err)
-	e, g := string(buf), input2+input4
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input2+input4, string(buf), "bad file contents: %q != %q", string(buf), input2+input4)
+
 	buf, err = ioutil.ReadFile(file2)
 	require.NoError(t, err)
-	e, g := string(buf), input2+input4
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+	require.Equal(t, input2+input4, string(buf), "bad file contents: %q != %q", string(buf), input2+input4)
 
 	// TODO: timestamps without ':', see KBFS-516
 	/*
