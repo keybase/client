@@ -12,8 +12,12 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const members = teamMembers ?? new Map<string, T.Teams.MemberInfo>()
-  const participantBots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
-  let bots = participantBots
+  // participantInfo.name only holds users named in the conv's TLF name, so it's the
+  // participant list for adhoc convs and empty for team channels. Team bots come from
+  // team roles instead, which means no bot filtering until members load.
+  let bots: ReadonlyArray<string> = isAdhocTeam
+    ? participantInfo.all.filter(p => !participantInfo.name.includes(p))
+    : []
   if (!isAdhocTeam && members.size) {
     bots = [...members.values()]
       .filter(
@@ -24,7 +28,7 @@ export const getBotsAndParticipants = (
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
   }
-  let participants: ReadonlyArray<string> = participantInfo.name
+  let participants: ReadonlyArray<string> = isAdhocTeam ? participantInfo.name : participantInfo.all
   if (meta.channelname === 'general') {
     participants = [...members.values()].reduce<Array<string>>((l, mi) => {
       l.push(mi.username)

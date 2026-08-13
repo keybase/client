@@ -3,7 +3,15 @@ import {getBotsAndParticipants} from './helpers'
 import {makeConversationMeta} from './meta'
 import type * as T from '@/constants/types'
 
+// Team convs get an empty `name`: the service only sets inConvName for users named in
+// the conv's TLF name, and a team channel's TLF name is the team.
 const participantInfo: T.Chat.ParticipantInfo = {
+  all: ['alice', 'helperbot', 'bob'],
+  contactName: new Map(),
+  name: [],
+}
+
+const adhocParticipantInfo: T.Chat.ParticipantInfo = {
   all: ['alice', 'helperbot', 'bob'],
   contactName: new Map(),
   name: ['alice', 'bob'],
@@ -23,8 +31,20 @@ const teamMeta = {
   teamType: 'small' as const,
 }
 
-test('getBotsAndParticipants excludes known bot participants before team roles load', () => {
-  expect(getBotsAndParticipants(teamMeta, participantInfo, new Map()).participants).toEqual(['alice', 'bob'])
+test('getBotsAndParticipants lists team channel participants before team roles load', () => {
+  expect(getBotsAndParticipants(teamMeta, participantInfo, new Map()).participants).toEqual([
+    'alice',
+    'helperbot',
+    'bob',
+  ])
+})
+
+test('getBotsAndParticipants splits adhoc bots out by conv name membership', () => {
+  const adhocMeta = {...makeConversationMeta(), teamType: 'adhoc' as const}
+  expect(getBotsAndParticipants(adhocMeta, adhocParticipantInfo)).toEqual({
+    bots: ['helperbot'],
+    participants: ['alice', 'bob'],
+  })
 })
 
 test('getBotsAndParticipants keeps using role data after team members load', () => {
