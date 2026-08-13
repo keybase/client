@@ -3,7 +3,7 @@ deleted file mode 100644
 index b86e710..0000000
 Binary files a/node_modules/@legendapp/list/.DS_Store and /dev/null differ
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index b3c5a30..a53b48c 100644
+index b3c5a30..7f3669a 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
 @@ -457,611 +457,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -1147,20 +1147,10 @@ index b3c5a30..a53b48c 100644
        requestAnimationFrame(() => {
          const isStillWithinThreshold = peek$(ctx, "isWithinMaintainScrollAtEndThreshold");
          const didScrollSinceRequest = state.scroll !== scrollAtRequest;
-@@ -1972,11 +1770,32 @@ function prepareMVCP(ctx, dataChanged) {
-   }
- }
+@@ -1977,6 +1775,27 @@ var flushSync = (fn) => {
+   fn();
+ };
  
--// src/platform/flushSync.native.ts
--var flushSync = (fn) => {
--  fn();
--};
--
-+// src/platform/flushSync.native.ts
-+var flushSync = (fn) => {
-+  fn();
-+};
-+
 +// src/utils/getEffectiveDrawDistance.ts
 +var INITIAL_DRAW_DISTANCE = 50;
 +function getEffectiveDrawDistance(ctx, mode) {
@@ -1227,14 +1217,13 @@ index b3c5a30..a53b48c 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2276,6 +2105,321 @@ function scrollTo(ctx, params) {
+@@ -2276,6 +2105,310 @@ function scrollTo(ctx, params) {
    }
  }
  
 +// src/core/scrollTargetSettle.ts
 +var SETTLE_POSITION_EPSILON = 1;
 +var SETTLE_QUIET_PASSES_TO_RELEASE = 2;
-+var SETTLE_TTL_MS = 500;
 +var SETTLE_MAX_MS = 1e3;
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
@@ -1257,7 +1246,6 @@ index b3c5a30..a53b48c 100644
 +  state.scrollTargetSettle = {
 +    corrections: 0,
 +    deadline: now + SETTLE_MAX_MS,
-+    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
 +    quietPasses: 0,
@@ -1303,8 +1291,7 @@ index b3c5a30..a53b48c 100644
 +  });
 +  const scrollingTo = state.scrollingTo;
 +  if (scrollingTo) {
-+    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
-+    scrollingTo.targetOffset = correctedOffset;
++    scrollingTo.targetOffset = state.scrollPending;
 +    scrollingTo.offset = position;
 +  }
 +  (_a3 = state.triggerCalculateItemsInView) == null ? void 0 : _a3.call(state);
@@ -1319,10 +1306,6 @@ index b3c5a30..a53b48c 100644
 +  const measured = options == null ? void 0 : options.minIndexSizeChanged;
 +  if (measured !== void 0) {
 +    settle.measuredIndex = Math.min((_a3 = settle.measuredIndex) != null ? _a3 : Number.POSITIVE_INFINITY, measured);
-+    const targetIndex = state.indexByKey.get(settle.id);
-+    if (targetIndex !== void 0 && measured <= targetIndex) {
-+      settle.expiresAt = Date.now() + SETTLE_TTL_MS;
-+    }
 +  }
 +  if (options == null ? void 0 : options.isCompensating) {
 +    if (Date.now() > settle.deadline) {
@@ -1330,7 +1313,6 @@ index b3c5a30..a53b48c 100644
 +      return false;
 +    }
 +    settle.quietPasses = 0;
-+    settle.expiresAt = Date.now() + SETTLE_TTL_MS;
 +    return false;
 +  }
 +  const index = state.indexByKey.get(settle.id);
@@ -1339,8 +1321,7 @@ index b3c5a30..a53b48c 100644
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
-+  const now = Date.now();
-+  if (now > settle.expiresAt || now > settle.deadline) {
++  if (Date.now() > settle.deadline) {
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
@@ -1348,8 +1329,7 @@ index b3c5a30..a53b48c 100644
 +    return false;
 +  }
 +  const targetOffset = getSettleTargetOffset(ctx, settle, index, position);
-+  const diff = targetOffset - state.scroll;
-+  if (Math.abs(diff) <= SETTLE_POSITION_EPSILON) {
++  if (Math.abs(targetOffset - state.scroll) <= SETTLE_POSITION_EPSILON) {
 +    settle.measuredIndex = void 0;
 +    settle.quietPasses++;
 +    if (settle.quietPasses >= SETTLE_QUIET_PASSES_TO_RELEASE) {
@@ -1358,7 +1338,6 @@ index b3c5a30..a53b48c 100644
 +    return false;
 +  }
 +  settle.quietPasses = 0;
-+  settle.expiresAt = now + SETTLE_TTL_MS;
 +  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
@@ -1549,7 +1528,7 @@ index b3c5a30..a53b48c 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4320,6 +4464,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4320,6 +4453,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -1557,7 +1536,7 @@ index b3c5a30..a53b48c 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4337,8 +4482,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4337,8 +4471,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -1578,7 +1557,7 @@ index b3c5a30..a53b48c 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -7652,6 +7807,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -7652,6 +7796,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -1587,7 +1566,7 @@ index b3c5a30..a53b48c 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 40e87cd..1efaf26 100644
+index 40e87cd..2b216b4 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
 @@ -436,611 +436,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -2731,20 +2710,10 @@ index 40e87cd..1efaf26 100644
        requestAnimationFrame(() => {
          const isStillWithinThreshold = peek$(ctx, "isWithinMaintainScrollAtEndThreshold");
          const didScrollSinceRequest = state.scroll !== scrollAtRequest;
-@@ -1951,11 +1749,32 @@ function prepareMVCP(ctx, dataChanged) {
-   }
- }
+@@ -1956,6 +1754,27 @@ var flushSync = (fn) => {
+   fn();
+ };
  
--// src/platform/flushSync.native.ts
--var flushSync = (fn) => {
--  fn();
--};
--
-+// src/platform/flushSync.native.ts
-+var flushSync = (fn) => {
-+  fn();
-+};
-+
 +// src/utils/getEffectiveDrawDistance.ts
 +var INITIAL_DRAW_DISTANCE = 50;
 +function getEffectiveDrawDistance(ctx, mode) {
@@ -2811,14 +2780,13 @@ index 40e87cd..1efaf26 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2255,6 +2084,321 @@ function scrollTo(ctx, params) {
+@@ -2255,6 +2084,310 @@ function scrollTo(ctx, params) {
    }
  }
  
 +// src/core/scrollTargetSettle.ts
 +var SETTLE_POSITION_EPSILON = 1;
 +var SETTLE_QUIET_PASSES_TO_RELEASE = 2;
-+var SETTLE_TTL_MS = 500;
 +var SETTLE_MAX_MS = 1e3;
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
@@ -2841,7 +2809,6 @@ index 40e87cd..1efaf26 100644
 +  state.scrollTargetSettle = {
 +    corrections: 0,
 +    deadline: now + SETTLE_MAX_MS,
-+    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
 +    quietPasses: 0,
@@ -2887,8 +2854,7 @@ index 40e87cd..1efaf26 100644
 +  });
 +  const scrollingTo = state.scrollingTo;
 +  if (scrollingTo) {
-+    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
-+    scrollingTo.targetOffset = correctedOffset;
++    scrollingTo.targetOffset = state.scrollPending;
 +    scrollingTo.offset = position;
 +  }
 +  (_a3 = state.triggerCalculateItemsInView) == null ? void 0 : _a3.call(state);
@@ -2903,10 +2869,6 @@ index 40e87cd..1efaf26 100644
 +  const measured = options == null ? void 0 : options.minIndexSizeChanged;
 +  if (measured !== void 0) {
 +    settle.measuredIndex = Math.min((_a3 = settle.measuredIndex) != null ? _a3 : Number.POSITIVE_INFINITY, measured);
-+    const targetIndex = state.indexByKey.get(settle.id);
-+    if (targetIndex !== void 0 && measured <= targetIndex) {
-+      settle.expiresAt = Date.now() + SETTLE_TTL_MS;
-+    }
 +  }
 +  if (options == null ? void 0 : options.isCompensating) {
 +    if (Date.now() > settle.deadline) {
@@ -2914,7 +2876,6 @@ index 40e87cd..1efaf26 100644
 +      return false;
 +    }
 +    settle.quietPasses = 0;
-+    settle.expiresAt = Date.now() + SETTLE_TTL_MS;
 +    return false;
 +  }
 +  const index = state.indexByKey.get(settle.id);
@@ -2923,8 +2884,7 @@ index 40e87cd..1efaf26 100644
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
-+  const now = Date.now();
-+  if (now > settle.expiresAt || now > settle.deadline) {
++  if (Date.now() > settle.deadline) {
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
@@ -2932,8 +2892,7 @@ index 40e87cd..1efaf26 100644
 +    return false;
 +  }
 +  const targetOffset = getSettleTargetOffset(ctx, settle, index, position);
-+  const diff = targetOffset - state.scroll;
-+  if (Math.abs(diff) <= SETTLE_POSITION_EPSILON) {
++  if (Math.abs(targetOffset - state.scroll) <= SETTLE_POSITION_EPSILON) {
 +    settle.measuredIndex = void 0;
 +    settle.quietPasses++;
 +    if (settle.quietPasses >= SETTLE_QUIET_PASSES_TO_RELEASE) {
@@ -2942,7 +2901,6 @@ index 40e87cd..1efaf26 100644
 +    return false;
 +  }
 +  settle.quietPasses = 0;
-+  settle.expiresAt = now + SETTLE_TTL_MS;
 +  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
@@ -3133,7 +3091,7 @@ index 40e87cd..1efaf26 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4299,6 +4443,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4299,6 +4432,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -3141,7 +3099,7 @@ index 40e87cd..1efaf26 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4316,8 +4461,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4316,8 +4450,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -3162,7 +3120,7 @@ index 40e87cd..1efaf26 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -7631,6 +7786,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -7631,6 +7775,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -3171,7 +3129,7 @@ index 40e87cd..1efaf26 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index 914d2da..8a87d1e 100644
+index 914d2da..a91aa0a 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -434,605 +434,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -4360,14 +4318,13 @@ index 914d2da..8a87d1e 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2121,6 +1944,327 @@ function scrollTo(ctx, params) {
+@@ -2121,6 +1944,316 @@ function scrollTo(ctx, params) {
    }
  }
  
 +// src/core/scrollTargetSettle.ts
 +var SETTLE_POSITION_EPSILON = 1;
 +var SETTLE_QUIET_PASSES_TO_RELEASE = 2;
-+var SETTLE_TTL_MS = 500;
 +var SETTLE_MAX_MS = 1e3;
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
@@ -4390,7 +4347,6 @@ index 914d2da..8a87d1e 100644
 +  state.scrollTargetSettle = {
 +    corrections: 0,
 +    deadline: now + SETTLE_MAX_MS,
-+    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
 +    quietPasses: 0,
@@ -4436,8 +4392,7 @@ index 914d2da..8a87d1e 100644
 +  });
 +  const scrollingTo = state.scrollingTo;
 +  if (scrollingTo) {
-+    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
-+    scrollingTo.targetOffset = correctedOffset;
++    scrollingTo.targetOffset = state.scrollPending;
 +    scrollingTo.offset = position;
 +  }
 +  (_a3 = state.triggerCalculateItemsInView) == null ? void 0 : _a3.call(state);
@@ -4452,10 +4407,6 @@ index 914d2da..8a87d1e 100644
 +  const measured = options == null ? void 0 : options.minIndexSizeChanged;
 +  if (measured !== void 0) {
 +    settle.measuredIndex = Math.min((_a3 = settle.measuredIndex) != null ? _a3 : Number.POSITIVE_INFINITY, measured);
-+    const targetIndex = state.indexByKey.get(settle.id);
-+    if (targetIndex !== void 0 && measured <= targetIndex) {
-+      settle.expiresAt = Date.now() + SETTLE_TTL_MS;
-+    }
 +  }
 +  if (options == null ? void 0 : options.isCompensating) {
 +    if (Date.now() > settle.deadline) {
@@ -4463,7 +4414,6 @@ index 914d2da..8a87d1e 100644
 +      return false;
 +    }
 +    settle.quietPasses = 0;
-+    settle.expiresAt = Date.now() + SETTLE_TTL_MS;
 +    return false;
 +  }
 +  const index = state.indexByKey.get(settle.id);
@@ -4472,8 +4422,7 @@ index 914d2da..8a87d1e 100644
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
-+  const now = Date.now();
-+  if (now > settle.expiresAt || now > settle.deadline) {
++  if (Date.now() > settle.deadline) {
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
@@ -4481,8 +4430,7 @@ index 914d2da..8a87d1e 100644
 +    return false;
 +  }
 +  const targetOffset = getSettleTargetOffset(ctx, settle, index, position);
-+  const diff = targetOffset - state.scroll;
-+  if (Math.abs(diff) <= SETTLE_POSITION_EPSILON) {
++  if (Math.abs(targetOffset - state.scroll) <= SETTLE_POSITION_EPSILON) {
 +    settle.measuredIndex = void 0;
 +    settle.quietPasses++;
 +    if (settle.quietPasses >= SETTLE_QUIET_PASSES_TO_RELEASE) {
@@ -4491,7 +4439,6 @@ index 914d2da..8a87d1e 100644
 +    return false;
 +  }
 +  settle.quietPasses = 0;
-+  settle.expiresAt = now + SETTLE_TTL_MS;
 +  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
@@ -4688,7 +4635,7 @@ index 914d2da..8a87d1e 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4350,6 +4494,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4350,6 +4483,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -4696,7 +4643,7 @@ index 914d2da..8a87d1e 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4367,8 +4512,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4367,8 +4501,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -4717,7 +4664,7 @@ index 914d2da..8a87d1e 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -6006,6 +6161,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -6006,6 +6150,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -4726,7 +4673,7 @@ index 914d2da..8a87d1e 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6094,6 +6251,26 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6094,6 +6240,26 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -4753,34 +4700,49 @@ index 914d2da..8a87d1e 100644
    const scrollToLocalOffset = React3.useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6116,14 +6293,21 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6101,29 +6267,32 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+       if (!target || typeof target.scrollTo !== "function") {
+         return;
+       }
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+       const options = { behavior };
+       if (isWindowScroll) {
+         const scroll = getWindowScrollPosition();
+         const listPos = getElementDocumentPosition(scrollElement, scroll);
+         const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
++          clampedOffset: clampOffset(offset, getMaxScrollOffset()),
+           horizontal,
+           listPos,
+           scroll
          });
          options.left = left;
          options.top = top;
 -      } else if (horizontal) {
 -        options.left = clampedOffset;
-+      }
-+      if (isWindowScroll) {
-+        target.scrollTo(options);
-       } else {
+-      } else {
 -        options.top = clampedOffset;
-+        scrollUntilReachable(offset, animated, (reachableOffset) => {
-+          if (horizontal) {
-+            options.left = reachableOffset;
-+          } else {
-+            options.top = reachableOffset;
-+          }
-+          target.scrollTo(options);
-+        });
++        target.scrollTo(options);
++        return;
        }
 -      target.scrollTo(options);
++      scrollUntilReachable(offset, animated, (reachableOffset) => {
++        if (horizontal) {
++          options.left = reachableOffset;
++        } else {
++          options.top = reachableOffset;
++        }
++        target.scrollTo(options);
++      });
      },
 -    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
 +    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll, scrollUntilReachable]
    );
    React3.useImperativeHandle(ref, () => {
      const api = {
-@@ -6149,8 +6333,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6149,8 +6318,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -4790,7 +4752,7 @@ index 914d2da..8a87d1e 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8288,6 +8471,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8288,6 +8456,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -4799,7 +4761,7 @@ index 914d2da..8a87d1e 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index 95465f2..48d7741 100644
+index 95465f2..cd8868b 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -413,605 +413,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -5988,14 +5950,13 @@ index 95465f2..48d7741 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2100,6 +1923,327 @@ function scrollTo(ctx, params) {
+@@ -2100,6 +1923,316 @@ function scrollTo(ctx, params) {
    }
  }
  
 +// src/core/scrollTargetSettle.ts
 +var SETTLE_POSITION_EPSILON = 1;
 +var SETTLE_QUIET_PASSES_TO_RELEASE = 2;
-+var SETTLE_TTL_MS = 500;
 +var SETTLE_MAX_MS = 1e3;
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
@@ -6018,7 +5979,6 @@ index 95465f2..48d7741 100644
 +  state.scrollTargetSettle = {
 +    corrections: 0,
 +    deadline: now + SETTLE_MAX_MS,
-+    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
 +    quietPasses: 0,
@@ -6064,8 +6024,7 @@ index 95465f2..48d7741 100644
 +  });
 +  const scrollingTo = state.scrollingTo;
 +  if (scrollingTo) {
-+    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
-+    scrollingTo.targetOffset = correctedOffset;
++    scrollingTo.targetOffset = state.scrollPending;
 +    scrollingTo.offset = position;
 +  }
 +  (_a3 = state.triggerCalculateItemsInView) == null ? void 0 : _a3.call(state);
@@ -6080,10 +6039,6 @@ index 95465f2..48d7741 100644
 +  const measured = options == null ? void 0 : options.minIndexSizeChanged;
 +  if (measured !== void 0) {
 +    settle.measuredIndex = Math.min((_a3 = settle.measuredIndex) != null ? _a3 : Number.POSITIVE_INFINITY, measured);
-+    const targetIndex = state.indexByKey.get(settle.id);
-+    if (targetIndex !== void 0 && measured <= targetIndex) {
-+      settle.expiresAt = Date.now() + SETTLE_TTL_MS;
-+    }
 +  }
 +  if (options == null ? void 0 : options.isCompensating) {
 +    if (Date.now() > settle.deadline) {
@@ -6091,7 +6046,6 @@ index 95465f2..48d7741 100644
 +      return false;
 +    }
 +    settle.quietPasses = 0;
-+    settle.expiresAt = Date.now() + SETTLE_TTL_MS;
 +    return false;
 +  }
 +  const index = state.indexByKey.get(settle.id);
@@ -6100,8 +6054,7 @@ index 95465f2..48d7741 100644
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
-+  const now = Date.now();
-+  if (now > settle.expiresAt || now > settle.deadline) {
++  if (Date.now() > settle.deadline) {
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
@@ -6109,8 +6062,7 @@ index 95465f2..48d7741 100644
 +    return false;
 +  }
 +  const targetOffset = getSettleTargetOffset(ctx, settle, index, position);
-+  const diff = targetOffset - state.scroll;
-+  if (Math.abs(diff) <= SETTLE_POSITION_EPSILON) {
++  if (Math.abs(targetOffset - state.scroll) <= SETTLE_POSITION_EPSILON) {
 +    settle.measuredIndex = void 0;
 +    settle.quietPasses++;
 +    if (settle.quietPasses >= SETTLE_QUIET_PASSES_TO_RELEASE) {
@@ -6119,7 +6071,6 @@ index 95465f2..48d7741 100644
 +    return false;
 +  }
 +  settle.quietPasses = 0;
-+  settle.expiresAt = now + SETTLE_TTL_MS;
 +  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
@@ -6316,7 +6267,7 @@ index 95465f2..48d7741 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4329,6 +4473,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4329,6 +4462,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -6324,7 +6275,7 @@ index 95465f2..48d7741 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4346,8 +4491,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4346,8 +4480,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -6345,7 +6296,7 @@ index 95465f2..48d7741 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -5985,6 +6140,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -5985,6 +6129,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -6354,7 +6305,7 @@ index 95465f2..48d7741 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6073,6 +6230,26 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6073,6 +6219,26 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -6381,34 +6332,49 @@ index 95465f2..48d7741 100644
    const scrollToLocalOffset = useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6095,14 +6272,21 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6080,29 +6246,32 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+       if (!target || typeof target.scrollTo !== "function") {
+         return;
+       }
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+       const options = { behavior };
+       if (isWindowScroll) {
+         const scroll = getWindowScrollPosition();
+         const listPos = getElementDocumentPosition(scrollElement, scroll);
+         const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
++          clampedOffset: clampOffset(offset, getMaxScrollOffset()),
+           horizontal,
+           listPos,
+           scroll
          });
          options.left = left;
          options.top = top;
 -      } else if (horizontal) {
 -        options.left = clampedOffset;
-+      }
-+      if (isWindowScroll) {
-+        target.scrollTo(options);
-       } else {
+-      } else {
 -        options.top = clampedOffset;
-+        scrollUntilReachable(offset, animated, (reachableOffset) => {
-+          if (horizontal) {
-+            options.left = reachableOffset;
-+          } else {
-+            options.top = reachableOffset;
-+          }
-+          target.scrollTo(options);
-+        });
++        target.scrollTo(options);
++        return;
        }
 -      target.scrollTo(options);
++      scrollUntilReachable(offset, animated, (reachableOffset) => {
++        if (horizontal) {
++          options.left = reachableOffset;
++        } else {
++          options.top = reachableOffset;
++        }
++        target.scrollTo(options);
++      });
      },
 -    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
 +    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll, scrollUntilReachable]
    );
    useImperativeHandle(ref, () => {
      const api = {
-@@ -6128,8 +6312,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6128,8 +6297,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -6418,7 +6384,7 @@ index 95465f2..48d7741 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8267,6 +8450,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8267,6 +8435,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -6427,7 +6393,7 @@ index 95465f2..48d7741 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index 914d2da..8a87d1e 100644
+index 914d2da..a91aa0a 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -434,605 +434,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -7616,14 +7582,13 @@ index 914d2da..8a87d1e 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2121,6 +1944,327 @@ function scrollTo(ctx, params) {
+@@ -2121,6 +1944,316 @@ function scrollTo(ctx, params) {
    }
  }
  
 +// src/core/scrollTargetSettle.ts
 +var SETTLE_POSITION_EPSILON = 1;
 +var SETTLE_QUIET_PASSES_TO_RELEASE = 2;
-+var SETTLE_TTL_MS = 500;
 +var SETTLE_MAX_MS = 1e3;
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
@@ -7646,7 +7611,6 @@ index 914d2da..8a87d1e 100644
 +  state.scrollTargetSettle = {
 +    corrections: 0,
 +    deadline: now + SETTLE_MAX_MS,
-+    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
 +    quietPasses: 0,
@@ -7692,8 +7656,7 @@ index 914d2da..8a87d1e 100644
 +  });
 +  const scrollingTo = state.scrollingTo;
 +  if (scrollingTo) {
-+    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
-+    scrollingTo.targetOffset = correctedOffset;
++    scrollingTo.targetOffset = state.scrollPending;
 +    scrollingTo.offset = position;
 +  }
 +  (_a3 = state.triggerCalculateItemsInView) == null ? void 0 : _a3.call(state);
@@ -7708,10 +7671,6 @@ index 914d2da..8a87d1e 100644
 +  const measured = options == null ? void 0 : options.minIndexSizeChanged;
 +  if (measured !== void 0) {
 +    settle.measuredIndex = Math.min((_a3 = settle.measuredIndex) != null ? _a3 : Number.POSITIVE_INFINITY, measured);
-+    const targetIndex = state.indexByKey.get(settle.id);
-+    if (targetIndex !== void 0 && measured <= targetIndex) {
-+      settle.expiresAt = Date.now() + SETTLE_TTL_MS;
-+    }
 +  }
 +  if (options == null ? void 0 : options.isCompensating) {
 +    if (Date.now() > settle.deadline) {
@@ -7719,7 +7678,6 @@ index 914d2da..8a87d1e 100644
 +      return false;
 +    }
 +    settle.quietPasses = 0;
-+    settle.expiresAt = Date.now() + SETTLE_TTL_MS;
 +    return false;
 +  }
 +  const index = state.indexByKey.get(settle.id);
@@ -7728,8 +7686,7 @@ index 914d2da..8a87d1e 100644
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
-+  const now = Date.now();
-+  if (now > settle.expiresAt || now > settle.deadline) {
++  if (Date.now() > settle.deadline) {
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
@@ -7737,8 +7694,7 @@ index 914d2da..8a87d1e 100644
 +    return false;
 +  }
 +  const targetOffset = getSettleTargetOffset(ctx, settle, index, position);
-+  const diff = targetOffset - state.scroll;
-+  if (Math.abs(diff) <= SETTLE_POSITION_EPSILON) {
++  if (Math.abs(targetOffset - state.scroll) <= SETTLE_POSITION_EPSILON) {
 +    settle.measuredIndex = void 0;
 +    settle.quietPasses++;
 +    if (settle.quietPasses >= SETTLE_QUIET_PASSES_TO_RELEASE) {
@@ -7747,7 +7703,6 @@ index 914d2da..8a87d1e 100644
 +    return false;
 +  }
 +  settle.quietPasses = 0;
-+  settle.expiresAt = now + SETTLE_TTL_MS;
 +  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
@@ -7944,7 +7899,7 @@ index 914d2da..8a87d1e 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4350,6 +4494,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4350,6 +4483,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -7952,7 +7907,7 @@ index 914d2da..8a87d1e 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4367,8 +4512,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4367,8 +4501,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -7973,7 +7928,7 @@ index 914d2da..8a87d1e 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -6006,6 +6161,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -6006,6 +6150,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -7982,7 +7937,7 @@ index 914d2da..8a87d1e 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6094,6 +6251,26 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6094,6 +6240,26 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -8009,34 +7964,49 @@ index 914d2da..8a87d1e 100644
    const scrollToLocalOffset = React3.useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6116,14 +6293,21 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6101,29 +6267,32 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+       if (!target || typeof target.scrollTo !== "function") {
+         return;
+       }
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+       const options = { behavior };
+       if (isWindowScroll) {
+         const scroll = getWindowScrollPosition();
+         const listPos = getElementDocumentPosition(scrollElement, scroll);
+         const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
++          clampedOffset: clampOffset(offset, getMaxScrollOffset()),
+           horizontal,
+           listPos,
+           scroll
          });
          options.left = left;
          options.top = top;
 -      } else if (horizontal) {
 -        options.left = clampedOffset;
-+      }
-+      if (isWindowScroll) {
-+        target.scrollTo(options);
-       } else {
+-      } else {
 -        options.top = clampedOffset;
-+        scrollUntilReachable(offset, animated, (reachableOffset) => {
-+          if (horizontal) {
-+            options.left = reachableOffset;
-+          } else {
-+            options.top = reachableOffset;
-+          }
-+          target.scrollTo(options);
-+        });
++        target.scrollTo(options);
++        return;
        }
 -      target.scrollTo(options);
++      scrollUntilReachable(offset, animated, (reachableOffset) => {
++        if (horizontal) {
++          options.left = reachableOffset;
++        } else {
++          options.top = reachableOffset;
++        }
++        target.scrollTo(options);
++      });
      },
 -    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
 +    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll, scrollUntilReachable]
    );
    React3.useImperativeHandle(ref, () => {
      const api = {
-@@ -6149,8 +6333,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+@@ -6149,8 +6318,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -8046,7 +8016,7 @@ index 914d2da..8a87d1e 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8288,6 +8471,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8288,6 +8456,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
@@ -8055,7 +8025,7 @@ index 914d2da..8a87d1e 100644
        },
        onScrollEnd: () => prepareReachedEdgeForNextUserScroll(ctx)
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index 95465f2..48d7741 100644
+index 95465f2..cd8868b 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -413,605 +413,6 @@ var EDGE_POSITION_EPSILON = 1;
@@ -9244,14 +9214,13 @@ index 95465f2..48d7741 100644
        }
      } else {
        updateScroll(ctx, targetOffset, true, { markHasScrolled: false });
-@@ -2100,6 +1923,327 @@ function scrollTo(ctx, params) {
+@@ -2100,6 +1923,316 @@ function scrollTo(ctx, params) {
    }
  }
  
 +// src/core/scrollTargetSettle.ts
 +var SETTLE_POSITION_EPSILON = 1;
 +var SETTLE_QUIET_PASSES_TO_RELEASE = 2;
-+var SETTLE_TTL_MS = 500;
 +var SETTLE_MAX_MS = 1e3;
 +var SETTLE_MAX_CORRECTIONS = 8;
 +function clearScrollTargetSettle(state) {
@@ -9274,7 +9243,6 @@ index 95465f2..48d7741 100644
 +  state.scrollTargetSettle = {
 +    corrections: 0,
 +    deadline: now + SETTLE_MAX_MS,
-+    expiresAt: now + SETTLE_TTL_MS,
 +    id: getId(state, index),
 +    measuredIndex: void 0,
 +    quietPasses: 0,
@@ -9320,8 +9288,7 @@ index 95465f2..48d7741 100644
 +  });
 +  const scrollingTo = state.scrollingTo;
 +  if (scrollingTo) {
-+    const correctedOffset = getSettleTargetOffset(ctx, settle, index, position);
-+    scrollingTo.targetOffset = correctedOffset;
++    scrollingTo.targetOffset = state.scrollPending;
 +    scrollingTo.offset = position;
 +  }
 +  (_a3 = state.triggerCalculateItemsInView) == null ? void 0 : _a3.call(state);
@@ -9336,10 +9303,6 @@ index 95465f2..48d7741 100644
 +  const measured = options == null ? void 0 : options.minIndexSizeChanged;
 +  if (measured !== void 0) {
 +    settle.measuredIndex = Math.min((_a3 = settle.measuredIndex) != null ? _a3 : Number.POSITIVE_INFINITY, measured);
-+    const targetIndex = state.indexByKey.get(settle.id);
-+    if (targetIndex !== void 0 && measured <= targetIndex) {
-+      settle.expiresAt = Date.now() + SETTLE_TTL_MS;
-+    }
 +  }
 +  if (options == null ? void 0 : options.isCompensating) {
 +    if (Date.now() > settle.deadline) {
@@ -9347,7 +9310,6 @@ index 95465f2..48d7741 100644
 +      return false;
 +    }
 +    settle.quietPasses = 0;
-+    settle.expiresAt = Date.now() + SETTLE_TTL_MS;
 +    return false;
 +  }
 +  const index = state.indexByKey.get(settle.id);
@@ -9356,8 +9318,7 @@ index 95465f2..48d7741 100644
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
-+  const now = Date.now();
-+  if (now > settle.expiresAt || now > settle.deadline) {
++  if (Date.now() > settle.deadline) {
 +    clearScrollTargetSettle(state);
 +    return false;
 +  }
@@ -9365,8 +9326,7 @@ index 95465f2..48d7741 100644
 +    return false;
 +  }
 +  const targetOffset = getSettleTargetOffset(ctx, settle, index, position);
-+  const diff = targetOffset - state.scroll;
-+  if (Math.abs(diff) <= SETTLE_POSITION_EPSILON) {
++  if (Math.abs(targetOffset - state.scroll) <= SETTLE_POSITION_EPSILON) {
 +    settle.measuredIndex = void 0;
 +    settle.quietPasses++;
 +    if (settle.quietPasses >= SETTLE_QUIET_PASSES_TO_RELEASE) {
@@ -9375,7 +9335,6 @@ index 95465f2..48d7741 100644
 +    return false;
 +  }
 +  settle.quietPasses = 0;
-+  settle.expiresAt = now + SETTLE_TTL_MS;
 +  state.scheduledWork.frame(() => applyScrollTargetCorrection(ctx, settle.id), "scrollTargetSettle");
 +  return true;
 +}
@@ -9572,7 +9531,7 @@ index 95465f2..48d7741 100644
  // src/core/scrollToIndex.ts
  function clampScrollIndex(index, dataLength) {
    if (dataLength <= 0) {
-@@ -4329,6 +4473,7 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4329,6 +4462,7 @@ function calculateItemsInView(ctx, params = {}) {
        startIndex
      });
      totalSize = getContentSize(ctx);
@@ -9580,7 +9539,7 @@ index 95465f2..48d7741 100644
      if (minIndexSizeChanged !== void 0) {
        state.minIndexSizeChanged = void 0;
      }
-@@ -4346,8 +4491,18 @@ function calculateItemsInView(ctx, params = {}) {
+@@ -4346,8 +4480,18 @@ function calculateItemsInView(ctx, params = {}) {
      const scrollBeforeMVCP = state.scroll;
      const scrollAdjustPendingBeforeMVCP = (_f = peek$(ctx, "scrollAdjustPending")) != null ? _f : 0;
      checkMVCP == null ? void 0 : checkMVCP();
@@ -9601,7 +9560,7 @@ index 95465f2..48d7741 100644
        updateScroll2(state.scroll);
        updateScrollRange();
      }
-@@ -5985,6 +6140,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
+@@ -5985,6 +6129,8 @@ function resolveWindowScrollTarget({ clampedOffset, horizontal, listPos, scroll
  // src/components/ListComponentScrollView.tsx
  var SCROLLBAR_HIDDEN_STYLE_ID = "legend-list-scrollbar-axis-hidden-style";
  var SCROLL_END_FALLBACK_MS = 200;
@@ -9610,7 +9569,7 @@ index 95465f2..48d7741 100644
  var SCROLLBAR_HIDDEN_STYLE = `.${LEGEND_LIST_SCROLLBAR_Y_HIDDEN_CLASS}::-webkit-scrollbar:vertical{width:0;display:none;}.${LEGEND_LIST_SCROLLBAR_X_HIDDEN_CLASS}::-webkit-scrollbar:horizontal{height:0;display:none;}`;
  function ensureScrollbarHiddenStyle() {
    if (typeof document === "undefined" || document.getElementById(SCROLLBAR_HIDDEN_STYLE_ID)) {
-@@ -6073,6 +6230,26 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6073,6 +6219,26 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
      }
      return horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
    }, [getMaxScrollOffset, horizontal, isWindowScroll]);
@@ -9637,34 +9596,49 @@ index 95465f2..48d7741 100644
    const scrollToLocalOffset = useCallback(
      (offset, animated) => {
        const scrollElement = scrollRef.current;
-@@ -6095,14 +6272,21 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6080,29 +6246,32 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+       if (!target || typeof target.scrollTo !== "function") {
+         return;
+       }
+-      const maxOffset = getMaxScrollOffset();
+-      const clampedOffset = clampOffset(offset, maxOffset);
+       const behavior = animated ? "smooth" : "auto";
+       const options = { behavior };
+       if (isWindowScroll) {
+         const scroll = getWindowScrollPosition();
+         const listPos = getElementDocumentPosition(scrollElement, scroll);
+         const { left, top } = resolveWindowScrollTarget({
+-          clampedOffset,
++          clampedOffset: clampOffset(offset, getMaxScrollOffset()),
+           horizontal,
+           listPos,
+           scroll
          });
          options.left = left;
          options.top = top;
 -      } else if (horizontal) {
 -        options.left = clampedOffset;
-+      }
-+      if (isWindowScroll) {
-+        target.scrollTo(options);
-       } else {
+-      } else {
 -        options.top = clampedOffset;
-+        scrollUntilReachable(offset, animated, (reachableOffset) => {
-+          if (horizontal) {
-+            options.left = reachableOffset;
-+          } else {
-+            options.top = reachableOffset;
-+          }
-+          target.scrollTo(options);
-+        });
++        target.scrollTo(options);
++        return;
        }
 -      target.scrollTo(options);
++      scrollUntilReachable(offset, animated, (reachableOffset) => {
++        if (horizontal) {
++          options.left = reachableOffset;
++        } else {
++          options.top = reachableOffset;
++        }
++        target.scrollTo(options);
++      });
      },
 -    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll]
 +    [getMaxScrollOffset, getScrollTarget, horizontal, isWindowScroll, scrollUntilReachable]
    );
    useImperativeHandle(ref, () => {
      const api = {
-@@ -6128,8 +6312,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+@@ -6128,8 +6297,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
        },
        scrollToEnd: (options = {}) => {
          const { animated = true } = options;
@@ -9674,7 +9648,7 @@ index 95465f2..48d7741 100644
        },
        scrollToOffset: (params) => {
          const { offset, animated = true } = params;
-@@ -8267,6 +8450,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
+@@ -8267,6 +8435,7 @@ var LegendListInner = typedForwardRef(function LegendListInner2(props, forwarded
        onScrollBeginDrag: (event) => {
          var _a4, _b2;
          prepareReachedEdgeForNextUserScroll(ctx);
