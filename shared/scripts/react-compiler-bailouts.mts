@@ -1,4 +1,4 @@
-// Two react-compiler checks that eslint cannot see, over one compile pass.
+// Three react-compiler checks that eslint cannot see, over one compile pass.
 //
 // 1. Bailouts: components/hooks that did NOT get memoized. The eslint react-hooks
 //    rules only surface rules-of-react violations, not "Todo"-category syntax
@@ -14,6 +14,15 @@
 //    the scope. Fix: read every prop through one destructure at the top of the
 //    component, above every callback. Scopes that genuinely use the whole object
 //    (`{...rest} = props`, passing props along) are not reported.
+//
+// 3. Uncompiled components: a component whose name the compiler cannot infer is never
+//    compiled at all, so nothing in it is memoized and it never shows up as a bailout.
+//    The shape that bites is a platform ternary of anonymous arrows
+//    (`const Foo = isMobile ? props => {...} : props => {...}`). Every callback it
+//    builds then gets a fresh identity each render, which loops any hook that compares
+//    a callback across renders (usePopup2 rebuilds its popup, re-rendering forever).
+//    Fix: give each branch its own named component and pick between them
+//    (`const Foo = isMobile ? FooMobile : FooDesktop`).
 //
 // Usage (from shared/):
 //   node --experimental-strip-types scripts/react-compiler-bailouts.mts <file-or-dir> [...more]
@@ -150,11 +159,78 @@ const reportWholePropsDeps = (file: string, code: string) => {
   return found
 }
 
+// A function react-compiler cannot name is never compiled, so it produces neither a
+// success nor a bailout event -- it is simply unmemoized. Flags the shape that costs
+// something: an anonymous function that both calls a hook and returns JSX, i.e. an
+// unnamed component. Anonymous hook wrappers with no JSX (test callbacks, a ternary
+// that picks between two one-line context reads) have nothing to memoize, so they are
+// left alone.
+const reportUncompiledComponents = (file: string, source: string) => {
+  let ast: babel.types.File
+  try {
+    ast = babel.parseSync(source, {
+      babelrc: false,
+      configFile: false,
+      filename: file,
+      presets: [['@babel/preset-typescript', {allExtensions: true, isTSX: true}]],
+      sourceType: 'module',
+    }) as babel.types.File
+  } catch {
+    return 0
+  }
+  let found = 0
+  babel.traverse(ast, {
+    Function(path) {
+      // a declaration or a `const Foo = ...` gives the compiler a name to work with
+      if (!t.isArrowFunctionExpression(path.node) && !t.isFunctionExpression(path.node)) return
+      if (t.isFunctionExpression(path.node) && path.node.id) return
+      const parent = path.parent
+      if (t.isVariableDeclarator(parent) || t.isObjectProperty(parent) || t.isClassProperty(parent)) return
+      if (t.isAssignmentExpression(parent) || t.isExportDefaultDeclaration(parent)) return
+      // `const Foo = React.memo(props => ...)` still names the component through the
+      // declarator, and the compiler follows the wrapper
+      if (t.isCallExpression(parent) && t.isVariableDeclarator(path.parentPath.parent)) return
+
+      // an object, not a `let`: TS narrows a boolean assigned only inside a callback to
+      // its initializer and eslint then calls the check below unnecessary
+      const seen = {hook: false, jsx: false}
+      path.traverse({
+        CallExpression(cp) {
+          // a hook called inside a nested function belongs to that function, not this one
+          if (cp.getFunctionParent() !== path) return
+          const callee = cp.node.callee
+          const name = t.isIdentifier(callee)
+            ? callee.name
+            : t.isMemberExpression(callee) && t.isIdentifier(callee.property)
+              ? callee.property.name
+              : ''
+          if (/^use[A-Z]/.test(name)) seen.hook = true
+        },
+      })
+      if (!seen.hook) return
+
+      path.traverse({
+        JSX(jp) {
+          if (jp.getFunctionParent() !== path) return
+          seen.jsx = true
+        },
+      })
+      if (!seen.jsx) return
+      found++
+      console.log(
+        `${file}:${path.node.loc?.start.line ?? '?'} anonymous component, never compiled`
+      )
+    },
+  })
+  return found
+}
+
 let totalOk = 0
 let totalBail = 0
 let totalOptOut = 0
 let totalParseFailed = 0
 let totalWholeProps = 0
+let totalUncompiled = 0
 for (const file of files) {
   const source = readFileSync(file, 'utf8')
   const events: Array<CompilerEvent> = []
@@ -196,11 +272,12 @@ for (const file of files) {
   if (compiled?.includes('useMemoCache(') || compiled?.includes('_c(')) {
     totalWholeProps += reportWholePropsDeps(file, compiled)
   }
+  totalUncompiled += reportUncompiledComponents(file, source)
 }
 console.log(
-  `\n${totalOk} compiled, ${totalBail} bailed out, ${totalOptOut} opted out, ${totalWholeProps} whole-props deps, ${totalParseFailed} parse failed, ${files.length} files`
+  `\n${totalOk} compiled, ${totalBail} bailed out, ${totalOptOut} opted out, ${totalWholeProps} whole-props deps, ${totalUncompiled} uncompiled, ${totalParseFailed} parse failed, ${files.length} files`
 )
-if (checkMode && (totalBail > 0 || totalParseFailed > 0 || totalWholeProps > 0)) {
+if (checkMode && (totalBail > 0 || totalParseFailed > 0 || totalWholeProps > 0 || totalUncompiled > 0)) {
   if (totalParseFailed > 0) {
     console.log('\nSome files failed to parse, so they could not be checked.')
   }
@@ -212,6 +289,11 @@ if (checkMode && (totalBail > 0 || totalParseFailed > 0 || totalWholeProps > 0))
   if (totalWholeProps > 0) {
     console.log(
       '\nNew whole-props memo deps. Read every prop through one destructure at the top of the component, above every callback -- a `props.x` read inside a callback, or a destructure below one, keys the memo on the props object and the cache never hits.'
+    )
+  }
+  if (totalUncompiled > 0) {
+    console.log(
+      '\nComponents the compiler cannot name are never compiled, so nothing in them is memoized. Give each one a name -- for a platform ternary, name both branches and pick between them (`const Foo = isMobile ? FooMobile : FooDesktop`).'
     )
   }
   process.exit(1)
