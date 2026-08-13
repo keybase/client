@@ -234,7 +234,8 @@ func TestStatAlias(t *testing.T) {
 	fi, err := ioutil.Lstat(p)
 	require.NoError(t, err)
 	// FIXME go 1.12 changed symlink detection in ways that don't work with Dokan.
-	require.Equal(t, `Lrw-rw-rw-` && g != `drwxrwxrwx`, g := fi.Mode().String(); g, "wrong mode for alias : %q", g)
+	g := fi.Mode().String()
+	require.True(t, g == `Lrw-rw-rw-` || g == `drwxrwxrwx`, "wrong mode for alias : %q", g)
 	// TODO Readlink support.
 	/*
 		target, err := os.Readlink(p)
@@ -586,8 +587,8 @@ func TestMkdirNewFolder(t *testing.T) {
 		}
 		fi, err := ioutil.Lstat(p)
 		require.NoError(t, err)
-		err, g := fi.Mode().String(), `drwxrwxrwx`
-	require.Equal(t, err, g, "wrong mode for subdir: %q != %q", g, err)
+		g := fi.Mode().String()
+		require.Equal(t, `drwxrwxrwx`, g, "wrong mode for subdir: %q != %q", g, `drwxrwxrwx`)
 	}
 }
 
@@ -696,7 +697,7 @@ func TestRename(t *testing.T) {
 	e, g := string(buf), input
 	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 
-	_, err := ioutil.ReadFile(p1)
+	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
 }
 
@@ -734,7 +735,7 @@ func TestRenameOverwrite(t *testing.T) {
 	e, g := string(buf), input
 	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 
-	_, err := ioutil.ReadFile(p1)
+	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
 }
 
@@ -775,7 +776,7 @@ func TestRenameCrossDir(t *testing.T) {
 	e, g := string(buf), input
 	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 
-	_, err := ioutil.ReadFile(p1)
+	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
 }
 
@@ -804,9 +805,9 @@ func TestRenameCrossFolder(t *testing.T) {
 		"expected a LinkError from rename: %v", err)
 	e, g := lerr.Op, "rename"
 	require.Equal(t, e, g, "wrong LinkError.Op: %q != %q", g, e)
-	e, g := lerr.Old, p1
+	e, g = lerr.Old, p1
 	require.Equal(t, e, g, "wrong LinkError.Old: %q != %q", g, e)
-	e, g := lerr.New, p2
+	e, g = lerr.New, p2
 	require.Equal(t, e, g, "wrong LinkError.New: %q != %q", g, e)
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{
@@ -816,10 +817,10 @@ func TestRenameCrossFolder(t *testing.T) {
 
 	buf, err := ioutil.ReadFile(p1)
 	require.NoError(t, err, "read error: %v", err)
-	e, g := string(buf), input
+	e, g = string(buf), input
 	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 
-	_, err := ioutil.ReadFile(p2)
+	_, err = ioutil.ReadFile(p2)
 	require.True(t, ioutil.IsNotExist(err), "new name exists even on error: %v", err)
 }
 
@@ -871,7 +872,7 @@ func TestWriteThenRename(t *testing.T) {
 	e, g := string(buf), input+input2
 	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 
-	_, err := ioutil.ReadFile(p1)
+	_, err = ioutil.ReadFile(p1)
 	require.True(t, ioutil.IsNotExist(err), "old name still exists: %v", err)
 }
 
