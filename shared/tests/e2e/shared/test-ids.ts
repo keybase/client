@@ -14,6 +14,7 @@ export const NAV_TAB_SETTINGS = 'nav-tab-settings'
 // Chat
 export const CHAT_INBOX_LIST   = 'chat-inbox-list'
 export const CHAT_INBOX_ROW    = 'chat-inbox-row'
+export const CHAT_INBOX_CHANNEL_ROW = 'chat-inbox-channel-row'
 export const CHAT_MESSAGE_LIST = 'chat-message-list'
 export const CHAT_INPUT        = 'chat-input'
 export const CHAT_SEND_BUTTON  = 'chat-send-button'
