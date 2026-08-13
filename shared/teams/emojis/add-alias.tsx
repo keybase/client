@@ -166,72 +166,78 @@ type ChooseEmojiProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
 }
-const ChooseEmoji = isMobile
-  ? (props: ChooseEmojiProps) => {
-      const pickKey = 'addAlias'
-      const pickedEmoji = usePickerState(s => s.pickerMap.get(pickKey))
-      const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
-      const onChoose = React.useEffectEvent(props.onChoose)
+const ChooseEmojiMobile = (props: ChooseEmojiProps) => {
+  const pickKey = 'addAlias'
+  const pickedEmoji = usePickerState(s => s.pickerMap.get(pickKey))
+  const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
+  const onChoose = React.useEffectEvent(props.onChoose)
 
-      const lastEmojiRef = React.useRef('')
-      React.useEffect(() => {
-        const emojiStr = pickedEmoji?.emojiStr ?? ''
-        if (lastEmojiRef.current === emojiStr) {
-          return
-        }
-        lastEmojiRef.current = emojiStr
-        if (emojiStr) {
-          onChoose(emojiStr, pickedEmoji?.renderableEmoji ?? {})
-          updatePickerMap(pickKey, undefined)
-        }
-      }, [pickedEmoji, updatePickerMap])
+  const lastEmojiRef = React.useRef('')
+  React.useEffect(() => {
+    const emojiStr = pickedEmoji?.emojiStr ?? ''
+    if (lastEmojiRef.current === emojiStr) {
+      return
+    }
+    lastEmojiRef.current = emojiStr
+    if (emojiStr) {
+      onChoose(emojiStr, pickedEmoji?.renderableEmoji ?? {})
+      updatePickerMap(pickKey, undefined)
+    }
+  }, [pickedEmoji, updatePickerMap])
 
-      const navigateAppend = C.Router2.navigateAppend
-      const {conversationIDKey} = props
-      const openEmojiPicker = () =>
-        navigateAppend({
-          name: 'chatChooseEmoji',
-          params: {
-            conversationIDKey,
-            hideFrequentEmoji: true,
-            onlyTeamCustomEmoji: true,
-            pickKey,
-            small: true,
-          },
-        })
-      return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
-    }
-  : (props: ChooseEmojiProps) => {
-      const {conversationIDKey, onChoose} = props
-      const makePopup = (p: Kb.Popup2Parms) => {
-        const {attachTo, hidePopup} = p
-        return (
-          <Kb.Popup
-            attachTo={attachTo}
-            containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
-            position="bottom left"
-            onHidden={hidePopup}
-            propagateOutsideClicks={false}
-          >
-            <EmojiPickerDesktop
-              conversationIDKey={conversationIDKey}
-              hideFrequentEmoji={true}
-              small={false}
-              onPickAction={onChoose}
-              onDidPick={hidePopup}
-              onlyTeamCustomEmoji={true}
-            />
-          </Kb.Popup>
-        )
-      }
-      const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
-      return (
-        <>
-          <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={showPopup} />
-          {popup}
-        </>
-      )
-    }
+  const navigateAppend = C.Router2.navigateAppend
+  const {conversationIDKey} = props
+  const openEmojiPicker = () =>
+    navigateAppend({
+      name: 'chatChooseEmoji',
+      params: {
+        conversationIDKey,
+        hideFrequentEmoji: true,
+        onlyTeamCustomEmoji: true,
+        pickKey,
+        small: true,
+      },
+    })
+  return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
+}
+
+const ChooseEmojiDesktop = (props: ChooseEmojiProps) => {
+  const {conversationIDKey, onChoose} = props
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.Popup
+        attachTo={attachTo}
+        containerStyle={popupContainerStyle}
+        position="bottom left"
+        onHidden={hidePopup}
+        propagateOutsideClicks={false}
+      >
+        <EmojiPickerDesktop
+          conversationIDKey={conversationIDKey}
+          hideFrequentEmoji={true}
+          small={false}
+          onPickAction={onChoose}
+          onDidPick={hidePopup}
+          onlyTeamCustomEmoji={true}
+        />
+      </Kb.Popup>
+    )
+  }
+  const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
+  return (
+    <>
+      <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={showPopup} />
+      {popup}
+    </>
+  )
+}
+
+// usePopup2 rebuilds the popup whenever makePopup changes identity, so the style
+// object it closes over has to be stable too
+const popupContainerStyle = {paddingTop: Kb.Styles.globalMargins.tiny} as const
+
+const ChooseEmoji = isMobile ? ChooseEmojiMobile : ChooseEmojiDesktop
 
 type SelectedEmojiProps = {
   chosen?: ChosenEmoji

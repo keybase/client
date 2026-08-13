@@ -28,22 +28,24 @@ const UnmountAll = ({setShow}: {setShow: React.Dispatch<React.SetStateAction<boo
   )
 }
 
-export const useUnmountAll = ENABLE_UNMOUNT_ALL
-  ? () => {
-      const [show, setShow] = React.useState(true)
+const useUnmountAllEnabled = () => {
+  const [show, setShow] = React.useState(true)
 
-      // clear debug globals
+  // clear debug globals
 
-      setTimeout(() => {
-        debugClear()
-      }, 1000)
+  setTimeout(() => {
+    debugClear()
+  }, 1000)
 
-      const unmountAll = <UnmountAll setShow={setShow} />
-      return {show, unmountAll}
-    }
-  : () => {
-      return {show: true, unmountAll: null}
-    }
+  const unmountAll = <UnmountAll setShow={setShow} />
+  return {show, unmountAll}
+}
+
+const useUnmountAllDisabled = () => {
+  return {show: true, unmountAll: null}
+}
+
+export const useUnmountAll = ENABLE_UNMOUNT_ALL ? useUnmountAllEnabled : useUnmountAllDisabled
 
 export const useDebugLayout = __DEV__
   ? (cb?: () => void) => {
