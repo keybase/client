@@ -16,6 +16,8 @@ import (
 	clockwork "github.com/keybase/clockwork"
 )
 
+const maxShuffleSize = 10000 // Prevent DoS via large shuffle arrays
+
 // Excludes `Params` from being logged.
 func (s Start) String() string {
 	return fmt.Sprintf("{StartTime:%v CommitmentWindowMsec:%v RevealWindowMsec:%v SlackMsec:%v CommitmentCompleteWindowMsec:%v}",
@@ -296,7 +298,11 @@ func (g *Game) doFlip(ctx context.Context, prng *PRNG) error {
 		modulus.SetBytes(params.Big())
 		res.Big = prng.Big(&modulus)
 	case FlipType_SHUFFLE:
-		res.Shuffle = prng.Permutation(int(params.Shuffle()))
+		shuffleSize := int(params.Shuffle())
+		if shuffleSize > maxShuffleSize {
+			return fmt.Errorf("shuffle size %d exceeds maximum %d", shuffleSize, maxShuffleSize)
+		}
+		res.Shuffle = prng.Permutation(shuffleSize)
 	default:
 		return BadFlipTypeError{G: g.GameMetadata(), T: t}
 	}

@@ -3,7 +3,7 @@ package libkbfs
 import (
 	"context"
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 	"sync"
 
@@ -56,14 +56,14 @@ func openSettingsDBInternal(config Config) (*ldbutils.LevelDb, error) {
 	if config.IsTestMode() {
 		return ldbutils.OpenLevelDb(storage.NewMemStorage(), config.Mode())
 	}
-	dbPath := path.Join(config.StorageRoot(), settingsDBDir,
+	dbPath := filepath.Join(config.StorageRoot(), settingsDBDir,
 		settingsDBVersionString)
 	err := os.MkdirAll(dbPath, 0o700)
 	if err != nil {
 		return nil, err
 	}
 
-	stor, err := storage.OpenFile(path.Join(dbPath, settingsDBName), false)
+	stor, err := storage.OpenFile(filepath.Join(dbPath, settingsDBName), false)
 	if err != nil {
 		return nil, err
 	}

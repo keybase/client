@@ -342,7 +342,7 @@ func (c *FullCachingSource) normalizeFilenameFromCache(mctx libkb.MetaContext, f
 
 func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.ReadCloser, previousPath string) (path string, err error) {
 	c.prepareDirs.Do(func() {
-		err := os.MkdirAll(c.getCacheDir(m), os.ModePerm)
+		err := os.MkdirAll(c.getCacheDir(m), libkb.PermDir)
 		c.debug(m, "creating directory for avatars %q: %v", c.getCacheDir(m), err)
 	})
 

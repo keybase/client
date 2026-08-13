@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/keybase/client/go/kbfs/dokan"
@@ -105,7 +105,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 			return libfs.InitError(err.Error())
 		}
 		info := libkb.NewServiceInfo(libkb.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
-		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"), log)
+		err = info.WriteFile(filepath.Join(options.RuntimeDir, "kbfs.info"), log)
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}

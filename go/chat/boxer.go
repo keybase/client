@@ -2066,6 +2066,9 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	// check key validity
 	// ValidSenderKey uses the server-given ctime, but emits senderDeviceRevokedAt as a workaround.
 	// See ValidSenderKey for details.
+	if header.HeaderSignature == nil {
+		return verifyMessageRes{}, NewPermanentUnboxingError(errors.New("missing HeaderSignature"))
+	}
 	var revoked *gregor1.Time
 	validationKey := header.HeaderSignature.K
 	switch globals.CtxUnboxMode(ctx) {

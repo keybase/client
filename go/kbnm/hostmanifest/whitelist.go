@@ -27,7 +27,7 @@ func (w *whitelistPath) Install(u User, app AppManifest) error {
 	parentDir := filepath.Dir(jsonPath)
 
 	// Make the path if it doesn't exist
-	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(parentDir, 0o755); err != nil {
 		return wrapWriteErr(err, parentDir)
 	}
 

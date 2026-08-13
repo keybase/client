@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/signencrypt"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -133,7 +134,7 @@ func (f *FileStash) contents() (map[string]AttachmentInfo, error) {
 }
 
 func (f *FileStash) serialize(m map[string]AttachmentInfo) error {
-	x, err := os.Create(f.filename())
+	x, err := os.OpenFile(f.filename(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, libkb.PermFile)
 	if err != nil {
 		return err
 	}

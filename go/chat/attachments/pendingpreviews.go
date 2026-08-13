@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -50,7 +51,7 @@ func (p *PendingPreviews) Get(ctx context.Context, outboxID chat1.OutboxID) (res
 
 func (p *PendingPreviews) Put(ctx context.Context, outboxID chat1.OutboxID, pre Preprocess) (err error) {
 	defer p.Trace(ctx, &err, "Put(%s)", outboxID)()
-	if err := os.MkdirAll(p.getDir(), os.ModePerm); err != nil {
+	if err := os.MkdirAll(p.getDir(), libkb.PermDir); err != nil {
 		return err
 	}
 	file := encrypteddb.NewFile(p.G().ExternalG(), p.getPath(outboxID), p.keyFn())

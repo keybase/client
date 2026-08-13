@@ -438,6 +438,10 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 			// We got an address! Fall through to the "Stellar
 			// address" path.
 			m.Debug("federation.LookupByAddress returned: %+v", nameResponse)
+			// Validate AccountID format (Stellar addresses start with 'G' and are 56 chars)
+			if nameResponse.AccountID == "" || nameResponse.AccountID[0] != 'G' || len(nameResponse.AccountID) != 56 {
+				return res, fmt.Errorf("Federation server %q returned invalid account ID: %q", domain, nameResponse.AccountID)
+			}
 			to = stellarcommon.RecipientInput(nameResponse.AccountID)
 
 			// if there is a memo, include it in the result

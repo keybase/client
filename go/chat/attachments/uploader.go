@@ -104,7 +104,7 @@ func (u *uploaderTaskStorage) statusOutboxIDPath(outboxID chat1.OutboxID) string
 
 func (u *uploaderTaskStorage) file(outboxID chat1.OutboxID, getPath func(chat1.OutboxID) string) (*encrypteddb.EncryptedFile, error) {
 	dir := u.getDir()
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(dir, libkb.PermDir); err != nil {
 		return nil, err
 	}
 	return encrypteddb.NewFile(u.G().ExternalG(), getPath(outboxID),
@@ -425,7 +425,7 @@ func (u *Uploader) normalizeFilenameFromCache(dir, file string) string {
 func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dirname, prefix string) (f *os.File, err error) {
 	baseDir := u.getBaseDir()
 	dir := filepath.Join(baseDir, dirname)
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(dir, libkb.PermDir); err != nil {
 		return nil, err
 	}
 	f, err = os.CreateTemp(dir, prefix)
@@ -719,7 +719,7 @@ func (u *Uploader) getUploadTempDir(version int, outboxID chat1.OutboxID) string
 
 func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error) {
 	dir := u.getUploadTempDir(u.versionUploaderTemps, outboxID)
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(dir, libkb.PermDir); err != nil {
 		return "", err
 	}
 	return filepath.Join(dir, filepath.Base(filename)), nil
@@ -734,7 +734,7 @@ func (u *Uploader) GetUploadTempSink(ctx context.Context, filename string) (*os.
 	if err != nil {
 		return nil, nil, err
 	}
-	file, err := os.Create(filename)
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, libkb.PermFile)
 	if err != nil {
 		return nil, nil, err
 	}
