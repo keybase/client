@@ -20,7 +20,6 @@
       "Bash(yarn tsc:*)",
       "Bash(yarn ios:pod*)",
       "Bash(yarn coverage:*)",
-      "Bash(yarn maestro*)",
       "mcp__codegraph__codegraph_search",
       "mcp__codegraph__codegraph_context",
       "mcp__codegraph__codegraph_callers",

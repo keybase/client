@@ -1,137 +1,6 @@
 # Performance Testing
 
-Tools and workflows for measuring performance in the Keybase app, covering the desktop Electron app (via Playwright MCP + CDP) and iOS simulator (via Maestro + React Profiler + native FPS monitor).
-
-## iOS Performance Profiling (Maestro)
-
-### Prerequisites
-
-1. Install Maestro: `curl -Ls "https://get.maestro.mobile.dev" | bash`
-2. iOS Simulator booted (e.g. iPhone 17 Pro)
-3. Metro running with debug logging: `cd shared && yarn rn:start`
-4. App built and installed on the simulator
-5. App must be logged in (provision manually before first test run)
-
-### How It Works
-
-Maestro drives the UI while two systems collect performance data:
-
-1. **React `<Profiler>` wrappers (`perf/react-profiler.tsx`)** — In `__DEV__`, wraps key components in `<React.Profiler>` to collect per-component render counts and durations. On app background (Home press), aggregates and logs data as `PERF_REACT_PROFILER:{json}` to console → Metro log.
-
-2. **PerfFPSMonitor (`ios/Keybase/PerfFPSMonitor.swift`)** — Native `CADisplayLink`-based FPS monitor. Activated by the `PERF_FPS_MONITOR` launch argument (passed by Maestro flows). Counts frames per second and writes JSON to the app's tmp directory when the app backgrounds.
-
-The flow:
-- Maestro launches the app with `PERF_FPS_MONITOR: "true"`
-- `AppDelegate` calls `PerfFPSMonitor.startIfEnabled()` on launch
-- Maestro navigates and scrolls as defined in the YAML flow
-- Maestro presses Home → triggers both React Profiler flush (via AppState) and FPS monitor write
-- `run-maestro.sh` extracts both from Metro log and simulator app container
-
-### Running Tests
-
-```bash
-# Quick run (default — skips build, 3 runs, picks median). Use this for JS-only changes.
-cd shared && yarn perf:thread:ios
-
-# Single run (faster, less accurate)
-cd shared && yarn perf:thread:ios --runs 1
-
-# Full run (builds the app first). Only needed when native code changes
-# (e.g. files in ios/, android/, rnmodules/, go/bind/).
-cd shared && yarn perf:thread:ios --build
-
-# Run teams scroll perf test
-cd shared && yarn perf:teams:ios
-
-# Run inbox scroll perf test
-cd shared && yarn perf:inbox:ios
-
-# Run any Maestro flow
-cd shared && yarn perf:ios --flow performance/perf-inbox-scroll.yaml
-
-# Custom simulator
-cd shared && yarn perf:thread:ios --simulator "iPhone 16 Pro"
-```
-
-### Available Flows
-
-| Flow | What it measures |
-|------|-----------------|
-| `performance/perf-inbox-scroll.yaml` | Launch → navigate to Chat → 3 swipes up + 3 swipes down on inbox list |
-| `performance/perf-teams-scroll.yaml` | Launch → navigate to Teams → 3 swipes up + 3 swipes down on teams list |
-| `performance/perf-thread-scroll.yaml` | Launch → navigate to Chat → open first conversation → 3 swipes up + 3 swipes down on message list |
-
-### React Profiler Wrappers
-
-Components currently wrapped with `<PerfProfiler>`:
-
-| ID | Location | What it covers |
-|----|----------|---------------|
-| `Inbox` | `chat/inbox/index.native.tsx` | Full inbox container |
-| `InboxRow-{type}` | `chat/inbox/index.native.tsx` | Each inbox row (small, big, bigHeader, divider, teamBuilder) |
-| `Conversation` | `chat/conversation/normal/index.native.tsx`, `chat/conversation/normal/index.desktop.tsx` | Full conversation screen |
-| `MessageList` | `chat/conversation/list-area/index.native.tsx`, `chat/conversation/list-area/index.desktop.tsx` | Message list container |
-| `MessageWaypoint` | `chat/conversation/list-area/index.desktop.tsx` | Desktop waypoint chunk content rendered inside the scrolling thread |
-| `Msg-{type}` | `chat/conversation/messages/wrapper/index.tsx` | Each message row (text, attachment, system*, etc.) |
-| `ChatInput` | `chat/conversation/input-area/container.tsx` | Chat input area |
-| `TeamsList` | `teams/main/index.tsx` | Full teams list container |
-| `TeamRow` | `teams/main/index.tsx` | Each team row |
-
-To add more wrappers, import `{PerfProfiler}` from `@/perf/react-profiler` and wrap the component. In production builds, `PerfProfiler` is a no-op passthrough.
-
-### React Profiler Output
-
-```json
-{
-  "components": {
-    "Inbox": {"mountCount": 1, "updateCount": 307, "totalMs": 3374, "avgMs": 11.0, "maxMs": 291},
-    "InboxRow-big": {"mountCount": 263, "updateCount": 99, "totalMs": 1338, "avgMs": 3.7, "maxMs": 13}
-  },
-  "totalRenders": 758,
-  "totalDurationMs": 5192
-}
-```
-
-### FPS Output
-
-```json
-{
-  "durationSeconds": 49,
-  "fps": {
-    "avg": 56,
-    "min": 32,
-    "max": 60,
-    "p5": 40,
-    "samples": [46, 56, 60, 57, ...]
-  }
-}
-```
-
-- **avg** — Average FPS across all 1-second samples (includes app launch/navigation)
-- **min** — Lowest single-second sample
-- **max** — Highest (60 = vsync ceiling)
-- **p5** — 5th percentile: worst-case FPS
-- **samples** — Raw per-second frame counts
-
-### iOS Test IDs
-
-| testID | Component |
-|--------|-----------|
-| `inboxList` | Inbox conversation list (FlatList) |
-| `messageList` | Chat message list (FlatList) |
-| `teamsList` | Teams list (LegendList via Kb.List) |
-
-Set via `testID` prop on React Native FlatList, maps to `accessibilityIdentifier` for Maestro.
-
-### Output Files
-
-All output goes to `shared/perf/output/` (gitignored):
-
-| File | Content |
-|------|---------|
-| `react-profiler.json` | React Profiler aggregated data |
-| `maestro-fps.json` | FPS data from PerfFPSMonitor |
-| `maestro.log` | Maestro test console output |
+Tools and workflows for measuring performance in the desktop Electron app (via Playwright MCP + CDP).
 
 ## Chat Thread Regression Checklist
 
@@ -144,35 +13,6 @@ Use this alongside automated thread perf runs when changing `chat/conversation/l
 5. Add/remove a reaction and open edit mode on a message, then confirm the correct row updates and desktop scrolls to the editing message.
 6. Trigger a centered jump from thread search and confirm the target row is centered/highlighted without breaking later scrolling.
 
-### Adding New Flows
-
-Create a YAML file in `shared/.maestro/performance/`. Example structure:
-
-```yaml
-appId: keybase.ios
-
----
-
-- launchApp:
-    stopApp: true
-    arguments:
-      PERF_FPS_MONITOR: "true"
-
-- extendedWaitUntil:
-    visible:
-      text: "Chat"
-    timeout: 60000
-
-- runFlow: ../shared/navigate-to-chat.yaml
-
-# Your test actions here (swipe, tap, etc.)
-
-# Press Home to flush profiler + FPS data
-- pressKey: Home
-```
-
-Shared subflows live in `shared/.maestro/subflows/` (e.g. `navigate-to-chat.yaml`).
-
 ## Desktop Performance Profiling
 
 ### Prerequisites
@@ -180,9 +20,11 @@ Shared subflows live in `shared/.maestro/subflows/` (e.g. `navigate-to-chat.yaml
 - App running with remote debugging: `yarn desktop:start:hot:debug`
 - `playwright-core` installed globally: `yarn global add playwright-core`
 
+React render counts come from `<PerfProfiler>` wrappers (`perf/react-profiler.tsx`) around `Inbox`, `ConversationList`, `MessageWrapper`, `Conversation`, `InputArea`, and `Teams`; `run-desktop-perf.js` reads their aggregated data.
+
 ### Automated Thread Scroll Test
 
-Equivalent to `yarn perf:thread:ios` for desktop. Navigates to chat, opens the first conversation, scrolls the message list, and reports FPS + long task metrics.
+Navigates to chat, opens the first conversation, scrolls the message list, and reports FPS + long task metrics.
 
 ```bash
 # Capture (default 3 runs, picks median, saves baseline automatically)
@@ -312,7 +154,7 @@ By default, 3 runs are performed and the median (by `totalDurationMs`) is saved.
 
 ```bash
 # Run the test — baseline is saved automatically (3 runs, median)
-cd shared && yarn perf:thread:ios
+cd shared && yarn perf:thread:desktop
 ```
 
 Output includes:
@@ -328,14 +170,14 @@ Output includes:
   Median: run-2 (2050ms)
 
 === Baseline saved to abc1234/ ===
-react-profiler.json  maestro-fps.json
+desktop-fps.json
 ```
 
 ### Comparing Against a Baseline
 
 ```bash
 # Compare current run against a saved baseline
-cd shared && yarn perf:thread:ios --compare baselines/<hash>
+cd shared && yarn perf:thread:desktop --compare baselines/<hash>
 ```
 
 Output:
@@ -354,11 +196,10 @@ InboxRow-big                  1338      900     -33%     362    210
 
 ### Recommended Workflow
 
-1. Check out the **base branch** and run a test (use `--build` only if native code changed):
+1. Check out the **base branch** and run a test:
    ```bash
    git checkout nojima/HOTPOT-next-670-clean
-   cd shared && yarn perf:thread:ios          # JS-only changes
-   cd shared && yarn perf:thread:ios --build  # native code changes
+   cd shared && yarn perf:thread:desktop
    ```
    Note the saved baseline hash from the output.
 2. Switch to the **feature branch**:
@@ -367,7 +208,7 @@ InboxRow-big                  1338      900     -33%     362    210
    ```
 3. Run with comparison against the saved baseline:
    ```bash
-   cd shared && yarn perf:thread:ios --compare baselines/<base-hash>
+   cd shared && yarn perf:thread:desktop --compare baselines/<base-hash>
    ```
 4. Review the side-by-side output. Negative percentages for React metrics and positive for FPS indicate improvement.
 
@@ -429,39 +270,6 @@ All screenshots go to `/tmp/visual-diff/` (outside the repo):
 | `diff/` | ImageMagick diff images (red = different pixels) |
 
 Tabs captured: People, Chat, Files, Crypto, Teams, Git, Devices, Settings.
-
-### iOS Simulator Visual Diff
-
-Same methodology but uses Maestro to navigate tabs on the iOS simulator.
-
-#### Prerequisites
-
-- iOS Simulator booted with app running and logged in
-- Maestro installed: `curl -Ls "https://get.maestro.mobile.dev" | bash`
-- ImageMagick installed: `brew install imagemagick`
-
-#### Workflow
-
-```bash
-# 1. Check out base branch, build if needed, take baseline screenshots
-git checkout nojima/HOTPOT-next-670-clean
-cd shared && ./perf/visual-diff-take-ios.sh baseline
-
-# 2. Check out feature branch, rebuild if needed, take current screenshots
-git checkout my-feature-branch
-cd shared && ./perf/visual-diff-take-ios.sh current
-
-# 3. Compare
-cd shared && ./perf/visual-diff-compare-ios.sh
-```
-
-#### Notes
-
-- Maestro navigates: People, Chat, Files, Teams (bottom bar), then More > Crypto, Git, Devices, Settings
-- Screenshots go to `/tmp/visual-diff-ios/{baseline,current,diff}/`
-- iOS subpixel threshold is higher (~500px) due to retina rendering differences
-- The Maestro flow YAML is at `.maestro/visual-diff/visual-diff-tabs.yaml` — edit it to add/remove tabs or adjust wait times
-- Reading diff images: same rules as desktop (see above)
 
 ## Interpreting Results
 

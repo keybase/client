@@ -7,7 +7,7 @@ describe('chat conversation', () => {
   it('opens first conversation and returns to inbox', async () => {
     await escapeToTabs()
     // Navigate via Teams tab first to sidestep the ambiguous "Chat" label in the More stack,
-    // then tap Chat — mirrors the Maestro yaml two-tap idiom.
+    // then tap Chat.
     await tab('Teams').click()
     await tab('Chat').click()
     await waitForTestID(T.CHAT_INBOX_LIST, 5000)

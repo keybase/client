@@ -1,5 +1,0 @@
-appId: keybase.ios
----
-- tapOn:
-    text: ".*Devices"
-    retryTapIfNoChange: false

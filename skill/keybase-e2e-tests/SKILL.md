@@ -1,6 +1,6 @@
 ---
 name: keybase-e2e-tests
-description: Use when writing, fixing, or adding e2e flow tests for the Keybase app — desktop (Playwright) or iOS (Maestro). Covers testID conventions, navigation patterns, common pitfalls, and the two-harness structure.
+description: Use when writing, fixing, or adding e2e flow tests for the Keybase app — desktop (Playwright) or iOS (Appium + WebdriverIO). Covers testID conventions, navigation patterns, common pitfalls, and the two-harness structure.
 ---
 
 # Keybase E2E Flow Tests
