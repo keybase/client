@@ -472,6 +472,19 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			continue
 		}
 		topicName := convLocal.Info.TopicName
+		if topicName == "" {
+			// The topic name comes from the conv's max METADATA message, and a
+			// delete-history can purge that message's body - localizing then
+			// yields an empty name. Writing it out erases a name we already had,
+			// which both blanks the channel in the inbox and makes the #general
+			// lookup by topic name miss.
+			switch {
+			case conv.LocalMetadata != nil && conv.LocalMetadata.TopicName != "":
+				topicName = conv.LocalMetadata.TopicName
+			case convLocal.Info.IsDefaultConv:
+				topicName = globals.DefaultTeamTopic
+			}
+		}
 		snippetDecoration, snippet, _ := utils.GetConvSnippet(ctx, i.G(), uid, convLocal,
 			i.G().GetEnv().GetUsername().String())
 		rcm := &types.RemoteConversationMetadata{
