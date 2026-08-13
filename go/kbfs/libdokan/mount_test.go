@@ -76,8 +76,7 @@ func makeFSE(ctx context.Context, t testing.TB, config *libkbfs.ConfigLocal,
 
 	ctx, cancelFn := context.WithCancel(ctx)
 	filesys, err := NewFS(ctx, config, logger.NewTestLogger(t))
-	require.NoError(t, err,
-		"NewFS failed: %q", err.Error())
+	require.NoError(t, err, "NewFS failed")
 
 	mnt, err := dokan.Mount(&dokan.Config{
 		FileSystem: filesys,
