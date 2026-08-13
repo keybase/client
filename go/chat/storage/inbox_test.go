@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -931,82 +930,4 @@ func TestUpdateLocalMtime(t *testing.T) {
 	})
 	require.Equal(t, mtime1, convs[0].GetMtime())
 	require.Equal(t, mtime2, convs[1].GetMtime())
-}
-
-// makeLocalConvForMetadata builds the localized form of an existing inbox conv,
-// which is what MergeLocalMetadata writes into local metadata.
-func makeLocalConvForMetadata(rc types.RemoteConversation, topicName string,
-	isDefaultConv bool) chat1.ConversationLocal {
-	return chat1.ConversationLocal{
-		Info: chat1.ConversationInfoLocal{
-			Id:            rc.GetConvID(),
-			Triple:        rc.Conv.Metadata.IdTriple,
-			TlfName:       "team",
-			TopicName:     topicName,
-			IsDefaultConv: isDefaultConv,
-			MembersType:   chat1.ConversationMembersType_TEAM,
-		},
-	}
-}
-
-func mergedTopicName(t *testing.T, inbox *Inbox, uid gregor1.UID, convID chat1.ConversationID) string {
-	conv, err := inbox.GetConversation(context.TODO(), uid, convID)
-	require.NoError(t, err)
-	require.NotNil(t, conv.LocalMetadata)
-	return conv.LocalMetadata.TopicName
-}
-
-func mergeLocalMetadata(t *testing.T, inbox *Inbox, uid gregor1.UID, rc types.RemoteConversation,
-	topicName string, isDefaultConv bool) {
-	require.NoError(t, inbox.MergeLocalMetadata(context.TODO(), uid,
-		[]chat1.ConversationLocal{makeLocalConvForMetadata(rc, topicName, isDefaultConv)}))
-}
-
-// The topic name is only known from the conv's max METADATA message, so a
-// delete-history that purges that message's body makes the conv localize with an
-// empty name. Writing that out erases a name we already had, which blanks the
-// channel in the inbox and makes any lookup by topic name - #general, in
-// particular - miss the conv for good.
-func TestInboxMergeLocalMetadataTopicName(t *testing.T) {
-	ctc, inbox, uid := setupInboxTest(t, "mergelocalmetadata")
-	defer ctc.Cleanup()
-
-	named := makeConvo(gregor1.Time(1), 1, 1)
-	defaultConv := makeConvo(gregor1.Time(2), 1, 1)
-	stale := makeConvo(gregor1.Time(3), 1, 1)
-	unnamed := makeConvo(gregor1.Time(4), 1, 1)
-	require.NoError(t, inbox.Merge(context.TODO(), uid, 1,
-		[]chat1.Conversation{named.Conv, defaultConv.Conv, stale.Conv, unnamed.Conv}, nil))
-
-	// a conv whose name we already know keeps it when a later localize comes back
-	// empty, whatever the name is
-	mergeLocalMetadata(t, inbox, uid, named, "somechannel", false)
-	require.Equal(t, "somechannel", mergedTopicName(t, inbox, uid, named.GetConvID()))
-	mergeLocalMetadata(t, inbox, uid, named, "", false)
-	require.Equal(t, "somechannel", mergedTopicName(t, inbox, uid, named.GetConvID()))
-
-	// a team's default conv is #general, so an empty name is repaired even when we
-	// have nothing cached to fall back on
-	mergeLocalMetadata(t, inbox, uid, defaultConv, "", true)
-	require.Equal(t, globals.DefaultTeamTopic,
-		mergedTopicName(t, inbox, uid, defaultConv.GetConvID()))
-
-	// the cached name wins over that repair: it came from a localize that could
-	// read the METADATA message, so it is better evidence than the default
-	mergeLocalMetadata(t, inbox, uid, stale, "renamed", true)
-	mergeLocalMetadata(t, inbox, uid, stale, "", true)
-	require.Equal(t, "renamed", mergedTopicName(t, inbox, uid, stale.GetConvID()))
-
-	// any other conv keeps an empty name rather than getting one invented for it
-	mergeLocalMetadata(t, inbox, uid, unnamed, "", false)
-	require.Equal(t, "", mergedTopicName(t, inbox, uid, unnamed.GetConvID()))
-
-	// the point of all of the above: a query by topic name finds the default conv.
-	// Read only answers queries it has seen, so merge this one in first.
-	query := &chat1.GetInboxQuery{TopicName: &globals.DefaultTeamTopic}
-	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, []chat1.Conversation{}, query))
-	_, convs, err := inbox.Read(context.TODO(), uid, query)
-	require.NoError(t, err)
-	require.Len(t, convs, 1)
-	require.Equal(t, defaultConv.GetConvID(), convs[0].GetConvID())
 }

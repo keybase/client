@@ -913,6 +913,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			s.Debug(ctx, "skipping invalid max msg: state: %v", mm.DebugString())
 		}
 	}
+	if conversationLocal.Info.TopicName == "" && conversationLocal.Info.IsDefaultConv {
+		// A conv only ever learns its topic name from its max METADATA message, and
+		// a delete-history purges that message's body - the message survives as
+		// valid-but-empty, so nothing above matches it and the name comes out blank.
+		// A team's default conv is #general whatever its messages say.
+		conversationLocal.Info.TopicName = globals.DefaultTeamTopic
+	}
+
 	// see if we should override the snippet message with the latest outbox record
 	obrs, err := storage.NewOutbox(s.G(), uid).PullForConversation(ctx, conversationRemote.GetConvID())
 	if err != nil {

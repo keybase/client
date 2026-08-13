@@ -1548,25 +1548,6 @@ func (h *Server) FindGeneralConvFromTeamID(ctx context.Context, teamID keybase1.
 		return res, err
 	}
 	if len(ib.Convs) != 1 {
-		// The topic name is only known from the conv's max METADATA message, so a
-		// conv whose message got purged - or one cached before it was known -
-		// carries an empty name and no query by name can match it. The default
-		// conv is marked as such regardless, so ask again without the name.
-		h.Debug(ctx, "FindGeneralConvFromTeamID: %d convs by topic name, retrying by default conv",
-			len(ib.Convs))
-		defaultConvQuery := *query
-		defaultConvQuery.TopicName = nil
-		ib, _, err = h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-			types.InboxSourceDataSourceAll, nil, &defaultConvQuery)
-		if err != nil {
-			return res, err
-		}
-		for _, conv := range ib.Convs {
-			if conv.Info.IsDefaultConv {
-				return utils.PresentConversationLocal(ctx, h.G(), uid, conv,
-					utils.PresentParticipantsModeSkip), nil
-			}
-		}
 		return res, libkb.NotFoundError{}
 	}
 	return utils.PresentConversationLocal(ctx, h.G(), uid, ib.Convs[0], utils.PresentParticipantsModeSkip),
