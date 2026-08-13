@@ -19,7 +19,7 @@ func TestBsplitterEmptyCopyAll(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 0)
-	require.Equal(t, 5, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(5), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, data, fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
@@ -30,7 +30,7 @@ func TestBsplitterNonemptyCopyAll(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 0)
-	require.Equal(t, 5, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(5), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, data, fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
@@ -41,7 +41,7 @@ func TestBsplitterAppendAll(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 2)
-	require.Equal(t, 5, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(5), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, append([]byte{10, 9}, data...), fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
@@ -52,7 +52,7 @@ func TestBsplitterAppendExact(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 5)
-	require.Equal(t, 5, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(5), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, append([]byte{10, 9, 8, 7, 6}, data...), fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
@@ -63,7 +63,7 @@ func TestBsplitterSplitOne(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5, 6}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 5)
-	require.Equal(t, 5, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(5), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, []byte{10, 9, 8, 7, 6, 1, 2, 3, 4, 5}, fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
@@ -74,7 +74,7 @@ func TestBsplitterOverwriteMaxSizeBlock(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 0)
-	require.Equal(t, 5, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(5), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, []byte{1, 2, 3, 4, 5}, fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
@@ -85,7 +85,7 @@ func TestBsplitterBlockTooBig(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5, 6}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 5)
-	require.Equal(t, 0, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(0), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, []byte{10, 9, 8, 7, 6}, fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
@@ -96,7 +96,7 @@ func TestBsplitterOffTooBig(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5, 6}
 
 	n := bsplit.CopyUntilSplit(fblock, false, data, 15)
-	require.Equal(t, 0, n, "Did not copy expected number of bytes: %d", n)
+	require.Equal(t, int64(0), n, "Did not copy expected number of bytes: %d", n)
 	require.Equal(t, []byte{10, 9, 8, 7, 6, 0, 0, 0, 0, 0}, fblock.Contents, "Wrong file contents after copy: %v", fblock.Contents)
 }
 
