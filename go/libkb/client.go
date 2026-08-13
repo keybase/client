@@ -218,15 +218,12 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 		}
 	}
 
-	var timeout time.Duration
-	if config == nil || config.Timeout == 0 {
-		timeout = HTTPDefaultTimeout
-	} else {
-		timeout = config.Timeout
-	}
-
+	// Don't set client-level timeout - let per-request context timeouts control this.
+	// This allows different endpoints to have different timeouts via APIArg.InitialTimeout.
+	// The doRetry() function ensures all requests get a context timeout, falling back to
+	// config.Timeout (from KEYBASE_API_TIMEOUT env var or config file), then HTTPDefaultTimeout.
 	ret := &Client{
-		cli:    &http.Client{Timeout: timeout},
+		cli:    &http.Client{Timeout: 0},
 		config: config,
 	}
 	if jar != nil {
