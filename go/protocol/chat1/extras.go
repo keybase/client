@@ -28,6 +28,10 @@ import (
 // we will show some representation of an exploded message in the UI for a week
 const ShowExplosionLifetime = time.Hour * 24 * 7
 
+// MaxMarkAsReadBatchItems is the maximum number of conversations accepted by a
+// mark-as-read batch RPC.
+const MaxMarkAsReadBatchItems = 1000
+
 // If a conversation is larger, only admins can @channel.
 const MaxChanMentionConvSize = 100
 
