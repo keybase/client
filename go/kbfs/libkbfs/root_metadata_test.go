@@ -261,7 +261,7 @@ func testRootMetadataLatestKeyGenerationPrivate(t *testing.T, ver kbfsmd.Metadat
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
-	require.Equal(t, 0, rmd.LatestKeyGeneration(), "Expected key generation to be invalid (0)")
+	require.Equal(t, kbfsmd.KeyGen(0), rmd.LatestKeyGeneration(), "Expected key generation to be invalid (0)")
 	rmd.fakeInitialRekey()
 	require.Equal(t, kbfsmd.FirstValidKeyGen, rmd.LatestKeyGeneration(), "Expected key generation to be valid(%d)", kbfsmd.FirstValidKeyGen)
 }

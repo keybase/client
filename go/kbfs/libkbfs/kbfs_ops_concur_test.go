@@ -151,7 +151,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	buf := make([]byte, 1)
 	nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
 	require.NoError(t, err, "Couldn't read data: %v\n", err)
-	require.Equal(t, 1, nr, "Got wrong data %v; expected %v", buf, data)
+	require.Equal(t, int64(1), nr, "Got wrong data %v; expected %v", buf, data)
 	require.Equal(t, data, buf, "Got wrong data %v; expected %v", buf, data)
 
 	// now unblock Sync and make sure there was no error
@@ -981,7 +981,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
 	require.NoError(t, err, "Couldn't read data: %v\n", err)
 	expectedData := []byte{11, 12, 3, 4, 5, 6, 7, 8, 9, 20}
-	require.Equal(t, 10, nr, "Got wrong data %v; expected %v", buf, expectedData)
+	require.Equal(t, int64(10), nr, "Got wrong data %v; expected %v", buf, expectedData)
 	require.Equal(t, expectedData, buf, "Got wrong data %v; expected %v", buf, expectedData)
 
 	// now unstall Sync and make sure there was no error
@@ -994,7 +994,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	buf2 := make([]byte, 10)
 	nr, err = kbfsOps.Read(ctx, fileNode, buf2, 0)
 	require.NoError(t, err, "Couldn't read data: %v\n", err)
-	require.Equal(t, 10, nr, "2nd read: Got wrong data %v; expected %v", buf2, expectedData)
+	require.Equal(t, int64(10), nr, "2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	require.Equal(t, expectedData, buf2, "2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 
 	// Final sync to clean up

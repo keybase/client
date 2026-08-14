@@ -1515,7 +1515,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 }
 
 func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
-	require.NotEqual(t, et, data.Sym)
+	require.NotEqual(t, data.Sym, et)
 
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice")
 	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
@@ -1532,6 +1532,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
 		require.NoError(t, err)
 		err = kbfsOps.SyncAll(ctx, nodeA.GetFolderBranch())
 		require.NoError(t, err)
+	} else {
 		exec := false
 		if et == data.Exec {
 			exec = true
@@ -1725,7 +1726,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	dest := make([]byte, 4)
 	n, err := config.KBFSOps().Read(ctx, pNode, dest, 2)
 	require.NoError(t, err, "Got error on read: %+v", err)
-	require.Equal(t, 4, n, "Read the wrong number of bytes: %d", n)
+	require.Equal(t, int64(4), n, "Read the wrong number of bytes: %d", n)
 	require.Equal(t, fileBlock.Contents[2:6], dest, "Read bad contents: %v", dest)
 }
 
@@ -1880,7 +1881,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	dest := make([]byte, 4)
 	n, err := config.KBFSOps().Read(ctx, pNode, dest, 10)
 	require.NoError(t, err, "Got error on read: %+v", err)
-	require.Equal(t, 0, n, "Read the wrong number of bytes: %d", n)
+	require.Equal(t, int64(0), n, "Read the wrong number of bytes: %d", n)
 }
 
 func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
@@ -3166,7 +3167,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	ei, err := kbfsOps.Stat(ctx, fileNode)
 	require.NoError(t, err,
 		"Couldn't stat file: %+v", err)
-	require.Equal(t, 1, ei.Size, "Stat size %d unexpectedly not 1", ei.Size)
+	require.Equal(t, uint64(1), ei.Size, "Stat size %d unexpectedly not 1", ei.Size)
 
 	// Rename it.
 	err = kbfsOps.Rename(ctx, rootNode, testPPS("a"), rootNode, testPPS("b"))
@@ -3208,7 +3209,7 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	ei, err := kbfsOps.Stat(ctx, fileNode)
 	require.NoError(t, err,
 		"Couldn't stat file: %+v", err)
-	require.Equal(t, 1, ei.Size, "Stat size %d unexpectedly not 1", ei.Size)
+	require.Equal(t, uint64(1), ei.Size, "Stat size %d unexpectedly not 1", ei.Size)
 
 	// Rename it.
 	err = kbfsOps.Rename(ctx, rootNode, testPPS("a"), rootNode, testPPS("b"))
@@ -3371,7 +3372,7 @@ func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 		rootNode.GetFolderBranch())
 	require.NoError(t, err,
 		"Couldn't get folder status: %+v", err)
-	require.Equal(t, int64(313), status.DiskUsage, "Disk usage of an empty TLF is no longer 313.  "+
+	require.Equal(t, uint64(313), status.DiskUsage, "Disk usage of an empty TLF is no longer 313.  "+
 		"Talk to max or strib about why this matters.")
 }
 

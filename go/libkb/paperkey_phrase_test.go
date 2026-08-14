@@ -16,7 +16,7 @@ func TestPaperKeyPhraseBasics(t *testing.T) {
 	q := NewPaperKeyPhrase(p.String())
 	version, err := q.Version()
 	require.NoError(t, err)
-	require.Equal(t, 0, version, "version: %d, expected 0", version)
+	require.Equal(t, uint8(0), version, "version: %d, expected 0", version)
 }
 
 func TestPaperKeyPhraseTypos(t *testing.T) {
@@ -39,7 +39,7 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 		q := NewPaperKeyPhrase(s)
 		version, err := q.Version()
 		require.NoError(t, err)
-		require.Equal(t, 0, version, "input: %q => version: %d, expected 0", s, version)
+		require.Equal(t, uint8(0), version, "input: %q => version: %d, expected 0", s, version)
 		require.Equal(t, p.String(), q.String(), "input: %q => phrase %q, expected %q", s, q.String(), p.String())
 		require.False(t, len(q.InvalidWords()) > 0, "input: %q => phrase %q, contains invalid words %v", s, q.String(), q.InvalidWords())
 	}
@@ -53,7 +53,7 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 	// version should still be ok
 	version, err := q.Version()
 	require.NoError(t, err)
-	require.Equal(t, 0, version, "input: %q => version: %d, expected 0", x, version)
+	require.Equal(t, uint8(0), version, "input: %q => version: %d, expected 0", x, version)
 
 	// but InvalidWords should return the first word as invalid
 	require.NotEmpty(t, q.InvalidWords(), "input: %q => all words valid, expected %s to be invalid", x, w[0])

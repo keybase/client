@@ -67,11 +67,14 @@ func TestOpenPGPMultipleArmored(t *testing.T) {
 	// we'll make sure that this bug still exists in openpgp, so if it ever
 	// gets fixed we can take appropriate action:
 	if len(el) != 1 {
-		require.False(t, len(el) == 2, "openpgp.ReadArmoredKeyRing multiple keys bug fixed!")
+		if len(el) == 2 {
+			require.Fail(t, "openpgp.ReadArmoredKeyRing multiple keys bug fixed!")
 		} else {
-			require.Fail(t, "openpgp.ReadArmoredKeyRing bug changed...number entities: %d, expected 1.", len(el))
+			require.Fail(t, "openpgp.ReadArmoredKeyRing bug changed",
+				"number entities: %d, expected 1", len(el))
 		}
 	}
+}
 
 func TestMultipleArmored(t *testing.T) {
 	// ReadOneKeyFromString will return the public key for issue454Keys
