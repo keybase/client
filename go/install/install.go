@@ -49,8 +49,6 @@ const (
 	ComponentNameService ComponentName = "service"
 	// ComponentNameKBFS is the KBFS component
 	ComponentNameKBFS ComponentName = "kbfs"
-	// ComponentNameKBNM is the Keybase NativeMessaging client component
-	ComponentNameKBNM ComponentName = "kbnm"
 	// ComponentNameUpdater is the updater component
 	ComponentNameUpdater ComponentName = "updater"
 	// ComponentNameApp is the UI app
@@ -70,7 +68,7 @@ const (
 )
 
 // ComponentNames are all the valid component names
-var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM, ComponentNameRedirector, ComponentNameCLIPaths}
+var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameRedirector, ComponentNameCLIPaths}
 
 // String returns string for ComponentName
 func (c ComponentName) String() string {
@@ -94,8 +92,6 @@ func (c ComponentName) Description() string {
 		return "Fuse"
 	case ComponentNameHelper:
 		return "Privileged Helper Tool"
-	case ComponentNameKBNM:
-		return "Browser Native Messaging"
 	case ComponentNameCLIPaths:
 		return "Command Line (privileged)"
 	case ComponentNameRedirector:
@@ -113,8 +109,6 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameService
 	case string(ComponentNameKBFS):
 		return ComponentNameKBFS
-	case string(ComponentNameKBNM):
-		return ComponentNameKBNM
 	case string(ComponentNameUpdater):
 		return ComponentNameUpdater
 	case string(ComponentNameApp):

@@ -30,7 +30,6 @@ fi
 
 app_name=Keybase
 keybase_version=${KEYBASE_VERSION:-}
-kbnm_version=${KBNM_VERSION:-}
 kbfs_version=${KBFS_VERSION:-}
 comment=""
 
@@ -38,7 +37,6 @@ keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 redirector_binpath=${REDIRECTOR_BINPATH:-$(dirname "$KBFS_BINPATH")/keybase-redirector}
-kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
 icon_path="$client_dir/media/icons/Keybase.icns"
@@ -66,13 +64,6 @@ if [ "$kbfs_version" = "" ]; then
 	fi
 fi
 
-if [ "$kbnm_version" = "" ]; then
-	if [ ! "$kbnm_binpath" = "" ]; then
-		kbnm_version=$($kbnm_binpath -version)
-		echo "Using kbnm (bin) version: $kbnm_version"
-	fi
-fi
-
 if [ "$keybase_version" = "" ]; then
 	echo "Specify KEYBASE_VERSION to use (Github release/tag)"
 	exit 1
@@ -81,12 +72,6 @@ fi
 if [ "$kbfs_version" = "" ]; then
 	echo "Specify KBFS_VERSION for use (Github release/tag)"
 	exit 1
-fi
-
-if [ "$kbnm_version" = "" ]; then
-	# TODO: Make KBNM_VERSION be injected during build.
-	kbnm_version="$keybase_version"
-	echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
 if [ "$arch" = "amd64" ]; then
@@ -113,7 +98,6 @@ keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
 redirector_bin="$tmp_dir/keybase-redirector"
 kbfs_bin="$tmp_dir/kbfs"
-kbnm_bin="$tmp_dir/kbnm"
 updater_bin="$tmp_dir/updater"
 installer_app="$tmp_dir/KeybaseInstaller.app"
 updater_app="$tmp_dir/KeybaseUpdater.app"
@@ -170,16 +154,6 @@ get_deps() { (
 		curl -J -L -Ss "$kbfs_url" | tar zx
 	fi
 
-	if [ ! "$kbnm_binpath" = "" ]; then
-		echo "Using local kbnm binpath: $kbnm_binpath"
-		cp "$kbnm_binpath" .
-	else
-		kbnm_url="https://github.com/keybase/kbnm/releases/download/v$kbnm_version/kbnm-$kbnm_version-$platform.tgz"
-		echo "Getting $kbnm_url"
-		ensure_url "$kbnm_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
-		curl -J -L -Ss "$kbnm_url" | tar zx
-	fi
-
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
 
@@ -219,7 +193,6 @@ package_app() { (
 	cp "$git_remote_keybase_bin" "$shared_support_dir/bin"
 	cp "$redirector_bin" "$shared_support_dir/bin"
 	cp "$kbfs_bin" "$shared_support_dir/bin"
-	cp "$kbnm_bin" "$shared_support_dir/bin"
 	cp "$updater_bin" "$shared_support_dir/bin"
 	mkdir -p "$resources_dir"
 	echo "Copying icons"
@@ -257,7 +230,6 @@ sign() { (
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase-redirector"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
-	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbnm"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
 	bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
 	codesign --verify --verbose=4 "$bundle_installer_app"

@@ -17,7 +17,6 @@
 #import "KBMountDir.h"
 #import "KBRedirector.h"
 #import "KBAppBundle.h"
-#import "KBNM.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
@@ -92,11 +91,6 @@
     if (config.installOptions&KBInstallOptionCLI) {
       helperRequired = YES;
       [_installables addObject:_cli];
-    }
-
-    if (config.installOptions&KBInstallOptionKBNM) {
-      KBNM *kbnm = [[KBNM alloc] initWithConfig:config servicePath:servicePath];
-      [_installables addObject:kbnm];
     }
 
     // If we have a component that needs the helper, make sure it's installed first.

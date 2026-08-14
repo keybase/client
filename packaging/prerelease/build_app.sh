@@ -41,7 +41,6 @@ s3host="https://s3.amazonaws.com/$bucket_name"
 
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
-build_dir_kbnm="/tmp/build_kbnm"
 build_dir_updater="/tmp/build_updater"
 client_dir=${CLIENT_DIR:-"$gopath/src/github.com/keybase/client"}
 kbfs_dir="$client_dir/go/kbfs"
@@ -98,31 +97,25 @@ for ((i=1; i<=$number_of_builds; i++)); do
   # here so it is consistent across the build compilation and build announcement
   # since we can't echo the version of the binary when cross compiling.
   KEYBASE_BUILD=$build
-  KBNM_BUILD=$build
   KBFS_BUILD=$build
   kb_version="$(grep 'Version = ' $client_dir/go/libkb/version.go | sed 's/.*Version = \"\(.*\)\"/\1/')"
   KEYBASE_VERSION="$kb_version-$KEYBASE_BUILD"
-  KBNM_VERSION="$kb_version-$KBNM_BUILD"
   KBFS_VERSION="$kb_version-$KBFS_BUILD"
 
   echo "KEYBASE_VERSION: $KEYBASE_VERSION"
-  echo "KNBM_VERSION: $KBNM_VERSION"
   echo "KBFS_VERSION: $KBFS_VERSION"
   if [ ! "$nobuild" = "1" ]; then
     KEYBASE_BUILD="$KEYBASE_BUILD" BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
     KBFS_BUILD="$KBFS_BUILD" BUILD_DIR="$build_dir_kbfs" CLIENT_DIR="$client_dir" "$dir/build_kbfs.sh"
-    KBNM_BUILD="$KBNM_BUILD" BUILD_DIR="$build_dir_kbnm" "$dir/build_kbnm.sh"
     BUILD_DIR="$build_dir_updater" UPDATER_DIR="$updater_dir" "$dir/build_updater.sh"
   fi
 
   version="$KEYBASE_VERSION"
   kbfs_version="$KBFS_VERSION"
-  kbnm_version="$KBNM_VERSION"
   updater_version="" # noop, just used for logging
   if [ ! "$PLATFORM" == "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
     version=$($build_dir_keybase/keybase version -S)
     kbfs_version=$($build_dir_kbfs/kbfs -version)
-    kbnm_version=$($build_dir_kbnm/kbnm -version)
     updater_version=$($build_dir_updater/updater -version)
   fi
 
@@ -130,9 +123,9 @@ for ((i=1; i<=$number_of_builds; i++)); do
   rm -rf "$save_dir"
 
   if [ "$platform" = "darwin" ] || [ "$platform" = "darwin-arm64" ]; then
-    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
+    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" PLATFORM="$platform" \
-      KEYBASE_VERSION="$KEYBASE_VERSION" KBNM_VERSION="$KBFS_VERSION" KBFS_VERSION="$KBFS_VERSION" "$dir/../desktop/package_darwin.sh"
+      KEYBASE_VERSION="$KEYBASE_VERSION" KBFS_VERSION="$KBFS_VERSION" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support Linux build here?
     echo "Unknown platform: $platform"
@@ -166,5 +159,5 @@ else
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 
-  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version, kbnm: $kbnm_version, updater: $updater_version). See $s3host";
+  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version, updater: $updater_version). See $s3host";
 fi

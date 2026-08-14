@@ -46,20 +46,15 @@ echo "-tags '$go_tags'"
 buildmode="pie"
 ldflags_client=""
 ldflags_kbfs=""
-ldflags_kbnm=""
 strip_flag=" -s -w "
 if [ "$mode" != "production" ]; then
 	# The non-production build number is everything in the version after the hyphen.
 	build_number="$(echo -n "$version" | sed 's/.*-//')"
 	ldflags_client="$strip_flag -X github.com/keybase/client/go/libkb.PrereleaseBuild=$build_number"
 	ldflags_kbfs="$strip_flag -X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$build_number"
-	# kbnm version currently defaults to the keybase client version.
-	build_number_kbnm="$build_number"
-	ldflags_kbnm="$strip_flag -X main.Version=$build_number_kbnm"
 fi
 echo "-ldflags_client '$ldflags_client'"
 echo "-ldflags_kbfs '$ldflags_kbfs'"
-echo "-ldflags_kbnm '$ldflags_kbnm'"
 
 should_build_kbfs() {
 	[ "$mode" != "production" ] && [[ ! -v KEYBASE_NO_KBFS ]]
@@ -96,7 +91,7 @@ build_one_architecture() {
 
 	# Short-circuit if we're not building electron.
 	if ! should_build_kbfs; then
-		echo "SKIPPING kbfs, kbnm, and electron."
+		echo "SKIPPING kbfs and electron."
 		return
 	fi
 
@@ -119,7 +114,7 @@ build_one_architecture() {
 
 	# Short-circuit if we're doing a Docker multi-stage build
 	if ! should_build_electron; then
-		echo "SKIPPING kbnm and electron."
+		echo "SKIPPING electron."
 		return
 	fi
 
@@ -127,26 +122,6 @@ build_one_architecture() {
 	echo "Building keybase-redirector for $GOARCH..."
 	(cd "$client_dir" && CGO_ENABLED=1 go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
 		"$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector)
-
-	# Build the kbnm binary
-	echo "Building kbnm for $GOARCH..."
-	(cd "$client_dir" && go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
-		"$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm)
-
-	if is_arm64_host; then
-		echo "is_arm64_host, building native kbnm for install"
-
-		(cd "$client_dir" && GOARCH=arm64 CC=gcc CXX=g++ go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
-			"$layout_dir/usr/bin/kbnm_arm64" github.com/keybase/client/go/kbnm)
-		USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm_arm64" install
-		rm "$layout_dir/usr/bin/kbnm_arm64"
-	else
-		# Write allowlists into the overlay. Note that we have to explicitly set USER
-		# here, because docker doesn't do it by default, and so otherwise the
-		# CGO-disabled i386 cross platform build will fail because it's unable to
-		# find the current user.
-		USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
-	fi
 
 	# Build Electron.
 	echo "Building Electron client for $electron_arch..."

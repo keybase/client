@@ -148,7 +148,6 @@ Notable executables
 `DokanSetup_redist.exe` - Dokan driver package, invoked from files tab in GUI
 `git-remote-keybase.exe` - GIT helper
 `kbfsdokan.exe` - kbfs
-`kbnm.exe` - browser extension
 `keybase.exe` - service
 `keybaserq.exe` - quiet launcher and de-elevator
 `prompter.exe` - updater GUI

@@ -59,19 +59,6 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 popd
 
-:: Browser Extension
-pushd %GOPATH%\src\github.com\keybase\client\go\kbnm
-del kbnm.exe
-if "%KBNM_BUILD%" == "" (
-    set KBNM_BUILD=%KEYBASE_BUILD%
-)
-echo KBNM_BUILD %KBNM_BUILD%
-go build -a -ldflags="-X main.Version=%KBNM_BUILD%"
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-popd
-
 :: keybaserq
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
 del keybaserq.exe

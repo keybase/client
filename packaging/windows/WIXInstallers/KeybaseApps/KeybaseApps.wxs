@@ -25,7 +25,6 @@
       <ComponentRef Id="SaltpackApp" />
       <ComponentRef Id="SaltpackIcon" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
-      <ComponentGroupRef Id="BrowserExtensionKbnm" />
       <ComponentGroupRef Id="DokanInstallerComponents" />
     </Feature>
 
@@ -35,11 +34,9 @@
       <Custom Action="LogoutUser" Before="StopMainApp"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
-      <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
 
 
@@ -137,21 +134,6 @@
   </Fragment>
 
   <Fragment>
-    <ComponentGroup Id="BrowserExtensionKbnm" Directory="INSTALLFOLDER">
-
-      <Component Id="kbnm.exe" Guid="{FE0C96E0-FFC8-4256-A600-50FFFCF58349}">
-        <CreateFolder />
-        <RemoveFolder Id="RemoveMyBrowserExtensionExe" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="kbnmexe" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="kbnm.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.exe" Checksum="yes"/>
-      </Component>
-
-    </ComponentGroup>
-  </Fragment>
-
-  <Fragment>
     <ComponentGroup Id="DokanInstallerComponents" Directory="INSTALLFOLDER">
       <Component Id="dokaninstall.exe" Guid="{EA473E0D-2F53-4055-807F-EB70EAE3109E}">
         <CreateFolder />
@@ -218,20 +200,6 @@
               Directory="GuiDir"
               ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[GuiDir]Keybase.exe&quot;"
               Execute="commit"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="AddBrowserExtension"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; install"
-              Execute="commit"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="RemoveBrowserExtension"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; uninstall"
-              Execute="immediate"
               Return="ignore"/>
   </Fragment>
   <Fragment>

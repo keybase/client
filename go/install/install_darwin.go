@@ -18,7 +18,6 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/install/libnativeinstaller"
-	kbnminstaller "github.com/keybase/client/go/kbnm/installer"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -422,7 +421,6 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 			ComponentNameMountDir.String(),
 			ComponentNameRedirector.String(),
 			ComponentNameKBFS.String(),
-			ComponentNameKBNM.String(),
 		}
 	} else {
 		components = []string{
@@ -430,7 +428,6 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 			ComponentNameUpdater.String(),
 			ComponentNameService.String(),
 			ComponentNameKBFS.String(),
-			ComponentNameKBNM.String(),
 		}
 	}
 
@@ -489,6 +486,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	componentResults := []keybase1.ComponentResult{}
 
 	log.Debug("Installing components: %s", components)
+	cleanupLegacyKBNM(log)
 
 	if libkb.IsIn(string(ComponentNameCLI), components, false) {
 		err = installCommandLine(context, binPath, true, log) // Always force CLI install
@@ -635,14 +633,6 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		componentResults = append(componentResults, componentResult(string(ComponentNameRedirector), err))
 		if err != nil {
 			log.Errorf("Error starting redirector: %s", err)
-		}
-	}
-
-	if libkb.IsIn(string(ComponentNameKBNM), components, false) {
-		err = InstallKBNM(context, binPath, log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
-		if err != nil {
-			log.Errorf("Error installing KBNM: %s", err)
 		}
 	}
 
@@ -828,32 +818,13 @@ func uninstallCommandLine(log Log) error {
 	return uninstallLink(gitLinkPath, log)
 }
 
-// InstallKBNM installs the Keybase NativeMessaging whitelist
-func InstallKBNM(context Context, binPath string, log Log) error {
-	// Find path of the keybase binary
-	keybasePath, err := chooseBinPath(binPath)
-	if err != nil {
-		return err
-	}
-	// kbnm binary is next to the keybase binary, same dir
-	hostPath := filepath.Join(filepath.Dir(keybasePath), "kbnm")
-
-	log.Info("Installing KBNM NativeMessaging whitelists for binary: %s", hostPath)
-	return kbnminstaller.InstallKBNM(hostPath)
-}
-
-// UninstallKBNM removes the Keybase NativeMessaging whitelist
-func UninstallKBNM(log Log) error {
-	log.Info("Uninstalling KBNM NativeMessaging whitelists")
-	return kbnminstaller.UninstallKBNM()
-}
-
 // Uninstall uninstalls all keybase services
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
 
 	log.Debug("Uninstalling components: %s", components)
+	cleanupLegacyKBNM(log)
 
 	if libkb.IsIn(string(ComponentNameRedirector), components, false) {
 		err = libnativeinstaller.UninstallRedirector(context.GetRunMode(), log)
@@ -912,14 +883,6 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
 		if err != nil {
 			log.Errorf("Error uninstalling app: %s", err)
-		}
-	}
-
-	if libkb.IsIn(string(ComponentNameKBNM), components, false) {
-		err = UninstallKBNM(log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
-		if err != nil {
-			log.Errorf("Error uninstalling kbnm: %s", err)
 		}
 	}
 
@@ -1036,6 +999,7 @@ func autoInstall(context Context, binPath string, force bool, timeout time.Durat
 	defer func() {
 		log.Debug("- AutoInstall -> %v, %v", newProc, err)
 	}()
+	cleanupLegacyKBNM(log)
 	label := DefaultServiceLabel(context.GetRunMode())
 	if label == "" {
 		err = fmt.Errorf("No service label to install")
