@@ -1347,6 +1347,9 @@ export type LocalConversationVers = number
 export type LocalMtimeUpdate = {readonly convID: ConversationID,readonly mtime: Gregor1.Time,}
 export type LocationWatchID = number
 export type MakePreviewRes = {readonly mimeType: string,readonly previewMimeType?: string | null,readonly location?: PreviewLocation | null,readonly metadata?: AssetMetadata | null,readonly baseMetadata?: AssetMetadata | null,}
+export type MarkAsReadBatchRes = {readonly rateLimit?: RateLimit | null,readonly results?: ReadonlyArray<MarkAsReadItemResult> | null,}
+export type MarkAsReadItem = {readonly conversationID: ConversationID,readonly msgID: MessageID,readonly forceUnread: boolean,}
+export type MarkAsReadItemResult = {readonly conversationID: ConversationID,readonly error?: string | null,}
 export type MarkAsReadLocalRes = {readonly offline: boolean,readonly rateLimits?: ReadonlyArray<RateLimit> | null,}
 export type MarkAsReadRes = {readonly rateLimit?: RateLimit | null,}
 export type MarkTLFAsReadLocalRes = {readonly offline: boolean,readonly rateLimits?: ReadonlyArray<RateLimit> | null,}
@@ -1750,6 +1753,7 @@ export const localUserEmojisRpcPromise = createRpc('chat.1.local.userEmojis')
 // 'chat.1.remote.newConversationRemote2'
 // 'chat.1.remote.getMessagesRemote'
 // 'chat.1.remote.markAsRead'
+// 'chat.1.remote.markAsReadBatch'
 // 'chat.1.remote.SetConversationStatus'
 // 'chat.1.remote.GetUnreadUpdateFull'
 // 'chat.1.remote.getS3Params'

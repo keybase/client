@@ -155,6 +155,24 @@ protocol remote {
 
   MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID, boolean forceUnread);
 
+  record MarkAsReadItem {
+    ConversationID conversationID;
+    MessageID msgID;
+    boolean forceUnread;
+  }
+
+  record MarkAsReadItemResult {
+    ConversationID conversationID;
+    union { null, string } error;
+  }
+
+  record MarkAsReadBatchRes {
+    union { null, RateLimit } rateLimit;
+    array<MarkAsReadItemResult> results;
+  }
+
+  MarkAsReadBatchRes markAsReadBatch(array<MarkAsReadItem> items);
+
   @lint("ignore")
   SetConversationStatusRes SetConversationStatus(ConversationID conversationID, ConversationStatus status);
 
