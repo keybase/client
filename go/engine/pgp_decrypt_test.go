@@ -425,11 +425,7 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 	assert.IsType(t, libkb.BadSigError{}, err, "expected a bad sig error")
 	assert.Contains(t, err.Error(), "Message signed by an unknown key", "bad sig error text")
 
-	if idUI.User != nil {
-		require.NotEqual(t, recipient.Username, idUI.User.Username, "pgp decrypt identified recipient")
-	} else {
-		require.Fail(t, "identify ui user is nil")
-	}
+	require.Nil(t, idUI.User, "identify UI should not be called for an unknown signing key")
 	require.Equal(t, 0, pgpUI.OutputCount, "PgpUI OutputSignatureSuccess called %d times, expected 0", pgpUI.OutputCount)
 	require.Equal(t, 1, pgpUI.OutputNonKeybaseCount, "PgpUI OutputSignatureNonKeybase called %d times, expected 0", pgpUI.OutputNonKeybaseCount)
 }
