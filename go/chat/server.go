@@ -262,22 +262,26 @@ func (h *Server) MarkTLFAsReadLocal(ctx context.Context, arg chat1.MarkTLFAsRead
 	if err != nil {
 		return res, err
 	}
-	convs, err := h.G().TeamChannelSource.GetChannelsFull(ctx, uid, arg.TlfID, chat1.TopicType_CHAT)
+	topicType := chat1.TopicType_CHAT
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			TlfID:            &arg.TlfID,
+			TopicType:        &topicType,
+			MemberStatus:     chat1.AllConversationMemberStatuses(),
+			Existences:       []chat1.ConversationExistence{chat1.ConversationExistence_ACTIVE},
+			UnreadOnly:       true,
+			AllowUnseenQuery: true,
+		})
 	if err != nil {
 		return res, err
 	}
 
-	// Mark each conversation as read, skipping ones that are already fully read
+	// Mark each unread conversation as read.
 	epick := libkb.FirstErrorPicker{}
-	for _, conv := range convs {
-		// Skip conversations that are already fully read
-		if conv.ReaderInfo.ReadMsgid >= conv.ReaderInfo.MaxMsgid {
-			continue
-		}
-
+	for _, conv := range inbox.ConvsUnverified {
 		_, err = h.MarkAsReadLocal(ctx, chat1.MarkAsReadLocalArg{
 			ConversationID: conv.GetConvID(),
-			MsgID:          &conv.ReaderInfo.MaxMsgid,
+			MsgID:          &conv.Conv.ReaderInfo.MaxMsgid,
 		})
 		epick.Push(err)
 	}
