@@ -364,7 +364,10 @@ public class ItemProviderHelper: NSObject {
         sendMedia(url, isVideo: false)
         return
       }
-      if !type.conforms(to: .text) {
+      // Only inline honest plain text. Plenty of document types (crash reports,
+      // logs, source) conform to public.text but are files the user meant to
+      // attach, extension and all.
+      if !type.conforms(to: .plainText) {
         sendFile(url)
         return
       }
@@ -623,10 +626,24 @@ public class ItemProviderHelper: NSObject {
               forTypeIdentifier: "public.vcard", completionHandler: contactHandler))
         // PDF and generic files
         case .file:
-          reserveItemProgress(loaderReportsProgress: true)
-          attachLoaderProgress(
-            item.loadFileRepresentation(
-              forTypeIdentifier: "public.item", completionHandler: fileHandler))
+          // A provider whose only file-ish representation is `public.file-url`
+          // has no file representation to load: asking for one writes the URL's
+          // property-list encoding to a temp file, and we would attach that
+          // 200-byte blob instead of the document. Take the URL and copy what it
+          // points at.
+          if UTType(best.stype)?.conforms(to: .fileURL) == true {
+            reserveItemProgress(loaderReportsProgress: false)
+            item.loadItem(
+              forTypeIdentifier: best.stype, options: nil,
+              completionHandler: { (loaded: NSSecureCoding?, error: Error?) in
+                self.sendURLItem(loaded as? URL)
+              })
+          } else {
+            reserveItemProgress(loaderReportsProgress: true)
+            attachLoaderProgress(
+              item.loadFileRepresentation(
+                forTypeIdentifier: best.stype, completionHandler: fileHandler))
+          }
         case .text:
           reserveItemProgress(loaderReportsProgress: false)
           item.loadItem(
