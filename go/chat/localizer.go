@@ -913,11 +913,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			s.Debug(ctx, "skipping invalid max msg: state: %v", mm.DebugString())
 		}
 	}
-	if conversationLocal.Info.TopicName == "" && conversationLocal.Info.IsDefaultConv {
+	if conversationLocal.Info.TopicName == "" && conversationLocal.Info.IsDefaultConv &&
+		conversationLocal.Info.MembersType == chat1.ConversationMembersType_TEAM {
 		// A conv only ever learns its topic name from its max METADATA message, and
 		// a delete-history purges that message's body - the message survives as
 		// valid-but-empty, so nothing above matches it and the name comes out blank.
-		// A team's default conv is #general whatever its messages say.
+		// A team's default conv is #general whatever its messages say. Impteams also
+		// flag their single conv as default, but theirs is genuinely unnamed - naming
+		// it breaks FindConversations, which looks them up by an empty topic name.
 		conversationLocal.Info.TopicName = globals.DefaultTeamTopic
 	}
 
