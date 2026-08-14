@@ -8705,7 +8705,7 @@ func TestChatSrvGitTeamRepoChatSettings(t *testing.T) {
 	})
 }
 
-// TestMarkTLFAsReadLocal tests the MarkTLFAsReadLocal function with parallel execution
+// TestMarkTLFAsReadLocal tests the MarkTLFAsReadLocal function.
 func TestMarkTLFAsReadLocal(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
@@ -8739,9 +8739,13 @@ func TestMarkTLFAsReadLocal(t *testing.T) {
 		}
 
 		ctx1 := ctc.as(t, users[1]).startCtx
+		uid1 := gregor1.UID(users[1].User.GetUID().ToBytes())
+		_, err := ctc.as(t, users[1]).h.G().InboxSource.ReadUnverified(ctx1, uid1,
+			types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{SkipBgLoads: true})
+		require.NoError(t, err)
 
 		// Mark all as read using MarkTLFAsReadLocal
-		_, err := ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
+		_, err = ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
 			chat1.MarkTLFAsReadLocalArg{
 				TlfID: tlfID,
 			})
@@ -8788,9 +8792,13 @@ func TestMarkTLFAsReadLocalSkipsAlreadyRead(t *testing.T) {
 		}
 
 		ctx1 := ctc.as(t, users[1]).startCtx
+		uid1 := gregor1.UID(users[1].User.GetUID().ToBytes())
+		_, err := ctc.as(t, users[1]).h.G().InboxSource.ReadUnverified(ctx1, uid1,
+			types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{SkipBgLoads: true})
+		require.NoError(t, err)
 
 		// First call: should mark as read
-		_, err := ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
+		_, err = ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
 			chat1.MarkTLFAsReadLocalArg{
 				TlfID: tlfID,
 			})
@@ -8813,8 +8821,7 @@ func TestMarkTLFAsReadLocalSkipsAlreadyRead(t *testing.T) {
 			}
 		}
 
-		// Second call: should skip (already read)
-		// This should complete quickly since no RPCs are made
+		// Second call: the unread-only inbox query should return no conversations to mark.
 		_, err = ctc.as(t, users[1]).chatLocalHandler().MarkTLFAsReadLocal(ctx1,
 			chat1.MarkTLFAsReadLocalArg{
 				TlfID: tlfID,
