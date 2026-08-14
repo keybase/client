@@ -11,6 +11,7 @@ import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {useNavigation} from '@react-navigation/native'
 import KB2 from '@/util/electron'
 import {ensureError} from '@/util/errors'
+import {normalizeFilePathURL} from '@/util/file-url'
 
 const {getPathForFile} = KB2.functions
 
@@ -335,7 +336,7 @@ const EmojiToAddRow = (p: {item: EmojiToAddOrAddRow}) => {
       ])}
     >
       <Kb.Box2 direction="vertical" style={styles.emojiToAddImageContainer}>
-        <Kb.Image src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
+        <Kb.Image src={normalizeFilePathURL(item.emojiToAdd.path)} style={styles.emojiToAddImage} />
       </Kb.Box2>
       <AliasInput
         error={item.emojiToAdd.error}

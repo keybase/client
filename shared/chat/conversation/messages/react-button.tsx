@@ -152,9 +152,9 @@ export function NewReactionButton(p: NewReactionButtonProps) {
 const markdownOverride: StyleOverride = isMobile
   ? {
       customEmoji: {
-        height: 20,
-        transform: [{translateY: 4}],
-        width: 20,
+        height: 18,
+        transform: [{translateY: 3}],
+        width: 18,
       },
       emoji: {
         fontSize: 15,
