@@ -1320,7 +1320,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	require.Equal(t, e, g, "Unexpected number of children: %d vs %d", g, e)
 	for _, file := range []string{"file1", "file2"} {
 		_, ok := block1.Children[file]
-	require.True(t, ok, "Couldn't find entry in merged children: %s", file)
+		require.True(t, ok, "Couldn't find entry in merged children: %s", file)
 	}
 	require.Equal(t, 0, len(newFileBlocks.blocks), "Unexpected new file blocks!")
 }

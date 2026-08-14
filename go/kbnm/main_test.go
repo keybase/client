@@ -65,6 +65,6 @@ func TestProcess(t *testing.T) {
 		}
 
 		got, want := test.ExpectOut, outBuf.String()
-	require.Equal(t, got, want, "[case #%d] want:\n%s\ngot:\n%s", i, want, got)
+		require.Equal(t, got, want, "[case #%d] want:\n%s\ngot:\n%s", i, want, got)
 	}
 }

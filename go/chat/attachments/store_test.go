@@ -328,7 +328,7 @@ func (u *uploader) UploadResume() chat1.Asset {
 	require.NoError(u.t, err,
 		"expected second UploadAsset call to work, got: %s", err)
 	if a.Size != signencrypt.GetSealedSize(int64(len(u.plaintext))) {
-		require.Fail(u.t,"uploaded asset size: %d, expected %d", a.Size,
+		require.Fail(u.t, "uploaded asset size: %d, expected %d", a.Size,
 			signencrypt.GetSealedSize(int64(len(u.plaintext))))
 	}
 	u.fullEncKey = u.encKey
@@ -375,28 +375,28 @@ func (u *uploader) DownloadAndMatch(a chat1.Asset) {
 	}
 	plaintextDownload := buf.Bytes()
 	if len(plaintextDownload) != len(u.plaintext) {
-		require.Fail(u.t,"downloaded asset len: %d, expected %d", len(plaintextDownload), len(u.plaintext))
+		require.Fail(u.t, "downloaded asset len: %d, expected %d", len(plaintextDownload), len(u.plaintext))
 	}
 	if !bytes.Equal(u.plaintext, plaintextDownload) {
-		require.Fail(u.t,"downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], u.plaintext[:10])
+		require.Fail(u.t, "downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], u.plaintext[:10])
 	}
 }
 
 func (u *uploader) AssertKeysChanged() {
 	if bytes.Equal(u.partialEncKey, u.fullEncKey) {
-		require.Fail(u.t,"partial enc key and full enc key match: enc key reused")
+		require.Fail(u.t, "partial enc key and full enc key match: enc key reused")
 	}
 	if bytes.Equal(u.partialSigKey, u.fullSigKey) {
-		require.Fail(u.t,"partial sig key and full sig key match: sig key reused")
+		require.Fail(u.t, "partial sig key and full sig key match: sig key reused")
 	}
 }
 
 func (u *uploader) AssertKeysReused() {
 	if !bytes.Equal(u.partialEncKey, u.fullEncKey) {
-		require.Fail(u.t,"partial enc key and full enc key different: enc key not reused")
+		require.Fail(u.t, "partial enc key and full enc key different: enc key not reused")
 	}
 	if !bytes.Equal(u.partialSigKey, u.fullSigKey) {
-		require.Fail(u.t,"partial sig key and full sig key different: sig key not reused")
+		require.Fail(u.t, "partial sig key and full sig key different: sig key not reused")
 	}
 }
 
@@ -406,13 +406,13 @@ func (u *uploader) AssertNumPutParts(n int) {
 
 func (u *uploader) AssertNumResets(n int) {
 	if u.breader.resets != n {
-		require.Fail(u.t,"stream resets: %d, expected %d", u.breader.resets, n)
+		require.Fail(u.t, "stream resets: %d, expected %d", u.breader.resets, n)
 	}
 }
 
 func (u *uploader) AssertNumAborts(n int) {
 	if u.s.aborts != n {
-		require.Fail(u.t,"aborts: %d, expected %d", u.s.aborts, n)
+		require.Fail(u.t, "aborts: %d, expected %d", u.s.aborts, n)
 	}
 }
 

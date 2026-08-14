@@ -587,7 +587,7 @@ func TestMemberAddNoPUK(t *testing.T) {
 
 		// second AddMember should return err
 		_, err = AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER, nil)
-	require.NotNil(t, err, "second AddMember succeeded, should have failed since user already invited")
+		require.NotNil(t, err, "second AddMember succeeded, should have failed since user already invited")
 
 		// existing invite should be untouched
 		assertInvite(tc, name, fqUID, "keybase", role)

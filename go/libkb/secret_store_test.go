@@ -76,7 +76,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		expectedUsernames[i] = fmt.Sprintf("account with unicode テスト %d", i)
 
 		err := tc.G.SecretStore().StoreSecret(m, NewNormalizedUsername(expectedUsernames[i]), fs)
-	require.NoError(t, err, err)
+		require.NoError(t, err, err)
 	}
 
 	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets(m)

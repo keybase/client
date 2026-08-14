@@ -292,7 +292,7 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 	}
 	veng = NewSaltpackVerify(tc.G, varg)
 	err := RunEngine2(m, veng)
-		require.NotNil(t, err, "verify w/ SignedBy unknown didn't fail")
+	require.NotNil(t, err, "verify w/ SignedBy unknown didn't fail")
 }
 
 func TestSaltpackVerifyRevoked(t *testing.T) {
@@ -338,7 +338,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 		"Expected revoking the current device to fail.")
 	// force=true is required for the current device
 	err = doRevokeDevice(tc, fu, currentDevice.ID, true, false)
-		require.NoError(tc.T, err)
+	require.NoError(tc.T, err)
 
 	// Finally verify the sig. This should be an error, because the signing
 	// device is revoked. The revoked status will get passed to our

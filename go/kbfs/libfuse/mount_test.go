@@ -689,7 +689,7 @@ func TestMountAgain(t *testing.T) {
 		require.NoError(t, err,
 			"read error: %v", err)
 		e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+		require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 	}()
 }
 
@@ -770,7 +770,7 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 		require.NoError(t, err,
 			"read error: %v", err)
 		e, g := string(buf), input
-	require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
+		require.Equal(t, e, g, "bad file contents: %q != %q", g, e)
 	}()
 }
 
@@ -801,7 +801,7 @@ func TestSymlink(t *testing.T) {
 		target, err := os.Readlink(p)
 		require.NoError(t, err)
 		e, g := target, "myfile"
-	require.Equal(t, e, g, "bad symlink target: %q != %q", g, e)
+		require.Equal(t, e, g, "bad symlink target: %q != %q", g, e)
 	}()
 }
 
@@ -2351,11 +2351,11 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 
 	const input2 = "second round of content"
@@ -2370,11 +2370,11 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 }
 
@@ -2413,11 +2413,11 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 
 	const input2 = "second round of content"
@@ -2432,11 +2432,11 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 }
 
@@ -2475,11 +2475,11 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 
 	const newSize = 3
@@ -2494,11 +2494,11 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input1[:newSize]
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 }
 
@@ -2530,11 +2530,11 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 
 	const input2 = "second round of content"
@@ -2559,11 +2559,11 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input2
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 }
 
@@ -2880,11 +2880,11 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		e, g := string(buf[:n]), input1
-	require.Equal(t, e, g, "wrong content: %q != %q", g, e)
+		require.Equal(t, e, g, "wrong content: %q != %q", g, e)
 	}
 
 	// now rename the second into a directory that user 2 hasn't seen
@@ -3335,7 +3335,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 		require.False(t, err != nil || n != len(input1),
 			err)
 		e, g := string(buf), input1
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
 	}
 	{
 		buf := make([]byte, len(input2))
@@ -3343,7 +3343,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 		require.False(t, err != nil || n != len(input2),
 			err)
 		e, g := string(buf), input2
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
 	}
 
 	// They should see the conflict.
@@ -3517,7 +3517,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 		require.False(t, err != nil || n != len(input1),
 			err)
 		e, g := string(buf), input1
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
 	}
 	{
 		buf := make([]byte, len(input2))
@@ -3525,7 +3525,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 		require.False(t, err != nil || n != len(input2),
 			err)
 		e, g := string(buf), input2
-	require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
+		require.Equal(t, e, g, "Unexpected read on f2: %s vs %s", g, e)
 	}
 
 	// They should see the conflict.
