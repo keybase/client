@@ -379,6 +379,66 @@ func (o ChannelMention) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
+type MarkAsReadItem struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	MsgID          MessageID      `codec:"msgID" json:"msgID"`
+	ForceUnread    bool           `codec:"forceUnread" json:"forceUnread"`
+}
+
+func (o MarkAsReadItem) DeepCopy() MarkAsReadItem {
+	return MarkAsReadItem{
+		ConversationID: o.ConversationID.DeepCopy(),
+		MsgID:          o.MsgID.DeepCopy(),
+		ForceUnread:    o.ForceUnread,
+	}
+}
+
+type MarkAsReadItemResult struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	Error          *string        `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o MarkAsReadItemResult) DeepCopy() MarkAsReadItemResult {
+	return MarkAsReadItemResult{
+		ConversationID: o.ConversationID.DeepCopy(),
+		Error: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error),
+	}
+}
+
+type MarkAsReadBatchRes struct {
+	RateLimit *RateLimit             `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Results   []MarkAsReadItemResult `codec:"results" json:"results"`
+}
+
+func (o MarkAsReadBatchRes) DeepCopy() MarkAsReadBatchRes {
+	return MarkAsReadBatchRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+		Results: (func(x []MarkAsReadItemResult) []MarkAsReadItemResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MarkAsReadItemResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Results),
+	}
+}
+
 type UnreadUpdateFull struct {
 	Ignore          bool             `codec:"ignore" json:"ignore"`
 	InboxVers       InboxVers        `codec:"inboxVers" json:"inboxVers"`
@@ -1713,6 +1773,10 @@ type MarkAsReadArg struct {
 	ForceUnread    bool           `codec:"forceUnread" json:"forceUnread"`
 }
 
+type MarkAsReadBatchArg struct {
+	Items []MarkAsReadItem `codec:"items" json:"items"`
+}
+
 type SetConversationStatusArg struct {
 	ConversationID ConversationID     `codec:"conversationID" json:"conversationID"`
 	Status         ConversationStatus `codec:"status" json:"status"`
@@ -1940,6 +2004,7 @@ type RemoteInterface interface {
 	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes, error)
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
+	MarkAsReadBatch(context.Context, []MarkAsReadItem) (MarkAsReadBatchRes, error)
 	SetConversationStatus(context.Context, SetConversationStatusArg) (SetConversationStatusRes, error)
 	GetUnreadUpdateFull(context.Context, InboxVers) (UnreadUpdateFull, error)
 	GetS3Params(context.Context, GetS3ParamsArg) (S3Params, error)
@@ -2121,6 +2186,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.MarkAsRead(ctx, typedArgs[0])
+					return
+				},
+			},
+			"markAsReadBatch": {
+				MakeArg: func() any {
+					var ret [1]MarkAsReadBatchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]MarkAsReadBatchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]MarkAsReadBatchArg)(nil), args)
+						return
+					}
+					ret, err = i.MarkAsReadBatch(ctx, typedArgs[0].Items)
 					return
 				},
 			},
@@ -2805,6 +2885,12 @@ func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRe
 
 func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res MarkAsReadRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.markAsRead", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) MarkAsReadBatch(ctx context.Context, items []MarkAsReadItem) (res MarkAsReadBatchRes, err error) {
+	__arg := MarkAsReadBatchArg{Items: items}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.markAsReadBatch", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
