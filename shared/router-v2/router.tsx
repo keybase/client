@@ -465,9 +465,9 @@ const getBadgeNumber = (
 
 const appTabsScreenOptions = (
   routeName: Tabs.Tab,
-  navBadges: ReadonlyMap<Tabs.Tab, number>,
-  hasPermissions: boolean,
-  isDarkMode: boolean, theme: Kb.Styles.Theme
+  badge: number | undefined,
+  isDarkMode: boolean,
+  theme: Kb.Styles.Theme
 ) => {
   return {
     headerShown: false,
@@ -475,7 +475,7 @@ const appTabsScreenOptions = (
     // hidden tab shortly after startup; only mount tabs on first focus
     lazy: true,
     overrideScrollViewContentInsetAdjustmentBehavior: true,
-    tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
+    tabBarBadge: badge,
     tabBarBadgeStyle: {
       backgroundColor: theme.orange,
     },
@@ -516,6 +516,27 @@ if (isMobile) {
   // aliased to the null module, so calling it at module scope would crash startup.
   const NativeTab = createBottomTabNavigator()
 
+  // Options objects are cached per tab and only replaced when that tab's own inputs
+  // change: handing the native tab bar a new options object recreates its UITabBarItem,
+  // and recreating all of them at once makes UIKit re-lay-out the whole bar, which can
+  // leave labels stuck truncated ('Peo...') until something else forces another pass.
+  const tabOptionsCache = new Map<Tabs.Tab, {key: string; options: ReturnType<typeof appTabsScreenOptions>}>()
+  const getCachedTabOptions = (
+    tab: Tabs.Tab,
+    badge: number | undefined,
+    isDarkMode: boolean,
+    theme: Kb.Styles.Theme
+  ) => {
+    const key = `${badge ?? ''}:${isDarkMode ? 1 : 0}:${theme.orange}`
+    const cached = tabOptionsCache.get(tab)
+    if (cached?.key === key) {
+      return cached.options
+    }
+    const options = appTabsScreenOptions(tab, badge, isDarkMode, theme)
+    tabOptionsCache.set(tab, {key, options})
+    return options
+  }
+
   function AppTabsNative() {
     const theme = Kb.Styles.useTheme()
     const navBadges = useNotifState(s => s.navBadges)
@@ -529,7 +550,12 @@ if (isMobile) {
             key={tab}
             name={tab}
             component={nativeTabComponents[tab]!}
-            options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode, theme)}
+            options={getCachedTabOptions(
+              tab,
+              getBadgeNumber(tab, navBadges, hasPermissions),
+              isDarkMode,
+              theme
+            )}
           />
         ))}
       </NativeTab.Navigator>
