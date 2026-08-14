@@ -50,6 +50,25 @@ index c233036..a3f0f36 100644
    if ([self.topViewController isKindOfClass:[RNSScreen class]]) {
      RNSScreen *screenController = (RNSScreen *)self.topViewController;
      BOOL isNotDismissingModal = screenController.presentedViewController == nil ||
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
+index 1c84484..462ecee 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
+@@ -208,7 +208,13 @@ - (void)updateHeaderStateInShadowTreeInContextOfNavigationBar:(nullable UINaviga
+   [self updateShadowStateWithSize:navigationBar.frame.size
+                        edgeInsets:[self computeEdgeInsetsOfNavigationBar:navigationBar]
+                       frameOrigin:navBarFrameInScreenView.origin];
+-  for (RNSScreenStackHeaderSubview *subview in self.reactSubviews) {
++  // Iterate over a snapshot: `updateShadowStateInContextOfAncestorView:` schedules the state
++  // update with `unstable_Immediate`, which commits AND mounts synchronously, and mounting can
++  // insert or remove header subviews — mutating `_reactSubviews` while it is being enumerated,
++  // which throws NSGenericException. See software-mansion/react-native-screens#4483.
++  // A subview removed mid-loop is harmless because `updateShadowStateWithFrame:` bails out when
++  // its state is null; one added mid-loop is picked up by the next layout pass.
++  for (RNSScreenStackHeaderSubview *subview in [self.reactSubviews copy]) {
+     [subview updateShadowStateInContextOfAncestorView:navigationBar];
+   }
+ }
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
 index add33c4..8022575 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
