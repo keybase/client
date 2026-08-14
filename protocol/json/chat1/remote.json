@@ -303,6 +303,61 @@
     },
     {
       "type": "record",
+      "name": "MarkAsReadItem",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "conversationID"
+        },
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        },
+        {
+          "type": "boolean",
+          "name": "forceUnread"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MarkAsReadItemResult",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "conversationID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MarkAsReadBatchRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MarkAsReadItemResult"
+          },
+          "name": "results"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdateFull",
       "fields": [
         {
@@ -1331,6 +1386,18 @@
         }
       ],
       "response": "MarkAsReadRes"
+    },
+    "markAsReadBatch": {
+      "request": [
+        {
+          "name": "items",
+          "type": {
+            "type": "array",
+            "items": "MarkAsReadItem"
+          }
+        }
+      ],
+      "response": "MarkAsReadBatchRes"
     },
     "SetConversationStatus": {
       "request": [
