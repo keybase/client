@@ -12,6 +12,9 @@ import {
   useConversationThreadMessageActions,
 } from '../thread-context'
 
+// A raised hover bar stops this far above the scroller's bottom edge instead of flush against it.
+const edgeClearance = 2
+
 type OwnProps = {
   className?: string
   hasUnfurls: boolean
@@ -118,7 +121,9 @@ function EmojiRowContainer(p: OwnProps) {
       }
       // add back the raise in effect so overflow is computed from our natural spot
       const overflow = rect.bottom + appliedRaise() - list.getBoundingClientRect().bottom
-      setRaiseBy(Math.max(0, overflow))
+      // clear the edge rather than sitting flush on it, so a raised bar doesn't read as tight
+      // against the input area
+      setRaiseBy(overflow > 0 ? overflow + edgeClearance : 0)
     }
     // the enter event that mounted us already fired, so measure directly too
     measure()
