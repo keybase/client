@@ -574,7 +574,7 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
           // feeds its padding into every scroll-offset calculation it makes (content size, the end
           // target, the at-end threshold), so keeping it outside the scroller keeps that math on
           // message sizes alone.
-          paddingBottom: 16,
+          paddingBottom: 8,
         },
       }),
       list: Kb.Styles.platformStyles({
