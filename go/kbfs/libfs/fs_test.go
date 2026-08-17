@@ -737,3 +737,27 @@ func TestEmptyFS(t *testing.T) {
 	err = fs.MkdirAll("a", 0o777)
 	require.Error(t, err)
 }
+
+// TestSubscribeToObsolete is a smoke test for the (ch, unsubscribe, err)
+// contract: subscribe returns a live channel and a callable unsubscribe, the
+// channel is not closed while the TLF handle is unchanged, and unsubscribe is
+// safe to call multiple times.
+func TestSubscribeToObsolete(t *testing.T) {
+	ctx, _, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	obsoleteCh, unsubscribe, err := fs.SubscribeToObsolete()
+	require.NoError(t, err)
+	require.NotNil(t, obsoleteCh)
+	require.NotNil(t, unsubscribe)
+
+	select {
+	case <-obsoleteCh:
+		t.Fatal("obsoleteCh unexpectedly closed before any handle change")
+	default:
+	}
+
+	unsubscribe()
+	// Idempotent: second call must not panic.
+	unsubscribe()
+}

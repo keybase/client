@@ -24,14 +24,21 @@ const (
 )
 
 // AppStateUpdater is an interface for things that need to listen to
-// app state changes.
+// app state changes. Callers subscribe by calling NextAppStateUpdate /
+// NextNetworkStateUpdate with their last-observed state; when the returned
+// channel is closed, the caller re-fetches via AppState() / NetworkState().
 type AppStateUpdater interface {
-	// NextAppStateUpdate returns a channel that app state changes
-	// are sent to.
-	NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState
-	// NextNetworkStateUpdate returns a channel that mobile network
-	// state changes are sent to.
-	NextNetworkStateUpdate(lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState
+	// NextAppStateUpdate returns a channel that will be closed the next time
+	// the app state changes. If lastState is stale, an already-closed channel
+	// is returned so the caller wakes immediately.
+	NextAppStateUpdate(lastState keybase1.MobileAppState) <-chan struct{}
+	// NextNetworkStateUpdate returns a channel that will be closed the next
+	// time the network state changes.
+	NextNetworkStateUpdate(lastState keybase1.MobileNetworkState) <-chan struct{}
+	// AppState returns the current app state.
+	AppState() keybase1.MobileAppState
+	// NetworkState returns the current network state.
+	NetworkState() keybase1.MobileNetworkState
 }
 
 // EmptyAppStateUpdater is an implementation of AppStateUpdater that
@@ -39,17 +46,27 @@ type AppStateUpdater interface {
 type EmptyAppStateUpdater struct{}
 
 // NextAppStateUpdate implements AppStateUpdater.
-func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
+func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState keybase1.MobileAppState) <-chan struct{} {
 	// Receiving on a nil channel blocks forever.
 	return nil
 }
 
 // NextNetworkStateUpdate implements AppStateUpdater.
 func (easu EmptyAppStateUpdater) NextNetworkStateUpdate(
-	lastState *keybase1.MobileNetworkState,
-) <-chan keybase1.MobileNetworkState {
+	lastState keybase1.MobileNetworkState,
+) <-chan struct{} {
 	// Receiving on a nil channel blocks forever.
 	return nil
+}
+
+// AppState implements AppStateUpdater.
+func (easu EmptyAppStateUpdater) AppState() keybase1.MobileAppState {
+	return keybase1.MobileAppState_FOREGROUND
+}
+
+// NetworkState implements AppStateUpdater.
+func (easu EmptyAppStateUpdater) NetworkState() keybase1.MobileNetworkState {
+	return keybase1.MobileNetworkState_NOTAVAILABLE
 }
 
 // Context defines the environment for this package
@@ -171,7 +188,7 @@ func (c *KBFSContext) GetPerfLog() logger.Logger {
 }
 
 // NextAppStateUpdate implements AppStateUpdater.
-func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
+func (c *KBFSContext) NextAppStateUpdate(lastState keybase1.MobileAppState) <-chan struct{} {
 	if c.g.MobileAppState == nil {
 		return nil
 	}
@@ -180,12 +197,28 @@ func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-c
 
 // NextNetworkStateUpdate implements AppStateUpdater.
 func (c *KBFSContext) NextNetworkStateUpdate(
-	lastState *keybase1.MobileNetworkState,
-) <-chan keybase1.MobileNetworkState {
+	lastState keybase1.MobileNetworkState,
+) <-chan struct{} {
 	if c.g.MobileNetState == nil {
 		return nil
 	}
 	return c.g.MobileNetState.NextUpdate(lastState)
+}
+
+// AppState implements AppStateUpdater.
+func (c *KBFSContext) AppState() keybase1.MobileAppState {
+	if c.g.MobileAppState == nil {
+		return keybase1.MobileAppState_FOREGROUND
+	}
+	return c.g.MobileAppState.State()
+}
+
+// NetworkState implements AppStateUpdater.
+func (c *KBFSContext) NetworkState() keybase1.MobileNetworkState {
+	if c.g.MobileNetState == nil {
+		return keybase1.MobileNetworkState_NOTAVAILABLE
+	}
+	return c.g.MobileNetState.State()
 }
 
 // CheckService checks if the service is running and returns nil if

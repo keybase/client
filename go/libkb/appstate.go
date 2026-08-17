@@ -10,13 +10,27 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+// alreadyClosed is a shared close-only channel returned from NextUpdate /
+// NextNetworkStateUpdate / NextSuspendUpdate when the caller's lastState is
+// stale relative to the current state. Since receiving from a closed
+// chan struct{} is safe and idempotent, a single sentinel serves any number of
+// concurrent callers without allocation.
+var alreadyClosed = func() chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}()
+
 // MobileAppState tracks the state of foreground/background status of the app
 // in which the service is running in.
 type MobileAppState struct {
 	Contextified
 	sync.Mutex
-	state     keybase1.MobileAppState
-	updateChs []chan keybase1.MobileAppState
+	state keybase1.MobileAppState
+	// changed is closed and replaced whenever state actually changes. Any
+	// caller holding a reference to the previous channel is woken by the
+	// close; they then re-read State() to see the new value.
+	changed chan struct{}
 
 	// mtime is the time at which the appstate first switched to the current state.
 	// It is a monotonic timestamp and should only be used relatively.
@@ -24,32 +38,34 @@ type MobileAppState struct {
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
+	state := keybase1.MobileAppState_FOREGROUND
 	if runtime.GOOS == "android" {
 		// we need this so cold notifications work on android
-		return &MobileAppState{
-			Contextified: NewContextified(g),
-			state:        keybase1.MobileAppState_BACKGROUNDACTIVE,
-			mtime:        nil,
-		}
+		state = keybase1.MobileAppState_BACKGROUNDACTIVE
 	}
 	return &MobileAppState{
 		Contextified: NewContextified(g),
-		state:        keybase1.MobileAppState_FOREGROUND,
-		mtime:        nil,
+		state:        state,
+		changed:      make(chan struct{}),
 	}
 }
 
-// NextUpdate returns a channel that triggers when the app state changes
-func (a *MobileAppState) NextUpdate(lastState *keybase1.MobileAppState) chan keybase1.MobileAppState {
+// NextUpdate returns a channel that will be closed the next time the app
+// state changes. If lastState does not match the current state, an
+// already-closed channel is returned so the caller wakes immediately and can
+// re-fetch via State().
+//
+// Note: state transitions between two NextUpdate calls may be collapsed - a
+// caller is guaranteed only that when the returned channel fires, State()
+// returns a value different from the one they last observed; they are not
+// guaranteed to observe every intermediate transition.
+func (a *MobileAppState) NextUpdate(lastState keybase1.MobileAppState) <-chan struct{} {
 	a.Lock()
 	defer a.Unlock()
-	ch := make(chan keybase1.MobileAppState, 1)
-	if lastState != nil && *lastState != a.state {
-		ch <- a.state
-	} else {
-		a.updateChs = append(a.updateChs, ch)
+	if lastState != a.state {
+		return alreadyClosed
 	}
-	return ch
+	return a.changed
 }
 
 func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
@@ -61,10 +77,8 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 		a.state = state
 		t := time.Now()
 		a.mtime = &t // only update mtime if we're changing state
-		for _, ch := range a.updateChs {
-			ch <- state
-		}
-		a.updateChs = nil
+		close(a.changed)
+		a.changed = make(chan struct{})
 
 		// cancel RPCs if we go into the background
 		switch a.state {
@@ -120,28 +134,29 @@ func (a *MobileAppState) StateAndMtime() (keybase1.MobileAppState, *time.Time) {
 type MobileNetState struct {
 	Contextified
 	sync.Mutex
-	state     keybase1.MobileNetworkState
-	updateChs []chan keybase1.MobileNetworkState
+	state keybase1.MobileNetworkState
+	// changed is closed and replaced whenever state actually changes.
+	changed chan struct{}
 }
 
 func NewMobileNetState(g *GlobalContext) *MobileNetState {
 	return &MobileNetState{
 		Contextified: NewContextified(g),
 		state:        keybase1.MobileNetworkState_NOTAVAILABLE,
+		changed:      make(chan struct{}),
 	}
 }
 
-// NextUpdate returns a channel that triggers when the network state changes
-func (a *MobileNetState) NextUpdate(lastState *keybase1.MobileNetworkState) chan keybase1.MobileNetworkState {
+// NextUpdate returns a channel that will be closed the next time the network
+// state changes. If lastState does not match the current state, an
+// already-closed channel is returned so the caller wakes immediately.
+func (a *MobileNetState) NextUpdate(lastState keybase1.MobileNetworkState) <-chan struct{} {
 	a.Lock()
 	defer a.Unlock()
-	ch := make(chan keybase1.MobileNetworkState, 1)
-	if lastState != nil && *lastState != a.state {
-		ch <- a.state
-	} else {
-		a.updateChs = append(a.updateChs, ch)
+	if lastState != a.state {
+		return alreadyClosed
 	}
-	return ch
+	return a.changed
 }
 
 // Update updates the current network state, and notifies any waiting calls
@@ -154,10 +169,8 @@ func (a *MobileNetState) Update(state keybase1.MobileNetworkState) {
 		a.G().Log.Debug("MobileNetState.Update: useful update: %v, we are currently in state: %v",
 			state, a.state)
 		a.state = state
-		for _, ch := range a.updateChs {
-			ch <- state
-		}
-		a.updateChs = nil
+		close(a.changed)
+		a.changed = make(chan struct{})
 	} else {
 		a.G().Log.Debug("MobileNetState.Update: ignoring update: %v, we are currently in state: %v",
 			state, a.state)
@@ -187,12 +200,14 @@ const (
 type DesktopAppState struct {
 	Contextified
 	sync.Mutex
-	provider         rpc.Transporter
-	suspended        bool
-	locked           bool
-	updateSuspendChs []chan bool
-	wakeWatcherOnce  sync.Once
-	wakeWatcherStop  chan struct{}
+	provider  rpc.Transporter
+	suspended bool
+	locked    bool
+	// suspendChanged is closed and replaced whenever suspended actually
+	// changes; readers wake and re-read Suspended().
+	suspendChanged  chan struct{}
+	wakeWatcherOnce sync.Once
+	wakeWatcherStop chan struct{}
 	// wokeAt is the last time the wake watcher saw the machine come back from
 	// sleep without a corresponding power event (dark wake, lost "suspend"
 	// event, or no GUI connected to send one).
@@ -200,7 +215,11 @@ type DesktopAppState struct {
 }
 
 func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
-	d := &DesktopAppState{Contextified: NewContextified(g), wakeWatcherStop: make(chan struct{})}
+	d := &DesktopAppState{
+		Contextified:    NewContextified(g),
+		suspendChanged:  make(chan struct{}),
+		wakeWatcherStop: make(chan struct{}),
+	}
 	g.PushShutdownHook(func(mctx MetaContext) error {
 		d.Lock()
 		defer d.Unlock()
@@ -249,16 +268,24 @@ func (a *DesktopAppState) wakeWatchLoop() {
 	}
 }
 
-func (a *DesktopAppState) NextSuspendUpdate(lastState *bool) chan bool {
+// NextSuspendUpdate returns a channel that will be closed the next time the
+// suspend state changes. If lastState does not match the current suspend
+// state, an already-closed channel is returned so the caller wakes
+// immediately and can re-fetch via Suspended().
+func (a *DesktopAppState) NextSuspendUpdate(lastState bool) <-chan struct{} {
 	a.Lock()
 	defer a.Unlock()
-	ch := make(chan bool, 1)
-	if lastState != nil && *lastState != a.suspended {
-		ch <- a.suspended
-	} else {
-		a.updateSuspendChs = append(a.updateSuspendChs, ch)
+	if lastState != a.suspended {
+		return alreadyClosed
 	}
-	return ch
+	return a.suspendChanged
+}
+
+// Suspended returns the current suspended state.
+func (a *DesktopAppState) Suspended() bool {
+	a.Lock()
+	defer a.Unlock()
+	return a.suspended
 }
 
 // event from power monitor
@@ -268,6 +295,7 @@ func (a *DesktopAppState) Update(mctx MetaContext, event string, provider rpc.Tr
 	a.Lock()
 	defer a.Unlock()
 	a.provider = provider
+	prevSuspended := a.suspended
 	switch event {
 	case "suspend":
 		a.suspended = true
@@ -284,10 +312,10 @@ func (a *DesktopAppState) Update(mctx MetaContext, event string, provider rpc.Tr
 		a.locked = false
 		a.wokeAt = time.Time{}
 	}
-	for _, ch := range a.updateSuspendChs {
-		ch <- a.suspended
+	if a.suspended != prevSuspended {
+		close(a.suspendChanged)
+		a.suspendChanged = make(chan struct{})
 	}
-	a.updateSuspendChs = nil
 }
 
 func (a *DesktopAppState) Disconnected(provider rpc.Transporter) {
@@ -320,6 +348,11 @@ func (a *DesktopAppState) AwakeAndUnlocked(mctx MetaContext) bool {
 }
 
 func (a *DesktopAppState) resetLocked() {
+	prevSuspended := a.suspended
 	a.suspended = false
 	a.locked = false
+	if prevSuspended {
+		close(a.suspendChanged)
+		a.suspendChanged = make(chan struct{})
+	}
 }

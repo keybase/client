@@ -277,7 +277,8 @@ func (g *gregorHandler) monitorAppState() {
 	for {
 		monitorAction := monitorNoop
 		select {
-		case state = <-g.G().MobileAppState.NextUpdate(&state):
+		case <-g.G().MobileAppState.NextUpdate(state):
+			state = g.G().MobileAppState.State()
 			switch state {
 			case keybase1.MobileAppState_FOREGROUND:
 				g.forcePing(ctx)
@@ -287,7 +288,8 @@ func (g *gregorHandler) monitorAppState() {
 			case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 				monitorAction = monitorDisconnect
 			}
-		case suspended = <-g.G().DesktopAppState.NextSuspendUpdate(&suspended):
+		case <-g.G().DesktopAppState.NextSuspendUpdate(suspended):
+			suspended = g.G().DesktopAppState.Suspended()
 			if !suspended {
 				monitorAction = monitorConnect
 				g.chatLog.Debug(ctx, "resumed, connecting")

@@ -310,14 +310,16 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			attemptSync(ctx)
 		case <-ticker.C:
 			attemptSync(ctx)
-		case appState = <-idx.G().MobileAppState.NextUpdate(&appState):
+		case <-idx.G().MobileAppState.NextUpdate(appState):
+			appState = idx.G().MobileAppState.State()
 			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:
 			// if we enter any state besides foreground cancel any running syncs
 			default:
 				cancelSync()
 			}
-		case netState = <-idx.G().MobileNetState.NextUpdate(&netState):
+		case <-idx.G().MobileNetState.NextUpdate(netState):
+			netState = idx.G().MobileNetState.State()
 			if netState.IsLimited() {
 				// if we switch off of wifi cancel any running syncs
 				cancelSync()

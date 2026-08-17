@@ -978,8 +978,9 @@ func BackgroundSync() string {
 		return s == keybase1.MobileAppState_BACKGROUND
 	})
 	select {
-	case state := <-kbCtx.MobileAppState.NextUpdate(&nextState):
+	case <-kbCtx.MobileAppState.NextUpdate(nextState):
 		// if literally anything happens, let's get out of here
+		state := kbCtx.MobileAppState.State()
 		msg := fmt.Sprintf("bailing out early, appstate change: %v", state)
 		kbCtx.Log.Debug("BackgroundSync: %s", msg)
 		return msg
@@ -1094,7 +1095,8 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	g, ctx = errgroup.WithContext(ctx)
 	g.Go(func() error {
 		select {
-		case appState = <-kbCtx.MobileAppState.NextUpdate(&appState):
+		case <-kbCtx.MobileAppState.NextUpdate(appState):
+			appState = kbCtx.MobileAppState.State()
 			kbCtx.Log.Debug(
 				"AppBeginBackgroundTask: app state change, aborting with no task shutdown: %v", appState)
 			return errors.New("app state change")
