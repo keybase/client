@@ -170,10 +170,13 @@ helpers.rootLinuxNode(env, {
 
     def goChanges = helpers.getChangesForSubdir('go', env)
     def hasGoChanges = goChanges.size() != 0
+    def protocolChanges = helpers.getChangesForSubdir('protocol', env)
+    def hasProtocolChanges = protocolChanges.size() != 0
     def hasJSChanges = helpers.hasChanges('shared', env)
     def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
     def hasKBFSChanges = false
     println "Has go changes: " + hasGoChanges
+    println "Has protocol changes: " + hasProtocolChanges
     println "Has JS changes: " + hasJSChanges
     println "Has Jenkinsfile changes: " + hasJenkinsfileChanges
     def dependencyFiles = [:]
@@ -194,7 +197,7 @@ helpers.rootLinuxNode(env, {
           failFast: true,
           test_linux: {
             def packagesToTest = [:]
-            if (hasGoChanges || hasJenkinsfileChanges) {
+            if (hasProtocolChanges || hasJenkinsfileChanges) {
               // Clean the index first
               sh "git add -A"
               // Install gofumpt and generate protocols with GOPATH/bin in PATH
@@ -210,6 +213,8 @@ helpers.rootLinuxNode(env, {
                 }
                 checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
               }
+            }
+            if (hasGoChanges || hasJenkinsfileChanges) {
               packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
               hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {
