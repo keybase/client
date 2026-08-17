@@ -592,7 +592,8 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
           // The gap above the input lives out here, not as the list's own paddingBottom: the list
           // feeds its padding into every scroll-offset calculation it makes (content size, the end
           // target, the at-end threshold), so keeping it outside the scroller keeps that math on
-          // message sizes alone.
+          // message sizes alone. Deliberately 8 rather than the 16 it used to be — half the gap reads
+          // better with the messages sitting closer to the composer.
           paddingBottom: 8,
         },
       }),
