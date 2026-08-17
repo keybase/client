@@ -198,9 +198,11 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const {scrollToBottom} = React.useContext(ThreadRefsContext)
   const onSubmit = (text: string) => {
     if (!text) return
-    // Clear first and let that land on its own: emptying the composer shrinks it back to one line,
-    // which grows the thread's viewport. Sending in the same tick makes React commit that growth and
-    // the new row together, and the list resolves its end against one moment of the two.
+    // legend-list's own chat example appends and calls scrollToEnd in one go, which works there because
+    // its composer is a single-line input that never resizes the list. Ours is multi-line: clearing it
+    // grows the thread's viewport, and sending in the same tick makes that growth and the new row one
+    // change for the list to resolve its end against. Doing it in their order left every send short —
+    // 8 of 8 at one, two and six lines. So clear first, and let that land before the row arrives.
     injectText('', true)
     requestAnimationFrame(() => {
       sendComposerText(text)

@@ -254,10 +254,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     return false
   }, [])
 
-  // Imperative scroll for ThreadRefsContext: for coming back from somewhere else in the thread. When
-  // the list is already at the end, maintainScrollAtEnd owns that and scrolling here only gets in its
-  // way — the target resolves before the new row has measured, so it lands short, and while it counts
-  // as in flight the list declines its own end anchor and abandons it.
+  // Imperative scroll for ThreadRefsContext: for coming back from somewhere else in the thread, which
+  // is the only case that needs it. While the list is at the end maintainScrollAtEnd owns the position,
+  // and scrolling here only displaces it — the target resolves before the new row has measured, so it
+  // lands short, and while it counts as in flight the list declines its own end anchor and abandons it.
   const scrollToBottom = React.useCallback(() => {
     if (isScrolledToEnd()) return
     void listRef.current?.scrollToEnd({animated: false})
@@ -562,10 +562,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           maintainScrollAtEnd={
             centeredOrdinal !== undefined
               ? false
-              : // layout included deliberately: naming any trigger opts out of every trigger left
-                // unnamed, and without it the thread loses the end whenever this viewport shrinks —
-                // shrinking the window by 200px left it 200px short of the newest message.
-                {on: {dataChange: true, footerLayout: true, itemLayout: true, layout: true}}
+              : // The documented form, which enables every trigger. It was a narrowed {on: {...}} list
+                // before, and naming any trigger opts out of the ones left unnamed — that is how the
+                // layout trigger went missing and a window resize lost the end.
+                true
           }
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
