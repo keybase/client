@@ -27,7 +27,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionRedirector = 1 << 7,
   KBInstallOptionCLI = 1 << 10,
   KBInstallOptionAppBundle = 1 << 11,
-  KBInstallOptionKBNM = 1 << 12,
 };
 
 @interface KBEnvConfig : NSObject
@@ -88,4 +87,3 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 @end
 
 NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue);
-

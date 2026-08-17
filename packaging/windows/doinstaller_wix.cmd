@@ -51,8 +51,6 @@ call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdoka
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\service\upd.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
-:: Browser Extension
-call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 :: prompter
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 :: runquiet utility
@@ -84,12 +82,6 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that Keybase.exe gui is codesigned
 %SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-
-:: Double check that browser extension is codesigned
-%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

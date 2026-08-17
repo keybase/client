@@ -92,7 +92,6 @@ var defaultInstallComponents = []string{
 	install.ComponentNameFuse.String(),
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameKBFS.String(),
-	install.ComponentNameKBNM.String(),
 	install.ComponentNameRedirector.String(),
 }
 
@@ -167,7 +166,6 @@ func exitOnError(result keybase1.InstallResult) {
 var defaultUninstallComponents = []string{
 	install.ComponentNameService.String(),
 	install.ComponentNameKBFS.String(),
-	install.ComponentNameKBNM.String(),
 	install.ComponentNameRedirector.String(),
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameUpdater.String(),

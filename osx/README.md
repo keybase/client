@@ -98,7 +98,6 @@ By default this runs install with the components:
 - `updater`: Updater in launchd
 - `service`: Service in launchd
 - `kbfs`: KBFS in launchd (without mount), needed by chat
-- `kbnm`: Browser native messaging
 
 If Fuse has been installed (via the Folder tab), it will also install/update the following components:
 - `helper`: Helper tool which runs privileged tasks
