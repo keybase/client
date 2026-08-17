@@ -1,0 +1,156 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index fb8bb12..afc2162 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -2333,6 +2333,11 @@ function scrollTo(ctx, params) {
+   }
+   state.scrollPending = targetOffset;
+   syncInitialScrollNativeWatchdog(state, { isInitialScroll, requestedOffset: offset, targetOffset });
++  // A request for the offset the list already holds moves nothing, so no scroll event will arrive
++  // to settle it. Settle it below instead of waiting: while it counts as in flight,
++  // scrollRequestTracker.runNowIfIdle drops every request made behind it, which silently loses the
++  // maintainScrollAtEnd that a newly measured row asks for.
++  const isZeroDistanceScroll = !isInitialScroll && !noScrollingTo && !animated && Math.abs(state.scroll - targetOffset) <= 1;
+   if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
+     if (animated) {
+       if (state.scrollTargetPinnedRange) {
+@@ -2347,6 +2352,9 @@ function scrollTo(ctx, params) {
+   } else {
+     state.scroll = offset;
+   }
++  if (isZeroDistanceScroll) {
++    finishScrollTo(ctx);
++  }
+ }
+ 
+ // src/core/scrollToIndex.ts
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index 454c549..ed83fa1 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -2312,6 +2312,11 @@ function scrollTo(ctx, params) {
+   }
+   state.scrollPending = targetOffset;
+   syncInitialScrollNativeWatchdog(state, { isInitialScroll, requestedOffset: offset, targetOffset });
++  // A request for the offset the list already holds moves nothing, so no scroll event will arrive
++  // to settle it. Settle it below instead of waiting: while it counts as in flight,
++  // scrollRequestTracker.runNowIfIdle drops every request made behind it, which silently loses the
++  // maintainScrollAtEnd that a newly measured row asks for.
++  const isZeroDistanceScroll = !isInitialScroll && !noScrollingTo && !animated && Math.abs(state.scroll - targetOffset) <= 1;
+   if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
+     if (animated) {
+       if (state.scrollTargetPinnedRange) {
+@@ -2326,6 +2331,9 @@ function scrollTo(ctx, params) {
+   } else {
+     state.scroll = offset;
+   }
++  if (isZeroDistanceScroll) {
++    finishScrollTo(ctx);
++  }
+ }
+ 
+ // src/core/scrollToIndex.ts
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 1ae6f6b..9a52d66 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -2177,6 +2177,11 @@ function scrollTo(ctx, params) {
+   }
+   state.scrollPending = targetOffset;
+   syncInitialScrollNativeWatchdog(state, { isInitialScroll, requestedOffset: offset, targetOffset });
++  // A request for the offset the list already holds moves nothing, so no scroll event will arrive
++  // to settle it. Settle it below instead of waiting: while it counts as in flight,
++  // scrollRequestTracker.runNowIfIdle drops every request made behind it, which silently loses the
++  // maintainScrollAtEnd that a newly measured row asks for.
++  const isZeroDistanceScroll = !isInitialScroll && !noScrollingTo && !animated && Math.abs(state.scroll - targetOffset) <= 1;
+   if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
+     if (animated) {
+       if (state.scrollTargetPinnedRange) {
+@@ -2191,6 +2196,9 @@ function scrollTo(ctx, params) {
+   } else {
+     state.scroll = offset;
+   }
++  if (isZeroDistanceScroll) {
++    finishScrollTo(ctx);
++  }
+ }
+ 
+ // src/core/scrollToIndex.ts
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index ebeced7..8205bfe 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -2156,6 +2156,11 @@ function scrollTo(ctx, params) {
+   }
+   state.scrollPending = targetOffset;
+   syncInitialScrollNativeWatchdog(state, { isInitialScroll, requestedOffset: offset, targetOffset });
++  // A request for the offset the list already holds moves nothing, so no scroll event will arrive
++  // to settle it. Settle it below instead of waiting: while it counts as in flight,
++  // scrollRequestTracker.runNowIfIdle drops every request made behind it, which silently loses the
++  // maintainScrollAtEnd that a newly measured row asks for.
++  const isZeroDistanceScroll = !isInitialScroll && !noScrollingTo && !animated && Math.abs(state.scroll - targetOffset) <= 1;
+   if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
+     if (animated) {
+       if (state.scrollTargetPinnedRange) {
+@@ -2170,6 +2175,9 @@ function scrollTo(ctx, params) {
+   } else {
+     state.scroll = offset;
+   }
++  if (isZeroDistanceScroll) {
++    finishScrollTo(ctx);
++  }
+ }
+ 
+ // src/core/scrollToIndex.ts
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 1ae6f6b..9a52d66 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -2177,6 +2177,11 @@ function scrollTo(ctx, params) {
+   }
+   state.scrollPending = targetOffset;
+   syncInitialScrollNativeWatchdog(state, { isInitialScroll, requestedOffset: offset, targetOffset });
++  // A request for the offset the list already holds moves nothing, so no scroll event will arrive
++  // to settle it. Settle it below instead of waiting: while it counts as in flight,
++  // scrollRequestTracker.runNowIfIdle drops every request made behind it, which silently loses the
++  // maintainScrollAtEnd that a newly measured row asks for.
++  const isZeroDistanceScroll = !isInitialScroll && !noScrollingTo && !animated && Math.abs(state.scroll - targetOffset) <= 1;
+   if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
+     if (animated) {
+       if (state.scrollTargetPinnedRange) {
+@@ -2191,6 +2196,9 @@ function scrollTo(ctx, params) {
+   } else {
+     state.scroll = offset;
+   }
++  if (isZeroDistanceScroll) {
++    finishScrollTo(ctx);
++  }
+ }
+ 
+ // src/core/scrollToIndex.ts
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index ebeced7..8205bfe 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -2156,6 +2156,11 @@ function scrollTo(ctx, params) {
+   }
+   state.scrollPending = targetOffset;
+   syncInitialScrollNativeWatchdog(state, { isInitialScroll, requestedOffset: offset, targetOffset });
++  // A request for the offset the list already holds moves nothing, so no scroll event will arrive
++  // to settle it. Settle it below instead of waiting: while it counts as in flight,
++  // scrollRequestTracker.runNowIfIdle drops every request made behind it, which silently loses the
++  // maintainScrollAtEnd that a newly measured row asks for.
++  const isZeroDistanceScroll = !isInitialScroll && !noScrollingTo && !animated && Math.abs(state.scroll - targetOffset) <= 1;
+   if (!isInitialScroll && !noScrollingTo && Math.abs(state.scroll - targetOffset) > 1) {
+     if (animated) {
+       if (state.scrollTargetPinnedRange) {
+@@ -2170,6 +2175,9 @@ function scrollTo(ctx, params) {
+   } else {
+     state.scroll = offset;
+   }
++  if (isZeroDistanceScroll) {
++    finishScrollTo(ctx);
++  }
+ }
+ 
+ // src/core/scrollToIndex.ts

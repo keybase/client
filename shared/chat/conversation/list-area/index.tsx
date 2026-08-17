@@ -565,6 +565,11 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
         isElectron: {
           ...Kb.Styles.globalStyles.fillAbsolute,
           overflow: 'hidden',
+          // The gap above the input lives out here, not as the list's own paddingBottom: the list
+          // feeds its padding into every scroll-offset calculation it makes (content size, the end
+          // target, the at-end threshold), so keeping it outside the scroller keeps that math on
+          // message sizes alone.
+          paddingBottom: 16,
         },
       }),
       list: Kb.Styles.platformStyles({
@@ -573,7 +578,6 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
           outline: 'none',
           overflowY: 'auto',
           overscrollBehavior: 'contain',
-          paddingBottom: 16,
           scrollbarGutter: 'stable',
           willChange: 'transform',
         },
