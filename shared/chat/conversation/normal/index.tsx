@@ -47,6 +47,58 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
+// Keeps the composer out of the column's height arithmetic: it reserves the height it has when empty
+// and grows upward over the thread from there, so typing a long message no longer resizes the list.
+// The reserve is measured rather than hardcoded because the resting composer is not a fixed height,
+// and it tracks the smallest height seen since the last window resize — the composer is empty when a
+// conversation opens, so the first measurement is already the right one.
+const BottomInput = function BottomInput() {
+  const styles = useDesktopStyles()
+  const [reserved, setReserved] = React.useState<number | undefined>(undefined)
+  const innerRef = React.useRef<Kb.MeasureRef | null>(null)
+  React.useLayoutEffect(() => {
+    type ElLike = {getBoundingClientRect: () => {height: number}}
+    const el = innerRef.current as ElLike | null
+    if (!el) {
+      return
+    }
+    const measure = () => {
+      const {height} = el.getBoundingClientRect()
+      if (height > 0) {
+        setReserved(prev => (prev === undefined ? height : Math.min(prev, height)))
+      }
+    }
+    measure()
+    const g = globalThis as unknown as {
+      ResizeObserver?: new (cb: () => void) => {observe: (t: unknown) => void; disconnect: () => void}
+      addEventListener?: (t: string, cb: () => void) => void
+      removeEventListener?: (t: string, cb: () => void) => void
+    }
+    const observer = g.ResizeObserver ? new g.ResizeObserver(measure) : undefined
+    observer?.observe(el)
+    // A narrower window can leave the composer legitimately taller at rest, so start the minimum over.
+    const onResize = () => setReserved(undefined)
+    g.addEventListener?.('resize', onResize)
+    return () => {
+      observer?.disconnect()
+      g.removeEventListener?.('resize', onResize)
+    }
+  }, [])
+
+  return (
+    <div style={Kb.Styles.castStyleDesktop(reserved === undefined ? undefined : {height: reserved})}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        ref={innerRef}
+        style={reserved === undefined ? styles.inputInFlow : styles.inputAnchored}
+      >
+        <InputArea />
+      </Kb.Box2>
+    </div>
+  )
+}
+
 const DesktopConversation = function DesktopConversation() {
   const desktopStyles = useDesktopStyles()
   const conversationIDKey = useConversationThreadID()
@@ -110,7 +162,7 @@ const DesktopConversation = function DesktopConversation() {
           </Kb.Box2>
           <InvitationToBlock />
           <Banner />
-          <InputArea />
+          <BottomInput />
         </Kb.DragAndDrop>
       </div>
     </PerfProfiler>
@@ -192,13 +244,24 @@ const NativeConversation = function NativeConversation() {
 }
 
 const useDesktopStyles = Kb.Styles.createStyleHook(
-  () =>
+  theme =>
     ({
       container: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
         position: 'relative',
       },
+      // Anchored to the bottom of the reserve its wrapper holds open, so extra lines extend upward
+      // over the thread instead of pushing the list shorter. Opaque so messages don't show through.
+      inputAnchored: {
+        backgroundColor: theme.white,
+        bottom: 0,
+        left: 0,
+        position: 'absolute' as const,
+        right: 0,
+      },
+      // Only until the first measurement lands, so the wrapper has something to measure.
+      inputInFlow: {},
       overlayTop: {
         left: 0,
         position: 'absolute' as const,

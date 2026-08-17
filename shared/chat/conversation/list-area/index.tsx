@@ -546,7 +546,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           maintainScrollAtEnd={
             centeredOrdinal !== undefined
               ? false
-              : {on: {dataChange: true, footerLayout: true, itemLayout: true}}
+              : // layout included deliberately: naming any trigger opts out of every trigger left
+                // unnamed, and without it the thread loses the end whenever this viewport shrinks —
+                // shrinking the window by 200px left it 200px short of the newest message.
+                {on: {dataChange: true, footerLayout: true, itemLayout: true, layout: true}}
           }
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
