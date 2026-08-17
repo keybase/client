@@ -705,6 +705,96 @@ func (s *HybridInboxSource) flushMarkAsRead(ctx context.Context) {
 	}
 }
 
+type markAsReadOutboxBatchItem struct {
+	item      chat1.MarkAsReadItem
+	recordIDs []chat1.OutboxID
+}
+
+func (s *HybridInboxSource) removeMarkAsReadBatchItem(ctx context.Context,
+	batchItem markAsReadOutboxBatchItem,
+) {
+	for _, recordID := range batchItem.recordIDs {
+		if err := s.readOutbox.RemoveRecord(ctx, recordID); err != nil {
+			s.Debug(ctx, "removeMarkAsReadBatchItem: failed to remove record: %s", err)
+		}
+	}
+}
+
+func makeMarkAsReadOutboxBatches(recs []storage.ReadOutboxRecord,
+	maxBatchSize int,
+) [][]markAsReadOutboxBatchItem {
+	// The remote endpoint also rejects duplicate conversations. Preserve the
+	// existing single-item delivery semantics when coalescing them here.
+	items := make([]markAsReadOutboxBatchItem, 0, len(recs))
+	itemIndexes := make(map[chat1.ConvIDStr]int, len(recs))
+	for _, rec := range recs {
+		key := rec.ConvID.ConvIDStr()
+		if index, found := itemIndexes[key]; found {
+			batchItem := &items[index]
+			batchItem.recordIDs = append(batchItem.recordIDs, rec.ID)
+			if rec.ForceUnread || rec.MsgID >= batchItem.item.MsgID {
+				batchItem.item.MsgID = rec.MsgID
+				batchItem.item.ForceUnread = rec.ForceUnread
+			}
+			continue
+		}
+		itemIndexes[key] = len(items)
+		items = append(items, markAsReadOutboxBatchItem{
+			item: chat1.MarkAsReadItem{
+				ConversationID: rec.ConvID,
+				MsgID:          rec.MsgID,
+				ForceUnread:    rec.ForceUnread,
+			},
+			recordIDs: []chat1.OutboxID{rec.ID},
+		})
+	}
+
+	var batches [][]markAsReadOutboxBatchItem
+	for len(items) > 0 {
+		batchSize := min(len(items), maxBatchSize)
+		batches = append(batches, items[:batchSize])
+		items = items[batchSize:]
+	}
+	return batches
+}
+
+func (s *HybridInboxSource) deliverMarkAsReadBatch(ctx context.Context,
+	batch []markAsReadOutboxBatchItem,
+) error {
+	items := make([]chat1.MarkAsReadItem, len(batch))
+	for i, batchItem := range batch {
+		items[i] = batchItem.item
+	}
+	res, err := s.getChatInterface().MarkAsReadBatch(ctx, items)
+	if err != nil {
+		return err
+	}
+	if len(res.Results) != len(batch) {
+		return fmt.Errorf("mark as read batch returned %d results for %d items", len(res.Results), len(batch))
+	}
+	// Results are positional. Validate the complete response before removing any
+	// durable records so a malformed response cannot acknowledge the wrong read.
+	for i, itemRes := range res.Results {
+		if !itemRes.ConversationID.Eq(batch[i].item.ConversationID) {
+			return fmt.Errorf("mark as read batch result conversation mismatch at index %d", i)
+		}
+	}
+
+	for i, itemRes := range res.Results {
+		if itemRes.Error != nil {
+			s.Debug(ctx, "deliverMarkAsReadBatch: failed to mark as read: convID: %s msgID: %s forceUnread: %v err: %s",
+				batch[i].item.ConversationID, batch[i].item.MsgID, batch[i].item.ForceUnread, *itemRes.Error)
+			if itemRes.ImmediateFail {
+				s.Debug(ctx, "deliverMarkAsReadBatch: error is an immediate failure, not retrying")
+				s.removeMarkAsReadBatchItem(ctx, batch[i])
+			}
+			continue
+		}
+		s.removeMarkAsReadBatchItem(ctx, batch[i])
+	}
+	return nil
+}
+
 func (s *HybridInboxSource) markAsReadDeliver(ctx context.Context) (err error) {
 	defer func() {
 		if err != nil {
@@ -715,29 +805,9 @@ func (s *HybridInboxSource) markAsReadDeliver(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	for _, rec := range recs {
-		shouldRemove := false
-		if _, err := s.getChatInterface().MarkAsRead(ctx, chat1.MarkAsReadArg{
-			ConversationID: rec.ConvID,
-			MsgID:          rec.MsgID,
-			ForceUnread:    rec.ForceUnread,
-		}); err != nil {
-			s.Debug(ctx, "markAsReadDeliver: failed to mark as read: convID: %s msgID: %s forceUnread: %v err: %s",
-				rec.ConvID, rec.MsgID, rec.ForceUnread, err)
-			// check for an immediate failure from the server, and get the attempt out if it fails
-			if berr, ok := err.(DelivererInfoError); ok {
-				if _, ok := berr.IsImmediateFail(); ok {
-					s.Debug(ctx, "markAsReadDeliver: error is an immediate failure, not retrying")
-					shouldRemove = true
-				}
-			}
-		} else {
-			shouldRemove = true
-		}
-		if shouldRemove {
-			if err := s.readOutbox.RemoveRecord(ctx, rec.ID); err != nil {
-				s.Debug(ctx, "markAsReadDeliver: failed to remove record: %s", err)
-			}
+	for _, batch := range makeMarkAsReadOutboxBatches(recs, chat1.MaxMarkAsReadBatchItems) {
+		if err := s.deliverMarkAsReadBatch(ctx, batch); err != nil {
+			return err
 		}
 	}
 	return nil

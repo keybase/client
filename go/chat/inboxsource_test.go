@@ -70,6 +70,53 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
 
+func TestMakeMarkAsReadOutboxBatches(t *testing.T) {
+	makeRecord := func(convNum, msgID int, forceUnread bool) storage.ReadOutboxRecord {
+		convID, err := chat1.MakeConvID(fmt.Sprintf("%032x", convNum))
+		require.NoError(t, err)
+		outboxID, err := storage.NewOutboxID()
+		require.NoError(t, err)
+		return storage.ReadOutboxRecord{
+			ID:          outboxID,
+			ConvID:      convID,
+			MsgID:       chat1.MessageID(msgID),
+			ForceUnread: forceUnread,
+		}
+	}
+
+	recs := []storage.ReadOutboxRecord{
+		makeRecord(1, 5, false),
+		makeRecord(1, 3, false), // Do not replace a further read with a shallower read.
+		makeRecord(1, 2, true),  // Force-unread is last-write-wins.
+		makeRecord(1, 1, false), // Preserve the further force-unread.
+		makeRecord(1, 4, false), // A later, further read replaces it.
+		makeRecord(2, 7, false),
+		makeRecord(3, 6, true), // A later equal read overrides force-unread.
+		makeRecord(3, 6, false),
+	}
+	batches := makeMarkAsReadOutboxBatches(recs, len(recs))
+	require.Len(t, batches, 1)
+	require.Len(t, batches[0], 3)
+	require.Equal(t, chat1.MessageID(4), batches[0][0].item.MsgID)
+	require.False(t, batches[0][0].item.ForceUnread)
+	require.Len(t, batches[0][0].recordIDs, 5)
+	require.Equal(t, chat1.MessageID(7), batches[0][1].item.MsgID)
+	require.Equal(t, chat1.MessageID(6), batches[0][2].item.MsgID)
+	require.False(t, batches[0][2].item.ForceUnread)
+	require.Len(t, batches[0][2].recordIDs, 2)
+
+	const testBatchSize = 2
+	recs = []storage.ReadOutboxRecord{
+		makeRecord(1, 1, false),
+		makeRecord(2, 2, false),
+		makeRecord(3, 3, false),
+	}
+	batches = makeMarkAsReadOutboxBatches(recs, testBatchSize)
+	require.Len(t, batches, 2)
+	require.Len(t, batches[0], testBatchSize)
+	require.Len(t, batches[1], 1)
+}
+
 // Test that when an update is received that is more than 1 ahead of the current inbox version,
 // a complete sync of the inbox occurs.
 func TestInboxSourceSkipAhead(t *testing.T) {

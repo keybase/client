@@ -1736,6 +1736,20 @@ func TestChatSrvGetThreadLocalMarkAsRead(t *testing.T) {
 			}
 		}
 		require.True(t, found)
+
+		// runWithMemberTypes uses a real Gregor server connection. Verify that the
+		// read outbox's batch RPC reached the server instead of only checking the
+		// optimistic local inbox update.
+		expectedReadMsgID := tv.Thread.Messages[0].GetMessageID()
+		require.Eventually(t, func() bool {
+			remoteInbox, err := ctc.as(t, users[0]).ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+				Query: &chat1.GetInboxQuery{ConvID: &withUser1.Id},
+			})
+			if err != nil || len(remoteInbox.Inbox.Full().Conversations) != 1 {
+				return false
+			}
+			return remoteInbox.Inbox.Full().Conversations[0].ReaderInfo.ReadMsgid == expectedReadMsgID
+		}, 10*time.Second, 100*time.Millisecond)
 	})
 }
 

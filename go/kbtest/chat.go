@@ -820,19 +820,8 @@ func (m *ChatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg
 	return res, nil
 }
 
-func (m *ChatRemoteMock) MarkAsReadBatch(ctx context.Context, items []chat1.MarkAsReadItem) (res chat1.MarkAsReadBatchRes, err error) {
-	for _, item := range items {
-		result := chat1.MarkAsReadItemResult{ConversationID: item.ConversationID}
-		conv := m.world.GetConversationByID(item.ConversationID)
-		if conv == nil {
-			errString := "conversation not found"
-			result.Error = &errString
-		} else {
-			m.readMsgid[conv.Metadata.ConversationID.ConvIDStr()] = item.MsgID
-		}
-		res.Results = append(res.Results, result)
-	}
-	return res, nil
+func (m *ChatRemoteMock) MarkAsReadBatch(context.Context, []chat1.MarkAsReadItem) (chat1.MarkAsReadBatchRes, error) {
+	return chat1.MarkAsReadBatchRes{}, errors.New("MarkAsReadBatch is not supported by ChatRemoteMock; use the real server")
 }
 
 func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.SetConversationStatusArg) (res chat1.SetConversationStatusRes, err error) {
