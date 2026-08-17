@@ -527,7 +527,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 
 	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
-	require.Equal(t, 2, after.Generation(), "after member remove: team generation: %d, expected 2", after.Generation())
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "after member remove: team generation: %d, expected 2", after.Generation())
 
 	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
