@@ -198,8 +198,13 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const {scrollToBottom} = React.useContext(ThreadRefsContext)
   const onSubmit = (text: string) => {
     if (!text) return
+    // Clear first and let that land on its own: emptying the composer shrinks it back to one line,
+    // which grows the thread's viewport. Sending in the same tick makes React commit that growth and
+    // the new row together, and the list resolves its end against one moment of the two.
     injectText('', true)
-    sendComposerText(text)
+    requestAnimationFrame(() => {
+      sendComposerText(text)
+    })
     if (hasCenter) {
       toggleThreadSearch(true)
       jumpToRecent()
