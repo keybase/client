@@ -239,6 +239,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   // Imperative scroll for ThreadRefsContext
   const scrollToBottom = React.useCallback(() => {
+    // Already at the end (the common case when sending): leave it to maintainScrollAtEnd. Scrolling
+    // here loses the race in both directions — the target resolves before the new row has measured,
+    // so it lands one row short, and while it counts as in flight the list declines its own end
+    // anchor and abandons it, so nothing follows the row once it does measure.
+    if (listRef.current?.getState().isAtEnd) return
     void listRef.current?.scrollToEnd({animated: false})
   }, [])
 
