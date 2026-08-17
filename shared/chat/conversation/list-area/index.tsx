@@ -557,6 +557,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           drawDistance={250}
           estimatedItemSize={72}
           style={Kb.Styles.castStyleDesktop(desktopStyles.list)}
+          // Short threads sit at the bottom rather than the top. Inert once the content is taller than
+          // the viewport: the padding it adds is max(0, viewport - content).
+          alignItemsAtEnd={true}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
           maintainScrollAtEnd={
