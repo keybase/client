@@ -131,7 +131,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	// get the before state of the team
 	before, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, teamName.String())
 	require.NoError(t, err)
-	require.Equal(t, 1, before.Generation(), "generation before rotate: %d, expected 1", before.Generation())
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), before.Generation(), "generation before rotate: %d, expected 1", before.Generation())
 	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 
 	// User1 should get a gregor that the team he was just added to changed.
@@ -146,7 +146,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	// check that key was rotated for team
 	after, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, teamName.String())
 	require.NoError(t, err)
-	require.Equal(t, 2, after.Generation(), "generation after rotate: %d, expected 2", after.Generation())
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "generation after rotate: %d, expected 2", after.Generation())
 	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 	require.False(t, libkb.SecureByteArrayEq(secretAfter, secretBefore),
 		"team secret did not change when rotated")
