@@ -1299,6 +1299,11 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 	}
 
 	timerChan := timer.C
+	// Subscribe once per state transition; NextAppStateUpdate leaks channels
+	// into MobileAppState.updateChs when called each iteration and the state
+	// never changes (e.g. on servers).
+	state := keybase1.MobileAppState_FOREGROUND
+	appStateCh := fbm.appStateUpdater.NextAppStateUpdate(&state)
 	for {
 		// Don't let the timer fire if auto-reclamation is turned off.
 		if !autoQR ||
@@ -1308,15 +1313,16 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			timerChan = make(chan time.Time)
 		}
 
-		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.shutdownChan:
 			return
-		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
+		case state = <-appStateCh:
+			appStateCh = fbm.appStateUpdater.NextAppStateUpdate(&state)
 			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", state)
-				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
+				state = <-appStateCh
+				appStateCh = fbm.appStateUpdater.NextAppStateUpdate(&state)
 			}
 			fbm.log.CDebugf(
 				context.Background(), "Resuming QR while foregrounded")
@@ -1577,20 +1583,26 @@ func (fbm *folderBlockManager) doCleanDiskCaches() (err error) {
 }
 
 func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
+	// Subscribe once per state transition; NextAppStateUpdate leaks channels
+	// into MobileAppState.updateChs when called each iteration and the state
+	// never changes (e.g. on servers).
+	state := keybase1.MobileAppState_FOREGROUND
+	appStateCh := fbm.appStateUpdater.NextAppStateUpdate(&state)
 	// While in the foreground, clean the disk caches every time we learn about
 	// a newer latest merged revision for this TLF.
 	for {
-		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.latestMergedChan:
 		case <-fbm.shutdownChan:
 			return
-		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
+		case state = <-appStateCh:
+			appStateCh = fbm.appStateUpdater.NextAppStateUpdate(&state)
 			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing sync-cache cleaning while not foregrounded: "+
 						"state=%s", state)
-				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
+				state = <-appStateCh
+				appStateCh = fbm.appStateUpdater.NextAppStateUpdate(&state)
 			}
 			fbm.log.CDebugf(context.Background(),
 				"Resuming sync-cache cleaning while foregrounded")
