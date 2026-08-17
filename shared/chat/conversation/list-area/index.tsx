@@ -139,6 +139,8 @@ const usePagination = (p: {
 }
 
 const centerTolerancePx = 8
+// A scroller within this many pixels of its end reads as at the end.
+const endTolerancePx = 2
 
 // When a centeredOrdinal is set at mount, start there; otherwise start at the end (newest).
 const useInitialScrollIndex = (
@@ -237,15 +239,55 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const getItemType = useGetItemType()
 
+  // Closed loop, not one shot. Sending collapses the composer and appends a row in the same frame, so
+  // the viewport grows while the content does, and the row only reaches its real height once it has
+  // measured. Any single scroll resolves its target against one moment of that and lands short — a
+  // four-line message landed 78px short. Re-aim until the scroller sits at its end and holds there,
+  // then stop so maintainScrollAtEnd owns the position again.
+  const stickLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
+  const abortStickToEnd = React.useCallback(() => {
+    if (stickLoopRef.current) stickLoopRef.current.cancelled = true
+  }, [])
+  React.useEffect(() => abortStickToEnd, [abortStickToEnd])
+
+  // Read the scroller itself rather than the list's own isAtEnd: that flag comes from the content size
+  // and viewport the list has recorded, both of which lag a composer collapse and a fresh row's
+  // measurement, so it reports at-end while the scroller is still short and the loop below would stop
+  // one composer's worth of pixels early.
+  const readDistanceFromEnd = React.useCallback(() => {
+    type ElLike = {children: ArrayLike<ElLike>; clientHeight: number; scrollHeight: number; scrollTop: number}
+    const wrapper = wrapperRef.current as unknown as ElLike | null
+    if (!wrapper) return undefined
+    for (const child of Array.from(wrapper.children)) {
+      if (child.scrollHeight - child.clientHeight > 1) {
+        return child.scrollHeight - child.clientHeight - child.scrollTop
+      }
+    }
+    return undefined
+  }, [])
+
   // Imperative scroll for ThreadRefsContext
   const scrollToBottom = React.useCallback(() => {
-    // Already at the end (the common case when sending): leave it to maintainScrollAtEnd. Scrolling
-    // here loses the race in both directions — the target resolves before the new row has measured,
-    // so it lands one row short, and while it counts as in flight the list declines its own end
-    // anchor and abandons it, so nothing follows the row once it does measure.
-    if (listRef.current?.getState().isAtEnd) return
-    void listRef.current?.scrollToEnd({animated: false})
-  }, [])
+    abortStickToEnd()
+    const loop = {cancelled: false}
+    stickLoopRef.current = loop
+    const run = async () => {
+      let settled = 0
+      for (let elapsed = 0; elapsed < 1500 && !loop.cancelled; elapsed += 50) {
+        const distance = readDistanceFromEnd()
+        if (distance === undefined) return
+        if (distance <= endTolerancePx) {
+          // One reading can land in the frame before the composer collapses, so require two.
+          if (++settled >= 2) return
+        } else {
+          settled = 0
+          void listRef.current?.scrollToEnd({animated: false})
+        }
+        await new Promise<void>(resolve => setTimeout(resolve, 50))
+      }
+    }
+    void run()
+  }, [abortStickToEnd, readDistanceFromEnd])
 
   const scrollUp = React.useCallback(() => {
     const state = listRef.current?.getState()
@@ -515,7 +557,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   // they landed.
   const onWheel = React.useCallback(() => {
     abortCentering()
-  }, [abortCentering])
+    abortStickToEnd()
+  }, [abortCentering, abortStickToEnd])
 
   return (
     <Kb.ErrorBoundary>
