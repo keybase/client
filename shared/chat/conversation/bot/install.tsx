@@ -540,10 +540,13 @@ const InstallBotPopup = (props: Props) => {
           setInstallWithCommands(settings.cmds)
           setInstallWithMentions(settings.mentions)
           // Drop convs the team no longer has (deleted channels linger in the
-          // server-side bot settings); don't filter while the list is still loading
-          // or we'd save away channels we simply haven't seen yet.
+          // server-side bot settings). An empty convs list means 'every channel' on
+          // the wire, so never let filtering produce one: if the channel list hasn't
+          // loaded, failed, or came back empty we'd otherwise save away the
+          // restriction entirely and hand the bot the whole team.
           const convs = settings.convs ?? []
-          setInstallInConvs(loadingChannels ? convs : convs.filter(c => channelMetas.has(c)))
+          const known = convs.filter(c => channelMetas.has(c))
+          setInstallInConvs(!loadingChannels && known.length > 0 ? known : convs)
         }
         setInstallScreen(true)
       }}
@@ -719,9 +722,11 @@ type PermsListProps = {
 
 const PermsList = (props: PermsListProps) => {
   const {channelMetas, commands, loadingChannels, settings, username} = props
+  const convs = settings?.convs ?? []
   // convs can name channels that were deleted, which have no meta and would
-  // otherwise render as a bare '#'
-  const convs = (settings?.convs ?? []).filter(convID => channelMetas?.has(convID))
+  // otherwise render as a bare '#'. An empty convs list is a real state (the bot
+  // reads every channel), so it must stay distinguishable from 'nothing resolved'.
+  const knownConvs = convs.filter(convID => channelMetas?.has(convID))
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
@@ -741,14 +746,22 @@ const PermsList = (props: PermsListProps) => {
               <Kb.Text type="Body">{`• messages it has been mentioned in with @${username}`}</Kb.Text>
             )}
           </Kb.Box2>
-          {!loadingChannels && convs.length > 0 && (
+          {convs.length > 0 && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
-              {convs.map(convID => (
-                <Kb.Text type="Body" key={convID}>{`• #${
-                  channelMetas?.get(convID)?.channelname ?? ''
-                }`}</Kb.Text>
-              ))}
+              {loadingChannels ? (
+                <Kb.ProgressIndicator />
+              ) : knownConvs.length > 0 ? (
+                knownConvs.map(convID => (
+                  <Kb.Text type="Body" key={convID}>{`• #${
+                    channelMetas?.get(convID)?.channelname ?? ''
+                  }`}</Kb.Text>
+                ))
+              ) : (
+                <Kb.Text type="Body">{`• ${convs.length} channel${
+                  convs.length === 1 ? '' : 's'
+                } you don't have access to`}</Kb.Text>
+              )}
             </Kb.Box2>
           )}
         </Kb.Box2>
