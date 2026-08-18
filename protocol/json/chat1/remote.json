@@ -333,6 +333,10 @@
             "string"
           ],
           "name": "error"
+        },
+        {
+          "type": "boolean",
+          "name": "immediateFail"
         }
       ]
     },

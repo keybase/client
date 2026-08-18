@@ -164,6 +164,7 @@ protocol remote {
   record MarkAsReadItemResult {
     ConversationID conversationID;
     union { null, string } error;
+    boolean immediateFail;
   }
 
   record MarkAsReadBatchRes {
