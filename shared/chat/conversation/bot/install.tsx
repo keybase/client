@@ -200,7 +200,7 @@ const InstallBotPopup = (props: Props) => {
     teamname = meta.teamname
   }
 
-  const {channelMetas} = useAllChannelMetas(teamID)
+  const {channelMetas, loadingChannels} = useAllChannelMetas(teamID)
   const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const mutationError = C.Waiting.useAnyErrors(C.waitingKeyChatBotAdd)
@@ -357,6 +357,7 @@ const InstallBotPopup = (props: Props) => {
         <PermsList
           channelMetas={channelMetas}
           commands={commands}
+          loadingChannels={loadingChannels}
           settings={settings}
           username={botUsername}
         />
@@ -377,6 +378,7 @@ const InstallBotPopup = (props: Props) => {
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
           channelMetas={channelMetas}
+          loadingChannels={loadingChannels}
           settings={settings}
           commands={commands}
           username={botUsername}
@@ -537,7 +539,11 @@ const InstallBotPopup = (props: Props) => {
         if (settings) {
           setInstallWithCommands(settings.cmds)
           setInstallWithMentions(settings.mentions)
-          setInstallInConvs(settings.convs ?? [])
+          // Drop convs the team no longer has (deleted channels linger in the
+          // server-side bot settings); don't filter while the list is still loading
+          // or we'd save away channels we simply haven't seen yet.
+          const convs = settings.convs ?? []
+          setInstallInConvs(loadingChannels ? convs : convs.filter(c => channelMetas.has(c)))
         }
         setInstallScreen(true)
       }}
@@ -706,36 +712,41 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 type PermsListProps = {
   channelMetas?: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   commands: T.Chat.BotPublicCommands | undefined
+  loadingChannels?: boolean
   settings?: T.RPCGen.TeamBotSettings
   username: string
 }
 
 const PermsList = (props: PermsListProps) => {
+  const {channelMetas, commands, loadingChannels, settings, username} = props
+  // convs can name channels that were deleted, which have no meta and would
+  // otherwise render as a bare '#'
+  const convs = (settings?.convs ?? []).filter(convID => channelMetas?.has(convID))
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
-      {props.settings ? (
+      {settings ? (
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            {!(props.settings.cmds || props.settings.mentions) && (
+            {!(settings.cmds || settings.mentions) && (
               <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
             )}
-            {props.settings.cmds && (
+            {settings.cmds && (
               <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
                 <Kb.Text type="Body">{'•'}</Kb.Text>
-                <CommandsLabel commands={props.commands} />
+                <CommandsLabel commands={commands} />
               </Kb.Box2>
             )}
-            {props.settings.mentions && (
-              <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
+            {settings.mentions && (
+              <Kb.Text type="Body">{`• messages it has been mentioned in with @${username}`}</Kb.Text>
             )}
           </Kb.Box2>
-          {props.settings.convs && props.channelMetas && (
+          {!loadingChannels && convs.length > 0 && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
-              {props.settings.convs.map(convID => (
+              {convs.map(convID => (
                 <Kb.Text type="Body" key={convID}>{`• #${
-                  props.channelMetas?.get(convID)?.channelname ?? ''
+                  channelMetas?.get(convID)?.channelname ?? ''
                 }`}</Kb.Text>
               ))}
             </Kb.Box2>
