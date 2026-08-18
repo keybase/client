@@ -12,6 +12,9 @@ import {
   useConversationThreadMessageActions,
 } from '../thread-context'
 
+// A raised hover bar stops this far above the scroller's bottom edge instead of flush against it.
+const edgeClearance = 2
+
 type OwnProps = {
   className?: string
   hasUnfurls: boolean
@@ -74,7 +77,6 @@ function EmojiRowContainer(p: OwnProps) {
   // on every pointer re-entry into the row. Typed structurally since the native tsconfig has no
   // DOM lib; on desktop Box2's MeasureRef is the backing div.
   const [raiseBy, setRaiseBy] = React.useState(0)
-  const raiseByRef = React.useRef(0)
   React.useLayoutEffect(() => {
     if (isMobile || !keepWithinList) {
       return
@@ -83,12 +85,33 @@ function EmojiRowContainer(p: OwnProps) {
       addEventListener: (t: string, cb: () => void) => void
       removeEventListener: (t: string, cb: () => void) => void
       getBoundingClientRect: () => {bottom: number; height: number}
+      parentElement: ElLike | null
     }
     const el = popupAnchor.current as null | (ElLike & {closest?: (sel: string) => ElLike | null})
     const row = el?.closest?.('.WrapperMessage-hoverBox')
-    const list = el?.closest?.('.chat-message-list')
+    const outer = el?.closest?.('.chat-message-list')
+    // Measure against the scroller, not the outer box: the gap above the input area is padding on
+    // the outer box, so the scroller ends above it and clips a bar the outer box still had room
+    // for. The scroller is the one ancestor sitting directly inside the outer box — don't look for
+    // "nearest scrollable ancestor", every row container reports as one.
+    let list = outer
+    for (let node = el?.parentElement; node; node = node.parentElement) {
+      if (node.parentElement === outer) {
+        list = node
+        break
+      }
+    }
     if (!el || !row || !list) {
       return
+    }
+    // Read back the raise the DOM is actually carrying rather than the one we last asked for: the two
+    // differ for as long as it takes React to paint our state, and measuring twice inside that gap
+    // (which mount + the enter event do) would otherwise stack the raise onto itself.
+    const appliedRaise = () => {
+      const getStyle = (globalThis as unknown as {getComputedStyle?: (e: unknown) => {transform: string}})
+        .getComputedStyle
+      const matrix = /matrix\([^)]*,\s*(-?[\d.]+)\)\s*$/.exec(getStyle?.(el).transform ?? '')
+      return matrix ? -Number(matrix[1]) : 0
     }
     const measure = () => {
       const rect = el.getBoundingClientRect()
@@ -96,11 +119,11 @@ function EmojiRowContainer(p: OwnProps) {
       if (rect.height === 0) {
         return
       }
-      // add back the raise we're currently applying so overflow is computed from our natural spot
-      const overflow = rect.bottom + raiseByRef.current - list.getBoundingClientRect().bottom
-      const next = Math.max(0, overflow)
-      raiseByRef.current = next
-      setRaiseBy(next)
+      // add back the raise in effect so overflow is computed from our natural spot
+      const overflow = rect.bottom + appliedRaise() - list.getBoundingClientRect().bottom
+      // clear the edge rather than sitting flush on it, so a raised bar doesn't read as tight
+      // against the input area
+      setRaiseBy(overflow > 0 ? overflow + edgeClearance : 0)
     }
     // the enter event that mounted us already fired, so measure directly too
     measure()

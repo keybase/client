@@ -139,6 +139,8 @@ const usePagination = (p: {
 }
 
 const centerTolerancePx = 8
+// A scroller within this many pixels of its end counts as at the end.
+const endTolerancePx = 2
 
 // When a centeredOrdinal is set at mount, start there; otherwise start at the end (newest).
 const useInitialScrollIndex = (
@@ -237,10 +239,29 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const getItemType = useGetItemType()
 
-  // Imperative scroll for ThreadRefsContext
-  const scrollToBottom = React.useCallback(() => {
-    void listRef.current?.scrollToEnd({animated: false})
+  // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
+  // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
+  // is in fact at its end.
+  const isScrolledToEnd = React.useCallback(() => {
+    type ElLike = {children: ArrayLike<ElLike>; clientHeight: number; scrollHeight: number; scrollTop: number}
+    const wrapper = wrapperRef.current as unknown as ElLike | null
+    if (!wrapper) return false
+    for (const child of Array.from(wrapper.children)) {
+      if (child.scrollHeight - child.clientHeight > 1) {
+        return child.scrollHeight - child.clientHeight - child.scrollTop <= endTolerancePx
+      }
+    }
+    return false
   }, [])
+
+  // Imperative scroll for ThreadRefsContext: for coming back from somewhere else in the thread, which
+  // is the only case that needs it. While the list is at the end maintainScrollAtEnd owns the position,
+  // and scrolling here only displaces it — the target resolves before the new row has measured, so it
+  // lands short, and while it counts as in flight the list declines its own end anchor and abandons it.
+  const scrollToBottom = React.useCallback(() => {
+    if (isScrolledToEnd()) return
+    void listRef.current?.scrollToEnd({animated: false})
+  }, [isScrolledToEnd])
 
   const scrollUp = React.useCallback(() => {
     const state = listRef.current?.getState()
@@ -536,12 +557,18 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           drawDistance={250}
           estimatedItemSize={72}
           style={Kb.Styles.castStyleDesktop(desktopStyles.list)}
+          // Short threads sit at the bottom rather than the top. Inert once the content is taller than
+          // the viewport: the padding it adds is max(0, viewport - content).
+          alignItemsAtEnd={true}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
           maintainScrollAtEnd={
             centeredOrdinal !== undefined
               ? false
-              : {on: {dataChange: true, footerLayout: true, itemLayout: true}}
+              : // The documented form, which enables every trigger. It was a narrowed {on: {...}} list
+                // before, and naming any trigger opts out of the ones left unnamed — that is how the
+                // layout trigger went missing and a window resize lost the end.
+                true
           }
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
@@ -565,6 +592,12 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
         isElectron: {
           ...Kb.Styles.globalStyles.fillAbsolute,
           overflow: 'hidden',
+          // The gap above the input lives out here, not as the list's own paddingBottom: the list
+          // feeds its padding into every scroll-offset calculation it makes (content size, the end
+          // target, the at-end threshold), so keeping it outside the scroller keeps that math on
+          // message sizes alone. Deliberately 8 rather than the 16 it used to be — half the gap reads
+          // better with the messages sitting closer to the composer.
+          paddingBottom: 8,
         },
       }),
       list: Kb.Styles.platformStyles({
@@ -573,7 +606,6 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
           outline: 'none',
           overflowY: 'auto',
           overscrollBehavior: 'contain',
-          paddingBottom: 16,
           scrollbarGutter: 'stable',
           willChange: 'transform',
         },
