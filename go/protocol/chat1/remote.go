@@ -396,6 +396,7 @@ func (o MarkAsReadItem) DeepCopy() MarkAsReadItem {
 type MarkAsReadItemResult struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	Error          *string        `codec:"error,omitempty" json:"error,omitempty"`
+	ImmediateFail  bool           `codec:"immediateFail" json:"immediateFail"`
 }
 
 func (o MarkAsReadItemResult) DeepCopy() MarkAsReadItemResult {
@@ -408,6 +409,7 @@ func (o MarkAsReadItemResult) DeepCopy() MarkAsReadItemResult {
 			tmp := (*x)
 			return &tmp
 		})(o.Error),
+		ImmediateFail: o.ImmediateFail,
 	}
 }
 
