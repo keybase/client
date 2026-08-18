@@ -218,7 +218,7 @@ const InstallBotPopup = (props: Props) => {
   // Only 'All channels' may send an empty list; a restricted bot with no channels
   // selected is not saveable (the picker's Done button enforces the same thing).
   const convsToSave = installInAllConvs ? [] : installInConvs
-  const noConvsChosen = !installInAllConvs && convsToSave.length === 0
+  const noConvsChosen = installWithRestrict && !installInAllConvs && convsToSave.length === 0
   const onInstall = () => {
     if (!conversationIDKey || noConvsChosen) {
       return
@@ -365,7 +365,7 @@ const InstallBotPopup = (props: Props) => {
         <PermsList
           channelMetas={channelMetas}
           commands={commands}
-          loadingChannels={loadingChannels}
+          loadingChannels={!!teamname && loadingChannels}
           settings={settings}
           username={botUsername}
         />
@@ -386,9 +386,9 @@ const InstallBotPopup = (props: Props) => {
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
           channelMetas={channelMetas}
-          loadingChannels={loadingChannels}
-          settings={settings}
           commands={commands}
+          loadingChannels={!!teamname && loadingChannels}
+          settings={settings}
           username={botUsername}
         />
       )}
@@ -438,9 +438,9 @@ const InstallBotPopup = (props: Props) => {
                       {teamname}{' '}
                       {installInAllConvs
                         ? '(all channels)'
-                        : installInConvs.length === 1
+                        : installInConvs.length === 1 && channelMetas.get(installInConvs[0] ?? '')
                           ? `(#${channelMetas.get(installInConvs[0] ?? '')?.channelname ?? ''})`
-                          : `(${installInConvs.length} channels)`}
+                          : `(${installInConvs.length} channel${installInConvs.length === 1 ? '' : 's'})`}
                     </Kb.Text>
                   </Kb.Box2>
                 }
@@ -495,13 +495,15 @@ const InstallBotPopup = (props: Props) => {
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && isBot && !installScreen
-  const showEditButton = inTeam && isBot && !inTeamUnrestricted && !installScreen
+  // without settings the edit screen would seed from nothing and read as 'all channels'
+  const showEditButton = inTeam && isBot && !inTeamUnrestricted && !installScreen && !!settings
   const showSaveButton = inTeam && installScreen && !channelPickerContent
   const showDoneButton = channelPickerContent
   const installButton = showInstallButton && (
     <Kb.WaitingButton
+      disabled={noConvsChosen}
       fullWidth={true}
-      label="Install"
+      label={noConvsChosen ? 'Select at least one channel' : 'Install'}
       onClick={onInstall}
       mode="Primary"
       type="Default"
@@ -548,18 +550,16 @@ const InstallBotPopup = (props: Props) => {
       fullWidth={true}
       label="Edit settings"
       onClick={() => {
-        if (settings) {
-          setInstallWithCommands(settings.cmds)
-          setInstallWithMentions(settings.mentions)
-          const convs = settings.convs ?? []
-          setInstallInAllConvs(convs.length === 0)
-          // Drop convs the team no longer has (deleted channels linger in the
-          // server-side bot settings), but never let filtering empty the list: that
-          // would flip the bot to 'all channels' if the channel list hasn't loaded,
-          // failed, or came back empty.
-          const known = convs.filter(c => channelMetas.has(c))
-          setInstallInConvs(!loadingChannels && known.length > 0 ? known : convs)
-        }
+        setInstallWithCommands(settings.cmds)
+        setInstallWithMentions(settings.mentions)
+        const convs = settings.convs ?? []
+        setInstallInAllConvs(convs.length === 0)
+        // Drop convs the team no longer has (deleted channels linger in the
+        // server-side bot settings), but never let filtering empty the list: that
+        // would flip the bot to 'all channels' if the channel list hasn't loaded,
+        // failed, or came back empty.
+        const known = convs.filter(c => channelMetas.has(c))
+        setInstallInConvs(!loadingChannels && known.length > 0 ? known : convs)
         setInstallScreen(true)
       }}
       mode="Secondary"
@@ -568,8 +568,9 @@ const InstallBotPopup = (props: Props) => {
   )
   const saveButton = showSaveButton && (
     <Kb.WaitingButton
+      disabled={noConvsChosen}
       fullWidth={true}
-      label="Save"
+      label={noConvsChosen ? 'Select at least one channel' : 'Save'}
       onClick={onEdit}
       mode="Primary"
       type="Default"
@@ -605,7 +606,6 @@ const InstallBotPopup = (props: Props) => {
       botReadOnly: readOnly,
       botSubScreen: channelPickerScreen ? 'channels' : installScreen ? 'install' : '',
       onAction: handleBack,
-      title: channelPickerScreen ? 'Channels' : '',
     })
     return () => {
       useModalHeaderState.setState({
@@ -613,7 +613,6 @@ const InstallBotPopup = (props: Props) => {
         botReadOnly: false,
         botSubScreen: '',
         onAction: undefined,
-        title: '',
       })
     }
   }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
@@ -736,9 +735,9 @@ const PermsList = (props: PermsListProps) => {
   const {channelMetas, commands, loadingChannels, settings, username} = props
   const convs = settings?.convs ?? []
   // convs can name channels that were deleted, which have no meta and would
-  // otherwise render as a bare '#'. An empty convs list is a real state (the bot
-  // reads every channel), so it must stay distinguishable from 'nothing resolved'.
+  // otherwise render as a bare '#'
   const knownConvs = convs.filter(convID => channelMetas?.has(convID))
+  const goneCount = convs.length - knownConvs.length
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
@@ -758,24 +757,27 @@ const PermsList = (props: PermsListProps) => {
               <Kb.Text type="Body">{`• messages it has been mentioned in with @${username}`}</Kb.Text>
             )}
           </Kb.Box2>
-          {convs.length > 0 && (
-            <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-              <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
-              {loadingChannels ? (
-                <Kb.ProgressIndicator />
-              ) : knownConvs.length > 0 ? (
-                knownConvs.map(convID => (
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
+            {convs.length === 0 ? (
+              <Kb.Text type="Body">{'• all channels in this team'}</Kb.Text>
+            ) : loadingChannels ? (
+              <Kb.ProgressIndicator />
+            ) : (
+              <>
+                {knownConvs.map(convID => (
                   <Kb.Text type="Body" key={convID}>{`• #${
                     channelMetas?.get(convID)?.channelname ?? ''
                   }`}</Kb.Text>
-                ))
-              ) : (
-                <Kb.Text type="Body">{`• ${convs.length} channel${
-                  convs.length === 1 ? '' : 's'
-                } you don't have access to`}</Kb.Text>
-              )}
-            </Kb.Box2>
-          )}
+                ))}
+                {goneCount > 0 && (
+                  <Kb.Text type="Body">{`• ${goneCount} channel${
+                    goneCount === 1 ? '' : 's'
+                  } that no longer exist${goneCount === 1 ? 's' : ''}`}</Kb.Text>
+                )}
+              </>
+            )}
+          </Kb.Box2>
         </Kb.Box2>
       ) : (
         <Kb.ProgressIndicator type="Large" />

@@ -89,8 +89,8 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => {
 const ChannelPicker = (props: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {allSelected, channelMetas, installInConvs, setAllSelected, setInstallInConvs} = props
-  const {setDisableDone, teamName} = props
+  const {allSelected, channelMetas, installInConvs, setAllSelected} = props
+  const {setDisableDone, setInstallInConvs, teamName} = props
   const [searchText, setSearchText] = React.useState('')
 
   React.useEffect(() => {
