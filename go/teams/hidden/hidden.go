@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/merkletree2"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/sig3"
 )
@@ -324,15 +323,11 @@ func ProcessHiddenResponseFunc(m libkb.MetaContext, teamID keybase1.TeamID, apiR
 		}
 		m.Debug("the server is providing a blind tree root which is not included in the main tree. We trust the server on this as the blind tree is an experimental feature.")
 	}
-	blindRootHashBytes, err := hex.DecodeString(blindRootHashStr)
+	_, err = hex.DecodeString(blindRootHashStr)
 	if err != nil {
 		return nil, err
 	}
 
-	return ParseAndVerifyCommittedHiddenLinkID(m, teamID, apiRes, merkletree2.Hash(blindRootHashBytes))
-}
-
-func ParseAndVerifyCommittedHiddenLinkID(m libkb.MetaContext, teamID keybase1.TeamID, apiRes *libkb.APIRes, blindHash merkletree2.Hash) (hiddenResp *libkb.MerkleHiddenResponse, err error) {
 	lastHiddenSeqnoInt, err := apiRes.Body.AtKey("last_hidden_seqno").GetInt()
 	if err != nil {
 		m.Debug("Error decoding last_hidden_seqno (%v), assuming the server did not send it.", err.Error())

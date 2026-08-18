@@ -131,7 +131,6 @@ func testHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 	// make another hidden rotation
 	makeHiddenRotation(t, tcs[0].G, teamName)
 
-	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
 	if !loadTeamAndCheckCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 2) {
 		return false
 	}
@@ -318,7 +317,6 @@ func testFTLSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(3)},
 	})
 
-	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
 	return err == nil
 }
 
