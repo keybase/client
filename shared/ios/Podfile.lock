@@ -139,7 +139,7 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
-  - LiquidGlass (0.8.0):
+  - LiquidGlass (0.8.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2926,7 +2926,7 @@ SPEC CHECKSUMS:
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  LiquidGlass: e8764f36577a10ce8a658e47ef8c0f36422e7d1e
+  LiquidGlass: 0de1407416f79653f467c0be6b7c140738a9c61f
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: a5233d6dc3d2158b37b4dc32bddc7b803ae86227
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
