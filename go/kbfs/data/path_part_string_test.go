@@ -95,7 +95,7 @@ func TestPathPartStringEquality(t *testing.T) {
 	no2 := NewNodeObfuscator(secret)
 	pps1 = NewPathPartString("test", no)
 	pps2 = NewPathPartString("test", no2)
-	require.NotEqual(t, pps1, pps2)
+	require.NotSame(t, pps1.Obfuscator(), pps2.Obfuscator())
 }
 
 func TestPathPartStringPrefix(t *testing.T) {
