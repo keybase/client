@@ -43,6 +43,7 @@ const DesktopGiphySearch = () => {
     <Kb.Box2 direction="vertical" alignSelf="stretch" relative={true} style={styles.outerContainer}>
       <Kb.Box2
         direction="vertical"
+        alignSelf="stretch"
         ref={divRef as React.RefObject<DivRef>}
         style={Kb.Styles.collapseStyles([
           styles.scrollContainer,
@@ -158,7 +159,7 @@ const useStyles = Kb.Styles.createStyleHook(
         },
       }),
       loadingContainer: {
-        minHeight: 200,
+        flexGrow: 1,
       },
       outerContainer: {
         marginBottom: Kb.Styles.globalMargins.xtiny,
@@ -174,7 +175,7 @@ const useStyles = Kb.Styles.createStyleHook(
           ...Kb.Styles.desktopStyles.boxShadow,
           border: `1px solid ${theme.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
-          maxHeight: 300,
+          height: 300,
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny),
         },
       }),
