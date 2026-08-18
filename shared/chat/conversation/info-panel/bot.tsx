@@ -43,18 +43,21 @@ const AddToChannel = (props: AddToChannelProps) => {
   const theme = Kb.Styles.useTheme()
   const {conversationIDKey, username} = props
   const {settings, setSettings} = useBotSettings(conversationIDKey, username)
+  // empty convs means the bot already reads every channel in the team; writing
+  // [thisConv] over that would revoke the rest, not add one
+  const readsAllChannels = !settings?.convs?.length
   const editBotSettings = C.useRPC(T.RPCChat.localSetBotMemberSettingsRpcPromise)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
   return (
     <Kb.WaitingButton
-      disabled={!settings}
+      disabled={!settings || readsAllChannels}
       type="Dim"
       mode="Secondary"
-      tooltip="Add to this channel"
+      tooltip={readsAllChannels ? 'Already in all channels' : 'Add to this channel'}
       onClick={e => {
         e.preventDefault()
         // if settings aren't loaded, don't even try to do anything
-        if (settings && !settings.convs?.includes(conversationIDKey)) {
+        if (settings && !readsAllChannels && !settings.convs.includes(conversationIDKey)) {
           const nextSettings = {
             cmds: settings.cmds,
             convs: [conversationIDKey].concat(settings.convs ?? []),

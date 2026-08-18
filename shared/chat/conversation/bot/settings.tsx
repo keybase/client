@@ -12,6 +12,7 @@ export const useBotSettings = (
     | {
         botUsername: string
         conversationIDKey: T.Chat.ConversationIDKey
+        failed?: boolean
         settings?: T.RPCGen.TeamBotSettings
       }
     | undefined
@@ -38,7 +39,7 @@ export const useBotSettings = (
           return
         }
         logger.info(`useBotSettings: failed to refresh settings for ${botUsername}: ${error.message}`)
-        setLoaded({botUsername, conversationIDKey})
+        setLoaded({botUsername, conversationIDKey, failed: true})
       }
     )
     return () => {
@@ -48,13 +49,17 @@ export const useBotSettings = (
     }
   }, [botUsername, conversationIDKey, enabled, loadBotSettings])
 
-  const settings =
+  const current =
     enabled &&
     loaded &&
     loaded.conversationIDKey === conversationIDKey &&
     loaded.botUsername === botUsername
-      ? loaded.settings
+      ? loaded
       : undefined
+  const settings = current?.settings
+  // nothing retries this load, so callers have to be able to tell a failure from a
+  // load still in flight
+  const failed = !!current?.failed
   const setSettings = React.useCallback(
     (settings: T.RPCGen.TeamBotSettings) => {
       if (conversationIDKey) {
@@ -63,5 +68,5 @@ export const useBotSettings = (
     },
     [botUsername, conversationIDKey]
   )
-  return {setSettings, settings}
+  return {failed, setSettings, settings}
 }

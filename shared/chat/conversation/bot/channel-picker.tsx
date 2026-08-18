@@ -6,6 +6,7 @@ import {makeInsertMatcher} from '@/util/string'
 type Props = {
   allSelected: boolean
   channelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelsKnown: boolean
   installInConvs: ReadonlyArray<string>
   setAllSelected: (all: boolean) => void
   setChannelPickerScreen: (show: boolean) => void
@@ -20,7 +21,7 @@ const getChannels = (
   searchText: string
 ) => {
   const matcher = makeInsertMatcher(searchText)
-  const regex = new RegExp(searchText, 'i')
+  const lowerSearch = searchText.toLowerCase()
   return [...channelMetas.values()]
     .filter(({channelname, description}) => {
       if (!searchText) {
@@ -28,8 +29,9 @@ const getChannels = (
       }
       return (
         // match channel name for search as subsequence (like the identity modal)
-        // match channel desc by strict substring (less noise in results)
-        channelname.search(matcher) !== -1 || description.search(regex) !== -1
+        // match channel desc by strict substring (less noise in results). not a regex:
+        // typing '(' would throw during render
+        channelname.search(matcher) !== -1 || description.toLowerCase().includes(lowerSearch)
       )
     })
     .sort((a, b) => a.channelname.localeCompare(b.channelname))
@@ -89,8 +91,8 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => {
 const ChannelPicker = (props: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {allSelected, channelMetas, installInConvs, setAllSelected} = props
-  const {setDisableDone, setInstallInConvs, teamName} = props
+  const {allSelected, channelMetas, channelsKnown, installInConvs} = props
+  const {setAllSelected, setDisableDone, setInstallInConvs, teamName} = props
   const [searchText, setSearchText] = React.useState('')
 
   React.useEffect(() => {
@@ -126,6 +128,11 @@ const ChannelPicker = (props: Props) => {
           focusOnMount={true}
         />
       </Kb.Box2>
+      {!channelsKnown ? (
+        <Kb.Box2 direction="vertical" style={styles.rowsContainer} centerChildren={true}>
+          <Kb.ProgressIndicator type="Large" />
+        </Kb.Box2>
+      ) : (
       <Kb.ScrollView style={styles.rowsContainer}>
         <Kb.Box2 direction="horizontal" style={{backgroundColor: theme.blueGrey}}>
           <Kb.ListItem
@@ -138,6 +145,7 @@ const ChannelPicker = (props: Props) => {
         </Kb.Box2>
         {rows}
       </Kb.ScrollView>
+      )}
     </Kb.Box2>
   )
 }
