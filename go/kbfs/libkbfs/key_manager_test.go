@@ -168,8 +168,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
-		require.Fail(t, "got %v, expected %v",
-			tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
+		require.Failf(t, "", "got %v, expected %v", tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
 	}
 
 	tlfCryptKey, err = config.KeyManager().
@@ -177,8 +176,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
-		require.Fail(t, "got %v, expected %v",
-			tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
+		require.Failf(t, "", "got %v, expected %v", tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
 	}
 
 	tlfCryptKey, err = config.KeyManager().
@@ -186,8 +184,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
-		require.Fail(t, "got %v, expected %v",
-			tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
+		require.Failf(t, "", "got %v, expected %v", tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
 	}
 }
 

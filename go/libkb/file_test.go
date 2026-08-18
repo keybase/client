@@ -36,11 +36,13 @@ func TestFileSaveConcurrent(t *testing.T) {
 	for range 20 {
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			file := NewFile(filename, []byte("test data"), 0o644)
 			t.Logf("Saving")
 			err := file.Save(log)
-			require.NoError(t, err, "save err: %s", err)
-			wg.Done()
+			if err != nil {
+				t.Errorf("save err: %s", err)
+			}
 		}()
 	}
 	wg.Wait()
@@ -50,9 +52,11 @@ func TestFileSaveConcurrent(t *testing.T) {
 	for range 20 {
 		wg2.Add(1)
 		go func() {
+			defer wg2.Done()
 			err := file.Save(log)
-			require.NoError(t, err, "save err: %s", err)
-			wg2.Done()
+			if err != nil {
+				t.Errorf("save err: %s", err)
+			}
 		}()
 	}
 	wg2.Wait()

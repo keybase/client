@@ -295,8 +295,7 @@ func checkBlockCache(
 	for _, id := range expectedCleanBlocks {
 		_, lifetime, err := bcache.GetWithLifetime(data.BlockPointer{ID: id})
 		if err != nil {
-			require.Fail(t, "BlockCache missing clean block %v at the end of the test",
-				id)
+			require.Failf(t, "", "BlockCache missing clean block %v at the end of the test", id)
 		}
 		require.Equal(t, data.TransientEntry, lifetime)
 	}
@@ -688,19 +687,19 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	p := ops.nodeCache.PathFromNode(n)
 	switch {
 	case p.Tlf != id:
-		require.Fail(t, "Got bad dir id back: %v", p.Tlf)
+		require.Failf(t, "", "Got bad dir id back: %v", p.Tlf)
 	case len(p.Path) != 1:
-		require.Fail(t, "Got bad MD back: path size %d", len(p.Path))
+		require.Failf(t, "", "Got bad MD back: path size %d", len(p.Path))
 	case p.Path[0].ID != rmd.data.Dir.ID:
-		require.Fail(t, "Got bad MD back: root ID %v", p.Path[0].ID)
+		require.Failf(t, "", "Got bad MD back: root ID %v", p.Path[0].ID)
 	case ei.Type != data.Dir:
 		require.Fail(t, "Got bad MD non-dir rootID back")
 	case ei.Size != 10:
-		require.Fail(t, "Got bad MD Size back: %d", ei.Size)
+		require.Failf(t, "", "Got bad MD Size back: %d", ei.Size)
 	case ei.Mtime != 1:
-		require.Fail(t, "Got bad MD MTime back: %d", ei.Mtime)
+		require.Failf(t, "", "Got bad MD MTime back: %d", ei.Mtime)
 	case ei.Ctime != 2:
-		require.Fail(t, "Got bad MD CTime back: %d", ei.Ctime)
+		require.Failf(t, "", "Got bad MD CTime back: %d", ei.Ctime)
 	}
 }
 
@@ -1024,11 +1023,9 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	}
 	expectedBNode.KeyGen = kbfsmd.FirstValidKeyGen
 	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
-		require.Fail(t, "Lookup returned a bad entry info: %v vs %v",
-			ei, dirBlock.Children["b"].EntryInfo)
+		require.Failf(t, "", "Lookup returned a bad entry info: %v vs %v", ei, dirBlock.Children["b"].EntryInfo)
 	} else if bPath.Path[2] != expectedBNode {
-		require.Fail(t, "Bad path node after lookup: %v vs %v",
-			bPath.Path[2], expectedBNode)
+		require.Failf(t, "", "Bad path node after lookup: %v vs %v", bPath.Path[2], expectedBNode)
 	}
 }
 
@@ -1072,10 +1069,9 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	bn, ei, err := config.KBFSOps().Lookup(ctx, n, testPPS("b"))
 	require.NoError(t, err, "Error on Lookup: %+v", err)
 	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
-		require.Fail(t, "Lookup returned a bad directory entry: %v vs %v",
-			ei, dirBlock.Children["b"].EntryInfo)
+		require.Failf(t, "", "Lookup returned a bad directory entry: %v vs %v", ei, dirBlock.Children["b"].EntryInfo)
 	} else if bn != nil {
-		require.Fail(t, "Node for symlink is not nil: %v", bn)
+		require.Failf(t, "", "Node for symlink is not nil: %v", bn)
 	}
 }
 
@@ -1227,8 +1223,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	ei, err := config.KBFSOps().Stat(ctx, n)
 	require.NoError(t, err, "Error on Stat: %+v", err)
 	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
-		require.Fail(t, "Stat returned a bad entry info: %v vs %v",
-			ei, dirBlock.Children["b"].EntryInfo)
+		require.Failf(t, "", "Stat returned a bad entry info: %v vs %v", ei, dirBlock.Children["b"].EntryInfo)
 	}
 }
 
@@ -1957,12 +1952,10 @@ func checkSyncOp(t *testing.T, codec kbfscodec.Codec,
 ) {
 	require.NotNil(t, so, "No sync info for written file!")
 	if so.File.Unref != filePtr {
-		require.Fail(t, "Unexpected unref file in sync op: %v vs %v",
-			so.File.Unref, filePtr)
+		require.Failf(t, "", "Unexpected unref file in sync op: %v vs %v", so.File.Unref, filePtr)
 	}
 	if len(so.Writes) != len(writes) {
-		require.Fail(t, "Unexpected number of writes: %v (expected %v)",
-			len(so.Writes), len(writes))
+		require.Failf(t, "", "Unexpected number of writes: %v (expected %v)", len(so.Writes), len(writes))
 	}
 	for i, w := range writes {
 		writeEqual, err := kbfscodec.Equal(codec, so.Writes[i], w)
@@ -2035,19 +2028,15 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		require.Fail(t, "Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	case newRootBlock.Children["f"].GetWriter() != uid:
-		require.Fail(t, "Wrong last writer: %v",
-			newRootBlock.Children["f"].GetWriter())
+		require.Failf(t, "", "Wrong last writer: %v", newRootBlock.Children["f"].GetWriter())
 	case newRootBlock.Children["f"].Size != uint64(len(buf)):
-		require.Fail(t, "Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+		require.Failf(t, "", "Wrong size for written file: %d", newRootBlock.Children["f"].Size)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2113,13 +2102,11 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData, newFileBlock.Contents):
-		require.Fail(t, "Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2185,13 +2172,11 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData, newFileBlock.Contents):
-		require.Fail(t, "Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2279,26 +2264,21 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData[0:6], block1.Contents):
-		require.Fail(t, "Wrote bad contents to block 1: %v", block1.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 1: %v", block1.Contents)
 	case !bytes.Equal(expectedFullData[6:11], block2.Contents):
-		require.Fail(t, "Wrote bad contents to block 2: %v", block2.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 2: %v", block2.Contents)
 	case !pblock.IsInd:
 		require.Fail(t, "Parent block is not indirect!")
 	case pblock.IPtrs[0].Off != 0:
-		require.Fail(t, "Parent block has wrong offset for block 1: %d",
-			pblock.IPtrs[0].Off)
+		require.Failf(t, "", "Parent block has wrong offset for block 1: %d", pblock.IPtrs[0].Off)
 	case pblock.IPtrs[1].Off != 6:
-		require.Fail(t, "Parent block has wrong offset for block 5: %d",
-			pblock.IPtrs[1].Off)
+		require.Failf(t, "", "Parent block has wrong offset for block 5: %d", pblock.IPtrs[1].Off)
 	case newRootBlock.Children["f"].Size != uint64(11):
-		require.Fail(t, "Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+		require.Failf(t, "", "Wrong size for written file: %d", newRootBlock.Children["f"].Size)
 	}
 
 	checkBlockCache(
@@ -2411,15 +2391,13 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData[0:5], newBlock1.Contents):
-		require.Fail(t, "Wrote bad contents to block 1: %v", block1.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 1: %v", block1.Contents)
 	case !bytes.Equal(expectedFullData[5:10], newBlock2.Contents):
-		require.Fail(t, "Wrote bad contents to block 2: %v", block2.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 2: %v", block2.Contents)
 	}
 
 	lState := makeFBOLockState()
@@ -2491,19 +2469,15 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		require.Fail(t, "Wrote bad contents: %v", newFileBlock.Contents)
+		require.Failf(t, "", "Wrote bad contents: %v", newFileBlock.Contents)
 	case newRootBlock.Children["f"].GetWriter() != uid:
-		require.Fail(t, "Wrong last writer: %v",
-			newRootBlock.Children["f"].GetWriter())
+		require.Failf(t, "", "Wrong last writer: %v", newRootBlock.Children["f"].GetWriter())
 	case newRootBlock.Children["f"].Size != 0:
-		require.Fail(t, "Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+		require.Failf(t, "", "Wrong size for written file: %d", newRootBlock.Children["f"].Size)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2552,11 +2526,10 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil { // nolint
-		require.Fail(t, "Got error on truncate: %+v", err)
-		require.Fail(t, "Unexpected local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Got error on truncate: %+v", err)
+		require.Failf(t, "", "Unexpected local update during truncate: %v", config.observer.localChange)
 	} else if !bytes.Equal(data, fileBlock.Contents) {
-		require.Fail(t, "Wrote bad contents: %v", data)
+		require.Failf(t, "", "Wrote bad contents: %v", data)
 	}
 	checkBlockCache(ctx, t, config, id, []kbfsblock.ID{rootID, fileID}, nil)
 }
@@ -2609,13 +2582,11 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		require.Fail(t, "Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2699,21 +2670,18 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(block1.Contents, newBlock1.Contents):
-		require.Fail(t, "Wrote bad contents for block 1: %v", newBlock1.Contents)
+		require.Failf(t, "", "Wrote bad contents for block 1: %v", newBlock1.Contents)
 	case !bytes.Equal(data2, newBlock2.Contents):
-		require.Fail(t, "Wrote bad contents for block 2: %v", newBlock2.Contents)
+		require.Failf(t, "", "Wrote bad contents for block 2: %v", newBlock2.Contents)
 	case len(newPBlock.IPtrs) != 2:
-		require.Fail(t, "Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
+		require.Failf(t, "", "Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
 	case rmd.UnrefBytes() != 0+6:
 		// The fileid and the last block was all modified and marked dirty
-		require.Fail(t, "Truncated block not correctly unref'd, unrefBytes = %d",
-			rmd.UnrefBytes())
+		require.Failf(t, "", "Truncated block not correctly unref'd, unrefBytes = %d", rmd.UnrefBytes())
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
@@ -2794,19 +2762,16 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newBlock1.Contents):
-		require.Fail(t, "Wrote bad contents: %v", newBlock1.Contents)
+		require.Failf(t, "", "Wrote bad contents: %v", newBlock1.Contents)
 	case len(newPBlock.IPtrs) != 1:
-		require.Fail(t, "Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
+		require.Failf(t, "", "Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
 	case rmd.UnrefBytes() != 0+5+6:
 		// The fileid and both blocks were all modified and marked dirty
-		require.Fail(t, "Truncated block not correctly unref'd, unrefBytes = %d",
-			rmd.UnrefBytes())
+		require.Failf(t, "", "Truncated block not correctly unref'd, unrefBytes = %d", rmd.UnrefBytes())
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
@@ -2870,13 +2835,11 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		require.Fail(t, "Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		require.Fail(t, "Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		require.Fail(t, "Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -3032,7 +2995,7 @@ func TestSyncCleanSuccess(t *testing.T) {
 	newP := ops.nodeCache.PathFromNode(n)
 	if len(newP.Path) != len(p.Path) {
 		// should be the exact same path back
-		require.Fail(t, "Got a different length path back: %v", newP)
+		require.Failf(t, "", "Got a different length path back: %v", newP)
 		for i, n := range newP.Path {
 			require.Equal(t, p.Path[i], n, "Node %d differed: %v", i, n)
 		}
@@ -3181,7 +3144,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	// CTime is allowed to change after a rename, but nothing else.
 	if ei.Type != newEi.Type || ei.Size != newEi.Size ||
 		ei.Mtime != newEi.Mtime {
-		require.Fail(t, "Entry info unexpectedly changed from %+v to %+v", ei, newEi)
+		require.Failf(t, "", "Entry info unexpectedly changed from %+v to %+v", ei, newEi)
 	}
 }
 
@@ -3223,8 +3186,7 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	// CTime is allowed to change after a rename, but nothing else.
 	if newEi := eis[rootNode.ChildName("b")]; ei.Type != newEi.Type ||
 		ei.Size != newEi.Size || ei.Mtime != newEi.Mtime {
-		require.Fail(t, "Entry info unexpectedly changed from %+v to %+v",
-			ei, eis[rootNode.ChildName("b")])
+		require.Failf(t, "", "Entry info unexpectedly changed from %+v to %+v", ei, eis[rootNode.ChildName("b")])
 	}
 }
 

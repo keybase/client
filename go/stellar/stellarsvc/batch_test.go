@@ -172,7 +172,7 @@ func TestBatchMultiDirect(t *testing.T) {
 			if p.Status == stellar1.PaymentStatus_ERROR {
 				t.Logf("payment %d error: %s (%d)", i, p.Error.Message, p.Error.Code)
 			}
-			require.Fail(t, "payment %d not complete: %+v", i, p)
+			require.Failf(t, "", "payment %d not complete: %+v", i, p)
 		}
 
 		var msg *paymentMsg
@@ -183,9 +183,9 @@ func TestBatchMultiDirect(t *testing.T) {
 			}
 		}
 		if msg == nil {
-			require.Fail(t, "payment %d no chat message found: %+v", i, p)
+			require.Failf(t, "", "payment %d no chat message found: %+v", i, p)
 		} else if msg.PaymentID != stellar1.PaymentID(p.TxID) {
-			require.Fail(t, "payment %d chat msg tx id: %q, expected %q", i, msg.PaymentID, p.TxID)
+			require.Failf(t, "", "payment %d chat msg tx id: %q, expected %q", i, msg.PaymentID, p.TxID)
 		}
 	}
 }

@@ -278,7 +278,7 @@ func (rkt *rekeyTester) confirmNoRekeyUIActivity(dw *deviceWrapper, hours int, f
 	}
 	err := dw.rekeyClient.RekeySync(context.TODO(), keybase1.RekeySyncArg{SessionID: 0, Force: force})
 	if err != nil {
-		require.Fail(rkt.t, "Error syncing rekey: %s", err)
+		require.Failf(rkt.t, "", "Error syncing rekey: %s", err)
 	}
 	assertNoActivity(hours + 1)
 }
@@ -359,7 +359,7 @@ func (rkt *rekeyTester) kickRekeyd() {
 	mctx := libkb.NewMetaContextBackground(g)
 	_, err := g.API.Post(mctx, apiArg)
 	if err != nil {
-		require.Fail(rkt.t, "Failed to accelerate rekeyd: %s", err)
+		require.Failf(rkt.t, "", "Failed to accelerate rekeyd: %s", err)
 	}
 }
 

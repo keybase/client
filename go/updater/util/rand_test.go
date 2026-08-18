@@ -15,9 +15,9 @@ func TestRandString(t *testing.T) {
 	t.Logf("Rand string: %s", s)
 	require.NoError(t, err)
 	if !strings.HasPrefix(s, "prefix=") {
-		require.Fail(t, "Invalid prefix: %s", s)
+		require.Failf(t, "", "Invalid prefix: %s", s)
 	}
 	if len(s)-len("prefix.") != 52 {
-		require.Fail(t, "Invalid length: %s (%d)", s, len(s))
+		require.Failf(t, "", "Invalid length: %s (%d)", s, len(s))
 	}
 }

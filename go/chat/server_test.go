@@ -7733,7 +7733,7 @@ func TestTeamBotSettings(t *testing.T) {
 				select {
 				case info := <-l.newMessageRemote:
 					unboxed = info.Message
-					require.Fail(t, "unexpected message received type %v", unboxed.GetMessageType())
+					require.Failf(t, "", "unexpected message received type %v", unboxed.GetMessageType())
 				default:
 				}
 			}

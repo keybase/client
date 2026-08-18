@@ -366,7 +366,10 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -382,7 +385,10 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 
 	secretFromY := <-secretCh
@@ -455,7 +461,10 @@ func TestProvisionMobile(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -470,7 +479,10 @@ func TestProvisionMobile(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 
 	secretFromY := <-secretCh
@@ -520,7 +532,10 @@ func TestProvisionWithRevoke(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -535,7 +550,10 @@ func TestProvisionWithRevoke(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 
 	secretFromY := <-secretCh
@@ -815,7 +833,7 @@ func TestProvisionSyncedPGPBadPassphrase(t *testing.T) {
 		require.Error(t, err,
 			"sync pgp provision worked with bad passphrase")
 	} else if _, ok := err.(libkb.PassphraseError); !ok {
-		require.Fail(t, "error: %T, expected libkb.PassphraseError", err)
+		require.Failf(t, "", "error: %T, expected libkb.PassphraseError", err)
 	}
 }
 
@@ -1855,7 +1873,7 @@ func TestProvisionGPGNoKeyring(t *testing.T) {
 		require.Error(t, err,
 			"provision worked without gpg keyring")
 	} else if _, ok := err.(libkb.NoMatchingGPGKeysError); !ok {
-		require.Fail(t, "error %T, expected libkb.NoMatchingGPGKeysError", err)
+		require.Failf(t, "", "error %T, expected libkb.NoMatchingGPGKeysError", err)
 	}
 }
 
@@ -1890,7 +1908,7 @@ func TestProvisionGPGNoMatch(t *testing.T) {
 		require.Error(t, err,
 			"provision worked without matching gpg key")
 	} else if _, ok := err.(libkb.NoMatchingGPGKeysError); !ok {
-		require.Fail(t, "error %T, expected libkb.NoMatchingGPGKeysError", err)
+		require.Failf(t, "", "error %T, expected libkb.NoMatchingGPGKeysError", err)
 	}
 }
 
@@ -2093,7 +2111,7 @@ func TestLoginInvalidDeviceType(t *testing.T) {
 		require.Error(t, err,
 			"login with paper device type worked")
 	} else if _, ok := err.(libkb.InvalidArgumentError); !ok {
-		require.Fail(t, "err type: %T, expected libkb.InvalidArgumentError", err)
+		require.Failf(t, "", "err type: %T, expected libkb.InvalidArgumentError", err)
 	}
 }
 
@@ -2120,7 +2138,7 @@ func TestProvisionNilUser(t *testing.T) {
 		require.Error(t, err,
 			"loginprovision with nil user worked")
 	} else if _, ok := err.(libkb.InvalidArgumentError); !ok {
-		require.Fail(t, "err type: %T, expected libkb.InvalidArgumentError", err)
+		require.Failf(t, "", "err type: %T, expected libkb.InvalidArgumentError", err)
 	}
 }
 
@@ -2323,7 +2341,10 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -2338,7 +2359,10 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -2675,7 +2699,10 @@ func TestResetAccountKexProvision(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -2690,7 +2717,10 @@ func TestResetAccountKexProvision(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -2841,7 +2871,10 @@ func TestResetAccountLikeNistur(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -2856,7 +2889,10 @@ func TestResetAccountLikeNistur(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -2907,7 +2943,10 @@ func TestResetMultipleDevices(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -2922,7 +2961,10 @@ func TestResetMultipleDevices(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3007,7 +3049,10 @@ func TestProvisionWithBadConfig(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "login error: %s", err)
+		if err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -3022,7 +3067,10 @@ func TestProvisionWithBadConfig(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3237,7 +3285,10 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "provisionee login error: %s", err)
+		if err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -3252,7 +3303,10 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3331,7 +3385,10 @@ func TestProvisionAndRevoke(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "provisionee login error: %s", err)
+		if err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner
@@ -3346,7 +3403,10 @@ func TestProvisionAndRevoke(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3707,7 +3767,10 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		eng := NewLogin(tcY.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "provisionee login error: %s", err)
+		if err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner for step #1
@@ -3719,7 +3782,10 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -3767,7 +3833,10 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		m := NewMetaContextForTest(tcZ).WithUIs(uis)
 		eng := NewLogin(tcZ.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 		err := RunEngine2(m, eng)
-		require.NoError(t, err, "provisionee login error: %s", err)
+		if err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
 	}()
 
 	// start provisioner for step #2
@@ -3784,7 +3853,10 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		// m.ActiveDevice().ClearPassphraseStreamCache()
 		err := RunEngine2(m, provisioner)
-		require.NoError(t, err, "provisioner error: %s", err)
+		if err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
 	}()
 	secretFromZ := <-secretCh
 	provisioner.AddSecret(secretFromZ)

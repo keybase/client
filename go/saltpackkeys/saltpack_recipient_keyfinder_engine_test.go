@@ -70,7 +70,7 @@ func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 3 {
-		require.Fail(t, "number of per user keys found: %d, expected 3", len(fDHKeys))
+		require.Failf(t, "", "number of per user keys found: %d, expected 3", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -78,20 +78,20 @@ func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -171,7 +171,7 @@ func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 3 {
-		require.Fail(t, "number of per user keys found: %d, expected 3", len(fDHKeys))
+		require.Failf(t, "", "number of per user keys found: %d, expected 3", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -179,20 +179,20 @@ func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -225,7 +225,7 @@ func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 2 {
-		require.Fail(t, "number of per user keys found: %d, expected 2", len(fDHKeys))
+		require.Failf(t, "", "number of per user keys found: %d, expected 2", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -233,16 +233,16 @@ func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -274,7 +274,7 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 	}
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 2 {
-		require.Fail(t, "number of per user keys found: %d, expected 2", len(fDHKeys))
+		require.Failf(t, "", "number of per user keys found: %d, expected 2", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -282,11 +282,11 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	require.Empty(t, eng.GetSymmetricKeys())
@@ -310,7 +310,7 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 	require.NoError(t, err)
 	fDHKeys = eng.GetPublicKIDs()
 	if len(fDHKeys) != 2 {
-		require.Fail(t, "number of per user keys found: %d, expected 2", len(fDHKeys))
+		require.Failf(t, "", "number of per user keys found: %d, expected 2", len(fDHKeys))
 	}
 	fDHKeyset = make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -318,11 +318,11 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 	}
 	KID = u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
@@ -373,7 +373,7 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 4 {
-		require.Fail(t, "number of device keys found: %d, expected 4", len(fDHKeys))
+		require.Failf(t, "", "number of device keys found: %d, expected 4", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -386,30 +386,30 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	require.NoError(t, err)
 	KID := key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2new.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2new.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2new.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2new.GetComputedKeyFamily().GetAllActiveDevices()[1].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u3.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u3.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -442,7 +442,7 @@ func TestSaltpackRecipientKeyfinderSkipsMissingKeys(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 4 {
-		require.Fail(t, "number of device keys found: %d, expected 4", len(fDHKeys))
+		require.Failf(t, "", "number of device keys found: %d, expected 4", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -453,30 +453,30 @@ func TestSaltpackRecipientKeyfinderSkipsMissingKeys(t *testing.T) {
 	require.NoError(t, err)
 	KID := key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[1].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u3.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u3.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -526,7 +526,7 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 3 {
-		require.Fail(t, "number of device keys found: %d, expected 3", len(fDHKeys))
+		require.Failf(t, "", "number of device keys found: %d, expected 3", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -539,7 +539,7 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 	require.NoError(t, err)
 	KID := key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	id, err = selectOneActivePaperDeviceID(u1.User)
 	require.NoError(t, err)
@@ -547,7 +547,7 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	id, err = selectOneActivePaperDeviceID(u1.User)
 	require.NoError(t, err)
@@ -555,12 +555,12 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -605,7 +605,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 10 { // 3 keys per user (1 paper, 1 device, 1 puk), plus an extra device for u2
-		require.Fail(t, "number of device keys found: %d, expected 4", len(fDHKeys))
+		require.Failf(t, "", "number of device keys found: %d, expected 4", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -630,12 +630,12 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 
 	for _, KID := range allKIDs {
 		if _, ok := fDHKeyset[KID]; !ok {
-			require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+			require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 		}
 	}
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -664,12 +664,12 @@ func TestSaltpackRecipientKeyfinderExistingUserAssertions(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 6 { // t_tracy has 1 device (+ a paper key, excluded here), t_george has 2 devices and a web key, t_kb has a device and a web key.
-		require.Fail(t, "number of DH keys found: %d, expected 6", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 6", len(fDHKeys))
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 0", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
 }
 
@@ -734,7 +734,7 @@ func TestSaltpackRecipientKeyfinderTeamBasic(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 1 { // We requested Entity Keys only, so no PUKs or Device Keys (except for the sender's own key)
-		require.Fail(t, "number of DH keys found: %d, expected 1", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 1", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -743,12 +743,12 @@ func TestSaltpackRecipientKeyfinderTeamBasic(t *testing.T) {
 
 	u2PUK := u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[u2PUK]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", u2PUK)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", u2PUK)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 1 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 1", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 
 	team, err := teams.Load(m.Ctx(), m.G(), keybase1.LoadTeamArg{Name: teamName})
@@ -769,12 +769,12 @@ func TestSaltpackRecipientKeyfinderTeamBasic(t *testing.T) {
 
 	fDHKeys = eng.GetPublicKIDs()
 	if len(fDHKeys) != 0 {
-		require.Fail(t, "number of DH keys found: %d, expected 0", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 0", len(fDHKeys))
 	}
 
 	symKeys = eng.GetSymmetricKeys()
 	if len(symKeys) != 1 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 1", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 
 	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
@@ -791,7 +791,7 @@ func TestSaltpackRecipientKeyfinderTeamBasic(t *testing.T) {
 
 	fDHKeys = eng.GetPublicKIDs()
 	if len(fDHKeys) != 3 { // 1 device key for u1, 1 device key + 1 puk for u2 (as he is the sender).
-		require.Fail(t, "number of DH keys found: %d, expected 3", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 3", len(fDHKeys))
 	}
 	fDHKeyset = make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -799,24 +799,24 @@ func TestSaltpackRecipientKeyfinderTeamBasic(t *testing.T) {
 	}
 
 	if _, ok := fDHKeyset[u2PUK]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", u2PUK)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", u2PUK)
 	}
 	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID := key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys = eng.GetSymmetricKeys()
 	if len(symKeys) != 1 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 1", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
 }
@@ -852,7 +852,7 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 3 { // 1 device key for u1, 1 device key + 1 puk for u2 (as he is the sender).
-		require.Fail(t, "number of DH keys found: %d, expected 3", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 3", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -861,20 +861,20 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 
 	u2PUK := u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[u2PUK]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", u2PUK)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", u2PUK)
 	}
 
 	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID := key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
@@ -885,7 +885,7 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 	require.NoError(t, err)
 
 	if len(symKeys) != 1 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 1", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
 
@@ -907,7 +907,7 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 
 	fDHKeys = eng.GetPublicKIDs()
 	if len(fDHKeys) != 2 { // 1 device key + 1 puk for u1 (as he is the sender and the only member of the team).
-		require.Fail(t, "number of DH keys found: %d, expected 3", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 3", len(fDHKeys))
 	}
 	fDHKeyset = make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -916,20 +916,20 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 
 	u1PUK := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[u1PUK]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", u2PUK)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", u2PUK)
 	}
 
 	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", KID)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", KID)
 	}
 
 	symKeys = eng.GetSymmetricKeys()
 
 	if len(symKeys) != 1 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 1", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
 }
@@ -981,7 +981,7 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 1 { // This is the sender's own PUK
-		require.Fail(t, "number of DH keys found: %d, expected 1", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 1", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -990,12 +990,12 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 
 	u1PUK := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[u1PUK]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", u1PUK)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", u1PUK)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 1 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 1", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 
 	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false, teams.ImplicitTeamOptions{})
@@ -1051,7 +1051,7 @@ func TestSaltpackRecipientKeyfinderImplicitTeamNoSelfEncrypt(t *testing.T) {
 
 	fDHKeys := eng.GetPublicKIDs()
 	if len(fDHKeys) != 1 { // This is the sender's own PUK
-		require.Fail(t, "number of DH keys found: %d, expected 1", len(fDHKeys))
+		require.Failf(t, "", "number of DH keys found: %d, expected 1", len(fDHKeys))
 	}
 	fDHKeyset := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fDHKeys {
@@ -1060,12 +1060,12 @@ func TestSaltpackRecipientKeyfinderImplicitTeamNoSelfEncrypt(t *testing.T) {
 
 	u1PUK := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
 	if _, ok := fDHKeyset[u1PUK]; !ok {
-		require.Fail(t, "expected to find key %v, which was not retrieved", u1PUK)
+		require.Failf(t, "", "expected to find key %v, which was not retrieved", u1PUK)
 	}
 
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 1 {
-		require.Fail(t, "number of symmetric keys found: %d, expected 1", len(symKeys))
+		require.Failf(t, "", "number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 
 	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false, teams.ImplicitTeamOptions{})

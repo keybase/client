@@ -52,7 +52,7 @@ func TestConvLoader(t *testing.T) {
 	select {
 	case convID := <-listener.bgConvLoads:
 		if !convID.Eq(res.ConvID) {
-			require.Fail(t, "loaded conv id: %s, expected %s", convID, res.ConvID)
+			require.Failf(t, "", "loaded conv id: %s, expected %s", convID, res.ConvID)
 		}
 	case <-time.After(20 * time.Second):
 		require.FailNow(t, "timeout waiting for conversation load")

@@ -87,10 +87,10 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) (sig
 		require.Fail(t, "proof not found, expected to be found")
 	}
 	if status != 1 {
-		require.Fail(t, "proof status: %d, expected 1", int(status))
+		require.Failf(t, "", "proof status: %d, expected 1", int(status))
 	}
 	if state != 1 {
-		require.Fail(t, "proof state: %d, expected 1", int(state))
+		require.Failf(t, "", "proof state: %d, expected 1", int(state))
 	}
 	if len(text) == 0 {
 		require.Fail(t, "empty proof text, expected non-empty")

@@ -83,8 +83,7 @@ func TestSaltpackEncDec(t *testing.T) {
 
 		plaintext := buf.String()
 		if plaintext != message {
-			require.Fail(t, "expected %s, got %s",
-				message, plaintext)
+			require.Failf(t, "", "expected %s, got %s", message, plaintext)
 		}
 	}
 

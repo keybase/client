@@ -24,7 +24,7 @@ func TestDeviceList(t *testing.T) {
 		for i, d := range eng.List() {
 			t.Logf("%d: %+v", i, d)
 		}
-		require.Fail(t, "devices: %d, expected 2", len(eng.List()))
+		require.Failf(t, "", "devices: %d, expected 2", len(eng.List()))
 	}
 	// Check that the device times are all actually set.
 	for _, d := range eng.List() {

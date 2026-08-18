@@ -245,7 +245,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 			expectedData[i] = append(expectedData[i], newData...)
 			if nr != int64(j+1+initialWriteBytes) ||
 				!bytes.Equal(expectedData[i], buf) {
-				require.Fail(t, "Got wrong data %v; expected %v", buf, expectedData[i])
+				require.Failf(t, "", "Got wrong data %v; expected %v", buf, expectedData[i])
 			}
 		}
 	}
@@ -264,8 +264,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 		require.NoError(t, err, "Couldn't read data: %v\n", err)
 		if nr != int64(totalSize) ||
 			!bytes.Equal(expectedData[i], buf2) {
-			require.Fail(t, "2nd read: Got wrong data %v; expected %v",
-				buf2, expectedData[i])
+			require.Failf(t, "", "2nd read: Got wrong data %v; expected %v", buf2, expectedData[i])
 		}
 	}
 
@@ -598,8 +597,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 
 	deferredWriteCount := fbo.blocks.getDeferredWriteCountForTest(lState)
 	if deferredWriteCount != 1 {
-		require.Fail(t, "Unexpected deferred write count %d",
-			deferredWriteCount)
+		require.Failf(t, "", "Unexpected deferred write count %d", deferredWriteCount)
 	}
 
 	// Unstall the sync.
@@ -673,8 +671,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	deferredWriteCount := fbo.blocks.getDeferredWriteCountForTest(lState)
 	if deferredWriteCount != 1 {
-		require.Fail(t, "Unexpected deferred write count %d",
-			deferredWriteCount)
+		require.Failf(t, "", "Unexpected deferred write count %d", deferredWriteCount)
 	}
 
 	// Unstall the sync.
@@ -867,7 +864,10 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 				break outer
 			default:
 			}
-			require.NoError(t, err, "Couldn't read file: %v", err)
+			if err != nil {
+				t.Errorf("Couldn't read file: %v", err)
+				break
+			}
 		}
 	}()
 
@@ -952,8 +952,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	numCleanBlocks := config.BlockCache().(*kbfsdata.BlockCacheStandard).
 		NumCleanTransientBlocks()
 	if numCleanBlocks != 7 {
-		require.Fail(t, "Unexpected number of cached clean blocks: %d\n",
-			numCleanBlocks)
+		require.Failf(t, "", "Unexpected number of cached clean blocks: %d\n", numCleanBlocks)
 	}
 
 	// write to the first block
@@ -1148,7 +1147,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			select {
 			case <-readyChan:
 			case <-ctx.Done():
-				require.Fail(t, ctx.Err().Error())
+				t.Error(ctx.Err())
 			}
 		}
 
@@ -1156,7 +1155,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			select {
 			case goChan <- struct{}{}:
 			case <-ctx.Done():
-				require.Fail(t, ctx.Err().Error())
+				t.Error(ctx.Err())
 			}
 		}
 
@@ -1164,7 +1163,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			select {
 			case <-finishChan:
 			case <-ctx.Done():
-				require.Fail(t, ctx.Err().Error())
+				t.Error(ctx.Err())
 			}
 		}
 
@@ -1178,16 +1177,16 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			select {
 			case <-readyChan:
 			case <-ctx.Done():
-				require.Fail(t, ctx.Err().Error())
+				t.Error(ctx.Err())
 			}
 		}
 
 		// Make sure all the workers are busy.
 		select {
 		case <-readyChan:
-			require.Fail(t, "Worker unexpectedly ready")
+			t.Error("Worker unexpectedly ready")
 		case <-ctx.Done():
-			require.Fail(t, ctx.Err().Error())
+			t.Error(ctx.Err())
 		default:
 		}
 
@@ -1198,8 +1197,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	err = kbfsOps.SyncAll(ctx2, fileNode.GetFolderBranch())
 	require.True(t, errors.Is(err, context.Canceled), "Sync did not get canceled error: %v", err)
 	if nowNBlocks != prevNBlocks+2 {
-		require.Fail(t, "Unexpected number of blocks; prev = %d, now = %d",
-			prevNBlocks, nowNBlocks)
+		require.Failf(t, "", "Unexpected number of blocks; prev = %d, now = %d", prevNBlocks, nowNBlocks)
 	}
 
 	// Make sure there are no more workers, i.e. the extra blocks
@@ -2224,7 +2222,9 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 		defer wg.Done()
 		var err error
 		fileNodeA2, _, err = kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
-		require.NoError(t, err, "Couldn't lookup a: %v", err)
+		if err != nil {
+			t.Errorf("Couldn't lookup a: %v", err)
+		}
 	}()
 	// Wait for the lookup to block.
 	select {
@@ -2241,7 +2241,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 		defer wg.Done()
 		if err := kbfsOps2.SyncFromServer(
 			ctx, rootNode2.GetFolderBranch(), nil); err != nil {
-			require.Fail(t, "Couldn't sync user 2 from server: %v", err)
+			t.Errorf("Couldn't sync user 2 from server: %v", err)
 		}
 	}()
 

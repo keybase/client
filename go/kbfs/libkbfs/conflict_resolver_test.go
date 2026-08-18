@@ -1421,16 +1421,15 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	mergedName := cre.ConflictRenameHelper(now, "u2", "dev1", "file")
 	require.Equal(t, 1, len(newFileBlocks.blocks), "Unexpected new file blocks!")
 	if blocks, ok := newFileBlocks.blocks[mergedRootPath.TailPointer()]; !ok {
-		require.Fail(t, "No blocks for dir merged ptr: %v",
-			mergedRootPath.TailPointer())
+		require.Failf(t, "", "No blocks for dir merged ptr: %v", mergedRootPath.TailPointer())
 	} else if len(blocks) != 1 {
 		require.Fail(t, "Unexpected number of blocks")
 	} else if info, ok := blocks[mergedName]; !ok {
-		require.Fail(t, "No block for name %s", mergedName)
+		require.Failf(t, "", "No block for name %s", mergedName)
 	} else if info.block.IsInd {
 		require.Fail(t, "Unexpected indirect block")
 	} else if g, e := info.block.Contents, unmergedData; !reflect.DeepEqual(g, e) {
-		require.Fail(t, "Unexpected block contents: %v vs %v", g, e)
+		require.Failf(t, "", "Unexpected block contents: %v vs %v", g, e)
 	}
 
 	// NOTE: the action doesn't actually create the entry, so this

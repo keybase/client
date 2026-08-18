@@ -39,7 +39,7 @@ func TestComputeSkipPointers(t *testing.T) {
 		t.Run(fmt.Sprintf("%+v", tt.in), func(t *testing.T) {
 			actual := ComputeSkipPointers(tt.in)
 			if !reflect.DeepEqual(actual, tt.out) {
-				require.Fail(t, "(%d): expected %#v, actual %#v", tt.in, tt.out, actual)
+				require.Failf(t, "", "(%d): expected %#v, actual %#v", tt.in, tt.out, actual)
 			}
 		})
 	}

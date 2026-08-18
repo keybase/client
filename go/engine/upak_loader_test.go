@@ -304,10 +304,12 @@ func TestUPAKDeadlock(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		un, err := tc.G.GetUPAKLoader().LookupUsername(context.TODO(), fu.UID())
 		require.NoError(t, err)
-		require.Equal(t, fu.Username, un.String(), "username mismatch: %s != %s", un, fu.Username)
-		wg.Done()
+		if un.String() != fu.Username {
+			t.Errorf("username mismatch: %s != %s", un, fu.Username)
+		}
 	}()
 
 	doneCh := make(chan struct{})

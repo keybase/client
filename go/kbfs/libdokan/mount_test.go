@@ -125,14 +125,14 @@ func checkDir(t testing.TB, dir string, want map[string]fileInfoCheck) {
 			delete(want, fi.Name())
 			if check != nil {
 				err := check(fi)
-	require.NoError(t, err, "check failed: %v: %v", fi.Name(), err)
+				require.NoError(t, err, "check failed: %v: %v", fi.Name(), err)
 			}
 			continue
 		}
-		require.Fail(t, "unexpected direntry: %q size=%v mode=%v", fi.Name(), fi.Size(), fi.Mode())
+		require.Failf(t, "", "unexpected direntry: %q size=%v mode=%v", fi.Name(), fi.Size(), fi.Mode())
 	}
 	for filename := range want {
-		require.Fail(t, "never saw file: %v", filename)
+		require.Failf(t, "", "never saw file: %v", filename)
 	}
 }
 
@@ -237,12 +237,12 @@ func TestStatAlias(t *testing.T) {
 	require.True(t, g == `Lrw-rw-rw-` || g == `drwxrwxrwx`, "wrong mode for alias : %q", g)
 	// TODO Readlink support.
 	/*
-		target, err := os.Readlink(p)
-		if err != nil {
-			require.FailNow(t, err)
-		}
-		e, g := target, "jdoe"
-	require.Equal(t, e, g, "wrong alias symlink target: %q != %q", g, e)
+			target, err := os.Readlink(p)
+			if err != nil {
+				require.FailNow(t, err)
+			}
+			e, g := target, "jdoe"
+		require.Equal(t, e, g, "wrong alias symlink target: %q != %q", g, e)
 	*/
 }
 
@@ -659,7 +659,7 @@ func TestSymlink(t *testing.T) {
 		target, err := os.Readlink(p)
 		require.NoError(t, err)
 		e, g := target, "myfile"
-	require.Equal(t, e, g, "bad symlink target: %q != %q", g, e)
+		require.Equal(t, e, g, "bad symlink target: %q != %q", g, e)
 	}()
 }
 
@@ -1396,19 +1396,19 @@ func TestSetattrDirMtimeNow(t *testing.T) {
 
 	// TODO setmtime to now, no Utimes on Windows.
 	/*
-		if err := unix.Utimes(p, nil); err != nil {
-			require.FailNow(t, fmt.Sprintf("touch failed: %v", err))
-		}
-		now := time.Now()
+			if err := unix.Utimes(p, nil); err != nil {
+				require.FailNow(t, fmt.Sprintf("touch failed: %v", err))
+			}
+			now := time.Now()
 
-		fi, err := ioutil.Lstat(p)
-		if err != nil {
-			require.FailNow(t, err)
-		}
-		g, o := fi.ModTime(), mtime
-	require.True(t, g.After(o), "mtime did not progress: %v <= %v", g, o)
-		g, e := fi.ModTime(), now
-	require.True(t, timeEqualFuzzy(g, e, 1*time.Second), "mtime is wrong: %v !~= %v", g, e)
+			fi, err := ioutil.Lstat(p)
+			if err != nil {
+				require.FailNow(t, err)
+			}
+			g, o := fi.ModTime(), mtime
+		require.True(t, g.After(o), "mtime did not progress: %v <= %v", g, o)
+			g, e := fi.ModTime(), now
+		require.True(t, timeEqualFuzzy(g, e, 1*time.Second), "mtime is wrong: %v !~= %v", g, e)
 
 	*/
 }
@@ -1759,9 +1759,9 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
@@ -1777,9 +1777,9 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input2, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input2)
 	}
 }
@@ -1812,9 +1812,9 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
@@ -1830,9 +1830,9 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input2, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input2)
 	}
 }
@@ -1865,9 +1865,9 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
@@ -1883,9 +1883,9 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input1[:newSize], string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1[:newSize])
 	}
 }
@@ -1914,9 +1914,9 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 
@@ -1940,9 +1940,9 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input2, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input2)
 	}
 }
@@ -2238,9 +2238,9 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 		buf := make([]byte, 4096)
 		n, err := f.ReadAt(buf, 0)
 		if err != nil {
-		require.ErrorIs(t, err, io.EOF,
-			err)
-	}
+			require.ErrorIs(t, err, io.EOF,
+				err)
+		}
 		require.Equal(t, input1, string(buf[:n]), "bad file contents: %q != %q", string(buf[:n]), input1)
 	}
 

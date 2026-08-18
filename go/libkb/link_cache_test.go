@@ -104,7 +104,9 @@ func TestLinkCacheConcurrent(t *testing.T) {
 				link := randChainLink()
 				c.Put(m, link.id, link)
 				_, ok := c.Get(link.id)
-				require.True(t, ok, "concurrent Get failed")
+				if !ok {
+					t.Errorf("concurrent Get failed")
+				}
 			}
 			wg.Done()
 		}()

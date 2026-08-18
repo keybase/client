@@ -65,8 +65,7 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 
 	newList := al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
-			expected, newList)
+		require.Failf(t, "", "Collapse returned unexpected list: %v vs %v", expected, newList)
 	}
 
 	// change the order
@@ -74,8 +73,7 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 
 	newList = al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
-			expected, newList)
+		require.Failf(t, "", "Collapse returned unexpected list: %v vs %v", expected, newList)
 	}
 
 	// Omit the top action this time
@@ -84,8 +82,7 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 
 	newList = al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
-			expected, newList)
+		require.Failf(t, "", "Collapse returned unexpected list: %v vs %v", expected, newList)
 	}
 }
 
@@ -112,7 +109,6 @@ func TestCRActionsCollapseAttr(t *testing.T) {
 
 	newList := al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
-		require.Fail(t, "Collapse returned unexpected list: %v vs %v",
-			expected, newList)
+		require.Failf(t, "", "Collapse returned unexpected list: %v vs %v", expected, newList)
 	}
 }

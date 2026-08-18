@@ -27,12 +27,12 @@ func TestSignEncrypter(t *testing.T) {
 	e := NewSignEncrypter()
 	el := e.EncryptedLen(100)
 	if el != 180 {
-		require.Fail(t, "enc len: %d, expected 180", el)
+		require.Failf(t, "", "enc len: %d, expected 180", el)
 	}
 
 	el = e.EncryptedLen(50 * 1024 * 1024)
 	if el != 52432880 {
-		require.Fail(t, "enc len: %d, expected 52432880", el)
+		require.Failf(t, "", "enc len: %d, expected 52432880", el)
 	}
 
 	pt := "plain text"
@@ -48,7 +48,7 @@ func TestSignEncrypter(t *testing.T) {
 	ptOut, err := io.ReadAll(dr)
 	require.NoError(t, err)
 	if string(ptOut) != pt {
-		require.Fail(t, "decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut, pt)
+		require.Failf(t, "", "decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut, pt)
 	}
 
 	// reuse e to do another Encrypt, make sure keys change:
@@ -69,7 +69,7 @@ func TestSignEncrypter(t *testing.T) {
 	ptOut2, err := io.ReadAll(dr2)
 	require.NoError(t, err)
 	if string(ptOut2) != pt {
-		require.Fail(t, "decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut2, pt)
+		require.Failf(t, "", "decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut2, pt)
 	}
 }
 
@@ -85,7 +85,7 @@ func testStoreMultis(t *testing.T, s *S3Store) []*s3.MemMulti {
 func assertNumMultis(t *testing.T, s *S3Store, n int) {
 	numMultis := len(testStoreMultis(t, s))
 	if numMultis != n {
-		require.Fail(t, "number of s3 multis: %d, expected %d", numMultis, n)
+		require.Failf(t, "", "number of s3 multis: %d, expected %d", numMultis, n)
 	}
 }
 
@@ -99,14 +99,14 @@ func assertNumParts(t *testing.T, s *S3Store, index, n int) {
 	p, err := m.ListParts(context.Background())
 	require.NoError(t, err)
 	if len(p) != n {
-		require.Fail(t, "num parts in multi: %d, expected %d", len(p), n)
+		require.Failf(t, "", "num parts in multi: %d, expected %d", len(p), n)
 	}
 }
 
 func assertNumPutParts(t *testing.T, s *S3Store, index, calls int) {
 	m := getMulti(t, s, index)
 	if m.NumPutParts() != calls {
-		require.Fail(t, "num PutPart calls: %d, expected %d", m.NumPutParts(), calls)
+		require.Failf(t, "", "num PutPart calls: %d, expected %d", m.NumPutParts(), calls)
 	}
 }
 
@@ -328,8 +328,7 @@ func (u *uploader) UploadResume() chat1.Asset {
 	require.NoError(u.t, err,
 		"expected second UploadAsset call to work, got: %s", err)
 	if a.Size != signencrypt.GetSealedSize(int64(len(u.plaintext))) {
-		require.Fail(u.t, "uploaded asset size: %d, expected %d", a.Size,
-			signencrypt.GetSealedSize(int64(len(u.plaintext))))
+		require.Failf(u.t, "", "uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(int64(len(u.plaintext))))
 	}
 	u.fullEncKey = u.encKey
 	u.fullSigKey = u.sigKey
@@ -375,10 +374,10 @@ func (u *uploader) DownloadAndMatch(a chat1.Asset) {
 	}
 	plaintextDownload := buf.Bytes()
 	if len(plaintextDownload) != len(u.plaintext) {
-		require.Fail(u.t, "downloaded asset len: %d, expected %d", len(plaintextDownload), len(u.plaintext))
+		require.Failf(u.t, "", "downloaded asset len: %d, expected %d", len(plaintextDownload), len(u.plaintext))
 	}
 	if !bytes.Equal(u.plaintext, plaintextDownload) {
-		require.Fail(u.t, "downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], u.plaintext[:10])
+		require.Failf(u.t, "", "downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], u.plaintext[:10])
 	}
 }
 
@@ -406,13 +405,13 @@ func (u *uploader) AssertNumPutParts(n int) {
 
 func (u *uploader) AssertNumResets(n int) {
 	if u.breader.resets != n {
-		require.Fail(u.t, "stream resets: %d, expected %d", u.breader.resets, n)
+		require.Failf(u.t, "", "stream resets: %d, expected %d", u.breader.resets, n)
 	}
 }
 
 func (u *uploader) AssertNumAborts(n int) {
 	if u.s.aborts != n {
-		require.Fail(u.t, "aborts: %d, expected %d", u.s.aborts, n)
+		require.Failf(u.t, "", "aborts: %d, expected %d", u.s.aborts, n)
 	}
 }
 

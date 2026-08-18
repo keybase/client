@@ -527,8 +527,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	ro, ok := iop1.(*rmOp)
 	if !ok || !reflect.DeepEqual(*ro, *expectedIOp) {
-		require.Fail(t, "createOp didn't invert properly, expected %v, got %v",
-			expectedIOp, iop1)
+		require.Failf(t, "", "createOp didn't invert properly, expected %v, got %v", expectedIOp, iop1)
 	}
 
 	// convert it back (works because the inversion picks File as the
@@ -537,8 +536,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	co, ok := iop2.(*createOp)
 	if !ok || !reflect.DeepEqual(*co, *cop) {
-		require.Fail(t, "rmOp didn't invert properly, expected %v, got %v",
-			expectedIOp, iop2)
+		require.Failf(t, "", "rmOp didn't invert properly, expected %v, got %v", expectedIOp, iop2)
 	}
 
 	// rename
@@ -555,8 +553,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	iRenameOp, ok := iop3.(*renameOp)
 	if !ok || !reflect.DeepEqual(*iRenameOp, *expectedIOp3) {
-		require.Fail(t, "renameOp didn't invert properly, expected %v, got %v",
-			expectedIOp3, iop3)
+		require.Failf(t, "", "renameOp didn't invert properly, expected %v, got %v", expectedIOp3, iop3)
 	}
 
 	// sync (writes should be the same as before)
@@ -574,8 +571,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	so, ok := iop4.(*syncOp)
 	if !ok || !reflect.DeepEqual(*so, *expectedIOp4) {
-		require.Fail(t, "syncOp didn't invert properly, expected %v, got %v",
-			expectedIOp4, iop4)
+		require.Failf(t, "", "syncOp didn't invert properly, expected %v, got %v", expectedIOp4, iop4)
 	}
 
 	// setAttr
@@ -589,8 +585,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	sao, ok := iop5.(*setAttrOp)
 	if !ok || !reflect.DeepEqual(*sao, *expectedIOp5) {
-		require.Fail(t, "setAttrOp didn't invert properly, expected %v, got %v",
-			expectedIOp5, iop5)
+		require.Failf(t, "", "setAttrOp didn't invert properly, expected %v, got %v", expectedIOp5, iop5)
 	}
 
 	// rename (same dir)
@@ -605,8 +600,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	iRenameOp, ok = iop6.(*renameOp)
 	if !ok || !reflect.DeepEqual(*iRenameOp, *expectedIOp6) {
-		require.Fail(t, "renameOp didn't invert properly, expected %v, got %v",
-			expectedIOp6, iop6)
+		require.Failf(t, "", "renameOp didn't invert properly, expected %v, got %v", expectedIOp6, iop6)
 	}
 }
 

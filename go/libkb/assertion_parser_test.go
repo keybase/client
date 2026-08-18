@@ -16,12 +16,11 @@ func testLexer(t *testing.T, name string, s string, expected []Token) {
 	for {
 		tok := lexer.Get()
 		if i >= len(expected) {
-			require.Fail(t, "%s, unexpected token %d [T%v: '%v']", name, i, tok.Typ, string(tok.value))
+			require.Failf(t, "", "%s, unexpected token %d [T%v: '%v']", name, i, tok.Typ, string(tok.value))
 			break
 		}
 		if !tok.Eq(expected[i]) {
-			require.Fail(t, "%s, token %d: [T%v: '%v'] != [T%v: '%v']",
-				name, i, tok.Typ, string(tok.value), expected[i].Typ, string(expected[i].value))
+			require.Failf(t, "", "%s, token %d: [T%v: '%v'] != [T%v: '%v']", name, i, tok.Typ, string(tok.value), expected[i].Typ, string(expected[i].value))
 		}
 		if tok.Typ == EOF {
 			break

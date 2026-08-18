@@ -94,12 +94,12 @@ func TestTransformToAirdropStatus(t *testing.T) {
 	for _, test := range atests {
 		var api remote.AirdropStatusAPI
 		if err := json.Unmarshal([]byte(test.json), &api); err != nil {
-			require.Fail(t, "%s: error: %s", test.name, err)
+			require.Failf(t, "", "%s: error: %s", test.name, err)
 			continue
 		}
 		out := TransformToAirdropStatus(api)
 		if !reflect.DeepEqual(out, test.status) {
-			require.Fail(t, "%s: transform output didn't match, expected %+v, got %+v", test.name, test.status, out)
+			require.Failf(t, "", "%s: transform output didn't match, expected %+v, got %+v", test.name, test.status, out)
 		}
 	}
 }

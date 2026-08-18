@@ -14,6 +14,6 @@ func TestJoinPredicate(t *testing.T) {
 	f := func(s string) bool { return strings.HasPrefix(s, "f") }
 	s := JoinPredicate([]string{"foo", "bar", "faa"}, "-", f)
 	if s != "foo-faa" {
-		require.Fail(t, "Unexpected output: %s", s)
+		require.Failf(t, "", "Unexpected output: %s", s)
 	}
 }

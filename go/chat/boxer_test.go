@@ -694,7 +694,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 			_, ok := ierr.Inner().(signencrypt.Error)
 			require.True(t, ok)
 		default:
-			require.Fail(t, "unexpected version: %v", mbVersion)
+			require.Failf(t, "", "unexpected version: %v", mbVersion)
 		}
 	})
 }
@@ -1806,7 +1806,7 @@ func TestVersionError(t *testing.T) {
 		case chat1.MessageUnboxedErrorType_BADVERSION, chat1.MessageUnboxedErrorType_BADVERSION_CRITICAL:
 			// pass
 		default:
-			require.Fail(t, "invalid error type (%s) for error: %s", typ, err.Error())
+			require.Failf(t, "", "invalid error type (%s) for error: %s", typ, err.Error())
 		}
 
 		e := chat1.MessageUnboxedError{

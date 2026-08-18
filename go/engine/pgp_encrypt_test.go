@@ -198,6 +198,6 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 	recips := dec.signStatus.RecipientKeyIDs
 	if len(recips) != 1 {
 		t.Logf("recipient key ids: %v", recips)
-		require.Fail(t, "num recipient key ids: %d, expected 1", len(recips))
+		require.Failf(t, "", "num recipient key ids: %d, expected 1", len(recips))
 	}
 }

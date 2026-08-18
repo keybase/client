@@ -36,10 +36,10 @@ func TestMemPut(t *testing.T) {
 	n, err := buf.ReadFrom(r)
 	require.NoError(t, err)
 	if n != int64(len(content)) {
-		require.Fail(t, "length: %d, expected %d", n, len(content))
+		require.Failf(t, "", "length: %d, expected %d", n, len(content))
 	}
 	s := buf.String()
 	if s != content {
-		require.Fail(t, "read data: %q, expected %q", s, content)
+		require.Failf(t, "", "read data: %q, expected %q", s, content)
 	}
 }

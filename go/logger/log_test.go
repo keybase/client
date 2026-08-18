@@ -35,10 +35,10 @@ func TestInitLogging(t *testing.T) {
 	// New must also initialize the level correctly.
 	l1Level := logging.GetLevel("l1")
 	if l1Level != logging.INFO {
-		require.Fail(t, "l1 level=%s is unexpectedly not INFO", l1Level)
+		require.Failf(t, "", "l1 level=%s is unexpectedly not INFO", l1Level)
 	}
 	l2Level := logging.GetLevel("l2")
 	if l2Level != logging.INFO {
-		require.Fail(t, "l2 level=%s is unexpectedly not INFO", l2Level)
+		require.Failf(t, "", "l2 level=%s is unexpectedly not INFO", l2Level)
 	}
 }

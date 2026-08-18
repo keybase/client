@@ -384,8 +384,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	if pre, post := totalBlockRefs(preQRBlocks),
 		totalBlockRefs(postQRBlocks); post >= pre {
-		require.Fail(t, "Blocks didn't shrink after reclamation: pre: %d, post %d",
-			pre, post)
+		require.Failf(t, "", "Blocks didn't shrink after reclamation: pre: %d, post %d", pre, post)
 	}
 
 	// Sync u2
@@ -463,8 +462,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// reference.
 	if pre, post := totalBlockRefs(postQRBlocks),
 		totalBlockRefs(endBlocks); post != pre+8 {
-		require.Fail(t, "Different number of blocks than expected: pre: %d, post %d",
-			pre, post)
+		require.Failf(t, "", "Different number of blocks than expected: pre: %d, post %d", pre, post)
 	}
 	oneDedupFound := false
 	for id, refs := range endBlocks {
@@ -479,7 +477,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 			continue
 		}
 		if len(refs) > 2 {
-			require.Fail(t, "Block %v unexpectedly had %d refs %+v", id, len(refs), refs)
+			require.Failf(t, "", "Block %v unexpectedly had %d refs %+v", id, len(refs), refs)
 		} else if len(refs) == 2 {
 			require.False(t, oneDedupFound, "Extra dedup block %v with refs %+v", id, refs)
 			oneDedupFound = true
@@ -720,8 +718,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	if pre, post := totalBlockRefs(preQR2Blocks),
 		totalBlockRefs(postQR2Blocks); post >= pre {
-		require.Fail(t, "Blocks didn't shrink after reclamation: pre: %d, post %d",
-			pre, post)
+		require.Failf(t, "", "Blocks didn't shrink after reclamation: pre: %d, post %d", pre, post)
 	}
 
 	// If u2 does a write, we don't have to wait the minimum head age.
@@ -749,8 +746,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	if pre, post := totalBlockRefs(preQR3Blocks),
 		totalBlockRefs(postQR3Blocks); post >= pre {
-		require.Fail(t, "Blocks didn't shrink after reclamation: pre: %d, post %d",
-			pre, post)
+		require.Failf(t, "", "Blocks didn't shrink after reclamation: pre: %d, post %d", pre, post)
 	}
 }
 

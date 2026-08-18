@@ -27,8 +27,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 		parentPtr, testPPS(parentName), nil, data.Dir)
 	require.False(t, err != nil, "Couldn't create top-level parent node: %v", err)
 	if parentNode.GetBasename().Plaintext() != parentName {
-		require.Fail(t, "Expected basename %s, got %s",
-			parentName, parentNode.GetBasename())
+		require.Failf(t, "", "Expected basename %s, got %s", parentName, parentNode.GetBasename())
 	}
 
 	// now create a child node for that parent
@@ -38,8 +37,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 		childPtr1, testPPS(childName1), parentNode, data.Dir)
 	require.False(t, err != nil, "Couldn't create child node: %v", err)
 	if childNode1.GetBasename().Plaintext() != childName1 {
-		require.Fail(t, "Expected basename %s, got %s",
-			childName1, childNode1.GetBasename())
+		require.Failf(t, "", "Expected basename %s, got %s", childName1, childNode1.GetBasename())
 	}
 
 	parent2 := childNode1
@@ -53,8 +51,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 		childPtr2, testPPS(childName2), parent2, data.Dir)
 	require.False(t, err != nil, "Couldn't create second child node: %v", err)
 	if childNode2.GetBasename().Plaintext() != childName2 {
-		require.Fail(t, "Expected basename %s, got %s",
-			childName2, childNode2.GetBasename())
+		require.Failf(t, "", "Expected basename %s, got %s", childName2, childNode2.GetBasename())
 	}
 
 	childPath1 = []data.PathNode{
@@ -201,8 +198,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 	require.False(t, err != nil, "Couldn't update parent: %v", err)
 
 	if childNode2.GetBasename().Plaintext() != "child3" {
-		require.Fail(t, "Child2 has the wrong name after move: %s",
-			childNode2.GetBasename())
+		require.Failf(t, "", "Child2 has the wrong name after move: %s", childNode2.GetBasename())
 	}
 
 	require.Equal(t, childNode1, childNode2.(*nodeStandard).core.parent, "UpdateParent didn't work")
@@ -214,8 +210,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 
 	undoMove()
 	if childNode2.GetBasename().Plaintext() != "child2" {
-		require.Fail(t, "Child2 has the wrong name after move: %s",
-			childNode2.GetBasename())
+		require.Failf(t, "", "Child2 has the wrong name after move: %s", childNode2.GetBasename())
 	}
 	require.Equal(t, parentNode, childNode2.(*nodeStandard).core.parent, "UpdateParent didn't work")
 }
@@ -269,8 +264,7 @@ func TestNodeCacheUnlink(t *testing.T) {
 	// Undo
 	undoFn()
 	if childNode2.GetBasename().Plaintext() != path2[2].Name.Plaintext() {
-		require.Fail(t, "Expected basename %s, got %s",
-			path2[2].Name, childNode2.GetBasename())
+		require.Failf(t, "", "Expected basename %s, got %s", path2[2].Name, childNode2.GetBasename())
 	}
 }
 

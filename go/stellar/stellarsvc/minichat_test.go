@@ -144,7 +144,7 @@ func TestSpecMiniChatPayments(t *testing.T) {
 	for i, st := range specTests {
 		out, err := stellar.SpecMiniChatPayments(mctx, tc.Srv.walletState, st.payments)
 		if err != nil {
-			require.Fail(t, "test %d: unexpected error: %s", i, err)
+			require.Failf(t, "", "test %d: unexpected error: %s", i, err)
 			continue
 		}
 		require.NotNil(t, out)

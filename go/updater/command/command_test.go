@@ -108,7 +108,7 @@ func TestExecForJSON(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("Out: %#v", testValOut)
 	if !reflect.DeepEqual(testVal, testValOut) {
-		require.Fail(t, "Invalid object: %#v", testValOut)
+		require.Failf(t, "", "Invalid object: %#v", testValOut)
 	}
 }
 
@@ -134,7 +134,7 @@ func TestExecForJSONAddingInvalidInput(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("Out: %#v", testValOut)
 	if !reflect.DeepEqual(testVal, testValOut) {
-		require.Fail(t, "Invalid object: %#v", testValOut)
+		require.Failf(t, "", "Invalid object: %#v", testValOut)
 	}
 }
 

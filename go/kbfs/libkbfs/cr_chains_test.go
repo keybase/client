@@ -58,8 +58,7 @@ func checkExpectedChains(t *testing.T, expected map[data.BlockPointer]data.Block
 	}
 
 	if !reflect.DeepEqual(cc.renamedOriginals, expectedRenames) {
-		require.Fail(t, "Actual renames don't match the expected renames: %v vs %v",
-			cc.renamedOriginals, expectedRenames)
+		require.Failf(t, "", "Actual renames don't match the expected renames: %v vs %v", cc.renamedOriginals, expectedRenames)
 	}
 }
 
@@ -114,7 +113,7 @@ func testCRCheckOps(t *testing.T, cc *crChains, original data.BlockPointer,
 
 			if co.NewName != eCOp.NewName || co.Dir.Unref != eCOp.Dir.Unref ||
 				!eCOp.renamed {
-				require.Fail(t, "Bad create op after rename: %v", co)
+				require.Failf(t, "", "Bad create op after rename: %v", co)
 			}
 		} else if ro, ok := op.(*rmOp); ok &&
 			// We can tell the rm half of a rename because the updates
@@ -125,15 +124,14 @@ func testCRCheckOps(t *testing.T, cc *crChains, original data.BlockPointer,
 
 			if ro.OldName != eROp.OldName || ro.Dir.Unref != eROp.Dir.Unref ||
 				eROp.Dir.Ref.IsInitialized() {
-				require.Fail(t, "Bad create op after rename: %v", ro)
+				require.Failf(t, "", "Bad create op after rename: %v", ro)
 			}
 		} else {
 			ok, err := kbfscodec.Equal(codec, op, eOp)
 			require.NoError(t, err,
 				"Couldn't compare ops: %v", err)
 			if !ok {
-				require.Fail(t, "Unexpected op %v at %v[%d]; expected %v", op,
-					original, i, eOp)
+				require.Failf(t, "", "Unexpected op %v at %v[%d]; expected %v", op, original, i, eOp)
 			}
 		}
 

@@ -462,7 +462,7 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: error type %T, expected %T", i, err, test.err)
 			continue
 		} else if err != nil {
-			require.Fail(t, "test %d: input %s => error %s", i, test.input, err)
+			require.Failf(t, "", "test %d: input %s => error %s", i, test.input, err)
 			continue
 		}
 		require.Equal(t, test.listV1, h.listV1, "test %d: input %s => listV1 = %d, expected %d", i, test.input, h.listV1, test.listV1)
@@ -481,24 +481,19 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		require.Equal(t, test.addToChannelV1, h.addToChannelV1, "test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
 		require.Equal(t, test.removeFromChannelV1, h.removeFromChannelV1, "test %d: input %s => removeFromChannelV1 = %d, expected %d", i, test.input, h.removeFromChannelV1, test.removeFromChannelV1)
 		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
-			require.Fail(t, "test %d: input %s => listConvsOnNameV1 = %d, expected %d",
-				i, test.input, h.listConvsOnNameV1, test.listConvsOnNameV1)
+			require.Failf(t, "", "test %d: input %s => listConvsOnNameV1 = %d, expected %d", i, test.input, h.listConvsOnNameV1, test.listConvsOnNameV1)
 		}
 		if h.pinV1 != test.pinV1 {
-			require.Fail(t, "test %d: input %s => pinV1 = %d, expected %d",
-				i, test.input, h.pinV1, test.pinV1)
+			require.Failf(t, "", "test %d: input %s => pinV1 = %d, expected %d", i, test.input, h.pinV1, test.pinV1)
 		}
 		if h.unpinV1 != test.unpinV1 {
-			require.Fail(t, "test %d: input %s => unpinV1 = %d, expected %d",
-				i, test.input, h.unpinV1, test.unpinV1)
+			require.Failf(t, "", "test %d: input %s => unpinV1 = %d, expected %d", i, test.input, h.unpinV1, test.unpinV1)
 		}
 		if h.getDeviceInfoV1 != test.getDeviceInfoV1 {
-			require.Fail(t, "test %d: input %s => getDeviceInfoV1 = %d, expected %d",
-				i, test.input, h.getDeviceInfoV1, test.getDeviceInfoV1)
+			require.Failf(t, "", "test %d: input %s => getDeviceInfoV1 = %d, expected %d", i, test.input, h.getDeviceInfoV1, test.getDeviceInfoV1)
 		}
 		if h.listMembersV1 != test.listMembersV1 {
-			require.Fail(t, "test %d: input %s => listMembersV1 = %d, expected %d",
-				i, test.input, h.listMembersV1, test.listMembersV1)
+			require.Failf(t, "", "test %d: input %s => listMembersV1 = %d, expected %d", i, test.input, h.listMembersV1, test.listMembersV1)
 		}
 		require.Equal(t, strings.TrimSpace(test.output), strings.TrimSpace(buf.String()), "test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
 	}
@@ -781,7 +776,7 @@ func TestChatAPIVersionHandlerOptions(t *testing.T) {
 			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: input: %s", i, test.input)
 			continue
 		} else if err != nil {
-			require.Fail(t, "test %d: input %s => error %s", i, test.input, err)
+			require.Failf(t, "", "test %d: input %s => error %s", i, test.input, err)
 			continue
 		}
 		require.Equal(t, strings.TrimSpace(test.output), strings.TrimSpace(buf.String()), "test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
@@ -905,7 +900,7 @@ func TestChatAPIEcho(t *testing.T) {
 			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: error type %T, expected %T", i, err, test.err)
 			continue
 		} else if err != nil {
-			require.Fail(t, "test %d: input %s => error %s", i, test.input, err)
+			require.Failf(t, "", "test %d: input %s => error %s", i, test.input, err)
 			continue
 		}
 

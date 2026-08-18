@@ -1388,7 +1388,7 @@ func TestShutdown(t *testing.T) {
 			time.Sleep(time.Duration(index*10) * time.Millisecond)
 			_, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
 			if err != nil {
-				require.Fail(t, err.Error())
+				t.Error(err)
 			}
 			wg.Done()
 		}(i)

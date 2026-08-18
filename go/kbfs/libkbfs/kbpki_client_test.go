@@ -202,8 +202,7 @@ func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 			keybase1.OfflineAvailability_NONE)
 		require.NoError(t, err, err)
 		if !reflect.DeepEqual(team.CryptKeys, keys) {
-			require.Fail(t, "Team TLF crypt keys don't match: %v vs %v",
-				team.CryptKeys, keys)
+			require.Failf(t, "", "Team TLF crypt keys don't match: %v vs %v", team.CryptKeys, keys)
 		}
 		require.Equal(t, kbfsmd.FirstValidKeyGen, keyGen, "Unexpected team key gen: %v", keyGen)
 	}

@@ -114,7 +114,7 @@ func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 		case keybase1.TeamTreeMembershipStatus_HIDDEN:
 			require.Contains(t, hiddenTeamNames, result.TeamName)
 		default:
-			require.Fail(t, "got an unknown result status %s", s)
+			require.Failf(t, "", "got an unknown result status %s", s)
 		}
 	}
 }

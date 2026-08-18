@@ -888,7 +888,7 @@ func testMDOpsPutPrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("test key")
 	if _, err := config.MDOps().Put(
 		ctx, rmd, key, nil, keybase1.MDPriorityNormal, nil); err != nil {
-		require.Fail(t, "Got error on put: %v", err)
+		require.Failf(t, "", "Got error on put: %v", err)
 	}
 }
 
@@ -925,7 +925,7 @@ func testMDOpsPutFailEncode(t *testing.T, ver kbfsmd.MetadataVer) {
 	if _, err2 := config.MDOps().Put(
 		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal,
 		nil); err2 != err {
-		require.Fail(t, "Got bad error on put: %v", err2)
+		require.Failf(t, "", "Got bad error on put: %v", err2)
 	}
 }
 
