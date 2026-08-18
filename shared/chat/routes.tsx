@@ -54,7 +54,14 @@ const PDFShareButton = ({url}: {url?: string}) => {
 
 const BotInstallHeaderTitle = () => {
   const subScreen = useModalHeaderState(s => s.botSubScreen)
-  return <>{subScreen === 'channels' ? 'Channels' : ''}</>
+  // has to be a Text: the desktop modal header only wraps a bare string title, and a
+  // component that renders one lands in the header unstyled
+  if (subScreen !== 'channels') return null
+  return (
+    <Kb.Text type="Header" lineClamp={1} center={true}>
+      Channels
+    </Kb.Text>
+  )
 }
 
 const BotInstallHeaderLeft = () => {

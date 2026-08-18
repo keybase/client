@@ -4,8 +4,11 @@ import type * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 
 type Props = {
+  allSelected: boolean
   channelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelsKnown: boolean
   installInConvs: ReadonlyArray<string>
+  setAllSelected: (all: boolean) => void
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: ReadonlyArray<string>) => void
   setDisableDone: (disable: boolean) => void
@@ -18,7 +21,7 @@ const getChannels = (
   searchText: string
 ) => {
   const matcher = makeInsertMatcher(searchText)
-  const regex = new RegExp(searchText, 'i')
+  const lowerSearch = searchText.toLowerCase()
   return [...channelMetas.values()]
     .filter(({channelname, description}) => {
       if (!searchText) {
@@ -26,8 +29,9 @@ const getChannels = (
       }
       return (
         // match channel name for search as subsequence (like the identity modal)
-        // match channel desc by strict substring (less noise in results)
-        channelname.search(matcher) !== -1 || description.search(regex) !== -1
+        // match channel desc by strict substring (less noise in results). not a regex:
+        // typing '(' would throw during render
+        channelname.search(matcher) !== -1 || description.toLowerCase().includes(lowerSearch)
       )
     })
     .sort((a, b) => a.channelname.localeCompare(b.channelname))
@@ -87,14 +91,9 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => {
 const ChannelPicker = (props: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {installInConvs, setInstallInConvs, setDisableDone} = props
-  const [allSelected, setAllSelected] = React.useState(installInConvs.length === 0)
+  const {allSelected, channelMetas, channelsKnown, installInConvs} = props
+  const {setAllSelected, setDisableDone, setInstallInConvs, teamName} = props
   const [searchText, setSearchText] = React.useState('')
-  React.useEffect(() => {
-    if (allSelected) {
-      setInstallInConvs([])
-    }
-  }, [allSelected, setInstallInConvs])
 
   React.useEffect(() => {
     if (!allSelected && installInConvs.length === 0) {
@@ -104,7 +103,7 @@ const ChannelPicker = (props: Props) => {
     setDisableDone(false)
   }, [allSelected, installInConvs, setDisableDone])
 
-  const channels = getChannels(props.channelMetas, searchText)
+  const channels = getChannels(channelMetas, searchText)
   const rows = channels.map(meta => (
     <Row
       disabled={allSelected}
@@ -117,18 +116,23 @@ const ChannelPicker = (props: Props) => {
   ))
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.SearchFilter
           size="full-width"
           icon="iconfont-search"
-          placeholderText={`Search channels in ${props.teamName}`}
+          placeholderText={`Search channels in ${teamName}`}
           placeholderCentered={true}
           onChange={setSearchText}
           style={styles.searchFilter}
           focusOnMount={true}
         />
       </Kb.Box2>
+      {!channelsKnown ? (
+        <Kb.Box2 direction="vertical" style={styles.rowsContainer} centerChildren={true}>
+          <Kb.ProgressIndicator type="Large" />
+        </Kb.Box2>
+      ) : (
       <Kb.ScrollView style={styles.rowsContainer}>
         <Kb.Box2 direction="horizontal" style={{backgroundColor: theme.blueGrey}}>
           <Kb.ListItem
@@ -141,6 +145,7 @@ const ChannelPicker = (props: Props) => {
         </Kb.Box2>
         {rows}
       </Kb.ScrollView>
+      )}
     </Kb.Box2>
   )
 }
@@ -159,14 +164,18 @@ const useStyles = Kb.Styles.createStyleHook(
           wordBreak: 'break-all',
         },
       }),
-      rowsContainer: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-        },
-        isElectron: {
-          minHeight: 370,
-        },
-      }),
+      // the rows have to scroll inside the modal instead of growing it
+      container: {
+        flexGrow: 1,
+        flexShrink: 1,
+        minHeight: 0,
+      },
+      rowsContainer: {
+        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
+        flexGrow: 1,
+        flexShrink: 1,
+        minHeight: 0,
+      },
       searchFilter: Kb.Styles.platformStyles({
         common: {
           marginBottom: Kb.Styles.globalMargins.xsmall,

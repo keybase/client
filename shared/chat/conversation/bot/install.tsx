@@ -118,6 +118,8 @@ type Props = {
 
 const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
+const pickChannelsLabel = 'Select at least one channel'
+
 const addBotMember = async (p: {
   botUsername: string
   conversationIDKey: T.Chat.ConversationIDKey
@@ -158,6 +160,10 @@ const InstallBotPopup = (props: Props) => {
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<ReadonlyArray<string>>([])
+  // An empty convs list means 'every channel in the team' on the wire, so that has to
+  // be an explicit choice ('All channels' in the picker) and never something we fall
+  // into by filtering or by failing to load the channel list.
+  const [installInAllConvs, setInstallInAllConvs] = React.useState(true)
   const [disableDone, setDisableDone] = React.useState(false)
   const [loadedBotPublicCommands, setLoadedBotPublicCommands] = React.useState<
     | {
@@ -190,7 +196,7 @@ const InstallBotPopup = (props: Props) => {
 
   const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
   const readOnly = meta.teamname ? !yourOperations.manageBots : false
-  const {settings} = useBotSettings(conversationIDKey, botUsername, !!inTeam)
+  const {failed: settingsFailed, settings} = useBotSettings(conversationIDKey, botUsername, !!inTeam)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
   let refreshTeamID: T.Teams.TeamID | undefined
@@ -201,6 +207,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
+  const channelsKnown = channelMetas.size > 0
   const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const mutationError = C.Waiting.useAnyErrors(C.waitingKeyChatBotAdd)
@@ -211,8 +218,12 @@ const InstallBotPopup = (props: Props) => {
   const onLearn = () => {
     void openURL('https://book.keybase.io/docs/chat/restricted-bots')
   }
+  // Only 'All channels' may send an empty list; a restricted bot with no channels
+  // selected is not saveable (the picker's Done button enforces the same thing).
+  const convsToSave = installInAllConvs ? [] : installInConvs
+  const noConvsChosen = installWithRestrict && !installInAllConvs && convsToSave.length === 0
   const onInstall = () => {
-    if (!conversationIDKey) {
+    if (!conversationIDKey || noConvsChosen) {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
@@ -221,7 +232,7 @@ const InstallBotPopup = (props: Props) => {
       addBotMember({
         botUsername,
         conversationIDKey,
-        installInConvs,
+        installInConvs: convsToSave,
         installWithCommands,
         installWithMentions,
         installWithRestrict,
@@ -229,7 +240,7 @@ const InstallBotPopup = (props: Props) => {
     )
   }
   const onEdit = () => {
-    if (!conversationIDKey) {
+    if (!conversationIDKey || noConvsChosen) {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
@@ -238,7 +249,7 @@ const InstallBotPopup = (props: Props) => {
       try {
         await T.RPCChat.localSetBotMemberSettingsRpcPromise(
           {
-            botSettings: {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions},
+            botSettings: {cmds: installWithCommands, convs: convsToSave, mentions: installWithMentions},
             convID: T.Chat.keyToConversationID(conversationIDKey),
             username: botUsername,
           },
@@ -356,8 +367,11 @@ const InstallBotPopup = (props: Props) => {
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
           channelMetas={channelMetas}
+          channelsKnown={channelsKnown}
           commands={commands}
+          hasTeam={!!teamname}
           settings={settings}
+          settingsFailed={settingsFailed}
           username={botUsername}
         />
       )}
@@ -377,8 +391,11 @@ const InstallBotPopup = (props: Props) => {
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
           channelMetas={channelMetas}
-          settings={settings}
+          channelsKnown={channelsKnown}
           commands={commands}
+          hasTeam={!!teamname}
+          settings={settings}
+          settingsFailed={settingsFailed}
           username={botUsername}
         />
       )}
@@ -426,18 +443,25 @@ const InstallBotPopup = (props: Props) => {
                     />
                     <Kb.Text type="BodySemibold">
                       {teamname}{' '}
-                      {installInConvs.length === 1
-                        ? `(#${channelMetas.get(installInConvs[0] ?? '')?.channelname ?? ''})`
-                        : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
+                      {installInAllConvs
+                        ? '(all channels)'
+                        : installInConvs.length === 1 && channelMetas.get(installInConvs[0] ?? '')
+                          ? `(#${channelMetas.get(installInConvs[0] ?? '')?.channelname ?? ''})`
+                          : `(${installInConvs.length} channel${installInConvs.length === 1 ? '' : 's'})`}
                     </Kb.Text>
                   </Kb.Box2>
                 }
                 toggleOpen={() => setChannelPickerScreen(true)}
               />
+              {installInAllConvs && (
+                <Kb.Text type="BodySmall">{`Every channel in ${teamname}.`}</Kb.Text>
+              )}
             </Kb.Box2>
           )}
           <Kb.Text type="BodySmall">
-            This bot will not be able to read any other messages, channels, files, or repositories.
+            {installInAllConvs
+              ? 'This bot will not be able to read any other messages, files, or repositories.'
+              : 'This bot will not be able to read any other messages, channels, files, or repositories.'}
           </Kb.Text>
         </Kb.Box2>
       ) : (
@@ -458,10 +482,13 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const channelPickerContent = channelPickerScreen && teamID && teamname && (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.pickerContainer}>
       <ChannelPicker
+        allSelected={installInAllConvs}
         channelMetas={channelMetas}
+        channelsKnown={channelsKnown}
         installInConvs={installInConvs}
+        setAllSelected={setInstallInAllConvs}
         setChannelPickerScreen={setChannelPickerScreen}
         setDisableDone={setDisableDone}
         setInstallInConvs={setInstallInConvs}
@@ -482,12 +509,16 @@ const InstallBotPopup = (props: Props) => {
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && isBot && !installScreen
   const showEditButton = inTeam && isBot && !inTeamUnrestricted && !installScreen
+  // without settings the edit screen would seed from nothing and read as 'all channels';
+  // without the channel list it can't tell a deleted channel from an unloaded one
+  const editDisabled = !settings || !channelsKnown
   const showSaveButton = inTeam && installScreen && !channelPickerContent
   const showDoneButton = channelPickerContent
   const installButton = showInstallButton && (
     <Kb.WaitingButton
+      disabled={noConvsChosen}
       fullWidth={true}
-      label="Install"
+      label={noConvsChosen ? pickChannelsLabel : 'Install'}
       onClick={onInstall}
       mode="Primary"
       type="Default"
@@ -531,14 +562,19 @@ const InstallBotPopup = (props: Props) => {
   )
   const editButton = showEditButton && (
     <Kb.Button
+      disabled={editDisabled}
       fullWidth={true}
       label="Edit settings"
       onClick={() => {
-        if (settings) {
-          setInstallWithCommands(settings.cmds)
-          setInstallWithMentions(settings.mentions)
-          setInstallInConvs(settings.convs ?? [])
-        }
+        if (!settings) return
+        setInstallWithCommands(settings.cmds)
+        setInstallWithMentions(settings.mentions)
+        const convs = settings.convs ?? []
+        setInstallInAllConvs(convs.length === 0)
+        // the button waits for the channel list, so anything that doesn't resolve here
+        // is a deleted channel: drop it rather than carry an id the user can't see or
+        // deselect. An empty result blocks save, it can't widen the bot.
+        setInstallInConvs(convs.filter(c => channelMetas.has(c)))
         setInstallScreen(true)
       }}
       mode="Secondary"
@@ -547,8 +583,9 @@ const InstallBotPopup = (props: Props) => {
   )
   const saveButton = showSaveButton && (
     <Kb.WaitingButton
+      disabled={noConvsChosen}
       fullWidth={true}
-      label="Save"
+      label={noConvsChosen ? pickChannelsLabel : 'Save'}
       onClick={onEdit}
       mode="Primary"
       type="Default"
@@ -558,8 +595,11 @@ const InstallBotPopup = (props: Props) => {
   const doneButton = showDoneButton && (
     <Kb.Button
       fullWidth={true}
-      label={disableDone ? 'Select at least one channel' : 'Done'}
-      onClick={() => setChannelPickerScreen(false)}
+      label={disableDone ? pickChannelsLabel : 'Done'}
+      onClick={() => {
+        setDisableDone(false)
+        setChannelPickerScreen(false)
+      }}
       disabled={disableDone}
       mode="Primary"
       type="Default"
@@ -584,7 +624,6 @@ const InstallBotPopup = (props: Props) => {
       botReadOnly: readOnly,
       botSubScreen: channelPickerScreen ? 'channels' : installScreen ? 'install' : '',
       onAction: handleBack,
-      title: channelPickerScreen ? 'Channels' : '',
     })
     return () => {
       useModalHeaderState.setState({
@@ -592,7 +631,6 @@ const InstallBotPopup = (props: Props) => {
         botReadOnly: false,
         botSubScreen: '',
         onAction: undefined,
-        title: '',
       })
     }
   }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
@@ -705,42 +743,67 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 
 type PermsListProps = {
   channelMetas?: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelsKnown: boolean
   commands: T.Chat.BotPublicCommands | undefined
+  hasTeam: boolean
   settings?: T.RPCGen.TeamBotSettings
+  settingsFailed: boolean
   username: string
 }
 
 const PermsList = (props: PermsListProps) => {
+  const {channelMetas, channelsKnown, commands, hasTeam} = props
+  const {settings, settingsFailed, username} = props
+  const convs = settings?.convs ?? []
+  // convs can name channels that were deleted, which have no meta and would
+  // otherwise render as a bare '#'
+  const knownConvs = convs.filter(convID => channelMetas?.has(convID))
+  const goneCount = convs.length - knownConvs.length
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
-      {props.settings ? (
+      {settings ? (
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            {!(props.settings.cmds || props.settings.mentions) && (
+            {!(settings.cmds || settings.mentions) && (
               <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
             )}
-            {props.settings.cmds && (
+            {settings.cmds && (
               <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
                 <Kb.Text type="Body">{'•'}</Kb.Text>
-                <CommandsLabel commands={props.commands} />
+                <CommandsLabel commands={commands} />
               </Kb.Box2>
             )}
-            {props.settings.mentions && (
-              <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
+            {settings.mentions && (
+              <Kb.Text type="Body">{`• messages it has been mentioned in with @${username}`}</Kb.Text>
             )}
           </Kb.Box2>
-          {props.settings.convs && props.channelMetas && (
-            <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-              <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
-              {props.settings.convs.map(convID => (
-                <Kb.Text type="Body" key={convID}>{`• #${
-                  props.channelMetas?.get(convID)?.channelname ?? ''
-                }`}</Kb.Text>
-              ))}
-            </Kb.Box2>
+          {hasTeam && (
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
+            {convs.length === 0 ? (
+              <Kb.Text type="Body">{'• all channels in this team'}</Kb.Text>
+            ) : !channelsKnown ? (
+              <Kb.ProgressIndicator />
+            ) : (
+              <>
+                {knownConvs.map(convID => (
+                  <Kb.Text type="Body" key={convID}>{`• #${
+                    channelMetas?.get(convID)?.channelname ?? ''
+                  }`}</Kb.Text>
+                ))}
+                {goneCount > 0 && (
+                  <Kb.Text type="Body">{`• ${goneCount} channel${
+                    goneCount === 1 ? '' : 's'
+                  } that no longer exist${goneCount === 1 ? 's' : ''}`}</Kb.Text>
+                )}
+              </>
+            )}
+          </Kb.Box2>
           )}
         </Kb.Box2>
+      ) : settingsFailed ? (
+        <Kb.Text type="BodySmallError">{`Couldn't load this bot's settings.`}</Kb.Text>
       ) : (
         <Kb.ProgressIndicator type="Large" />
       )}
@@ -749,6 +812,12 @@ const PermsList = (props: PermsListProps) => {
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
+  // the picker brings its own scroller, so it has to be able to shrink to the modal
+  pickerContainer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minHeight: 0,
+  },
   bodyScroll: {
     flex: 1,
     minHeight: 0,
