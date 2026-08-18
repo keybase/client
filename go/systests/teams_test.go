@@ -92,7 +92,7 @@ func TestHiddenRotateGregor(t *testing.T) {
 			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(team.ApplicationKeys))
+		require.Len(t, team.ApplicationKeys, 1)
 		return (team.ApplicationKeys[0].KeyGeneration == g)
 	}
 	// Prime user 1's cache
@@ -272,7 +272,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 		u.backupKey = &backups[0]
 		u.backupKey.secret = signupUI.info.displayedPaperKey
 	} else {
-		require.Len(tt.t, backups, 0, "backup keys")
+		require.Empty(tt.t, backups, "backup keys")
 	}
 
 	tt.users = append(tt.users, &u)
@@ -1429,7 +1429,7 @@ func TestTeamLeaveThenList(t *testing.T) {
 	alice.leave(teamName.String())
 
 	teams = alice.teamList("", false, false)
-	require.Len(t, teams.Teams, 0)
+	require.Empty(t, teams.Teams)
 }
 
 func TestTeamCanUserPerform(t *testing.T) {
@@ -1701,7 +1701,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.Equal(t, []keybase1.UserVersion{{Uid: alice.uid, EldestSeqno: 1}}, members.Owners)
 	require.Equal(t, []keybase1.UserVersion{{Uid: bob.uid, EldestSeqno: 1}}, members.Admins)
 	require.Equal(t, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}}, members.Writers)
-	require.Len(t, members.Readers, 0)
+	require.Empty(t, members.Readers)
 	require.Equal(t, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}}, members.Bots)
 	require.Equal(t, []keybase1.UserVersion{{Uid: restrictedBotua.uid, EldestSeqno: 1}}, members.RestrictedBots)
 	invites := team.GetActiveAndObsoleteInvites()
@@ -1711,13 +1711,13 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		case keybase1.TeamInviteCategory_SBS:
 			require.Equal(t, invite.Type.Sbs(), keybase1.TeamInviteSocialNetwork("rooter"))
 			require.Equal(t, invite.Name, keybase1.TeamInviteName(john.username))
-			require.Equal(t, invite.Role, keybase1.TeamRole_ADMIN)
+			require.Equal(t, keybase1.TeamRole_ADMIN, invite.Role)
 		case keybase1.TeamInviteCategory_EMAIL:
 			require.Equal(t, invite.Name, keybase1.TeamInviteName("rob@gmail.com"))
-			require.Equal(t, invite.Role, keybase1.TeamRole_READER)
+			require.Equal(t, keybase1.TeamRole_READER, invite.Role)
 		case keybase1.TeamInviteCategory_KEYBASE:
 			require.Equal(t, invite.Name, keybase1.TeamInviteName(john.userVersion().PercentForm()))
-			require.Equal(t, invite.Role, keybase1.TeamRole_READER)
+			require.Equal(t, keybase1.TeamRole_READER, invite.Role)
 		default:
 			require.FailNowf(t, "unexpected invite type", "%v", spew.Sdump(invite))
 		}
@@ -1729,16 +1729,16 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	}
 	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
-	require.IsType(t, err, teams.AddMembersError{})
-	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
+	require.ErrorAs(t, err, new(teams.AddMembersError))
+	require.ErrorAs(t, err.(teams.AddMembersError).Err, new(teams.MixedServerTrustAssertionError))
 	// It should also fail to combine invites with other assertions
 	users = []keybase1.UserRolePair{
 		{Assertion: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
 	}
 	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
-	require.IsType(t, err, teams.AddMembersError{})
-	require.IsType(t, err.(teams.AddMembersError).Err, teams.CompoundInviteError{})
+	require.ErrorAs(t, err, new(teams.AddMembersError))
+	require.ErrorAs(t, err.(teams.AddMembersError).Err, new(teams.CompoundInviteError))
 }
 
 func TestBatchAddMembers(t *testing.T) {
@@ -1774,29 +1774,29 @@ func TestBatchAddMembers(t *testing.T) {
 
 	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role), nil /* emailInviteMsg */)
 	require.Error(t, err, "can't invite assertions as owners")
-	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
+	require.ErrorAs(t, err, new(teams.AttemptedInviteSocialOwnerError))
 	require.Nil(t, added)
 	require.Nil(t, notAdded)
 	team := alice.loadTeamByID(teamID, true /* admin */)
 	members, err := team.Members()
 	require.NoError(t, err)
 	require.Len(t, members.Owners, 1)
-	require.Len(t, members.Admins, 0)
-	require.Len(t, members.Writers, 0)
-	require.Len(t, members.Readers, 0)
-	require.Len(t, members.RestrictedBots, 0)
+	require.Empty(t, members.Admins)
+	require.Empty(t, members.Writers)
+	require.Empty(t, members.Readers)
+	require.Empty(t, members.RestrictedBots)
 
 	role = keybase1.TeamRole_ADMIN
 	added, notAdded, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role), nil /* emailInviteMsg */)
 	require.NoError(t, err)
 	require.Len(t, added, len(assertions))
-	require.Len(t, notAdded, 0)
+	require.Empty(t, notAdded)
 	for i, r := range added {
 		require.Equal(t, expectInvite[i], r.Invite, "invite %v", i)
 		if expectUsername[i] {
 			require.Equal(t, assertions[i], r.Username.String(), "expected username %v", i)
 		} else {
-			require.Equal(t, "", r.Username.String(), "expected no username %v", i)
+			require.Empty(t, r.Username.String(), "expected no username %v", i)
 		}
 	}
 
@@ -1807,9 +1807,9 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Equal(t, alice.userVersion(), members.Owners[0])
 	require.Len(t, members.Admins, 1)
 	require.Equal(t, bob.userVersion(), members.Admins[0])
-	require.Len(t, members.Writers, 0)
-	require.Len(t, members.Readers, 0)
-	require.Len(t, members.RestrictedBots, 0)
+	require.Empty(t, members.Writers)
+	require.Empty(t, members.Readers)
+	require.Empty(t, members.RestrictedBots)
 
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))
@@ -1859,7 +1859,7 @@ func TestAddCompoundAssertion(t *testing.T) {
 	}
 	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.NoError(t, err)
-	require.Len(t, notAdded, 0)
+	require.Empty(t, notAdded)
 	require.Len(t, added, 1)
 	require.False(t, added[0].Invite)
 	require.EqualValues(t, bob.username, added[0].Username)

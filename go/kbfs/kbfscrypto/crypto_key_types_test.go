@@ -32,7 +32,7 @@ func testKidContainerTypeEncodeDecode(t *testing.T, kt kidContainerType) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	require.Equal(t, len(kidBytes)+overhead, len(encodedK))
+	require.Len(t, encodedK, len(kidBytes)+overhead)
 
 	k2, err := kt.decode(codec, encodedK)
 	require.NoError(t, err)
@@ -101,7 +101,7 @@ func testByte32ContainerEncodeDecode(t *testing.T, bt byte32ContainerType) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	require.Equal(t, 32+overhead, len(encodedK))
+	require.Len(t, encodedK, 32+overhead)
 
 	k2 := bt.makeZero()
 	err = codec.Decode(encodedK, &k2)

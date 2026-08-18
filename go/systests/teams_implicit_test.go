@@ -171,11 +171,11 @@ func testImplicitTeamInviteVisibility(t *testing.T, public bool) {
 			require.Len(t, lookupRes.DisplayName.Writers.UnresolvedUsers, 1, "bob (rooter)")
 		} else {
 			require.Len(t, lookupRes.DisplayName.Writers.KeybaseUsers, 3, "alice, bob (resolved), char (pukless)")
-			require.Len(t, lookupRes.DisplayName.Writers.UnresolvedUsers, 0)
+			require.Empty(t, lookupRes.DisplayName.Writers.UnresolvedUsers)
 		}
-		require.Len(t, lookupRes.DisplayName.Readers.UnresolvedUsers, 0)
+		require.Empty(t, lookupRes.DisplayName.Readers.UnresolvedUsers)
 		if public {
-			require.Len(t, lookupRes.DisplayName.Readers.KeybaseUsers, 0)
+			require.Empty(t, lookupRes.DisplayName.Readers.KeybaseUsers)
 		} else {
 			require.Len(t, lookupRes.DisplayName.Readers.KeybaseUsers, 1)
 		}
@@ -581,5 +581,5 @@ func TestCreateImpteamWithoutTOFUResolver(t *testing.T) {
 		IncludeImplicitTeams: true,
 	})
 	require.NoError(t, err)
-	require.Len(t, res.Teams, 0)
+	require.Empty(t, res.Teams)
 }

@@ -137,7 +137,7 @@ func (cm cannedMessage) EncryptionKey(t *testing.T) *keybase1.CryptKey {
 		Key:           keyBytes32,
 	}
 	require.NotNil(t, res, "nil canned encryption key")
-	require.Equal(t, len(res.Key), 32, "non-32 byte encryption key")
+	require.Len(t, res.Key, 32, "non-32 byte encryption key")
 	return &res
 }
 

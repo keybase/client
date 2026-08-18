@@ -11,15 +11,15 @@ func TestHappyPath(t *testing.T) {
 
 	foo, err := GetInt(jsonBlob, "foo")
 	require.NoError(t, err)
-	require.Equal(t, foo, int64(1))
+	require.Equal(t, int64(1), foo)
 
 	bar, err := GetBoolean(jsonBlob, "bar")
 	require.NoError(t, err)
-	require.Equal(t, bar, true)
+	require.True(t, bar)
 
 	baz, err := GetString(jsonBlob, "baz")
 	require.NoError(t, err)
-	require.Equal(t, baz, "bing")
+	require.Equal(t, "bing", baz)
 }
 
 func TestDescriptiveErrorMessage(t *testing.T) {

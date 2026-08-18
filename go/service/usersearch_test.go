@@ -672,26 +672,26 @@ func TestImptofuSearch(t *testing.T) {
 		true, true)
 
 	require.NoError(t, err)
-	require.Len(t, ret.emails, 0, "0 emails in results (we didn't ask)")
+	require.Empty(t, ret.emails, "0 emails in results (we didn't ask)")
 	require.Len(t, ret.phoneNumbers, 1, "1 phone number in results")
 	phoneRet := ret.phoneNumbers[0]
-	require.Equal(t, phoneRet.input, "+48111222332")
-	require.Equal(t, phoneRet.assertion.String(), "48111222332@phone")
+	require.Equal(t, "+48111222332", phoneRet.input)
+	require.Equal(t, "48111222332@phone", phoneRet.assertion.String())
 	require.True(t, phoneRet.found)
 	require.True(t, phoneRet.UID.Exists())
-	require.Equal(t, phoneRet.username, "alice")
-	require.Equal(t, phoneRet.fullName, "Alice A")
+	require.Equal(t, "alice", phoneRet.username)
+	require.Equal(t, "Alice A", phoneRet.fullName)
 
 	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
 		[]keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{"+1555123456"},
 		true, true)
 
 	require.NoError(t, err)
-	require.Len(t, ret.emails, 0, "0 emails in results (we didn't ask)")
+	require.Empty(t, ret.emails, "0 emails in results (we didn't ask)")
 	require.Len(t, ret.phoneNumbers, 1, "1 phone number in results (even if it wasn't found)")
 	phoneRet = ret.phoneNumbers[0]
-	require.Equal(t, phoneRet.input, "+1555123456")
-	require.Equal(t, phoneRet.assertion.String(), "1555123456@phone")
+	require.Equal(t, "+1555123456", phoneRet.input)
+	require.Equal(t, "1555123456@phone", phoneRet.assertion.String())
 	require.False(t, phoneRet.found)
 	require.True(t, phoneRet.UID.IsNil())
 	require.Empty(t, phoneRet.username)
@@ -703,14 +703,14 @@ func TestImptofuSearch(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, ret.emails, 1, "1 email in results")
-	require.Len(t, ret.phoneNumbers, 0, "0 phone numbers in results (we didn't ask)")
+	require.Empty(t, ret.phoneNumbers, "0 phone numbers in results (we didn't ask)")
 	emailRet := ret.emails[0]
-	require.Equal(t, emailRet.input, "bob@keyba.se")
-	require.Equal(t, emailRet.assertion.String(), "[bob@keyba.se]@email")
+	require.Equal(t, "bob@keyba.se", emailRet.input)
+	require.Equal(t, "[bob@keyba.se]@email", emailRet.assertion.String())
 	require.True(t, emailRet.found)
 	require.True(t, emailRet.UID.Exists())
-	require.Equal(t, emailRet.username, "bob")
-	require.Equal(t, emailRet.fullName, "Bobby")
+	require.Equal(t, "bob", emailRet.username)
+	require.Equal(t, "Bobby", emailRet.fullName)
 
 	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
 		[]keybase1.EmailAddress{"alice@keyba.se"}, []keybase1.RawPhoneNumber{},
@@ -718,10 +718,10 @@ func TestImptofuSearch(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, ret.emails, 1, "1 email in results")
-	require.Len(t, ret.phoneNumbers, 0, "0 phone numbers in results (we didn't ask)")
+	require.Empty(t, ret.phoneNumbers, "0 phone numbers in results (we didn't ask)")
 	emailRet = ret.emails[0]
-	require.Equal(t, emailRet.input, "alice@keyba.se")
-	require.Equal(t, emailRet.assertion.String(), "[alice@keyba.se]@email")
+	require.Equal(t, "alice@keyba.se", emailRet.input)
+	require.Equal(t, "[alice@keyba.se]@email", emailRet.assertion.String())
 	require.False(t, emailRet.found)
 	require.True(t, emailRet.UID.IsNil())
 	require.Empty(t, emailRet.username)
@@ -763,8 +763,8 @@ func TestImptofuSearchMulti(t *testing.T) {
 			require.NotNil(t, v.assertion)
 			require.True(t, v.found)
 			require.True(t, v.UID.Exists())
-			require.Equal(t, v.username, "bob")
-			require.Equal(t, v.fullName, "Bobby")
+			require.Equal(t, "bob", v.username)
+			require.Equal(t, "Bobby", v.fullName)
 		} else if i == 2 {
 			// "alice@keyba.se"
 			require.True(t, v.validInput)
@@ -789,11 +789,11 @@ func TestImptofuSearchMulti(t *testing.T) {
 			switch i {
 			case 0:
 				// "+48111222332", "+1123456789"
-				require.Equal(t, v.username, "alice")
-				require.Equal(t, v.fullName, "Alice A")
+				require.Equal(t, "alice", v.username)
+				require.Equal(t, "Alice A", v.fullName)
 			case 1:
-				require.Equal(t, v.username, "lily")
-				require.Equal(t, v.fullName, "")
+				require.Equal(t, "lily", v.username)
+				require.Empty(t, v.fullName)
 			}
 		} else if i == 2 {
 			// "+44123123"
@@ -831,15 +831,15 @@ func TestImptofuBadInput(t *testing.T) {
 
 	require.Len(t, ret.emails, 1)
 	require.Len(t, ret.phoneNumbers, 3)
-	require.Equal(t, ret.emails[0].input, "alice")
-	require.Equal(t, ret.phoneNumbers[0].input, "test")
-	require.Equal(t, ret.phoneNumbers[1].input, "01234")
-	require.Equal(t, ret.phoneNumbers[2].input, "+1")
+	require.Equal(t, "alice", ret.emails[0].input)
+	require.Equal(t, "test", ret.phoneNumbers[0].input)
+	require.Equal(t, "01234", ret.phoneNumbers[1].input)
+	require.Equal(t, "+1", ret.phoneNumbers[2].input)
 
 	all := ret.emails
 	all = append(all, ret.phoneNumbers...)
 	for _, v := range all {
-		require.Equal(t, v.validInput, false)
+		require.False(t, v.validInput)
 		require.Nil(t, v.assertion)
 		require.False(t, v.found)
 		require.True(t, v.UID.IsNil())
@@ -887,7 +887,7 @@ func TestBulkEmailSearch(t *testing.T) {
 	require.Len(t, ret, len(emails))
 	for i, v := range ret {
 		require.Equal(t, v.Assertion, fmt.Sprintf("[%s]@email", emails[i]))
-		require.Equal(t, v.AssertionKey, "email")
+		require.Equal(t, "email", v.AssertionKey)
 		require.Equal(t, v.AssertionValue, emails[i])
 
 		require.False(t, v.FoundUser)
@@ -901,10 +901,10 @@ func TestBulkEmailSearch(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, ret, 2)
-	require.Equal(t, ret[0].Input, "alice@example.com")
-	require.Equal(t, ret[0].Assertion, "[alice@example.com]@email")
-	require.Equal(t, ret[1].Input, "bob@example.com")
-	require.Equal(t, ret[1].Assertion, "[bob@example.com]@email")
+	require.Equal(t, "alice@example.com", ret[0].Input)
+	require.Equal(t, "[alice@example.com]@email", ret[0].Assertion)
+	require.Equal(t, "bob@example.com", ret[1].Input)
+	require.Equal(t, "[bob@example.com]@email", ret[1].Assertion)
 }
 
 func TestBulkEmailSearchBadInput(t *testing.T) {
@@ -926,18 +926,18 @@ func TestBulkEmailSearchBadInput(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, ret, 1) // there was only one valid email in there
-	require.Equal(t, ret[0].Input, "alice@example.org")
-	require.Equal(t, ret[0].Assertion, "[alice@example.org]@email")
-	require.Equal(t, ret[0].AssertionValue, "alice@example.org")
-	require.Equal(t, ret[0].AssertionKey, "email")
-	require.Equal(t, ret[0].FoundUser, false)
-	require.Equal(t, ret[0].Username, "")
-	require.Equal(t, ret[0].FullName, "")
+	require.Equal(t, "alice@example.org", ret[0].Input)
+	require.Equal(t, "[alice@example.org]@email", ret[0].Assertion)
+	require.Equal(t, "alice@example.org", ret[0].AssertionValue)
+	require.Equal(t, "email", ret[0].AssertionKey)
+	require.False(t, ret[0].FoundUser)
+	require.Empty(t, ret[0].Username)
+	require.Empty(t, ret[0].FullName)
 
 	ret, err = searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
 		PhoneNumbers: []keybase1.PhoneNumber{"+1", "00"},
 	})
 
 	require.NoError(t, err)
-	require.Len(t, ret, 0)
+	require.Empty(t, ret)
 }

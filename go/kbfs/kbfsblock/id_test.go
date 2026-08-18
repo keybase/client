@@ -27,8 +27,7 @@ func TestIDEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	require.Equal(t, kbfshash.DefaultHashByteLength+overhead,
-		len(encodedID))
+	require.Len(t, encodedID, kbfshash.DefaultHashByteLength+overhead)
 
 	var id2 ID
 	err = codec.Decode(encodedID, &id2)
@@ -79,8 +78,8 @@ func TestRandomIDInRange(t *testing.T) {
 				UseMathRandForTest)
 			require.NoError(t, err)
 			asInt := idToInt(id)
-			require.True(t, asInt >= i)
-			require.True(t, asInt < j)
+			require.GreaterOrEqual(t, asInt, i)
+			require.Less(t, asInt, j)
 		}
 	}
 

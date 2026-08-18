@@ -57,7 +57,7 @@ func TestEmailVerificationNotifications(t *testing.T) {
 	require.NoError(t, err)
 	bob.drainGregor()
 	expectedNotification := []keybase1.EmailAddress{keybase1.EmailAddress(email)}
-	require.Equal(t, bobListener.verifiedEmails, expectedNotification)
+	require.Equal(t, expectedNotification, bobListener.verifiedEmails)
 }
 
 func TestEmailChangeNotifications(t *testing.T) {

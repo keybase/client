@@ -78,7 +78,7 @@ func TestNoteLengthLimit(t *testing.T) {
 	pre.Note += "!"
 	encNote, err = NoteEncryptB64(libkb.NewMetaContextForTest(tc), pre, &uv2)
 	require.Error(t, err)
-	require.Equal(t, "", encNote)
+	require.Empty(t, encNote)
 }
 
 func randomSymmetricKey(t testing.TB) libkb.NaclSecretBoxKey {

@@ -270,7 +270,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
 	require.Len(t, br.requests, 2)
-	require.Len(t, *q.heap, 0)
+	require.Empty(t, *q.heap)
 	require.Equal(t, block, br.requests[0].block)
 	require.Equal(t, block, br.requests[1].block)
 }

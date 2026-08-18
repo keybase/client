@@ -56,12 +56,12 @@ func TestUnzipFileModTime(t *testing.T) {
 	dirMod := fileInfo.ModTime()
 	diffDir := dirMod.Sub(now)
 	t.Logf("Diff (dir): %s", diffDir)
-	assert.True(t, diffDir >= 0, "now=%s, dirtime=%s", now, dirMod)
+	assert.GreaterOrEqual(t, diffDir, 0, "now=%s, dirtime=%s", now, dirMod)
 
 	fileInfo, err = os.Stat(filepath.Join(destinationPath, "test", "testfile"))
 	require.NoError(t, err)
 	fileMod := fileInfo.ModTime()
 	diffFile := fileMod.Sub(now)
 	t.Logf("Diff (file): %s", diffFile)
-	assert.True(t, diffFile >= 0, "now=%s, filetime=%s", now, fileMod)
+	assert.GreaterOrEqual(t, diffFile, 0, "now=%s, filetime=%s", now, fileMod)
 }

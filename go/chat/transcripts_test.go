@@ -149,6 +149,6 @@ func TestTranscriptLimit(t *testing.T) {
 		res, err := PullTranscript(mctx, tc1.Context().ConvSource,
 			ncres.Conv.GetConvID().ConvIDStr(), usernames, config)
 		require.NoError(t, err)
-		require.Len(t, res.Messages, 0)
+		require.Empty(t, res.Messages)
 	})
 }

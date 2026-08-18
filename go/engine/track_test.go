@@ -225,7 +225,7 @@ func TestTrackRetrack(t *testing.T) {
 	require.NoError(t, err)
 	seqnoRetrack := fu.User.GetSigChainLastKnownSeqno()
 
-	require.False(t, seqnoRetrack > seqnoAfter)
+	require.LessOrEqual(t, seqnoRetrack, seqnoAfter)
 }
 
 func TestTrackLocal(t *testing.T) {
@@ -371,8 +371,8 @@ func TestTrackNoKeys(t *testing.T) {
 	ui := trackUserGetUI(tc, fu, libkb.NewNormalizedUsername(nk), sigVersion)
 
 	// ensure track diff for new eldest key
-	require.Equal(t, 1, len(ui.DisplayKeyDiffs))
-	require.Equal(t, ui.DisplayKeyDiffs[0].Type, keybase1.TrackDiffType_NEW_ELDEST)
+	require.Len(t, ui.DisplayKeyDiffs, 1)
+	require.Equal(t, keybase1.TrackDiffType_NEW_ELDEST, ui.DisplayKeyDiffs[0].Type)
 }
 
 func TestTrackSelf(t *testing.T) {

@@ -36,7 +36,7 @@ func TestNIST(t *testing.T) {
 	require.NotNil(t, nist, "nist came back")
 	require.False(t, nist.IsExpired(), "nist is not expired")
 	longTok := nist.Token().String()
-	require.True(t, len(longTok) > 60, "should be a long token")
+	require.Greater(t, len(longTok), 60, "should be a long token")
 
 	// If we call into the same codepath again, make sure that we get
 	// the same NIST back out
@@ -51,7 +51,7 @@ func TestNIST(t *testing.T) {
 	nist, err = tc.G.ActiveDevice.NIST(ctx)
 	require.NoError(t, err, "no nist error")
 	shortTok1 := nist.Token().String()
-	require.True(t, len(shortTok1) < 60, "should be a short token")
+	require.Less(t, len(shortTok1), 60, "should be a short token")
 	require.NotEqual(t, longTok2, shortTok1, "and yes, it's a different token")
 
 	// After 100 hours, it should be an expired token
@@ -63,7 +63,7 @@ func TestNIST(t *testing.T) {
 	// Easy to make a new token, but we have to make sure that it's
 	// a different one.
 	longTok3 := nist.Token().String()
-	require.True(t, len(longTok3) > 60, "should be a long token")
+	require.Greater(t, len(longTok3), 60, "should be a long token")
 	require.NotEqual(t, longTok, longTok3, "after expiration, should get a new token")
 
 	// As before, once it's successful, then, as above, we get a short NIST token.
@@ -71,6 +71,6 @@ func TestNIST(t *testing.T) {
 	nist, err = tc.G.ActiveDevice.NIST(ctx)
 	require.NoError(t, err, "no nist error")
 	shortTok2 := nist.Token().String()
-	require.True(t, len(shortTok2) < 60, "should be a short token")
+	require.Less(t, len(shortTok2), 60, "should be a short token")
 	require.NotEqual(t, shortTok1, shortTok2, "the short tok changed")
 }

@@ -124,7 +124,7 @@ func TestTeamChannelSource(t *testing.T) {
 		assertTeamChannelSource := func(g *globals.Context, uid gregor1.UID, expectedResults map[chat1.ConvIDStr]expectedResult) {
 			convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, tlfID, chat1.TopicType_CHAT)
 			require.NoError(t, err)
-			require.Equal(t, len(expectedResults), len(convs))
+			require.Len(t, convs, len(expectedResults))
 			for _, conv := range convs {
 				expected, ok := expectedResults[conv.GetConvID().ConvIDStr()]
 				require.True(t, ok)
@@ -135,7 +135,7 @@ func TestTeamChannelSource(t *testing.T) {
 
 			mentions, err := g.TeamChannelSource.GetChannelsTopicName(ctx, uid, tlfID, chat1.TopicType_CHAT)
 			require.NoError(t, err)
-			require.Equal(t, len(expectedResults), len(mentions))
+			require.Len(t, mentions, len(expectedResults))
 			for _, mention := range mentions {
 				expected, ok := expectedResults[mention.ConvID.ConvIDStr()]
 				require.True(t, ok)
@@ -259,12 +259,12 @@ func TestTeamChannelSource(t *testing.T) {
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
 		updates := consumeNewThreadsStale(t, listener1)
-		require.Equal(t, 1, len(updates))
+		require.Len(t, updates, 1)
 		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
 		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 
 		updates = consumeNewThreadsStale(t, listener2)
-		require.Equal(t, 1, len(updates))
+		require.Len(t, updates, 1)
 		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
 		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 	})

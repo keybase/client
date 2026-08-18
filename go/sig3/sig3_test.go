@@ -131,7 +131,7 @@ func TestSignAndVerifyHappyPathFourFold(t *testing.T) {
 	require.NotNil(t, rk2.Signer())
 	require.Equal(t, rk2.Signer().KID, outerKey.pub)
 	require.Equal(t, rk2.Signer().UID, rk.inner.Signer.UID)
-	require.Equal(t, len(rk2.rkb().PTKs), 4)
+	require.Len(t, rk2.rkb().PTKs, 4)
 }
 
 func TestMissingSig(t *testing.T) {
@@ -199,7 +199,7 @@ func testMutateOuter(t *testing.T, f func(o *OuterLink), wantedErr error) {
 	ex.Outer = base64.StdEncoding.EncodeToString(b)
 	_, err = ex.Import()
 	require.Error(t, err)
-	require.Equal(t, err, wantedErr)
+	require.Equal(t, wantedErr, err)
 }
 
 func TestBadPayload(t *testing.T) {

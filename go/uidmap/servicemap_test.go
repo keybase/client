@@ -49,7 +49,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	require.Contains(t, pkgs, tAlice)
 	require.Contains(t, pkgs, tTracy)
 	for _, v := range pkgs {
-		require.True(t, v.CachedAt >= now)
+		require.GreaterOrEqual(t, v.CachedAt, now)
 		require.NotNil(t, v.ServiceMap)
 	}
 
@@ -83,7 +83,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 			12*time.Hour /* freshness */, networkBudget)
-		require.Len(t, pkgs2, 0)
+		require.Empty(t, pkgs2)
 		require.Equal(t, 1, timeoutAPI.callCount)
 	}
 
@@ -91,7 +91,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 		// Similar, but with DisallowNetworkBudget which should skip request completely.
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 			12*time.Hour /* freshness */, DisallowNetworkBudget /* networkBudget */)
-		require.Len(t, pkgs2, 0)
+		require.Empty(t, pkgs2)
 		require.Equal(t, 1, timeoutAPI.callCount) // same count as after previous call
 	}
 }
@@ -114,7 +114,7 @@ func TestServiceMapLookupEmpty(t *testing.T) {
 	require.Len(t, pkgs, 1)
 	require.Contains(t, pkgs, tFrank)
 	require.Nil(t, pkgs[tFrank].ServiceMap)
-	require.True(t, pkgs[tFrank].CachedAt >= now)
+	require.GreaterOrEqual(t, pkgs[tFrank].CachedAt, now)
 
 	timeoutAPI := &timeoutAPIMock{}
 	tc.G.API = timeoutAPI
@@ -173,7 +173,7 @@ func TestServiceMapBecomesEmpty(t *testing.T) {
 
 	require.Len(t, pkgs, 1)
 	require.Contains(t, pkgs, tTracy)
-	require.True(t, pkgs[tTracy].CachedAt >= now)
+	require.GreaterOrEqual(t, pkgs[tTracy].CachedAt, now)
 	require.Equal(t, sumsum, pkgs[tTracy].ServiceMap)
 
 	// Now the service returns empty service map because someone has revoked
@@ -193,7 +193,7 @@ func TestServiceMapBecomesEmpty(t *testing.T) {
 
 	require.Len(t, pkgs, 1)
 	require.Contains(t, pkgs, tTracy)
-	require.True(t, pkgs[tTracy].CachedAt >= now)
+	require.GreaterOrEqual(t, pkgs[tTracy].CachedAt, now)
 	require.Equal(t, nilMap, pkgs[tTracy].ServiceMap)
 
 	fakeClock.Advance(1 * time.Hour)
@@ -204,6 +204,6 @@ func TestServiceMapBecomesEmpty(t *testing.T) {
 
 	require.Len(t, pkgs, 1)
 	require.Contains(t, pkgs, tTracy)
-	require.True(t, pkgs[tTracy].CachedAt >= now)
+	require.GreaterOrEqual(t, pkgs[tTracy].CachedAt, now)
 	require.Equal(t, nilMap, pkgs[tTracy].ServiceMap)
 }

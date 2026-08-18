@@ -115,7 +115,7 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
 	// No refs yet, including the HEAD symref.
-	require.Equal(t, output.String(), "\n")
+	require.Equal(t, "\n", output.String())
 
 	// Now there should be a valid git repo stored in KBFS.  Check the
 	// existence of the HEAD file to be sure.
@@ -1125,7 +1125,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	require.Len(t, refDataByName, 1)
 	master = refDataByName["refs/heads/master"]
 	require.True(t, master.IsDelete)
-	require.Len(t, master.Commits, 0)
+	require.Empty(t, master.Commits)
 }
 
 func TestRunnerSubmodule(t *testing.T) {

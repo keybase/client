@@ -200,7 +200,7 @@ func TestAttachmentUploader(t *testing.T) {
 			require.Nil(t, res.Error)
 			require.Equal(t, md, res.Metadata)
 			require.Nil(t, res.Preview)
-			require.Equal(t, "", res.Object.MimeType)
+			require.Empty(t, res.Object.MimeType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no upload")
 		}
@@ -362,9 +362,9 @@ func TestAttachmentUploader(t *testing.T) {
 
 	uploadedPreviews, err = filepath.Glob(filepath.Join(baseDir, uploadedPreviewsDir, "*"))
 	require.NoError(t, err)
-	require.Zero(t, len(uploadedPreviews))
+	require.Empty(t, uploadedPreviews)
 
 	uploadedFulls, err = filepath.Glob(filepath.Join(baseDir, uploadedFullsDir, "*"))
 	require.NoError(t, err)
-	require.Zero(t, len(uploadedFulls))
+	require.Empty(t, uploadedFulls)
 }

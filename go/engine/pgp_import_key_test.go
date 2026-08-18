@@ -330,10 +330,10 @@ func TestPGPImportPushSecretWithoutPassword(t *testing.T) {
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 	_, _, key := genPGPKeyAndArmor(t, tc, user.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
-	require.Nil(t, err, "engine initialization should succeed")
+	require.NoError(t, err, "engine initialization should succeed")
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
-	require.NotNil(t, err, "import should fail")
+	require.Error(t, err, "import should fail")
 	require.Contains(t, err.Error(), "You need to set your password first before uploading secret keys")
 }
 

@@ -200,7 +200,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	// u1 leaves team, can't decrypt
 	u1.leave(team)
 	teams := u1.teamList("", false, false)
-	require.Len(t, teams.Teams, 0)
+	require.Empty(t, teams.Teams)
 	decoded3 := libkb.NewBufferCloser()
 	decarg = &engine.SaltpackDecryptArg{
 		Source: strings.NewReader(out),
@@ -208,9 +208,9 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	}
 	dec1 = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m1))
 	err := engine.RunEngine2(m1, dec1)
-	require.IsType(t, libkb.DecryptionError{}, err)
+	require.ErrorAs(t, err, new(libkb.DecryptionError))
 	x, _ := err.(libkb.DecryptionError)
-	require.IsType(t, libkb.NoDecryptionKeyError{}, x.Cause.Err)
+	require.ErrorAs(t, x.Cause.Err, new(libkb.NoDecryptionKeyError))
 
 	// u2 can still decrypt
 	teams = u2.teamList("", false, false)
@@ -292,9 +292,9 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	}
 	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
 	err := engine.RunEngine2(m2, dec)
-	require.IsType(t, libkb.DecryptionError{}, err)
+	require.ErrorAs(t, err, new(libkb.DecryptionError))
 	x, _ := err.(libkb.DecryptionError)
-	require.IsType(t, libkb.NoDecryptionKeyError{}, x.Cause.Err)
+	require.ErrorAs(t, x.Cause.Err, new(libkb.NoDecryptionKeyError))
 
 	// Get current implicit team seqno so we can wait for it to be updated later
 	team, _, _, err := teams.LookupImplicitTeam(context.Background(), u1.tc.G, u1.username+","+u2.username+"@rooter", false, teams.ImplicitTeamOptions{})

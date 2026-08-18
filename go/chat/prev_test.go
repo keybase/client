@@ -219,11 +219,11 @@ func TestPrevExploding(t *testing.T) {
 	// The regular set of unpreved messages shouldn't respect the exploding
 	// messages. It should treat message 1 as unpreved, and it should not
 	// include message 3.
-	require.Equal(t, 1, len(unprevedRegular))
+	require.Len(t, unprevedRegular, 1)
 	require.EqualValues(t, 1, unprevedRegular[0].Id)
 
 	// In the exploding messages' view, messages 1 and 2 have both been preved
 	// already.
-	require.Equal(t, 1, len(unprevedExploding))
+	require.Len(t, unprevedExploding, 1)
 	require.EqualValues(t, 3, unprevedExploding[0].Id)
 }

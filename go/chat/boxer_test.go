@@ -197,7 +197,7 @@ func TestChatMessageUnbox(t *testing.T) {
 		body := unboxed.MessageBody
 		typ, err := body.MessageType()
 		require.NoError(t, err)
-		require.Equal(t, typ, chat1.MessageType_TEXT)
+		require.Equal(t, chat1.MessageType_TEXT, typ)
 		require.Equal(t, body.Text().Body, text)
 		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 		require.NotNil(t, unboxed.BodyHash)
@@ -246,7 +246,7 @@ func TestChatMessageUnboxWithPairwiseMacs(t *testing.T) {
 	typ, err := body.MessageType()
 	require.NoError(t, err)
 
-	require.Equal(t, typ, chat1.MessageType_TEXT)
+	require.Equal(t, chat1.MessageType_TEXT, typ)
 	require.Equal(t, body.Text().Body, text)
 
 	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
@@ -390,7 +390,7 @@ func TestChatMessageUnboxWithPairwiseMacsV4DummySigner(t *testing.T) {
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()
 	require.NoError(t, err)
-	require.Equal(t, typ, chat1.MessageType_TEXT)
+	require.Equal(t, chat1.MessageType_TEXT, typ)
 	require.Equal(t, body.Text().Body, text)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	require.NotNil(t, unboxed.BodyHash)
@@ -757,7 +757,7 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		signingKey, err := engine.GetMySecretKey(context.TODO(), tc.G, libkb.DeviceSigningKeyType, "some chat or something test")
 		require.NoError(t, err, "get device signing key")
 		signKP, ok := signingKey.(libkb.NaclSigningKeyPair)
-		require.Equal(t, true, ok, "signing key must be nacl")
+		require.True(t, ok, "signing key must be nacl")
 		t.Logf("found signing kp: %+v", signKP.GetKID())
 
 		// Revoke the key
@@ -784,12 +784,12 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		// The message should not unbox
 		_, ierr := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		require.NotNil(t, ierr, "unboxing must err because key was revoked before send")
-		require.IsType(t, libkb.NoKeyError{}, ierr.Inner(), "unexpected error for revoked sender key: %v", ierr)
+		require.ErrorAs(t, ierr.Inner(), new(libkb.NoKeyError), "unexpected error for revoked sender key: %v", ierr)
 
 		// Test key validity
 		revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 		require.Error(t, err, "ValidSenderKey")
-		require.IsType(t, PermanentUnboxingError{}, err)
+		require.ErrorAs(t, err, new(PermanentUnboxingError))
 		require.Equal(t, "key invalid for sender at message ctime",
 			err.(PermanentUnboxingError).Inner().(libkb.NoKeyError).Msg)
 		require.NotNil(t, revoked)
@@ -834,7 +834,7 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		signingKey, err := engine.GetMySecretKey(context.TODO(), tc.G, libkb.DeviceSigningKeyType, "some chat or something test")
 		require.NoError(t, err, "get device signing key")
 		signKP, ok := signingKey.(libkb.NaclSigningKeyPair)
-		require.Equal(t, true, ok, "signing key must be nacl")
+		require.True(t, ok, "signing key must be nacl")
 		t.Logf("found signing kp: %+v", signKP.GetKID())
 
 		// Sign a message using a key of u's that has not yet been revoked
@@ -935,7 +935,7 @@ func TestChatMessagePublic(t *testing.T) {
 		body := decmsg.Valid().MessageBody
 		typ, err := body.MessageType()
 		require.NoError(t, err)
-		require.Equal(t, typ, chat1.MessageType_TEXT)
+		require.Equal(t, chat1.MessageType_TEXT, typ)
 		require.Equal(t, body.Text().Body, text)
 	})
 }
@@ -991,7 +991,7 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 
 	keys, err := batchLoadEncryptionKIDs(context.TODO(), tc.G, uvs)
 	require.NoError(t, err, "no error")
-	require.Equal(t, len(keys), len(uvs), "one key per user")
+	require.Len(t, uvs, len(keys), "one key per user")
 }
 
 // Test a message that deletes
@@ -1028,7 +1028,7 @@ func TestChatMessageDeletes(t *testing.T) {
 		body := unboxed.MessageBody
 		typ, err := body.MessageType()
 		require.NoError(t, err)
-		require.Equal(t, typ, chat1.MessageType_DELETE)
+		require.Equal(t, chat1.MessageType_DELETE, typ)
 		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	})
 }
@@ -1067,7 +1067,7 @@ func TestChatMessageDeleted(t *testing.T) {
 			body := unboxed.MessageBody
 			typ, err := body.MessageType()
 			require.NoError(t, err)
-			require.Equal(t, typ, chat1.MessageType_NONE)
+			require.Equal(t, chat1.MessageType_NONE, typ)
 			require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 		}
 	})
@@ -1142,7 +1142,7 @@ func TestChatMessageDeleteHistory(t *testing.T) {
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()
 	require.NoError(t, err)
-	require.Equal(t, typ, chat1.MessageType_DELETEHISTORY)
+	require.Equal(t, chat1.MessageType_DELETEHISTORY, typ)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	require.Equal(t, mdh, unboxed.MessageBody.Deletehistory())
 }
@@ -1173,7 +1173,7 @@ func TestV1Message1(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", unboxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, chat1.TopicType_CHAT, unboxed.ClientHeader.Conv.TopicType)
 	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
-	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
+	require.False(t, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_TLFNAME, unboxed.ClientHeader.MessageType)
 	require.Nil(t, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
@@ -1230,7 +1230,7 @@ func TestV1Message2(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", unboxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, chat1.TopicType_CHAT, unboxed.ClientHeader.Conv.TopicType)
 	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
-	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
+	require.False(t, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_TEXT, unboxed.ClientHeader.MessageType)
 	expectedPrevs := []chat1.MessagePreviousPointer{{Id: 0x1, Hash: chat1.Hash{0xc9, 0x6e, 0x28, 0x6d, 0x88, 0x2e, 0xfc, 0x44, 0xdb, 0x80, 0xe5, 0x1d, 0x8e, 0x8, 0xf1, 0xde, 0x28, 0xb4, 0x93, 0x4c, 0xc8, 0x49, 0x1f, 0xbe, 0x88, 0x42, 0xf, 0x31, 0x10, 0x65, 0x14, 0xbe}}}
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
@@ -1288,7 +1288,7 @@ func TestV1Message3(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", unboxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, chat1.TopicType_CHAT, unboxed.ClientHeader.Conv.TopicType)
 	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
-	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
+	require.False(t, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_TEXT, unboxed.ClientHeader.MessageType)
 	expectedPrevs := []chat1.MessagePreviousPointer{{Id: 2, Hash: chat1.Hash{0xbe, 0xb2, 0x7c, 0x41, 0xdb, 0xeb, 0x2e, 0x90, 0x04, 0xf2, 0x48, 0xf2, 0x78, 0x24, 0x3a, 0xde, 0x5e, 0x12, 0x0c, 0xb7, 0xc4, 0x1f, 0x40, 0xe8, 0x47, 0xa2, 0xe2, 0x2f, 0xe8, 0x2c, 0xd3, 0xb4}}}
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
@@ -1346,7 +1346,7 @@ func TestV1Message4(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", unboxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, chat1.TopicType_CHAT, unboxed.ClientHeader.Conv.TopicType)
 	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
-	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
+	require.False(t, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_EDIT, unboxed.ClientHeader.MessageType)
 
 	expectedPrevs := []chat1.MessagePreviousPointer{{Id: 3, Hash: chat1.Hash{0x3b, 0x54, 0x7a, 0x7a, 0xdd, 0x32, 0x5c, 0xcc, 0x9f, 0x4d, 0x30, 0x12, 0xc5, 0x6e, 0xb1, 0xab, 0xa0, 0x1c, 0xf7, 0x68, 0x7e, 0x26, 0x13, 0x49, 0x3f, 0xf5, 0xc9, 0xb7, 0x16, 0xaf, 0xd5, 0x07}}}
@@ -1409,7 +1409,7 @@ func TestV1Message5(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", unboxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, chat1.TopicType_CHAT, unboxed.ClientHeader.Conv.TopicType)
 	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
-	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
+	require.False(t, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_DELETE, unboxed.ClientHeader.MessageType)
 
 	expectedPrevs := []chat1.MessagePreviousPointer{{Id: 4, Hash: chat1.Hash{0xea, 0x68, 0x5e, 0x0f, 0x26, 0xb5, 0xb4, 0xfc, 0x1d, 0xe4, 0x15, 0x11, 0x34, 0x40, 0xcc, 0x3d, 0x54, 0x65, 0xa1, 0x52, 0x42, 0xd6, 0x83, 0xa7, 0xf4, 0x88, 0x96, 0xec, 0xd2, 0xc6, 0xd6, 0x26}}}
@@ -1733,7 +1733,7 @@ func TestExplodingMessageUnbox(t *testing.T) {
 		getSigningKeyPairForTest(t, tc, u), chat1.MessageBoxedVersion_V3, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageBoxedVersion_V3, boxed.Version)
-	require.True(t, len(boxed.BodyCiphertext.E) > 0)
+	require.NotEmpty(t, boxed.BodyCiphertext.E)
 
 	// We need to give it a server header for unboxing...
 	boxed.ServerHeader = &chat1.MessageServerHeader{
@@ -1747,7 +1747,7 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()
 	require.NoError(t, err)
-	require.Equal(t, typ, chat1.MessageType_TEXT)
+	require.Equal(t, chat1.MessageType_TEXT, typ)
 	require.Equal(t, body.Text().Body, text)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	require.NotNil(t, unboxed.BodyHash)

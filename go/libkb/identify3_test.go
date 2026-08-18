@@ -48,7 +48,7 @@ type id3FakeUI struct {
 }
 
 func (i *id3FakeUI) assertAndCleanState(t *testing.T, expected []keybase1.Identify3GUIID) {
-	require.Equal(t, len(expected), len(i.timeOuts))
+	require.Len(t, i.timeOuts, len(expected))
 	for j, v := range expected {
 		require.Equal(t, v, i.timeOuts[j])
 	}
@@ -107,12 +107,12 @@ func TestIdentify3State(t *testing.T) {
 
 	assertState := func(cache, queue []int) {
 		id3state.Lock()
-		require.Equal(t, len(cache), len(id3state.cache))
+		require.Len(t, id3state.cache, len(cache))
 		for _, v := range cache {
 			_, found := id3state.cache[mkID(v)]
 			require.True(t, found)
 		}
-		require.Equal(t, len(queue), len(id3state.expirationQueue))
+		require.Len(t, id3state.expirationQueue, len(queue))
 		for i, v := range queue {
 			require.Equal(t, mkID(v), id3state.expirationQueue[i].id)
 		}

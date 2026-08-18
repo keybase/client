@@ -626,7 +626,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 		}
 		allKIDs = append(allKIDs, kf.GetLatestPerUserKey().EncKID)
 	}
-	require.Equal(t, 10, len(allKIDs)) // 3 keys for u1 and u3 (1 paper, 1 device, 1 puk), 4 for u2 (has 2 devices)
+	require.Len(t, allKIDs, 10) // 3 keys for u1 and u3 (1 paper, 1 device, 1 puk), 4 for u2 (has 2 devices)
 
 	for _, KID := range allKIDs {
 		if _, ok := fDHKeyset[KID]; !ok {

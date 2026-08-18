@@ -129,5 +129,5 @@ func TestProofSetSameChain(t *testing.T) {
 	for _, p := range ret {
 		t.Logf("%v\n", p.shortForm())
 	}
-	require.Len(t, ret, 0)
+	require.Empty(t, ret)
 }

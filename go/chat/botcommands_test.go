@@ -85,7 +85,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, tc.Context().BotCommandManager.Advertise(ctx, &alias, commands))
 	cmds, _, err := tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
-	require.Zero(t, len(cmds))
+	require.Empty(t, cmds)
 
 	errCh, err := tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
 	require.NoError(t, err)
@@ -113,12 +113,12 @@ func TestBotCommandManager(t *testing.T) {
 	typ, err := impConvLocal.BotCommands.Typ()
 	require.NoError(t, err)
 	require.Equal(t, chat1.ConversationCommandGroupsTyp_CUSTOM, typ)
-	require.Equal(t, 1, len(impConvLocal.BotCommands.Custom().Commands))
+	require.Len(t, impConvLocal.BotCommands.Custom().Commands, 1)
 	require.Equal(t, "status", impConvLocal.BotCommands.Custom().Commands[0].Name)
 	require.NoError(t, readErrCh(errCh))
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(cmds))
+	require.Len(t, cmds, 1)
 	require.Equal(t, "status", cmds[0].Name)
 
 	// make sure the cmds are cached
@@ -170,7 +170,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, readErrCh(errCh1))
 	cmds, _, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(cmds))
+	require.Len(t, cmds, 1)
 	require.Equal(t, "status", cmds[0].Name)
 
 	// test team
@@ -224,13 +224,13 @@ func TestBotCommandManager(t *testing.T) {
 
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(cmds))
+	require.Len(t, cmds, 2)
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 4, len(cmds))
+	require.Len(t, cmds, 4)
 	cmds, _, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(cmds))
+	require.Len(t, cmds, 1)
 
 	err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(ctx, chat1.AddBotMemberArg{
 		ConvID:      teamConv.Id,
@@ -248,7 +248,7 @@ func TestBotCommandManager(t *testing.T) {
 
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 8, len(cmds))
+	require.Len(t, cmds, 8)
 
 	// impteams can't advertise on team types
 	commands = append(commands, chat1.AdvertiseCommandsParam{

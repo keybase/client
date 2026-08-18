@@ -115,7 +115,7 @@ func TestLoginLoadUserEmail(t *testing.T) {
 
 	checkEmailResult := func(user *libkb.User, err error) {
 		require.Error(t, err)
-		require.IsType(t, libkb.BadUsernameError{}, err)
+		require.ErrorAs(t, err, new(libkb.BadUsernameError))
 		require.Contains(t, err.Error(), "not supported")
 		require.Nil(t, user)
 	}

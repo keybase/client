@@ -64,7 +64,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 
 		// Secret should go to secret store B, and not secret store A
 		// because of fallback behavior.
-		require.Len(t, testStore.memA.secrets, 0)
+		require.Empty(t, testStore.memA.secrets)
 		require.Len(t, testStore.memB.secrets, 1)
 
 		rSecret, err := ss.RetrieveSecret(m, nu)
@@ -72,7 +72,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 		require.True(t, rSecret.Equal(secret))
 
 		// Retrieve does not upgrade because shouldUpgrade=false
-		require.Len(t, testStore.memA.secrets, 0)
+		require.Empty(t, testStore.memA.secrets)
 		require.Len(t, testStore.memB.secrets, 1)
 
 		// Try the whole thing twice to ensure consistent behaviour.
@@ -88,7 +88,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Len(t, testStore.memA.secrets, 1)
-		require.Len(t, testStore.memB.secrets, 0)
+		require.Empty(t, testStore.memB.secrets)
 
 		rSecret, err := ss.RetrieveSecret(m, nu)
 		require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestUSSRetrieveWhenFallback(t *testing.T) {
 
 	// Should store in primary secret store.
 	require.Len(t, testStore.memA.secrets, 1)
-	require.Len(t, testStore.memB.secrets, 0)
+	require.Empty(t, testStore.memB.secrets)
 
 	rSecret, err := ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)
@@ -129,7 +129,7 @@ func TestUSSRetrieveWhenFallback(t *testing.T) {
 	require.True(t, rSecret.Equal(secret))
 
 	require.Len(t, testStore.memA.secrets, 1)
-	require.Len(t, testStore.memB.secrets, 0)
+	require.Empty(t, testStore.memB.secrets)
 
 	// StoreSecret will skip primary store and store the secret in secondary
 	// store. So it will be stored in both.
@@ -166,7 +166,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 
 	// Secret should go to secret store B, and not secret store A
 	// because we shouldStoreInFallback returns true.
-	require.Len(t, testStore.memA.secrets, 0)
+	require.Empty(t, testStore.memA.secrets)
 	require.Len(t, testStore.memB.secrets, 1)
 
 	t.Logf("Retrieving secret with fallback=Always")
@@ -176,7 +176,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 
 	// We are still in fallback mode, so upgrade should not happen after last
 	// retrieval.
-	require.Len(t, testStore.memA.secrets, 0)
+	require.Empty(t, testStore.memA.secrets)
 	require.Len(t, testStore.memB.secrets, 1)
 
 	// Change shouldFallback to OnError (user upgraded their machine / settings
@@ -190,7 +190,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 
 	// Retrieving secret should have upgraded us to store A.
 	require.Len(t, testStore.memA.secrets, 1)
-	require.Len(t, testStore.memB.secrets, 0)
+	require.Empty(t, testStore.memB.secrets)
 
 	// Try to retrieve again, should retrieve exclusively from primary secret
 	// store.
@@ -258,7 +258,7 @@ func TestUSSFallback(t *testing.T) {
 	t.Logf("Trying to ClearSecret")
 	err = store.ClearSecret(m, nu)
 	require.NoError(t, err)
-	require.Len(t, memB.secrets, 0)
+	require.Empty(t, memB.secrets)
 }
 
 func TestUSSBothFail(t *testing.T) {

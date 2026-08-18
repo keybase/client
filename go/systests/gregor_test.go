@@ -137,7 +137,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 
 	checkState := func(s gregor1.State) {
 		items := filterPubsubdItems(s.Items_)
-		require.Equal(t, 1, len(items))
+		require.Len(t, items, 1)
 		i := items[0]
 		require.True(t, bytes.Equal(i.Md_.MsgID_.Bytes(), msgID.Bytes()))
 		require.Equal(t, "foo", i.Item_.Category_.String())

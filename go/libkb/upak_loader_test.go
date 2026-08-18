@@ -107,7 +107,7 @@ func TestCacheFallbacks(t *testing.T) {
 		arg := NewLoadUserArg(tc.G).WithUID(uid)
 		upk, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &ret, nil, false)
 		require.NoError(t, err)
-		require.Equal(t, upk.Current.Username, "t_tracy", "tracy was right")
+		require.Equal(t, "t_tracy", upk.Current.Username, "tracy was right")
 		return &ret
 	}
 	i := test()
@@ -139,9 +139,9 @@ func TestLookupUsernameAndDevice(t *testing.T) {
 		did := keybase1.DeviceID("e5f7f7ca6b6277de4d2c45f57b767f18")
 		un, name, typ, err := tc.G.GetUPAKLoader().LookupUsernameAndDevice(context.Background(), uid, did)
 		require.NoError(t, err)
-		require.Equal(t, un.String(), "t_tracy", "tracy was right")
-		require.Equal(t, name, "work", "right device name")
-		require.Equal(t, typ, keybase1.DeviceTypeV2_DESKTOP, "right type")
+		require.Equal(t, "t_tracy", un.String(), "tracy was right")
+		require.Equal(t, "work", name, "right device name")
+		require.Equal(t, keybase1.DeviceTypeV2_DESKTOP, typ, "right type")
 	}
 
 	for range 2 {
@@ -203,7 +203,7 @@ func TestLoadUPAK2(t *testing.T) {
 		key, ok := upak.Current.DeviceKeys[keybase1.KID("01204fbb0a8ee105c2732155bffd927a6f612b6a36c63c484e6290f6a7ac560a1a780a")]
 		require.True(t, ok)
 		require.Equal(t, key.Base.Provisioning.SigChainLocation.Seqno, keybase1.Seqno(3))
-		require.Equal(t, key.Base.Provisioning.SigChainLocation.SeqType, keybase1.SeqType_PUBLIC)
+		require.Equal(t, keybase1.SeqType_PUBLIC, key.Base.Provisioning.SigChainLocation.SeqType)
 		require.Nil(t, key.Base.Revocation)
 	}
 

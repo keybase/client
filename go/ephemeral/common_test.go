@@ -76,8 +76,8 @@ func TestEphemeralCloneError(t *testing.T) {
 	}
 	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), nil)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr := err.(EphemeralKeyError)
+	var ekErr EphemeralKeyError
+	require.ErrorAs(t, err, &ekErr)
 	require.Contains(t, ekErr.HumanError(), DeviceCloneErrMsg)
 }
 
@@ -105,8 +105,8 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	creationCtime := gregor1.ToTime(time.Now().Add(time.Hour * -100))
 	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), &creationCtime)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr := err.(EphemeralKeyError)
+	var ekErr EphemeralKeyError
+	require.ErrorAs(t, err, &ekErr)
 	require.Contains(t, ekErr.HumanError(), DeviceAfterEKErrMsg)
 
 	// clear out cached error messages
@@ -117,8 +117,7 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	// If no creation ctime is specified, we just get the default error message
 	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), nil)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr = err.(EphemeralKeyError)
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 }
 

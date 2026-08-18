@@ -77,7 +77,7 @@ func TestChatOutbox(t *testing.T) {
 	require.Equal(t, obrs, res, "wrong obids")
 	emptyRes, err := ob.PullAllConversations(context.TODO(), true, true)
 	require.NoError(t, err)
-	require.Zero(t, len(emptyRes), "not empty")
+	require.Empty(t, emptyRes, "not empty")
 
 	// Record a failed attempt
 	require.NoError(t, ob.RecordFailedAttempt(context.TODO(), obrs[3]))
@@ -85,7 +85,7 @@ func TestChatOutbox(t *testing.T) {
 	// Check to make sure this record now has a failure
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "wrong len")
+	require.Len(t, res, 1, "wrong len")
 	state, err := res[0].State.State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.OutboxStateType_SENDING, state, "wrong state")
@@ -105,7 +105,7 @@ func TestChatOutbox(t *testing.T) {
 	// Check for correct order
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(res), "wrong len")
+	require.Len(t, res, 2, "wrong len")
 	state, err = res[0].State.State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.OutboxStateType_ERROR, state, "wrong state")
@@ -116,7 +116,7 @@ func TestChatOutbox(t *testing.T) {
 	// Pull without errors
 	res, err = ob.PullAllConversations(context.TODO(), false, false)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "wrong len")
+	require.Len(t, res, 1, "wrong len")
 
 	// Retry the error
 	t.Logf("retrying the error: %s", obrs[2].OutboxID)
@@ -124,7 +124,7 @@ func TestChatOutbox(t *testing.T) {
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(res), "wrong len")
+	require.Len(t, res, 2, "wrong len")
 	state, err = res[1].State.State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.OutboxStateType_SENDING, state, "wrong state")
@@ -135,12 +135,12 @@ func TestChatOutbox(t *testing.T) {
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "wrong len")
+	require.Len(t, res, 1, "wrong len")
 	require.Equal(t, obrs[3].OutboxID, res[0].OutboxID, "wrong element")
 
 	var tv chat1.ThreadView
 	require.NoError(t, ob.AppendToThread(context.TODO(), conv.GetConvID(), &tv))
-	require.Equal(t, 1, len(tv.Messages))
+	require.Len(t, tv.Messages, 1)
 	newObr, err = ob.MarkAsError(context.TODO(), obrs[3], chat1.OutboxStateError{
 		Message: "failed",
 		Typ:     chat1.OutboxErrorType_DUPLICATE,
@@ -152,7 +152,7 @@ func TestChatOutbox(t *testing.T) {
 	require.Equal(t, chat1.OutboxErrorType_DUPLICATE, newObr.State.Error().Typ)
 	tv.Messages = nil
 	require.NoError(t, ob.AppendToThread(context.TODO(), conv.GetConvID(), &tv))
-	require.Zero(t, len(tv.Messages))
+	require.Empty(t, tv.Messages)
 }
 
 func TestChatOutboxPurge(t *testing.T) {
@@ -263,7 +263,7 @@ func TestChatOutboxMarkConv(t *testing.T) {
 		Typ:     chat1.OutboxErrorType_MISC,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(newObrs))
+	require.Len(t, newObrs, 2)
 	for _, newObr := range newObrs {
 		st, err := newObr.State.State()
 		require.NoError(t, err)
@@ -328,5 +328,5 @@ func TestChatOutboxCancelMessagesWithPredicate(t *testing.T) {
 	require.Equal(t, 3, numCancelled)
 	res, err = ob.PullAllConversations(ctx, false, false)
 	require.NoError(t, err)
-	require.Zero(t, len(res))
+	require.Empty(t, res)
 }

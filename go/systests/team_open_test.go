@@ -39,7 +39,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 	roo.kickTeamRekeyd()
 	ret, err := roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName})
 	require.NoError(t, err)
-	require.Equal(t, true, ret.Open)
+	require.True(t, ret.Open)
 
 	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 
@@ -51,7 +51,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 
 	role, err := teamObj.MemberRole(context.TODO(), roo.userVersion())
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_READER)
+	require.Equal(t, keybase1.TeamRole_READER, role)
 }
 
 func TestTeamOpenSettings(t *testing.T) {
@@ -73,19 +73,19 @@ func TestTeamOpenSettings(t *testing.T) {
 	}
 
 	teamObj := loadTeam()
-	require.Equal(t, teamObj.IsOpen(), false)
+	require.False(t, teamObj.IsOpen())
 
 	err := teams.ChangeTeamSettingsByID(context.TODO(), own.tc.G, id, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	teamObj = loadTeam()
-	require.Equal(t, teamObj.IsOpen(), true)
+	require.True(t, teamObj.IsOpen())
 
 	err = teams.ChangeTeamSettingsByID(context.TODO(), own.tc.G, id, keybase1.TeamSettings{Open: false})
 	require.NoError(t, err)
 
 	teamObj = loadTeam()
-	require.Equal(t, teamObj.IsOpen(), false)
+	require.False(t, teamObj.IsOpen())
 }
 
 func TestOpenSubteamAdd(t *testing.T) {
@@ -121,7 +121,7 @@ func TestOpenSubteamAdd(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, subteamObj.IsOpen(), true)
+	require.True(t, subteamObj.IsOpen())
 
 	// Kick rekeyd so team request notifications come quicker.
 	roo.kickTeamRekeyd()
@@ -141,7 +141,7 @@ func TestOpenSubteamAdd(t *testing.T) {
 
 	role, err := subteamObj.MemberRole(context.TODO(), roo.userVersion())
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_READER)
+	require.Equal(t, keybase1.TeamRole_READER, role)
 }
 
 func TestTeamOpenMultipleTars(t *testing.T) {
@@ -181,7 +181,7 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 	for i := range 3 {
 		role, err := teamObj.MemberRole(context.Background(), tt.users[i].userVersion())
 		require.NoError(t, err)
-		require.Equal(t, role, keybase1.TeamRole_READER)
+		require.Equal(t, keybase1.TeamRole_READER, role)
 	}
 }
 
@@ -219,7 +219,7 @@ func TestTeamOpenBans(t *testing.T) {
 	require.Error(t, err)
 	appErr, ok := err.(libkb.AppStatusError)
 	require.True(t, ok)
-	require.Equal(t, appErr.Code, libkb.SCTeamBanned)
+	require.Equal(t, libkb.SCTeamBanned, appErr.Code)
 }
 
 func TestTeamOpenPuklessRequest(t *testing.T) {
@@ -255,7 +255,7 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 	teamObj := own.loadTeam(team, true /* admin */)
 	members, err := teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 2, len(members.AllUIDs())) // just owner
+	require.Len(t, members.AllUIDs(), 2) // just owner
 	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
@@ -296,7 +296,7 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 
-	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+	require.Empty(t, teamObj.GetActiveAndObsoleteInvites())
 
 	members, err := teamObj.Members()
 	require.NoError(t, err)

@@ -118,7 +118,7 @@ func TestTeamDetailsAsImplicitAdmin(t *testing.T) {
 	t.Logf("loads the subteam")
 	team, err := GetAnnotatedTeamByName(context.Background(), tcs[0].G, teamName.String()+".bbb")
 	require.NoError(t, err)
-	require.Len(t, team.Members, 0, "should be no team members in subteam")
+	require.Empty(t, team.Members, "should be no team members in subteam")
 }
 
 // Test loading when you have become an admin after
@@ -146,7 +146,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	role, err := team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_READER, role, "still a reader")
-	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "doesn't know about any subteams")
+	require.Empty(t, team.chain().inner.SubteamLog, "doesn't know about any subteams")
 
 	t.Logf("U0 makes U1 an admin")
 	err = SetRoleAdmin(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
@@ -160,7 +160,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_READER, role, "cached as a reader")
-	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "still doesn't know about any subteams")
+	require.Empty(t, team.chain().inner.SubteamLog, "still doesn't know about any subteams")
 
 	t.Logf("U1 loads and realizes they're an admin")
 	team, err = GetMaybeAdminByStringName(context.TODO(), tcs[1].G, teamName.String(), false /*isPublic*/)
@@ -168,7 +168,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_ADMIN, role, "still an admin")
-	require.Equal(t, 1, len(team.chain().inner.SubteamLog), "has loaded previously-stubbed admin links")
+	require.Len(t, team.chain().inner.SubteamLog, 1, "has loaded previously-stubbed admin links")
 }
 
 func TestGetTeamIDByName(t *testing.T) {

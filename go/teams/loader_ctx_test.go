@@ -149,7 +149,7 @@ func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 
 	var box *TeamBox
 	prevs := make(map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded)
-	require.NotEqual(l.t, len(teamSpec.TeamKeyBoxes), 0, "need some team key boxes")
+	require.NotEmpty(l.t, teamSpec.TeamKeyBoxes, "need some team key boxes")
 	for _, boxSpec := range teamSpec.TeamKeyBoxes {
 		require.NotEqual(l.t, 0, boxSpec.Seqno, "bad box seqno")
 		if (boxSpec.Seqno <= latestLinkToSend && boxSpec.ChainType == keybase1.SeqType_SEMIPRIVATE) ||

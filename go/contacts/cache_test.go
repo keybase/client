@@ -62,7 +62,7 @@ func TestCacheProvider(t *testing.T) {
 
 	res, err := cacheProvider.LookupAll(libkb.NewMetaContextForTest(tc), []keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{})
 	require.NoError(t, err)
-	require.Len(t, res.Results, 0)
+	require.Empty(t, res.Results)
 }
 
 func setupTestCacheProviders(t *testing.T, tc libkb.TestContext) (provider *anotherMockContactsProvider,
@@ -94,7 +94,7 @@ func TestLookupCache(t *testing.T) {
 	// Test empty contact list
 	res0, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, []keybase1.Contact{})
 	require.NoError(t, err)
-	require.Len(t, res0, 0)
+	require.Empty(t, res0)
 
 	contactList := []keybase1.Contact{
 		{

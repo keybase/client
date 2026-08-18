@@ -51,7 +51,7 @@ func assertUPAKLiteMatchesUPAK(t *testing.T, tc libkb.TestContext, uid keybase1.
 	upak, _, err := tc.G.GetUPAKLoader().LoadV2(loadArg)
 	require.NoError(t, err)
 	assertUpkInstanceMatch(t, upakLite.Current, upak.Current)
-	require.Equal(t, len(upak.PastIncarnations), len(upakLite.PastIncarnations), "same number of past incarnations")
+	require.Len(t, upakLite.PastIncarnations, len(upak.PastIncarnations), "same number of past incarnations")
 	for idx, prevUpakFull := range upak.PastIncarnations {
 		prevUpakLite := upakLite.PastIncarnations[idx]
 		assertUpkInstanceMatch(t, prevUpakLite, prevUpakFull)

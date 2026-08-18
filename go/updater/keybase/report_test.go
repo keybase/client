@@ -6,7 +6,6 @@ package keybase
 import (
 	"fmt"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -64,7 +63,7 @@ func TestReportTimeout(t *testing.T) {
 	ctx := testContext(t)
 	err := ctx.report(url.Values{}, &testUpdate, testOptions, server.URL, 2*time.Millisecond)
 	require.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "context deadline exceeded"), err.Error())
+	assert.Contains(t, err.Error(), "context deadline exceeded", err.Error())
 }
 
 func TestReportActionApply(t *testing.T) {

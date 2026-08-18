@@ -82,7 +82,7 @@ func TestCheck(t *testing.T) {
 func TestUsernameSort(t *testing.T) {
 	initUsernameSort()
 	for i := range len(lengths) - 1 {
-		require.True(t, strings.Compare(usernameAtSortedIndex(i), usernameAtSortedIndex(i+1)) < 0)
+		require.Negative(t, strings.Compare(usernameAtSortedIndex(i), usernameAtSortedIndex(i+1)))
 	}
 }
 

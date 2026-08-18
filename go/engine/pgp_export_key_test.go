@@ -205,7 +205,7 @@ func TestPGPExportEncryption(t *testing.T) {
 	err = RunEngine2(m, xe)
 	require.NoError(t, err)
 
-	require.Len(t, secui.Prompts, 0, "Expected no prompts in SecretUI")
+	require.Empty(t, secui.Prompts, "Expected no prompts in SecretUI")
 
 	entity, _, err = libkb.ReadOneKeyFromString(xe.Results()[0].Key)
 	require.NoError(t, err)

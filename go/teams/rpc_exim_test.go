@@ -92,13 +92,13 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 func TestChatBadConversationError(t *testing.T) {
 	e := libkb.ChatBadConversationError{Msg: "", ConvID: nil}
 	status := e.ToStatus()
-	require.Equal(t, len(status.Fields), 2)
+	require.Len(t, status.Fields, 2)
 	msg := status.Fields[0]
-	require.Equal(t, msg.Key, "Msg")
-	require.Equal(t, msg.Value, "")
+	require.Equal(t, "Msg", msg.Key)
+	require.Empty(t, msg.Value)
 	convID := status.Fields[1]
-	require.Equal(t, convID.Key, "ConvID")
-	require.Equal(t, convID.Value, "")
+	require.Equal(t, "ConvID", convID.Key)
+	require.Empty(t, convID.Value)
 	err := libkb.ImportStatusAsError(nil, &status)
 	e, ok := err.(libkb.ChatBadConversationError)
 	require.True(t, ok)
@@ -109,12 +109,12 @@ func TestChatBadConversationError(t *testing.T) {
 
 	e = libkb.ChatBadConversationError{Msg: "msg", ConvID: cid}
 	status = e.ToStatus()
-	require.Equal(t, len(status.Fields), 2)
+	require.Len(t, status.Fields, 2)
 	msg = status.Fields[0]
-	require.Equal(t, msg.Key, "Msg")
-	require.Equal(t, msg.Value, "msg")
+	require.Equal(t, "Msg", msg.Key)
+	require.Equal(t, "msg", msg.Value)
 	convID = status.Fields[1]
-	require.Equal(t, convID.Key, "ConvID")
+	require.Equal(t, "ConvID", convID.Key)
 	require.Equal(t, convID.Value, cid.String())
 	err = libkb.ImportStatusAsError(nil, &status)
 	require.Equal(t, e, err)

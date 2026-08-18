@@ -38,7 +38,7 @@ func TestParticipantsSource(t *testing.T) {
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
-		require.Equal(t, 2, len(pres.Uids))
+		require.Len(t, pres.Uids, 2)
 	case <-time.After(timeout):
 		require.Fail(t, "no uids")
 	}
@@ -52,7 +52,7 @@ func TestParticipantsSource(t *testing.T) {
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
-		require.Equal(t, 2, len(pres.Uids))
+		require.Len(t, pres.Uids, 2)
 	case <-time.After(timeout):
 		require.Fail(t, "no uids")
 	}
@@ -69,14 +69,14 @@ func TestParticipantsSource(t *testing.T) {
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
-		require.Equal(t, 2, len(pres.Uids))
+		require.Len(t, pres.Uids, 2)
 	case <-time.After(timeout):
 		require.Fail(t, "no uids")
 	}
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
-		require.Equal(t, 3, len(pres.Uids))
+		require.Len(t, pres.Uids, 3)
 	case <-time.After(timeout):
 		require.Fail(t, "no uids")
 	}
@@ -87,7 +87,7 @@ func TestParticipantsSource(t *testing.T) {
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
-		require.Equal(t, 3, len(pres.Uids))
+		require.Len(t, pres.Uids, 3)
 	case <-time.After(timeout):
 		require.Fail(t, "no uids")
 	}

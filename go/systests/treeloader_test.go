@@ -89,8 +89,7 @@ loop:
 func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 	failureTeamNames []string, hiddenTeamNames []string, results []keybase1.TeamTreeMembership,
 ) {
-	require.Equal(t, len(expected)+len(failureTeamNames)+len(hiddenTeamNames),
-		len(results), "got right number of results back")
+	require.Len(t, results, len(expected)+len(failureTeamNames)+len(hiddenTeamNames), "got right number of results back")
 	m := make(map[string]struct{})
 	for _, result := range results {
 		_, alreadyExists := m[result.TeamName]
@@ -714,8 +713,8 @@ func TestLoadTeamTreeMemberships(t *testing.T) {
 	victMctx := libkb.NewMetaContextForTest(*vict.tc)
 
 	_, err = loadTeamTree(t, zuluMctx, zulu.notifications, cID, unif.username, nil, nil)
-	require.IsType(t, libkb.NoKeyError{}, err, "cannot load a deleted user")
+	require.ErrorAs(t, err, new(libkb.NoKeyError), "cannot load a deleted user")
 
 	_, err = loadTeamTree(t, victMctx, vict.notifications, cID, yank.username, nil, nil)
-	require.IsType(t, teams.StubbedError{}, err, "can only load if you're an admin")
+	require.ErrorAs(t, err, new(teams.StubbedError), "can only load if you're an admin")
 }

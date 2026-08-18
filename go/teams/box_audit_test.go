@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"regexp"
 	"sync"
 	"testing"
 
@@ -76,17 +75,17 @@ func TestBoxAuditAttempt(t *testing.T) {
 
 	attempt := aA.Attempt(aM, teamID, false)
 	require.NoError(t, toErr(attempt))
-	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED, "owner can attempt")
+	require.Equal(t, keybase1.BoxAuditAttemptResult_OK_VERIFIED, attempt.Result, "owner can attempt")
 	require.Equal(t, *attempt.Generation, keybase1.PerTeamKeyGeneration(1))
 
 	attempt = bA.Attempt(bM, teamID, false)
 	require.NoError(t, toErr(attempt))
-	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED, "admins can attempt")
+	require.Equal(t, keybase1.BoxAuditAttemptResult_OK_VERIFIED, attempt.Result, "admins can attempt")
 	require.Equal(t, *attempt.Generation, keybase1.PerTeamKeyGeneration(1))
 
 	attempt = cA.Attempt(cM, teamID, false)
 	require.NoError(t, toErr(attempt))
-	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE, "readers can attempt but don't verify")
+	require.Equal(t, keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE, attempt.Result, "readers can attempt but don't verify")
 	require.Equal(t, *attempt.Generation, keybase1.PerTeamKeyGeneration(1))
 
 	kbtest.RotatePaper(*cTc, cU)
@@ -189,7 +188,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	log, queue, jail := mustGetBoxState(aTc, aA, aM, teamID)
 	log.Audits[0].ID = nil
 	log.Audits[0].Attempts[0].Ctime = 0
-	require.Equal(t, *log, BoxAuditLog{
+	require.Equal(t, BoxAuditLog{
 		Audits: []BoxAudit{
 			{
 				ID: nil,
@@ -205,18 +204,18 @@ func TestBoxAuditAudit(t *testing.T) {
 		},
 		InProgress: false,
 		Version:    CurrentBoxAuditVersion,
-	})
+	}, *log)
 	require.Nil(t, queue)
-	require.Equal(t, *jail, BoxAuditJail{
+	require.Equal(t, BoxAuditJail{
 		TeamIDs: map[keybase1.TeamID]bool{},
 		Version: CurrentBoxAuditVersion,
-	})
+	}, *jail)
 
 	t.Logf("check B's view of the successful audit in db")
 	log, queue, jail = mustGetBoxState(bTc, bA, bM, teamID)
 	log.Audits[0].ID = nil
 	log.Audits[0].Attempts[0].Ctime = 0
-	require.Equal(t, *log, BoxAuditLog{
+	require.Equal(t, BoxAuditLog{
 		Audits: []BoxAudit{
 			{
 				ID: nil,
@@ -232,12 +231,12 @@ func TestBoxAuditAudit(t *testing.T) {
 		},
 		InProgress: false,
 		Version:    CurrentBoxAuditVersion,
-	})
+	}, *log)
 	require.Nil(t, queue)
-	require.Equal(t, *jail, BoxAuditJail{
+	require.Equal(t, BoxAuditJail{
 		TeamIDs: map[keybase1.TeamID]bool{},
 		Version: CurrentBoxAuditVersion,
-	})
+	}, *jail)
 
 	t.Logf("check C's & D's view of the successful no-op audit in db")
 	vacuousLog := BoxAuditLog{
@@ -262,34 +261,34 @@ func TestBoxAuditAudit(t *testing.T) {
 	log.Audits[0].Attempts[0].Ctime = 0
 	require.Equal(t, *log, vacuousLog)
 	require.Nil(t, queue)
-	require.Equal(t, *jail, BoxAuditJail{
+	require.Equal(t, BoxAuditJail{
 		TeamIDs: map[keybase1.TeamID]bool{},
 		Version: CurrentBoxAuditVersion,
-	})
+	}, *jail)
 	log, queue, jail = mustGetBoxState(dTc, dA, dM, teamID)
 	log.Audits[0].ID = nil
 	log.Audits[0].Attempts[0].Ctime = 0
 	require.Equal(t, *log, vacuousLog)
 	require.Nil(t, queue)
-	require.Equal(t, *jail, BoxAuditJail{
+	require.Equal(t, BoxAuditJail{
 		TeamIDs: map[keybase1.TeamID]bool{},
 		Version: CurrentBoxAuditVersion,
-	})
+	}, *jail)
 	log, queue, jail = mustGetBoxState(eTc, eA, eM, teamID)
 	log.Audits[0].ID = nil
 	log.Audits[0].Attempts[0].Ctime = 0
 	require.Equal(t, *log, vacuousLog)
 	require.Nil(t, queue)
-	require.Equal(t, *jail, BoxAuditJail{
+	require.Equal(t, BoxAuditJail{
 		TeamIDs: map[keybase1.TeamID]bool{},
 		Version: CurrentBoxAuditVersion,
-	})
+	}, *jail)
 
-	require.Equal(t, countTrues(t, mustGetJailLRU(aTc, aA)), 0)
-	require.Equal(t, countTrues(t, mustGetJailLRU(bTc, bA)), 0)
-	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, cA)), 0)
-	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, dA)), 0)
-	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, eA)), 0)
+	require.Equal(t, 0, countTrues(t, mustGetJailLRU(aTc, aA)))
+	require.Equal(t, 0, countTrues(t, mustGetJailLRU(bTc, bA)))
+	require.Equal(t, 0, countTrues(t, mustGetJailLRU(cTc, cA)))
+	require.Equal(t, 0, countTrues(t, mustGetJailLRU(cTc, dA)))
+	require.Equal(t, 0, countTrues(t, mustGetJailLRU(cTc, eA)))
 
 	t.Logf("checking state after failed attempts")
 	t.Logf("disable autorotate on retry")
@@ -301,15 +300,15 @@ func TestBoxAuditAudit(t *testing.T) {
 	_, ok := err.(NonfatalBoxAuditError)
 	require.True(t, ok)
 	log, queue, _ = mustGetBoxState(aTc, aA, aM, teamID)
-	require.Equal(t, len(log.Audits), 2)
+	require.Len(t, log.Audits, 2)
 	require.True(t, log.InProgress, "failed audit causes it to be in progress")
-	require.Equal(t, len(queue.Items), 1)
+	require.Len(t, queue.Items, 1)
 	require.Equal(t, queue.Items[0].TeamID, teamID)
-	require.Equal(t, queue.Version, CurrentBoxAuditVersion)
+	require.Equal(t, CurrentBoxAuditVersion, queue.Version)
 	err = auditTeam(aA, aM, teamID)
 	requireNonfatalError(t, err, "another audit failure on unrotated puk")
 	_, queue, _ = mustGetBoxState(aTc, aA, aM, teamID)
-	require.Equal(t, len(queue.Items), 1, "no duplicates in retry queue")
+	require.Len(t, queue.Items, 1, "no duplicates in retry queue")
 
 	t.Logf("checking that we can load a team in retry queue, but that is not jailed yet")
 	_, err = Load(context.TODO(), aTc.G, keybase1.LoadTeamArg{Name: teamName.String(), ForceRepoll: true})
@@ -323,15 +322,15 @@ func TestBoxAuditAudit(t *testing.T) {
 	err = auditTeam(aA, aM, teamID)
 	requireFatalError(t, err)
 	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
-	require.Equal(t, len(log.Last().Attempts), MaxBoxAuditRetryAttempts)
+	require.Len(t, log.Last().Attempts, MaxBoxAuditRetryAttempts)
 	require.True(t, log.InProgress, "fatal state still counts as in progress even though it won't be retried")
-	require.Equal(t, len(queue.Items), 0, "jailed teams not in retry queue")
-	require.Equal(t, *jail, BoxAuditJail{
+	require.Empty(t, queue.Items, "jailed teams not in retry queue")
+	require.Equal(t, BoxAuditJail{
 		TeamIDs: map[keybase1.TeamID]bool{
 			teamID: true,
 		},
 		Version: CurrentBoxAuditVersion,
-	})
+	}, *jail)
 	require.Equal(t, 1, countTrues(t, mustGetJailLRU(aTc, aA)))
 
 	// NOTE We may eventually cause the jailed team load that did not pass
@@ -361,14 +360,14 @@ func TestBoxAuditAudit(t *testing.T) {
 	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
 	require.False(t, log.InProgress)
 	attempts := log.Last().Attempts
-	require.Equal(t, attempts[len(attempts)-1].Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
-	require.Equal(t, len(queue.Items), 0, "not in queue")
-	require.Equal(t, len(jail.TeamIDs), 0, "unjailed")
+	require.Equal(t, keybase1.BoxAuditAttemptResult_OK_VERIFIED, attempts[len(attempts)-1].Result)
+	require.Empty(t, queue.Items, "not in queue")
+	require.Empty(t, jail.TeamIDs, "unjailed")
 
 	// Just check these public methods are ok
 	teamIDs, err := KnownTeamIDs(aM)
 	require.NoError(t, err)
-	require.Equal(t, len(teamIDs), 1)
+	require.Len(t, teamIDs, 1)
 	require.Equal(t, teamIDs[0], teamID)
 
 	randomID, err := randomKnownTeamID(aM)
@@ -444,9 +443,9 @@ func TestBoxAuditRaces(t *testing.T) {
 	wg.Wait()
 	i := 0
 	for err := range errCh {
-		require.NotNil(t, err)
+		require.Error(t, err)
 		boxErr := err.(NonfatalBoxAuditError)
-		require.Regexp(t, regexp.MustCompile(`.*box summary hash mismatch.*`), boxErr.inner.Error())
+		require.Regexp(t, `.*box summary hash mismatch.*`, boxErr.inner.Error())
 		// stop reading after 9 handled errors, otherwise the for loop goes
 		// forever since we don't close errCh
 		i++
@@ -636,7 +635,7 @@ func TestBoxAuditOpen(t *testing.T) {
 	require.NoError(t, err)
 	attempt := auditor.Attempt(mctx, teamname.ToPrivateTeamID(), false)
 
-	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_OPENTEAM)
+	require.Equal(t, keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_OPENTEAM, attempt.Result)
 }
 
 func TestBoxAuditImplicit(t *testing.T) {
@@ -652,7 +651,7 @@ func TestBoxAuditImplicit(t *testing.T) {
 		auditor := tcs[idx].G.GetTeamBoxAuditor()
 		mctx := libkb.NewMetaContextForTest(*tcs[idx])
 		attempt := auditor.Attempt(mctx, team1.ID, false)
-		require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
+		require.Equal(t, keybase1.BoxAuditAttemptResult_OK_VERIFIED, attempt.Result)
 		require.NoError(t, auditTeam(auditor, mctx, team1.ID))
 		teamIDs = append(teamIDs, team1.ID)
 	}
@@ -661,22 +660,22 @@ func TestBoxAuditImplicit(t *testing.T) {
 	mctx := libkb.NewMetaContextForTest(*tcs[0])
 	knownTeamIDs, err := KnownTeamIDs(mctx)
 	require.NoError(t, err)
-	require.Equal(t, len(knownTeamIDs), 1)
+	require.Len(t, knownTeamIDs, 1)
 	require.Equal(t, teamIDs[0], knownTeamIDs[0])
 	randomID, err := randomKnownTeamID(mctx)
 	require.NoError(t, err)
 	require.NotNil(t, randomID)
-	require.True(t, teamIDs[0] == *randomID)
+	require.Equal(t, teamIDs[0], *randomID)
 
 	mctx = libkb.NewMetaContextForTest(*tcs[1])
 	knownTeamIDs, err = KnownTeamIDs(mctx)
 	require.NoError(t, err)
-	require.Equal(t, len(knownTeamIDs), 1)
+	require.Len(t, knownTeamIDs, 1)
 	require.Equal(t, teamIDs[1], knownTeamIDs[0])
 	randomID, err = randomKnownTeamID(mctx)
 	require.NoError(t, err)
 	require.NotNil(t, randomID)
-	require.True(t, teamIDs[1] == *randomID)
+	require.Equal(t, teamIDs[1], *randomID)
 }
 
 func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
@@ -749,7 +748,7 @@ func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 	auditor := tc.G.GetTeamBoxAuditor()
 	attempt := auditor.Attempt(libkb.NewMetaContextForTest(tc), team.ID, false /* rotateBeforeAudit */)
 	require.Nil(t, attempt.Error)
-	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
+	require.Equal(t, keybase1.BoxAuditAttemptResult_OK_VERIFIED, attempt.Result)
 }
 
 func TestBoxAuditVersionBump(t *testing.T) {

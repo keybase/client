@@ -49,7 +49,7 @@ func TestLookupEmptyList(t *testing.T) {
 
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
-	require.Len(t, res, 0)
+	require.Empty(t, res)
 }
 
 func TestLookupContacts(t *testing.T) {

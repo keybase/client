@@ -44,10 +44,10 @@ func TestBundleRoundtrip(t *testing.T) {
 	require.NotEmpty(t, boxed.VisParentB64)
 	require.NotEmpty(t, boxed.EncParentB64)
 	require.Len(t, boxed.AcctBundles, 1)
-	require.True(t, len(boxed.EncParentB64) > 100)
+	require.Greater(t, len(boxed.EncParentB64), 100)
 	require.NotZero(t, boxed.EncParent.N)
 	require.Equal(t, 2, boxed.EncParent.V)
-	require.True(t, len(boxed.EncParent.E) > 100)
+	require.Greater(t, len(boxed.EncParent.E), 100)
 	require.Equal(t, pukGen, boxed.EncParent.Gen)
 
 	bundle2, version, decodedPukGen, accountGens, err := DecodeAndUnbox(m, ring, boxed.toBundleEncodedB64())
@@ -57,7 +57,7 @@ func TestBundleRoundtrip(t *testing.T) {
 	require.Nil(t, bundle2.Prev)
 	require.NotNil(t, bundle2.OwnHash)
 	require.Equal(t, bundle.Revision, bundle2.Revision)
-	require.Equal(t, len(bundle.Accounts), len(bundle2.Accounts))
+	require.Len(t, bundle2.Accounts, len(bundle.Accounts))
 	for i, acct := range bundle.Accounts {
 		acct2 := bundle2.Accounts[i]
 		require.Equal(t, acct.AccountID, acct2.AccountID)
@@ -68,8 +68,8 @@ func TestBundleRoundtrip(t *testing.T) {
 		signers1 := bundle.AccountBundles[acct.AccountID].Signers
 		signers2 := bundle2.AccountBundles[acct2.AccountID].Signers
 		require.Equal(t, signers1, signers2)
-		require.True(t, len(signers2) == 1) // exactly one signer
-		require.True(t, len(signers2[0]) > 0)
+		require.Len(t, signers2, 1) // exactly one signer
+		require.NotEmpty(t, signers2[0])
 		require.Equal(t, keybase1.PerUserKeyGeneration(1), accountGens[acct.AccountID])
 	}
 }
@@ -194,7 +194,7 @@ type canned struct {
 func (c *canned) puk(t *testing.T) (puk libkb.PerUserKeySeed) {
 	bs, err := base64.StdEncoding.DecodeString(c.pukSeedB64)
 	require.NoError(t, err)
-	require.Equal(t, len(puk), len(bs))
+	require.Len(t, bs, len(puk))
 	copy(puk[:], bs)
 	return puk
 }

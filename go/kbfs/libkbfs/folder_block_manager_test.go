@@ -119,7 +119,7 @@ func ensureFewerBlocksPostQR(
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	pre, post := totalBlockRefs(preBlocks), totalBlockRefs(postBlocks)
-	require.True(t, post < pre,
+	require.Less(t, post, pre,
 		"Blocks didn't shrink after reclamation: pre: %d, post %d",
 		pre, post)
 }

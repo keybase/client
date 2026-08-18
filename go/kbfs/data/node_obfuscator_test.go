@@ -18,7 +18,7 @@ func TestNodeObfuscatorBasic(t *testing.T) {
 
 	t.Log("Obfuscate with the default hasher")
 	ob := no.Obfuscate("test")
-	require.NotEqual(t, "", ob)
+	require.NotEmpty(t, ob)
 
 	t.Log("Make sure it has two valid sec words")
 	words := strings.Split(ob, separator)

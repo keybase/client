@@ -459,7 +459,7 @@ func testMDOpsGetIDForHandlePublicFailVerify(
 		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
 	_, err := config.MDOps().GetIDForHandle(ctx, h)
-	require.IsType(t, MDMismatchError{}, err)
+	require.ErrorAs(t, err, new(MDMismatchError))
 }
 
 func testMDOpsGetIDForHandleFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -733,7 +733,7 @@ func testMDOpsGetRangeSuccessHelper(
 	}
 	rmds, err := config.MDOps().GetRange(ctx, rmdses[0].MD.TlfID(), start, stop, nil)
 	require.NoError(t, err)
-	require.Equal(t, len(rmdses), len(rmds))
+	require.Len(t, rmds, len(rmdses))
 	for i := range rmdses {
 		require.Equal(t, expectedMDs[i], rmds[i].bareMd)
 	}
@@ -773,7 +773,7 @@ func testMDOpsGetRangeFailBadPrevRoot(t *testing.T, ver kbfsmd.MetadataVer) {
 	}
 
 	_, err := config.MDOps().GetRange(ctx, rmdses[0].MD.TlfID(), start, stop, nil)
-	require.IsType(t, MDMismatchError{}, err)
+	require.ErrorAs(t, err, new(MDMismatchError))
 }
 
 type fakeMDServerPut struct {
@@ -954,7 +954,7 @@ func testMDOpsGetRangeFailFinal(t *testing.T, ver kbfsmd.MetadataVer) {
 		mdServer.processRMDSes(rmdses[i], e)
 	}
 	_, err := config.MDOps().GetRange(ctx, rmdses[0].MD.TlfID(), start, stop, nil)
-	require.IsType(t, MDMismatchError{}, err)
+	require.ErrorAs(t, err, new(MDMismatchError))
 }
 
 func testMDOpsGetFinalSuccess(t *testing.T, ver kbfsmd.MetadataVer) {

@@ -22,7 +22,7 @@ func checkReportedErrors(t *testing.T, expected []error,
 
 	for i, e := range expected {
 		g := got[i]
-		require.ErrorIs(t, e, g.Error, "Unexpected error at %d: %s vs %s", i, e, g.Error)
+		require.ErrorIs(t, g.Error, e, "Unexpected error at %d: %s vs %s", i, e, g.Error)
 	}
 }
 

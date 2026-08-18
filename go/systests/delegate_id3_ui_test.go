@@ -41,7 +41,7 @@ func (d *delegateID3UI) Identify3ShowTracker(_ context.Context, arg keybase1.Ide
 	d.Lock()
 	defer d.Unlock()
 	d.guiid = arg.GuiID
-	require.Equal(d.T, string(arg.Assertion), "t_alice")
+	require.Equal(d.T, "t_alice", string(arg.Assertion))
 	return nil
 }
 
@@ -94,7 +94,7 @@ func (d *delegateID3UI) Identify3TrackerTimedOut(context.Context, keybase1.Ident
 func (d *delegateID3UI) Identify3Result(_ context.Context, arg keybase1.Identify3ResultArg) error {
 	d.Lock()
 	require.Equal(d.T, arg.GuiID, d.guiid)
-	require.Equal(d.T, arg.Result, keybase1.Identify3ResultType_OK)
+	require.Equal(d.T, keybase1.Identify3ResultType_OK, arg.Result)
 	d.Unlock()
 	close(d.ch)
 	return nil

@@ -504,16 +504,14 @@ func checkKeyBundlesV3(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV3,
 			expected.readerPrivKeys.toPublicKeys())
 
 		if expected.writerPrivKeys.hasKeys() {
-			require.Equal(t, expected.writerEPubKeyIndex,
-				len(expectedWriterEPublicKeys))
+			require.Len(t, expectedWriterEPublicKeys, expected.writerEPubKeyIndex)
 			expectedWriterEPublicKeys = append(
 				expectedWriterEPublicKeys,
 				expected.ePubKey)
 		}
 
 		if expected.readerPrivKeys.hasKeys() {
-			require.Equal(t, expected.readerEPubKeyIndex,
-				len(expectedReaderEPublicKeys))
+			require.Len(t, expectedReaderEPublicKeys, expected.readerEPubKeyIndex)
 			expectedReaderEPublicKeys = append(
 				expectedReaderEPublicKeys,
 				expected.ePubKey)
@@ -632,7 +630,7 @@ func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		extra, updatedWriterKeys, updatedReaderKeys,
 		ePubKey1, ePrivKey1, tlfCryptKeys)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(serverHalves1b))
+	require.Len(t, serverHalves1b, 1)
 
 	expectedRekeyInfo1b := expectedRekeyInfoV3{
 		serverHalves: serverHalves1b[0],
@@ -657,7 +655,7 @@ func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		extra, updatedWriterKeys, updatedReaderKeys,
 		ePubKey2, ePrivKey2, tlfCryptKeys)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(serverHalves2))
+	require.Len(t, serverHalves2, 1)
 
 	expectedRekeyInfo2 := expectedRekeyInfoV3{
 		writerPrivKeys: userDevicePrivateKeys{
@@ -682,7 +680,7 @@ func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		extra, updatedWriterKeys, updatedReaderKeys,
 		ePubKey2, ePrivKey2, tlfCryptKeys)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(serverHalves2b))
+	require.Len(t, serverHalves2b, 1)
 
 	expectedRekeyInfo2b := expectedRekeyInfoV3{
 		serverHalves: serverHalves2b[0],
@@ -704,7 +702,7 @@ func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		extra, updatedWriterKeys, updatedReaderKeys,
 		ePubKey3, ePrivKey3, tlfCryptKeys)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(serverHalves3))
+	require.Len(t, serverHalves3, 1)
 
 	expectedRekeyInfo3 := expectedRekeyInfoV3{
 		writerPrivKeys: userDevicePrivateKeys{
@@ -727,7 +725,7 @@ func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		extra, updatedWriterKeys, updatedReaderKeys,
 		ePubKey3, ePrivKey3, tlfCryptKeys)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(serverHalves3b))
+	require.Len(t, serverHalves3b, 1)
 
 	expectedRekeyInfo3b := expectedRekeyInfoV3{
 		serverHalves: serverHalves3b[0],
@@ -754,7 +752,7 @@ func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		extra, nil, filteredReaderKeys,
 		ePubKey4, ePrivKey4, tlfCryptKeys)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(serverHalves4))
+	require.Len(t, serverHalves4, 1)
 
 	expectedRekeyInfo4 := expectedRekeyInfoV3{
 		writerPrivKeys: nil,
@@ -775,7 +773,7 @@ func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		extra, nil, filteredReaderKeys,
 		ePubKey4, ePrivKey4, tlfCryptKeys)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(serverHalves4b))
+	require.Len(t, serverHalves4b, 1)
 
 	expectedRekeyInfo4b := expectedRekeyInfoV3{
 		serverHalves: serverHalves4b[0],

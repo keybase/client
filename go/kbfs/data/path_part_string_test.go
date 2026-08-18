@@ -72,7 +72,7 @@ func TestPathPartStringEquality(t *testing.T) {
 	t.Log("Check equal PathPartStrings")
 	pps1 := NewPathPartString("test", no)
 	pps2 := NewPathPartString("test", no)
-	require.True(t, pps1 == pps2)
+	require.Equal(t, pps1, pps2)
 
 	t.Log("Check as a map key")
 	pps3 := NewPathPartString("test2", no)
@@ -89,13 +89,13 @@ func TestPathPartStringEquality(t *testing.T) {
 	t.Log("Check unequal PathPartStrings with different strings")
 	pps1 = NewPathPartString("test", no)
 	pps2 = NewPathPartString("test2", no)
-	require.False(t, pps1 == pps2)
+	require.NotEqual(t, pps1, pps2)
 
 	t.Log("Check unequal PathPartStrings with different obfuscators")
 	no2 := NewNodeObfuscator(secret)
 	pps1 = NewPathPartString("test", no)
 	pps2 = NewPathPartString("test", no2)
-	require.False(t, pps1 == pps2)
+	require.NotEqual(t, pps1, pps2)
 }
 
 func TestPathPartStringPrefix(t *testing.T) {

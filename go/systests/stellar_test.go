@@ -480,6 +480,6 @@ func TestAccountMerge(t *testing.T) {
 	t.Logf("merged the second into the first")
 	afterMergeBalance := stroopsInAcct(firstAccountID)
 	lowerBoundFinalExpectedAmount := int64(stellarnet.StroopsPerLumen * 9999.99)
-	require.True(t, afterMergeBalance > lowerBoundFinalExpectedAmount)
+	require.Greater(t, afterMergeBalance, lowerBoundFinalExpectedAmount)
 	t.Logf("value of the second account was merged into the first account")
 }

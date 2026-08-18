@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -976,7 +977,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 			if strings.Contains(l.GetHumanURL(), "rooter") {
 				require.True(t, shouldCheck,
 					"should not have gotten a check; should have hit cache")
-				require.Equal(t, pcm, wantedMode, "we get a passive ID in GUI mode")
+				require.Equal(t, wantedMode, pcm, "we get a passive ID in GUI mode")
 				if returnUnchecked {
 					return libkb.ProofErrorUnchecked
 				}
@@ -1198,10 +1199,10 @@ func TestResolveAndCheck(t *testing.T) {
 			tc.G.Resolver = &evilResolver
 		}
 		upk, err := ResolveAndCheck(m, test.s, true /*useTracking*/)
-		require.IsType(t, test.e, err)
+		require.Equal(t, reflect.TypeOf(test.e), reflect.TypeOf(err))
 		if err == nil {
 			require.True(t, upk.GetUID().Equal(tracyUID))
-			require.Equal(t, upk.GetName(), "t_tracy")
+			require.Equal(t, "t_tracy", upk.GetName())
 		}
 	}
 

@@ -59,17 +59,17 @@ func TestSaveHTTPResponse(t *testing.T) {
 	server := testServer(t, data, 0)
 	defer server.Close()
 	resp, err := http.Get(server.URL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	savePath := TempPath("", "TestSaveHTTPResponse.")
 	defer RemoveFileAtPath(savePath)
 
 	err = SaveHTTPResponse(resp, savePath, 0o600, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	saved, err := os.ReadFile(savePath)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, string(saved), data+"\n")
 }
@@ -79,7 +79,7 @@ func TestSaveHTTPResponseInvalidPath(t *testing.T) {
 	server := testServer(t, data, 0)
 	defer server.Close()
 	resp, err := http.Get(server.URL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	savePath := TempPath("", "TestSaveHTTPResponse.")
@@ -91,9 +91,9 @@ func TestSaveHTTPResponseInvalidPath(t *testing.T) {
 	}
 
 	err = SaveHTTPResponse(resp, badPath, 0o600, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 	err = SaveHTTPResponse(nil, savePath, 0o600, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestURLExistsValid(t *testing.T) {
@@ -101,20 +101,20 @@ func TestURLExistsValid(t *testing.T) {
 	defer server.Close()
 	exists, err := URLExists(server.URL, time.Second, testLog)
 	assert.True(t, exists)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestURLExistsInvalid(t *testing.T) {
 	exists, err := URLExists("", time.Second, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, exists)
 
 	exists, err = URLExists("badurl", time.Second, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, exists)
 
 	exists, err = URLExists("http://n", time.Second, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, exists)
 }
 
@@ -123,19 +123,19 @@ func TestURLExistsTimeout(t *testing.T) {
 	defer server.Close()
 	exists, err := URLExists(server.URL, time.Millisecond, testLog)
 	t.Logf("Timeout error: %s", err)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, exists)
 }
 
 func TestURLExistsFile(t *testing.T) {
 	path, err := WriteTempFile("TestURLExistsFile", []byte(""), 0o600)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	exists, err := URLExists(URLStringForPath(path), 0, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, exists)
 
 	exists, err = URLExists(URLStringForPath("/invalid"), 0, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, exists)
 }
 
@@ -144,15 +144,15 @@ func TestDownloadURLValid(t *testing.T) {
 	defer server.Close()
 	destinationPath := TempPath("", "TestDownloadURLValid.")
 	digest, err := Digest(bytes.NewReader([]byte("ok\n")))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = DownloadURL(server.URL, destinationPath, DownloadURLOptions{Digest: digest, RequireDigest: true, Log: testLog})
 	if assert.NoError(t, err) {
 		// Check file saved and correct data
 		fileExists, fileErr := FileExists(destinationPath)
-		assert.NoError(t, fileErr)
+		require.NoError(t, fileErr)
 		assert.True(t, fileExists)
 		data, readErr := os.ReadFile(destinationPath)
-		assert.NoError(t, readErr)
+		require.NoError(t, readErr)
 		assert.Equal(t, []byte("ok\n"), data)
 	}
 
@@ -160,14 +160,14 @@ func TestDownloadURLValid(t *testing.T) {
 	server2 := testServer(t, "ok2", 0)
 	defer server2.Close()
 	digest2, err := Digest(bytes.NewReader([]byte("ok2\n")))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = DownloadURL(server2.URL, destinationPath, DownloadURLOptions{Digest: digest2, RequireDigest: true, Log: testLog})
 	if assert.NoError(t, err) {
 		fileExists2, err := FileExists(destinationPath)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, fileExists2)
 		data2, err := os.ReadFile(destinationPath)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []byte("ok2\n"), data2)
 	}
 }
@@ -176,13 +176,13 @@ func TestDownloadURLInvalid(t *testing.T) {
 	destinationPath := TempPath("", "TestDownloadURLInvalid.")
 
 	err := DownloadURL("", destinationPath, DownloadURLOptions{Log: testLog})
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	err = DownloadURL("badurl", destinationPath, DownloadURLOptions{Log: testLog})
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	err = DownloadURL("http://", destinationPath, DownloadURLOptions{Log: testLog})
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDownloadURLTimeout(t *testing.T) {
@@ -191,12 +191,12 @@ func TestDownloadURLTimeout(t *testing.T) {
 	destinationPath := TempPath("", "TestDownloadURLInvalid.")
 	err := DownloadURL(server.URL, destinationPath, DownloadURLOptions{Timeout: time.Millisecond, Log: testLog})
 	t.Logf("Timeout error: %s", err)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDownloadURLParseError(t *testing.T) {
 	err := DownloadURL("invalid", "", DownloadURLOptions{Log: testLog})
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDownloadURLError(t *testing.T) {
@@ -204,7 +204,7 @@ func TestDownloadURLError(t *testing.T) {
 	defer server.Close()
 
 	err := DownloadURL(server.URL, "", DownloadURLOptions{Log: testLog})
-	assert.EqualError(t, err, "Responded with 500 Internal Server Error")
+	require.EqualError(t, err, "Responded with 500 Internal Server Error")
 }
 
 func TestDownloadURLLocal(t *testing.T) {
@@ -213,10 +213,10 @@ func TestDownloadURLLocal(t *testing.T) {
 	destinationPath := TempPath("", "TestDownloadURLLocal.")
 	defer RemoveFileAtPath(destinationPath)
 	err := DownloadURL(URLStringForPath(testZipPath), destinationPath, DownloadURLOptions{Log: testLog})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	exists, err := FileExists(destinationPath)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, exists)
 }
 
@@ -229,7 +229,7 @@ func TestDownloadURLETag(t *testing.T) {
 	err := os.WriteFile(destinationPath, data, 0o600)
 	require.NoError(t, err)
 	digest, err := Digest(bytes.NewReader(data))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	cached, err := downloadURL(server.URL, destinationPath, DownloadURLOptions{Digest: digest, RequireDigest: true, UseETag: true, Log: testLog})
 	require.NoError(t, err)
 	assert.True(t, cached)
@@ -238,7 +238,7 @@ func TestDownloadURLETag(t *testing.T) {
 func TestURLExistsParseError(t *testing.T) {
 	exists, err := URLExists("invalid", time.Millisecond, testLog)
 	assert.False(t, exists)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestURLExistsError(t *testing.T) {
@@ -247,7 +247,7 @@ func TestURLExistsError(t *testing.T) {
 
 	exists, err := URLExists(server.URL, time.Second, testLog)
 	assert.False(t, exists)
-	assert.EqualError(t, err, "Invalid status code (500)")
+	require.EqualError(t, err, "Invalid status code (500)")
 }
 
 func TestURLValueForBool(t *testing.T) {

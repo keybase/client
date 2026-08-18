@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/keybase/go-logging"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,12 +47,12 @@ func init() {
 func TestVerify(t *testing.T) {
 	reader := bytes.NewReader([]byte(message1))
 	err := VerifyDetached(reader, signature1, validCodeSigningKIDs, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestVerifyDetachedFileAtPath(t *testing.T) {
 	err := VerifyDetachedFileAtPath(testZipPath, testZipSignature, validCodeSigningKIDs, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestVerifyFail(t *testing.T) {
@@ -118,6 +117,6 @@ func TestCheckNoKID(t *testing.T) {
 
 func TestVerifyNoFile(t *testing.T) {
 	err := VerifyDetachedFileAtPath("/invalid", signature1, validCodeSigningKIDs, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 	require.True(t, strings.HasPrefix(err.Error(), "open /invalid: "))
 }

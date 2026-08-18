@@ -90,7 +90,7 @@ func TestProofSuggestions(t *testing.T) {
 		}},
 	}
 	require.Equal(t, expected.ShowMore, res.ShowMore)
-	require.True(t, len(res.Suggestions) >= len(expected.Suggestions), "should be at least as many results as expected")
+	require.GreaterOrEqual(t, len(res.Suggestions), len(expected.Suggestions), "should be at least as many results as expected")
 	iconExempt := map[string]struct{}{
 		"gubble-with-dashes.dot": {},
 		"mastodon.local":         {},
@@ -146,7 +146,7 @@ func checkIcon(t testing.TB, icon keybase1.SizedImage) {
 		"unreasonable icon size")
 	if kbtest.SkipIconRemoteTest() {
 		t.Logf("Skipping icon remote test")
-		require.True(t, len(icon.Path) > 8)
+		require.Greater(t, len(icon.Path), 8)
 	} else {
 		resp, err := http.Get(icon.Path)
 		require.NoError(t, err)

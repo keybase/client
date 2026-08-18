@@ -31,7 +31,7 @@ func TestGitTeamer(t *testing.T) {
 		FolderType: keybase1.FolderType_TEAM,
 	})
 	require.Error(t, err)
-	require.IsType(t, teams.TeamDoesNotExistError{}, err, "%v", err)
+	require.ErrorAs(t, err, new(teams.TeamDoesNotExistError), "%v", err)
 
 	t.Logf("team that exists")
 	teamID, teamName := tt.users[0].createTeam2()
@@ -41,7 +41,7 @@ func TestGitTeamer(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, res.TeamID, teamID)
-	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
+	require.Equal(t, keybase1.TLFVisibility_PRIVATE, res.Visibility)
 
 	for _, public := range []bool{false, true} {
 		t.Logf("public:%v", public)

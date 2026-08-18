@@ -34,7 +34,7 @@ NGQwYjE5NTMwMzIwOWNiZDgyYWZhN2ZjNmRlZDE4YjQ5YjdiNmIyIiwic2Vxbm8iOjQsInRhZyI6
 InNpZ25hdHVyZSJ9o3NpZ8RAbe4i3mDpfo1ECOcd0XU1JE7lRgkPUHQq7WLEEh5LbO5IAZHSm2zY
 tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
 `)
-	require.IsType(t, err, FishyMsgpackError{}, "info=%+v, err+%+v", info, err)
+	require.ErrorAs(t, err, new(FishyMsgpackError), "info=%+v, err+%+v", info, err)
 }
 
 type testPacketable struct{}

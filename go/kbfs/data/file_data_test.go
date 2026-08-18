@@ -228,7 +228,7 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *FileData,
 	// We expect this to be a leaf block.
 	if len(tfdl.children) == 0 {
 		require.False(t, fblock.IsInd, levelString)
-		require.Len(t, fblock.IPtrs, 0, levelString)
+		require.Empty(t, fblock.IPtrs, levelString)
 		require.Len(t, fblock.Contents, tfdl.size, levelString)
 		return dirtyPtrs
 	}
@@ -236,7 +236,7 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *FileData,
 	// Otherwise it's indirect, so check all the children.
 	require.True(t, fblock.IsInd, levelString)
 	require.Len(t, fblock.IPtrs, len(tfdl.children), levelString)
-	require.Len(t, fblock.Contents, 0, levelString)
+	require.Empty(t, fblock.Contents, levelString)
 	for i, iptr := range fblock.IPtrs {
 		childDirtyPtrs := tfdl.children[i].check(
 			t, fd, iptr.BlockPointer, iptr.Off, dirtyBcache)
@@ -272,11 +272,11 @@ func testFileDataCheckWrite(t *testing.T, fd *FileData,
 		dirtyPtrsMap[ptr] = true
 	}
 	require.True(t, reflect.DeepEqual(expectedDirtyPtrs, dirtyPtrsMap),
-		fmt.Sprintf("expected %v; got %v", expectedDirtyPtrs, dirtyPtrsMap))
+		"expected %v; got %v", expectedDirtyPtrs, dirtyPtrsMap)
 
 	// TODO: set the EncodedSize of the existing blocks to something
 	// non-zero so that we get some unrefs.
-	require.Len(t, unrefs, 0)
+	require.Empty(t, unrefs)
 }
 
 func testFileDataWriteExtendEmptyFile(t *testing.T, maxBlockSize Int64Offset,
@@ -637,7 +637,7 @@ func testFileDataCheckTruncateExtend(t *testing.T, fd *FileData,
 		dirtyPtrsMap[ptr] = true
 	}
 	require.True(t, reflect.DeepEqual(expectedDirtyPtrs, dirtyPtrsMap),
-		fmt.Sprintf("expected %v; got %v", expectedDirtyPtrs, dirtyPtrsMap))
+		"expected %v; got %v", expectedDirtyPtrs, dirtyPtrsMap)
 }
 
 func testFileDataTruncateExtendFile(t *testing.T, maxBlockSize Int64Offset,
@@ -727,11 +727,11 @@ func testFileDataCheckTruncateShrink(t *testing.T, fd *FileData,
 		dirtyPtrsMap[ptr] = true
 	}
 	require.True(t, reflect.DeepEqual(expectedDirtyPtrs, dirtyPtrsMap),
-		fmt.Sprintf("expected %v; got %v", expectedDirtyPtrs, dirtyPtrsMap))
+		"expected %v; got %v", expectedDirtyPtrs, dirtyPtrsMap)
 
 	// TODO: set the EncodedSize of the existing blocks to something
 	// non-zero so that we get some unrefs.
-	require.Len(t, unrefs, 0)
+	require.Empty(t, unrefs)
 }
 
 func testFileDataShrinkExistingFile(t *testing.T, maxBlockSize Int64Offset,

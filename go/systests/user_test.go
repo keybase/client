@@ -488,7 +488,7 @@ func TestNoPasswordCliSignup(t *testing.T) {
 
 	// Still same prompts for e-mail, username, and device name, but no
 	// password prompt.
-	require.Len(t, sui.passphrasePrompts, 0)
+	require.Empty(t, sui.passphrasePrompts)
 	expectedPrompts := []libkb.PromptDescriptor{
 		client.PromptDescriptorSignupEmail,
 		client.PromptDescriptorSignupCode,
@@ -500,7 +500,7 @@ func TestNoPasswordCliSignup(t *testing.T) {
 	ucli := keybase1.UserClient{Cli: user.primaryDevice().rpcClient()}
 	res, err := ucli.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.Equal(t, res, keybase1.PassphraseState_RANDOM)
+	require.Equal(t, keybase1.PassphraseState_RANDOM, res)
 
 	err = G.ConfigureConfig()
 	require.NoError(t, err)

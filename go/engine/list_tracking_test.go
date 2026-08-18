@@ -271,5 +271,5 @@ func TestListTrackingOfflineBehavior(t *testing.T) {
 	c.Advance(time.Hour * 24 * 8)
 	err = RunEngine2(NewMetaContextForTest(atc), stalenesseng)
 	require.Error(t, err)
-	require.IsType(t, err, libkb.UserNotFoundError{})
+	require.ErrorAs(t, err, new(libkb.UserNotFoundError))
 }

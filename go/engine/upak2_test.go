@@ -89,9 +89,9 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	reset := past.Reset
 	require.NotNil(t, reset)
 	require.Equal(t, reset.ResetSeqno, keybase1.Seqno(1))
-	require.True(t, reset.Ctime > keybase1.UnixTime(1419826703))
-	require.True(t, reset.MerkleRoot.Seqno > keybase1.Seqno(0))
-	require.Equal(t, reset.Type, keybase1.ResetType_RESET)
+	require.Greater(t, reset.Ctime, keybase1.UnixTime(1419826703))
+	require.Greater(t, reset.MerkleRoot.Seqno, keybase1.Seqno(0))
+	require.Equal(t, keybase1.ResetType_RESET, reset.Type)
 	require.Equal(t, reset.EldestSeqno, keybase1.Seqno(1))
 
 	// Test libkb.FindNextMerkleRootAfterReset --- in this case, the next merkle root
@@ -105,12 +105,12 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	res, err := libkb.FindNextMerkleRootAfterReset(m, fnmrArg)
 	require.NoError(t, err)
 	require.NotNil(t, res.Res)
-	require.True(t, res.Res.Seqno > reset.MerkleRoot.Seqno)
+	require.Greater(t, res.Res.Seqno, reset.MerkleRoot.Seqno)
 
 	// While we're here, also check that UPK v1 has the right reset summaries.
 	upk1, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, fu.UID(), keybase1.KID(""))
 	require.NoError(t, err)
-	require.Equal(t, len(upk1.Resets), 1)
+	require.Len(t, upk1.Resets, 1)
 	require.Equal(t, upk1.Resets[0].EldestSeqno, keybase1.Seqno(1))
-	require.Equal(t, upk1.Resets[0].Type, keybase1.ResetType_RESET)
+	require.Equal(t, keybase1.ResetType_RESET, upk1.Resets[0].Type)
 }

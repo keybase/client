@@ -35,7 +35,7 @@ func TestWotNotifications(t *testing.T) {
 		})
 		badgeState := getBadgeState(t, user)
 		wotUpdates := badgeState.WotUpdates
-		require.Equal(t, 1, len(wotUpdates))
+		require.Len(t, wotUpdates, 1)
 		for _, w := range wotUpdates {
 			return w
 		}
@@ -79,7 +79,7 @@ func TestWotNotifications(t *testing.T) {
 	// alice vouches for bob - bob gets a notification
 	aliceVouchesForBob()
 	wotUpdate := getWotUpdate(bob)
-	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_PROPOSED)
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, wotUpdate.Status)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
 	require.Equal(t, wotUpdate.Vouchee, bob.username)
 	dismiss(bob)
@@ -87,7 +87,7 @@ func TestWotNotifications(t *testing.T) {
 	// bob accepts - alice gets a notification
 	bobAccepts()
 	wotUpdate = getWotUpdate(alice)
-	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_ACCEPTED)
+	require.Equal(t, keybase1.WotStatusType_ACCEPTED, wotUpdate.Status)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
 	require.Equal(t, wotUpdate.Vouchee, bob.username)
 	dismiss(alice)
@@ -100,7 +100,7 @@ func TestWotNotifications(t *testing.T) {
 	err = cliR.Run()
 	require.NoError(t, err)
 	wotUpdate = getWotUpdate(alice)
-	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_REJECTED)
+	require.Equal(t, keybase1.WotStatusType_REJECTED, wotUpdate.Status)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
 	require.Equal(t, wotUpdate.Vouchee, bob.username)
 	dismiss(alice)
@@ -132,7 +132,7 @@ func TestWotNotifications(t *testing.T) {
 	bobAccepts()
 	aliceVouchesForBob()
 	wotUpdate = getWotUpdate(bob)
-	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_PROPOSED)
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, wotUpdate.Status)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
 	require.Equal(t, wotUpdate.Vouchee, bob.username)
 }

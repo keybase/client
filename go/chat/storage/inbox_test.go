@@ -68,7 +68,7 @@ func makeInboxMsg(id chat1.MessageID, typ chat1.MessageType) chat1.MessageBoxed 
 func convListCompare(t *testing.T, ref []types.RemoteConversation, res []types.RemoteConversation,
 	name string,
 ) {
-	require.Equal(t, len(ref), len(res), name+" size mismatch")
+	require.Len(t, res, len(ref), name+" size mismatch")
 	refMap := make(map[chat1.ConvIDStr]types.RemoteConversation)
 	for _, conv := range ref {
 		refMap[conv.GetConvID().ConvIDStr()] = conv
@@ -116,8 +116,8 @@ func TestInboxSummarize(t *testing.T) {
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, []chat1.Conversation{conv.Conv}, nil))
 	_, res, err := inbox.Read(context.TODO(), uid, nil)
 	require.NoError(t, err)
-	require.Zero(t, len(res[0].Conv.MaxMsgs))
-	require.Equal(t, 1, len(res[0].Conv.MaxMsgSummaries))
+	require.Empty(t, res[0].Conv.MaxMsgs)
+	require.Len(t, res[0].Conv.MaxMsgSummaries, 1)
 	require.Equal(t, maxMsgID, res[0].Conv.MaxMsgSummaries[0].GetMessageID())
 }
 
@@ -348,7 +348,7 @@ func TestInboxNewConversation(t *testing.T) {
 	convs = append([]types.RemoteConversation{newConv}, convs...)
 	convListCompare(t, append(convs[:7], convs[8:]...), res, "newconv finalized")
 
-	require.Equal(t, numConvs+2, len(convs), "n convs")
+	require.Len(t, convs, numConvs+2, "n convs")
 
 	err = inbox.NewConversation(context.TODO(), uid, 10, newConv.Conv)
 	require.IsType(t, VersionMismatchError{}, err)
@@ -443,10 +443,10 @@ func TestInboxNewMessage(t *testing.T) {
 	deleteMsg = makeInboxMsg(6, chat1.MessageType_DELETE)
 	err = inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), deleteMsg, nil)
 	require.Error(t, err)
-	require.IsType(t, VersionMismatchError{}, err)
+	require.ErrorAs(t, err, new(VersionMismatchError))
 
 	err = inbox.NewMessage(context.TODO(), uid, 10, conv.GetConvID(), msg2, nil)
-	require.IsType(t, VersionMismatchError{}, err)
+	require.ErrorAs(t, err, new(VersionMismatchError))
 }
 
 func TestInboxReadMessage(t *testing.T) {
@@ -489,7 +489,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LastSendTime)
 
 	err = inbox.ReadMessage(context.TODO(), uid, 10, conv.GetConvID(), 3)
-	require.IsType(t, VersionMismatchError{}, err)
+	require.ErrorAs(t, err, new(VersionMismatchError))
 }
 
 func TestInboxSetStatus(t *testing.T) {
@@ -514,7 +514,7 @@ func TestInboxSetStatus(t *testing.T) {
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 2, []chat1.Conversation{}, &q))
 	_, res, err := inbox.Read(context.TODO(), uid, &q)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "length")
+	require.Len(t, res, 1, "length")
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "id")
 
 	t.Logf("sending new message to wake up conv")
@@ -523,7 +523,7 @@ func TestInboxSetStatus(t *testing.T) {
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 3, conv.GetConvID(), msg, nil))
 	_, res, err = inbox.Read(context.TODO(), uid, &q)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(res), "ignore not unset")
+	require.Empty(t, res, "ignore not unset")
 
 	err = inbox.SetStatus(context.TODO(), uid, 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
 	require.IsType(t, VersionMismatchError{}, err)
@@ -551,7 +551,7 @@ func TestInboxSetStatusMuted(t *testing.T) {
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 2, []chat1.Conversation{}, &q))
 	_, res, err := inbox.Read(context.TODO(), uid, &q)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "length")
+	require.Len(t, res, 1, "length")
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "id")
 
 	t.Logf("sending new message to wake up conv")
@@ -560,7 +560,7 @@ func TestInboxSetStatusMuted(t *testing.T) {
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 3, conv.GetConvID(), msg, nil))
 	_, res, err = inbox.Read(context.TODO(), uid, &q)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "muted wrongly unset")
+	require.Len(t, res, 1, "muted wrongly unset")
 
 	err = inbox.SetStatus(context.TODO(), uid, 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
 	require.IsType(t, VersionMismatchError{}, err)
@@ -586,7 +586,7 @@ func TestInboxTlfFinalize(t *testing.T) {
 		ConvID: &convID,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "length")
+	require.Len(t, res, 1, "length")
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "id")
 	require.NotNil(t, res[0].Conv.Metadata.FinalizeInfo, "finalize info")
 
@@ -626,13 +626,13 @@ func TestInboxSync(t *testing.T) {
 	require.NoError(t, err)
 	sort.Sort(ByDatabaseOrder(newRes))
 	require.Equal(t, vers+1, newVers)
-	require.Equal(t, len(res)+1, len(newRes))
+	require.Len(t, newRes, len(res)+1)
 	require.Equal(t, newConv.GetConvID(), newRes[0].GetConvID())
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[1].Conv.Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[7].Conv.Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_UNFILED, newRes[4].Conv.Metadata.Status)
 	require.False(t, syncRes.TeamTypeChanged)
-	require.Len(t, syncRes.Expunges, 0)
+	require.Empty(t, syncRes.Expunges)
 
 	syncConvs = nil
 	vers, err = inbox.Version(context.TODO(), uid)
@@ -668,7 +668,7 @@ func TestInboxServerVersion(t *testing.T) {
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil))
 	_, res, err := inbox.Read(context.TODO(), uid, nil)
 	require.NoError(t, err)
-	require.Equal(t, numConvs, len(res))
+	require.Len(t, res, numConvs)
 
 	// Increase server version
 	cerr := tc.Context().ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
@@ -703,7 +703,7 @@ func TestInboxKBFSUpgrade(t *testing.T) {
 		ConvID: &convID,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res), "length")
+	require.Len(t, res, 1, "length")
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "id")
 	require.Equal(t, chat1.ConversationMembersType_IMPTEAMUPGRADE, res[0].Conv.Metadata.MembersType)
 }
@@ -734,8 +734,8 @@ func TestInboxMembershipDupUpdate(t *testing.T) {
 
 	_, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
-	require.Equal(t, 2, len(res[0].Conv.Metadata.AllList))
+	require.Len(t, res, 1)
+	require.Len(t, res[0].Conv.Metadata.AllList, 2)
 }
 
 func TestInboxMembershipUpdate(t *testing.T) {
@@ -836,7 +836,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	sort.Sort(utils.RemoteConvByConvID(expected))
 	sort.Sort(utils.ByConvID(roleUpdates))
 	sort.Sort(utils.RemoteConvByConvID(res))
-	require.Equal(t, len(expected), len(res))
+	require.Len(t, res, len(expected))
 	for i := range res {
 		sort.Sort(chat1.ByUID(res[i].Conv.Metadata.AllList))
 		sort.Sort(chat1.ByUID(expected[i].Conv.Metadata.AllList))
@@ -846,12 +846,12 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			allUsers := []gregor1.UID{uid, uid2, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
-			require.Zero(t, len(res[i].Conv.Metadata.ResetList))
+			require.Empty(t, res[i].Conv.Metadata.ResetList)
 		} else if res[i].GetConvID().Eq(otherRemovedConvID) {
 			allUsers := []gregor1.UID{uid, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
-			require.Zero(t, len(res[i].Conv.Metadata.ResetList))
+			require.Empty(t, res[i].Conv.Metadata.ResetList)
 		} else if res[i].GetConvID().Eq(otherResetConvID) {
 			allUsers := []gregor1.UID{uid, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
@@ -864,7 +864,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Len(t, res[i].Conv.Metadata.AllList, len(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
-			require.Zero(t, len(res[i].Conv.Metadata.ResetList))
+			require.Empty(t, res[i].Conv.Metadata.ResetList)
 		} else if res[i].GetConvID().Eq(userResetConvID) {
 			allUsers := []gregor1.UID{uid, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
@@ -886,11 +886,11 @@ func TestInboxMembershipUpdate(t *testing.T) {
 func TestInboxCacheOnLogout(t *testing.T) {
 	uid := keybase1.MakeTestUID(3)
 	inboxMemCache.PutVersions(gregor1.UID(uid), &inboxDiskVersions{})
-	require.NotEmpty(t, len(inboxMemCache.versMap))
+	require.NotEmpty(t, inboxMemCache.versMap)
 	err := inboxMemCache.OnLogout(libkb.NewMetaContextTODO(nil))
 	require.NoError(t, err)
 	require.Nil(t, inboxMemCache.GetVersions(gregor1.UID(uid)))
-	require.Empty(t, len(inboxMemCache.versMap))
+	require.Empty(t, inboxMemCache.versMap)
 }
 
 func TestUpdateLocalMtime(t *testing.T) {

@@ -96,7 +96,7 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 			for _, m := range res.Messages {
 				t.Logf("msgid:%v type:%v", m.GetMessageID(), m.GetMessageType())
 			}
-			require.Equal(t, len(expectedState), len(res.Messages), "wrong number of messages")
+			require.Len(t, res.Messages, len(expectedState), "wrong number of messages")
 		}
 		for i, x := range expectedState {
 			t.Logf("[%v] checking msgID:%v supersededBy:%v", x.Name, x.MsgID, x.SupersededBy)
@@ -123,7 +123,7 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 		purgeInfo, err := g.EphemeralTracker.GetPurgeInfo(ctx, uid, convID)
 		if expectedPurgeInfo == nil {
 			require.Error(t, err)
-			require.IsType(t, storage.MissError{}, err, "wrong error type")
+			require.ErrorAs(t, err, new(storage.MissError), "wrong error type")
 		} else {
 			require.NoError(t, err)
 			require.Equal(t, *expectedPurgeInfo, purgeInfo)
@@ -257,6 +257,6 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 		})
 	require.NoError(t, err)
 	require.Nil(t, newPurgeInfo)
-	require.EqualValues(t, []chat1.MessageUnboxed(nil), purgedMsgs)
+	require.Equal(t, []chat1.MessageUnboxed(nil), purgedMsgs)
 	verifyTrackerState(expectedPurgeInfo)
 }

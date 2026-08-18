@@ -27,11 +27,11 @@ func TestUserBlocking(t *testing.T) {
 	// Both users should have 0 blocks
 	e1 := NewUserBlocksGet(tc1.G, keybase1.GetUserBlocksArg{})
 	require.NoError(t, RunEngine2(m1, e1))
-	require.Len(t, e1.Blocks(), 0)
+	require.Empty(t, e1.Blocks())
 
 	e1 = NewUserBlocksGet(tc2.G, keybase1.GetUserBlocksArg{})
 	require.NoError(t, RunEngine2(m2, e1))
-	require.Len(t, e1.Blocks(), 0)
+	require.Empty(t, e1.Blocks())
 
 	// Chat block
 	yes := true
@@ -48,8 +48,8 @@ func TestUserBlocking(t *testing.T) {
 	blocks := e1.Blocks()
 	require.Len(t, blocks, 1)
 	require.Equal(t, u2.Username, blocks[0].Username)
-	require.Equal(t, true, blocks[0].ChatBlocked)
-	require.Equal(t, false, blocks[0].FollowBlocked)
+	require.True(t, blocks[0].ChatBlocked)
+	require.False(t, blocks[0].FollowBlocked)
 	require.NotNil(t, blocks[0].CreateTime)
 	require.Nil(t, blocks[0].ModifyTime)
 
@@ -67,8 +67,8 @@ func TestUserBlocking(t *testing.T) {
 	blocks = e1.Blocks()
 	require.Len(t, blocks, 1)
 	require.Equal(t, u2.Username, blocks[0].Username)
-	require.Equal(t, true, blocks[0].ChatBlocked)
-	require.Equal(t, true, blocks[0].FollowBlocked)
+	require.True(t, blocks[0].ChatBlocked)
+	require.True(t, blocks[0].FollowBlocked)
 	require.NotNil(t, blocks[0].CreateTime)
 	require.NotNil(t, blocks[0].ModifyTime)
 
@@ -90,8 +90,8 @@ func TestUserBlocking(t *testing.T) {
 	blocks = e1.Blocks()
 	require.Len(t, blocks, 1)
 	require.Equal(t, u2.Username, blocks[0].Username)
-	require.Equal(t, false, blocks[0].ChatBlocked)
-	require.Equal(t, false, blocks[0].FollowBlocked)
+	require.False(t, blocks[0].ChatBlocked)
+	require.False(t, blocks[0].FollowBlocked)
 	require.NotNil(t, blocks[0].CreateTime)
 	require.NotNil(t, blocks[0].ModifyTime)
 
@@ -111,5 +111,5 @@ func TestUserBlocking(t *testing.T) {
 	})
 	require.NoError(t, RunEngine2(m1, e1))
 	blocks2 = e1.Blocks()
-	require.Len(t, blocks2, 0)
+	require.Empty(t, blocks2)
 }

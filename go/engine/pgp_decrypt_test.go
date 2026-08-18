@@ -422,7 +422,7 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 	dec := NewPGPDecrypt(tcRecipient.G, decarg)
 	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
 	err = RunEngine2(m, dec)
-	assert.IsType(t, libkb.BadSigError{}, err, "expected a bad sig error")
+	require.ErrorAs(t, err, new(libkb.BadSigError), "expected a bad sig error")
 	assert.Contains(t, err.Error(), "Message signed by an unknown key", "bad sig error text")
 
 	require.Nil(t, idUI.User, "identify UI should not be called for an unknown signing key")
@@ -477,7 +477,7 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc0.G, u.Username))
 	require.NoError(t, err, "loaded the user")
 	rkeys := ur.GetActivePGPKeys(false)
-	require.True(t, len(rkeys) > 0, "recipient has no active pgp keys")
+	require.NotEmpty(t, rkeys, "recipient has no active pgp keys")
 
 	// encrypt and message with rkeys[0]
 	mid := libkb.NewBufferCloser()

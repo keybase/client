@@ -1164,7 +1164,7 @@ func (r *BackendMock) SecretKey(accountID stellar1.AccountID) stellar1.SecretKey
 	defer r.Unlock()
 	a := r.accounts[accountID]
 	require.NotNil(r.T, a, "SecretKey: account id not in remote mock: %v", accountID)
-	require.True(r.T, len(a.secretKey) > 0, "secret key missing in mock for: %v", accountID)
+	require.NotEmpty(r.T, a.secretKey, "secret key missing in mock for: %v", accountID)
 	return a.secretKey
 }
 

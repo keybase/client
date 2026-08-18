@@ -497,7 +497,7 @@ func TestFavoritesDiskCache(t *testing.T) {
 	// There should be three favorites total, including the home TLFs.
 	faves, err := f.Get(ctx)
 	require.NoError(t, err)
-	require.Equal(t, len(faves), 3)
+	require.Len(t, faves, 3)
 	require.Contains(t, faves, fav1)
 
 	// This line not deferred because we need to swap out Favorites instances

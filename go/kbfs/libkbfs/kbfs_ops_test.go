@@ -467,7 +467,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 
 	p := ops.nodeCache.PathFromNode(n)
 	assert.Equal(t, id, p.Tlf)
-	require.Equal(t, 1, len(p.Path))
+	require.Len(t, p.Path, 1)
 	assert.Equal(t, rmd.data.Dir.ID, p.Path[0].ID)
 	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
 	assert.Equal(t, rmd.GetTlfHandle(), h)
@@ -496,7 +496,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 
 	p := ops.nodeCache.PathFromNode(n)
 	assert.Equal(t, id, p.Tlf)
-	require.Equal(t, 1, len(p.Path))
+	require.Len(t, p.Path, 1)
 	assert.Equal(t, rmd.data.Dir.ID, p.Path[0].ID)
 	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
 	assert.Equal(t, rmd.GetTlfHandle(), h)
@@ -641,7 +641,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, ty tlf.Type) {
 
 	p := ops.nodeCache.PathFromNode(n)
 	require.Equal(t, id, p.Tlf)
-	require.Equal(t, 1, len(p.Path))
+	require.Len(t, p.Path, 1)
 	require.Equal(t, rmd.data.Dir.ID, p.Path[0].ID)
 	require.Equal(t, rmd.data.Dir.EntryInfo, ei)
 	require.Equal(t, rmd.GetTlfHandle(), h)
@@ -3319,7 +3319,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	rootNode2, err := GetRootNodeForTest(ctx, config2, "test_user", tlf.Private)
 	require.NoError(t, err)
 	_, err = config2.KBFSOps().GetDirChildren(ctx, rootNode2)
-	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(kbfshash.HashMismatchError))
 }
 
 // Test that the size of a single empty block doesn't change.  If this
@@ -3408,7 +3408,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	// TODO: We can actually fake out the PrevRoot pointer, too
 	// and then we'll be caught by the handle check. But when we
 	// have MDOps do the handle check, that'll trigger first.
-	require.IsType(t, kbfsmd.MDPrevRootMismatch{}, err)
+	require.ErrorAs(t, err, new(kbfsmd.MDPrevRootMismatch))
 }
 
 // TODO: Test malicious mdserver and rekey flow against wrong
@@ -3528,18 +3528,18 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	// Also make sure we can no longer create anything in the removed
 	// directory.
 	_, _, err = kbfsOps.CreateDir(ctx, nodeB, testPPS("d"))
-	require.IsType(t, UnsupportedOpInUnlinkedDirError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(UnsupportedOpInUnlinkedDirError))
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	status, _, err = kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	require.Len(t, status.DirtyPaths, 0)
+	require.Empty(t, status.DirtyPaths)
 
 	// If the block made it back into the cache, we have a problem.
 	// It shouldn't be needed for removal.
 	_, err = config.BlockCache().Get(ptrC)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestKBFSOpsBasicTeamTLF(t *testing.T) {
@@ -3626,7 +3626,7 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(buf, gotData3))
 	_, _, err = kbfsOps3.CreateFile(ctx, rootNode3, testPPS("c"), false, NoExcl)
-	require.IsType(t, tlfhandle.WriteAccessError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(tlfhandle.WriteAccessError))
 
 	// Verify that "a" has the correct writer.
 	ei, err := kbfsOps3.GetNodeMetadata(ctx, nodeA3)
@@ -3667,7 +3667,7 @@ func TestKBFSOpsReadonlyNodes(t *testing.T) {
 	// Read-only, shouldn't work.
 	readonlyCtx := context.WithValue(ctx, wrappedReadonlyTestID, 1)
 	_, _, err = kbfsOps.CreateDir(readonlyCtx, rootNode, testPPS("b"))
-	require.IsType(t, WriteToReadonlyNodeError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(WriteToReadonlyNodeError))
 }
 
 type fakeFileInfo struct {
@@ -3893,7 +3893,7 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 
 	eis, err := kbfsOps.GetDirChildren(ctx, rootNodeArchived)
 	require.NoError(t, err)
-	require.Len(t, eis, 0)
+	require.Empty(t, eis)
 
 	eis, err = kbfsOps.GetDirChildren(ctx, rootNode)
 	require.NoError(t, err)
@@ -4109,7 +4109,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	require.NoError(t, err)
 	children, err := kbfsOps.GetDirChildren(ctx, rootNode)
 	require.NoError(t, err)
-	require.Len(t, children, 0)
+	require.Empty(t, children)
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
@@ -4887,7 +4887,7 @@ func TestDirtyAfterTruncateNoop(t *testing.T) {
 	require.Equal(t, cleanState, ops.blocks.GetState(lState))
 	status, _, err := kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	require.Len(t, status.DirtyPaths, 0)
+	require.Empty(t, status.DirtyPaths)
 }
 
 func TestKBFSOpsCancelUploads(t *testing.T) {
@@ -4945,5 +4945,5 @@ func TestKBFSOpsCancelUploads(t *testing.T) {
 	require.NoError(t, err)
 	children, err := kbfsOps.GetDirChildren(ctx, aNode)
 	require.NoError(t, err)
-	require.Len(t, children, 0)
+	require.Empty(t, children)
 }

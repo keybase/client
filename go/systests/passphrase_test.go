@@ -514,7 +514,7 @@ func TestPassphraseStateGregor(t *testing.T) {
 	res, err = ucli3.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	// device not getting gregor messages will force repoll
-	require.Equal(t, res, keybase1.PassphraseState_KNOWN)
+	require.Equal(t, keybase1.PassphraseState_KNOWN, res)
 
 	ucli4 := keybase1.UserClient{Cli: dev4.cli}
 	fakeAPI := newErrorAPIMock(dev4.tctx.G.API, true)

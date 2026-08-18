@@ -298,13 +298,13 @@ func TestErrorsReturnedFromDecodingReader(t *testing.T) {
 		zeroNonce(),
 		bytes.NewBuffer(badPacket))
 	n, err := reader.Read(throwawayBuffer())
-	require.Equal(t, n, 0)
+	require.Equal(t, 0, n)
 	assertErrorType(t, err, BadSecretbox)
 
 	// Make sure we get the same error again for any subsequent reads, even
 	// empty ones.
 	n, err = reader.Read(throwawayBuffer())
-	require.Equal(t, n, 0)
+	require.Equal(t, 0, n)
 	assertErrorType(t, err, BadSecretbox)
 }
 
@@ -320,7 +320,7 @@ func TestErrorsReturnedFromReadingDecoderDuringFinish(t *testing.T) {
 		zeroNonce(),
 		bytes.NewBuffer(badSealed))
 	n, err := reader.Read(throwawayBuffer())
-	require.Equal(t, n, 0)
+	require.Equal(t, 0, n)
 	assertErrorType(t, err, BadSecretbox)
 }
 

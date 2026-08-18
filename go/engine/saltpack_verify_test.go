@@ -67,7 +67,7 @@ func TestSaltpackVerifyErrors(t *testing.T) {
 	veng = NewSaltpackVerify(tc.G, varg)
 	err := RunEngine2(m, veng)
 	require.Error(t, err)
-	require.IsType(t, libkb.VerificationError{}, err)
+	require.ErrorAs(t, err, new(libkb.VerificationError))
 	if err, ok := err.(libkb.VerificationError); ok {
 		require.Equal(t, 0, err.Cause.StatusCode) // not set
 	}
@@ -85,9 +85,9 @@ func TestSaltpackVerifyErrors(t *testing.T) {
 	veng = NewSaltpackVerify(tc.G, varg)
 	err = RunEngine2(m, veng)
 	require.Error(t, err)
-	require.IsType(t, libkb.VerificationError{}, err)
+	require.ErrorAs(t, err, new(libkb.VerificationError))
 	if err, ok := err.(libkb.VerificationError); ok {
-		require.IsType(t, saltpack.ErrWrongMessageType{}, err.Cause.Err)
+		require.ErrorAs(t, err.Cause.Err, new(saltpack.ErrWrongMessageType))
 		require.IsType(t, libkb.SCWrongCryptoMsgType, err.Cause.StatusCode)
 	}
 }

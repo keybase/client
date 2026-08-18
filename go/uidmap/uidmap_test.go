@@ -211,7 +211,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Equal(t, results[0].NormalizedUsername, libkb.NewNormalizedUsername("t_kb"))
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
 	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
-	require.Equal(t, results[0].FullName.Status, keybase1.StatusCode_SCOk)
+	require.Equal(t, keybase1.StatusCode_SCOk, results[0].FullName.Status)
 	cachedAt = fakeClock.Now()
 
 	// Now we're going to simulate that the fullname resolution became expired, and there
@@ -227,7 +227,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
 	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, results[0].FullName.CachedAt, keybase1.ToTime(cachedAt))
-	require.Equal(t, results[0].FullName.Status, keybase1.StatusCode_SCOk)
+	require.Equal(t, keybase1.StatusCode_SCOk, results[0].FullName.Status)
 
 	// Same as above, but give enough time to refresh the name from the server
 	hit = false
@@ -239,7 +239,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
 	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, results[0].FullName.CachedAt, keybase1.ToTime(cachedAt))
-	require.Equal(t, results[0].FullName.Status, keybase1.StatusCode_SCOk)
+	require.Equal(t, keybase1.StatusCode_SCOk, results[0].FullName.Status)
 
 	// In this case, there's not enough time to make any fetches, but it doesn't matter, since our
 	// previous fetch is fresh enough. We should never even hit testBatchIterHook
@@ -253,7 +253,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
 	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, results[0].FullName.CachedAt, keybase1.ToTime(cachedAt))
-	require.Equal(t, results[0].FullName.Status, keybase1.StatusCode_SCOk)
+	require.Equal(t, keybase1.StatusCode_SCOk, results[0].FullName.Status)
 
 	// Do a happy path for several users:
 	uids = []keybase1.UID{mikemUID, tKB, maxUID}
@@ -270,7 +270,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Equal(t, results[1].FullName.FullName, keybase1.FullName("Joe Keybaser"))
 	require.Equal(t, results[1].FullName.CachedAt, keybase1.ToTime(cachedAt))
 	require.Equal(t, results[1].FullName.EldestSeqno, keybase1.Seqno(1))
-	require.Equal(t, results[1].FullName.Status, keybase1.StatusCode_SCOk)
+	require.Equal(t, keybase1.StatusCode_SCOk, results[1].FullName.Status)
 	require.Nil(t, results[2].FullName)
 
 	// We should get same results from offline call
@@ -315,7 +315,7 @@ func TestDuplicateUids(t *testing.T) {
 		24*time.Hour, 10*time.Second, true)
 	require.NoError(t, err)
 
-	require.EqualValues(t, results[0].NormalizedUsername, "t_alice")
-	require.EqualValues(t, results[1].NormalizedUsername, "t_tracy")
+	require.EqualValues(t, "t_alice", results[0].NormalizedUsername)
+	require.EqualValues(t, "t_tracy", results[1].NormalizedUsername)
 	require.Equal(t, results[0], results[2])
 }

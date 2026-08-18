@@ -191,7 +191,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 			}
 			_, _, err := unfurler.Status(ctx, outboxID)
 			require.Error(t, err)
-			require.IsType(t, libkb.NotFoundError{}, err)
+			require.ErrorAs(t, err, new(libkb.NotFoundError))
 			select {
 			case <-listener0.newMessageRemote:
 				require.Fail(t, "no more messages")
@@ -202,18 +202,18 @@ func TestChatSrvUnfurl(t *testing.T) {
 			for range 2 {
 				select {
 				case mu := <-listener0.messagesUpdated:
-					require.Equal(t, 1, len(mu.Updates))
+					require.Len(t, mu.Updates, 1)
 					require.Equal(t, conv.Id, mu.ConvID)
 					require.Equal(t, msgID, mu.Updates[0].GetMessageID())
 					require.True(t, mu.Updates[0].IsValid())
-					require.Equal(t, 1, len(mu.Updates[0].Valid().Unfurls))
+					require.Len(t, mu.Updates[0].Valid().Unfurls, 1)
 					typ, err := mu.Updates[0].Valid().Unfurls[0].Unfurl.UnfurlType()
 					require.NoError(t, err)
 					require.Equal(t, chat1.UnfurlType_GENERIC, typ)
 					generic := mu.Updates[0].Valid().Unfurls[0].Unfurl.Generic()
 					require.Nil(t, generic.Media)
 					require.NotNil(t, generic.Favicon)
-					require.NotZero(t, len(generic.Favicon.Url))
+					require.NotEmpty(t, generic.Favicon.Url)
 					resp, err := http.Get(generic.Favicon.Url)
 					require.NoError(t, err)
 					defer resp.Body.Close()
@@ -313,10 +313,10 @@ func TestChatSrvUnfurl(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
 		})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(threadRes.Thread.Messages))
+		require.Len(t, threadRes.Thread.Messages, 1)
 		unfurlMsg := threadRes.Thread.Messages[0]
 		require.True(t, unfurlMsg.IsValid())
-		require.Equal(t, 1, len(unfurlMsg.Valid().Unfurls))
+		require.Len(t, unfurlMsg.Valid().Unfurls, 1)
 		unfurlMsgID := func() chat1.MessageID {
 			for k := range unfurlMsg.Valid().Unfurls {
 				return k
@@ -341,15 +341,15 @@ func TestChatSrvUnfurl(t *testing.T) {
 		})
 		require.NoError(t, err)
 		thread := filterOutboxMessages(threadRes.Thread)
-		require.Equal(t, 1, len(thread))
+		require.Len(t, thread, 1)
 		unfurlMsg = thread[0]
 		require.True(t, unfurlMsg.IsValid())
-		require.Zero(t, len(unfurlMsg.Valid().Unfurls))
+		require.Empty(t, unfurlMsg.Valid().Unfurls)
 		select {
 		case mu := <-listener0.messagesUpdated:
-			require.Equal(t, 1, len(mu.Updates))
+			require.Len(t, mu.Updates, 1)
 			require.True(t, mu.Updates[0].IsValid())
-			require.Zero(t, len(mu.Updates[0].Valid().Unfurls))
+			require.Empty(t, mu.Updates[0].Valid().Unfurls)
 		case <-time.After(timeout):
 			require.Fail(t, "no update")
 		}

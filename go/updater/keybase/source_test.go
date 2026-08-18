@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
@@ -35,7 +34,9 @@ func newTestAPIServer(t *testing.T, jsonString string) *testAPIServer {
 		buf := bytes.NewBuffer([]byte(jsonString))
 		w.Header().Set("Content-Type", "application/json")
 		_, err := io.Copy(w, buf)
-		assert.NoError(t, err)
+		if err != nil {
+			t.Errorf("failed to write test response: %v", err)
+		}
 	}))
 
 	apiServer.server = server
@@ -65,15 +66,15 @@ func TestUpdateSource(t *testing.T) {
 	cfg, _ := testConfig(t)
 	updateSource := newUpdateSource(cfg, server.URL, testLog)
 	update, err := updateSource.FindUpdate(testOptions)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, update)
-	assert.Equal(t, update.Version, "1.0.15-20160414190014+fdfce90")
-	assert.Equal(t, update.Name, "v1.0.15-20160414190014+fdfce90")
-	assert.Equal(t, update.InstallID, "deadbeef")
-	assert.Equal(t, update.Description, "This is an update!")
-	assert.True(t, update.PublishedAt == 1460660414000)
-	assert.Equal(t, update.Asset.Name, "Keybase-1.0.15-20160414190014+fdfce90.zip")
-	assert.Equal(t, update.Asset.URL, "https://prerelease.keybase.io/darwin-updates/Keybase-1.0.15-20160414190014%2Bfdfce90.zip")
+	assert.Equal(t, "1.0.15-20160414190014+fdfce90", update.Version)
+	assert.Equal(t, "v1.0.15-20160414190014+fdfce90", update.Name)
+	assert.Equal(t, "deadbeef", update.InstallID)
+	assert.Equal(t, "This is an update!", update.Description)
+	assert.Equal(t, 1460660414000, update.PublishedAt)
+	assert.Equal(t, "Keybase-1.0.15-20160414190014+fdfce90.zip", update.Asset.Name)
+	assert.Equal(t, "https://prerelease.keybase.io/darwin-updates/Keybase-1.0.15-20160414190014%2Bfdfce90.zip", update.Asset.URL)
 }
 
 func TestUpdateSourceBadResponse(t *testing.T) {
@@ -83,7 +84,7 @@ func TestUpdateSourceBadResponse(t *testing.T) {
 	cfg, _ := testConfig(t)
 	updateSource := newUpdateSource(cfg, server.URL, testLog)
 	update, err := updateSource.FindUpdate(testOptions)
-	assert.EqualError(t, err, "Find update returned bad HTTP status 500 Internal Server Error")
+	require.EqualError(t, err, "Find update returned bad HTTP status 500 Internal Server Error")
 	assert.Nil(t, update, "Shouldn't have update")
 }
 
@@ -95,7 +96,7 @@ func TestUpdateSourceTimeout(t *testing.T) {
 	updateSource := newUpdateSource(cfg, server.URL, testLog)
 	update, err := updateSource.findUpdate(testOptions, 2*time.Millisecond)
 	require.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "context deadline exceeded"), err.Error())
+	assert.Contains(t, err.Error(), "context deadline exceeded", err.Error())
 	assert.Nil(t, update)
 }
 

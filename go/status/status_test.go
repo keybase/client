@@ -5,7 +5,6 @@ package status
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -22,12 +21,12 @@ func TestMergeExtendedStatus(t *testing.T) {
 
 	// invalid json is skipped
 	fullStatus := lsCtx.mergeExtendedStatus("")
-	require.Equal(t, fullStatus, "")
+	require.Empty(t, fullStatus)
 
 	// Status is merged in under the key 'status'
 	status := `{"status":{"foo":"bar"}}`
 	fullStatus = lsCtx.mergeExtendedStatus(status)
-	require.True(t, strings.Contains(fullStatus, status))
+	require.Contains(t, fullStatus, status)
 
 	err := jsonw.EnsureMaxDepthBytesDefault([]byte(fullStatus))
 	require.NoError(t, err)

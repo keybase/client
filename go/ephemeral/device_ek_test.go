@@ -30,19 +30,19 @@ func TestNewDeviceEK(t *testing.T) {
 	fetchedDevices, err := allActiveDeviceEKMetadata(mctx, merkleRoot)
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(fetchedDevices))
+	require.Len(t, fetchedDevices, 1)
 	for _, fetchedDeviceMetadata := range fetchedDevices {
 		require.Equal(t, publishedMetadata, fetchedDeviceMetadata)
 	}
 	maxGeneration, err := s.MaxGeneration(mctx, false)
 	require.NoError(t, err)
 
-	require.EqualValues(t, maxGeneration, publishedMetadata.Generation)
+	require.Equal(t, maxGeneration, publishedMetadata.Generation)
 
 	// If we publish again, we increase the generation
 	publishedMetadata2, err := publishNewDeviceEK(mctx, merkleRoot)
 	require.NoError(t, err)
-	require.EqualValues(t, maxGeneration+1, publishedMetadata2.Generation)
+	require.Equal(t, maxGeneration+1, publishedMetadata2.Generation)
 
 	rawStorage := NewDeviceEKStorage(mctx)
 	// Put our storage in a bad state by deleting the maxGeneration
@@ -53,7 +53,7 @@ func TestNewDeviceEK(t *testing.T) {
 	// maxGeneration from the server and continue
 	publishedMetadata3, err := publishNewDeviceEK(mctx, merkleRoot)
 	require.NoError(t, err)
-	require.EqualValues(t, maxGeneration+2, publishedMetadata3.Generation)
+	require.Equal(t, maxGeneration+2, publishedMetadata3.Generation)
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata

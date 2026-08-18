@@ -27,7 +27,7 @@ func TestRotate(t *testing.T) {
 	secretBefore := team.Data.PerTeamKeySeedsUnverified[team.Generation()].Seed.ToBytes()
 	keys1, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
-	require.Equal(t, len(keys1), 1)
+	require.Len(t, keys1, 1)
 	require.Equal(t, keys1[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 
 	if err := team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE); err != nil {
@@ -46,7 +46,7 @@ func TestRotate(t *testing.T) {
 
 	keys2, err := after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
-	require.Equal(t, len(keys2), 2)
+	require.Len(t, keys2, 2)
 	require.Equal(t, keys2[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.Equal(t, keys1[0].Key, keys2[0].Key)
 }
@@ -81,14 +81,14 @@ func TestRotateWithBots(t *testing.T) {
 	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, team.Generation())
-	require.Zero(t, len(team.Data.PerTeamKeySeedsUnverified))
+	require.Empty(t, team.Data.PerTeamKeySeedsUnverified)
 	_, err = team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	// Restricted bots cannot rotate
 	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	err = tc.Logout()
 	require.NoError(t, err)
@@ -114,10 +114,10 @@ func TestRotateWithBots(t *testing.T) {
 	after, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, after.Generation())
-	require.Zero(t, len(after.Data.PerTeamKeySeedsUnverified))
+	require.Empty(t, after.Data.PerTeamKeySeedsUnverified)
 	_, err = after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, otherA.Username, keybase1.TeamRole_BOT)
@@ -687,7 +687,7 @@ func TestRotateAsSubteamWriter(t *testing.T) {
 
 	teamAfter, err := GetForTestByStringName(context.Background(), tc.G, sub)
 	require.NoError(t, err)
-	require.EqualValues(t, oldGeneration+1, teamAfter.Generation())
+	require.Equal(t, oldGeneration+1, teamAfter.Generation())
 }
 
 func TestDowngradeImplicitAdminAfterReset(t *testing.T) {
@@ -917,6 +917,6 @@ func TestTeamSettings(t *testing.T) {
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
 	require.NoError(t, err)
 	settings := team.Settings()
-	require.Equal(t, settings.Open, true)
-	require.Equal(t, settings.JoinAs, keybase1.TeamRole_WRITER)
+	require.True(t, settings.Open)
+	require.Equal(t, keybase1.TeamRole_WRITER, settings.JoinAs)
 }

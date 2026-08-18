@@ -70,7 +70,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 		NeedAdmin: false,
 	})
 	require.NoError(t, err)
-	require.Len(t, teamObj2.chain().ActiveInvites(), 0, "invites were stubbed")
+	require.Empty(t, teamObj2.chain().ActiveInvites(), "invites were stubbed")
 
 	// User 1 makes User 2 admin
 
@@ -171,7 +171,7 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
 		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
 	})
-	require.Len(t, records, 0, "no invite link acceptances were rejected")
+	require.Empty(t, records, "no invite link acceptances were rejected")
 
 	// User2 leaves team.
 	kbtest.LogoutAndLoginAs(tc, user2)
@@ -272,7 +272,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 
 	// when we try to handle the original invite, it should succeed without issues
 	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(t, &tc, admin, origMsg, RecordAPI)
-	require.Len(t, records, 0, "no invite link acceptances were rejected")
+	require.Empty(t, records, "no invite link acceptances were rejected")
 
 	// User2 leaves team.
 	user2LeavesTeam := func() {
@@ -286,7 +286,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	msg2 := acceptInvite(t, &tc, teamID, user2, invLink)
 	require.NoError(t, err)
 	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(t, &tc, admin, msg2, RecordAPI)
-	require.Len(t, records, 0, "no invite acceptance should be rejected")
+	require.Empty(t, records, "no invite acceptance should be rejected")
 	user2LeavesTeam()
 
 	// Now, try to accept two invitations at once, ensure both fail
@@ -389,7 +389,7 @@ func TestSeitanHandleExpiredInvite(t *testing.T) {
 
 	// invite is accepted for user2
 	records := adminCallsHandleTeamSeitanAndReturnsRejectCalls(t, &tc, admin, msg2, RecordAPI)
-	require.Len(t, records, 0, "no invite link acceptances were rejected")
+	require.Empty(t, records, "no invite link acceptances were rejected")
 
 	// We move the clock forward so the invite expires.
 	clock.Advance(24 * time.Hour)
@@ -538,7 +538,7 @@ func TestSeitanHandleFutureInvite(t *testing.T) {
 		TeamID:  teamID,
 		Seitans: []keybase1.TeamSeitanRequest{msg2.Seitans[0], msg3.Seitans[0]},
 	}, RecordAPI)
-	require.Len(t, records, 0, "no acceptance should be rejected")
+	require.Empty(t, records, "no acceptance should be rejected")
 
 	// ensure team has only user3 and admin
 	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
@@ -609,7 +609,7 @@ func assertRejectInviteArgs(t *testing.T, record libkb.APIRecord, inviteID SCTea
 	if errString == "" {
 		require.NoError(t, record.Err)
 	} else {
-		require.NotNil(t, record.Err)
+		require.Error(t, record.Err)
 		require.Contains(t, record.Err.Error(), errString)
 	}
 }
@@ -684,5 +684,5 @@ func TestSeitanInviteLinkPukless(t *testing.T) {
 	require.False(t, found, "Expected not to find invite for user: %s", spew.Sdump(invite))
 
 	uvs := team.AllUserVersionsByUID(context.Background(), user.GetUID())
-	require.Len(t, uvs, 0, "Expected user not to end up in a team as cryptomember (?)")
+	require.Empty(t, uvs, "Expected user not to end up in a team as cryptomember (?)")
 }

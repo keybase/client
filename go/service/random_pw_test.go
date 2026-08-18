@@ -37,17 +37,17 @@ func TestSignupRandomPWUser(t *testing.T) {
 	userHandler := NewUserHandler(nil, tc.G, nil, nil)
 	ret, err := userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
+	require.Equal(t, keybase1.PassphraseState_RANDOM, ret)
 
 	// Another call to test the caching
 	ret, err = userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
+	require.Equal(t, keybase1.PassphraseState_RANDOM, ret)
 
 	// Another one with ForceRepoll
 	ret, err = userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
+	require.Equal(t, keybase1.PassphraseState_RANDOM, ret)
 
 	ret2, err := userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)

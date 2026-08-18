@@ -28,7 +28,7 @@ func testMakePseudonym(t *testing.T, name, idStr string, keyGen KeyGen,
 
 	keyBytes, err := hex.DecodeString(keyStr)
 	require.NoError(t, err)
-	require.Equal(t, 32, len(keyBytes))
+	require.Len(t, keyBytes, 32)
 	var key [32]byte
 	copy(key[:], keyBytes)
 

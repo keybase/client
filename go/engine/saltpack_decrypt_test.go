@@ -532,9 +532,9 @@ func TestSaltpackDecryptErrors(t *testing.T) {
 	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	err := RunEngine2(m, dec)
 	require.Error(t, err)
-	require.IsType(t, libkb.DecryptionError{}, err)
+	require.ErrorAs(t, err, new(libkb.DecryptionError))
 	if err, ok := err.(libkb.DecryptionError); ok {
-		require.IsType(t, libkb.NoDecryptionKeyError{}, err.Cause.Err)
+		require.ErrorAs(t, err.Cause.Err, new(libkb.NoDecryptionKeyError))
 		require.Equal(t, libkb.SCDecryptionKeyNotFound, err.Cause.StatusCode)
 	}
 
@@ -550,9 +550,9 @@ func TestSaltpackDecryptErrors(t *testing.T) {
 	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	err = RunEngine2(m, dec)
 	require.Error(t, err)
-	require.IsType(t, libkb.DecryptionError{}, err)
+	require.ErrorAs(t, err, new(libkb.DecryptionError))
 	if err, ok := err.(libkb.DecryptionError); ok {
-		require.IsType(t, saltpack.ErrWrongMessageType{}, err.Cause.Err)
+		require.ErrorAs(t, err.Cause.Err, new(saltpack.ErrWrongMessageType))
 		require.Equal(t, libkb.SCWrongCryptoMsgType, err.Cause.StatusCode)
 	}
 }

@@ -39,7 +39,7 @@ func TestStorageMem(t *testing.T) {
 		st.Put(mctx, &obj)
 		res, _, _ = st.Get(mctx, teamID, public)
 		require.NotNil(t, res, "cache miss")
-		require.True(t, res == &obj, "should be the same obj from mem")
+		require.Same(t, res, &obj, "should be the same obj from mem")
 	}
 }
 
@@ -96,7 +96,7 @@ func TestStorageLogout(t *testing.T) {
 		st.Put(mctx, &obj)
 		res, _, _ := st.Get(mctx, teamID, public)
 		require.NotNil(t, res, "cache miss")
-		require.True(t, res == &obj, "should be the same obj from mem")
+		require.Same(t, res, &obj, "should be the same obj from mem")
 
 		t.Logf("logout")
 		err = tc.Logout()

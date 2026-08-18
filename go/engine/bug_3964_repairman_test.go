@@ -224,11 +224,11 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 
 func checkAuditLogForBug3964Repair(t *testing.T, log []string, _ keybase1.DeviceID, _ *libkb.DeviceKey) {
 	log = limitToTrace(log, "bug3964Repairman#Run")
-	require.NotZero(t, len(log))
+	require.NotEmpty(t, log)
 	log = findLine(t, log, "| Repairman wasn't short-circuited")
-	require.NotZero(t, len(log))
+	require.NotEmpty(t, log)
 	log = findLine(t, log, "+ bug3964Repairman#saveRepairmanVisit")
-	require.NotZero(t, len(log))
+	require.NotEmpty(t, log)
 }
 
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {

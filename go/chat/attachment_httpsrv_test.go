@@ -144,7 +144,7 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 			MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
 		}, nil)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(tv.Messages))
+	require.Len(t, tv.Messages, 2)
 
 	uiMsg := utils.PresentMessageUnboxed(context.TODO(), tc.Context(), tv.Messages[0], uid, conv.Id)
 	require.NotNil(t, uiMsg.Valid().AssetUrlInfo)
@@ -252,7 +252,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 			MessageIDs:     []chat1.MessageID{res.MessageID},
 		})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(msgRes.Messages))
+	require.Len(t, msgRes.Messages, 1)
 	require.True(t, msgRes.Messages[0].IsValid())
 	body := msgRes.Messages[0].Valid().MessageBody
 	require.NotNil(t, body.Attachment().Preview)
@@ -292,7 +292,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 			MessageIDs:     []chat1.MessageID{res.MessageID},
 		})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(msgRes.Messages))
+	require.Len(t, msgRes.Messages, 1)
 	require.True(t, msgRes.Messages[0].IsValid())
 	body = msgRes.Messages[0].Valid().MessageBody
 	require.Nil(t, body.Attachment().Preview)

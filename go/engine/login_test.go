@@ -138,12 +138,12 @@ func TestLoginActiveDevice(t *testing.T) {
 	u1.LoginOrBust(tc)
 
 	assertDeviceKeysCached(tc)
-	require.Equal(t, tc.G.ActiveDevice.Name(), defaultDeviceName)
+	require.Equal(t, defaultDeviceName, tc.G.ActiveDevice.Name())
 
 	simulateServiceRestart(t, tc, u1)
 
 	assertDeviceKeysCached(tc)
-	require.Equal(t, tc.G.ActiveDevice.Name(), defaultDeviceName)
+	require.Equal(t, defaultDeviceName, tc.G.ActiveDevice.Name())
 }
 
 func TestCreateFakeUserNoKeys(t *testing.T) {
@@ -255,7 +255,7 @@ func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
 			require.NoError(t, err)
 		} else {
 			require.Error(t, err)
-			require.True(t, strings.Contains(err.Error(), "is a different user than we wanted"))
+			require.Contains(t, err.Error(), "is a different user than we wanted")
 		}
 	}
 
@@ -602,7 +602,7 @@ func TestProvisionAutoreset(t *testing.T) {
 	m := NewMetaContextForTest(tcY).WithUIs(uis)
 	eng := NewLogin(tcY.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
-	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
+	require.Error(t, AssertLoggedIn(tcY), "should not be logged in")
 
 	// Travel 5 days into future + 1h to make sure that it all runs
 	require.NoError(t, timeTravelReset(tcX, time.Hour*121))
@@ -734,7 +734,7 @@ func TestProvisionPassphraseBadName(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.ErrorAs(t, err, new(libkb.BadUsernameError))
 }
 
 // If a user has (only) a synced pgp key, provision via passphrase
@@ -805,7 +805,7 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.ErrorAs(t, err, new(libkb.BadUsernameError))
 	require.Contains(t, err.Error(), "not supported")
 }
 
@@ -943,7 +943,7 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	err := RunEngine2(m2, eng2)
 	require.Error(t, err, "Provision w/ synced pgp key on device 2 w/ PUK enabled should fail")
-	require.IsType(t, err, libkb.ProvisionViaDeviceRequiredError{})
+	require.ErrorAs(t, err, new(libkb.ProvisionViaDeviceRequiredError))
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -1008,7 +1008,7 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	m3 := NewMetaContextForTest(tc3).WithUIs(uis3)
 	err := RunEngine2(m3, eng3)
 	require.Error(t, err, "Provision w/ gpg key on device 2 w/ PUK enabled should fail")
-	require.IsType(t, err, libkb.ProvisionViaDeviceRequiredError{})
+	require.ErrorAs(t, err, new(libkb.ProvisionViaDeviceRequiredError))
 }
 
 // Test provisioning where we use one username, but suddenly we are
@@ -1273,7 +1273,7 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 
 	Logout(tc)
 
-	require.True(t, len(loginUI.PaperPhrase) > 0)
+	require.NotEmpty(t, loginUI.PaperPhrase)
 
 	// redo SetupEngineTest to get a new home directory...should look like a
 	// new device.
@@ -1306,8 +1306,8 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, deviceCtime)
 
-	require.Equal(t, provUI.calledChooseDeviceType, 0)
-	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
+	require.Equal(t, 0, provUI.calledChooseDeviceType)
+	require.Equal(t, 0, provLoginUI.CalledGetEmailOrUsername)
 }
 
 func TestSelfProvision(t *testing.T) {
@@ -2489,7 +2489,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.ErrorAs(t, err, new(libkb.BadUsernameError))
 	require.Contains(t, err.Error(), "not supported")
 }
 
@@ -3622,7 +3622,7 @@ func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.ErrorAs(t, err, new(libkb.BadUsernameError))
 	require.Contains(t, err.Error(), "not supported")
 }
 
@@ -3720,8 +3720,8 @@ func TestProvisionAutomatedPaperKey(t *testing.T) {
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
 	require.NoError(t, AssertProvisioned(tc2), "provisioned")
 
-	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0, "expected no calls to GetEmailOrUsername")
-	require.Equal(t, provUI.calledChooseDevice, 0, "expected no calls to ChooseDevice")
+	require.Equal(t, 0, provLoginUI.CalledGetEmailOrUsername, "expected no calls to GetEmailOrUsername")
+	require.Equal(t, 0, provUI.calledChooseDevice, "expected no calls to ChooseDevice")
 }
 
 // Device X provisions device Y (which has a cached passphrase stream), device X changes the password,

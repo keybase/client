@@ -35,7 +35,7 @@ func TestTrackStorage(t *testing.T) {
 	require.NoError(t, ts.Save(context.TODO(), trackers))
 	res, err := ts.Restore(context.TODO())
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
-	require.Equal(t, len(trackers[0].allCoords), len(res[0].allCoords))
-	require.Equal(t, trackers[0].allCoords[0].Lat, res[0].allCoords[0].Lat)
+	require.Len(t, res, 1)
+	require.Len(t, res[0].allCoords, len(trackers[0].allCoords))
+	require.InDelta(t, trackers[0].allCoords[0].Lat, res[0].allCoords[0].Lat, 0)
 }

@@ -117,7 +117,7 @@ func TestMdcacheReplace(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mdcache.Get(id, 1, kbfsmd.NullBranchID)
-	require.IsType(t, NoSuchMDError{}, err)
+	require.ErrorAs(t, err, new(NoSuchMDError))
 	_, err = mdcache.Get(id, 1, bid)
 	require.NoError(t, err)
 }

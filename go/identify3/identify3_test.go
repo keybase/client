@@ -171,7 +171,7 @@ func TestCryptocurrency(t *testing.T) {
 		require.False(t, res.userWasReset)
 
 		// We get one row of results, just the cryptocurrency row.
-		require.Equal(t, 1, len(res.rows))
+		require.Len(t, res.rows, 1)
 		require.Equal(t, "btc", res.rows[0].Key)
 		require.Equal(t, addr, res.rows[0].Value)
 		if green {
@@ -192,7 +192,7 @@ func TestCryptocurrency(t *testing.T) {
 
 	res = runID3(t, mctx, alice.Username, true)
 	assertTrackResult(res, true /* green */)
-	require.Equal(t, res.numProofsToCheck, 0)
+	require.Equal(t, 0, res.numProofsToCheck)
 }
 
 func TestFollowUnfollowTracy(t *testing.T) {
@@ -203,10 +203,10 @@ func TestFollowUnfollowTracy(t *testing.T) {
 
 	mctx := libkb.NewMetaContextForTest(tc)
 	res := runID3(t, mctx, "t_tracy", true /* follow */)
-	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
-	require.Equal(t, len(res.rows), 9)
-	require.Equal(t, len(res.cards), 1)
-	require.Equal(t, res.numProofsToCheck, 4)
+	require.Equal(t, keybase1.Identify3ResultType_OK, res.resultType)
+	require.Len(t, res.rows, 9)
+	require.Len(t, res.cards, 1)
+	require.Equal(t, 4, res.numProofsToCheck)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
 		{
@@ -239,9 +239,9 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	})
 
 	res = runID3(t, mctx, "t_tracy", false /* follow */)
-	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
-	require.Equal(t, len(res.rows), 9)
-	require.Equal(t, len(res.cards), 1)
+	require.Equal(t, keybase1.Identify3ResultType_OK, res.resultType)
+	require.Len(t, res.rows, 9)
+	require.Len(t, res.cards, 1)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
 		{
@@ -338,7 +338,7 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 			"unreasonable icon size")
 		if kbtest.SkipIconRemoteTest() {
 			t.Logf("Skipping icon remote test")
-			require.True(t, len(icon.Path) > 8)
+			require.Greater(t, len(icon.Path), 8)
 		} else {
 			resp, err := http.Get(icon.Path)
 			require.NoError(t, err, "%v", service)

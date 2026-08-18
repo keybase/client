@@ -431,7 +431,7 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 		BlockRequestPrefetchUntilFull)
 	select {
 	case err := <-req:
-		require.IsType(t, DiskCacheTooFullForBlockError{}, err)
+		require.ErrorAs(t, err, new(DiskCacheTooFullForBlockError))
 	case <-ctx.Done():
 		require.FailNow(t, ctx.Err().Error())
 	}

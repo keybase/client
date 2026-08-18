@@ -28,13 +28,13 @@ func TestAccessRequestAccept(t *testing.T) {
 
 	myReqs, err := ListMyAccessRequests(context.Background(), tc.G, &teamName)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(myReqs))
+	require.Len(t, myReqs, 1)
 	require.Equal(t, teamName, myReqs[0].String())
 
 	// teamName is optional, if not given, all pending requests will be returned.
 	myReqs, err = ListMyAccessRequests(context.Background(), tc.G, nil)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(myReqs))
+	require.Len(t, myReqs, 1)
 	require.Equal(t, teamName, myReqs[0].String())
 
 	// owner lists requests, sees u1 request
@@ -45,11 +45,11 @@ func TestAccessRequestAccept(t *testing.T) {
 
 	reqs, err := ListRequests(context.Background(), tc.G, nil)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(reqs))
+	require.Len(t, reqs, 1)
 	require.Equal(t, teamName, reqs[0].Name)
 	require.Equal(t, u1.Username, reqs[0].Username)
 	require.True(t, reqs[0].Ctime.Time().After(time.Now().Add(-1*time.Minute)))
-	require.Equal(t, "", reqs[0].FullName.String()) // no fullname in this case
+	require.Empty(t, reqs[0].FullName.String()) // no fullname in this case
 
 	// owner add u1 to team
 	_, err = AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
@@ -154,5 +154,5 @@ func TestAccessRequestIgnore(t *testing.T) {
 func assertNoRequests(tc libkb.TestContext) {
 	reqs, err := ListRequests(context.Background(), tc.G, nil /* teamName */)
 	require.NoError(tc.T, err)
-	require.Len(tc.T, reqs, 0)
+	require.Empty(tc.T, reqs)
 }

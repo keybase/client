@@ -29,7 +29,7 @@ func TestRemoteUpdateSource(t *testing.T) {
 	}))
 
 	local := NewRemoteUpdateSource(server.URL, log)
-	assert.Equal(t, local.Description(), "Remote")
+	assert.Equal(t, "Remote", local.Description())
 
 	update, err := local.FindUpdate(updater.UpdateOptions{})
 	require.NoError(t, err)

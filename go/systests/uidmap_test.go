@@ -29,7 +29,7 @@ func TestLoadingUserCachesServiceMap(t *testing.T) {
 	}
 
 	pkgs := getPkgs()
-	require.Len(t, pkgs, 0)
+	require.Empty(t, pkgs)
 
 	arg := libkb.NewLoadUserArg(tc.G).WithName("t_tracy")
 	user, err := libkb.LoadUser(arg)
@@ -66,7 +66,7 @@ func TestServiceMapRevokedProofs(t *testing.T) {
 	// We got nothing on first try because we've never loaded the user and we
 	// disallow network in MapUIDsToServiceSummaries.
 	pkgs := getPkgs()
-	require.Len(t, pkgs, 0)
+	require.Empty(t, pkgs)
 
 	loadUser := func() {
 		arg := libkb.NewLoadUserArg(bob.tc.G).WithName(alice.username)
@@ -79,7 +79,7 @@ func TestServiceMapRevokedProofs(t *testing.T) {
 	loadUser()
 	pkgs = getPkgs()
 	require.Contains(t, pkgs, alice.uid)
-	require.Len(t, pkgs[alice.uid].ServiceMap, 0) // no proofs yet
+	require.Empty(t, pkgs[alice.uid].ServiceMap) // no proofs yet
 
 	// Alice proves
 	alice.proveRooter()

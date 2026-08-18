@@ -8,6 +8,7 @@ package systests
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -131,7 +132,7 @@ func testResolve3Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnecti
 		arg := keybase1.Resolve3Arg{Assertion: "no_such_user_yo", Oa: keybase1.OfflineAvailability_BEST_EFFORT}
 		_, err = cli.Resolve3(context.TODO(), arg)
 		require.Error(t, err)
-		require.IsType(t, expectedError, err)
+		require.Equal(t, reflect.TypeOf(expectedError), reflect.TypeOf(err))
 	}
 
 	fetch()
@@ -245,8 +246,8 @@ func testLoadUserPlusKeysV2Offline(t *testing.T, g *libkb.GlobalContext, fcm *fa
 		frank, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
 		require.NoError(t, err)
 		require.NotNil(t, frank)
-		require.Equal(t, len(frank.PastIncarnations), 0)
-		require.Equal(t, frank.Current.Username, "t_frank")
+		require.Empty(t, frank.PastIncarnations)
+		require.Equal(t, "t_frank", frank.Current.Username)
 		_, found := frank.Current.DeviceKeys[kid]
 		require.True(t, found)
 		require.Nil(t, frank.Current.Reset)
@@ -258,7 +259,7 @@ func testLoadUserPlusKeysV2Offline(t *testing.T, g *libkb.GlobalContext, fcm *fa
 		}
 		_, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
 		require.Error(t, err)
-		require.IsType(t, expectedError, err)
+		require.Equal(t, reflect.TypeOf(expectedError), reflect.TypeOf(err))
 	}
 
 	fetch()
@@ -281,8 +282,8 @@ func testLoadUserPlusKeysV2(t *testing.T, g *libkb.GlobalContext) {
 	frank, err := cli.LoadUserPlusKeysV2(context.TODO(), keybase1.LoadUserPlusKeysV2Arg{Uid: uid, PollForKID: kid})
 	require.NoError(t, err)
 	require.NotNil(t, frank)
-	require.Equal(t, len(frank.PastIncarnations), 0)
-	require.Equal(t, frank.Current.Username, "t_frank")
+	require.Empty(t, frank.PastIncarnations)
+	require.Equal(t, "t_frank", frank.Current.Username)
 	_, found := frank.Current.DeviceKeys[kid]
 	require.True(t, found)
 	require.Nil(t, frank.Current.Reset)
@@ -391,7 +392,7 @@ func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.UpdateInfoStatus2_CRITICAL, status)
 	require.IsType(t, "foo", res.Critical().Message)
-	require.True(t, len(res.Critical().Message) > 10)
+	require.Greater(t, len(res.Critical().Message), 10)
 }
 
 type FakeGregorState struct {
@@ -765,7 +766,7 @@ func TestResolveIdentifyImplicitTeamOffline(t *testing.T) {
 		})
 		require.Error(t, err)
 		if expectedError != nil {
-			require.IsType(t, expectedError, err)
+			require.Equal(t, reflect.TypeOf(expectedError), reflect.TypeOf(err))
 		} else {
 			require.Regexp(t, matchRegexp, err.Error())
 		}
@@ -787,10 +788,10 @@ func testResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.T
 	res, err := cli.ResolveImplicitTeam(context.Background(), arg)
 	require.NoError(t, err, "resolve Implicit team worked")
 	if gen == keybase1.Seqno(0) {
-		require.False(t, strings.Contains(res.Name, "conflicted"), "no conflicts")
+		require.NotContains(t, res.Name, "conflicted", "no conflicts")
 	} else {
-		require.True(t, strings.Contains(res.Name, "conflicted"), "found conflicted")
-		require.True(t, strings.Contains(res.Name, fmt.Sprintf("#%d", int(gen))), "found conflict gen #")
+		require.Contains(t, res.Name, "conflicted", "found conflicted")
+		require.Contains(t, res.Name, fmt.Sprintf("#%d", int(gen)), "found conflict gen #")
 	}
 }
 
@@ -933,7 +934,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 	})
 	require.Error(t, err)
-	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.ErrorAs(t, err, new(libkb.IdentifiesFailedError), "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
 	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
@@ -962,7 +963,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 	})
 	require.Error(t, err)
-	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.ErrorAs(t, err, new(libkb.IdentifiesFailedError), "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
 	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
@@ -979,7 +980,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI, // Pass a weird IdentifyBehavior to get TrackBreaks to come out.
 	})
 	require.Error(t, err)
-	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.ErrorAs(t, err, new(libkb.IdentifiesFailedError), "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
 	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))

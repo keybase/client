@@ -189,7 +189,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 					Body: "HI",
 				}), ephemeralLifetime)
 			require.Error(t, err)
-			require.IsType(t, utils.ErrGetVerifiedConvNotFound, err)
+			require.ErrorIs(t, err, utils.ErrGetVerifiedConvNotFound)
 
 			t.Logf("running sbsVerify now")
 
@@ -203,7 +203,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			select {
 			case rres := <-listener0.membersUpdate:
 				require.Equal(t, ncres.Conv.GetConvID(), rres.ConvID)
-				require.Equal(t, 1, len(rres.Members))
+				require.Len(t, rres.Members, 1)
 				require.Equal(t, users[1].Username, rres.Members[0].Member)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no resolve")
@@ -212,7 +212,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			case rres := <-listener1.joinedConv:
 				require.NotNil(t, rres)
 				require.Equal(t, ncres.Conv.GetConvID().ConvIDStr(), rres.ConvID)
-				require.Equal(t, 2, len(rres.Participants))
+				require.Len(t, rres.Participants, 2)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no resolve")
 			}
@@ -282,7 +282,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 					}
 				}
 
-				require.Equal(t, 3, len(messages))
+				require.Len(t, messages, 3)
 			}
 
 			verifyThread(users[0], true /* local */)

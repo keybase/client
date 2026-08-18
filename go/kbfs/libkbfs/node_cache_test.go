@@ -471,7 +471,7 @@ func TestNodeCacheAllNodeChildren(t *testing.T) {
 	require.Len(t, child1Children, 2)
 
 	child2Children := ncs.AllNodeChildren(childNode2)
-	require.Len(t, child2Children, 0)
+	require.Empty(t, child2Children)
 
 	t.Log("Move child3 under the parent node.")
 	_, err = ncs.Move(childPtr3.Ref(), parentNode, testPPS("child3"))
@@ -506,7 +506,7 @@ func TestNodeCacheObfuscator(t *testing.T) {
 	rootNode2 := ncs.Get(rootPtr.Ref())
 	rootOb2 := rootNode2.Obfuscator()
 	require.NotNil(t, rootOb2)
-	require.True(t, rootOb == rootOb2)
+	require.Equal(t, rootOb, rootOb2)
 
 	t.Log("Child file should not have an obfuscator")
 	childPtr := data.BlockPointer{ID: kbfsblock.FakeID(1)}

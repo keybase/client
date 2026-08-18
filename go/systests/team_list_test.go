@@ -82,12 +82,12 @@ func TestTeamList(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(details.Members.Owners))
-	require.Equal(t, 0, len(details.Members.Admins))
-	require.Equal(t, 4, len(details.Members.Writers))
-	require.Equal(t, 0, len(details.Members.Readers))
-	require.Equal(t, 0, len(details.Members.Bots))
-	require.Equal(t, 0, len(details.Members.RestrictedBots))
+	require.Len(t, details.Members.Owners, 1)
+	require.Empty(t, details.Members.Admins)
+	require.Len(t, details.Members.Writers, 4)
+	require.Empty(t, details.Members.Readers)
+	require.Empty(t, details.Members.Bots)
+	require.Empty(t, details.Members.RestrictedBots)
 
 	annMember := findMember(ann, details.Members.Owners)
 	require.NotNil(t, annMember)
@@ -114,7 +114,7 @@ func TestTeamList(t *testing.T) {
 	require.True(t, edMember.Status.IsActive())
 	require.True(t, edMember.NeedsPUK)
 
-	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
+	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for _, invite := range details.AnnotatedActiveInvites {
 		// There should be only one invite
 		require.EqualValues(t, rootername, invite.InviteMetadata.Invite.Name)
@@ -123,7 +123,7 @@ func TestTeamList(t *testing.T) {
 	// Examine results from TeamList (mostly MemberCount)
 
 	check := func(list *keybase1.AnnotatedTeamList) {
-		require.Equal(t, 1, len(list.Teams))
+		require.Len(t, list.Teams, 1)
 
 		teamInfo := list.Teams[0]
 		require.Equal(t, team.name, teamInfo.FqName)
@@ -177,7 +177,7 @@ func TestTeamListOpenTeamFilter(t *testing.T) {
 	require.Len(t, details.Members.Owners, 1)
 	require.Len(t, details.Members.Admins, 1)
 	// Reset writer is filtered out because it's an open team.
-	require.Len(t, details.Members.Writers, 0)
+	require.Empty(t, details.Members.Writers)
 }
 
 func TestTeamListOpenTeams(t *testing.T) {
@@ -199,7 +199,7 @@ func TestTeamListOpenTeams(t *testing.T) {
 	})
 
 	check := func(list *keybase1.AnnotatedTeamList) {
-		require.Equal(t, 2, len(list.Teams))
+		require.Len(t, list.Teams, 2)
 		for _, teamInfo := range list.Teams {
 			switch teamInfo.TeamID {
 			case id1:
@@ -261,7 +261,7 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 
 	// Expecting just the active writer here, and not inactive
 	// (because of reset) invite.
-	require.Equal(t, 1, len(details.Members.Writers))
+	require.Len(t, details.Members.Writers, 1)
 	member := details.Members.Writers[0]
 	require.True(t, member.Status.IsActive())
 	require.False(t, member.NeedsPUK)
@@ -273,7 +273,7 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	// ignored, because memberCount is set to number of unique UIDs.
 
 	check := func(list *keybase1.AnnotatedTeamList) {
-		require.Equal(t, 1, len(list.Teams))
+		require.Len(t, list.Teams, 1)
 
 		teamInfo := list.Teams[0]
 		require.Equal(t, team, teamInfo.FqName)
@@ -338,7 +338,7 @@ func TestTeamTree(t *testing.T) {
 
 		tree, err := teams.TeamTreeUnverified(context.Background(), ann.tc.G, keybase1.TeamTreeUnverifiedArg{Name: teamName})
 		require.NoError(t, err)
-		require.Equal(t, len(expectedTree), len(tree.Entries))
+		require.Len(t, tree.Entries, len(expectedTree))
 
 		for _, entry := range tree.Entries {
 			name := entry.Name.String()
@@ -372,7 +372,7 @@ func TestTeamGetSubteams(t *testing.T) {
 
 		res, err := teams.ListSubteamsUnverified(libkb.NewMetaContext(context.Background(), bob.tc.G), teamName)
 		require.NoError(t, err)
-		require.Equal(t, len(expectedSubteams), len(res.Entries))
+		require.Len(t, res.Entries, len(expectedSubteams))
 
 		for _, entry := range res.Entries {
 			name := entry.Name.String()

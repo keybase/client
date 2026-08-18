@@ -7,7 +7,6 @@ package config
 import (
 	"bytes"
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -40,7 +39,7 @@ func TestConfigV1Invalid(t *testing.T) {
 		},
 	}).EnsureInit()
 	require.Error(t, err)
-	require.IsType(t, ErrUndefinedUsername{}, err)
+	require.ErrorAs(t, err, new(ErrUndefinedUsername))
 
 	err = (&V1{
 		Common: Common{
@@ -56,7 +55,7 @@ func TestConfigV1Invalid(t *testing.T) {
 		},
 	}).EnsureInit()
 	require.Error(t, err)
-	require.IsType(t, ErrDuplicatePerPathConfigPath{}, err)
+	require.ErrorAs(t, err, new(ErrDuplicatePerPathConfigPath))
 
 	err = (&V1{
 		Common: Common{
@@ -72,7 +71,7 @@ func TestConfigV1Invalid(t *testing.T) {
 		},
 	}).EnsureInit()
 	require.Error(t, err)
-	require.IsType(t, ErrDuplicatePerPathConfigPath{}, err)
+	require.ErrorAs(t, err, new(ErrDuplicatePerPathConfigPath))
 
 	err = (&V1{
 		Common: Common{
@@ -85,7 +84,7 @@ func TestConfigV1Invalid(t *testing.T) {
 		},
 	}).EnsureInit()
 	require.Error(t, err)
-	require.IsType(t, ErrInvalidPermissions{}, err)
+	require.ErrorAs(t, err, new(ErrInvalidPermissions))
 }
 
 func TestConfigV1Full(t *testing.T) {
@@ -350,7 +349,7 @@ func TestV1EncodeObjectKeyOrder(t *testing.T) {
 	const expectedJSON = `{"version":"v1","users":null,` +
 		`"per_path_configs":{"/":{"whitelist_additional_permissions":null,` +
 		`"anonymous_permissions":"read"}}}`
-	require.Equal(t, expectedJSON, strings.TrimSpace(buf.String()))
+	require.JSONEq(t, expectedJSON, buf.String())
 }
 
 func TestV1DeprecatingACLsField(t *testing.T) {
@@ -386,5 +385,5 @@ func TestV1DeprecatingACLsField(t *testing.T) {
 		ACLs:           perPathConfigs,
 		PerPathConfigs: perPathConfigs,
 	}).EnsureInit()
-	require.IsType(t, ErrACLsPerPathConfigsBothPresent{}, err)
+	require.ErrorAs(t, err, new(ErrACLsPerPathConfigsBothPresent))
 }

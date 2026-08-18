@@ -85,7 +85,7 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.Equal(t, team.ID, leaf.TeamID, "team id mismatch")
 	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
 	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
-	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
+	require.Equal(t, libkb.MerkleHiddenResponseTypeOK, hiddenResp.RespType)
 	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
 
 	publishNewMainMerkleRoot(t, &tc)
@@ -97,7 +97,7 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.Equal(t, team.ID, leaf.TeamID, "team id")
 	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
 	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
-	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
+	require.Equal(t, libkb.MerkleHiddenResponseTypeOK, hiddenResp.RespType)
 	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
 	require.NotNil(t, team.HiddenChain(), "NIL hidden chain")
 }

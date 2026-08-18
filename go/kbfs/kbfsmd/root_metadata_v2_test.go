@@ -113,7 +113,7 @@ func TestWriterMetadataV2Empty(t *testing.T) {
 	// Expected length derived by running with a known good
 	// codec. If the length is greater, something might be broken
 	// with omitempty with the Extra struct field.
-	require.Equal(t, 112, len(buf))
+	require.Len(t, buf, 112)
 }
 
 // Test that old encoded WriterMetadataV2 objects (i.e., without any
@@ -884,7 +884,7 @@ func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 	expectedTLFCryptKeys []kbfscrypto.TLFCryptKey,
 	expectedPubKeys []kbfscrypto.TLFPublicKey, rmd *RootMetadataV2,
 ) {
-	require.Equal(t, len(expectedTLFCryptKeys), len(expectedPubKeys))
+	require.Len(t, expectedPubKeys, len(expectedTLFCryptKeys))
 	require.Equal(t, len(expectedTLFCryptKeys),
 		int(rmd.LatestKeyGeneration()-FirstValidKeyGen+1))
 	for keyGen := FirstValidKeyGen; keyGen <= rmd.LatestKeyGeneration(); keyGen++ {
@@ -905,15 +905,13 @@ func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 			if expected.writerPrivKeys.hasKeys() ||
 				expected.readerPrivKeys.hasKeys() {
 				if expected.ePubKeyIndex >= 0 {
-					require.Equal(t, expected.ePubKeyIndex,
-						len(expectedWriterEPublicKeys))
+					require.Len(t, expectedWriterEPublicKeys, expected.ePubKeyIndex)
 					expectedWriterEPublicKeys = append(
 						expectedWriterEPublicKeys,
 						expected.ePubKey)
 				} else {
 					i := -1 - expected.ePubKeyIndex
-					require.Equal(t, i,
-						len(expectedReaderEPublicKeys))
+					require.Equal(t, len(expectedReaderEPublicKeys), i)
 					expectedReaderEPublicKeys = append(
 						expectedReaderEPublicKeys,
 						expected.ePubKey)
@@ -936,8 +934,7 @@ func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 			wkb.TLFPublicKey)
 
 		for _, expected := range expectedRekeyInfos {
-			require.Equal(t, len(expectedTLFCryptKeys),
-				len(expected.serverHalves))
+			require.Len(t, expected.serverHalves, len(expectedTLFCryptKeys))
 			expectedUserPubKeys := unionPublicKeyUsers(
 				expected.writerPrivKeys.toPublicKeys(),
 				expected.readerPrivKeys.toPublicKeys())

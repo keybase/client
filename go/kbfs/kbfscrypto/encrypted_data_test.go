@@ -93,14 +93,14 @@ func TestDecryptDataFailure(t *testing.T) {
 	keyCorrupt := key
 	keyCorrupt[0] = ^keyCorrupt[0]
 	_, err = decryptData(encryptedData, keyCorrupt, nonce)
-	assert.IsType(t, errors.Cause(err), libkb.DecryptionError{})
+	require.ErrorAs(t, errors.Cause(err), new(libkb.DecryptionError))
 
 	// Corrupt data.
 
 	encryptedDataCorruptData := encryptedData
 	encryptedDataCorruptData.EncryptedData[0] = ^encryptedDataCorruptData.EncryptedData[0]
 	_, err = decryptData(encryptedDataCorruptData, key, nonce)
-	assert.IsType(t, errors.Cause(err), libkb.DecryptionError{})
+	assert.ErrorAs(t, errors.Cause(err), new(libkb.DecryptionError))
 }
 
 // Test that EncryptTLFCryptKeyClientHalf() encrypts its passed-in
@@ -125,9 +125,8 @@ func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
 	require.Equal(t, EncryptionSecretbox, encryptedClientHalf.Version)
 
 	expectedEncryptedLength := len(clientHalf.Data()) + box.Overhead
-	require.Equal(t, expectedEncryptedLength,
-		len(encryptedClientHalf.EncryptedData))
-	require.Equal(t, 24, len(encryptedClientHalf.Nonce))
+	require.Len(t, encryptedClientHalf.EncryptedData, expectedEncryptedLength)
+	require.Len(t, encryptedClientHalf.Nonce, 24)
 
 	var nonce [24]byte
 	copy(nonce[:], encryptedClientHalf.Nonce)
@@ -140,7 +139,7 @@ func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
 		&ephPublicKeyData, &privateKeyData)
 	require.True(t, ok)
 
-	require.Equal(t, len(clientHalf.Data()), len(decryptedData))
+	require.Len(t, decryptedData, len(clientHalf.Data()))
 
 	var clientHalf2Data [32]byte
 	copy(clientHalf2Data[:], decryptedData)

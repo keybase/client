@@ -77,7 +77,7 @@ func TestGiphyPreview(t *testing.T) {
 	}
 	select {
 	case res := <-ui.GiphyResults:
-		require.Equal(t, 1, len(res.Results))
+		require.Len(t, res.Results, 1)
 		require.Equal(t, "https://www.notmiketown.com", res.Results[0].TargetUrl)
 	case <-time.After(timeout):
 		require.Fail(t, "no results")
@@ -121,7 +121,7 @@ func TestGiphyPreview(t *testing.T) {
 	}
 	select {
 	case res := <-ui.GiphyResults:
-		require.Equal(t, 1, len(res.Results))
+		require.Len(t, res.Results, 1)
 		require.Equal(t, "https://www.miketown.com", res.Results[0].TargetUrl)
 	case <-time.After(timeout):
 		require.Fail(t, "no results")

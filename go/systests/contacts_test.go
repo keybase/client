@@ -221,7 +221,7 @@ tableLoop:
 
 			// We found one!
 			if !x.Match {
-				require.Fail(t, "found %v in the result", x.LookupKey)
+				require.Failf(t, "", "found %v in the result", x.LookupKey)
 				continue tableLoop
 			}
 
@@ -238,7 +238,7 @@ tableLoop:
 
 		// We didn't find anything
 		if x.Match {
-			require.Fail(t, "did not find %v in the result", x.LookupKey)
+			require.Failf(t, "", "did not find %v in the result", x.LookupKey)
 		}
 	}
 }
@@ -345,7 +345,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 					require.Equal(t, ann.username, v.Username)
 					require.Equal(t, ann.uid, v.Uid)
 				default:
-					require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+					require.Failf(t, "", "Found unexpected email in contacts: %s", *v.Component.Email)
 				}
 			} else if v.Component.PhoneNumber != nil {
 				switch *v.Component.PhoneNumber {
@@ -358,7 +358,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 					require.Equal(t, ann.username, v.Username)
 					require.Equal(t, ann.uid, v.Uid)
 				default:
-					require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+					require.Failf(t, "", "Found unexpected email in contacts: %s", *v.Component.Email)
 				}
 			}
 		}
@@ -403,7 +403,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 					case emailAddr:
 						foundOurEmail++
 					default:
-						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+						require.Failf(t, "", "Found unexpected email in contacts: %s", *v.Component.Email)
 					}
 				} else if v.Component.PhoneNumber != nil {
 					switch *v.Component.PhoneNumber {
@@ -412,7 +412,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 					case rawPhone:
 						foundOurPhone++
 					default:
-						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+						require.Failf(t, "", "Found unexpected email in contacts: %s", *v.Component.Email)
 					}
 				}
 				require.False(t, v.Resolved)

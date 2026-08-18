@@ -83,11 +83,11 @@ func checkPendingOp(ctx context.Context,
 	require.NoError(t, err)
 
 	if !pending {
-		require.Len(t, ops, 0, "Expected zero pending operations")
+		require.Empty(t, ops, "Expected zero pending operations")
 		return
 	}
 
-	require.True(t, len(ops) > 0, "Expected at least one pending operation")
+	require.NotEmpty(t, ops, "Expected at least one pending operation")
 
 	o := ops[0]
 	op, err := o.AsyncOp()
@@ -396,7 +396,7 @@ func TestListRecursive(t *testing.T) {
 	require.NoError(t, err)
 	listResult, err := sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	require.Len(t, listResult.Entries, 0,
+	require.Empty(t, listResult.Entries,
 		"Expected 0 directory entries in listing")
 
 	// make a temp remote directory + files we will clean up later
@@ -546,7 +546,7 @@ func TestCopyRecursive(t *testing.T) {
 	require.NoError(t, err)
 	fis, err := d.Readdir(0)
 	require.NoError(t, err)
-	require.Len(t, fis, 0)
+	require.Empty(t, fis)
 
 	// Populate local starting directory.
 	err = os.WriteFile(
@@ -755,7 +755,7 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 	})
 	require.NoError(t, err)
 	if !isProfile {
-		require.Len(t, dataPastEnd.Data, 0)
+		require.Empty(t, dataPastEnd.Data)
 	}
 
 	return data.Data
@@ -1280,7 +1280,7 @@ func TestRefreshSubscription(t *testing.T) {
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe,alice")
 	sr.requireNoNotification(t)
-	require.Equal(t, "", sr.LastPath())
+	require.Empty(t, sr.LastPath())
 
 	t.Log("Subscribe, and make sure we get a notification")
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
@@ -1396,7 +1396,7 @@ func TestGetRevisions(t *testing.T) {
 		expectedTime := clock.Now()
 		expectedRev := keybase1.KBFSRevision(newestRev)
 		for i, r := range res.Revisions {
-			require.Equal(t, keybase1.ToTime(expectedTime), r.Entry.Time, fmt.Sprintf("%d %d", i, r.Revision))
+			require.Equal(t, keybase1.ToTime(expectedTime), r.Entry.Time, "%d %d", i, r.Revision)
 			require.Equal(t, expectedRev, r.Revision)
 			expectedTime = expectedTime.Add(-1 * time.Minute)
 			expectedRev--
@@ -1561,7 +1561,7 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.Nil(t, f.ConflictState)
 		}
 	}
-	require.NotEqual(t, "", pathConflict.String())
+	require.NotEmpty(t, pathConflict.String())
 	require.Equal(t, pathLocalView.String(), pathConflict.String())
 
 	t.Log("Make sure we see all the conflict files in the local branch")
@@ -1863,7 +1863,7 @@ loopWait:
 		}
 		status, err := sfs.SimpleFSGetArchiveStatus(ctx)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(status.Jobs))
+		require.Len(t, status.Jobs, 1)
 		job := status.Jobs[0]
 		t.Logf("got job status %#+v", job)
 		require.Nil(t, job.Error)
@@ -1877,9 +1877,9 @@ loopWait:
 	require.NoError(t, err)
 
 	files := map[string]bool{"receipt.json": true, "jdoe/test1.txt": true, "jdoe/link1": true, "jdoe": true, ".": true}
-	require.Equal(t, len(files), len(reader.File))
+	require.Len(t, reader.File, len(files))
 	for _, f := range reader.File {
 		delete(files, f.Name)
 	}
-	require.Equal(t, 0, len(files))
+	require.Empty(t, files)
 }

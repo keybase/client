@@ -233,7 +233,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (6a) try to get unmerged range
 	rmdses, err := mdOps.GetUnmergedRange(ctx, id, bid, 1, 100)
 	require.NoError(t, err)
-	require.Equal(t, 33, len(rmdses))
+	require.Len(t, rmdses, 33)
 	for i := kbfsmd.Revision(8); i < 41; i++ {
 		require.Equal(t, i, rmdses[i-8].Revision())
 	}
@@ -241,7 +241,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (6b) try to get unmerged range subset.
 	rmdses, err = mdOps.GetUnmergedRange(ctx, id, bid, 7, 14)
 	require.NoError(t, err)
-	require.Equal(t, 7, len(rmdses))
+	require.Len(t, rmdses, 7)
 	for i := kbfsmd.Revision(8); i <= 14; i++ {
 		require.Equal(t, i, rmdses[i-8].Revision())
 	}
@@ -259,7 +259,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (9) verify revision history is pruned
 	rmdses, err = mdOps.GetUnmergedRange(ctx, id, kbfsmd.NullBranchID, 1, 100)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(rmdses))
+	require.Empty(t, rmdses)
 
 	// (10) check for proper merged head
 	head, err = mdOps.GetForTLF(ctx, id, nil)
@@ -270,7 +270,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (11) try to get merged range
 	rmdses, err = mdOps.GetRange(ctx, id, 1, 100, nil)
 	require.NoError(t, err)
-	require.Equal(t, 8, len(rmdses))
+	require.Len(t, rmdses, 8)
 	for i := kbfsmd.Revision(1); i <= 8; i++ {
 		require.Equal(t, i, rmdses[i-1].Revision())
 	}

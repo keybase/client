@@ -29,9 +29,9 @@ func TestProveCheck(t *testing.T) {
 			require.Equal(t, keybase1.ProofStatus_OK, status)
 			require.Equal(t, keybase1.ProofState_OK, state)
 			if noText {
-				require.Zero(t, len(text))
+				require.Empty(t, text)
 			} else {
-				require.NotZero(t, len(text))
+				require.NotEmpty(t, text)
 			}
 		}
 

@@ -55,7 +55,7 @@ func TestPerUserKeySignupAndPullKeys(t *testing.T) {
 	require.Error(t, err)
 
 	err = kr.Sync(mctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, kr.CurrentGeneration(), gen)
 }
 
@@ -99,6 +99,6 @@ func TestPerUserKeySignupPlusPaper(t *testing.T) {
 	require.Error(t, err)
 
 	err = kr.Sync(mctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, kr.CurrentGeneration(), gen)
 }

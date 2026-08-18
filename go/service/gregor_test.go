@@ -85,7 +85,7 @@ func TestGregorHandler(t *testing.T) {
 
 	err = broadcastMessageTesting(t, h, m)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(listener.favoritesChanged), "num faves failure")
+	require.Len(t, listener.favoritesChanged, 1, "num faves failure")
 	require.Equal(t, kbUID, listener.favoritesChanged[0], "wrong uid")
 }
 
@@ -802,10 +802,10 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
-	require.Equal(t, 1, len(bs.NewTeams), "one new team name")
+	require.Len(t, bs.NewTeams, 1, "one new team name")
 	require.Equal(t, teamID, bs.NewTeams[0])
 	require.Equal(t, 1, bs.NewTeamAccessRequestCount, "one team access request")
-	require.Equal(t, 1, len(bs.TeamsWithResetUsers), "one team member out due to reset")
+	require.Len(t, bs.TeamsWithResetUsers, 1, "one team member out due to reset")
 	require.Equal(t, "teamname", bs.TeamsWithResetUsers[0].Teamname)
 	require.Equal(t, "alice", bs.TeamsWithResetUsers[0].Username)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID(), bs.TeamsWithResetUsers[0].Id)
@@ -1034,7 +1034,7 @@ func TestLocalDismissals(t *testing.T) {
 	require.NoError(t, err)
 	lds, err := gcli.Sm.LocalDismissals(context.TODO(), uid)
 	require.NoError(t, err)
-	require.Zero(t, len(lds))
+	require.Empty(t, lds)
 }
 
 type flakeyIncomingClient struct {
@@ -1082,12 +1082,12 @@ func TestOfflineConsume(t *testing.T) {
 		Uid: uid,
 	})
 	require.NoError(t, err)
-	require.Zero(t, len(serverState.Items_))
+	require.Empty(t, serverState.Items_)
 	clientState, err := client.StateMachineState(context.TODO(), gregor1.TimeOrOffset{}, true)
 	require.NoError(t, err)
 	items, err := clientState.Items()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(items))
+	require.Len(t, items, 1)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		items[0].Metadata().MsgID().String())
 	select {
@@ -1112,14 +1112,14 @@ func TestOfflineConsume(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NoError(t, broadcastMessageTesting(t, h, msg))
-	require.Equal(t, 1, len(serverState.Items_))
+	require.Len(t, serverState.Items_, 1)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		serverState.Items_[0].Metadata().MsgID().String())
 	clientState, err = client.StateMachineState(context.TODO(), gregor1.TimeOrOffset{}, true)
 	require.NoError(t, err)
 	items, err = clientState.Items()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(items))
+	require.Len(t, items, 1)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		items[0].Metadata().MsgID().String())
 }

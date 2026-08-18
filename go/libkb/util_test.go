@@ -221,8 +221,8 @@ func TestSecureRandomRndRange(t *testing.T) {
 				require.Error(t, err)
 				continue
 			}
-			require.True(t, r >= test.lo)
-			require.True(t, r <= test.hi)
+			require.GreaterOrEqual(t, r, test.lo)
+			require.LessOrEqual(t, r, test.hi)
 		}
 	}
 

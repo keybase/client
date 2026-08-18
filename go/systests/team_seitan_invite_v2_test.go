@@ -97,8 +97,8 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_WRITER)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
 
 	details = own.teamGetDetails(teamName.String())
-	require.Len(t, details.AnnotatedActiveInvites, 0)
+	require.Empty(t, details.AnnotatedActiveInvites)
 }

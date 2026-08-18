@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -43,8 +42,7 @@ func TestCheckForHolesAndTruncate(t *testing.T) {
 		paths := makePaths(goodEx, mockBlock)
 		newPaths := checkForHolesAndTruncate(paths)
 		require.True(t, reflect.DeepEqual(paths, newPaths),
-			fmt.Sprintf("Paths incorrectly truncated from %v to %v",
-				paths, newPaths))
+			"Paths incorrectly truncated from %v to %v", paths, newPaths)
 	}
 
 	badExamples := [][][]int{

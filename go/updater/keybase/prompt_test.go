@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/command"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func testPromptWithProgram(t *testing.T, promptProgram command.Program, timeout time.Duration) (*updater.UpdatePromptResponse, error) {
@@ -37,7 +38,7 @@ func TestPromptTimeout(t *testing.T) {
 		Args: []string{"sleep"},
 	}
 	resp, err := testPromptWithProgram(t, promptProgram, 10*time.Millisecond)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, resp)
 }
 
@@ -47,7 +48,7 @@ func TestPromptInvalidResponse(t *testing.T) {
 		Args: []string{"echo", `{invalid}`},
 	}
 	resp, err := testPromptWithProgram(t, promptProgram, time.Second)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, resp)
 }
 
@@ -60,7 +61,7 @@ func TestPromptApply(t *testing.T) {
 		}`},
 	}
 	resp, err := testPromptWithProgram(t, promptProgram, time.Second)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	if assert.NotNil(t, resp) {
 		assert.True(t, resp.AutoUpdate)
 		assert.Equal(t, updater.UpdateActionApply, resp.Action)
@@ -76,7 +77,7 @@ func TestPromptSnooze(t *testing.T) {
 		}`},
 	}
 	resp, err := testPromptWithProgram(t, promptProgram, time.Second)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	if assert.NotNil(t, resp) {
 		assert.False(t, resp.AutoUpdate)
 		assert.Equal(t, updater.UpdateActionSnooze, resp.Action)
@@ -92,7 +93,7 @@ func TestPromptCancel(t *testing.T) {
 		}`},
 	}
 	resp, err := testPromptWithProgram(t, promptProgram, time.Second)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	if assert.NotNil(t, resp) {
 		assert.False(t, resp.AutoUpdate)
 		assert.Equal(t, updater.UpdateActionCancel, resp.Action)
@@ -105,7 +106,7 @@ func TestPromptNoOutput(t *testing.T) {
 		Args: []string{"echo"},
 	}
 	resp, err := testPromptWithProgram(t, promptProgram, time.Second)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	if assert.NotNil(t, resp) {
 		assert.False(t, resp.AutoUpdate)
 		assert.Equal(t, updater.UpdateActionCancel, resp.Action)
@@ -118,7 +119,7 @@ func TestPromptError(t *testing.T) {
 		Args: []string{"err"},
 	}
 	cancel, err := testPausedPromptWithProgram(t, promptProgram, time.Second)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, cancel)
 }
 
@@ -135,7 +136,7 @@ func TestPausedPromptForce(t *testing.T) {
 		Args: []string{"echo", `{"button": "Force update"}`},
 	}
 	cancel, err := testPausedPromptWithProgram(t, promptProgram, time.Second)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, cancel)
 }
 
@@ -145,6 +146,6 @@ func TestPausedPromptCancel(t *testing.T) {
 		Args: []string{"echo", `{"button": "Try again later"}`},
 	}
 	cancel, err := testPausedPromptWithProgram(t, promptProgram, time.Second)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, cancel)
 }

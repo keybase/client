@@ -757,7 +757,7 @@ func testRPCWithCanceledContext(t logger.TestLogBackend,
 	go func() {
 		// Wait for RPC in fn to make progress.
 		n, err := serverConn.Read([]byte{1})
-		assert.Equal(t, n, 1)
+		assert.Equal(t, 1, n)
 		assert.NoError(t, err)
 		cancel()
 	}()

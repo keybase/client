@@ -130,14 +130,14 @@ func TestTLFPinLoop(t *testing.T) {
 	go func() { _ = pinner.run(m) }()
 	err := <-exitCh
 	require.NoError(t, err)
-	require.Equal(t, timer.waits, 1)
+	require.Equal(t, 1, timer.waits)
 
 	team, err := Load(m.Ctx(), tcs[0].G, keybase1.LoadTeamArg{
 		ID:          rootID,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, team.KBFSTLFIDs(), []keybase1.TLFID{tlfID})
+	require.Equal(t, []keybase1.TLFID{tlfID}, team.KBFSTLFIDs())
 }
 
 type logoutTimer struct{}
@@ -169,5 +169,5 @@ func TestTLFPinLoopLogout(t *testing.T) {
 	go func() { _ = pinner.run(m) }()
 	err := <-exitCh
 	require.Error(t, err)
-	require.IsType(t, libkb.LoginRequiredError{}, err)
+	require.ErrorAs(t, err, new(libkb.LoginRequiredError))
 }

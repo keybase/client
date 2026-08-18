@@ -114,7 +114,7 @@ func testCreateFile(
 
 	// Shouldn't be able to write to a read-only file.
 	_, err = f.Write(gotData)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	err = f.Close()
 	require.NoError(t, err)
@@ -222,7 +222,7 @@ func TestRecreateAndExcl(t *testing.T) {
 
 	// Try to create it with EXCL, and fail.
 	_, err = fs.OpenFile("foo", os.O_CREATE|os.O_EXCL, 0o600)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	// Creating a different file exclusively should work though.
 	f, err = fs.OpenFile("foo2", os.O_CREATE|os.O_EXCL, 0o600)
@@ -254,7 +254,7 @@ func TestStat(t *testing.T) {
 	checkDir := func(fi os.FileInfo, isWriter bool) {
 		require.Equal(t, "a", fi.Name())
 		// Not sure exactly what the dir size should be.
-		require.True(t, fi.Size() > 0)
+		require.Positive(t, fi.Size())
 		expectedMode := os.FileMode(0o500) | os.ModeDir
 		if isWriter {
 			expectedMode |= 0o200
@@ -348,7 +348,7 @@ func TestRename(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = fs.Open("foo")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	err = fs.SyncAll()
 	require.NoError(t, err)
@@ -369,17 +369,17 @@ func TestRemove(t *testing.T) {
 	err = fs.Remove("foo")
 	require.NoError(t, err)
 	_, err = fs.Open("foo")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	// Removing "a" should fail because it's not empty.
 	err = fs.Remove("a")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	// Remove an empty dir and verify it's gone.
 	err = fs.Remove("a/b")
 	require.NoError(t, err)
 	_, err = fs.Lstat("a/b")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	err = fs.SyncAll()
 	require.NoError(t, err)
@@ -408,7 +408,7 @@ func TestReadDir(t *testing.T) {
 		require.True(t, expectedNames[fi.Name()])
 		delete(expectedNames, fi.Name())
 	}
-	require.Len(t, expectedNames, 0)
+	require.Empty(t, expectedNames)
 }
 
 func TestMkdirAll(t *testing.T) {
@@ -506,19 +506,19 @@ func TestSymlink(t *testing.T) {
 	err = fs.Symlink("y", "x")
 	require.NoError(t, err)
 	_, err = fs.Open("x")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	t.Log("Symlink that tries to break chroot")
 	err = fs.Symlink("../../a", "a/breakout")
 	require.NoError(t, err)
 	_, err = fs.Open("a/breakout")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	t.Log("Symlink to absolute path")
 	err = fs.Symlink("/etc/passwd", "absolute")
 	require.NoError(t, err)
 	_, err = fs.Open("absolute")
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	t.Log("Readlink")
 	link, err := fs.Readlink("a/bar")
@@ -544,14 +544,14 @@ func TestChmod(t *testing.T) {
 
 	fi, err := fs.Stat("foo")
 	require.NoError(t, err)
-	require.True(t, fi.Mode()&0o100 == 0)
+	require.Equal(t, 0, fi.Mode()&0o100)
 
 	err = fs.Chmod("foo", 0o777)
 	require.NoError(t, err)
 
 	fi, err = fs.Stat("foo")
 	require.NoError(t, err)
-	require.True(t, fi.Mode()&0o100 != 0)
+	require.NotEqual(t, 0, fi.Mode()&0o100)
 }
 
 func TestChtimes(t *testing.T) {
@@ -619,7 +619,7 @@ func TestChroot(t *testing.T) {
 
 	t.Log("Attempt a breakout")
 	_, err = fs.Chroot("../../../etc/passwd")
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestFileLocking(t *testing.T) {
@@ -713,7 +713,7 @@ func TestArchivedByRevision(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fsArchived.config)
 	fis, err = fsArchived.ReadDir("")
 	require.NoError(t, err)
-	require.Len(t, fis, 0)
+	require.Empty(t, fis)
 }
 
 func TestEmptyFS(t *testing.T) {
@@ -732,7 +732,7 @@ func TestEmptyFS(t *testing.T) {
 
 	fis, err := fs.ReadDir("")
 	require.NoError(t, err)
-	require.Len(t, fis, 0)
+	require.Empty(t, fis)
 
 	err = fs.MkdirAll("a", 0o777)
 	require.Error(t, err)

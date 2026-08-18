@@ -273,7 +273,7 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 
 	_, _, err := c.DecryptTLFCryptKeyClientHalfAny(
 		context.Background(), keys, false)
-	require.IsType(t, NoKeysError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(NoKeysError))
 }
 
 // Test that when decrypting set of client keys, the first working one
@@ -444,7 +444,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	encryptedClientHalfWrongSize.EncryptedData = encryptedClientHalfWrongSize.EncryptedData[:len(encryptedClientHalfWrongSize.EncryptedData)-1]
 	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
 		encryptedClientHalfWrongSize)
-	assert.EqualError(t, errors.Cause(err),
+	require.EqualError(t, errors.Cause(err),
 		fmt.Sprintf("Expected %d bytes, got %d",
 			len(encryptedClientHalf.EncryptedData),
 			len(encryptedClientHalfWrongSize.EncryptedData)))
@@ -467,7 +467,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 		ephPublicKeyCorruptData)
 	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKeyCorrupt,
 		encryptedClientHalf)
-	assert.IsType(t, libkb.DecryptionError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(libkb.DecryptionError))
 
 	// Corrupt data.
 
@@ -475,7 +475,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	encryptedClientHalfCorruptData.EncryptedData[0] = ^encryptedClientHalfCorruptData.EncryptedData[0]
 	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
 		encryptedClientHalfCorruptData)
-	assert.IsType(t, libkb.DecryptionError{}, errors.Cause(err))
+	assert.ErrorAs(t, errors.Cause(err), new(libkb.DecryptionError))
 }
 
 // Test that canceling a signing RPC returns the correct error

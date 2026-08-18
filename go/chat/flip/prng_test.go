@@ -44,7 +44,7 @@ func TestPRNG(t *testing.T) {
 		b := prng.Big(&ni)
 		var ai big.Int
 		ai.SetString(a, 10)
-		require.Equal(t, b.Cmp(&ai), 0)
+		require.Equal(t, 0, b.Cmp(&ai))
 	}
 
 	coinsExpected := []bool{

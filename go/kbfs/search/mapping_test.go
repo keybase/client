@@ -79,5 +79,5 @@ func TestIndexMapping(t *testing.T) {
 	request = bleve.NewSearchRequest(query)
 	result, err = index.Search(request)
 	require.NoError(t, err)
-	require.Len(t, result.Hits, 0)
+	require.Empty(t, result.Hits)
 }

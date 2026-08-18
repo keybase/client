@@ -96,7 +96,7 @@ func TestParseKBFSPathMatches(t *testing.T) {
 			require.Equal(t, expected.RawPath, paths[0].RawPath, "wrong RawPath %q", input)
 			require.Equal(t, expected.StandardPath, paths[0].StandardPath, "wrong RebasePath %q", input)
 		} else {
-			require.Len(t, paths, 0, "unexpected match: %s", input)
+			require.Empty(t, paths, "unexpected match: %s", input)
 		}
 	}
 }

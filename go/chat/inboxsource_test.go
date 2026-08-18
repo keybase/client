@@ -114,7 +114,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
 		types.ConversationLocalizerBlocking)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(localConvs))
+	require.Len(t, localConvs, 1)
 	prepareRes, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
@@ -195,11 +195,11 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 			})
 		if success {
 			require.NoError(t, err)
-			require.Equal(t, 1, len(ib.ConvsUnverified))
+			require.Len(t, ib.ConvsUnverified, 1)
 			require.Equal(t, conv.Id, ib.ConvsUnverified[0].GetConvID())
 		} else {
 			require.Error(t, err)
-			require.IsType(t, storage.MissError{}, err)
+			require.ErrorAs(t, err, new(storage.MissError))
 		}
 	}
 

@@ -25,7 +25,7 @@ func TestRotateHiddenSelf(t *testing.T) {
 	secretBefore := team.Data.PerTeamKeySeedsUnverified[team.Generation()].Seed.ToBytes()
 	keys1, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
-	require.Equal(t, len(keys1), 1)
+	require.Len(t, keys1, 1)
 	require.Equal(t, keys1[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 
 	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
@@ -40,7 +40,7 @@ func TestRotateHiddenSelf(t *testing.T) {
 
 	keys2, err := after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
-	require.Equal(t, len(keys2), 2)
+	require.Len(t, keys2, 2)
 	require.Equal(t, keys2[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.Equal(t, keys1[0].Key, keys2[0].Key)
 
@@ -59,7 +59,7 @@ func TestRotateHiddenSelf(t *testing.T) {
 	require.NoError(t, err)
 	keys3, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
-	require.Equal(t, len(keys3), 8)
+	require.Len(t, keys3, 8)
 	require.Equal(t, keys3[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.Equal(t, keys1[0].Key, keys3[0].Key)
 	require.Equal(t, keys2[1].Key, keys3[1].Key)
@@ -154,7 +154,7 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 		}
 		team, err := mctx.G().GetFastTeamLoader().Load(mctx, arg)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(team.ApplicationKeys))
+		require.Len(t, team.ApplicationKeys, 1)
 		require.Equal(t, keyGen, team.ApplicationKeys[0].KeyGeneration)
 	}
 

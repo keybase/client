@@ -530,7 +530,7 @@ func TestCRChainsRemove(t *testing.T) {
 		logger.NewTestLogger(t), chainMDs[3].Revision())
 	require.Len(t, removedChains, 1)
 	require.Equal(t, removedChains[0].original, writtenFileUnref)
-	require.Len(t, removedChains[0].ops, 0)
+	require.Empty(t, removedChains[0].ops)
 }
 
 func TestCRChainsCollapsedSyncOps(t *testing.T) {

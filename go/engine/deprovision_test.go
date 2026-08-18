@@ -121,7 +121,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		require.NoError(t, err)
-		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+		require.NotEmpty(t, eng.Passphrase(), "empty passphrase")
 
 		revokeAnyPaperKey(tc, fu)
 	}

@@ -191,7 +191,7 @@ func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 	defer untrackAlice(tc, fu, sigVersion)
 	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
-		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		require.Greater(t, u.GetSigChainLastKnownSeqno(), scv)
 		return nil
 	})
 	require.NoError(t, err)
@@ -257,7 +257,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	// user's sigchain should stay the same.
 	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
-		require.True(t, u.GetSigChainLastKnownSeqno() == scv)
+		require.Equal(t, u.GetSigChainLastKnownSeqno(), scv)
 		return nil
 	})
 	require.NoError(t, err)
@@ -268,7 +268,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	fakeClock.Advance(libkb.CachedUserTimeout + time.Second)
 	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
-		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		require.Greater(t, u.GetSigChainLastKnownSeqno(), scv)
 		return nil
 	})
 	require.NoError(t, err)
@@ -515,7 +515,7 @@ func TestUPAKUnstub(t *testing.T) {
 		arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u2.UID())
 		upak, _, err := upl.LoadV2(arg)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(upak.Current.RemoteTracks))
+		require.Len(t, upak.Current.RemoteTracks, 1)
 		require.Equal(t, "t_bob", upak.Current.RemoteTracks[keybase1.UID("afb5eda3154bc13c1df0189ce93ba119")].Username)
 		require.False(t, upak.Current.Unstubbed)
 	}
@@ -532,7 +532,7 @@ func TestUPAKUnstub(t *testing.T) {
 		arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u2.UID()).WithStubMode(stubMode)
 		upak, _, err := upl.LoadV2(arg)
 		require.NoError(t, err)
-		require.Equal(t, 3, len(upak.Current.RemoteTracks))
+		require.Len(t, upak.Current.RemoteTracks, 3)
 		require.Equal(t, u1.Username, upak.Current.RemoteTracks[u1.UID()].Username)
 		require.True(t, upak.Current.Unstubbed)
 	}
@@ -561,7 +561,7 @@ func TestInvalidation(t *testing.T) {
 	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly(true)
 	_, _, err = upl.LoadV2(arg)
 	require.Error(t, err)
-	require.IsType(t, libkb.UserNotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.UserNotFoundError))
 	require.Contains(t, err.Error(), "cached user found, but it was stale, and cached only")
 	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly(true).WithStaleOK(true)
 	upak, _, err = upl.LoadV2(arg)

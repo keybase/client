@@ -45,7 +45,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 	fis, err := b.ReadDir("")
 	require.NoError(t, err)
-	require.Len(t, fis, 0)
+	require.Empty(t, fis)
 
 	err = rootFS.MkdirAll("worktree", 0o600)
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 	fis, err = b.ReadDir("")
 	require.NoError(t, err)
-	require.Len(t, fis, 0)
+	require.Empty(t, fis)
 
 	addFileToWorktreeAndCommit(
 		ctx, t, config, h, repo, worktreeFS, "foo", "hello")
@@ -240,5 +240,5 @@ func TestBrowserHeadResolution(t *testing.T) {
 	require.NoError(t, err)
 	fis, err := b.ReadDir("")
 	require.NoError(t, err)
-	require.Len(t, fis, 0)
+	require.Empty(t, fis)
 }

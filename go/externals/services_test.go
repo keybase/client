@@ -23,8 +23,8 @@ func TestLoadParamServices(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, config.ProofConfigs)
 	require.NotNil(t, config.DisplayConfigs)
-	require.NotZero(t, len(config.ProofConfigs))
-	require.NotZero(t, len(config.DisplayConfigs))
+	require.NotEmpty(t, config.ProofConfigs)
+	require.NotEmpty(t, config.DisplayConfigs)
 
 	// assert that we parse the dev gubble configuration correctly
 	var gubbleConf *GenericSocialProofConfig
@@ -36,16 +36,16 @@ func TestLoadParamServices(t *testing.T) {
 	}
 	t.Logf("Found config %+v", gubbleConf)
 	require.NotNil(t, gubbleConf)
-	require.True(t, gubbleConf.Version >= 1)
+	require.GreaterOrEqual(t, gubbleConf.Version, 1)
 	require.Equal(t, "gubble.social", gubbleConf.Domain)
 	require.Equal(t, keybase1.ParamProofUsernameConfig{
 		Re:  "^([a-zA-Z0-9_])+$",
 		Min: 2,
 		Max: 20,
 	}, gubbleConf.UsernameConfig)
-	require.NotZero(t, len(gubbleConf.BrandColor))
-	require.NotZero(t, len(gubbleConf.DisplayName))
-	require.NotZero(t, len(gubbleConf.Description))
+	require.NotEmpty(t, gubbleConf.BrandColor)
+	require.NotEmpty(t, gubbleConf.DisplayName)
+	require.NotEmpty(t, gubbleConf.Description)
 
 	serverURI, err := tc.G.Env.GetServerURI()
 	require.NoError(t, err)
@@ -84,7 +84,7 @@ func TestLoadParamServices(t *testing.T) {
 		if config.Key == "gubble.social" {
 			group := "Gubble instance"
 			require.NotNil(t, config.Group)
-			require.EqualValues(t, group, *config.Group)
+			require.Equal(t, group, *config.Group)
 			require.False(t, config.CreationDisabled)
 			foundGubble = true
 			if foundFacebook {

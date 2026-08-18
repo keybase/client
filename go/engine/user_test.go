@@ -80,7 +80,7 @@ func TestMerkleHashMetaAndFirstAppearedInKeyFamily(t *testing.T) {
 	checkKey := func(key libkb.GenericKey, cki libkb.ComputedKeyInfo, err error) {
 		require.NoError(t, err)
 		require.NotNil(t, key, "non-nil key")
-		require.Equal(t, len(cki.DelegatedAtHashMeta), 32, "needed a SHA256 hash for merkle hash_meta")
+		require.Len(t, cki.DelegatedAtHashMeta, 32, "needed a SHA256 hash for merkle hash_meta")
 		require.True(t, (cki.FirstAppearedUnverified > 0), "need a >0 merkle root first appeared in")
 	}
 	checkSibkey := func(kid keybase1.KID) {

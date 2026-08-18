@@ -110,7 +110,7 @@ func TestJourneycardDismiss(t *testing.T) {
 			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
-		require.True(t, len(thread.Messages) >= 1)
+		require.GreaterOrEqual(t, len(thread.Messages), 1)
 		if toExist {
 			require.NotNil(t, thread.Messages[0].Journeycard__)
 		} else {
@@ -195,7 +195,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
-		require.True(t, len(thread.Messages) >= 1)
+		require.GreaterOrEqual(t, len(thread.Messages), 1)
 		for _, msg := range thread.Messages {
 			require.Nil(t, msg.Journeycard__)
 		}
@@ -206,7 +206,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
-		require.True(t, len(thread.Messages) >= 1)
+		require.GreaterOrEqual(t, len(thread.Messages), 1)
 		msg := thread.Messages[0]
 		require.NotNil(t, msg.Journeycard__, "requireJourneycard expects a journeycard")
 		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")
@@ -295,7 +295,7 @@ func TestJourneycardPersist(t *testing.T) {
 			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
-		require.True(t, len(thread.Messages) >= 1+skipMessages)
+		require.GreaterOrEqual(t, len(thread.Messages), 1+skipMessages)
 		msg := thread.Messages[skipMessages]
 		require.NotNil(t, msg.Journeycard__, "requireJourneycard expects a journeycard")
 		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")

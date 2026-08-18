@@ -223,7 +223,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	})
 	require.NoError(t, err, "load team")
 	t.Logf("%s", spew.Sdump(team.chain().inner.SubteamLog))
-	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
+	require.Empty(t, team.chain().inner.SubteamLog, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 
 type teamsUI struct{}

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"testing"
 
@@ -299,7 +300,7 @@ func TestSignupNonAsciiDeviceName(t *testing.T) {
 		arg := MakeTestSignupEngineRunArg(fu)
 		arg.DeviceName = testVal.deviceName
 		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
-		require.IsType(t, err, testVal.err)
+		require.Equal(t, reflect.TypeOf(testVal.err), reflect.TypeOf(err))
 	}
 }
 
@@ -320,7 +321,7 @@ func TestSignupNOPWBadParams(t *testing.T) {
 	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
 	_, err = libkb.LoadUser(loadArg)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 }
 
 func TestSignupWithoutSecretStore(t *testing.T) {
@@ -344,7 +345,7 @@ func TestSignupWithoutSecretStore(t *testing.T) {
 	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
 	_, err = libkb.LoadUser(loadArg)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 }
 
 func TestSignupWithBadSecretStore(t *testing.T) {
@@ -369,7 +370,7 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 	arg.Passphrase = ""
 	_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
 	require.Error(t, err)
-	require.IsType(t, SecretStoreNotFunctionalError{}, err)
+	require.ErrorAs(t, err, new(SecretStoreNotFunctionalError))
 	require.Contains(t, err.Error(), "permission denied")
 
 	// Make sure user has not signed up - the engine should fail before running
@@ -377,7 +378,7 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
 	_, err = libkb.LoadUser(loadArg)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 }
 
 func assertNoFiles(t *testing.T, dir string, files []string) {

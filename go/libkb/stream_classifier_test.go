@@ -119,5 +119,5 @@ func TestClassifyTestVectors(t *testing.T) {
 func TestClassifyBadVectors(t *testing.T) {
 	_, _, err := ClassifyStream(bytes.NewBufferString("\n\n\n\n\n\n\n\n"))
 	require.Error(t, err)
-	require.IsType(t, UnknownStreamError{}, err)
+	require.ErrorAs(t, err, new(UnknownStreamError))
 }

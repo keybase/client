@@ -20,7 +20,7 @@ func testKeyPseudonymName(id string, app keybase1.TeamApplication, keyGen KeyGen
 func testMakeKeyPseudonym(t *testing.T, idStr string, app keybase1.TeamApplication, keyGen KeyGen, nonceStr string, expectedPseudonymStr string) {
 	nonceBytes, err := hex.DecodeString(nonceStr)
 	require.NoError(t, err)
-	require.Equal(t, 32, len(nonceBytes))
+	require.Len(t, nonceBytes, 32)
 	var nonce KeyPseudonymNonce
 	copy(nonce[:], nonceBytes)
 
@@ -93,5 +93,7 @@ func TestMakeKeyPseudonym(t *testing.T) {
 
 // Very basic test to check that RandomPseudonym doesn't return a constant.
 func TestRandomPseudonymNonce(t *testing.T) {
-	require.NotEqual(t, [32]byte(RandomPseudonymNonce()), [32]byte(RandomPseudonymNonce()))
+	first := [32]byte(RandomPseudonymNonce())
+	second := [32]byte(RandomPseudonymNonce())
+	require.NotEqual(t, first, second)
 }

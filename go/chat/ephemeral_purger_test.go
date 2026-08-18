@@ -127,7 +127,7 @@ func TestBackgroundPurge(t *testing.T) {
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
 			}, nil)
 		require.NoError(t, err)
-		require.True(t, len(thread.Messages) > 0)
+		require.NotEmpty(t, thread.Messages)
 		return thread.Messages[0]
 	}
 
@@ -135,7 +135,7 @@ func TestBackgroundPurge(t *testing.T) {
 		purgeInfo, err := g.EphemeralTracker.GetPurgeInfo(ctx, uid, convID)
 		if expectedPurgeInfo.IsNil() {
 			require.Error(t, err)
-			require.IsType(t, storage.MissError{}, err)
+			require.ErrorAs(t, err, new(storage.MissError))
 		} else {
 			require.NoError(t, err)
 			require.Equal(t, expectedPurgeInfo, purgeInfo)

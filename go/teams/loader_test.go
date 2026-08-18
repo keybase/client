@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"strings"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -166,10 +165,10 @@ func TestLoaderKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, team)
-	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
+	require.Empty(t, team.PerTeamKeySeedsUnverified)
 	require.Len(t, team.Chain.PerTeamKeys, 1)
 	require.Equal(t, keybase1.Seqno(5), team.Chain.LastSeqno, "chain seqno")
-	require.Zero(t, len(team.ReaderKeyMasks))
+	require.Empty(t, team.ReaderKeyMasks)
 
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
@@ -219,7 +218,7 @@ func TestLoaderKeyGen(t *testing.T) {
 		},
 	})
 	require.Error(t, err)
-	require.True(t, strings.Contains(err.Error(), "team key secret missing"))
+	require.Contains(t, err.Error(), "team key secret missing")
 
 	t.Logf("D loads and never has keys")
 	team, _, err = tcs[3].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
@@ -229,9 +228,9 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, team)
 	require.Equal(t, keybase1.Seqno(11), team.Chain.LastSeqno, "chain seqno")
-	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
+	require.Empty(t, team.PerTeamKeySeedsUnverified)
 	require.Len(t, team.Chain.PerTeamKeys, 4)
-	require.Zero(t, len(team.ReaderKeyMasks))
+	require.Empty(t, team.ReaderKeyMasks)
 
 	t.Logf("D becomes a regular bot and gets access")
 	err = EditMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT, nil)
@@ -257,9 +256,9 @@ func TestLoaderKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, team)
-	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
+	require.Empty(t, team.PerTeamKeySeedsUnverified)
 	require.Len(t, team.Chain.PerTeamKeys, 4)
-	require.Zero(t, len(team.ReaderKeyMasks))
+	require.Empty(t, team.ReaderKeyMasks)
 }
 
 func TestLoaderKBFSKeyGen(t *testing.T) {
@@ -271,7 +270,7 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 		require.NotNil(t, team)
 		keys, ok := team.TlfCryptKeys[keybase1.TeamApplication_CHAT]
 		require.True(t, ok)
-		require.True(t, keys[len(keys)-1].KeyGeneration >= generation)
+		require.GreaterOrEqual(t, keys[len(keys)-1].KeyGeneration, generation)
 	}
 
 	displayName := fus[0].Username + "," + fus[1].Username
@@ -336,7 +335,7 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 
 	// TODO -- See CORE-9677 - fix this test to switch users to test the refresher, since if Alice does the update
 	// herself, her load is autorefreshed after bugfixes in CORE-9663.
-	require.Equal(t, 3, len(keys))
+	require.Len(t, keys, 3)
 	require.Equal(t, 1, keys[0].Generation())
 	key3 := keys[2].Key // See above TODO, this is also wonky
 
@@ -352,7 +351,7 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 	require.NoError(t, err)
 	keys, err = team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(keys))
+	require.Len(t, keys, 3)
 	key, err := team.ApplicationKeyAtGenerationWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS, 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, key.Generation())
@@ -722,7 +721,7 @@ func TestLoaderHiddenSubteam(t *testing.T) {
 	})
 	require.NoError(t, err, "load team")
 	t.Logf("%s", spew.Sdump(team.chain().inner.SubteamLog))
-	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
+	require.Empty(t, team.chain().inner.SubteamLog, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 
 func TestLoaderSubteamHopWithNone(t *testing.T) {
@@ -1071,7 +1070,7 @@ func TestLoaderCORE_8445(t *testing.T) {
 	_, ok := subBStale.Data.PerTeamKeySeedsUnverified[1]
 	require.True(t, ok)
 	require.NotNil(t, subBStale.Data.ReaderKeyMasks)
-	require.Len(t, subBStale.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], 0, "missing rkms")
+	require.Empty(t, subBStale.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], "missing rkms")
 
 	t.Logf("U1 loads A.B with refreshing")
 	subB, err := Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
@@ -1194,7 +1193,7 @@ func TestLoaderCORE_10487(t *testing.T) {
 	_, ok := team.Data.PerTeamKeySeedsUnverified[1]
 	require.True(t, ok)
 	require.NotNil(t, team.Data.ReaderKeyMasks)
-	require.Len(t, team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 0, "missing rkms")
+	require.Empty(t, team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS], "missing rkms")
 
 	t.Logf("U1 self-promotes in A.B")
 	_, err = AddMember(context.Background(), tcs[1].G, subBName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
@@ -1393,14 +1392,14 @@ func TestTombstoneViaDelete(t *testing.T) {
 		ID:     rootID,
 		Public: rootID.IsPublic(),
 	})
-	require.NotNil(t, err)
+	require.Error(t, err)
 	_, ok := err.(*TeamTombstonedError)
 	require.True(t, ok)
 	_, err = tcs[0].G.GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
 		ID:     rootID,
 		Public: rootID.IsPublic(),
 	})
-	require.NotNil(t, err)
+	require.Error(t, err)
 	_, ok = err.(*TeamTombstonedError)
 	require.True(t, ok)
 }

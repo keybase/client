@@ -66,7 +66,7 @@ func assertPaperKeyCached(m libkb.MetaContext, t *testing.T, wantCached bool) {
 	if device != nil {
 		isCached = device.HasBothKeys()
 	}
-	require.Equal(t, isCached, wantCached)
+	require.Equal(t, wantCached, isCached)
 }
 
 type nlistener struct {

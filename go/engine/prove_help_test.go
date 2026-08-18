@@ -299,7 +299,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 		var proofs []keybase1.ParamProofJSON
 		err = objects[0].UnmarshalAgain(&proofs)
 		require.NoError(tc.T, err)
-		require.True(tc.T, len(proofs) >= 1)
+		require.GreaterOrEqual(tc.T, len(proofs), 1)
 		for _, proof := range proofs {
 			if proof.KbUsername == fu.Username && sigID.Eq(proof.SigHash) {
 				return nil

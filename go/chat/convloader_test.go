@@ -239,7 +239,7 @@ func TestConvLoaderPageBack(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(ib.Inbox.Full().Conversations))
+	require.Len(t, ib.Inbox.Full().Conversations, 1)
 	conv := ib.Inbox.Full().Conversations[0]
 
 	u := world.GetUsers()[0]

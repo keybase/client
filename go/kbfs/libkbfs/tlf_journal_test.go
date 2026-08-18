@@ -331,7 +331,7 @@ func setupTLFJournalTest(
 		delegate.requireNextState(ctx, bwPaused)
 
 	default:
-		require.FailNow(t, "Unknown bwStatus %s", bwStatus)
+		require.FailNowf(t, "", "Unknown bwStatus %s", bwStatus)
 	}
 
 	setupSucceeded = true
@@ -360,7 +360,7 @@ func teardownTLFJournalTest(
 
 	select {
 	case bws := <-delegate.stateCh:
-		assert.Fail(config.t, "Unexpected state %s", bws)
+		assert.Failf(config.t, "", "Unexpected state %s", bws)
 	default:
 	}
 
@@ -471,7 +471,7 @@ func testTLFJournalBlockOpBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
-	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
+	require.Equal(t, kbfsmd.RevisionUninitialized, rev)
 	require.False(t, converted)
 }
 
@@ -558,7 +558,7 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
-	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
+	require.Equal(t, kbfsmd.RevisionUninitialized, rev)
 	require.False(t, converted)
 
 	// Fake an MD flush.
@@ -599,7 +599,7 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
-	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
+	require.Equal(t, kbfsmd.RevisionUninitialized, rev)
 	require.False(t, converted)
 
 	// Fake an MD flush.
@@ -645,7 +645,7 @@ func testTLFJournalBlockOpDiskQuotaLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
-	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
+	require.Equal(t, kbfsmd.RevisionUninitialized, rev)
 	require.False(t, converted)
 
 	select {
@@ -796,7 +796,7 @@ func testTLFJournalBlockOpDiskLimitPutFailure(t *testing.T, ver kbfsmd.MetadataV
 	data := []byte{1, 2, 3, 4}
 	id, bCtx, serverHalf := config.makeBlock(data)
 	err := tlfJournal.putBlockData(ctx, id, bCtx, []byte{1}, serverHalf)
-	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(kbfshash.HashMismatchError))
 
 	// If the above incorrectly does not release bytes or files from
 	// diskLimiter on error, this will hang.
@@ -1020,7 +1020,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	// Check RMDSes on the server.
 
 	rmdses := mdserver.rmdses
-	require.Equal(t, mdCount, len(rmdses))
+	require.Len(t, rmdses, mdCount)
 	config.checkRange(
 		rmdses, firstRevision, firstPrevRoot, kbfsmd.Merged, kbfsmd.NullBranchID)
 }
@@ -1059,7 +1059,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 		revision := firstRevision + kbfsmd.Revision(mdCount/2)
 		md := config.makeMD(revision, prevRoot)
 		_, err = tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
-		require.IsType(t, MDJournalConflictError{}, err)
+		require.ErrorAs(t, err, new(MDJournalConflictError))
 
 		md.SetUnmerged()
 		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
@@ -1145,7 +1145,7 @@ func testTLFJournalGCd(t *testing.T, tlfJournal *tlfJournal) {
 		unflushedPaths := tlfJournal.unflushedPaths.getUnflushedPaths()
 		require.Nil(t, unflushedPaths)
 		require.Equal(t, uint64(0), tlfJournal.unsquashedBytes)
-		require.Equal(t, 0, len(tlfJournal.flushingBlocks))
+		require.Empty(t, tlfJournal.flushingBlocks)
 	}()
 
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
@@ -1468,7 +1468,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 		} else if mdID == md2.Revision() {
 			md2Slot = i
 			require.NotZero(t, md1Slot)
-			require.True(t, md1Slot+1 < i)
+			require.Less(t, md1Slot+1, i)
 			require.Equal(t, i, len(puts)-1)
 		}
 	}
@@ -1677,7 +1677,7 @@ func testTLFJournalFlushRetry(t *testing.T, ver kbfsmd.MetadataVer) {
 	delegate.requireNextState(ctx, bwIdle)
 	<-resetCh
 
-	require.Equal(t, b.numBackOffs, 1)
+	require.Equal(t, 1, b.numBackOffs)
 	testTLFJournalGCd(t, tlfJournal)
 }
 

@@ -147,7 +147,7 @@ func putMDRangeHelper(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	putMD func(context.Context, *RootMetadata) (kbfsmd.ID, error)) (
 	[]*RootMetadata, kbfsmd.ID,
 ) {
-	require.True(t, mdCount > 0)
+	require.Positive(t, mdCount)
 	ctx := context.Background()
 	var mds []*RootMetadata
 	md := makeMDForTest(
@@ -284,14 +284,14 @@ func testMDJournalBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	mds, _ := putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
 
-	require.Equal(t, mdCount, len(mds))
+	require.Len(t, mds, mdCount)
 	require.Equal(t, uint64(mdCount), j.length()) //nolint:gosec // G115: Test data with bounded values
 
 	// Should now be non-empty.
 	ibrmds, err := j.getRange(
 		ctx, kbfsmd.NullBranchID, 1, firstRevision+kbfsmd.Revision(2*mdCount))
 	require.NoError(t, err)
-	require.Equal(t, mdCount, len(ibrmds))
+	require.Len(t, ibrmds, mdCount)
 
 	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, kbfsmd.Merged, kbfsmd.NullBranchID)
@@ -679,7 +679,7 @@ func testMDJournalBranchConversion(t *testing.T, ver kbfsmd.MetadataVer) {
 	ibrmds, err := j.getRange(
 		ctx, bid, 1, firstRevision+kbfsmd.Revision(2*mdCount))
 	require.NoError(t, err)
-	require.Equal(t, mdCount, len(ibrmds))
+	require.Len(t, ibrmds, mdCount)
 
 	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, kbfsmd.Unmerged, ibrmds[0].BID())
@@ -696,7 +696,7 @@ func testMDJournalBranchConversion(t *testing.T, ver kbfsmd.MetadataVer) {
 	newlyCachedMd, err := mdcache.Get(id, firstRevision, bid)
 	require.NoError(t, err)
 	require.Equal(t, newlyCachedMd.BID(), bid)
-	require.Equal(t, newlyCachedMd.MergedStatus(), kbfsmd.Unmerged)
+	require.Equal(t, kbfsmd.Unmerged, newlyCachedMd.MergedStatus())
 	_, err = mdcache.Get(id, firstRevision, kbfsmd.NullBranchID)
 	require.Error(t, err)
 }
@@ -811,7 +811,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	err := j.convertToBranch(
 		ctx, kbfsmd.PendingLocalSquashBranchID, &limitedSigner,
 		kbfscodec.NewMsgpack(), id, NewMDCacheStandard(10))
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	// All entries should remain unchanged, since the conversion
 	// encountered an error.
@@ -819,7 +819,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	ibrmds, err := j.getRange(
 		ctx, kbfsmd.NullBranchID, 1, firstRevision+kbfsmd.Revision(2*mdCount))
 	require.NoError(t, err)
-	require.Equal(t, mdCount, len(ibrmds))
+	require.Len(t, ibrmds, mdCount)
 
 	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, kbfsmd.Merged, kbfsmd.NullBranchID)
@@ -1046,7 +1046,7 @@ func testMDJournalRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 	ibrmds, err := j.getRange(
 		ctx, kbfsmd.NullBranchID, 1, firstRevision+kbfsmd.Revision(2*mdCount))
 	require.NoError(t, err)
-	require.Equal(t, mdCount, len(ibrmds))
+	require.Len(t, ibrmds, mdCount)
 
 	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, kbfsmd.Merged, kbfsmd.NullBranchID)
@@ -1088,7 +1088,7 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver kbfsmd.Metadata
 	ibrmds, err := j.getRange(
 		ctx, bid, 1, firstRevision+kbfsmd.Revision(2*mdCount))
 	require.NoError(t, err)
-	require.Equal(t, mdCount, len(ibrmds))
+	require.Len(t, ibrmds, mdCount)
 
 	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, kbfsmd.Unmerged, ibrmds[0].BID())

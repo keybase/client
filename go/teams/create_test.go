@@ -193,5 +193,5 @@ func TestCreateImplicitTeam(t *testing.T) {
 	sort.Sort(keybase1.ByUserVersionID(members.Owners))
 	require.Equal(t, members.Owners, uvs)
 	chainInvites := team.chain().ActiveInvites()
-	require.Equal(t, 2, len(chainInvites))
+	require.Len(t, chainInvites, 2)
 }

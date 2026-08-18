@@ -67,7 +67,7 @@ func TestJsonSetAndGetString(t *testing.T) {
 	value := "The American Computer Museum"
 	firstRead, isRet := reader.GetStringAtPath(path)
 	require.False(tc.T, isRet)
-	require.Equal(tc.T, firstRead, "")
+	require.Empty(tc.T, firstRead)
 
 	// set, get, inspect
 	err := writer.SetStringAtPath(path, value)
@@ -89,7 +89,7 @@ func TestJsonSetAndGetInt(t *testing.T) {
 	value := 12
 	firstRead, isRet := reader.GetIntAtPath(path)
 	require.False(tc.T, isRet)
-	require.Equal(tc.T, firstRead, 0)
+	require.Equal(tc.T, 0, firstRead)
 
 	// set, get, inspect
 	err := writer.SetIntAtPath(path, value)
@@ -111,7 +111,7 @@ func TestJsonSetAndGetBool(t *testing.T) {
 	value := true
 	firstRead, isRet := reader.GetBoolAtPath(path)
 	require.False(tc.T, isRet)
-	require.Equal(tc.T, firstRead, false)
+	require.False(tc.T, firstRead)
 
 	// set, get, inspect
 	err := writer.SetBoolAtPath(path, value)
