@@ -158,6 +158,10 @@ const InstallBotPopup = (props: Props) => {
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<ReadonlyArray<string>>([])
+  // An empty convs list means 'every channel in the team' on the wire, so that has to
+  // be an explicit choice ('All channels' in the picker) and never something we fall
+  // into by filtering or by failing to load the channel list.
+  const [installInAllConvs, setInstallInAllConvs] = React.useState(true)
   const [disableDone, setDisableDone] = React.useState(false)
   const [loadedBotPublicCommands, setLoadedBotPublicCommands] = React.useState<
     | {
@@ -211,8 +215,12 @@ const InstallBotPopup = (props: Props) => {
   const onLearn = () => {
     void openURL('https://book.keybase.io/docs/chat/restricted-bots')
   }
+  // Only 'All channels' may send an empty list; a restricted bot with no channels
+  // selected is not saveable (the picker's Done button enforces the same thing).
+  const convsToSave = installInAllConvs ? [] : installInConvs
+  const noConvsChosen = !installInAllConvs && convsToSave.length === 0
   const onInstall = () => {
-    if (!conversationIDKey) {
+    if (!conversationIDKey || noConvsChosen) {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
@@ -221,7 +229,7 @@ const InstallBotPopup = (props: Props) => {
       addBotMember({
         botUsername,
         conversationIDKey,
-        installInConvs,
+        installInConvs: convsToSave,
         installWithCommands,
         installWithMentions,
         installWithRestrict,
@@ -229,7 +237,7 @@ const InstallBotPopup = (props: Props) => {
     )
   }
   const onEdit = () => {
-    if (!conversationIDKey) {
+    if (!conversationIDKey || noConvsChosen) {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
@@ -238,7 +246,7 @@ const InstallBotPopup = (props: Props) => {
       try {
         await T.RPCChat.localSetBotMemberSettingsRpcPromise(
           {
-            botSettings: {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions},
+            botSettings: {cmds: installWithCommands, convs: convsToSave, mentions: installWithMentions},
             convID: T.Chat.keyToConversationID(conversationIDKey),
             username: botUsername,
           },
@@ -428,9 +436,11 @@ const InstallBotPopup = (props: Props) => {
                     />
                     <Kb.Text type="BodySemibold">
                       {teamname}{' '}
-                      {installInConvs.length === 1
-                        ? `(#${channelMetas.get(installInConvs[0] ?? '')?.channelname ?? ''})`
-                        : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
+                      {installInAllConvs
+                        ? '(all channels)'
+                        : installInConvs.length === 1
+                          ? `(#${channelMetas.get(installInConvs[0] ?? '')?.channelname ?? ''})`
+                          : `(${installInConvs.length} channels)`}
                     </Kb.Text>
                   </Kb.Box2>
                 }
@@ -462,8 +472,10 @@ const InstallBotPopup = (props: Props) => {
   const channelPickerContent = channelPickerScreen && teamID && teamname && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <ChannelPicker
+        allSelected={installInAllConvs}
         channelMetas={channelMetas}
         installInConvs={installInConvs}
+        setAllSelected={setInstallInAllConvs}
         setChannelPickerScreen={setChannelPickerScreen}
         setDisableDone={setDisableDone}
         setInstallInConvs={setInstallInConvs}
@@ -539,12 +551,12 @@ const InstallBotPopup = (props: Props) => {
         if (settings) {
           setInstallWithCommands(settings.cmds)
           setInstallWithMentions(settings.mentions)
-          // Drop convs the team no longer has (deleted channels linger in the
-          // server-side bot settings). An empty convs list means 'every channel' on
-          // the wire, so never let filtering produce one: if the channel list hasn't
-          // loaded, failed, or came back empty we'd otherwise save away the
-          // restriction entirely and hand the bot the whole team.
           const convs = settings.convs ?? []
+          setInstallInAllConvs(convs.length === 0)
+          // Drop convs the team no longer has (deleted channels linger in the
+          // server-side bot settings), but never let filtering empty the list: that
+          // would flip the bot to 'all channels' if the channel list hasn't loaded,
+          // failed, or came back empty.
           const known = convs.filter(c => channelMetas.has(c))
           setInstallInConvs(!loadingChannels && known.length > 0 ? known : convs)
         }

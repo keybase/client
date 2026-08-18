@@ -4,8 +4,10 @@ import type * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 
 type Props = {
+  allSelected: boolean
   channelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   installInConvs: ReadonlyArray<string>
+  setAllSelected: (all: boolean) => void
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: ReadonlyArray<string>) => void
   setDisableDone: (disable: boolean) => void
@@ -87,14 +89,9 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => {
 const ChannelPicker = (props: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {installInConvs, setInstallInConvs, setDisableDone} = props
-  const [allSelected, setAllSelected] = React.useState(installInConvs.length === 0)
+  const {allSelected, channelMetas, installInConvs, setAllSelected, setInstallInConvs} = props
+  const {setDisableDone, teamName} = props
   const [searchText, setSearchText] = React.useState('')
-  React.useEffect(() => {
-    if (allSelected) {
-      setInstallInConvs([])
-    }
-  }, [allSelected, setInstallInConvs])
 
   React.useEffect(() => {
     if (!allSelected && installInConvs.length === 0) {
@@ -104,7 +101,7 @@ const ChannelPicker = (props: Props) => {
     setDisableDone(false)
   }, [allSelected, installInConvs, setDisableDone])
 
-  const channels = getChannels(props.channelMetas, searchText)
+  const channels = getChannels(channelMetas, searchText)
   const rows = channels.map(meta => (
     <Row
       disabled={allSelected}
@@ -122,7 +119,7 @@ const ChannelPicker = (props: Props) => {
         <Kb.SearchFilter
           size="full-width"
           icon="iconfont-search"
-          placeholderText={`Search channels in ${props.teamName}`}
+          placeholderText={`Search channels in ${teamName}`}
           placeholderCentered={true}
           onChange={setSearchText}
           style={styles.searchFilter}
