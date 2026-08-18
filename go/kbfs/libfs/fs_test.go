@@ -544,14 +544,14 @@ func TestChmod(t *testing.T) {
 
 	fi, err := fs.Stat("foo")
 	require.NoError(t, err)
-	require.Equal(t, 0, fi.Mode()&0o100)
+	require.Zero(t, fi.Mode()&0o100)
 
 	err = fs.Chmod("foo", 0o777)
 	require.NoError(t, err)
 
 	fi, err = fs.Stat("foo")
 	require.NoError(t, err)
-	require.NotEqual(t, 0, fi.Mode()&0o100)
+	require.NotZero(t, fi.Mode()&0o100)
 }
 
 func TestChtimes(t *testing.T) {
