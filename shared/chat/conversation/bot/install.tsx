@@ -470,7 +470,7 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const channelPickerContent = channelPickerScreen && teamID && teamname && (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.pickerContainer}>
       <ChannelPicker
         allSelected={installInAllConvs}
         channelMetas={channelMetas}
@@ -787,6 +787,12 @@ const PermsList = (props: PermsListProps) => {
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
+  // the picker brings its own scroller, so it has to be able to shrink to the modal
+  pickerContainer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minHeight: 0,
+  },
   bodyScroll: {
     flex: 1,
     minHeight: 0,

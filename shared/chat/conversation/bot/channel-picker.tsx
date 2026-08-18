@@ -114,7 +114,7 @@ const ChannelPicker = (props: Props) => {
   ))
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.SearchFilter
           size="full-width"
@@ -156,14 +156,18 @@ const useStyles = Kb.Styles.createStyleHook(
           wordBreak: 'break-all',
         },
       }),
-      rowsContainer: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-        },
-        isElectron: {
-          minHeight: 370,
-        },
-      }),
+      // the rows have to scroll inside the modal instead of growing it
+      container: {
+        flexGrow: 1,
+        flexShrink: 1,
+        minHeight: 0,
+      },
+      rowsContainer: {
+        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
+        flexGrow: 1,
+        flexShrink: 1,
+        minHeight: 0,
+      },
       searchFilter: Kb.Styles.platformStyles({
         common: {
           marginBottom: Kb.Styles.globalMargins.xsmall,
