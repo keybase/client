@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	jsonw "github.com/keybase/go-jsonw"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,21 +71,6 @@ func loadTeamAndAssertNoHiddenChainExists(t *testing.T, tc *libkb.TestContext, t
 	require.Nil(t, teamHiddenChain)
 }
 
-func getCurrentBlindRootHashFromMerkleRoot(t *testing.T, tc libkb.TestContext) string {
-	apiRes, err := tc.G.API.Get(libkb.NewMetaContextForTest(tc), libkb.APIArg{
-		Endpoint: "merkle/root",
-	})
-	require.NoError(t, err)
-	payloadStr, err := apiRes.Body.AtKey("payload_json").GetString()
-	require.NoError(t, err)
-	payload, err := jsonw.Unmarshal([]byte(payloadStr))
-	require.NoError(t, err)
-	blindRoot, err := payload.AtKey("body").AtKey("blind_merkle_root_hash").GetString()
-	require.NoError(t, err)
-
-	return blindRoot
-}
-
 func makePaperKey(t *testing.T, uTc *libkb.TestContext) {
 	uis := libkb.UIs{
 		LogUI:    uTc.G.UI.GetLogUI(),
@@ -98,21 +82,9 @@ func makePaperKey(t *testing.T, uTc *libkb.TestContext) {
 	require.NoError(t, err)
 }
 
-func requestNewBlindTreeFromArchitectAndWaitUntilDone(t *testing.T, uTc *libkb.TestContext) {
-	oldBlindRoot := getCurrentBlindRootHashFromMerkleRoot(t, *uTc)
-
-	// make the architect run. This returns when the architect has finished a round
-	_, err := uTc.G.API.Get(libkb.NewMetaContextForTest(*uTc), libkb.APIArg{
-		Endpoint: "test/build_blind_tree",
-	})
-	require.NoError(t, err)
-
-	// the user adds a paper key to make new main merkle tree version.
+func publishNewMainMerkleRoot(t *testing.T, uTc *libkb.TestContext) {
+	// Adding a paper key publishes a new main Merkle tree version.
 	makePaperKey(t, uTc)
-
-	// ensure the architect actually updated
-	newBlindRoot := getCurrentBlindRootHashFromMerkleRoot(t, *uTc)
-	require.NotEqual(t, oldBlindRoot, newBlindRoot)
 }
 
 func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
@@ -151,15 +123,14 @@ func testHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 
 	loadTeamAndAssertUncommittedSeqno(t, tcs[1], teamID, 1)
 
-	// make the architect run
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
+	// Publish a new main Merkle root.
+	publishNewMainMerkleRoot(t, tcs[0])
 
 	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1)
 
 	// make another hidden rotation
 	makeHiddenRotation(t, tcs[0].G, teamName)
 
-	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
 	if !loadTeamAndCheckCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 2) {
 		return false
 	}
@@ -329,7 +300,7 @@ func testFTLSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 
 	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 2)
 
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
+	publishNewMainMerkleRoot(t, tcs[0])
 
 	// make another hidden rotation
 	makeHiddenRotation(t, tcs[0].G, teamName)
@@ -346,7 +317,6 @@ func testFTLSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(3)},
 	})
 
-	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
 	return err == nil
 }
 

@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"encoding/hex"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -55,6 +56,10 @@ func TestMerkleWithHidden(t *testing.T) {
 	leaf, hiddenResp, lastMerkleRoot, err := tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
 	require.NoError(t, err)
 	require.NotNil(t, lastMerkleRoot)
+	blindRootHash := lastMerkleRoot.BlindMerkleRootHash()
+	require.Len(t, blindRootHash, 64)
+	_, err = hex.DecodeString(blindRootHash)
+	require.NoError(t, err)
 	require.NotNil(t, leaf)
 	t.Logf("team merkle leaf: %v", spew.Sdump(leaf))
 	if leaf.TeamID.IsNil() {
@@ -85,7 +90,7 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
 	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
 
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, &tc)
+	publishNewMainMerkleRoot(t, &tc)
 
 	leaf, hiddenResp, lastMerkleRoot, err = tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
 	require.NoError(t, err)
