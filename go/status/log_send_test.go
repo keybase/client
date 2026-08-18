@@ -20,11 +20,11 @@ func testTail(t *testing.T, testname, filename string, count, actual int, first,
 	log := logger.NewTestLogger(t)
 	tailed := tail(log, "tset", filename, count)
 	lines := strings.Split(tailed, "\n")
-	require.Equal(t, actual, len(tailed), "test %s: tailed bytes: %d, expected %d", testname, len(tailed), actual)
+	require.Len(t, tailed, actual, "test %s: tailed bytes: %d, expected %d", testname, len(tailed), actual)
 
 	require.Equal(t, first, strings.TrimSpace(lines[0]), "test %s: first line: %q, expected %q", testname, strings.TrimSpace(lines[0]), first)
 	require.Equal(t, last, strings.TrimSpace(lines[len(lines)-2]), "test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-2]), last)
-	require.Equal(t, "", strings.TrimSpace(lines[len(lines)-1]), "test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-1]), "")
+	require.Empty(t, strings.TrimSpace(lines[len(lines)-1]), "test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-1]), "")
 }
 
 func TestTail(t *testing.T) {

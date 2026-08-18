@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -86,9 +87,9 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 			w.Header().Set("Content-Type", contentType)
 		}
 		dat, err := os.ReadFile(filepath.Join("testcases", name))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		_, err = io.Copy(w, bytes.NewBuffer(dat))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	})
 }
 

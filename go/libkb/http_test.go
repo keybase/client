@@ -26,5 +26,5 @@ func TestHexEncoding(t *testing.T) {
 		return len(s) == 16
 	}
 	err := quick.Check(f, nil)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 }

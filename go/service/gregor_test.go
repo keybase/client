@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -684,7 +685,7 @@ func TestMessagesAddedDuringProcessing(t *testing.T) {
 	go func() {
 		for i := range numberToDoAsync {
 			err := server.ConsumeMessage(context.TODO(), msgs[i])
-			require.NoError(t, err)
+			assert.NoError(t, err)
 		}
 		blockUntilDone <- struct{}{}
 	}()

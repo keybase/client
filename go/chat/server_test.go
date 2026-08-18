@@ -49,6 +49,7 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -380,14 +381,14 @@ func (c *chatTestContext) advanceFakeClock(d time.Duration) {
 
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
 	var ctx context.Context
-	require.NotNil(t, user)
+	assert.NotNil(t, user)
 
 	if tuc, ok := c.userContextCache[user.Username]; ok {
 		return tuc
 	}
 
 	tc, ok := c.world.Tcs[user.Username]
-	require.True(t, ok)
+	assert.True(t, ok)
 	g := globals.NewContext(tc.G, tc.ChatG)
 	h := NewServer(g, nil, testUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
@@ -405,11 +406,17 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	} else {
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
-		require.NoError(t, err)
+		if err != nil {
+			t.Errorf("NIST failed: %v", err)
+			return nil
+		}
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		g.GregorState = gh
-		require.NoError(t, gh.Connect(ctx))
+		if err := gh.Connect(ctx); err != nil {
+			t.Errorf("Gregor connection failed: %v", err)
+			return nil
+		}
 		ri = gh.GetClient()
 		serverConn = gh
 		tc.GregorConn = gh
@@ -1924,7 +1931,7 @@ func TestChatSrvGetMessagesLocal(t *testing.T) {
 			msgID := msg.GetMessageID()
 			require.Equal(t, getIDs[i], msgID, "Wrong message ID: got %v but expected %v", msgID, getIDs[i])
 		}
-		require.Equal(t, len(getIDs), len(res.Messages), "GetMessagesLocal got %v items but expected %v", len(res.Messages), len(getIDs))
+		require.Len(t, res.Messages, len(getIDs), "GetMessagesLocal got %v items but expected %v", len(res.Messages), len(getIDs))
 	})
 }
 
@@ -2966,7 +2973,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 					Pgmode:           chat1.GetThreadNonblockPgMode_SERVER,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		clock.Advance(50 * time.Millisecond)
@@ -3017,7 +3024,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 					Pgmode:           chat1.GetThreadNonblockPgMode_SERVER,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		clock.Advance(50 * time.Millisecond)
@@ -3068,7 +3075,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 						Pgmode:           chat1.GetThreadNonblockPgMode_SERVER,
 					},
 				)
-				require.NoError(t, err)
+				assert.NoError(t, err)
 				close(cb)
 			}()
 			clock.Advance(50 * time.Millisecond)
@@ -3167,7 +3174,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 					Query:            &query,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		clock.Advance(50 * time.Millisecond)
@@ -3203,7 +3210,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 					CbMode:           chat1.GetThreadNonblockCbMode_INCREMENTAL,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		clock.Advance(50 * time.Millisecond)
@@ -3311,7 +3318,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 					CbMode:         chat1.GetThreadNonblockCbMode_INCREMENTAL,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		clock.Advance(50 * time.Millisecond)
@@ -3362,7 +3369,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 					CbMode:         chat1.GetThreadNonblockCbMode_INCREMENTAL,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		clock.Advance(50 * time.Millisecond)
@@ -3658,7 +3665,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 					CbMode:         chat1.GetThreadNonblockCbMode_INCREMENTAL,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		select {
@@ -3762,7 +3769,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 					CbMode:         chat1.GetThreadNonblockCbMode_INCREMENTAL,
 				},
 			)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			close(cb)
 		}()
 		clock.Advance(50 * time.Millisecond)

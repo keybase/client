@@ -40,7 +40,7 @@ func TestLoginLoadUser(t *testing.T) {
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		eng := newLoginLoadUser(tc.G, test.input)
 		if err := RunEngine2(m, eng); err != nil {
-			require.NotNil(t, test.err, "%s: run error %s", test.name, err)
+			require.Error(t, test.err, "%s: run error %s", test.name, err)
 			if test.err != nil {
 				require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "%s: error type %T, expected %T", test.name, err, test.err)
 			}
@@ -74,7 +74,7 @@ func TestLoginLoadUserPrompt(t *testing.T) {
 		eng := newLoginLoadUser(tc.G, "")
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
-			require.NotNil(t, test.err, "%s: run error %s", test.name, err)
+			require.Error(t, test.err, "%s: run error %s", test.name, err)
 			if test.err != nil {
 				require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "%s: error type %T, expected %T", test.name, err, test.err)
 			}

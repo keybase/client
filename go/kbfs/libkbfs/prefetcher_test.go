@@ -20,6 +20,7 @@ import (
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -189,7 +190,7 @@ func notifySyncCh(t *testing.T, ch chan<- struct{}) {
 	case ch <- struct{}{}:
 		t.Log("Notified sync channel.")
 	case <-time.After(time.Second):
-		require.FailNow(t, fmt.Sprint("Error notifying sync channel. Stack:\n"+getStack()))
+		assert.Fail(t, fmt.Sprint("Error notifying sync channel. Stack:\n"+getStack()))
 	}
 }
 

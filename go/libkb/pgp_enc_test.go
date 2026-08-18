@@ -112,7 +112,7 @@ func TestPGPEncryptQuick(t *testing.T) {
 	}
 
 	err = quick.Check(f, nil)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 }
 
 func TestPGPEncryptLong(t *testing.T) {

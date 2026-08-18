@@ -1850,7 +1850,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 			ctx, dirA2, testPPS("g"), false, NoExcl)
 		assert.NoError(t, err)
 		err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		writeErrCh <- err
 	}()
 
@@ -1935,7 +1935,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		defer wg.Done()
 		_, _, err = kbfsOps2.CreateFile(
 			putCtx, rootNode2, testPPS("c"), false, NoExcl)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		err = kbfsOps2.SyncAll(putCtx, rootNode2.GetFolderBranch())
 		// Even though internally folderBranchOps ignores the
 		// cancellation error when putting on an unmerged branch, the

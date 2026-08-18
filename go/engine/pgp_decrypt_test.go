@@ -63,7 +63,7 @@ func TestPGPDecrypt(t *testing.T) {
 	decmsg := decoded.String()
 	require.Equal(t, msg, decmsg, "decoded: %q, expected: %q", decmsg, msg)
 
-	require.False(t, dec.Signer() != nil, "signer exists, but NoSign flag was true")
+	require.Nil(t, dec.Signer(), "signer exists, but NoSign flag was true")
 }
 
 func TestPGPDecryptArmored(t *testing.T) {
@@ -324,13 +324,13 @@ func TestPGPDecryptLong(t *testing.T) {
 		require.NoError(t, err)
 	}
 	decmsg := decoded.Bytes()
-	require.Equal(t, len(msg), len(decmsg), "decoded msg size: %d, expected %d", len(decmsg), len(msg))
+	require.Len(t, decmsg, len(msg), "decoded msg size: %d, expected %d", len(decmsg), len(msg))
 
 	for i, b := range msg {
 		require.Equal(t, b, decmsg[i], "decode msg differs at byte %d: %x, expected %x", i, decmsg[i], b)
 	}
 
-	require.False(t, dec.Signer() != nil, "signer exists, but NoSign flag set to true")
+	require.Nil(t, dec.Signer(), "signer exists, but NoSign flag set to true")
 }
 
 type cstest struct {
@@ -390,7 +390,7 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcSigner.G, recipient.Username))
 	require.NoError(t, err)
 	rkeys := ur.GetActivePGPKeys(false)
-	require.False(t, len(rkeys) == 0,
+	require.NotEmpty(t, rkeys,
 		"recipient has no active pgp keys")
 
 	// encrypt and sign a message with keyA

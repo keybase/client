@@ -470,8 +470,8 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	// Do these in the main goroutine since t isn't goroutine
 	// safe, and do these after wg.Wait() since we only know
 	// they're set after the goroutines exit.
-	require.False(t, readErr != nil, "Couldn't get children: %v", readErr)
-	require.False(t, writeErr != nil, "Couldn't write file: %v", writeErr)
+	require.NoError(t, readErr, "Couldn't get children: %v", readErr)
+	require.NoError(t, writeErr, "Couldn't write file: %v", writeErr)
 }
 
 // mdRecordingKeyManager records the last KeyMetadata argument seen
@@ -608,7 +608,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	// Do this in the main goroutine since it isn't goroutine safe,
 	// and do this after wg.Wait() since we only know it's set
 	// after the goroutine exits.
-	require.False(t, syncErr != nil, "Couldn't sync: %v", syncErr)
+	require.NoError(t, syncErr, "Couldn't sync: %v", syncErr)
 
 	md, err := fbo.getMDForRead(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err, "Couldn't get MD: %v", err)
@@ -682,7 +682,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	// after the goroutine exits.
 	select {
 	case syncErr := <-syncErrCh:
-		require.False(t, syncErr != nil, "Couldn't sync: %v", syncErr)
+		require.NoError(t, syncErr, "Couldn't sync: %v", syncErr)
 	case <-ctx.Done():
 		require.FailNow(t, fmt.Sprintf("Timeout waiting for sync: %v", ctx.Err()))
 	}
@@ -802,14 +802,14 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	// after the goroutine exits.
 	select {
 	case syncErr := <-syncErrCh:
-		require.False(t, syncErr != nil, "Couldn't sync: %v", syncErr)
+		require.NoError(t, syncErr, "Couldn't sync: %v", syncErr)
 	case <-ctx.Done():
 		require.FailNow(t, fmt.Sprintf("Timeout waiting for sync: %v", ctx.Err()))
 	}
 
 	select {
 	case writeErr := <-writeErrCh:
-		require.False(t, writeErr != nil, "Couldn't write file: %v", writeErr)
+		require.NoError(t, writeErr, "Couldn't write file: %v", writeErr)
 	case <-ctx.Done():
 		require.FailNow(t, fmt.Sprintf("Timeout waiting for write: %v", ctx.Err()))
 	}
@@ -1195,7 +1195,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	}()
 
 	err = kbfsOps.SyncAll(ctx2, fileNode.GetFolderBranch())
-	require.True(t, errors.Is(err, context.Canceled), "Sync did not get canceled error: %v", err)
+	require.ErrorIs(t, err, context.Canceled, "Sync did not get canceled error: %v", err)
 	if nowNBlocks != prevNBlocks+2 {
 		require.Failf(t, "", "Unexpected number of blocks; prev = %d, now = %d", prevNBlocks, nowNBlocks)
 	}
@@ -1326,7 +1326,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	err = config.BlockCache().DeletePermanent(errPtr.ID)
 	require.NoError(t, err)
 	_, err = config.BlockCache().Get(errPtr)
-	require.NotNil(t, err, "Failed block put for %v left block in cache", errPtr)
+	require.Error(t, err, "Failed block put for %v left block in cache", errPtr)
 
 	// State checking won't happen on the mock block server since we
 	// leave ourselves in a dirty state.
@@ -1598,7 +1598,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	t.Log("Unstall the sync.")
 	close(syncUnstallCh)
 	err = <-errChan
-	require.True(t, errors.Is(err, context.Canceled), "Sync got an unexpected error: %v", err)
+	require.ErrorIs(t, err, context.Canceled, "Sync got an unexpected error: %v", err)
 
 	t.Log("finish the sync.")
 	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
@@ -1836,7 +1836,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 
 	err = ops.fbm.waitForDeletingBlocks(ctx)
 	require.NoError(t, err)
-	require.False(t, len(ops.fbm.blocksToDeleteChan) > 0,
+	require.Empty(t, ops.fbm.blocksToDeleteChan,
 		"Blocks left to delete after sync")
 
 	// The first put actually succeeded, so SyncFromServer and make
@@ -1933,7 +1933,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	err = ops.fbm.waitForDeletingBlocks(ctx)
 	require.NoError(t, err)
-	require.False(t, len(ops.fbm.blocksToDeleteChan) > 0,
+	require.Empty(t, ops.fbm.blocksToDeleteChan,
 		"Blocks left to delete after sync")
 
 	// Wait for CR to finish
@@ -2003,7 +2003,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	// Unstall the sync.
 	close(syncUnstallCh)
 	err = <-errChan
-	require.True(t, errors.Is(err, context.Canceled), "Sync got wrong error: %v", err)
+	require.ErrorIs(t, err, context.Canceled, "Sync got wrong error: %v", err)
 
 	// Final sync
 	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())

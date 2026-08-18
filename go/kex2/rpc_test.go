@@ -15,6 +15,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,7 +62,7 @@ func makeLogFactory() rpc.LogFactory {
 func genUID(t *testing.T) keybase1.UID {
 	uid := make([]byte, 8)
 	if _, err := rand.Read(uid); err != nil {
-		require.NoError(t, err,
+		assert.NoError(t, err,
 			"rand failed: %v\n", err)
 	}
 	return keybase1.UID(hex.EncodeToString(uid))
@@ -70,7 +71,7 @@ func genUID(t *testing.T) keybase1.UID {
 func genKeybase1DeviceID(t *testing.T) keybase1.DeviceID {
 	did := make([]byte, 16)
 	if _, err := rand.Read(did); err != nil {
-		require.NoError(t, err,
+		assert.NoError(t, err,
 			"rand failed: %v\n", err)
 	}
 	return keybase1.DeviceID(hex.EncodeToString(did))
@@ -231,7 +232,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 func TestFullProtocolXSuccess(t *testing.T) {
 	results := testProtocolXWithBehavior(t, GoodProvisionee)
 	for i, e := range results {
-		require.Nil(t, e,
+		require.NoError(t, e,
 			"Bad error %d: %v", i, e)
 	}
 }
@@ -334,7 +335,7 @@ func TestFullProtocolY(t *testing.T) {
 			require.True(t, eof,
 				"got unexpected channel close (try %d)", i)
 		} else if e != nil {
-			require.Nil(t, e,
+			require.NoError(t, e,
 				"Unexpected error (receive %d): %v", i, e)
 		}
 	}

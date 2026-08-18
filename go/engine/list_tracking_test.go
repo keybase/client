@@ -124,7 +124,7 @@ func TestListTrackingLocal(t *testing.T) {
 	require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 
 	entries := eng.TableResult().Users
-	require.Equal(t, 2, len(entries), "Num tracks: %d, exected 2", len(entries))
+	require.Len(t, entries, 2, "Num tracks: %d, exected 2", len(entries))
 }
 
 func TestListTrackingServerInterference(t *testing.T) {

@@ -94,13 +94,13 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 		context.Background(), keybase1.MakeTestUID(1),
 		localUsers[0].VerifyingKeys[0], time.Now(),
 		keybase1.OfflineAvailability_NONE)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 
 	err = c.HasVerifyingKey(
 		context.Background(), keybase1.MakeTestUID(1),
 		kbfscrypto.VerifyingKey{}, time.Now(),
 		keybase1.OfflineAvailability_NONE)
-	require.NotNil(t, err, "HasVerifyingKey unexpectedly succeeded")
+	require.Error(t, err, "HasVerifyingKey unexpectedly succeeded")
 }
 
 func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
@@ -125,7 +125,7 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 	err = c.HasVerifyingKey(
 		context.Background(), keybase1.MakeTestUID(1), revokedKey,
 		revokeTime.Add(70*time.Second), keybase1.OfflineAvailability_NONE)
-	require.NotNil(t, err, "HasVerifyingKey unexpectedly succeeded")
+	require.Error(t, err, "HasVerifyingKey unexpectedly succeeded")
 }
 
 // Test that KBPKI forces a cache flush one time if it can't find a
@@ -161,7 +161,7 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	err := c.HasVerifyingKey(
 		context.Background(), u, key2, time.Now(),
 		keybase1.OfflineAvailability_NONE)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 }
 
 func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
@@ -194,13 +194,13 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 	c, _, _, localTeams := makeTestKBPKIClient(t)
 
-	require.False(t, len(localTeams) == 0, "No local teams were generated")
+	require.NotEmpty(t, localTeams, "No local teams were generated")
 
 	for _, team := range localTeams {
 		keys, keyGen, err := c.GetTeamTLFCryptKeys(
 			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen,
 			keybase1.OfflineAvailability_NONE)
-		require.NoError(t, err, err)
+		require.NoError(t, err)
 		if !reflect.DeepEqual(team.CryptKeys, keys) {
 			require.Failf(t, "", "Team TLF crypt keys don't match: %v vs %v", team.CryptKeys, keys)
 		}

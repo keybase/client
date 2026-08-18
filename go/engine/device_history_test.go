@@ -24,7 +24,7 @@ func TestDeviceHistoryBasic(t *testing.T) {
 		require.NoError(t, err)
 	}
 	devs := eng.Devices()
-	require.Equal(t, 2, len(devs), "num devices: %d, expected 2", len(devs))
+	require.Len(t, devs, 2, "num devices: %d, expected 2", len(devs))
 
 	var desktop keybase1.DeviceDetail
 	var paper keybase1.DeviceDetail
@@ -165,5 +165,5 @@ func TestDeviceHistoryPGP(t *testing.T) {
 		require.NoError(t, err)
 	}
 	devs := heng.Devices()
-	require.Equal(t, 1, len(devs), "num devices: %d, expected 1", len(devs))
+	require.Len(t, devs, 1, "num devices: %d, expected 1", len(devs))
 }

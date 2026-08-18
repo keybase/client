@@ -165,7 +165,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	tlfCryptKey, err := config.KeyManager().
 		GetTLFCryptKeyForEncryption(ctx, kmd)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
 		require.Failf(t, "", "got %v, expected %v", tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
@@ -173,7 +173,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	tlfCryptKey, err = config.KeyManager().
 		GetTLFCryptKeyForMDDecryption(ctx, kmd, kmd)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
 		require.Failf(t, "", "got %v, expected %v", tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
@@ -181,7 +181,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	tlfCryptKey, err = config.KeyManager().
 		GetTLFCryptKeyForBlockDecryption(ctx, kmd, data.BlockPointer{})
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 
 	if tlfCryptKey != kbfscrypto.PublicTLFCryptKey {
 		require.Failf(t, "", "got %v, expected %v", tlfCryptKey, kbfscrypto.PublicTLFCryptKey)
@@ -1067,7 +1067,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 		"Wrong kind of key manager for config2")
 	for keyGen := kbfsmd.FirstValidKeyGen; keyGen <= currKeyGen; keyGen++ {
 		_, err = km2.getTLFCryptKeyUsingCurrentDevice(ctx, rmd.ReadOnly(), keyGen, true)
-		require.NotNil(t, err, "User 2 could still fetch a key for keygen %d", keyGen)
+		require.Error(t, err, "User 2 could still fetch a key for keygen %d", keyGen)
 	}
 }
 

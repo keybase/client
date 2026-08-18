@@ -184,7 +184,7 @@ func TestChatMessageUnbox(t *testing.T) {
 		require.NoError(t, err)
 		boxed = remarshalBoxed(t, boxed)
 
-		require.False(t, msg.ClientHeader.OutboxID == boxed.ClientHeader.OutboxID,
+		require.NotSame(t, msg.ClientHeader.OutboxID, boxed.ClientHeader.OutboxID,
 			"defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
 
 		// need to give it a server header...
@@ -418,7 +418,7 @@ func TestChatMessageMissingOutboxID(t *testing.T) {
 	require.NoError(t, err)
 	boxed = remarshalBoxed(t, boxed)
 
-	require.False(t, msg.ClientHeader.OutboxID == boxed.ClientHeader.OutboxID,
+	require.NotSame(t, msg.ClientHeader.OutboxID, boxed.ClientHeader.OutboxID,
 		"defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
 	// omit outbox id
 	boxed.ClientHeader.OutboxID = nil
@@ -1686,7 +1686,7 @@ func TestRemarshalBoxed(t *testing.T) {
 	require.NotEqual(t, chat1.MessageBoxed{}, boxed2, "second shouldn't be zeroed")
 	require.Equal(t, boxed1.ClientHeader.OutboxID == nil, boxed2.ClientHeader.OutboxID == nil, "obids should have same nility")
 
-	require.False(t, boxed1.ClientHeader.OutboxID == boxed2.ClientHeader.OutboxID,
+	require.NotSame(t, boxed1.ClientHeader.OutboxID, boxed2.ClientHeader.OutboxID,
 		"obids should not have same address")
 
 	require.NotNil(t, boxed1.ClientHeader.OutboxID, "obid1 should not be nil")

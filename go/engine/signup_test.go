@@ -201,12 +201,12 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	require.NoError(t, err)
 
 	storedSecret, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 
 	require.True(t, secret.Equal(storedSecret), "Expected %v, got %v", secret, storedSecret)
 
 	err = tc.G.SecretStore().ClearSecret(NewMetaContextForTest(tc), fu.NormalizedUsername())
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 }
 
 func TestIssue280(t *testing.T) {

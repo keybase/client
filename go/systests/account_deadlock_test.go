@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,12 +58,16 @@ func TestAccountDeadlock(t *testing.T) {
 
 func issueSignup(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetSignupClient(g)
-	require.NoError(t, err,
-		"failed to get new identifyclient: %v", err)
+	if err != nil {
+		t.Errorf("failed to get new identifyclient: %v", err)
+		return
+	}
 
 	id, err := libkb.RandString("", 5)
-	require.NoError(t, err,
-		"Failed to get a random string: %s", err)
+	if err != nil {
+		t.Errorf("Failed to get a random string: %s", err)
+		return
+	}
 
 	arg := keybase1.SignupArg{
 		Email:      "test+" + id + "@keyba.se",
@@ -74,7 +79,7 @@ func issueSignup(t *testing.T, g *libkb.GlobalContext) {
 	}
 
 	if _, err := cli.Signup(context.TODO(), arg); err != nil {
-		require.NoError(t, err,
+		assert.NoError(t, err,
 			"signup failed: %s", err)
 	}
 }

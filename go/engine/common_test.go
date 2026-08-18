@@ -351,7 +351,7 @@ func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestCo
 }
 
 func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestContext)) (user *FakeUser, dev1 libkb.TestContext, dev2 libkb.TestContext, cleanup func()) {
-	require.False(t, len(nm) > 5,
+	require.LessOrEqual(t, len(nm), 5,
 		"Sorry, test name must be fewer than 6 chars (got %q)", nm)
 
 	// device X (provisioner) context:

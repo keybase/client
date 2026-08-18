@@ -73,13 +73,12 @@ func TestKex2Router(t *testing.T) {
 
 	// test calling receive before send
 	var wg sync.WaitGroup
+	var merr error
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		var merr error
 		// Very large timeout, for the benefit of CI, which may be slow
 		msgs, merr = kt.get(mr, 3, 10*time.Second)
-		require.False(t, merr != nil, "receive error: %s", merr)
 	}()
 
 	time.Sleep(3 * time.Millisecond)
@@ -88,11 +87,12 @@ func TestKex2Router(t *testing.T) {
 	}
 
 	wg.Wait()
+	require.NoError(t, merr, "receive error: %s", merr)
 	require.Len(t, msgs, 1, "number of messages: %d, expected 1", len(msgs))
 	require.Equal(t, m3, string(msgs[0]), "message: %q, expected %q", msgs[0], m3)
 
 	// test no messages ready
 	msgs, err = kt.get(mr, 4, 1*time.Millisecond)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(msgs), "number of messages: %d, expected 0", len(msgs))
+	require.Empty(t, msgs, "number of messages: %d, expected 0", len(msgs))
 }

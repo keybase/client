@@ -400,7 +400,7 @@ func TestSignupLogout(t *testing.T) {
 	case uid := <-nh.userCh:
 		tc.G.Log.Debug("Got notification from user changed handled (%s)", uid)
 		if e := libkb.CheckUIDAgainstUsername(uid, userInfo.username); e != nil {
-			require.Nil(t, e,
+			require.NoError(t, e,
 				"Bad UID back: %s != %s (%s)", uid, userInfo.username, e)
 		}
 	}

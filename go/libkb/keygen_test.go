@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"errors"
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -81,12 +80,12 @@ func TestCreateIds(t *testing.T) {
 		err := arg.Init()
 		require.NoError(t, err, "%s: arg init err: %s", test.name, err)
 		err = arg.CreatePGPIDs()
-		require.True(t, errors.Is(err, test.errOut), "%s: error %v, expected %v", test.name, err, test.errOut)
+		require.ErrorIs(t, err, test.errOut, "%s: error %v, expected %v", test.name, err, test.errOut)
 		if test.errOut != nil {
 			// this is an error test, no need to do anything else
 			continue
 		}
-		require.Equal(t, len(test.idsOut), len(arg.IDs), "%s: %d IDs, expected %d.", test.name, len(arg.IDs), len(test.idsOut))
+		require.Len(t, arg.IDs, len(test.idsOut), "%s: %d IDs, expected %d.", test.name, len(arg.IDs), len(test.idsOut))
 		for i, id := range arg.IDs {
 			require.Equal(t, test.idsOut[i], id, "%s: id %d = %+v, expected %+v", test.name, i, id, test.idsOut[i])
 		}
@@ -98,7 +97,7 @@ func TestCreateIds(t *testing.T) {
 		// test the PGPKeyBundle
 		bundle, err := GeneratePGPKeyBundle(tc.G, *arg, tc.G.UI.GetLogUI())
 		require.NoError(t, err, "%s: bundle error: %s", test.name, err)
-		require.Equal(t, len(test.idsOut), len(bundle.Identities), "%s: %d bundle ids, expected %d", test.name, len(bundle.Identities), len(test.idsOut))
+		require.Len(t, bundle.Identities, len(test.idsOut), "%s: %d bundle ids, expected %d", test.name, len(bundle.Identities), len(test.idsOut))
 		pids, err := arg.PGPUserIDs()
 		require.NoError(t, err, "%s: pgp user id conversion error: %q", test.name, err)
 		for _, id := range pids {

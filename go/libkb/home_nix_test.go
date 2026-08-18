@@ -18,11 +18,11 @@ func TestPosix(t *testing.T) {
 	hf := NewHomeFinder("tester", nil, nil, nil, "posix", func() RunMode { return ProductionRunMode },
 		makeLogGetter(t), nil)
 	d := hf.CacheDir()
-	require.True(t, strings.Contains(d, ".cache/tester"), "Bad Cache dir: %s", d)
+	require.Contains(t, d, ".cache/tester", "Bad Cache dir: %s", d)
 	d = hf.DataDir()
-	require.True(t, strings.Contains(d, ".local/share/tester"), "Bad Data dir: %s", d)
+	require.Contains(t, d, ".local/share/tester", "Bad Data dir: %s", d)
 	d = hf.ConfigDir()
-	require.True(t, strings.Contains(d, ".config/tester"), "Bad Config dir: %s", d)
+	require.Contains(t, d, ".config/tester", "Bad Config dir: %s", d)
 }
 
 func TestDarwinHomeFinder(t *testing.T) {

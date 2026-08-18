@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -295,18 +296,18 @@ func TestUPAKDeadlock(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		_ = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
-			require.Equal(t, u.GetUID(), fu.UID(), "right UID")
+			assert.Equal(t, fu.UID(), u.GetUID(), "right UID")
 			return nil
 		})
-		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		un, err := tc.G.GetUPAKLoader().LookupUsername(context.TODO(), fu.UID())
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		if un.String() != fu.Username {
 			t.Errorf("username mismatch: %s != %s", un, fu.Username)
 		}

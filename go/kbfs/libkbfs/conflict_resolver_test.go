@@ -1322,7 +1322,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 		_, ok := block1.Children[file]
 		require.True(t, ok, "Couldn't find entry in merged children: %s", file)
 	}
-	require.Equal(t, 0, len(newFileBlocks.blocks), "Unexpected new file blocks!")
+	require.Empty(t, newFileBlocks.blocks, "Unexpected new file blocks!")
 }
 
 // Test that actions get executed properly in the case of two
@@ -1419,7 +1419,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
 	cre := WriterDeviceDateConflictRenamer{}
 	mergedName := cre.ConflictRenameHelper(now, "u2", "dev1", "file")
-	require.Equal(t, 1, len(newFileBlocks.blocks), "Unexpected new file blocks!")
+	require.Len(t, newFileBlocks.blocks, 1, "Unexpected new file blocks!")
 	if blocks, ok := newFileBlocks.blocks[mergedRootPath.TailPointer()]; !ok {
 		require.Failf(t, "", "No blocks for dir merged ptr: %v", mergedRootPath.TailPointer())
 	} else if len(blocks) != 1 {

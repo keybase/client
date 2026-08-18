@@ -34,7 +34,7 @@ func _testListTrackers2(t *testing.T, sigVersion libkb.SigVersion) {
 		require.NoError(t, err)
 	}
 	res := e.GetResults()
-	require.False(t, len(res.Users) == 0, "t_alice tracker count: 0. expected > 0.")
+	require.NotEmpty(t, res.Users, "t_alice tracker count: 0. expected > 0.")
 
 	found := false
 	for _, x := range res.Users {

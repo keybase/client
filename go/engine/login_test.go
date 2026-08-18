@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/keybase/client/go/kex2"
@@ -190,7 +191,7 @@ func TestUserEmails(t *testing.T) {
 	CreateAndSignupFakeUser(tc, "login")
 	emails, err := libkb.LoadUserEmails(NewMetaContextForTest(tc))
 	require.NoError(t, err)
-	require.False(t, len(emails) == 0, "No emails for user")
+	require.NotEmpty(t, emails, "No emails for user")
 }
 
 func TestProvisionDesktopAfterSwitch(t *testing.T) {
@@ -1055,8 +1056,9 @@ func TestProvisionWithUnexpectedX(t *testing.T) {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "different user")
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), "different user")
+		}
 	}()
 
 	// start provisioner
@@ -1072,8 +1074,9 @@ func TestProvisionWithUnexpectedX(t *testing.T) {
 		}
 		m := NewMetaContextForTest(tcF).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "different user")
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), "different user")
+		}
 	}()
 
 	secretFromY := <-secretCh
@@ -1205,7 +1208,7 @@ func testProvisionPaperOnly(t *testing.T, changePaperkey func(s string) string) 
 	<-ch
 
 	device = m2.ActiveDevice().ProvisioningKey(m2)
-	require.False(t, device != nil, "Got a non-null paper encryption key after timeout")
+	require.Nil(t, device, "Got a non-null paper encryption key after timeout")
 
 	testSign(t, tc2)
 
@@ -1594,7 +1597,7 @@ func TestProvisionGPGSign(t *testing.T) {
 
 		// since they *did not* import a pgp key, they should *not* be able to pgp sign something:
 		err := signString(tc2, "sign me", u1.NewSecretUI())
-		require.NotNil(t, err, "pgp sign worked after gpg provision w/o import")
+		require.Error(t, err, "pgp sign worked after gpg provision w/o import")
 
 		t.Logf("test run %d: all checks passed, returning", i+1)
 		return
@@ -2004,7 +2007,7 @@ func TestProvisionDupDevice(t *testing.T) {
 
 	// start provisionee
 	err := RunEngine2(m, eng)
-	require.NotNil(t, err, "login ran without error")
+	require.Error(t, err, "login ran without error")
 
 	// Note: there is no need to start the provisioner as the provisionee will
 	// fail because of the duplicate device name before the provisioner
@@ -2507,7 +2510,7 @@ func TestResetAccount(t *testing.T) {
 
 	newDevice := tc.G.Env.GetDeviceID()
 
-	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
+	require.NotEqual(t, newDevice, originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tc)
 }
@@ -2529,7 +2532,7 @@ func TestResetAccountNoLogout(t *testing.T) {
 
 	newDevice := tc.G.Env.GetDeviceID()
 
-	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
+	require.NotEqual(t, newDevice, originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tc)
 }
@@ -2560,7 +2563,7 @@ func TestResetAccountNoLogoutSelfCache(t *testing.T) {
 
 	newDevice := tc.G.Env.GetDeviceID()
 
-	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
+	require.NotEqual(t, newDevice, originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tc)
 }
@@ -2583,7 +2586,7 @@ func TestResetAccountNewHome(t *testing.T) {
 
 	newDevice := tcp.G.Env.GetDeviceID()
 
-	require.False(t, newDevice == originalDevice, "device id did not change: %s", newDevice)
+	require.NotEqual(t, newDevice, originalDevice, "device id did not change: %s", newDevice)
 
 	testUserHasDeviceKey(tcp)
 }
@@ -2625,7 +2628,7 @@ func TestResetAccountPaper(t *testing.T) {
 	if err := RunEngine2(m, peng); err != nil {
 		require.NoError(t, err)
 	}
-	require.False(t, len(peng.Passphrase()) == 0,
+	require.NotEmpty(t, peng.Passphrase(),
 		"empty paper phrase")
 	paper = peng.Passphrase()
 
@@ -2991,7 +2994,7 @@ func TestResetMultipleDevices(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	require.False(t, tcX.G.Env.GetDeviceID() == deviceX, "device id did not change")
+	require.NotEqual(t, tcX.G.Env.GetDeviceID(), deviceX, "device id did not change")
 }
 
 // If there is a bad device id in the config file, provisioning
@@ -3077,8 +3080,8 @@ func TestProvisionWithBadConfig(t *testing.T) {
 
 	wg.Wait()
 
-	require.False(t, tcY.G.Env.GetDeviceID() == newID, "y device id: %s, same as %s.  expected it to change.", tcY.G.Env.GetDeviceID(), newID)
-	require.False(t, tcY.G.Env.GetDeviceID() == tcX.G.Env.GetDeviceID(), "y device id matches x device id, they should be different")
+	require.NotEqual(t, tcY.G.Env.GetDeviceID(), newID, "y device id: %s, same as %s.  expected it to change.", tcY.G.Env.GetDeviceID(), newID)
+	require.NotEqual(t, tcY.G.Env.GetDeviceID(), tcX.G.Env.GetDeviceID(), "y device id matches x device id, they should be different")
 
 	err = AssertProvisioned(tcY)
 	require.NoError(t, err)
@@ -3142,11 +3145,11 @@ func TestProvisionerSecretStore(t *testing.T) {
 	for {
 		select {
 		case e := <-errY:
-			require.Nil(t, e,
+			require.NoError(t, e,
 				"provisionee error: %s", e)
 			yDone = true
 		case e := <-errX:
-			require.Nil(t, e,
+			require.NoError(t, e,
 				"provisioner error: %s", e)
 			xDone = true
 		}
@@ -3526,7 +3529,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 		// Since this was GPG sign, there will be no secret stored.
 		oeng := NewLoginOffline(tc2.G)
 		oerr := RunEngine2(m, oeng)
-		require.Nil(t, oerr,
+		require.NoError(t, oerr,
 			"LoginOffline failed after gpg sign + svc restart: %s", oerr)
 
 		// GetBootstrapStatus should return without error and with LoggedIn set
@@ -3537,7 +3540,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 			require.NoError(t, err)
 		}
 		status := beng.Status()
-		require.Equal(t, true, status.LoggedIn, "bootstrap status -> logged out, expected logged in")
+		require.True(t, status.LoggedIn, "bootstrap status -> logged out, expected logged in")
 		require.True(t, status.Registered, "registered false")
 
 		t.Logf("test run %d: all checks passed, returning", i+1)
@@ -3646,7 +3649,7 @@ func TestBeforeResetDeviceName(t *testing.T) {
 	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	require.NotNil(t, err, "Login worked with pre-reset device name")
+	require.Error(t, err, "Login worked with pre-reset device name")
 	require.NotEmpty(t, provui.ExistingDevicesFromArg, "no existing devices provided to provision ui, expected 1 (pre reset)")
 	require.Equal(t, originalDeviceName, provui.ExistingDevicesFromArg[0], "existing device name 0: %q, expected %q", provui.ExistingDevicesFromArg[0], originalDeviceName)
 }
@@ -3667,7 +3670,7 @@ func TestProvisioningWithSmartPunctuationDeviceName(t *testing.T) {
 	require.NoError(t, err, "unable to load user: %q", err)
 	deviceNames, err := fu.User.DeviceNames()
 	require.NoError(t, err, "unable to list device names: %q", err)
-	require.False(t, len(deviceNames) < 1, "no devices returned")
+	require.GreaterOrEqual(t, len(deviceNames), 1, "no devices returned")
 	require.Equal(t, desiredName, deviceNames[0], "device name 0: %q, should be %q", deviceNames[0], desiredName)
 }
 

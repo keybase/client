@@ -17,7 +17,7 @@ func parse(t *testing.T, kr string) *GpgKeyIndex {
 	defer tc.Cleanup()
 	buf := bytes.NewBufferString(kr)
 	i, w, e := ParseGpgIndexStream(tc.MetaContext(), buf)
-	require.Nil(t, e,
+	require.NoError(t, e,
 		"failure in parse: %s", e)
 
 	require.True(t, w.IsEmpty(), "Warnings in parsing")
@@ -33,7 +33,7 @@ func TestFindMax(t *testing.T) {
 	index := parse(t, myKeyring)
 	keylist := index.Emails.Get("max1@keybase.io")
 	require.NotNil(t, keylist, "nil keylist was not expected")
-	require.Equal(t, 1, len(keylist), "expected one key for max, found %d", len(keylist))
+	require.Len(t, keylist, 1, "expected one key for max, found %d", len(keylist))
 	expected := map[string]bool{
 		"F544F89FB9AFC481DCB26730D28390C6F7CDD0BA": true,
 	}
@@ -49,13 +49,13 @@ func TestYubikeyFixedSecretKeys(t *testing.T) {
 	index := parse(t, yubikey4fixed)
 	keylist := index.Emails.Get("dain@yubico.com")
 	require.NotNil(t, keylist, "nil keylist was not expected")
-	require.Equal(t, 1, len(keylist), "expected two keys for max")
+	require.Len(t, keylist, 1, "expected two keys for max")
 }
 
 func TestYubikeyOrigSecretKeys(t *testing.T) {
 	index := parse(t, yubikey4orig)
 	keylist := index.Emails.Get("dain@yubico.com")
-	require.False(t, keylist != nil, "nil keylist was expected")
+	require.Nil(t, keylist, "nil keylist was expected")
 }
 
 func TestGPGIndex2Dot1(t *testing.T) {
@@ -64,7 +64,7 @@ func TestGPGIndex2Dot1(t *testing.T) {
 		"parsing failed")
 	keylist := index.Emails.Get("themax+test@gmail.com")
 	require.NotNil(t, keylist, "nil keylist was not expected")
-	require.Equal(t, 1, len(keylist), "expected one key for max")
+	require.Len(t, keylist, 1, "expected one key for max")
 }
 
 func TestGPGFindGreg(t *testing.T) {

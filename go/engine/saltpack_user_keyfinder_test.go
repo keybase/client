@@ -40,5 +40,5 @@ func TestSaltpackUserKeyfinder(t *testing.T) {
 	}
 
 	up := eng.GetPublicKIDs()
-	require.Equal(t, 3, len(up), "number of users found: %d, expected 3", len(up))
+	require.Len(t, up, 3, "number of users found: %d, expected 3", len(up))
 }

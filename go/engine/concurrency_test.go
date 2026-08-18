@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 var runConc = flag.Bool("conc", false, "run (expensive) concurrency tests")
@@ -38,7 +38,7 @@ func TestConcurrentLogin(t *testing.T) {
 			for range 4 {
 				Logout(tc)
 				err := u.Login(tc.G)
-				require.NoError(t, err)
+				assert.NoError(t, err)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -53,7 +53,7 @@ func TestConcurrentLogin(t *testing.T) {
 					return
 				default:
 					_, err := tc.G.ActiveDevice.NIST(context.Background())
-					require.NoError(t, err)
+					assert.NoError(t, err)
 					tc.G.ActiveDevice.UID()
 					tc.G.ActiveDevice.Valid()
 				}
@@ -90,7 +90,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 			for range 4 {
 				Logout(tc)
 				err := u.Login(tc.G)
-				require.NoError(t, err)
+				assert.NoError(t, err)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -139,7 +139,7 @@ func TestConcurrentSignup(t *testing.T) {
 			for range 4 {
 				Logout(tc)
 				err := u.Login(tc.G)
-				require.NoError(t, err)
+				assert.NoError(t, err)
 				Logout(tc)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
@@ -149,7 +149,7 @@ func TestConcurrentSignup(t *testing.T) {
 		go func(index int) {
 			defer mwg.Done()
 			_, err := CreateAndSignupFakeUserSafe(tc.G, "login")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			Logout(tc)
 			fmt.Printf("func caller %d done\n", index)
 		}(i)

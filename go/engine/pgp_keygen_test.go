@@ -50,7 +50,7 @@ func TestPGPKeyGenPush(t *testing.T) {
 	if err := RunEngine2(m, xe); err != nil {
 		require.NoError(t, err)
 	}
-	require.Equal(t, 1, len(xe.Results()), "result keys: %d, expected 1", len(xe.Results()))
+	require.Len(t, xe.Results(), 1, "result keys: %d, expected 1", len(xe.Results()))
 }
 
 func TestPGPKeyGenNoPush(t *testing.T) {
@@ -92,5 +92,5 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 	if err := RunEngine2(m, xe); err != nil {
 		require.NoError(t, err)
 	}
-	require.Equal(t, 1, len(xe.Results()), "result keys: %d, expected 1", len(xe.Results()))
+	require.Len(t, xe.Results(), 1, "result keys: %d, expected 1", len(xe.Results()))
 }

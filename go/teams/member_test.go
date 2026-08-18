@@ -158,7 +158,7 @@ func TestMemberAddOK(t *testing.T) {
 
 	// second AddMember should return err
 	_, err = AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER, nil)
-	require.NotNil(t, err, "second AddMember succeeded, should have failed since user already a member")
+	require.Error(t, err, "second AddMember succeeded, should have failed since user already a member")
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 }
@@ -262,7 +262,7 @@ func TestMemberAddInvalidRole(t *testing.T) {
 	defer tc.Cleanup()
 
 	_, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole(8888), nil)
-	require.NotNil(t, err, "AddMember worked with invalid role")
+	require.Error(t, err, "AddMember worked with invalid role")
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 }
@@ -477,7 +477,7 @@ func TestMemberAddHasBoxes(t *testing.T) {
 	_, boxes, _, _, _, _, err := tm.changeMembershipSection(context.TODO(), req, false /* skipKeyRotation */)
 	require.NoError(t, err)
 	require.NotNil(t, boxes, "add member failed to make new boxes")
-	require.NotZero(t, len(boxes.Boxes), "add member failed to make new boxes")
+	require.NotEmpty(t, boxes.Boxes, "add member failed to make new boxes")
 }
 
 // make sure that changing a role does not send new boxes for the
@@ -587,7 +587,7 @@ func TestMemberAddNoPUK(t *testing.T) {
 
 		// second AddMember should return err
 		_, err = AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER, nil)
-		require.NotNil(t, err, "second AddMember succeeded, should have failed since user already invited")
+		require.Error(t, err, "second AddMember succeeded, should have failed since user already invited")
 
 		// existing invite should be untouched
 		assertInvite(tc, name, fqUID, "keybase", role)
@@ -615,7 +615,7 @@ func TestMemberAddNoKeys(t *testing.T) {
 
 	// second AddMember should return err
 	_, err = AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER, nil)
-	require.NotNil(t, err, "second AddMember succeeded, should have failed since user already invited")
+	require.Error(t, err, "second AddMember succeeded, should have failed since user already invited")
 
 	// existing invite should be untouched
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
@@ -696,7 +696,7 @@ func TestMemberAddEmail(t *testing.T) {
 
 	// second InviteEmailPhoneMember should return err
 	err := InviteEmailPhoneMember(context.TODO(), tc.G, teamID, address, "email", keybase1.TeamRole_WRITER)
-	require.NotNil(t, err, "second InviteEmailMember succeeded, should have failed since user already invited")
+	require.Error(t, err, "second InviteEmailMember succeeded, should have failed since user already invited")
 
 	// existing invite should be untouched
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)

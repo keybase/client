@@ -132,7 +132,7 @@ func TestUnits(t *testing.T) {
 			t.Logf("  ⏭️ %s", name)
 		}
 	}
-	require.False(t, len(selectUnit) > 0,
+	require.Empty(t, selectUnit,
 		"test passed but only ran selected unit: %v", runLog)
 }
 

@@ -258,7 +258,7 @@ func TestWatchdogExitAllRace(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			err := Watch([]Program{exiter, procProgram1, procProgram2}, 0, testLog)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 		}()
 	}
 	wg.Wait()

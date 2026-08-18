@@ -18,11 +18,11 @@ import (
 func checkReportedErrors(t *testing.T, expected []error,
 	got []ReportedError,
 ) {
-	require.Equal(t, len(got), len(expected), "Unexpected number of errors: %d", len(got))
+	require.Len(t, got, len(expected), "Unexpected number of errors: %d", len(got))
 
 	for i, e := range expected {
 		g := got[i]
-		require.True(t, errors.Is(e, g.Error), "Unexpected error at %d: %s vs %s", i, e, g.Error)
+		require.ErrorIs(t, e, g.Error, "Unexpected error at %d: %s vs %s", i, e, g.Error)
 	}
 }
 

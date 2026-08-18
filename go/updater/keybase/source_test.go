@@ -35,7 +35,7 @@ func newTestAPIServer(t *testing.T, jsonString string) *testAPIServer {
 		buf := bytes.NewBuffer([]byte(jsonString))
 		w.Header().Set("Content-Type", "application/json")
 		_, err := io.Copy(w, buf)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}))
 
 	apiServer.server = server

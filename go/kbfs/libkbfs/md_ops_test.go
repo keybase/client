@@ -540,7 +540,7 @@ func testMDOpsGetBlankSigFailure(t *testing.T, ver kbfsmd.MetadataVer) {
 	expectGetKeyBundles(ctx, config, extra)
 
 	_, err := config.MDOps().GetForTLF(ctx, rmds.MD.TlfID(), nil)
-	require.NotNil(t, err, "Got no error on get")
+	require.Error(t, err, "Got no error on get")
 }
 
 func testMDOpsGetFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -573,7 +573,7 @@ func testMDOpsGetFailIDCheck(t *testing.T, ver kbfsmd.MetadataVer) {
 	expectGetKeyBundles(ctx, config, extra)
 
 	_, err := config.MDOps().GetForTLF(ctx, id2, nil)
-	require.NotNil(t, err, "Got no error on bad id check test")
+	require.Error(t, err, "Got no error on bad id check test")
 }
 
 func makeRMDSRange(t *testing.T, config Config,

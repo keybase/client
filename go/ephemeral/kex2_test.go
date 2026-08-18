@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -113,7 +114,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			mctxY = mctxY.WithUIs(uis).WithNewProvisionalLoginContext()
 			return engine.RunEngine2(mctxY, provisionee)
 		})()
-		require.NoError(t, err, "provisionee")
+		assert.NoError(t, err, "provisionee")
 	}()
 
 	// start provisioner

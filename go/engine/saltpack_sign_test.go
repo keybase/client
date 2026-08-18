@@ -60,7 +60,7 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		sig := sink.String()
 
-		require.False(t, len(sig) == 0, "%s: empty sig", test.name)
+		require.NotEmpty(t, sig, "%s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -94,7 +94,7 @@ func TestSaltpackSignVerify(t *testing.T) {
 		}
 		veng = NewSaltpackVerify(tc.G, varg)
 		err = RunEngine2(m, veng)
-		require.NotNil(t, err, "%s: verify w/ SignedBy=unknown worked, should have failed", test.name)
+		require.Error(t, err, "%s: verify w/ SignedBy=unknown worked, should have failed", test.name)
 	}
 
 	// now try the same messages, but generate detached signatures
@@ -120,7 +120,7 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		sig := sink.Bytes()
 
-		require.False(t, len(sig) == 0, "(detached) %s: empty sig", test.name)
+		require.NotEmpty(t, sig, "(detached) %s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -167,7 +167,7 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 
 		sig := sink.String()
 
-		require.False(t, len(sig) == 0, "%s: empty sig", test.name)
+		require.NotEmpty(t, sig, "%s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -205,7 +205,7 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 
 		sig := sink.Bytes()
 
-		require.False(t, len(sig) == 0, "(detached) %s: empty sig", test.name)
+		require.NotEmpty(t, sig, "(detached) %s: empty sig", test.name)
 
 		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
@@ -292,7 +292,7 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 	}
 	veng = NewSaltpackVerify(tc.G, varg)
 	err := RunEngine2(m, veng)
-	require.NotNil(t, err, "verify w/ SignedBy unknown didn't fail")
+	require.Error(t, err, "verify w/ SignedBy unknown didn't fail")
 }
 
 func TestSaltpackVerifyRevoked(t *testing.T) {

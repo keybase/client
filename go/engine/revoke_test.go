@@ -508,7 +508,8 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 	err := doRevokeDevice(tc, u1, thisDevice.ID, false, false)
 	require.Error(t, err,
 		"Expected revoking the current device to fail.")
-	require.IsType(t, libkb.RevokeLastDevicePGPError{}, err, "expected libkb.RevokeLastDevicePGPError, got %T", err)
+	var revokeErr libkb.RevokeLastDevicePGPError
+	require.ErrorAs(t, err, &revokeErr, "expected libkb.RevokeLastDevicePGPError, got %T", err)
 
 	assertNumDevicesAndKeys(tc, u1, 1, 3)
 
@@ -516,7 +517,7 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 	err = doRevokeDevice(tc, u1, thisDevice.ID, true, false)
 	require.Error(t, err,
 		"Expected revoking the current last device to fail.")
-	require.IsType(t, libkb.RevokeLastDevicePGPError{}, err, "expected libkb.RevokeLastDevicePGPError, got %T", err)
+	require.ErrorAs(t, err, &revokeErr, "expected libkb.RevokeLastDevicePGPError, got %T", err)
 
 	assertNumDevicesAndKeys(tc, u1, 1, 3)
 
@@ -524,7 +525,7 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 	err = doRevokeDevice(tc, u1, thisDevice.ID, true, true)
 	require.Error(t, err,
 		"Expected revoking current last device with forceLast to fail")
-	require.IsType(t, libkb.RevokeLastDevicePGPError{}, err, "expected libkb.RevokeLastDevicePGPError, got %T", err)
+	require.ErrorAs(t, err, &revokeErr, "expected libkb.RevokeLastDevicePGPError, got %T", err)
 
 	assertNumDevicesAndKeys(tc, u1, 1, 3)
 }

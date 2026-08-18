@@ -357,7 +357,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
 	require.NoError(t, err, "Got error on favorites: %+v", err)
-	require.Equal(t, len(handles)-1, len(handles2), "Got bad handles back: %v", handles2)
+	require.Len(t, handles2, len(handles)-1, "Got bad handles back: %v", handles2)
 }
 
 func TestKBFSOpsGetFavoritesFail(t *testing.T) {
@@ -898,7 +898,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 		h, "alice", "/keybase/private/bob#alice")
 
 	_, err = config.KBFSOps().GetDirChildren(ctx, n)
-	require.NotNil(t, err, "Got no expected error on getdir")
+	require.Error(t, err, "Got no expected error on getdir")
 	require.Equal(t, expectedErr, err, "Got unexpected error on root MD: %+v", err)
 }
 
@@ -926,7 +926,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	expectBlock(config, rmd, blockPtr, dirBlock, err)
 
 	_, err2 := config.KBFSOps().GetDirChildren(ctx, n)
-	require.NotNil(t, err2, "Got no expected error on getdir")
+	require.Error(t, err2, "Got no expected error on getdir")
 	require.Equal(t, err, err2, "Got unexpected error on root MD: %+v", err)
 }
 
@@ -1115,7 +1115,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 	expectedErr := idutil.NoSuchNameError{Name: "c"}
 	_, _, err := config.KBFSOps().Lookup(ctx, n, testPPS("c"))
-	require.NotNil(t, err, "No error as expected on Lookup")
+	require.Error(t, err, "No error as expected on Lookup")
 	require.Equal(t, expectedErr, err, "Unexpected error after bad Lookup: %+v", err)
 }
 
@@ -1174,7 +1174,7 @@ func TestKBFSOpsReadNewDataVersionFail(t *testing.T) {
 
 	buf := make([]byte, 1)
 	_, err = config.KBFSOps().Read(ctx, n, buf, 0)
-	require.NotNil(t, err, "No expected error found on read")
+	require.Error(t, err, "No expected error found on read")
 	require.Equal(t, expectedErr.Error(), err.Error(), "Unexpected error after bad read: %+v", err)
 }
 
@@ -1301,7 +1301,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	} else {
 		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS("a"), testPPS("b"))
 	}
-	require.NotNil(t, err, "Got no expected error on create")
+	require.Error(t, err, "Got no expected error on create")
 	require.Equal(t, expectedErr, err, "Got unexpected error on create: %+v", err)
 }
 
@@ -1348,7 +1348,7 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 		_, err = config.KBFSOps().CreateLink(
 			ctx, n, testPPS(name), testPPS("b"))
 	}
-	require.NotNil(t, err, "Got no expected error on create")
+	require.Error(t, err, "Got no expected error on create")
 	require.Equal(t, expectedErr, err, "Got unexpected error on create: %+v", err)
 }
 
@@ -1404,7 +1404,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 		_, _, err = config.KBFSOps().CreateFile(
 			ctx, n, testPPS(name), false, NoExcl)
 	}
-	require.NotNil(t, err, "Got no expected error on create")
+	require.Error(t, err, "Got no expected error on create")
 	require.True(t, errors.Is(err, expectedErr), "Got unexpected error on create: %+v", err)
 }
 
@@ -1652,7 +1652,7 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	expectedErr := RenameAcrossDirsError{}
 
 	err = config.KBFSOps().Rename(ctx, n1, testPPS("b"), n2, testPPS("c"))
-	require.NotNil(t, err, "Got no expected error on rename")
+	require.Error(t, err, "Got no expected error on rename")
 	require.Equal(t, expectedErr.Error(), err.Error(), "Got unexpected error on rename: %+v", err)
 }
 
@@ -1943,7 +1943,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n)
 	_, err2 := config.KBFSOps().Read(ctx, pNode, dest, 0)
-	require.NotNil(t, err2, "Got no expected error")
+	require.Error(t, err2, "Got no expected error")
 	require.Equal(t, err, err2, "Got unexpected error: %+v", err2)
 }
 
@@ -2883,7 +2883,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 
 	// chmod a+x a
 	err := config.KBFSOps().SetEx(ctx, n, true)
-	require.NotNil(t, err, "Got no expected error on setex")
+	require.Error(t, err, "Got no expected error on setex")
 	require.Equal(t, expectedErr, err, "Got unexpected error on setex: %+v", err)
 }
 
@@ -2959,7 +2959,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 
 	newMtime := time.Now()
 	err := config.KBFSOps().SetMtime(ctx, n, &newMtime)
-	require.NotNil(t, err, "Got no expected error on setmtime")
+	require.Error(t, err, "Got no expected error on setmtime")
 	require.Equal(t, expectedErr, err, "Got unexpected error on setmtime: %+v", err)
 }
 

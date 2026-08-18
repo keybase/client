@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -194,7 +195,7 @@ func (mr *mockRouter) Get(i SessionID, receiver DeviceID, seqno Seqno, poll time
 
 func genSecret(t *testing.T) (ret Secret) {
 	_, err := rand.Read(ret[:])
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	return ret
 }
 

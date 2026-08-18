@@ -15,7 +15,7 @@ func TestParse(t *testing.T) {
 	p, err := parse(testPvlString)
 	require.NoError(t, err,
 		"parse failed: %v", err)
-	require.False(t, p.PvlVersion < 0,
+	require.GreaterOrEqual(t, p.PvlVersion, 0,
 		"version should be >=0: %v", p.PvlVersion)
 }
 
@@ -31,10 +31,10 @@ func TestParse2(t *testing.T) {
 	cbss, ok := p.Services.Map[keybase1.ProofType_TWITTER]
 	require.True(t, ok,
 		"no twittter service entry")
-	require.False(t, len(cbss) < 1,
+	require.GreaterOrEqual(t, len(cbss), 1,
 		"no scripts")
 	cbs := cbss[0]
-	require.False(t, len(cbs.Instructions) < 1,
+	require.GreaterOrEqual(t, len(cbs.Instructions), 1,
 		"empty script")
 	require.NotNil(t, cbs.Instructions[0].RegexCapture,
 		"first instruction is not a regex capture")

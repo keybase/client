@@ -43,7 +43,7 @@ func TestTeamApplicationKey(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamApplication_CHAT, chatKey.Application, "key application: %d, expected %d", chatKey.Application, keybase1.TeamApplication_CHAT)
 	require.Equal(t, 1, chatKey.Generation(), "key generation: %d, expected 1", chatKey.Generation())
-	require.Equal(t, 32, len(chatKey.Key), "key length: %d, expected 32", len(chatKey.Key))
+	require.Len(t, chatKey.Key, 32, "key length: %d, expected 32", len(chatKey.Key))
 }
 
 func TestTeamGetRepeat(t *testing.T) {
@@ -214,21 +214,31 @@ func teamGet(t *testing.T) {
 	defer tc.Cleanup()
 
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	if err != nil {
+		t.Errorf("failed to create test user: %v", err)
+		return
+	}
 
 	name := createTeam(tc)
 
 	_, err = GetForTestByStringName(context.TODO(), tc.G, name)
-	require.NoError(t, err)
+	if err != nil {
+		t.Errorf("failed to load team: %v", err)
+	}
 }
 
 func createTeam(tc libkb.TestContext) string {
 	b, err := libkb.RandBytes(4)
-	require.NoError(tc.T, err)
+	if err != nil {
+		tc.T.Errorf("failed to generate team name: %v", err)
+		return ""
+	}
 
 	name := hex.EncodeToString(b)
 	_, err = CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
-	require.NoError(tc.T, err)
+	if err != nil {
+		tc.T.Errorf("failed to create root team: %v", err)
+	}
 
 	return name
 }

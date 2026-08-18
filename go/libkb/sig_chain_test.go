@@ -217,7 +217,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	// Some tests expect an error. If we get one, make sure it's the right
 	// type.
 	if testCase.ErrType != "" {
-		require.NotNil(t, sigchainErr,
+		require.Error(t, sigchainErr,
 			"Expected %s error from VerifySigsAndComputeKeys. No error returned.", testCase.ErrType)
 		foundType := reflect.TypeOf(sigchainErr)
 		expectedTypes := getErrorTypesMap()[testCase.ErrType]
@@ -243,7 +243,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 
 	// Tests that expected an error terminated above. Tests that get here
 	// should succeed without errors.
-	require.Nil(t, sigchainErr)
+	require.NoError(t, sigchainErr)
 
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0

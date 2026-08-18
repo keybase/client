@@ -184,14 +184,14 @@ func TestTeamNameFromString(t *testing.T) {
 	for i, tc := range tests {
 		nm, err := TeamNameFromString(tc.input)
 		if err == nil {
-			require.Nil(t, tc.err,
+			require.NoError(t, tc.err,
 				"expected an error in test case %d", i)
 			require.False(t, nm.IsNil(),
 				"expected a non-nil TeamName since no error in test case %d", i)
 			require.True(t, nm.Eq(tc.name),
 				"failed name equality at test case %d", i)
 		} else {
-			require.NotNil(t, tc.err,
+			require.Error(t, tc.err,
 				"got an error, but non expected at test case %d", i)
 			require.Equal(t, tc.err.Error(), err.Error(),
 				"bad error string at test case %d: %s != %s", i, tc.err.Error(), err.Error())

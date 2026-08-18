@@ -760,7 +760,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 	require.NoError(t, err)
 	syncKeys, err := me.AllSyncedSecretKeys(m)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(syncKeys), "num pgp sync keys: %d, expected 2", len(syncKeys))
+	require.Len(t, syncKeys, 2, "num pgp sync keys: %d, expected 2", len(syncKeys))
 	for _, key := range syncKeys {
 		parg := libkb.SecretKeyPromptArg{
 			SecretUI: u.NewSecretUI(),

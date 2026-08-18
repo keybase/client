@@ -120,7 +120,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 	encryptedData := box.Seal(nil, expectedBytes32[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
 
 	var encryptedBytes32 keybase1.EncryptedBytes32
-	require.Equal(t, len(encryptedData), len(encryptedBytes32), "Expected %d bytes, got %d", len(encryptedBytes32), len(encryptedData))
+	require.Len(t, encryptedBytes32, len(encryptedData), "Expected %d bytes, got %d", len(encryptedBytes32), len(encryptedData))
 
 	copy(encryptedBytes32[:], encryptedData)
 
@@ -277,7 +277,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 	encryptedData := box.Seal(nil, expectedBytes32[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
 
 	var encryptedBytes32 keybase1.EncryptedBytes32
-	require.Equal(t, len(encryptedData), len(encryptedBytes32), "Expected %d bytes, got %d", len(encryptedBytes32), len(encryptedData))
+	require.Len(t, encryptedBytes32, len(encryptedData), "Expected %d bytes, got %d", len(encryptedBytes32), len(encryptedData))
 
 	copy(encryptedBytes32[:], encryptedData)
 

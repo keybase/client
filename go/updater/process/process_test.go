@@ -196,7 +196,7 @@ func TestFindProcessWait(t *testing.T) {
 	go func() {
 		time.Sleep(10 * time.Millisecond)
 		startErr := cmd.Start()
-		require.NoError(t, startErr)
+		assert.NoError(t, startErr)
 	}()
 
 	// Wait up to second for process to be running

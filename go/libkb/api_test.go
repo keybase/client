@@ -95,11 +95,11 @@ func TestProductionBadCA(t *testing.T) {
 	require.Equal(t, pingExpected, iurl.String(), "api url: %s, expected %s", iurl.String(), pingExpected)
 
 	_, err = tc.G.API.Post(mctx, arg)
-	require.NotNil(t, err, "api ping POST worked with unknown CA")
+	require.Error(t, err, "api ping POST worked with unknown CA")
 	checkX509Err(t, err)
 
 	_, err = tc.G.API.Get(mctx, arg)
-	require.NotNil(t, err, "api ping GET worked with unknown CA")
+	require.Error(t, err, "api ping GET worked with unknown CA")
 	if err != nil {
 		checkX509Err(t, err)
 	}

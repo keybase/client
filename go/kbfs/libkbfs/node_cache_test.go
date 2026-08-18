@@ -25,7 +25,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 	var err error
 	parentNode, err = ncs.GetOrCreate(
 		parentPtr, testPPS(parentName), nil, data.Dir)
-	require.False(t, err != nil, "Couldn't create top-level parent node: %v", err)
+	require.NoError(t, err, "Couldn't create top-level parent node: %v", err)
 	if parentNode.GetBasename().Plaintext() != parentName {
 		require.Failf(t, "", "Expected basename %s, got %s", parentName, parentNode.GetBasename())
 	}
@@ -35,7 +35,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 	childName1 := "child1"
 	childNode1, err = ncs.GetOrCreate(
 		childPtr1, testPPS(childName1), parentNode, data.Dir)
-	require.False(t, err != nil, "Couldn't create child node: %v", err)
+	require.NoError(t, err, "Couldn't create child node: %v", err)
 	if childNode1.GetBasename().Plaintext() != childName1 {
 		require.Failf(t, "", "Expected basename %s, got %s", childName1, childNode1.GetBasename())
 	}
@@ -49,7 +49,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 	childName2 := "child2"
 	childNode2, err = ncs.GetOrCreate(
 		childPtr2, testPPS(childName2), parent2, data.Dir)
-	require.False(t, err != nil, "Couldn't create second child node: %v", err)
+	require.NoError(t, err, "Couldn't create second child node: %v", err)
 	if childNode2.GetBasename().Plaintext() != childName2 {
 		require.Failf(t, "", "Expected basename %s, got %s", childName2, childNode2.GetBasename())
 	}
@@ -138,7 +138,7 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 	// make sure we get the same node back for the second call
 	childNode1B, err := ncs.GetOrCreate(
 		childPtr1, childNode1A.GetBasename(), parentNode, data.Dir)
-	require.False(t, err != nil, "Couldn't create child node: %v", err)
+	require.NoError(t, err, "Couldn't create child node: %v", err)
 	require.Equal(t, childNode1B.(*nodeStandard).core, childNode1A.(*nodeStandard).core, "Two creates for the same child!")
 
 	// now make sure the refCounts are right.
@@ -157,7 +157,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(
 		parentPtr, testPPS("parent"), nil, data.Dir)
-	require.False(t, err != nil, "Couldn't create top-level parent node: %v", err)
+	require.NoError(t, err, "Couldn't create top-level parent node: %v", err)
 
 	simulateGC(ncs, []Node{})
 
@@ -178,7 +178,7 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(
 		parentPtr, testPPS("parent"), nil, data.Dir)
-	require.False(t, err != nil, "Couldn't create top-level parent node: %v", err)
+	require.NoError(t, err, "Couldn't create top-level parent node: %v", err)
 
 	newParentPtr := data.BlockPointer{ID: kbfsblock.FakeID(1)}
 	ncs.UpdatePointer(parentPtr.Ref(), newParentPtr)
@@ -195,7 +195,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 
 	// now move child2 under child1
 	undoMove, err := ncs.Move(childPtr2.Ref(), childNode1, testPPS("child3"))
-	require.False(t, err != nil, "Couldn't update parent: %v", err)
+	require.NoError(t, err, "Couldn't update parent: %v", err)
 
 	if childNode2.GetBasename().Plaintext() != "child3" {
 		require.Failf(t, "", "Child2 has the wrong name after move: %s", childNode2.GetBasename())
@@ -233,7 +233,7 @@ func TestNodeCacheMoveNoParent(t *testing.T) {
 func checkNodeCachePath(t *testing.T, id tlf.ID, branch data.BranchName,
 	path data.Path, expectedPath []data.PathNode,
 ) {
-	require.Equal(t, len(expectedPath), len(path.Path), "Bad path length: %v vs %v", len(path.Path), len(expectedPath))
+	require.Len(t, path.Path, len(expectedPath), "Bad path length: %v vs %v", len(path.Path), len(expectedPath))
 
 	for i, n := range expectedPath {
 		require.Equal(t, n, path.Path[i], "Bad node on path, index %d: %v vs %v", i, path.Path[i], n)
@@ -259,7 +259,7 @@ func TestNodeCacheUnlink(t *testing.T) {
 	path := ncs.PathFromNode(childNode2)
 	checkNodeCachePath(t, id, branch, path, path2)
 
-	require.Equal(t, "", childNode2.GetBasename().Plaintext(), "Expected empty basename, got %s", childNode2.GetBasename())
+	require.Empty(t, childNode2.GetBasename().Plaintext(), "Expected empty basename, got %s", childNode2.GetBasename())
 
 	// Undo
 	undoFn()
@@ -310,7 +310,7 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 		newChildPtr2, testPPS(newChildName), childNode1, data.Dir)
 	require.NoError(t, err,
 		"Couldn't relink node: %v", err)
-	require.False(t, childNode2.GetID() == childNode2B.GetID(), "Relink left the node the same")
+	require.NotEqual(t, childNode2.GetID(), childNode2B.GetID(), "Relink left the node the same")
 
 	// Old unlinked node didn't get updated
 	path := ncs.PathFromNode(childNode2)
@@ -341,19 +341,19 @@ func TestNodeCachePathFromNode(t *testing.T) {
 func TestNodeCacheGCBasic(t *testing.T) {
 	ncs, parentNode, _, childNode2, _, _ := setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 
-	require.Equal(t, 3, len(ncs.nodes), "Expected %d nodes, got %d", 3, len(ncs.nodes))
+	require.Len(t, ncs.nodes, 3, "Expected %d nodes, got %d", 3, len(ncs.nodes))
 
 	simulateGC(ncs, []Node{parentNode, childNode2})
 
-	require.Equal(t, 2, len(ncs.nodes), "Expected %d nodes, got %d", 2, len(ncs.nodes))
+	require.Len(t, ncs.nodes, 2, "Expected %d nodes, got %d", 2, len(ncs.nodes))
 
 	simulateGC(ncs, []Node{parentNode})
 
-	require.Equal(t, 1, len(ncs.nodes), "Expected %d nodes, got %d", 1, len(ncs.nodes))
+	require.Len(t, ncs.nodes, 1, "Expected %d nodes, got %d", 1, len(ncs.nodes))
 
 	simulateGC(ncs, []Node{})
 
-	require.Equal(t, 0, len(ncs.nodes), "Expected %d nodes, got %d", 0, len(ncs.nodes))
+	require.Empty(t, ncs.nodes, "Expected %d nodes, got %d", 0, len(ncs.nodes))
 }
 
 // Make sure that GC works as expected when a child node holds the
@@ -361,15 +361,15 @@ func TestNodeCacheGCBasic(t *testing.T) {
 func TestNodeCacheGCParent(t *testing.T) {
 	ncs, _, _, childNode2, _, _ := setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 
-	require.Equal(t, 3, len(ncs.nodes), "Expected %d nodes, got %d", 3, len(ncs.nodes))
+	require.Len(t, ncs.nodes, 3, "Expected %d nodes, got %d", 3, len(ncs.nodes))
 
 	simulateGC(ncs, []Node{childNode2})
 
-	require.Equal(t, 2, len(ncs.nodes), "Expected %d nodes, got %d", 2, len(ncs.nodes))
+	require.Len(t, ncs.nodes, 2, "Expected %d nodes, got %d", 2, len(ncs.nodes))
 
 	simulateGC(ncs, []Node{})
 
-	require.Equal(t, 0, len(ncs.nodes), "Expected %d nodes, got %d", 0, len(ncs.nodes))
+	require.Empty(t, ncs.nodes, "Expected %d nodes, got %d", 0, len(ncs.nodes))
 }
 
 var finalizerChan = make(chan struct{})
@@ -385,7 +385,7 @@ func testNodeStandardFinalizer(n *nodeStandard) {
 func TestNodeCacheGCReal(t *testing.T) {
 	ncs, _, childNode1, childNode2, _, _ := setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 
-	require.Equal(t, 3, len(ncs.nodes), "Expected %d nodes, got %d", 3, len(ncs.nodes))
+	require.Len(t, ncs.nodes, 3, "Expected %d nodes, got %d", 3, len(ncs.nodes))
 
 	runtime.SetFinalizer(childNode1, nil)
 	runtime.SetFinalizer(childNode1, testNodeStandardFinalizer)

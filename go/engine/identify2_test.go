@@ -630,7 +630,7 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 		require.True(t, ok,
 			"Wanted an error of type %T; got %T", libkb.UnmetAssertionError{}, err)
 	}
-	require.False(t, starts > 0,
+	require.LessOrEqual(t, starts, 0,
 		"Didn't expect the identify UI to start in this case")
 
 	done <- true

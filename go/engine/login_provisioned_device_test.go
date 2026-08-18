@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -29,12 +28,12 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 	eng := NewLoginProvisionedDevice(tc.G, fu.Username)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
-	require.True(t, errors.Is(err, errNoDevice), "run error: %v, expected %v", err, errNoDevice)
+	require.ErrorIs(t, err, errNoDevice, "run error: %v, expected %v", err, errNoDevice)
 
 	// put a device id into config file that is not this user's device
 	err = tc.G.Env.GetConfigWriter().SetDeviceID("31a7669bfa163eed3619780ebac8ee18")
 	require.NoError(t, err)
 	eng = NewLoginProvisionedDevice(tc.G, fu.Username)
 	err = RunEngine2(m, eng)
-	require.True(t, errors.Is(err, errNoDevice), "run error: %v, expected %v", err, errNoDevice)
+	require.ErrorIs(t, err, errNoDevice, "run error: %v, expected %v", err, errNoDevice)
 }

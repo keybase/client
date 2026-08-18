@@ -48,7 +48,7 @@ func testExpectedMissingDirty(
 	ptr := BlockPointer{ID: id}
 	tlfID := tlf.FakeID(1, tlf.Private)
 	_, err := dirtyBcache.Get(ctx, tlfID, ptr, MasterBranch)
-	require.NotNil(t, err, "No expected error on 1st get: %v", err)
+	require.Error(t, err, "No expected error on 1st get: %v", err)
 	require.Equal(t, expectedErr, err, "Got unexpected error on 1st get: %v", err)
 }
 

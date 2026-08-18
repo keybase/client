@@ -41,7 +41,7 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uint8(0), version, "input: %q => version: %d, expected 0", s, version)
 		require.Equal(t, p.String(), q.String(), "input: %q => phrase %q, expected %q", s, q.String(), p.String())
-		require.False(t, len(q.InvalidWords()) > 0, "input: %q => phrase %q, contains invalid words %v", s, q.String(), q.InvalidWords())
+		require.Empty(t, q.InvalidWords(), "input: %q => phrase %q, contains invalid words %v", s, q.String(), q.InvalidWords())
 	}
 
 	// make a typo in one of the words

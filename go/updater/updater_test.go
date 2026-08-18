@@ -257,10 +257,10 @@ func newDefaultTestUpdateOptions() UpdateOptions {
 func testServerForUpdateFile(t *testing.T, path string) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		f, err := os.Open(path)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		w.Header().Set("Content-Type", "application/zip")
 		_, err = io.Copy(w, f)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}))
 }
 

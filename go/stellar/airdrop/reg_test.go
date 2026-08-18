@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,7 +94,7 @@ func TestReg(t *testing.T) {
 	go func() {
 		cli := newTestClient(clientConn)
 		err := cli.Register(mctx)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}()
 	<-tp.doneCh
 	require.NoError(t, tp.err)

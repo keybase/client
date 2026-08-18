@@ -42,7 +42,7 @@ type versionUI struct {
 func (v *versionUI) checkVersionOutput(t *testing.T) {
 	rx := regexp.MustCompile(`:\s*`)
 	n := len(v.outbuf)
-	require.False(t, n < 2,
+	require.GreaterOrEqual(t, n, 2,
 		"expected >= 2 lines of output; got %d\n", n)
 	s := rx.Split(v.outbuf[n-1], -1)
 	c := rx.Split(v.outbuf[n-2], -1)

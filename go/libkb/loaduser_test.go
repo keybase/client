@@ -21,7 +21,7 @@ func TestLoadUserPlusKeys(t *testing.T) {
 		u, err := LoadUserPlusKeys(m.Ctx(), tc.G, "295a7eea607af32040647123732bc819", "")
 		require.NoError(t, err)
 		require.Equal(t, "t_alice", u.Username, "username: %s, expected t_alice", u.Username)
-		require.False(t, len(u.RevokedDeviceKeys) > 0, "t_alice found with %d revoked keys, expected 0", len(u.RevokedDeviceKeys))
+		require.Empty(t, u.RevokedDeviceKeys, "t_alice found with %d revoked keys, expected 0", len(u.RevokedDeviceKeys))
 	}
 
 	for _, uid := range []keybase1.UID{"295a7eea607af32040647123732bc819", "afb5eda3154bc13c1df0189ce93ba119", "9d56bd0c02ac2711e142faf484ea9519", "c4c565570e7e87cafd077509abf5f619", "561247eb1cc3b0f5dc9d9bf299da5e19"} {
@@ -47,7 +47,7 @@ func TestRevokedKeys(t *testing.T) {
 	u, err := LoadUserPlusKeys(context.Background(), tc.G, "ff261e3b26543a24ba6c0693820ead19", "")
 	require.NoError(t, err)
 	require.Equal(t, "t_mike", u.Username, "username: %s, expected t_mike", u.Username)
-	require.Equal(t, 2, len(u.RevokedDeviceKeys), "t_mike found with %d revoked keys, expected 2", len(u.RevokedDeviceKeys))
+	require.Len(t, u.RevokedDeviceKeys, 2, "t_mike found with %d revoked keys, expected 2", len(u.RevokedDeviceKeys))
 
 	kid := keybase1.KID("012073f26b5996912393f7d2961ca90968e4e83d6140e9771ba890ff8ba6ea97777e0a")
 	for index, k := range u.RevokedDeviceKeys {

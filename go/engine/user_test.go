@@ -23,7 +23,7 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 	require.NoError(t, err)
 	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	require.NoError(t, err)
-	require.Equal(t, 4, len(up.DeviceKeys), "num device keys: %d, expected 4", len(up.DeviceKeys))
+	require.Len(t, up.DeviceKeys, 4, "num device keys: %d, expected 4", len(up.DeviceKeys))
 }
 
 func TestLoadUserPlusKeysRevoked(t *testing.T) {
@@ -38,8 +38,8 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	require.NoError(t, err)
 
-	require.Equal(t, 4, len(up.DeviceKeys), "device keys: %d, expected 4", len(up.DeviceKeys))
-	require.Equal(t, 0, len(up.RevokedDeviceKeys), "revoked keys: %d, expected 0", len(up.RevokedDeviceKeys))
+	require.Len(t, up.DeviceKeys, 4, "device keys: %d, expected 4", len(up.DeviceKeys))
+	require.Empty(t, up.RevokedDeviceKeys, "revoked keys: %d, expected 0", len(up.RevokedDeviceKeys))
 
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var paper *libkb.Device
@@ -58,8 +58,8 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	up2, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	require.NoError(t, err)
 
-	require.Equal(t, 2, len(up2.DeviceKeys), "device keys: %d, expected 2", len(up2.DeviceKeys))
-	require.Equal(t, 2, len(up2.RevokedDeviceKeys), "revoked keys: %d, expected 2", len(up2.RevokedDeviceKeys))
+	require.Len(t, up2.DeviceKeys, 2, "device keys: %d, expected 2", len(up2.DeviceKeys))
+	require.Len(t, up2.RevokedDeviceKeys, 2, "revoked keys: %d, expected 2", len(up2.RevokedDeviceKeys))
 }
 
 // TestMerkleHashMetaAndFirstAppearedInKeyFamily tests new user & key family features:

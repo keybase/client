@@ -142,7 +142,7 @@ func TestProofSuggestions(t *testing.T) {
 }
 
 func checkIcon(t testing.TB, icon keybase1.SizedImage) {
-	require.False(t, icon.Width < 2,
+	require.GreaterOrEqual(t, icon.Width, 2,
 		"unreasonable icon size")
 	if kbtest.SkipIconRemoteTest() {
 		t.Logf("Skipping icon remote test")
@@ -154,7 +154,7 @@ func checkIcon(t testing.TB, icon keybase1.SizedImage) {
 		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable: %v", icon.Path)
 		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
-		require.False(t, len(body) < 150,
+		require.GreaterOrEqual(t, len(body), 150,
 			"unreasonable icon payload size")
 	}
 }

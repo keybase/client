@@ -334,7 +334,7 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 	}
 	require.Len(t, icon, 2, "%v", service)
 	for _, icon := range icon {
-		require.False(t, icon.Width < 2,
+		require.GreaterOrEqual(t, icon.Width, 2,
 			"unreasonable icon size")
 		if kbtest.SkipIconRemoteTest() {
 			t.Logf("Skipping icon remote test")
@@ -347,7 +347,7 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 			require.NoError(t, err)
 			body, err := io.ReadAll(resp.Body)
 			require.NoError(t, err)
-			require.False(t, len(body) < 150,
+			require.GreaterOrEqual(t, len(body), 150,
 				"unreasonable icon payload size")
 		}
 	}

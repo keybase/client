@@ -362,7 +362,7 @@ func testMerkle(t *testing.T, g *libkb.GlobalContext) {
 	root, err := cli.GetCurrentMerkleRoot(context.TODO(), int(-1))
 	require.NoError(t, err,
 		"GetCurrentMerkleRoot failed: %v\n", err)
-	require.False(t, root.Root.Seqno <= keybase1.Seqno(0),
+	require.Greater(t, root.Root.Seqno, keybase1.Seqno(0),
 		"Failed basic sanity check")
 }
 
@@ -372,7 +372,7 @@ func testConfig(t *testing.T, g *libkb.GlobalContext) {
 		"failed to get new config client: %v", err)
 	config, err := cli.GetConfig(context.TODO(), 0)
 	require.NoError(t, err)
-	require.NotEqual(t, "", config.ServerURI, "No service URI")
+	require.NotEmpty(t, config.ServerURI, "No service URI")
 }
 
 func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {

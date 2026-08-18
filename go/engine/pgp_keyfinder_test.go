@@ -32,7 +32,7 @@ func TestPGPKeyfinder(t *testing.T) {
 	}
 
 	up := eng.UsersPlusKeys()
-	require.Equal(t, 3, len(up), "number of users found: %d, expected 3", len(up))
+	require.Len(t, up, 3, "number of users found: %d, expected 3", len(up))
 }
 
 func TestPGPKeyfinderLoggedOut(t *testing.T) {
@@ -49,5 +49,5 @@ func TestPGPKeyfinderLoggedOut(t *testing.T) {
 	}
 
 	up := eng.UsersPlusKeys()
-	require.Equal(t, 3, len(up), "number of users found: %d, expected 3", len(up))
+	require.Len(t, up, 3, "number of users found: %d, expected 3", len(up))
 }

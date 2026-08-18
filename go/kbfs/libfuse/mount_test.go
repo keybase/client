@@ -1148,7 +1148,7 @@ func TestRemoveTLF(t *testing.T) {
 			t.Logf("Retrying TLF removal after error %+v", lastErr)
 		}
 	}
-	require.False(t, lastErr != nil, lastErr)
+	require.NoError(t, lastErr)
 }
 
 func TestRemoveDir(t *testing.T) {
@@ -1367,7 +1367,7 @@ func TestRenameOverFileWhileOpenWritingInDifferentDir(t *testing.T) {
 
 	content, err := ioutil.ReadFile(p1)
 	require.NoError(t, err)
-	require.False(t, len(content) > 0, "write to overwritee resulted in content in overwriter")
+	require.Empty(t, content, "write to overwritee resulted in content in overwriter")
 }
 
 func TestRenameOverFileWhileOpenWritingInSameSubDir(t *testing.T) {
@@ -1415,7 +1415,7 @@ func TestRenameOverFileWhileOpenWritingInSameSubDir(t *testing.T) {
 
 	content, err := ioutil.ReadFile(p1)
 	require.NoError(t, err)
-	require.False(t, len(content) > 0, "write to overwritee resulted in content in overwriter")
+	require.Empty(t, content, "write to overwritee resulted in content in overwriter")
 }
 
 func TestRemoveFileWhileOpenReading(t *testing.T) {

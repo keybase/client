@@ -21,7 +21,7 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 		if blockSize == 0 {
 			blockSize = 512 * 1024
 		}
-		require.False(t, blockChangeSize < 0,
+		require.GreaterOrEqual(t, blockChangeSize, 0,
 			"Can't handle negative blockChangeSize")
 		if blockChangeSize == 0 {
 			blockChangeSize = 8 * 1024

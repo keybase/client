@@ -175,7 +175,7 @@ func TestParser1(t *testing.T) {
 	inp := "  aa ||   bb   && cc ||\n dd ||\n ee && ff || gg && (hh ||\nii)"
 	outp := "aa,bb+cc,dd,ee+ff,gg+(hh,ii)"
 	expr, err := AssertionParse(testAssertionContext{}, inp)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 	require.Equal(t, outp, expr.String(), "Wrong parse result: %s v %s", expr.String(), outp)
 }
 
@@ -183,7 +183,7 @@ func TestParser2(t *testing.T) {
 	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n dd ||\n pgp:ee && reddit:foo || twitter:goo && (https:h.in ||\ndns:i.co)"
 	outp := "a.aa@web,b.bb@http+c.cc@dns,dd,ee@pgp+foo@reddit,goo@twitter+(h.in@https,i.co@dns)"
 	expr, err := AssertionParse(testAssertionContext{}, inp)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 	require.Equal(t, outp, expr.String(), "Wrong parse result: %s v %s", expr.String(), outp)
 }
 
@@ -213,7 +213,7 @@ func TestParserFail1(t *testing.T) {
 
 	for _, bad := range bads {
 		expr, err := AssertionParse(testAssertionContext{}, bad.k)
-		require.NotNil(t, err, "Expected a parse error in %s (got %v)", bad, expr)
+		require.Error(t, err, "Expected a parse error in %s (got %v)", bad, expr)
 		require.Equal(t, bad.v, err.Error(), "Got wrong error; wanted '%s', but got '%s'", bad.v, err)
 	}
 }

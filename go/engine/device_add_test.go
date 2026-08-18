@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,7 +51,7 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY, uid, fakeSalt())
 		return RunEngine2(m, provisionee)
 	})()
-	require.NoError(t, err, "kex2 provisionee")
+	assert.NoError(t, err, "kex2 provisionee")
 }
 
 func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {

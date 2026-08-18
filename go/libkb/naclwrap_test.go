@@ -26,7 +26,7 @@ func TestVerifyStringAccept(t *testing.T) {
 	t.Logf("sig: %+v", sig)
 
 	_, err = keyPair.VerifyString(nil, sig, msg)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 }
 
 // Test that VerifyString rejects various types of bad signatures.
@@ -44,12 +44,12 @@ func TestVerifyStringReject(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = keyPair.VerifyString(nil, base64.StdEncoding.EncodeToString(append(sigBytes, []byte("corruption")...)), msg)
-	require.NotNil(t, err, "Corrupt signature unexpectedly passes")
+	require.Error(t, err, "Corrupt signature unexpectedly passes")
 
 	// Corrupt message.
 
 	_, err = keyPair.VerifyString(nil, sig, append(msg, []byte("corruption")...))
-	require.NotNil(t, err, "Signature for corrupt message unexpectedly passes")
+	require.Error(t, err, "Signature for corrupt message unexpectedly passes")
 
 	// Signature with different key.
 
@@ -60,17 +60,17 @@ func TestVerifyStringReject(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = keyPair.VerifyString(nil, sig2, msg)
-	require.NotNil(t, err, "Signature with different key unexpectedly passes")
+	require.Error(t, err, "Signature with different key unexpectedly passes")
 
 	// Append different signature.
 
 	_, err = keyPair.VerifyString(nil, sig+sig2, msg)
-	require.NotNil(t, err, "Signature with appended different signature unexpectedly passes")
+	require.Error(t, err, "Signature with appended different signature unexpectedly passes")
 
 	// Prepend invalid signature.
 
 	_, err = keyPair.VerifyString(nil, sig2+sig, msg)
-	require.NotNil(t, err, "Signature with prepended invalid signature unexpectedly passes")
+	require.Error(t, err, "Signature with prepended invalid signature unexpectedly passes")
 }
 
 // Test that VerifyBytes accepts the output of SignToBytes.

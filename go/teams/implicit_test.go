@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,8 +49,8 @@ func TestImplicitRaceCreateTLFs(t *testing.T) {
 	doneCh := make(chan struct{}, n+1)
 	for range n {
 		go func() {
-			err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
-			require.NoError(t, err)
+			err := CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
+			assert.NoError(t, err)
 			doneCh <- struct{}{}
 		}()
 	}

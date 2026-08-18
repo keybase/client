@@ -84,7 +84,7 @@ func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.
 func checkDisplayKeys(t *testing.T, idUI *FakeIdentifyUI, callCount, keyCount int) {
 	require.Equal(t, callCount, idUI.DisplayKeyCalls, "DisplayKey calls: %d.  expected %d.", idUI.DisplayKeyCalls, callCount)
 
-	require.Equal(t, keyCount, len(idUI.Keys), "keys: %d, expected %d.", len(idUI.Keys), keyCount)
+	require.Len(t, idUI.Keys, keyCount, "keys: %d, expected %d.", len(idUI.Keys), keyCount)
 	for k, v := range idUI.Keys {
 		t.Logf("key: %+v, %+v", k, v)
 	}

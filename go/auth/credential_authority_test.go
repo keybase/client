@@ -267,7 +267,8 @@ func TestCheckUsers(t *testing.T) {
 
 	err = credentialAuthority.CheckUsers(context.TODO(), usersWithDud)
 	require.Error(t, err, "Expected an error")
-	require.IsType(t, userNotFoundError{}, err, "Expected a user not found error")
+	var userErr userNotFoundError
+	require.ErrorAs(t, err, &userErr, "Expected a user not found error")
 	credentialAuthority.Shutdown()
 }
 

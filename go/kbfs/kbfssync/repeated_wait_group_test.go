@@ -9,6 +9,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +24,7 @@ func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *RepeatedWaitGroup) {
 		rwg.Done()
 	}
 	err := <-errChan
-	require.NoError(t, err,
+	assert.NoError(t, err,
 		"Error on wait: %v", err)
 }
 

@@ -37,7 +37,7 @@ func (m *GetPassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, _ *keybase1.Se
 }
 
 func (m *GetPassphraseMock) CheckLastErr(t *testing.T) {
-	require.Nil(t, m.LastErr)
+	require.NoError(t, m.LastErr)
 }
 
 // Test that login works while already logged in.
@@ -132,7 +132,7 @@ func (m *GetUsernameMock) DisplayResetProgress(_ context.Context, arg keybase1.D
 }
 
 func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
-	require.Nil(t, m.LastErr)
+	require.NoError(t, m.LastErr)
 }
 
 func (m *GetUsernameMock) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
@@ -259,7 +259,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	Logout(tc)
 
 	err = libkb.ClearStoredSecret(mctx, fu.NormalizedUsername())
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 
 	require.False(t, userHasStoredSecret(&tc, fu.Username), "User %s unexpectedly has a stored secret", fu.Username)
 

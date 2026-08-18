@@ -602,7 +602,7 @@ func TestPrefixDifference(t *testing.T) {
 }
 
 func TestVectors(t *testing.T) {
-	require.False(t, len(testVectors) < 1,
+	require.GreaterOrEqual(t, len(testVectors), 1,
 		"missing test vectors")
 
 	for i, v := range testVectors {

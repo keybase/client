@@ -65,8 +65,8 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 
 	usernames, err := tc.G.SecretStore().GetUsersWithStoredSecrets(m)
-	require.False(t, err != nil, err)
-	require.Equal(t, 0, len(usernames), "Expected no usernames, got %d", len(usernames))
+	require.NoError(t, err)
+	require.Empty(t, usernames, "Expected no usernames, got %d", len(usernames))
 
 	fs, err := newLKSecFullSecretFromBytes([]byte("test secret 3test secret 3test s"))
 	require.NoError(t, err)
@@ -76,13 +76,13 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		expectedUsernames[i] = fmt.Sprintf("account with unicode テスト %d", i)
 
 		err := tc.G.SecretStore().StoreSecret(m, NewNormalizedUsername(expectedUsernames[i]), fs)
-		require.NoError(t, err, err)
+		require.NoError(t, err)
 	}
 
 	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets(m)
-	require.False(t, err != nil, err)
+	require.NoError(t, err)
 
-	require.Equal(t, len(expectedUsernames), len(usernames), "Expected %d usernames, got %d", len(expectedUsernames), len(usernames))
+	require.Len(t, usernames, len(expectedUsernames), "Expected %d usernames, got %d", len(expectedUsernames), len(usernames))
 
 	// TODO: were these supposed to already be in order?
 	sort.Strings(usernames)
@@ -93,12 +93,12 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 
 	for i := range expectedUsernames {
 		err = tc.G.SecretStore().ClearSecret(m, NewNormalizedUsername(expectedUsernames[i]))
-		require.False(t, err != nil, err)
+		require.NoError(t, err)
 	}
 
 	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets(m)
-	require.False(t, err != nil, err)
-	require.Equal(t, 0, len(usernames), "Expected no usernames, got %d", len(usernames))
+	require.NoError(t, err)
+	require.Empty(t, usernames, "Expected no usernames, got %d", len(usernames))
 }
 
 func TestPrimeSecretStore(t *testing.T) {

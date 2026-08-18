@@ -228,7 +228,7 @@ func TestCryptoData(t *testing.T) {
 	tc, c, teamSpec, boxed := setupBox(t)
 	defer tc.Cleanup()
 
-	require.False(tc.T, len(boxed.E) < 4,
+	require.GreaterOrEqual(tc.T, len(boxed.E), 4,
 		"very small encrypted data size: %d", len(boxed.E))
 
 	// flip data bit

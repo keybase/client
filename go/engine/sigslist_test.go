@@ -21,7 +21,7 @@ func TestSigsList(t *testing.T) {
 	}
 
 	s := eng.Sigs()
-	require.Equal(t, 3, len(s), "t_alice sig count: %d, expected 3", len(s))
+	require.Len(t, s, 3, "t_alice sig count: %d, expected 3", len(s))
 	for _, s := range eng.Sigs() {
 		t.Logf("sig: %+v\n", s)
 	}

@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -75,9 +76,9 @@ func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, _ *http.Request) {
 	defer d.Unlock()
 	w.WriteHeader(200)
 	f, err := os.Open(filepath.Join("unfurl", "testcases", "nytimes.ico"))
-	require.NoError(d.t, err)
+	assert.NoError(d.t, err)
 	_, err = io.Copy(w, f)
-	require.NoError(d.t, err)
+	assert.NoError(d.t, err)
 }
 
 func (d *dummyHTTPSrv) handle(w http.ResponseWriter, _ *http.Request) {
@@ -87,7 +88,7 @@ func (d *dummyHTTPSrv) handle(w http.ResponseWriter, _ *http.Request) {
 		html := "<html><head><title>MIKE</title></head></html>"
 		w.WriteHeader(200)
 		_, err := io.Copy(w, bytes.NewBuffer([]byte(html)))
-		require.NoError(d.t, err)
+		assert.NoError(d.t, err)
 		return
 	}
 	w.WriteHeader(500)

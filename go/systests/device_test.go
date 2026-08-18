@@ -3,7 +3,6 @@ package systests
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/client"
@@ -93,7 +92,7 @@ func TestRevokeDevices(t *testing.T) {
 
 		require.Equal(t, accept, err == nil, "With accept=%v, got unexpected error: %v", accept, err)
 
-		require.True(t, strings.Contains(prompt, expectedName),
+		require.Contains(t, prompt, expectedName,
 			"didn't find expected TLF name %q", expectedName)
 	}
 	run(false)

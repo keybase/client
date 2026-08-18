@@ -275,7 +275,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	b := totalBlockRefs(blocks)
-	require.False(t, b <= 1, "Too many blocks left after first QR: %d", b)
+	require.Greater(t, b, 1, "Too many blocks left after first QR: %d", b)
 
 	// Now let it run to completion
 	for b > 1 {
@@ -288,7 +288,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 		require.NoError(t, err, "Couldn't get blocks: %+v", err)
 		oldB := b
 		b = totalBlockRefs(blocks)
-		require.False(t, b >= oldB,
+		require.Less(t, b, oldB,
 			"Blocks didn't shrink after reclamation: %d vs. %d",
 			b, oldB)
 	}

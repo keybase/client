@@ -47,7 +47,7 @@ HKfiyXs8709e067vsE5FCTMvZCq4vt/lkEJ59xn58QBfEILMwQDNLqVGyA54MPwh
 	expected := "Primary Primary <primary@uid.com>"
 	for range 100 {
 		key, _, err := ReadOneKeyFromString(armored)
-		require.NoError(t, err, err)
+		require.NoError(t, err)
 		primary := key.GetPrimaryUID()
 		require.Equal(t, expected, primary, "Expected '%s' as a primary UID; got '%s'", expected, primary)
 	}
@@ -302,7 +302,7 @@ CXQxLBizEEmSNVNxsp7KPGTLnqO3bPtqFirxS9PJLIMPTPLNBY7ZYuPNTMqVIUWF
 -----END PGP PUBLIC KEY BLOCK-----`
 
 	_, w, err := ReadOneKeyFromString(missingCrossSignatureKey)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 
 	require.False(t, w.IsEmpty(), "Expected a bad subkey warning")
 }

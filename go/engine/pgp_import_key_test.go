@@ -306,7 +306,7 @@ func TestPGPImportGPGExport(t *testing.T) {
 	// after running, they should have one pgp keys in key family and in gpg
 	me, err = libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	require.NoError(t, err)
-	require.Equal(t, 1, len(me.GetActivePGPKeys(false)), "active pgp keys: %d, expected 1", len(me.GetActivePGPKeys(false)))
+	require.Len(t, me.GetActivePGPKeys(false), 1, "active pgp keys: %d, expected 1", len(me.GetActivePGPKeys(false)))
 	gpgPrivate, err = numPrivateGPGKeys(tc.G)
 	require.NoError(t, err)
 	require.Equal(t, 1, gpgPrivate, "private gpg keys: %d, expected 1", gpgPrivate)

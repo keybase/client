@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -617,7 +618,7 @@ func timedAcquire(ctx context.Context, t *testing.T, hcs *HybridConversationSour
 	select {
 	case <-cb:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "acquire timeout")
+		assert.Fail(t, "acquire timeout")
 	}
 	return ret, err
 }

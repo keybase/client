@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,14 +53,14 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	go func() {
 		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 0, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
 		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 1, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Wait()
