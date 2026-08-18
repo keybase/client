@@ -309,9 +309,9 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	add(A, B)
 
 	makeHiddenRotation(t, m[A].G(), teamName)
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
+	publishNewMainMerkleRoot(t, tcs[A])
 	makeHiddenRotation(t, m[A].G(), teamName)
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
+	publishNewMainMerkleRoot(t, tcs[A])
 	add(A, C)
 
 	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
