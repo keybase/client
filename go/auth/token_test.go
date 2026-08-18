@@ -31,8 +31,7 @@ func TestTokenVerifyToken(t *testing.T) {
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	require.NoError(t, err)
 	_, err = VerifyToken("nope", server, challenge, testMaxTokenExpireIn)
-	require.ErrorIs(t, err,
-		fmt.Errorf("expected verification failure"))
+	require.Error(t, err, "expected verification failure")
 	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	require.NoError(t, err)
 	if err = checkToken(token, uid, name, keyPair.GetKID(),
