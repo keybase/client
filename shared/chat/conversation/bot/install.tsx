@@ -453,10 +453,17 @@ const InstallBotPopup = (props: Props) => {
                 }
                 toggleOpen={() => setChannelPickerScreen(true)}
               />
+              {installInAllConvs && (
+                <Kb.Text type="BodySmall">
+                  {`Every channel in ${teamname}, including channels created later.`}
+                </Kb.Text>
+              )}
             </Kb.Box2>
           )}
           <Kb.Text type="BodySmall">
-            This bot will not be able to read any other messages, channels, files, or repositories.
+            {installInAllConvs
+              ? 'This bot will not be able to read any other messages, files, or repositories.'
+              : 'This bot will not be able to read any other messages, channels, files, or repositories.'}
           </Kb.Text>
         </Kb.Box2>
       ) : (
@@ -777,7 +784,7 @@ const PermsList = (props: PermsListProps) => {
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
             {convs.length === 0 ? (
-              <Kb.Text type="Body">{'• all channels in this team'}</Kb.Text>
+              <Kb.Text type="Body">{'• all channels in this team, including new ones'}</Kb.Text>
             ) : !channelsKnown ? (
               <Kb.ProgressIndicator />
             ) : (
