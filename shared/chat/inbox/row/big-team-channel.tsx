@@ -3,6 +3,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useInboxRowBig} from '@/chat/inbox/rows-state'
 type Props = {
   conversationIDKey: string
@@ -92,7 +93,13 @@ const BigTeamChannel = (props: Props) => {
   ) : null
 
   return (
-    <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={onSelectConversation} style={styles.container}>
+    <Kb.ClickableBox
+      direction="vertical"
+      fullWidth={true}
+      onClick={onSelectConversation}
+      style={styles.container}
+      testID={TestIDs.CHAT_INBOX_CHANNEL_ROW}
+    >
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
