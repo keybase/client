@@ -71,6 +71,19 @@ test('opens every conversation on its newest message', async ({page}) => {
     for (let i = 0; i < rowCount && checked.length < 5; i++) {
       const row = rows.nth(i)
       const name = (await row.innerText().catch(() => '')).split('\n')[0] ?? `row ${i}`
+      // Open a neighbour first so the click below is a real open. The inbox row of the conversation
+      // already on screen has no click handler at all (chat/inbox/row/small-team: onSelectConversation
+      // is undefined when isSelected), so clicking it changes nothing - and a thread left parked in
+      // its history by an earlier flow would be measured as if this test had just opened it. That is
+      // what made this fail only when a search flow ran first and left its conversation open.
+      if (rowCount > 1) {
+        await rows
+          .nth((i + 1) % rowCount)
+          .click({force: true, timeout: 10_000})
+          .catch(() => {})
+        await page.waitForSelector(`[data-testid="${T.CHAT_MESSAGE_LIST}"]`, {timeout: 10_000})
+        await page.waitForTimeout(500)
+      }
       await row.click({force: true, timeout: 10_000}).catch(() => {})
       await page.waitForSelector(`[data-testid="${T.CHAT_MESSAGE_LIST}"]`, {timeout: 10_000})
       // Long enough for the delayed images to commit and for anything following the end to react.
