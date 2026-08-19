@@ -16,6 +16,7 @@ import {navToPath} from '@/constants/fs'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-context'
 import {muteConversation} from '@/chat/conversation/status-actions'
 import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const emptyMeta = Chat.makeConversationMeta()
 const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
@@ -245,7 +246,12 @@ const Header = () => {
         direction="vertical"
         tooltip={`Search in this chat (${C.shortcutSymbol}F)`}
       >
-        <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
+        <Kb.Icon
+          style={styles.clickable}
+          type="iconfont-search"
+          onClick={onToggleThreadSearch}
+          testID={TestIDs.CHAT_HEADER_SEARCH_BUTTON}
+        />
       </Kb.Box2>
       <Kb.Box2
         className="tooltip-left"
