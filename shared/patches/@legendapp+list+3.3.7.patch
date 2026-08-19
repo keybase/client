@@ -1,5 +1,39 @@
+diff --git a/node_modules/@legendapp/list/animated.d.ts b/node_modules/@legendapp/list/animated.d.ts
+index 14beb98..56eefce 100644
+--- a/node_modules/@legendapp/list/animated.d.ts
++++ b/node_modules/@legendapp/list/animated.d.ts
+@@ -488,6 +488,12 @@ interface AlwaysRenderConfig {
+ interface MaintainScrollAtEndOnOptions {
+     dataChange?: boolean;
+     footerLayout?: boolean;
++    /**
++     * Keep the list pinned to the end when the header changes size. A header that measures larger
++     * than its estimate pushes every item down, which leaves a list that had already scrolled to
++     * its end short of it by the difference.
++     */
++    headerLayout?: boolean;
+     itemLayout?: boolean;
+     layout?: boolean;
+ }
+diff --git a/node_modules/@legendapp/list/react-native.d.ts b/node_modules/@legendapp/list/react-native.d.ts
+index ce1fe00..9a4311c 100644
+--- a/node_modules/@legendapp/list/react-native.d.ts
++++ b/node_modules/@legendapp/list/react-native.d.ts
+@@ -488,6 +488,12 @@ interface AlwaysRenderConfig {
+ interface MaintainScrollAtEndOnOptions {
+     dataChange?: boolean;
+     footerLayout?: boolean;
++    /**
++     * Keep the list pinned to the end when the header changes size. A header that measures larger
++     * than its estimate pushes every item down, which leaves a list that had already scrolled to
++     * its end short of it by the difference.
++     */
++    headerLayout?: boolean;
+     itemLayout?: boolean;
+     layout?: boolean;
+ }
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index 6f41da3..0d7357b 100644
+index 6f41da3..1108caf 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
 @@ -458,171 +458,279 @@ var EDGE_POSITION_EPSILON = 1;
@@ -468,25 +502,26 @@ index 6f41da3..0d7357b 100644
 -    setAdaptiveRender(ctx, "normal", "scroll");
 -  } else {
 -    state.scheduledWork.timeout(() => setAdaptiveRender(ctx, "normal", "scroll"), exitDelay, "adaptiveRender");
-+      }
-+    );
-   }
- }
+-  }
+-}
 -function setAdaptiveRender(ctx, mode, reason) {
 -  var _a3, _b;
 -  const previousMode = peek$(ctx, "adaptiveRender");
 -  if (previousMode !== mode) {
 -    set$(ctx, "adaptiveRender", mode);
 -    (_b = (_a3 = ctx.state.props.adaptiveRender) == null ? void 0 : _a3.onChange) == null ? void 0 : _b.call(_a3, mode, reason);
--  }
++      }
++    );
+   }
+ }
+-function resetAdaptiveRender(ctx) {
 +
 +// src/utils/checkThresholds.ts
 +function checkThresholds(ctx, allowedEdge) {
 +  const allowGateCreatedInCurrentCheck = !ctx.state.edgeReachedGate;
 +  checkAtBottom(ctx, allowedEdge, allowGateCreatedInCurrentCheck);
 +  checkAtTop(ctx, allowedEdge, allowGateCreatedInCurrentCheck);
- }
--function resetAdaptiveRender(ctx) {
++}
 +
 +// src/core/recalculateSettledScroll.ts
 +function recalculateSettledScroll(ctx) {
@@ -539,7 +574,7 @@ index 6f41da3..0d7357b 100644
 +    state.scrollTargetPinnedRange = void 0;
 +    if (state.pendingTotalSize !== void 0) {
 +      addTotalSize(ctx, null, state.pendingTotalSize);
-     }
++    }
 +    if (PlatformAdjustBreaksScroll) {
 +      state.scrollAdjustHandler.commitPendingAdjust(scrollingTo);
 +    }
@@ -557,7 +592,7 @@ index 6f41da3..0d7357b 100644
 +        waitForCompletionFrame: !!scrollingTo.waitForInitialScrollCompletionFrame
 +      });
 +      return;
-+    }
+     }
 +    recalculateSettledScroll(ctx);
 +    resolvePendingScroll == null ? void 0 : resolvePendingScroll();
    }
@@ -722,6 +757,12 @@ index 6f41da3..0d7357b 100644
 -    setAdaptiveRender(ctx, "normal", "ready");
 -    if (state.props.drawDistance > INITIAL_DRAW_DISTANCE) {
 -      scheduleFullDrawDistancePrewarm(ctx);
+-    }
+-    if (!state.didLoad) {
+-      state.didLoad = true;
+-      if (onLoad) {
+-        onLoad({ elapsedTimeInMs: Date.now() - loadStartTime });
+-      }
 +  const previousDataLength = (_d = (_c = options.previousDataLength) != null ? _c : existingSession == null ? void 0 : existingSession.previousDataLength) != null ? _d : 0;
 +  state.initialScrollSession = createInitialScrollSession({
 +    bootstrap,
@@ -743,12 +784,7 @@ index 6f41da3..0d7357b 100644
 +  if (options == null ? void 0 : options.onlyIfAligned) {
 +    if (!(scrollingTo == null ? void 0 : scrollingTo.isInitialScroll) || scrollingTo.animated) {
 +      return;
-     }
--    if (!state.didLoad) {
--      state.didLoad = true;
--      if (onLoad) {
--        onLoad({ elapsedTimeInMs: Date.now() - loadStartTime });
--      }
++    }
 +    if (!getResolvedScrollCompletionState(ctx, scrollingTo).isAtResolvedTarget) {
 +      return;
      }
@@ -1296,14 +1332,19 @@ index 6f41da3..0d7357b 100644
 -  let offset = offsetParam;
 -  if (viewOffset) {
 -    offset -= viewOffset;
--  }
++  const settle = state.scrollTargetSettle;
++  if (!settle) {
++    return false;
+   }
 -  if (index !== void 0) {
 -    const startOffsetAdjustment = getStartOffsetAdjustment(ctx);
 -    if (startOffsetAdjustment) {
 -      offset += startOffsetAdjustment;
 -    }
-+  const settle = state.scrollTargetSettle;
-+  if (!settle) {
++  const index = state.indexByKey.get(settle.id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0) {
++    clearScrollTargetSettle(state);
 +    return false;
    }
 -  if (viewPosition !== void 0 && index !== void 0) {
@@ -1320,12 +1361,6 @@ index 6f41da3..0d7357b 100644
 -    if (!isOutOfBounds && index === state.props.data.length - 1) {
 -      const footerSize = peek$(ctx, "footerSize") || 0;
 -      offset += footerSize;
-+  const index = state.indexByKey.get(settle.id);
-+  const position = index === void 0 ? void 0 : state.positions[index];
-+  if (index === void 0 || position === void 0) {
-+    clearScrollTargetSettle(state);
-+    return false;
-+  }
 +  const now = Date.now();
 +  if (now > settle.expiresAt) {
 +    clearScrollTargetSettle(state);
@@ -1596,6 +1631,9 @@ index 6f41da3..0d7357b 100644
 +}) {
    const { state } = ctx;
 -  return !!((_a3 = state.scrollingTo) == null ? void 0 : _a3.isInitialScroll) && state.props.data.length > 0 && getContentSize(ctx) <= state.scrollLength && state.scrollPending <= INITIAL_SCROLL_ZERO_TARGET_EPSILON;
+-}
+-function isEndAlignedLastItemTarget(ctx, scrollingTo) {
+-  return scrollingTo.index === ctx.state.props.data.length - 1 && scrollingTo.viewPosition === 1;
 +  const {
 +    loadStartTime,
 +    props: { onLoad }
@@ -1621,8 +1659,12 @@ index 6f41da3..0d7357b 100644
 +    }
 +  }
  }
--function isEndAlignedLastItemTarget(ctx, scrollingTo) {
--  return scrollingTo.index === ctx.state.props.data.length - 1 && scrollingTo.viewPosition === 1;
+-function getCurrentTargetOffset(ctx, scrollingTo) {
+-  var _a3;
+-  const index = scrollingTo.index;
+-  const shouldRecomputeEndTarget = isEndAlignedLastItemTarget(ctx, scrollingTo);
+-  const requestedTargetOffset = shouldRecomputeEndTarget && index !== void 0 ? calculateOffsetWithOffsetPosition(ctx, calculateOffsetForIndex(ctx, index), scrollingTo) : (_a3 = scrollingTo.targetOffset) != null ? _a3 : clampScrollOffset(ctx, scrollingTo.offset - (scrollingTo.viewOffset || 0), scrollingTo);
+-  return clampScrollOffset(ctx, requestedTargetOffset, scrollingTo);
 +
 +// src/core/finishInitialScroll.ts
 +var PRESERVED_INITIAL_SCROLL_FALLBACK_CLEAR_DELAY_MS = 2e3;
@@ -1630,15 +1672,6 @@ index 6f41da3..0d7357b 100644
 +  state.scroll = offset;
 +  state.scrollPending = offset;
 +  state.scrollPrev = offset;
- }
--function getCurrentTargetOffset(ctx, scrollingTo) {
--  var _a3;
--  const index = scrollingTo.index;
--  const shouldRecomputeEndTarget = isEndAlignedLastItemTarget(ctx, scrollingTo);
--  const requestedTargetOffset = shouldRecomputeEndTarget && index !== void 0 ? calculateOffsetWithOffsetPosition(ctx, calculateOffsetForIndex(ctx, index), scrollingTo) : (_a3 = scrollingTo.targetOffset) != null ? _a3 : clampScrollOffset(ctx, scrollingTo.offset - (scrollingTo.viewOffset || 0), scrollingTo);
--  return clampScrollOffset(ctx, requestedTargetOffset, scrollingTo);
-+function clearPreservedInitialScrollTargetTimeout(state) {
-+  state.scheduledWork.cancel("preservedInitialScroll");
  }
 -function getResolvedScrollCompletionState(ctx, scrollingTo) {
 -  const { state } = ctx;
@@ -1654,11 +1687,8 @@ index 6f41da3..0d7357b 100644
 -    clampedTargetOffset,
 -    isAtResolvedTarget: Math.abs(scroll - maxOffset) < 1 && (diff1 < 1 || canUseAdjustedCompletion && diff2 < 1)
 -  };
-+function clearPreservedInitialScrollTarget(state) {
-+  clearPreservedInitialScrollTargetTimeout(state);
-+  state.clearPreservedInitialScrollOnNextFinish = void 0;
-+  state.initialScroll = void 0;
-+  setInitialScrollSession(state);
++function clearPreservedInitialScrollTargetTimeout(state) {
++  state.scheduledWork.cancel("preservedInitialScroll");
  }
 -function checkFinishedScrollFrame(ctx) {
 -  const scrollingTo = ctx.state.scrollingTo;
@@ -1672,6 +1702,20 @@ index 6f41da3..0d7357b 100644
 -    scrollingTo
 -  })) {
 -    finishScrollTo(ctx);
+-  }
++function clearPreservedInitialScrollTarget(state) {
++  clearPreservedInitialScrollTargetTimeout(state);
++  state.clearPreservedInitialScrollOnNextFinish = void 0;
++  state.initialScroll = void 0;
++  setInitialScrollSession(state);
+ }
+-function scrollToFallbackOffset(ctx, offset) {
+-  var _a3;
+-  (_a3 = ctx.state.refScroller.current) == null ? void 0 : _a3.scrollTo({
+-    animated: false,
+-    x: ctx.state.props.horizontal ? offset : 0,
+-    y: ctx.state.props.horizontal ? 0 : offset
+-  });
 +function supersedeInitialScroll(ctx) {
 +  var _a3, _b, _c;
 +  const state = ctx.state;
@@ -1688,16 +1732,8 @@ index 6f41da3..0d7357b 100644
 +    initialScrollCompletion.resetFlags(state);
 +    setInitialScrollSession(state, { bootstrap: null });
 +    finishInitialScroll(ctx);
-   }
++  }
  }
--function scrollToFallbackOffset(ctx, offset) {
--  var _a3;
--  (_a3 = ctx.state.refScroller.current) == null ? void 0 : _a3.scrollTo({
--    animated: false,
--    x: ctx.state.props.horizontal ? offset : 0,
--    y: ctx.state.props.horizontal ? 0 : offset
--  });
--}
 -function checkFinishedScrollFallback(ctx) {
 +function finishInitialScroll(ctx, options) {
 +  var _a3, _b, _c;
@@ -1787,11 +1823,11 @@ index 6f41da3..0d7357b 100644
 +    }
 +    if (options == null ? void 0 : options.recalculateItems) {
 +      recalculateSettledScroll(ctx);
-     }
++    }
 +    setInitialRenderState(ctx, { didInitialScroll: true });
 +    if (shouldReleaseDeferredPublicOnScroll) {
 +      releaseDeferredPublicOnScroll(ctx, finalScrollOffset);
-+    }
+     }
 +    (_e = options == null ? void 0 : options.onFinished) == null ? void 0 : _e.call(options);
    };
 -  scheduleFallbackCheck(initialDelay);
@@ -1936,8 +1972,44 @@ index 6f41da3..0d7357b 100644
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
+@@ -5940,6 +6016,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   return Platform.OS === "web" && props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
++  var _a3;
+   const { state } = ctx;
+   const previousHeaderSize = peek$(ctx, "headerSize") || 0;
+   const didChange = previousHeaderSize !== size;
+@@ -5949,6 +6026,9 @@ function setHeaderSize(ctx, size) {
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+       requestAdjust(ctx, size - previousHeaderSize);
++    } else if ((_a3 = state.props.maintainScrollAtEnd) == null ? void 0 : _a3.onHeaderLayout) {
++      handleBootstrapInitialScrollLayoutChange(ctx);
++      doMaintainScrollAtEnd(ctx);
+     }
+   }
+   state.didMeasureHeader = true;
+@@ -7036,13 +7116,14 @@ function getRenderedItem(ctx, key, containerId) {
+ 
+ // src/utils/normalizeMaintainScrollAtEnd.ts
+ function normalizeMaintainScrollAtEndOn(on, hasExplicitOn) {
+-  var _a3, _b, _c, _d;
++  var _a3, _b, _c, _d, _e;
+   return {
+     animated: false,
+     onDataChange: hasExplicitOn ? (_a3 = on == null ? void 0 : on.dataChange) != null ? _a3 : false : true,
+     onFooterLayout: hasExplicitOn ? (_b = on == null ? void 0 : on.footerLayout) != null ? _b : false : true,
+-    onItemLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.itemLayout) != null ? _c : false : true,
+-    onLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.layout) != null ? _d : false : true
++    onHeaderLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.headerLayout) != null ? _c : false : true,
++    onItemLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.itemLayout) != null ? _d : false : true,
++    onLayout: hasExplicitOn ? (_e = on == null ? void 0 : on.layout) != null ? _e : false : true
+   };
+ }
+ function normalizeMaintainScrollAtEnd(value) {
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 4ad913c..73aea1f 100644
+index 4ad913c..8c313ee 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
 @@ -437,171 +437,279 @@ var EDGE_POSITION_EPSILON = 1;
@@ -2406,25 +2478,26 @@ index 4ad913c..73aea1f 100644
 -    setAdaptiveRender(ctx, "normal", "scroll");
 -  } else {
 -    state.scheduledWork.timeout(() => setAdaptiveRender(ctx, "normal", "scroll"), exitDelay, "adaptiveRender");
-+      }
-+    );
-   }
- }
+-  }
+-}
 -function setAdaptiveRender(ctx, mode, reason) {
 -  var _a3, _b;
 -  const previousMode = peek$(ctx, "adaptiveRender");
 -  if (previousMode !== mode) {
 -    set$(ctx, "adaptiveRender", mode);
 -    (_b = (_a3 = ctx.state.props.adaptiveRender) == null ? void 0 : _a3.onChange) == null ? void 0 : _b.call(_a3, mode, reason);
--  }
++      }
++    );
+   }
+ }
+-function resetAdaptiveRender(ctx) {
 +
 +// src/utils/checkThresholds.ts
 +function checkThresholds(ctx, allowedEdge) {
 +  const allowGateCreatedInCurrentCheck = !ctx.state.edgeReachedGate;
 +  checkAtBottom(ctx, allowedEdge, allowGateCreatedInCurrentCheck);
 +  checkAtTop(ctx, allowedEdge, allowGateCreatedInCurrentCheck);
- }
--function resetAdaptiveRender(ctx) {
++}
 +
 +// src/core/recalculateSettledScroll.ts
 +function recalculateSettledScroll(ctx) {
@@ -2477,7 +2550,7 @@ index 4ad913c..73aea1f 100644
 +    state.scrollTargetPinnedRange = void 0;
 +    if (state.pendingTotalSize !== void 0) {
 +      addTotalSize(ctx, null, state.pendingTotalSize);
-     }
++    }
 +    if (PlatformAdjustBreaksScroll) {
 +      state.scrollAdjustHandler.commitPendingAdjust(scrollingTo);
 +    }
@@ -2495,7 +2568,7 @@ index 4ad913c..73aea1f 100644
 +        waitForCompletionFrame: !!scrollingTo.waitForInitialScrollCompletionFrame
 +      });
 +      return;
-+    }
+     }
 +    recalculateSettledScroll(ctx);
 +    resolvePendingScroll == null ? void 0 : resolvePendingScroll();
    }
@@ -2660,6 +2733,12 @@ index 4ad913c..73aea1f 100644
 -    setAdaptiveRender(ctx, "normal", "ready");
 -    if (state.props.drawDistance > INITIAL_DRAW_DISTANCE) {
 -      scheduleFullDrawDistancePrewarm(ctx);
+-    }
+-    if (!state.didLoad) {
+-      state.didLoad = true;
+-      if (onLoad) {
+-        onLoad({ elapsedTimeInMs: Date.now() - loadStartTime });
+-      }
 +  const previousDataLength = (_d = (_c = options.previousDataLength) != null ? _c : existingSession == null ? void 0 : existingSession.previousDataLength) != null ? _d : 0;
 +  state.initialScrollSession = createInitialScrollSession({
 +    bootstrap,
@@ -2681,12 +2760,7 @@ index 4ad913c..73aea1f 100644
 +  if (options == null ? void 0 : options.onlyIfAligned) {
 +    if (!(scrollingTo == null ? void 0 : scrollingTo.isInitialScroll) || scrollingTo.animated) {
 +      return;
-     }
--    if (!state.didLoad) {
--      state.didLoad = true;
--      if (onLoad) {
--        onLoad({ elapsedTimeInMs: Date.now() - loadStartTime });
--      }
++    }
 +    if (!getResolvedScrollCompletionState(ctx, scrollingTo).isAtResolvedTarget) {
 +      return;
      }
@@ -3234,14 +3308,19 @@ index 4ad913c..73aea1f 100644
 -  let offset = offsetParam;
 -  if (viewOffset) {
 -    offset -= viewOffset;
--  }
++  const settle = state.scrollTargetSettle;
++  if (!settle) {
++    return false;
+   }
 -  if (index !== void 0) {
 -    const startOffsetAdjustment = getStartOffsetAdjustment(ctx);
 -    if (startOffsetAdjustment) {
 -      offset += startOffsetAdjustment;
 -    }
-+  const settle = state.scrollTargetSettle;
-+  if (!settle) {
++  const index = state.indexByKey.get(settle.id);
++  const position = index === void 0 ? void 0 : state.positions[index];
++  if (index === void 0 || position === void 0) {
++    clearScrollTargetSettle(state);
 +    return false;
    }
 -  if (viewPosition !== void 0 && index !== void 0) {
@@ -3258,12 +3337,6 @@ index 4ad913c..73aea1f 100644
 -    if (!isOutOfBounds && index === state.props.data.length - 1) {
 -      const footerSize = peek$(ctx, "footerSize") || 0;
 -      offset += footerSize;
-+  const index = state.indexByKey.get(settle.id);
-+  const position = index === void 0 ? void 0 : state.positions[index];
-+  if (index === void 0 || position === void 0) {
-+    clearScrollTargetSettle(state);
-+    return false;
-+  }
 +  const now = Date.now();
 +  if (now > settle.expiresAt) {
 +    clearScrollTargetSettle(state);
@@ -3534,6 +3607,9 @@ index 4ad913c..73aea1f 100644
 +}) {
    const { state } = ctx;
 -  return !!((_a3 = state.scrollingTo) == null ? void 0 : _a3.isInitialScroll) && state.props.data.length > 0 && getContentSize(ctx) <= state.scrollLength && state.scrollPending <= INITIAL_SCROLL_ZERO_TARGET_EPSILON;
+-}
+-function isEndAlignedLastItemTarget(ctx, scrollingTo) {
+-  return scrollingTo.index === ctx.state.props.data.length - 1 && scrollingTo.viewPosition === 1;
 +  const {
 +    loadStartTime,
 +    props: { onLoad }
@@ -3559,8 +3635,12 @@ index 4ad913c..73aea1f 100644
 +    }
 +  }
  }
--function isEndAlignedLastItemTarget(ctx, scrollingTo) {
--  return scrollingTo.index === ctx.state.props.data.length - 1 && scrollingTo.viewPosition === 1;
+-function getCurrentTargetOffset(ctx, scrollingTo) {
+-  var _a3;
+-  const index = scrollingTo.index;
+-  const shouldRecomputeEndTarget = isEndAlignedLastItemTarget(ctx, scrollingTo);
+-  const requestedTargetOffset = shouldRecomputeEndTarget && index !== void 0 ? calculateOffsetWithOffsetPosition(ctx, calculateOffsetForIndex(ctx, index), scrollingTo) : (_a3 = scrollingTo.targetOffset) != null ? _a3 : clampScrollOffset(ctx, scrollingTo.offset - (scrollingTo.viewOffset || 0), scrollingTo);
+-  return clampScrollOffset(ctx, requestedTargetOffset, scrollingTo);
 +
 +// src/core/finishInitialScroll.ts
 +var PRESERVED_INITIAL_SCROLL_FALLBACK_CLEAR_DELAY_MS = 2e3;
@@ -3568,15 +3648,6 @@ index 4ad913c..73aea1f 100644
 +  state.scroll = offset;
 +  state.scrollPending = offset;
 +  state.scrollPrev = offset;
- }
--function getCurrentTargetOffset(ctx, scrollingTo) {
--  var _a3;
--  const index = scrollingTo.index;
--  const shouldRecomputeEndTarget = isEndAlignedLastItemTarget(ctx, scrollingTo);
--  const requestedTargetOffset = shouldRecomputeEndTarget && index !== void 0 ? calculateOffsetWithOffsetPosition(ctx, calculateOffsetForIndex(ctx, index), scrollingTo) : (_a3 = scrollingTo.targetOffset) != null ? _a3 : clampScrollOffset(ctx, scrollingTo.offset - (scrollingTo.viewOffset || 0), scrollingTo);
--  return clampScrollOffset(ctx, requestedTargetOffset, scrollingTo);
-+function clearPreservedInitialScrollTargetTimeout(state) {
-+  state.scheduledWork.cancel("preservedInitialScroll");
  }
 -function getResolvedScrollCompletionState(ctx, scrollingTo) {
 -  const { state } = ctx;
@@ -3592,11 +3663,8 @@ index 4ad913c..73aea1f 100644
 -    clampedTargetOffset,
 -    isAtResolvedTarget: Math.abs(scroll - maxOffset) < 1 && (diff1 < 1 || canUseAdjustedCompletion && diff2 < 1)
 -  };
-+function clearPreservedInitialScrollTarget(state) {
-+  clearPreservedInitialScrollTargetTimeout(state);
-+  state.clearPreservedInitialScrollOnNextFinish = void 0;
-+  state.initialScroll = void 0;
-+  setInitialScrollSession(state);
++function clearPreservedInitialScrollTargetTimeout(state) {
++  state.scheduledWork.cancel("preservedInitialScroll");
  }
 -function checkFinishedScrollFrame(ctx) {
 -  const scrollingTo = ctx.state.scrollingTo;
@@ -3610,6 +3678,20 @@ index 4ad913c..73aea1f 100644
 -    scrollingTo
 -  })) {
 -    finishScrollTo(ctx);
+-  }
++function clearPreservedInitialScrollTarget(state) {
++  clearPreservedInitialScrollTargetTimeout(state);
++  state.clearPreservedInitialScrollOnNextFinish = void 0;
++  state.initialScroll = void 0;
++  setInitialScrollSession(state);
+ }
+-function scrollToFallbackOffset(ctx, offset) {
+-  var _a3;
+-  (_a3 = ctx.state.refScroller.current) == null ? void 0 : _a3.scrollTo({
+-    animated: false,
+-    x: ctx.state.props.horizontal ? offset : 0,
+-    y: ctx.state.props.horizontal ? 0 : offset
+-  });
 +function supersedeInitialScroll(ctx) {
 +  var _a3, _b, _c;
 +  const state = ctx.state;
@@ -3626,16 +3708,8 @@ index 4ad913c..73aea1f 100644
 +    initialScrollCompletion.resetFlags(state);
 +    setInitialScrollSession(state, { bootstrap: null });
 +    finishInitialScroll(ctx);
-   }
++  }
  }
--function scrollToFallbackOffset(ctx, offset) {
--  var _a3;
--  (_a3 = ctx.state.refScroller.current) == null ? void 0 : _a3.scrollTo({
--    animated: false,
--    x: ctx.state.props.horizontal ? offset : 0,
--    y: ctx.state.props.horizontal ? 0 : offset
--  });
--}
 -function checkFinishedScrollFallback(ctx) {
 +function finishInitialScroll(ctx, options) {
 +  var _a3, _b, _c;
@@ -3725,11 +3799,11 @@ index 4ad913c..73aea1f 100644
 +    }
 +    if (options == null ? void 0 : options.recalculateItems) {
 +      recalculateSettledScroll(ctx);
-     }
++    }
 +    setInitialRenderState(ctx, { didInitialScroll: true });
 +    if (shouldReleaseDeferredPublicOnScroll) {
 +      releaseDeferredPublicOnScroll(ctx, finalScrollOffset);
-+    }
+     }
 +    (_e = options == null ? void 0 : options.onFinished) == null ? void 0 : _e.call(options);
    };
 -  scheduleFallbackCheck(initialDelay);
@@ -3874,8 +3948,61 @@ index 4ad913c..73aea1f 100644
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
+@@ -5919,6 +5995,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   return Platform.OS === "web" && props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
++  var _a3;
+   const { state } = ctx;
+   const previousHeaderSize = peek$(ctx, "headerSize") || 0;
+   const didChange = previousHeaderSize !== size;
+@@ -5928,6 +6005,9 @@ function setHeaderSize(ctx, size) {
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+       requestAdjust(ctx, size - previousHeaderSize);
++    } else if ((_a3 = state.props.maintainScrollAtEnd) == null ? void 0 : _a3.onHeaderLayout) {
++      handleBootstrapInitialScrollLayoutChange(ctx);
++      doMaintainScrollAtEnd(ctx);
+     }
+   }
+   state.didMeasureHeader = true;
+@@ -7015,13 +7095,14 @@ function getRenderedItem(ctx, key, containerId) {
+ 
+ // src/utils/normalizeMaintainScrollAtEnd.ts
+ function normalizeMaintainScrollAtEndOn(on, hasExplicitOn) {
+-  var _a3, _b, _c, _d;
++  var _a3, _b, _c, _d, _e;
+   return {
+     animated: false,
+     onDataChange: hasExplicitOn ? (_a3 = on == null ? void 0 : on.dataChange) != null ? _a3 : false : true,
+     onFooterLayout: hasExplicitOn ? (_b = on == null ? void 0 : on.footerLayout) != null ? _b : false : true,
+-    onItemLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.itemLayout) != null ? _c : false : true,
+-    onLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.layout) != null ? _d : false : true
++    onHeaderLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.headerLayout) != null ? _c : false : true,
++    onItemLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.itemLayout) != null ? _d : false : true,
++    onLayout: hasExplicitOn ? (_e = on == null ? void 0 : on.layout) != null ? _e : false : true
+   };
+ }
+ function normalizeMaintainScrollAtEnd(value) {
+diff --git a/node_modules/@legendapp/list/react-native.web.d.ts b/node_modules/@legendapp/list/react-native.web.d.ts
+index b6c7481..ace847e 100644
+--- a/node_modules/@legendapp/list/react-native.web.d.ts
++++ b/node_modules/@legendapp/list/react-native.web.d.ts
+@@ -511,6 +511,12 @@ interface AlwaysRenderConfig {
+ interface MaintainScrollAtEndOnOptions {
+     dataChange?: boolean;
+     footerLayout?: boolean;
++    /**
++     * Keep the list pinned to the end when the header changes size. A header that measures larger
++     * than its estimate pushes every item down, which leaves a list that had already scrolled to
++     * its end short of it by the difference.
++     */
++    headerLayout?: boolean;
+     itemLayout?: boolean;
+     layout?: boolean;
+ }
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index b2240b5..69282b3 100644
+index b2240b5..cbff6eb 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -430,171 +430,271 @@ var EDGE_POSITION_EPSILON = 1;
@@ -4368,7 +4495,7 @@ index b2240b5..69282b3 100644
 +    }
 +    {
 +      state.scrollAdjustHandler.commitPendingAdjust(scrollingTo);
-     }
++    }
 +    if (scrollingTo.isInitialScroll || state.initialScroll) {
 +      const isOffsetSession = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset";
 +      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_b = state.initialScroll) == null ? void 0 : _b.viewPosition) === 1;
@@ -4383,7 +4510,7 @@ index b2240b5..69282b3 100644
 +        waitForCompletionFrame: !!scrollingTo.waitForInitialScrollCompletionFrame
 +      });
 +      return;
-+    }
+     }
 +    recalculateSettledScroll(ctx);
 +    resolvePendingScroll == null ? void 0 : resolvePendingScroll();
    }
@@ -4555,22 +4682,11 @@ index b2240b5..69282b3 100644
 -    initialScrollCompletion.resetFlags(state);
 -    setInitialScrollSession(state, { bootstrap: null });
 -    finishInitialScroll(ctx);
--  }
--}
--function finishInitialScroll(ctx, options) {
--  var _a3, _b, _c;
--  const state = ctx.state;
--  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
--    syncInitialScrollOffset(state, options.resolvedOffset);
--  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
--    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
--    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
--      syncInitialScrollOffset(state, observedOffset);
 +    const currentOffset = readOffset();
 +    const isNearTarget = Math.abs(currentOffset - targetOffset) <= SCROLL_END_TARGET_EPSILON;
 +    if (reason === "scrollend" && !isNearTarget) {
 +      return;
-     }
++    }
 +    scheduledWork.cancel("platformScrollCompletion");
 +    finishScrollTo(ctx);
 +  };
@@ -4587,6 +4703,22 @@ index b2240b5..69282b3 100644
 +  } else {
 +    idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
    }
++  scheduledWork.register("platformScrollCompletion", cancel);
+ }
+-function finishInitialScroll(ctx, options) {
+-  var _a3, _b, _c;
++
++// src/utils/requestAdjust.ts
++function requestAdjust(ctx, positionDiff, source) {
+   const state = ctx.state;
+-  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
+-    syncInitialScrollOffset(state, options.resolvedOffset);
+-  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
+-    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
+-    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
+-      syncInitialScrollOffset(state, observedOffset);
+-    }
+-  }
 -  const complete = () => {
 -    var _a4, _b2, _c2, _d, _e;
 -    const shouldReleaseDeferredPublicOnScroll = ((_a4 = state.initialScrollSession) == null ? void 0 : _a4.kind) === "bootstrap";
@@ -4608,12 +4740,6 @@ index b2240b5..69282b3 100644
 -          PRESERVED_INITIAL_SCROLL_FALLBACK_CLEAR_DELAY_MS,
 -          "preservedInitialScroll"
 -        );
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
-+// src/utils/requestAdjust.ts
-+function requestAdjust(ctx, positionDiff, source) {
-+  const state = ctx.state;
 +  if (Math.abs(positionDiff) > 0.1) {
 +    const doit = () => {
 +      {
@@ -5529,8 +5655,44 @@ index b2240b5..69282b3 100644
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
+@@ -6607,6 +6683,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
++  var _a3;
+   const { state } = ctx;
+   const previousHeaderSize = peek$(ctx, "headerSize") || 0;
+   const didChange = previousHeaderSize !== size;
+@@ -6616,6 +6693,9 @@ function setHeaderSize(ctx, size) {
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+       requestAdjust(ctx, size - previousHeaderSize);
++    } else if ((_a3 = state.props.maintainScrollAtEnd) == null ? void 0 : _a3.onHeaderLayout) {
++      handleBootstrapInitialScrollLayoutChange(ctx);
++      doMaintainScrollAtEnd(ctx);
+     }
+   }
+   state.didMeasureHeader = true;
+@@ -7679,13 +7759,14 @@ function getRenderedItem(ctx, key, containerId) {
+ 
+ // src/utils/normalizeMaintainScrollAtEnd.ts
+ function normalizeMaintainScrollAtEndOn(on, hasExplicitOn) {
+-  var _a3, _b, _c, _d;
++  var _a3, _b, _c, _d, _e;
+   return {
+     animated: false,
+     onDataChange: hasExplicitOn ? (_a3 = on == null ? void 0 : on.dataChange) != null ? _a3 : false : true,
+     onFooterLayout: hasExplicitOn ? (_b = on == null ? void 0 : on.footerLayout) != null ? _b : false : true,
+-    onItemLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.itemLayout) != null ? _c : false : true,
+-    onLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.layout) != null ? _d : false : true
++    onHeaderLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.headerLayout) != null ? _c : false : true,
++    onItemLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.itemLayout) != null ? _d : false : true,
++    onLayout: hasExplicitOn ? (_e = on == null ? void 0 : on.layout) != null ? _e : false : true
+   };
+ }
+ function normalizeMaintainScrollAtEnd(value) {
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index a97be05..a1e2968 100644
+index a97be05..83225ee 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -409,171 +409,271 @@ var EDGE_POSITION_EPSILON = 1;
@@ -6023,7 +6185,7 @@ index a97be05..a1e2968 100644
 +    }
 +    {
 +      state.scrollAdjustHandler.commitPendingAdjust(scrollingTo);
-     }
++    }
 +    if (scrollingTo.isInitialScroll || state.initialScroll) {
 +      const isOffsetSession = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset";
 +      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_b = state.initialScroll) == null ? void 0 : _b.viewPosition) === 1;
@@ -6038,7 +6200,7 @@ index a97be05..a1e2968 100644
 +        waitForCompletionFrame: !!scrollingTo.waitForInitialScrollCompletionFrame
 +      });
 +      return;
-+    }
+     }
 +    recalculateSettledScroll(ctx);
 +    resolvePendingScroll == null ? void 0 : resolvePendingScroll();
    }
@@ -6210,22 +6372,11 @@ index a97be05..a1e2968 100644
 -    initialScrollCompletion.resetFlags(state);
 -    setInitialScrollSession(state, { bootstrap: null });
 -    finishInitialScroll(ctx);
--  }
--}
--function finishInitialScroll(ctx, options) {
--  var _a3, _b, _c;
--  const state = ctx.state;
--  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
--    syncInitialScrollOffset(state, options.resolvedOffset);
--  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
--    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
--    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
--      syncInitialScrollOffset(state, observedOffset);
 +    const currentOffset = readOffset();
 +    const isNearTarget = Math.abs(currentOffset - targetOffset) <= SCROLL_END_TARGET_EPSILON;
 +    if (reason === "scrollend" && !isNearTarget) {
 +      return;
-     }
++    }
 +    scheduledWork.cancel("platformScrollCompletion");
 +    finishScrollTo(ctx);
 +  };
@@ -6242,6 +6393,22 @@ index a97be05..a1e2968 100644
 +  } else {
 +    idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
    }
++  scheduledWork.register("platformScrollCompletion", cancel);
+ }
+-function finishInitialScroll(ctx, options) {
+-  var _a3, _b, _c;
++
++// src/utils/requestAdjust.ts
++function requestAdjust(ctx, positionDiff, source) {
+   const state = ctx.state;
+-  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
+-    syncInitialScrollOffset(state, options.resolvedOffset);
+-  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
+-    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
+-    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
+-      syncInitialScrollOffset(state, observedOffset);
+-    }
+-  }
 -  const complete = () => {
 -    var _a4, _b2, _c2, _d, _e;
 -    const shouldReleaseDeferredPublicOnScroll = ((_a4 = state.initialScrollSession) == null ? void 0 : _a4.kind) === "bootstrap";
@@ -6263,12 +6430,6 @@ index a97be05..a1e2968 100644
 -          PRESERVED_INITIAL_SCROLL_FALLBACK_CLEAR_DELAY_MS,
 -          "preservedInitialScroll"
 -        );
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
-+// src/utils/requestAdjust.ts
-+function requestAdjust(ctx, positionDiff, source) {
-+  const state = ctx.state;
 +  if (Math.abs(positionDiff) > 0.1) {
 +    const doit = () => {
 +      {
@@ -7184,8 +7345,61 @@ index a97be05..a1e2968 100644
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
+@@ -6586,6 +6662,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
++  var _a3;
+   const { state } = ctx;
+   const previousHeaderSize = peek$(ctx, "headerSize") || 0;
+   const didChange = previousHeaderSize !== size;
+@@ -6595,6 +6672,9 @@ function setHeaderSize(ctx, size) {
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+       requestAdjust(ctx, size - previousHeaderSize);
++    } else if ((_a3 = state.props.maintainScrollAtEnd) == null ? void 0 : _a3.onHeaderLayout) {
++      handleBootstrapInitialScrollLayoutChange(ctx);
++      doMaintainScrollAtEnd(ctx);
+     }
+   }
+   state.didMeasureHeader = true;
+@@ -7658,13 +7738,14 @@ function getRenderedItem(ctx, key, containerId) {
+ 
+ // src/utils/normalizeMaintainScrollAtEnd.ts
+ function normalizeMaintainScrollAtEndOn(on, hasExplicitOn) {
+-  var _a3, _b, _c, _d;
++  var _a3, _b, _c, _d, _e;
+   return {
+     animated: false,
+     onDataChange: hasExplicitOn ? (_a3 = on == null ? void 0 : on.dataChange) != null ? _a3 : false : true,
+     onFooterLayout: hasExplicitOn ? (_b = on == null ? void 0 : on.footerLayout) != null ? _b : false : true,
+-    onItemLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.itemLayout) != null ? _c : false : true,
+-    onLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.layout) != null ? _d : false : true
++    onHeaderLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.headerLayout) != null ? _c : false : true,
++    onItemLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.itemLayout) != null ? _d : false : true,
++    onLayout: hasExplicitOn ? (_e = on == null ? void 0 : on.layout) != null ? _e : false : true
+   };
+ }
+ function normalizeMaintainScrollAtEnd(value) {
+diff --git a/node_modules/@legendapp/list/react.d.ts b/node_modules/@legendapp/list/react.d.ts
+index b6c7481..ace847e 100644
+--- a/node_modules/@legendapp/list/react.d.ts
++++ b/node_modules/@legendapp/list/react.d.ts
+@@ -511,6 +511,12 @@ interface AlwaysRenderConfig {
+ interface MaintainScrollAtEndOnOptions {
+     dataChange?: boolean;
+     footerLayout?: boolean;
++    /**
++     * Keep the list pinned to the end when the header changes size. A header that measures larger
++     * than its estimate pushes every item down, which leaves a list that had already scrolled to
++     * its end short of it by the difference.
++     */
++    headerLayout?: boolean;
+     itemLayout?: boolean;
+     layout?: boolean;
+ }
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index b2240b5..69282b3 100644
+index b2240b5..cbff6eb 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -430,171 +430,271 @@ var EDGE_POSITION_EPSILON = 1;
@@ -7678,7 +7892,7 @@ index b2240b5..69282b3 100644
 +    }
 +    {
 +      state.scrollAdjustHandler.commitPendingAdjust(scrollingTo);
-     }
++    }
 +    if (scrollingTo.isInitialScroll || state.initialScroll) {
 +      const isOffsetSession = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset";
 +      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_b = state.initialScroll) == null ? void 0 : _b.viewPosition) === 1;
@@ -7693,7 +7907,7 @@ index b2240b5..69282b3 100644
 +        waitForCompletionFrame: !!scrollingTo.waitForInitialScrollCompletionFrame
 +      });
 +      return;
-+    }
+     }
 +    recalculateSettledScroll(ctx);
 +    resolvePendingScroll == null ? void 0 : resolvePendingScroll();
    }
@@ -7865,22 +8079,11 @@ index b2240b5..69282b3 100644
 -    initialScrollCompletion.resetFlags(state);
 -    setInitialScrollSession(state, { bootstrap: null });
 -    finishInitialScroll(ctx);
--  }
--}
--function finishInitialScroll(ctx, options) {
--  var _a3, _b, _c;
--  const state = ctx.state;
--  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
--    syncInitialScrollOffset(state, options.resolvedOffset);
--  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
--    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
--    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
--      syncInitialScrollOffset(state, observedOffset);
 +    const currentOffset = readOffset();
 +    const isNearTarget = Math.abs(currentOffset - targetOffset) <= SCROLL_END_TARGET_EPSILON;
 +    if (reason === "scrollend" && !isNearTarget) {
 +      return;
-     }
++    }
 +    scheduledWork.cancel("platformScrollCompletion");
 +    finishScrollTo(ctx);
 +  };
@@ -7897,6 +8100,22 @@ index b2240b5..69282b3 100644
 +  } else {
 +    idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
    }
++  scheduledWork.register("platformScrollCompletion", cancel);
+ }
+-function finishInitialScroll(ctx, options) {
+-  var _a3, _b, _c;
++
++// src/utils/requestAdjust.ts
++function requestAdjust(ctx, positionDiff, source) {
+   const state = ctx.state;
+-  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
+-    syncInitialScrollOffset(state, options.resolvedOffset);
+-  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
+-    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
+-    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
+-      syncInitialScrollOffset(state, observedOffset);
+-    }
+-  }
 -  const complete = () => {
 -    var _a4, _b2, _c2, _d, _e;
 -    const shouldReleaseDeferredPublicOnScroll = ((_a4 = state.initialScrollSession) == null ? void 0 : _a4.kind) === "bootstrap";
@@ -7918,12 +8137,6 @@ index b2240b5..69282b3 100644
 -          PRESERVED_INITIAL_SCROLL_FALLBACK_CLEAR_DELAY_MS,
 -          "preservedInitialScroll"
 -        );
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
-+// src/utils/requestAdjust.ts
-+function requestAdjust(ctx, positionDiff, source) {
-+  const state = ctx.state;
 +  if (Math.abs(positionDiff) > 0.1) {
 +    const doit = () => {
 +      {
@@ -8839,8 +9052,44 @@ index b2240b5..69282b3 100644
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
+@@ -6607,6 +6683,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
++  var _a3;
+   const { state } = ctx;
+   const previousHeaderSize = peek$(ctx, "headerSize") || 0;
+   const didChange = previousHeaderSize !== size;
+@@ -6616,6 +6693,9 @@ function setHeaderSize(ctx, size) {
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+       requestAdjust(ctx, size - previousHeaderSize);
++    } else if ((_a3 = state.props.maintainScrollAtEnd) == null ? void 0 : _a3.onHeaderLayout) {
++      handleBootstrapInitialScrollLayoutChange(ctx);
++      doMaintainScrollAtEnd(ctx);
+     }
+   }
+   state.didMeasureHeader = true;
+@@ -7679,13 +7759,14 @@ function getRenderedItem(ctx, key, containerId) {
+ 
+ // src/utils/normalizeMaintainScrollAtEnd.ts
+ function normalizeMaintainScrollAtEndOn(on, hasExplicitOn) {
+-  var _a3, _b, _c, _d;
++  var _a3, _b, _c, _d, _e;
+   return {
+     animated: false,
+     onDataChange: hasExplicitOn ? (_a3 = on == null ? void 0 : on.dataChange) != null ? _a3 : false : true,
+     onFooterLayout: hasExplicitOn ? (_b = on == null ? void 0 : on.footerLayout) != null ? _b : false : true,
+-    onItemLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.itemLayout) != null ? _c : false : true,
+-    onLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.layout) != null ? _d : false : true
++    onHeaderLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.headerLayout) != null ? _c : false : true,
++    onItemLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.itemLayout) != null ? _d : false : true,
++    onLayout: hasExplicitOn ? (_e = on == null ? void 0 : on.layout) != null ? _e : false : true
+   };
+ }
+ function normalizeMaintainScrollAtEnd(value) {
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index a97be05..a1e2968 100644
+index a97be05..83225ee 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -409,171 +409,271 @@ var EDGE_POSITION_EPSILON = 1;
@@ -9333,7 +9582,7 @@ index a97be05..a1e2968 100644
 +    }
 +    {
 +      state.scrollAdjustHandler.commitPendingAdjust(scrollingTo);
-     }
++    }
 +    if (scrollingTo.isInitialScroll || state.initialScroll) {
 +      const isOffsetSession = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset";
 +      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_b = state.initialScroll) == null ? void 0 : _b.viewPosition) === 1;
@@ -9348,7 +9597,7 @@ index a97be05..a1e2968 100644
 +        waitForCompletionFrame: !!scrollingTo.waitForInitialScrollCompletionFrame
 +      });
 +      return;
-+    }
+     }
 +    recalculateSettledScroll(ctx);
 +    resolvePendingScroll == null ? void 0 : resolvePendingScroll();
    }
@@ -9520,22 +9769,11 @@ index a97be05..a1e2968 100644
 -    initialScrollCompletion.resetFlags(state);
 -    setInitialScrollSession(state, { bootstrap: null });
 -    finishInitialScroll(ctx);
--  }
--}
--function finishInitialScroll(ctx, options) {
--  var _a3, _b, _c;
--  const state = ctx.state;
--  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
--    syncInitialScrollOffset(state, options.resolvedOffset);
--  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
--    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
--    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
--      syncInitialScrollOffset(state, observedOffset);
 +    const currentOffset = readOffset();
 +    const isNearTarget = Math.abs(currentOffset - targetOffset) <= SCROLL_END_TARGET_EPSILON;
 +    if (reason === "scrollend" && !isNearTarget) {
 +      return;
-     }
++    }
 +    scheduledWork.cancel("platformScrollCompletion");
 +    finishScrollTo(ctx);
 +  };
@@ -9552,6 +9790,22 @@ index a97be05..a1e2968 100644
 +  } else {
 +    idleTimeout = setTimeout(() => finish("idle"), SMOOTH_SCROLL_DURATION_MS);
    }
++  scheduledWork.register("platformScrollCompletion", cancel);
+ }
+-function finishInitialScroll(ctx, options) {
+-  var _a3, _b, _c;
++
++// src/utils/requestAdjust.ts
++function requestAdjust(ctx, positionDiff, source) {
+   const state = ctx.state;
+-  if ((options == null ? void 0 : options.resolvedOffset) !== void 0) {
+-    syncInitialScrollOffset(state, options.resolvedOffset);
+-  } else if ((options == null ? void 0 : options.syncObservedOffset) && ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "offset") {
+-    const observedOffset = (_c = (_b = state.refScroller.current) == null ? void 0 : _b.getCurrentScrollOffset) == null ? void 0 : _c.call(_b);
+-    if (typeof observedOffset === "number" && Number.isFinite(observedOffset)) {
+-      syncInitialScrollOffset(state, observedOffset);
+-    }
+-  }
 -  const complete = () => {
 -    var _a4, _b2, _c2, _d, _e;
 -    const shouldReleaseDeferredPublicOnScroll = ((_a4 = state.initialScrollSession) == null ? void 0 : _a4.kind) === "bootstrap";
@@ -9573,12 +9827,6 @@ index a97be05..a1e2968 100644
 -          PRESERVED_INITIAL_SCROLL_FALLBACK_CLEAR_DELAY_MS,
 -          "preservedInitialScroll"
 -        );
-+  scheduledWork.register("platformScrollCompletion", cancel);
-+}
-+
-+// src/utils/requestAdjust.ts
-+function requestAdjust(ctx, positionDiff, source) {
-+  const state = ctx.state;
 +  if (Math.abs(positionDiff) > 0.1) {
 +    const doit = () => {
 +      {
@@ -10494,3 +10742,73 @@ index a97be05..a1e2968 100644
      if (didMVCPAdjustScroll) {
        updateScroll2(state.scroll);
        updateScrollRange();
+@@ -6586,6 +6662,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
++  var _a3;
+   const { state } = ctx;
+   const previousHeaderSize = peek$(ctx, "headerSize") || 0;
+   const didChange = previousHeaderSize !== size;
+@@ -6595,6 +6672,9 @@ function setHeaderSize(ctx, size) {
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+       requestAdjust(ctx, size - previousHeaderSize);
++    } else if ((_a3 = state.props.maintainScrollAtEnd) == null ? void 0 : _a3.onHeaderLayout) {
++      handleBootstrapInitialScrollLayoutChange(ctx);
++      doMaintainScrollAtEnd(ctx);
+     }
+   }
+   state.didMeasureHeader = true;
+@@ -7658,13 +7738,14 @@ function getRenderedItem(ctx, key, containerId) {
+ 
+ // src/utils/normalizeMaintainScrollAtEnd.ts
+ function normalizeMaintainScrollAtEndOn(on, hasExplicitOn) {
+-  var _a3, _b, _c, _d;
++  var _a3, _b, _c, _d, _e;
+   return {
+     animated: false,
+     onDataChange: hasExplicitOn ? (_a3 = on == null ? void 0 : on.dataChange) != null ? _a3 : false : true,
+     onFooterLayout: hasExplicitOn ? (_b = on == null ? void 0 : on.footerLayout) != null ? _b : false : true,
+-    onItemLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.itemLayout) != null ? _c : false : true,
+-    onLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.layout) != null ? _d : false : true
++    onHeaderLayout: hasExplicitOn ? (_c = on == null ? void 0 : on.headerLayout) != null ? _c : false : true,
++    onItemLayout: hasExplicitOn ? (_d = on == null ? void 0 : on.itemLayout) != null ? _d : false : true,
++    onLayout: hasExplicitOn ? (_e = on == null ? void 0 : on.layout) != null ? _e : false : true
+   };
+ }
+ function normalizeMaintainScrollAtEnd(value) {
+diff --git a/node_modules/@legendapp/list/reanimated.d.ts b/node_modules/@legendapp/list/reanimated.d.ts
+index e504332..99337c1 100644
+--- a/node_modules/@legendapp/list/reanimated.d.ts
++++ b/node_modules/@legendapp/list/reanimated.d.ts
+@@ -489,6 +489,12 @@ interface AlwaysRenderConfig {
+ interface MaintainScrollAtEndOnOptions {
+     dataChange?: boolean;
+     footerLayout?: boolean;
++    /**
++     * Keep the list pinned to the end when the header changes size. A header that measures larger
++     * than its estimate pushes every item down, which leaves a list that had already scrolled to
++     * its end short of it by the difference.
++     */
++    headerLayout?: boolean;
+     itemLayout?: boolean;
+     layout?: boolean;
+ }
+diff --git a/node_modules/@legendapp/list/section-list.d.ts b/node_modules/@legendapp/list/section-list.d.ts
+index a790f7f..9a3c2ef 100644
+--- a/node_modules/@legendapp/list/section-list.d.ts
++++ b/node_modules/@legendapp/list/section-list.d.ts
+@@ -545,6 +545,12 @@ interface AlwaysRenderConfig {
+ interface MaintainScrollAtEndOnOptions {
+     dataChange?: boolean;
+     footerLayout?: boolean;
++    /**
++     * Keep the list pinned to the end when the header changes size. A header that measures larger
++     * than its estimate pushes every item down, which leaves a list that had already scrolled to
++     * its end short of it by the difference.
++     */
++    headerLayout?: boolean;
+     itemLayout?: boolean;
+     layout?: boolean;
+ }
