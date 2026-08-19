@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
@@ -30,20 +30,22 @@ import {copyToClipboard} from '@/util/storeless-actions'
 import noop from 'lodash/noop'
 import {LegendList} from '@legendapp/list/react'
 import type {LegendListRef} from '@/common-adapters'
-import {FlatList} from 'react-native'
-import type {ScrollViewProps} from 'react-native'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {
-  KeyboardChatScrollView,
-  useKeyboardState,
-  useReanimatedKeyboardAnimation,
-} from 'react-native-keyboard-controller'
-import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated'
+  KeyboardAwareLegendList,
+  useKeyboardScrollToEnd,
+} from '@legendapp/list/keyboard'
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
+import Animated, {interpolate, useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated'
+import {scheduleOnRN} from 'react-native-worklets'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 type ItemType = T.Chat.Ordinal
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
+
+// Stable config so it doesn't churn props each render. Empty = enable adaptive render with defaults.
+const adaptiveRenderConfig = {}
 
 const keyExtractor = (ordinal: ItemType) => String(ordinal)
 
@@ -138,7 +140,6 @@ const usePagination = (p: {
   return {onEndReached, onStartReached}
 }
 
-const centerTolerancePx = 8
 // A scroller within this many pixels of its end counts as at the end.
 const endTolerancePx = 2
 
@@ -212,6 +213,52 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
 })
 HighlightableRow.displayName = 'HighlightableRow'
 
+// Sending the list to the centered ordinal: a search hit, a reply-quote jump, a pinned message.
+//
+// Centring on the raw ordinal change is unreliable: navigating to a hit reloads the thread centred
+// on it, so the target is briefly absent from messageOrdinals when the ordinal changes. Wait for it
+// to arrive, then scroll once per target and no more. Re-issuing when the target's index moves looks
+// reasonable - a prepend does shift it - but scrolling is what triggers that prepend, so it would
+// re-centre the list out from under someone reading around the hit. The list holds the target in
+// place while rows measure, and maintainVisibleContentPosition holds it across prepends.
+//
+// Reset per dataset rather than per conversation: re-centring on the ordinal already stored still
+// clears and reloads the thread, so the list has to be sent to it again.
+const useScrollToCentered = (p: {
+  centeredOrdinal: T.Chat.Ordinal | undefined
+  datasetKey: string
+  listRef: React.RefObject<LegendListRef | null>
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
+  ready: boolean
+}) => {
+  const {centeredOrdinal, datasetKey, listRef, messageOrdinals, ready} = p
+  const lastScrolledRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  React.useLayoutEffect(() => {
+    lastScrolledRef.current = undefined
+  }, [datasetKey])
+
+  // Unconditional on purpose. A guard that stood this call down while the list's own
+  // initialScrollIndex bootstrap looked like it owned the target was tried and measured against the
+  // app, and there is no version of it that is safe: on the permalink path the thread mounts with no
+  // centred target, so the list is built with initialScrollAtEnd, and the bootstrap it re-arms when
+  // the centred dataset lands does not move it - the thread settles at its end with the target never
+  // shown. That path is indistinguishable from a warm in-thread jump by anything visible here (both
+  // arrive as "dataset with a resolvable initialScrollIndex"), so this call has to be the one
+  // authority that always fires.
+  React.useEffect(() => {
+    if (!ready || centeredOrdinal === undefined) {
+      lastScrolledRef.current = undefined
+      return
+    }
+    if (lastScrolledRef.current === centeredOrdinal) return
+    if (sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number) < 0) {
+      return
+    }
+    lastScrolledRef.current = centeredOrdinal
+    void listRef.current?.scrollToItem({animated: false, item: centeredOrdinal, viewPosition: 0.5})
+  }, [centeredOrdinal, datasetKey, listRef, messageOrdinals, ready])
+}
+
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const desktopStyles = useDesktopStyles()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
@@ -221,7 +268,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {clearVersion, containsLatestMessage, messageOrdinals, loaded} = data
 
   // Centered loads (search hit, reply-quote jump, pinned message) clear the thread before
-  // refetching, so the list sees a non-empty -> empty -> non-empty transition.
+  // refetching, so the list sees a non-empty -> empty -> non-empty transition it cannot recover
+  // from on its own. dataKey tells it the data is a new dataset, which is what makes it reset
+  // rather than wait for a container layout that never comes.
   const datasetKey = `${conversationIDKey}:${clearVersion}`
 
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -319,111 +368,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     [onScroll]
   )
 
-  // Scroll to centered ordinal when it changes (search / thread navigation).
-  // Use a "last scrolled to" ref rather than a "did it change" ref so we still
-  // scroll when loaded becomes true after centeredOrdinal was already set.
-  // Reset per dataset, not per conversation: re-centering on the ordinal we are already parked
-  // on still reloads the thread, so the list has to scroll to it again.
-  const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
-  React.useLayoutEffect(() => {
-    lastScrolledCenteredRef.current = undefined
-  }, [datasetKey])
-
-  // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
-  // centering accurate arrive after it starts, so the loop must not be torn down by an effect
-  // cleanup when messageOrdinals changes. Only a new target or unmount stops it.
-  const centerLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
-  // The loop re-centers for up to ~3s; a user scrolling in that window must win.
-  const abortCentering = React.useCallback(() => {
-    if (centerLoopRef.current) centerLoopRef.current.cancelled = true
-  }, [])
-  React.useEffect(() => abortCentering, [abortCentering])
-
-  // Closed loop, not one shot: rows enter at estimatedItemSize and only settle as they measure, so
-  // the first scroll lands off by however wrong the estimates above the target were. Measure the
-  // row's real offset from the viewport center and correct until it holds still, then get out of
-  // the way: maintainVisibleContentPosition owns the offset from then on. Two controllers fighting
-  // over the same scroll offset would oscillate.
-  //
-  // Correct via LegendList's own scrollToOffset, never scrollIntoView: touching scrollTop directly
-  // desyncs LegendList's internal scroll state, and the next time it recomputes item positions it
-  // snaps somewhere unrelated.
-  const scrollToCentered = React.useEffectEvent((target: T.Chat.Ordinal) => {
-    abortCentering()
-    const loop = {cancelled: false}
-    centerLoopRef.current = loop
-    const run = async () => {
-      let settled = 0
-      let pinnedChecks = 0
-      let scrollAtLastRequest: number | undefined
-      for (let elapsed = 0; elapsed < 3000 && !loop.cancelled; ) {
-        const wrapper = wrapperRef.current as unknown as {
-          getBoundingClientRect: () => {height: number; top: number}
-          querySelector: (s: string) => {getBoundingClientRect: () => {height: number; top: number}} | null
-        } | null
-        const el = wrapper ? wrapper.querySelector(`[data-ordinal="${target}"]`) : null
-        if (!wrapper || !el) {
-          // Target is outside the rendered window; get it mounted first.
-          const idx = sortedIndexOf(
-            messageOrdinalsRef.current as unknown as number[],
-            target as unknown as number
-          )
-          if (idx >= 0) {
-            void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
-          }
-          settled = 0
-          pinnedChecks = 0
-          await new Promise<void>(resolve => setTimeout(resolve, 100))
-          elapsed += 100
-          continue
-        }
-        const elRect = el.getBoundingClientRect()
-        const wrapRect = wrapper.getBoundingClientRect()
-        const offBy = elRect.top + elRect.height / 2 - (wrapRect.top + wrapRect.height / 2)
-        const scroll = listRef.current?.getState().scroll
-        // Deadband, not exact centering: below this the row reads as centered, and chasing the
-        // remainder only fights maintainVisibleContentPosition's own sub-pixel adjustments.
-        if (Math.abs(offBy) <= centerTolerancePx || scroll === undefined) {
-          pinnedChecks = 0
-          // Only the iteration right after a correction can diagnose a clamp.
-          scrollAtLastRequest = undefined
-          if (++settled >= 3) return
-        } else if (scroll === scrollAtLastRequest) {
-          // A hit near either end of the thread cannot be centered: the offset we ask for gets
-          // clamped and the row never reaches the middle. Our last correction moved the scroll
-          // position not at all, so we are pinned against an edge — stop rather than spin.
-          if (++pinnedChecks >= 3) return
-        } else {
-          pinnedChecks = 0
-          scrollAtLastRequest = scroll
-          void listRef.current?.scrollToOffset({animated: false, offset: scroll + offBy})
-        }
-        await new Promise<void>(resolve => setTimeout(resolve, 50))
-        elapsed += 50
-      }
-    }
-    void run()
-  })
-
-  React.useEffect(() => {
-    if (!loaded) return
-    if (centeredOrdinal !== undefined) {
-      if (lastScrolledCenteredRef.current === centeredOrdinal) return
-      const idx = sortedIndexOf(
-        messageOrdinalsRef.current as unknown as number[],
-        centeredOrdinal as unknown as number
-      )
-      if (idx < 0) return
-      lastScrolledCenteredRef.current = centeredOrdinal
-      scrollToCentered(centeredOrdinal)
-    } else if (lastScrolledCenteredRef.current !== undefined) {
-      lastScrolledCenteredRef.current = undefined
-      abortCentering()
-      if (containsLatestMessage) {
-        void listRef.current?.scrollToEnd({animated: false})
-      }
-    }
-  }, [abortCentering, centeredOrdinal, loaded, containsLatestMessage, messageOrdinals])
+  useScrollToCentered({centeredOrdinal, datasetKey, listRef, messageOrdinals, ready: loaded})
 
   // Scroll to the message being edited
   const lastEditingOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
@@ -527,12 +472,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
-  // A wheel means the user took over: stop centering so we don't scroll them away from where
-  // they landed.
-  const onWheel = React.useCallback(() => {
-    abortCentering()
-  }, [abortCentering])
-
   return (
     <Kb.ErrorBoundary>
       <div
@@ -541,7 +480,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
-        onWheel={onWheel}
         ref={wrapperRef}
       >
         <LegendList
@@ -572,7 +510,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           }
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
-          maintainVisibleContentPosition={{data: true}}
+          // The documented boolean form, which enables both anchors. A partial config object opts
+          // out of whatever it does not name — `data` defaults to false — so naming keys here would
+          // silently narrow this the way maintainScrollAtEnd's {on: {...}} list once did.
+          maintainVisibleContentPosition={true}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
           onStartReached={onStartReached}
@@ -621,174 +562,76 @@ const DesktopThreadWrapperWithProfiler = () => (
 
 // ==================== NATIVE ====================
 
-type RNFlatListRef = {
-  scrollToOffset: (opts: {animated: boolean; offset: number}) => void
-  scrollToItem: (opts: {animated: boolean; item: unknown; viewPosition?: number}) => void
-}
-
-const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>) => {
-  const source = messageOrdinals ?? noOrdinals
-  return React.useMemo(() => (source.length > 1 ? [...source].reverse() : source), [source])
-}
-
 const useNativeScrolling = (p: {
-  centeredOrdinal: T.Chat.Ordinal
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
-  listRef: React.RefObject<RNFlatListRef | null>
+  scrollMessageToEnd: (o: {animated: boolean; closeKeyboard: boolean}) => Promise<void>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals} = p
-  const numOrdinals = messageOrdinals.length
-  const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
-  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
+  const {scrollMessageToEnd} = p
 
-  // KeyboardChatScrollView sets contentInset.top = K - insets.bottom and
-  // contentOffset.y = -(K - insets.bottom) when keyboard is open. Scrolling to
-  // offset=0 would place content K-insets.bottom pixels lower (behind the keyboard).
-  // We compute the correct resting offset: keyboardHeight.value (negative) + insets.bottom.
-  // When keyboard is closed keyboardHeight.value = 0 so the result is clamped to 0.
-  const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
-  const {bottom: insetsBottom} = useSafeAreaInsets()
+  // scrollMessageToEnd freezes the keyboard-aware scroll view, scrolls to the end,
+  // then unfreezes — so the newest message stays pinned above the input bar even
+  // while the keyboard is open.
   const scrollToBottom = React.useCallback(() => {
-    const offset = Math.min(keyboardAnimHeight.value + insetsBottom, 0)
-    listRef.current?.scrollToOffset({animated: false, offset})
-  }, [insetsBottom, keyboardAnimHeight, listRef])
+    void scrollMessageToEnd({animated: false, closeKeyboard: false})
+  }, [scrollMessageToEnd])
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
     setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
   }, [setScrollRef, scrollToBottom])
 
-  // only scroll to center once per
-  const lastScrollToCentered = React.useRef(-1)
-  React.useEffect(() => {
-    if (T.Chat.ordinalToNumber(centeredOrdinal) < 0) {
-      lastScrollToCentered.current = -1
-    }
-  }, [centeredOrdinal])
-
-  const centeredOrdinalRef = React.useRef(centeredOrdinal)
-  // reset per centered target so each new search hit gets a fresh batch of retries
-  const scrollFailRetryRef = React.useRef(0)
-  React.useEffect(() => {
-    centeredOrdinalRef.current = centeredOrdinal
-    scrollFailRetryRef.current = 0
-  }, [centeredOrdinal])
-  const [scrollToCentered] = React.useState(() => () => {
-    const co = centeredOrdinalRef.current
-    if (lastScrollToCentered.current === co) {
-      return
-    }
-    lastScrollToCentered.current = co
-    // coarse: scrollToItem lands at the wrong offset for tall variable-height rows,
-    // but it gets the target area rendered. The closed-loop corrector in the
-    // component refines from there using the real viewable index range.
-    const reassert = (delay: number) =>
-      setTimeout(() => {
-        const list = listRef.current
-        const cur = centeredOrdinalRef.current
-        if (!list || cur !== co || T.Chat.ordinalToNumber(cur) <= 0) {
-          return
-        }
-        list.scrollToItem({animated: false, item: cur, viewPosition: 0.5})
-      }, delay)
-    ;[50, 250].forEach(reassert)
-  })
-
-  // The centered hit may be outside the rendered window, so scrollToItem fails
-  // silently. Wait for more rows to render and retry centering (capped) until it lands.
-  const [onScrollToIndexFailed] = React.useState(() => () => {
-    if (scrollFailRetryRef.current > 5) {
-      return
-    }
-    scrollFailRetryRef.current += 1
-    setTimeout(() => {
-      const co = centeredOrdinalRef.current
-      if (T.Chat.ordinalToNumber(co) > 0) {
-        listRef.current?.scrollToItem({animated: false, item: co, viewPosition: 0.5})
-      }
-    }, 200)
-  })
-
-  const onEndReached = () => {
-    loadOlderMessages(numOrdinals, getThreadLoadStatusOptions())
-  }
-
   return {
-    onEndReached,
-    onScrollToIndexFailed,
     scrollToBottom,
-    scrollToCentered,
   }
 }
 
-// The maintainVisibleContentPosition prop must ALWAYS be set (never toggled to undefined):
-// RN Fabric only re-snapshots the MVP anchor while the prop is set, so an unset->set
-// transition adjusts contentOffset against a stale anchor frame from before the prop was
-// unset — a spurious jump + autoscroll animation of the whole list (seen after dismissing
-// the keyboard following a send). Instead we swap between two configs:
-// - closed (keyboard hidden): autoscrollToTopThreshold=1 so new messages at the bottom
-//   auto-reveal when the user is pinned there.
-// - noAutoscroll (keyboard open, or centered on a search hit, or empty list): MVP still
-//   anchors content, but autoscroll-to-top is off because:
-//   1. with the keyboard open contentOffset.y = -(K-insets.bottom) <= 1, so the threshold
-//      would fire on insert and scroll to y=0, hiding new messages behind the keyboard.
-//   2. while centered on a search hit, autoscroll yanks the centered row.
-//   With the keyboard open, MVP's insert adjustment briefly holds old content in place;
-//   the deferred scrollToBottom layout effect below re-pins the newest message.
-const maintainVisibleContentPositionClosed = {
-  autoscrollToTopThreshold: 1,
-  minIndexForVisible: 0,
-}
-const maintainVisibleContentPositionNoAutoscroll = {
-  minIndexForVisible: 0,
-}
+// Reads the centered highlight itself (like desktop's HighlightableRow) so renderItem stays
+// referentially stable — a renderItem identity change re-renders every visible row at once.
+const NativeRow = React.memo(function NativeRow({ordinal}: {ordinal: T.Chat.Ordinal}) {
+  const {centeredHighlightOrdinal} = useConversationCenter()
+  return (
+    <>
+      <Separator trailingItem={ordinal} />
+      <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+    </>
+  )
+})
+
+const nativeRenderItem = ({item: ordinal}: {item: T.Chat.Ordinal}) => <NativeRow ordinal={ordinal} />
 
 const NativeConversationList = function NativeConversationList() {
   const nativeStyles = useNativeStyles()
-  const List = FlatList as unknown as React.ComponentType<
-    Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}
-  >
-
   const conversationIDKey = useConversationThreadID()
-  const listData = useConversationThreadSelector(
-    C.useShallow(s => ({
-      loaded: s.loaded,
-      messageOrdinals: s.messageOrdinals,
-    }))
-  )
-  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
-  const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
-  const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
-  const centeredHighlightOrdinalOrNone = centeredHighlightOrdinal ?? noCenteredOrdinal
-  const {loaded} = listData
+  const listData = useThreadListData()
+  const {centeredOrdinal} = useConversationCenter()
+  const {clearVersion, loaded, containsLatestMessage, messageOrdinals} = listData
+  // Same reason as desktop: a centered load empties the thread before refilling it, and the list
+  // needs to be told that is a new dataset rather than left waiting on layout for rows it already
+  // threw away.
+  const datasetKey = `${conversationIDKey}:${clearVersion}`
+  const hasCentered = centeredOrdinal !== undefined
 
-  const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
-
-  const listRef = React.useRef<RNFlatListRef | null>(null)
+  const listRef = React.useRef<LegendListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
-
-  const keyExtractor = (ordinal: ItemType) => {
-    return String(ordinal)
-  }
-
-  const renderItem = (info?: {item?: ItemType}) => {
-    const ordinal = info?.item
-    if (!ordinal) {
-      return null
-    }
-    return <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
-  }
-
-  const numOrdinals = messageOrdinals.length
 
   const getItemType = useGetItemType()
 
   const insets = useSafeAreaInsets()
-  const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
-  // While the thread-search bar is open it overlays the bottom of the list. Reserve
-  // that height as extra content padding so centered/newest messages clear it.
+  // While the thread-search bar is open it overlays the bottom of the list. Reserve that height
+  // as extra content padding (so the newest message clears it) and lift the jump-to-recent button
+  // above both the keyboard and the bar. searchOverlayHeight is a reanimated SharedValue set by
+  // the search bar's onLayout; mirror it to state for the (static) content padding.
   const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
+  const [searchPad, setSearchPad] = React.useState(0)
+  useAnimatedReaction(
+    () => searchOverlayHeight?.value ?? 0,
+    (h, prev) => {
+      if (h !== prev) {
+        scheduleOnRN(setSearchPad, h)
+      }
+    },
+    [searchOverlayHeight]
+  )
   const {height: keyboardAnimHeight, progress: keyboardProgress} = useReanimatedKeyboardAnimation()
   const insetsBottom = insets.bottom
   // The input/search bar lives in a KeyboardStickyView with offset
@@ -804,119 +647,18 @@ const NativeConversationList = function NativeConversationList() {
     ],
   }))
 
-  const {scrollToCentered, scrollToBottom, onEndReached, onScrollToIndexFailed} = useNativeScrolling({
-    centeredOrdinal: centeredOrdinalOrNone,
-    listRef,
+  const {onStartReached, onEndReached} = usePagination({
+    containsLatestMessage,
     messageOrdinals,
   })
 
-  // Closed-loop centering corrector. scrollToItem/scrollToIndex lands at the wrong
-  // offset here (inverted list + custom keyboard scrollview + tall variable-height
-  // image rows), so instead we read the actual viewable index range each frame and
-  // scrollToOffset by the item-delta until the target sits at viewport center.
-  const scrollOffsetRef = React.useRef(0)
-  const contentHeightRef = React.useRef(0)
-  const centeredRef = React.useRef(centeredOrdinalOrNone)
-  React.useEffect(() => {
-    centeredRef.current = centeredOrdinalOrNone
-  }, [centeredOrdinalOrNone])
-  const ordsRef = React.useRef(messageOrdinals)
-  React.useEffect(() => {
-    ordsRef.current = messageOrdinals
-  }, [messageOrdinals])
-  // {active, iters}: correcting toward a centered hit and how many steps taken
-  const correctRef = React.useRef({active: false, iters: 0})
-  const vFirstRef = React.useRef<number | null | undefined>(undefined)
-  const vLastRef = React.useRef<number | null | undefined>(undefined)
-  const [correctCenter] = React.useState(
-    () => (first: number | null | undefined, last: number | null | undefined) => {
-      const st = correctRef.current
-      if (!st.active) return
-      const co = centeredRef.current
-      const ords = ordsRef.current
-      const num = ords.length
-      if (co <= 0 || !num || first == null || last == null) return
-      const targetIdx = ords.indexOf(co)
-      if (targetIdx < 0) return
-      const centerIdx = (first + last) / 2
-      const diff = targetIdx - centerIdx
-      if (Math.abs(diff) <= 0.5 || st.iters > 12) {
-        st.active = false
-        return
-      }
-      st.iters += 1
-      const avgH = contentHeightRef.current / num
-      // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
-      const newOffset = Math.max(0, scrollOffsetRef.current + diff * avgH * 0.9)
-      listRef.current?.scrollToOffset({animated: false, offset: newOffset})
-    }
-  )
-  const [onScrollNative] = React.useState(
-    () =>
-      (e: {nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}}}) => {
-        scrollOffsetRef.current = e.nativeEvent.contentOffset.y
-        contentHeightRef.current = e.nativeEvent.contentSize.height
-      }
-  )
-  const [onContentSizeChangeNative] = React.useState(() => (_w: number, h: number) => {
-    contentHeightRef.current = h
-  })
-  // user touched the list: stop fighting them
-  const [onScrollBeginDrag] = React.useState(() => () => {
-    correctRef.current.active = false
-  })
+  const {freeze, scrollMessageToEnd} = useKeyboardScrollToEnd({listRef})
+
+  const {scrollToBottom} = useNativeScrolling({scrollMessageToEnd})
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
-  // message height when a message is added, undoing the scrollToBottom from onSubmit.
-  // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
-  // React's commit) so the newest message stays visible.
-  const prevNumOrdinalsRef = React.useRef(numOrdinals)
-  // Tracks which conversation prevNumOrdinalsRef's baseline belongs to so the
-  // baseline resets on a real conversation switch (value compare) rather than on
-  // a react-native-screens freeze/thaw, which re-mounts effects.
-  const numBaselineConvRef = React.useRef(conversationIDKey)
-  const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
-  React.useLayoutEffect(() => {
-    isKeyboardVisibleRef.current = isKeyboardVisible
-  })
-  React.useLayoutEffect(() => {
-    const sameConv = numBaselineConvRef.current === conversationIDKey
-    numBaselineConvRef.current = conversationIDKey
-    const prev = prevNumOrdinalsRef.current
-    prevNumOrdinalsRef.current = numOrdinals
-    if (sameConv && numOrdinals > prev && isKeyboardVisibleRef.current) {
-      const id = setTimeout(() => {
-        if (isKeyboardVisibleRef.current) {
-          scrollToBottom()
-        }
-      }, 0)
-      return () => clearTimeout(id)
-    }
-    return undefined
-  }, [conversationIDKey, numOrdinals, scrollToBottom])
-
-  // Center on the search hit once it actually appears in the loaded list. Centering
-  // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
-  // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
-  // ordinal changes. Wait for the target to load, then scroll (scrollToCentered
-  // guards against repeats and re-asserts across frames).
-  React.useEffect(() => {
-    if (!(centeredOrdinalOrNone > 0 && messageOrdinals.includes(centeredOrdinalOrNone))) {
-      return undefined
-    }
-    // coarse scroll to get the target area rendered, then run the closed-loop
-    // corrector which refines via the real viewable index range
-    scrollToCentered()
-    correctRef.current = {active: true, iters: 0}
-    const ids = [50, 250, 500, 900].map(d =>
-      setTimeout(() => correctCenter(vFirstRef.current, vLastRef.current), d)
-    )
-    return () => {
-      ids.forEach(clearTimeout)
-    }
-  }, [centeredOrdinalOrNone, messageOrdinals, scrollToCentered, correctCenter])
+  useScrollToCentered({centeredOrdinal, datasetKey, listRef, messageOrdinals, ready: true})
 
   // These refs store the conversation they last applied to (not a boolean) so a
   // freeze/thaw of this screen — which re-mounts effects without a real
@@ -937,99 +679,68 @@ const NativeConversationList = function NativeConversationList() {
       markedConvRef.current = conversationIDKey
       markInitiallyLoadedThreadAsRead()
     }
+  }, [conversationIDKey, loaded, markInitiallyLoadedThreadAsRead])
 
-    if (centeredOrdinalOrNone > 0) {
-      scrollToCentered()
-      setTimeout(() => {
-        scrollToCentered()
-      }, 100)
-    } else if (numOrdinals > 0) {
-      scrollToBottom()
-      setTimeout(() => {
-        scrollToBottom()
-      }, 100)
-    }
-  }, [
-    conversationIDKey,
-    centeredOrdinalOrNone,
-    loaded,
-    markInitiallyLoadedThreadAsRead,
-    numOrdinals,
-    scrollToBottom,
-    scrollToCentered,
-  ])
+  const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
-  const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
-  const [onViewableItemsChangedNative] = React.useState(
-    () => (info: {viewableItems: Array<{index: number | null}>}) => {
-      onViewableItemsChanged.current(info)
-      const first = info.viewableItems.at(0)?.index
-      const last = info.viewableItems.at(-1)?.index
-      vFirstRef.current = first
-      vLastRef.current = last
-      correctCenter(first, last)
-    }
+  // Reserve bottom space so the newest message clears the sticky input bar, which is pulled up
+  // over the list bottom (KeyboardStickyView offset -insets.bottom) plus the floating typing
+  // indicator. Without this the list scrolls to its content end but the newest row sits behind
+  // the input bar.
+  const listContentStyle = React.useMemo(
+    () => ({paddingBottom: mobileTypingContainerHeight + insets.bottom + searchPad}),
+    [insets.bottom, searchPad]
   )
 
-  const renderScrollComponent = React.useCallback(
-    (props: ScrollViewProps) => (
-      <KeyboardChatScrollView
-        automaticallyAdjustContentInsets={false}
-        contentInsetAdjustmentBehavior="never"
-        inverted={true}
-        offset={insets.bottom}
-        extraContentPadding={searchOverlayHeight}
-        {...props}
-        scrollIndicatorInsets={{top: insets.bottom}}
-      />
-    ),
-    [insets.bottom, searchOverlayHeight]
-  )
-
-  const mvpAutoscroll = !(centeredOrdinalOrNone > 0 || !numOrdinals || isKeyboardVisible)
-
-  const nativeContentContainerStyle = React.useMemo(
-    () => ({
-      paddingBottom: 0,
-      paddingTop: mobileTypingContainerHeight + insets.bottom,
-    }),
-    [insets.bottom]
-  )
+  // The input bar (KeyboardStickyView, closed offset -insets.bottom) overlaps the bottom of the
+  // list by insets.bottom, so without this the scroll indicator runs down behind it. Inset the
+  // indicator by exactly that overlap (NOT the full content padding, which also reserves space for
+  // the floating typing indicator that the scrollbar doesn't need to clear).
+  const scrollIndicatorInsets = React.useMemo(() => ({bottom: insets.bottom}), [insets.bottom])
 
   return (
     <Kb.ErrorBoundary>
       <PerfProfiler id="MessageList">
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-          <List
-            key={conversationIDKey}
+          <KeyboardAwareLegendList
+            dataKey={datasetKey}
             testID={TestIDs.CHAT_MESSAGE_LIST}
-            onScrollToIndexFailed={onScrollToIndexFailed}
-            estimatedItemSize={72}
-            ListHeaderComponent={SpecialBottomMessage}
-            ListFooterComponent={SpecialTopMessage}
-            ItemSeparatorComponent={Separator}
-            overScrollMode="never"
-            contentContainerStyle={nativeContentContainerStyle}
-            data={messageOrdinals}
+            ref={listRef as never}
+            data={messageOrdinals as T.Chat.Ordinal[]}
+            renderItem={nativeRenderItem}
+            keyExtractor={keyExtractor}
             getItemType={getItemType}
-            inverted={true}
-            renderItem={renderItem}
-            onViewableItemsChanged={onViewableItemsChangedNative}
-            onScroll={onScrollNative}
-            scrollEventThrottle={16}
-            onContentSizeChange={onContentSizeChangeNative}
-            onScrollBeginDrag={onScrollBeginDrag}
+            ListHeaderComponent={SpecialTopMessage}
+            ListFooterComponent={SpecialBottomMessage}
+            // ~text-row average (measured); biased slightly up since underestimating makes a
+            // bottom-anchored list scroll-to-end land short. Per-type averages take over after the
+            // first render, so this only seeds frame one + far-offscreen items.
+            estimatedItemSize={120}
+            recycleItems={true}
+            drawDistance={1000}
+            // During fast flings LegendList emits a "light" signal; rows read it (useAdaptiveRender)
+            // to drop their per-row swipe PanGestureHandler, cutting fling cost. Defaults: enter at
+            // 4 px/ms, return to "normal" after settling.
+            experimental_adaptiveRender={adaptiveRenderConfig}
+            initialScrollAtEnd={initialScrollIndex === undefined}
+            initialScrollIndex={initialScrollIndex}
+            alignItemsAtEnd={true}
+            overScrollMode="never"
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
-            keyExtractor={keyExtractor}
-            ref={listRef}
-            renderScrollComponent={renderScrollComponent}
-            windowSize={3}
-            maintainVisibleContentPosition={
-              mvpAutoscroll
-                ? maintainVisibleContentPositionClosed
-                : maintainVisibleContentPositionNoAutoscroll
-            }
+            maintainScrollAtEnd={!hasCentered}
+            // Stays on while centered, like desktop: the centered load streams older messages in
+            // above the target and rows above it swap estimatedItemSize for their measured height,
+            // which slides the target out of view unless it stays anchored. Toggling this prop off
+            // and back on also makes the list jump, so it is mounted with one config throughout.
+            maintainVisibleContentPosition={true}
+            onStartReached={onStartReached}
+            onStartReachedThreshold={2}
+            onEndReached={onEndReached}
+            contentContainerStyle={listContentStyle}
+            scrollIndicatorInsets={scrollIndicatorInsets}
+            freeze={freeze}
+            keyboardOffset={insets.bottom}
           />
           {jumpToRecent && (
             <Animated.View style={[nativeStyles.jumpWrapper, jumpLiftStyle]} pointerEvents="box-none">
@@ -1053,43 +764,5 @@ const useNativeStyles = Kb.Styles.createStyleHook(
       },
     }) as const
 )
-
-const minTimeDelta = 1000
-const minDistanceFromEnd = 10
-
-const useNativeSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
-  const nextCallbackRef = React.useRef(new Date().getTime())
-  const onEndReachedRef = React.useRef(onEndReached)
-  React.useEffect(() => {
-    onEndReachedRef.current = onEndReached
-  }, [onEndReached])
-  const numOrdinalsRef = React.useRef(numOrdinals)
-  React.useEffect(() => {
-    numOrdinalsRef.current = numOrdinals
-    nextCallbackRef.current = new Date().getTime() + minTimeDelta
-  }, [numOrdinals])
-
-  // this can't change ever, so we have to use refs to keep in sync
-  const onViewableItemsChanged = React.useRef(
-    ({viewableItems}: {viewableItems: Array<{index: number | null}>}) => {
-      const idx = viewableItems.at(-1)?.index ?? 0
-      const lastIdx = numOrdinalsRef.current - 1
-      const offset = numOrdinalsRef.current > 50 ? minDistanceFromEnd : 1
-      const deltaIdx = idx - lastIdx + offset
-      // not far enough from the end
-      if (deltaIdx < 0) {
-        return
-      }
-      const t = new Date().getTime()
-      const deltaT = t - nextCallbackRef.current
-      // enough time elapsed?
-      if (deltaT > 0) {
-        nextCallbackRef.current = t + minTimeDelta
-        onEndReachedRef.current()
-      }
-    }
-  )
-  return onViewableItemsChanged
-}
 
 export default isMobile ? NativeConversationList : DesktopThreadWrapperWithProfiler

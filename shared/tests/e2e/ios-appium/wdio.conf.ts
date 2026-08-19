@@ -46,13 +46,15 @@ export const config: WebdriverIO.Config = {
   logLevel: 'warn',
   framework: 'mocha',
   // 120s: the tablet settings-subpages flow can run long; phone tests finish well
-  // under this. retries: 2 — the one-session suite accumulates load over 16 flows
-  // (KBFS/list loads, transient nav), and the old iOS-16.4 sims are slower/flakier
-  // still (paste-menu summon, list timing), so a flow can intermittently fail; up
-  // to two retries (each with a fresh escapeToTabs reset) absorbs that without
-  // masking real failures (a real break fails all attempts). Retries run ONLY on
-  // failure, so passing tests cost nothing.
-  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 2},
+  // under this.
+  //
+  // retries: 0. The claim this used to carry — "a real break fails all attempts" —
+  // is not true of every flow: a chat-search regression that failed three runs in
+  // four was reported green here, because a retry cannot tell a slow simulator
+  // from a thread that scrolled itself. Retries are opt-in per flow now: a flow
+  // that is genuinely load-sensitive calls this.retries(n) in its describe and
+  // says why, which keeps the cost visible where someone can judge it.
+  mochaOpts: {ui: 'bdd', timeout: 120000, retries: 0},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/', port}}]],
   // Set device orientation once at session start (e.g. iPad in landscape).

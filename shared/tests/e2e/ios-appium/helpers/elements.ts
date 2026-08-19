@@ -146,6 +146,13 @@ export const anyExist = async (id: string, timeout = 3000): Promise<boolean> => 
 
 // Backslashes and double quotes would otherwise terminate/alter the quoted
 // predicate literal and make the selector invalid.
+// An XPath string literal for arbitrary text. XPath 1.0 cannot escape a quote inside a literal, so
+// text containing one has to be assembled with concat().
+const xpathLiteral = (s: string): string => {
+  if (!s.includes('"')) return `"${s}"`
+  return `concat(${s.split('"').map(part => `"${part}"`).join(`, '"', `)})`
+}
+
 const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
 // CONTAINS, not ==, on purpose: many tappable rows (More menu items, team tabs)
@@ -162,6 +169,22 @@ export const byText = (text: string): ChainablePromiseElement => {
     return browser.$(`//*[contains(@text, "${t}") or contains(@content-desc, "${t}")]`)
   }
   return browser.$(`-ios predicate string:label CONTAINS "${t}" OR name CONTAINS "${t}"`)
+}
+
+// byText, scoped to a subtree, with the same platform split. Use it when the text you mean also
+// appears in the chrome around the content: the People header's avatar carries the signed-in
+// username, and tapping that opens the account switcher rather than a profile.
+export const byTextWithin = (root: ChainablePromiseElement, text: string): ChainablePromiseElement => {
+  if (browser.isAndroid) {
+    // XPath 1.0 has no escape for a quote, so a literal containing one has to be built with
+    // concat(). escapePredicate is for ObjC predicates and would emit a backslash XPath cannot read.
+    const literal = xpathLiteral(text)
+    return root.$(
+      `descendant-or-self::*[contains(@text, ${literal}) or contains(@content-desc, ${literal})]`
+    )
+  }
+  const t = escapePredicate(text)
+  return root.$(`-ios predicate string:label CONTAINS "${t}" OR name CONTAINS "${t}"`)
 }
 
 // Tab-bar buttons. iOS exposes the native UITabBarItem by its title as the
