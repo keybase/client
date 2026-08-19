@@ -241,13 +241,13 @@ const useScrollToCentered = (p: {
     lastScrolledRef.current = undefined
   }, [datasetKey])
 
-  // Has this mounted list ever committed real (ready, non-empty) message data before the current
-  // jump decision? That is the same question as "has the list already spent its own
-  // initialScrollIndex bootstrap": the library only re-arms that bootstrap on an empty -> non-empty
-  // data transition, which is exactly the transition that flips this ref. So when it is false the
-  // library is about to land the target itself (useInitialScrollIndex hands it {index, 0.5}) and an
-  // imperative scroll on top of it is a second authority aiming at the same target - measured on
-  // stock @legendapp/list 3.3.7, that fight is what makes an opened-at-a-hit thread land wrong.
+  // Has this mounted list ever committed non-empty message data before the current jump decision?
+  // That is the same question as "has the list already spent its own initialScrollIndex bootstrap":
+  // the library only re-arms that bootstrap on an empty -> non-empty data transition, which is
+  // exactly the transition that flips this ref. So when it is false the library is about to land the
+  // target itself (useInitialScrollIndex hands it {index, 0.5}) and an imperative scroll on top of
+  // it is a second authority aiming at the same target - measured on stock @legendapp/list 3.3.7,
+  // that fight is what makes an opened-at-a-hit thread land wrong.
   // When it is true (jumping around inside a thread already on screen) the library will not re-aim
   // and this call is the only thing that moves the list, so it has to stay.
   //
@@ -279,11 +279,18 @@ const useScrollToCentered = (p: {
   // first centered target must not retroactively count as "already live" for that commit's own
   // decision. Do not reorder these two, and do not hoist this into a layout effect, a render-phase
   // assignment or a store flag.
+  //
+  // The predicate is deliberately the library's own (`dataLength > 0`, see its
+  // `shouldUseLatestInitialScroll`) and must stay in sync with it - do NOT add a condition the
+  // library does not have. `ready` in particular is wrong here: desktop passes `ready: loaded` but
+  // hands the list `data={messageOrdinals}` unconditionally, so a live message arriving after
+  // messagesClear but before the centered response would flip the library's own flag while leaving
+  // this one false, and then neither authority scrolls.
   React.useEffect(() => {
-    if (ready && messageOrdinals.length > 0) {
+    if (messageOrdinals.length > 0) {
       hasRenderedNonEmptyRef.current = true
     }
-  }, [messageOrdinals, ready])
+  }, [messageOrdinals])
 }
 
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
