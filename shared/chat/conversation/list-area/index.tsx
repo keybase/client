@@ -47,10 +47,6 @@ const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 // Stable config so it doesn't churn props each render. Empty = enable adaptive render with defaults.
 const adaptiveRenderConfig = {}
 
-// Stable MVCP config (anchor visible rows across data prepends). Referenced by native; desktop
-// inlines an equivalent.
-const mvcpData = {data: true} as const
-
 const keyExtractor = (ordinal: ItemType) => String(ordinal)
 
 // Item type for list recycling pool separation. A message that leads its author group renders an
@@ -514,7 +510,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           }
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
-          maintainVisibleContentPosition={{data: true}}
+          // The documented boolean form, which enables both anchors. A partial config object opts
+          // out of whatever it does not name — `data` defaults to false — so naming keys here would
+          // silently narrow this the way maintainScrollAtEnd's {on: {...}} list once did.
+          maintainVisibleContentPosition={true}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
           onStartReached={onStartReached}
@@ -734,7 +733,7 @@ const NativeConversationList = function NativeConversationList() {
             // above the target and rows above it swap estimatedItemSize for their measured height,
             // which slides the target out of view unless it stays anchored. Toggling this prop off
             // and back on also makes the list jump, so it is mounted with one config throughout.
-            maintainVisibleContentPosition={mvcpData}
+            maintainVisibleContentPosition={true}
             onStartReached={onStartReached}
             onStartReachedThreshold={2}
             onEndReached={onEndReached}
