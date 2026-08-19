@@ -46,6 +46,9 @@ export const CHAT_THREAD_SEARCH_NEXT     = 'chat-thread-search-next'
 // messages, reply jumps and permalinks highlight one too, so this only means "search hit" inside a
 // search flow. Present only while the row is highlighted.
 export const CHAT_SEARCH_HIT             = 'chat-search-hit'
+// The per-message "..." actions button (desktop only, revealed on hover). Icon-only, so there is
+// no text to match on, and it is the only way into "Copy a link to this message".
+export const CHAT_MESSAGE_MENU_BUTTON    = 'chat-message-menu-button'
 // The header above the oldest loaded message. Mounted in every state - loading, more to load, start
 // of the conversation - so its position is readable throughout, which is how a test sees a page of
 // older messages arrive.

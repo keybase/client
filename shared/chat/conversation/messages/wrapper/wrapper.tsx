@@ -906,7 +906,11 @@ function RightSide(p: RProps) {
         )}
       >
         <Kb.Box2 direction="vertical">
-          <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
+          <Kb.Icon
+            type="iconfont-ellipsis"
+            onClick={showPopup}
+            testID={TestIDs.CHAT_MESSAGE_MENU_BUTTON}
+          />
         </Kb.Box2>
       </Kb.Box2>
     )
