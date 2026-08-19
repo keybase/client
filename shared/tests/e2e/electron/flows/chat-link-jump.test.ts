@@ -25,9 +25,10 @@ import * as T from '@/tests/e2e/shared/test-ids'
 
 // A row has to be visible by more than a hairline to count as landed on, matching chat-search-hit
 // and the iOS flow.
-// No retries. The second attempt runs against a thread this test has already fetched once, so a
-// pass on retry would not be a pass on the path the first attempt took - the same reason
-// chat-thread-bottom turns them off.
+// No retries. This flow is timing-dependent end to end - it scrolls, waits for fetches to land and
+// measures where rows settle - so a retry would mostly re-roll the timing rather than re-test the
+// behaviour, and a flake would be hidden instead of reported. Same reason chat-thread-bottom turns
+// them off.
 test.describe.configure({retries: 0})
 
 const MIN_VISIBLE_HEIGHT = 24
@@ -110,7 +111,26 @@ const openConversationNamed = async (page: Page, rows: Locator, name: string): P
 // What "Copy a link to this message" puts on the clipboard: constants/deeplinks.tsx's
 // linkFromConvAndMessage(conv, messageID) - conv is the conversation's display label (what
 // rowName also reads), messageID is what the app renders as data-ordinal once a message has sent.
-const LINK_PATTERN = /^keybase:\/\/chat\/(.+)\/(\d+)$/
+// Matched per line (`m`), not against the whole element: the [data-ordinal] element is
+// HighlightableRow's wrapper, so its innerText also carries the separator and, when the message
+// leads an author group, an author header - "someone\n12:34 PM\nkeybase://chat/...". Anchoring
+// without `m` therefore never matches a real row. The anchors still matter: they require the link
+// to be a whole line, so a link quoted inside a longer sentence is not mistaken for one of ours.
+const LINK_PATTERN = /^keybase:\/\/chat\/(.+)\/(\d+)$/m
+
+// How many of the currently rendered rows in conversation A are link messages this flow left
+// behind. Logged so a run's output shows whether the reuse path is holding: the count must not grow
+// from one run to the next, because a growing count is exactly the permanent chat-history litter
+// the reuse path exists to prevent.
+const countLinkMessages = async (page: Page): Promise<number> => {
+  const candidates = page.locator('[data-ordinal]')
+  const n = await candidates.count()
+  let found = 0
+  for (let i = 0; i < n; i++) {
+    if (LINK_PATTERN.test(await candidates.nth(i).innerText())) found++
+  }
+  return found
+}
 
 // Looks for a message already sitting in conversation A whose text is a link from an earlier run
 // of this test. Recent messages are checked first without scrolling - every prior run that fell
@@ -118,13 +138,17 @@ const LINK_PATTERN = /^keybase:\/\/chat\/(.+)\/(\d+)$/
 // bounded scroll back covers the case where other messages have since pushed all of them out of
 // view.
 const findExistingLink = async (page: Page): Promise<{convName: string; ordinal: string; text: string} | undefined> => {
+  // The pointer has to be over the message list before any wheel event: the last click was on an
+  // inbox row, so without this the wheel scrolls the inbox and the message list never moves.
+  const listBox = await page.getByTestId(T.CHAT_MESSAGE_LIST).first().boundingBox()
+  if (!listBox) return undefined
+  await page.mouse.move(listBox.x + listBox.width / 2, listBox.y + listBox.height / 2)
   for (let attempt = 0; attempt < 6; attempt++) {
     const candidates = page.locator('[data-ordinal]')
     const n = await candidates.count()
     for (let i = n - 1; i >= 0; i--) {
-      const text = (await candidates.nth(i).innerText()).trim()
-      const match = LINK_PATTERN.exec(text)
-      if (match) return {convName: match[1]!, ordinal: match[2]!, text}
+      const match = LINK_PATTERN.exec(await candidates.nth(i).innerText())
+      if (match) return {convName: match[1]!, ordinal: match[2]!, text: match[0]}
     }
     await page.mouse.wheel(0, -600)
     await page.waitForTimeout(250)
@@ -174,6 +198,7 @@ test('opens a conversation onto the message a link points at', async ({page}) =>
 
   // ---- Try to reuse a link an earlier run already left in conversation A. ----
   await openConversationNamed(page, rows, smokeUser!)
+  console.log(`[chat-link-jump] link messages rendered in A before this run: ${await countLinkMessages(page)}`)
   const existing = await findExistingLink(page)
   if (existing) {
     try {

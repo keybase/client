@@ -236,14 +236,19 @@ const useScrollToCentered = (p: {
     lastScrolledRef.current = undefined
   }, [datasetKey])
 
-  // Unconditional on purpose. A guard that stood this call down while the list's own
-  // initialScrollIndex bootstrap looked like it owned the target was tried and measured against the
-  // app, and there is no version of it that is safe: on the permalink path the thread mounts with no
-  // centred target, so the list is built with initialScrollAtEnd, and the bootstrap it re-arms when
-  // the centred dataset lands does not move it - the thread settles at its end with the target never
-  // shown. That path is indistinguishable from a warm in-thread jump by anything visible here (both
-  // arrive as "dataset with a resolvable initialScrollIndex"), so this call has to be the one
-  // authority that always fires.
+  // Unconditional on purpose, and safe to be: every imperative scroll on the ref calls
+  // supersedeInitialScroll synchronously inside runScrollWithPromise (see
+  // node_modules/@legendapp/list/react.mjs), which cancels the list's own initialScrollIndex
+  // bootstrap before the scroll is even queued. So this call cannot race the bootstrap - it
+  // supersedes it by construction and always wins. A library bump that broke that guarantee is the
+  // one thing that would make this regress.
+  //
+  // A guard that stood this call down while the bootstrap looked like it owned the target was tried
+  // and cannot be made safe: on the permalink path the thread mounts with no centred target, so the
+  // list is built with initialScrollAtEnd and the bootstrap it re-arms when the centred dataset
+  // lands leaves it at the end, target never shown. That path is indistinguishable from a warm
+  // in-thread jump by anything visible here (both arrive as "dataset with a resolvable
+  // initialScrollIndex"), so this call has to be the one authority that always fires.
   React.useEffect(() => {
     if (!ready || centeredOrdinal === undefined) {
       lastScrolledRef.current = undefined
@@ -255,6 +260,8 @@ const useScrollToCentered = (p: {
     }
     lastScrolledRef.current = centeredOrdinal
     void listRef.current?.scrollToItem({animated: false, item: centeredOrdinal, viewPosition: 0.5})
+    // datasetKey is a dependency without being read: the layout effect above clears the latch on a
+    // new dataset, and this effect has to re-run afterwards to scroll again for the same ordinal.
   }, [centeredOrdinal, datasetKey, listRef, messageOrdinals, ready])
 }
 
