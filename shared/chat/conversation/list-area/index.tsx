@@ -241,6 +241,21 @@ const useScrollToCentered = (p: {
     lastScrolledRef.current = undefined
   }, [datasetKey])
 
+  // Has this mounted list ever committed real (ready, non-empty) message data before the current
+  // jump decision? That is the same question as "has the list already spent its own
+  // initialScrollIndex bootstrap": the library only re-arms that bootstrap on an empty -> non-empty
+  // data transition, which is exactly the transition that flips this ref. So when it is false the
+  // library is about to land the target itself (useInitialScrollIndex hands it {index, 0.5}) and an
+  // imperative scroll on top of it is a second authority aiming at the same target - measured on
+  // stock @legendapp/list 3.3.7, that fight is what makes an opened-at-a-hit thread land wrong.
+  // When it is true (jumping around inside a thread already on screen) the library will not re-aim
+  // and this call is the only thing that moves the list, so it has to stay.
+  //
+  // Deliberately NOT reset per dataset: every centered jump clears and refetches the thread, so
+  // resetting here would erase the very signal this reads. It is per mount, and the thread provider
+  // is keyed by conversation, so a new conversation gets a fresh one.
+  const hasRenderedNonEmptyRef = React.useRef(false)
+
   React.useEffect(() => {
     if (!ready || centeredOrdinal === undefined) {
       lastScrolledRef.current = undefined
@@ -251,8 +266,24 @@ const useScrollToCentered = (p: {
       return
     }
     lastScrolledRef.current = centeredOrdinal
+    if (!hasRenderedNonEmptyRef.current) {
+      // The list's own initialScrollIndex bootstrap owns this one.
+      return
+    }
     void listRef.current?.scrollToItem({animated: false, item: centeredOrdinal, viewPosition: 0.5})
   }, [centeredOrdinal, datasetKey, listRef, messageOrdinals, ready])
+
+  // Declared AFTER the jump effect above, and that ordering is load-bearing: React runs one
+  // component's passive effects in declaration order, so the jump effect always reads this ref as
+  // it stood BEFORE the current commit. A thread's first content arriving in the same commit as its
+  // first centered target must not retroactively count as "already live" for that commit's own
+  // decision. Do not reorder these two, and do not hoist this into a layout effect, a render-phase
+  // assignment or a store flag.
+  React.useEffect(() => {
+    if (ready && messageOrdinals.length > 0) {
+      hasRenderedNonEmptyRef.current = true
+    }
+  }, [messageOrdinals, ready])
 }
 
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
