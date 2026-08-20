@@ -1,12 +1,16 @@
 package chat
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -16,6 +20,11 @@ import (
 
 type dummyUIRouter struct {
 	libkb.UIRouter
+}
+
+type botCommandsCacheTestRecord struct {
+	InfoHash chat1.BotInfoHash `codec:"H"`
+	Version  int               `codec:"V"`
 }
 
 func (d dummyUIRouter) GetChatUI() (libkb.ChatUI, error) {
@@ -123,6 +132,40 @@ func TestBotCommandManager(t *testing.T) {
 		require.Fail(t, "commands not cached")
 	default:
 	}
+
+	// A command cache with stale provenance must be rebuilt even when the
+	// server says the cached BotInfo is up to date.
+	commandCache := encrypteddb.New(tc.G,
+		func(g *libkb.GlobalContext) *libkb.JSONLocalDb { return g.LocalChatDb },
+		func(ctx context.Context) ([32]byte, error) { return storage.GetSecretBoxKey(ctx, tc.G) })
+	commandCacheKey := libkb.DbKey{
+		Key: fmt.Sprintf("ck:%s:%s", uid, impConv.Id),
+		Typ: libkb.DBChatBotCommands,
+	}
+	var cachedRecord botCommandsCacheTestRecord
+	found, err := commandCache.Get(ctx, commandCacheKey, &cachedRecord)
+	require.NoError(t, err)
+	require.True(t, found)
+	cachedRecord.InfoHash = chat1.BotInfoHash("stale")
+	require.NoError(t, commandCache.Put(ctx, commandCacheKey, cachedRecord))
+
+	errCh, err = tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
+	require.NoError(t, err)
+	require.NoError(t, readErrCh(errCh))
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(cmds))
+	require.Equal(t, "status", cmds[0].Name)
+
+	// A missing command record should trigger the same recovery.
+	require.NoError(t, commandCache.Delete(ctx, commandCacheKey))
+	errCh, err = tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
+	require.NoError(t, err)
+	require.NoError(t, readErrCh(errCh))
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(cmds))
+	require.Equal(t, "status", cmds[0].Name)
 
 	require.NoError(t, readErrCh(errCh1))
 	cmds, _, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)

@@ -22,7 +22,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const storageVersion = 1
+const storageVersion = 2
 
 type uiResult struct {
 	err      error
@@ -51,7 +51,12 @@ type storageCommandAdvertisement struct {
 
 type commandsStorage struct {
 	Advertisements []storageCommandAdvertisement `codec:"A"`
+	InfoHash       chat1.BotInfoHash             `codec:"H"`
 	Version        int                           `codec:"V"`
+}
+
+func (s commandsStorage) matchesInfoHash(infoHash chat1.BotInfoHash) bool {
+	return s.Version == storageVersion && len(s.InfoHash) > 0 && s.InfoHash.Eq(infoHash)
 }
 
 var commandsPublicTopicName = "___keybase_botcommands_public"
@@ -301,6 +306,30 @@ func (b *CachingBotCommandManager) dbCommandsKey(convID chat1.ConversationID) li
 	}
 }
 
+func (b *CachingBotCommandManager) commandCacheMatchesInfoHash(ctx context.Context,
+	convID chat1.ConversationID, infoHash chat1.BotInfoHash,
+) bool {
+	dbKey := b.dbCommandsKey(convID)
+	var s commandsStorage
+	found, err := b.edb.Get(ctx, dbKey, &s)
+	if err != nil {
+		b.Debug(ctx, "commandCacheMatchesInfoHash: failed to read cache: %s", err)
+		return false
+	}
+	if !found {
+		b.Debug(ctx, "commandCacheMatchesInfoHash: command cache not found")
+		return false
+	}
+	if !s.matchesInfoHash(infoHash) {
+		b.Debug(ctx, "commandCacheMatchesInfoHash: command cache is stale")
+		if err := b.edb.Delete(ctx, dbKey); err != nil {
+			b.Debug(ctx, "commandCacheMatchesInfoHash: failed to delete stale cache: %s", err)
+		}
+		return false
+	}
+	return true
+}
+
 func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.UserBotCommandOutput, alias map[string]string, err error) {
 	defer b.Trace(ctx, &err, "ListCommands")()
 	alias = make(map[string]string)
@@ -460,6 +489,9 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job *commandU
 	}
 	switch rtyp {
 	case chat1.BotInfoResponseTyp_UPTODATE:
+		if found && !b.commandCacheMatchesInfoHash(ctx, convID, infoHash) {
+			return botInfo, true, nil
+		}
 		return botInfo, false, nil
 	case chat1.BotInfoResponseTyp_INFO:
 		if err := b.edb.Put(ctx, b.dbInfoKey(convID), res.Response.Info()); err != nil {
@@ -541,7 +573,8 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *comma
 			return nil
 		}
 		s := commandsStorage{
-			Version: storageVersion,
+			Version:  storageVersion,
+			InfoHash: botInfo.Hash(),
 		}
 		ads := make([]*storageCommandAdvertisement, len(botInfo.CommandConvs))
 		pipe := pipeliner.NewPipeliner(5)
