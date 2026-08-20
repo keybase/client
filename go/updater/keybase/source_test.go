@@ -72,7 +72,7 @@ func TestUpdateSource(t *testing.T) {
 	assert.Equal(t, "v1.0.15-20160414190014+fdfce90", update.Name)
 	assert.Equal(t, "deadbeef", update.InstallID)
 	assert.Equal(t, "This is an update!", update.Description)
-	assert.Equal(t, 1460660414000, update.PublishedAt)
+	assert.Equal(t, int64(1460660414000), update.PublishedAt)
 	assert.Equal(t, "Keybase-1.0.15-20160414190014+fdfce90.zip", update.Asset.Name)
 	assert.Equal(t, "https://prerelease.keybase.io/darwin-updates/Keybase-1.0.15-20160414190014%2Bfdfce90.zip", update.Asset.URL)
 }
