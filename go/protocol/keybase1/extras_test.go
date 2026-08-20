@@ -87,8 +87,8 @@ func TestTimeConversions(t *testing.T) {
 	}
 	assertTimesEqualMSec := func(t1, t2 time.Time) {
 		assertTimesEqualSec(t1, t2)
-		require.Less(t, (t1.Nanosecond() - t2.Nanosecond()), 1e6, "expected %v and %v to be equal (with up to a millisecond precision)", t1, t2)
-		require.Less(t, (t2.Nanosecond() - t1.Nanosecond()), 1e6, "expected %v and %v to be equal (with up to a millisecond precision)", t1, t2)
+		require.Less(t, (t1.Nanosecond() - t2.Nanosecond()), 1_000_000, "expected %v and %v to be equal (with up to a millisecond precision)", t1, t2)
+		require.Less(t, (t2.Nanosecond() - t1.Nanosecond()), 1_000_000, "expected %v and %v to be equal (with up to a millisecond precision)", t1, t2)
 	}
 	assertTimesEqualStrict := func(t1, t2 time.Time) {
 		require.True(t, t1.Equal(t2), "expected %v and %v to be equal", t1, t2)
