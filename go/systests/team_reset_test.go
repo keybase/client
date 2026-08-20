@@ -807,7 +807,7 @@ func TestTeamListAfterReset(t *testing.T) {
 	for _, w := range list.Members.Writers {
 		if w.Username == bob.username {
 			require.False(t, found, "wasn't found twice")
-			require.Greater(t, w.Uv.EldestSeqno, 1, "reset eldest seqno")
+			require.Greater(t, w.Uv.EldestSeqno, keybase1.Seqno(1), "reset eldest seqno")
 			require.True(t, w.Status.IsActive(), "is active")
 			found = true
 		}
