@@ -45,6 +45,34 @@ def logKbwebServices(container) {
   archive("kbweb-logs.tar.gz")
 }
 
+// Reports which pipeline step failed back to the PR as a commit status, so a
+// red build says "go: golangci-lint" instead of only "failed". The status
+// description carries nothing but the literal name passed in here -- never
+// log output, exception text, paths, or credentials.
+def reportStep(name, closure) {
+  try {
+    closure()
+  } catch (ex) {
+    notifyStep('FAILURE', name)
+    throw ex
+  }
+}
+
+// Best-effort: the reporting must never itself break a build, and must never
+// mask the underlying failure.
+def notifyStep(status, description) {
+  try {
+    githubNotify(
+      context: 'client/failed-step',
+      status: status,
+      description: description,
+      targetUrl: env.BUILD_URL
+    )
+  } catch (ex) {
+    println "reportStep: githubNotify failed, continuing"
+  }
+}
+
 helpers.rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
@@ -72,6 +100,9 @@ helpers.rootLinuxNode(env, {
   def cause = helpers.getCauseString(currentBuild)
   println "Cause: ${cause}"
   println "Pull Request ID: ${env.CHANGE_ID}"
+
+  // Seed green so the context always exists; a failing step overwrites it.
+  notifyStep('SUCCESS', 'no step failures')
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
@@ -277,7 +308,9 @@ helpers.rootLinuxNode(env, {
                   stage("JS Tests") {
                     sh "git config --global user.name 'Keybase Jenkins'"
                     sh "git config --global user.email 'jenkins@keyba.se'"
-                    sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                    reportStep("js: tests") {
+                      sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                    }
                   }
                 }
               }},
@@ -585,17 +618,19 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     sh "golangci-lint config verify"
 
     // Only test golangci-lint on linux
-    if (env.CHANGE_TARGET) {
-      println("Running golangci-lint on new code")
-      fetchChangeTarget()
-      def BASE_COMMIT_HASH = getBaseCommitHash()
-      timeout(activity: true, time: 30, unit: 'MINUTES') {
-        sh "make golangci-lint GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
-      }
-    } else {
-      println("Running golangci-lint on all code")
-      timeout(activity: true, time: 30, unit: 'MINUTES') {
-        sh "make golangci-lint"
+    reportStep("go: golangci-lint") {
+      if (env.CHANGE_TARGET) {
+        println("Running golangci-lint on new code")
+        fetchChangeTarget()
+        def BASE_COMMIT_HASH = getBaseCommitHash()
+        timeout(activity: true, time: 30, unit: 'MINUTES') {
+          sh "make golangci-lint GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
+        }
+      } else {
+        println("Running golangci-lint on all code")
+        timeout(activity: true, time: 30, unit: 'MINUTES') {
+          sh "make golangci-lint"
+        }
       }
     }
 
