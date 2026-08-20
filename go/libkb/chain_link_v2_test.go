@@ -149,7 +149,7 @@ func TestHighSkipBackwardsCompatibility(t *testing.T) {
 	require.NoError(t, highSkipMatch(o, nil))
 
 	o = serdeOuterLink(t, tc, seqno, &highSkipSeqno, nil)
-	require.Equal(t, 0, *o.HighSkipSeqno)
+	require.Zero(t, *o.HighSkipSeqno)
 	require.Nil(t, o.HighSkipHash)
 	highSkip := NewHighSkip(keybase1.Seqno(0), nil)
 	badHighSkip1 := NewHighSkip(keybase1.Seqno(0), []byte{0, 5, 2})
