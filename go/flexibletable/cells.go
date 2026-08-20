@@ -57,6 +57,9 @@ func (c Cell) renderWithPadding(width int) (string, error) {
 
 func (c Cell) addPadding(str string, width int) (string, error) {
 	padding := width - len(str)
+	if padding < 0 {
+		return "", WidthTooSmallError{}
+	}
 	if padding == 0 {
 		return str, nil
 	}

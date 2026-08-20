@@ -138,6 +138,9 @@ func (p *PRNG) Bool() bool {
 // Be careful for off-by-one errors in this implementation, as we have
 // already witnessed one. We bounty bugs like these, so let us know!
 func (p *PRNG) Permutation(n int) []int {
+	if n < 0 {
+		return nil
+	}
 	ret := make([]int, n)
 	for i := range n {
 		ret[i] = i

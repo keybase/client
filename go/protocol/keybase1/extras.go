@@ -652,7 +652,11 @@ func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {
 		return string(s)
 	}
-	return fmt.Sprintf("%s...", s[0:SigIDQueryMin])
+	prefixLen := SigIDQueryMin
+	if len(s) < prefixLen {
+		prefixLen = len(s)
+	}
+	return fmt.Sprintf("%s...", s[:prefixLen])
 }
 
 func (s SigID) PrefixMatch(q string, exact bool) bool {
@@ -688,7 +692,7 @@ func SigIDFromString(s string) (SigID, error) {
 
 func (s SigID) ToBytes() []byte {
 	b, err := hex.DecodeString(string(s))
-	if err != nil {
+	if err != nil || len(b) < SIG_ID_LEN {
 		return nil
 	}
 	return b[0:SIG_ID_LEN]
@@ -696,7 +700,7 @@ func (s SigID) ToBytes() []byte {
 
 func (s SigID) StripSuffix() SigIDBase {
 	l := hex.EncodedLen(SIG_ID_LEN)
-	if len(s) == l {
+	if len(s) <= l {
 		return SigIDBase(string(s))
 	}
 	return SigIDBase(string(s[0:l]))
@@ -724,7 +728,11 @@ func (s SigID) ToMediumID() string {
 }
 
 func (s SigID) ToShortID() string {
-	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
+	b := s.ToBytes()
+	if len(b) < SIG_SHORT_ID_BYTES {
+		return ""
+	}
+	return encode(b[0:SIG_SHORT_ID_BYTES])
 }
 
 // SigIDBase is a 64-character long hex encoding of the SHA256 of a signature, without
@@ -942,7 +950,7 @@ func (s Status) GoError() error {
 	if s.Code == int(StatusCode_SCOk) {
 		return nil
 	}
-	return fmt.Errorf(s.Error())
+	return errors.New(s.Error())
 }
 
 func (s InstallStatus) String() string {
@@ -2938,7 +2946,7 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	}
 	switch state {
 	case GitRepoResultState_ERR:
-		return res, fmt.Errorf(r.Err())
+		return res, errors.New(r.Err())
 	case GitRepoResultState_OK:
 		return r.Ok(), nil
 	}

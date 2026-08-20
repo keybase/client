@@ -616,6 +616,46 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 	})
 }
 
+func TestUnboxMessageRejectsNilServerHeader(t *testing.T) {
+	tc, boxer := setupChatTest(t, "unbox-nil-server-header")
+	defer tc.Cleanup()
+
+	boxed := chat1.MessageBoxed{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{Tlfid: mockTLFID},
+		},
+	}
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{
+			ConversationID: boxed.ClientHeader.Conv.ToConversationID([2]byte{0, 0}),
+		},
+	}
+
+	_, err := boxer.UnboxMessage(context.Background(), boxed, conv, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "nil ServerHeader")
+}
+
+func TestUnboxMessagesRejectsNilServerHeader(t *testing.T) {
+	tc, boxer := setupChatTest(t, "unbox-messages-nil-server-header")
+	defer tc.Cleanup()
+
+	boxed := chat1.MessageBoxed{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{Tlfid: mockTLFID},
+		},
+	}
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{
+			ConversationID: boxed.ClientHeader.Conv.ToConversationID([2]byte{0, 0}),
+		},
+	}
+
+	_, err := boxer.UnboxMessages(context.Background(), []chat1.MessageBoxed{boxed}, conv)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "nil ServerHeader")
+}
+
 func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
 		key := cryptKey(t)

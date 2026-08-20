@@ -391,11 +391,14 @@ func (s *LKSec) tryAllDevicesForBug3964Recovery(m MetaContext, devices DeviceKey
 	return nil, LKSecServerHalf{}, err
 }
 
-func splitCiphertext(src []byte) ([]byte, *[24]byte) {
+func splitCiphertext(src []byte) ([]byte, *[24]byte, error) {
+	if len(src) < 24+secretbox.Overhead {
+		return nil, nil, errors.New("LKSec ciphertext too short")
+	}
 	var nonce [24]byte
 	copy(nonce[:], src[0:24])
 	data := src[24:]
-	return data, &nonce
+	return data, &nonce, nil
 }
 
 func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGeneration, erroneousMask LKSecServerHalf, err error) {
@@ -406,7 +409,10 @@ func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGe
 		return nil, 0, LKSecServerHalf{}, err
 	}
 	var ok bool
-	data, nonce := splitCiphertext(src)
+	data, nonce, err := splitCiphertext(src)
+	if err != nil {
+		return nil, 0, LKSecServerHalf{}, err
+	}
 	res, ok = secretbox.Open(nil, data, nonce, s.secret.f)
 	if !ok {
 		secretHash := sha256.New()
@@ -423,7 +429,10 @@ func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGe
 
 func (s *LKSec) decryptForBug3964Repair(m MetaContext, src []byte, dkm DeviceKeyMap) (res []byte, erroneousMask LKSecServerHalf, err error) {
 	defer m.Trace("LKSec#decryptForBug3964Repair()", &err)()
-	data, nonce := splitCiphertext(src)
+	data, nonce, err := splitCiphertext(src)
+	if err != nil {
+		return nil, LKSecServerHalf{}, err
+	}
 	res, ok := secretbox.Open(nil, data, nonce, s.secret.f)
 	if ok {
 		m.Debug("| Succeeded with intended mask")

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"math"
 	"strings"
 	"testing"
 
@@ -723,4 +724,19 @@ func TestAssociatedData(t *testing.T) {
 	opened, err = zeroOpenWithAssociatedData(sealed, incorrectAssociatedData)
 	require.True(t, bytes.Equal(opened, []byte{}))
 	assertErrorType(t, err, AssociatedDataMismatch)
+}
+
+func TestGetChunksInRangeRejectsMalformedRanges(t *testing.T) {
+	cases := [][3]int64{
+		{-1, 1, 1},
+		{1, 0, 2},
+		{0, 0, 2},
+		{2, 3, 2},
+		{0, math.MaxInt64, math.MaxInt64},
+	}
+	for _, tc := range cases {
+		require.NotPanics(t, func() {
+			require.Nil(t, getChunksInRange(tc[0], tc[1], tc[2]))
+		})
+	}
 }

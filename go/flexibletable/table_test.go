@@ -94,6 +94,40 @@ func TestTableWrap(t *testing.T) {
 	}
 }
 
+func TestTableTooNarrowReturnsError(t *testing.T) {
+	table := &Table{}
+	if err := table.Insert(Row{
+		Cell{Content: SingleCell{Item: "fixed"}},
+		Cell{Content: SingleCell{Item: "wrappable"}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	err := table.Render(&bytes.Buffer{}, " ", 0, []ColumnConstraint{5, ExpandableWrappable})
+	if _, ok := err.(WidthTooSmallError); !ok {
+		t.Fatalf("expected WidthTooSmallError, got %v", err)
+	}
+}
+
+func TestTableFixedColumnsCanFitExactly(t *testing.T) {
+	table := &Table{}
+	if err := table.Insert(Row{
+		Cell{Content: SingleCell{Item: "a"}},
+		Cell{Content: SingleCell{Item: "b"}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	var out bytes.Buffer
+	err := table.Render(&out, " ", 3, []ColumnConstraint{1, 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := out.String(), "a b\n"; got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
 func TestTableMultiline(t *testing.T) {
 	table := genTableForTest(t)
 	table.rows[1][3].Content = SingleCell{"first line\nsecond line\nblahblahblahblahblahblah supre long line hahaha aaa line line foo bar foo bar"}

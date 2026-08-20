@@ -330,8 +330,12 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 ) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
 	ctx = libkb.WithLogTag(ctx, "CHTUNBOX")
 	var err error
+	var messageID chat1.MessageID
+	if boxed.ServerHeader != nil {
+		messageID = boxed.ServerHeader.MessageID
+	}
 	defer b.Trace(ctx, &err, "UnboxMessage(%s, %d)", conv.GetConvID(),
-		boxed.GetMessageID())()
+		messageID)()
 	defer func() { err = b.castInternalError(uberr) }()
 
 	// Check to see if the context has been cancelled
@@ -339,6 +343,10 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	case <-ctx.Done():
 		return m, NewTransientUnboxingError(ctx.Err())
 	default:
+	}
+
+	if boxed.ServerHeader == nil {
+		return m, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
 	// if the server message doesn't have a TLFID, then it isn't available to us. This is most commonly
@@ -1399,6 +1407,12 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
 	defer b.Trace(ctx, &err, "UnboxMessages: %s, boxed: %d", conv.GetConvID(), len(boxed))()
+
+	for _, msg := range boxed {
+		if msg.ServerHeader == nil {
+			return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
+		}
+	}
 
 	// First stamp all of the messages as received
 	now := gregor1.ToTime(b.clock.Now())

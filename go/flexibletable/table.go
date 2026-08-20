@@ -121,9 +121,6 @@ func (t Table) renderFirstPass(cellSep string, maxWidth int, constraints []Colum
 			numOfNoConstraints++
 		}
 	}
-	if numOfNoConstraints == 0 {
-		numOfNoConstraints = 1
-	}
 
 	// first pass; determine smallest width for each column under constraints
 	widths = make([]int, len(t.rows[0]))
@@ -145,6 +142,15 @@ func (t Table) renderFirstPass(cellSep string, maxWidth int, constraints []Colum
 	rest := maxWidth - len(cellSep)*(len(widths)-1) // take out cellSeps
 	for _, w := range widths {
 		rest -= w
+	}
+	if numOfNoConstraints == 0 {
+		if rest < 0 {
+			return nil, WidthTooSmallError{}
+		}
+		return widths, nil
+	}
+	if rest < 0 {
+		return nil, WidthTooSmallError{}
 	}
 	each := rest / numOfNoConstraints
 	last := -1
@@ -183,6 +189,9 @@ func (t Table) renderSecondPass(constraints []ColumnConstraint, widths []int) (r
 			var toAppend []string
 			wrapping = false
 			for i := range strs {
+				if constraints[i] < 0 && widths[i] <= 0 && len(strs[i]) > 0 {
+					return nil, WidthTooSmallError{}
+				}
 				if widths[i] < len(strs[i]) {
 					toAppend = append(toAppend, strs[i][:widths[i]])
 					strs[i] = strs[i][widths[i]:]

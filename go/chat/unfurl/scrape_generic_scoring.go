@@ -53,6 +53,9 @@ func getDefaultScore(domain string, e *colly.HTMLElement) int {
 func getFaviconMultiplier(e *colly.HTMLElement) int {
 	// 192x192
 	sizes := strings.Split(e.Attr("sizes"), "x")
+	if len(sizes) < 2 {
+		return 1
+	}
 	width, err := strconv.Atoi(sizes[0])
 	if err != nil {
 		return 1
@@ -292,9 +295,18 @@ func (g *scoredGenericRaw) setImageURL(imageURL *string, score int) {
 
 func (g *scoredGenericRaw) setVideo(videoDesc string, score int) {
 	if score > g.videoScore || g.Video == nil {
-		parts := strings.Split(videoDesc, " ")
-		height, _ := strconv.Atoi(parts[1])
-		width, _ := strconv.Atoi(parts[2])
+		parts := strings.Fields(videoDesc)
+		if len(parts) < 4 {
+			return
+		}
+		height, err := strconv.Atoi(parts[1])
+		if err != nil || height < 0 {
+			height = 0
+		}
+		width, err := strconv.Atoi(parts[2])
+		if err != nil || width < 0 {
+			width = 0
+		}
 		g.Video = &chat1.UnfurlVideo{
 			Url:      parts[0],
 			MimeType: parts[3],
