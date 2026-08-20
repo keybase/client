@@ -172,10 +172,11 @@ const ScreenBody = ({
 
   // The store is a per-namespace singleton that outlives this screen; a
   // selection left behind by a previous session (blur can miss when the modal
-  // is removed) would show stale chips. teams intentionally carries the
-  // selection across re-opens for the add-members error path.
+  // is removed) would show stale chips. The one open that must keep the
+  // previous selection is the teams add-members error re-open, which comes
+  // back with initialError set.
   C.useOnMountOnce(() => {
-    if (namespace !== 'teams') {
+    if (!initialError) {
       resetState()
     }
   })
