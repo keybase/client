@@ -4141,31 +4141,6 @@ func (e TeamSearchExport) Hash() string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-// web-of-trust
-// In order of descending quality.
-// Keep in sync with:
-// - server helpers/wot.ts
-// - gui WebOfTrustVerificationType
-const (
-	UsernameVerificationType_IN_PERSON  = "in_person"
-	UsernameVerificationType_VIDEO      = "video"
-	UsernameVerificationType_AUDIO      = "audio"
-	UsernameVerificationType_PROOFS     = "proofs"
-	UsernameVerificationType_OTHER_CHAT = "other_chat"
-	UsernameVerificationType_FAMILIAR   = "familiar"
-	UsernameVerificationType_OTHER      = "other"
-)
-
-var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
-	"in_person":  UsernameVerificationType_IN_PERSON,
-	"proofs":     UsernameVerificationType_PROOFS,
-	"video":      UsernameVerificationType_VIDEO,
-	"audio":      UsernameVerificationType_AUDIO,
-	"other_chat": UsernameVerificationType_OTHER_CHAT,
-	"familiar":   UsernameVerificationType_FAMILIAR,
-	"other":      UsernameVerificationType_OTHER,
-}
-
 func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
 	if fsc.Mode != other.Mode {
 		return false

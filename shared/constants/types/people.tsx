@@ -54,12 +54,6 @@ export type Announcement = {
   url?: string
 }
 
-export type WotUpdate = {
-  voucher: string
-  vouchee: string
-  status: RPCTypes.WotStatusType
-}
-
 export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
 export type FollowSuggestion = {

@@ -285,17 +285,6 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 	row.SiteIconDarkmode = libkb.MakeProofIcons(mctx, iconKey, libkb.ProofIconTypeSmallDarkmode, 16)
 	row.SiteIconFull = libkb.MakeProofIcons(mctx, iconKey, libkb.ProofIconTypeFull, 64)
 	row.SiteIconFullDarkmode = libkb.MakeProofIcons(mctx, iconKey, libkb.ProofIconTypeFullDarkmode, 64)
-	switch proof.ProofType {
-	case keybase1.ProofType_NONE, keybase1.ProofType_PGP:
-		// These types are not eligible for web-of-trust selection.
-	default:
-		wotProof, err := libkb.NewWotProof(proof.ProofType, proof.Key, proof.Value)
-		if err != nil {
-			mctx.Debug("Error creating web-of-trust proof summary: %v", err)
-		} else {
-			row.WotProof = &wotProof
-		}
-	}
 	return row
 }
 
@@ -364,7 +353,6 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 		SiteIconFull:         libkb.MakeProofIcons(mctx, "pgp", libkb.ProofIconTypeFull, 64),
 		SiteIconFullDarkmode: libkb.MakeProofIcons(mctx, "pgp", libkb.ProofIconTypeFullDarkmode, 64),
 		Kid:                  &key.KID,
-		// PICNIC-1092 consider adding `WotProof` to support pgp in web-of-trust.
 	}
 
 	switch {
