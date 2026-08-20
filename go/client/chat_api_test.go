@@ -460,7 +460,6 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
 			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: error type %T, expected %T", i, err, test.err)
-			continue
 		} else if err != nil {
 			require.Failf(t, "", "test %d: input %s => error %s", i, test.input, err)
 			continue
@@ -774,7 +773,6 @@ func TestChatAPIVersionHandlerOptions(t *testing.T) {
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
 			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: input: %s", i, test.input)
-			continue
 		} else if err != nil {
 			require.Failf(t, "", "test %d: input %s => error %s", i, test.input, err)
 			continue
@@ -898,7 +896,6 @@ func TestChatAPIEcho(t *testing.T) {
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
 			require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "test %d: error type %T, expected %T", i, err, test.err)
-			continue
 		} else if err != nil {
 			require.Failf(t, "", "test %d: input %s => error %s", i, test.input, err)
 			continue

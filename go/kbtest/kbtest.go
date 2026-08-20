@@ -245,8 +245,8 @@ func FakeSalt() []byte {
 
 // Provision a new device (in context tcY) from the active (and logged in) device in test context tcX.
 // This was adapted from engine/kex2_test.go
-// Note that it uses Errorf in goroutines, so if it fails
-// the test will not fail until later.
+// Errors from the two engine goroutines are reported after both goroutines
+// complete, on the test goroutine.
 // `tcX` is a TestContext where device X (the provisioner) is already provisioned and logged in.
 // this function will provision a new device Y inside `tcY`
 // `newDeviceType` is keybase1.DeviceTypeV2_MOBILE or keybase1.DeviceTypeV2_DESKTOP.
@@ -266,6 +266,8 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 	}
 
 	var wg sync.WaitGroup
+	provisioneeErrCh := make(chan error, 1)
+	provisionerErrCh := make(chan error, 1)
 
 	// start provisionee
 	wg.Add(1)
@@ -293,7 +295,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), FakeSalt())
 			return engine.RunEngine2(m, provisionee)
 		})()
-		require.NoError(t, err, "kex2 provisionee")
+		provisioneeErrCh <- err
 	}()
 
 	// start provisioner
@@ -307,13 +309,12 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 		provisioner := engine.NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
 		m := libkb.NewMetaContextForTest(*tcX).WithUIs(uis)
-		if err := engine.RunEngine2(m, provisioner); err != nil {
-			require.NoErrorf(t, err, "provisioner error")
-			return
-		}
+		provisionerErrCh <- engine.RunEngine2(m, provisioner)
 	}()
 
 	wg.Wait()
+	require.NoError(t, <-provisioneeErrCh, "kex2 provisionee")
+	require.NoError(t, <-provisionerErrCh, "provisioner error")
 }
 
 type TestProvisionUI struct {

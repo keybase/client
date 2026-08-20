@@ -48,28 +48,51 @@ func TestWindowsNamedPipe(t *testing.T) {
 	// Do the server listening in a separate gofunc, which we synchronize
 	// with later after it has gotten a string
 	var wg sync.WaitGroup
+	serverErrCh := make(chan error, 1)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		conn, err := l.Accept()
-		require.NoError(t, err)
+		if err != nil {
+			serverErrCh <- err
+			return
+		}
 		answer, err := bufio.NewReader(conn).ReadString('\n')
-		require.NoError(t, err)
-		require.Equal(t, "Hi server!\n", answer, "Bad response over pipe: -%s-", answer)
+		if err != nil {
+			serverErrCh <- err
+			return
+		}
+		if answer != "Hi server!\n" {
+			serverErrCh <- fmt.Errorf("Bad response over pipe: -%s-", answer)
+			return
+		}
+		serverErrCh <- nil
 	}()
 
 	sendSocket, err := NewSocket(tc.G)
-	namedPipeClient(sendSocket, t)
+	if err != nil {
+		_ = l.Close()
+		wg.Wait()
+		require.NoError(t, err)
+		return
+	}
+	clientErr := namedPipeClient(sendSocket)
+	if clientErr != nil {
+		_ = l.Close()
+	}
 	wg.Wait()
+	require.NoError(t, clientErr)
+	require.NoError(t, <-serverErrCh)
 }
 
 // Dial the server over the pipe and send a string
-func namedPipeClient(sendSocket Socket, t *testing.T) {
+func namedPipeClient(sendSocket Socket) error {
 	conn, err := sendSocket.DialSocket()
-	require.NoError(t, err)
-	if _, err := fmt.Fprintln(conn, "Hi server!"); err != nil {
-		require.NoError(t, err)
+	if err != nil {
+		return err
 	}
+	_, err = fmt.Fprintln(conn, "Hi server!")
+	return err
 }
 
 func TestWindowsPipeOwner(t *testing.T) {

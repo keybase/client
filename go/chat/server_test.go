@@ -381,14 +381,14 @@ func (c *chatTestContext) advanceFakeClock(d time.Duration) {
 
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
 	var ctx context.Context
-	assert.NotNil(t, user)
+	require.NotNil(t, user)
 
 	if tuc, ok := c.userContextCache[user.Username]; ok {
 		return tuc
 	}
 
 	tc, ok := c.world.Tcs[user.Username]
-	assert.True(t, ok)
+	require.True(t, ok)
 	g := globals.NewContext(tc.G, tc.ChatG)
 	h := NewServer(g, nil, testUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
@@ -406,17 +406,11 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	} else {
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
-		if err != nil {
-			t.Errorf("NIST failed: %v", err)
-			return nil
-		}
+		require.NoError(t, err)
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		g.GregorState = gh
-		if err := gh.Connect(ctx); err != nil {
-			t.Errorf("Gregor connection failed: %v", err)
-			return nil
-		}
+		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
 		serverConn = gh
 		tc.GregorConn = gh
@@ -2952,7 +2946,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		tc := ctc.world.Tcs[users[0].Username]
-		ri := ctc.as(t, users[0]).ri
+		tcUser := ctc.as(t, users[0])
+		ri := tcUser.ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
@@ -2964,7 +2959,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			Num: 1,
 		})
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID:   conv.Id,
 					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -3015,7 +3010,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		p.Num = 1
 		p.Next = "deadbeef"
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID:   conv.Id,
 					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -3066,7 +3061,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			p.Num = 50
 			cb = make(chan struct{})
 			go func() {
-				_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 					chat1.GetThreadNonblockArg{
 						ConversationID:   conv.Id,
 						IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -3139,12 +3134,13 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		users := ctc.users()
 
 		ui := kbtest.NewChatUI()
-		ctc.as(t, users[0]).h.mockChatUI = ui
+		tcUser := ctc.as(t, users[0])
+		tcUser.h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}
-		ctx := ctc.as(t, users[0]).startCtx
+		ctx := tcUser.startCtx
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 
 		t.Logf("send a bunch of messages")
@@ -3158,7 +3154,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		tc := ctc.world.Tcs[users[0].Username]
-		ri := ctc.as(t, users[0]).ri
+		ri := tcUser.ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
@@ -3167,7 +3163,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID:   conv.Id,
 					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -3202,7 +3198,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		// Incremental
 		cb = make(chan struct{})
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID:   conv.Id,
 					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -3266,11 +3262,12 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		ui := kbtest.NewChatUI()
-		ctc.as(t, users[0]).h.mockChatUI = ui
-		ctx := ctc.as(t, users[0]).startCtx
-		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+		tcUser := ctc.as(t, users[0])
+		tcUser.h.mockChatUI = ui
+		ctx := tcUser.startCtx
+		<-tcUser.h.G().ConvLoader.Stop(ctx)
 		listener := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		tcUser.h.G().NotifyRouter.AddListener(listener)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		cs := ctc.world.Tcs[users[0].Username].ChatG.ConvSource
@@ -3299,7 +3296,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ri := ctc.as(t, users[0]).ri
+		ri := tcUser.ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
@@ -3311,7 +3308,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID: conv.Id,
 					Query:          &query,
@@ -3362,7 +3359,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		require.NoError(t, err)
 		cb = make(chan struct{})
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID: conv.Id,
 					Query:          &query,
@@ -3607,11 +3604,12 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		ui := kbtest.NewChatUI()
-		ctc.as(t, users[0]).h.mockChatUI = ui
-		ctx := ctc.as(t, users[0]).startCtx
-		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+		tcUser := ctc.as(t, users[0])
+		tcUser.h.mockChatUI = ui
+		ctx := tcUser.startCtx
+		<-tcUser.h.G().ConvLoader.Stop(ctx)
 		listener := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		tcUser.h.G().NotifyRouter.AddListener(listener)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		cs := ctc.world.Tcs[users[0].Username].ChatG.ConvSource
@@ -3658,7 +3656,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID: conv.Id,
 					Query:          &query,
@@ -3718,11 +3716,12 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		ui := kbtest.NewChatUI()
-		ctc.as(t, users[0]).h.mockChatUI = ui
-		ctx := ctc.as(t, users[0]).startCtx
-		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+		tcUser := ctc.as(t, users[0])
+		tcUser.h.mockChatUI = ui
+		ctx := tcUser.startCtx
+		<-tcUser.h.G().ConvLoader.Stop(ctx)
 		listener := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		tcUser.h.G().NotifyRouter.AddListener(listener)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		tc := ctc.world.Tcs[users[0].Username]
@@ -3750,7 +3749,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ri := ctc.as(t, users[0]).ri
+		ri := tcUser.ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
@@ -3762,7 +3761,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}
 		go func() {
-			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			_, err := tcUser.chatLocalHandler().GetThreadNonblock(ctx,
 				chat1.GetThreadNonblockArg{
 					ConversationID: conv.Id,
 					Query:          &query,
