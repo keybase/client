@@ -6,6 +6,7 @@ package libkb
 import (
 	"bufio"
 	"context"
+	"errors"
 	"io"
 	"sync"
 
@@ -31,6 +32,8 @@ type ExportedStreams struct {
 	i int
 	sync.Mutex
 }
+
+const maxExportedStreamReadSize = 4 * 1024 * 1024
 
 func NewExportedStreams() *ExportedStreams {
 	return &ExportedStreams{
@@ -112,13 +115,22 @@ func (s *ExportedStreams) Close(_ context.Context, a keybase1.CloseArg) (err err
 }
 
 func (s *ExportedStreams) Read(_ context.Context, a keybase1.ReadArg) (buf []byte, err error) {
+	if a.Sz < 0 || a.Sz > maxExportedStreamReadSize {
+		return nil, errors.New("invalid stream read size")
+	}
 	var r io.ReadCloser
 	if r, err = s.GetReader(a.S); err != nil {
 		return
 	}
+	if a.Sz == 0 {
+		return []byte{}, nil
+	}
 	var n int
 	buf = make([]byte, a.Sz)
 	n, err = r.Read(buf)
+	if n < 0 || n > len(buf) {
+		return nil, errors.New("invalid stream read result")
+	}
 	buf = buf[0:n]
 	return
 }

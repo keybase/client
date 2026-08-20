@@ -51,7 +51,10 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 	if n.noOutput {
 		return nil
 	}
-	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
+	percent := 0
+	if arg.BytesTotal > 0 {
+		percent = int((100 * arg.BytesComplete) / arg.BytesTotal)
+	}
 	if n.lastProgressPercent == 0 || percent == 100 || percent-n.lastProgressPercent >= 10 {
 		w := n.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent,
@@ -78,7 +81,10 @@ func (n *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Contex
 	if n.noOutput {
 		return nil
 	}
-	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
+	percent := 0
+	if arg.BytesTotal > 0 {
+		percent = int((100 * arg.BytesComplete) / arg.BytesTotal)
+	}
 	if n.lastProgressPercent == 0 || percent == 100 || percent-n.lastProgressPercent >= 10 {
 		w := n.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent,

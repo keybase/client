@@ -343,30 +343,51 @@ func (s *s3Seeker) Read(b []byte) (n int, err error) {
 	if s.offset >= s.asset.Size {
 		return 0, io.EOF
 	}
-	rc, err := s.bucket.GetReaderWithRange(s.ctx, s.asset.Path, s.offset, s.offset+int64(len(b)))
+	if len(b) == 0 {
+		return 0, nil
+	}
+	end := s.offset + int64(len(b))
+	if end < s.offset {
+		return 0, errors.New("attachment read size overflow")
+	}
+	if end > s.asset.Size {
+		end = s.asset.Size
+	}
+	rc, err := s.bucket.GetReaderWithRange(s.ctx, s.asset.Path, s.offset, end)
 	if err != nil {
 		return 0, err
 	}
 	defer rc.Close()
 	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, rc); err != nil {
+	if _, err := io.Copy(&buf, io.LimitReader(rc, end-s.offset)); err != nil {
 		return 0, err
 	}
-	copy(b, buf.Bytes())
-	return len(b), nil
+	n = copy(b, buf.Bytes())
+	s.offset += int64(n)
+	if n == 0 {
+		return 0, io.EOF
+	}
+	return n, nil
 }
 
 func (s *s3Seeker) Seek(offset int64, whence int) (res int64, err error) {
 	defer s.Trace(s.ctx, &err, "Seek(%v,%v)", s.offset, whence)()
+	var next int64
 	switch whence {
 	case io.SeekStart:
-		s.offset = offset
+		next = offset
 	case io.SeekCurrent:
-		s.offset += offset
+		next = s.offset + offset
 	case io.SeekEnd:
-		s.offset = s.asset.Size - offset
+		next = s.asset.Size + offset
+	default:
+		return s.offset, errors.New("invalid seek whence")
 	}
-	return s.offset, nil
+	if next < 0 {
+		return s.offset, errors.New("invalid negative seek offset")
+	}
+	s.offset = next
+	return next, nil
 }
 
 func (a *S3Store) getStreamerCache(asset chat1.Asset) *lru.Cache {

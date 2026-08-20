@@ -40,6 +40,24 @@ func Test0TimeConversion(t *testing.T) {
 	require.Equal(t, time.Time{}, FromTime(Time(0)))
 }
 
+func TestMalformedSigIDHelpersDoNotPanic(t *testing.T) {
+	for _, sigID := range []SigID{"", "00", "zz"} {
+		t.Run(string(sigID), func(t *testing.T) {
+			require.NotPanics(t, func() {
+				require.Nil(t, sigID.ToBytes())
+				require.Empty(t, sigID.ToShortID())
+				_ = sigID.ToMediumID()
+				_ = sigID.ToMapKey()
+				_ = sigID.ToDisplayString(false)
+			})
+		})
+	}
+
+	valid := SigID(strings.Repeat("ab", SIG_ID_LEN+1))
+	require.Len(t, valid.ToBytes(), SIG_ID_LEN)
+	require.NotEmpty(t, valid.ToShortID())
+}
+
 func TestTimeConversions(t *testing.T) {
 	const longForm = "Jan 2, 2006 at 3:04pm (MST)"
 	constTime, err := time.Parse(longForm, "Feb 3, 2013 at 7:54pm (PST)")

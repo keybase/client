@@ -84,6 +84,13 @@ func TestPRNG(t *testing.T) {
 	}
 }
 
+func TestPermutationRejectsNegativeSize(t *testing.T) {
+	var secret Secret
+	prng := NewPRNG(secret)
+	require.Nil(t, prng.Permutation(-1))
+	require.Empty(t, prng.Permutation(0))
+}
+
 func TestPRNGRanges(t *testing.T) {
 	test := func(n int64) {
 		var secret Secret

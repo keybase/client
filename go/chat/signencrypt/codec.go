@@ -131,6 +131,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
@@ -515,12 +516,52 @@ func chunkFromIndex(index int64) (res chunkSpec) {
 	return res
 }
 
+func validChunkIndex(index int64) bool {
+	if index < 0 {
+		return false
+	}
+	packetLen := getPacketLen(DefaultPlaintextChunkLength)
+	return index <= (math.MaxInt64-DefaultPlaintextChunkLength)/DefaultPlaintextChunkLength &&
+		index <= (math.MaxInt64-packetLen)/packetLen
+}
+
+func getSealedSizeChecked(plaintextLen int64) (int64, bool) {
+	if plaintextLen < 0 {
+		return 0, false
+	}
+	packetLen := getPacketLen(DefaultPlaintextChunkLength)
+	fullChunks := plaintextLen / DefaultPlaintextChunkLength
+	remainingPlaintext := plaintextLen % DefaultPlaintextChunkLength
+	remainingPacketLen := getPacketLen(remainingPlaintext)
+	if fullChunks > (math.MaxInt64-remainingPacketLen)/packetLen {
+		return 0, false
+	}
+	return fullChunks*packetLen + remainingPacketLen, true
+}
+
 func getChunksInRange(plaintextBegin, plaintextEnd, plaintextLen int64) (res []chunkSpec) {
-	beginChunk := chunkFromIndex(plaintextBegin / DefaultPlaintextChunkLength)
-	endChunk := chunkFromIndex(plaintextEnd / DefaultPlaintextChunkLength)
-	cipherLen := GetSealedSize(plaintextLen)
-	for i := beginChunk.index; i <= endChunk.index; i++ {
+	if plaintextLen <= 0 || plaintextBegin < 0 || plaintextBegin >= plaintextLen || plaintextEnd <= plaintextBegin {
+		return nil
+	}
+	if plaintextEnd > plaintextLen {
+		plaintextEnd = plaintextLen
+	}
+	beginIndex := plaintextBegin / DefaultPlaintextChunkLength
+	endIndex := plaintextEnd / DefaultPlaintextChunkLength
+	if !validChunkIndex(beginIndex) || !validChunkIndex(endIndex) {
+		return nil
+	}
+	beginChunk := chunkFromIndex(beginIndex)
+	endChunk := chunkFromIndex(endIndex)
+	cipherLen, ok := getSealedSizeChecked(plaintextLen)
+	if !ok {
+		return nil
+	}
+	for i := beginChunk.index; ; i++ {
 		res = append(res, chunkFromIndex(i))
+		if i == endChunk.index {
+			break
+		}
 	}
 	if res[len(res)-1].ptEnd >= plaintextLen {
 		res[len(res)-1].ptEnd = plaintextLen

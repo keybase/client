@@ -298,10 +298,11 @@ func (g *Game) doFlip(ctx context.Context, prng *PRNG) error {
 		modulus.SetBytes(params.Big())
 		res.Big = prng.Big(&modulus)
 	case FlipType_SHUFFLE:
-		shuffleSize := int(params.Shuffle())
-		if shuffleSize > maxShuffleSize {
-			return fmt.Errorf("shuffle size %d exceeds maximum %d", shuffleSize, maxShuffleSize)
+		shuffleSize64 := params.Shuffle()
+		if shuffleSize64 < 0 || shuffleSize64 > int64(maxShuffleSize) {
+			return fmt.Errorf("shuffle size %d is outside the supported range", shuffleSize64)
 		}
+		shuffleSize := int(shuffleSize64)
 		res.Shuffle = prng.Permutation(shuffleSize)
 	default:
 		return BadFlipTypeError{G: g.GameMetadata(), T: t}

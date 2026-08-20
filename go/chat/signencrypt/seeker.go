@@ -2,7 +2,9 @@ package signencrypt
 
 import (
 	"context"
+	"errors"
 	"io"
+	"math"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -62,36 +64,60 @@ func (r *decodingReadSeeker) getChunksFromCache(chunks []chunkSpec) (res []byte,
 	return res, true
 }
 
-func (r *decodingReadSeeker) writeChunksToCache(pt []byte, chunks []chunkSpec) {
+func (r *decodingReadSeeker) writeChunksToCache(pt []byte, chunks []chunkSpec) error {
+	if len(chunks) == 0 {
+		return errors.New("no attachment chunks to cache")
+	}
 	start := chunks[0].ptStart
 	for _, c := range chunks {
-		stored := make([]byte, len(pt[c.ptStart-start:c.ptEnd-start]))
+		startOffset := c.ptStart - start
+		endOffset := c.ptEnd - start
+		if startOffset < 0 || endOffset < startOffset || endOffset > int64(len(pt)) {
+			return errors.New("invalid attachment plaintext chunk range")
+		}
+		stored := make([]byte, int(endOffset-startOffset))
 		// need to pull the specific chunk out of the plaintext bytes
-		copy(stored, pt[c.ptStart-start:c.ptEnd-start])
+		copy(stored, pt[int(startOffset):int(endOffset)])
 		r.Debug(r.ctx, "writeChunksToCache: adding index: %d len: %d", c.index, len(stored))
 		r.chunks.Add(c.index, stored)
 	}
+	return nil
 }
 
 func (r *decodingReadSeeker) fetchChunks(chunks []chunkSpec) (res []byte, err error) {
+	if len(chunks) == 0 {
+		return nil, errors.New("no attachment chunks to fetch")
+	}
 	// we want to fetch enough data for all the chunks in one hit on the source ReadSeeker
 	begin := chunks[0].cipherStart
 	end := chunks[len(chunks)-1].cipherEnd
 	num := end - begin
+	if begin < 0 || num <= 0 || int64(int(num)) != num {
+		return nil, errors.New("invalid attachment chunk range")
+	}
 
 	if _, err := r.source.Seek(begin, io.SeekStart); err != nil {
 		return res, err
 	}
 	var bufOffset int64
-	res = make([]byte, num)
+	res = make([]byte, int(num))
 	for {
-		n, err := r.source.Read(res[bufOffset:])
-		if err != nil {
-			return res, err
+		if bufOffset < 0 || bufOffset >= num || int64(int(bufOffset)) != bufOffset {
+			return nil, errors.New("invalid attachment read offset")
+		}
+		n, readErr := r.source.Read(res[int(bufOffset):])
+		if n < 0 || int64(n) > num-bufOffset {
+			return nil, errors.New("invalid attachment read length")
 		}
 		bufOffset += int64(n)
 		if bufOffset >= num {
 			break
+		}
+		if readErr != nil {
+			return res, readErr
+		}
+		if n == 0 {
+			return res, io.ErrNoProgress
 		}
 	}
 	return res, nil
@@ -105,11 +131,19 @@ func (r *decodingReadSeeker) clamp(offset int64) int64 {
 }
 
 func (r *decodingReadSeeker) extractPlaintext(plainText []byte, num int64, chunks []chunkSpec) []byte {
+	if len(chunks) == 0 {
+		return nil
+	}
 	datBegin := chunks[0].ptStart
 	ptBegin := r.offset
 	ptEnd := r.clamp(r.offset + num)
 	r.Debug(r.ctx, "extractPlaintext: datBegin: %v ptBegin: %v ptEnd: %v", datBegin, ptBegin, ptEnd)
-	return plainText[ptBegin-datBegin : ptEnd-datBegin]
+	start := ptBegin - datBegin
+	end := ptEnd - datBegin
+	if start < 0 || end < start || end > int64(len(plainText)) {
+		return nil
+	}
+	return plainText[int(start):int(end)]
 }
 
 // getReadaheadFactor gives the number of chunks we should read at minimum from the source. For larger
@@ -128,10 +162,19 @@ func (r *decodingReadSeeker) getReadaheadFactor() int64 {
 
 func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	defer r.Trace(r.ctx, &err, "Read(%v,%v)", r.offset, len(res))()
+	if r.size < 0 || r.offset < 0 {
+		return 0, errors.New("invalid attachment plaintext size")
+	}
 	if r.offset >= r.size {
 		return 0, io.EOF
 	}
+	if len(res) == 0 {
+		return 0, nil
+	}
 	num := int64(len(res))
+	if r.offset > math.MaxInt64-num {
+		return 0, errors.New("attachment read offset overflow")
+	}
 	chunkEnd := r.clamp(r.offset + num)
 	r.Debug(r.ctx, "Read: chunkEnd: %v", chunkEnd)
 	chunks := getChunksInRange(r.offset, chunkEnd, r.size)
@@ -167,11 +210,16 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 		if finishPlaintext, err := decoder.Finish(); err == nil {
 			chunkPlaintext = append(chunkPlaintext, finishPlaintext...)
 		}
-		r.writeChunksToCache(chunkPlaintext, prefetchChunks)
+		if err := r.writeChunksToCache(chunkPlaintext, prefetchChunks); err != nil {
+			return n, err
+		}
 	}
 
 	r.Debug(r.ctx, "Read: len(chunkPlainText): %v", len(chunkPlaintext))
 	plainText := r.extractPlaintext(chunkPlaintext, num, chunks)
+	if plainText == nil {
+		return 0, errors.New("invalid attachment plaintext range")
+	}
 	copy(res, plainText)
 	numRead := int64(len(plainText))
 	r.Debug(r.ctx, "Read: len(pt): %v", len(plainText))
@@ -181,13 +229,23 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 
 func (r *decodingReadSeeker) Seek(offset int64, whence int) (res int64, err error) {
 	defer r.Trace(r.ctx, &err, "Seek(%v,%v)", offset, whence)()
+	var next int64
 	switch whence {
 	case io.SeekStart:
-		r.offset = offset
+		next = offset
 	case io.SeekCurrent:
-		r.offset += offset
+		next = r.offset + offset
 	case io.SeekEnd:
-		r.offset = r.size - offset
+		if r.size > math.MaxInt64-offset && offset > 0 {
+			return r.offset, errors.New("attachment seek offset overflow")
+		}
+		next = r.size + offset
+	default:
+		return r.offset, errors.New("invalid seek whence")
 	}
-	return r.offset, nil
+	if next < 0 {
+		return r.offset, errors.New("invalid negative seek offset")
+	}
+	r.offset = next
+	return next, nil
 }
