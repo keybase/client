@@ -45,10 +45,10 @@ def logKbwebServices(container) {
   archive("kbweb-logs.tar.gz")
 }
 
-// Reports which pipeline step failed back to the PR as a commit status, so a
-// red build says "go: golangci-lint" instead of only "failed". The status
-// description carries nothing but the literal name passed in here -- never
-// log output, exception text, paths, or credentials.
+// Reports which pipeline step failed back to the PR, so a red build says
+// "go: golangci-lint" instead of only "failed". The published text is nothing
+// but the literal name passed in here -- never log output, exception text,
+// paths, or credentials.
 def reportStep(name, closure) {
   try {
     closure()
@@ -60,16 +60,21 @@ def reportStep(name, closure) {
 
 // Best-effort: the reporting must never itself break a build, and must never
 // mask the underlying failure.
-def notifyStep(status, description) {
+//
+// githubNotify (github-plugin) is not installed on this controller, but the
+// Checks API plugin is, so publish a check run instead. If no checks publisher
+// is registered, publishChecks logs and does nothing rather than throwing.
+def notifyStep(conclusion, summary) {
   try {
-    githubNotify(
-      context: 'client/failed-step',
-      status: status,
-      description: description,
-      targetUrl: env.BUILD_URL
+    publishChecks(
+      name: 'client/failed-step',
+      title: summary,
+      summary: summary,
+      conclusion: conclusion,
+      detailsURL: env.BUILD_URL
     )
   } catch (ex) {
-    println "reportStep: githubNotify failed, continuing"
+    println "reportStep: publishChecks failed, continuing"
   }
 }
 
