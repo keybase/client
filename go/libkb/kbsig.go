@@ -930,7 +930,6 @@ type SigMultiItem struct {
 	TeamID     keybase1.TeamID         `json:"team_id,omitempty"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`
 	Version    SigVersion              `json:"version"`
-	Expansions *jsonw.Wrapper          `json:"expansions,omitempty"`
 }
 
 type SigMultiItemPublicKeys struct {
