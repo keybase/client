@@ -19,7 +19,9 @@ const colorBarCommon = {
 
 const HeaderNewChatButton = () => {
   const styles = useStyles()
-  const hide = useInboxLayoutState(s => s.hasLoaded && isEmptyInboxLayout(s.layout))
+  // mobile's empty inbox draws its own big 'Start a new chat' button, so the header one is
+  // redundant there; desktop has no such affordance and must keep it
+  const hide = useInboxLayoutState(s => isMobile && s.hasLoaded && isEmptyInboxLayout(s.layout))
 
   const onNewChat = C.Router2.appendNewChatBuilder
 
