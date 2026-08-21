@@ -581,8 +581,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   }
 
   if (prefix == "test_linux_go_") {
-    // TODO re-enable
-    // sh 'go tool govulncheck ./...'
+    sh 'go tool govulncheck ./...'
     sh "golangci-lint config verify"
 
     // Only test golangci-lint on linux
