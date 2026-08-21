@@ -39,5 +39,5 @@ func TestServerVersionSync(t *testing.T) {
 
 	_, err = tc.Context().ServerCacheVersions.MatchInbox(context.TODO(), 11)
 	require.Error(t, err)
-	require.IsType(t, VersionMismatchError{}, err)
+	require.ErrorAs(t, err, new(VersionMismatchError))
 }

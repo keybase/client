@@ -72,7 +72,7 @@ func setupBox(t *testing.T) (libkb.TestContext, *Crypto, keybase1.TeamIDWithVisi
 	boxed, err := c.Box(context.Background(), plaintext, teamSpec)
 	require.NoError(tc.T, err)
 	require.NotNil(tc.T, boxed)
-	require.EqualValues(tc.T, boxed.Gen, 1)
+	require.EqualValues(tc.T, 1, boxed.Gen)
 	require.Len(tc.T, boxed.N, libkb.NaclDHNonceSize)
 	require.NotZero(tc.T, boxed.N)
 	require.NotEmpty(tc.T, boxed.E)
@@ -100,9 +100,8 @@ func testCryptoUnbox(t *testing.T, implicit, public bool) {
 	if implicit {
 		teamID = createImplicitTeam(tc, public)
 	} else {
-		if public {
-			t.Fatalf("public teams not supported")
-		}
+		require.False(t, public,
+			"public teams not supported")
 		teamID = createRootTeam(tc)
 	}
 	require.Equal(t, public, teamID.IsPublic())
@@ -181,7 +180,7 @@ func TestCryptoVisibility(t *testing.T) {
 	c := NewCrypto(tc.G)
 	boxed, err := c.Box(context.Background(), plaintext, teamSpecPublic)
 	require.Error(tc.T, err)
-	require.IsType(tc.T, libkb.TeamVisibilityError{}, err)
+	require.ErrorAs(tc.T, err, new(libkb.TeamVisibilityError))
 	require.Nil(tc.T, boxed)
 
 	// fix it so we can box some data and test visibility on unbox
@@ -192,7 +191,7 @@ func TestCryptoVisibility(t *testing.T) {
 	// this should fail with public spec
 	unboxed, err := c.Unbox(context.Background(), teamSpecPublic, boxed)
 	require.Error(tc.T, err)
-	require.IsType(tc.T, libkb.TeamVisibilityError{}, err)
+	require.ErrorAs(tc.T, err, new(libkb.TeamVisibilityError))
 	require.Nil(tc.T, unboxed)
 
 	// and succeed with private spec
@@ -221,7 +220,7 @@ func TestCryptoNonce(t *testing.T) {
 	boxed.N[4] ^= 0x10
 	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
 	require.Error(tc.T, err)
-	require.IsType(tc.T, libkb.DecryptOpenError{}, err)
+	require.ErrorAs(tc.T, err, new(libkb.DecryptOpenError))
 	require.Nil(tc.T, unboxed)
 }
 
@@ -229,15 +228,14 @@ func TestCryptoData(t *testing.T) {
 	tc, c, teamSpec, boxed := setupBox(t)
 	defer tc.Cleanup()
 
-	if len(boxed.E) < 4 {
-		tc.T.Fatalf("very small encrypted data size: %d", len(boxed.E))
-	}
+	require.GreaterOrEqual(tc.T, len(boxed.E), 4,
+		"very small encrypted data size: %d", len(boxed.E))
 
 	// flip data bit
 	boxed.E[3] ^= 0x10
 	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
 	require.Error(tc.T, err)
-	require.IsType(tc.T, libkb.DecryptOpenError{}, err)
+	require.ErrorAs(tc.T, err, new(libkb.DecryptOpenError))
 	require.Nil(tc.T, unboxed)
 }
 

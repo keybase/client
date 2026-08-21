@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,12 +42,12 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var wg sync.WaitGroup
@@ -77,7 +78,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			provisionee := NewKex2Provisionee(tcY.G, device, secretY, userX.UID(), fakeSalt())
 			return RunEngine2(m, provisionee)
 		})()
-		require.NoError(t, err, "no kex2 provisionee error")
+		assert.NoError(t, err, "no kex2 provisionee error")
 	}()
 
 	// start provisioner
@@ -117,12 +118,12 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	var wg sync.WaitGroup

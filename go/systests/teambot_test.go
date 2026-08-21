@@ -132,7 +132,7 @@ func TestTeambotKey(t *testing.T) {
 
 	// initial get, bot has no key to access
 	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
-	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
+	require.ErrorAs(t, err, new(teambot.TeambotTransientKeyError))
 
 	// cry for help has been issued.
 	keyNeededArg := keybase1.TeambotKeyNeededArg{
@@ -162,7 +162,7 @@ func TestTeambotKey(t *testing.T) {
 
 	// check for wrong application
 	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_KBFS)
-	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
+	require.ErrorAs(t, err, new(teambot.TeambotTransientKeyError))
 
 	// cry for help has been issued.
 	keyNeededArg = keybase1.TeambotKeyNeededArg{
@@ -240,7 +240,7 @@ func TestTeambotKey(t *testing.T) {
 	require.Equal(t, expired, ctime)
 
 	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
-	require.IsType(t, teambot.TeambotPermanentKeyError{}, err)
+	require.ErrorAs(t, err, new(teambot.TeambotPermanentKeyError))
 	require.False(t, created)
 	keyNeededArg = keybase1.TeambotKeyNeededArg{
 		Id:          teamID,
@@ -357,7 +357,7 @@ func TestTeambotKey(t *testing.T) {
 	// bot asks for a non-existent generation, no new key is created.
 	badGen := teambotKey.Metadata.Generation + 50
 	_, err = botKeyer.GetTeambotKeyAtGeneration(mctx3, teamID, keybase1.TeamApplication_CHAT, badGen)
-	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
+	require.ErrorAs(t, err, new(teambot.TeambotTransientKeyError))
 	keyNeededArg = keybase1.TeambotKeyNeededArg{
 		Id:          teamID,
 		Uid:         botua.uid,

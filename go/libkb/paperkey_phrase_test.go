@@ -6,28 +6,22 @@ package libkb
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPaperKeyPhraseBasics(t *testing.T) {
 	p, err := MakePaperKeyPhrase(0)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	q := NewPaperKeyPhrase(p.String())
 	version, err := q.Version()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if version != 0 {
-		t.Errorf("version: %d, expected 0", version)
-	}
+	require.NoError(t, err)
+	require.Equal(t, uint8(0), version, "version: %d, expected 0", version)
 }
 
 func TestPaperKeyPhraseTypos(t *testing.T) {
 	p, err := MakePaperKeyPhrase(0)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	equivs := []string{
 		p.String(),
@@ -44,18 +38,10 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 	for _, s := range equivs {
 		q := NewPaperKeyPhrase(s)
 		version, err := q.Version()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if version != 0 {
-			t.Errorf("input: %q => version: %d, expected 0", s, version)
-		}
-		if q.String() != p.String() {
-			t.Errorf("input: %q => phrase %q, expected %q", s, q.String(), p.String())
-		}
-		if len(q.InvalidWords()) > 0 {
-			t.Errorf("input: %q => phrase %q, contains invalid words %v", s, q.String(), q.InvalidWords())
-		}
+		require.NoError(t, err)
+		require.Equal(t, uint8(0), version, "input: %q => version: %d, expected 0", s, version)
+		require.Equal(t, p.String(), q.String(), "input: %q => phrase %q, expected %q", s, q.String(), p.String())
+		require.Empty(t, q.InvalidWords(), "input: %q => phrase %q, contains invalid words %v", s, q.String(), q.InvalidWords())
 	}
 
 	// make a typo in one of the words
@@ -66,19 +52,11 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 
 	// version should still be ok
 	version, err := q.Version()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if version != 0 {
-		t.Errorf("input: %q => version: %d, expected 0", x, version)
-	}
+	require.NoError(t, err)
+	require.Equal(t, uint8(0), version, "input: %q => version: %d, expected 0", x, version)
 
 	// but InvalidWords should return the first word as invalid
-	if len(q.InvalidWords()) == 0 {
-		t.Fatalf("input: %q => all words valid, expected %s to be invalid", x, w[0])
-	}
+	require.NotEmpty(t, q.InvalidWords(), "input: %q => all words valid, expected %s to be invalid", x, w[0])
 
-	if q.InvalidWords()[0] != w[0] {
-		t.Errorf("input: %q => invalid words %v, expected %s", x, q.InvalidWords(), w[0])
-	}
+	require.Equal(t, w[0], q.InvalidWords()[0], "input: %q => invalid words %v, expected %s", x, q.InvalidWords(), w[0])
 }

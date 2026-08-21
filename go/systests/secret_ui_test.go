@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
+	"github.com/stretchr/testify/require"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -39,9 +40,7 @@ func TestSecretUI(t *testing.T) {
 
 	var err error
 	check := func() {
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 
 	sui := newSecretUI()
@@ -62,24 +61,20 @@ func TestSecretUI(t *testing.T) {
 	cmd := client.NewCmdLoginRunner(tc2.G)
 	cmd.SessionID = 19
 	err = cmd.Run()
-	if err == nil {
-		t.Fatal("login worked, when it should have failed")
-	}
+	require.Error(t, err,
+		"login worked, when it should have failed")
 
 	// check that delegate ui was called:
 	if !sui.getPassphrase {
 		t.Logf("secret ui: %+v", sui)
-		t.Error("delegate secret UI GetPassphrase was not called during login cmd")
+		require.Fail(t, "delegate secret UI GetPassphrase was not called during login cmd")
 	}
 
 	// check that delegate ui session id was correct:
-	if sui.getPassphraseSessionID != cmd.SessionID {
-		t.Errorf("delegate secret UI session ID: %d, expected %d", sui.getPassphraseSessionID, cmd.SessionID)
-	}
+	require.Equal(t, cmd.SessionID, sui.getPassphraseSessionID, "delegate secret UI session ID: %d, expected %d", sui.getPassphraseSessionID, cmd.SessionID)
 
-	if err := CtlStop(tc1.G); err != nil {
-		t.Errorf("Error in stopping service: %v", err)
-	}
+	err = CtlStop(tc1.G)
+	require.NoError(t, err, "Error in stopping service: %v", err)
 
 	// If the server failed, it's also an error
 	err = <-stopCh

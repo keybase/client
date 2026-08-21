@@ -47,7 +47,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 	decoder := base64.NewDecoder(base64.StdEncoding, buf)
 	p3skbs, err := decodeSKBPacketList(decoder, nil)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(p3skbs))
+	require.Len(t, p3skbs, 3)
 	require.NotEqual(t, &SKB{}, p3skbs[0])
 	for _, p3skb := range p3skbs {
 		require.Equal(t, p3skbs[0], p3skb)
@@ -132,7 +132,7 @@ func TestBasicSecretStore(t *testing.T) {
 
 	m, skb = makeTestSKB(t, m, lks, tc.G)
 	skb.newLKSecForTest = func(_ LKSecClientHalf) *LKSec {
-		t.Errorf("newLKSecForTest unexpectedly called")
+		require.Fail(t, "newLKSecForTest unexpectedly called")
 		return lks
 	}
 	testPromptAndUnlock(t, m, skb)
@@ -199,25 +199,25 @@ func TestPromptCancelCache(t *testing.T) {
 
 	ui := &TestCancelSecretUI{}
 	err := testErrUnlock(t, skb, ui)
-	require.IsType(t, InputCanceledError{}, err)
+	require.ErrorAs(t, err, new(InputCanceledError))
 	require.Equal(t, 1, ui.CallCount)
 
 	// try again 5s later: should still get an error, but CallCount should not increase
 	fakeClock.Advance(5 * time.Second)
 	err = testErrUnlock(t, skb, ui)
-	require.IsType(t, SkipSecretPromptError{}, err)
+	require.ErrorAs(t, err, new(SkipSecretPromptError))
 	require.Equal(t, 1, ui.CallCount)
 
 	// wait 10 minutes: should get input canceled and CallCount should go up 1
 	fakeClock.Advance(10 * time.Minute)
 	err = testErrUnlock(t, skb, ui)
-	require.IsType(t, InputCanceledError{}, err)
+	require.ErrorAs(t, err, new(InputCanceledError))
 	require.Equal(t, 2, ui.CallCount)
 
 	// try again 5s later: should still get an error, but CallCount should not increase
 	fakeClock.Advance(5 * time.Second)
 	err = testErrUnlock(t, skb, ui)
-	require.IsType(t, SkipSecretPromptError{}, err)
+	require.ErrorAs(t, err, new(SkipSecretPromptError))
 	require.Equal(t, 2, ui.CallCount)
 
 	// wait 10 minutes: enter a passphrase this time

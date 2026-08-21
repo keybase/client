@@ -32,30 +32,22 @@ func TestSaltpackEncDec(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 
 	senderKP, err := GenerateNaclDHKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	senderSigningKP, err := GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var receiverKPs []NaclDHKeyPair
 	var receiverPKs []NaclDHKeyPublic
 	for range 12 {
 		kp, err := GenerateNaclDHKeyPair()
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		receiverKPs = append(receiverKPs, kp)
 		receiverPKs = append(receiverPKs, kp.Public)
 	}
 
 	nonReceiverKP, err := GenerateNaclDHKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	message := "The Magic Words are Squeamish Ossifrage"
 
@@ -69,17 +61,13 @@ func TestSaltpackEncDec(t *testing.T) {
 		SenderSigning: senderSigningKP,
 	}
 	if err := SaltpackEncrypt(m, &arg); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	ciphertext := buf.String()
-	if !strings.HasPrefix(ciphertext, saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)) {
-		t.Errorf("ciphertext doesn't have header: %s", ciphertext)
-	}
+	require.True(t, strings.HasPrefix(ciphertext, saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)), "ciphertext doesn't have header: %s", ciphertext)
 
-	if !strings.HasSuffix(ciphertext, saltpack.MakeArmorFooter(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)+".\n") {
-		t.Errorf("ciphertext doesn't have footer: %s", ciphertext)
-	}
+	require.True(t, strings.HasSuffix(ciphertext, saltpack.MakeArmorFooter(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)+".\n"), "ciphertext doesn't have footer: %s", ciphertext)
 
 	for _, key := range receiverKPs {
 		buf.Reset()
@@ -91,14 +79,11 @@ func TestSaltpackEncDec(t *testing.T) {
 		_, err = SaltpackDecrypt(m,
 			strings.NewReader(ciphertext),
 			&buf, keyring, nil, nil, saltpackkeystest.NewMockPseudonymResolver(t))
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		plaintext := buf.String()
 		if plaintext != message {
-			t.Errorf("expected %s, got %s",
-				message, plaintext)
+			require.Failf(t, "", "expected %s, got %s", message, plaintext)
 		}
 	}
 

@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +20,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -86,9 +86,9 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 			w.Header().Set("Content-Type", contentType)
 		}
 		dat, err := os.ReadFile(filepath.Join("testcases", name))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		_, err = io.Copy(w, bytes.NewBuffer(dat))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	})
 }
 
@@ -364,12 +364,12 @@ func TestMapScraper(t *testing.T) {
 	typ, err := unfurl.UnfurlType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_MAPS, typ)
-	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lat)))
-	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lon)))
+	require.Contains(t, unfurl.Maps().Url, fmt.Sprintf("%f", lat))
+	require.Contains(t, unfurl.Maps().Url, fmt.Sprintf("%f", lon))
 	require.NotNil(t, unfurl.Maps().ImageUrl)
-	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, maps.MapsProxy))
-	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
-	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
+	require.Contains(t, unfurl.Maps().ImageUrl, maps.MapsProxy)
+	require.Contains(t, unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat))
+	require.Contains(t, unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon))
 }
 
 type testingLiveLocationTracker struct {
@@ -441,7 +441,7 @@ func TestLiveMapScraper(t *testing.T) {
 	typ, err := unfurl.UnfurlType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_MAPS, typ)
-	require.NotZero(t, len(unfurl.Maps().ImageUrl))
+	require.NotEmpty(t, unfurl.Maps().ImageUrl)
 	require.Equal(t, "Live Location Share", unfurl.Maps().SiteName)
 
 	url = fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d&done=true&livekey=mike", types.MapsDomain,

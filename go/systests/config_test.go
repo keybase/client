@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfigGetAndSet(t *testing.T) {
@@ -36,12 +37,12 @@ func TestConfigGetAndSet(t *testing.T) {
 	testConfigGetAndSet(t, tc2.G)
 
 	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -75,13 +76,9 @@ func compareLists(t *testing.T, wanted []string, got []string, desc string) {
 	if wanted == nil {
 		return
 	}
-	if len(wanted) != len(got) {
-		t.Fatalf("In list %s: wrong length: wanted %d but got %d", desc, len(wanted), len(got))
-	}
+	require.Len(t, got, len(wanted), "In list %s: wrong length: wanted %d but got %d", desc, len(wanted), len(got))
 	for i, s := range wanted {
-		if s != got[i] {
-			t.Fatalf("At element %d of list %s: wanted %q but got %q", i, desc, s, got[i])
-		}
+		require.Equal(t, s, got[i], "At element %d of list %s: wanted %q but got %q", i, desc, s, got[i])
 	}
 }
 
@@ -91,11 +88,10 @@ func testConfigGet(t *testing.T, g *libkb.GlobalContext, path string, stdout []s
 	get := client.NewCmdConfigGetRunner(g)
 	get.Path = path
 	err := get.Run()
-	if wantErr && err == nil {
-		t.Fatal("Expected an error")
-	}
-	if !wantErr && err != nil {
-		t.Fatalf("Wanted no error, but got: %v", err)
+	if wantErr {
+		require.Error(t, err, "Expected an error")
+	} else {
+		require.NoError(t, err, "Wanted no error, but got: %v", err)
 	}
 	compareLists(t, stderr, ctui.stderr, "standard error")
 	compareLists(t, stdout, ctui.stdout, "standard output")
@@ -106,11 +102,10 @@ func testConfigSet(t *testing.T, g *libkb.GlobalContext, path string, val keybas
 	set.Path = path
 	set.Value = val
 	err := set.Run()
-	if wantErr && err == nil {
-		t.Fatal("Expected an error")
-	}
-	if !wantErr && err != nil {
-		t.Fatalf("Wanted no error, but got: %v", err)
+	if wantErr {
+		require.Error(t, err, "Expected an error")
+	} else {
+		require.NoError(t, err, "Wanted no error, but got: %v", err)
 	}
 }
 
@@ -119,11 +114,10 @@ func testConfigClear(t *testing.T, g *libkb.GlobalContext, path string, wantErr 
 	set.Path = path
 	set.DoClear = true
 	err := set.Run()
-	if wantErr && err == nil {
-		t.Fatal("Expected an error")
-	}
-	if !wantErr && err != nil {
-		t.Fatalf("Wanted no error, but got: %v", err)
+	if wantErr {
+		require.Error(t, err, "Expected an error")
+	} else {
+		require.NoError(t, err, "Wanted no error, but got: %v", err)
 	}
 }
 

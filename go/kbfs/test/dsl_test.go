@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type m map[string]string
@@ -554,7 +555,7 @@ func (o *opt) expectSuccess(reason string, err error) {
 			// to mark the test as failed without an implicit FailNow.
 			o.tb.Errorf("Error %s: %v", reason, err)
 		} else {
-			o.tb.Fatalf("Error %s: %v", reason, err)
+			require.FailNow(o.tb, fmt.Sprintf("Error %s: %v", reason, err))
 		}
 	}
 }

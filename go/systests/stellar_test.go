@@ -3,6 +3,7 @@ package systests
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
+
 	// nolint
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stretchr/testify/require"
@@ -371,7 +373,7 @@ func gift(t testing.TB, accountID stellar1.AccountID) {
 		}
 		t.Logf("gift status not ok: %d", res.StatusCode)
 	}
-	t.Fatalf("gift to %s failed after multiple attempts", accountID)
+	require.FailNow(t, fmt.Sprintf("gift to %s failed after multiple attempts", accountID))
 }
 
 func useStellarTestNet(t testing.TB) {
@@ -478,6 +480,6 @@ func TestAccountMerge(t *testing.T) {
 	t.Logf("merged the second into the first")
 	afterMergeBalance := stroopsInAcct(firstAccountID)
 	lowerBoundFinalExpectedAmount := int64(stellarnet.StroopsPerLumen * 9999.99)
-	require.True(t, afterMergeBalance > lowerBoundFinalExpectedAmount)
+	require.Greater(t, afterMergeBalance, lowerBoundFinalExpectedAmount)
 	t.Logf("value of the second account was merged into the first account")
 }

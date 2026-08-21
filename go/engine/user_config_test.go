@@ -5,6 +5,8 @@ package engine
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSetPrimaryPictureSource(t *testing.T) {
@@ -20,9 +22,7 @@ func TestSetPrimaryPictureSource(t *testing.T) {
 		Value: "github",
 	})
 	err := RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// TODO Check that the primary picture source was changed
 }

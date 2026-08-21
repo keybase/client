@@ -25,11 +25,11 @@ func checkRevRevisions(
 	}
 	require.Equal(t, uint8(1), pr[0].Count)
 	for i, r := range pr {
-		require.True(t, r.Revision > minRev)
-		require.True(t, r.Revision <= maxRev)
+		require.Greater(t, r.Revision, minRev)
+		require.LessOrEqual(t, r.Revision, maxRev)
 		if i > 0 {
-			require.True(t, r.Revision < pr[i-1].Revision)
-			require.True(t, r.Count > pr[i-1].Count)
+			require.Less(t, r.Revision, pr[i-1].Revision)
+			require.Greater(t, r.Count, pr[i-1].Count)
 		}
 	}
 }

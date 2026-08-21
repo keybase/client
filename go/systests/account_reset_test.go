@@ -59,7 +59,7 @@ func TestCancelResetPipeline(t *testing.T) {
 	eng := engine.NewAccountReset(tc.G, ann.username)
 	err = engine.RunEngine2(mctx, eng)
 	require.Error(t, err)
-	require.IsType(t, libkb.ResetWithActiveDeviceError{}, err)
+	require.ErrorAs(t, err, new(libkb.ResetWithActiveDeviceError))
 
 	// succeeds and is then canceled
 	ann.logout()
@@ -104,5 +104,5 @@ func TestCancelResetPipeline(t *testing.T) {
 	err = engine.RunEngine2(mctx, eng)
 	require.Error(t, err)
 	t.Logf("err: %v", err)
-	require.IsType(t, libkb.ResetMissingParamsError{}, err)
+	require.ErrorAs(t, err, new(libkb.ResetMissingParamsError))
 }

@@ -27,7 +27,7 @@ func waitForCall(t *testing.T, timeout time.Duration) (
 	return func() {
 			select {
 			case <-time.After(timeout):
-				t.Fatalf("waiting on lastMockDone timeout")
+				require.FailNow(t, "waiting on lastMockDone timeout")
 			case <-ch:
 			}
 		}, func(args ...any) {

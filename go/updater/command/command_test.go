@@ -22,17 +22,17 @@ var testLog = &logging.Logger{Module: "test"}
 
 func TestExecEmpty(t *testing.T) {
 	result, err := Exec("", nil, time.Second, testLog)
-	assert.EqualError(t, err, "No command")
-	assert.Equal(t, result.Stdout.String(), "")
-	assert.Equal(t, result.Stderr.String(), "")
+	require.EqualError(t, err, "No command")
+	assert.Empty(t, result.Stdout.String())
+	assert.Empty(t, result.Stderr.String())
 }
 
 func TestExecInvalid(t *testing.T) {
 	result, err := Exec("invalidexecutable", nil, time.Second, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 	require.True(t, strings.HasPrefix(err.Error(), `exec: "invalidexecutable": executable file not found in `))
-	assert.Equal(t, result.Stdout.String(), "")
-	assert.Equal(t, result.Stderr.String(), "")
+	assert.Empty(t, result.Stdout.String())
+	assert.Empty(t, result.Stderr.String())
 }
 
 func TestExecEcho(t *testing.T) {
@@ -40,8 +40,8 @@ func TestExecEcho(t *testing.T) {
 		t.Skip("Unsupported on windows")
 	}
 	result, err := Exec("echo", []string{"arg1", "arg2"}, time.Second, testLog)
-	assert.NoError(t, err)
-	assert.Equal(t, result.Stdout.String(), "arg1 arg2\n")
+	require.NoError(t, err)
+	assert.Equal(t, "arg1 arg2\n", result.Stdout.String())
 }
 
 func TestExecNil(t *testing.T) {
@@ -59,18 +59,18 @@ func TestExecTimeout(t *testing.T) {
 	elapsed := time.Since(start)
 	t.Logf("We elapsed %s", elapsed)
 	if elapsed < timeout {
-		t.Error("We didn't actually sleep more than a second")
+		require.Fail(t, "We didn't actually sleep more than a second")
 	}
-	assert.Equal(t, result.Stdout.String(), "")
-	assert.Equal(t, result.Stderr.String(), "")
+	assert.Empty(t, result.Stdout.String())
+	assert.Empty(t, result.Stderr.String())
 	require.EqualError(t, err, "Timed out")
 }
 
 func TestExecBadTimeout(t *testing.T) {
 	result, err := Exec("sleep", []string{"1"}, -time.Second, testLog)
-	assert.Equal(t, result.Stdout.String(), "")
-	assert.Equal(t, result.Stderr.String(), "")
-	assert.EqualError(t, err, "Invalid timeout: -1s")
+	assert.Empty(t, result.Stdout.String())
+	assert.Empty(t, result.Stderr.String())
+	require.EqualError(t, err, "Invalid timeout: -1s")
 }
 
 type testObj struct {
@@ -105,10 +105,10 @@ var testVal = testObj{
 func TestExecForJSON(t *testing.T) {
 	var testValOut testObj
 	err := ExecForJSON("echo", []string{testJSON}, &testValOut, time.Second, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Logf("Out: %#v", testValOut)
 	if !reflect.DeepEqual(testVal, testValOut) {
-		t.Errorf("Invalid object: %#v", testValOut)
+		require.Failf(t, "", "Invalid object: %#v", testValOut)
 	}
 }
 
@@ -131,10 +131,10 @@ func TestExecForJSONInvalidObject(t *testing.T) {
 func TestExecForJSONAddingInvalidInput(t *testing.T) {
 	var testValOut testObj
 	err := ExecForJSON("echo", []string{testJSON + "bad input"}, &testValOut, time.Second, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Logf("Out: %#v", testValOut)
 	if !reflect.DeepEqual(testVal, testValOut) {
-		t.Errorf("Invalid object: %#v", testValOut)
+		require.Failf(t, "", "Invalid object: %#v", testValOut)
 	}
 }
 
@@ -142,7 +142,7 @@ func TestExecForJSONTimeout(t *testing.T) {
 	var testValOut testObj
 	err := ExecForJSON("sleep", []string{"10"}, &testValOut, 10*time.Millisecond, testLog)
 	if assert.Error(t, err) {
-		assert.Equal(t, err.Error(), "Timed out")
+		assert.Equal(t, "Timed out", err.Error())
 	}
 }
 
@@ -152,14 +152,14 @@ func TestExecTimeoutProcessKilled(t *testing.T) {
 		t.Skip("Unsupported on windows")
 	}
 	result, err := execWithFunc("sleep", []string{"10"}, nil, exec.Command, 10*time.Millisecond, testLog)
-	assert.Equal(t, result.Stdout.String(), "")
-	assert.Equal(t, result.Stderr.String(), "")
-	assert.Error(t, err)
+	assert.Empty(t, result.Stdout.String())
+	assert.Empty(t, result.Stderr.String())
+	require.Error(t, err)
 	require.NotNil(t, result.Process)
 	findProcess, _ := os.FindProcess(result.Process.Pid)
 	// This should error since killing a non-existent process should error
 	perr := findProcess.Kill()
-	assert.NotNil(t, perr, "Should have errored killing since killing non-existent process should error")
+	require.Error(t, perr, "Should have errored killing since killing non-existent process should error")
 }
 
 // TestExecNoExit runs a go binary called test from package go-updater/test,
@@ -173,7 +173,7 @@ func TestExecNoExit(t *testing.T) {
 func TestExecOutput(t *testing.T) {
 	path := filepath.Join(os.Getenv("GOPATH"), "bin", "test")
 	result, err := execWithFunc(path, []string{"output"}, nil, exec.Command, time.Second, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "stdout output\n", result.Stdout.String())
 	assert.Equal(t, "stderr output\n", result.Stderr.String())
 }

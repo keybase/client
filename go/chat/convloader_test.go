@@ -52,10 +52,10 @@ func TestConvLoader(t *testing.T) {
 	select {
 	case convID := <-listener.bgConvLoads:
 		if !convID.Eq(res.ConvID) {
-			t.Errorf("loaded conv id: %s, expected %s", convID, res.ConvID)
+			require.Failf(t, "", "loaded conv id: %s, expected %s", convID, res.ConvID)
 		}
 	case <-time.After(20 * time.Second):
-		t.Fatal("timeout waiting for conversation load")
+		require.FailNow(t, "timeout waiting for conversation load")
 	}
 }
 
@@ -239,7 +239,7 @@ func TestConvLoaderPageBack(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(ib.Inbox.Full().Conversations))
+	require.Len(t, ib.Inbox.Full().Conversations, 1)
 	conv := ib.Inbox.Full().Conversations[0]
 
 	u := world.GetUsers()[0]
@@ -396,7 +396,7 @@ func TestConvLoaderStartStopRace(t *testing.T) {
 	case <-loader.Stop(ctx):
 		t.Logf("Initial Stop() completed")
 	case <-time.After(5 * time.Second):
-		t.Fatal("Initial Stop() timed out")
+		require.FailNow(t, "Initial Stop() timed out")
 	}
 
 	// Now test the race: Start multiple times rapidly
@@ -409,7 +409,7 @@ func TestConvLoaderStartStopRace(t *testing.T) {
 	case <-loader.Stop(ctx):
 		t.Logf("Final Stop() completed")
 	case <-time.After(5 * time.Second):
-		t.Fatal("Final Stop() timed out")
+		require.FailNow(t, "Final Stop() timed out")
 	}
 	require.False(t, loader.isRunning())
 }

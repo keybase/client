@@ -35,7 +35,7 @@ func setupTest(t libkb.TestingTB, nm string) *libkb.TestContext {
 	installInsecureTriplesec(tc.G)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	return &tc
 }
@@ -44,7 +44,7 @@ func cloneContext(prev *libkb.TestContext) *libkb.TestContext {
 	ret := prev.Clone()
 	ret.SetRuntimeDir(filepath.Join(ret.Tp.Home, "run"))
 	if err := ret.G.ConfigureSocketInfo(); err != nil {
-		ret.T.Fatal(err)
+		require.NoError(ret.T, err)
 	}
 	return &ret
 }
@@ -168,9 +168,7 @@ func (n nullProvisionUI) ProvisionerSuccess(context.Context, keybase1.Provisione
 func getActiveDevicesAndKeys(tc *libkb.TestContext, username string) ([]*libkb.Device, []libkb.GenericKey) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
 	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
 

@@ -39,35 +39,21 @@ func TestLoginOffline(t *testing.T) {
 	eng := NewLoginOffline(tc.G)
 	m := NewMetaContextForTest(tc)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	uv, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
-	if uv.IsNil() {
-		t.Errorf("uid is nil, expected it to exist")
-	}
-	if !uv.Uid.Equal(u1.UID()) {
-		t.Errorf("uid: %v, expected %v", uv, u1)
-	}
+	require.False(t, uv.IsNil(), "uid is nil, expected it to exist")
+	require.True(t, uv.Uid.Equal(u1.UID()), "uid: %v, expected %v", uv, u1)
 
-	if deviceID.IsNil() {
-		t.Errorf("deviceID is nil, expected it to exist")
-	}
+	require.False(t, deviceID.IsNil(), "deviceID is nil, expected it to exist")
 
-	if deviceName != defaultDeviceName {
-		t.Errorf("device name: %q, expected %q", deviceName, defaultDeviceName)
-	}
+	require.Equal(t, defaultDeviceName, deviceName, "device name: %q, expected %q", deviceName, defaultDeviceName)
 
-	if skey == nil {
-		t.Errorf("signing key is nil, expected it to exist")
-	}
+	require.NotNil(t, skey, "signing key is nil, expected it to exist")
 
-	if ekey == nil {
-		t.Errorf("encryption key is nil, expected it to exist")
-	}
+	require.NotNil(t, ekey, "encryption key is nil, expected it to exist")
 
-	if tc.G.ActiveDevice.Name() != defaultDeviceName {
-		t.Errorf("device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
-	}
+	require.Equal(t, defaultDeviceName, tc.G.ActiveDevice.Name(), "device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
 }
 
 // Use fake clock to test login offline after significant delay
@@ -106,31 +92,19 @@ func TestLoginOfflineDelay(t *testing.T) {
 	eng := NewLoginOffline(tc.G)
 	m := NewMetaContextForTest(tc)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	uv, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
-	if uv.IsNil() {
-		t.Errorf("uid is nil, expected it to exist")
-	}
-	if !uv.Uid.Equal(u1.UID()) {
-		t.Errorf("uid: %v, expected %v", uv, u1.UID())
-	}
+	require.False(t, uv.IsNil(), "uid is nil, expected it to exist")
+	require.True(t, uv.Uid.Equal(u1.UID()), "uid: %v, expected %v", uv, u1.UID())
 
-	if deviceID.IsNil() {
-		t.Errorf("deviceID is nil, expected it to exist")
-	}
+	require.False(t, deviceID.IsNil(), "deviceID is nil, expected it to exist")
 
-	if deviceName != defaultDeviceName {
-		t.Errorf("device name: %q, expected %q", deviceName, defaultDeviceName)
-	}
+	require.Equal(t, defaultDeviceName, deviceName, "device name: %q, expected %q", deviceName, defaultDeviceName)
 
-	if skey == nil {
-		t.Errorf("signing key is nil, expected it to exist")
-	}
+	require.NotNil(t, skey, "signing key is nil, expected it to exist")
 
-	if ekey == nil {
-		t.Errorf("encryption key is nil, expected it to exist")
-	}
+	require.NotNil(t, ekey, "encryption key is nil, expected it to exist")
 }
 
 // Login offline with nothing in upak cache for self user.
@@ -160,7 +134,6 @@ func TestLoginOfflineNoUpak(t *testing.T) {
 	eng := NewLoginOffline(tc.G)
 	m := NewMetaContextForTest(tc)
 	err = RunEngine2(m, eng)
-	if err != nil {
-		t.Fatalf("LoginOffline should still work after upak cache invalidation; got %s", err)
-	}
+	require.NoError(t, err,
+		"LoginOffline should still work after upak cache invalidation; got %s", err)
 }

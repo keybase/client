@@ -6,9 +6,11 @@ package kbfssync
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *RepeatedWaitGroup) {
@@ -22,9 +24,8 @@ func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *RepeatedWaitGroup) {
 		rwg.Done()
 	}
 	err := <-errChan
-	if err != nil {
-		t.Fatalf("Error on wait: %v", err)
-	}
+	assert.NoError(t, err,
+		"Error on wait: %v", err)
 }
 
 func TestRepeatedWaitGroupSimpleWait(t *testing.T) {
@@ -47,9 +48,8 @@ func TestRepeatedWaitGroupCanceledWait(t *testing.T) {
 	}
 	cancel()
 	err := <-errChan
-	if !errors.Is(err, context.Canceled) {
-		t.Fatalf("Unexpected error on wait: %v", err)
-	}
+	require.ErrorIs(t, err, context.Canceled,
+		"Unexpected error on wait: %v", err)
 }
 
 func TestRepeatedWaitGroupMultiWait(t *testing.T) {

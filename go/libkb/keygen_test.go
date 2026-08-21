@@ -4,10 +4,10 @@
 package libkb
 
 import (
-	"errors"
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type cidTest struct {
@@ -73,33 +73,21 @@ func TestCreateIds(t *testing.T) {
 	uid, _ := keybase1.UIDFromString("00000000000000000000000000000019")
 	var nilDeviceID keybase1.DeviceID
 	err := tc.G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(uid, "foo", []byte{}, nilDeviceID), true)
-	if err != nil {
-		t.Errorf("Set user config err: %+v", err)
-	}
+	require.NoError(t, err, "Set user config err: %+v", err)
 
 	for _, test := range cidTests {
 		arg := &PGPGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUIDArg}
-		if err := arg.Init(); err != nil {
-			t.Errorf("%s: arg init err: %s", test.name, err)
-			continue
-		}
-		err := arg.CreatePGPIDs()
-		if !errors.Is(err, test.errOut) {
-			t.Errorf("%s: error %v, expected %v", test.name, err, test.errOut)
-			continue
-		}
+		err := arg.Init()
+		require.NoError(t, err, "%s: arg init err: %s", test.name, err)
+		err = arg.CreatePGPIDs()
+		require.ErrorIs(t, err, test.errOut, "%s: error %v, expected %v", test.name, err, test.errOut)
 		if test.errOut != nil {
 			// this is an error test, no need to do anything else
 			continue
 		}
-		if len(arg.IDs) != len(test.idsOut) {
-			t.Errorf("%s: %d IDs, expected %d.", test.name, len(arg.IDs), len(test.idsOut))
-			continue
-		}
+		require.Len(t, arg.IDs, len(test.idsOut), "%s: %d IDs, expected %d.", test.name, len(arg.IDs), len(test.idsOut))
 		for i, id := range arg.IDs {
-			if id != test.idsOut[i] {
-				t.Errorf("%s: id %d = %+v, expected %+v", test.name, i, id, test.idsOut[i])
-			}
+			require.Equal(t, test.idsOut[i], id, "%s: id %d = %+v, expected %+v", test.name, i, id, test.idsOut[i])
 		}
 
 		if len(arg.IDs) == 0 {
@@ -108,28 +96,14 @@ func TestCreateIds(t *testing.T) {
 
 		// test the PGPKeyBundle
 		bundle, err := GeneratePGPKeyBundle(tc.G, *arg, tc.G.UI.GetLogUI())
-		if err != nil {
-			t.Errorf("%s: bundle error: %s", test.name, err)
-		}
-		if len(bundle.Identities) != len(test.idsOut) {
-			t.Errorf("%s: %d bundle ids, expected %d", test.name, len(bundle.Identities), len(test.idsOut))
-			continue
-		}
+		require.NoError(t, err, "%s: bundle error: %s", test.name, err)
+		require.Len(t, bundle.Identities, len(test.idsOut), "%s: %d bundle ids, expected %d", test.name, len(bundle.Identities), len(test.idsOut))
 		pids, err := arg.PGPUserIDs()
-		if err != nil {
-			t.Errorf("%s: pgp user id conversion error: %q", test.name, err)
-			continue
-		}
+		require.NoError(t, err, "%s: pgp user id conversion error: %q", test.name, err)
 		for _, id := range pids {
 			bundleID, ok := bundle.Identities[id.Id]
-			if !ok {
-				t.Errorf("%s: no bundle identity found for %q", test.name, id.Id)
-				continue
-			}
-			if *(bundleID.UserId) != *id {
-				t.Errorf("%s: bundle UserId = %+v, expected %+v", test.name, bundleID.UserId, id)
-				continue
-			}
+			require.True(t, ok, "%s: no bundle identity found for %q", test.name, id.Id)
+			require.Equal(t, *id, *(bundleID.UserId), "%s: bundle UserId = %+v, expected %+v", test.name, bundleID.UserId, id)
 		}
 	}
 }

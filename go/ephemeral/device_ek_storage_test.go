@@ -87,8 +87,8 @@ func TestDeviceEKStorage(t *testing.T) {
 	ek.Metadata.Generation = 100
 	err = s.Put(mctx, corruptedGeneration, ek)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr := err.(EphemeralKeyError)
+	var ekErr EphemeralKeyError
+	require.ErrorAs(t, err, &ekErr)
 	expectedErr := newEKCorruptedErr(mctx, DeviceEKKind, corruptedGeneration, 100)
 	require.Equal(t, expectedErr.Error(), ekErr.Error())
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
@@ -97,7 +97,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	deviceEKs, err := s.GetAll(mctx)
 	require.NoError(t, err)
 
-	require.Equal(t, len(deviceEKs), len(testKeys))
+	require.Len(t, testKeys, len(deviceEKs))
 	for _, test := range testKeys {
 		deviceEK, ok := deviceEKs[test.Metadata.Generation]
 		require.True(t, ok)
@@ -109,19 +109,19 @@ func TestDeviceEKStorage(t *testing.T) {
 
 	deviceEK, err := s.Get(mctx, 2)
 	require.Error(t, err)
-	require.IsType(t, libkb.UnboxError{}, err)
+	require.ErrorAs(t, err, new(libkb.UnboxError))
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
 	// Test Get nonexistent
 	nonexistent, err := s.Get(mctx, keybase1.EkGeneration(len(testKeys)+1))
 	require.Error(t, err)
-	require.IsType(t, libkb.UnboxError{}, err)
+	require.ErrorAs(t, err, new(libkb.UnboxError))
 	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
 
 	// include the cached error in the max
 	maxGeneration, err := s.MaxGeneration(mctx, true)
 	require.NoError(t, err)
-	require.EqualValues(t, keybase1.EkGeneration(len(testKeys)+1), maxGeneration)
+	require.Equal(t, keybase1.EkGeneration(len(testKeys)+1), maxGeneration)
 
 	// Test MaxGeneration
 	maxGeneration, err = s.MaxGeneration(mctx, false)
@@ -159,24 +159,24 @@ func TestDeviceEKStorage(t *testing.T) {
 	deviceEKsAfterDeleteExpired, err := s.GetAll(mctx)
 	require.NoError(t, err)
 
-	require.Len(t, deviceEKsAfterDeleteExpired, 0)
+	require.Empty(t, deviceEKsAfterDeleteExpired)
 
 	var badUserDeviceEK keybase1.DeviceEk
 	err = erasableStorage.Get(mctx, badUserKey, &badUserDeviceEK)
 	require.NoError(t, err)
-	require.Equal(t, badUserDeviceEK, keybase1.DeviceEk{})
+	require.Equal(t, keybase1.DeviceEk{}, badUserDeviceEK)
 
 	var badEldestSeqnoDeviceEK keybase1.DeviceEk
 	err = erasableStorage.Get(mctx, badEldestSeqnoKey, &badEldestSeqnoDeviceEK)
 	require.Error(t, err)
-	require.IsType(t, libkb.UnboxError{}, err)
-	require.Equal(t, badEldestSeqnoDeviceEK, keybase1.DeviceEk{})
+	require.ErrorAs(t, err, new(libkb.UnboxError))
+	require.Equal(t, keybase1.DeviceEk{}, badEldestSeqnoDeviceEK)
 
 	// Verify we store failures in the cache
 	t.Logf("cache failures")
 	nonexistent, err = s.Get(mctx, maxGeneration+1)
 	require.Error(t, err)
-	require.IsType(t, libkb.UnboxError{}, err)
+	require.ErrorAs(t, err, new(libkb.UnboxError))
 	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
 
 	cache, err := s.getCache(mctx)
@@ -186,7 +186,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	cacheItem, ok := cache[maxGeneration+1]
 	require.True(t, ok)
 	require.Error(t, cacheItem.Err)
-	require.IsType(t, libkb.UnboxError{}, cacheItem.Err)
+	require.ErrorAs(t, cacheItem.Err, new(libkb.UnboxError))
 }
 
 // If we change the key format intentionally, we have to introduce some form of

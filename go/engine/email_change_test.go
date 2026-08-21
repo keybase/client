@@ -5,6 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func assertEmail(mctx libkb.MetaContext, t *testing.T, expected string) {
@@ -12,16 +13,10 @@ func assertEmail(mctx libkb.MetaContext, t *testing.T, expected string) {
 		Endpoint:    "me",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	gotten, err := res.Body.AtPath("me.emails.primary.email").GetString()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if gotten != expected {
-		t.Fatalf("wanted email '%s', but got '%s'", expected, gotten)
-	}
+	require.NoError(t, err)
+	require.Equal(t, expected, gotten, "wanted email '%s', but got '%s'", expected, gotten)
 }
 
 func TestSignedEmailChange(t *testing.T) {
@@ -45,7 +40,7 @@ func TestSignedEmailChange(t *testing.T) {
 	m = m.WithUIs(uis)
 	eng := NewEmailChange(tc.G, arg)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	assertEmail(m, t, newEmail)
 }

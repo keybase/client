@@ -16,12 +16,11 @@ func testLexer(t *testing.T, name string, s string, expected []Token) {
 	for {
 		tok := lexer.Get()
 		if i >= len(expected) {
-			t.Errorf("%s, unexpected token %d [T%v: '%v']", name, i, tok.Typ, string(tok.value))
+			require.Failf(t, "", "%s, unexpected token %d [T%v: '%v']", name, i, tok.Typ, string(tok.value))
 			break
 		}
 		if !tok.Eq(expected[i]) {
-			t.Errorf("%s, token %d: [T%v: '%v'] != [T%v: '%v']",
-				name, i, tok.Typ, string(tok.value), expected[i].Typ, string(expected[i].value))
+			require.Failf(t, "", "%s, token %d: [T%v: '%v'] != [T%v: '%v']", name, i, tok.Typ, string(tok.value), expected[i].Typ, string(expected[i].value))
 		}
 		if tok.Typ == EOF {
 			break
@@ -176,22 +175,16 @@ func TestParser1(t *testing.T) {
 	inp := "  aa ||   bb   && cc ||\n dd ||\n ee && ff || gg && (hh ||\nii)"
 	outp := "aa,bb+cc,dd,ee+ff,gg+(hh,ii)"
 	expr, err := AssertionParse(testAssertionContext{}, inp)
-	if err != nil {
-		t.Error(err)
-	} else if expr.String() != outp {
-		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
-	}
+	require.NoError(t, err)
+	require.Equal(t, outp, expr.String(), "Wrong parse result: %s v %s", expr.String(), outp)
 }
 
 func TestParser2(t *testing.T) {
 	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n dd ||\n pgp:ee && reddit:foo || twitter:goo && (https:h.in ||\ndns:i.co)"
 	outp := "a.aa@web,b.bb@http+c.cc@dns,dd,ee@pgp+foo@reddit,goo@twitter+(h.in@https,i.co@dns)"
 	expr, err := AssertionParse(testAssertionContext{}, inp)
-	if err != nil {
-		t.Error(err)
-	} else if expr.String() != outp {
-		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
-	}
+	require.NoError(t, err)
+	require.Equal(t, outp, expr.String(), "Wrong parse result: %s v %s", expr.String(), outp)
 }
 
 func TestNormalization(t *testing.T) {
@@ -220,11 +213,8 @@ func TestParserFail1(t *testing.T) {
 
 	for _, bad := range bads {
 		expr, err := AssertionParse(testAssertionContext{}, bad.k)
-		if err == nil {
-			t.Errorf("Expected a parse error in %s (got %v)", bad, expr)
-		} else if err.Error() != bad.v {
-			t.Errorf("Got wrong error; wanted '%s', but got '%s'", bad.v, err)
-		}
+		require.Error(t, err, "Expected a parse error in %s (got %v)", bad, expr)
+		require.Equal(t, bad.v, err.Error(), "Got wrong error; wanted '%s', but got '%s'", bad.v, err)
 	}
 }
 

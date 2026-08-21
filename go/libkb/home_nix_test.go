@@ -18,30 +18,20 @@ func TestPosix(t *testing.T) {
 	hf := NewHomeFinder("tester", nil, nil, nil, "posix", func() RunMode { return ProductionRunMode },
 		makeLogGetter(t), nil)
 	d := hf.CacheDir()
-	if !strings.Contains(d, ".cache/tester") {
-		t.Errorf("Bad Cache dir: %s", d)
-	}
+	require.Contains(t, d, ".cache/tester", "Bad Cache dir: %s", d)
 	d = hf.DataDir()
-	if !strings.Contains(d, ".local/share/tester") {
-		t.Errorf("Bad Data dir: %s", d)
-	}
+	require.Contains(t, d, ".local/share/tester", "Bad Data dir: %s", d)
 	d = hf.ConfigDir()
-	if !strings.Contains(d, ".config/tester") {
-		t.Errorf("Bad Config dir: %s", d)
-	}
+	require.Contains(t, d, ".config/tester", "Bad Config dir: %s", d)
 }
 
 func TestDarwinHomeFinder(t *testing.T) {
 	for _, osname := range []string{"darwin", "ios"} {
 		hf := NewHomeFinder("keybase", nil, nil, nil, osname, func() RunMode { return ProductionRunMode }, makeLogGetter(t), nil)
 		d := hf.ConfigDir()
-		if !strings.HasSuffix(d, "Library/Application Support/Keybase") {
-			t.Errorf("Bad config dir: %s", d)
-		}
+		require.True(t, strings.HasSuffix(d, "Library/Application Support/Keybase"), "Bad config dir: %s", d)
 		d = hf.CacheDir()
-		if !strings.HasSuffix(d, "Library/Caches/Keybase") {
-			t.Errorf("Bad cache dir: %s", d)
-		}
+		require.True(t, strings.HasSuffix(d, "Library/Caches/Keybase"), "Bad cache dir: %s", d)
 		hfInt := NewHomeFinder("keybase", func() string { return "home" }, nil, func() string { return "mobilehome" },
 			osname, func() RunMode { return ProductionRunMode }, makeLogGetter(t), nil)
 		hfDarwin := hfInt.(Darwin)
@@ -60,13 +50,9 @@ func TestDarwinHomeFinder(t *testing.T) {
 func TestDarwinHomeFinderInDev(t *testing.T) {
 	devHomeFinder := NewHomeFinder("keybase", nil, nil, nil, "darwin", func() RunMode { return DevelRunMode }, makeLogGetter(t), nil)
 	configDir := devHomeFinder.ConfigDir()
-	if !strings.HasSuffix(configDir, "Library/Application Support/KeybaseDevel") {
-		t.Errorf("Bad config dir: %s", configDir)
-	}
+	require.True(t, strings.HasSuffix(configDir, "Library/Application Support/KeybaseDevel"), "Bad config dir: %s", configDir)
 	cacheDir := devHomeFinder.CacheDir()
-	if !strings.HasSuffix(cacheDir, "Library/Caches/KeybaseDevel") {
-		t.Errorf("Bad cache dir: %s", cacheDir)
-	}
+	require.True(t, strings.HasSuffix(cacheDir, "Library/Caches/KeybaseDevel"), "Bad cache dir: %s", cacheDir)
 }
 
 func TestPosixRuntimeDir(t *testing.T) {

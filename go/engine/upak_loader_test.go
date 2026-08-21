@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,15 +35,11 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	t.Logf("using username:%+v", fu.Username)
 	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(loadArg)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	t.Logf("using username:%+v uid: %+v", user.GetNormalizedName(), user.GetUID())
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
@@ -74,9 +71,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 
 	Logout(tc)
 
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.NotEmpty(t, loginUI.PaperPhrase, "login ui has no paper key phrase")
 
 	t.Logf("create new device")
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
@@ -97,7 +92,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
 	m := NewMetaContextForTest(tc2).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	t.Logf("d2 provisioned (1)")
 
@@ -139,9 +134,7 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	t.Logf("using username:%+v", fu.Username)
 	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(loadArg)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	t.Logf("using username:%+v uid: %+v", user.GetNormalizedName(), user.GetUID())
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
@@ -156,9 +149,7 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 
 	// Revoke the current device with --force
 	err = doRevokeDevice(tc, fu, thisDevice.ID, true, false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	assertNumDevicesAndKeys(tc, fu, 1, 2)
 
@@ -200,7 +191,7 @@ func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 	defer untrackAlice(tc, fu, sigVersion)
 	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
-		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		require.Greater(t, u.GetSigChainLastKnownSeqno(), scv)
 		return nil
 	})
 	require.NoError(t, err)
@@ -225,9 +216,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	t.Logf("using username:%+v", fu.Username)
 
 	var scv keybase1.Seqno
@@ -238,9 +227,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.NotEmpty(t, loginUI.PaperPhrase, "login ui has no paper key phrase")
 
 	t.Logf("create new device")
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
@@ -261,7 +248,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
 	m := NewMetaContextForTest(tc2).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	t.Logf("d2 provisioned (1)")
 
@@ -270,7 +257,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	// user's sigchain should stay the same.
 	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
-		require.True(t, u.GetSigChainLastKnownSeqno() == scv)
+		require.Equal(t, u.GetSigChainLastKnownSeqno(), scv)
 		return nil
 	})
 	require.NoError(t, err)
@@ -281,7 +268,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	fakeClock.Advance(libkb.CachedUserTimeout + time.Second)
 	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
-		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		require.Greater(t, u.GetSigChainLastKnownSeqno(), scv)
 		return nil
 	})
 	require.NoError(t, err)
@@ -309,21 +296,21 @@ func TestUPAKDeadlock(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		_ = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
-			require.Equal(t, u.GetUID(), fu.UID(), "right UID")
+			assert.Equal(t, fu.UID(), u.GetUID(), "right UID")
 			return nil
 		})
-		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		un, err := tc.G.GetUPAKLoader().LookupUsername(context.TODO(), fu.UID())
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		if un.String() != fu.Username {
 			t.Errorf("username mismatch: %s != %s", un, fu.Username)
 		}
-		wg.Done()
 	}()
 
 	doneCh := make(chan struct{})
@@ -336,7 +323,7 @@ func TestUPAKDeadlock(t *testing.T) {
 	case <-doneCh:
 		break
 	case <-time.After(20 * time.Second):
-		t.Fatal("deadlocked!")
+		require.FailNow(t, "deadlocked!")
 	}
 }
 
@@ -369,18 +356,19 @@ func TestLoadAfterAcctReset1(t *testing.T) {
 	}
 
 	err := loadUpak()
-	if err != nil {
-		t.Fatalf("Failed to load user: %+v", err)
-	}
+	require.NoError(t, err,
+		"Failed to load user: %+v", err)
 
 	ResetAccount(resetUserTC, fu)
 
 	loadUpakExpectFailure := func() {
 		err := loadUpak()
 		if err == nil {
-			t.Fatalf("Expected UPAKLoader.Load to fail on nuked account.")
+			require.Error(t, err,
+				"Expected UPAKLoader.Load to fail on nuked account.")
 		} else if _, ok := err.(libkb.NoKeyError); !ok {
-			t.Fatalf("Expected UPAKLoader.Load to fail with NoKeyError, instead failed with: %+v", err)
+			require.True(t, ok,
+				"Expected UPAKLoader.Load to fail with NoKeyError, instead failed with: %+v", err)
 		}
 	}
 
@@ -422,9 +410,8 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 	}
 
 	upak1, err := loadUpak()
-	if err != nil {
-		t.Fatalf("Failed to load user: %+v", err)
-	}
+	require.NoError(t, err,
+		"Failed to load user: %+v", err)
 
 	// Reset account and then login again to establish new eldest and
 	// add new device keys.
@@ -434,18 +421,15 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 
 	fu.LoginOrBust(tcp)
 	if err := AssertProvisioned(tcp); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	fakeClock.Advance(libkb.CachedUserTimeout * 10)
 	upak2, err := loadUpak()
-	if err != nil {
-		t.Fatalf("Failed to load user after reset+login with: %+v", err)
-	}
+	require.NoError(t, err,
+		"Failed to load user after reset+login with: %+v", err)
 
-	if upak1.Base.DeviceKeys[0].KID == upak2.Base.DeviceKeys[0].KID {
-		t.Fatal("Found old device key after LoadUser.")
-	}
+	require.NotEqual(t, upak2.Base.DeviceKeys[0].KID, upak1.Base.DeviceKeys[0].KID, "Found old device key after LoadUser.")
 }
 
 // Test the bug in CORE-6943: after a reset, if we did two
@@ -474,9 +458,8 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	}
 
 	upak1, err := loadUpak()
-	if err != nil {
-		t.Fatalf("Failed to load user: %+v", err)
-	}
+	require.NoError(t, err,
+		"Failed to load user: %+v", err)
 
 	// Reset account and then login again to establish new eldest and
 	// add new device keys.
@@ -486,21 +469,19 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 
 	fu.LoginOrBust(tc)
 	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	// login a second time to force the bug.
 	fu.LoginOrBust(tc)
 
 	// Make sure that we can load the eldest key from the previous subchain
 	_, _, _, err = tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), fu.UID(), upak1.Base.DeviceKeys[0].KID)
-	if err != nil {
-		t.Fatal("Failed to load a UID/KID combo from first incarnation")
-	}
+	require.NoError(t, err,
+		"Failed to load a UID/KID combo from first incarnation")
 
 	_, err = loadUpak()
-	if err != nil {
-		t.Fatalf("Failed to load user: %+v", err)
-	}
+	require.NoError(t, err,
+		"Failed to load user: %+v", err)
 }
 
 func TestUPAKUnstub(t *testing.T) {
@@ -534,7 +515,7 @@ func TestUPAKUnstub(t *testing.T) {
 		arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u2.UID())
 		upak, _, err := upl.LoadV2(arg)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(upak.Current.RemoteTracks))
+		require.Len(t, upak.Current.RemoteTracks, 1)
 		require.Equal(t, "t_bob", upak.Current.RemoteTracks[keybase1.UID("afb5eda3154bc13c1df0189ce93ba119")].Username)
 		require.False(t, upak.Current.Unstubbed)
 	}
@@ -551,7 +532,7 @@ func TestUPAKUnstub(t *testing.T) {
 		arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u2.UID()).WithStubMode(stubMode)
 		upak, _, err := upl.LoadV2(arg)
 		require.NoError(t, err)
-		require.Equal(t, 3, len(upak.Current.RemoteTracks))
+		require.Len(t, upak.Current.RemoteTracks, 3)
 		require.Equal(t, u1.Username, upak.Current.RemoteTracks[u1.UID()].Username)
 		require.True(t, upak.Current.Unstubbed)
 	}
@@ -580,7 +561,7 @@ func TestInvalidation(t *testing.T) {
 	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly(true)
 	_, _, err = upl.LoadV2(arg)
 	require.Error(t, err)
-	require.IsType(t, libkb.UserNotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.UserNotFoundError))
 	require.Contains(t, err.Error(), "cached user found, but it was stale, and cached only")
 	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly(true).WithStaleOK(true)
 	upak, _, err = upl.LoadV2(arg)

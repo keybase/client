@@ -108,7 +108,7 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	require.NotNil(t, res.Res, "we got a root back")
 	before := revokedKey.Base.Revocation.PrevMerkleRootSigned.Seqno
 	after := res.Res.Seqno
-	require.True(t, after > before, "we got a > seqno")
+	require.Greater(t, after, before, "we got a > seqno")
 	t.Logf("Found merkle root %d > %d", after, before)
 
 	// Make sure we can find this after fu is deleted
@@ -128,6 +128,6 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	require.NotNil(t, res.Res, "we got a root back")
 	before = revokedKey.Base.Revocation.PrevMerkleRootSigned.Seqno
 	after = res.Res.Seqno
-	require.True(t, after > before, "we got a > seqno")
+	require.Greater(t, after, before, "we got a > seqno")
 	t.Logf("Found merkle root %d > %d", after, before)
 }

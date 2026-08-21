@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPaperKeyPrimary(t *testing.T) {
@@ -20,9 +21,7 @@ func TestPaperKeyPrimary(t *testing.T) {
 	fu, signingKey, encryptionKey := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	uis := libkb.UIs{
 		LoginUI: &libkb.TestLoginUI{},
@@ -35,7 +34,7 @@ func TestPaperKeyPrimary(t *testing.T) {
 	eng := NewPaperKeyPrimary(tc.G, args)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	hasOnePaperDev(tc, fu)

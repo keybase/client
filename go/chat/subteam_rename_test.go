@@ -150,7 +150,7 @@ func TestChatSubteamRename(t *testing.T) {
 				ConvIDs: u1ExpectedUpdates,
 			})
 		require.NoError(t, err)
-		require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
+		require.GreaterOrEqual(t, len(ib.Convs), len(u1ExpectedUpdates))
 
 		numFound := 0
 		for _, conv := range ib.Convs {

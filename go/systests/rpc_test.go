@@ -8,6 +8,7 @@ package systests
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -109,12 +110,12 @@ func TestRPCs(t *testing.T) {
 	testGetUpdateInfo2(t, tc2.G)
 
 	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -131,7 +132,7 @@ func testResolve3Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnecti
 		arg := keybase1.Resolve3Arg{Assertion: "no_such_user_yo", Oa: keybase1.OfflineAvailability_BEST_EFFORT}
 		_, err = cli.Resolve3(context.TODO(), arg)
 		require.Error(t, err)
-		require.IsType(t, expectedError, err)
+		require.Equal(t, reflect.TypeOf(expectedError), reflect.TypeOf(err))
 	}
 
 	fetch()
@@ -145,74 +146,75 @@ func testResolve3Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnecti
 
 func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetIdentifyClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get new identifyclient: %v", err)
 
 	// We don't want to hit the cache, since the previous lookup never hit the
 	// server.  For Resolve3, we have to, since we need a username.  So test that
 	// here.
 	if res, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "uid:eb72f49f2dde6429e5d78003dae0c919"}); err != nil {
-		t.Fatalf("Resolve failed: %v\n", err)
+		require.NoError(t, err,
+			"Resolve failed: %v\n", err)
 	} else if res.Name != "t_tracy" {
-		t.Fatalf("Wrong username: %s != 't_tracy", res.Name)
+		require.FailNow(t, fmt.Sprintf("Wrong username: %s != 't_tracy", res.Name))
 	}
 
 	if res, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "t_tracy@rooter"}); err != nil {
-		t.Fatalf("Resolve3 failed: %v\n", err)
+		require.NoError(t, err,
+			"Resolve3 failed: %v\n", err)
 	} else if res.Name != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
+		require.FailNow(t, fmt.Sprintf("Wrong name: %s != 't_tracy", res.Name))
 	} else if !res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
+		require.True(t, res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")),
+			"Wrong uid for tracy: %s\n", res.Id)
 	}
 
 	if _, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "foobag@rooter"}); err == nil {
-		t.Fatalf("expected an error on a bad resolve, but got none")
+		require.Error(t, err,
+			"expected an error on a bad resolve, but got none")
 	} else if _, ok := err.(libkb.ResolutionError); !ok {
-		t.Fatalf("Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
+		require.True(t, ok,
+			"Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
 	}
 
 	if res, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "t_tracy"}); err != nil {
-		t.Fatalf("Resolve3 failed: %v\n", err)
+		require.NoError(t, err,
+			"Resolve3 failed: %v\n", err)
 	} else if res.Name != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
+		require.FailNow(t, fmt.Sprintf("Wrong name: %s != 't_tracy", res.Name))
 	} else if !res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
+		require.True(t, res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")),
+			"Wrong uid for tracy: %s\n", res.Id)
 	}
 }
 
 func testCheckInvitationCode(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetSignupClient(g)
-	if err != nil {
-		t.Fatalf("failed to get a signup client: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get a signup client: %v", err)
 
 	err = cli.CheckInvitationCode(context.TODO(), keybase1.CheckInvitationCodeArg{InvitationCode: libkb.TestInvitationCode})
-	if err != nil {
-		t.Fatalf("Did not expect an error code, but got: %v", err)
-	}
+	require.NoError(t, err,
+		"Did not expect an error code, but got: %v", err)
 	err = cli.CheckInvitationCode(context.TODO(), keybase1.CheckInvitationCodeArg{InvitationCode: "eeoeoeoe333o3"})
 	if _, ok := err.(libkb.BadInvitationCodeError); !ok {
-		t.Fatalf("Expected an error code, but got %T %v", err, err)
+		require.True(t, ok,
+			"Expected an error code, but got %T %v", err, err)
 	}
 }
 
 func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetUserClient(g)
-	if err != nil {
-		t.Fatalf("failed to get user client: %s", err)
-	}
+	require.NoError(t, err,
+		"failed to get user client: %s", err)
 
 	// t_rosetta
 	arg := keybase1.LoadAllPublicKeysUnverifiedArg{Uid: keybase1.UID("b8939251cb3d367e68587acb33a64d19")}
 	res, err := cli.LoadAllPublicKeysUnverified(context.TODO(), arg)
-	if err != nil {
-		t.Fatalf("failed to make load keys call: %s", err)
-	}
+	require.NoError(t, err,
+		"failed to make load keys call: %s", err)
 
-	if len(res) != 3 {
-		t.Fatalf("wrong amount of keys loaded: %d != %d", len(res), 3)
-	}
+	require.Len(t, res, 3, "wrong amount of keys loaded: %d != %d", len(res), 3)
 
 	keys := map[keybase1.KID]bool{
 		keybase1.KID("0101fe1183765f256289427d6943cd8bab3b5fe095bcdd27f031ed298da523efd3120a"): true,
@@ -222,7 +224,8 @@ func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
 
 	for _, key := range res {
 		if _, ok := keys[key.KID]; !ok {
-			t.Fatalf("unknown key in response: %s", key.KID)
+			require.True(t, ok,
+				"unknown key in response: %s", key.KID)
 		}
 	}
 }
@@ -243,8 +246,8 @@ func testLoadUserPlusKeysV2Offline(t *testing.T, g *libkb.GlobalContext, fcm *fa
 		frank, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
 		require.NoError(t, err)
 		require.NotNil(t, frank)
-		require.Equal(t, len(frank.PastIncarnations), 0)
-		require.Equal(t, frank.Current.Username, "t_frank")
+		require.Empty(t, frank.PastIncarnations)
+		require.Equal(t, "t_frank", frank.Current.Username)
 		_, found := frank.Current.DeviceKeys[kid]
 		require.True(t, found)
 		require.Nil(t, frank.Current.Reset)
@@ -256,7 +259,7 @@ func testLoadUserPlusKeysV2Offline(t *testing.T, g *libkb.GlobalContext, fcm *fa
 		}
 		_, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
 		require.Error(t, err)
-		require.IsType(t, expectedError, err)
+		require.Equal(t, reflect.TypeOf(expectedError), reflect.TypeOf(err))
 	}
 
 	fetch()
@@ -270,9 +273,8 @@ func testLoadUserPlusKeysV2Offline(t *testing.T, g *libkb.GlobalContext, fcm *fa
 
 func testLoadUserPlusKeysV2(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetUserClient(g)
-	if err != nil {
-		t.Fatalf("failed to get a user client: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get a user client: %v", err)
 
 	kid := keybase1.KID("012012a40a6b77a9de5e48922262870565900f5689e179761ea8c8debaa586bfd0090a")
 	uid := keybase1.UID("359c7644857203be38bfd3bf79bf1819")
@@ -280,8 +282,8 @@ func testLoadUserPlusKeysV2(t *testing.T, g *libkb.GlobalContext) {
 	frank, err := cli.LoadUserPlusKeysV2(context.TODO(), keybase1.LoadUserPlusKeysV2Arg{Uid: uid, PollForKID: kid})
 	require.NoError(t, err)
 	require.NotNil(t, frank)
-	require.Equal(t, len(frank.PastIncarnations), 0)
-	require.Equal(t, frank.Current.Username, "t_frank")
+	require.Empty(t, frank.PastIncarnations)
+	require.Equal(t, "t_frank", frank.Current.Username)
 	_, found := frank.Current.DeviceKeys[kid]
 	require.True(t, found)
 	require.Nil(t, frank.Current.Reset)
@@ -293,102 +295,85 @@ func testLoadUserWithNoKeys(t *testing.T, g *libkb.GlobalContext) {
 	// error, by setting the PublicKeyOptional flag.
 
 	cli, err := client.GetUserClient(g)
-	if err != nil {
-		t.Fatalf("failed to get a user client: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get a user client: %v", err)
 
 	// Check the LoadUserByName RPC. t_ellen is a test user with no keys.
 	loadUserByNameArg := keybase1.LoadUserByNameArg{Username: "t_ellen"}
 	tEllen, err := cli.LoadUserByName(context.TODO(), loadUserByNameArg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if tEllen.Username != "t_ellen" {
-		t.Fatalf("expected t_ellen, saw %s", tEllen.Username)
-	}
+	require.NoError(t, err)
+	require.Equal(t, "t_ellen", tEllen.Username, "expected t_ellen, saw %s", tEllen.Username)
 
 	// Check the LoadUser RPC.
 	loadUserArg := keybase1.LoadUserArg{Uid: tEllen.Uid}
 	tEllen2, err := cli.LoadUser(context.TODO(), loadUserArg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if tEllen2.Username != "t_ellen" {
-		t.Fatalf("expected t_ellen, saw %s", tEllen2.Username)
-	}
+	require.NoError(t, err)
+	require.Equal(t, "t_ellen", tEllen2.Username, "expected t_ellen, saw %s", tEllen2.Username)
 }
 
 func testCheckDevicesForUser(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetDeviceClient(g)
-	if err != nil {
-		t.Fatalf("failed to get a device client: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get a device client: %v", err)
 	err = cli.CheckDeviceNameForUser(context.TODO(), keybase1.CheckDeviceNameForUserArg{
 		Username:   "t_frank",
 		Devicename: "bad $ device $ name",
 	})
 	if _, ok := err.(libkb.DeviceBadNameError); !ok {
-		t.Fatalf("wanted a bad device name error; got %v", err)
+		require.True(t, ok,
+			"wanted a bad device name error; got %v", err)
 	}
 	err = cli.CheckDeviceNameForUser(context.TODO(), keybase1.CheckDeviceNameForUserArg{
 		Username:   "t_frank",
 		Devicename: "go c lient",
 	})
 	if _, ok := err.(libkb.DeviceNameInUseError); !ok {
-		t.Fatalf("wanted a name in use error; got %v", err)
+		require.True(t, ok,
+			"wanted a name in use error; got %v", err)
 	}
 }
 
 func testIdentify2(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetIdentifyClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get new identifyclient: %v", err)
 
 	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
 		UserAssertion:    "t_alice",
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	})
-	if err != nil {
-		t.Fatalf("Identify2 failed: %v\n", err)
-	}
+	require.NoError(t, err,
+		"Identify2 failed: %v\n", err)
 
 	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
 		UserAssertion:    "t_weriojweroi",
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	})
 	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Fatalf("Expected a not-found error, but got: %v (%T)", err, err)
+		require.True(t, ok,
+			"Expected a not-found error, but got: %v (%T)", err, err)
 	}
 }
 
 func testMerkle(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetMerkleClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new merkle client: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get new merkle client: %v", err)
 
 	root, err := cli.GetCurrentMerkleRoot(context.TODO(), int(-1))
-	if err != nil {
-		t.Fatalf("GetCurrentMerkleRoot failed: %v\n", err)
-	}
-	if root.Root.Seqno <= keybase1.Seqno(0) {
-		t.Fatalf("Failed basic sanity check")
-	}
+	require.NoError(t, err,
+		"GetCurrentMerkleRoot failed: %v\n", err)
+	require.Greater(t, root.Root.Seqno, keybase1.Seqno(0),
+		"Failed basic sanity check")
 }
 
 func testConfig(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetConfigClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new config client: %v", err)
-	}
+	require.NoError(t, err,
+		"failed to get new config client: %v", err)
 	config, err := cli.GetConfig(context.TODO(), 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if config.ServerURI == "" {
-		t.Fatal("No service URI")
-	}
+	require.NoError(t, err)
+	require.NotEmpty(t, config.ServerURI, "No service URI")
 }
 
 func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
@@ -407,7 +392,7 @@ func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.UpdateInfoStatus2_CRITICAL, status)
 	require.IsType(t, "foo", res.Critical().Message)
-	require.True(t, len(res.Critical().Message) > 10)
+	require.Greater(t, len(res.Critical().Message), 10)
 }
 
 type FakeGregorState struct {
@@ -560,9 +545,7 @@ func TestIdentifyLite(t *testing.T) {
 		_, err := cli.IdentifyLite(context.Background(), idLiteArg("", assertion))
 		aerr, ok := err.(libkb.AppStatusError)
 		if ok {
-			if aerr.Code != libkb.SCTeamNotFound {
-				t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamNotFound)
-			}
+			require.Equal(t, libkb.SCTeamNotFound, aerr.Code, "app status code: %d, expected %d", aerr.Code, libkb.SCTeamNotFound)
 		} else {
 			require.True(t, regexp.MustCompile("Team .* does not exist").MatchString(err.Error()),
 				"Expected an AppStatusError or team-does-not-exist for %s, but got: %v (%T)", assertion, err, err)
@@ -574,7 +557,8 @@ func TestIdentifyLite(t *testing.T) {
 	for _, assertion := range assertions {
 		_, err := cli.IdentifyLite(context.Background(), idLiteArg("", assertion))
 		if _, ok := err.(libkb.NotFoundError); !ok {
-			t.Fatalf("assertion %s, error: %s (%T), expected libkb.NotFoundError", assertion, err, err)
+			require.True(t, ok,
+				"assertion %s, error: %s (%T), expected libkb.NotFoundError", assertion, err, err)
 		}
 	}
 }
@@ -782,7 +766,7 @@ func TestResolveIdentifyImplicitTeamOffline(t *testing.T) {
 		})
 		require.Error(t, err)
 		if expectedError != nil {
-			require.IsType(t, expectedError, err)
+			require.Equal(t, reflect.TypeOf(expectedError), reflect.TypeOf(err))
 		} else {
 			require.Regexp(t, matchRegexp, err.Error())
 		}
@@ -804,10 +788,10 @@ func testResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.T
 	res, err := cli.ResolveImplicitTeam(context.Background(), arg)
 	require.NoError(t, err, "resolve Implicit team worked")
 	if gen == keybase1.Seqno(0) {
-		require.False(t, strings.Contains(res.Name, "conflicted"), "no conflicts")
+		require.NotContains(t, res.Name, "conflicted", "no conflicts")
 	} else {
-		require.True(t, strings.Contains(res.Name, "conflicted"), "found conflicted")
-		require.True(t, strings.Contains(res.Name, fmt.Sprintf("#%d", int(gen))), "found conflict gen #")
+		require.Contains(t, res.Name, "conflicted", "found conflicted")
+		require.Contains(t, res.Name, fmt.Sprintf("#%d", int(gen)), "found conflict gen #")
 	}
 }
 
@@ -950,7 +934,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 	})
 	require.Error(t, err)
-	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.ErrorAs(t, err, new(libkb.IdentifiesFailedError), "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
 	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
@@ -979,7 +963,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 	})
 	require.Error(t, err)
-	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.ErrorAs(t, err, new(libkb.IdentifiesFailedError), "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
 	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
@@ -996,7 +980,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI, // Pass a weird IdentifyBehavior to get TrackBreaks to come out.
 	})
 	require.Error(t, err)
-	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.ErrorAs(t, err, new(libkb.IdentifiesFailedError), "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
 	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))

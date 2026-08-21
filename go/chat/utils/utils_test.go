@@ -65,12 +65,8 @@ func TestParseParticipantNamesFromDisplayName(t *testing.T) {
 func TestParseDurationExtended(t *testing.T) {
 	test := func(input string, expected time.Duration) {
 		d, err := ParseDurationExtended(input)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if d != expected {
-			t.Fatalf("wrong parsed duration. Expected %v, got %v\n", expected, d)
-		}
+		require.NoError(t, err)
+		require.Equal(t, expected, d, "wrong parsed duration. Expected %v, got %v\n", expected, d)
 	}
 	test("1d", time.Hour*24)
 	test("123d12h2ns", 123*24*time.Hour+12*time.Hour+2*time.Nanosecond)
@@ -240,7 +236,7 @@ func TestSystemMessageMentions(t *testing.T) {
 		Addee: u2name,
 	})
 	atMentions, chanMention, _ := SystemMessageMentions(context.TODO(), g, u1, body)
-	require.Equal(t, 1, len(atMentions))
+	require.Len(t, atMentions, 1)
 	require.Equal(t, u2, atMentions[0])
 	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
 	body = chat1.NewMessageSystemWithInviteaddedtoteam(chat1.MessageSystemInviteAddedToTeam{
@@ -249,7 +245,7 @@ func TestSystemMessageMentions(t *testing.T) {
 		Adder:   u2name,
 	})
 	atMentions, chanMention, _ = SystemMessageMentions(context.TODO(), g, u1, body)
-	require.Equal(t, 2, len(atMentions))
+	require.Len(t, atMentions, 2)
 	require.Equal(t, u1, atMentions[0])
 	require.Equal(t, u3, atMentions[1])
 	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
@@ -257,14 +253,14 @@ func TestSystemMessageMentions(t *testing.T) {
 		Team: "MIKE",
 	})
 	atMentions, chanMention, _ = SystemMessageMentions(context.TODO(), g, u1, body)
-	require.Zero(t, len(atMentions))
+	require.Empty(t, atMentions)
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 
 	body = chat1.NewMessageSystemWithNewchannel(chat1.MessageSystemNewChannel{})
 	atMentions, chanMention, channelNameMentions := SystemMessageMentions(context.TODO(), g, u1, body)
-	require.Zero(t, len(atMentions))
+	require.Empty(t, atMentions)
 	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
-	require.Equal(t, 1, len(channelNameMentions))
+	require.Len(t, channelNameMentions, 1)
 	require.Equal(t, "mike", channelNameMentions[0].TopicName)
 }
 
@@ -989,17 +985,17 @@ func TestPresentConversationParticipantsLocal(t *testing.T) {
 	res := PresentConversationParticipantsLocal(context.TODO(), rawParticipants)
 
 	require.Equal(t, res[0].ContactName, &tofurkeyhq)
-	require.Equal(t, res[0].Type, chat1.UIParticipantType_EMAIL)
+	require.Equal(t, chat1.UIParticipantType_EMAIL, res[0].Type)
 
 	require.Equal(t, res[1].ContactName, &tofurus)
-	require.Equal(t, res[1].Type, chat1.UIParticipantType_PHONENO)
+	require.Equal(t, chat1.UIParticipantType_PHONENO, res[1].Type)
 
-	require.Equal(t, res[2].Assertion, "ayoubd")
+	require.Equal(t, "ayoubd", res[2].Assertion)
 	require.Equal(t, res[2].FullName, &danny)
-	require.Equal(t, res[2].Type, chat1.UIParticipantType_USER)
+	require.Equal(t, chat1.UIParticipantType_USER, res[2].Type)
 
-	require.Equal(t, res[3].Assertion, "example@twitter")
-	require.Equal(t, res[3].Type, chat1.UIParticipantType_USER)
+	require.Equal(t, "example@twitter", res[3].Assertion)
+	require.Equal(t, chat1.UIParticipantType_USER, res[3].Type)
 }
 
 type contactStoreMock struct {

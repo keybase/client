@@ -72,9 +72,8 @@ func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
 	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "generation after rotate")
 
 	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
-	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
-		t.Fatal("team secret did not change when rotated")
-	}
+	require.False(t, libkb.SecureByteArrayEq(secretAfter, secretBefore),
+		"team secret did not change when rotated")
 }
 
 // Invites should be visible to everyone for implicit teams.
@@ -172,11 +171,11 @@ func testImplicitTeamInviteVisibility(t *testing.T, public bool) {
 			require.Len(t, lookupRes.DisplayName.Writers.UnresolvedUsers, 1, "bob (rooter)")
 		} else {
 			require.Len(t, lookupRes.DisplayName.Writers.KeybaseUsers, 3, "alice, bob (resolved), char (pukless)")
-			require.Len(t, lookupRes.DisplayName.Writers.UnresolvedUsers, 0)
+			require.Empty(t, lookupRes.DisplayName.Writers.UnresolvedUsers)
 		}
-		require.Len(t, lookupRes.DisplayName.Readers.UnresolvedUsers, 0)
+		require.Empty(t, lookupRes.DisplayName.Readers.UnresolvedUsers)
 		if public {
-			require.Len(t, lookupRes.DisplayName.Readers.KeybaseUsers, 0)
+			require.Empty(t, lookupRes.DisplayName.Readers.KeybaseUsers)
 		} else {
 			require.Len(t, lookupRes.DisplayName.Readers.KeybaseUsers, 1)
 		}
@@ -225,7 +224,7 @@ func pollForConditionWithTimeout(t *testing.T, timeout time.Duration, descriptio
 	case <-successCh:
 	case <-time.After(30 * time.Second):
 		pollCancel()
-		t.Fatalf("timed out waiting for condition: %v", description)
+		require.FailNow(t, fmt.Sprintf("timed out waiting for condition: %v", description))
 	}
 }
 
@@ -582,5 +581,5 @@ func TestCreateImpteamWithoutTOFUResolver(t *testing.T) {
 		IncludeImplicitTeams: true,
 	})
 	require.NoError(t, err)
-	require.Len(t, res.Teams, 0)
+	require.Empty(t, res.Teams)
 }

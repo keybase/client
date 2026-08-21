@@ -33,19 +33,19 @@ func TestSecretStoreMem(t *testing.T) {
 	}
 
 	_, err := s.RetrieveSecret(m, "nobody")
-	require.IsType(t, SecretStoreError{}, err)
+	require.ErrorAs(t, err, new(SecretStoreError))
 
 	users, err := s.GetUsersWithStoredSecrets(m)
 	require.NoError(t, err)
 	require.Len(t, users, 2)
 	sort.Strings(users)
-	require.Equal(t, users[0], "alice")
-	require.Equal(t, users[1], "charlie")
+	require.Equal(t, "alice", users[0])
+	require.Equal(t, "charlie", users[1])
 
 	err = s.ClearSecret(m, "alice")
 	require.NoError(t, err)
 
 	secret, err := s.RetrieveSecret(m, "alice")
-	require.IsType(t, SecretStoreError{}, err)
+	require.ErrorAs(t, err, new(SecretStoreError))
 	require.True(t, secret.IsNil())
 }

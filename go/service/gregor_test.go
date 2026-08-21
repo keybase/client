@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,7 +85,7 @@ func TestGregorHandler(t *testing.T) {
 
 	err = broadcastMessageTesting(t, h, m)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(listener.favoritesChanged), "num faves failure")
+	require.Len(t, listener.favoritesChanged, 1, "num faves failure")
 	require.Equal(t, kbUID, listener.favoritesChanged[0], "wrong uid")
 }
 
@@ -566,7 +567,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	// Try saving
 	var err error
 	if err = h.gregorCli.Save(context.TODO()); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Create a new gregor handler, this will restore our saved state
@@ -617,7 +618,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	// Try saving
 	var err error
 	if err = h.gregorCli.Save(context.TODO()); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// Create a new gregor handler, this will restore our saved state
@@ -684,7 +685,7 @@ func TestMessagesAddedDuringProcessing(t *testing.T) {
 	go func() {
 		for i := range numberToDoAsync {
 			err := server.ConsumeMessage(context.TODO(), msgs[i])
-			require.NoError(t, err)
+			assert.NoError(t, err)
 		}
 		blockUntilDone <- struct{}{}
 	}()
@@ -801,10 +802,10 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
-	require.Equal(t, 1, len(bs.NewTeams), "one new team name")
+	require.Len(t, bs.NewTeams, 1, "one new team name")
 	require.Equal(t, teamID, bs.NewTeams[0])
 	require.Equal(t, 1, bs.NewTeamAccessRequestCount, "one team access request")
-	require.Equal(t, 1, len(bs.TeamsWithResetUsers), "one team member out due to reset")
+	require.Len(t, bs.TeamsWithResetUsers, 1, "one team member out due to reset")
 	require.Equal(t, "teamname", bs.TeamsWithResetUsers[0].Teamname)
 	require.Equal(t, "alice", bs.TeamsWithResetUsers[0].Username)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID(), bs.TeamsWithResetUsers[0].Id)
@@ -952,9 +953,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	tc.G.SetService()
 
 	u, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid := gregor1.UID(u.GetUID().ToBytes())
 
 	h := newGregorHandler(g)
@@ -964,18 +963,14 @@ func TestBroadcastRepeat(t *testing.T) {
 	require.NoError(t, err)
 
 	m, err := grutils.TemplateMessage(uid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	m.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
 		Category_: gregor1.Category("mike"),
 		Body_:     gregor1.Body([]byte("mike")),
 	}
 
 	m2, err := grutils.TemplateMessage(uid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	m2.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
 		Category_: gregor1.Category("mike!!"),
 		Body_:     gregor1.Body([]byte("mike!!")),
@@ -1039,7 +1034,7 @@ func TestLocalDismissals(t *testing.T) {
 	require.NoError(t, err)
 	lds, err := gcli.Sm.LocalDismissals(context.TODO(), uid)
 	require.NoError(t, err)
-	require.Zero(t, len(lds))
+	require.Empty(t, lds)
 }
 
 type flakeyIncomingClient struct {
@@ -1087,12 +1082,12 @@ func TestOfflineConsume(t *testing.T) {
 		Uid: uid,
 	})
 	require.NoError(t, err)
-	require.Zero(t, len(serverState.Items_))
+	require.Empty(t, serverState.Items_)
 	clientState, err := client.StateMachineState(context.TODO(), gregor1.TimeOrOffset{}, true)
 	require.NoError(t, err)
 	items, err := clientState.Items()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(items))
+	require.Len(t, items, 1)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		items[0].Metadata().MsgID().String())
 	select {
@@ -1117,14 +1112,14 @@ func TestOfflineConsume(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NoError(t, broadcastMessageTesting(t, h, msg))
-	require.Equal(t, 1, len(serverState.Items_))
+	require.Len(t, serverState.Items_, 1)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		serverState.Items_[0].Metadata().MsgID().String())
 	clientState, err = client.StateMachineState(context.TODO(), gregor1.TimeOrOffset{}, true)
 	require.NoError(t, err)
 	items, err = clientState.Items()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(items))
+	require.Len(t, items, 1)
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		items[0].Metadata().MsgID().String())
 }

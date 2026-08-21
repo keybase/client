@@ -73,18 +73,14 @@ func TestLoaderClean(t *testing.T) {
 
 func addRandomPayment(t *testing.T, loader *Loader) {
 	id, err := libkb.RandString("", 16)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	pid := stellar1.PaymentID(id)
 	loader.storePayment(pid, &stellar1.PaymentLocal{Id: pid})
 }
 
 func addRandomRequest(t *testing.T, loader *Loader) {
 	id, err := libkb.RandString("", 16)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	rid := stellar1.KeybaseRequestID(id)
 	loader.storeRequest(rid, &stellar1.RequestDetailsLocal{Id: rid})
 }

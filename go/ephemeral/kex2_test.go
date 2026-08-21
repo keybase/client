@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -62,11 +63,11 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 	var userEKX keybase1.UserEk
 	if upgradePerUserKey {
-		require.True(t, userEKGenX > 0)
+		require.Positive(t, userEKGenX)
 		userEKX, err = userEKBoxStorageX.Get(mctxX, userEKGenX, nil)
 		require.NoError(t, err)
 	} else {
-		require.EqualValues(t, userEKGenX, -1)
+		require.EqualValues(t, -1, userEKGenX)
 	}
 
 	// device Y (provisionee) context:
@@ -113,7 +114,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			mctxY = mctxY.WithUIs(uis).WithNewProvisionalLoginContext()
 			return engine.RunEngine2(mctxY, provisionee)
 		})()
-		require.NoError(t, err, "provisionee")
+		assert.NoError(t, err, "provisionee")
 	}()
 
 	// start provisioner
@@ -140,7 +141,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	require.NoError(t, err)
 	if upgradePerUserKey {
 		// Confirm that Y has a deviceEK.
-		require.True(t, maxDeviceEKGenerationY > 0)
+		require.Positive(t, maxDeviceEKGenerationY)
 		deviceEKY, err := deviceEKStorageY.Get(mctxY, maxDeviceEKGenerationY)
 		require.NoError(t, err)
 		// Clear out DeviceCtime since it won't be present in fetched data,
@@ -167,7 +168,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	userEKBoxStorageY := tcY.G.GetUserEKBoxStorage()
 	userEKGenY, err := userEKBoxStorageY.MaxGeneration(mctxY, false)
 	require.NoError(t, err)
-	require.EqualValues(t, userEKGenX, userEKGenY)
+	require.Equal(t, userEKGenX, userEKGenY)
 
 	if upgradePerUserKey {
 		userEKY, err := userEKBoxStorageY.Get(mctxY, userEKGenY, nil)

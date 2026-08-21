@@ -22,12 +22,10 @@ func TestPGPExportOptions(t *testing.T) {
 
 	fp, kid, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err = RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	table := []exportTest{
@@ -64,18 +62,10 @@ func TestPGPExportOptions(t *testing.T) {
 
 	for i, test := range table {
 		ec, err := pgpExport(m, test.secret, test.query, test.exact)
-		if err != nil {
-			t.Errorf("test %d error: %s", i, err)
-		}
-		if ec.either != test.either {
-			t.Errorf("test %d: (either) num keys exported: %d, expected %d", i, ec.either, test.either)
-		}
-		if ec.fingerprint != test.fingerprint {
-			t.Errorf("test %d: (fp) num keys exported: %d, expected %d", i, ec.fingerprint, test.fingerprint)
-		}
-		if ec.kid != test.kid {
-			t.Errorf("test %d: (kid) num keys exported: %d, expected %d", i, ec.kid, test.kid)
-		}
+		require.NoError(t, err, "test %d error: %s", i, err)
+		require.Equal(t, test.either, ec.either, "test %d: (either) num keys exported: %d, expected %d", i, ec.either, test.either)
+		require.Equal(t, test.fingerprint, ec.fingerprint, "test %d: (fp) num keys exported: %d, expected %d", i, ec.fingerprint, test.fingerprint)
+		require.Equal(t, test.kid, ec.kid, "test %d: (kid) num keys exported: %d, expected %d", i, ec.kid, test.kid)
 	}
 }
 
@@ -184,7 +174,7 @@ func TestPGPExportEncryption(t *testing.T) {
 	}
 	xe := NewPGPKeyExportEngine(tc.G, arg)
 	if err := RunEngine2(m, xe); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	require.Len(t, secui.Prompts, 2, "Expected two prompts in SecretUI (PGP passphrase and confirmation)")
@@ -201,7 +191,8 @@ func TestPGPExportEncryption(t *testing.T) {
 	}
 
 	if err := entity.PrivateKey.Decrypt([]byte(pgpPassphrase)); err != nil {
-		t.Fatal("Decryption with passphrase failed")
+		require.NoError(t, err,
+			"Decryption with passphrase failed")
 	}
 
 	// Run export with Encrypted: false
@@ -214,7 +205,7 @@ func TestPGPExportEncryption(t *testing.T) {
 	err = RunEngine2(m, xe)
 	require.NoError(t, err)
 
-	require.Len(t, secui.Prompts, 0, "Expected no prompts in SecretUI")
+	require.Empty(t, secui.Prompts, "Expected no prompts in SecretUI")
 
 	entity, _, err = libkb.ReadOneKeyFromString(xe.Results()[0].Key)
 	require.NoError(t, err)

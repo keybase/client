@@ -111,7 +111,7 @@ func TestKeygenIfNeeded(t *testing.T) {
 	require.NoError(t, err)
 	deviceEKs, err := rawDeviceEKStorage.GetAll(mctx)
 	require.NoError(t, err)
-	require.Len(t, deviceEKs, 0)
+	require.Empty(t, deviceEKs)
 }
 
 func TestNewTeamEKNeeded(t *testing.T) {
@@ -229,10 +229,10 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	// create a new teamEK
 	teamEK, err := ekLib.GetTeamEK(mctx, teamID, expectedTeamEKGen-1, nil)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr := err.(EphemeralKeyError)
+	var ekErr EphemeralKeyError
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
-	require.Equal(t, teamEK, keybase1.TeamEphemeralKey{})
+	require.Equal(t, keybase1.TeamEphemeralKey{}, teamEK)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /*created*/, false /* teamEKCreationInProgress */)
 
 	// Now let's kill our deviceEK by corrupting a single bit in the noiseFile,
@@ -257,16 +257,15 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	ekLib.setBackgroundCreationTestCh(ch)
 	teamEK, err = ekLib.GetTeamEK(mctx, teamID, expectedTeamEKGen, nil)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr = err.(EphemeralKeyError)
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
-	require.Equal(t, teamEK, keybase1.TeamEphemeralKey{})
+	require.Equal(t, keybase1.TeamEphemeralKey{}, teamEK)
 	t.Logf("before expectedTeamEkGen: %v", expectedTeamEKGen)
 	select {
 	case created := <-ch:
 		require.True(t, created)
 	case <-time.After(time.Second * 20):
-		t.Fatalf("teamEK background creation failed")
+		require.FailNow(t, "teamEK background creation failed")
 	}
 
 	expectedDeviceEKGen++
@@ -315,7 +314,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	case created := <-ch:
 		require.True(t, created)
 	case <-time.After(time.Second * 20):
-		t.Fatalf("teamEK background creation failed")
+		require.FailNow(t, "teamEK background creation failed")
 	}
 	close(ch)
 	expectedTeamEKGen++
@@ -409,7 +408,7 @@ func TestLoginOneshotWithEphemeral(t *testing.T) {
 	eng := engine.NewPaperKey(tc.G)
 	err := engine.RunEngine2(mctx, eng)
 	require.NoError(t, err)
-	require.NotZero(t, len(eng.Passphrase()))
+	require.NotEmpty(t, eng.Passphrase())
 	require.NoError(t, tc.Logout())
 
 	keygenWithOneshot := func() (keybase1.DeviceEk, keybase1.UserEk, keybase1.TeamEphemeralKey) {

@@ -41,9 +41,8 @@ func checkTrackCommon(tc libkb.TestContext, blocks []sb, outcome *keybase1.Ident
 	if err != nil {
 		return err
 	}
-	if them == nil {
-		tc.T.Fatal("checkTrackCommon called with nil 'them' user")
-	}
+	require.NotNil(tc.T, them,
+		"checkTrackCommon called with nil 'them' user")
 	m := NewMetaContextForTest(tc)
 	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
@@ -51,7 +50,8 @@ func checkTrackCommon(tc libkb.TestContext, blocks []sb, outcome *keybase1.Ident
 	}
 
 	if s == nil {
-		tc.T.Fatal("me.TrackChainLinkFor(...) returned nil, nil")
+		require.NotNil(tc.T, s,
+			"me.TrackChainLinkFor(...) returned nil, nil")
 	} else {
 		tc.T.Logf("payload json:\n%s", s.UnmarshalPayloadJSON().MarshalPretty())
 	}

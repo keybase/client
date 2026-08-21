@@ -56,6 +56,6 @@ func TestVerifyResolveEvilServer(t *testing.T) {
 		UID:       keybase1.UID("eb72f49f2dde6429e5d78003dae0c919"),
 	})
 	require.Error(t, err)
-	require.IsType(t, libkb.UnmetAssertionError{}, err)
+	require.ErrorAs(t, err, new(libkb.UnmetAssertionError))
 	require.Regexp(t, `Unmet remote assertions`, err)
 }

@@ -43,7 +43,7 @@ func TestProgress(t *testing.T) {
 		for _, id := range e.q {
 			delete(m, id)
 		}
-		require.Len(t, m, 0)
+		require.Empty(t, m)
 		require.Equal(t, e.currTlf, currTlf)
 		require.Equal(t, e.overallTotal, overallProg.BytesTotal)
 		require.Equal(t, e.overallSoFar, overallProg.BytesSoFar)

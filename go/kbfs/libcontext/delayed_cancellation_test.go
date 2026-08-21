@@ -6,8 +6,11 @@ package libcontext
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 type testDCKeyType int
@@ -26,31 +29,25 @@ func TestReplayableContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	ctx, err := NewContextWithReplayFrom(ctx)
-	if err != nil {
-		t.Fatalf("calling NewContextWithReplayFrom error: %s", err)
-	}
+	require.NoError(t, err,
+		"calling NewContextWithReplayFrom error: %s", err)
 
 	// Test if replay was run properly
-	if ctx.Value(testDCKey) != "O_O" {
-		t.Fatalf("NewContextWithReplayFrom did not replay attached replayFunc")
-	}
+	require.Equal(t, "O_O", ctx.Value(testDCKey), "NewContextWithReplayFrom did not replay attached replayFunc")
 
 	// Test if cancellation is disabled
 	cancel()
 	select {
 	case <-ctx.Done():
-		t.Fatalf("NewContextWithReplayFrom did not disconnect the cancel function")
+		require.FailNow(t, "NewContextWithReplayFrom did not disconnect the cancel function")
 	default:
 	}
 
 	// make sure the new ctx is also replayable
 	ctx, err = NewContextWithReplayFrom(ctx)
-	if err != nil {
-		t.Fatalf("calling NewContextWithReplayFrom error: %s", err)
-	}
-	if ctx.Value(testDCKey) != "O_O" {
-		t.Fatalf("NewContextWithReplayFrom did not replay attached replayFunc")
-	}
+	require.NoError(t, err,
+		"calling NewContextWithReplayFrom error: %s", err)
+	require.Equal(t, "O_O", ctx.Value(testDCKey), "NewContextWithReplayFrom did not replay attached replayFunc")
 }
 
 func makeContextWithDelayedCancellation(t *testing.T) (
@@ -63,15 +60,12 @@ func makeContextWithDelayedCancellation(t *testing.T) (
 	ctx, cancel := context.WithCancel(ctx)
 
 	ctx, err := NewContextWithCancellationDelayer(ctx)
-	if err != nil {
-		t.Fatalf("calling NewContextWithCancellationDelayer error: %s", err)
-	}
+	require.NoError(t, err,
+		"calling NewContextWithCancellationDelayer error: %s", err)
 
 	// Test NewContextWithCancellationDelayer does replay properly
-	if ctx.Value(testDCKey) != "O_O" {
-		t.Fatalf(
-			"NewContextWithCancellationDelayer did not replay attached replayFunc")
-	}
+	require.Equal(t, "O_O", ctx.Value(testDCKey),
+		"NewContextWithCancellationDelayer did not replay attached replayFunc")
 
 	return ctx, cancel
 }
@@ -86,8 +80,8 @@ func TestDelayedCancellationCancelWhileNotEnabled(t *testing.T) {
 	select {
 	case <-ctx.Done():
 	case <-time.After(100 * time.Millisecond):
-		t.Fatalf("Cancellation did not happen even though " +
-			"EnableDelayedCancellationWithGracePeriod has not been called yet")
+		require.FailNow(t, fmt.Sprintf("Cancellation did not happen even though "+
+			"EnableDelayedCancellationWithGracePeriod has not been called yet"))
 	}
 }
 
@@ -97,14 +91,15 @@ func TestDelayedCancellationCleanupWhileNotEnabled(t *testing.T) {
 	ctx, _ := makeContextWithDelayedCancellation(t)
 
 	if err := CleanupCancellationDelayer(ctx); err != nil {
-		t.Fatalf("calling CleanupCancellationDelayer error: %s", err)
+		require.NoError(t, err,
+			"calling CleanupCancellationDelayer error: %s", err)
 	}
 
 	select {
 	case <-ctx.Done():
 	case <-time.After(100 * time.Millisecond):
-		t.Fatalf("Cancellation did not happen even though " +
-			"EnableDelayedCancellationWithGracePeriod has not been called yet")
+		require.FailNow(t, fmt.Sprintf("Cancellation did not happen even though "+
+			"EnableDelayedCancellationWithGracePeriod has not been called yet"))
 	}
 }
 
@@ -115,19 +110,17 @@ func TestDelayedCancellationSecondEnable(t *testing.T) {
 	defer cancel()
 
 	err := EnableDelayedCancellationWithGracePeriod(ctx, 0)
-	if err != nil {
-		t.Fatalf("1st EnableDelayedCancellationWithGracePeriod failed: %v", err)
-	}
+	require.NoError(t, err,
+		"1st EnableDelayedCancellationWithGracePeriod failed: %v", err)
 	cancel()
 	<-ctx.Done()
 	// parent context is not canceled; second "enable" should succeed even it's
 	// after grace period
 	err = EnableDelayedCancellationWithGracePeriod(ctx, 0)
-	if err == nil {
-		t.Fatalf("2nd EnableDelayedCancellationWithGracePeriod succeeded even " +
-			"though more than grace period has passed since parent context was " +
+	require.Error(t, err,
+		"2nd EnableDelayedCancellationWithGracePeriod succeeded even "+
+			"though more than grace period has passed since parent context was "+
 			"canceled")
-	}
 }
 
 func TestDelayedCancellationEnabled(t *testing.T) {
@@ -135,15 +128,14 @@ func TestDelayedCancellationEnabled(t *testing.T) {
 
 	ctx, cancel := makeContextWithDelayedCancellation(t)
 	err := EnableDelayedCancellationWithGracePeriod(ctx, 50*time.Millisecond)
-	if err != nil {
-		t.Fatalf("EnableDelayedCancellationWithGracePeriod failed: %v", err)
-	}
+	require.NoError(t, err,
+		"EnableDelayedCancellationWithGracePeriod failed: %v", err)
 
 	cancel()
 
 	select {
 	case <-ctx.Done():
-		t.Fatalf("Cancellation is not delayed")
+		require.FailNow(t, "Cancellation is not delayed")
 	case <-time.After(10 * time.Millisecond):
 	}
 

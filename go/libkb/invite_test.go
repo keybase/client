@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	jsonw "github.com/keybase/go-jsonw"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInvitationArgs(t *testing.T) {
@@ -19,12 +20,8 @@ func TestInvitationArgs(t *testing.T) {
 
 	email := "email@nomail.keybase.io"
 	inv, err := SendInvitation(mctx, email, InviteArg{Message: "message", NoteToSelf: "note"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(rec.Records) != 1 {
-		t.Fatalf("recorded args: %d, expected 1", len(rec.Records))
-	}
+	require.NoError(t, err)
+	require.Len(t, rec.Records, 1, "recorded args: %d, expected 1", len(rec.Records))
 	checkArg(t, rec.Records[0].Arg)
 	checkHTTPArg(t, rec.Records[0].Arg, "email", email)
 	checkHTTPArg(t, rec.Records[0].Arg, "invitation_message", "message")
@@ -34,12 +31,8 @@ func TestInvitationArgs(t *testing.T) {
 	rec.Reset()
 
 	inv, err = GenerateInvitationCode(mctx, InviteArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(rec.Records) != 1 {
-		t.Fatalf("recorded args: %d, expected 1", len(rec.Records))
-	}
+	require.NoError(t, err)
+	require.Len(t, rec.Records, 1, "recorded args: %d, expected 1", len(rec.Records))
 	checkArg(t, rec.Records[0].Arg)
 	checkHTTPArg(t, rec.Records[0].Arg, "invitation_message", "")
 	checkHTTPArg(t, rec.Records[0].Arg, "note_to_self", "")
@@ -48,16 +41,11 @@ func TestInvitationArgs(t *testing.T) {
 	rec.Reset()
 
 	assertion, ok := NormalizeSocialAssertion(testAssertionContext{}, "twitter:KeyBase")
-	if !ok {
-		t.Fatal("invalid social assertion")
-	}
+	require.True(t, ok,
+		"invalid social assertion")
 	inv, err = GenerateInvitationCodeForAssertion(mctx, assertion, InviteArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(rec.Records) != 1 {
-		t.Fatalf("recorded args: %d, expected 1", len(rec.Records))
-	}
+	require.NoError(t, err)
+	require.Len(t, rec.Records, 1, "recorded args: %d, expected 1", len(rec.Records))
 	checkArg(t, rec.Records[0].Arg)
 	checkHTTPArg(t, rec.Records[0].Arg, "assertion", "keybase@twitter")
 	checkHTTPArg(t, rec.Records[0].Arg, "invitation_message", "")
@@ -66,27 +54,17 @@ func TestInvitationArgs(t *testing.T) {
 }
 
 func checkArg(t *testing.T, arg APIArg) {
-	if arg.Endpoint != "send_invitation" {
-		t.Errorf("endpoint: %s, expected send_invitation", arg.Endpoint)
-	}
-	if arg.SessionType != APISessionTypeREQUIRED {
-		t.Errorf("SessionType should be APISessionTypeREQUIRED")
-	}
+	require.Equal(t, "send_invitation", arg.Endpoint, "endpoint: %s, expected send_invitation", arg.Endpoint)
+	require.Equal(t, APISessionTypeREQUIRED, arg.SessionType, "SessionType should be APISessionTypeREQUIRED")
 }
 
 func checkHTTPArg(t *testing.T, arg APIArg, key, value string) {
-	if arg.Args[key].String() != value {
-		t.Errorf("%s parameter: %q, expected %q", key, arg.Args[key], value)
-	}
+	require.Equal(t, value, arg.Args[key].String(), "%s parameter: %q, expected %q", key, arg.Args[key], value)
 }
 
 func checkInvitation(t *testing.T, inv *Invitation) {
-	if inv.ID != "2b25175f6da1d9155f23800d" {
-		t.Errorf("invitation id: %q, expected 2b25175f6da1d9155f23800d", inv.ID)
-	}
-	if inv.ShortCode != "clip outside broccoli culture" {
-		t.Errorf("short code: %q, expected clip outside broccoli culture", inv.ShortCode)
-	}
+	require.Equal(t, "2b25175f6da1d9155f23800d", inv.ID, "invitation id: %q, expected 2b25175f6da1d9155f23800d", inv.ID)
+	require.Equal(t, "clip outside broccoli culture", inv.ShortCode, "short code: %q, expected clip outside broccoli culture", inv.ShortCode)
 }
 
 type sendInvitationMock struct {

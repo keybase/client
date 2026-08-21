@@ -35,7 +35,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 		case ann.username:
 			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
-			require.Fail(ann.ctx.t, "unknown admin: %s", member.Username)
+			require.Failf(ann.ctx.t, "", "unknown admin: %s", member.Username)
 		}
 	}
 	for _, member := range details.Members.Writers {
@@ -45,7 +45,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 		case cam.username:
 			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
-			require.Fail(ann.ctx.t, "unknown writer: %s (%+v)", member.Username, details)
+			require.Failf(ann.ctx.t, "", "unknown writer: %s (%+v)", member.Username, details)
 		}
 	}
 	ann.ctx.log.Debug("team details checked out: %+v", details)
@@ -456,7 +456,7 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	teams.NewTeamLoaderAndInstall(G)
 	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_NONE)
+	require.Equal(t, keybase1.TeamRole_NONE, role)
 }
 
 func TestTeamRemoveMemberAfterDelete(t *testing.T) {
@@ -504,13 +504,13 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(details.Members.Owners))
+	require.Len(t, details.Members.Owners, 1)
 	require.Equal(t, ann.username, details.Members.Owners[0].Username)
-	require.Equal(t, 0, len(details.Members.Admins))
-	require.Equal(t, 0, len(details.Members.Writers))
-	require.Equal(t, 0, len(details.Members.Readers))
-	require.Equal(t, 0, len(details.Members.Bots))
-	require.Equal(t, 0, len(details.Members.RestrictedBots))
+	require.Empty(t, details.Members.Admins)
+	require.Empty(t, details.Members.Writers)
+	require.Empty(t, details.Members.Readers)
+	require.Empty(t, details.Members.Bots)
+	require.Empty(t, details.Members.RestrictedBots)
 }
 
 func TestTeamTryAddDeletedUser(t *testing.T) {
@@ -581,7 +581,7 @@ func TestTeamAddAfterReset(t *testing.T) {
 	teams.NewTeamLoaderAndInstall(G)
 	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_READER)
+	require.Equal(t, keybase1.TeamRole_READER, role)
 
 	bob.readChats(team, 1)
 }
@@ -715,7 +715,7 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 
 	if pukful {
 		// Bob should have been synchronously made a cyrptomember by re-add.
-		require.Equal(t, true, pollFn(0))
+		require.True(t, pollFn(0))
 	} else {
 		// A background task should upgrade bob from an invite to a cryptomember.
 		pollTime := 10 * time.Second
@@ -807,7 +807,7 @@ func TestTeamListAfterReset(t *testing.T) {
 	for _, w := range list.Members.Writers {
 		if w.Username == bob.username {
 			require.False(t, found, "wasn't found twice")
-			require.True(t, w.Uv.EldestSeqno > 1, "reset eldest seqno")
+			require.Greater(t, w.Uv.EldestSeqno, keybase1.Seqno(1), "reset eldest seqno")
 			require.True(t, w.Status.IsActive(), "is active")
 			found = true
 		}
@@ -866,7 +866,7 @@ func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 	badgeState := tt.users[0].waitForBadgeStateWithReset(1)
 
 	// users[0] should be badged since users[1] reset
-	require.True(t, len(badgeState.TeamsWithResetUsers) > 0)
+	require.NotEmpty(t, badgeState.TeamsWithResetUsers)
 	out := badgeState.TeamsWithResetUsers[0]
 	require.Equal(t, out.Teamname, teamName.String())
 	require.Equal(t, out.Username, tt.users[1].username)
@@ -888,7 +888,7 @@ func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 	badgeState = tt.users[0].waitForBadgeStateWithReset(0)
 
 	// badge state should be cleared
-	require.Zero(t, len(badgeState.TeamsWithResetUsers))
+	require.Empty(t, badgeState.TeamsWithResetUsers)
 }
 
 // TestTeamResetBadges checks that badges show up for admins

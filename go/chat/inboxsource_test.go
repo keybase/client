@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,14 +53,14 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	go func() {
 		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 0, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
 		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 1, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Wait()
@@ -91,7 +92,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	}
 
 	fatal := func(msg string, args ...any) error {
-		t.Fatalf(msg, args...)
+		require.FailNow(t, fmt.Sprintf(msg, args...))
 		return fmt.Errorf(msg, args...)
 	}
 
@@ -113,7 +114,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
 		types.ConversationLocalizerBlocking)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(localConvs))
+	require.Len(t, localConvs, 1)
 	prepareRes, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
@@ -194,11 +195,11 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 			})
 		if success {
 			require.NoError(t, err)
-			require.Equal(t, 1, len(ib.ConvsUnverified))
+			require.Len(t, ib.ConvsUnverified, 1)
 			require.Equal(t, conv.Id, ib.ConvsUnverified[0].GetConvID())
 		} else {
 			require.Error(t, err)
-			require.IsType(t, storage.MissError{}, err)
+			require.ErrorAs(t, err, new(storage.MissError))
 		}
 	}
 

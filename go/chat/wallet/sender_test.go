@@ -169,7 +169,7 @@ func TestStellarSender(t *testing.T) {
 		parsedPayments := sender.ParsePayments(context.TODO(), senderUID, convID, body, nil)
 		res, err := sender.SendPayments(context.TODO(), convID, parsedPayments)
 		require.NoError(t, err)
-		require.Equal(t, len(expected), len(res))
+		require.Len(t, res, len(expected))
 		for index, r := range expected {
 			require.Equal(t, r.text, res[index].PaymentText)
 			typ, err := res[0].Result.ResultTyp()

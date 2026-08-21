@@ -108,5 +108,4 @@ func TestFindCandidates(t *testing.T) {
 		require.Equal(t, testCase.out, filtered, "unit %v %q", i, testCase.in)
 	}
 
-	require.True(t, true)
 }

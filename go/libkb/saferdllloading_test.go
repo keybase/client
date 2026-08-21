@@ -1,10 +1,12 @@
 package libkb
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestSaferDLLLoading(t *testing.T) {
 	err := SaferDLLLoading()
-	if err != nil {
-		t.Error("SaferDLLLoading error:", err)
-	}
+	require.NoError(t, err, "SaferDLLLoading error:", err)
 }

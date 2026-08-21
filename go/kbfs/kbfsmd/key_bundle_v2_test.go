@@ -282,7 +282,7 @@ func TestToTLFWriterKeyBundleV3(t *testing.T) {
 	require.Equal(t, expectedWKBV3, wkbV3)
 	oldKeys, err := kbfscrypto.DecryptTLFCryptKeys(codec, encryptedOldKeys, tlfCryptKey2)
 	require.NoError(t, err)
-	require.Equal(t, oldKeys, []kbfscrypto.TLFCryptKey{tlfCryptKey1})
+	require.Equal(t, []kbfscrypto.TLFCryptKey{tlfCryptKey1}, oldKeys)
 }
 
 func TestToTLFReaderKeyBundleV3(t *testing.T) {

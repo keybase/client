@@ -261,7 +261,7 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 		name, tlf.Private)
 	require.NoError(t, err)
 
-	require.False(t, h.Type() == tlf.Public)
+	require.NotEqual(t, tlf.Public, h.Type())
 
 	require.True(t, h.IsWriter(localUsers[0].UID))
 	require.True(t, h.IsReader(localUsers[0].UID))
@@ -278,40 +278,36 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 		require.False(t, h.IsReader(u))
 	}
 
-	require.Equal(t, h.ResolvedWriters(),
-		[]keybase1.UserOrTeamID{
-			localUsers[0].UID.AsUserOrTeam(),
-			localUsers[2].UID.AsUserOrTeam(),
-		})
+	require.Equal(t, []keybase1.UserOrTeamID{
+		localUsers[0].UID.AsUserOrTeam(),
+		localUsers[2].UID.AsUserOrTeam(),
+	}, h.ResolvedWriters())
 	require.Equal(t, h.FirstResolvedWriter(), localUsers[0].UID.AsUserOrTeam())
 
-	require.Equal(t, h.ResolvedReaders(),
-		[]keybase1.UserOrTeamID{
-			localUsers[1].UID.AsUserOrTeam(),
-		})
+	require.Equal(t, []keybase1.UserOrTeamID{
+		localUsers[1].UID.AsUserOrTeam(),
+	}, h.ResolvedReaders())
 
-	require.Equal(t, h.UnresolvedWriters(),
-		[]keybase1.SocialAssertion{
-			{
-				User:    "u2",
-				Service: "twitter",
-			},
-			{
-				User:    "u4",
-				Service: "twitter",
-			},
-		})
-	require.Equal(t, h.UnresolvedReaders(),
-		[]keybase1.SocialAssertion{
-			{
-				User:    "u5",
-				Service: "twitter",
-			},
-			{
-				User:    "u6",
-				Service: "twitter",
-			},
-		})
+	require.Equal(t, []keybase1.SocialAssertion{
+		{
+			User:    "u2",
+			Service: "twitter",
+		},
+		{
+			User:    "u4",
+			Service: "twitter",
+		},
+	}, h.UnresolvedWriters())
+	require.Equal(t, []keybase1.SocialAssertion{
+		{
+			User:    "u5",
+			Service: "twitter",
+		},
+		{
+			User:    "u6",
+			Service: "twitter",
+		},
+	}, h.UnresolvedReaders())
 }
 
 func TestHandleAccessorsPublic(t *testing.T) {
@@ -333,7 +329,7 @@ func TestHandleAccessorsPublic(t *testing.T) {
 		name, tlf.Public)
 	require.NoError(t, err)
 
-	require.True(t, h.Type() == tlf.Public)
+	require.Equal(t, tlf.Public, h.Type())
 
 	require.True(t, h.IsWriter(localUsers[0].UID))
 	require.True(t, h.IsReader(localUsers[0].UID))
@@ -350,26 +346,24 @@ func TestHandleAccessorsPublic(t *testing.T) {
 		require.True(t, h.IsReader(u))
 	}
 
-	require.Equal(t, h.ResolvedWriters(),
-		[]keybase1.UserOrTeamID{
-			localUsers[0].UID.AsUserOrTeam(),
-			localUsers[2].UID.AsUserOrTeam(),
-		})
+	require.Equal(t, []keybase1.UserOrTeamID{
+		localUsers[0].UID.AsUserOrTeam(),
+		localUsers[2].UID.AsUserOrTeam(),
+	}, h.ResolvedWriters())
 	require.Equal(t, h.FirstResolvedWriter(), localUsers[0].UID.AsUserOrTeam())
 
 	require.Nil(t, h.ResolvedReaders())
 
-	require.Equal(t, h.UnresolvedWriters(),
-		[]keybase1.SocialAssertion{
-			{
-				User:    "u2",
-				Service: "twitter",
-			},
-			{
-				User:    "u4",
-				Service: "twitter",
-			},
-		})
+	require.Equal(t, []keybase1.SocialAssertion{
+		{
+			User:    "u2",
+			Service: "twitter",
+		},
+		{
+			User:    "u4",
+			Service: "twitter",
+		},
+	}, h.UnresolvedWriters())
 	require.Nil(t, h.UnresolvedReaders())
 }
 
@@ -838,9 +832,7 @@ func TestResolveAgainConflict(t *testing.T) {
 
 	daemon.AddNewAssertionForTestOrBust("u3", "u3@twitter")
 	ext, err := tlf.NewHandleExtension(tlf.HandleExtensionConflict, 1, "", time.Now())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	h.conflictInfo = ext
 	newH, err := h.ResolveAgain(ctx, kbpki, nil, nil)
 	require.NoError(t, err)
@@ -1139,7 +1131,7 @@ func TestHandleMigrationResolvesTo(t *testing.T) {
 	resolvesTo, partialResolvedH6, err = h6.ResolvesTo(ctx, codec, kbpki, ConstIDGetter{id}, nil, *h3)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
-	require.Len(t, partialResolvedH6.UnresolvedWriters(), 0)
+	require.Empty(t, partialResolvedH6.UnresolvedWriters())
 
 	t.Log("Private team migration with conflict info")
 	name7 := "u1,u2 (conflicted copy 2016-03-14 #3)"
@@ -1170,7 +1162,7 @@ func TestParseHandleNoncanonicalExtensions(t *testing.T) {
 	id := tlf.FakeID(1, tlf.Private)
 	h, err := ParseHandle(
 		ctx, kbpki, ConstIDGetter{id}, nil, name, tlf.Private)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, tlf.HandleExtension{
 		Type:   tlf.HandleExtensionConflict,
 		Date:   tlf.HandleExtensionStaticTestDate,
@@ -1223,9 +1215,9 @@ func TestParseHandleImplicitTeams(t *testing.T) {
 		h, err := ParseHandle(ctx, kbpki, nil, nil, name, ty)
 		require.NoError(t, err)
 		require.Len(t, h.ResolvedWriters(), 1)
-		require.Len(t, h.ResolvedReaders(), 0)
-		require.Len(t, h.UnresolvedWriters(), 0)
-		require.Len(t, h.UnresolvedReaders(), 0)
+		require.Empty(t, h.ResolvedReaders())
+		require.Empty(t, h.UnresolvedWriters())
+		require.Empty(t, h.UnresolvedReaders())
 		require.Equal(t, tid.String(), h.FirstResolvedWriter().String())
 		require.Equal(t, tlfID, h.tlfID)
 	}
@@ -1342,12 +1334,12 @@ func TestParseHandleOfflineAvailability(t *testing.T) {
 	t.Log("Check unsynced private TLF")
 	_, err := ParseHandle(ctx, kbpki, nil, osg, "u1", tlf.Private)
 	require.NoError(t, err)
-	require.Equal(t, kbpki.bestEffortOfflineCounts["u1"], 0)
+	require.Equal(t, 0, kbpki.bestEffortOfflineCounts["u1"])
 
 	t.Log("Check synced private TLF")
 	_, err = ParseHandle(ctx, kbpki, nil, osg, "u2", tlf.Private)
 	require.NoError(t, err)
-	require.Equal(t, kbpki.bestEffortOfflineCounts["u2"], 1)
+	require.Equal(t, 1, kbpki.bestEffortOfflineCounts["u2"])
 
 	t.Log("Check synced private shared TLF")
 	osg.bestEffortPaths["/keybase/private/u1,u2,u3"] = true
@@ -1385,7 +1377,7 @@ func TestParseHandleOfflineAvailability(t *testing.T) {
 	osg.bestEffortPaths["/keybase/private/u1,u2@twitter,u3"] = true
 	_, err = ParseHandle(ctx, kbpki, nil, osg, "u1,u2@twitter,u3",
 		tlf.Private)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 3, kbpki.bestEffortOfflineCounts["u1"])
 	require.Equal(t, 1, kbpki.bestEffortOfflineCounts["u2@twitter"])
 	require.Equal(t, 3, kbpki.bestEffortOfflineCounts["u2"])
@@ -1395,7 +1387,7 @@ func TestParseHandleOfflineAvailability(t *testing.T) {
 	osg.bestEffortPaths["/keybase/private/u1#u2,u3"] = true
 	_, err = ParseHandle(ctx, kbpki, nil, osg, "u1#u2,u3",
 		tlf.Private)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 4, kbpki.bestEffortOfflineCounts["u1"])
 	require.Equal(t, 4, kbpki.bestEffortOfflineCounts["u2"])
 	require.Equal(t, 4, kbpki.bestEffortOfflineCounts["u3"])
@@ -1415,7 +1407,7 @@ func TestParseHandleOfflineAvailability(t *testing.T) {
 	osg.bestEffortPaths["/keybase/private/u1,u2 "+ext] = true
 	_, err = ParseHandle(
 		ctx, kbpki, nil, osg, "u1,u2 "+ext, tlf.Private)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u1"])
 	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u2"])
 	require.Equal(t, 5, kbpki.bestEffortOfflineCounts["u3"])
@@ -1442,7 +1434,7 @@ func TestParseHandleOfflineAvailability(t *testing.T) {
 	require.NoError(t, err)
 	_, err = ParseHandle(
 		ctx, kbpki, ConstIDGetter{tlfID1}, osg, "u1u2u3", tlf.SingleTeam)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, kbpki.bestEffortOfflineCounts["team:u1u2u3"])
 	require.Equal(t, 7, kbpki.bestEffortOfflineCounts["u1"])
 	require.Equal(t, 2, kbpki.bestEffortOfflineCounts["u2@twitter"])
@@ -1457,7 +1449,7 @@ func TestParseHandleOfflineAvailability(t *testing.T) {
 	require.NoError(t, err)
 	_, err = ParseHandle(
 		ctx, kbpki, ConstIDGetter{tlfID2}, osg, "u3u2u1", tlf.SingleTeam)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, kbpki.bestEffortOfflineCounts["team:u1u2u3"])
 	require.Equal(t, 0, kbpki.bestEffortOfflineCounts["team:u3u2u1"])
 

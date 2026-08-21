@@ -41,7 +41,7 @@ func TestSeitanEncryption(t *testing.T) {
 	inviteID, err := sikey.GenerateTeamInviteID()
 	require.NoError(t, err)
 	t.Logf("Invite id is: %s\n", inviteID)
-	require.Equal(t, len(string(inviteID)), 32)
+	require.Len(t, string(inviteID), 32)
 
 	var labelSms keybase1.SeitanKeyLabelSms
 	labelSms.F = "Edwin Powell Hubble"
@@ -51,8 +51,8 @@ func TestSeitanEncryption(t *testing.T) {
 
 	pkey, encoded, err := ikey.GeneratePackedEncryptedKey(context.TODO(), team, label)
 	require.NoError(t, err)
-	require.EqualValues(t, pkey.Version, 1)
-	require.EqualValues(t, pkey.TeamKeyGeneration, 1)
+	require.EqualValues(t, 1, pkey.Version)
+	require.EqualValues(t, 1, pkey.TeamKeyGeneration)
 	require.NotZero(tc.T, pkey.RandomNonce)
 
 	t.Logf("Encrypted ikey with gen: %d\n", pkey.TeamKeyGeneration)
@@ -325,13 +325,13 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
 	})
 	// not an InviteLink, nothing to reject
-	require.Len(t, records, 0, "no invite link acceptances were rejected")
+	require.Empty(t, records, "no invite link acceptances were rejected")
 
 	t.Logf("invite should still be there")
 	t0, err := GetTeamByNameForTest(context.Background(), tc.G, teamName.String(), false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 	require.Equal(t, 1, t0.NumActiveInvites(), "invite should still be active")
-	require.EqualValues(t, t0.CurrentSeqno(), 2)
+	require.EqualValues(t, 2, t0.CurrentSeqno())
 
 	t.Logf("user should not be in team")
 	role, err := t0.MemberRole(context.Background(), user2.GetUserVersion())

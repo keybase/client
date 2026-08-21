@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 type ptsign struct{}
@@ -27,22 +28,18 @@ func TestMemPut(t *testing.T) {
 	path := "abc/def"
 	content := "bucket content"
 	if err := b.PutReader(context.TODO(), path, strings.NewReader(content), int64(len(content)), "string", Private, Options{}); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	r, err := b.GetReader(context.TODO(), path)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	var buf bytes.Buffer
 	n, err := buf.ReadFrom(r)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if n != int64(len(content)) {
-		t.Errorf("length: %d, expected %d", n, len(content))
+		require.Failf(t, "", "length: %d, expected %d", n, len(content))
 	}
 	s := buf.String()
 	if s != content {
-		t.Errorf("read data: %q, expected %q", s, content)
+		require.Failf(t, "", "read data: %q, expected %q", s, content)
 	}
 }

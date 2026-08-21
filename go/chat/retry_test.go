@@ -90,7 +90,7 @@ func TestFetchRetry(t *testing.T) {
 	world.Fc.Advance(time.Hour)
 	select {
 	case updates := <-list.threadsStale:
-		require.Equal(t, 1, len(updates))
+		require.Len(t, updates, 1)
 		require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "timeout on inbox stale")
@@ -108,7 +108,7 @@ func TestFetchRetry(t *testing.T) {
 	tc.ChatG.FetchRetrier.Force(ctx)
 	select {
 	case cids := <-list.threadsStale:
-		require.Equal(t, 1, len(cids))
+		require.Len(t, cids, 1)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "timeout on inbox stale")
 	}

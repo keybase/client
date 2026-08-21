@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type mockSR struct{}
@@ -29,75 +31,65 @@ func (m *mockSR) StatusRead(accountID string) (*Status, error) {
 func TestCompareLedger(t *testing.T) {
 	n := CompareLedger(new(mockSR))
 	if n != 10000 {
-		t.Errorf("CompareLedger: %d, expected 10000", n)
+		require.Failf(t, "", "CompareLedger: %d, expected 10000", n)
 	}
 }
 
 func TestAnalyzeNode(t *testing.T) {
 	a, err := AnalyzeNode(new(mockSR), "keybase1")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if !a.Ok {
-		t.Errorf("keybase1 not ok, expected ok: %+v", a)
+		require.Failf(t, "", "keybase1 not ok, expected ok: %+v", a)
 	}
 
 	a, err = AnalyzeNode(new(mockSR), "keybase2")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	// this was a bad phase check, which we are ignoring now
 	/*
 		if a.Ok {
-			t.Errorf("keybase2 ok, expected not ok: %+v", a)
+			require.Fail(t, "keybase2 ok, expected not ok: %+v", a)
 		}
 	*/
 	if !a.Ok {
-		t.Errorf("keybase2 not ok, expected ok: %+v", a)
+		require.Failf(t, "", "keybase2 not ok, expected ok: %+v", a)
 	}
 
 	a, err = AnalyzeNode(new(mockSR), "keybase3")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if a.Ok {
-		t.Errorf("keybase3 ok, expected not ok: %+v", a)
+		require.Failf(t, "", "keybase3 ok, expected not ok: %+v", a)
 	}
 }
 
 func TestStatusFromJSON(t *testing.T) {
 	s, err := statusFromJSON([]byte(lbRes))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if s.Node != "lobstr3" {
-		t.Errorf("node: %q, expected lobstr3", s.Node)
+		require.Failf(t, "", "node: %q, expected lobstr3", s.Node)
 	}
 	if s.Ledger != 25889124 {
-		t.Errorf("ledger: %d, expected 25889124", s.Ledger)
+		require.Failf(t, "", "ledger: %d, expected 25889124", s.Ledger)
 	}
 	if s.Phase != "expired" {
-		t.Errorf("phase: %q, expected expired", s.Phase)
+		require.Failf(t, "", "phase: %q, expected expired", s.Phase)
 	}
 	if len(s.Missing) != 0 {
-		t.Errorf("missing len: %d, expected 0", len(s.Missing))
+		require.Failf(t, "", "missing len: %d, expected 0", len(s.Missing))
 	}
 
 	s, err = statusFromJSON([]byte(kbRes))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if s.Node != "keybase2" {
-		t.Errorf("node: %q, expected keybase2", s.Node)
+		require.Failf(t, "", "node: %q, expected keybase2", s.Node)
 	}
 	if s.Ledger != 25889136 {
-		t.Errorf("ledger: %d, expected 25889136", s.Ledger)
+		require.Failf(t, "", "ledger: %d, expected 25889136", s.Ledger)
 	}
 	if s.Phase != "EXTERNALIZE" {
-		t.Errorf("phase: %q, expected EXTERNALIZE", s.Phase)
+		require.Failf(t, "", "phase: %q, expected EXTERNALIZE", s.Phase)
 	}
 	if len(s.Missing) != 1 {
-		t.Errorf("missing len: %d, expected 1", len(s.Missing))
+		require.Failf(t, "", "missing len: %d, expected 1", len(s.Missing))
 	}
 }
 

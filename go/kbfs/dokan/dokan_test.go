@@ -9,13 +9,14 @@ package dokan
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func testTimePacking(t *testing.T, t0 time.Time) {
 	t1 := unpackTime(packTime(t0))
-	if !t0.Equal(t1) {
-		t.Fatalf("Time pack+unpack not equal with original: %v => %v", t0, t1)
-	}
+	require.True(t, t0.Equal(t1),
+		"Time pack+unpack not equal with original: %v => %v", t0, t1)
 }
 
 func TestTimePacking(t *testing.T) {

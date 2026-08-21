@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPGPKeyGenPush(t *testing.T) {
@@ -36,7 +37,7 @@ func TestPGPKeyGenPush(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	xarg := keybase1.PGPExportArg{
@@ -47,11 +48,9 @@ func TestPGPKeyGenPush(t *testing.T) {
 	}
 	xe := NewPGPKeyExportEngine(tc.G, xarg)
 	if err := RunEngine2(m, xe); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if len(xe.Results()) != 1 {
-		t.Errorf("result keys: %d, expected 1", len(xe.Results()))
-	}
+	require.Len(t, xe.Results(), 1, "result keys: %d, expected 1", len(xe.Results()))
 }
 
 func TestPGPKeyGenNoPush(t *testing.T) {
@@ -80,7 +79,7 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	xarg := keybase1.PGPExportArg{
@@ -91,9 +90,7 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 	}
 	xe := NewPGPKeyExportEngine(tc.G, xarg)
 	if err := RunEngine2(m, xe); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
-	if len(xe.Results()) != 1 {
-		t.Errorf("result keys: %d, expected 1", len(xe.Results()))
-	}
+	require.Len(t, xe.Results(), 1, "result keys: %d, expected 1", len(xe.Results()))
 }

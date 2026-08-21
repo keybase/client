@@ -30,7 +30,7 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	// Now provision it with regular device keys, and no PGP key.
 	fu.LoginOrBust(resetUserTC)
 	if err := AssertProvisioned(resetUserTC); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	arg := libkb.NewLoadUserByNameArg(tc.G, fu.Username)
@@ -40,52 +40,36 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	exported, err := u.ExportToUPKV2AllIncarnations()
 	require.NoError(t, err)
 
-	if len(exported.PastIncarnations) != 1 {
-		t.Fatalf("Expected exactly 1 past incarnation, found %d", len(exported.PastIncarnations))
-	}
+	require.Len(t, exported.PastIncarnations, 1, "Expected exactly 1 past incarnation, found %d", len(exported.PastIncarnations))
 
 	current := exported.Current
 	past := exported.PastIncarnations[0]
 
 	// Check that the current user has device keys and no PGP key.
-	if len(current.PGPKeys) != 0 {
-		t.Fatalf("Expected exactly 0 PGP keys in the current incarnation, found %d", len(current.PGPKeys))
-	}
-	if len(current.DeviceKeys) != 2 {
-		t.Fatalf("Expected exactly 2 device keys in the current incarnation, found %d", len(current.DeviceKeys))
-	}
+	require.Empty(t, current.PGPKeys, "Expected exactly 0 PGP keys in the current incarnation, found %d", len(current.PGPKeys))
+	require.Len(t, current.DeviceKeys, 2, "Expected exactly 2 device keys in the current incarnation, found %d", len(current.DeviceKeys))
 
 	// Check that the past version of the user has a PGP key but no device keys.
-	if len(past.PGPKeys) != 1 {
-		t.Fatalf("Expected exactly 1 PGP key in the past incarnation, found %d", len(past.PGPKeys))
-	}
-	if len(past.DeviceKeys) != 0 {
-		t.Fatalf("Expected exactly 0 device keys in the past incarnation, found %d", len(past.DeviceKeys))
-	}
+	require.Len(t, past.PGPKeys, 1, "Expected exactly 1 PGP key in the past incarnation, found %d", len(past.PGPKeys))
+	require.Empty(t, past.DeviceKeys, "Expected exactly 0 device keys in the past incarnation, found %d", len(past.DeviceKeys))
 
 	// Make sure the timestamps on keys are exported properly.
 	for _, key := range current.DeviceKeys {
 		userKeyInfo := u.GetComputedKeyInfos().Infos[key.Base.Kid]
 		t1 := keybase1.FromTime(key.Base.CTime)
 		t2 := time.Unix(userKeyInfo.CTime, 0)
-		if !t1.Equal(t2) {
-			t.Fatalf("exported key ctime is not equal: %s != %s", t1, t2)
-		}
+		require.True(t, t1.Equal(t2),
+			"exported key ctime is not equal: %s != %s", t1, t2)
 	}
 
 	// Make sure all the chain links made it into the link IDs list.
-	if len(exported.SeqnoLinkIDs) != int(u.GetSigChainLastKnownSeqno()) {
-		t.Fatalf("expected SeqnoLinkIDs to be len %d but found %d", u.GetSigChainLastKnownSeqno(), len(exported.SeqnoLinkIDs))
-	}
+	require.Len(t, exported.SeqnoLinkIDs, int(u.GetSigChainLastKnownSeqno()), "expected SeqnoLinkIDs to be len %d but found %d", u.GetSigChainLastKnownSeqno(), len(exported.SeqnoLinkIDs))
 	// Make sure all seqnos are present.
 	for seqno := 1; seqno <= len(exported.SeqnoLinkIDs); seqno++ {
 		linkID, ok := exported.SeqnoLinkIDs[keybase1.Seqno(seqno)]
-		if !ok {
-			t.Fatalf("seqno %d missing from link IDs map", seqno)
-		}
-		if len(linkID) == 0 {
-			t.Fatalf("found empty LinkID at seqno %d, that's pretty weird", seqno)
-		}
+		require.True(t, ok,
+			"seqno %d missing from link IDs map", seqno)
+		require.NotEmpty(t, linkID, "found empty LinkID at seqno %d, that's pretty weird", seqno)
 	}
 
 	// Make sure the eldest key has delegation info populated correctly.
@@ -94,22 +78,20 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 		if !key.Base.IsEldest {
 			continue
 		}
-		if foundEldest {
-			t.Fatal("found a second eldest key?!")
-		}
+		require.False(t, foundEldest,
+			"found a second eldest key?!")
 		foundEldest = true
-		if key.Base.Provisioning.Time.IsZero() {
-			t.Fatal("eldest key provisioning info appears uninitialized")
-		}
+		require.False(t, key.Base.Provisioning.Time.IsZero(),
+			"eldest key provisioning info appears uninitialized")
 	}
 
 	require.Nil(t, current.Reset)
 	reset := past.Reset
 	require.NotNil(t, reset)
 	require.Equal(t, reset.ResetSeqno, keybase1.Seqno(1))
-	require.True(t, reset.Ctime > keybase1.UnixTime(1419826703))
-	require.True(t, reset.MerkleRoot.Seqno > keybase1.Seqno(0))
-	require.Equal(t, reset.Type, keybase1.ResetType_RESET)
+	require.Greater(t, reset.Ctime, keybase1.UnixTime(1419826703))
+	require.Greater(t, reset.MerkleRoot.Seqno, keybase1.Seqno(0))
+	require.Equal(t, keybase1.ResetType_RESET, reset.Type)
 	require.Equal(t, reset.EldestSeqno, keybase1.Seqno(1))
 
 	// Test libkb.FindNextMerkleRootAfterReset --- in this case, the next merkle root
@@ -123,12 +105,12 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	res, err := libkb.FindNextMerkleRootAfterReset(m, fnmrArg)
 	require.NoError(t, err)
 	require.NotNil(t, res.Res)
-	require.True(t, res.Res.Seqno > reset.MerkleRoot.Seqno)
+	require.Greater(t, res.Res.Seqno, reset.MerkleRoot.Seqno)
 
 	// While we're here, also check that UPK v1 has the right reset summaries.
 	upk1, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, fu.UID(), keybase1.KID(""))
 	require.NoError(t, err)
-	require.Equal(t, len(upk1.Resets), 1)
+	require.Len(t, upk1.Resets, 1)
 	require.Equal(t, upk1.Resets[0].EldestSeqno, keybase1.Seqno(1))
-	require.Equal(t, upk1.Resets[0].Type, keybase1.ResetType_RESET)
+	require.Equal(t, keybase1.ResetType_RESET, upk1.Resets[0].Type)
 }

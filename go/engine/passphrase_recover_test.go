@@ -42,7 +42,7 @@ func TestPassphraseRecoverLoggedIn(t *testing.T) {
 		// are logged in.
 		err := NewPassphraseRecover(tc.G, arg).Run(m)
 		require.Error(t, err)
-		require.IsType(t, err, libkb.LoggedInError{})
+		require.ErrorAs(t, err, new(libkb.LoggedInError))
 	}
 }
 
@@ -108,12 +108,12 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	arg.Username = u.Username
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
-	require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
+	require.NoError(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
 
 	arg.Username = u2.Username
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
-	require.Nil(t, assertAutoreset(tc, u2.UID(), libkb.AutoresetEventStart))
+	require.NoError(t, assertAutoreset(tc, u2.UID(), libkb.AutoresetEventStart))
 }
 
 func TestPassphraseRecoverPGPOnly(t *testing.T) {
@@ -144,7 +144,7 @@ func TestPassphraseRecoverPGPOnly(t *testing.T) {
 	require.Nil(t, loginUI.lastExplain)
 
 	// Should be pending verification
-	require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
+	require.NoError(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
 }
 
 func TestPassphraseRecoverNoDevices(t *testing.T) {
@@ -175,7 +175,7 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 	require.Nil(t, loginUI.lastExplain)
 
 	// Should not be in the reset queue
-	require.Nil(t, assertAutoreset(tc, libkb.UsernameToUID(username), -1))
+	require.NoError(t, assertAutoreset(tc, libkb.UsernameToUID(username), -1))
 }
 
 func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
@@ -251,7 +251,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	}
 	require.Error(t, AssertLoggedIn(tc1))
 	require.Error(t, AssertProvisioned(tc1))
-	require.Nil(t, assertAutoreset(tc1, u3.UID(), -1))
+	require.NoError(t, assertAutoreset(tc1, u3.UID(), -1))
 }
 
 type TestSecretUIRecover struct {

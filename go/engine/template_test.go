@@ -8,7 +8,11 @@
 
 package engine
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestTemplate(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
@@ -17,6 +21,6 @@ func TestTemplate(t *testing.T) {
 	ctx := &Context{}
 	eng := NewTemplate(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }

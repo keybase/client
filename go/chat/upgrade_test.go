@@ -115,7 +115,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		ForceFullReload: true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(iteam.KBFSTLFIDs()))
+	require.Len(t, iteam.KBFSTLFIDs(), 2)
 	globals.CtxKeyFinder(ctx, tc.Context()).Reset()
 	checkUnbox()
 }
@@ -155,5 +155,5 @@ func TestChatKBFSUpgradeBadteam(t *testing.T) {
 	_, err = loader.loadTeam(context.TODO(), chat1.TLFID(tlfID.ToBytes()), conv.TlfName,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE, false, nil)
 	require.Error(t, err)
-	require.IsType(t, ImpteamBadteamError{}, err)
+	require.ErrorAs(t, err, new(ImpteamBadteamError))
 }

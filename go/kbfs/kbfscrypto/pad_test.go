@@ -70,6 +70,6 @@ func TestBlockPadMinimum(t *testing.T) {
 		require.NoError(t, err)
 		padded, err := PadBlock(b)
 		require.NoError(t, err)
-		require.Equal(t, 260, len(padded))
+		require.Len(t, padded, 260)
 	}
 }

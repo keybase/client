@@ -54,9 +54,8 @@ func favTestInit(t *testing.T, testingDiskCache bool) (
 func favTestShutdown(t *testing.T, mockCtrl *gomock.Controller,
 	config *ConfigMock, f *Favorites,
 ) {
-	if err := f.Shutdown(); err != nil {
-		t.Errorf("Couldn't shut down favorites: %v", err)
-	}
+	err := f.Shutdown()
+	require.NoError(t, err, "Couldn't shut down favorites: %v", err)
 	config.ctr.CheckForFailures()
 	mockCtrl.Finish()
 }
@@ -83,12 +82,14 @@ func TestFavoritesAddTwice(t *testing.T) {
 			FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav1)},
 		}, nil)
 	if err := f.Add(ctx, fav1); err != nil {
-		t.Fatalf("Couldn't add favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't add favorite: %v", err)
 	}
 
 	// A second add shouldn't result in a KBPKI call
 	if err := f.Add(ctx, fav1); err != nil {
-		t.Fatalf("Couldn't re-add same favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't re-add same favorite: %v", err)
 	}
 }
 
@@ -116,7 +117,8 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 		FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav1)},
 	}, nil)
 	if err := f.Add(ctx, fav1); err != nil {
-		t.Fatalf("Couldn't add favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't add favorite: %v", err)
 	}
 
 	fav2 := favorites.ToAdd{
@@ -137,7 +139,8 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 		FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav2)},
 	}, nil)
 	if err := f.Add(ctx, fav2); err != nil {
-		t.Fatalf("Couldn't add favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't add favorite: %v", err)
 	}
 }
 
@@ -165,7 +168,8 @@ func TestFavoritesAddCreated(t *testing.T) {
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), expected).
 		Return(nil)
 	if err := f.Add(ctx, fav1); err != nil {
-		t.Fatalf("Couldn't add favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't add favorite: %v", err)
 	}
 }
 
@@ -190,13 +194,15 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 		FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav1)},
 	}, nil)
 	if err := f.Add(ctx, fav1); err != nil {
-		t.Fatalf("Couldn't add favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't add favorite: %v", err)
 	}
 
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), fav1.ToKBFolderHandle()).
 		Return(nil)
 	if err := f.Delete(ctx, fav1.Folder); err != nil {
-		t.Fatalf("Couldn't delete favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't delete favorite: %v", err)
 	}
 
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolderHandle()).
@@ -206,7 +212,8 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 	}, nil)
 	config.mockKbfs.EXPECT().RefreshEditHistory(gomock.Any()).Return()
 	if err := f.Add(ctx, fav1); err != nil {
-		t.Fatalf("Couldn't re-add same favorite: %v", err)
+		require.NoError(t, err,
+			"Couldn't re-add same favorite: %v", err)
 	}
 }
 
@@ -270,7 +277,8 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 	f.AddAsync(ctx, fav1) // this will fail
 	// Wait so the next one doesn't get batched together with this one
 	if err := f.wg.Wait(context.Background()); err != nil {
-		t.Fatalf("Couldn't wait on favorites: %v", err)
+		require.NoError(t, err,
+			"Couldn't wait on favorites: %v", err)
 	}
 
 	// Now make sure the second time around, the favorites get listed
@@ -489,7 +497,7 @@ func TestFavoritesDiskCache(t *testing.T) {
 	// There should be three favorites total, including the home TLFs.
 	faves, err := f.Get(ctx)
 	require.NoError(t, err)
-	require.Equal(t, len(faves), 3)
+	require.Len(t, faves, 3)
 	require.Contains(t, faves, fav1)
 
 	// This line not deferred because we need to swap out Favorites instances

@@ -45,26 +45,18 @@ func TestTeamInviteRooter(t *testing.T) {
 
 	// the team should have user 1 in it now as a writer
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(writers) != 1 {
-		t.Fatalf("num writers: %d, expected 1", len(writers))
-	}
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.NoError(t, err)
+	require.Len(t, writers, 1, "num writers: %d, expected 1", len(writers))
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(tt.users[1].username), "rooter")
 	require.NoError(t, err)
 	require.False(t, exists)
 	require.Equal(t, 0, t0.NumActiveInvites())
-	require.Equal(t, 0, len(t0.GetActiveAndObsoleteInvites()))
+	require.Empty(t, t0.GetActiveAndObsoleteInvites())
 }
 
 func TestTeamInviteGenericSocial(t *testing.T) {
@@ -94,26 +86,18 @@ func TestTeamInviteGenericSocial(t *testing.T) {
 
 	// the team should have user 1 in it now as a writer
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(writers) != 1 {
-		t.Fatalf("num writers: %d, expected 1", len(writers))
-	}
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.NoError(t, err)
+	require.Len(t, writers, 1, "num writers: %d, expected 1", len(writers))
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(tt.users[1].username), "gubble.social")
 	require.NoError(t, err)
 	require.False(t, exists)
 	require.Equal(t, 0, t0.NumActiveInvites())
-	require.Equal(t, 0, len(t0.GetActiveAndObsoleteInvites()))
+	require.Empty(t, t0.GetActiveAndObsoleteInvites())
 }
 
 func TestTeamInviteEmail(t *testing.T) {
@@ -147,28 +131,16 @@ func TestTeamInviteEmail(t *testing.T) {
 
 	// the team should have user 1 in it now as a writer
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(writers) != 1 {
-		t.Fatalf("num writers: %d, expected 1", len(writers))
-	}
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.NoError(t, err)
+	require.Len(t, writers, 1, "num writers: %d, expected 1", len(writers))
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(email), "email")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if exists {
-		t.Error("after accepting invite, active invite still exists")
-	}
+	require.NoError(t, err)
+	require.False(t, exists, "after accepting invite, active invite still exists")
 }
 
 func TestTeamInviteAcceptOrRequest(t *testing.T) {
@@ -183,7 +155,7 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 
 	// user 1 requests access
 	ret := tt.users[1].acceptInviteOrRequestAccess(teamName.String())
-	require.EqualValues(t, ret, keybase1.TeamAcceptOrRequestResult{WasTeamName: true})
+	require.Equal(t, keybase1.TeamAcceptOrRequestResult{WasTeamName: true}, ret)
 
 	// user 0 adds a user by email
 	email := tt.users[1].username + "@keybase.io"
@@ -196,7 +168,7 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	// user 1 accepts the invitation
 	tt.users[1].kickTeamRekeyd()
 	ret = tt.users[1].acceptInviteOrRequestAccess(tokens[0])
-	require.EqualValues(t, ret, keybase1.TeamAcceptOrRequestResult{WasToken: true})
+	require.Equal(t, keybase1.TeamAcceptOrRequestResult{WasToken: true}, ret)
 
 	// user 0 should get gregor notification that the team changed
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
@@ -210,9 +182,7 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 	require.Len(t, writers, 1)
-	if !writers[0].Uid.Equal(tt.users[1].uid) {
-		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
-	}
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
 }
 
 // bob resets and added to team with no keys, logs in and invite should
@@ -332,7 +302,7 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 
 	// Bob should have become an admin, because the second invitations
 	// should have been used, not the first one.
-	require.Equal(t, len(details.Members.Admins), 1)
+	require.Len(t, details.Members.Admins, 1)
 	require.Equal(t, details.Members.Admins[0].Username, bob.username)
 }
 
@@ -537,7 +507,7 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	tracer.Stage("assertions")
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
-	require.Equal(t, len(writers), 1)
+	require.Len(t, writers, 1)
 	require.True(t, writers[0].Uid.Equal(bob.uid))
 
 	hasInv, err := t0.HasActiveInvite(ann.tc.MetaContext(), keybase1.TeamInviteName(bob.username), "rooter")
@@ -604,7 +574,7 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 
 	// ...but one in "all invites".
 	allInvites := teamObj.GetActiveAndObsoleteInvites()
-	require.Equal(t, 1, len(allInvites))
+	require.Len(t, allInvites, 1)
 
 	var invite keybase1.TeamInvite
 	for _, invite = range allInvites {
@@ -628,7 +598,7 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 
 	err = teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	teamObj, err = teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
 		Name:        team,
@@ -706,7 +676,7 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 	// SBS handler should have canceled the invite after discovering roo is
 	// already a member with higher role.
 	teamObj := own.loadTeamByID(teamID, true /* admin */)
-	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+	require.Empty(t, teamObj.GetActiveAndObsoleteInvites())
 	role, err := teamObj.MemberRole(context.Background(), roo.userVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_ADMIN, role)
@@ -758,7 +728,7 @@ func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
 
 	teamObj := own.loadTeamByID(teamID, true /* admin */)
 	// 0 total invites: rooter invite was completed, and keybase invite was sweeped
-	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+	require.Empty(t, teamObj.GetActiveAndObsoleteInvites())
 	role, err := teamObj.MemberRole(context.Background(), roo.userVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_ADMIN, role)
@@ -834,13 +804,13 @@ func TestSBSInviteReuse(t *testing.T) {
 
 	// Invite should have been completed.
 	teamObj = ann.loadTeamByID(teamID, true /* admin */)
-	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+	require.Empty(t, teamObj.GetActiveAndObsoleteInvites())
 
 	// Try to send the same message but with different UID.
 	sbsMsg.Invitees[0].Uid = joe.uid
 	err = teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 	require.Contains(t, err.Error(), "Invite not found")
 }
 
@@ -901,7 +871,7 @@ func proveGubbleUniverse(tc *libkb.TestContext, serviceName, endpoint string, us
 		var proofs []keybase1.ParamProofJSON
 		err = objects[0].UnmarshalAgain(&proofs)
 		require.NoError(tc.T, err)
-		require.True(tc.T, len(proofs) >= 1)
+		require.GreaterOrEqual(tc.T, len(proofs), 1)
 		for _, proof := range proofs {
 			if proof.KbUsername == username && sigID.Eq(proof.SigHash) {
 				return nil

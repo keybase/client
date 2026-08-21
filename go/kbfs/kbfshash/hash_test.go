@@ -25,7 +25,7 @@ func TestHashEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	require.Equal(t, DefaultHashByteLength+overhead, len(encodedH))
+	require.Len(t, encodedH, DefaultHashByteLength+overhead)
 
 	var h2 Hash
 	err = codec.Decode(encodedH, &h2)
@@ -109,7 +109,7 @@ func TestHashVerify(t *testing.T) {
 	copy(corruptData, data)
 	corruptData[0] ^= 1
 	err = validH.Verify(corruptData)
-	require.IsType(t, HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(HashMismatchError))
 
 	invalidH := hashFromRawNoCheck(InvalidHash, validH.hashData())
 	err = invalidH.Verify(data)
@@ -129,7 +129,7 @@ func TestHashVerify(t *testing.T) {
 	hashData[0] ^= 1
 	corruptH := hashFromRawNoCheck(validH.hashType(), hashData)
 	err = corruptH.Verify(data)
-	require.IsType(t, HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(HashMismatchError))
 }
 
 // Make sure HMAC encodes and decodes properly with minimal overhead.
@@ -145,7 +145,7 @@ func TestHMACEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	require.Equal(t, DefaultHashByteLength+overhead, len(encodedHMAC))
+	require.Len(t, encodedHMAC, DefaultHashByteLength+overhead)
 
 	var hmac2 HMAC
 	err = codec.Decode(encodedHMAC, &hmac2)
@@ -208,13 +208,13 @@ func TestVerify(t *testing.T) {
 	copy(corruptKey, key)
 	corruptKey[0] ^= 1
 	err = validHMAC.Verify(corruptKey, data)
-	require.IsType(t, HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(HashMismatchError))
 
 	corruptData := make([]byte, len(data))
 	copy(corruptData, data)
 	corruptData[0] ^= 1
 	err = validHMAC.Verify(key, corruptData)
-	require.IsType(t, HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(HashMismatchError))
 
 	invalidHMAC := hmacFromRawNoCheck(InvalidHash, validHMAC.hashData())
 	err = invalidHMAC.Verify(key, data)
@@ -229,5 +229,5 @@ func TestVerify(t *testing.T) {
 	hashData[0] ^= 1
 	corruptHMAC := hmacFromRawNoCheck(validHMAC.hashType(), hashData)
 	err = corruptHMAC.Verify(key, data)
-	require.IsType(t, HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(HashMismatchError))
 }

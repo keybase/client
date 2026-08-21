@@ -59,7 +59,7 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 	err = u.Login(tc.G)
 	require.NoError(t, err)
 	if err = kbtest.AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	teamName := u.Username + "T"
@@ -193,5 +193,5 @@ func TestCreateImplicitTeam(t *testing.T) {
 	sort.Sort(keybase1.ByUserVersionID(members.Owners))
 	require.Equal(t, members.Owners, uvs)
 	chainInvites := team.chain().ActiveInvites()
-	require.Equal(t, 2, len(chainInvites))
+	require.Len(t, chainInvites, 2)
 }

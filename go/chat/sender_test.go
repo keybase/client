@@ -229,9 +229,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	} else {
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
-		if err != nil {
-			t.Fatalf("%s", err.Error())
-		}
+		require.NoError(t, err)
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
@@ -369,7 +367,7 @@ func TestNonblockChannel(t *testing.T) {
 		require.Fail(t, "event not received")
 	}
 
-	require.Equal(t, 1, len(listener.obidsRemote), "wrong length")
+	require.Len(t, listener.obidsRemote, 1, "wrong length")
 	require.Equal(t, obid, listener.obidsRemote[0], "wrong obid")
 }
 
@@ -379,7 +377,7 @@ type sentRecord struct {
 }
 
 func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
-	require.Equal(t, len(ref), len(thread.Messages), "size not equal")
+	require.Len(t, thread.Messages, len(ref), "size not equal")
 	for index, msg := range thread.Messages {
 		rindex := len(ref) - index - 1
 		t.Logf("checking index: %d rindex: %d", index, rindex)
@@ -565,7 +563,7 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
 }
 
 func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxRecord) {
-	require.Equal(t, len(obids), len(obrs), "wrong length")
+	require.Len(t, obrs, len(obids), "wrong length")
 	for i := range obids {
 		require.Equal(t, obids[i], obrs[i].OutboxID)
 	}
@@ -624,7 +622,7 @@ func TestFailingSender(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, len(obids), len(recvd), "invalid length")
+	require.Len(t, recvd, len(obids), "invalid length")
 	recordCompare(t, obids, recvd)
 	state, err := recvd[0].State.State()
 	require.NoError(t, err)
@@ -782,7 +780,7 @@ func TestDisconnectedFailure(t *testing.T) {
 		break
 	}
 
-	require.Equal(t, len(obids), len(allrecvd), "invalid length")
+	require.Len(t, allrecvd, len(obids), "invalid length")
 	recordCompare(t, obids, allrecvd)
 
 	t.Logf("reconnecting and checking for successes")
@@ -810,7 +808,7 @@ func TestDisconnectedFailure(t *testing.T) {
 		}
 		break
 	}
-	require.Equal(t, len(obids), len(listener.obidsRemote), "wrong amount of successes")
+	require.Len(t, listener.obidsRemote, len(obids), "wrong amount of successes")
 	sort.Slice(obids, func(i, j int) bool {
 		return j < i
 	})
@@ -887,18 +885,13 @@ func TestDeletionHeaders(t *testing.T) {
 	for _, id := range preparedDeletion.ClientHeader.Deletes {
 		deletedIDs[id] = true
 	}
-	if len(deletedIDs) != 3 {
-		t.Fatalf("expected 3 deleted IDs, found %d", len(deletedIDs))
-	}
-	if !deletedIDs[firstMessageID] {
-		t.Fatalf("expected message #%d to be deleted", firstMessageID)
-	}
-	if !deletedIDs[editID] {
-		t.Fatalf("expected message #%d to be deleted", editID)
-	}
-	if !deletedIDs[editID2] {
-		t.Fatalf("expected message #%d to be deleted", editID2)
-	}
+	require.Len(t, deletedIDs, 3, "expected 3 deleted IDs, found %d", len(deletedIDs))
+	require.True(t, deletedIDs[firstMessageID],
+		"expected message #%d to be deleted", firstMessageID)
+	require.True(t, deletedIDs[editID],
+		"expected message #%d to be deleted", editID)
+	require.True(t, deletedIDs[editID2],
+		"expected message #%d to be deleted", editID2)
 }
 
 func TestAtMentionsText(t *testing.T) {
@@ -950,7 +943,7 @@ func TestAtMentionsText(t *testing.T) {
 	require.NoError(t, err)
 	atMentions = prepareRes.AtMentions
 	chanMention = prepareRes.ChannelMention
-	require.Zero(t, len(atMentions))
+	require.Empty(t, atMentions)
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
 
@@ -1024,7 +1017,7 @@ func TestAtMentionsEdit(t *testing.T) {
 	require.NoError(t, err)
 	atMentions = prepareRes.AtMentions
 	chanMention = prepareRes.ChannelMention
-	require.Zero(t, len(atMentions))
+	require.Empty(t, atMentions)
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
 
@@ -1290,7 +1283,7 @@ func TestDeletionAssets(t *testing.T) {
 	require.NoError(t, err)
 	edit3ID := edit3Boxed.GetMessageID()
 
-	require.Equal(t, len(doomedAssets), 10, "wrong number of assets created")
+	require.Len(t, doomedAssets, 10, "wrong number of assets created")
 
 	// Now prepare a deletion.
 	deletion := chat1.MessagePlaintext{
@@ -1310,34 +1303,28 @@ func TestDeletionAssets(t *testing.T) {
 	pendingAssetDeletes := prepareRes.PendingAssetDeletes
 
 	assertAssetSetsEqual(t, pendingAssetDeletes, doomedAssets)
-	require.Equal(t, len(doomedAssets), len(pendingAssetDeletes), "wrong number of assets pending deletion")
+	require.Len(t, pendingAssetDeletes, len(doomedAssets), "wrong number of assets pending deletion")
 
 	// Assert that the deletion gets the MessageAttachmentUploaded's too.
 	deletedIDs := map[chat1.MessageID]bool{}
 	for _, id := range preparedDeletion.ClientHeader.Deletes {
 		deletedIDs[id] = true
 	}
-	if len(deletedIDs) != 4 {
-		t.Fatalf("expected 4 deleted IDs, found %d", len(deletedIDs))
-	}
-	if !deletedIDs[firstMessageID] {
-		t.Fatalf("expected message #%d to be deleted", firstMessageID)
-	}
-	if !deletedIDs[edit1ID] {
-		t.Fatalf("expected message #%d to be deleted", edit1ID)
-	}
-	if !deletedIDs[edit2ID] {
-		t.Fatalf("expected message #%d to be deleted", edit2ID)
-	}
-	if !deletedIDs[edit3ID] {
-		t.Fatalf("expected message #%d to be deleted", edit3ID)
-	}
+	require.Len(t, deletedIDs, 4, "expected 4 deleted IDs, found %d", len(deletedIDs))
+	require.True(t, deletedIDs[firstMessageID],
+		"expected message #%d to be deleted", firstMessageID)
+	require.True(t, deletedIDs[edit1ID],
+		"expected message #%d to be deleted", edit1ID)
+	require.True(t, deletedIDs[edit2ID],
+		"expected message #%d to be deleted", edit2ID)
+	require.True(t, deletedIDs[edit3ID],
+		"expected message #%d to be deleted", edit3ID)
 }
 
 func assertAssetSetsEqual(t *testing.T, got []chat1.Asset, expected []chat1.Asset) {
 	if !compareAssetLists(t, got, expected, false) {
 		compareAssetLists(t, got, expected, true)
-		t.Fatalf("asset lists not equal")
+		require.FailNow(t, "asset lists not equal")
 	}
 }
 
@@ -1454,8 +1441,8 @@ func TestPairwiseMACChecker(t *testing.T) {
 			ConversationID: conv.Id, MessageBoxed: boxed,
 		})
 		require.Error(t, err)
-		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
-		merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
+		var merr libkb.EphemeralPairwiseMACsMissingUIDsError
+		require.ErrorAs(t, err, &merr)
 		require.Equal(t, []keybase1.UID{uid2}, merr.UIDs)
 
 		// Bogus recipients, both uids are missing
@@ -1468,8 +1455,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 			MessageBoxed:   boxed,
 		})
 		require.Error(t, err)
-		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
-		merr = err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
+		require.ErrorAs(t, err, &merr)
 		sortUIDs := func(uids []keybase1.UID) { slices.Sort(uids) }
 		expectedUIDs := []keybase1.UID{uid1, uid2}
 		sortUIDs(expectedUIDs)
@@ -1750,5 +1736,5 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 	deletes = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_DELETE}}, false)
 	require.Len(t, deletes, 3)
 	reactions = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_REACTION}}, false)
-	require.Len(t, reactions, 0)
+	require.Empty(t, reactions)
 }

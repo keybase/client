@@ -20,7 +20,7 @@ import (
 func randBytes(t *testing.T, n int) []byte {
 	buf := make([]byte, n)
 	if _, err := rand.Read(buf); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	return buf
 }
@@ -53,7 +53,7 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 	ibox := storage.NewInbox(tc.Context())
 	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
-		require.IsType(t, storage.MissError{}, err)
+		require.ErrorAs(t, err, new(storage.MissError))
 		vers = 0
 	}
 	newVers := iboxXform(vers)
@@ -123,7 +123,7 @@ func TestPushOrdering(t *testing.T) {
 		require.Fail(t, "no notification received")
 	}
 	handler.orderer.Lock()
-	require.Zero(t, len(handler.orderer.waiters))
+	require.Empty(t, handler.orderer.waiters)
 	handler.orderer.Unlock()
 
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
@@ -148,7 +148,7 @@ func TestPushOrdering(t *testing.T) {
 		require.Fail(t, "no notification received")
 	}
 	handler.orderer.Lock()
-	require.Zero(t, len(handler.orderer.waiters))
+	require.Empty(t, handler.orderer.waiters)
 	handler.orderer.Unlock()
 }
 
@@ -221,9 +221,9 @@ func TestPushTyping(t *testing.T) {
 	confirmTyping := func(list *chatListener) {
 		select {
 		case updates := <-list.typingUpdate:
-			require.Equal(t, 1, len(updates))
+			require.Len(t, updates, 1)
 			require.Equal(t, conv.GetConvID(), updates[0].ConvID)
-			require.Equal(t, 1, len(updates[0].Typers))
+			require.Len(t, updates[0].Typers, 1)
 			require.Equal(t, uid, updates[0].Typers[0].Uid.ToBytes())
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no typing notification")
@@ -233,9 +233,9 @@ func TestPushTyping(t *testing.T) {
 	confirmNotTyping := func(list *chatListener) {
 		select {
 		case updates := <-list.typingUpdate:
-			require.Equal(t, 1, len(updates))
+			require.Len(t, updates, 1)
 			require.Equal(t, conv.GetConvID(), updates[0].ConvID)
-			require.Zero(t, len(updates[0].Typers))
+			require.Empty(t, updates[0].Typers)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "no typing notification")
 		}
@@ -284,5 +284,5 @@ func TestPushTyping(t *testing.T) {
 	world.Fc.Advance(40 * time.Second)
 	confirmNotTyping(list)
 
-	require.Zero(t, len(handler.typingMonitor.typers))
+	require.Empty(t, handler.typingMonitor.typers)
 }

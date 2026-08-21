@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPGPEncrypt(t *testing.T) {
@@ -36,13 +37,11 @@ func TestPGPEncrypt(t *testing.T) {
 	eng := NewPGPEncrypt(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	out := sink.Bytes()
-	if len(out) == 0 {
-		t.Fatal("no output")
-	}
+	require.NotEmpty(t, out, "no output")
 }
 
 func TestPGPEncryptNoPGPNaClOnly(t *testing.T) {
@@ -73,11 +72,13 @@ func TestPGPEncryptNoPGPNaClOnly(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	if perr, ok := err.(libkb.NoPGPEncryptionKeyError); !ok {
-		t.Fatalf("Got wrong error type: %T %v", err, err)
+		require.True(t, ok,
+			"Got wrong error type: %T %v", err, err)
 	} else if !perr.HasKeybaseEncryptionKey {
-		t.Fatalf("Should have a keybase encryption key")
+		require.True(t, perr.HasKeybaseEncryptionKey,
+			"Should have a keybase encryption key")
 	} else if perr.User != u1.Username {
-		t.Fatalf("Wrong username")
+		require.FailNow(t, "Wrong username")
 	}
 }
 
@@ -106,11 +107,11 @@ func TestPGPEncryptSelfNoKey(t *testing.T) {
 	eng := NewPGPEncrypt(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("no error encrypting for self without pgp key")
-	}
+	require.Error(t, err,
+		"no error encrypting for self without pgp key")
 	if _, ok := err.(libkb.NoKeyError); !ok {
-		t.Fatalf("expected error type libkb.NoKeyError, got %T (%s)", err, err)
+		require.True(t, ok,
+			"expected error type libkb.NoKeyError, got %T (%s)", err, err)
 	}
 }
 
@@ -139,13 +140,11 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 	eng := NewPGPEncrypt(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	out := sink.Bytes()
-	if len(out) == 0 {
-		t.Fatal("no output")
-	}
+	require.NotEmpty(t, out, "no output")
 
 	assertNotTracking(tc, "t_alice")
 	assertNotTracking(tc, "t_bob")
@@ -179,9 +178,7 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 	eng := NewPGPEncrypt(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	out := sink.Bytes()
 
 	// decrypt it
@@ -193,16 +190,14 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 	dec := NewPGPDecrypt(tc.G, decarg)
 	m = m.WithLogUI(tc.G.UI.GetLogUI()).WithPgpUI(&TestPgpUI{})
 	if err := RunEngine2(m, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg, "decoded: %q, expected: %q", decmsg, msg)
 
 	recips := dec.signStatus.RecipientKeyIDs
 	if len(recips) != 1 {
 		t.Logf("recipient key ids: %v", recips)
-		t.Errorf("num recipient key ids: %d, expected 1", len(recips))
+		require.Failf(t, "", "num recipient key ids: %d, expected 1", len(recips))
 	}
 }

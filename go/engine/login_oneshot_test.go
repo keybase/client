@@ -26,7 +26,7 @@ func TestLoginOneshot(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, s)
 	require.NoError(t, err)
-	require.True(t, len(loginUI.PaperPhrase) > 0)
+	require.NotEmpty(t, loginUI.PaperPhrase)
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 	assertSecretStored(tc, fu.Username)
@@ -57,7 +57,7 @@ func TestLoginOneshot(t *testing.T) {
 	m = m.WithUIs(uis)
 	err = RunEngine2(m, eng2)
 	require.NoError(t, err)
-	require.NotZero(t, len(eng2.Passphrase()))
+	require.NotEmpty(t, eng2.Passphrase())
 
 	testSign(t, tc2)
 	trackAlice(tc2, fu, 2)
@@ -87,7 +87,7 @@ func TestLoginOneshotNoLogout(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, s)
 	require.NoError(t, err)
-	require.True(t, len(loginUI.PaperPhrase) > 0)
+	require.NotEmpty(t, loginUI.PaperPhrase)
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 	assertSecretStored(tc, fu.Username)

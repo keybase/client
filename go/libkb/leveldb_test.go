@@ -289,11 +289,12 @@ func TestLevelDb(t *testing.T) {
 
 					select {
 					case <-time.After(8 * time.Second):
-						t.Errorf("timeout")
+						t.Error("timeout")
 					case chOpen <- struct{}{}:
 					}
 
-					if err = tr.Put(key, nil, []byte{41}); err != nil {
+					err = tr.Put(key, nil, []byte{41})
+					if err != nil {
 						t.Error(err)
 					}
 
@@ -304,7 +305,8 @@ func TestLevelDb(t *testing.T) {
 					// 2) If there exists, any broken OpenTransaction() implementation
 					//		that does not block until this transaction finishes, the broken
 					//		OpenTransaction() would have has returned
-					if err = doSomeIO(); err != nil {
+					err = doSomeIO()
+					if err != nil {
 						t.Error(err)
 					}
 
@@ -312,7 +314,8 @@ func TestLevelDb(t *testing.T) {
 					// the channel is ready to read right after the commit
 					chCommitted <- struct{}{}
 
-					if err = tr.Commit(); err != nil {
+					err = tr.Commit()
+					if err != nil {
 						t.Error(err)
 					}
 				}()
@@ -346,10 +349,12 @@ func TestLevelDb(t *testing.T) {
 						t.Errorf("key %v is not found", found)
 					}
 
-					if err = tr.Put(key, nil, []byte{d[0] + 1}); err != nil {
+					err = tr.Put(key, nil, []byte{d[0] + 1})
+					if err != nil {
 						t.Error(err)
 					}
-					if err = tr.Commit(); err != nil {
+					err = tr.Commit()
+					if err != nil {
 						t.Error(err)
 					}
 				}()

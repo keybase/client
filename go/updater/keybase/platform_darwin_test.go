@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -21,12 +20,12 @@ import (
 )
 
 func TestAppBundleForPath(t *testing.T) {
-	assert.Equal(t, "", appBundleForPath(""))
-	assert.Equal(t, "", appBundleForPath("foo"))
+	assert.Empty(t, appBundleForPath(""))
+	assert.Empty(t, appBundleForPath("foo"))
 	assert.Equal(t, "/Applications/Keybase.app", appBundleForPath("/Applications/Keybase.app"))
 	assert.Equal(t, "/Applications/Keybase.app", appBundleForPath("/Applications/Keybase.app/Contents/SharedSupport/bin/keybase"))
 	assert.Equal(t, "/Applications/Keybase.app", appBundleForPath("/Applications/Keybase.app/Contents/Resources/Foo.app/Contents/MacOS/Foo"))
-	assert.Equal(t, "", appBundleForPath("/Applications/Keybase.ap"))
+	assert.Empty(t, appBundleForPath("/Applications/Keybase.ap"))
 	assert.Equal(t, "/Applications/Keybase.app", appBundleForPath("/Applications/Keybase.app/"))
 }
 
@@ -48,7 +47,7 @@ func TestUpdatePrompt(t *testing.T) {
 	}
 	ctx := newContext(config, testLog)
 	resp, err := ctx.UpdatePrompt(testUpdate, testOptions, updater.UpdatePromptOptions{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 }
 
@@ -58,7 +57,7 @@ func TestOpenDarwin(t *testing.T) {
 	matcher := process.NewMatcher(appPath, process.PathPrefix, testLog)
 	defer process.TerminateAll(matcher, 200*time.Millisecond, testLog)
 	err := OpenAppDarwin(appPath, testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestOpenDarwinError(t *testing.T) {
@@ -66,16 +65,16 @@ func TestOpenDarwinError(t *testing.T) {
 	binErr := filepath.Join(filepath.Dir(filename), "../test/err.sh")
 	appPath := filepath.Join(filepath.Dir(filename), "../test/Test.app")
 	err := openAppDarwin(binErr, appPath, time.Millisecond, testLog)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestFindPIDsLaunchd(t *testing.T) {
 	procPath := "/sbin/launchd"
 	matcher := process.NewMatcher(procPath, process.PathEqual, testLog)
 	pids, err := process.FindPIDsWithMatchFn(matcher.Fn(), testLog)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Logf("Pids: %#v", pids)
-	require.True(t, len(pids) >= 1)
+	require.GreaterOrEqual(t, len(pids), 1)
 }
 
 func TestApplyNoAsset(t *testing.T) {
@@ -129,5 +128,5 @@ func TestStartReportError(t *testing.T) {
 	defer cleanupProc(appPath)
 
 	err := ctx.start(0, 0)
-	assert.True(t, strings.Contains(err.Error(), "There were multiple errors: No process found for Test.app/Contents/SharedSupport/bin/keybase; No process found for Test.app/Contents/SharedSupport/bin/kbfs"))
+	assert.Contains(t, err.Error(), "There were multiple errors: No process found for Test.app/Contents/SharedSupport/bin/keybase; No process found for Test.app/Contents/SharedSupport/bin/kbfs")
 }

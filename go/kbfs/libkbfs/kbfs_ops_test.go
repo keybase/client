@@ -189,9 +189,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		timeoutCtx, func(ctx context.Context) context.Context {
 			return context.WithValue(ctx, tCtxID, id)
 		}))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	initSuccess = true
 	return mockCtrl, config, ctx, cancel
@@ -258,14 +256,10 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 		timeoutCtx, func(c context.Context) context.Context {
 			return c
 		}))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	initSuccess = true
 	return config, session.UID, ctx, cancel
@@ -301,14 +295,11 @@ func checkBlockCache(
 	for _, id := range expectedCleanBlocks {
 		_, lifetime, err := bcache.GetWithLifetime(data.BlockPointer{ID: id})
 		if err != nil {
-			t.Errorf("BlockCache missing clean block %v at the end of the test",
-				id)
+			require.Failf(t, "", "BlockCache missing clean block %v at the end of the test", id)
 		}
 		require.Equal(t, data.TransientEntry, lifetime)
 	}
-	if bcache.NumCleanTransientBlocks() != len(expectedCleanBlocks) {
-		t.Errorf("BlockCache has extra clean blocks at end of test")
-	}
+	require.Equal(t, len(expectedCleanBlocks), bcache.NumCleanTransientBlocks(), "BlockCache has extra clean blocks at end of test")
 
 	// make sure the dirty cache consists of exactly the right set of
 	// dirty blocks
@@ -316,17 +307,15 @@ func checkBlockCache(
 	for ptr, branch := range expectedDirtyBlocks {
 		_, err := dirtyBcache.Get(ctx, id, ptr, branch)
 		if err != nil {
-			t.Errorf("BlockCache missing dirty block %v, branch %s at "+
+			require.Fail(t, "BlockCache missing dirty block %v, branch %s at "+
 				"the end of the test: err %+v", ptr, branch, err)
 		}
 		if !dirtyBcache.IsDirty(id, ptr, branch) {
-			t.Errorf("BlockCache has incorrectly clean block %v, branch %s at "+
+			require.Fail(t, "BlockCache has incorrectly clean block %v, branch %s at "+
 				"the end of the test: err %+v", ptr, branch, err)
 		}
 	}
-	if dirtyBcache.Size() != len(expectedDirtyBlocks) {
-		t.Errorf("BlockCache has extra dirty blocks at end of test")
-	}
+	require.Equal(t, len(expectedDirtyBlocks), dirtyBcache.Size(), "BlockCache has extra dirty blocks at end of test")
 }
 
 // parseTlfHandleOrBust parses the given TLF name, which must be
@@ -367,12 +356,8 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	handles = append(handles, handle3)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
-	if err != nil {
-		t.Errorf("Got error on favorites: %+v", err)
-	}
-	if len(handles2) != len(handles)-1 {
-		t.Errorf("Got bad handles back: %v", handles2)
-	}
+	require.NoError(t, err, "Got error on favorites: %+v", err)
+	require.Len(t, handles2, len(handles)-1, "Got bad handles back: %v", handles2)
 }
 
 func TestKBFSOpsGetFavoritesFail(t *testing.T) {
@@ -389,9 +374,8 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.
 		FavoritesResult{}, err)
 
-	if _, err2 := config.KBFSOps().GetFavorites(ctx); err2 != err {
-		t.Errorf("Got bad error on favorites: %+v", err2)
-	}
+	_, err2 := config.KBFSOps().GetFavorites(ctx)
+	require.Equal(t, err, err2, "Got bad error on favorites: %+v", err2)
 }
 
 // createNewRMD creates a new RMD for the given name. Returns its ID
@@ -483,7 +467,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 
 	p := ops.nodeCache.PathFromNode(n)
 	assert.Equal(t, id, p.Tlf)
-	require.Equal(t, 1, len(p.Path))
+	require.Len(t, p.Path, 1)
 	assert.Equal(t, rmd.data.Dir.ID, p.Path[0].ID)
 	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
 	assert.Equal(t, rmd.GetTlfHandle(), h)
@@ -512,7 +496,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 
 	p := ops.nodeCache.PathFromNode(n)
 	assert.Equal(t, id, p.Tlf)
-	require.Equal(t, 1, len(p.Path))
+	require.Len(t, p.Path, 1)
 	assert.Equal(t, rmd.data.Dir.ID, p.Path[0].ID)
 	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
 	assert.Equal(t, rmd.GetTlfHandle(), h)
@@ -657,7 +641,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, ty tlf.Type) {
 
 	p := ops.nodeCache.PathFromNode(n)
 	require.Equal(t, id, p.Tlf)
-	require.Equal(t, 1, len(p.Path))
+	require.Len(t, p.Path, 1)
 	require.Equal(t, rmd.data.Dir.ID, p.Path[0].ID)
 	require.Equal(t, rmd.data.Dir.EntryInfo, ei)
 	require.Equal(t, rmd.GetTlfHandle(), h)
@@ -703,19 +687,19 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	p := ops.nodeCache.PathFromNode(n)
 	switch {
 	case p.Tlf != id:
-		t.Errorf("Got bad dir id back: %v", p.Tlf)
+		require.Failf(t, "", "Got bad dir id back: %v", p.Tlf)
 	case len(p.Path) != 1:
-		t.Errorf("Got bad MD back: path size %d", len(p.Path))
+		require.Failf(t, "", "Got bad MD back: path size %d", len(p.Path))
 	case p.Path[0].ID != rmd.data.Dir.ID:
-		t.Errorf("Got bad MD back: root ID %v", p.Path[0].ID)
+		require.Failf(t, "", "Got bad MD back: root ID %v", p.Path[0].ID)
 	case ei.Type != data.Dir:
-		t.Error("Got bad MD non-dir rootID back")
+		require.Fail(t, "Got bad MD non-dir rootID back")
 	case ei.Size != 10:
-		t.Errorf("Got bad MD Size back: %d", ei.Size)
+		require.Failf(t, "", "Got bad MD Size back: %d", ei.Size)
 	case ei.Mtime != 1:
-		t.Errorf("Got bad MD MTime back: %d", ei.Mtime)
+		require.Failf(t, "", "Got bad MD MTime back: %d", ei.Mtime)
 	case ei.Ctime != 2:
-		t.Errorf("Got bad MD CTime back: %d", ei.Ctime)
+		require.Failf(t, "", "Got bad MD CTime back: %d", ei.Ctime)
 	}
 }
 
@@ -772,9 +756,7 @@ func nodeFromPath(t *testing.T, ops *folderBranchOps, p data.Path) Node {
 			pathNode.Name, prevNode,
 
 			data.Dir)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		prevNode = n
 	}
 	return prevNode
@@ -814,17 +796,12 @@ func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	children, err := config.KBFSOps().GetDirChildren(ctx, n)
-	if err != nil {
-		t.Errorf("Got error on getdir: %+v", err)
-	} else if len(children) != 1 {
-		t.Errorf("Got bad children back: %v", children)
-	}
+	require.NoError(t, err, "Got error on getdir: %+v", err)
+	require.Len(t, children, 1, "Got bad children back: %v", children)
 	for c, ei := range children {
-		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
-			t.Errorf("No such child: %s", c)
-		} else if !de.Eq(ei) {
-			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
-		}
+		de, ok := dirBlock.Children[c.Plaintext()]
+		require.True(t, ok, "No such child: %s", c)
+		require.True(t, de.Eq(ei), "Wrong EntryInfo for child %s: %v", c, ei)
 	}
 }
 
@@ -850,17 +827,12 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	children, err := config.KBFSOps().GetDirChildren(ctx, n)
-	if err != nil {
-		t.Errorf("Got error on getdir: %+v", err)
-	} else if len(children) != 2 {
-		t.Errorf("Got bad children back: %v", children)
-	}
+	require.NoError(t, err, "Got error on getdir: %+v", err)
+	require.Len(t, children, 2, "Got bad children back: %v", children)
 	for c, ei := range children {
-		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
-			t.Errorf("No such child: %s", c)
-		} else if !de.Eq(ei) {
-			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
-		}
+		de, ok := dirBlock.Children[c.Plaintext()]
+		require.True(t, ok, "No such child: %s", c)
+		require.True(t, de.Eq(ei), "Wrong EntryInfo for child %s: %v", c, ei)
 	}
 }
 
@@ -885,9 +857,8 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 	// cache miss means fetching metadata and getting read key
 	expectBlock(config, rmd, blockPtr, dirBlock, nil)
 
-	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err != nil {
-		t.Errorf("Got error on getdir: %+v", err)
-	}
+	_, err := config.KBFSOps().GetDirChildren(ctx, n)
+	require.NoError(t, err, "Got error on getdir: %+v", err)
 }
 
 func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
@@ -905,9 +876,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	require.NoError(t, err)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	rootID := kbfsblock.FakeID(42)
 	node := data.PathNode{
@@ -928,11 +897,9 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	expectedErr := tlfhandle.NewReadAccessError(
 		h, "alice", "/keybase/private/bob#alice")
 
-	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
-		t.Errorf("Got no expected error on getdir")
-	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on root MD: %+v", err)
-	}
+	_, err = config.KBFSOps().GetDirChildren(ctx, n)
+	require.Error(t, err, "Got no expected error on getdir")
+	require.Equal(t, expectedErr, err, "Got unexpected error on root MD: %+v", err)
 }
 
 func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
@@ -958,11 +925,9 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	err := data.NoSuchBlockError{ID: rootID}
 	expectBlock(config, rmd, blockPtr, dirBlock, err)
 
-	if _, err2 := config.KBFSOps().GetDirChildren(ctx, n); err2 == nil {
-		t.Errorf("Got no expected error on getdir")
-	} else if err2 != err {
-		t.Errorf("Got unexpected error on root MD: %+v", err)
-	}
+	_, err2 := config.KBFSOps().GetDirChildren(ctx, n)
+	require.Error(t, err2, "Got no expected error on getdir")
+	require.Equal(t, err, err2, "Got unexpected error on root MD: %+v", err)
 }
 
 func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
@@ -1001,18 +966,13 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, bNode.BlockPointer, id, dirBlock)
 
 	children, err := config.KBFSOps().GetDirChildren(ctx, n)
-	if err != nil {
-		t.Errorf("Got error on getdir: %+v", err)
-	} else if len(children) != 2 {
-		t.Errorf("Got bad children back: %v", children)
-	}
+	require.NoError(t, err, "Got error on getdir: %+v", err)
+	require.Len(t, children, 2, "Got bad children back: %v", children)
 
 	for c, ei := range children {
-		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
-			t.Errorf("No such child: %s", c)
-		} else if !de.Eq(ei) {
-			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
-		}
+		de, ok := dirBlock.Children[c.Plaintext()]
+		require.True(t, ok, "No such child: %s", c)
+		require.True(t, de.Eq(ei), "Wrong EntryInfo for child %s: %v", c, ei)
 	}
 }
 
@@ -1055,9 +1015,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, aNode.BlockPointer, id, dirBlock)
 
 	bn, ei, err := config.KBFSOps().Lookup(ctx, n, testPPS("b"))
-	if err != nil {
-		t.Errorf("Error on Lookup: %+v", err)
-	}
+	require.NoError(t, err, "Error on Lookup: %+v", err)
 	bPath := ops.nodeCache.PathFromNode(bn)
 	expectedBNode := data.PathNode{
 		BlockPointer: makeBP(bID, rmd, config, u),
@@ -1065,11 +1023,9 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	}
 	expectedBNode.KeyGen = kbfsmd.FirstValidKeyGen
 	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
-		t.Errorf("Lookup returned a bad entry info: %v vs %v",
-			ei, dirBlock.Children["b"].EntryInfo)
+		require.Failf(t, "", "Lookup returned a bad entry info: %v vs %v", ei, dirBlock.Children["b"].EntryInfo)
 	} else if bPath.Path[2] != expectedBNode {
-		t.Errorf("Bad path node after lookup: %v vs %v",
-			bPath.Path[2], expectedBNode)
+		require.Failf(t, "", "Bad path node after lookup: %v vs %v", bPath.Path[2], expectedBNode)
 	}
 }
 
@@ -1111,14 +1067,11 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, aNode.BlockPointer, id, dirBlock)
 
 	bn, ei, err := config.KBFSOps().Lookup(ctx, n, testPPS("b"))
-	if err != nil {
-		t.Errorf("Error on Lookup: %+v", err)
-	}
+	require.NoError(t, err, "Error on Lookup: %+v", err)
 	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
-		t.Errorf("Lookup returned a bad directory entry: %v vs %v",
-			ei, dirBlock.Children["b"].EntryInfo)
+		require.Failf(t, "", "Lookup returned a bad directory entry: %v vs %v", ei, dirBlock.Children["b"].EntryInfo)
 	} else if bn != nil {
-		t.Errorf("Node for symlink is not nil: %v", bn)
+		require.Failf(t, "", "Node for symlink is not nil: %v", bn)
 	}
 }
 
@@ -1162,11 +1115,8 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 	expectedErr := idutil.NoSuchNameError{Name: "c"}
 	_, _, err := config.KBFSOps().Lookup(ctx, n, testPPS("c"))
-	if err == nil {
-		t.Error("No error as expected on Lookup")
-	} else if err != expectedErr {
-		t.Errorf("Unexpected error after bad Lookup: %+v", err)
-	}
+	require.Error(t, err, "No error as expected on Lookup")
+	require.Equal(t, expectedErr, err, "Unexpected error after bad Lookup: %+v", err)
 }
 
 func TestKBFSOpsReadNewDataVersionFail(t *testing.T) {
@@ -1220,17 +1170,12 @@ func TestKBFSOpsReadNewDataVersionFail(t *testing.T) {
 	}
 
 	n, _, err := config.KBFSOps().Lookup(ctx, n, testPPS("b"))
-	if err != nil {
-		t.Error("Unexpected error found on lookup")
-	}
+	require.NoError(t, err, "Unexpected error found on lookup")
 
 	buf := make([]byte, 1)
 	_, err = config.KBFSOps().Read(ctx, n, buf, 0)
-	if err == nil {
-		t.Error("No expected error found on read")
-	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Unexpected error after bad read: %+v", err)
-	}
+	require.Error(t, err, "No expected error found on read")
+	require.Equal(t, expectedErr.Error(), err.Error(), "Unexpected error after bad read: %+v", err)
 }
 
 func TestKBFSOpsStatSuccess(t *testing.T) {
@@ -1276,12 +1221,9 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, aNode.BlockPointer, id, dirBlock)
 
 	ei, err := config.KBFSOps().Stat(ctx, n)
-	if err != nil {
-		t.Errorf("Error on Stat: %+v", err)
-	}
+	require.NoError(t, err, "Error on Stat: %+v", err)
 	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
-		t.Errorf("Stat returned a bad entry info: %v vs %v",
-			ei, dirBlock.Children["b"].EntryInfo)
+		require.Failf(t, "", "Stat returned a bad entry info: %v vs %v", ei, dirBlock.Children["b"].EntryInfo)
 	}
 }
 
@@ -1295,7 +1237,7 @@ func getBlockFromCache(
 	}
 	block, err := config.BlockCache().Get(ptr)
 	if err != nil {
-		t.Errorf("Couldn't find block %v, branch %s in the cache after test: "+
+		require.Fail(t, "Couldn't find block %v, branch %s in the cache after test: "+
 			"%+v", ptr, branch, err)
 		return nil
 	}
@@ -1308,9 +1250,7 @@ func getDirBlockFromCache(
 ) *data.DirBlock {
 	block := getBlockFromCache(ctx, t, config, id, ptr, branch)
 	dblock, ok := block.(*data.DirBlock)
-	if !ok {
-		t.Errorf("Cached block %v, branch %s was not a DirBlock", ptr, branch)
-	}
+	require.True(t, ok, "Cached block %v, branch %s was not a DirBlock", ptr, branch)
 	return dblock
 }
 
@@ -1320,9 +1260,7 @@ func getFileBlockFromCache(
 ) *data.FileBlock {
 	block := getBlockFromCache(ctx, t, config, id, ptr, branch)
 	fblock, ok := block.(*data.FileBlock)
-	if !ok {
-		t.Errorf("Cached block %v, branch %s was not a FileBlock", ptr, branch)
-	}
+	require.True(t, ok, "Cached block %v, branch %s was not a FileBlock", ptr, branch)
 	return fblock
 }
 
@@ -1363,11 +1301,8 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	} else {
 		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS("a"), testPPS("b"))
 	}
-	if err == nil {
-		t.Errorf("Got no expected error on create")
-	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on create: %+v", err)
-	}
+	require.Error(t, err, "Got no expected error on create")
+	require.Equal(t, expectedErr, err, "Got unexpected error on create: %+v", err)
 }
 
 func TestCreateDirFailDupName(t *testing.T) {
@@ -1413,11 +1348,8 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 		_, err = config.KBFSOps().CreateLink(
 			ctx, n, testPPS(name), testPPS("b"))
 	}
-	if err == nil {
-		t.Errorf("Got no expected error on create")
-	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on create: %+v", err)
-	}
+	require.Error(t, err, "Got no expected error on create")
+	require.Equal(t, expectedErr, err, "Got unexpected error on create: %+v", err)
 }
 
 func TestCreateDirFailNameTooLong(t *testing.T) {
@@ -1472,11 +1404,8 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 		_, _, err = config.KBFSOps().CreateFile(
 			ctx, n, testPPS(name), false, NoExcl)
 	}
-	if err == nil {
-		t.Errorf("Got no expected error on create")
-	} else if !errors.Is(err, expectedErr) {
-		t.Errorf("Got unexpected error on create: %+v", err)
-	}
+	require.Error(t, err, "Got no expected error on create")
+	require.True(t, errors.Is(err, expectedErr), "Got unexpected error on create: %+v", err)
 }
 
 func TestCreateDirFailKBFSPrefix(t *testing.T) {
@@ -1581,7 +1510,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 }
 
 func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
-	require.NotEqual(t, et, data.Sym)
+	require.NotEqual(t, data.Sym, et)
 
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice")
 	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
@@ -1722,12 +1651,9 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 
 	expectedErr := RenameAcrossDirsError{}
 
-	if err := config.KBFSOps().Rename(
-		ctx, n1, testPPS("b"), n2, testPPS("c")); err == nil {
-		t.Errorf("Got no expected error on rename")
-	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Got unexpected error on rename: %+v", err)
-	}
+	err = config.KBFSOps().Rename(ctx, n1, testPPS("b"), n2, testPPS("c"))
+	require.Error(t, err, "Got no expected error on rename")
+	require.Equal(t, expectedErr.Error(), err.Error(), "Got unexpected error on rename: %+v", err)
 }
 
 func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
@@ -1759,13 +1685,10 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil { // nolint
-		t.Errorf("Got error on read: %+v", err)
-	} else if n2 != int64(n) {
-		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytes.Equal(dest, fileBlock.Contents) {
-		t.Errorf("Read bad contents: %v", dest)
-	}
+	n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0)
+	require.NoError(t, err, "Got error on read: %+v", err)
+	require.Equal(t, int64(n), n2, "Read the wrong number of bytes: %d", n2)
+	require.Equal(t, fileBlock.Contents, dest, "Read bad contents: %v", dest)
 }
 
 func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
@@ -1796,13 +1719,10 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
 	dest := make([]byte, 4)
-	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 2); err != nil { // nolint
-		t.Errorf("Got error on read: %+v", err)
-	} else if n != 4 {
-		t.Errorf("Read the wrong number of bytes: %d", n)
-	} else if !bytes.Equal(dest, fileBlock.Contents[2:6]) {
-		t.Errorf("Read bad contents: %v", dest)
-	}
+	n, err := config.KBFSOps().Read(ctx, pNode, dest, 2)
+	require.NoError(t, err, "Got error on read: %+v", err)
+	require.Equal(t, int64(4), n, "Read the wrong number of bytes: %d", n)
+	require.Equal(t, fileBlock.Contents[2:6], dest, "Read bad contents: %v", dest)
 }
 
 func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
@@ -1860,13 +1780,10 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	fullContents = append(fullContents, block2.Contents...)
 	fullContents = append(fullContents, block3.Contents...)
 	fullContents = append(fullContents, block4.Contents...)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil { // nolint
-		t.Errorf("Got error on read: %+v", err)
-	} else if n2 != int64(n) {
-		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytes.Equal(dest, fullContents) {
-		t.Errorf("Read bad contents: %v", dest)
-	}
+	n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0)
+	require.NoError(t, err, "Got error on read: %+v", err)
+	require.Equal(t, int64(n), n2, "Read the wrong number of bytes: %d", n2)
+	require.Equal(t, fullContents, dest, "Read bad contents: %v", dest)
 }
 
 func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
@@ -1923,13 +1840,10 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	contents := block1.Contents[3:]
 	contents = append(contents, block2.Contents...)
 	contents = append(contents, block3.Contents[:3]...)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 3); err != nil { // nolint
-		t.Errorf("Got error on read: %+v", err)
-	} else if n2 != int64(n) {
-		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytes.Equal(dest, contents) {
-		t.Errorf("Read bad contents: %v", dest)
-	}
+	n2, err := config.KBFSOps().Read(ctx, pNode, dest, 3)
+	require.NoError(t, err, "Got error on read: %+v", err)
+	require.Equal(t, int64(n), n2, "Read the wrong number of bytes: %d", n2)
+	require.Equal(t, contents, dest, "Read bad contents: %v", dest)
 }
 
 func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
@@ -1960,11 +1874,9 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
 	dest := make([]byte, 4)
-	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 10); err != nil {
-		t.Errorf("Got error on read: %+v", err)
-	} else if n != 0 {
-		t.Errorf("Read the wrong number of bytes: %d", n)
-	}
+	n, err := config.KBFSOps().Read(ctx, pNode, dest, 10)
+	require.NoError(t, err, "Got error on read: %+v", err)
+	require.Equal(t, int64(0), n, "Read the wrong number of bytes: %d", n)
 }
 
 func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
@@ -1995,13 +1907,10 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil { // nolint
-		t.Errorf("Got error on read: %+v", err)
-	} else if n2 != int64(n) {
-		t.Errorf("Read the wrong number of bytes: %d", n2)
-	} else if !bytes.Equal(dest, fileBlock.Contents) {
-		t.Errorf("Read bad contents: %v", dest)
-	}
+	n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0)
+	require.NoError(t, err, "Got error on read: %+v", err)
+	require.Equal(t, int64(n), n2, "Read the wrong number of bytes: %d", n2)
+	require.Equal(t, fileBlock.Contents, dest, "Read bad contents: %v", dest)
 }
 
 func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
@@ -2033,36 +1942,25 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n)
-	if _, err2 := config.KBFSOps().Read(ctx, pNode, dest, 0); err2 == nil {
-		t.Errorf("Got no expected error")
-	} else if err2 != err {
-		t.Errorf("Got unexpected error: %+v", err2)
-	}
+	_, err2 := config.KBFSOps().Read(ctx, pNode, dest, 0)
+	require.Error(t, err2, "Got no expected error")
+	require.Equal(t, err, err2, "Got unexpected error: %+v", err2)
 }
 
 func checkSyncOp(t *testing.T, codec kbfscodec.Codec,
 	so *syncOp, filePtr data.BlockPointer, writes []WriteRange,
 ) {
-	if so == nil {
-		t.Error("No sync info for written file!")
-		return
-	}
+	require.NotNil(t, so, "No sync info for written file!")
 	if so.File.Unref != filePtr {
-		t.Errorf("Unexpected unref file in sync op: %v vs %v",
-			so.File.Unref, filePtr)
+		require.Failf(t, "", "Unexpected unref file in sync op: %v vs %v", so.File.Unref, filePtr)
 	}
 	if len(so.Writes) != len(writes) {
-		t.Errorf("Unexpected number of writes: %v (expected %v)",
-			len(so.Writes), len(writes))
+		require.Failf(t, "", "Unexpected number of writes: %v (expected %v)", len(so.Writes), len(writes))
 	}
 	for i, w := range writes {
 		writeEqual, err := kbfscodec.Equal(codec, so.Writes[i], w)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !writeEqual {
-			t.Errorf("Unexpected write: %v vs %v", so.Writes[i], w)
-		}
+		require.NoError(t, err)
+		require.True(t, writeEqual, "Unexpected write: %v vs %v", so.Writes[i], w)
 	}
 }
 
@@ -2071,9 +1969,7 @@ func checkSyncOpInCache(t *testing.T, codec kbfscodec.Codec,
 ) {
 	// check the in-progress syncOp
 	si, ok := ops.blocks.unrefCache[filePtr.Ref()]
-	if !ok {
-		t.Error("No sync info for written file!")
-	}
+	require.True(t, ok, "No sync info for written file!")
 	checkSyncOp(t, codec, si.op, filePtr, writes)
 }
 
@@ -2120,9 +2016,8 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			block.Contents = data
 		}).Return(int64(len(buf)))
 
-	if err := config.KBFSOps().Write(ctx, n, buf, 0); err != nil {
-		t.Errorf("Got error on write: %+v", err)
-	}
+	err := config.KBFSOps().Write(ctx, n, buf, 0)
+	require.NoError(t, err, "Got error on write: %+v", err)
 
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer,
@@ -2133,19 +2028,15 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		t.Errorf("Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	case newRootBlock.Children["f"].GetWriter() != uid:
-		t.Errorf("Wrong last writer: %v",
-			newRootBlock.Children["f"].GetWriter())
+		require.Failf(t, "", "Wrong last writer: %v", newRootBlock.Children["f"].GetWriter())
 	case newRootBlock.Children["f"].Size != uint64(len(buf)):
-		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+		require.Failf(t, "", "Wrong size for written file: %d", newRootBlock.Children["f"].Size)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2202,9 +2093,8 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 			block.Contents = expectedFullData
 		}).Return(int64(len(buf)))
 
-	if err := config.KBFSOps().Write(ctx, n, buf, 5); err != nil {
-		t.Errorf("Got error on write: %+v", err)
-	}
+	err := config.KBFSOps().Write(ctx, n, buf, 5)
+	require.NoError(t, err, "Got error on write: %+v", err)
 
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
@@ -2212,13 +2102,11 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData, newFileBlock.Contents):
-		t.Errorf("Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2275,9 +2163,8 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 			block.Contents = expectedFullData
 		}).Return(int64(len(buf)))
 
-	if err := config.KBFSOps().Write(ctx, n, buf, 7); err != nil {
-		t.Errorf("Got error on write: %+v", err)
-	}
+	err := config.KBFSOps().Write(ctx, n, buf, 7)
+	require.NoError(t, err, "Got error on write: %+v", err)
 
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
@@ -2285,13 +2172,11 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData, newFileBlock.Contents):
-		t.Errorf("Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2358,9 +2243,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 			block.Contents = data
 		}).Return(int64(5))
 
-	if err := config.KBFSOps().Write(ctx, n, newData, 1); err != nil {
-		t.Errorf("Got error on write: %+v", err)
-	}
+	err := config.KBFSOps().Write(ctx, n, newData, 1)
+	require.NoError(t, err, "Got error on write: %+v", err)
 	b, _ := config.DirtyBlockCache().Get(ctx, id, node.BlockPointer, p.Branch)
 	newRootBlock := b.(*data.DirBlock)
 
@@ -2380,26 +2264,21 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData[0:6], block1.Contents):
-		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 1: %v", block1.Contents)
 	case !bytes.Equal(expectedFullData[6:11], block2.Contents):
-		t.Errorf("Wrote bad contents to block 2: %v", block2.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 2: %v", block2.Contents)
 	case !pblock.IsInd:
-		t.Errorf("Parent block is not indirect!")
+		require.Fail(t, "Parent block is not indirect!")
 	case pblock.IPtrs[0].Off != 0:
-		t.Errorf("Parent block has wrong offset for block 1: %d",
-			pblock.IPtrs[0].Off)
+		require.Failf(t, "", "Parent block has wrong offset for block 1: %d", pblock.IPtrs[0].Off)
 	case pblock.IPtrs[1].Off != 6:
-		t.Errorf("Parent block has wrong offset for block 5: %d",
-			pblock.IPtrs[1].Off)
+		require.Failf(t, "", "Parent block has wrong offset for block 5: %d", pblock.IPtrs[1].Off)
 	case newRootBlock.Children["f"].Size != uint64(11):
-		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+		require.Failf(t, "", "Wrong size for written file: %d", newRootBlock.Children["f"].Size)
 	}
 
 	checkBlockCache(
@@ -2501,9 +2380,8 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 			copy(block.Contents[len(data):], block2.Contents[2:])
 		}).Return(int64(2))
 
-	if err := config.KBFSOps().Write(ctx, n, buf, 2); err != nil {
-		t.Errorf("Got error on write: %+v", err)
-	}
+	err = config.KBFSOps().Write(ctx, n, buf, 2)
+	require.NoError(t, err, "Got error on write: %+v", err)
 
 	newBlock1 := getFileBlockFromCache(
 		ctx, t, config, id, fileBlock.IPtrs[0].BlockPointer, p.Branch)
@@ -2513,15 +2391,13 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during write: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during write: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(expectedFullData[0:5], newBlock1.Contents):
-		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 1: %v", block1.Contents)
 	case !bytes.Equal(expectedFullData[5:10], newBlock2.Contents):
-		t.Errorf("Wrote bad contents to block 2: %v", block2.Contents)
+		require.Failf(t, "", "Wrote bad contents to block 2: %v", block2.Contents)
 	}
 
 	lState := makeFBOLockState()
@@ -2582,9 +2458,8 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
 	buf := []byte{}
-	if err := config.KBFSOps().Truncate(ctx, n, 0); err != nil {
-		t.Errorf("Got error on truncate: %+v", err)
-	}
+	err := config.KBFSOps().Truncate(ctx, n, 0)
+	require.NoError(t, err, "Got error on truncate: %+v", err)
 
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
@@ -2594,19 +2469,15 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
+		require.Failf(t, "", "Wrote bad contents: %v", newFileBlock.Contents)
 	case newRootBlock.Children["f"].GetWriter() != uid:
-		t.Errorf("Wrong last writer: %v",
-			newRootBlock.Children["f"].GetWriter())
+		require.Failf(t, "", "Wrong last writer: %v", newRootBlock.Children["f"].GetWriter())
 	case newRootBlock.Children["f"].Size != 0:
-		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+		require.Failf(t, "", "Wrong size for written file: %d", newRootBlock.Children["f"].Size)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2655,12 +2526,10 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil { // nolint
-		t.Errorf("Got error on truncate: %+v", err)
-	} else if config.observer.localChange != nil {
-		t.Errorf("Unexpected local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Got error on truncate: %+v", err)
+		require.Failf(t, "", "Unexpected local update during truncate: %v", config.observer.localChange)
 	} else if !bytes.Equal(data, fileBlock.Contents) {
-		t.Errorf("Wrote bad contents: %v", data)
+		require.Failf(t, "", "Wrote bad contents: %v", data)
 	}
 	checkBlockCache(ctx, t, config, id, []kbfsblock.ID{rootID, fileID}, nil)
 }
@@ -2704,9 +2573,8 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
 	buf := []byte{1, 2, 3, 4, 5}
-	if err := config.KBFSOps().Truncate(ctx, n, 5); err != nil {
-		t.Errorf("Got error on truncate: %+v", err)
-	}
+	err := config.KBFSOps().Truncate(ctx, n, 5)
+	require.NoError(t, err, "Got error on truncate: %+v", err)
 
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
@@ -2714,13 +2582,11 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		t.Errorf("Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -2784,9 +2650,8 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	testPutBlockInCache(t, config, fileBlock.IPtrs[1].BlockPointer, id, block2)
 
 	data2 := []byte{10, 9}
-	if err := config.KBFSOps().Truncate(ctx, n, 7); err != nil {
-		t.Errorf("Got error on truncate: %+v", err)
-	}
+	err = config.KBFSOps().Truncate(ctx, n, 7)
+	require.NoError(t, err, "Got error on truncate: %+v", err)
 
 	newPBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
@@ -2805,21 +2670,18 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(block1.Contents, newBlock1.Contents):
-		t.Errorf("Wrote bad contents for block 1: %v", newBlock1.Contents)
+		require.Failf(t, "", "Wrote bad contents for block 1: %v", newBlock1.Contents)
 	case !bytes.Equal(data2, newBlock2.Contents):
-		t.Errorf("Wrote bad contents for block 2: %v", newBlock2.Contents)
+		require.Failf(t, "", "Wrote bad contents for block 2: %v", newBlock2.Contents)
 	case len(newPBlock.IPtrs) != 2:
-		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
+		require.Failf(t, "", "Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
 	case rmd.UnrefBytes() != 0+6:
 		// The fileid and the last block was all modified and marked dirty
-		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
-			rmd.UnrefBytes())
+		require.Failf(t, "", "Truncated block not correctly unref'd, unrefBytes = %d", rmd.UnrefBytes())
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
@@ -2882,9 +2744,8 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	testPutBlockInCache(t, config, fileBlock.IPtrs[1].BlockPointer, id, block2)
 
 	buf := []byte{5, 4, 3, 2}
-	if err := config.KBFSOps().Truncate(ctx, n, 4); err != nil {
-		t.Errorf("Got error on truncate: %+v", err)
-	}
+	err = config.KBFSOps().Truncate(ctx, n, 4)
+	require.NoError(t, err, "Got error on truncate: %+v", err)
 
 	newPBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
@@ -2901,19 +2762,16 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newBlock1.Contents):
-		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
+		require.Failf(t, "", "Wrote bad contents: %v", newBlock1.Contents)
 	case len(newPBlock.IPtrs) != 1:
-		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
+		require.Failf(t, "", "Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
 	case rmd.UnrefBytes() != 0+5+6:
 		// The fileid and both blocks were all modified and marked dirty
-		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
-			rmd.UnrefBytes())
+		require.Failf(t, "", "Truncated block not correctly unref'd, unrefBytes = %d", rmd.UnrefBytes())
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
@@ -2968,9 +2826,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 		}).Return(int64(5))
 
 	buf := []byte{1, 2, 3, 4, 5, 0, 0, 0, 0, 0}
-	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil {
-		t.Errorf("Got error on truncate: %+v", err)
-	}
+	err := config.KBFSOps().Truncate(ctx, n, 10)
+	require.NoError(t, err, "Got error on truncate: %+v", err)
 
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
@@ -2978,13 +2835,11 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	switch {
 	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path):
-		t.Errorf("Missing or incorrect local update during truncate: %v",
-			config.observer.localChange)
+		require.Failf(t, "", "Missing or incorrect local update during truncate: %v", config.observer.localChange)
 	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
-		t.Errorf("Wrong context value passed in local notify: %v",
-			config.observer.ctx.Value(tCtxID))
+		require.Failf(t, "", "Wrong context value passed in local notify: %v", config.observer.ctx.Value(tCtxID))
 	case !bytes.Equal(buf, newFileBlock.Contents):
-		t.Errorf("Wrote bad contents: %v", buf)
+		require.Failf(t, "", "Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
 		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
@@ -3027,11 +2882,9 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	expectedErr := idutil.NoSuchNameError{Name: p.TailName().Plaintext()}
 
 	// chmod a+x a
-	if err := config.KBFSOps().SetEx(ctx, n, true); err == nil {
-		t.Errorf("Got no expected error on setex")
-	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on setex: %+v", err)
-	}
+	err := config.KBFSOps().SetEx(ctx, n, true)
+	require.Error(t, err, "Got no expected error on setex")
+	require.Equal(t, expectedErr, err, "Got unexpected error on setex: %+v", err)
 }
 
 // Other SetEx failure cases are all the same as any other block sync
@@ -3068,15 +2921,11 @@ func TestSetMtimeNull(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	if err := config.KBFSOps().SetMtime(ctx, n, nil); err != nil {
-		t.Errorf("Got unexpected error on null setmtime: %+v", err)
-	}
+	err := config.KBFSOps().SetMtime(ctx, n, nil)
+	require.NoError(t, err, "Got unexpected error on null setmtime: %+v", err)
 	newP := ops.nodeCache.PathFromNode(n)
-	if rootBlock.Children["a"].Mtime != oldMtime {
-		t.Errorf("a has wrong mtime: %v", rootBlock.Children["a"].Mtime)
-	} else if newP.Path[0].ID != p.Path[0].ID {
-		t.Errorf("Got back a changed path for null setmtime test: %v", newP)
-	}
+	require.Equal(t, oldMtime, rootBlock.Children["a"].Mtime, "a has wrong mtime: %v", rootBlock.Children["a"].Mtime)
+	require.Equal(t, p, newP, "Got back a changed path for null setmtime test: %v", newP)
 	checkBlockCache(ctx, t, config, id, nil, nil)
 }
 
@@ -3109,11 +2958,9 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	expectedErr := idutil.NoSuchNameError{Name: p.TailName().Plaintext()}
 
 	newMtime := time.Now()
-	if err := config.KBFSOps().SetMtime(ctx, n, &newMtime); err == nil {
-		t.Errorf("Got no expected error on setmtime")
-	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on setmtime: %+v", err)
-	}
+	err := config.KBFSOps().SetMtime(ctx, n, &newMtime)
+	require.Error(t, err, "Got no expected error on setmtime")
+	require.Equal(t, expectedErr, err, "Got unexpected error on setmtime: %+v", err)
 }
 
 // SetMtime failure cases are all the same as any other block sync
@@ -3143,18 +2990,14 @@ func TestSyncCleanSuccess(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	// fsync a
-	if err := config.KBFSOps().SyncAll(ctx, n.GetFolderBranch()); err != nil {
-		t.Errorf("Got unexpected error on sync: %+v", err)
-	}
+	err := config.KBFSOps().SyncAll(ctx, n.GetFolderBranch())
+	require.NoError(t, err, "Got unexpected error on sync: %+v", err)
 	newP := ops.nodeCache.PathFromNode(n)
 	if len(newP.Path) != len(p.Path) {
 		// should be the exact same path back
-		t.Errorf("Got a different length path back: %v", newP)
-	} else {
+		require.Failf(t, "", "Got a different length path back: %v", newP)
 		for i, n := range newP.Path {
-			if n != p.Path[i] {
-				t.Errorf("Node %d differed: %v", i, n)
-			}
+			require.Equal(t, p.Path[i], n, "Node %d differed: %v", i, n)
 		}
 	}
 	checkBlockCache(ctx, t, config, id, nil, nil)
@@ -3183,9 +3026,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	_, err := config.KBFSOps().Stat(ctx, n)
-	if err != nil {
-		t.Errorf("Error on Stat: %+v", err)
-	}
+	require.NoError(t, err, "Error on Stat: %+v", err)
 }
 
 func TestKBFSOpsFailingRootOps(t *testing.T) {
@@ -3215,14 +3056,12 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	// InvalidPathError{}.
 
 	err := config.KBFSOps().SetEx(ctx, n, true)
-	if _, ok := err.(InvalidParentPathError); !ok {
-		t.Errorf("Unexpected error on SetEx: %+v", err)
-	}
+	_, ok := err.(InvalidParentPathError)
+	require.True(t, ok, "Unexpected error on SetEx: %+v", err)
 
 	err = config.KBFSOps().SetMtime(ctx, n, &time.Time{})
-	if _, ok := err.(InvalidParentPathError); !ok {
-		t.Errorf("Unexpected error on SetMtime: %+v", err)
-	}
+	_, ok = err.(InvalidParentPathError)
+	require.True(t, ok, "Unexpected error on SetMtime: %+v", err)
 
 	// TODO: Sync succeeds, but it should fail. Fix this!
 }
@@ -3240,9 +3079,8 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	nodeA, _, err := kbfsOps.CreateFile(
 		ctx, rootNode, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	oldPtr := ops.nodeCache.PathFromNode(nodeA).TailPointer()
@@ -3261,14 +3099,11 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	// Do our own SyncAll now to ensure we wait for the bg flusher to
 	// finish.
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync all: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync all: %+v", err)
 
 	newPtr := ops.nodeCache.PathFromNode(nodeA).TailPointer()
-	if oldPtr == newPtr {
-		t.Fatalf("Background sync didn't update pointers")
-	}
+	require.NotEqual(t, newPtr, oldPtr, "Background sync didn't update pointers")
 }
 
 func TestKBFSOpsWriteRenameStat(t *testing.T) {
@@ -3282,41 +3117,34 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(
 		ctx, rootNode, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 
 	// Write to it.
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write to file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't write to file: %+v", err)
 
 	// Stat it.
 	ei, err := kbfsOps.Stat(ctx, fileNode)
-	if err != nil {
-		t.Fatalf("Couldn't stat file: %+v", err)
-	}
-	if ei.Size != 1 {
-		t.Errorf("Stat size %d unexpectedly not 1", ei.Size)
-	}
+	require.NoError(t, err,
+		"Couldn't stat file: %+v", err)
+	require.Equal(t, uint64(1), ei.Size, "Stat size %d unexpectedly not 1", ei.Size)
 
 	// Rename it.
 	err = kbfsOps.Rename(ctx, rootNode, testPPS("a"), rootNode, testPPS("b"))
-	if err != nil {
-		t.Fatalf("Couldn't rename; %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rename; %+v", err)
 
 	// Stat it again.
 	newEi, err := kbfsOps.Stat(ctx, fileNode)
-	if err != nil {
-		t.Fatalf("Couldn't stat file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't stat file: %+v", err)
 	// CTime is allowed to change after a rename, but nothing else.
 	if ei.Type != newEi.Type || ei.Size != newEi.Size ||
 		ei.Mtime != newEi.Mtime {
-		t.Errorf("Entry info unexpectedly changed from %+v to %+v", ei, newEi)
+		require.Failf(t, "", "Entry info unexpectedly changed from %+v to %+v", ei, newEi)
 	}
 }
 
@@ -3331,42 +3159,34 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(
 		ctx, rootNode, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 
 	// Write to it.
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write to file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't write to file: %+v", err)
 
 	// Stat it.
 	ei, err := kbfsOps.Stat(ctx, fileNode)
-	if err != nil {
-		t.Fatalf("Couldn't stat file: %+v", err)
-	}
-	if ei.Size != 1 {
-		t.Errorf("Stat size %d unexpectedly not 1", ei.Size)
-	}
+	require.NoError(t, err,
+		"Couldn't stat file: %+v", err)
+	require.Equal(t, uint64(1), ei.Size, "Stat size %d unexpectedly not 1", ei.Size)
 
 	// Rename it.
 	err = kbfsOps.Rename(ctx, rootNode, testPPS("a"), rootNode, testPPS("b"))
-	if err != nil {
-		t.Fatalf("Couldn't rename; %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't rename; %+v", err)
 
 	// Get the stats via GetDirChildren.
 	eis, err := kbfsOps.GetDirChildren(ctx, rootNode)
-	if err != nil {
-		t.Fatalf("Couldn't stat file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't stat file: %+v", err)
 	// CTime is allowed to change after a rename, but nothing else.
 	if newEi := eis[rootNode.ChildName("b")]; ei.Type != newEi.Type ||
 		ei.Size != newEi.Size || ei.Mtime != newEi.Mtime {
-		t.Errorf("Entry info unexpectedly changed from %+v to %+v",
-			ei, eis[rootNode.ChildName("b")])
+		require.Failf(t, "", "Entry info unexpectedly changed from %+v to %+v", ei, eis[rootNode.ChildName("b")])
 	}
 }
 
@@ -3379,29 +3199,25 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 
 	// Remove the file, which will archive the block
 	err = kbfsOps.RemoveEntry(ctx, rootNode, testPPS("a"))
-	if err != nil {
-		t.Fatalf("Couldn't remove file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't remove file: %+v", err)
 
 	// Wait for the archiving to finish
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server")
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server")
 
 	// Create a second file, which will use the same initial block ID
 	// from the cache, even though it's been archived, and will be
 	// forced to try again.
 	_, _, err = kbfsOps.CreateFile(ctx, rootNode, testPPS("b"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create second file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create second file: %+v", err)
 }
 
 func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
@@ -3422,51 +3238,43 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(
 		ctx, rootNode, testPPS("a"), false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 
 	// Write a few blocks
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't write file: %+v", err)
 
 	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	// Now overwrite those blocks to archive them
 	newData := []byte{11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 	err = kbfsOps.Write(ctx, fileNode, newData, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't write file: %+v", err)
 
 	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 
 	// Wait for the archiving to finish
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server")
-	}
+	require.NoError(t, err,
+		"Couldn't sync from server")
 
 	// Now write the original first block, which has been archived,
 	// and make sure it works.
 	err = kbfsOps.Write(ctx, fileNode, data[0:blockSize], 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't write file: %+v", err)
 
 	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't sync file: %+v", err)
 }
 
 type corruptBlockServer struct {
@@ -3499,9 +3307,8 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't create file: %+v", err)
 
 	// Read using a different "device"
 	config2 := ConfigAsUser(config, "test_user")
@@ -3512,7 +3319,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	rootNode2, err := GetRootNodeForTest(ctx, config2, "test_user", tlf.Private)
 	require.NoError(t, err)
 	_, err = config2.KBFSOps().GetDirChildren(ctx, rootNode2)
-	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(kbfshash.HashMismatchError))
 }
 
 // Test that the size of a single empty block doesn't change.  If this
@@ -3525,13 +3332,10 @@ func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	status, _, err := config.KBFSOps().FolderStatus(ctx,
 		rootNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't get folder status: %+v", err)
-	}
-	if status.DiskUsage != 313 {
-		t.Fatalf("Disk usage of an empty TLF is no longer 313.  " +
-			"Talk to max or strib about why this matters.")
-	}
+	require.NoError(t, err,
+		"Couldn't get folder status: %+v", err)
+	require.Equal(t, uint64(313), status.DiskUsage, "Disk usage of an empty TLF is no longer 313.  "+
+		"Talk to max or strib about why this matters.")
 }
 
 type cryptoFixedTlf struct {
@@ -3604,7 +3408,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	// TODO: We can actually fake out the PrevRoot pointer, too
 	// and then we'll be caught by the handle check. But when we
 	// have MDOps do the handle check, that'll trigger first.
-	require.IsType(t, kbfsmd.MDPrevRootMismatch{}, err)
+	require.ErrorAs(t, err, new(kbfsmd.MDPrevRootMismatch))
 }
 
 // TODO: Test malicious mdserver and rekey flow against wrong
@@ -3628,17 +3432,13 @@ func TestGetTLFCryptKeysAfterFirstError(t *testing.T) {
 	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, id)
 
 	_, _, err := config.KBFSOps().GetTLFCryptKeys(ctx, h)
-	if err != createErr {
-		t.Fatalf("Got unexpected error when creating TLF: %+v", err)
-	}
+	require.Equal(t, createErr, err, "Got unexpected error when creating TLF: %+v", err)
 
 	// Reset the error.
 	mdserver.nextErr = createErr
 	// Should get the same error, otherwise something's wrong.
 	_, _, err = config.KBFSOps().GetTLFCryptKeys(ctx, h)
-	if err != createErr {
-		t.Fatalf("Got unexpected error when creating TLF: %+v", err)
-	}
+	require.Equal(t, createErr, err, "Got unexpected error when creating TLF: %+v", err)
 }
 
 func TestForceFastForwardOnEmptyTLF(t *testing.T) {
@@ -3652,7 +3452,8 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 	require.NoError(t, err)
 	_, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	if _, ok := err.(tlfhandle.WriteAccessError); !ok {
-		t.Fatalf("Unexpected err reading a public TLF: %+v", err)
+		require.True(t, ok,
+			"Unexpected err reading a public TLF: %+v", err)
 	}
 
 	// There's only one folder at this point.
@@ -3669,9 +3470,8 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 	// cleared yet.
 	config.KBFSOps().ForceFastForward(ctx)
 	err = ops.forcedFastForwards.Wait(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for fast forward: %+v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't wait for fast forward: %+v", err)
 }
 
 // Regression test for KBFS-2161.
@@ -3728,18 +3528,18 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	// Also make sure we can no longer create anything in the removed
 	// directory.
 	_, _, err = kbfsOps.CreateDir(ctx, nodeB, testPPS("d"))
-	require.IsType(t, UnsupportedOpInUnlinkedDirError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(UnsupportedOpInUnlinkedDirError))
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	status, _, err = kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	require.Len(t, status.DirtyPaths, 0)
+	require.Empty(t, status.DirtyPaths)
 
 	// If the block made it back into the cache, we have a problem.
 	// It shouldn't be needed for removal.
 	_, err = config.BlockCache().Get(ptrC)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestKBFSOpsBasicTeamTLF(t *testing.T) {
@@ -3750,17 +3550,13 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	config3 := ConfigAsUser(config1, u3)
 	defer CheckConfigAndShutdown(ctx, t, config3)
 	session3, err := config3.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid3 := session3.UID
 
 	// These are deterministic, and should add the same TeamInfos for
@@ -3830,7 +3626,7 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(buf, gotData3))
 	_, _, err = kbfsOps3.CreateFile(ctx, rootNode3, testPPS("c"), false, NoExcl)
-	require.IsType(t, tlfhandle.WriteAccessError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(tlfhandle.WriteAccessError))
 
 	// Verify that "a" has the correct writer.
 	ei, err := kbfsOps3.GetNodeMetadata(ctx, nodeA3)
@@ -3871,7 +3667,7 @@ func TestKBFSOpsReadonlyNodes(t *testing.T) {
 	// Read-only, shouldn't work.
 	readonlyCtx := context.WithValue(ctx, wrappedReadonlyTestID, 1)
 	_, _, err = kbfsOps.CreateDir(readonlyCtx, rootNode, testPPS("b"))
-	require.IsType(t, WriteToReadonlyNodeError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(WriteToReadonlyNodeError))
 }
 
 type fakeFileInfo struct {
@@ -3937,7 +3733,6 @@ func testKBFSOpsAutocreateNodes(
 	require.NoError(t, err)
 	if et != data.Sym {
 		require.NotNil(t, n)
-	} else {
 		require.Equal(t, sympath.Plaintext(), ei.SymPath)
 	}
 	require.Equal(t, et, ei.Type)
@@ -4098,7 +3893,7 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 
 	eis, err := kbfsOps.GetDirChildren(ctx, rootNodeArchived)
 	require.NoError(t, err)
-	require.Len(t, eis, 0)
+	require.Empty(t, eis)
 
 	eis, err = kbfsOps.GetDirChildren(ctx, rootNode)
 	require.NoError(t, err)
@@ -4314,7 +4109,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	require.NoError(t, err)
 	children, err := kbfsOps.GetDirChildren(ctx, rootNode)
 	require.NoError(t, err)
-	require.Len(t, children, 0)
+	require.Empty(t, children)
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
@@ -4397,7 +4192,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	case rev := <-commitCh:
 		require.Equal(t, kbfsmd.Revision(1), rev)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
@@ -4408,7 +4203,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	case rev := <-commitCh:
 		require.Equal(t, kbfsmd.Revision(2), rev)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	t.Log("Write using a different device")
@@ -4430,7 +4225,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	case rev := <-commitCh:
 		require.Equal(t, kbfsmd.Revision(3), rev)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 }
 
@@ -4517,7 +4312,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	case rev := <-commitCh:
 		require.Equal(t, kbfsmd.Revision(1), rev)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 	_, err = config.SetTlfSyncState(
 		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
@@ -4532,7 +4327,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	case rev := <-commitCh:
 		require.Equal(t, kbfsmd.Revision(2), rev)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	t.Log("Stall any block gets from the device")
@@ -4561,7 +4356,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	staller.WaitForStallBlockOp(StallableBlockGet)
 	select {
 	case rev := <-commitCh:
-		t.Fatalf("No commit expected; rev=%d", rev)
+		require.FailNow(t, fmt.Sprintf("No commit expected; rev=%d", rev))
 	default:
 	}
 
@@ -4571,7 +4366,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	case rev := <-commitCh:
 		require.Equal(t, kbfsmd.Revision(3), rev)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 
 	go func() {
@@ -4591,7 +4386,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	staller.WaitForStallBlockOp(StallableBlockGet)
 	select {
 	case rev := <-commitCh:
-		t.Fatalf("No commit expected; rev=%d", rev)
+		require.FailNow(t, fmt.Sprintf("No commit expected; rev=%d", rev))
 	default:
 	}
 
@@ -4603,7 +4398,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	case rev := <-commitCh:
 		require.Equal(t, kbfsmd.Revision(4), rev)
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, fmt.Sprint(ctx.Err()))
 	}
 	staller.UnstallOneBlockOp(StallableBlockGet)
 }
@@ -5092,7 +4887,7 @@ func TestDirtyAfterTruncateNoop(t *testing.T) {
 	require.Equal(t, cleanState, ops.blocks.GetState(lState))
 	status, _, err := kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	require.Len(t, status.DirtyPaths, 0)
+	require.Empty(t, status.DirtyPaths)
 }
 
 func TestKBFSOpsCancelUploads(t *testing.T) {
@@ -5150,5 +4945,5 @@ func TestKBFSOpsCancelUploads(t *testing.T) {
 	require.NoError(t, err)
 	children, err := kbfsOps.GetDirChildren(ctx, aNode)
 	require.NoError(t, err)
-	require.Len(t, children, 0)
+	require.Empty(t, children)
 }

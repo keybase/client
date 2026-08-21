@@ -204,7 +204,7 @@ func CreateAndSignupLPK(tc libkb.TestContext, prefix string) (*FakeUser, string)
 	beng := NewPaperKey(tc.G)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, beng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 
 	backupPassphrase := beng.Passphrase()
@@ -216,9 +216,9 @@ func AssertLoggedInLPK(tc *libkb.TestContext, shouldBeLoggedIn bool) {
 	activeDeviceIsValid := tc.G.ActiveDevice.Valid()
 	t := tc.T
 	if shouldBeLoggedIn {
-		require.Equal(t, true, activeDeviceIsValid, "user should be logged in")
+		require.True(t, activeDeviceIsValid, "user should be logged in")
 	} else {
-		require.Equal(t, false, activeDeviceIsValid, "user should not be logged in")
+		require.False(t, activeDeviceIsValid, "user should not be logged in")
 	}
 }
 
@@ -244,7 +244,7 @@ type TestSecretUIPaperKey struct {
 func (t *TestSecretUIPaperKey) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	require.Equal(t.T, keybase1.PassphraseType_PAPER_KEY, p.Type, "TestSecretUIPaperKey prompted for non-paperkey")
 	t.nGetPassphraseCalls++
-	require.True(t.T, t.nGetPassphraseCalls <= t.AllowedGetPassphraseCalls, "GetPassphrase called too many times on paperkey")
+	require.LessOrEqual(t.T, t.nGetPassphraseCalls, t.AllowedGetPassphraseCalls, "GetPassphrase called too many times on paperkey")
 	return keybase1.GetPassphraseRes{
 		Passphrase: t.Paperkey,
 		// What's this?

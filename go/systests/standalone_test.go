@@ -60,7 +60,7 @@ func makeUserStandalone(t *testing.T, tt *teamTester, pre string, opts standalon
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTest()
 	if err := signup.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	t.Logf("signed up %s", userInfo.username)
 
@@ -108,7 +108,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
-	require.Equal(t, len(writers), 1, "expected 1 writer")
+	require.Len(t, writers, 1, "expected 1 writer")
 	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "unexpected writer uid")
 
 	// Do not care about result (printed to UI), just be sure that it
@@ -136,5 +136,5 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 	writers, err = t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
-	require.Equal(t, len(writers), 0, "expected 0 writers")
+	require.Empty(t, writers, "expected 0 writers")
 }

@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -229,9 +228,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 				}
 			}
 			require.True(
-				t, found, fmt.Sprintf(
-					"Didn't expect change: %#v, changes=%#v, expected=%#v",
-					*c, changes, expectedChanges))
+				t, found, "Didn't expect change: %#v, changes=%#v, expected=%#v", *c, changes, expectedChanges)
 		}
 	}
 

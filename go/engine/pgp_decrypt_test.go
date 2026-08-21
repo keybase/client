@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -43,7 +44,7 @@ func TestPGPDecrypt(t *testing.T) {
 	}
 	enc := NewPGPEncrypt(tc.G, arg)
 	if err := RunEngine2(ctx, enc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	out := sink.Bytes()
 
@@ -57,16 +58,12 @@ func TestPGPDecrypt(t *testing.T) {
 	}
 	dec := NewPGPDecrypt(tc.G, decarg)
 	if err := RunEngine2(ctx, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg, "decoded: %q, expected: %q", decmsg, msg)
 
-	if dec.Signer() != nil {
-		t.Errorf("signer exists, but NoSign flag was true")
-	}
+	require.Nil(t, dec.Signer(), "signer exists, but NoSign flag was true")
 }
 
 func TestPGPDecryptArmored(t *testing.T) {
@@ -85,7 +82,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 	}
 	enc := NewPGPEncrypt(tc.G, arg)
 	if err := RunEngine2(ctx, enc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	out := sink.Bytes()
 
@@ -99,12 +96,10 @@ func TestPGPDecryptArmored(t *testing.T) {
 	}
 	dec := NewPGPDecrypt(tc.G, decarg)
 	if err := RunEngine2(ctx, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg, "decoded: %q, expected: %q", decmsg, msg)
 
 	// A saltpack message
 	saltpack := `BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE.
@@ -119,11 +114,12 @@ func TestPGPDecryptArmored(t *testing.T) {
 	dec = NewPGPDecrypt(tc.G, decarg)
 	err := RunEngine2(ctx, dec)
 	if wse, ok := err.(libkb.WrongCryptoFormatError); !ok {
-		t.Fatalf("Wanted a WrongCryptoFormat error, but got %T (%v)", err, err)
+		require.True(t, ok,
+			"Wanted a WrongCryptoFormat error, but got %T (%v)", err, err)
 	} else if wse.Wanted != libkb.CryptoMessageFormatPGP ||
 		wse.Received != libkb.CryptoMessageFormatSaltpack ||
 		wse.Operation != "decrypt" {
-		t.Fatalf("Bad error: %v", wse)
+		require.FailNow(t, fmt.Sprintf("Bad error: %v", wse))
 	}
 }
 
@@ -145,7 +141,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 	}
 	enc := NewPGPEncrypt(tc.G, arg)
 	if err := RunEngine2(ctx, enc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	out := sink.Bytes()
 
@@ -160,12 +156,10 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 	}
 	dec := NewPGPDecrypt(tc.G, decarg)
 	if err := RunEngine2(ctx, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg, "decoded: %q, expected: %q", decmsg, msg)
 }
 
 // TestPGPDecryptSignedOther tests that a user who didn't sign the
@@ -192,7 +186,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	}
 	enc := NewPGPEncrypt(tcSigner.G, arg)
 	if err := RunEngine2(ctx, enc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	out := sink.Bytes()
 
@@ -223,12 +217,10 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	dec := NewPGPDecrypt(tcRecipient.G, decarg)
 	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
 	if err := RunEngine2(m, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg, "decoded: %q, expected: %q", decmsg, msg)
 }
 
 // TestPGPDecryptSignedIdentify tests that the signer is
@@ -255,7 +247,7 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 	}
 	enc := NewPGPEncrypt(tcSigner.G, arg)
 	if err := RunEngine2(ctx, enc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	out := sink.Bytes()
 
@@ -286,18 +278,13 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 	dec := NewPGPDecrypt(tcRecipient.G, decarg)
 	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
 	if err := RunEngine2(m, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if idUI.User == nil {
-		t.Fatal("identify ui user is nil")
-	}
-	if idUI.User.Username != signer.Username {
-		t.Errorf("idUI username: %q, expected %q", idUI.User.Username, signer.Username)
-	}
-	if pgpUI.OutputCount != 1 {
-		t.Errorf("PgpUI output called %d times, expected 1", pgpUI.OutputCount)
-	}
+	require.NotNil(t, idUI.User,
+		"identify ui user is nil")
+	require.Equal(t, signer.Username, idUI.User.Username, "idUI username: %q, expected %q", idUI.User.Username, signer.Username)
+	require.Equal(t, 1, pgpUI.OutputCount, "PgpUI output called %d times, expected 1", pgpUI.OutputCount)
 }
 
 func TestPGPDecryptLong(t *testing.T) {
@@ -309,7 +296,7 @@ func TestPGPDecryptLong(t *testing.T) {
 	msg := make([]byte, 1024*1024)
 
 	if _, err := rand.Read(msg); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	sink := libkb.NewBufferCloser()
@@ -322,7 +309,7 @@ func TestPGPDecryptLong(t *testing.T) {
 	}
 	enc := NewPGPEncrypt(tc.G, arg)
 	if err := RunEngine2(ctx, enc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	out := sink.Bytes()
 
@@ -334,22 +321,16 @@ func TestPGPDecryptLong(t *testing.T) {
 	}
 	dec := NewPGPDecrypt(tc.G, decarg)
 	if err := RunEngine2(ctx, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.Bytes()
-	if len(decmsg) != len(msg) {
-		t.Fatalf("decoded msg size: %d, expected %d", len(decmsg), len(msg))
-	}
+	require.Len(t, decmsg, len(msg), "decoded msg size: %d, expected %d", len(decmsg), len(msg))
 
 	for i, b := range msg {
-		if decmsg[i] != b {
-			t.Errorf("decode msg differs at byte %d: %x, expected %x", i, decmsg[i], b)
-		}
+		require.Equal(t, b, decmsg[i], "decode msg differs at byte %d: %x, expected %x", i, decmsg[i], b)
 	}
 
-	if dec.Signer() != nil {
-		t.Errorf("signer exists, but NoSign flag set to true")
-	}
+	require.Nil(t, dec.Signer(), "signer exists, but NoSign flag set to true")
 }
 
 type cstest struct {
@@ -379,27 +360,17 @@ func TestPGPDecryptClearsign(t *testing.T) {
 			Sink:   decoded,
 		}
 		eng := NewPGPDecrypt(tc.G, arg)
-		if err := RunEngine2(ctx, eng); err != nil {
-			t.Errorf("%s: decrypt error: %q", test.name, err)
-			continue
-		}
+		err := RunEngine2(ctx, eng)
+		require.NoError(t, err, "%s: decrypt error: %q", test.name, err)
 		msg := decoded.Bytes()
 		trimmed := strings.TrimSpace(string(msg))
 		t.Logf("clearsign test %q decoded message: %s\n", test.name, trimmed)
-		if trimmed != test.msg {
-			t.Errorf("%s: expected msg %q, got %q", test.name, test.msg, trimmed)
-		}
+		require.Equal(t, test.msg, trimmed, "%s: expected msg %q, got %q", test.name, test.msg, trimmed)
 
 		status := eng.SignatureStatus()
-		if !status.IsSigned {
-			t.Errorf("%s: expected IsSigned", test.name)
-		}
-		if !status.Verified {
-			t.Errorf("%s: expected Verified", test.name)
-		}
-		if status.Entity == nil {
-			t.Errorf("%s: signature status entity is nil", test.name)
-		}
+		require.True(t, status.IsSigned, "%s: expected IsSigned", test.name)
+		require.True(t, status.Verified, "%s: expected Verified", test.name)
+		require.NotNil(t, status.Entity, "%s: signature status entity is nil", test.name)
 	}
 }
 
@@ -417,20 +388,17 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 
 	// find recipient key
 	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcSigner.G, recipient.Username))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	rkeys := ur.GetActivePGPKeys(false)
-	if len(rkeys) == 0 {
-		t.Fatal("recipient has no active pgp keys")
-	}
+	require.NotEmpty(t, rkeys,
+		"recipient has no active pgp keys")
 
 	// encrypt and sign a message with keyA
 	mid := libkb.NewBufferCloser()
 	msg := "Is it time for lunch?"
 	recipients := []*libkb.PGPKeyBundle{keyA, rkeys[0]}
 	if err := libkb.PGPEncrypt(strings.NewReader(msg), mid, keyA, recipients); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	t.Logf("encrypted data: %x", mid.Bytes())
@@ -454,22 +422,12 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 	dec := NewPGPDecrypt(tcRecipient.G, decarg)
 	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
 	err = RunEngine2(m, dec)
-	assert.IsType(t, libkb.BadSigError{}, err, "expected a bad sig error")
+	require.ErrorAs(t, err, new(libkb.BadSigError), "expected a bad sig error")
 	assert.Contains(t, err.Error(), "Message signed by an unknown key", "bad sig error text")
 
-	if idUI.User != nil {
-		if idUI.User.Username == recipient.Username {
-			t.Errorf("pgp decrypt identified recipient")
-		} else {
-			t.Errorf("identify ui user is not nil: %s", idUI.User.Username)
-		}
-	}
-	if pgpUI.OutputCount != 0 {
-		t.Errorf("PgpUI OutputSignatureSuccess called %d times, expected 0", pgpUI.OutputCount)
-	}
-	if pgpUI.OutputNonKeybaseCount != 1 {
-		t.Errorf("PgpUI OutputSignatureNonKeybase called %d times, expected 0", pgpUI.OutputNonKeybaseCount)
-	}
+	require.Nil(t, idUI.User, "identify UI should not be called for an unknown signing key")
+	require.Equal(t, 0, pgpUI.OutputCount, "PgpUI OutputSignatureSuccess called %d times, expected 0", pgpUI.OutputCount)
+	require.Equal(t, 1, pgpUI.OutputNonKeybaseCount, "PgpUI OutputSignatureNonKeybase called %d times, expected 0", pgpUI.OutputNonKeybaseCount)
 }
 
 type TestPgpUI struct {
@@ -519,7 +477,7 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc0.G, u.Username))
 	require.NoError(t, err, "loaded the user")
 	rkeys := ur.GetActivePGPKeys(false)
-	require.True(t, len(rkeys) > 0, "recipient has no active pgp keys")
+	require.NotEmpty(t, rkeys, "recipient has no active pgp keys")
 
 	// encrypt and message with rkeys[0]
 	mid := libkb.NewBufferCloser()

@@ -22,13 +22,13 @@ func paperDevs(tc libkb.TestContext, fu *FakeUser) (*libkb.User, []*libkb.Device
 
 func hasZeroPaperDev(tc libkb.TestContext, fu *FakeUser) {
 	_, bdevs := paperDevs(tc, fu)
-	require.Equal(tc.T, 0, len(bdevs), "num backup devices")
+	require.Empty(tc.T, bdevs, "num backup devices")
 }
 
 func hasOnePaperDev(tc libkb.TestContext, fu *FakeUser) keybase1.DeviceID {
 	u, bdevs := paperDevs(tc, fu)
 
-	require.Equal(tc.T, 1, len(bdevs), "num backup devices")
+	require.Len(tc.T, bdevs, 1, "num backup devices")
 
 	devid := bdevs[0].ID
 	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(devid)
@@ -63,7 +63,7 @@ func TestPaperKey(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
-	require.NotZero(t, len(eng.Passphrase()))
+	require.NotEmpty(t, eng.Passphrase())
 	Logout(tc)
 
 	// check for the backup key
@@ -118,11 +118,11 @@ func testPaperKeyMulti(t *testing.T, upgradePerUserKey bool) {
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		require.NoError(t, err)
-		require.NotZero(t, eng.Passphrase())
+		require.NotEmpty(t, eng.Passphrase())
 
 		// check for the backup key
 		_, bdevs := paperDevs(tc, fu)
-		require.Equal(tc.T, i+1, len(bdevs), "num backup devices")
+		require.Len(tc.T, bdevs, i+1, "num backup devices")
 	}
 }
 
@@ -143,7 +143,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
-	require.NotZero(t, len(eng.Passphrase()))
+	require.NotEmpty(t, eng.Passphrase())
 
 	// check for the backup key
 	_, bdevs := paperDevs(tc, fu)
@@ -153,7 +153,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 	eng = NewPaperKey(tc.G)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
-	require.NotZero(t, len(eng.Passphrase()))
+	require.NotEmpty(t, eng.Passphrase())
 
 	// check for the backup key
 	_, bdevs = paperDevs(tc, fu)
@@ -177,7 +177,7 @@ func TestPaperKeyAfterRevokePUK(t *testing.T) {
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		require.NoError(t, err)
-		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+		require.NotEmpty(t, eng.Passphrase(), "empty passphrase")
 	}
 
 	revoke := func(devid keybase1.DeviceID) {
@@ -211,7 +211,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
-	require.NotZero(t, len(eng.Passphrase()))
+	require.NotEmpty(t, eng.Passphrase())
 
 	// check for the backup key
 	_, bdevs := paperDevs(tc, fu)
@@ -221,7 +221,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 	eng = NewPaperKey(tc.G)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
-	require.NotZero(t, len(eng.Passphrase()))
+	require.NotEmpty(t, eng.Passphrase())
 
 	// check for the backup key
 	_, bdevs = paperDevs(tc, fu)

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceKey(t *testing.T) {
@@ -17,17 +18,15 @@ func TestDeviceKey(t *testing.T) {
 
 	check := func() {
 		u, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if u == nil {
-			t.Fatalf("Can't load current user")
-		}
+		require.NoError(t, err)
+		require.NotNil(t, u,
+			"Can't load current user")
 
 		if subkey, err := u.GetDeviceSubkey(); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		} else if subkey == nil {
-			t.Fatalf("Failed to load device subkey right after signup")
+			require.NotNil(t, subkey,
+				"Failed to load device subkey right after signup")
 		}
 	}
 	check()

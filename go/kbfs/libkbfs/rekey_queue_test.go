@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRekeyQueueBasic(t *testing.T) {
@@ -21,24 +22,18 @@ func TestRekeyQueueBasic(t *testing.T) {
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uid2 := session2.UID
 
 	config3 := ConfigAsUser(config1, u3)
 	defer CheckConfigAndShutdown(ctx, t, config3)
 	_, err = config3.KBPKI().GetCurrentSession(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	config4 := ConfigAsUser(config1, u4)
 	defer CheckConfigAndShutdown(ctx, t, config4)
 	_, err = config4.KBPKI().GetCurrentSession(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	kbfsOps1 := config1.KBFSOps()
 	var names []string
@@ -59,13 +54,11 @@ func TestRekeyQueueBasic(t *testing.T) {
 		// user 1 creates a file
 		_, _, err = kbfsOps1.CreateFile(
 			ctx, rootNode1, testPPS("a"), false, NoExcl)
-		if err != nil {
-			t.Fatalf("Couldn't create file: %v", err)
-		}
+		require.NoError(t, err,
+			"Couldn't create file: %v", err)
 		err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-		if err != nil {
-			t.Fatalf("Couldn't sync all: %v", err)
-		}
+		require.NoError(t, err,
+			"Couldn't sync all: %v", err)
 	}
 
 	// Create a new device for user 2
@@ -81,7 +74,8 @@ func TestRekeyQueueBasic(t *testing.T) {
 	for _, name := range names {
 		_, err := GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 		if _, ok := err.(NeedSelfRekeyError); !ok {
-			t.Fatalf("Got unexpected error when reading with new key: %v", err)
+			require.True(t, ok,
+				"Got unexpected error when reading with new key: %v", err)
 		}
 	}
 
@@ -101,7 +95,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 	// listen for all of the rekey results
 	for range names {
 		if err := <-fch; err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 	}
 

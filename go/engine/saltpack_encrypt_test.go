@@ -63,13 +63,11 @@ func TestSaltpackEncrypt(t *testing.T) {
 		eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		out := sink.Bytes()
-		if len(out) == 0 {
-			t.Fatal("no output")
-		}
+		require.NotEmpty(t, out, "no output")
 	}
 	run([]string{u1.Username, u2.Username})
 
@@ -113,29 +111,26 @@ func TestSaltpackEncryptHideRecipients(t *testing.T) {
 		eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		out := sink.Bytes()
-		if len(out) == 0 {
-			t.Fatal("no output")
-		}
+		require.NotEmpty(t, out, "no output")
 
 		var header saltpack.EncryptionHeader
 		dec := codec.NewDecoderBytes(out, &codec.MsgpackHandle{WriteExt: true})
 		var b []byte
 		if err := dec.Decode(&b); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		dec = codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true})
 		if err := dec.Decode(&header); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		for _, receiver := range header.Receivers {
-			if receiver.ReceiverKID != nil {
-				t.Fatal("receiver KID included in anonymous saltpack header")
-			}
+			require.Nil(t, receiver.ReceiverKID,
+				"receiver KID included in anonymous saltpack header")
 		}
 	}
 	run([]string{u1.Username, u2.Username})
@@ -181,24 +176,22 @@ func TestSaltpackEncryptAnonymousSigncryption(t *testing.T) {
 		enceng := NewSaltpackEncrypt(encarg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, enceng); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		encout := encsink.Bytes()
-		if len(encout) == 0 {
-			t.Fatal("no output")
-		}
+		require.NotEmpty(t, encout, "no output")
 
 		// Decode the header.
 		var header saltpack.EncryptionHeader
 		hdec := codec.NewDecoderBytes(encout, &codec.MsgpackHandle{WriteExt: true})
 		var hbytes []byte
 		if err := hdec.Decode(&hbytes); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		hdec = codec.NewDecoderBytes(hbytes, &codec.MsgpackHandle{WriteExt: true})
 		if err := hdec.Decode(&header); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		// Necessary so that PUKs are used for decryption
@@ -211,19 +204,16 @@ func TestSaltpackEncryptAnonymousSigncryption(t *testing.T) {
 		}
 		deceng := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 		if err := RunEngine2(m, deceng); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
-		if !saltpackUI.DidDecrypt {
-			t.Fatal("fake saltpackUI not called")
-		}
+		require.True(t, saltpackUI.DidDecrypt,
+			"fake saltpackUI not called")
 
 		// The message should not contain the sender's public key (in the sender secretbox).
 		// Instead, the sender key should be the ephemeral key.
 		// This tests that the sender type is anonymous.
-		if saltpackUI.LastSender.SenderType != keybase1.SaltpackSenderType_ANONYMOUS {
-			t.Fatal("sender type not anonymous:", saltpackUI.LastSender.SenderType)
-		}
+		require.Equal(t, keybase1.SaltpackSenderType_ANONYMOUS, saltpackUI.LastSender.SenderType, fmt.Sprint("sender type not anonymous:", saltpackUI.LastSender.SenderType))
 	}
 
 	run([]string{u1.Username, u2.Username})
@@ -258,7 +248,8 @@ func TestSaltpackEncryptSelfNoKey(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	if _, ok := err.(libkb.NoDeviceError); !ok {
-		t.Fatalf("expected error type libkb.NoDeviceError, got %T (%s)", err, err)
+		require.True(t, ok,
+			"expected error type libkb.NoDeviceError, got %T (%s)", err, err)
 	}
 }
 
@@ -288,9 +279,8 @@ func TestSaltpackEncryptLoggedOut(t *testing.T) {
 	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		t.Fatalf("Got unexpected error: %s", err)
-	}
+	require.NoError(t, err,
+		"Got unexpected error: %s", err)
 }
 
 func TestSaltpackEncryptNoNaclOnlyPGP(t *testing.T) {
@@ -326,11 +316,13 @@ func TestSaltpackEncryptNoNaclOnlyPGP(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	if perr, ok := err.(libkb.NoNaClEncryptionKeyError); !ok {
-		t.Fatalf("Got wrong error type: %T %v", err, err)
+		require.True(t, ok,
+			"Got wrong error type: %T %v", err, err)
 	} else if !perr.HasPGPKey {
-		t.Fatalf("Should have a PGP key")
+		require.True(t, perr.HasPGPKey,
+			"Should have a PGP key")
 	} else if perr.Username != u2.Username {
-		t.Fatalf("Wrong username")
+		require.FailNow(t, "Wrong username")
 	}
 }
 
@@ -366,13 +358,11 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	out := sink.Bytes()
-	if len(out) == 0 {
-		t.Fatal("no output")
-	}
+	require.NotEmpty(t, out, "no output")
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
@@ -384,11 +374,11 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	err := RunEngine2(m, dec)
 
 	decErr, ok := err.(libkb.DecryptionError)
-	if !ok {
-		t.Fatalf("Expected err type %T, but got %T", libkb.DecryptionError{}, err)
-	}
+	require.True(t, ok,
+		"Expected err type %T, but got %T", libkb.DecryptionError{}, err)
 	if _, ok = decErr.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause.Err)
+		require.True(t, ok,
+			"Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause.Err)
 	}
 
 	Logout(tc)
@@ -399,13 +389,9 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	decarg.Source = strings.NewReader(string(out))
 	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	err = RunEngine2(m, dec)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg, "decoded: %s, expected: %s", decmsg, msg)
 }
 
 func TestSaltpackEncryptBinary(t *testing.T) {
@@ -434,7 +420,7 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 	enc := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, enc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	out := sink.String()
 
@@ -449,12 +435,10 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 	}
 	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	if err := RunEngine2(m, dec); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg, "decoded: %s, expected: %s", decmsg, msg)
 }
 
 func TestSaltpackEncryptForceVersion(t *testing.T) {
@@ -486,28 +470,24 @@ func TestSaltpackEncryptForceVersion(t *testing.T) {
 		eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		out := sink.Bytes()
-		if len(out) == 0 {
-			t.Fatal("no output")
-		}
+		require.NotEmpty(t, out, "no output")
 
 		var header saltpack.EncryptionHeader
 		dec := codec.NewDecoderBytes(out, &codec.MsgpackHandle{WriteExt: true})
 		var b []byte
 		if err := dec.Decode(&b); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		dec = codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true})
 		if err := dec.Decode(&header); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
-		if header.Version.Major != majorVersionExpected {
-			t.Fatalf("passed saltpack version %d and expected major version %d, found %d", versionFlag, majorVersionExpected, header.Version.Major)
-		}
+		require.Equal(t, majorVersionExpected, header.Version.Major, "passed saltpack version %d and expected major version %d, found %d", versionFlag, majorVersionExpected, header.Version.Major)
 	}
 
 	// 0 means the default, which is major version 2.

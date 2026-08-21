@@ -196,7 +196,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 		eng := NewPGPEncrypt(alice.tc.G, arg)
 		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
 
-		require.Greaterf(t, len(sink.Bytes()), 0, "no output [%s]", e.Name)
+		require.NotEmptyf(t, sink.Bytes(), "no output [%s]", e.Name)
 		require.Lenf(t, eng.warnings, e.Count, "warnings count [%s]", e.Name)
 		return
 	}
@@ -211,7 +211,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 		eng := NewPGPSignEngine(alice.tc.G, arg)
 		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
 
-		require.Greaterf(t, len(sink.Bytes()), 0, "no output [%s]", e.Name)
+		require.NotEmptyf(t, sink.Bytes(), "no output [%s]", e.Name)
 		require.Lenf(t, eng.warnings, e.Count, "warnings count [%s]", e.Name)
 		return
 	}

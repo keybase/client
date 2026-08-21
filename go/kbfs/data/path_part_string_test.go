@@ -34,7 +34,7 @@ func TestPathPartStringBasic(t *testing.T) {
 	require.True(t, libkb.ValidSecWord(words2[0]), words2[0])
 	require.True(t, libkb.ValidSecWord(words2[1]), words2[1])
 	t.Log("Make sure that the words aren't the same")
-	require.False(t, words[0] == words2[0] && words[1] == words2[1])
+	require.True(t, words[0] != words2[0] || words[1] != words2[1])
 
 	t.Log("Check String() with longer, but still valid, extension")
 	pps3 := NewPathPartString("test.tar.gz", no)
@@ -72,7 +72,7 @@ func TestPathPartStringEquality(t *testing.T) {
 	t.Log("Check equal PathPartStrings")
 	pps1 := NewPathPartString("test", no)
 	pps2 := NewPathPartString("test", no)
-	require.True(t, pps1 == pps2)
+	require.Equal(t, pps1, pps2)
 
 	t.Log("Check as a map key")
 	pps3 := NewPathPartString("test2", no)
@@ -89,13 +89,13 @@ func TestPathPartStringEquality(t *testing.T) {
 	t.Log("Check unequal PathPartStrings with different strings")
 	pps1 = NewPathPartString("test", no)
 	pps2 = NewPathPartString("test2", no)
-	require.False(t, pps1 == pps2)
+	require.NotEqual(t, pps1, pps2)
 
 	t.Log("Check unequal PathPartStrings with different obfuscators")
 	no2 := NewNodeObfuscator(secret)
 	pps1 = NewPathPartString("test", no)
 	pps2 = NewPathPartString("test", no2)
-	require.False(t, pps1 == pps2)
+	require.NotSame(t, pps1.Obfuscator(), pps2.Obfuscator())
 }
 
 func TestPathPartStringPrefix(t *testing.T) {

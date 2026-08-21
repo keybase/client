@@ -44,7 +44,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion SeitanVersion) {
 
 	var inviteID keybase1.TeamInviteID
 
-	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
+	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for key, aInvite := range details.AnnotatedActiveInvites {
 		invite := aInvite.InviteMetadata.Invite
 		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)

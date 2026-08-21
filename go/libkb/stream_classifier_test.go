@@ -14,21 +14,16 @@ import (
 
 func newStreamFromBase64String(t *testing.T, s string) io.Reader {
 	buf, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	return bytes.NewReader(buf)
 }
 
 func assertStreamEqBase64(t *testing.T, r io.Reader, m string) {
 	buf, err := io.ReadAll(r)
-	if err != nil {
-		t.Fatalf("an error occurred during stream draining")
-	}
+	require.NoError(t, err,
+		"an error occurred during stream draining")
 	m2 := base64.StdEncoding.EncodeToString(buf)
-	if m != m2 {
-		t.Fatalf("the whole stream came back out")
-	}
+	require.Equal(t, m, m2, "the whole stream came back out")
 }
 
 type testVector struct {
@@ -112,18 +107,11 @@ func TestClassifyTestVectors(t *testing.T) {
 		t.Logf("--> Vector %d\n", i)
 		r := newStreamFromBase64String(t, v.msg)
 		sc, r2, err := ClassifyStream(r)
-		if err != nil {
-			t.Fatalf("an error occurred while stream classifying (%d)", i)
-		}
-		if sc.Format != v.sc.Format {
-			t.Fatalf("Bad format (%d)", i)
-		}
-		if sc.Type != v.sc.Type {
-			t.Fatalf("bad type (%d)", i)
-		}
-		if sc.Armored != v.sc.Armored {
-			t.Fatalf("bad armored value (%d)", i)
-		}
+		require.NoError(t, err,
+			"an error occurred while stream classifying (%d)", i)
+		require.Equal(t, v.sc.Format, sc.Format, "Bad format (%d)", i)
+		require.Equal(t, v.sc.Type, sc.Type, "bad type (%d)", i)
+		require.Equal(t, v.sc.Armored, sc.Armored, "bad armored value (%d)", i)
 		assertStreamEqBase64(t, r2, v.msg)
 	}
 }
@@ -131,5 +119,5 @@ func TestClassifyTestVectors(t *testing.T) {
 func TestClassifyBadVectors(t *testing.T) {
 	_, _, err := ClassifyStream(bytes.NewBufferString("\n\n\n\n\n\n\n\n"))
 	require.Error(t, err)
-	require.IsType(t, UnknownStreamError{}, err)
+	require.ErrorAs(t, err, new(UnknownStreamError))
 }

@@ -20,19 +20,11 @@ func testTail(t *testing.T, testname, filename string, count, actual int, first,
 	log := logger.NewTestLogger(t)
 	tailed := tail(log, "tset", filename, count)
 	lines := strings.Split(tailed, "\n")
-	if len(tailed) != actual {
-		t.Errorf("test %s: tailed bytes: %d, expected %d", testname, len(tailed), actual)
-	}
+	require.Len(t, tailed, actual, "test %s: tailed bytes: %d, expected %d", testname, len(tailed), actual)
 
-	if strings.TrimSpace(lines[0]) != first {
-		t.Errorf("test %s: first line: %q, expected %q", testname, strings.TrimSpace(lines[0]), first)
-	}
-	if strings.TrimSpace(lines[len(lines)-2]) != last {
-		t.Errorf("test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-2]), last)
-	}
-	if strings.TrimSpace(lines[len(lines)-1]) != "" {
-		t.Errorf("test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-1]), "")
-	}
+	require.Equal(t, first, strings.TrimSpace(lines[0]), "test %s: first line: %q, expected %q", testname, strings.TrimSpace(lines[0]), first)
+	require.Equal(t, last, strings.TrimSpace(lines[len(lines)-2]), "test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-2]), last)
+	require.Empty(t, strings.TrimSpace(lines[len(lines)-1]), "test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-1]), "")
 }
 
 func TestTail(t *testing.T) {
@@ -56,7 +48,7 @@ func TestTailMulti(t *testing.T) {
 	for i, sffx := range []string{"", ".1", ".2"} {
 		mtime := time.Date(2017, time.February, 1, 3, (60 - 5*i), 0, 0, time.UTC)
 		if err := os.Chtimes(stem+sffx, atime, mtime); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 	}
 	testTail(t, "follow", stem, 100000, 99996, "13334", "29999")
@@ -107,9 +99,7 @@ func TestRedactPaperKeys(t *testing.T) {
 	for _, tt := range redactTests {
 		t.Run(tt.in, func(t *testing.T) {
 			ret := redactPotentialPaperKeys(tt.in)
-			if ret != tt.out {
-				t.Errorf("got %q; want %q", ret, tt.out)
-			}
+			require.Equal(t, tt.out, ret, "got %q; want %q", ret, tt.out)
 		})
 	}
 }

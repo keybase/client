@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type signTest struct {
@@ -29,28 +30,22 @@ func TestPGPSign(t *testing.T) {
 	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
 	if err := fu.LoadUser(tc); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
-	if fu.User == nil {
-		t.Fatal("got a nil User")
-	}
+	require.NotNil(t, fu.User,
+		"got a nil User")
 
 	m := libkb.NewMetaContextForTest(tc)
 
 	skb, err := fu.User.GetSyncedSecretKey(m)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if skb == nil {
-		t.Fatalf("skb is nil")
-	}
+	require.NotNil(t, skb,
+		"skb is nil")
 
 	key, err := skb.GetPubKey()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	for _, test := range signTests {
 		var sink bytes.Buffer
@@ -71,17 +66,11 @@ func TestPGPSign(t *testing.T) {
 
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		err = RunEngine2(m, eng)
-		if err != nil {
-			t.Errorf("%s: run error: %s", test.name, err)
-			continue
-		}
+		require.NoError(t, err, "%s: run error: %s", test.name, err)
 
 		sig := sink.String()
 
 		_, err = key.VerifyString(tc.G.Log, sig, []byte(test.input))
-		if err != nil {
-			t.Errorf("%s: verify error: %s", test.name, err)
-			continue
-		}
+		require.NoError(t, err, "%s: verify error: %s", test.name, err)
 	}
 }

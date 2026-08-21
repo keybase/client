@@ -22,9 +22,7 @@ func TestTeamGet(t *testing.T) {
 	name := createTeam(tc)
 
 	_, err = GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestTeamApplicationKey(t *testing.T) {
@@ -39,23 +37,13 @@ func TestTeamApplicationKey(t *testing.T) {
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name: name,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	chatKey, err := team.ChatKey(context.TODO())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if chatKey.Application != keybase1.TeamApplication_CHAT {
-		t.Errorf("key application: %d, expected %d", chatKey.Application, keybase1.TeamApplication_CHAT)
-	}
-	if chatKey.Generation() != 1 {
-		t.Errorf("key generation: %d, expected 1", chatKey.Generation())
-	}
-	if len(chatKey.Key) != 32 {
-		t.Errorf("key length: %d, expected 32", len(chatKey.Key))
-	}
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamApplication_CHAT, chatKey.Application, "key application: %d, expected %d", chatKey.Application, keybase1.TeamApplication_CHAT)
+	require.Equal(t, 1, chatKey.Generation(), "key generation: %d, expected 1", chatKey.Generation())
+	require.Len(t, chatKey.Key, 32, "key length: %d, expected 32", len(chatKey.Key))
 }
 
 func TestTeamGetRepeat(t *testing.T) {
@@ -71,9 +59,7 @@ func TestTeamGetRepeat(t *testing.T) {
 		name := createTeam(tc)
 
 		_, err = GetForTestByStringName(context.TODO(), tc.G, name)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 }
 
@@ -94,9 +80,7 @@ func TestTeamGetWhileCreate(t *testing.T) {
 
 	for range 100 {
 		_, err := GetForTestByStringName(context.TODO(), tc.G, name)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 }
 
@@ -134,7 +118,7 @@ func TestTeamDetailsAsImplicitAdmin(t *testing.T) {
 	t.Logf("loads the subteam")
 	team, err := GetAnnotatedTeamByName(context.Background(), tcs[0].G, teamName.String()+".bbb")
 	require.NoError(t, err)
-	require.Len(t, team.Members, 0, "should be no team members in subteam")
+	require.Empty(t, team.Members, "should be no team members in subteam")
 }
 
 // Test loading when you have become an admin after
@@ -162,7 +146,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	role, err := team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_READER, role, "still a reader")
-	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "doesn't know about any subteams")
+	require.Empty(t, team.chain().inner.SubteamLog, "doesn't know about any subteams")
 
 	t.Logf("U0 makes U1 an admin")
 	err = SetRoleAdmin(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
@@ -176,7 +160,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_READER, role, "cached as a reader")
-	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "still doesn't know about any subteams")
+	require.Empty(t, team.chain().inner.SubteamLog, "still doesn't know about any subteams")
 
 	t.Logf("U1 loads and realizes they're an admin")
 	team, err = GetMaybeAdminByStringName(context.TODO(), tcs[1].G, teamName.String(), false /*isPublic*/)
@@ -184,7 +168,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_ADMIN, role, "still an admin")
-	require.Equal(t, 1, len(team.chain().inner.SubteamLog), "has loaded previously-stubbed admin links")
+	require.Len(t, team.chain().inner.SubteamLog, 1, "has loaded previously-stubbed admin links")
 }
 
 func TestGetTeamIDByName(t *testing.T) {
@@ -230,23 +214,31 @@ func teamGet(t *testing.T) {
 	defer tc.Cleanup()
 
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	if err != nil {
+		t.Errorf("failed to create test user: %v", err)
+		return
+	}
 
 	name := createTeam(tc)
 
 	_, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("failed to load team: %v", err)
 	}
 }
 
 func createTeam(tc libkb.TestContext) string {
 	b, err := libkb.RandBytes(4)
-	require.NoError(tc.T, err)
+	if err != nil {
+		tc.T.Errorf("failed to generate team name: %v", err)
+		return ""
+	}
 
 	name := hex.EncodeToString(b)
 	_, err = CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
-	require.NoError(tc.T, err)
+	if err != nil {
+		tc.T.Errorf("failed to create root team: %v", err)
+	}
 
 	return name
 }

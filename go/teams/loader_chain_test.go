@@ -132,9 +132,8 @@ func TestUnits(t *testing.T) {
 			t.Logf("  ⏭️ %s", name)
 		}
 	}
-	if len(selectUnit) > 0 {
-		t.Fatalf("test passed but only ran selected unit: %v", runLog)
-	}
+	require.Empty(t, selectUnit,
+		"test passed but only ran selected unit: %v", runLog)
 }
 
 func runUnitFile(t *testing.T, jsonPath string) (*Team, bool) {

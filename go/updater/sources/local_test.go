@@ -21,7 +21,7 @@ func TestLocalUpdateSource(t *testing.T) {
 	path := filepath.Join(filepath.Dir(filename), "../test/test.zip")
 	jsonPath := filepath.Join(filepath.Dir(filename), "../test/update.json")
 	local := NewLocalUpdateSource(path, jsonPath, log)
-	assert.Equal(t, local.Description(), "Local")
+	assert.Equal(t, "Local", local.Description())
 
 	update, err := local.FindUpdate(updater.UpdateOptions{})
 	require.NoError(t, err)

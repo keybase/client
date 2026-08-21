@@ -27,36 +27,28 @@ func TestSignEncrypter(t *testing.T) {
 	e := NewSignEncrypter()
 	el := e.EncryptedLen(100)
 	if el != 180 {
-		t.Errorf("enc len: %d, expected 180", el)
+		require.Failf(t, "", "enc len: %d, expected 180", el)
 	}
 
 	el = e.EncryptedLen(50 * 1024 * 1024)
 	if el != 52432880 {
-		t.Errorf("enc len: %d, expected 52432880", el)
+		require.Failf(t, "", "enc len: %d, expected 52432880", el)
 	}
 
 	pt := "plain text"
 	er, err := e.Encrypt(strings.NewReader(pt))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	ct, err := io.ReadAll(er)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if string(ct) == pt {
-		t.Fatal("Encrypt did not change plaintext")
-	}
+	require.NotEqual(t, pt, string(ct), "Encrypt did not change plaintext")
 
 	d := NewSignDecrypter()
 	dr := d.Decrypt(bytes.NewReader(ct), e.EncryptKey(), e.VerifyKey())
 	ptOut, err := io.ReadAll(dr)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if string(ptOut) != pt {
-		t.Errorf("decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut, pt)
+		require.Failf(t, "", "decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut, pt)
 	}
 
 	// reuse e to do another Encrypt, make sure keys change:
@@ -64,42 +56,27 @@ func TestSignEncrypter(t *testing.T) {
 	firstVerifyKey := e.VerifyKey()
 
 	er2, err := e.Encrypt(strings.NewReader(pt))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	ct2, err := io.ReadAll(er2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if string(ct2) == pt {
-		t.Fatal("Encrypt did not change plaintext")
-	}
-	if bytes.Equal(ct, ct2) {
-		t.Fatal("second Encrypt result same as first")
-	}
-	if bytes.Equal(firstEncKey, e.EncryptKey()) {
-		t.Fatal("first enc key reused")
-	}
-	if bytes.Equal(firstVerifyKey, e.VerifyKey()) {
-		t.Fatal("first verify key reused")
-	}
+	require.NotEqual(t, pt, string(ct2), "Encrypt did not change plaintext")
+	require.NotEqual(t, ct, ct2, "second Encrypt result same as first")
+	require.NotEqual(t, firstEncKey, e.EncryptKey(), "first enc key reused")
+	require.NotEqual(t, firstVerifyKey, e.VerifyKey(), "first verify key reused")
 
 	dr2 := d.Decrypt(bytes.NewReader(ct2), e.EncryptKey(), e.VerifyKey())
 	ptOut2, err := io.ReadAll(dr2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if string(ptOut2) != pt {
-		t.Errorf("decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut2, pt)
+		require.Failf(t, "", "decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut2, pt)
 	}
 }
 
 func testStoreMultis(t *testing.T, s *S3Store) []*s3.MemMulti {
 	m, ok := s.s3c.(*s3.Mem)
-	if !ok {
-		t.Fatalf("not s3.Mem: %T", s.s3c)
-	}
+	require.True(t, ok,
+		"not s3.Mem: %T", s.s3c)
 	// get *MemConn directly
 	c := m.NewMemConn()
 	return c.AllMultis()
@@ -108,7 +85,7 @@ func testStoreMultis(t *testing.T, s *S3Store) []*s3.MemMulti {
 func assertNumMultis(t *testing.T, s *S3Store, n int) {
 	numMultis := len(testStoreMultis(t, s))
 	if numMultis != n {
-		t.Errorf("number of s3 multis: %d, expected %d", numMultis, n)
+		require.Failf(t, "", "number of s3 multis: %d, expected %d", numMultis, n)
 	}
 }
 
@@ -120,25 +97,23 @@ func getMulti(t *testing.T, s *S3Store, index int) *s3.MemMulti {
 func assertNumParts(t *testing.T, s *S3Store, index, n int) {
 	m := getMulti(t, s, index)
 	p, err := m.ListParts(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if len(p) != n {
-		t.Errorf("num parts in multi: %d, expected %d", len(p), n)
+		require.Failf(t, "", "num parts in multi: %d, expected %d", len(p), n)
 	}
 }
 
 func assertNumPutParts(t *testing.T, s *S3Store, index, calls int) {
 	m := getMulti(t, s, index)
 	if m.NumPutParts() != calls {
-		t.Errorf("num PutPart calls: %d, expected %d", m.NumPutParts(), calls)
+		require.Failf(t, "", "num PutPart calls: %d, expected %d", m.NumPutParts(), calls)
 	}
 }
 
 func randBytes(t *testing.T, n int) []byte {
 	buf := make([]byte, n)
 	if _, err := rand.Read(buf); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	return buf
 }
@@ -204,16 +179,14 @@ func TestUploadAssetSmall(t *testing.T) {
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
 	a, err := s.UploadAsset(ctx, task, io.Discard)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var buf bytes.Buffer
 	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	if !bytes.Equal(plaintext, buf.Bytes()) {
-		t.Errorf("downloaded asset did not match uploaded asset")
+		require.Fail(t, "downloaded asset did not match uploaded asset")
 	}
 
 	// small uploads should not (cannot) use multi interface to s3:
@@ -229,16 +202,14 @@ func TestUploadAssetLarge(t *testing.T) {
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
 	a, err := s.UploadAsset(ctx, task, io.Discard)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var buf bytes.Buffer
 	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	if !bytes.Equal(plaintext, buf.Bytes()) {
-		t.Errorf("downloaded asset did not match uploaded asset")
+		require.Fail(t, "downloaded asset did not match uploaded asset")
 	}
 
 	// large uploads should use multi interface to s3:
@@ -354,12 +325,10 @@ func (u *uploader) keyTracker(e, s []byte) {
 func (u *uploader) UploadResume() chat1.Asset {
 	u.s.blockLimit = 0
 	a, err := u.s.UploadAsset(context.Background(), u.task, io.Discard)
-	if err != nil {
-		u.t.Fatalf("expected second UploadAsset call to work, got: %s", err)
-	}
+	require.NoError(u.t, err,
+		"expected second UploadAsset call to work, got: %s", err)
 	if a.Size != signencrypt.GetSealedSize(int64(len(u.plaintext))) {
-		u.t.Errorf("uploaded asset size: %d, expected %d", a.Size,
-			signencrypt.GetSealedSize(int64(len(u.plaintext))))
+		require.Failf(u.t, "", "uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(int64(len(u.plaintext))))
 	}
 	u.fullEncKey = u.encKey
 	u.fullSigKey = u.sigKey
@@ -378,9 +347,8 @@ func (u *uploader) UploadPartial(blocks int) {
 	u.s.blockLimit = blocks
 
 	_, err := u.s.UploadAsset(context.Background(), u.task, io.Discard)
-	if err == nil {
-		u.t.Fatal("expected incomplete upload to have error")
-	}
+	require.Error(u.t, err,
+		"expected incomplete upload to have error")
 
 	assertNumParts(u.t, u.s, 0, blocks)
 	assertNumPutParts(u.t, u.s, 0, blocks)
@@ -402,32 +370,32 @@ func (u *uploader) ResetHash() {
 func (u *uploader) DownloadAndMatch(a chat1.Asset) {
 	var buf bytes.Buffer
 	if err := u.s.DownloadAsset(context.Background(), u.task.S3Params, a, &buf, u.task.S3Signer, nil); err != nil {
-		u.t.Fatal(err)
+		require.NoError(u.t, err)
 	}
 	plaintextDownload := buf.Bytes()
 	if len(plaintextDownload) != len(u.plaintext) {
-		u.t.Errorf("downloaded asset len: %d, expected %d", len(plaintextDownload), len(u.plaintext))
+		require.Failf(u.t, "", "downloaded asset len: %d, expected %d", len(plaintextDownload), len(u.plaintext))
 	}
 	if !bytes.Equal(u.plaintext, plaintextDownload) {
-		u.t.Errorf("downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], u.plaintext[:10])
+		require.Failf(u.t, "", "downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], u.plaintext[:10])
 	}
 }
 
 func (u *uploader) AssertKeysChanged() {
 	if bytes.Equal(u.partialEncKey, u.fullEncKey) {
-		u.t.Errorf("partial enc key and full enc key match: enc key reused")
+		require.Fail(u.t, "partial enc key and full enc key match: enc key reused")
 	}
 	if bytes.Equal(u.partialSigKey, u.fullSigKey) {
-		u.t.Errorf("partial sig key and full sig key match: sig key reused")
+		require.Fail(u.t, "partial sig key and full sig key match: sig key reused")
 	}
 }
 
 func (u *uploader) AssertKeysReused() {
 	if !bytes.Equal(u.partialEncKey, u.fullEncKey) {
-		u.t.Errorf("partial enc key and full enc key different: enc key not reused")
+		require.Fail(u.t, "partial enc key and full enc key different: enc key not reused")
 	}
 	if !bytes.Equal(u.partialSigKey, u.fullSigKey) {
-		u.t.Errorf("partial sig key and full sig key different: sig key not reused")
+		require.Fail(u.t, "partial sig key and full sig key different: sig key not reused")
 	}
 }
 
@@ -437,13 +405,13 @@ func (u *uploader) AssertNumPutParts(n int) {
 
 func (u *uploader) AssertNumResets(n int) {
 	if u.breader.resets != n {
-		u.t.Errorf("stream resets: %d, expected %d", u.breader.resets, n)
+		require.Failf(u.t, "", "stream resets: %d, expected %d", u.breader.resets, n)
 	}
 }
 
 func (u *uploader) AssertNumAborts(n int) {
 	if u.s.aborts != n {
-		u.t.Errorf("aborts: %d, expected %d", u.s.aborts, n)
+		require.Failf(u.t, "", "aborts: %d, expected %d", u.s.aborts, n)
 	}
 }
 

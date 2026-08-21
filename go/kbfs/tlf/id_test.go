@@ -23,7 +23,7 @@ func TestIDEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	require.Equal(t, idByteLen+overhead, len(encodedID))
+	require.Len(t, encodedID, idByteLen+overhead)
 
 	var id2 ID
 	err = codec.Decode(encodedID, &id2)
@@ -50,12 +50,12 @@ func TestMakeIDFromTeam(t *testing.T) {
 	check(Private, privateTID, 15)
 
 	_, err := MakeIDFromTeam(Public, privateTID, 0)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	_, err = MakeIDFromTeam(Private, publicTID, 0)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	_, err = MakeIDFromTeam(SingleTeam, publicTID, 0)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	_, err = MakeIDFromTeam(
 		Private, keybase1.TeamID("extra"+privateTID.String()), 0)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }

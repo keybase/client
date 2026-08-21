@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -135,7 +136,7 @@ func endBlockRetrievalQueueTest(t *testing.T, q *blockRetrievalQueue) {
 	select {
 	case <-q.Shutdown():
 	case <-time.After(5 * time.Second):
-		t.Fatal("Waited too long for block retrieval queue to shutdown")
+		require.FailNow(t, "Waited too long for block retrieval queue to shutdown")
 	}
 }
 
@@ -269,7 +270,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
 	require.Len(t, br.requests, 2)
-	require.Len(t, *q.heap, 0)
+	require.Empty(t, *q.heap)
 	require.Equal(t, block, br.requests[0].block)
 	require.Equal(t, block, br.requests[1].block)
 }
@@ -407,7 +408,7 @@ func TestBlockRetrievalQueueThrottling(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
 		select {
 		case <-ctx.Done():
-			t.Fatal(ctx.Err())
+			require.FailNow(t, fmt.Sprint(ctx.Err()))
 		default:
 		}
 	}

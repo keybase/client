@@ -343,7 +343,7 @@ func TestBlockOpsReadyTooSmallEncode(t *testing.T) {
 	kmd := makeFakeKeyMetadata(tlfID, kbfsmd.FirstValidKeyGen)
 
 	_, _, _, err := bops.Ready(ctx, kmd, &data.FileBlock{})
-	require.IsType(t, TooLowByteCountError{}, err)
+	require.ErrorAs(t, err, new(TooLowByteCountError))
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Get()
@@ -413,7 +413,7 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 			KeyGen: latestKeyGen, Context: bCtx,
 		},
 		&decryptedBlock, data.NoCacheEntry, data.MasterBranch)
-	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorBlockNonExistent))
 }
 
 type badGetBlockServer struct {
@@ -466,7 +466,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 			KeyGen: latestKeyGen, Context: bCtx,
 		},
 		&decryptedBlock, data.NoCacheEntry, data.MasterBranch)
-	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
+	require.ErrorAs(t, errors.Cause(err), new(kbfshash.HashMismatchError))
 }
 
 // TestBlockOpsReadyFailKeyGet checks that BlockOpsStandard.Get()

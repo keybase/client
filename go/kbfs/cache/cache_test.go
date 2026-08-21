@@ -27,13 +27,13 @@ func TestRandomEvictedCacheNoDuplicateKeysOnUpdate(t *testing.T) {
 	c.Add(k2, v1)
 	c.Add(k3, v1)
 
-	require.Equal(t, 3, len(c.keys), "expected 3 keys after 3 inserts")
+	require.Len(t, c.keys, 3, "expected 3 keys after 3 inserts")
 
 	// Update k1 — before the fix this appended a duplicate to c.keys.
 	c.Add(k1, v1)
 	c.Add(k1, v1)
 
-	require.Equal(t, len(c.data), len(c.keys), "c.keys length != c.data length after updates; duplicate key entries exist")
+	require.Len(t, c.keys, len(c.data), "c.keys length != c.data length after updates; duplicate key entries exist")
 
 	// Verify the updated key is still retrievable.
 	got, ok := c.Get(k1)
@@ -54,7 +54,7 @@ func TestRandomEvictedCacheBytesAccountingOnUpdate(t *testing.T) {
 	// Updating with same-sized value should leave cachedBytes unchanged.
 	c.Add(k1, v1)
 	require.Equal(t, afterInsert, c.cachedBytes, "cachedBytes changed on same-size update")
-	require.Equal(t, 1, len(c.keys), "expected 1 key slot after insert+update")
+	require.Len(t, c.keys, 1, "expected 1 key slot after insert+update")
 }
 
 func TestRandomEvictedCacheEviction(t *testing.T) {
@@ -71,7 +71,7 @@ func TestRandomEvictedCacheEviction(t *testing.T) {
 	// Adding k3 must evict one entry.
 	c.Add(k3, v)
 
-	require.Equal(t, len(c.data), len(c.keys), "c.keys length != c.data length after eviction")
-	require.Equal(t, 2, len(c.data), "expected 2 entries after eviction")
+	require.Len(t, c.keys, len(c.data), "c.keys length != c.data length after eviction")
+	require.Len(t, c.data, 2, "expected 2 entries after eviction")
 	require.Equal(t, 6, c.cachedBytes, "expected cachedBytes=6 after eviction")
 }

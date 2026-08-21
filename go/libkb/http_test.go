@@ -6,6 +6,8 @@ package libkb
 import (
 	"testing"
 	"testing/quick"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestHexEncoding(t *testing.T) {
@@ -23,7 +25,6 @@ func TestHexEncoding(t *testing.T) {
 		}
 		return len(s) == 16
 	}
-	if err := quick.Check(f, nil); err != nil {
-		t.Error(err)
-	}
+	err := quick.Check(f, nil)
+	require.NoError(t, err)
 }

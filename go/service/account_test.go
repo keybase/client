@@ -217,7 +217,7 @@ func TestCancelAutoresetWhenRevoked(t *testing.T) {
 
 	err = handler.CancelReset(ctx, 0)
 	require.Error(t, err)
-	require.IsType(t, UserWasLoggedOutError{}, err)
+	require.ErrorAs(t, err, new(UserWasLoggedOutError))
 
 	// `CancelReset` should have logged us out.
 	require.True(t, tc2.G.ActiveDevice.UID().IsNil())

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type TestGenericKey struct {
@@ -69,17 +70,16 @@ var msg = []byte("test")
 
 func TestSignWithTestKey(t *testing.T) {
 	k, _, err := ReadOneKeyFromString(gpgDummyKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	if _, _, err := k.SignToString(msg); err == nil {
-		t.Fatal("was able to sign with dummy skey")
+		require.Error(t, err,
+			"was able to sign with dummy skey")
 	}
 
 	// Set a fallback key to use when SimpleSign fails.
 	InitTestKey(k)
 	if _, _, err := k.SignToString(msg); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }

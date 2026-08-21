@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -17,14 +18,10 @@ import (
 
 func makeKeyPairsOrBust(t *testing.T) (NaclDHKeyPair, NaclDHKeyPair) {
 	kp1, err := GenerateNaclDHKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	kp2, err := GenerateNaclDHKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	return kp1, kp2
 }
@@ -52,24 +49,16 @@ func TestSealOpen(t *testing.T) {
 	encryptedData := boxSeal(expectedData, nonce, kp1.Public, kp2.Private)
 
 	data, err := boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if !bytes.Equal(data, expectedData) {
-		t.Errorf("Expected %v, got %v", expectedData, data)
-	}
+	require.True(t, bytes.Equal(data, expectedData), "Expected %v, got %v", expectedData, data)
 
 	// Apparently, you can open a message you yourself have sealed.
 
 	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp2.Private)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if !bytes.Equal(data, expectedData) {
-		t.Errorf("Expected %v, got %v", expectedData, data)
-	}
+	require.True(t, bytes.Equal(data, expectedData), "Expected %v, got %v", expectedData, data)
 }
 
 // Test that opening a message with the wrong key combinations won't
@@ -88,74 +77,46 @@ func TestOpenWrongKeyCombos(t *testing.T) {
 	var err error
 
 	data, err = boxOpen(encryptedData, nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp1.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp2.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), (*NaclDHKeyPrivate)(&kp1.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), (*NaclDHKeyPrivate)(&kp2.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), kp2.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, (*NaclDHKeyPrivate)(&kp1.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, (*NaclDHKeyPrivate)(&kp2.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp2.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), (*NaclDHKeyPrivate)(&kp1.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), (*NaclDHKeyPrivate)(&kp2.Public))
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), kp2.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 }
 
 // Test that opening a message with the wrong keys won't work.
@@ -176,44 +137,28 @@ func TestOpenWrongKeys(t *testing.T) {
 	var err error
 
 	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp3.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp1.Public, kp4.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp3.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp4.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp3.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp3.Public, kp2.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp4.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp4.Public, kp2.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 }
 
 // Test that opening a modified message doesn't work.
@@ -229,28 +174,20 @@ func TestOpenCorruptMessage(t *testing.T) {
 	var err error
 
 	data, err = boxOpen(encryptedData[:len(encryptedData)-1], nonce, kp2.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(append(encryptedData, 0), nonce, kp2.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	encryptedData[0] = ^encryptedData[0]
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	encryptedData[box.Overhead] = ^encryptedData[box.Overhead]
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 }
 
 // Test that opening a message with a modified nonce doesn't work.
@@ -268,7 +205,5 @@ func TestOpenCorruptNonce(t *testing.T) {
 	nonce[0] = ^nonce[0]
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp1.Private)
-	if err == nil {
-		t.Errorf("Open unexpectedly worked: %v", data)
-	}
+	require.Error(t, err, "Open unexpectedly worked: %v", data)
 }

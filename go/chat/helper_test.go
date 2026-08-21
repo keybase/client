@@ -63,7 +63,7 @@ func TestRecentConversationParticipants(t *testing.T) {
 
 	res, err := RecentConversationParticipants(ctx, tc.Context(), uid)
 	require.NoError(t, err)
-	require.Equal(t, maxUsers-1, len(res))
+	require.Len(t, res, maxUsers-1)
 	require.Equal(t, refList, res)
 }
 
@@ -90,20 +90,20 @@ func TestSendTextByName(t *testing.T) {
 		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 			types.InboxSourceDataSourceAll, nil, nil)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(inbox.Convs))
+		require.Len(t, inbox.Convs, 1)
 		require.NoError(t, helper.SendTextByName(ctx, name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 			types.InboxSourceDataSourceAll, nil, nil)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(inbox.Convs))
+		require.Len(t, inbox.Convs, 1)
 		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid,
 			chat1.GetThreadReason_GENERAL, nil,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			}, nil)
 		require.NoError(t, err)
-		require.Equal(t, 2, len(tv.Messages))
+		require.Len(t, tv.Messages, 2)
 
 		t.Logf("sending into new topic name")
 		topicName := "MIKE"
@@ -115,10 +115,10 @@ func TestSendTextByName(t *testing.T) {
 		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
-			require.Equal(t, 2, len(inbox.Convs))
+			require.Len(t, inbox.Convs, 2)
 		default:
 			// No second topic name on KBFS chats
-			require.Equal(t, 1, len(inbox.Convs))
+			require.Len(t, inbox.Convs, 1)
 		}
 	})
 }

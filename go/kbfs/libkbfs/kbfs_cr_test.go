@@ -104,7 +104,7 @@ func TestBasicMDUpdate(t *testing.T) {
 
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(entries))
+	require.Len(t, entries, 1)
 	_, ok := entries[rootNode2.ChildName("a")]
 	require.True(t, ok)
 
@@ -165,7 +165,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(entries))
+	require.Len(t, entries, 2)
 	_, ok := entries[rootNode2.ChildName("b")]
 	require.True(t, ok)
 	_, ok = entries[rootNode2.ChildName("c")]
@@ -390,15 +390,15 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	select {
 	case <-c:
 	default:
-		t.Fatal("No update!")
+		require.FailNow(t, "No update!")
 	}
 	select {
 	case <-c:
 	default:
-		t.Fatal("No 2nd update!")
+		require.FailNow(t, "No 2nd update!")
 	}
 	// make sure we see two sync op changes, on the same node
-	assert.Equal(t, 2, len(cro.changes))
+	assert.Len(t, cro.changes, 2)
 	var n Node
 	for _, change := range cro.changes {
 		if n == nil {
@@ -561,7 +561,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	children2, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
 
-	assert.Equal(t, len(expectedChildren), len(children1))
+	assert.Len(t, children1, len(expectedChildren))
 
 	for _, child := range expectedChildren {
 		_, ok := children1[rootNode1.ChildName(child)]
@@ -785,7 +785,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	children2, err := kbfsOps2.GetDirChildren(ctx, dirA2)
 	require.NoError(t, err)
 
-	assert.Equal(t, len(expectedChildren), len(children1))
+	assert.Len(t, children1, len(expectedChildren))
 
 	for _, child := range expectedChildren {
 		_, ok := children1[dirA1.ChildName(child)]
@@ -903,7 +903,7 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	crdb := config2.GetConflictResolutionDB()
 	crData, err := crdb.Get(fbo.id().Bytes(), nil)
 	require.NoError(t, err)
-	require.NotZero(t, len(crData))
+	require.NotEmpty(t, crData)
 
 	t.Log("Clear the conflict state and re-enable CR.")
 	err = fbo.clearConflictView(ctx)
@@ -1045,7 +1045,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	children2, err := kbfsOps2.GetDirChildren(ctx, dirA2)
 	require.NoError(t, err)
 
-	assert.Equal(t, len(expectedChildren), len(children1))
+	assert.Len(t, children1, len(expectedChildren))
 
 	for _, child := range expectedChildren {
 		_, ok := children1[dirA1.ChildName(child)]
@@ -1255,7 +1255,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// user2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
-	require.IsType(t, NeedSelfRekeyError{}, err)
+	require.ErrorAs(t, err, new(NeedSelfRekeyError))
 
 	// User 2 syncs
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -1333,7 +1333,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	children2Dev2, err := kbfsOps2Dev2.GetDirChildren(ctx, dirA2Dev2)
 	require.NoError(t, err)
 
-	assert.Equal(t, len(expectedChildren), len(children1))
+	assert.Len(t, children1, len(expectedChildren))
 
 	for _, child := range expectedChildren {
 		_, ok := children1[dirA1.ChildName(child)]
@@ -1397,7 +1397,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// user2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
-	require.IsType(t, NeedSelfRekeyError{}, err)
+	require.ErrorAs(t, err, new(NeedSelfRekeyError))
 
 	// User 2 syncs
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -1465,7 +1465,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	children2Dev2, err := kbfsOps2Dev2.GetDirChildren(ctx, dirA2Dev2)
 	require.NoError(t, err)
 
-	assert.Equal(t, len(expectedChildren), len(children1))
+	assert.Len(t, children1, len(expectedChildren))
 
 	for _, child := range expectedChildren {
 		_, ok := children1[dirA1.ChildName(child)]
@@ -1724,7 +1724,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	}
 	children2, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
-	assert.Equal(t, len(expectedChildren), len(children2))
+	assert.Len(t, children2, len(expectedChildren))
 	for _, child := range expectedChildren {
 		_, ok := children2[rootNode2.ChildName(child)]
 		assert.True(t, ok)
@@ -1850,7 +1850,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 			ctx, dirA2, testPPS("g"), false, NoExcl)
 		assert.NoError(t, err)
 		err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		writeErrCh <- err
 	}()
 
@@ -1860,7 +1860,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	timer := time.After(20 * time.Millisecond)
 	select {
 	case <-writeErrCh:
-		t.Fatalf("Write finished without blocking")
+		require.FailNow(t, "Write finished without blocking")
 	case <-timer:
 	}
 
@@ -1935,7 +1935,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		defer wg.Done()
 		_, _, err = kbfsOps2.CreateFile(
 			putCtx, rootNode2, testPPS("c"), false, NoExcl)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		err = kbfsOps2.SyncAll(putCtx, rootNode2.GetFolderBranch())
 		// Even though internally folderBranchOps ignores the
 		// cancellation error when putting on an unmerged branch, the
@@ -1969,7 +1969,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	}
 	children2, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
-	assert.Equal(t, len(expectedChildren), len(children2))
+	assert.Len(t, children2, len(expectedChildren))
 	for _, child := range expectedChildren {
 		_, ok := children2[rootNode2.ChildName(child)]
 		assert.True(t, ok)

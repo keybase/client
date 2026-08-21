@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"runtime/debug"
 	"strings"
 	"testing"
@@ -32,9 +33,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestPGPUserInterface(t *testing.T) {
@@ -121,14 +120,14 @@ func (p *pgpPair) assert(b bool, m string) {
 	if b {
 		return
 	}
-	p.t.Fatal(m)
+	require.FailNow(p.t, fmt.Sprint(m))
 }
 
 func (p *pgpPair) assertEqual(actual, expected int, m string) {
 	if actual == expected {
 		return
 	}
-	p.t.Fatalf("%s: %d, expected %d", m, actual, expected)
+	require.FailNow(p.t, fmt.Sprintf("%s: %d, expected %d", m, actual, expected))
 }
 
 func (p *pgpPair) checkIdentifyUIAndPgpUI(name string, f func(string) (int, int), m string, n int) {
@@ -152,18 +151,12 @@ func (p *pgpPair) recipientTracksSender() bool {
 
 func (p *pgpPair) isTracking(meContext libkb.TestContext, username string) bool {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(meContext.G))
-	if err != nil {
-		p.t.Fatal(err)
-	}
+	require.NoError(p.t, err)
 	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(meContext.G, username))
-	if err != nil {
-		p.t.Fatal(err)
-	}
+	require.NoError(p.t, err)
 	m := NewMetaContextForTest(meContext)
 	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
-	if err != nil {
-		p.t.Fatal(err)
-	}
+	require.NoError(p.t, err)
 	return s != nil
 }
 
@@ -184,7 +177,7 @@ func (p *pgpPair) encrypt(sign bool) (string, int) {
 	eng := NewPGPEncrypt(p.tcS.G, arg)
 	m := NewMetaContextForTest(p.tcS).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
-		p.t.Fatal(err)
+		require.NoError(p.t, err)
 	}
 
 	out := sink.Bytes()
@@ -212,7 +205,7 @@ func (p *pgpPair) decryptSelf(msg string) (int, int) {
 	}
 	dec := NewPGPDecrypt(p.tcS.G, arg)
 	if err := RunEngine2(ctx, dec); err != nil {
-		p.t.Fatal(err)
+		require.NoError(p.t, err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
@@ -226,7 +219,7 @@ func (p *pgpPair) decryptAssertSignedBySelf(msg string) (int, int) {
 	}
 	dec := NewPGPDecrypt(p.tcS.G, arg)
 	if err := RunEngine2(ctx, dec); err != nil {
-		p.t.Fatal(err)
+		require.NoError(p.t, err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
@@ -238,7 +231,7 @@ func (p *pgpPair) doDecrypt(msg string, arg *PGPDecryptArg) (int, int) {
 	dec := NewPGPDecrypt(p.tcR.G, arg)
 	if err := RunEngine2(ctx, dec); err != nil {
 		debug.PrintStack()
-		p.t.Fatal(err)
+		require.FailNow(p.t, fmt.Sprint(err))
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
@@ -250,7 +243,7 @@ func (p *pgpPair) verify(msg string) (int, int) {
 	}
 	eng := NewPGPVerify(p.tcR.G, arg)
 	if err := RunEngine2(ctx, eng); err != nil {
-		p.t.Fatal(err)
+		require.NoError(p.t, err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
@@ -263,7 +256,7 @@ func (p *pgpPair) verifyAssertSignedBySender(msg string) (int, int) {
 	}
 	eng := NewPGPVerify(p.tcR.G, arg)
 	if err := RunEngine2(ctx, eng); err != nil {
-		p.t.Fatal(err)
+		require.NoError(p.t, err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
@@ -275,7 +268,7 @@ func (p *pgpPair) verifySelf(msg string) (int, int) {
 	}
 	eng := NewPGPVerify(p.tcS.G, arg)
 	if err := RunEngine2(ctx, eng); err != nil {
-		p.t.Fatal(err)
+		require.NoError(p.t, err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
@@ -288,24 +281,22 @@ func (p *pgpPair) verifyAssertSignedBySelf(msg string) (int, int) {
 	}
 	eng := NewPGPVerify(p.tcS.G, arg)
 	if err := RunEngine2(ctx, eng); err != nil {
-		p.t.Fatal(err)
+		require.NoError(p.t, err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
 
 func (p *pgpPair) idc(m libkb.MetaContext) int {
 	ui, ok := m.UIs().IdentifyUI.(*FakeIdentifyUI)
-	if !ok {
-		p.t.Fatalf("not FakeIdentifyUI: %T", m.UIs().IdentifyUI)
-	}
+	require.True(p.t, ok,
+		"not FakeIdentifyUI: %T", m.UIs().IdentifyUI)
 	p.t.Logf("FakeIdentifyUI: %+v", ui)
 	return ui.StartCount
 }
 
 func (p *pgpPair) sigc(m libkb.MetaContext) int {
 	ui, ok := m.UIs().PgpUI.(*TestPgpUI)
-	if !ok {
-		p.t.Fatalf("not TestPgpUI: %T", m.UIs().PgpUI)
-	}
+	require.True(p.t, ok,
+		"not TestPgpUI: %T", m.UIs().PgpUI)
 	return ui.OutputCount
 }

@@ -93,5 +93,5 @@ func setupTestForPrechecks(t *testing.T, implicitTeam bool) (tc libkb.TestContex
 
 func requirePrecheckError(t *testing.T, err error) {
 	require.Error(t, err)
-	require.IsType(t, PrecheckAppendError{}, err)
+	require.ErrorAs(t, err, new(PrecheckAppendError))
 }

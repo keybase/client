@@ -500,7 +500,7 @@ func TestFullIndexSearch(t *testing.T) {
 			require.True(t, ok, r.Path)
 			delete(expectedResults, r.Path)
 		}
-		require.Len(t, expectedResults, 0)
+		require.Empty(t, expectedResults)
 	}
 
 	userPath := func(dir, child string) string {

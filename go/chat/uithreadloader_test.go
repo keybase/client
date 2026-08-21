@@ -127,35 +127,35 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	case res := <-chatUI.ThreadCb:
 		require.False(t, res.Full)
 
-		require.Equal(t, 9, len(res.Thread.Messages))
+		require.Len(t, res.Thread.Messages, 9)
 
 		require.True(t, res.Thread.Messages[0].IsPlaceholder())
 		require.True(t, res.Thread.Messages[1].IsPlaceholder())
 
 		require.Equal(t, chat1.MessageType_JOIN, res.Thread.Messages[2].GetMessageType())
-		require.Equal(t, 1, len(res.Thread.Messages[2].Valid().MessageBody.Join().Joiners))
-		require.Equal(t, 1, len(res.Thread.Messages[2].Valid().MessageBody.Join().Leavers))
+		require.Len(t, res.Thread.Messages[2].Valid().MessageBody.Join().Joiners, 1)
+		require.Len(t, res.Thread.Messages[2].Valid().MessageBody.Join().Leavers, 1)
 
 		require.Equal(t, chat1.MessageType_TEXT, res.Thread.Messages[3].GetMessageType())
 
 		require.Equal(t, chat1.MessageType_JOIN, res.Thread.Messages[4].GetMessageType())
-		require.Zero(t, len(res.Thread.Messages[4].Valid().MessageBody.Join().Joiners))
-		require.Equal(t, 1, len(res.Thread.Messages[4].Valid().MessageBody.Join().Leavers))
+		require.Empty(t, res.Thread.Messages[4].Valid().MessageBody.Join().Joiners)
+		require.Len(t, res.Thread.Messages[4].Valid().MessageBody.Join().Leavers, 1)
 
 		require.Equal(t, chat1.MessageType_JOIN, res.Thread.Messages[5].GetMessageType())
-		require.Equal(t, 2, len(res.Thread.Messages[5].Valid().MessageBody.Join().Joiners))
-		require.Zero(t, len(res.Thread.Messages[5].Valid().MessageBody.Join().Leavers))
+		require.Len(t, res.Thread.Messages[5].Valid().MessageBody.Join().Joiners, 2)
+		require.Empty(t, res.Thread.Messages[5].Valid().MessageBody.Join().Leavers)
 
 		require.Equal(t, chat1.MessageType_SYSTEM, res.Thread.Messages[6].GetMessageType())
 		bod := res.Thread.Messages[6].Valid().MessageBody.System()
 		sysTyp, err := bod.SystemType()
 		require.NoError(t, err)
 		require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
-		require.Equal(t, 2, len(bod.Bulkaddtoconv().Usernames))
+		require.Len(t, bod.Bulkaddtoconv().Usernames, 2)
 
 		require.Equal(t, chat1.MessageType_JOIN, res.Thread.Messages[7].GetMessageType())
-		require.Zero(t, len(res.Thread.Messages[7].Valid().MessageBody.Join().Joiners))
-		require.Zero(t, len(res.Thread.Messages[7].Valid().MessageBody.Join().Leavers))
+		require.Empty(t, res.Thread.Messages[7].Valid().MessageBody.Join().Joiners)
+		require.Empty(t, res.Thread.Messages[7].Valid().MessageBody.Join().Leavers)
 
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
@@ -165,7 +165,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.True(t, res.Full)
-		require.Equal(t, 7, len(res.Thread.Messages))
+		require.Len(t, res.Thread.Messages, 7)
 		for _, msg := range res.Thread.Messages {
 			switch msg.GetMessageID() {
 			case lastLeave.GetMessageID():
@@ -205,7 +205,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid, nil))
 	_, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
-	require.IsType(t, storage.MissError{}, err)
+	require.ErrorAs(t, err, new(storage.MissError))
 
 	clock := clockwork.NewFakeClock()
 	ri := ctc.as(t, users[0]).ri
@@ -222,13 +222,13 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.True(t, res.Full)
-		require.Equal(t, 2, len(res.Thread.Messages))
+		require.Len(t, res.Thread.Messages, 2)
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}
 	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
-	require.IsType(t, storage.MissError{}, err)
+	require.ErrorAs(t, err, new(storage.MissError))
 	clock.Advance(10 * time.Second)
 	worked := false
 	for i := 0; i < 5 && !worked; i++ {
@@ -245,7 +245,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	require.True(t, worked)
 	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(tv.Messages))
+	require.Len(t, tv.Messages, 2)
 }
 
 func TestUIThreadLoaderDisplayStatus(t *testing.T) {
@@ -283,7 +283,7 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.False(t, res.Full)
-		require.Equal(t, 2, len(res.Thread.Messages))
+		require.Len(t, res.Thread.Messages, 2)
 	case <-time.After(timeout):
 		require.Fail(t, "no cache cb")
 	}
@@ -300,7 +300,7 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.True(t, res.Full)
-		require.Zero(t, len(res.Thread.Messages))
+		require.Empty(t, res.Thread.Messages)
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}
@@ -341,7 +341,7 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.False(t, res.Full)
-		require.Equal(t, 2, len(res.Thread.Messages))
+		require.Len(t, res.Thread.Messages, 2)
 	case <-time.After(timeout):
 		require.Fail(t, "no cache cb")
 	}
@@ -349,7 +349,7 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.True(t, res.Full)
-		require.Zero(t, len(res.Thread.Messages))
+		require.Empty(t, res.Thread.Messages)
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}
@@ -408,7 +408,7 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.False(t, res.Full)
-		require.Equal(t, 2, len(res.Thread.Messages))
+		require.Len(t, res.Thread.Messages, 2)
 	case <-time.After(timeout):
 		require.Fail(t, "no cache cb")
 	}
@@ -416,7 +416,7 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.True(t, res.Full)
-		require.Zero(t, len(res.Thread.Messages))
+		require.Empty(t, res.Thread.Messages)
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}

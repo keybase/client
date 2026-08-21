@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -21,14 +22,10 @@ import (
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
 	cl, err := libkb.ImportLinkFromServer(libkb.NewMetaContextBackground(g), nil, []byte(trackingServerReply), trackingUID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	gl := libkb.GenericChainLink{ChainLink: cl}
 	tcl, err := libkb.ParseTrackChainLink(gl)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	return tcl
 }
 
@@ -36,9 +33,8 @@ func TestIdentify2WithUIDImportTrackingLink(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestIdentify2WithUIDImportTrackingLink", 0)
 	defer tc.Cleanup()
 	link := importTrackingLink(t, tc.G)
-	if link == nil {
-		t.Fatalf("link import failed")
-	}
+	require.NotNil(t, link,
+		"link import failed")
 }
 
 type cacheStats struct {
@@ -287,9 +283,7 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	<-i.finishCh
 }
 
@@ -305,9 +299,7 @@ func launchWaiter(t *testing.T, ch chan struct{}) func() {
 	}()
 	return func() {
 		err := <-waitCh
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 }
 
@@ -329,9 +321,7 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 
 	waiter := launchWaiter(t, i.finishCh)
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	waiter()
 }
@@ -354,19 +344,17 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 	}
 
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	select {
 	case <-i.startCh:
-		t.Fatalf("did not expect the identify to start")
+		require.FailNow(t, "did not expect the identify to start")
 	default:
 	}
 
 	select {
 	case <-i.finishCh:
-		t.Fatalf("did not expect the identify to end")
+		require.FailNow(t, "did not expect the identify to end")
 	default:
 	}
 }
@@ -403,9 +391,8 @@ func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
 	}
 	waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
 
-	if err == nil {
-		t.Fatal("expected an ID2 error since twitter proof failed")
-	}
+	require.Error(t, err,
+		"expected an ID2 error since twitter proof failed")
 	waiter()
 }
 
@@ -460,24 +447,14 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	origUI := tester
 
 	checkBrokenRes := func(res *keybase1.Identify2ResUPK2) {
-		if !res.Upk.GetUID().Equal(tracyUID) {
-			t.Fatal("bad UID for t_tracy")
-		}
-		if res.Upk.GetName() != "t_tracy" {
-			t.Fatal("bad username for t_tracy")
-		}
-		if len(res.Upk.Current.DeviceKeys) != 4 {
-			t.Fatal("wrong # of device keys for tracy")
-		}
-		if res.TrackBreaks == nil || len(res.TrackBreaks.Proofs) != 1 {
-			t.Fatal("Expected to get back 1 broken proof")
-		}
-		if res.TrackBreaks.Proofs[0].RemoteProof.Key != "twitter" {
-			t.Fatal("Expected a twitter proof type")
-		}
-		if res.TrackBreaks.Proofs[0].Lcr.RemoteDiff.Type != keybase1.TrackDiffType_REMOTE_FAIL {
-			t.Fatal("wrong remote failure type")
-		}
+		require.True(t, res.Upk.GetUID().Equal(tracyUID),
+			"bad UID for t_tracy")
+		require.Equal(t, "t_tracy", res.Upk.GetName(), "bad username for t_tracy")
+		require.Len(t, res.Upk.Current.DeviceKeys, 4, "wrong # of device keys for tracy")
+		require.False(t, res.TrackBreaks == nil || len(res.TrackBreaks.Proofs) != 1,
+			"Expected to get back 1 broken proof")
+		require.Equal(t, "twitter", res.TrackBreaks.Proofs[0].RemoteProof.Key, "Expected a twitter proof type")
+		require.Equal(t, keybase1.TrackDiffType_REMOTE_FAIL, res.TrackBreaks.Proofs[0].Lcr.RemoteDiff.Type, "wrong remote failure type")
 	}
 
 	runChatGUI := func() {
@@ -499,16 +476,14 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		// otherwise the waiter() will block indefinitely.
 		_ = origUI.Finish(m)
 		waiter()
-		if err != nil {
-			t.Fatalf("expected no ID2 error; got %v", err)
-		}
+		require.NoError(t, err,
+			"expected no ID2 error; got %v", err)
 		res, err := eng.Result(m)
-		if err != nil {
-			t.Fatalf("unexpected export error: %s", err)
-		}
+		require.NoError(t, err,
+			"unexpected export error: %s", err)
 		checkBrokenRes(res)
 		if n := eng.testArgs.stats.untrackedFastPaths; n > 0 {
-			t.Fatalf("Didn't expect any untracked fast paths, but got %d", n)
+			require.FailNow(t, fmt.Sprintf("Didn't expect any untracked fast paths, but got %d", n))
 		}
 	}
 
@@ -526,65 +501,57 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		waiter := launchWaiter(t, tester.finishCh)
 		err := eng.Run(identify2MetaContext(tc, tester))
 		waiter()
-		if err == nil {
-			t.Fatalf("Expected a break with running ID2 in standard mode")
-		}
+		require.Error(t, err,
+			"Expected a break with running ID2 in standard mode")
 	}
 
 	runChatGUI()
 
 	// First time through, we should miss both caches
-	if !tester.fastStats.eq(0, 0, 1, 0, 0) || !tester.slowStats.eq(0, 0, 1, 0, 0) {
-		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
-	}
+	require.False(t, !tester.fastStats.eq(0, 0, 1, 0, 0) || !tester.slowStats.eq(0, 0, 1, 0, 0),
+		"bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 
 	runStandard()
 
 	// If we run without the chat GUI, we should hit the cache, but have it be
 	// disqualified because the cached copy has broken tracker statements.
-	if !tester.fastStats.eq(0, 0, 1, 0, 1) || !tester.slowStats.eq(0, 0, 1, 0, 1) {
-		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
-	}
+	require.False(t, !tester.fastStats.eq(0, 0, 1, 0, 1) || !tester.slowStats.eq(0, 0, 1, 0, 1),
+		"bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 
 	runChatGUI()
 
 	// The next time we run with the chat GUI, we won't hit the slow or fast
 	// cache, since the failure in standard mode cleared out the cache for this
 	// user.
-	if !tester.fastStats.eq(0, 0, 2, 0, 1) || !tester.slowStats.eq(0, 0, 2, 0, 1) {
-		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
-	}
+	require.False(t, !tester.fastStats.eq(0, 0, 2, 0, 1) || !tester.slowStats.eq(0, 0, 2, 0, 1),
+		"bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 
 	tester.incNow(time.Second)
 	runChatGUI()
 
 	// Now we should get a fast cache hit
-	if !tester.fastStats.eq(1, 0, 2, 0, 1) || !tester.slowStats.eq(0, 0, 2, 0, 1) {
-		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
-	}
+	require.False(t, !tester.fastStats.eq(1, 0, 2, 0, 1) || !tester.slowStats.eq(0, 0, 2, 0, 1),
+		"bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 
 	tester.incNow(time.Second + libkb.Identify2CacheShortTimeout)
 	runChatGUI()
 
 	// A fast cache timeout and a slow cache hit!
-	if !tester.fastStats.eq(1, 1, 2, 0, 1) || !tester.slowStats.eq(1, 0, 2, 0, 1) {
-		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
-	}
+	require.False(t, !tester.fastStats.eq(1, 1, 2, 0, 1) || !tester.slowStats.eq(1, 0, 2, 0, 1),
+		"bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 
 	// The fast cached should have been primed with the slow cache, so we expected
 	// a fast cache hit
 	runChatGUI()
-	if !tester.fastStats.eq(2, 1, 2, 0, 1) || !tester.slowStats.eq(1, 0, 2, 0, 1) {
-		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
-	}
+	require.False(t, !tester.fastStats.eq(2, 1, 2, 0, 1) || !tester.slowStats.eq(1, 0, 2, 0, 1),
+		"bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 
 	tester.incNow(time.Second + libkb.Identify2CacheBrokenTimeout)
 	runChatGUI()
 
 	// After the broken timeout passes, we should get timeouts on both caches
-	if !tester.fastStats.eq(2, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1) {
-		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
-	}
+	require.False(t, !tester.fastStats.eq(2, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1),
+		"bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 }
 
 func TestIdentify2WithUIDWithAssertion(t *testing.T) {
@@ -604,9 +571,7 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 	}
 
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	<-i.finishCh
 }
@@ -628,9 +593,7 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 	}
 
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	<-i.finishCh
 }
@@ -663,15 +626,13 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	}()
 
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err == nil {
-		t.Fatal(err)
-	}
+	require.Error(t, err)
 	if _, ok := err.(libkb.UnmetAssertionError); !ok {
-		t.Fatalf("Wanted an error of type %T; got %T", libkb.UnmetAssertionError{}, err)
+		require.True(t, ok,
+			"Wanted an error of type %T; got %T", libkb.UnmetAssertionError{}, err)
 	}
-	if starts > 0 {
-		t.Fatalf("Didn't expect the identify UI to start in this case")
-	}
+	require.LessOrEqual(t, starts, 0,
+		"Didn't expect the identify UI to start in this case")
 
 	done <- true
 }
@@ -713,16 +674,13 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 
 	err := eng.Run(identify2MetaContext(tc, i))
 
-	if err == nil {
-		t.Fatal(err)
-	}
+	require.Error(t, err)
 	if _, ok := err.(libkb.ProofError); !ok {
-		t.Fatalf("Wanted an error of type libkb.ProofError; got %T", err)
+		require.True(t, ok,
+			"Wanted an error of type libkb.ProofError; got %T", err)
 	}
 	wg.Wait()
-	if starts != 1 {
-		t.Fatalf("Expected the UI to have started")
-	}
+	require.Equal(t, 1, starts, "Expected the UI to have started")
 	<-i.finishCh
 }
 
@@ -763,9 +721,7 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	}
 
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	<-i.startCh
 	<-i.finishCh
 }
@@ -792,9 +748,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 			clock: func() time.Time { return i.now },
 		}
 		err := eng.Run(identify2MetaContext(tc, i))
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 
 	// First time we'll cause an ID, so we need to finish
@@ -802,25 +756,22 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	<-i.startCh
 	<-i.finishCh
 
-	if !i.fastStats.eq(0, 0, 1, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(0, 0, 1, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 
 	i.incNow(time.Second)
 	run()
 
 	// A new fast-path hit
-	if !i.fastStats.eq(1, 0, 1, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(1, 0, 1, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 
 	i.incNow(time.Second + libkb.Identify2CacheShortTimeout)
 	run()
 
 	// A new fast-path timeout and a new slow-path hit
-	if !i.fastStats.eq(1, 1, 1, 0, 0) || !i.slowStats.eq(1, 0, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(1, 1, 1, 0, 0) || !i.slowStats.eq(1, 0, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 
 	i.incNow(time.Second + libkb.Identify2CacheLongTimeout)
 	run()
@@ -828,24 +779,21 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	<-i.finishCh
 
 	// A new fast-path timeout and a new slow-path timeout
-	if !i.fastStats.eq(1, 2, 1, 0, 0) || !i.slowStats.eq(1, 1, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(1, 2, 1, 0, 0) || !i.slowStats.eq(1, 1, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 
 	i.incNow(time.Second)
 	run()
 	// A new fast-path hit
-	if !i.fastStats.eq(2, 2, 1, 0, 0) || !i.slowStats.eq(1, 1, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(2, 2, 1, 0, 0) || !i.slowStats.eq(1, 1, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 
 	arg.UserAssertion = "tacovontaco@twitter"
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit; we have to use the slow path with assertions
-	if !i.fastStats.eq(2, 2, 1, 0, 0) || !i.slowStats.eq(2, 1, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(2, 2, 1, 0, 0) || !i.slowStats.eq(2, 1, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 }
 
 func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
@@ -866,9 +814,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 		eng := NewIdentify2WithUID(tc.G, arg)
 		eng.testArgs = testArgs
 		err := eng.Run(identify2MetaContext(tc, i))
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 
 	numTracyLoads := func() int {
@@ -880,34 +826,31 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	arg.UserAssertion = "4ff50d580914427227bb14c821029e2c7cf0d488@" + libkb.PGPAssertionKey
 	run()
 	if n := numTracyLoads(); n != 1 {
-		t.Fatalf("expected 1 full user load; got %d", n)
+		require.FailNow(t, fmt.Sprintf("expected 1 full user load; got %d", n))
 	}
 	<-i.startCh
 	<-i.finishCh
 
 	// Don't attempt to hit fast cache, since we're using local assertions.
-	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit
-	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(1, 0, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(1, 0, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	if n := numTracyLoads(); n != 1 {
-		t.Fatalf("expected 1 full user load; got %d", n)
+		require.FailNow(t, fmt.Sprintf("expected 1 full user load; got %d", n))
 	}
 	arg.UserAssertion += "+tacovontaco@twitter"
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit
-	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(2, 0, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(2, 0, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	if n := numTracyLoads(); n != 2 {
-		t.Fatalf("expected 2 full user load; got %d", n)
+		require.FailNow(t, fmt.Sprintf("expected 2 full user load; got %d", n))
 	}
 
 	i.incNow(libkb.Identify2CacheLongTimeout)
@@ -915,16 +858,14 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	<-i.startCh
 	<-i.finishCh
 	// A new slow-path timeout
-	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(2, 1, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(2, 1, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit
-	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(3, 1, 1, 0, 0) {
-		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
-	}
+	require.False(t, !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(3, 1, 1, 0, 0),
+		"bad cache stats %+v %+v", i.fastStats, i.slowStats)
 }
 
 func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
@@ -941,9 +882,7 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 		noMe: true,
 	}
 	err := eng.Run(identify2MetaContext(tc, i))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	<-i.startCh
 	<-i.finishCh
 }
@@ -964,22 +903,18 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	m := identify2MetaContext(tc, i)
 	err := eng.Run(m)
-	if err != nil {
-		t.Fatalf("identify2 failed on user with no keys: %s", err)
-	}
+	require.NoError(t, err,
+		"identify2 failed on user with no keys: %s", err)
 
 	// kbfs would like to have some info about the user
 	result, err := eng.Result(m)
-	if err != nil {
-		t.Fatalf("unexpeted export error: %s", err)
-	}
+	require.NoError(t, err,
+		"unexpeted export error: %s", err)
 	if result == nil {
-		t.Fatal("no result on id2 w/ no sigchain")
+		require.FailNow(t, "no result on id2 w/ no sigchain")
 		return
 	}
-	if result.Upk.GetName() != u {
-		t.Errorf("result username: %q, expected %q", result.Upk.GetName(), u)
-	}
+	require.Equal(t, u, result.Upk.GetName(), "result username: %q, expected %q", result.Upk.GetName(), u)
 }
 
 // See CORE-4310
@@ -1004,7 +939,7 @@ func TestIdentifyAfterDbNuke(t *testing.T) {
 		}
 		waiter := launchWaiter(t, i.finishCh)
 		if err := eng.Run(identify2MetaContext(tc, i)); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		waiter()
 	}
@@ -1012,10 +947,10 @@ func TestIdentifyAfterDbNuke(t *testing.T) {
 	tc.G.Log.Debug("------------ ID Alice Iteration 0 ---------------")
 	runIDAlice()
 	if _, err := tc.G.LocalDb.Nuke(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	if err := tc.G.ConfigureCaches(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	tc.G.Log.Debug("------------ ID Alice Iteration 1 ---------------")
 	runIDAlice()
@@ -1040,10 +975,9 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 		i.checkStatusHook = func(l libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
 			checked = true
 			if strings.Contains(l.GetHumanURL(), "rooter") {
-				if !shouldCheck {
-					t.Fatalf("should not have gotten a check; should have hit cache")
-				}
-				require.Equal(t, pcm, wantedMode, "we get a passive ID in GUI mode")
+				require.True(t, shouldCheck,
+					"should not have gotten a check; should have hit cache")
+				require.Equal(t, wantedMode, pcm, "we get a passive ID in GUI mode")
 				if returnUnchecked {
 					return libkb.ProofErrorUnchecked
 				}
@@ -1265,10 +1199,10 @@ func TestResolveAndCheck(t *testing.T) {
 			tc.G.Resolver = &evilResolver
 		}
 		upk, err := ResolveAndCheck(m, test.s, true /*useTracking*/)
-		require.IsType(t, test.e, err)
+		require.Equal(t, reflect.TypeOf(test.e), reflect.TypeOf(err))
 		if err == nil {
 			require.True(t, upk.GetUID().Equal(tracyUID))
-			require.Equal(t, upk.GetName(), "t_tracy")
+			require.Equal(t, "t_tracy", upk.GetName())
 		}
 	}
 

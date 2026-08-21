@@ -359,7 +359,7 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 	t.Log("Verify that, on average, the LRU time of the blocks remaining in" +
 		" the queue keeps going up.")
 	averageDifference /= float64(numEvictionDifferences)
-	require.True(t, averageDifference > 3.0,
+	require.Greater(t, averageDifference, 3.0,
 		"Average overall LRU delta from an eviction: %.2f", averageDifference)
 }
 
@@ -437,7 +437,7 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 	t.Log("Verify that, on average, the LRU time of the blocks remaining in" +
 		" the queue keeps going up.")
 	averageDifference /= float64(numEvictionDifferences)
-	require.True(t, averageDifference > 3.0,
+	require.Greater(t, averageDifference, 3.0,
 		"Average overall LRU delta from an eviction: %.2f", averageDifference)
 }
 
@@ -480,7 +480,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 		ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
 	require.NoError(t, err)
 
-	require.True(t, int64(standardCache.currBytes) < currBytes) //nolint:gosec // G115: Test data
+	require.Less(t, int64(standardCache.currBytes), currBytes) //nolint:gosec // G115: Test data
 	require.Equal(
 		t, 1+numBlocks-minNumBlocksToEvictInBatch, standardCache.numBlocks)
 }
@@ -540,7 +540,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 			t, start+(i%minNumBlocksToEvictInBatch), standardCache.numBlocks)
 	}
 
-	require.True(t, int64(standardCache.currBytes) < currBytes) //nolint:gosec // G115: Test data
+	require.Less(t, int64(standardCache.currBytes), currBytes) //nolint:gosec // G115: Test data
 	require.Equal(t, start, standardCache.numBlocks)
 }
 

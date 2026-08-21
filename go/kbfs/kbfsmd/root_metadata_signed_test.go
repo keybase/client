@@ -71,7 +71,7 @@ func testRootMetadataSignedFinalVerify(t *testing.T, ver MetadataVer) {
 	rmds2.MD = md3
 	err = rmds3.IsValidAndSigned(
 		ctx, codec, nil, extra, keybase1.OfflineAvailability_NONE)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestRootMetadataSigned(t *testing.T) {

@@ -40,14 +40,10 @@ func TestLoginLoadUser(t *testing.T) {
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		eng := newLoginLoadUser(tc.G, test.input)
 		if err := RunEngine2(m, eng); err != nil {
-			if test.err == nil {
-				t.Errorf("%s: run error %s", test.name, err)
-				continue
-			} else if reflect.TypeOf(test.err) != reflect.TypeOf(err) {
-				t.Errorf("%s: error type %T, expected %T", test.name, err, test.err)
-				continue
+			require.Error(t, test.err, "%s: run error %s", test.name, err)
+			if test.err != nil {
+				require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "%s: error type %T, expected %T", test.name, err, test.err)
 			}
-			// error types matched
 			continue
 		}
 
@@ -55,14 +51,8 @@ func TestLoginLoadUser(t *testing.T) {
 			continue
 		}
 
-		if eng.User() == nil {
-			t.Errorf("%s: %q generated nil user", test.name, test.input)
-			continue
-		}
-
-		if eng.User().GetUID() != test.uid {
-			t.Errorf("%s: uid %q, expected %q", test.name, eng.User().GetUID(), test.uid)
-		}
+		require.NotNil(t, eng.User(), "%s: %q generated nil user", test.name, test.input)
+		require.Equal(t, test.uid, eng.User().GetUID(), "%s: uid %q, expected %q", test.name, eng.User().GetUID(), test.uid)
 	}
 }
 
@@ -84,14 +74,10 @@ func TestLoginLoadUserPrompt(t *testing.T) {
 		eng := newLoginLoadUser(tc.G, "")
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
-			if test.err == nil {
-				t.Errorf("%s: run error %s", test.name, err)
-				continue
-			} else if reflect.TypeOf(test.err) != reflect.TypeOf(err) {
-				t.Errorf("%s: error type %T, expected %T", test.name, err, test.err)
-				continue
+			require.Error(t, test.err, "%s: run error %s", test.name, err)
+			if test.err != nil {
+				require.Equal(t, reflect.TypeOf(test.err), reflect.TypeOf(err), "%s: error type %T, expected %T", test.name, err, test.err)
 			}
-			// error types matched
 			continue
 		}
 
@@ -99,13 +85,8 @@ func TestLoginLoadUserPrompt(t *testing.T) {
 			continue
 		}
 
-		if eng.User() == nil {
-			t.Errorf("%s: %q generated nil user", test.name, test.input)
-		}
-
-		if eng.User().GetUID() != test.uid {
-			t.Errorf("%s: uid %q, expected %q", test.name, eng.User().GetUID(), test.uid)
-		}
+		require.NotNil(t, eng.User(), "%s: %q generated nil user", test.name, test.input)
+		require.Equal(t, test.uid, eng.User().GetUID(), "%s: uid %q, expected %q", test.name, eng.User().GetUID(), test.uid)
 	}
 }
 
@@ -120,12 +101,10 @@ func TestLoginLoadUserPromptCancel(t *testing.T) {
 	eng := newLoginLoadUser(tc.G, "")
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("expected an error")
-	}
-	if _, ok := err.(libkb.InputCanceledError); !ok {
-		t.Errorf("error: %s (%T), expected InputCanceledError", err, err)
-	}
+	require.Error(t, err,
+		"expected an error")
+	_, ok := err.(libkb.InputCanceledError)
+	require.True(t, ok, "error: %s (%T), expected InputCanceledError", err, err)
 }
 
 func TestLoginLoadUserEmail(t *testing.T) {
@@ -136,7 +115,7 @@ func TestLoginLoadUserEmail(t *testing.T) {
 
 	checkEmailResult := func(user *libkb.User, err error) {
 		require.Error(t, err)
-		require.IsType(t, libkb.BadUsernameError{}, err)
+		require.ErrorAs(t, err, new(libkb.BadUsernameError))
 		require.Contains(t, err.Error(), "not supported")
 		require.Nil(t, user)
 	}

@@ -18,46 +18,35 @@ func TestRotate(t *testing.T) {
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if team.Generation() != 1 {
-		t.Fatalf("initial team generation: %d, expected 1", team.Generation())
-	}
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation(), "initial team generation: %d, expected 1", team.Generation())
 	secretBefore := team.Data.PerTeamKeySeedsUnverified[team.Generation()].Seed.ToBytes()
 	keys1, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, len(keys1), 1)
+	require.NoError(t, err)
+	require.Len(t, keys1, 1)
 	require.Equal(t, keys1[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 
 	if err := team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if after.Generation() != 2 {
-		t.Fatalf("rotated team generation: %d, expected 2", after.Generation())
-	}
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "rotated team generation: %d, expected 2", after.Generation())
 	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
-	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
-		t.Fatal("TeamBox.Ctext did not change when rotated")
-	}
+	require.False(t, libkb.SecureByteArrayEq(secretAfter, secretBefore),
+		"TeamBox.Ctext did not change when rotated")
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
 	keys2, err := after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
-	require.Equal(t, len(keys2), 2)
+	require.Len(t, keys2, 2)
 	require.Equal(t, keys2[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.Equal(t, keys1[0].Key, keys2[0].Key)
 }
@@ -92,14 +81,14 @@ func TestRotateWithBots(t *testing.T) {
 	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, team.Generation())
-	require.Zero(t, len(team.Data.PerTeamKeySeedsUnverified))
+	require.Empty(t, team.Data.PerTeamKeySeedsUnverified)
 	_, err = team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	// Restricted bots cannot rotate
 	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	err = tc.Logout()
 	require.NoError(t, err)
@@ -125,10 +114,10 @@ func TestRotateWithBots(t *testing.T) {
 	after, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, after.Generation())
-	require.Zero(t, len(after.Data.PerTeamKeySeedsUnverified))
+	require.Empty(t, after.Data.PerTeamKeySeedsUnverified)
 	_, err = after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, otherA.Username, keybase1.TeamRole_BOT)
@@ -159,9 +148,8 @@ func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestCon
 
 		return tc, owner, other, team.ID, teamName
 	}
-	if public {
-		t.Fatalf("public teams not supported")
-	}
+	require.False(t, public,
+		"public teams not supported")
 
 	t.Logf("creating team")
 	teamName, teamID = createTeam2(tc)
@@ -187,9 +175,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 
 		team, err = GetForTestByID(context.TODO(), tc.G, teamID)
 		require.NoError(t, err)
-		if team.Generation() != 2 {
-			t.Fatalf("team generation: %d, expected 2", team.Generation())
-		}
+		require.Equal(t, keybase1.PerTeamKeyGeneration(2), team.Generation(), "team generation: %d, expected 2", team.Generation())
 		secretBefore := team.Data.PerTeamKeySeedsUnverified[team.Generation()].Seed.ToBytes()
 
 		// this shouldn't do anything
@@ -202,9 +188,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 
 		after, err := GetForTestByID(context.TODO(), tc.G, teamID)
 		require.NoError(t, err)
-		if after.Generation() != 2 {
-			t.Fatalf("HandleRotateRequest with old generation changed team generation: %d, expected 2", after.Generation())
-		}
+		require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "HandleRotateRequest with old generation changed team generation: %d, expected 2", after.Generation())
 		secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 		require.True(t, libkb.SecureByteArrayEq(secretAfter, secretBefore), "team secret changed after HandleRotateRequest with old generation")
 
@@ -225,9 +209,7 @@ func TestHandleRotateRequest(t *testing.T) {
 
 		team, err := GetForTestByID(context.TODO(), tc.G, teamID)
 		require.NoError(t, err)
-		if team.Generation() != 1 {
-			t.Fatalf("initial team generation: %d, expected 1", team.Generation())
-		}
+		require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation(), "initial team generation: %d, expected 1", team.Generation())
 		secretBefore := team.Data.PerTeamKeySeedsUnverified[team.Generation()].Seed.ToBytes()
 
 		err = HandleRotateRequest(context.TODO(), tc.G, keybase1.TeamCLKRMsg{
@@ -239,9 +221,7 @@ func TestHandleRotateRequest(t *testing.T) {
 
 		after, err := GetForTestByID(context.TODO(), tc.G, teamID)
 		require.NoError(t, err)
-		if after.Generation() != 2 {
-			t.Fatalf("rotated team generation: %d, expected 2", after.Generation())
-		}
+		require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "rotated team generation: %d, expected 2", after.Generation())
 		secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 		require.False(t, libkb.SecureByteArrayEq(secretAfter, secretBefore), "team secret should change when rotated")
 
@@ -707,7 +687,7 @@ func TestRotateAsSubteamWriter(t *testing.T) {
 
 	teamAfter, err := GetForTestByStringName(context.Background(), tc.G, sub)
 	require.NoError(t, err)
-	require.EqualValues(t, oldGeneration+1, teamAfter.Generation())
+	require.Equal(t, oldGeneration+1, teamAfter.Generation())
 }
 
 func TestDowngradeImplicitAdminAfterReset(t *testing.T) {
@@ -937,6 +917,6 @@ func TestTeamSettings(t *testing.T) {
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
 	require.NoError(t, err)
 	settings := team.Settings()
-	require.Equal(t, settings.Open, true)
-	require.Equal(t, settings.JoinAs, keybase1.TeamRole_WRITER)
+	require.True(t, settings.Open)
+	require.Equal(t, keybase1.TeamRole_WRITER, settings.JoinAs)
 }

@@ -5,12 +5,12 @@
 package tlf
 
 import (
-	"errors"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/go-codec/codec"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandleExtension(t *testing.T) {
@@ -20,44 +20,24 @@ func TestHandleExtension(t *testing.T) {
 		HandleExtensionFinalized,
 	} {
 		e, err := NewHandleExtension(et, 1, "alice", time.Now())
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		exts, err := ParseHandleExtensionSuffix(e.String())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(exts) != 1 {
-			t.Fatalf("Expected 1 extension, got: %d", len(exts))
-		}
+		require.NoError(t, err)
+		require.Len(t, exts, 1, "Expected 1 extension, got: %d", len(exts))
 		// check that extensions can be encoded/decoded
 		buf, err := codec.Encode(exts[0])
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		var e2 HandleExtension
 		err = codec.Decode(buf, &e2)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if e2.Number != e.Number {
-			t.Fatalf("Expected %d, got: %d", e.Number, e2.Number)
-		}
-		if e2.Date != e.Date {
-			t.Fatalf("Expected %d, got: %d", e.Date, e2.Date)
-		}
-		if e2.String() != e.String() {
-			t.Fatalf("Expected %s, got: %s", e, e2)
-		}
+		require.NoError(t, err)
+		require.Equal(t, e.Number, e2.Number, "Expected %d, got: %d", e.Number, e2.Number)
+		require.Equal(t, e.Date, e2.Date, "Expected %d, got: %d", e.Date, e2.Date)
+		require.Equal(t, e.String(), e2.String(), "Expected %s, got: %s", e, e2)
 		if e.Type == HandleExtensionConflict {
-			if e2.Username != "" {
-				t.Fatalf("Expected empty username got: %s", e2.Username)
-			}
+			require.Empty(t, e2.Username, "Expected empty username got: %s", e2.Username)
 			continue
 		}
-		if e2.Username != e.Username {
-			t.Fatalf("Expected %s, got: %s", e.Username, e2.Username)
-		}
+		require.Equal(t, e.Username, e2.Username, "Expected %s, got: %s", e.Username, e2.Username)
 	}
 }
 
@@ -67,32 +47,18 @@ func TestHandleExtensionNumber(t *testing.T) {
 		HandleExtensionFinalized,
 	} {
 		e, err := NewHandleExtension(et, 2, "bob", time.Now())
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		exts, err := ParseHandleExtensionSuffix(e.String())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(exts) != 1 {
-			t.Fatalf("Expected 1 extension, got: %d", len(exts))
-		}
+		require.NoError(t, err)
+		require.Len(t, exts, 1, "Expected 1 extension, got: %d", len(exts))
 		e2 := exts[0]
-		if e2.Number != e.Number {
-			t.Fatalf("Expected %d, got: %d", e.Number, e2.Number)
-		}
-		if e2.Date != e.Date {
-			t.Fatalf("Expected %d, got: %d", e.Date, e2.Date)
-		}
-		if e2.String() != e.String() {
-			t.Fatalf("Expected %s, got: %s", e, e2)
-		}
+		require.Equal(t, e.Number, e2.Number, "Expected %d, got: %d", e.Number, e2.Number)
+		require.Equal(t, e.Date, e2.Date, "Expected %d, got: %d", e.Date, e2.Date)
+		require.Equal(t, e.String(), e2.String(), "Expected %s, got: %s", e, e2)
 		if e.Type == HandleExtensionConflict {
 			continue
 		}
-		if e2.Username != e.Username {
-			t.Fatalf("Expected %s, got: %s", e.Username, e2.Username)
-		}
+		require.Equal(t, e.Username, e2.Username, "Expected %s, got: %s", e.Username, e2.Username)
 	}
 }
 
@@ -104,50 +70,39 @@ func TestHandleExtensionKnownTime(t *testing.T) {
 		Username: "alice",
 	}
 	expect := "(files before alice account reset 2016-05-10)"
-	if e.String() != expect {
-		t.Fatalf("Expected %s, got: %s", expect, e)
-	}
+	require.Equal(t, expect, e.String(), "Expected %s, got: %s", expect, e)
 	e2 := &HandleExtension{
 		Date:   1462838400,
 		Number: 12345,
 		Type:   HandleExtensionConflict,
 	}
 	expect = "(conflicted copy 2016-05-10 #12345)"
-	if e2.String() != expect {
-		t.Fatalf("Expected %s, got: %s", expect, e2)
-	}
+	require.Equal(t, expect, e2.String(), "Expected %s, got: %s", expect, e2)
 	e3 := &HandleExtension{
 		Date:   1462838400,
 		Number: 2,
 		Type:   HandleExtensionFinalized,
 	}
 	expect = "(files before account reset 2016-05-10 #2)"
-	if e3.String() != expect {
-		t.Fatalf("Expected %s, got: %s", expect, e3)
-	}
+	require.Equal(t, expect, e3.String(), "Expected %s, got: %s", expect, e3)
 }
 
 func TestHandleExtensionErrors(t *testing.T) {
 	_, err := NewHandleExtension(HandleExtensionConflict, 0, "", time.Now())
-	if !errors.Is(err, errHandleExtensionInvalidNumber) {
-		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
-	}
+	require.ErrorIs(t, err, errHandleExtensionInvalidNumber,
+		"Expected errHandleExtensionInvalidNumber, got: %v", err)
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #0)")
-	if !errors.Is(err, errHandleExtensionInvalidNumber) {
-		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
-	}
+	require.ErrorIs(t, err, errHandleExtensionInvalidNumber,
+		"Expected errHandleExtensionInvalidNumber, got: %v", err)
 	_, err = ParseHandleExtensionSuffix("nope")
-	if !errors.Is(err, errHandleExtensionInvalidString) {
-		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
-	}
+	require.ErrorIs(t, err, errHandleExtensionInvalidString,
+		"Expected errHandleExtensionInvalidString, got: %v", err)
 	_, err = ParseHandleExtensionSuffix("(conflicted copy #2)")
-	if !errors.Is(err, errHandleExtensionInvalidString) {
-		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
-	}
+	require.ErrorIs(t, err, errHandleExtensionInvalidString,
+		"Expected errHandleExtensionInvalidString, got: %v", err)
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #)")
-	if !errors.Is(err, errHandleExtensionInvalidString) {
-		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
-	}
+	require.ErrorIs(t, err, errHandleExtensionInvalidString,
+		"Expected errHandleExtensionInvalidString, got: %v", err)
 }
 
 type tlfHandleExtensionFuture struct {
@@ -179,76 +134,40 @@ func TestHandleExtensionUnknownFields(t *testing.T) {
 
 func TestHandleExtensionMultiple(t *testing.T) {
 	e, err := NewTestHandleExtensionStaticTime(HandleExtensionConflict, 1, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	e2, err := NewTestHandleExtensionStaticTime(HandleExtensionFinalized, 2, "charlie")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	exts := []HandleExtension{*e, *e2}
 	suffix := newHandleExtensionSuffix(exts, false)
 	expectSuffix := " (conflicted copy 2016-03-14) (files before charlie account reset 2016-03-14 #2)"
-	if suffix != expectSuffix {
-		t.Fatalf("Expected suffix '%s', got: '%s'", expectSuffix, suffix)
-	}
+	require.Equal(t, expectSuffix, suffix, "Expected suffix '%s', got: '%s'", expectSuffix, suffix)
 	exts2, err := ParseHandleExtensionSuffix(suffix)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(exts2) != 2 {
-		t.Fatalf("Expected 2 extensions, got: %d", len(exts2))
-	}
+	require.NoError(t, err)
+	require.Len(t, exts2, 2, "Expected 2 extensions, got: %d", len(exts2))
 	for i, ext := range exts2 {
-		if ext.Number != exts[i].Number {
-			t.Fatalf("Expected %d, got: %d", exts[i].Number, ext.Number)
-		}
-		if ext.Date != exts[i].Date {
-			t.Fatalf("Expected %d, got: %d", exts[i].Date, ext.Date)
-		}
-		if ext.Username != exts[i].Username {
-			t.Fatalf("Expected %s, got: %s", exts[i].Username, ext.Username)
-		}
-		if ext.String() != exts[i].String() {
-			t.Fatalf("Expected %s, got: %s", ext, exts[i])
-		}
+		require.Equal(t, exts[i].Number, ext.Number, "Expected %d, got: %d", exts[i].Number, ext.Number)
+		require.Equal(t, exts[i].Date, ext.Date, "Expected %d, got: %d", exts[i].Date, ext.Date)
+		require.Equal(t, exts[i].Username, ext.Username, "Expected %s, got: %s", exts[i].Username, ext.Username)
+		require.Equal(t, exts[i].String(), ext.String(), "Expected %s, got: %s", ext, exts[i])
 	}
 }
 
 func TestHandleExtensionMultipleSingleUser(t *testing.T) {
 	e, err := NewTestHandleExtensionStaticTime(HandleExtensionConflict, 2, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	e2, err := NewTestHandleExtensionStaticTime(HandleExtensionFinalized, 1, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	exts := []HandleExtension{*e, *e2}
 	suffix := newHandleExtensionSuffix(exts, false)
 	expectSuffix := " (conflicted copy 2016-03-14 #2) (files before account reset 2016-03-14)"
-	if suffix != expectSuffix {
-		t.Fatalf("Expected suffix '%s', got: '%s'", expectSuffix, suffix)
-	}
+	require.Equal(t, expectSuffix, suffix, "Expected suffix '%s', got: '%s'", expectSuffix, suffix)
 	exts2, err := ParseHandleExtensionSuffix(suffix)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(exts2) != 2 {
-		t.Fatalf("Expected 2 extensions, got: %d", len(exts2))
-	}
+	require.NoError(t, err)
+	require.Len(t, exts2, 2, "Expected 2 extensions, got: %d", len(exts2))
 	for i, ext := range exts2 {
-		if ext.Number != exts[i].Number {
-			t.Fatalf("Expected %d, got: %d", exts[i].Number, ext.Number)
-		}
-		if ext.Date != exts[i].Date {
-			t.Fatalf("Expected %d, got: %d", exts[i].Date, ext.Date)
-		}
-		if ext.Username != exts[i].Username {
-			t.Fatalf("Expected %s, got: %s", exts[i].Username, ext.Username)
-		}
-		if ext.String() != exts[i].String() {
-			t.Fatalf("Expected %s, got: %s", ext, exts[i])
-		}
+		require.Equal(t, exts[i].Number, ext.Number, "Expected %d, got: %d", exts[i].Number, ext.Number)
+		require.Equal(t, exts[i].Date, ext.Date, "Expected %d, got: %d", exts[i].Date, ext.Date)
+		require.Equal(t, exts[i].Username, ext.Username, "Expected %s, got: %s", exts[i].Username, ext.Username)
+		require.Equal(t, exts[i].String(), ext.String(), "Expected %s, got: %s", ext, exts[i])
 	}
 }

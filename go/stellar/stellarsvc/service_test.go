@@ -60,7 +60,7 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Lookup for a bogus address")
 	_, _, err := stellar.LookupUserByAccountID(tcs[0].MetaContext(), "GCCJJFCRCQAWDWRAZ3R6235KCQ4PQYE5KEWHGE5ICVTZLTMRKVWAWP7N")
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 
 	t.Logf("Create an initial wallet")
 	acceptDisclaimer(tcs[0])
@@ -78,12 +78,12 @@ func TestCreateWallet(t *testing.T) {
 	require.Nil(t, bundle.Prev)
 	require.NotNil(t, bundle.OwnHash)
 	require.Len(t, bundle.Accounts, 1)
-	require.True(t, len(bundle.Accounts[0].AccountID) > 0)
+	require.NotEmpty(t, bundle.Accounts[0].AccountID)
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
 	require.True(t, bundle.Accounts[0].IsPrimary)
 	require.Equal(t, firstAccountName(t, tcs[0]), bundle.Accounts[0].Name)
 	accountID := bundle.Accounts[0].AccountID
-	require.Len(t, bundle.AccountBundles[accountID].Signers, 0)
+	require.Empty(t, bundle.AccountBundles[accountID].Signers)
 	bundle, err = remote.FetchAccountBundle(mctx, accountID)
 	require.NoError(t, err)
 	require.Len(t, bundle.AccountBundles[accountID].Signers, 1)
@@ -126,7 +126,7 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Looking up by the old address no longer works")
 	_, _, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
 	require.Error(t, err)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	require.ErrorAs(t, err, new(libkb.NotFoundError))
 }
 
 func setupWithNewBundle(t *testing.T, tc *TestContext) {
@@ -262,7 +262,7 @@ func TestImportExport(t *testing.T) {
 	withWrongPassphrase(func() {
 		_, err := srv.ExportSecretKeyLocal(m.Ctx(), a1)
 		require.Error(t, err)
-		require.IsType(t, libkb.PassphraseError{}, err)
+		require.ErrorAs(t, err, new(libkb.PassphraseError))
 	})
 
 	_, err = srv.ExportSecretKeyLocal(m.Ctx(), stellar1.AccountID(s1))
@@ -316,13 +316,11 @@ func TestBalances(t *testing.T) {
 	accountID := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 
 	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	require.Len(t, balances, 1)
-	require.Equal(t, balances[0].Asset.Type, "native")
-	require.Equal(t, balances[0].Amount, "10000")
+	require.Equal(t, "native", balances[0].Asset.Type)
+	require.Equal(t, "10000", balances[0].Amount)
 }
 
 func TestGetWalletAccountsCLILocal(t *testing.T) {
@@ -339,8 +337,8 @@ func TestGetWalletAccountsCLILocal(t *testing.T) {
 	require.Len(t, accs, 1)
 	account := accs[0]
 	require.Len(t, account.Balance, 1)
-	require.Equal(t, account.Balance[0].Asset.Type, "native")
-	require.Equal(t, account.Balance[0].Amount, "0")
+	require.Equal(t, "native", account.Balance[0].Asset.Type)
+	require.Equal(t, "0", account.Balance[0].Amount)
 	require.True(t, account.IsPrimary)
 	require.NotNil(t, account.ExchangeRate)
 	require.EqualValues(t, stellar.DefaultCurrencySetting, account.ExchangeRate.Currency)
@@ -373,19 +371,15 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	require.NoError(t, err)
 
 	balances, err := srv.BalancesLocal(context.Background(), accountIDSender)
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, balances[0].Amount, "9899.9999900")
+	require.NoError(t, err)
+	require.Equal(t, "9899.9999900", balances[0].Amount)
 
 	balances, err = srv.BalancesLocal(context.Background(), accountIDRecip)
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, balances[0].Amount, "10100.0000000")
+	require.NoError(t, err)
+	require.Equal(t, "10100.0000000", balances[0].Amount)
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
-	require.Len(t, senderMsgs, 0)
+	require.Empty(t, senderMsgs)
 }
 
 func TestSendLocalKeybase(t *testing.T) {
@@ -434,7 +428,7 @@ func TestSendLocalKeybase(t *testing.T) {
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)
-	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
+	require.Equal(t, chat1.MessageType_SENDPAYMENT, senderMsgs[0].MsgType)
 }
 
 func TestRecentPaymentsLocal(t *testing.T) {
@@ -529,7 +523,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
 	require.NoError(t, err)
-	require.True(t, len(out.FundTx.Signed) > 100)
+	require.Greater(t, len(out.FundTx.Signed), 100)
 
 	t.Logf("decrypt")
 	relaySecrets, err := relays.DecryptB64(tcs[0].MetaContext(), teamID, out.EncryptedB64)
@@ -630,7 +624,7 @@ func testRelaySBS(t *testing.T, yank bool) {
 
 	res, err := tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
 	require.NoError(t, err)
-	require.NotEqual(t, "", res.ClaimStellarID)
+	require.NotEmpty(t, res.ClaimStellarID)
 
 	if !yank {
 		tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "1.9999900")
@@ -782,7 +776,7 @@ func testRelayReset(t *testing.T, yank bool) {
 
 	res, err := tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
 	require.NoError(t, err)
-	require.NotEqual(t, "", res.ClaimStellarID)
+	require.NotEmpty(t, res.ClaimStellarID)
 
 	if !yank {
 		tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "5.9999900")
@@ -798,8 +792,8 @@ func TestGetAvailableCurrencies(t *testing.T) {
 
 	conf, err := tcs[0].G.GetStellar().GetServerDefinitions(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
-	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
+	require.Equal(t, "US Dollar", conf.Currencies["USD"].Name)
+	require.Equal(t, "Euro", conf.Currencies["EUR"].Name)
 }
 
 func TestDefaultCurrency(t *testing.T) {
@@ -817,7 +811,7 @@ func TestDefaultCurrency(t *testing.T) {
 	primary := getPrimaryAccountID(tcs[0])
 	currency, err := remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
 	require.NoError(t, err)
-	require.EqualValues(t, "", currency)
+	require.Empty(t, currency)
 
 	// stellar.GetAccountDisplayCurrency also checks for NULLs and returns
 	// default currency code.
@@ -833,7 +827,7 @@ func TestDefaultCurrency(t *testing.T) {
 
 	currency, err = remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
 	require.NoError(t, err)
-	require.EqualValues(t, "EUR", currency)
+	require.Equal(t, "EUR", currency)
 
 	a1, s1 := randomStellarKeypair()
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
@@ -870,7 +864,7 @@ func TestRequestPayment(t *testing.T) {
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)
-	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_REQUESTPAYMENT)
+	require.Equal(t, chat1.MessageType_REQUESTPAYMENT, senderMsgs[0].MsgType)
 
 	err = tcs[0].Srv.CancelRequestLocal(context.Background(), stellar1.CancelRequestLocalArg{
 		ReqID: reqID,
@@ -929,10 +923,10 @@ func TestBundleFlows(t *testing.T) {
 	var accountIDs []stellar1.AccountID
 	for _, acct := range accounts {
 		signers := secretsMap[acct.AccountID].Signers
-		require.Equal(t, len(signers), 0)
+		require.Empty(t, signers)
 		accountIDs = append(accountIDs, acct.AccountID)
 	}
-	require.Equal(t, len(accountIDs), 1)
+	require.Len(t, accountIDs, 1)
 	// add a new account non-primary account
 	a1, s1 := randomStellarKeypair()
 	err = tcs[0].Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
@@ -966,10 +960,10 @@ func TestBundleFlows(t *testing.T) {
 	require.NoError(t, err)
 	err = fullBundle.CheckInvariants()
 	require.NoError(t, err)
-	require.Equal(t, 3, len(fullBundle.Accounts))
+	require.Len(t, fullBundle.Accounts, 3)
 	for _, acc := range fullBundle.Accounts {
 		ab := fullBundle.AccountBundles[acc.AccountID]
-		require.Equal(t, 1, len(ab.Signers))
+		require.Len(t, ab.Signers, 1)
 		_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(ab.Signers[0]))
 		require.NoError(t, err)
 		require.Equal(t, parsedAccountID, acc.AccountID)
@@ -980,7 +974,7 @@ func TestBundleFlows(t *testing.T) {
 		AccountID: a2,
 	})
 	require.NoError(t, err)
-	require.EqualValues(t, s2, privKey)
+	require.Equal(t, s2, privKey)
 
 	// ChangeAccountName
 	res, err := tcs[0].Srv.ChangeWalletAccountNameLocal(ctx, stellar1.ChangeWalletAccountNameLocalArg{
@@ -993,7 +987,7 @@ func TestBundleFlows(t *testing.T) {
 	require.NoError(t, err)
 	for _, acc := range bundle.Accounts {
 		if acc.AccountID == a2 {
-			require.Equal(t, acc.Name, "rename")
+			require.Equal(t, "rename", acc.Name)
 			accSigners := bundle.AccountBundles[a2].Signers
 			require.Equal(t, accSigners[0], s2)
 		}
@@ -1009,19 +1003,18 @@ func TestBundleFlows(t *testing.T) {
 	_, err = remote.FetchAccountBundle(mctx, a2)
 	require.Error(t, err)
 	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
+	require.True(t, ok,
+		"invalid error type %T", err)
 	require.Equal(t, libkb.SCStellarMissingAccount, aerr.Code)
 	// fetching everything should yield a bundle that
 	// does not include this account
 	bundle, err = fetchWholeBundleForTesting(mctx)
 	require.NoError(t, err)
 	for _, acc := range bundle.Accounts {
-		require.False(t, acc.AccountID == a2)
+		require.NotEqual(t, a2, acc.AccountID)
 	}
 	for accID := range bundle.AccountBundles {
-		require.False(t, accID == a2)
+		require.NotEqual(t, a2, accID)
 	}
 
 	// CreateNewAccount
@@ -1078,7 +1071,7 @@ func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID s
 			if acct.AccountID == accountID {
 				// this is the account we were explicitly fetching, so it should have signers
 				signers := ab[accountID].Signers
-				require.Equal(t, len(signers), 1)
+				require.Len(t, signers, 1)
 				_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(signers[0]))
 				require.NoError(t, err)
 				require.Equal(t, parsedAccountID, accountID)
@@ -1094,7 +1087,7 @@ func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID s
 
 func RequireAppStatusError(t *testing.T, code int, err error) {
 	require.Error(t, err)
-	require.IsType(t, err, libkb.AppStatusError{})
+	require.ErrorAs(t, err, new(libkb.AppStatusError))
 	if aerr, ok := err.(libkb.AppStatusError); ok {
 		require.Equal(t, code, aerr.Code)
 	}
@@ -1169,11 +1162,11 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	accountID0 := rev3Bundle.Accounts[0].AccountID
 	require.Equal(t, primaryAcctName, rev3Bundle.Accounts[0].Name)
 	require.True(t, rev3Bundle.Accounts[0].IsPrimary)
-	require.Len(t, rev3Bundle.AccountBundles[accountID0].Signers, 0)
+	require.Empty(t, rev3Bundle.AccountBundles[accountID0].Signers)
 	accountID1 := rev3Bundle.Accounts[1].AccountID
 	require.Equal(t, stellar1.AccountMode_MOBILE, rev3Bundle.Accounts[1].Mode)
 	require.False(t, rev3Bundle.Accounts[1].IsPrimary)
-	require.Len(t, rev3Bundle.AccountBundles[accountID1].Signers, 0)
+	require.Empty(t, rev3Bundle.AccountBundles[accountID1].Signers)
 	require.Equal(t, "vault", rev3Bundle.Accounts[1].Name)
 
 	err = remote.Post(mctx, *rev2Bundle)
@@ -1322,9 +1315,9 @@ func TestGetPartnerUrlsLocal(t *testing.T) {
 
 	res, err := tc.Srv.GetPartnerUrlsLocal(ctx, 0)
 	require.NoError(t, err)
-	require.Equal(t, len(res), 1)
+	require.Len(t, res, 1)
 	require.Equal(t, res[0].Url, firstPartnerURL)
-	require.Equal(t, res[0].Extra, `{"superfun":true}`)
+	require.Equal(t, `{"superfun":true}`, res[0].Extra)
 	require.False(t, res[0].AdminOnly)
 }
 
@@ -1363,9 +1356,8 @@ func TestAutoClaimLoop(t *testing.T) {
 		}
 	}
 
-	if !found {
-		t.Fatal("Timed out waiting for auto claim")
-	}
+	require.True(t, found,
+		"Timed out waiting for auto claim")
 
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "96.9999900")
 	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
@@ -1380,18 +1372,14 @@ func TestShutdown(t *testing.T) {
 	tcs[0].Srv.walletState.SeqnoLock()
 	_, err := tcs[0].Srv.walletState.AccountSeqnoAndBump(context.Background(), accountID)
 	tcs[0].Srv.walletState.SeqnoUnlock()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	require.Len(t, balances, 1)
-	require.Equal(t, balances[0].Asset.Type, "native")
-	require.Equal(t, balances[0].Amount, "10000")
+	require.Equal(t, "native", balances[0].Asset.Type)
+	require.Equal(t, "10000", balances[0].Amount)
 
 	var wg sync.WaitGroup
 	for i := range 10 {
@@ -1594,7 +1582,7 @@ const (
 )
 
 func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, func()) {
-	require.True(t, len(settings) > 0, "must create at least 1 tc")
+	require.NotEmpty(t, settings, "must create at least 1 tc")
 	var tcs []*TestContext
 	bem := NewBackendMock(t)
 	for i, setting := range settings {

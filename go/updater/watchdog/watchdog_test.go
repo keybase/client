@@ -35,12 +35,12 @@ func TestWatchMultiple(t *testing.T) {
 	matcher1 := process.NewMatcher(procProgram1.Path, process.PathEqual, testLog)
 	procs1, err := process.FindProcesses(matcher1, time.Second, 200*time.Millisecond, testLog)
 	require.NoError(t, err)
-	assert.Equal(t, 1, len(procs1))
+	assert.Len(t, procs1, 1)
 
 	matcher2 := process.NewMatcher(procProgram2.Path, process.PathEqual, testLog)
 	procs2, err := process.FindProcesses(matcher2, time.Second, 200*time.Millisecond, testLog)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(procs2))
+	require.Len(t, procs2, 1)
 	proc2 := procs2[0]
 
 	err = process.TerminatePID(proc2.Pid(), time.Millisecond, testLog)
@@ -51,7 +51,7 @@ func TestWatchMultiple(t *testing.T) {
 	// Check for restart
 	procs2After, err := process.FindProcesses(matcher2, time.Second, time.Millisecond, testLog)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(procs2After))
+	require.Len(t, procs2After, 1)
 }
 
 // TestTerminateBeforeWatch checks to make sure any existing processes are
@@ -68,7 +68,7 @@ func TestTerminateBeforeWatch(t *testing.T) {
 
 	procsBefore, err := process.FindProcesses(matcher, time.Second, time.Millisecond, testLog)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(procsBefore))
+	require.Len(t, procsBefore, 1)
 	pidBefore := procsBefore[0].Pid()
 	t.Logf("Pid before: %d", pidBefore)
 
@@ -79,7 +79,7 @@ func TestTerminateBeforeWatch(t *testing.T) {
 	// Check again, and make sure it's a new process
 	procsAfter, err := process.FindProcesses(matcher, time.Second, time.Millisecond, testLog)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(procsAfter))
+	require.Len(t, procsAfter, 1)
 	pidAfter := procsAfter[0].Pid()
 	t.Logf("Pid after: %d", pidAfter)
 
@@ -133,7 +133,7 @@ func TestTerminateBeforeWatchRace(t *testing.T) {
 	matcher := process.NewMatcher(mainProgram.Path, process.PathEqual, testLog)
 	procsAfter, err := process.FindProcesses(matcher, time.Second, time.Millisecond, testLog)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(procsAfter))
+	require.Len(t, procsAfter, 1)
 }
 
 func TestExitOnSuccess(t *testing.T) {
@@ -149,7 +149,7 @@ func TestExitOnSuccess(t *testing.T) {
 	matcher := process.NewMatcher(procProgram.Path, process.PathEqual, testLog)
 	procsAfter, err := process.WaitForExit(matcher, 500*time.Millisecond, 50*time.Millisecond, testLog)
 	require.NoError(t, err)
-	assert.Equal(t, 0, len(procsAfter))
+	assert.Empty(t, procsAfter)
 }
 
 func procTestPath(name string) (string, string) {
@@ -193,7 +193,7 @@ func TestExitAllOnSuccess(t *testing.T) {
 		matcher := process.NewMatcher(program.Path, process.PathEqual, testLog)
 		procs, err := process.FindProcesses(matcher, time.Second, 100*time.Millisecond, testLog)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(procs))
+		require.Len(t, procs, 1)
 		proc := procs[0]
 		return proc.Pid()
 	}
@@ -222,7 +222,7 @@ func TestExitAllOnSuccess(t *testing.T) {
 		matcher := process.NewMatcher(program.Path, process.PathEqual, testLog)
 		procs, err := process.FindProcesses(matcher, time.Second, 100*time.Millisecond, testLog)
 		require.NoError(t, err)
-		require.Equal(t, 0, len(procs))
+		require.Empty(t, procs)
 	}
 
 	assertProgramEnded(exiter)
@@ -243,7 +243,7 @@ func TestWatchdogExitAllRace(t *testing.T) {
 		matcher := process.NewMatcher(p.Path, process.PathEqual, testLog)
 		procs, err := process.FindProcesses(matcher, time.Second, 200*time.Millisecond, testLog)
 		require.NoError(t, err)
-		assert.Equal(t, 1, len(procs))
+		assert.Len(t, procs, 1)
 	}
 	assertOneProcessOfEachProgramIsRunning := func() {
 		assertOneProcessIsRunning(exiter)
@@ -258,7 +258,7 @@ func TestWatchdogExitAllRace(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			err := Watch([]Program{exiter, procProgram1, procProgram2}, 0, testLog)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 		}()
 	}
 	wg.Wait()

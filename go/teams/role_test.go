@@ -17,25 +17,25 @@ func TestRoleOrder(t *testing.T) {
 	a := keybase1.TeamRole_ADMIN
 	o := keybase1.TeamRole_OWNER
 
-	require.Equal(t, false, n.IsReaderOrAbove())
-	require.Equal(t, false, rb.IsReaderOrAbove())
-	require.Equal(t, false, b.IsReaderOrAbove())
-	require.Equal(t, true, r.IsReaderOrAbove())
-	require.Equal(t, true, w.IsReaderOrAbove())
-	require.Equal(t, true, a.IsReaderOrAbove())
-	require.Equal(t, true, o.IsReaderOrAbove())
+	require.False(t, n.IsReaderOrAbove())
+	require.False(t, rb.IsReaderOrAbove())
+	require.False(t, b.IsReaderOrAbove())
+	require.True(t, r.IsReaderOrAbove())
+	require.True(t, w.IsReaderOrAbove())
+	require.True(t, a.IsReaderOrAbove())
+	require.True(t, o.IsReaderOrAbove())
 
-	require.Equal(t, false, n.IsAdminOrAbove())
-	require.Equal(t, false, rb.IsAdminOrAbove())
-	require.Equal(t, false, b.IsAdminOrAbove())
-	require.Equal(t, false, r.IsAdminOrAbove())
-	require.Equal(t, false, w.IsAdminOrAbove())
-	require.Equal(t, true, a.IsAdminOrAbove())
-	require.Equal(t, true, o.IsAdminOrAbove())
+	require.False(t, n.IsAdminOrAbove())
+	require.False(t, rb.IsAdminOrAbove())
+	require.False(t, b.IsAdminOrAbove())
+	require.False(t, r.IsAdminOrAbove())
+	require.False(t, w.IsAdminOrAbove())
+	require.True(t, a.IsAdminOrAbove())
+	require.True(t, o.IsAdminOrAbove())
 
 	order := func(r1, r2 keybase1.TeamRole) {
-		require.Equal(t, true, r2.IsOrAbove(r1))
-		require.Equal(t, false, r1.IsOrAbove(r2))
+		require.True(t, r2.IsOrAbove(r1))
+		require.False(t, r1.IsOrAbove(r2))
 	}
 	// spot check
 	order(n, rb)

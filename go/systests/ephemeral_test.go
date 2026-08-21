@@ -189,7 +189,7 @@ func TestEphemeralTeambotEK(t *testing.T) {
 
 	_, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.Error(t, err)
-	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+	require.ErrorAs(t, err, new(ephemeral.EphemeralKeyError))
 	require.False(t, created)
 
 	// cry for help has been issued.
@@ -262,7 +262,7 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	fc.Advance(ephemeral.LibCacheEntryLifetime) // expire lib ek caches
 	_, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.Error(t, err)
-	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+	require.ErrorAs(t, err, new(ephemeral.EphemeralKeyError))
 	require.False(t, created)
 	forceCreateGen = keybase1.EkGeneration(3)
 	ekNeededArg = keybase1.TeambotEkNeededArg{
@@ -385,7 +385,7 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	badGen := teambotEK.Generation() + 50
 	_, err = ekLib3.GetTeambotEK(mctx3, teamID, botuaUID, badGen, nil)
 	require.Error(t, err)
-	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+	require.ErrorAs(t, err, new(ephemeral.EphemeralKeyError))
 	ekNeededArg = keybase1.TeambotEkNeededArg{
 		Id:         teamID,
 		Uid:        botua.uid,
@@ -467,17 +467,17 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 		require.NoError(t, bobErr)
 	} else {
 		require.Error(t, annErr)
-		require.IsType(t, ephemeral.EphemeralKeyError{}, annErr)
+		require.ErrorAs(t, annErr, new(ephemeral.EphemeralKeyError))
 		ekErr := annErr.(ephemeral.EphemeralKeyError)
 		require.Equal(t, ephemeral.DefaultHumanErrMsg, ekErr.HumanError())
 
 		require.Error(t, bobErr)
-		require.IsType(t, ephemeral.EphemeralKeyError{}, bobErr)
+		require.ErrorAs(t, bobErr, new(ephemeral.EphemeralKeyError))
 		ekErr = bobErr.(ephemeral.EphemeralKeyError)
 		require.Equal(t, ephemeral.DefaultHumanErrMsg, ekErr.HumanError())
 	}
-	require.Equal(t, bobTeamEK.Metadata, expectedMetadata)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
+	require.Equal(t, expectedMetadata, bobTeamEK.Metadata)
+	require.Equal(t, expectedMetadata, annTeamEK.Metadata)
 }
 
 func TestEphemeralResetMember(t *testing.T) {
@@ -523,7 +523,7 @@ func TestEphemeralResetMember(t *testing.T) {
 
 	annTeamEK, annErr := getTeamEK(annMctx, teamID, expectedGeneration)
 	require.NoError(t, annErr)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
+	require.Equal(t, expectedMetadata, annTeamEK.Metadata)
 
 	// Bob should not have access to this teamEK since he's no longer in the
 	// team after resetting.
@@ -535,9 +535,9 @@ func TestEphemeralResetMember(t *testing.T) {
 
 	_, bobErr := getTeamEK(bobMctx, teamID, expectedGeneration)
 	require.Error(t, bobErr)
-	require.IsType(t, libkb.AppStatusError{}, bobErr)
+	require.ErrorAs(t, bobErr, new(libkb.AppStatusError))
 	appStatusErr := bobErr.(libkb.AppStatusError)
-	require.Equal(t, appStatusErr.Code, libkb.SCNotFound)
+	require.Equal(t, libkb.SCNotFound, appStatusErr.Code)
 
 	// Also add joe who has a valid userEK
 	ann.addWriter(team, bob)
@@ -557,19 +557,19 @@ func TestEphemeralResetMember(t *testing.T) {
 	expectedGeneration2 := expectedMetadata2.Generation
 	// We can't require that the next generation is exactly 1 greater than the
 	// previous, because there's a race where a CLKR sneaks in here.
-	require.True(t, expectedGeneration < expectedGeneration2)
+	require.Less(t, expectedGeneration, expectedGeneration2)
 
 	annTeamEK, annErr = getTeamEK(annMctx, teamID, expectedGeneration2)
 	require.NoError(t, annErr)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata2)
+	require.Equal(t, expectedMetadata2, annTeamEK.Metadata)
 
 	bobTeamEK, bobErr := getTeamEK(bobMctx, teamID, expectedGeneration2)
 	require.NoError(t, bobErr)
-	require.Equal(t, bobTeamEK.Metadata, expectedMetadata2)
+	require.Equal(t, expectedMetadata2, bobTeamEK.Metadata)
 
 	joeTeamEk, joeErr := getTeamEK(joeMctx, teamID, expectedGeneration2)
 	require.NoError(t, joeErr)
-	require.Equal(t, joeTeamEk.Metadata, expectedMetadata2)
+	require.Equal(t, expectedMetadata2, joeTeamEk.Metadata)
 }
 
 func TestEphemeralRotateWithTeamEK(t *testing.T) {
@@ -619,8 +619,8 @@ func runRotate(t *testing.T, createTeamEK bool) {
 		require.NoError(t, err)
 	} else {
 		require.Error(t, err)
-		require.IsType(t, ephemeral.EphemeralKeyError{}, err)
-		ekErr := err.(ephemeral.EphemeralKeyError)
+		var ekErr ephemeral.EphemeralKeyError
+		require.ErrorAs(t, err, &ekErr)
 		require.Equal(t, ephemeral.DefaultHumanErrMsg, ekErr.HumanError())
 		require.Equal(t, keybase1.TeamEphemeralKey{}, teamEK)
 	}
@@ -788,9 +788,9 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	// After leaving user2 won't have access to the current teamEK
 	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(user2.MetaContext(), teamID, currentGen, nil)
 	require.Error(t, err)
-	require.IsType(t, libkb.AppStatusError{}, err)
-	appStatusErr := err.(libkb.AppStatusError)
-	require.Equal(t, appStatusErr.Code, libkb.SCNotFound)
+	var appStatusErr libkb.AppStatusError
+	require.ErrorAs(t, err, &appStatusErr)
+	require.Equal(t, libkb.SCNotFound, appStatusErr.Code)
 
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user2.waitForNewlyAddedToTeamByID(teamID)
@@ -846,8 +846,8 @@ func TestEphemeralAfterEKError(t *testing.T) {
 
 	_, err = mctx2.G().GetTeamEKBoxStorage().Get(mctx2, teamID, teamEKMetadata1.Generation, nil)
 	require.Error(t, err)
-	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
-	ekErr := err.(ephemeral.EphemeralKeyError)
+	var ekErr ephemeral.EphemeralKeyError
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, libkb.SCEphemeralMemberAfterEK, ekErr.StatusCode)
 
 	ek2, err := mctx2.G().GetTeamEKBoxStorage().Get(mctx2, teamID, teamEKMetadata2.Generation, nil)
@@ -868,7 +868,6 @@ func TestEphemeralAfterEKError(t *testing.T) {
 
 	_, err = mctx2.G().GetUserEKBoxStorage().Get(mctx2, userEKMetdata.Generation-1, nil)
 	require.Error(t, err)
-	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
-	ekErr = err.(ephemeral.EphemeralKeyError)
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, libkb.SCEphemeralDeviceAfterEK, ekErr.StatusCode)
 }

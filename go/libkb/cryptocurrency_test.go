@@ -6,25 +6,21 @@ package libkb
 import (
 	"encoding/hex"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func doBase58Test(t *testing.T, startingHex, expectedBase58 string) {
 	startingBytes, err := hex.DecodeString(startingHex)
-	if err != nil {
-		t.Fatalf("Not valid hex: '%s'", startingHex)
-	}
+	require.NoError(t, err,
+		"Not valid hex: '%s'", startingHex)
 	base58 := Base58.EncodeToString(startingBytes)
-	if base58 != expectedBase58 {
-		t.Fatalf("'%s' was converted to '%s' instead of '%s'", startingHex, base58, expectedBase58)
-	}
+	require.Equal(t, expectedBase58, base58, "'%s' was converted to '%s' instead of '%s'", startingHex, base58, expectedBase58)
 	backToBytes, err := Base58.DecodeString(base58)
-	if err != nil {
-		t.Fatalf("Not valid base58: '%s'", base58)
-	}
+	require.NoError(t, err,
+		"Not valid base58: '%s'", base58)
 	backToHex := hex.EncodeToString(backToBytes)
-	if backToHex != startingHex {
-		t.Fatalf("'%s' round tripped to '%s'", startingHex, backToHex)
-	}
+	require.Equal(t, startingHex, backToHex, "'%s' round tripped to '%s'", startingHex, backToHex)
 }
 
 func TestBase58(t *testing.T) {
@@ -59,9 +55,7 @@ var testVectors = []struct {
 func TestCryptocurrencyParseAndCheck(t *testing.T) {
 	for i, v := range testVectors {
 		typ, _, err := CryptocurrencyParseAndCheck(v.address)
-		if typ != v.wantedType {
-			t.Fatalf("Address %s (%d): got wrong CryptocurrencyTyp: %d != %d (%v)", v.address, i, typ, v.wantedType, err)
-		}
+		require.Equal(t, v.wantedType, typ, "Address %s (%d): got wrong CryptocurrencyTyp: %d != %d (%v)", v.address, i, typ, v.wantedType, err)
 	}
 }
 
@@ -82,11 +76,10 @@ func TestAddressValidation(t *testing.T) {
 	}
 	for _, testAddr := range btcTestAddrs {
 		_, _, err := BtcAddrCheck(testAddr.address, nil)
-		if testAddr.valid && err != nil {
-			t.Fatalf("Failed to validate a good address %s.", testAddr.address)
-		}
-		if !testAddr.valid && err == nil {
-			t.Fatalf("Failed to catch a bad address %s.", testAddr.address)
+		if testAddr.valid {
+			require.NoError(t, err, "Failed to validate a good address %s.", testAddr.address)
+		} else {
+			require.Error(t, err, "Failed to catch a bad address %s.", testAddr.address)
 		}
 	}
 }

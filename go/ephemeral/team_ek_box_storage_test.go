@@ -21,12 +21,12 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	// Login hooks should have run
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
 	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(mctx, false)
-	require.True(t, deviceEKMaxGen > 0)
+	require.Positive(t, deviceEKMaxGen)
 	require.NoError(t, err)
 
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
 	userEKMaxGen, err := userEKBoxStorage.MaxGeneration(mctx, false)
-	require.True(t, userEKMaxGen > 0)
+	require.Positive(t, userEKMaxGen)
 	require.NoError(t, err)
 
 	teamID := createTeam(tc)
@@ -52,8 +52,8 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	botS := tc.G.GetTeambotEKBoxStorage()
 	botNonexistant, err := botS.Get(mctx, teamID, teamEKMetadata.Generation, nil)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr := err.(EphemeralKeyError)
+	var ekErr EphemeralKeyError
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEphemeralKey{}, botNonexistant)
 
@@ -62,8 +62,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	// Test Get nonexistent
 	nonexistent, err := s.Get(mctx, teamID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr = err.(EphemeralKeyError)
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEphemeralKey{}, nonexistent)
 
@@ -88,7 +87,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	rawTeamEKBoxStorage := NewTeamEKBoxStorage(NewTeamEphemeralKeyer())
 	teamEKs, err := rawTeamEKBoxStorage.GetAll(mctx, teamID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(teamEKs))
+	require.Len(t, teamEKs, 1)
 
 	ek, ok = teamEKs[teamEKMetadata.Generation]
 	require.True(t, ok)
@@ -98,7 +97,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	// Test invalid
 	teamEKs2, err := rawTeamEKBoxStorage.GetAll(mctx, invalidID)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(teamEKs2))
+	require.Empty(t, teamEKs2)
 
 	// Let's delete our userEK and verify we will refetch and unbox properly
 	rawUserEKBoxStorage := NewUserEKBoxStorage()
@@ -125,8 +124,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	bad, err := s.Get(mctx, teamID, teamEKMetadata.Generation, nil)
 	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr = err.(EphemeralKeyError)
+	require.ErrorAs(t, err, &ekErr)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEphemeralKey{}, bad)
 
@@ -139,7 +137,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	teamEKs, err = rawTeamEKBoxStorage.GetAll(mctx, teamID)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(teamEKs))
+	require.Empty(t, teamEKs)
 
 	s.ClearCache()
 

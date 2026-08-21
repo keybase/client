@@ -505,7 +505,7 @@ func TestJournalManagerLogOutLogIn(t *testing.T) {
 	// Get the block, which should fail.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
-	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorBlockNonExistent))
 
 	// Get the head, which should be empty.
 
@@ -631,7 +631,7 @@ func TestJournalManagerMultiUser(t *testing.T) {
 	// None of user 1's changes should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1, DiskBlockAnyCache)
-	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorBlockNonExistent))
 
 	head, err := mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
@@ -670,10 +670,10 @@ func TestJournalManagerMultiUser(t *testing.T) {
 	// No block or MD should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1, DiskBlockAnyCache)
-	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorBlockNonExistent))
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2, DiskBlockAnyCache)
-	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorBlockNonExistent))
 
 	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
@@ -698,7 +698,7 @@ func TestJournalManagerMultiUser(t *testing.T) {
 	require.Equal(t, serverHalf1, key)
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2, DiskBlockAnyCache)
-	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorBlockNonExistent))
 
 	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
@@ -720,7 +720,7 @@ func TestJournalManagerMultiUser(t *testing.T) {
 	// Only user 2's block and MD should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1, DiskBlockAnyCache)
-	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorBlockNonExistent))
 
 	buf, key, err = blockServer.Get(ctx, tlfID, bID2, bCtx2, DiskBlockAnyCache)
 	require.NoError(t, err)
@@ -744,7 +744,7 @@ func TestJournalManagerEnableAuto(t *testing.T) {
 	status, tlfIDs := jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Zero(t, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 
 	delegate := testBWDelegate{
 		t:          t,
@@ -820,7 +820,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 	status, tlfIDs := jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Zero(t, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 
 	// This will end up calling journalMDOps.GetIDForHandle, which
 	// initializes the journal if possible.  In this case for a
@@ -832,7 +832,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 	status, tlfIDs = jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 0, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 
 	// Neither should a private, reader folder.
 	h, err := tlfhandle.ParseHandle(
@@ -843,7 +843,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 	status, tlfIDs = jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 0, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 
 	// Or a team folder, where you're just a reader.
 	teamName := kbname.NormalizedUsername("t1")
@@ -861,7 +861,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 	status, tlfIDs = jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 0, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 
 	// But accessing our own should make one.
 	_, err = tlfhandle.ParseHandle(
@@ -884,7 +884,7 @@ func TestJournalManagerNukeEmptyJournalsOnRestart(t *testing.T) {
 	status, tlfIDs := jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Zero(t, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 
 	blockServer := config.BlockServer()
 	h, err := tlfhandle.ParseHandle(
@@ -932,7 +932,7 @@ func TestJournalManagerNukeEmptyJournalsOnRestart(t *testing.T) {
 	status, tlfIDs = jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 0, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 	_, err = os.Stat(tj.dir)
 	require.True(t, ioutil.IsNotExist(err))
 }
@@ -1070,7 +1070,7 @@ func TestJournalManagerCorruptJournal(t *testing.T) {
 	status, tlfIDs := jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Zero(t, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 
 	blockServer := config.BlockServer()
 	h, err := tlfhandle.ParseHandle(
@@ -1121,7 +1121,7 @@ func TestJournalManagerCorruptJournal(t *testing.T) {
 	status, tlfIDs = jManager.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 0, status.JournalCount)
-	require.Len(t, tlfIDs, 0)
+	require.Empty(t, tlfIDs)
 	config.SetBlockServer(
 		journalBlockServer{jManager, jManager.delegateBlockServer, false})
 	blockServer = config.BlockServer()

@@ -70,24 +70,24 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 	require.Equal(t, 1, teamObj.NumActiveInvites())
 	invites := teamObj.GetActiveAndObsoleteInvites()
-	require.Equal(t, 1, len(invites))
+	require.Len(t, invites, 1)
 	for _, invite := range teamObj.GetActiveAndObsoleteInvites() {
 		uv, err := invite.KeybaseUserVersion()
 		require.NoError(t, err)
-		require.EqualValues(t, bob.userVersion(), uv)
+		require.Equal(t, bob.userVersion(), uv)
 	}
 
 	members, err := teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 0, len(members.Admins))
-	require.Equal(t, 0, len(members.Writers))
-	require.Equal(t, 1, len(members.Readers))
-	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
-	require.Equal(t, 1, len(members.Bots))
-	require.EqualValues(t, botua.userVersion(), members.Bots[0])
-	require.Equal(t, 1, len(members.RestrictedBots))
-	require.EqualValues(t, restrictedBotua.userVersion(), members.RestrictedBots[0])
+	require.Len(t, members.Owners, 1)
+	require.Empty(t, members.Admins)
+	require.Empty(t, members.Writers)
+	require.Len(t, members.Readers, 1)
+	require.Equal(t, tracy.userVersion(), members.Readers[0])
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.userVersion(), members.Bots[0])
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.userVersion(), members.RestrictedBots[0])
 
 	// TRANSACTION 2 - bob gets puk, add bob but not through SBS - we
 	// expect the invite to be sweeped away by this transaction.
@@ -105,17 +105,17 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 	members, err = teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 0, len(members.Admins))
-	require.Equal(t, 1, len(members.Writers))
-	require.EqualValues(t, bob.userVersion(), members.Writers[0])
-	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
-	require.Equal(t, 1, len(members.Readers))
-	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
-	require.Equal(t, 1, len(members.Bots))
-	require.EqualValues(t, botua.userVersion(), members.Bots[0])
-	require.Equal(t, 1, len(members.RestrictedBots))
-	require.EqualValues(t, restrictedBotua.userVersion(), members.RestrictedBots[0])
+	require.Len(t, members.Owners, 1)
+	require.Empty(t, members.Admins)
+	require.Len(t, members.Writers, 1)
+	require.Equal(t, bob.userVersion(), members.Writers[0])
+	require.Empty(t, teamObj.GetActiveAndObsoleteInvites())
+	require.Len(t, members.Readers, 1)
+	require.Equal(t, tracy.userVersion(), members.Readers[0])
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.userVersion(), members.Bots[0])
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.userVersion(), members.RestrictedBots[0])
 }
 
 func TestTeamTxAddByUsername(t *testing.T) {
@@ -150,9 +150,9 @@ func TestTeamTxDependency(t *testing.T) {
 	teamObj := ann.loadTeam(team, true /* admin */)
 	members, err := teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
+	require.Len(t, members.Owners, 1)
 	require.Equal(t, 0, len(members.Admins)+len(members.Writers)+len(members.Readers)+len(members.Bots)+len(members.RestrictedBots))
-	require.EqualValues(t, ann.userVersion(), members.Owners[0])
+	require.Equal(t, ann.userVersion(), members.Owners[0])
 	require.Equal(t, 1, teamObj.NumActiveInvites())
 
 	bob.perUserKeyUpgrade()
@@ -182,7 +182,7 @@ func TestTeamTxDependency(t *testing.T) {
 	require.NoError(t, err)
 
 	payloads := tx.DebugPayloads()
-	require.Equal(t, 3, len(payloads))
+	require.Len(t, payloads, 3)
 
 	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
@@ -193,17 +193,17 @@ func TestTeamTxDependency(t *testing.T) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 	members, err = teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
-	require.EqualValues(t, ann.userVersion(), members.Owners[0])
-	require.Equal(t, 0, len(members.Admins))
-	require.Equal(t, 1, len(members.Writers))
-	require.EqualValues(t, bob.userVersion(), members.Writers[0])
-	require.Equal(t, 1, len(members.Readers))
-	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
+	require.Len(t, members.Owners, 1)
+	require.Equal(t, ann.userVersion(), members.Owners[0])
+	require.Empty(t, members.Admins)
+	require.Len(t, members.Writers, 1)
+	require.Equal(t, bob.userVersion(), members.Writers[0])
+	require.Len(t, members.Readers, 1)
+	require.Equal(t, tracy.userVersion(), members.Readers[0])
 	require.Equal(t, 0, teamObj.NumActiveInvites())
-	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
-	require.Equal(t, 0, len(members.Bots))
-	require.Equal(t, 0, len(members.RestrictedBots))
+	require.Empty(t, teamObj.GetActiveAndObsoleteInvites())
+	require.Empty(t, members.Bots)
+	require.Empty(t, members.RestrictedBots)
 
 	// Try the opposite logic: reset bob, and try to re-add them as
 	// pukless. The `invite` link should happen after crypto member
@@ -219,7 +219,7 @@ func TestTeamTxDependency(t *testing.T) {
 	require.NoError(t, err)
 
 	payloads = tx.DebugPayloads()
-	require.Equal(t, 3, len(payloads))
+	require.Len(t, payloads, 3)
 
 	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
@@ -262,12 +262,12 @@ func TestTeamTxSweepMembers(t *testing.T) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 	members, err := teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 1, len(members.Readers))
+	require.Len(t, members.Owners, 1)
+	require.Len(t, members.Readers, 1)
 	require.Equal(t, 0, len(members.Admins)+len(members.Writers)+len(members.Bots)+len(members.RestrictedBots))
-	require.EqualValues(t, ann.userVersion(), members.Owners[0])
-	require.EqualValues(t, bob.userVersion(), members.Readers[0])
-	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
+	require.Equal(t, ann.userVersion(), members.Owners[0])
+	require.Equal(t, bob.userVersion(), members.Readers[0])
+	require.Empty(t, teamObj.GetActiveAndObsoleteInvites())
 }
 
 func TestTeamTxMultipleMembers(t *testing.T) {
@@ -323,12 +323,12 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 	members, err := teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 5, len(members.Writers))
+	require.Len(t, members.Owners, 1)
+	require.Len(t, members.Writers, 5)
 	require.Equal(t, 0, len(members.Readers)+len(members.Admins)+len(members.Bots)+len(members.RestrictedBots))
 
 	invites := teamObj.GetActiveAndObsoleteInvites()
-	require.Equal(t, 1, len(invites))
+	require.Len(t, invites, 1)
 	for _, invite := range invites {
 		uv, err := invite.KeybaseUserVersion()
 		require.NoError(t, err)
@@ -399,6 +399,6 @@ func TestTeamTxBadAdds(t *testing.T) {
 	// Trying to add deleted bob.
 	err = tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER, nil)
 	require.Error(t, err)
-	require.IsType(t, libkb.UserDeletedError{}, err)
+	require.ErrorAs(t, err, new(libkb.UserDeletedError))
 	require.True(t, tx.IsEmpty())
 }

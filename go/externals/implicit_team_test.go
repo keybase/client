@@ -41,9 +41,9 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	goodName := "/keybase/public/dave,twitter:alice,bob@facebook,carol@keybase,echo"
 	name, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G)), goodName)
 	require.NoError(t, err)
-	require.Equal(t, name.IsPublic, true)
-	require.Equal(t, len(name.Writers.KeybaseUsers), 3)
-	require.Equal(t, len(name.Writers.UnresolvedUsers), 2)
+	require.True(t, name.IsPublic)
+	require.Len(t, name.Writers.KeybaseUsers, 3)
+	require.Len(t, name.Writers.UnresolvedUsers, 2)
 	require.True(t, containsString(name.Writers.KeybaseUsers, "dave"))
 	require.True(t, containsString(name.Writers.KeybaseUsers, "carol"))
 	require.True(t, containsString(name.Writers.KeybaseUsers, "echo"))
@@ -52,25 +52,25 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	secondSocial := name.Writers.UnresolvedUsers[1]
 	aliceExpected := keybase1.SocialAssertion{User: "alice", Service: keybase1.SocialAssertionService("twitter")}
 	bobExpected := keybase1.SocialAssertion{User: "bob", Service: keybase1.SocialAssertionService("facebook")}
-	require.True(t, firstSocial != secondSocial)
+	require.NotEqual(t, firstSocial, secondSocial)
 	require.True(t, firstSocial == aliceExpected || firstSocial == bobExpected)
 	require.True(t, secondSocial == aliceExpected || secondSocial == bobExpected)
 
 	goodName = "/keybase/public/dave,bob@facebook#alice (conflicted copy 2017-03-04)"
 	name, err = libkb.ParseImplicitTeamTLFName(MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G)), goodName)
 	require.NoError(t, err)
-	require.Equal(t, name.IsPublic, true)
-	require.Equal(t, len(name.Writers.KeybaseUsers), 1)
-	require.Equal(t, len(name.Writers.UnresolvedUsers), 1)
+	require.True(t, name.IsPublic)
+	require.Len(t, name.Writers.KeybaseUsers, 1)
+	require.Len(t, name.Writers.UnresolvedUsers, 1)
 	require.True(t, containsString(name.Writers.KeybaseUsers, "dave"))
 	require.Equal(t, name.ConflictInfo.Generation, keybase1.ConflictGeneration(1), "right conflict info")
 
 	goodName = "/keybase/public/dave,bob@facebook#alice (conflicted copy 2017-03-04 #2)"
 	name, err = libkb.ParseImplicitTeamTLFName(MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G)), goodName)
 	require.NoError(t, err)
-	require.Equal(t, name.IsPublic, true)
-	require.Equal(t, len(name.Writers.KeybaseUsers), 1)
-	require.Equal(t, len(name.Writers.UnresolvedUsers), 1)
+	require.True(t, name.IsPublic)
+	require.Len(t, name.Writers.KeybaseUsers, 1)
+	require.Len(t, name.Writers.UnresolvedUsers, 1)
 	require.True(t, containsString(name.Writers.KeybaseUsers, "dave"))
 	require.Equal(t, name.ConflictInfo.Generation, keybase1.ConflictGeneration(2), "right conflict info")
 }

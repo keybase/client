@@ -39,8 +39,8 @@ func (s *mockConvSource) Pull(ctx context.Context, convID chat1.ConversationID,
 ) (thread chat1.ThreadView, err error) {
 	s.callsToPull++
 
-	require.Greater(s.t, pagination.Num, 0)
-	require.Len(s.t, pagination.Next, 0)
+	require.Positive(s.t, pagination.Num)
+	require.Empty(s.t, pagination.Next)
 	require.NotNil(s.t, query)
 
 	return chat1.ThreadView{
@@ -86,5 +86,5 @@ func TestPullTranscript(t *testing.T) {
 	require.Equal(t, testConvID, apiMock.args.Args["conv_id"].String())
 	require.Contains(t, apiMock.args.Args, "transcript")
 
-	require.Greater(t, cs.callsToPull, 0)
+	require.Positive(t, cs.callsToPull)
 }

@@ -28,13 +28,13 @@ func TestFastLoaderBasic(t *testing.T) {
 	m := libkb.NewMetaContextForTest(tc)
 	team, err := tc.G.GetFastTeamLoader().Load(m, arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.True(t, teamName.Eq(team.Name))
 
 	t.Logf("load the team again")
 	team, err = tc.G.GetFastTeamLoader().Load(m, arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.True(t, teamName.Eq(team.Name))
 }
 
@@ -68,7 +68,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err := tcs[1].G.GetFastTeamLoader().Load(m[1], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.True(t, teamName.Eq(team.Name))
 
@@ -80,7 +80,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err = tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.True(t, teamName.Eq(team.Name))
 
@@ -91,7 +91,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.NoError(t, err)
 	// since D is a restricted bot, they should not have access to any keys
-	require.Zero(t, len(team.ApplicationKeys))
+	require.Empty(t, team.ApplicationKeys)
 	require.True(t, teamName.Eq(team.Name))
 	arg = keybase1.FastTeamLoadArg{
 		ID:            teamID,
@@ -100,8 +100,8 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.Error(t, err)
-	require.IsType(t, FTLMissingSeedError{}, err)
-	require.Zero(t, len(team.ApplicationKeys))
+	require.ErrorAs(t, err, new(FTLMissingSeedError))
+	require.Empty(t, team.ApplicationKeys)
 
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
@@ -116,7 +116,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	t.Logf("load as A to check the progression")
 	team, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 
@@ -125,7 +125,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(4)}
 	team, err = tcs[1].G.GetFastTeamLoader().Load(m[1], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 
@@ -134,7 +134,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{}
 	team, err = tcs[1].G.GetFastTeamLoader().Load(m[1], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 
@@ -151,7 +151,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.True(t, teamName.Eq(team.Name))
 
@@ -163,7 +163,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 
@@ -173,7 +173,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.NoError(t, err)
-	require.Zero(t, len(team.ApplicationKeys))
+	require.Empty(t, team.ApplicationKeys)
 	require.True(t, teamName.Eq(team.Name))
 
 	arg = keybase1.FastTeamLoadArg{
@@ -183,8 +183,8 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.Error(t, err)
-	require.IsType(t, FTLMissingSeedError{}, err)
-	require.Zero(t, len(team.ApplicationKeys))
+	require.ErrorAs(t, err, new(FTLMissingSeedError))
+	require.Empty(t, team.ApplicationKeys)
 
 	t.Logf("upgrade D to a bot and check they have access")
 	err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username)
@@ -196,7 +196,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(4)}
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 }
@@ -239,7 +239,7 @@ func TestFastLoaderMultilevel(t *testing.T) {
 	}
 	team, err := tcs[1].G.GetFastTeamLoader().Load(m[1], arg)
 	require.NoError(t, err)
-	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Len(t, team.ApplicationKeys, 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.True(t, expectedSubsubTeamName.Eq(team.Name))
 }

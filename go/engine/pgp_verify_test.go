@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func doVerify(t *testing.T, msg string) {
@@ -93,7 +94,7 @@ func sign(m libkb.MetaContext, tc libkb.TestContext, msg string, mode keybase1.S
 	}
 	eng := NewPGPSignEngine(tc.G, arg)
 	if err := RunEngine2(m, eng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	return sink.String()
 }
@@ -106,7 +107,7 @@ func signEnc(m libkb.MetaContext, tc libkb.TestContext, msg string) string {
 	}
 	eng := NewPGPEncrypt(tc.G, arg)
 	if err := RunEngine2(m, eng); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	return sink.String()
 }
@@ -128,17 +129,15 @@ func verify(m libkb.MetaContext, tc libkb.TestContext, msg, sig, name string, va
 		tc.T.Errorf("%s validated, but it shouldn't have", name)
 	}
 	s, ok := m.UIs().SecretUI.(*libkb.TestSecretUI)
-	if !ok {
-		tc.T.Fatalf("%s: invalid secret ui: %T", name, m.UIs().SecretUI)
-	}
+	require.True(tc.T, ok,
+		"%s: invalid secret ui: %T", name, m.UIs().SecretUI)
 	if s.CalledGetPassphrase {
 		tc.T.Errorf("%s: called get passphrase, shouldn't have", name)
 		s.CalledGetPassphrase = false // reset it for next caller
 	}
 	p, ok := m.UIs().PgpUI.(*TestPgpUI)
-	if !ok {
-		tc.T.Fatalf("%s: invalid pgp ui: %T", name, m.UIs().PgpUI)
-	}
+	require.True(tc.T, ok,
+		"%s: invalid pgp ui: %T", name, m.UIs().PgpUI)
 	if p.OutputCount == 0 {
 		tc.T.Errorf("%s: did not output signature success", name)
 	}

@@ -57,9 +57,8 @@ func TestFBStatusSignal(t *testing.T) {
 	ctx := context.Background()
 
 	_, c, err := fbsk.getStatus(ctx, nil)
-	if err != nil {
-		t.Fatalf("Couldn't get status: %v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't get status: %v", err)
 
 	n := newMockNode(mockCtrl)
 	p1 := data.Path{
@@ -71,15 +70,14 @@ func TestFBStatusSignal(t *testing.T) {
 	<-c
 
 	_, c, err = fbsk.getStatus(ctx, nil)
-	if err != nil {
-		t.Fatalf("Couldn't get status: %v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't get status: %v", err)
 
 	// no change should result in no signal
 	fbsk.addDirtyNode(n)
 	select {
 	case <-c:
-		t.Fatalf("Status should not have signalled a change")
+		require.FailNow(t, "Status should not have signalled a change")
 	default:
 	}
 }
@@ -105,9 +103,7 @@ func (m mockNodeMatcher) String() string {
 func checkStringSlices(t *testing.T, expected, got []string) {
 	sort.Strings(expected)
 	sort.Strings(got)
-	if !reflect.DeepEqual(expected, got) {
-		t.Errorf("Expected %v; got %v", expected, got)
-	}
+	require.True(t, reflect.DeepEqual(expected, got), "Expected %v; got %v", expected, got)
 }
 
 func TestFBStatusAllFields(t *testing.T) {
@@ -165,16 +161,11 @@ func TestFBStatusAllFields(t *testing.T) {
 
 	// check the returned status for accuracy
 	status, _, err := fbsk.getStatus(ctx, nil)
-	if err != nil {
-		t.Fatalf("Couldn't get status: %v", err)
-	}
+	require.NoError(t, err,
+		"Couldn't get status: %v", err)
 
-	if !status.Staged {
-		t.Errorf("Status does not show staged changes")
-	}
-	if string(status.HeadWriter) != "alice" {
-		t.Errorf("Unexpected head writer in status: %s", status.HeadWriter)
-	}
+	require.True(t, status.Staged, "Status does not show staged changes")
+	require.Equal(t, "alice", string(status.HeadWriter), "Unexpected head writer in status: %s", status.HeadWriter)
 	expectedDirtyPaths := []string{p1.String(), p2.String()}
 	checkStringSlices(t, expectedDirtyPaths, status.DirtyPaths)
 

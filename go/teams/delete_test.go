@@ -27,7 +27,7 @@ func TestDeleteRoot(t *testing.T) {
 	require.NoError(t, err, "error getting team before delete")
 
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	_, err = GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
@@ -44,9 +44,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	assertRole(tc, root, admin.Username, keybase1.TeamRole_ADMIN)
 
 	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	assertRole(tc, sub, owner.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, sub, admin.Username, keybase1.TeamRole_ADMIN)
 
@@ -54,7 +52,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	err = tc.Logout()
 	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	assertCanUserPerformTeamDelete(t, tc.G, sub)
@@ -62,20 +60,16 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	require.NoError(t, err, "error getting team before delete")
 
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	_, err = GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
-	if err == nil {
-		t.Fatal("no error getting deleted team")
-	}
+	require.Error(t, err,
+		"no error getting deleted team")
 	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("error type: %T (%s), expected libkb.AppStatusError", err, err)
-	}
-	if aerr.Code != int(keybase1.StatusCode_SCTeamReadError) {
-		t.Errorf("error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
-	}
+	require.True(t, ok,
+		"error type: %T (%s), expected libkb.AppStatusError", err, err)
+	require.Equal(t, int(keybase1.StatusCode_SCTeamReadError), aerr.Code, "error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
 }
 
 func TestDeleteSubteamImpliedAdmin(t *testing.T) {
@@ -91,7 +85,7 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 	err := tc.Logout()
 	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	assertCanUserPerformTeamDelete(t, tc.G, sub)
@@ -99,20 +93,16 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 	require.NoError(t, err, "error getting team before delete")
 
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	_, err = GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
-	if err == nil {
-		t.Fatal("no error getting deleted team")
-	}
+	require.Error(t, err,
+		"no error getting deleted team")
 	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("error type: %T (%s), expected libkb.AppStatusError", err, err)
-	}
-	if aerr.Code != int(keybase1.StatusCode_SCTeamReadError) {
-		t.Errorf("error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
-	}
+	require.True(t, ok,
+		"error type: %T (%s), expected libkb.AppStatusError", err, err)
+	require.Equal(t, int(keybase1.StatusCode_SCTeamReadError), aerr.Code, "error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
 }
 
 func TestDeleteSubteamWithHiddenRotations(t *testing.T) {
@@ -128,7 +118,7 @@ func TestDeleteSubteamWithHiddenRotations(t *testing.T) {
 	err := tc.Logout()
 	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	subTeam, err := GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
@@ -148,20 +138,16 @@ func TestDeleteSubteamWithHiddenRotations(t *testing.T) {
 	require.NoError(t, err, "error getting team before delete")
 
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, subTeam.ID); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	_, err = GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
-	if err == nil {
-		t.Fatal("no error getting deleted team")
-	}
+	require.Error(t, err,
+		"no error getting deleted team")
 	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("error type: %T (%s), expected libkb.AppStatusError", err, err)
-	}
-	if aerr.Code != int(keybase1.StatusCode_SCTeamReadError) {
-		t.Errorf("error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
-	}
+	require.True(t, ok,
+		"error type: %T (%s), expected libkb.AppStatusError", err, err)
+	require.Equal(t, int(keybase1.StatusCode_SCTeamReadError), aerr.Code, "error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
 }
 
 func TestRecreateSubteam(t *testing.T) {
@@ -172,7 +158,7 @@ func TestRecreateSubteam(t *testing.T) {
 	err := tc.Logout()
 	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	assertCanUserPerformTeamDelete(t, tc.G, sub)
@@ -180,22 +166,16 @@ func TestRecreateSubteam(t *testing.T) {
 	require.NoError(t, err, "error getting team before delete")
 
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// create the subteam again
 	name, err := keybase1.TeamNameFromString(sub)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	parent, err := name.Parent()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	_, err = CreateSubteam(context.Background(), tc.G, string(name.LastPart()), parent, keybase1.TeamRole_NONE /* addSelfAs */)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 // U0 creates a subteam and deletes it
@@ -243,7 +223,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	})
 	require.NoError(t, err, "load team")
 	t.Logf("%s", spew.Sdump(team.chain().inner.SubteamLog))
-	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
+	require.Empty(t, team.chain().inner.SubteamLog, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 
 type teamsUI struct{}

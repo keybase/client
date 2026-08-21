@@ -28,31 +28,31 @@ func testConfig(t *testing.T) (*config, error) {
 
 func TestConfig(t *testing.T) {
 	cfg, err := testConfig(t) // Will error since load fails on first newConfig
-	assert.NotNil(t, err, "%s", err)
+	require.Error(t, err, "%s", err)
 	path, err := cfg.path()
-	assert.NoError(t, err)
-	assert.NotEqual(t, path, "", "No config path")
+	require.NoError(t, err)
+	assert.NotEmpty(t, path, "No config path")
 
 	configDir, err := Dir(cfg.appName)
 	defer util.RemoveFileAtPath(configDir)
-	assert.NoError(t, err)
-	assert.NotEqual(t, configDir, "", "Config dir empty")
+	require.NoError(t, err)
+	assert.NotEmpty(t, configDir, "Config dir empty")
 	defer util.RemoveFileAtPath(configDir)
 
 	err = cfg.SetUpdateAuto(false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	auto, autoSet := cfg.GetUpdateAuto()
 	assert.True(t, autoSet, "Auto should be set")
 	assert.False(t, auto, "Auto should be false")
 	err = cfg.SetUpdateAuto(true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	auto, autoSet = cfg.GetUpdateAuto()
 	assert.True(t, autoSet, "Auto should be set")
 	assert.True(t, auto, "Auto should be true")
 
 	err = cfg.SetInstallID("deadbeef")
-	assert.NoError(t, err)
-	assert.Equal(t, cfg.GetInstallID(), "deadbeef")
+	require.NoError(t, err)
+	assert.Equal(t, "deadbeef", cfg.GetInstallID())
 
 	err = cfg.save()
 	require.NoError(t, err)
@@ -80,25 +80,25 @@ func TestConfig(t *testing.T) {
 		UpdaterVersion:  updater.Version,
 	}
 
-	assert.Equal(t, options, expectedOptions)
+	assert.Equal(t, expectedOptions, options)
 
 	// Load new config and make sure it has the same values
 	cfg2, err := newConfig(cfg.appName, cfg.pathToKeybase, testLog, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	path, err = cfg2.path()
-	assert.NoError(t, err)
-	assert.NotEqual(t, path, "", "No config path")
+	require.NoError(t, err)
+	assert.NotEmpty(t, path, "No config path")
 
 	expectedOptions2 := expectedOptions
 	expectedOptions2.IgnoreSnooze = true
 
 	options2 := cfg2.updaterOptions()
-	assert.Equal(t, options2, expectedOptions2)
+	assert.Equal(t, expectedOptions2, options2)
 
 	auto2, autoSet2 := cfg2.GetUpdateAuto()
 	assert.True(t, autoSet2, "Auto should be set")
 	assert.True(t, auto2, "Auto should be true")
-	assert.Equal(t, cfg2.GetInstallID(), "deadbeef")
+	assert.Equal(t, "deadbeef", cfg2.GetInstallID())
 }
 
 func TestConfigBadPath(t *testing.T) {
@@ -113,16 +113,16 @@ func TestConfigBadPath(t *testing.T) {
 
 	err := cfg.loadFromPath(badPath)
 	t.Logf("Error: %#v", err)
-	assert.NotNil(t, err, "Expected error")
+	require.Error(t, err, "Expected error")
 
 	saveErr := cfg.saveToPath(badPath)
 	t.Logf("Error: %#v", saveErr)
-	assert.NotNil(t, saveErr, "Expected error")
+	require.Error(t, saveErr, "Expected error")
 
 	auto, autoSet := cfg.GetUpdateAuto()
 	assert.False(t, autoSet, "Auto should not be set")
 	assert.False(t, auto, "Auto should be false")
-	assert.Equal(t, cfg.GetInstallID(), "")
+	assert.Empty(t, cfg.GetInstallID())
 }
 
 func TestConfigExtra(t *testing.T) {
@@ -135,14 +135,14 @@ func TestConfigExtra(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "TestConfigExtra")
 	defer util.RemoveFileAtPath(path)
 	err := os.WriteFile(path, []byte(data), 0o600)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfg := newDefaultConfig("", "", testLog, false)
 	err = cfg.loadFromPath(path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	t.Logf("Config: %#v", cfg.store)
-	assert.Equal(t, cfg.GetInstallID(), "deadbeef")
+	assert.Equal(t, "deadbeef", cfg.GetInstallID())
 	auto, autoSet := cfg.GetUpdateAuto()
 	assert.False(t, auto)
 	assert.True(t, autoSet)
@@ -159,11 +159,11 @@ func TestConfigBadType(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "TestConfigBadType")
 	defer util.RemoveFileAtPath(path)
 	err := os.WriteFile(path, []byte(data), 0o600)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfg := newDefaultConfig("", "", testLog, false)
 	err = cfg.loadFromPath(path)
-	assert.Error(t, err)
+	require.Error(t, err)
 	auto, autoSet := cfg.GetUpdateAuto()
 	assert.False(t, auto)
 	assert.False(t, autoSet)
@@ -174,5 +174,5 @@ func TestKeybaseVersionInvalid(t *testing.T) {
 	testPathToKeybase := filepath.Join(filepath.Dir(filename), "../test/err.sh")
 	cfg, _ := newConfig("KeybaseTest", testPathToKeybase, testLog, false)
 	version := cfg.keybaseVersion()
-	assert.Equal(t, "", version)
+	assert.Empty(t, version)
 }

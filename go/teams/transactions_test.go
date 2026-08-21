@@ -31,13 +31,13 @@ func TestTransactions1(t *testing.T) {
 	tx.AllowPUKless = true
 	err = tx.AddMemberByUsername(context.Background(), "t_alice", keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(tx.payloads))
+	require.Len(t, tx.payloads, 1)
 	require.Equal(t, txPayloadTagInviteKeybase, tx.payloads[0].Tag)
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0].Val)
 
 	err = tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(tx.payloads))
+	require.Len(t, tx.payloads, 2)
 	require.Equal(t, txPayloadTagInviteKeybase, tx.payloads[0].Tag)
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0].Val)
 	require.Equal(t, txPayloadTagCryptomembers, tx.payloads[1].Tag)
@@ -48,7 +48,7 @@ func TestTransactions1(t *testing.T) {
 
 	// 3rd add (pukless member) should re-use first signature instead
 	// of creating new one.
-	require.Equal(t, 2, len(tx.payloads))
+	require.Len(t, tx.payloads, 2)
 	require.Equal(t, txPayloadTagInviteKeybase, tx.payloads[0].Tag)
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0].Val)
 	require.Equal(t, txPayloadTagCryptomembers, tx.payloads[1].Tag)
@@ -66,17 +66,17 @@ func TestTransactions1(t *testing.T) {
 
 	members, err := team.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
+	require.Len(t, members.Owners, 1)
 	require.Equal(t, owner.GetUserVersion(), members.Owners[0])
-	require.Equal(t, 0, len(members.Admins))
-	require.Equal(t, 1, len(members.Writers))
+	require.Empty(t, members.Admins)
+	require.Len(t, members.Writers, 1)
 	require.Equal(t, other.GetUserVersion(), members.Writers[0])
-	require.Equal(t, 0, len(members.Readers))
-	require.Equal(t, 0, len(members.Bots))
-	require.Equal(t, 0, len(members.RestrictedBots))
+	require.Empty(t, members.Readers)
+	require.Empty(t, members.Bots)
+	require.Empty(t, members.RestrictedBots)
 
 	invites := team.GetActiveAndObsoleteInvites()
-	require.Equal(t, 2, len(invites))
+	require.Len(t, invites, 2)
 }
 
 func TestTransactionRotateKey(t *testing.T) {
@@ -177,7 +177,7 @@ func TestAllowPukless(t *testing.T) {
 
 	assertError := func(err error) {
 		require.Error(t, err)
-		require.IsType(t, err, UserPUKlessError{})
+		require.ErrorAs(t, err, new(UserPUKlessError))
 		require.Contains(t, err.Error(), other.Username)
 		require.Contains(t, err.Error(), other.GetUserVersion().String())
 	}
@@ -259,10 +259,10 @@ func TestTransactionRoleChanges(t *testing.T) {
 	// Try to upgrade role without `AllowRoleChanges` first.
 	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
 	require.Error(t, err)
-	require.IsType(t, libkb.ExistsError{}, err)
+	require.ErrorAs(t, err, new(libkb.ExistsError))
 
-	require.Len(t, tx.payloads, 0) // should not have changed transaction
-	require.NoError(t, tx.err)     // should not be a permanent error
+	require.Empty(t, tx.payloads) // should not have changed transaction
+	require.NoError(t, tx.err)    // should not be a permanent error
 
 	// Set `AllowRoleChanges`.
 	tx.AllowRoleChanges = true
@@ -270,7 +270,7 @@ func TestTransactionRoleChanges(t *testing.T) {
 	// Trying to add with same role as current is still an error.
 	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_READER, nil /* botSettings */)
 	require.Error(t, err)
-	require.IsType(t, libkb.ExistsError{}, err)
+	require.ErrorAs(t, err, new(libkb.ExistsError))
 
 	// We can set a different role though (READER -> WRITER)
 	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
@@ -332,15 +332,15 @@ func TestTransactionEmailExists(t *testing.T) {
 	// Check if we can catch this error and continue forward
 	_, _, _, err = tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
 	require.Error(t, err)
-	require.IsType(t, libkb.ExistsError{}, err)
+	require.ErrorAs(t, err, new(libkb.ExistsError))
 
 	// Changing roles of an invite using AddMemberTx is not possible right now.
 	_, _, _, err = tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_READER, nil /* botSettings */)
 	require.Error(t, err)
-	require.IsType(t, libkb.ExistsError{}, err)
+	require.ErrorAs(t, err, new(libkb.ExistsError))
 
 	// Two errors above should not have tainted the transaction.
-	require.Len(t, tx.payloads, 0)
+	require.Empty(t, tx.payloads)
 	require.NoError(t, tx.err)
 }
 
@@ -393,9 +393,9 @@ func TestTransactionResolvableEmailExists(t *testing.T) {
 	tx = CreateAddMemberTx(team)
 	_, _, _, err = tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
 	require.Error(t, err)
-	require.IsType(t, libkb.ExistsError{}, err)
+	require.ErrorAs(t, err, new(libkb.ExistsError))
 
-	require.Len(t, tx.payloads, 0)
+	require.Empty(t, tx.payloads)
 	require.NoError(t, tx.err)
 
 	// Role changes are possible with `AllowRoleChanges` because they are
@@ -437,10 +437,10 @@ func TestTransactionAddEmailPukless(t *testing.T) {
 	// Can't add without AllowPUKless.
 	_, _, _, err = tx.AddOrInviteMemberByAssertion(tcs[0].Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
 	require.Error(t, err)
-	require.IsType(t, UserPUKlessError{}, err)
+	require.ErrorAs(t, err, new(UserPUKlessError))
 
 	// Failure to add should have left the transaction unmodified.
-	require.Len(t, tx.payloads, 0)
+	require.Empty(t, tx.payloads)
 	require.NoError(t, tx.err)
 
 	tx.AllowPUKless = true

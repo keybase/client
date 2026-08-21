@@ -22,7 +22,7 @@ func TestLockdownAPI(t *testing.T) {
 	res, err := handler.GetLockdownMode(ctx, 0)
 	require.NoError(t, err)
 	require.False(t, res.Status)
-	require.Len(t, res.History, 0)
+	require.Empty(t, res.History)
 
 	err = handler.SetLockdownMode(ctx, keybase1.SetLockdownModeArg{
 		Enabled: true,

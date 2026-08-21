@@ -66,9 +66,8 @@ func TestDownloadManager(t *testing.T) {
 		require.Equal(t, "/private/jdoe/test.txt", info.Path.Path)
 		require.Equal(t, "test.txt", info.Filename)
 		for i := 0; !status.States[0].Done; i++ {
-			if i > 10 {
-				t.Fatalf("waiting on download to finish timeout")
-			}
+			require.LessOrEqual(t, i, 10,
+				"waiting on download to finish timeout")
 			status, err = sfs.SimpleFSGetDownloadStatus(ctx)
 			require.NoError(t, err)
 			time.Sleep(time.Second / 2)

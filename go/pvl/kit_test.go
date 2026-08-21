@@ -21,19 +21,18 @@ func loadKitChunk(t *testing.T) string {
 	t.Helper()
 	path := filepath.Join("..", "..", "pvl-tools", "kit.json")
 	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("could not read kit %q: %v", path, err)
-	}
+	require.NoError(t, err,
+		"could not read kit %q: %v", path, err)
 	var kit struct {
 		Tab map[int]json.RawMessage `json:"tab"`
 	}
 	if err := json.Unmarshal(data, &kit); err != nil {
-		t.Fatalf("could not parse kit json: %v", err)
+		require.NoError(t, err,
+			"could not parse kit json: %v", err)
 	}
 	chunk, ok := kit.Tab[SupportedVersion]
-	if !ok {
-		t.Fatalf("kit has no tab[%d]", SupportedVersion)
-	}
+	require.True(t, ok,
+		"kit has no tab[%d]", SupportedVersion)
 	return string(chunk)
 }
 

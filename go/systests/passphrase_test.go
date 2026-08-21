@@ -50,7 +50,7 @@ func TestPassphraseChange(t *testing.T) {
 	signup.SetTest()
 
 	if err := signup.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	m := libkb.NewMetaContextForTest(*tc)
@@ -63,7 +63,7 @@ func TestPassphraseChange(t *testing.T) {
 	change := client.NewCmdPassphraseChangeRunner(tc2.G)
 
 	if err := change.Run(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	_, err = libkb.VerifyPassphraseForLoggedInUser(m, newPassphrase)
@@ -72,12 +72,12 @@ func TestPassphraseChange(t *testing.T) {
 	require.Error(t, err, "old passphrase failed to verify")
 
 	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -514,7 +514,7 @@ func TestPassphraseStateGregor(t *testing.T) {
 	res, err = ucli3.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	// device not getting gregor messages will force repoll
-	require.Equal(t, res, keybase1.PassphraseState_KNOWN)
+	require.Equal(t, keybase1.PassphraseState_KNOWN, res)
 
 	ucli4 := keybase1.UserClient{Cli: dev4.cli}
 	fakeAPI := newErrorAPIMock(dev4.tctx.G.API, true)

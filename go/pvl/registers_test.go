@@ -6,6 +6,8 @@ package pvl
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestNamedRegsStore(t *testing.T) {
@@ -57,7 +59,7 @@ func TestNamedRegsStore(t *testing.T) {
 
 		fail := func(f string, args ...any) {
 			prefix := fmt.Sprintf("[%v] ", i)
-			t.Fatalf(prefix+f, args...)
+			require.FailNow(t, fmt.Sprintf(prefix+f, args...))
 		}
 
 		switch unit.op {
@@ -90,12 +92,8 @@ func TestNamedRegsStoreCopy(t *testing.T) {
 	regs2 := regs1
 
 	err := regs1.Set("foo", "1")
-	if err != nil {
-		t.Fatal()
-	}
+	require.NoError(t, err, fmt.Sprint())
 
 	err = regs2.Set("foo", "1")
-	if err == nil {
-		t.Fatal()
-	}
+	require.Error(t, err, fmt.Sprint())
 }

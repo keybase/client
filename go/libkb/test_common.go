@@ -336,9 +336,7 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 	var err error
 	tc, err = setupTestContext(tb, name, nil)
-	if err != nil {
-		tb.Fatal(err)
-	}
+	require.NoError(tb, err)
 	if os.Getenv("KEYBASE_LOG_SETUPTEST_FUNCS") != "" {
 		depth := 0
 		// Walk up the stackframe looking for the function that starts with "Test".
@@ -378,9 +376,7 @@ func (tc *TestContext) SetRuntimeDir(s string) {
 func (tc TestContext) Clone() (ret TestContext) {
 	var err error
 	ret, err = setupTestContext(tc.T, "", &tc)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return ret
 }
 

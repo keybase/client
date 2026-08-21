@@ -15,13 +15,15 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func setupTest(t *testing.T, nm string) *TestContext {
 	tc := SetupTest(t, nm, 1)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "socket_windows_test"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	return &tc
 }
@@ -38,48 +40,59 @@ func TestWindowsNamedPipe(t *testing.T) {
 	defer tc.Cleanup()
 
 	listenSocket, err := NewSocket(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	l, err := listenSocket.BindToSocket()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Do the server listening in a separate gofunc, which we synchronize
 	// with later after it has gotten a string
 	var wg sync.WaitGroup
+	serverErrCh := make(chan error, 1)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		conn, err := l.Accept()
 		if err != nil {
-			t.Fatal(err)
+			serverErrCh <- err
+			return
 		}
 		answer, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
-			t.Fatal(err)
+			serverErrCh <- err
+			return
 		}
 		if answer != "Hi server!\n" {
-			t.Fatalf("Bad response over pipe: -%s-", answer)
+			serverErrCh <- fmt.Errorf("Bad response over pipe: -%s-", answer)
+			return
 		}
+		serverErrCh <- nil
 	}()
 
 	sendSocket, err := NewSocket(tc.G)
-	namedPipeClient(sendSocket, t)
+	if err != nil {
+		_ = l.Close()
+		wg.Wait()
+		require.NoError(t, err)
+		return
+	}
+	clientErr := namedPipeClient(sendSocket)
+	if clientErr != nil {
+		_ = l.Close()
+	}
 	wg.Wait()
+	require.NoError(t, clientErr)
+	require.NoError(t, <-serverErrCh)
 }
 
 // Dial the server over the pipe and send a string
-func namedPipeClient(sendSocket Socket, t *testing.T) {
+func namedPipeClient(sendSocket Socket) error {
 	conn, err := sendSocket.DialSocket()
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
-	if _, err := fmt.Fprintln(conn, "Hi server!"); err != nil {
-		t.Fatal(err)
-	}
+	_, err = fmt.Fprintln(conn, "Hi server!")
+	return err
 }
 
 func TestWindowsPipeOwner(t *testing.T) {
@@ -93,9 +106,7 @@ func TestWindowsPipeOwner(t *testing.T) {
 	testPipeName := "\\\\.\\pipe\\kbservice\\test_pipe"
 	serverCmd := exec.Command("go", "run", "testfixtures\\kb_pipetest_server\\main.go", testPipeName)
 	err := serverCmd.Start()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer serverCmd.Process.Kill()
 
 	for i := 0; i < 20; i++ {
@@ -108,19 +119,16 @@ func TestWindowsPipeOwner(t *testing.T) {
 			if i < 19 {
 				continue
 			}
-			t.Fatal(err)
+			require.FailNow(t, fmt.Sprint(err))
 		}
-		if !owner.IsOwner {
-			t.Fatal(errors.New("Expected true getting owner of test pipe"))
-		}
+		require.True(t, owner.IsOwner,
+			errors.New("Expected true getting owner of test pipe"))
 	}
 
 	// Test nonexisting
 	owner, err := IsPipeowner(tc.G.Log, testPipeName+"_nonexistent")
-	if err == nil {
-		t.Fatal(errors.New("Expected error getting owner of nonexistent pipe"))
-	}
-	if owner.IsOwner {
-		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
-	}
+	require.Error(t, err,
+		errors.New("Expected error getting owner of nonexistent pipe"))
+	require.False(t, owner.IsOwner,
+		errors.New("Expected false getting owner of nonexistent pipe"))
 }

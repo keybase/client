@@ -56,7 +56,7 @@ func TestSetPhoneNumber(t *testing.T) {
 
 	resp, err = GetPhoneNumbers(mctx)
 	require.NoError(t, err)
-	require.Len(t, resp, 0)
+	require.Empty(t, resp)
 }
 
 func TestDeleteSupersededNumber(t *testing.T) {

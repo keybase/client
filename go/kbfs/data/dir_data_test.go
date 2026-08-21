@@ -93,7 +93,7 @@ func TestDirDataGetChildren(t *testing.T) {
 	t.Log("No entries, direct block")
 	children, err := dd.GetChildren(ctx)
 	require.NoError(t, err)
-	require.Len(t, children, 0)
+	require.Empty(t, children)
 
 	t.Log("Single entry, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "a", 1)
@@ -277,28 +277,26 @@ func testDirDataCheckLeafs(
 			}
 			dblock := cacheBlock.(*DirBlock)
 			if dblock.IsIndirect() {
-				require.True(t, len(dblock.IPtrs) <= maxPtrsPerBlock)
+				require.LessOrEqual(t, len(dblock.IPtrs), maxPtrsPerBlock)
 				// Make sure all the offsets are between the two
 				// parent offsets.
 				for _, childIPtr := range dblock.IPtrs {
-					require.True(t, childIPtr.Off >= iptr.Off,
-						fmt.Sprintf("Child off %s comes before iptr off %s",
-							childIPtr.Off, iptr.Off))
+					require.GreaterOrEqual(t, childIPtr.Off, iptr.Off,
+						"Child off %s comes before iptr off %s", childIPtr.Off, iptr.Off)
 					if nextOff != nil {
-						require.True(t, childIPtr.Off < *nextOff,
-							fmt.Sprintf("Child off %s comes after next off %s",
-								childIPtr.Off, *nextOff))
+						require.Less(t, childIPtr.Off, *nextOff,
+							"Child off %s comes after next off %s", childIPtr.Off, *nextOff)
 					}
 				}
 				newIndBlocks = append(newIndBlocks, dblock)
 			} else {
-				require.True(t, len(dblock.Children) <= numDirEntries)
+				require.LessOrEqual(t, len(dblock.Children), numDirEntries)
 				// Make sure all the children are between the two
 				// parent offsets.
 				for name := range dblock.Children {
-					require.True(t, name >= string(iptr.Off))
+					require.GreaterOrEqual(t, name, string(iptr.Off))
 					if nextOff != nil {
-						require.True(t, name < string(*nextOff))
+						require.Less(t, name, string(*nextOff))
 					}
 				}
 				leafs = append(leafs, testDirDataLeaf{
@@ -310,7 +308,7 @@ func testDirDataCheckLeafs(
 	}
 
 	require.True(t, reflect.DeepEqual(leafs, expectedLeafs),
-		fmt.Sprintf("leafs=%v, expectedLeafs=%v", leafs, expectedLeafs))
+		"leafs=%v, expectedLeafs=%v", leafs, expectedLeafs)
 }
 
 func testDirDataCleanCache(

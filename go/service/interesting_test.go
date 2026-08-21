@@ -47,7 +47,7 @@ func TestInterestingPeople(t *testing.T) {
 
 	res, err := ip.Get(context.TODO(), 20)
 	require.NoError(t, err)
-	require.Equal(t, maxUsers+1, len(res))
+	require.Len(t, res, maxUsers+1)
 	require.Equal(t, users[0].GetUID(), res[0])
 	require.Equal(t, users[len(users)-1].GetUID(), res[len(res)-1])
 }

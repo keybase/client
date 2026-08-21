@@ -60,7 +60,7 @@ func TestNewUserEK(t *testing.T) {
 	// maxGeneration from the server and continue
 	publishedMetadata2, err := publishNewUserEK(mctx, merkleRoot)
 	require.NoError(t, err)
-	require.EqualValues(t, maxGeneration+1, publishedMetadata2.Generation)
+	require.Equal(t, maxGeneration+1, publishedMetadata2.Generation)
 
 	// Reset the user and verify we can generate a new userEK correctly
 	kbtest.ResetAccount(tc, user)
@@ -118,14 +118,12 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	require.NoError(t, err)
 	statement, ok := statements[uid]
 	require.True(t, ok)
-	require.EqualValues(t, statement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
+	require.EqualValues(t, 1, statement.CurrentUserEkMetadata.Generation, "should start at userEK gen 1")
 
 	// Load the full user so that we can grab their devices.
 	arg := libkb.NewLoadUserByNameArg(tc.G, user.Username)
 	fullUser, err := libkb.LoadUser(arg)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	paperKey := fullUser.GetComputedKeyInfos().PaperDevices()[0]
 
 	// Revoke the paper key.
@@ -147,7 +145,7 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 		require.NoError(t, err)
 		statement, ok = statements[uid]
 		require.True(t, ok)
-		require.EqualValues(t, statement.CurrentUserEkMetadata.Generation, 2, "after revoke, should have userEK gen 2")
+		require.EqualValues(t, 2, statement.CurrentUserEkMetadata.Generation, "after revoke, should have userEK gen 2")
 		userEK, err := tc.G.GetUserEKBoxStorage().Get(mctx, 2, nil)
 		require.NoError(t, err)
 		require.Equal(t, statement.CurrentUserEkMetadata, userEK.Metadata)
@@ -176,7 +174,7 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	firstStatement, ok := statements[uid]
 	require.True(t, ok)
-	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
+	require.EqualValues(t, 1, firstStatement.CurrentUserEkMetadata.Generation, "should start at userEK gen 1")
 
 	// Do a PUK roll.
 	rollEngine := engine.NewPerUserKeyRoll(tc.G, &engine.PerUserKeyRollArgs{})
@@ -193,7 +191,7 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	secondStatement, ok := statements[uid]
 	require.True(t, ok)
-	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
+	require.EqualValues(t, 2, secondStatement.CurrentUserEkMetadata.Generation, "after PUK roll, should have userEK gen 2")
 	userEK, err := tc.G.GetUserEKBoxStorage().Get(mctx, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
@@ -216,7 +214,7 @@ func TestDeprovision(t *testing.T) {
 	require.NoError(t, err)
 	firstStatement, ok := statements[uid]
 	require.True(t, ok)
-	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
+	require.EqualValues(t, 1, firstStatement.CurrentUserEkMetadata.Generation, "should start at userEK gen 1")
 
 	// make a paper key to log back in with
 	uis := libkb.UIs{
@@ -228,7 +226,7 @@ func TestDeprovision(t *testing.T) {
 	mctx = mctx.WithUIs(uis)
 	err = engine.RunEngine2(mctx, eng)
 	require.NoError(t, err)
-	require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+	require.NotEmpty(t, eng.Passphrase(), "empty passphrase")
 
 	// self provision to have a device to create the userEK for
 	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
@@ -277,5 +275,5 @@ func TestDeprovision(t *testing.T) {
 	require.NoError(t, err)
 	secondStatement, ok := statements[uid]
 	require.True(t, ok)
-	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
+	require.EqualValues(t, 2, secondStatement.CurrentUserEkMetadata.Generation, "after PUK roll, should have userEK gen 2")
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
 
 // LibKBFS implements the Engine interface for direct test harness usage of libkbfs.
@@ -88,9 +89,8 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 
 	if journal {
 		jdir, err := os.MkdirTemp(os.TempDir(), "kbfs_journal")
-		if err != nil {
-			k.tb.Fatalf("Couldn't enable journaling: %v", err)
-		}
+		require.NoError(k.tb, err,
+			"Couldn't enable journaling: %v", err)
 		k.journalDir = jdir
 		k.tb.Logf("Journal directory: %s", k.journalDir)
 		for name, c := range userMap {

@@ -22,58 +22,41 @@ func TestSecretStoreOps(t *testing.T) {
 
 	var err error
 
-	if err = tc.G.SecretStore().ClearSecret(m, nu); err != nil {
-		t.Error(err)
-	}
+	err = tc.G.SecretStore().ClearSecret(m, nu)
+	require.NoError(t, err)
 
 	// TODO: Use platform-independent errors so they can be
 	// checked for.
 	var secret LKSecFullSecret
-	if secret, err = tc.G.SecretStore().RetrieveSecret(m, nu); err == nil {
-		t.Error("RetrieveSecret unexpectedly returned a nil error")
-	}
+	secret, err = tc.G.SecretStore().RetrieveSecret(m, nu)
+	require.Error(t, err, "RetrieveSecret unexpectedly returned a nil error")
 
-	if !secret.IsNil() {
-		t.Errorf("Retrieved secret unexpectedly: %s", string(secret.Bytes()))
-	}
+	require.True(t, secret.IsNil(), "Retrieved secret unexpectedly: %s", string(secret.Bytes()))
 
 	secret, err = newLKSecFullSecretFromBytes(expectedSecret1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if err = tc.G.SecretStore().StoreSecret(m, nu, secret); err != nil {
-		t.Error(err)
-	}
+	err = tc.G.SecretStore().StoreSecret(m, nu, secret)
+	require.NoError(t, err)
 
-	if secret, err = tc.G.SecretStore().RetrieveSecret(m, nu); err != nil {
-		t.Error(err)
-	}
+	secret, err = tc.G.SecretStore().RetrieveSecret(m, nu)
+	require.NoError(t, err)
 
-	if string(secret.Bytes()) != string(expectedSecret1) {
-		t.Errorf("Retrieved secret %s, expected %s", string(secret.Bytes()), string(expectedSecret1))
-	}
+	require.Equal(t, string(expectedSecret1), string(secret.Bytes()), "Retrieved secret %s, expected %s", string(secret.Bytes()), string(expectedSecret1))
 
 	secret, err = newLKSecFullSecretFromBytes(expectedSecret2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if err = tc.G.SecretStore().StoreSecret(m, nu, secret); err != nil {
-		t.Error(err)
-	}
+	err = tc.G.SecretStore().StoreSecret(m, nu, secret)
+	require.NoError(t, err)
 
-	if secret, err = tc.G.SecretStore().RetrieveSecret(m, nu); err != nil {
-		t.Error(err)
-	}
+	secret, err = tc.G.SecretStore().RetrieveSecret(m, nu)
+	require.NoError(t, err)
 
-	if string(secret.Bytes()) != string(expectedSecret2) {
-		t.Errorf("Retrieved secret %s, expected %s", string(secret.Bytes()), string(expectedSecret2))
-	}
+	require.Equal(t, string(expectedSecret2), string(secret.Bytes()), "Retrieved secret %s, expected %s", string(secret.Bytes()), string(expectedSecret2))
 
-	if err = tc.G.SecretStore().ClearSecret(m, nu); err != nil {
-		t.Error(err)
-	}
+	err = tc.G.SecretStore().ClearSecret(m, nu)
+	require.NoError(t, err)
 }
 
 func TestGetUsersWithStoredSecrets(t *testing.T) {
@@ -82,59 +65,40 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 
 	usernames, err := tc.G.SecretStore().GetUsersWithStoredSecrets(m)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(usernames) != 0 {
-		t.Errorf("Expected no usernames, got %d", len(usernames))
-	}
+	require.NoError(t, err)
+	require.Empty(t, usernames, "Expected no usernames, got %d", len(usernames))
 
 	fs, err := newLKSecFullSecretFromBytes([]byte("test secret 3test secret 3test s"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	expectedUsernames := make([]string, 10)
 	for i := range expectedUsernames {
 		expectedUsernames[i] = fmt.Sprintf("account with unicode テスト %d", i)
 
-		if err := tc.G.SecretStore().StoreSecret(m, NewNormalizedUsername(expectedUsernames[i]), fs); err != nil {
-			t.Error(err)
-		}
+		err := tc.G.SecretStore().StoreSecret(m, NewNormalizedUsername(expectedUsernames[i]), fs)
+		require.NoError(t, err)
 	}
 
 	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets(m)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err)
 
-	if len(usernames) != len(expectedUsernames) {
-		t.Errorf("Expected %d usernames, got %d", len(expectedUsernames), len(usernames))
-	}
+	require.Len(t, usernames, len(expectedUsernames), "Expected %d usernames, got %d", len(expectedUsernames), len(usernames))
 
 	// TODO: were these supposed to already be in order?
 	sort.Strings(usernames)
 
 	for i := 0; i < len(usernames); i++ {
-		if usernames[i] != expectedUsernames[i] {
-			t.Errorf("Expected username %s, got %s", expectedUsernames[i], usernames[i])
-		}
+		require.Equal(t, expectedUsernames[i], usernames[i], "Expected username %s, got %s", expectedUsernames[i], usernames[i])
 	}
 
 	for i := range expectedUsernames {
 		err = tc.G.SecretStore().ClearSecret(m, NewNormalizedUsername(expectedUsernames[i]))
-		if err != nil {
-			t.Error(err)
-		}
+		require.NoError(t, err)
 	}
 
 	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets(m)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(usernames) != 0 {
-		t.Errorf("Expected no usernames, got %d", len(usernames))
-	}
+	require.NoError(t, err)
+	require.Empty(t, usernames, "Expected no usernames, got %d", len(usernames))
 }
 
 func TestPrimeSecretStore(t *testing.T) {

@@ -49,16 +49,16 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 
 	err = readerstorage.Put(readerctx, readeruid, conv.Id, key0, "hello")
 	require.Error(t, err)
-	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
+	require.ErrorAs(t, err, new(*DevStoragePermissionDeniedError), "got right error")
 
 	found, _, err = storage.Get(ctx, uid, conv.Id, key0, &msg, false)
 	require.NoError(t, err)
 	require.True(t, found)
-	require.Equal(t, msg, "hello")
+	require.Equal(t, "hello", msg)
 	found, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg, false)
 	require.NoError(t, err)
 	require.True(t, found)
-	require.Equal(t, msg, "hello")
+	require.Equal(t, "hello", msg)
 }
 
 func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T) {
@@ -100,7 +100,7 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 
 	err = readerstorage.Put(readerctx, readeruid, conv.Id, key0, "evil")
 	require.Error(t, err)
-	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
+	require.ErrorAs(t, err, new(*DevStoragePermissionDeniedError), "got right error")
 
 	// work around client-side protection and make dev channel/msg anyway
 	devconv := mustCreateChannelForTest(t, ctc, bob, chat1.TopicType_DEV, &key0,
@@ -121,9 +121,9 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 
 	_, _, err = storage.Get(ctx, uid, conv.Id, key0, &msg, false)
 	require.Error(t, err, "got an error after misbehavior")
-	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
+	require.ErrorAs(t, err, new(*DevStorageAdminOnlyError), "got a permission error")
 
 	_, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg, false)
 	require.Error(t, err, "got an error after misbehavior")
-	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
+	require.ErrorAs(t, err, new(*DevStorageAdminOnlyError), "got a permission error")
 }

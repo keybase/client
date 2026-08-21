@@ -27,12 +27,12 @@ func runAndGetDeviceCloneState(m libkb.MetaContext) (d libkb.DeviceCloneState, e
 func assertIsValidToken(tc libkb.TestContext, token string) {
 	_, err := hex.DecodeString(token)
 	require.NoError(tc.T, err)
-	require.Equal(tc.T, len(token), 32)
+	require.Len(tc.T, token, 32)
 }
 
 func assertSuccessfulRun(tc libkb.TestContext, d libkb.DeviceCloneState, err error) {
 	require.NoError(tc.T, err)
-	require.Equal(tc.T, d.Stage, "")
+	require.Empty(tc.T, d.Stage)
 	assertIsValidToken(tc, d.Prior)
 }
 
@@ -44,7 +44,7 @@ func TestDeviceCloneStateFirstRun(t *testing.T) {
 
 	d, err := runAndGetDeviceCloneState(m)
 	assertSuccessfulRun(tc, d, err)
-	require.Equal(tc.T, d.Clones, 1)
+	require.Equal(tc.T, 1, d.Clones)
 }
 
 func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
@@ -59,7 +59,7 @@ func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
 	d, err := runAndGetDeviceCloneState(m)
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Prior)
-	require.Equal(tc.T, d.Clones, 1)
+	require.Equal(tc.T, 1, d.Clones)
 }
 
 func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
@@ -80,7 +80,7 @@ func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
 	d, err := runAndGetDeviceCloneState(m)
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d0.Stage)
-	require.Equal(tc.T, d.Clones, 1)
+	require.Equal(tc.T, 1, d.Clones)
 }
 
 func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
@@ -101,7 +101,7 @@ func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
 	d, err := runAndGetDeviceCloneState(m)
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d1.Prior)
-	require.Equal(tc.T, d.Clones, 1)
+	require.Equal(tc.T, 1, d.Clones)
 }
 
 func TestDeviceCloneStateCloneDetected(t *testing.T) {
@@ -124,9 +124,9 @@ func TestDeviceCloneStateCloneDetected(t *testing.T) {
 	d, err := libkb.GetDeviceCloneState(m)
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Stage, "despite there being a clone, the prior still needs to change")
-	require.Equal(tc.T, d.Clones, 2)
-	require.Equal(tc.T, before, 1, "there was one clone before the test run")
-	require.Equal(tc.T, after, 2, "there were two clones after the test run")
+	require.Equal(tc.T, 2, d.Clones)
+	require.Equal(tc.T, 1, before, "there was one clone before the test run")
+	require.Equal(tc.T, 2, after, "there were two clones after the test run")
 }
 
 func TestDeviceCloneStateBeforeAndAfterOnFirstRun(t *testing.T) {
@@ -137,6 +137,6 @@ func TestDeviceCloneStateBeforeAndAfterOnFirstRun(t *testing.T) {
 
 	before, after, err := libkb.UpdateDeviceCloneState(m)
 	require.NoError(tc.T, err)
-	require.Equal(tc.T, before, 1, "there was one clone before the test run")
-	require.Equal(tc.T, after, 1, "there was one clone after the test run")
+	require.Equal(tc.T, 1, before, "there was one clone before the test run")
+	require.Equal(tc.T, 1, after, "there was one clone after the test run")
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kex2"
+	"github.com/stretchr/testify/require"
 )
 
 type ktester struct {
@@ -56,61 +57,42 @@ func TestKex2Router(t *testing.T) {
 
 	// test send 2 messages
 	if err := kt.post(mr, []byte(m1)); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	if err := kt.post(mr, []byte(m2)); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// test receive 2 messages
 	msgs, err := kt.get(mr, 0, 100*time.Millisecond)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(msgs) != 2 {
-		t.Fatalf("number of messages: %d, expected 2", len(msgs))
-	}
-	if string(msgs[0]) != m1 {
-		t.Errorf("message 0: %q, expected %q", msgs[0], m1)
-	}
-	if string(msgs[1]) != m2 {
-		t.Errorf("message 1: %q, expected %q", msgs[1], m2)
-	}
+	require.NoError(t, err)
+	require.Len(t, msgs, 2, "number of messages: %d, expected 2", len(msgs))
+	require.Equal(t, m1, string(msgs[0]), "message 0: %q, expected %q", msgs[0], m1)
+	require.Equal(t, m2, string(msgs[1]), "message 1: %q, expected %q", msgs[1], m2)
 
 	// test calling receive before send
 	var wg sync.WaitGroup
+	var merr error
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		var merr error
 		// Very large timeout, for the benefit of CI, which may be slow
 		msgs, merr = kt.get(mr, 3, 10*time.Second)
-		if merr != nil {
-			t.Errorf("receive error: %s", merr)
-		}
 	}()
 
 	time.Sleep(3 * time.Millisecond)
 	if err := kt.post(mr, []byte(m3)); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	wg.Wait()
-	if len(msgs) != 1 {
-		t.Fatalf("number of messages: %d, expected 1", len(msgs))
-	}
-	if string(msgs[0]) != m3 {
-		t.Errorf("message: %q, expected %q", msgs[0], m3)
-		t.Errorf("Full message vector was: %v\n", msgs)
-	}
+	require.NoError(t, merr, "receive error: %s", merr)
+	require.Len(t, msgs, 1, "number of messages: %d, expected 1", len(msgs))
+	require.Equal(t, m3, string(msgs[0]), "message: %q, expected %q", msgs[0], m3)
 
 	// test no messages ready
 	msgs, err = kt.get(mr, 4, 1*time.Millisecond)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(msgs) != 0 {
-		t.Errorf("number of messages: %d, expected 0", len(msgs))
-	}
+	require.NoError(t, err)
+	require.Empty(t, msgs, "number of messages: %d, expected 0", len(msgs))
 }

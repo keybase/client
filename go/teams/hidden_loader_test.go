@@ -35,8 +35,8 @@ func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.Test
 
 func assertHiddenMerkleErrorType(t *testing.T, err error, expType libkb.HiddenMerkleErrorType) {
 	require.Error(t, err)
-	require.IsType(t, libkb.HiddenMerkleError{}, err)
-	require.Equal(t, err.(libkb.HiddenMerkleError).ErrorType(), expType)
+	require.ErrorAs(t, err, new(libkb.HiddenMerkleError))
+	require.Equal(t, expType, err.(libkb.HiddenMerkleError).ErrorType())
 }
 
 func loadTeamAndCheckCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, uncommittedSeqno keybase1.Seqno) bool {
@@ -95,7 +95,7 @@ func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
 			return
 		}
 	}
-	t.Errorf("Test did not succeed any of the %v times", n)
+	require.Failf(t, "", "Test did not succeed any of the %v times", n)
 }
 
 func TestHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) {
@@ -254,7 +254,7 @@ func loadTeamFTLAndAssertGeneration(t *testing.T, tc *libkb.TestContext, teamID 
 	})
 	require.NoError(t, err)
 	require.Equal(t, res.Name.String(), teamName.String())
-	require.Equal(t, 1, len(res.ApplicationKeys))
+	require.Len(t, res.ApplicationKeys, 1)
 	require.EqualValues(t, perTeamKeyGeneration, res.ApplicationKeys[0].KeyGeneration)
 }
 
@@ -266,7 +266,7 @@ func loadTeamFTLAndAssertGenerationUnavailable(t *testing.T, tc *libkb.TestConte
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(perTeamKeyGeneration)},
 	})
 	require.Error(t, err)
-	require.IsType(t, FTLMissingSeedError{}, err)
+	require.ErrorAs(t, err, new(FTLMissingSeedError))
 }
 
 func loadTeamFTLAndAssertMaxGeneration(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, teamName keybase1.TeamName, perTeamKeyGeneration int) {
@@ -434,5 +434,5 @@ func TestSubteamReaderFTL(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, ratchet.Triple.Seqno, keybase1.Seqno(4))
 	require.Equal(t, htc.Last, keybase1.Seqno(0))
-	require.Equal(t, len(htc.Outer), 0)
+	require.Empty(t, htc.Outer)
 }

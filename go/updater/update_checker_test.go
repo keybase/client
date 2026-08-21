@@ -20,7 +20,7 @@ func TestUpdateCheckerStart(t *testing.T) {
 		testServer.Close()
 	}()
 	updater, err := newTestUpdaterWithServer(t, testServer, testUpdate(testServer.URL), &testConfig{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	checker := NewUpdateChecker(updater, testUpdateCheckUI{}, 5*time.Millisecond, testLog)
 	defer checker.Stop()
@@ -32,7 +32,7 @@ func TestUpdateCheckerStart(t *testing.T) {
 	for i := 0; checker.Count() == 0 && i < 10; i++ {
 		time.Sleep(5 * time.Millisecond)
 	}
-	assert.True(t, checker.Count() >= 1)
+	assert.GreaterOrEqual(t, checker.Count(), 1)
 
 	checker.Stop()
 }
@@ -95,7 +95,7 @@ func TestUpdateCheckerError(t *testing.T) {
 	testServer := testServerForUpdateFile(t, testZipPath)
 	defer testServer.Close()
 	updater, err := newTestUpdaterWithServer(t, testServer, testUpdate(testServer.URL), &testConfig{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	checker := NewUpdateChecker(updater, testUpdateCheckUI{verifyError: fmt.Errorf("Test verify error")}, time.Minute, testLog)
 	err = checker.check()

@@ -12,6 +12,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"github.com/stretchr/testify/require"
 )
 
 type interpUnitTest struct {
@@ -2238,7 +2239,7 @@ func TestUnits(t *testing.T) {
 	}
 	if len(solo) > 0 {
 		// Soloing a test shall never be checked in.
-		t.Fatalf("soloed a test that passed\n\n\n*\n*\n*\n*\n*\n*\n*")
+		require.FailNow(t, "soloed a test that passed\n\n\n*\n*\n*\n*\n*\n*\n*")
 	}
 }
 
@@ -2250,7 +2251,7 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 
 	fail := func(f string, arg ...any) {
 		f2 := fmt.Sprintf("[%v] ", unit.name) + f
-		t.Fatalf(f2, arg...)
+		require.FailNow(t, fmt.Sprintf(f2, arg...))
 	}
 
 	g := tc.G

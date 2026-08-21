@@ -11,21 +11,18 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlf"
+
+	"github.com/stretchr/testify/require"
 )
 
 func checkReportedErrors(t *testing.T, expected []error,
 	got []ReportedError,
 ) {
-	if len(expected) != len(got) {
-		t.Errorf("Unexpected number of errors: %d", len(got))
-		return
-	}
+	require.Len(t, got, len(expected), "Unexpected number of errors: %d", len(got))
 
 	for i, e := range expected {
 		g := got[i]
-		if !errors.Is(e, g.Error) {
-			t.Errorf("Unexpected error at %d: %s vs %s", i, e, g.Error)
-		}
+		require.ErrorIs(t, g.Error, e, "Unexpected error at %d: %s vs %s", i, e, g.Error)
 	}
 }
 

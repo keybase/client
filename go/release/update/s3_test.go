@@ -17,5 +17,5 @@ func testFindRelease(t *testing.T) { // nolint
 	release, err := platformDarwin.FindRelease("prerelease.keybase.io", first)
 	require.NoError(t, err)
 	t.Logf("Release: %#v", release)
-	assert.NotEqual(t, "", release.URL)
+	assert.NotEmpty(t, release.URL)
 }

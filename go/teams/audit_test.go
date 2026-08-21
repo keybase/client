@@ -360,14 +360,14 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	auditor := m[B].G().GetTeamAuditor().(*Auditor)
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 	require.Contains(t, err.Error(), "team chain linkID mismatch")
 
 	// repeat a second time to ensure that a failed audit is not cached (and thus skipped the second time)
 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 	require.Contains(t, err.Error(), "team chain linkID mismatch")
 
 	corruptMerkle = CorruptingMerkleClient{
@@ -386,7 +386,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 	require.Contains(t, err.Error(), "team chain rollback")
 
 	// now, let's try to mess with the preProbes, by making it appear as if the team existed before it was actually created.
@@ -414,7 +414,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 	require.Contains(t, err.Error(), "merkle root should not have had a leaf for team")
 
 	// with the original merkle client (i.e. when the server response is not altered), the audit should succeed
@@ -535,11 +535,11 @@ func TestFailedProbesAreRetried(t *testing.T) {
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 
 	history, err = auditor.getFromCache(m[B], teamID, lru)
 	require.NoError(t, err)
-	require.Len(t, history.PreProbesToRetry, 0)
+	require.Empty(t, history.PreProbesToRetry)
 	require.Len(t, history.PostProbesToRetry, 2)
 	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+1)
 	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+2)
@@ -586,7 +586,7 @@ func TestFailedProbesAreRetried(t *testing.T) {
 	// repeat a second time and make sure that we retry the same probes
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 	require.Zero(t, numProbes, "not all probes were retried")
 
 	// now test the preprobes are saved and retried on failure
@@ -614,7 +614,7 @@ func TestFailedProbesAreRetried(t *testing.T) {
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 	require.Contains(t, err.Error(), "merkle root should not have had a leaf for team")
 
 	history, err = auditor.getFromCache(m[B], teamID, lru)
@@ -669,7 +669,7 @@ func TestFailedProbesAreRetried(t *testing.T) {
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
+	require.ErrorAs(t, err, new(AuditError))
 	require.Zero(t, numProbes, "not all probes were retried")
 
 	history, err = auditor.getFromCache(m[B], teamID, lru)

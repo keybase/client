@@ -99,7 +99,7 @@ func TestJSONUnpackArray(t *testing.T) {
 		} else {
 			require.Error(t, err)
 		}
-		require.Equal(t, len(test.out), len(arr))
+		require.Len(t, arr, len(test.out))
 
 		for j, x := range arr {
 			y := test.out[j]
@@ -173,7 +173,7 @@ func TestJSONGetChildren(t *testing.T) {
 		} else {
 			require.Error(t, err)
 		}
-		require.Equal(t, len(test.out), len(arr))
+		require.Len(t, arr, len(test.out))
 
 		err = compareJSONStringLists(arr, test.out)
 		require.NoError(t, err)

@@ -61,10 +61,10 @@ func _testListTracking(t *testing.T, sigVersion libkb.SigVersion) {
 
 	eng := NewListTrackingEngine(tc.G, &ListTrackingEngineArg{})
 	if err := RunEngine2(NewMetaContextForTest(tc), eng); err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
+		require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 	}
 	if err := _verifyListTrackingEntries(eng.TableResult().Users); err != nil {
-		t.Fatal("Error in tracking engine result entries verification:", err)
+		require.NoError(t, err, fmt.Sprint("Error in tracking engine result entries verification:", err))
 	}
 
 	// We're running this again using a different, non-signed-in cache to test
@@ -76,10 +76,10 @@ func _testListTracking(t *testing.T, sigVersion libkb.SigVersion) {
 		Assertion: fu.Username,
 	})
 	if err := RunEngine2(NewMetaContextForTest(tc2), eng); err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
+		require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 	}
 	if err := _verifyListTrackingEntries(eng.TableResult().Users); err != nil {
-		t.Fatal("Error in tracking engine result entries verification:", err)
+		require.NoError(t, err, fmt.Sprint("Error in tracking engine result entries verification:", err))
 	}
 }
 
@@ -97,14 +97,10 @@ func TestListTrackingJSON(t *testing.T) {
 	eng := NewListTrackingEngine(tc.G, &arg)
 	m := NewMetaContextForTest(tc)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 
 	_, err = jsonw.Unmarshal([]byte(eng.JSONResult()))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestListTrackingLocal(t *testing.T) {
@@ -125,14 +121,10 @@ func TestListTrackingLocal(t *testing.T) {
 	eng := NewListTrackingEngine(tc.G, &arg)
 	m := NewMetaContextForTest(tc)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
-	}
+	require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 
 	entries := eng.TableResult().Users
-	if len(entries) != 2 {
-		t.Errorf("Num tracks: %d, exected 2", len(entries))
-	}
+	require.Len(t, entries, 2, "Num tracks: %d, exected 2", len(entries))
 }
 
 func TestListTrackingServerInterference(t *testing.T) {
@@ -154,7 +146,7 @@ func TestListTrackingServerInterference(t *testing.T) {
 
 	eng := NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
 	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
+		require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 	}
 	found := false
 	for _, user := range eng.TableResult().Users {
@@ -162,9 +154,8 @@ func TestListTrackingServerInterference(t *testing.T) {
 			found = true
 		}
 	}
-	if !found {
-		t.Fatalf("expected to be following bob, but wasn't")
-	}
+	require.True(t, found,
+		"expected to be following bob, but wasn't")
 
 	ResetAccount(btc, bob)
 
@@ -177,7 +168,7 @@ func TestListTrackingServerInterference(t *testing.T) {
 
 	eng = NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
 	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
+		require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 	}
 	found = false
 	for _, user := range eng.TableResult().Users {
@@ -185,14 +176,13 @@ func TestListTrackingServerInterference(t *testing.T) {
 			found = true
 		}
 	}
-	if found {
-		t.Fatalf("expected server to filter out reset bob, but didn't; still following after reset")
-	}
+	require.False(t, found,
+		"expected server to filter out reset bob, but didn't; still following after reset")
 
 	eng = NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
 	eng.disableTrackerSyncerForTest = true
 	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
+		require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 	}
 	found = false
 	for _, user := range eng.TableResult().Users {
@@ -200,9 +190,8 @@ func TestListTrackingServerInterference(t *testing.T) {
 			found = true
 		}
 	}
-	if !found {
-		t.Fatalf("tracker syncer returned error; so we should still succeed but not filter")
-	}
+	require.True(t, found,
+		"tracker syncer returned error; so we should still succeed but not filter")
 }
 
 type errorAPIMock struct {
@@ -245,7 +234,7 @@ func TestListTrackingOfflineBehavior(t *testing.T) {
 	// Prime UPAK and TrackerSyncer caches when online
 	eng := NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
 	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
-		t.Fatal("Error in ListTrackingEngine:", err)
+		require.NoError(t, err, fmt.Sprint("Error in ListTrackingEngine:", err))
 	}
 	res1 := eng.TableResult()
 
@@ -282,5 +271,5 @@ func TestListTrackingOfflineBehavior(t *testing.T) {
 	c.Advance(time.Hour * 24 * 8)
 	err = RunEngine2(NewMetaContextForTest(atc), stalenesseng)
 	require.Error(t, err)
-	require.IsType(t, err, libkb.UserNotFoundError{})
+	require.ErrorAs(t, err, new(libkb.UserNotFoundError))
 }

@@ -2,7 +2,6 @@ package teams
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"testing"
@@ -32,7 +31,7 @@ func TestObsoletingInvites1(t *testing.T) {
 	require.Equal(t, 1, team.NumActiveInvites())
 
 	allInvites := team.GetActiveAndObsoleteInvites()
-	require.Equal(t, 2, len(allInvites))
+	require.Len(t, allInvites, 2)
 
 	hasInvite, err := team.HasActiveInvite(mctx, keybase1.TeamInviteName("579651b0d574971040b531b66efbc519%1"), "keybase")
 	require.NoError(t, err)
@@ -52,7 +51,7 @@ func TestObsoletingInvites1(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_READER, invite.Role)
 	require.EqualValues(t, "56eafff3400b5bcd8b40bff3d225ab27", invite.Id)
 	require.EqualValues(t, "40903c59d19feef1d67c455499304c19%1", invite.Name)
-	require.EqualValues(t, keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1}, invite.Inviter)
+	require.Equal(t, keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1}, invite.Inviter)
 
 	inviteMD := team.chain().inner.InviteMetadatas["54eafff3400b5bcd8b40bff3d225ab27"]
 	code, err := inviteMD.Status.Code()
@@ -67,12 +66,12 @@ func TestObsoletingInvites1(t *testing.T) {
 
 	members, err := team.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 0, len(members.Admins))
-	require.Equal(t, 1, len(members.Writers))
-	require.Equal(t, 0, len(members.Readers))
-	require.Equal(t, 0, len(members.Bots))
-	require.Equal(t, 0, len(members.RestrictedBots))
+	require.Len(t, members.Owners, 1)
+	require.Empty(t, members.Admins)
+	require.Len(t, members.Writers, 1)
+	require.Empty(t, members.Readers)
+	require.Empty(t, members.Bots)
+	require.Empty(t, members.RestrictedBots)
 }
 
 func TestObsoletingInvites2(t *testing.T) {
@@ -80,7 +79,7 @@ func TestObsoletingInvites2(t *testing.T) {
 	// someone got tricked into accepting obsolete invite, such chain
 	// should still play and result in predictable end state.
 	team, _ := runUnitFromFilename(t, "invite_obsolete_trick.json")
-	require.Equal(t, 0, len(team.chain().ActiveInvites()))
+	require.Empty(t, team.chain().ActiveInvites())
 	require.True(t, team.IsMember(context.Background(), keybase1.UserVersion{Uid: "579651b0d574971040b531b66efbc519", EldestSeqno: 1}))
 }
 
@@ -135,7 +134,7 @@ func TestKeybaseInviteAfterReset(t *testing.T) {
 	// Expecting all invites to be gone.
 	team, err := Load(context.Background(), tc.G, keybase1.LoadTeamArg{Name: teamname})
 	require.NoError(t, err)
-	require.Len(t, team.GetActiveAndObsoleteInvites(), 0)
+	require.Empty(t, team.GetActiveAndObsoleteInvites())
 }
 
 func TestKeybaseInviteMalformed(t *testing.T) {
@@ -166,7 +165,7 @@ func TestKeybaseInviteMalformed(t *testing.T) {
 	// Expecting all invites to be gone.
 	team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{Name: teamname})
 	require.NoError(t, err)
-	require.Len(t, team.GetActiveAndObsoleteInvites(), 0)
+	require.Empty(t, team.GetActiveAndObsoleteInvites())
 }
 
 func TestMultiUseInviteChains1(t *testing.T) {
@@ -455,11 +454,11 @@ func TestTeamPlayerNoInvitelinksForAdmins(t *testing.T) {
 	requirePrecheckError(t, err)
 
 	var ie InviteError
-	require.True(t, errors.As(err, &ie))
+	require.ErrorAs(t, err, &ie)
 	require.Equal(t, inviteID, SCTeamInviteID(ie.id))
 
 	var ile InvitelinkBadRoleError
-	require.True(t, errors.As(err, &ile))
+	require.ErrorAs(t, err, &ile)
 	require.Equal(t, keybase1.TeamRole_ADMIN, ile.role)
 }
 

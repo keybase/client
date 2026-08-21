@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/stretchr/testify/require"
 )
 
 func TestKeyCacheBasic(t *testing.T) {
@@ -20,40 +21,31 @@ func TestKeyCacheBasic(t *testing.T) {
 	keyGen := kbfsmd.FirstValidKeyGen
 	_, err := cache.GetTLFCryptKey(id, keyGen)
 	if _, ok := err.(KeyCacheMissError); !ok {
-		t.Fatal(errors.New("expected KeyCacheMissError"))
+		require.True(t, ok,
+			errors.New("expected KeyCacheMissError"))
 	}
 	err = cache.PutTLFCryptKey(id, keyGen, key)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	// add the same key twice
 	err = cache.PutTLFCryptKey(id, keyGen, key)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	key2, err := cache.GetTLFCryptKey(id, keyGen)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if key != key2 {
-		t.Fatal("keys are unequal")
-	}
+	require.NoError(t, err)
+	require.Equal(t, key2, key,
+		"keys are unequal")
 	for i := range 11 {
 		id = tlf.FakeID(byte(i), tlf.Public)
 		key = kbfscrypto.MakeTLFCryptKey([32]byte{byte(i)})
 		err = cache.PutTLFCryptKey(id, keyGen, key)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}
 	for i := range 11 {
 		id = tlf.FakeID(byte(i), tlf.Public)
 		_, err = cache.GetTLFCryptKey(id, keyGen)
-		if i > 0 && err != nil {
-			t.Fatal(err)
-		}
-		if i == 0 && err == nil {
-			t.Fatal(errors.New("key not expected"))
+		if i > 0 {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err, "key not expected")
 		}
 	}
 }

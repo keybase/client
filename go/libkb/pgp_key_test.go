@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go-crypto/openpgp"
+	"github.com/stretchr/testify/require"
 )
 
 // See Issue #40: https://github.com/keybase/client/issues/40
@@ -46,13 +47,9 @@ HKfiyXs8709e067vsE5FCTMvZCq4vt/lkEJ59xn58QBfEILMwQDNLqVGyA54MPwh
 	expected := "Primary Primary <primary@uid.com>"
 	for range 100 {
 		key, _, err := ReadOneKeyFromString(armored)
-		if err != nil {
-			t.Error(err)
-		}
+		require.NoError(t, err)
 		primary := key.GetPrimaryUID()
-		if primary != expected {
-			t.Errorf("Expected '%s' as a primary UID; got '%s'", expected, primary)
-		}
+		require.Equal(t, expected, primary, "Expected '%s' as a primary UID; got '%s'", expected, primary)
 	}
 }
 
@@ -61,23 +58,20 @@ func TestOpenPGPMultipleArmored(t *testing.T) {
 	// comment says.  Here's a test for that:
 	r := strings.NewReader(issue454Keys)
 	el, err := openpgp.ReadArmoredKeyRing(r)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	// len(el) should be 2, but it's 1:
 	/*
-		if len(el) != 2 {
-			t.Errorf("number of entities: %d, expected 2", len(el))
-		}
+		require.Equal(t, 2, len(el), "number of entities: %d, expected 2", len(el))
 	*/
 
 	// we'll make sure that this bug still exists in openpgp, so if it ever
 	// gets fixed we can take appropriate action:
 	if len(el) != 1 {
 		if len(el) == 2 {
-			t.Errorf("openpgp.ReadArmoredKeyRing multiple keys bug fixed!")
+			require.Fail(t, "openpgp.ReadArmoredKeyRing multiple keys bug fixed!")
 		} else {
-			t.Errorf("openpgp.ReadArmoredKeyRing bug changed...number entities: %d, expected 1.", len(el))
+			require.Fail(t, "openpgp.ReadArmoredKeyRing bug changed",
+				"number entities: %d, expected 1", len(el))
 		}
 	}
 }
@@ -85,22 +79,14 @@ func TestOpenPGPMultipleArmored(t *testing.T) {
 func TestMultipleArmored(t *testing.T) {
 	// ReadOneKeyFromString will return the public key for issue454Keys
 	b1, _, err := ReadOneKeyFromString(issue454Keys)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if b1.HasSecretKey() {
-		t.Errorf("ReadOneKeyFromString returned a private key for issue454Keys.  Expected just the public key (the first one).")
-	}
+	require.NoError(t, err)
+	require.False(t, b1.HasSecretKey(), "ReadOneKeyFromString returned a private key for issue454Keys.  Expected just the public key (the first one).")
 
 	// ReadPrivateKeyFromString should skip the first public key in issue454Keys
 	// and use the private key that follows it.
 	b2, _, err := ReadPrivateKeyFromString(issue454Keys)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !b2.HasSecretKey() {
-		t.Errorf("ReadPrivateKeyFromString returned only a public key for issue454Keys.  Expected a private key.")
-	}
+	require.NoError(t, err)
+	require.True(t, b2.HasSecretKey(), "ReadPrivateKeyFromString returned only a public key for issue454Keys.  Expected a private key.")
 }
 
 //nolint:gosec // G101: Test PGP key for issue 454 regression testing, not real credentials
@@ -316,11 +302,7 @@ CXQxLBizEEmSNVNxsp7KPGTLnqO3bPtqFirxS9PJLIMPTPLNBY7ZYuPNTMqVIUWF
 -----END PGP PUBLIC KEY BLOCK-----`
 
 	_, w, err := ReadOneKeyFromString(missingCrossSignatureKey)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err)
 
-	if w.IsEmpty() {
-		t.Errorf("Expected a bad subkey warning")
-	}
+	require.False(t, w.IsEmpty(), "Expected a bad subkey warning")
 }

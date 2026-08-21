@@ -68,7 +68,7 @@ func TestDocDb(t *testing.T) {
 
 	gotP1, gotN1, err := db2.Get(ctx, d1)
 	require.NoError(t, err)
-	require.Equal(t, "", gotP1)
+	require.Empty(t, gotP1)
 	require.Equal(t, n1, gotN1)
 	gotP2, gotN2, err := db2.Get(ctx, d2)
 	require.NoError(t, err)

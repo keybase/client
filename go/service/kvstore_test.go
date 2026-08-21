@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -54,11 +53,11 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
 	listNamespacesRes, err := handler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, listNamespacesRes.Namespaces, []string{})
+	require.Equal(t, []string{}, listNamespacesRes.Namespaces)
 	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
 	listEntriesRes, err := handler.ListKVEntries(ctx, listEntriesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, []keybase1.KVListEntryKey{}, listEntriesRes.EntryKeys)
+	require.Equal(t, []keybase1.KVListEntryKey{}, listEntriesRes.EntryKeys)
 
 	// put a secret
 	cleartextSecret := "lorem ipsum blah blah blah" //nolint:gosec // G101: Test data string, not real credentials
@@ -112,12 +111,12 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	// lists correctly
 	listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	require.Equal(t, []string{namespace}, listNamespacesRes.Namespaces)
 
 	listEntriesRes, err = handler.ListKVEntries(ctx, listEntriesArg)
 	require.NoError(t, err)
 	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 3}
-	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
+	require.Equal(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
 }
 
 func TestKvStoreMultiUserTeam(t *testing.T) {
@@ -185,7 +184,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 1}
 	listEntriesRes, err := bobHandler.ListKVEntries(ctx, listEntriesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{expectedKey})
+	require.Equal(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
 	t.Logf("bob can GET and LIST it")
 
 	// Alice kicks bob out of the team.
@@ -199,19 +198,15 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	getRes, err = bobHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "You are not a member of this team (error 2623)")
-	require.IsType(t, err, libkb.AppStatusError{})
+	require.ErrorAs(t, err, new(libkb.AppStatusError))
 	aerr, _ := err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamReadError {
-		t.Fatalf("expected an SCTeamReadError error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamReadError, aerr.Code, "expected an SCTeamReadError error but got %v", err)
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
 	_, err = bobHandler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.Error(t, err)
-	require.IsType(t, err, libkb.AppStatusError{})
+	require.ErrorAs(t, err, new(libkb.AppStatusError))
 	aerr, _ = err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamReadError {
-		t.Fatalf("expected an SCTeamReadError error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamReadError, aerr.Code, "expected an SCTeamReadError error but got %v", err)
 	t.Logf("bob can no longer GET or LIST the entry")
 
 	// New user to the team can overwrite the existing entry without specifying a revision
@@ -236,11 +231,11 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	require.Equal(t, 2, getRes.Revision)
 	listNamespacesRes, err := charlieHandler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	require.Equal(t, []string{namespace}, listNamespacesRes.Namespaces)
 	listEntriesRes, err = charlieHandler.ListKVEntries(ctx, listEntriesArg)
 	require.NoError(t, err)
 	expectedKey = keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 2}
-	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
+	require.Equal(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
 	t.Logf("charlie can fetch and list the entry")
 }
 
@@ -268,11 +263,9 @@ func TestKVDelete(t *testing.T) {
 	}
 	_, err = handler.DelKVEntry(mctx.Ctx(), delArg)
 	require.Error(t, err)
-	require.IsType(t, err, libkb.AppStatusError{})
+	require.ErrorAs(t, err, new(libkb.AppStatusError))
 	aerr, _ := err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamStorageNotFound {
-		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamStorageNotFound, aerr.Code, "expected an SCTeamStorageNotFound error but got %v", err)
 	t.Logf("attempting to delete a non-existent entry errors")
 
 	// create the new entry
@@ -310,11 +303,9 @@ func TestKVDelete(t *testing.T) {
 	// delete it again
 	delRes, err = handler.DelKVEntry(mctx.Ctx(), delArg)
 	require.Error(t, err)
-	require.IsType(t, err, libkb.AppStatusError{})
+	require.ErrorAs(t, err, new(libkb.AppStatusError))
 	aerr, _ = err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamStorageNotFound {
-		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
-	}
+	require.Equal(t, libkb.SCTeamStorageNotFound, aerr.Code, "expected an SCTeamStorageNotFound error but got %v", err)
 	t.Logf("attempting to delete a deleted entry errors")
 
 	// recreate it after deletion
@@ -346,9 +337,9 @@ func assertRevisionError(t *testing.T, err error, expectedSource string) {
 			"revision [0-9]+ already exists for this entry",
 		}
 		regex := strings.Join(possibleServerMessages, "|")
-		require.Regexp(t, regexp.MustCompile(regex), err.Error())
+		require.Regexp(t, regex, err.Error())
 	case "cache":
-		require.Regexp(t, regexp.MustCompile("revision out of date"), err.Error())
+		require.Regexp(t, "revision out of date", err.Error())
 	default:
 		require.Fail(t, "revision error must come from the server or the cache")
 	}
@@ -575,8 +566,8 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 	}
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, signencrypt.Error{}, err)
-	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
+	require.ErrorAs(t, err, new(signencrypt.Error))
+	require.Equal(t, signencrypt.BadSecretbox, err.(signencrypt.Error).Type)
 	t.Logf("attempting to decrypt with the wrong key generation fails")
 
 	// should fail to open if the server tells the client it's the wrong revision
@@ -588,8 +579,8 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, signencrypt.Error{}, err)
-	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.AssociatedDataMismatch)
+	require.ErrorAs(t, err, new(signencrypt.Error))
+	require.Equal(t, signencrypt.AssociatedDataMismatch, err.(signencrypt.Error).Type)
 	t.Logf("verifying a signature with the wrong revision fails")
 
 	// should error if given the wrong nonce
@@ -601,7 +592,7 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 			var box keybase1.EncryptedKVEntry
 			err = msgpack.Decode(&box, decoded)
 			require.NoError(t, err)
-			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
+			require.Len(t, box.N, 16, "there is an actual 16 byte nonce")
 			randBytes, err := libkb.RandBytes(16)
 			require.NoError(t, err)
 			box.N = randBytes
@@ -612,8 +603,8 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 	}
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, signencrypt.Error{}, err)
-	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
+	require.ErrorAs(t, err, new(signencrypt.Error))
+	require.Equal(t, signencrypt.BadSecretbox, err.(signencrypt.Error).Type)
 	t.Logf("cannot decrypt with the wrong nonce")
 	// switch to a new, non-broken entry key to test that the nonce changes
 	putArg.EntryKey = "not-broken"
@@ -627,7 +618,7 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 			var box keybase1.EncryptedKVEntry
 			err = msgpack.Decode(&box, decoded)
 			require.NoError(t, err)
-			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
+			require.Len(t, box.N, 16, "there is an actual 16 byte nonce")
 			copy(firstNonce[:], box.N)
 			return currentCiphertext
 		},
@@ -636,7 +627,7 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, len(firstNonce), 16, "firstNonce got populated")
+	require.Len(t, firstNonce, 16, "firstNonce got populated")
 	handler.Boxer = &KVStoreTestBoxer{
 		Contextified: libkb.NewContextified(tc.G),
 		UnboxMutateCiphertext: func(ciphertext string) string {
@@ -645,7 +636,7 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 			var box keybase1.EncryptedKVEntry
 			err = msgpack.Decode(&box, decoded)
 			require.NoError(t, err)
-			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
+			require.Len(t, box.N, 16, "there is an actual 16 byte nonce")
 			t.Logf("the nonce is 16 bytes")
 			copy(secondNonce[:], box.N)
 			return ciphertext
@@ -655,7 +646,7 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, len(secondNonce), 16, "secondNonce got populated")
+	require.Len(t, secondNonce, 16, "secondNonce got populated")
 	require.NotEqual(t, firstNonce, secondNonce)
 	t.Logf("two puts with identical data and keys use different nonces")
 }
@@ -703,7 +694,7 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 	// create it with revision 1
 	putRes, err := putItWithRev(1)
 	require.NoError(t, err)
-	require.Equal(t, putRes.Revision, 1)
+	require.Equal(t, 1, putRes.Revision)
 
 	// cannot update it again with revision 1
 	_, err = putItWithRev(1)
@@ -712,7 +703,7 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 	// updates correctly
 	putRes, err = putItWithRev(2)
 	require.NoError(t, err)
-	require.Equal(t, putRes.Revision, 2)
+	require.Equal(t, 2, putRes.Revision)
 
 	// cannot update with a revision that's too high
 	_, err = putItWithRev(4)
@@ -748,7 +739,7 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 	// deletes correctly
 	delRes, err := deleteItWithRev(3)
 	require.NoError(t, err)
-	require.Equal(t, delRes.Revision, 3)
+	require.Equal(t, 3, delRes.Revision)
 }
 
 // TestKVStoreRace tests that multiple requests by multiple users in rapid succession do not

@@ -36,7 +36,7 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 		return nil
 	}
 	if err := f(); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 
 	return username, passphrase
@@ -101,7 +101,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(t, "login")
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
@@ -140,7 +140,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		return nil
 	}
 	if err := f(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	return fu
@@ -150,7 +150,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(t, "login")
 	if err := tc.GenerateGPGKeyring(fu.Email, "xxx@xxx.com"); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
@@ -175,7 +175,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 			InviteCode: libkb.TestInvitationCode,
 			SkipMail:   true,
 		}); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 
 		fu.User = s.GetMe()
@@ -199,7 +199,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 
 	if err := f(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 
 	// now it should have two pgp keys...
@@ -217,7 +217,7 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 		},
 	}
 	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -226,9 +226,7 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return fu
 }
 
@@ -242,7 +240,7 @@ func createFakeUserWithPGPSibkeyPaper(tc libkb.TestContext) *FakeUser {
 		},
 	}
 	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -251,9 +249,7 @@ func createFakeUserWithPGPSibkeyPaper(tc libkb.TestContext) *FakeUser {
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return fu
 }
 
@@ -269,7 +265,7 @@ func createFakeUserWithPGPSibkeyPushed(tc libkb.TestContext) *FakeUser {
 		NoSave:     true,
 	}
 	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -278,9 +274,7 @@ func createFakeUserWithPGPSibkeyPushed(tc libkb.TestContext) *FakeUser {
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return fu
 }
 
@@ -296,7 +290,7 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 		NoSave:     true,
 	}
 	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
-		tc.T.Fatal(err)
+		require.NoError(tc.T, err)
 	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -305,9 +299,7 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return fu
 }
 
@@ -324,9 +316,7 @@ func createFakeUserWithPGPSibkeyPregen(tc libkb.TestContext, pregen *libkb.PGPKe
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return fu
 }
 

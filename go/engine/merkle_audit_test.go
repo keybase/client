@@ -51,7 +51,7 @@ func TestMerkleAuditWork(t *testing.T) {
 	// first run doesn't do anything
 	select {
 	case x := <-roundResCh:
-		require.Equal(t, nil, x, "round result")
+		require.NoError(t, x, "round result")
 	case <-time.After(30 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
@@ -207,7 +207,7 @@ func TestMerkleAuditRetry(t *testing.T) {
 
 	select {
 	case x := <-roundResCh:
-		require.Equal(t, nil, x, "round result #3")
+		require.NoError(t, x, "round result #3")
 	case <-time.After(30 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
@@ -231,7 +231,7 @@ func TestMerkleAuditRetry(t *testing.T) {
 
 	select {
 	case x := <-roundResCh:
-		require.Equal(t, nil, x, "round result #4")
+		require.NoError(t, x, "round result #4")
 	case <-time.After(30 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}

@@ -72,7 +72,7 @@ func TestChatReplyToBasic(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		require.Equal(t, 2, len(threadRes.Thread.Messages))
+		require.Len(t, threadRes.Thread.Messages, 2)
 		require.True(t, threadRes.Thread.Messages[0].IsValid())
 		require.NotNil(t, threadRes.Thread.Messages[0].Valid().ReplyTo)
 		require.Equal(t, origID, threadRes.Thread.Messages[0].Valid().ReplyTo.GetMessageID())
@@ -84,7 +84,7 @@ func TestChatReplyToBasic(t *testing.T) {
 		for range 2 {
 			select {
 			case update := <-listener0.messagesUpdated:
-				require.Equal(t, 1, len(update.Updates))
+				require.Len(t, update.Updates, 1)
 				require.Equal(t, postRes.MessageID, update.Updates[0].GetMessageID())
 				require.True(t, update.Updates[0].IsValid())
 				require.NotNil(t, update.Updates[0].Valid().ReplyTo)
@@ -101,7 +101,7 @@ func TestChatReplyToBasic(t *testing.T) {
 		consumeNewMsgLocal(t, listener0, chat1.MessageType_DELETE)
 		select {
 		case update := <-listener0.messagesUpdated:
-			require.Equal(t, 1, len(update.Updates))
+			require.Len(t, update.Updates, 1)
 			require.Equal(t, postRes.MessageID, update.Updates[0].GetMessageID())
 			require.True(t, update.Updates[0].IsValid())
 			require.NotNil(t, update.Updates[0].Valid().ReplyTo)

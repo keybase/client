@@ -80,7 +80,7 @@ func TestSecretStoreDarwin(t *testing.T) {
 		require.Equal(t, secretStore.serviceName(mctx), res.Service)
 		require.Equal(t, account.String(), res.Account)
 		require.Equal(t, secretStore.accessGroup(mctx), res.AccessGroup)
-		require.Equal(t, "", res.Description)
+		require.Empty(t, res.Description)
 		require.Equal(t, encodedSecret1, string(res.Data))
 	}
 
@@ -109,7 +109,7 @@ func TestSecretStoreDarwin(t *testing.T) {
 
 	users, err = secretStore.GetUsersWithStoredSecrets(mctx)
 	require.NoError(t, err)
-	require.Len(t, users, 0)
+	require.Empty(t, users)
 }
 
 func TestPrimeSecretStoreDarwin(t *testing.T) {

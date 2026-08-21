@@ -5,6 +5,8 @@ package libkb
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseIdentity(t *testing.T) {
@@ -15,13 +17,8 @@ func TestParseIdentity(t *testing.T) {
 
 func checkIdentity(t *testing.T, input string, expected Identity) {
 	identity, err := ParseIdentity(input)
-	if err != nil {
-		t.Errorf("error parsing identity: %s", err)
-	} else {
-		if *identity != expected {
-			t.Errorf("identity differs from expected\n%s\n%s", identity, expected)
-		}
-	}
+	require.NoError(t, err, "error parsing identity: %s", err)
+	require.Equal(t, expected, *identity, "identity differs from expected\n%s\n%s", identity, expected)
 }
 
 var sampleIdentities = []struct {

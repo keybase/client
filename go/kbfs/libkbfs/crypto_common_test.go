@@ -142,7 +142,7 @@ func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
 func checkSecretboxOpenPrivateMetadata(t *testing.T, encryptedPrivateMetadata kbfscrypto.EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (encodedData []byte) {
 	require.Equal(
 		t, kbfscrypto.EncryptionSecretbox, encryptedPrivateMetadata.Version)
-	require.Equal(t, 24, len(encryptedPrivateMetadata.Nonce))
+	require.Len(t, encryptedPrivateMetadata.Nonce, 24)
 
 	var nonce [24]byte
 	copy(nonce[:], encryptedPrivateMetadata.Nonce)
@@ -218,7 +218,7 @@ func makeFakeBlockCryptKey(t *testing.T) (
 func checkSecretboxOpenBlock(t *testing.T, encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey) (encodedData []byte) {
 	require.Equal(
 		t, kbfscrypto.EncryptionSecretbox, encryptedBlock.Version)
-	require.Equal(t, 24, len(encryptedBlock.Nonce))
+	require.Len(t, encryptedBlock.Nonce, 24)
 
 	var nonce [24]byte
 	copy(nonce[:], encryptedBlock.Nonce)
@@ -393,7 +393,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 			expectedLen = len(encBlock.EncryptedData)
 			continue
 		}
-		require.Equal(t, expectedLen, len(encBlock.EncryptedData))
+		require.Len(t, encBlock.EncryptedData, expectedLen)
 	}
 }
 

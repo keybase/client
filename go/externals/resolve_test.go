@@ -2,7 +2,6 @@ package externals
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -66,7 +65,7 @@ func TestResolveSimple(t *testing.T) {
 	require.Error(t, err)
 	terr, ok := err.(libkb.ResolutionError)
 	require.True(t, ok)
-	require.True(t, strings.Contains(terr.Msg, "ambiguous"))
+	require.Contains(t, terr.Msg, "ambiguous")
 }
 
 func TestResolveNeedUsername(t *testing.T) {

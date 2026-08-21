@@ -7,17 +7,15 @@ package libkb
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestEnvWindows(t *testing.T) {
 	env := newEnv(nil, nil, "windows", makeLogGetter(t))
 
 	mountDir, err := env.GetMountDir()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if mountDir != "" {
-		t.Fatalf("Windows needs an empty default mount dir")
-	}
+	require.Empty(t, mountDir, "Windows needs an empty default mount dir")
 }

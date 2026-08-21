@@ -29,6 +29,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type createUserFn func( // nolint
@@ -71,9 +72,8 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 	u := user.(*fsUser)
 	ctx := context.Background()
 	session, err := u.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		e.tb.Fatalf("GetUID: GetCurrentSession failed with %v", err)
-	}
+	require.NoError(e.tb, err,
+		"GetUID: GetCurrentSession failed with %v", err)
 	return session.UID
 }
 
@@ -769,9 +769,8 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 
 	if journal {
 		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
-		if err != nil {
-			e.tb.Fatalf("Couldn't enable journaling: %v", err)
-		}
+		require.NoError(e.tb, err,
+			"Couldn't enable journaling: %v", err)
 		e.journalDir = jdir
 		e.tb.Logf("Journal directory: %s", e.journalDir)
 		for i, c := range cfgs {
@@ -807,8 +806,6 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 
 func nameToUID(t testing.TB, config libkbfs.Config) keybase1.UID { // nolint
 	session, err := config.KBPKI().GetCurrentSession(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	return session.UID
 }

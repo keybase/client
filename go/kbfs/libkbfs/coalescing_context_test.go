@@ -23,7 +23,7 @@ func TestCoalescingContext(t *testing.T) {
 
 	select {
 	case <-cc.Done():
-		t.Fatalf("Expected CoalescingContext to be blocked")
+		require.FailNow(t, "Expected CoalescingContext to be blocked")
 	default:
 	}
 	cf1()
@@ -34,7 +34,7 @@ func TestCoalescingContext(t *testing.T) {
 
 	select {
 	case <-cc.Done():
-		t.Fatalf("Expected CoalescingContext to still be blocked")
+		require.FailNow(t, "Expected CoalescingContext to still be blocked")
 	default:
 	}
 	cf2()
@@ -42,7 +42,7 @@ func TestCoalescingContext(t *testing.T) {
 	t.Log("Verify that the CoalescingContext is Done() only after its parent contexts have both been canceled.")
 	select {
 	case <-time.After(time.Second):
-		t.Fatalf("Expected CoalescingContext to complete after its parent contexts were canceled")
+		require.FailNow(t, "Expected CoalescingContext to complete after its parent contexts were canceled")
 	case <-cc.Done():
 	}
 

@@ -125,7 +125,7 @@ func TestTeamBotSettings(t *testing.T) {
 	}
 	err = team.PostTeamBotSettings(context.TODO(), expectedBots)
 	require.Error(t, err)
-	require.IsType(t, PrecheckAppendError{}, err)
+	require.ErrorAs(t, err, new(PrecheckAppendError))
 
 	// bad trigger regex
 	expectedBots[rBotua1UV] = keybase1.TeamBotSettings{Triggers: []string{"*"}}
