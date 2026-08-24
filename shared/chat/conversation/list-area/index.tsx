@@ -554,6 +554,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           ListHeaderComponent={SpecialTopMessage}
           ListFooterComponent={SpecialBottomMessage}
           recycleItems={true}
+          // Rows never paint at a provisional size: a recycled view waits for its real measurement
+          // instead of flashing the pool's average height. Costs one extra render per recycled row.
+          experimental_hideItemsUntilMeasured={true}
           drawDistance={250}
           estimatedItemSize={72}
           style={Kb.Styles.castStyleDesktop(desktopStyles.list)}

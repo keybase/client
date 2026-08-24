@@ -64,6 +64,10 @@ function useListProps<T>(p: Props<T>) {
       ListFooterComponent,
       ListHeaderComponent,
       data: items as T[],
+      // Rows never paint at a provisional size: a recycled view waits for its real measurement
+      // instead of flashing the pool's average height, which is what produced gaps/overlaps when
+      // scrolling fast. Costs one extra render per recycled row.
+      experimental_hideItemsUntilMeasured: true,
       drawDistance,
       estimatedItemSize,
       extraData: extraDataProp ?? selectedIndex,
