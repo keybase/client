@@ -31,6 +31,9 @@ const mapInfo: T.RPCChat.UnfurlPreviewInfo = {
   url: 'http://map.com',
 } as T.RPCChat.UnfurlPreviewInfo
 
+// these render the desktop tree only: Kb.Box2 renders a react-native Pressable when
+// isMobile is set, which produces no DOM under jsdom, so flipping that global here would
+// assert nothing. the mobile layout is verified on a device.
 describe('UnfurlPreview', () => {
   afterEach(() => {
     mockPreviews = []
@@ -52,17 +55,5 @@ describe('UnfurlPreview', () => {
     mockPreviews = [mapInfo]
     const {container} = render(<UnfurlPreview conversationIDKey={convID} text="http://map.com" />)
     expect(container.firstChild).toBeNull()
-  })
-
-  it('renders nothing on mobile even with a generic preview', () => {
-    mockPreviews = [genericInfo]
-    const originalIsMobile = global.isMobile
-    global.isMobile = true
-    try {
-      const {container} = render(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
-      expect(container.firstChild).toBeNull()
-    } finally {
-      global.isMobile = originalIsMobile
-    }
   })
 })

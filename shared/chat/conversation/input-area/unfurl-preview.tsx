@@ -27,61 +27,63 @@ const UnfurlPreview = (p: Props) => {
   // dismissing the last card, or the text losing a link, shrinks the list under us
   const clamped = Math.min(index, Math.max(genericPreviews.length - 1, 0))
   const shown = genericPreviews[clamped]
-  if (isMobile || !shown) {
+  if (!shown) {
     return null
   }
+  const {generic, preview} = shown
   const onPrevious = () => {
     setIndex(clamped - 1)
   }
   const onNext = () => {
     setIndex(clamped + 1)
   }
+  const atStart = clamped === 0
+  const atEnd = clamped === genericPreviews.length - 1
   const pager =
     genericPreviews.length > 1 ? (
       <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" style={styles.pager}>
         <Kb.Icon
           type="iconfont-arrow-left"
           sizeType="Tiny"
-          onClick={clamped > 0 ? onPrevious : undefined}
-          color={clamped > 0 ? undefined : theme.black_20}
+          onClick={atStart ? undefined : onPrevious}
+          color={atStart ? theme.black_20 : undefined}
           padding="xtiny"
         />
         <Kb.Text type="BodyTinySemibold">{`${clamped + 1}/${genericPreviews.length}`}</Kb.Text>
         <Kb.Icon
           type="iconfont-arrow-right"
           sizeType="Tiny"
-          onClick={clamped < genericPreviews.length - 1 ? onNext : undefined}
-          color={clamped < genericPreviews.length - 1 ? undefined : theme.black_20}
+          onClick={atEnd ? undefined : onNext}
+          color={atEnd ? theme.black_20 : undefined}
           padding="xtiny"
         />
       </Kb.Box2>
     ) : null
+  const card = (
+    <UnfurlGenericView
+      description={generic.description ?? undefined}
+      favicon={generic.favicon ?? undefined}
+      media={generic.media ?? undefined}
+      onClose={() => dismiss(preview.url)}
+      publishTime={generic.publishTime ?? undefined}
+      siteName={generic.siteName}
+      title={generic.title}
+      url={generic.url}
+    />
+  )
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start" style={styles.container}>
       {pager}
-      <Kb.Box2 direction="vertical" style={styles.stack}>
-        {genericPreviews.map(({generic, preview}, i) => (
-          // every card occupies the same grid cell, so the stack is always as big as the
-          // largest one and paging never resizes the panel. the inactive ones are only
-          // hidden, which also keeps them out of the tab order and unclickable.
-          <Kb.Box2
-            key={preview.url}
-            direction="vertical"
-            style={Kb.Styles.collapseStyles([styles.cell, i === clamped ? null : styles.cellHidden])}
-          >
-            <UnfurlGenericView
-              description={generic.description ?? undefined}
-              favicon={generic.favicon ?? undefined}
-              media={generic.media ?? undefined}
-              onClose={() => dismiss(preview.url)}
-              publishTime={generic.publishTime ?? undefined}
-              siteName={generic.siteName}
-              title={generic.title}
-              url={generic.url}
-            />
-          </Kb.Box2>
-        ))}
-      </Kb.Box2>
+      {/* the card area is a fixed size, so paging between cards never resizes the panel.
+          only this part scrolls; the pager above it stays put */}
+      {isMobile ? (
+        // native clips at a fixed height rather than scrolling, so it needs a real scroller
+        <Kb.ScrollView style={styles.cardArea}>{card}</Kb.ScrollView>
+      ) : (
+        <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.cardArea}>
+          {card}
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
 }
@@ -89,39 +91,41 @@ const UnfurlPreview = (p: Props) => {
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
+      cardArea: Kb.Styles.platformStyles({
+        common: {height: 200},
+        // per axis rather than the shorthand: `overflow: hidden` would also set the y axis
+        // and beat the scroll depending on emission order
+        isElectron: {overflowX: 'hidden', overflowY: 'auto', width: 420},
+        isMobile: {flexGrow: 0, flexShrink: 0},
+      }),
       container: Kb.Styles.platformStyles({
+        common: {
+          backgroundColor: theme.white,
+          borderColor: theme.black_10,
+          borderRadius: Kb.Styles.borderRadius,
+          borderWidth: 1,
+          padding: Kb.Styles.globalMargins.tiny,
+        },
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
           // floats over the thread instead of taking flow space, so showing a preview
           // never shifts the message list
-          backgroundColor: theme.white,
-          borderColor: theme.black_10,
-          borderRadius: Kb.Styles.borderRadius,
           borderStyle: 'solid',
-          borderWidth: 1,
           bottom: '100%',
           left: Kb.Styles.globalMargins.small,
           marginBottom: Kb.Styles.globalMargins.xtiny,
-          maxHeight: 200,
-          maxWidth: 500,
-          overflowY: 'auto',
-          padding: Kb.Styles.globalMargins.tiny,
           position: 'absolute',
         },
-      }),
-      cell: Kb.Styles.platformStyles({
-        // grid items stretch by default, which would drop a short card into the middle of
-        // the tallest one's space. the track still sizes to the tallest either way.
-        isElectron: {alignSelf: 'start', gridArea: '1 / 1'},
-      }),
-      cellHidden: Kb.Styles.platformStyles({
-        isElectron: {visibility: 'hidden'},
+        isMobile: {
+          // in flow above the composer, the way the reply preview already sits
+          alignSelf: 'stretch',
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
+        },
       }),
       pager: Kb.Styles.platformStyles({
-        isElectron: {alignItems: 'center'},
-      }),
-      stack: Kb.Styles.platformStyles({
-        isElectron: {display: 'grid'},
+        common: {alignItems: 'center'},
       }),
     }) as const
 )
