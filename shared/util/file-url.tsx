@@ -3,7 +3,7 @@
 // local files through it; see node.desktop.tsx. The dev CSP in vite.config.mts
 // has to allow it too.
 export const localFileScheme = 'kbfile'
-const localFileHost = 'local'
+export const localFileHost = 'local'
 
 // Desktop: normalize absolute file paths (posix or windows) to encoded file:// URLs
 export const normalizeFilePathURL = (url: string) => {

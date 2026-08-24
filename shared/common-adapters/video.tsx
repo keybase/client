@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {normalizeFilePathURL} from '@/util/file-url'
+import {localFileHost, localFileScheme, normalizeFilePathURL} from '@/util/file-url'
 import {Box2} from './box'
 import Text from './text'
 import {StatusBar} from 'react-native'
@@ -47,6 +47,10 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
   try {
     const parsed = new URL(url)
     if (parsed.protocol === 'file:' && parsed.hostname === '') {
+      return true
+    }
+    // hot dev serves local files through our own scheme instead of file://
+    if (parsed.protocol === `${localFileScheme}:` && parsed.hostname === localFileHost) {
       return true
     }
   } catch {}
