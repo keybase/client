@@ -291,3 +291,19 @@ func TestUnfurlerSuppress(t *testing.T) {
 		require.Fail(t, "no unfurl message sent")
 	}
 }
+
+func TestPreviewable(t *testing.T) {
+	generic := chat1.NewUnfurlWithGeneric(chat1.UnfurlGeneric{Title: "t"})
+	require.True(t, previewable(generic))
+
+	// a map is a generic unfurl carrying MapInfo; the message view will not render one,
+	// so the preview must not either
+	mapped := chat1.NewUnfurlWithGeneric(chat1.UnfurlGeneric{
+		Title:   "here",
+		MapInfo: &chat1.UnfurlGenericMapInfo{IsLiveLocationDone: true},
+	})
+	require.False(t, previewable(mapped))
+
+	require.False(t, previewable(chat1.NewUnfurlWithYoutube(chat1.UnfurlYoutube{})))
+	require.False(t, previewable(chat1.NewUnfurlWithGiphy(chat1.UnfurlGiphy{})))
+}
