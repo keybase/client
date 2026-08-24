@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -111,7 +110,7 @@ func TestUnfurler(t *testing.T) {
 	numPrefetched := unfurler.Prefetch(context.TODO(), uid, convID, msgBody)
 	require.Equal(t, 0, numPrefetched)
 
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg, nil)
 	select {
 	case <-sender.ch:
 		require.Fail(t, "no send here")
@@ -130,7 +129,7 @@ func TestUnfurler(t *testing.T) {
 	require.Equal(t, 1, numPrefetched)
 
 	for range 5 {
-		unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
+		unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg, nil)
 	}
 	var outboxID chat1.OutboxID
 	select {
@@ -248,8 +247,6 @@ func TestUnfurlerSuppress(t *testing.T) {
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	memStorage := newMemConversationBackedStorage()
 	unfurler := NewUnfurler(g, store, s3signer, memStorage, sender, ri)
-	suppressedClock := clockwork.NewFakeClock()
-	unfurler.suppressed.setClock(suppressedClock)
 
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 1, 2})
@@ -264,31 +261,35 @@ func TestUnfurlerSuppress(t *testing.T) {
 	require.NoError(t, err)
 	msg := makeTextMsgWithOutboxID("check out this link! "+url, outboxID)
 
-	unfurler.SetSuppressed(context.TODO(), outboxID, []string{url})
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg)
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, []string{url})
 	select {
 	case <-sender.ch:
 		require.Fail(t, "should not have sent a suppressed unfurl")
 	case <-time.After(2 * time.Second):
 	}
 
-	// suppression is not consumed: accepting an unfurl prompt re-runs
-	// UnfurlAndSend on the same message, and the dismissed URL must stay
-	// suppressed on that second pass
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg)
+	// resolving an unfurl prompt for another URL re-runs UnfurlAndSend on the same message
+	// with no suppress list of its own. the marker left by the first pass is what keeps the
+	// dismissal honoured, and it is not on a clock: however long the message waited to
+	// send, this pass must still skip the URL
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, nil)
 	select {
 	case <-sender.ch:
 		require.Fail(t, "should not have sent a suppressed unfurl on the second pass")
 	case <-time.After(2 * time.Second):
 	}
 
-	// the entry expires rather than being consumed
-	suppressedClock.Advance(suppressedCacheLifetime + time.Minute)
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg)
+	// an unsuppressed URL in the same conversation still unfurls, so the checks above are
+	// not passing because the pipeline is dead
+	otherURL := fmt.Sprintf("http://%s/?name=%s", addr, "nytimes0.html")
+	otherOutboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	otherMsg := makeTextMsgWithOutboxID("and this one "+otherURL, otherOutboxID)
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, otherMsg, nil)
 	select {
 	case <-sender.ch:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "no unfurl message sent")
+		require.Fail(t, "no unfurl message sent for the unsuppressed URL")
 	}
 }
 

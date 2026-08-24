@@ -81,7 +81,7 @@ func (m *mockUnfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed,
+	msg chat1.MessageUnboxed, suppress []string,
 ) {
 	require.True(m.t, msg.IsValid())
 	body := msg.Valid().MessageBody

@@ -272,6 +272,9 @@ protocol local {
 
   record SenderSendOptions {
      union { null, ConversationMemberStatus } joinMentionsAs;
+     // urls the sender chose not to unfurl; rides the outbox record so a message that
+     // waits offline still carries them when it finally sends
+     array<string> unfurlSuppress;
   }
 
   enum OutboxStateType {
@@ -829,7 +832,7 @@ protocol local {
 
   OutboxID generateOutboxID();
   @timeout_msec(30000) // 30 seconds
-  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior, boolean skipInChatPayments);
+  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior, boolean skipInChatPayments, array<string> unfurlSuppress);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;

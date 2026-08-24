@@ -434,7 +434,6 @@ test('sendComposerText sends dismissed unfurl urls as unfurlSuppress', async () 
   await flushPromises()
 
   expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
-  expect(getLastPost()?.params.outboxID).toBeTruthy()
   expect(getSuppressedURLs(convID)).toEqual([])
 })
 

@@ -1337,9 +1337,10 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			chat1.ChatActivitySource_LOCAL)
 	}
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
-		// Unfurl
+		// Unfurl. the suppressed urls travel with the message on its outbox record, so a
+		// send that waited offline still honours what the sender dismissed
 		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender,
-			convID, unboxedMsg)
+			convID, unboxedMsg, sendOpts.GetUnfurlSuppress())
 		// Start tracking any live location sends
 		if unboxedMsg.IsValid() && unboxedMsg.GetMessageType() == chat1.MessageType_TEXT &&
 			unboxedMsg.Valid().MessageBody.Text().LiveLocation != nil {

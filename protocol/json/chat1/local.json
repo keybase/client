@@ -996,6 +996,13 @@
             "ConversationMemberStatus"
           ],
           "name": "joinMentionsAs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "unfurlSuppress"
         }
       ]
     },
@@ -4656,6 +4663,13 @@
         {
           "name": "skipInChatPayments",
           "type": "boolean"
+        },
+        {
+          "name": "unfurlSuppress",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": "PostLocalNonblockRes",
