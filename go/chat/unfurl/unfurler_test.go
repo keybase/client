@@ -308,3 +308,55 @@ func TestPreviewable(t *testing.T) {
 	require.False(t, previewable(chat1.NewUnfurlWithYoutube(chat1.UnfurlYoutube{})))
 	require.False(t, previewable(chat1.NewUnfurlWithGiphy(chat1.UnfurlGiphy{})))
 }
+
+func TestUnfurlerSuppressPrompt(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	notifier := makeDummyActivityNotifier()
+	g.ActivityNotifier = notifier
+	g.MessageDeliverer = dummyDeliverer{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	memStorage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, memStorage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	srv := createTestCaseHTTPSrv(t)
+	addr := srv.Start()
+	defer srv.Stop()
+
+	// no WhitelistAdd here, so this url classifies as a prompt hit rather than an unfurl
+	// one. a queued message is classified at send time, so a url the sender dismissed while
+	// the domain was whitelisted can arrive here as a prompt: prompting for a link they
+	// declined breaks the same promise as unfurling it
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	msg := makeTextMsgWithOutboxID("check out this link! "+url, outboxID)
+
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, []string{url})
+	select {
+	case n := <-notifier.ch:
+		require.Failf(t, "prompted for a suppressed URL", "domain: %s", n.domain)
+	case <-time.After(2 * time.Second):
+	}
+
+	// and an unsuppressed one still prompts, so the check above is not passing because
+	// prompting is broken. it has to be a different url: the marker is keyed by url, so
+	// re-sending the same one would be skipped by the marker the first pass just wrote
+	otherURL := fmt.Sprintf("http://%s/?name=%s", addr, "nytimes0.html")
+	otherOutboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID,
+		makeTextMsgWithOutboxID("and this one "+otherURL, otherOutboxID), nil)
+	select {
+	case <-notifier.ch:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no prompt for the unsuppressed URL")
+	}
+}
