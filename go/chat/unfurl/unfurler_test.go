@@ -218,7 +218,7 @@ func TestUnfurlerPreviewURLs(t *testing.T) {
 	require.Empty(t, unfurler.PreviewURLs(context.TODO(), uid, convID, "no links here"))
 }
 
-func makeTextMsgWithOutboxID(msgBody string, outboxID chat1.OutboxID) chat1.MessageUnboxed {
+func makeTextMsgWithMsgID(msgBody string, outboxID chat1.OutboxID, msgID chat1.MessageID) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			TlfName:     "mike",
@@ -226,7 +226,9 @@ func makeTextMsgWithOutboxID(msgBody string, outboxID chat1.OutboxID) chat1.Mess
 			OutboxID:    &outboxID,
 		},
 		ServerHeader: chat1.MessageServerHeader{
-			MessageID: 4,
+			// the suppression key derives from this, not from the outbox id, so tests that
+			// mean "a different message" have to vary it
+			MessageID: msgID,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
@@ -259,7 +261,7 @@ func TestUnfurlerSuppress(t *testing.T) {
 
 	outboxID, err := storage.NewOutboxID()
 	require.NoError(t, err)
-	msg := makeTextMsgWithOutboxID("check out this link! "+url, outboxID)
+	msg := makeTextMsgWithMsgID("check out this link! "+url, outboxID, 4)
 
 	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, []string{url})
 	select {
@@ -279,17 +281,15 @@ func TestUnfurlerSuppress(t *testing.T) {
 	case <-time.After(2 * time.Second):
 	}
 
-	// an unsuppressed URL in the same conversation still unfurls, so the checks above are
-	// not passing because the pipeline is dead
-	otherURL := fmt.Sprintf("http://%s/?name=%s", addr, "nytimes0.html")
-	otherOutboxID, err := storage.NewOutboxID()
-	require.NoError(t, err)
-	otherMsg := makeTextMsgWithOutboxID("and this one "+otherURL, otherOutboxID)
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, otherMsg, nil)
+	// the dismissal is scoped to that message: the same url sent again, undismissed, must
+	// still unfurl. the suppression key derives from the message id, so this needs a
+	// genuinely different message rather than just a different outbox id
+	laterMsg := makeTextMsgWithMsgID("sending it again "+url, outboxID, 5)
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, laterMsg, nil)
 	select {
 	case <-sender.ch:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "no unfurl message sent for the unsuppressed URL")
+		require.Fail(t, "no unfurl message sent for the same url in a later message")
 	}
 }
 
@@ -337,7 +337,7 @@ func TestUnfurlerSuppressPrompt(t *testing.T) {
 	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
 	outboxID, err := storage.NewOutboxID()
 	require.NoError(t, err)
-	msg := makeTextMsgWithOutboxID("check out this link! "+url, outboxID)
+	msg := makeTextMsgWithMsgID("check out this link! "+url, outboxID, 4)
 
 	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, []string{url})
 	select {
@@ -346,14 +346,10 @@ func TestUnfurlerSuppressPrompt(t *testing.T) {
 	case <-time.After(2 * time.Second):
 	}
 
-	// and an unsuppressed one still prompts, so the check above is not passing because
-	// prompting is broken. it has to be a different url: the marker is keyed by url, so
-	// re-sending the same one would be skipped by the marker the first pass just wrote
-	otherURL := fmt.Sprintf("http://%s/?name=%s", addr, "nytimes0.html")
-	otherOutboxID, err := storage.NewOutboxID()
-	require.NoError(t, err)
+	// the same url in a later message still prompts, so the check above is not passing
+	// because prompting is broken
 	unfurler.UnfurlAndSend(context.TODO(), uid, convID,
-		makeTextMsgWithOutboxID("and this one "+otherURL, otherOutboxID), nil)
+		makeTextMsgWithMsgID("sending it again "+url, outboxID, 5), nil)
 	select {
 	case <-notifier.ch:
 	case <-time.After(20 * time.Second):
