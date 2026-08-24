@@ -322,25 +322,34 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     setInputRef(inputRef.current)
   }, [setInputRef])
 
+  const input = (
+    <PlatformInput
+      hintText={hintText}
+      suggestionOverlayStyle={suggestionOverlayStyle}
+      onSubmit={onSubmit}
+      setInputRef={setLocalInputRef}
+      onChangeText={onChangeText}
+      onCancelEditing={onCancelEditing}
+      cannotWrite={cannotWrite}
+      explodingModeSeconds={explodingModeSecondsRaw}
+      isEditing={isEditing}
+      isExploding={isExploding}
+      minWriterRole={minWriterRole}
+      showReplyPreview={showReplyPreview}
+      setExplodingMode={setExplodingMode}
+    />
+  )
+
+  if (isMobile) {
+    return input
+  }
+
+  // the preview floats out of this box, so it needs a positioned ancestor
   return (
-    <>
-      {isMobile ? null : <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />}
-      <PlatformInput
-        hintText={hintText}
-        suggestionOverlayStyle={suggestionOverlayStyle}
-        onSubmit={onSubmit}
-        setInputRef={setLocalInputRef}
-        onChangeText={onChangeText}
-        onCancelEditing={onCancelEditing}
-        cannotWrite={cannotWrite}
-        explodingModeSeconds={explodingModeSecondsRaw}
-        isEditing={isEditing}
-        isExploding={isExploding}
-        minWriterRole={minWriterRole}
-        showReplyPreview={showReplyPreview}
-        setExplodingMode={setExplodingMode}
-      />
-    </>
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
+      <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />
+      {input}
+    </Kb.Box2>
   )
 }
 
