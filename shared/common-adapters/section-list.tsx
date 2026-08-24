@@ -1,3 +1,4 @@
+import * as Styles from '@/styles'
 import type * as React from 'react'
 import {
   SectionList as NativeSectionList,
@@ -64,10 +65,15 @@ function SectionListImpl<ItemT, SectionT>(
       keyboardDismissMode="on-drag"
       ref={ref}
       {...rest}
+      style={[stableScrollbarGutter, rest.style]}
       renderSectionHeader={resolvedRenderSectionHeader}
     />
   )
 }
+
+// desktop scrollbars are obtrusive off macOS, so reserve the gutter: without it a
+// list that gains or loses its scrollbar reflows every child sideways
+const stableScrollbarGutter = Styles.platformStyles({isElectron: {scrollbarGutter: 'stable'}})
 
 export type SectionListRef<ItemT, SectionT> = NativeSectionList<ItemT, SectionT>
 
