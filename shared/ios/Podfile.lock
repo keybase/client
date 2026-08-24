@@ -1,7 +1,7 @@
 PODS:
-  - EXConstants (57.0.13):
+  - EXConstants (57.0.14):
     - ExpoModulesCore
-  - Expo (57.0.15):
+  - Expo (57.0.16):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -27,7 +27,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoAsset (57.0.13):
+  - ExpoAsset (57.0.14):
     - ExpoModulesCore
   - ExpoAudio (57.0.4):
     - ExpoModulesCore
@@ -58,13 +58,13 @@ PODS:
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14.6)
-  - ExpoImagePicker (57.0.12):
+  - ExpoImagePicker (57.0.13):
     - ExpoModulesCore
   - ExpoKeepAwake (57.0.1):
     - ExpoModulesCore
   - ExpoLocalization (57.0.1):
     - ExpoModulesCore
-  - ExpoLocation (57.0.12):
+  - ExpoLocation (57.0.13):
     - ExpoModulesCore
   - ExpoLogBox (57.0.3):
     - React-Core
@@ -73,7 +73,7 @@ PODS:
   - ExpoMediaLibrary (57.0.4):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (57.0.12):
+  - ExpoModulesCore (57.0.13):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -100,10 +100,10 @@ PODS:
   - ExpoModulesJSI (57.0.5):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (57.0.12):
+  - ExpoModulesWorklets (57.0.13):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (57.0.12):
+  - ExpoModulesWorkletsAdapter (57.0.13):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
@@ -112,7 +112,7 @@ PODS:
     - ExpoModulesCore
   - ExpoSMS (57.0.1):
     - ExpoModulesCore
-  - ExpoTaskManager (57.0.12):
+  - ExpoTaskManager (57.0.13):
     - ExpoModulesCore
     - UMAppLoader
   - ExpoVideo (57.0.2):
@@ -162,7 +162,7 @@ PODS:
     - ReactNativeDependencies
     - Yoga
   - lottie-ios (4.6.0)
-  - lottie-react-native (7.4.0):
+  - lottie-react-native (7.5.0):
     - hermes-engine
     - lottie-ios (= 4.6.0)
     - RCTRequired
@@ -2891,9 +2891,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXConstants: 1b9bb962f72de86540a5314f4bec2eb3fdeff515
-  Expo: b04be5ad09bed2df44dbaf515af0dc862c84e202
-  ExpoAsset: 2b03d46bfa5827ac7b11e22f812cf99995f2ed4b
+  EXConstants: 0023ccf3213a49042510a7a63e58a911cea6be8d
+  Expo: 6fce2cb86fc274361c8a41d9294d0b366a47eb82
+  ExpoAsset: b8c66d7e07922d39f280e1a79b5f70ef8e238bbc
   ExpoAudio: bd075db379c5a70b7f9a7b5b541d5c67f59b5dca
   ExpoCamera: 00a098da25adbc6013f051b5db47279cb10a716c
   ExpoCameraBarcodeScanning: 14c72e1f522eb69f7a672d757eb294c096756faa
@@ -2905,20 +2905,20 @@ SPEC CHECKSUMS:
   ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
   ExpoHaptics: 4503d2da51ff7109712ccdfe0e4939f66818183e
   ExpoImage: b37accc4b12647e5cf939b2335eea2bdb874ad7f
-  ExpoImagePicker: 09fafe2ab0257a41a0e6625ebbe56d73cb6611fa
+  ExpoImagePicker: 6963584297308d729b08d04d84f9f6c1ac966561
   ExpoKeepAwake: c26f14275017370cc8a4b7b43a0e23361f2053a5
   ExpoLocalization: 659243b03b3a3e9589793cee2f728a899e181329
-  ExpoLocation: d5310d0d86e114aa2a7b66215aacd9841aa40128
+  ExpoLocation: 487f2bacf1f333271f287d493ad3e9ca1943e40d
   ExpoLogBox: 2c4225a62f1cfb943e6b2df4fa4fe2d136e06fb6
   ExpoMailComposer: 101933dc6bdb4d7a46495d1dd87420365325adb9
   ExpoMediaLibrary: 344f5b528a71f34794e9d7396e32589531df146e
-  ExpoModulesCore: 8df312c6b3cc7a6e83bf7154f336058e68970e0c
+  ExpoModulesCore: 7cacf7fb6c7f5f6d473c66efabe3c448aa368dd6
   ExpoModulesJSI: db6d555b92d5bbca8b78f716771a1b5b8d553726
-  ExpoModulesWorklets: 539791c19ac17aaa37632c7fa396ec17d91b3ad6
-  ExpoModulesWorkletsAdapter: 02883dfe48de0a50f6e4a91fc08e910566b94e55
+  ExpoModulesWorklets: ba8252c1824dce38008bdbd1de28566c6591ab7b
+  ExpoModulesWorkletsAdapter: d509544a1cfb3494bef239571d9374ede1d020cb
   ExpoScreenCapture: 6b82aba55db3ecc6f124ebd45163d6db9b916b2d
   ExpoSMS: ac35f6c85b72ee5b18a7c6bb06550fbd4a683775
-  ExpoTaskManager: 9dc1a192e99ed0dcb0c7bca0ddce34a2c9b5f8e6
+  ExpoTaskManager: 988d2e4bab5190e36ccbab2acc2829a8c2e2d891
   ExpoVideo: b1d9a325ddcd4f3ed8ccb374c01b688e98bc6a04
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: 034fad1f720e9fb9fe1b5ae5ac0c217531216c50
@@ -2928,7 +2928,7 @@ SPEC CHECKSUMS:
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   LiquidGlass: 0de1407416f79653f467c0be6b7c140738a9c61f
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
-  lottie-react-native: a5233d6dc3d2158b37b4dc32bddc7b803ae86227
+  lottie-react-native: 05da779a370ea951bdf6ec01887333c1adc354fd
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
   RCTRequired: b2f74764d596fc0051f00fee94b49bf41a6f7f5a
   RCTSwiftUI: c6d6a31b849b9dfa64c33b55dc91ac15dd55774c
