@@ -246,9 +246,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     if (currentMeta) {
       metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
     }
-    if (!isMobile) {
-      setPreviewText(text)
-    }
+    setPreviewText(text)
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
         conversationID: convoID,
@@ -340,14 +338,22 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     />
   )
 
+  const preview = <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />
+
   if (isMobile) {
-    return input
+    // in flow above the composer; it rides KeyboardStickyView with the input
+    return (
+      <>
+        {preview}
+        {input}
+      </>
+    )
   }
 
   // the preview floats out of this box, so it needs a positioned ancestor
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
-      <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />
+      {preview}
       {input}
     </Kb.Box2>
   )
