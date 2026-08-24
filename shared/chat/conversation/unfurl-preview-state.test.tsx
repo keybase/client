@@ -132,4 +132,25 @@ describe('unfurl previews', () => {
     act(() => resolveSecond?.([info('http://c.com')]))
     await waitFor(() => expect(last?.previews[0]?.url).toBe('http://c.com'))
   })
+
+  it('keeps dismissals when the conversation is left and returned to', async () => {
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([info('http://a.com')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const first = render(<Harness id={convID} text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    act(() => last?.dismiss('http://a.com'))
+    expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+
+    // switching conversations unmounts this subtree: the provider is keyed on the
+    // conversation, so coming back mounts a fresh hook whose first render has no text yet
+    first.unmount()
+    render(<Harness id={convID} text="" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+  })
 })
