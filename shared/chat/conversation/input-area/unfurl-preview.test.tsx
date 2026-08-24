@@ -106,4 +106,19 @@ describe('UnfurlPreview', () => {
     rerender(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
     expect(container.textContent).toContain('Alpha')
   })
+
+  it('dismisses the shown card by its url when the close icon is clicked', () => {
+    mockPreviews = [genericInfo, genericInfo2]
+    const {container} = render(
+      <UnfurlPreview conversationIDKey={convID} text="http://a.com http://b.com" />
+    )
+    fireEvent.click(container.querySelector('.icon-gen-iconfont-close') as Element)
+    expect(mockDismiss).toHaveBeenCalledWith('http://a.com')
+
+    // and after paging it dismisses the one actually on screen, not the first
+    mockDismiss.mockClear()
+    fireEvent.click(container.querySelector('.icon-gen-iconfont-arrow-right') as Element)
+    fireEvent.click(container.querySelector('.icon-gen-iconfont-close') as Element)
+    expect(mockDismiss).toHaveBeenCalledWith('http://b.com')
+  })
 })

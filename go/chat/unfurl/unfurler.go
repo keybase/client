@@ -379,6 +379,18 @@ func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.C
 // PreviewURLs scrapes and packages the whitelisted URLs in text and returns
 // display-ready unfurls, so a client can show a preview before sending. Only
 // generic unfurls are returned; failures are skipped rather than returned.
+// previewable reports whether an unfurl can be shown in the pre-send preview. only generic
+// unfurls render there, and a map unfurl is a generic unfurl with MapInfo set, which the
+// message view itself refuses to render. the frontend filters on the same rule, so keep the
+// two in step.
+func previewable(unfurl chat1.Unfurl) bool {
+	typ, err := unfurl.UnfurlType()
+	if err != nil || typ != chat1.UnfurlType_GENERIC {
+		return false
+	}
+	return unfurl.Generic().MapInfo == nil
+}
+
 func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text string,
 ) (res []chat1.UnfurlPreviewInfo) {
@@ -399,13 +411,7 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 			u.Debug(ctx, "PreviewURLs: unable to scrapeAndPackage: %s", err)
 			continue
 		}
-		typ, err := unfurl.UnfurlType()
-		if err != nil || typ != chat1.UnfurlType_GENERIC {
-			continue
-		}
-		// a map unfurl is a generic unfurl with MapInfo set, and the message
-		// view refuses to render those, so don't preview them either
-		if unfurl.Generic().MapInfo != nil {
+		if !previewable(unfurl) {
 			continue
 		}
 		disp, err := display.DisplayUnfurl(ctx, u.G().AttachmentURLSrv, convID, unfurl)
