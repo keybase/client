@@ -234,9 +234,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   }
   const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
 
-  // Low-frequency (throttled) copy of the composer text for the unfurl preview, which
-  // already debounces 500ms downstream. textValueRef is a ref (no re-render), so previews
-  // ride along on the existing throttled draft-save path instead of a per-keystroke state.
+  // Low-frequency copy of the composer text for the unfurl preview, set from the already
+  // throttled draft-save path rather than from onChangeText, so the composer does not
+  // re-render on every keystroke. The preview debounces another 500ms downstream anyway.
   const [previewText, setPreviewText] = React.useState('')
   const updateDraftRaw = (text: string) => {
     // Immediately update local meta.draft so switching back to this thread
