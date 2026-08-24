@@ -22,7 +22,7 @@ type ConversationInputStore = T.Immutable<{
 type ConversationInputDispatch = {
   injectIntoInput: (text?: string, focus?: boolean) => void
   resetState: () => void
-  sendComposerText: (text: string) => void
+  sendComposerText: (text: string, unfurlSuppress?: ReadonlyArray<string>) => void
   sendGiphyResult: (result: T.RPCChat.GiphySearchResult) => void
   setCommandMarkdown: (md?: T.RPCChat.UICommandMarkdown) => void
   setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
@@ -174,11 +174,12 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       })
     }
   })
-  const sendComposerText = React.useEffectEvent((text: string) => {
+  const sendComposerText = React.useEffectEvent((text: string, unfurlSuppress?: ReadonlyArray<string>) => {
     sendMessage(text, {
       editingOrdinal: state.editing,
       onRestoreText: injectIntoInput,
       replyToOrdinal: state.replyTo,
+      unfurlSuppress,
     })
     dispatchState({type: 'afterSend'})
   })

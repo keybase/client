@@ -7,6 +7,7 @@ import Giphy from '../../giphy'
 import * as InputState from '../input-state'
 import PlatformInput from './input'
 import ReplyPreview from '../../reply-preview'
+import UnfurlPreview from '../unfurl-preview'
 import * as T from '@/constants/types'
 import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
@@ -26,6 +27,7 @@ import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {getSuppressedURLs} from '@/chat/conversation/unfurl-preview-state'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -207,9 +209,13 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     // A timeout rather than requestAnimationFrame: this callback owns the only copy of the text, and
     // frames stop in a hidden or backgrounded window, which would drop the message with the composer
     // already emptied.
+    // Snapshot the dismissed unfurls before clearing: the clear runs onChangeText('')
+    // synchronously, and the preview hook drops every dismissal for empty text, which
+    // would beat the deferred send to the store and unfurl a card the user dismissed.
+    const unfurlSuppress = getSuppressedURLs(conversationIDKey)
     injectText('', true)
     setTimeout(() => {
-      sendComposerText(text)
+      sendComposerText(text, unfurlSuppress)
       if (hasCenter) {
         toggleThreadSearch(true)
         jumpToRecent()
@@ -228,6 +234,10 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   }
   const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
 
+  // Low-frequency (throttled) copy of the composer text for the unfurl preview, which
+  // already debounces 500ms downstream. textValueRef is a ref (no re-render), so previews
+  // ride along on the existing throttled draft-save path instead of a per-keystroke state.
+  const [previewText, setPreviewText] = React.useState('')
   const updateDraftRaw = (text: string) => {
     // Immediately update local meta.draft so switching back to this thread
     // before the async unbox completes won't re-inject the old stale draft.
@@ -235,6 +245,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     const currentMeta = useInboxMetadataState.getState().metas.get(conversationIDKey)
     if (currentMeta) {
       metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
+    }
+    if (!isMobile) {
+      setPreviewText(text)
     }
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
@@ -310,21 +323,24 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   }, [setInputRef])
 
   return (
-    <PlatformInput
-      hintText={hintText}
-      suggestionOverlayStyle={suggestionOverlayStyle}
-      onSubmit={onSubmit}
-      setInputRef={setLocalInputRef}
-      onChangeText={onChangeText}
-      onCancelEditing={onCancelEditing}
-      cannotWrite={cannotWrite}
-      explodingModeSeconds={explodingModeSecondsRaw}
-      isEditing={isEditing}
-      isExploding={isExploding}
-      minWriterRole={minWriterRole}
-      showReplyPreview={showReplyPreview}
-      setExplodingMode={setExplodingMode}
-    />
+    <>
+      {isMobile ? null : <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />}
+      <PlatformInput
+        hintText={hintText}
+        suggestionOverlayStyle={suggestionOverlayStyle}
+        onSubmit={onSubmit}
+        setInputRef={setLocalInputRef}
+        onChangeText={onChangeText}
+        onCancelEditing={onCancelEditing}
+        cannotWrite={cannotWrite}
+        explodingModeSeconds={explodingModeSecondsRaw}
+        isEditing={isEditing}
+        isExploding={isExploding}
+        minWriterRole={minWriterRole}
+        showReplyPreview={showReplyPreview}
+        setExplodingMode={setExplodingMode}
+      />
+    </>
   )
 }
 

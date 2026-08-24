@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/unfurl/display"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -52,12 +53,13 @@ type Unfurler struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	unfurlMap map[string]bool
-	extractor *Extractor
-	scraper   *Scraper
-	packager  *Packager
-	settings  *Settings
-	sender    UnfurlMessageSender
+	unfurlMap  map[string]bool
+	suppressed *unfurlCache
+	extractor  *Extractor
+	scraper    *Scraper
+	packager   *Packager
+	settings   *Settings
+	sender     UnfurlMessageSender
 
 	// testing
 	unfurlCh chan *chat1.Unfurl
@@ -77,6 +79,7 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Unfurler", false),
 		unfurlMap:    make(map[string]bool),
+		suppressed:   newUnfurlCacheWithLimits(suppressedCacheSize, suppressedCacheLifetime),
 		extractor:    extractor,
 		scraper:      scraper,
 		packager:     packager,
@@ -88,6 +91,7 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 func (u *Unfurler) SetClock(clock clockwork.Clock) {
 	u.scraper.cache.setClock(clock)
 	u.packager.cache.setClock(clock)
+	u.suppressed.setClock(clock)
 }
 
 func (u *Unfurler) SetTestingRetryCh(ch chan struct{}) {
@@ -234,6 +238,40 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 	return msg, nil
 }
 
+// SetSuppressed records URLs the sender chose not to unfurl for the message
+// with this outbox ID. The entry is not consumed by UnfurlAndSend: a message
+// can be unfurled more than once (accepting an unfurl prompt re-runs
+// UnfurlAndSend on the same message), and a consumed entry would let a
+// dismissed URL unfurl on that second pass. It expires after
+// suppressedCacheLifetime instead, which also keeps an entry left behind by
+// a send that never reaches UnfurlAndSend from lingering for the life of the
+// process.
+func (u *Unfurler) SetSuppressed(ctx context.Context, outboxID chat1.OutboxID, urls []string) {
+	if len(urls) == 0 {
+		return
+	}
+	m := make(map[string]bool, len(urls))
+	for _, url := range urls {
+		m[url] = true
+	}
+	u.suppressed.put(outboxID.String(), m)
+}
+
+func (u *Unfurler) getSuppressed(outboxID *chat1.OutboxID) map[string]bool {
+	if outboxID == nil {
+		return nil
+	}
+	item, valid := u.suppressed.get(outboxID.String())
+	if !valid {
+		return nil
+	}
+	m, ok := item.data.(map[string]bool)
+	if !ok {
+		return nil
+	}
+	return m
+}
+
 func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed,
 ) {
@@ -248,6 +286,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	if len(hits) == 0 {
 		return
 	}
+	suppressed := u.getSuppressed(msg.Valid().ClientHeader.OutboxID)
 	// get a map for all the URLs we have already unfurled
 	prevUnfurled := make(map[string]bool)
 	for _, u := range msg.Valid().Unfurls {
@@ -255,6 +294,10 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	}
 	// for each hit, either prompt the user for action, or generate a new message
 	for _, hit := range hits {
+		if suppressed[hit.URL] {
+			u.Debug(ctx, "UnfurlAndSend: skipping suppressed URL")
+			continue
+		}
 		if prevUnfurled[hit.URL] {
 			u.Debug(ctx, "UnfurlAndSend: skipping prev unfurled")
 			continue
@@ -331,6 +374,48 @@ func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.C
 		}
 	}
 	return numPrefetched
+}
+
+// PreviewURLs scrapes and packages the whitelisted URLs in text and returns
+// display-ready unfurls, so a client can show a preview before sending. Only
+// generic unfurls are returned; failures are skipped rather than returned.
+func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	text string,
+) (res []chat1.UnfurlPreviewInfo) {
+	defer u.Trace(ctx, nil, "PreviewURLs")()
+	hits, err := u.extractor.Extract(ctx, uid, convID, 0, text, u.settings)
+	if err != nil {
+		u.Debug(ctx, "PreviewURLs: failed to extract: %s", err)
+		return nil
+	}
+	seen := make(map[string]bool)
+	for _, hit := range hits {
+		if hit.Typ != ExtractorHitUnfurl || seen[hit.URL] {
+			continue
+		}
+		seen[hit.URL] = true
+		unfurl, err := u.scrapeAndPackage(ctx, uid, convID, hit.URL)
+		if err != nil {
+			u.Debug(ctx, "PreviewURLs: unable to scrapeAndPackage: %s", err)
+			continue
+		}
+		typ, err := unfurl.UnfurlType()
+		if err != nil || typ != chat1.UnfurlType_GENERIC {
+			continue
+		}
+		// a map unfurl is a generic unfurl with MapInfo set, and the message
+		// view refuses to render those, so don't preview them either
+		if unfurl.Generic().MapInfo != nil {
+			continue
+		}
+		disp, err := display.DisplayUnfurl(ctx, u.G().AttachmentURLSrv, convID, unfurl)
+		if err != nil {
+			u.Debug(ctx, "PreviewURLs: failed to display: %s", err)
+			continue
+		}
+		res = append(res, chat1.UnfurlPreviewInfo{Url: hit.URL, Unfurl: disp})
+	}
+	return res
 }
 
 func (u *Unfurler) checkAndSetUnfurling(ctx context.Context, outboxID chat1.OutboxID) (inprogress bool) {
