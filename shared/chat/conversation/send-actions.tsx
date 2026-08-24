@@ -143,6 +143,9 @@ export const useConversationSendActions = () => {
   ) => {
     const editOrdinal = context?.editingOrdinal
     if (editOrdinal) {
+      // unfurlSuppress is dropped here on purpose: postEditNonblock has no such param, so
+      // dismissing a preview card while editing cannot reach the service. carrying it
+      // would need the protocol change, not just plumbing on this side.
       editMessage(editOrdinal, text)
       return
     }

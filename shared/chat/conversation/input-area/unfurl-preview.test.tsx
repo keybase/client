@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import UnfurlPreview from './unfurl-preview'
 
 const mockDismiss = jest.fn()
@@ -18,8 +18,13 @@ const nonGenericInfo: T.RPCChat.UnfurlPreviewInfo = {
   url: 'http://youtube.com/watch',
 } as T.RPCChat.UnfurlPreviewInfo
 
+const genericInfo2: T.RPCChat.UnfurlPreviewInfo = {
+  unfurl: {generic: {siteName: 'b', title: 'Bravo', url: 'http://b.com'}, unfurlType: T.RPCChat.UnfurlType.generic},
+  url: 'http://b.com',
+} as T.RPCChat.UnfurlPreviewInfo
+
 const genericInfo: T.RPCChat.UnfurlPreviewInfo = {
-  unfurl: {generic: {siteName: 'a', title: 'a', url: 'http://a.com'}, unfurlType: T.RPCChat.UnfurlType.generic},
+  unfurl: {generic: {siteName: 'a', title: 'Alpha', url: 'http://a.com'}, unfurlType: T.RPCChat.UnfurlType.generic},
   url: 'http://a.com',
 } as T.RPCChat.UnfurlPreviewInfo
 
@@ -55,5 +60,50 @@ describe('UnfurlPreview', () => {
     mockPreviews = [mapInfo]
     const {container} = render(<UnfurlPreview conversationIDKey={convID} text="http://map.com" />)
     expect(container.firstChild).toBeNull()
+  })
+
+  it('shows no pager for a single preview', () => {
+    mockPreviews = [genericInfo]
+    const {queryByText} = render(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
+    expect(queryByText('1/1')).toBeNull()
+  })
+
+  it('pages between previews and disables the arrows at each end', () => {
+    mockPreviews = [genericInfo, genericInfo2]
+    const {getByText, container} = render(
+      <UnfurlPreview conversationIDKey={convID} text="http://a.com http://b.com" />
+    )
+    expect(getByText('1/2')).toBeTruthy()
+    // the card shown is the first one
+    expect(container.textContent).toContain('Alpha')
+
+    const left = container.querySelector('.icon-gen-iconfont-arrow-left') as Element
+    const right = container.querySelector('.icon-gen-iconfont-arrow-right') as Element
+
+    // at the start the left arrow does nothing
+    fireEvent.click(left)
+    expect(getByText('1/2')).toBeTruthy()
+
+    fireEvent.click(right)
+    expect(getByText('2/2')).toBeTruthy()
+    expect(container.textContent).toContain('Bravo')
+
+    // at the end the right arrow does nothing
+    fireEvent.click(right)
+    expect(getByText('2/2')).toBeTruthy()
+  })
+
+  it('re-clamps the index when the shown card is dismissed away', () => {
+    mockPreviews = [genericInfo, genericInfo2]
+    const {getByText, container, rerender} = render(
+      <UnfurlPreview conversationIDKey={convID} text="http://a.com http://b.com" />
+    )
+    fireEvent.click(container.querySelector('.icon-gen-iconfont-arrow-right') as Element)
+    expect(getByText('2/2')).toBeTruthy()
+
+    // the second preview goes away; the index must fall back rather than blank the panel
+    mockPreviews = [genericInfo]
+    rerender(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
+    expect(container.textContent).toContain('Alpha')
   })
 })
