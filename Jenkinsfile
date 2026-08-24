@@ -52,19 +52,37 @@ def logKbwebServices(container) {
 def reportStep(name, closure) {
   try {
     closure()
-  } catch (ex) {
+  } catch (Throwable ex) {
+    // Throwable, so a step that dies on an Error still gets named. The
+    // original is always rethrown, so nothing here changes the build result.
     notifyStep('FAILURE', name)
     throw ex
   }
 }
 
 // Best-effort: the reporting must never itself break a build, and must never
-// mask the underlying failure.
-//
-// githubNotify (github-plugin) is not installed on this controller, but the
-// Checks API plugin is, so publish a check run instead. If no checks publisher
-// is registered, publishChecks logs and does nothing rather than throwing.
+// mask the underlying failure. Every probe below catches Throwable, not
+// Exception: a missing pipeline step surfaces as NoSuchMethodError, which is
+// an Error, so an untyped `catch (ex)` would let it through and kill the run.
 def notifyStep(conclusion, summary) {
+  // Unconditional local trace. Needs no plugin and no credential, so the step
+  // name is always recoverable from the console and the build page even when
+  // nothing reaches GitHub.
+  println "reportStep: ${conclusion} -- ${summary}"
+  if (conclusion != 'SUCCESS') {
+    try {
+      currentBuild.description = summary
+    } catch (Throwable ex) {
+      println "reportStep: could not set build description"
+    }
+  }
+
+  // DIAGNOSTIC, remove with the rest of this harness. Build 5 published no
+  // check run at all -- neither the green seed nor the golangci-lint failure
+  // -- and the old catch block hid whether publishChecks threw or silently
+  // no-opped. Print the exception type and message: the Checks plugin reports
+  // a missing publisher or an auth rejection here, neither of which carries a
+  // secret.
   try {
     publishChecks(
       name: 'client/failed-step',
@@ -73,8 +91,19 @@ def notifyStep(conclusion, summary) {
       conclusion: conclusion,
       detailsURL: env.BUILD_URL
     )
-  } catch (ex) {
-    println "reportStep: publishChecks failed, continuing"
+    println "reportStep: publishChecks returned without throwing"
+  } catch (Throwable ex) {
+    println "reportStep: publishChecks threw ${ex.getClass().getName()}: ${ex.getMessage()}"
+  }
+
+  // DIAGNOSTIC, same lifetime. Confirm githubNotify is genuinely unregistered
+  // rather than previously mis-called, so we stop guessing which reporting
+  // routes this controller offers.
+  try {
+    githubNotify(context: 'client/failed-step-probe', status: 'SUCCESS', description: 'probe')
+    println "reportStep: githubNotify IS available"
+  } catch (Throwable ex) {
+    println "reportStep: githubNotify threw ${ex.getClass().getName()}: ${ex.getMessage()}"
   }
 }
 
