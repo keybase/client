@@ -3092,6 +3092,13 @@ func (o *SenderSendOptions) GetJoinMentionsAs() *ConversationMemberStatus {
 	return o.JoinMentionsAs
 }
 
+func (o *SenderSendOptions) GetUnfurlSuppress() []string {
+	if o == nil {
+		return nil
+	}
+	return o.UnfurlSuppress
+}
+
 func (c Coordinate) IsZero() bool {
 	return c.Lat == 0 && c.Lon == 0
 }

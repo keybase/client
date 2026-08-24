@@ -53,13 +53,12 @@ type Unfurler struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	unfurlMap  map[string]bool
-	suppressed *unfurlCache
-	extractor  *Extractor
-	scraper    *Scraper
-	packager   *Packager
-	settings   *Settings
-	sender     UnfurlMessageSender
+	unfurlMap map[string]bool
+	extractor *Extractor
+	scraper   *Scraper
+	packager  *Packager
+	settings  *Settings
+	sender    UnfurlMessageSender
 
 	// testing
 	unfurlCh chan *chat1.Unfurl
@@ -79,7 +78,6 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Unfurler", false),
 		unfurlMap:    make(map[string]bool),
-		suppressed:   newUnfurlCacheWithLimits(suppressedCacheSize, suppressedCacheLifetime),
 		extractor:    extractor,
 		scraper:      scraper,
 		packager:     packager,
@@ -91,7 +89,6 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 func (u *Unfurler) SetClock(clock clockwork.Clock) {
 	u.scraper.cache.setClock(clock)
 	u.packager.cache.setClock(clock)
-	u.suppressed.setClock(clock)
 }
 
 func (u *Unfurler) SetTestingRetryCh(ch chan struct{}) {
@@ -113,6 +110,13 @@ func (u *Unfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 }
 
 func (u *Unfurler) statusKey(outboxID chat1.OutboxID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBUnfurler,
+		Key: fmt.Sprintf("s|%s", outboxID),
+	}
+}
+
+func (u *Unfurler) suppressedKey(outboxID chat1.OutboxID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBUnfurler,
 		Key: fmt.Sprintf("s|%s", outboxID),
@@ -238,42 +242,32 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 	return msg, nil
 }
 
-// SetSuppressed records URLs the sender chose not to unfurl for the message
-// with this outbox ID. The entry is not consumed by UnfurlAndSend: a message
-// can be unfurled more than once (accepting an unfurl prompt re-runs
-// UnfurlAndSend on the same message), and a consumed entry would let a
-// dismissed URL unfurl on that second pass. It expires after
-// suppressedCacheLifetime instead, which also keeps an entry left behind by
-// a send that never reaches UnfurlAndSend from lingering for the life of the
-// process.
-func (u *Unfurler) SetSuppressed(ctx context.Context, outboxID chat1.OutboxID, urls []string) {
-	if len(urls) == 0 {
-		return
-	}
-	m := make(map[string]bool, len(urls))
-	for _, url := range urls {
-		m[url] = true
-	}
-	u.suppressed.put(outboxID.String(), m)
+// markSuppressed records that this URL was dismissed for this message, at the same
+// deterministic key the unfurl task would use. UnfurlAndSend runs again whenever the user
+// resolves an unfurl prompt for another URL in the same message, and that pass carries no
+// suppress list, so the marker is what keeps the dismissal honoured. It lives with the
+// message's other unfurl bookkeeping rather than on a clock, so a send that waited offline
+// is treated the same as one that went out immediately.
+func (u *Unfurler) markSuppressed(ctx context.Context, outboxID chat1.OutboxID) error {
+	return u.G().GetKVStore().PutObj(u.suppressedKey(outboxID), nil, true)
 }
 
-func (u *Unfurler) getSuppressed(outboxID *chat1.OutboxID) map[string]bool {
-	if outboxID == nil {
-		return nil
+func (u *Unfurler) isSuppressed(ctx context.Context, outboxID chat1.OutboxID) bool {
+	var found bool
+	ok, err := u.G().GetKVStore().GetInto(&found, u.suppressedKey(outboxID))
+	if err != nil {
+		u.Debug(ctx, "isSuppressed: failed to read: %s", err)
+		return false
 	}
-	item, valid := u.suppressed.get(outboxID.String())
-	if !valid {
-		return nil
-	}
-	m, ok := item.data.(map[string]bool)
-	if !ok {
-		return nil
-	}
-	return m
+	return ok && found
 }
 
+// UnfurlAndSend unfurls the URLs in msg. suppress carries the URLs the sender chose not to
+// unfurl; it arrives from the message's outbox record on the send that posts the message,
+// and is empty on later passes over the same message (resolving an unfurl prompt calls this
+// again), which read the marker left behind by the first pass instead.
 func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed,
+	msg chat1.MessageUnboxed, suppress []string,
 ) {
 	defer u.Trace(ctx, nil, "UnfurlAndSend")()
 	// early out for errors
@@ -286,7 +280,10 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	if len(hits) == 0 {
 		return
 	}
-	suppressed := u.getSuppressed(msg.Valid().ClientHeader.OutboxID)
+	suppressed := make(map[string]bool, len(suppress))
+	for _, url := range suppress {
+		suppressed[url] = true
+	}
 	// get a map for all the URLs we have already unfurled
 	prevUnfurled := make(map[string]bool)
 	for _, u := range msg.Valid().Unfurls {
@@ -294,10 +291,6 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	}
 	// for each hit, either prompt the user for action, or generate a new message
 	for _, hit := range hits {
-		if suppressed[hit.URL] {
-			u.Debug(ctx, "UnfurlAndSend: skipping suppressed URL")
-			continue
-		}
 		if prevUnfurled[hit.URL] {
 			u.Debug(ctx, "UnfurlAndSend: skipping prev unfurled")
 			continue
@@ -313,6 +306,15 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			u.G().ActivityNotifier.PromptUnfurl(ctx, uid, convID, msg.GetMessageID(), domain)
 		case ExtractorHitUnfurl:
 			outboxID := storage.GetOutboxIDFromURL(hit.URL, convID, msg)
+			if suppressed[hit.URL] || u.isSuppressed(ctx, outboxID) {
+				// remember it: this runs again when the user resolves a prompt for another
+				// URL in the same message, and that pass has no suppress list of its own
+				u.Debug(ctx, "UnfurlAndSend: skipping suppressed URL: outboxID: %s", outboxID)
+				if err := u.markSuppressed(ctx, outboxID); err != nil {
+					u.Debug(ctx, "UnfurlAndSend: failed to mark suppressed: %s", err)
+				}
+				continue
+			}
 			if _, err := u.getTask(ctx, outboxID); err == nil {
 				u.Debug(ctx, "UnfurlAndSend: skipping URL hit, task exists: outboxID: %s", outboxID)
 				continue

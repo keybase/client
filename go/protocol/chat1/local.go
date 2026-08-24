@@ -1757,6 +1757,7 @@ func (o SenderPrepareOptions) DeepCopy() SenderPrepareOptions {
 
 type SenderSendOptions struct {
 	JoinMentionsAs *ConversationMemberStatus `codec:"joinMentionsAs,omitempty" json:"joinMentionsAs,omitempty"`
+	UnfurlSuppress []string                  `codec:"unfurlSuppress" json:"unfurlSuppress"`
 }
 
 func (o SenderSendOptions) DeepCopy() SenderSendOptions {
@@ -1768,6 +1769,17 @@ func (o SenderSendOptions) DeepCopy() SenderSendOptions {
 			tmp := x.DeepCopy()
 			return &tmp
 		})(o.JoinMentionsAs),
+		UnfurlSuppress: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UnfurlSuppress),
 	}
 }
 
@@ -6828,6 +6840,7 @@ type PostLocalNonblockArg struct {
 	ReplyTo            *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	IdentifyBehavior   keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	SkipInChatPayments bool                         `codec:"skipInChatPayments" json:"skipInChatPayments"`
+	UnfurlSuppress     []string                     `codec:"unfurlSuppress" json:"unfurlSuppress"`
 }
 
 type ForwardMessageArg struct {
