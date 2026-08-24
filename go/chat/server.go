@@ -1005,6 +1005,10 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 		})
 	}
 
+	if len(arg.UnfurlSuppress) > 0 && arg.OutboxID != nil {
+		h.G().Unfurler.SetSuppressed(ctx, *arg.OutboxID, arg.UnfurlSuppress)
+	}
+
 	var parg chat1.PostLocalNonblockArg
 	parg.SessionID = arg.SessionID
 	parg.ClientPrev = arg.ClientPrev
@@ -1609,6 +1613,16 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 		arg.ConversationID, arg.TlfName, arg.Text)
 
 	return nil
+}
+
+func (h *Server) UnfurlPreviewLocal(ctx context.Context, arg chat1.UnfurlPreviewLocalArg) (res []chat1.UnfurlPreviewInfo, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, &err, "UnfurlPreviewLocal")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	return h.G().Unfurler.PreviewURLs(ctx, uid, arg.ConvID, arg.Text), nil
 }
 
 func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (err error) {
