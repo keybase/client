@@ -140,8 +140,10 @@ const useStyles = Kb.Styles.createStyleHook(
       },
       replyEdited: {color: theme.black_35},
       replyText: Kb.Styles.platformStyles({
-        common: {color: theme.black_50, fontSize: 15, lineHeight: 19},
-        isElectron: {whiteSpace: 'pre-wrap'},
+        common: {color: theme.black_50},
+        // match BodySmall, which the quote used before it moved to Markdown
+        isElectron: {fontSize: 13, lineHeight: '17px', whiteSpace: 'pre-wrap'},
+        isMobile: {fontSize: 15, lineHeight: 19},
       }),
       replyTextHighlighted: {color: theme.black_50OrBlack_50},
       replyUsername: {alignSelf: 'center'},
