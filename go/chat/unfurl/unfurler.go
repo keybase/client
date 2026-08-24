@@ -119,7 +119,8 @@ func (u *Unfurler) statusKey(outboxID chat1.OutboxID) libkb.DbKey {
 func (u *Unfurler) suppressedKey(outboxID chat1.OutboxID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBUnfurler,
-		Key: fmt.Sprintf("s|%s", outboxID),
+		// not "s|", which is statusKey
+		Key: fmt.Sprintf("sup|%s", outboxID),
 	}
 }
 
@@ -242,12 +243,17 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 	return msg, nil
 }
 
-// markSuppressed records that this URL was dismissed for this message, at the same
-// deterministic key the unfurl task would use. UnfurlAndSend runs again whenever the user
-// resolves an unfurl prompt for another URL in the same message, and that pass carries no
-// suppress list, so the marker is what keeps the dismissal honoured. It lives with the
-// message's other unfurl bookkeeping rather than on a clock, so a send that waited offline
-// is treated the same as one that went out immediately.
+// markSuppressed records that this URL was dismissed for this message, keyed by the same
+// deterministic per-URL outbox ID the unfurl task would use. UnfurlAndSend runs again
+// whenever the user resolves an unfurl prompt for another URL in the same message, and that
+// pass carries no suppress list, so the marker is what keeps the dismissal honoured, on a
+// clock or not.
+//
+// Nothing deletes these. Complete() clears the task and status keys for a URL that actually
+// unfurled, but a suppressed URL never gets a task, so it has no such moment: the marker
+// would have to be cleaned when the message itself goes away, which the unfurler is not
+// told about. Each is one bool per dismissed URL per message, so the footprint is small and
+// grows only with links the user explicitly declined.
 func (u *Unfurler) markSuppressed(ctx context.Context, outboxID chat1.OutboxID) error {
 	return u.G().GetKVStore().PutObj(u.suppressedKey(outboxID), nil, true)
 }
@@ -296,6 +302,23 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			continue
 		}
 		prevUnfurled[hit.URL] = true // only one action per unique URL
+		// checked for every hit type, not just the unfurl one: a queued message can sit for
+		// a long time, and the whitelist it is classified against is read at send time, so a
+		// url the sender dismissed may have become a prompt hit in the meantime. prompting
+		// for a link they declined is the same broken promise as unfurling it
+		urlOutboxID := storage.GetOutboxIDFromURL(hit.URL, convID, msg)
+		marked := u.isSuppressed(ctx, urlOutboxID)
+		if suppressed[hit.URL] || marked {
+			u.Debug(ctx, "UnfurlAndSend: skipping suppressed URL: outboxID: %s", urlOutboxID)
+			if !marked {
+				// remember it: this runs again when the user resolves a prompt for another
+				// url in the same message, and that pass has no suppress list of its own
+				if err := u.markSuppressed(ctx, urlOutboxID); err != nil {
+					u.Debug(ctx, "UnfurlAndSend: failed to mark suppressed: %s", err)
+				}
+			}
+			continue
+		}
 		switch hit.Typ {
 		case ExtractorHitPrompt:
 			domain, err := GetDomain(hit.URL)
@@ -305,16 +328,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			}
 			u.G().ActivityNotifier.PromptUnfurl(ctx, uid, convID, msg.GetMessageID(), domain)
 		case ExtractorHitUnfurl:
-			outboxID := storage.GetOutboxIDFromURL(hit.URL, convID, msg)
-			if suppressed[hit.URL] || u.isSuppressed(ctx, outboxID) {
-				// remember it: this runs again when the user resolves a prompt for another
-				// URL in the same message, and that pass has no suppress list of its own
-				u.Debug(ctx, "UnfurlAndSend: skipping suppressed URL: outboxID: %s", outboxID)
-				if err := u.markSuppressed(ctx, outboxID); err != nil {
-					u.Debug(ctx, "UnfurlAndSend: failed to mark suppressed: %s", err)
-				}
-				continue
-			}
+			outboxID := urlOutboxID
 			if _, err := u.getTask(ctx, outboxID); err == nil {
 				u.Debug(ctx, "UnfurlAndSend: skipping URL hit, task exists: outboxID: %s", outboxID)
 				continue
