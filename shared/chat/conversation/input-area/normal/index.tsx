@@ -338,7 +338,11 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     />
   )
 
-  const preview = <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />
+  // no dismiss while editing: postEditNonblock carries no unfurlSuppress, so the X would
+  // hide the card and change nothing about what the edit posts
+  const preview = (
+    <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} canDismiss={!isEditing} />
+  )
 
   if (isMobile) {
     // in flow above the composer; it rides KeyboardStickyView with the input
