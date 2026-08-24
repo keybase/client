@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/golang/groupcache/singleflight"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
@@ -54,11 +55,16 @@ type Unfurler struct {
 	utils.DebugLabeler
 
 	unfurlMap map[string]bool
-	extractor *Extractor
-	scraper   *Scraper
-	packager  *Packager
-	settings  *Settings
-	sender    UnfurlMessageSender
+	// collapses concurrent preview scrapes of the same url. Prefetch gets this for free
+	// from prefetchLock, which serializes it; PreviewURLs is a synchronous rpc that can be
+	// called again while an earlier call is still in flight, which the composer does
+	// whenever the user edits a link before its fetch comes back
+	previewGroup singleflight.Group
+	extractor    *Extractor
+	scraper      *Scraper
+	packager     *Packager
+	settings     *Settings
+	sender       UnfurlMessageSender
 
 	// testing
 	unfurlCh chan *chat1.Unfurl
@@ -422,9 +428,17 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 			continue
 		}
 		seen[hit.URL] = true
-		unfurl, err := u.scrapeAndPackage(ctx, uid, convID, hit.URL)
+		scraped, err := u.previewGroup.Do(fmt.Sprintf("%s:%s:%s", uid, convID, hit.URL),
+			func() (any, error) {
+				return u.scrapeAndPackage(ctx, uid, convID, hit.URL)
+			})
 		if err != nil {
 			u.Debug(ctx, "PreviewURLs: unable to scrapeAndPackage: %s", err)
+			continue
+		}
+		unfurl, ok := scraped.(chat1.Unfurl)
+		if !ok {
+			u.Debug(ctx, "PreviewURLs: unexpected scrape result type: %T", scraped)
 			continue
 		}
 		if !previewable(unfurl) {
