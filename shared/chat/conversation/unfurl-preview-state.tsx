@@ -102,6 +102,11 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
   const dismissedSet = useUnfurlPreviewState(s => s.dismissed.get(conversationIDKey))
   const {dismiss: dismissURL, keepOnly} = useUnfurlPreviewState(s => s.dispatch)
   const requestIDRef = React.useRef(0)
+  // the input subtree remounts per conversation (key={conversationIDKey} on the provider),
+  // so the first render of a conversation we return to always has empty text before the
+  // draft is restored. clearing dismissals on that would throw away what the user
+  // dismissed before switching away, so only prune once real text has been seen.
+  const sawTextRef = React.useRef(false)
   const hasLink = text.includes('http')
 
   const onFetched = React.useCallback(
@@ -118,9 +123,13 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
   React.useEffect(() => {
     const id = ++requestIDRef.current
     if (!text.includes('http')) {
-      keepOnly(conversationIDKey, [])
+      if (sawTextRef.current) {
+        keepOnly(conversationIDKey, [])
+      }
+      sawTextRef.current = sawTextRef.current || !!text
       return
     }
+    sawTextRef.current = true
     const timeoutID = setTimeout(() => {
       ignorePromise(fetchPreviews(conversationIDKey, text, id, requestIDRef, onFetched))
     }, debounceMS)

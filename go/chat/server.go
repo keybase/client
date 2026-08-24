@@ -1005,8 +1005,15 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 		})
 	}
 
-	if len(arg.UnfurlSuppress) > 0 && arg.OutboxID != nil {
-		h.G().Unfurler.SetSuppressed(ctx, *arg.OutboxID, arg.UnfurlSuppress)
+	if len(arg.UnfurlSuppress) > 0 {
+		// suppression is keyed by outbox ID, and without one from the caller the deliverer
+		// generates its own, which we never see here. say so rather than dropping the
+		// caller's intent silently and unfurling a link they asked us not to.
+		if arg.OutboxID == nil {
+			h.Debug(ctx, "PostTextNonblock: ignoring unfurlSuppress, no outboxID supplied")
+		} else {
+			h.G().Unfurler.SetSuppressed(ctx, *arg.OutboxID, arg.UnfurlSuppress)
+		}
 	}
 
 	var parg chat1.PostLocalNonblockArg
