@@ -8,7 +8,6 @@ import {useUnfurlPreviews, getSuppressedURLs, useUnfurlPreviewState} from './unf
 // T.Chat.keyToConversationID (used to build the RPC's convID param), so build
 // the fixture the way input-state.test.tsx does: round-trip through bytes.
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 const info = (url: string): T.RPCChat.UnfurlPreviewInfo =>
   ({unfurl: {generic: {title: url, url}, unfurlType: T.RPCChat.UnfurlType.generic}, url}) as T.RPCChat.UnfurlPreviewInfo
 
@@ -106,13 +105,10 @@ describe('unfurl previews', () => {
     await waitFor(() => expect(getSuppressedURLs(convID)).toEqual([]))
   })
 
-  it('does not flash the previous conversation preview after switching conversations', async () => {
+  it('drops a card once its url leaves the composer, even if the next fetch fails', async () => {
     const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
     spy.mockResolvedValueOnce([info('http://a.com')])
-    let resolveSecond: ((v: Array<T.RPCChat.UnfurlPreviewInfo>) => void) | undefined
-    spy.mockImplementationOnce(
-      async () => new Promise<Array<T.RPCChat.UnfurlPreviewInfo>>(resolve => (resolveSecond = resolve))
-    )
+    spy.mockRejectedValueOnce(new Error('scrape failed'))
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness id={convID} text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -120,17 +116,15 @@ describe('unfurl previews', () => {
     })
     await waitFor(() => expect(last?.previews[0]?.url).toBe('http://a.com'))
 
-    // switch to a different conversation whose draft also contains a link
-    rerender(<Harness id={otherConvID} text="see http://c.com" onRender={r => (last = r)} />)
-    // conv A's preview must be gone immediately, before the new conversation's debounce even fires
+    // the user replaces the link; the fetch for the new one fails, so nothing ever
+    // overwrites the previous result. the old card must not stay on screen, or its X would
+    // suppress a url that is no longer in the message while the new one goes out unfurled
+    rerender(<Harness id={convID} text="see http://b.com" onRender={r => (last = r)} />)
     expect(last?.previews).toEqual([])
     act(() => {
       jest.advanceTimersByTime(500)
     })
-    // still no preview: the new conversation's fetch is in flight but unresolved
-    expect(last?.previews).toEqual([])
-    act(() => resolveSecond?.([info('http://c.com')]))
-    await waitFor(() => expect(last?.previews[0]?.url).toBe('http://c.com'))
+    await waitFor(() => expect(last?.previews).toEqual([]))
   })
 
   it('keeps dismissals when the conversation is left and returned to', async () => {

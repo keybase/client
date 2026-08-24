@@ -17,6 +17,7 @@ type State = T.Immutable<{
 export const useUnfurlPreviewState = Z.createZustand<State>('unfurl-preview', set => ({
   dismissed: new Map(),
   dispatch: {
+    // also the restore path after a canceled send: both mean "these urls are suppressed"
     dismiss: (conversationIDKey, urls) => {
       if (!urls.length) return
       set(s => {
@@ -87,18 +88,14 @@ const fetchPreviews = async (
     if (requestID !== requestIDRef.current) return
     onSuccess(conversationIDKey, res ?? [])
   } catch (e) {
-    // best-effort preview: an RPC failure just means no card shows, nothing for the user to act on
+    // best-effort preview: nothing is shown for a url whose fetch failed, since `visible`
+    // only surfaces previews whose url is still in the composer text
     logger.info('unfurl preview failed', e)
   }
 }
 
-type FetchedPreviews = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  previews: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>
-}
-
 export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  const [fetched, setFetched] = React.useState<FetchedPreviews>({conversationIDKey, previews: []})
+  const [fetched, setFetched] = React.useState<ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>>([])
   const dismissedSet = useUnfurlPreviewState(s => s.dismissed.get(conversationIDKey))
   const {dismiss: dismissURL, keepOnly} = useUnfurlPreviewState(s => s.dispatch)
   const requestIDRef = React.useRef(0)
@@ -111,7 +108,7 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
 
   const onFetched = React.useCallback(
     (fetchedConversationIDKey: T.Chat.ConversationIDKey, infos: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>) => {
-      setFetched({conversationIDKey: fetchedConversationIDKey, previews: infos})
+      setFetched(infos)
       keepOnly(
         fetchedConversationIDKey,
         infos.map(i => i.url)
@@ -145,14 +142,13 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
     [conversationIDKey, dismissURL]
   )
 
-  // mask stale previews from a since-switched conversation the same way `hasLink` masks
-  // text that no longer has a link, so a switch never flashes the previous conversation's card
+  // a card is only shown while its url is still in the composer. the fetch that would
+  // replace these previews can fail or still be in flight, and showing a card for a url the
+  // user has since deleted is worse than showing nothing: its X would suppress a link that
+  // is not in the message, while the link that is about to send never gets offered one.
   const visible = React.useMemo(
-    () =>
-      hasLink && fetched.conversationIDKey === conversationIDKey
-        ? fetched.previews.filter(p => !dismissedSet?.has(p.url))
-        : [],
-    [hasLink, fetched, conversationIDKey, dismissedSet]
+    () => (hasLink ? fetched.filter(p => text.includes(p.url) && !dismissedSet?.has(p.url)) : []),
+    [hasLink, fetched, text, dismissedSet]
   )
   return {dismiss, previews: visible}
 }
