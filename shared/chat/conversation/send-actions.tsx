@@ -56,7 +56,7 @@ const sendTextMessageStoreless = (p: SendTextParams) => {
           clientPrev: p.clientPrev,
           conversationID: T.Chat.keyToConversationID(p.conversationIDKey),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          outboxID: Common.generateOutboxID(),
+          outboxID: undefined,
           replyTo: p.replyTo,
           tlfName: p.tlfName,
           tlfPublic: false,

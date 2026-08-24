@@ -12,15 +12,6 @@ import (
 const (
 	defaultCacheLifetime = 10 * time.Minute
 	defaultCacheSize     = 1000
-
-	// suppressedCacheLifetime/Size bound the store of per-send unfurl
-	// suppressions: a message about to send holds at most a handful of
-	// dismissed URLs, and the entry is only relevant for as long as the
-	// send is in flight, so a small cap and a short TTL are enough to
-	// prevent an unconsumed entry (failed/aborted send) from leaking for
-	// the life of the process.
-	suppressedCacheLifetime = 5 * time.Minute
-	suppressedCacheSize     = 200
 )
 
 type cacheItem struct {
@@ -30,24 +21,18 @@ type cacheItem struct {
 
 type unfurlCache struct {
 	sync.Mutex
-	cache    *lru.Cache
-	clock    clockwork.Clock
-	lifetime time.Duration
+	cache *lru.Cache
+	clock clockwork.Clock
 }
 
 func newUnfurlCache() *unfurlCache {
-	return newUnfurlCacheWithLimits(defaultCacheSize, defaultCacheLifetime)
-}
-
-func newUnfurlCacheWithLimits(size int, lifetime time.Duration) *unfurlCache {
-	cache, err := lru.New(size)
+	cache, err := lru.New(defaultCacheSize)
 	if err != nil {
 		panic(err)
 	}
 	return &unfurlCache{
-		cache:    cache,
-		clock:    clockwork.NewRealClock(),
-		lifetime: lifetime,
+		cache: cache,
+		clock: clockwork.NewRealClock(),
 	}
 }
 
@@ -55,8 +40,8 @@ func (c *unfurlCache) setClock(clock clockwork.Clock) {
 	c.clock = clock
 }
 
-// get determines if the item is in the cache and newer than the cache's
-// lifetime. We don't want to cache this value indefinitely in case the page
+// get determines if the item is in the cache and newer than 10
+// minutes. We don't want to cache this value indefinitely in case the page
 // content changes.
 func (c *unfurlCache) get(key string) (res cacheItem, ok bool) {
 	c.Lock()
@@ -70,7 +55,7 @@ func (c *unfurlCache) get(key string) (res cacheItem, ok bool) {
 	if !ok {
 		return res, false
 	}
-	valid := c.clock.Now().Sub(cacheItem.ctime.Time()) <= c.lifetime
+	valid := c.clock.Now().Sub(cacheItem.ctime.Time()) <= defaultCacheLifetime
 	if !valid {
 		c.cache.Remove(key)
 	}
