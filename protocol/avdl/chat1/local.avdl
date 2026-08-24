@@ -841,7 +841,7 @@ protocol local {
   PostLocalNonblockRes forwardMessageNonblock(int sessionID, ConversationID srcConvID, ConversationID dstConvID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior, string title);
 
   @timeout_msec(30000) // 30 seconds
-  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, MessageID } replyTo, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
+  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, MessageID } replyTo, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime, array<string> unfurlSuppress);
 
   @timeout_msec(30000) // 30 seconds
   PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
@@ -1242,6 +1242,14 @@ protocol local {
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
+
+  record UnfurlPreviewInfo {
+    string url;
+    UnfurlDisplay unfurl;
+  }
+
+  @timeout_msec(15000)
+  array<UnfurlPreviewInfo> unfurlPreviewLocal(ConversationID convID, string text);
 
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 

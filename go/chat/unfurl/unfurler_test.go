@@ -9,11 +9,13 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -175,4 +177,117 @@ func TestUnfurler(t *testing.T) {
 	require.Error(t, err)
 	require.ErrorAs(t, err, new(libkb.NotFoundError))
 	require.Equal(t, types.UnfurlerTaskStatusFailed, status)
+}
+
+func TestUnfurlerPreviewURLs(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	storage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, storage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	srv := createTestCaseHTTPSrv(t)
+	addr := srv.Start()
+	defer srv.Stop()
+
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
+
+	res := unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url)
+	require.Len(t, res, 1)
+	require.Equal(t, url, res[0].Url)
+	typ, err := res[0].Unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_GENERIC, typ)
+	require.NotZero(t, res[0].Unfurl.Generic().Title)
+
+	// duplicate URLs collapse to one entry
+	res = unfurler.PreviewURLs(context.TODO(), uid, convID, url+" and again "+url)
+	require.Len(t, res, 1)
+
+	// text with no links does no work
+	require.Empty(t, unfurler.PreviewURLs(context.TODO(), uid, convID, "no links here"))
+}
+
+func makeTextMsgWithOutboxID(msgBody string, outboxID chat1.OutboxID) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+		ClientHeader: chat1.MessageClientHeaderVerified{
+			TlfName:     "mike",
+			MessageType: chat1.MessageType_TEXT,
+			OutboxID:    &outboxID,
+		},
+		ServerHeader: chat1.MessageServerHeader{
+			MessageID: 4,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: msgBody,
+		}),
+	})
+}
+
+func TestUnfurlerSuppress(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	memStorage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, memStorage, sender, ri)
+	suppressedClock := clockwork.NewFakeClock()
+	unfurler.suppressed.setClock(suppressedClock)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	srv := createTestCaseHTTPSrv(t)
+	addr := srv.Start()
+	defer srv.Stop()
+
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
+
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	msg := makeTextMsgWithOutboxID("check out this link! "+url, outboxID)
+
+	unfurler.SetSuppressed(context.TODO(), outboxID, []string{url})
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg)
+	select {
+	case <-sender.ch:
+		require.Fail(t, "should not have sent a suppressed unfurl")
+	case <-time.After(2 * time.Second):
+	}
+
+	// suppression is not consumed: accepting an unfurl prompt re-runs
+	// UnfurlAndSend on the same message, and the dismissed URL must stay
+	// suppressed on that second pass
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg)
+	select {
+	case <-sender.ch:
+		require.Fail(t, "should not have sent a suppressed unfurl on the second pass")
+	case <-time.After(2 * time.Second):
+	}
+
+	// the entry expires rather than being consumed
+	suppressedClock.Advance(suppressedCacheLifetime + time.Minute)
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg)
+	select {
+	case <-sender.ch:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no unfurl message sent")
+	}
 }
