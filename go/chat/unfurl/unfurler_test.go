@@ -1,9 +1,15 @@
 package unfurl
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -15,6 +21,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -355,4 +362,79 @@ func TestUnfurlerSuppressPrompt(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no prompt for the unsuppressed URL")
 	}
+}
+
+// an abandoned preview caller must not take the scrape down with it: the composer calls
+// PreviewURLs again on every edit, so the caller that wins the singleflight is often the
+// one that goes away first
+func TestUnfurlerPreviewURLsCallerCancel(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	storage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, storage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+
+	var scrapes int64
+	started := make(chan struct{}, 1)
+	release := make(chan struct{})
+	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
+		name := r.URL.Query().Get("name")
+		if name == "wsj0.html" && atomic.AddInt64(&scrapes, 1) == 1 {
+			started <- struct{}{}
+			<-release
+		}
+		w.WriteHeader(200)
+		dat, err := os.ReadFile(filepath.Join("testcases", name))
+		assert.NoError(t, err)
+		_, err = io.Copy(w, bytes.NewBuffer(dat))
+		assert.NoError(t, err)
+	})
+	addr := srv.Start()
+	defer srv.Stop()
+
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
+
+	// the first caller wins the singleflight and is then abandoned mid-scrape
+	firstCtx, cancelFirst := context.WithCancel(context.TODO())
+	firstCh := make(chan []chat1.UnfurlPreviewInfo, 1)
+	go func() { firstCh <- unfurler.PreviewURLs(firstCtx, uid, convID, "check this out "+url) }()
+	select {
+	case <-started:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "scrape never started")
+	}
+
+	// the second caller joins the same scrape, then the first one goes away
+	secondCh := make(chan []chat1.UnfurlPreviewInfo, 1)
+	go func() { secondCh <- unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url) }()
+	cancelFirst()
+	select {
+	case res := <-firstCh:
+		require.Empty(t, res, "a cancelled caller should not return a preview")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "cancelled caller never returned")
+	}
+
+	close(release)
+	select {
+	case res := <-secondCh:
+		require.Len(t, res, 1, "the surviving caller lost its preview to the cancelled one")
+		require.Equal(t, url, res[0].Url)
+		require.NotEmpty(t, res[0].Unfurl.Generic().Title)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "surviving caller never returned")
+	}
+	require.Equal(t, int64(1), atomic.LoadInt64(&scrapes), "the two callers did not share one scrape")
 }
