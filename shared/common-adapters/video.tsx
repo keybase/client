@@ -49,8 +49,9 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
     if (parsed.protocol === 'file:' && parsed.hostname === '') {
       return true
     }
-    // hot dev serves local files through our own scheme instead of file://
-    if (parsed.protocol === `${localFileScheme}:` && parsed.hostname === localFileHost) {
+    // hot dev serves local files through our own scheme instead of file://; the
+    // scheme only exists there, so don't accept it anywhere else
+    if (__HOT__ && parsed.protocol === `${localFileScheme}:` && parsed.hostname === localFileHost) {
       return true
     }
   } catch {}
