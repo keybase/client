@@ -413,6 +413,50 @@ func previewable(unfurl chat1.Unfurl) bool {
 	return unfurl.Generic().MapInfo == nil
 }
 
+// previewScrape scrapes and packages one url, collapsing concurrent calls for the same
+// url into a single scrape.
+//
+// the shared scrape deliberately does not run on the calling context. the composer calls
+// PreviewURLs again on every edit and abandons the call in flight, so whichever caller
+// happens to win the singleflight is also the one most likely to go away: running the
+// scrape on its context would fail every other caller waiting on the same url. callers
+// still honour their own cancellation, they just stop waiting rather than kill the work.
+func (u *Unfurler) previewScrape(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	url string,
+) (chat1.Unfurl, error) {
+	// %x, not %s: uid and convID are raw bytes and can contain the separator
+	key := fmt.Sprintf("%x:%x:%s", uid, convID, url)
+	// keeps the caller's log tags and identify behaviour and drops only the cancellation.
+	// the scraper bounds the work with its own request timeout
+	scrapeCtx := context.WithoutCancel(ctx)
+	type scrapeRes struct {
+		unfurl chat1.Unfurl
+		err    error
+	}
+	ch := make(chan scrapeRes, 1)
+	go func() {
+		scraped, err := u.previewGroup.Do(key, func() (any, error) {
+			return u.scrapeAndPackage(scrapeCtx, uid, convID, url)
+		})
+		if err != nil {
+			ch <- scrapeRes{err: err}
+			return
+		}
+		unfurl, ok := scraped.(chat1.Unfurl)
+		if !ok {
+			ch <- scrapeRes{err: fmt.Errorf("unexpected scrape result type: %T", scraped)}
+			return
+		}
+		ch <- scrapeRes{unfurl: unfurl}
+	}()
+	select {
+	case res := <-ch:
+		return res.unfurl, res.err
+	case <-ctx.Done():
+		return chat1.Unfurl{}, ctx.Err()
+	}
+}
+
 func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text string,
 ) (res []chat1.UnfurlPreviewInfo) {
@@ -428,17 +472,12 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 			continue
 		}
 		seen[hit.URL] = true
-		scraped, err := u.previewGroup.Do(fmt.Sprintf("%s:%s:%s", uid, convID, hit.URL),
-			func() (any, error) {
-				return u.scrapeAndPackage(ctx, uid, convID, hit.URL)
-			})
+		unfurl, err := u.previewScrape(ctx, uid, convID, hit.URL)
 		if err != nil {
 			u.Debug(ctx, "PreviewURLs: unable to scrapeAndPackage: %s", err)
-			continue
-		}
-		unfurl, ok := scraped.(chat1.Unfurl)
-		if !ok {
-			u.Debug(ctx, "PreviewURLs: unexpected scrape result type: %T", scraped)
+			if ctx.Err() != nil {
+				return nil
+			}
 			continue
 		}
 		if !previewable(unfurl) {
