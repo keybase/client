@@ -208,7 +208,7 @@ func TestUnfurlerPreviewURLs(t *testing.T) {
 	typ, err := res[0].Unfurl.UnfurlType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_GENERIC, typ)
-	require.NotZero(t, res[0].Unfurl.Generic().Title)
+	require.NotEmpty(t, res[0].Unfurl.Generic().Title)
 
 	// duplicate URLs collapse to one entry
 	res = unfurler.PreviewURLs(context.TODO(), uid, convID, url+" and again "+url)
