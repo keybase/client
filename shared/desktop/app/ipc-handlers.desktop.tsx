@@ -213,10 +213,21 @@ export const setupIPCHandlers = (deps: {
         })
       }
       case 'clipboardAvailableFormats': {
-        return Electron.clipboard.availableFormats()
+        const items = await Electron.clipboard.read()
+        return [...new Set(items.flatMap(i => i.types))]
       }
       case 'readImageFromClipboard': {
-        const image = Electron.clipboard.readImage()
+        const items = await Electron.clipboard.read()
+        // nativeImage only decodes png/jpeg, which is also all chromium normalizes clipboard
+        // images to, so those are the only two worth asking for
+        const item =
+          items.find(i => i.types.includes('image/png')) ?? items.find(i => i.types.includes('image/jpeg'))
+        if (!item) return undefined
+        const type = item.types.includes('image/png') ? 'image/png' : 'image/jpeg'
+        // getType rejects if the clipboard changed out from under us since read()
+        const blob = await item.getType(type).catch(() => undefined)
+        if (!(blob instanceof Blob)) return undefined
+        const image = Electron.nativeImage.createFromBuffer(Buffer.from(await blob.arrayBuffer()))
         if (image.isEmpty()) return undefined
         return image.toPNG()
       }
@@ -239,8 +250,7 @@ export const setupIPCHandlers = (deps: {
         return
       }
       case 'copyToClipboard': {
-        Electron.clipboard.writeText(action.payload.text)
-        return
+        return Electron.clipboard.writeText(action.payload.text)
       }
       case 'isDirectory': {
         return new Promise(resolve => {
@@ -389,7 +399,7 @@ export const setupIPCHandlers = (deps: {
         const menu = Electron.Menu.buildFromTemplate([
           {
             click: () => {
-              Electron.clipboard.writeText(url)
+              void Electron.clipboard.writeText(url)
             },
             label: 'Copy URL',
           },

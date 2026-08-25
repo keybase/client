@@ -246,30 +246,19 @@ const fixWindowsScalingIssue = (win: Electron.BrowserWindow) => {
 
 const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
   const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
-  // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows.
-  // restoreState/wasOpenedAsHidden are deprecated with no replacement for the pre-13 macOS login
-  // item mechanism we still use
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
-  const isRestore = !!env.KEYBASE_RESTORE_UI || Electron.app.getLoginItemSettings().restoreState || isWindows
+  // electron 44 removed restoreState/wasOpenedAsHidden with no replacement, so any login launch
+  // counts as a restore and we fall back to the window/dock hidden state we persist ourselves
+  const isRestore = !!env.KEYBASE_RESTORE_UI || isWindows || openedAtLogin
   const hideWindowOnStart = env.KEYBASE_AUTOSTART === '1'
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
-  const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
   logger.info('KEYBASE_AUTOSTART =', env.KEYBASE_AUTOSTART)
   logger.info('KEYBASE_START_UI =', env.KEYBASE_START_UI)
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
-  logger.info('Open hidden:', openHidden)
 
   // Don't show main window:
-  // - If we are set to open hidden,
-  // - or, if we hide window on start,
+  // - If we hide window on start,
   // - or, if we are restoring and window was hidden
-  // - or, if we were opened from login (but not restoring)
-  const hideMainWindow =
-    openHidden ||
-    hideWindowOnStart ||
-    (isRestore && windowState.windowHidden) ||
-    (openedAtLogin && !isRestore)
+  const hideMainWindow = hideWindowOnStart || (isRestore && windowState.windowHidden)
 
   logger.info('Hide main window:', hideMainWindow)
   if (!hideMainWindow) {
@@ -286,11 +275,8 @@ const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
   }
 
   // Don't show dock:
-  // - If we are set to open hidden,
-  // - or, if we are restoring and dock was hidden
-  // - or, if we were opened from login (but not restoring)
-  const shouldHideDockIcon =
-    openHidden || (isRestore && windowState.dockHidden) || (openedAtLogin && !isRestore)
+  // - If we are restoring and dock was hidden
+  const shouldHideDockIcon = isRestore && windowState.dockHidden
   logger.info('Hide dock icon:', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()
