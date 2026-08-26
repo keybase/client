@@ -11,6 +11,9 @@ const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const info = (url: string): T.RPCChat.UnfurlPreviewInfo =>
   ({unfurl: {generic: {title: url, url}, unfurlType: T.RPCChat.UnfurlType.generic}, url}) as T.RPCChat.UnfurlPreviewInfo
 
+// a url the service could not scrape: reported so it can be suppressed, no unfurl on it
+const failedInfo = (url: string): T.RPCChat.UnfurlPreviewInfo => ({url}) as T.RPCChat.UnfurlPreviewInfo
+
 const Harness = (p: {
   text: string
   id?: T.Chat.ConversationIDKey
@@ -87,6 +90,38 @@ describe('unfurl previews', () => {
     act(() => last?.dismiss('http://a.com'))
     await waitFor(() => expect(last?.previews.length).toBe(0))
     expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+  })
+
+  it('suppresses a url the service could not preview, and shows no card for it', async () => {
+    jest
+      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+      .mockResolvedValue([failedInfo('http://wsj.com'), info('http://a.com')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    render(<Harness text="see http://wsj.com http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.map(p => p.url)).toEqual(['http://a.com']))
+    // the send path would unfurl wsj minutes later otherwise, with no card to decline
+    expect(getSuppressedURLs(convID)).toEqual(['http://wsj.com'])
+  })
+
+  it('offers the card again once a url that failed starts previewing', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+    spy.mockResolvedValueOnce([failedInfo('http://a.com')])
+    spy.mockResolvedValueOnce([info('http://a.com')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(getSuppressedURLs(convID)).toEqual(['http://a.com']))
+    rerender(<Harness text="see http://a.com now" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    expect(getSuppressedURLs(convID)).toEqual([])
   })
 
   it('forgets a dismissal once the url leaves the text', async () => {

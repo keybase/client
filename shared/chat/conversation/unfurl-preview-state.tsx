@@ -6,16 +6,23 @@ import logger from '@/logger'
 
 type State = T.Immutable<{
   dismissed: Map<T.Chat.ConversationIDKey, Set<string>>
+  // urls the service could not preview. they suppress on send like a dismissal does, but
+  // are kept apart from one: the next fetch replaces this set wholesale, and a url that
+  // starts scraping again must come back as a card, which it could not do if a failure
+  // had been recorded as something the user dismissed
+  failed: Map<T.Chat.ConversationIDKey, Set<string>>
   dispatch: {
     dismiss: (conversationIDKey: T.Chat.ConversationIDKey, urls: ReadonlyArray<string>) => void
     keepOnly: (conversationIDKey: T.Chat.ConversationIDKey, urls: ReadonlyArray<string>) => void
     remove: (conversationIDKey: T.Chat.ConversationIDKey, urls: ReadonlyArray<string>) => void
+    setFailed: (conversationIDKey: T.Chat.ConversationIDKey, urls: ReadonlyArray<string>) => void
     resetState: () => void
   }
 }>
 
 export const useUnfurlPreviewState = Z.createZustand<State>('unfurl-preview', set => ({
   dismissed: new Map(),
+  failed: new Map(),
   dispatch: {
     // also the restore path after a canceled send: both mean "these urls are suppressed"
     dismiss: (conversationIDKey, urls) => {
@@ -36,6 +43,15 @@ export const useUnfurlPreviewState = Z.createZustand<State>('unfurl-preview', se
         if (!existing.size) s.dismissed.delete(conversationIDKey)
       })
     },
+    setFailed: (conversationIDKey, urls) => {
+      set(s => {
+        if (!urls.length) {
+          s.failed.delete(conversationIDKey)
+          return
+        }
+        s.failed.set(conversationIDKey, new Set(urls))
+      })
+    },
     remove: (conversationIDKey, urls) => {
       set(s => {
         const existing = s.dismissed.get(conversationIDKey)
@@ -48,9 +64,14 @@ export const useUnfurlPreviewState = Z.createZustand<State>('unfurl-preview', se
   },
 }))
 
-export const getSuppressedURLs = (conversationIDKey: T.Chat.ConversationIDKey) => [
-  ...(useUnfurlPreviewState.getState().dismissed.get(conversationIDKey) ?? []),
-]
+// what the user dismissed plus what could not be previewed: the send suppresses both, so
+// the message unfurls exactly the cards the composer offered
+export const getSuppressedURLs = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const {dismissed, failed} = useUnfurlPreviewState.getState()
+  return [
+    ...new Set([...(dismissed.get(conversationIDKey) ?? []), ...(failed.get(conversationIDKey) ?? [])]),
+  ]
+}
 
 // dropped once the send they belong to lands; a targeted remove rather than a
 // whole-conversation clear so a dismissal made while that send was in flight survives
@@ -97,7 +118,7 @@ const fetchPreviews = async (
 export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
   const [fetched, setFetched] = React.useState<ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>>([])
   const dismissedSet = useUnfurlPreviewState(s => s.dismissed.get(conversationIDKey))
-  const {dismiss: dismissURL, keepOnly} = useUnfurlPreviewState(s => s.dispatch)
+  const {dismiss: dismissURL, keepOnly, setFailed} = useUnfurlPreviewState(s => s.dispatch)
   const requestIDRef = React.useRef(0)
   // the input subtree remounts per conversation (key={conversationIDKey} on the provider),
   // so the first render of a conversation we return to always has empty text before the
@@ -113,8 +134,12 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
         fetchedConversationIDKey,
         infos.map(i => i.url)
       )
+      setFailed(
+        fetchedConversationIDKey,
+        infos.filter(i => !i.unfurl).map(i => i.url)
+      )
     },
-    [keepOnly]
+    [keepOnly, setFailed]
   )
 
   React.useEffect(() => {
@@ -122,6 +147,7 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
     if (!text.includes('http')) {
       if (sawTextRef.current) {
         keepOnly(conversationIDKey, [])
+        setFailed(conversationIDKey, [])
       }
       sawTextRef.current = sawTextRef.current || !!text
       return
@@ -133,7 +159,7 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
     return () => {
       clearTimeout(timeoutID)
     }
-  }, [conversationIDKey, keepOnly, text, onFetched])
+  }, [conversationIDKey, keepOnly, setFailed, text, onFetched])
 
   const dismiss = React.useCallback(
     (url: string) => {
@@ -146,8 +172,17 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
   // replace these previews can fail or still be in flight, and showing a card for a url the
   // user has since deleted is worse than showing nothing: its X would suppress a link that
   // is not in the message, while the link that is about to send never gets offered one.
+  // an entry with no unfurl is a url the service could not preview. it is already
+  // suppressed for the send, so there is nothing to show and nothing to dismiss
   const visible = React.useMemo(
-    () => (hasLink ? fetched.filter(p => text.includes(p.url) && !dismissedSet?.has(p.url)) : []),
+    () =>
+      hasLink
+        ? fetched.flatMap(p =>
+            p.unfurl && text.includes(p.url) && !dismissedSet?.has(p.url)
+              ? [{unfurl: p.unfurl, url: p.url}]
+              : []
+          )
+        : [],
     [hasLink, fetched, text, dismissedSet]
   )
   return {dismiss, previews: visible}

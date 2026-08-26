@@ -212,6 +212,7 @@ func TestUnfurlerPreviewURLs(t *testing.T) {
 	res := unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url)
 	require.Len(t, res, 1)
 	require.Equal(t, url, res[0].Url)
+	require.NotNil(t, res[0].Unfurl)
 	typ, err := res[0].Unfurl.UnfurlType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_GENERIC, typ)
@@ -223,6 +224,41 @@ func TestUnfurlerPreviewURLs(t *testing.T) {
 
 	// text with no links does no work
 	require.Empty(t, unfurler.PreviewURLs(context.TODO(), uid, convID, "no links here"))
+}
+
+// a url the scraper cannot fetch still comes back, with no unfurl on it: the send path
+// would queue an unfurl for it anyway, so the client needs to know to suppress it
+func TestUnfurlerPreviewURLsScrapeFailure(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	storage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, storage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
+		// what wsj.com does to the scraper
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	addr := srv.Start()
+	defer srv.Stop()
+
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
+
+	res := unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url)
+	require.Len(t, res, 1)
+	require.Equal(t, url, res[0].Url)
+	require.Nil(t, res[0].Unfurl)
 }
 
 func makeTextMsgWithMsgID(msgBody string, outboxID chat1.OutboxID, msgID chat1.MessageID) chat1.MessageUnboxed {
@@ -432,6 +468,7 @@ func TestUnfurlerPreviewURLsCallerCancel(t *testing.T) {
 	case res := <-secondCh:
 		require.Len(t, res, 1, "the surviving caller lost its preview to the cancelled one")
 		require.Equal(t, url, res[0].Url)
+		require.NotNil(t, res[0].Unfurl)
 		require.NotEmpty(t, res[0].Unfurl.Generic().Title)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "surviving caller never returned")

@@ -3688,7 +3688,10 @@
           "name": "url"
         },
         {
-          "type": "UnfurlDisplay",
+          "type": [
+            null,
+            "UnfurlDisplay"
+          ],
           "name": "unfurl"
         }
       ]

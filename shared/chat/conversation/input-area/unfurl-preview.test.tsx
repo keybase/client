@@ -3,6 +3,7 @@
 import * as T from '@/constants/types'
 import {fireEvent, render} from '@testing-library/react'
 import UnfurlPreview from './unfurl-preview'
+import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 
 const mockDismiss = jest.fn()
 let mockPreviews: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo> = []
@@ -120,6 +121,26 @@ describe('UnfurlPreview', () => {
     fireEvent.click(container.querySelector('.icon-gen-iconfont-arrow-right') as Element)
     fireEvent.click(container.querySelector('.icon-gen-iconfont-close') as Element)
     expect(mockDismiss).toHaveBeenCalledWith('http://b.com')
+  })
+
+  it('puts focus back in the composer after a dismiss', () => {
+    mockPreviews = [genericInfo]
+    const focusInput = jest.fn()
+    const refs = {
+      focusInput,
+      scrollDown: () => {},
+      scrollToBottom: () => {},
+      scrollUp: () => {},
+      setInputRef: () => {},
+      setScrollRef: () => {},
+    }
+    const {container} = render(
+      <ThreadRefsContext value={refs}>
+        <UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com" />
+      </ThreadRefsContext>
+    )
+    fireEvent.click(container.querySelector('.icon-gen-iconfont-close') as Element)
+    expect(focusInput).toHaveBeenCalled()
   })
 
   it('offers no dismiss while editing, since an edit cannot carry suppression', () => {
