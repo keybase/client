@@ -135,12 +135,12 @@
     "react-native-gesture-handler": "3.2.1",
     "react-native-kb": "file:../rnmodules/react-native-kb",
     "react-native-keyboard-controller": "1.22.4",
-    "react-native-reanimated": "4.5.3",
+    "react-native-reanimated": "4.6.0",
     "react-native-safe-area-context": "5.9.1",
     "react-native-screens": "4.27.0",
     "react-native-web": "0.21.2",
     "react-native-webview": "16.0.0",
-    "react-native-worklets": "0.11.3",
+    "react-native-worklets": "0.12.1",
     "zustand": "5.0.15"
   },
   "devDependencies": {
