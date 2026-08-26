@@ -11639,10 +11639,10 @@ react-native-keyboard-controller@1.22.4:
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
 
-react-native-reanimated@4.5.3:
-  version "4.5.3"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.5.3.tgz#10ec3f1b2c8d710033d707199cab591a0d410d70"
-  integrity sha512-+owIckpD4sA13XKHaLrr8V1RP4paqoxKvz/jy2wl/ULjMsfcRlfIJdKJxR1kcQr4McBZ6hAoPo01NyLnmy2ycQ==
+react-native-reanimated@4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.6.0.tgz#ee6fe5f0dab85f5e746a83669da04acbda1c71d6"
+  integrity sha512-9vbQmok5BPX2J3RLPFt2UnwmK2QQoMDPDi0VB4a9JWIiEc55pdzvwEsdH91V/JXKNErqM6a9fElTBMc/1cbtBA==
   dependencies:
     react-native-is-edge-to-edge "^1.3.1"
     semver "^7.7.3"
@@ -11682,10 +11682,10 @@ react-native-webview@16.0.0:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-react-native-worklets@0.11.3:
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.11.3.tgz#b92ca2bd3ea96610e0143a7ef0e386b19b281b0f"
-  integrity sha512-paLRlVFTrrGhkGTi37LHwtaJbrTftA54/zAx1h/ONSBw7XejZn6XUUl1KpM6EOMwsbw7TEGuxJXTAp/wkvuMqQ==
+react-native-worklets@0.12.1:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.12.1.tgz#2a6956bfd6549e02462b94ef401ae8a1bae153a7"
+  integrity sha512-/u7B+Akrox32IQUi6+0OHwWAfBC/A5LVdt000RL8OKB4L1pHTvIDwVyMP6Nw7ybuuoQYS8PLlpmxTE1Ce7TqWg==
   dependencies:
     "@babel/generator" "^7.27.1"
     "@babel/plugin-transform-arrow-functions" "^7.27.1"
