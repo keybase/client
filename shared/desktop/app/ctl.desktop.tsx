@@ -3,10 +3,9 @@ import {keybaseBinPath} from './paths.desktop'
 import exec from './exec.desktop'
 import {isWindows} from '@/constants/platform'
 import {spawn} from 'child_process'
-import {type ExecException} from 'child_process'
 
 export function ctlStop(
-  callback: (err: ExecException | null, attempted: boolean, stdout: string, stderr: string) => void
+  callback: (err: Error | null, attempted: boolean, stdout: string, stderr: string) => void
 ) {
   const binPath = keybaseBinPath()
   if (isWindows) {
