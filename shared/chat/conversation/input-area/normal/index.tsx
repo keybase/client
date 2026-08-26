@@ -27,7 +27,7 @@ import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
-import {getSuppressedURLs} from '@/chat/conversation/unfurl-preview-state'
+import {takeSuppressSnapshot} from '@/chat/conversation/unfurl-preview-state'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -212,7 +212,13 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     // Snapshot the dismissed unfurls before clearing: the clear runs onChangeText('')
     // synchronously, and the preview hook drops every dismissal for empty text, which
     // would beat the deferred send to the store and unfurl a card the user dismissed.
-    const unfurlSuppress = getSuppressedURLs(conversationIDKey)
+    //
+    // Sending before the previews land (paste and hit enter: 200ms draft throttle + 500ms
+    // debounce + the scrape itself) suppresses nothing, so the message unfurls the url the
+    // way it always has. That is deliberate. The composer only promises to show what will
+    // unfurl once its previews have settled; suppressing urls it has not heard about yet
+    // would mean a link sent quickly never unfurls at all, which is how most links go out.
+    const unfurlSuppress = takeSuppressSnapshot(conversationIDKey)
     injectText('', true)
     setTimeout(() => {
       sendComposerText(text, unfurlSuppress)

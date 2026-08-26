@@ -7,6 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
+import type {SuppressSnapshot} from '../unfurl-preview-state'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
@@ -22,7 +23,7 @@ type ConversationInputStore = T.Immutable<{
 type ConversationInputDispatch = {
   injectIntoInput: (text?: string, focus?: boolean) => void
   resetState: () => void
-  sendComposerText: (text: string, unfurlSuppress?: ReadonlyArray<string>) => void
+  sendComposerText: (text: string, unfurlSuppress?: SuppressSnapshot) => void
   sendGiphyResult: (result: T.RPCChat.GiphySearchResult) => void
   setCommandMarkdown: (md?: T.RPCChat.UICommandMarkdown) => void
   setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
@@ -174,7 +175,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       })
     }
   })
-  const sendComposerText = React.useEffectEvent((text: string, unfurlSuppress?: ReadonlyArray<string>) => {
+  const sendComposerText = React.useEffectEvent((text: string, unfurlSuppress?: SuppressSnapshot) => {
     sendMessage(text, {
       editingOrdinal: state.editing,
       onRestoreText: injectIntoInput,

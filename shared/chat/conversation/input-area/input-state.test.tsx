@@ -497,11 +497,45 @@ test('a canceled stellar send restores the dismissed unfurl urls for the resend'
   const {result} = renderInput()
 
   act(() => {
-    result.current.dispatch.sendComposerText('hi http://a.com', ['http://a.com'])
+    result.current.dispatch.sendComposerText('hi http://a.com', {dismissed: ['http://a.com'], failed: []})
   })
   await flushPromises()
 
   expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+})
+
+test('a canceled stellar send leaves a failed preview unrecorded as a dismissal', async () => {
+  // a failure is re-derived by the next fetch, a dismissal never is, so restoring one as
+  // the other would keep the url suppressed even after it starts scraping again
+  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+    await Promise.resolve()
+    return {outboxID: makeRpcOutboxID('posted-outbox')}
+  })
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://wsj.com', {dismissed: [], failed: ['http://wsj.com']})
+  })
+  await flushPromises()
+
+  expect(useUnfurlPreviewState.getState().dismissed.get(convID)).toBeUndefined()
+  expect(getSuppressedURLs(convID)).toEqual([])
+})
+
+test('a send suppresses what failed to preview as well as what was dismissed', async () => {
+  const getLastPost = mockPostText()
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://a.com http://wsj.com', {
+      dismissed: ['http://a.com'],
+      failed: ['http://wsj.com'],
+    })
+  })
+  await flushPromises()
+
+  expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com', 'http://wsj.com'])
 })
 
 test('toggleGiphyPrefill toggles the slash command text', () => {

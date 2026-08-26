@@ -124,6 +124,66 @@ describe('unfurl previews', () => {
     expect(getSuppressedURLs(convID)).toEqual([])
   })
 
+  it('replaces the failed set wholesale rather than accumulating', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+    spy.mockResolvedValueOnce([failedInfo('http://a.com'), failedInfo('http://b.com')])
+    spy.mockResolvedValueOnce([info('http://a.com'), failedInfo('http://b.com')])
+    const {rerender} = render(<Harness text="see http://a.com http://b.com" onRender={() => {}} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(getSuppressedURLs(convID)).toEqual(['http://a.com', 'http://b.com']))
+    rerender(<Harness text="see http://a.com http://b.com now" onRender={() => {}} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    // a recovered to a card while b is still failing: keeping a suppressed would hide the
+    // card the composer is now showing
+    await waitFor(() => expect(getSuppressedURLs(convID)).toEqual(['http://b.com']))
+  })
+
+  it('forgets a failure once the url leaves the text', async () => {
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([failedInfo('http://a.com')])
+    const {rerender} = render(<Harness text="see http://a.com" onRender={() => {}} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(getSuppressedURLs(convID)).toEqual(['http://a.com']))
+    rerender(<Harness text="nothing now" onRender={() => {}} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(getSuppressedURLs(convID)).toEqual([]))
+  })
+
+  it('drops a response left in flight by a mount that has gone away', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+    let resolveFirst: (infos: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>) => void = () => {}
+    spy.mockImplementationOnce(
+      async () => new Promise<ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>>(resolve => (resolveFirst = resolve))
+    )
+    spy.mockResolvedValueOnce([info('http://a.com')])
+    // the conversation the user leaves, with a scrape still running
+    const first = render(<Harness text="see http://a.com" onRender={() => {}} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    first.unmount()
+    // and the one they come back to, which finishes its own fetch first
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    await act(async () => {
+      resolveFirst([failedInfo('http://a.com')])
+      await Promise.resolve()
+    })
+    expect(getSuppressedURLs(convID)).toEqual([])
+    expect(last?.previews.length).toBe(1)
+  })
+
   it('forgets a dismissal once the url leaves the text', async () => {
     jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined

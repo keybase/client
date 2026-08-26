@@ -64,14 +64,27 @@ export const useUnfurlPreviewState = Z.createZustand<State>('unfurl-preview', se
   },
 }))
 
+// the two suppression sources kept apart. a send needs them apart because it may have to
+// put them back: restoring a scrape failure as a dismissal would bury the url for good,
+// since a dismissal is never re-derived while a failure is, on the next fetch
+export type SuppressSnapshot = T.Immutable<{dismissed: ReadonlyArray<string>; failed: ReadonlyArray<string>}>
+
+export const takeSuppressSnapshot = (conversationIDKey: T.Chat.ConversationIDKey): SuppressSnapshot => {
+  const {dismissed, failed} = useUnfurlPreviewState.getState()
+  return {
+    dismissed: [...(dismissed.get(conversationIDKey) ?? [])],
+    failed: [...(failed.get(conversationIDKey) ?? [])],
+  }
+}
+
+export const suppressedURLsOf = (snapshot: SuppressSnapshot) => [
+  ...new Set([...snapshot.dismissed, ...snapshot.failed]),
+]
+
 // what the user dismissed plus what could not be previewed: the send suppresses both, so
 // the message unfurls exactly the cards the composer offered
-export const getSuppressedURLs = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const {dismissed, failed} = useUnfurlPreviewState.getState()
-  return [
-    ...new Set([...(dismissed.get(conversationIDKey) ?? []), ...(failed.get(conversationIDKey) ?? [])]),
-  ]
-}
+export const getSuppressedURLs = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  suppressedURLsOf(takeSuppressSnapshot(conversationIDKey))
 
 // dropped once the send they belong to lands; a targeted remove rather than a
 // whole-conversation clear so a dismissal made while that send was in flight survives
@@ -82,13 +95,15 @@ export const removeSuppressedURLs = (
   useUnfurlPreviewState.getState().dispatch.remove(conversationIDKey, urls)
 }
 
-// put back the snapshot a send took when that send never posted, so the composer the
-// user gets back still has those urls dismissed
+// put back what a send took when that send never posted, so the composer the user gets
+// back still has those urls dismissed. only the dismissals: the failures come back on
+// their own from the next fetch, and recording one as a dismissal would keep the url
+// suppressed even after it starts scraping again
 export const restoreSuppressedURLs = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  urls: ReadonlyArray<string>
+  snapshot: SuppressSnapshot
 ) => {
-  useUnfurlPreviewState.getState().dispatch.dismiss(conversationIDKey, urls)
+  useUnfurlPreviewState.getState().dispatch.dismiss(conversationIDKey, snapshot.dismissed)
 }
 
 const debounceMS = 500
@@ -126,6 +141,16 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
   // dismissed before switching away, so only prune once real text has been seen.
   const sawTextRef = React.useRef(false)
   const hasLink = text.includes('http')
+
+  // the request guard lives in a ref, so it only ever discriminates against this mount's
+  // own older fetches. switching conversations and back remounts the hook, and a fetch the
+  // dead mount left in flight would still match its own id and write over what the new
+  // mount has since fetched. -1 matches no id, so unmounting retires the whole mount
+  React.useEffect(() => {
+    return () => {
+      requestIDRef.current = -1
+    }
+  }, [])
 
   const onFetched = React.useCallback(
     (fetchedConversationIDKey: T.Chat.ConversationIDKey, infos: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>) => {
