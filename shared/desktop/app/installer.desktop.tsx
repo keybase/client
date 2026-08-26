@@ -4,6 +4,7 @@ import * as R from '@/constants/remote'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
+import {type ExecException} from 'child_process'
 import {keybaseBinPath} from './paths.desktop'
 import {ctlQuit} from './ctl.desktop'
 import {isDarwin} from '@/constants/platform'
@@ -140,7 +141,7 @@ const darwinInstall = (callback: CB) => {
       )
       .catch((err: unknown) => logger.error('[Installer]: Error zipping up logs: ', err))
 
-  const handleResults = (err: {code?: number} | null, _: unknown, stdout: string, stderr: string) => {
+  const handleResults = (err: ExecException | null, _: unknown, stdout: string, stderr: string) => {
     const loggingPromise = logOutput(stdout, stderr)
     const errors: Array<string> = []
     const errorTypes: ErrorTypes = {
