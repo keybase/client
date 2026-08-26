@@ -47,32 +47,32 @@ describe('UnfurlPreview', () => {
 
   it('renders nothing when every preview is non-generic', () => {
     mockPreviews = [nonGenericInfo]
-    const {container} = render(<UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://youtube.com/watch" />)
+    const {container} = render(<UnfurlPreview conversationIDKey={convID} text="http://youtube.com/watch" />)
     expect(container.firstChild).toBeNull()
   })
 
   it('renders a card for a generic preview', () => {
     mockPreviews = [genericInfo]
-    const {container} = render(<UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com" />)
+    const {container} = render(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
     expect(container.firstChild).not.toBeNull()
   })
 
   it('renders nothing for a map unfurl', () => {
     mockPreviews = [mapInfo]
-    const {container} = render(<UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://map.com" />)
+    const {container} = render(<UnfurlPreview conversationIDKey={convID} text="http://map.com" />)
     expect(container.firstChild).toBeNull()
   })
 
   it('shows no pager for a single preview', () => {
     mockPreviews = [genericInfo]
-    const {queryByText} = render(<UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com" />)
+    const {queryByText} = render(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
     expect(queryByText('1/1')).toBeNull()
   })
 
   it('pages between previews and disables the arrows at each end', () => {
     mockPreviews = [genericInfo, genericInfo2]
     const {getByText, container} = render(
-      <UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com http://b.com" />
+      <UnfurlPreview conversationIDKey={convID} text="http://a.com http://b.com" />
     )
     expect(getByText('1/2')).toBeTruthy()
     // the card shown is the first one
@@ -97,21 +97,21 @@ describe('UnfurlPreview', () => {
   it('re-clamps the index when the shown card is dismissed away', () => {
     mockPreviews = [genericInfo, genericInfo2]
     const {getByText, container, rerender} = render(
-      <UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com http://b.com" />
+      <UnfurlPreview conversationIDKey={convID} text="http://a.com http://b.com" />
     )
     fireEvent.click(container.querySelector('.icon-gen-iconfont-arrow-right') as Element)
     expect(getByText('2/2')).toBeTruthy()
 
     // the second preview goes away; the index must fall back rather than blank the panel
     mockPreviews = [genericInfo]
-    rerender(<UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com" />)
+    rerender(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
     expect(container.textContent).toContain('Alpha')
   })
 
   it('dismisses the shown card by its url when the close icon is clicked', () => {
     mockPreviews = [genericInfo, genericInfo2]
     const {container} = render(
-      <UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com http://b.com" />
+      <UnfurlPreview conversationIDKey={convID} text="http://a.com http://b.com" />
     )
     fireEvent.click(container.querySelector('.icon-gen-iconfont-close') as Element)
     expect(mockDismiss).toHaveBeenCalledWith('http://a.com')
@@ -136,21 +136,11 @@ describe('UnfurlPreview', () => {
     }
     const {container} = render(
       <ThreadRefsContext value={refs}>
-        <UnfurlPreview canDismiss={true} conversationIDKey={convID} text="http://a.com" />
+        <UnfurlPreview conversationIDKey={convID} text="http://a.com" />
       </ThreadRefsContext>
     )
     fireEvent.click(container.querySelector('.icon-gen-iconfont-close') as Element)
     expect(focusInput).toHaveBeenCalled()
   })
 
-  it('offers no dismiss while editing, since an edit cannot carry suppression', () => {
-    mockPreviews = [genericInfo]
-    const {container} = render(
-      <UnfurlPreview canDismiss={false} conversationIDKey={convID} text="http://a.com" />
-    )
-    // the card still shows what will unfurl; it just does not offer a control that would
-    // hide it and change nothing about the posted edit
-    expect(container.textContent).toContain('Alpha')
-    expect(container.querySelector('.icon-gen-iconfont-close')).toBeNull()
-  })
 })

@@ -2,7 +2,9 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {act, render, waitFor} from '@testing-library/react'
-import {useUnfurlPreviews, getSuppressedURLs, useUnfurlPreviewState} from './unfurl-preview-state'
+import {useUnfurlPreviews, suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from './unfurl-preview-state'
+
+const getSuppressedURLs = (c: T.Chat.ConversationIDKey) => suppressedURLsOf(takeSuppressSnapshot(c))
 
 // stringToConversationIDKey('conv1') is not valid hex and would throw inside
 // T.Chat.keyToConversationID (used to build the RPC's convID param), so build
@@ -122,6 +124,66 @@ describe('unfurl previews', () => {
     })
     await waitFor(() => expect(last?.previews.length).toBe(1))
     expect(getSuppressedURLs(convID)).toEqual([])
+  })
+
+  it('keeps a dismissal that the next fetch still returns', async () => {
+    // keepOnly prunes what the fetch no longer mentions; a url still in the result and
+    // still dismissed has to survive, or the card the user declined comes back
+    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+    spy.mockResolvedValue([info('http://a.com')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    act(() => last?.dismiss('http://a.com'))
+    rerender(<Harness text="see http://a.com too" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2))
+    expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+    expect(last?.previews.length).toBe(0)
+  })
+
+  it('drops the card for a url the user has typed on past', async () => {
+    // the old url is a prefix of the new one, so a substring test would keep the stale card
+    // showing and let its X suppress a link the message does not contain
+    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+    spy.mockResolvedValueOnce([info('http://a.com')])
+    spy.mockResolvedValueOnce([info('http://a.com/foo')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    rerender(<Harness text="see http://a.com/foo" onRender={r => (last = r)} />)
+    await waitFor(() => expect(last?.previews.length).toBe(0))
+    // and the card comes back once the fetch for the longer url lands
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.map(p => p.url)).toEqual(['http://a.com/foo']))
+  })
+
+  it('keeps showing a card when the url is followed by punctuation', async () => {
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([info('http://a.com')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    rerender(<Harness text="see http://a.com, nice" onRender={r => (last = r)} />)
+    expect(last?.previews.length).toBe(1)
+  })
+
+  it('sends a url that was both dismissed and unpreviewable only once', () => {
+    useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+    useUnfurlPreviewState.getState().dispatch.setFailed(convID, ['http://a.com', 'http://wsj.com'])
+    expect(getSuppressedURLs(convID)).toEqual(['http://a.com', 'http://wsj.com'])
   })
 
   it('replaces the failed set wholesale rather than accumulating', async () => {
