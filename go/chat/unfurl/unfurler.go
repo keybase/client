@@ -399,8 +399,9 @@ func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.C
 }
 
 // PreviewURLs scrapes and packages the whitelisted URLs in text and returns
-// display-ready unfurls, so a client can show a preview before sending. Only
-// generic unfurls are returned; failures are skipped rather than returned.
+// display-ready unfurls, so a client can show a preview before sending. Only generic
+// unfurls carry a display; a url that cannot be previewed at all comes back with a nil
+// unfurl so the client can suppress it on send.
 // previewable reports whether an unfurl can be shown in the pre-send preview. only generic
 // unfurls render there, and a map unfurl is a generic unfurl with MapInfo set, which the
 // message view itself refuses to render. the frontend filters on the same rule, so keep the
@@ -478,17 +479,25 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 			if ctx.Err() != nil {
 				return nil
 			}
+			// reported rather than dropped: UnfurlAndSend would still queue this url and
+			// retry it in the background for minutes after the send, so a card the user
+			// never saw could land in the sent message with no way to have declined it.
+			// telling the client makes it suppress the url instead
+			res = append(res, chat1.UnfurlPreviewInfo{Url: hit.URL})
 			continue
 		}
 		if !previewable(unfurl) {
+			// a giphy or a map: no card in the composer, but the send unfurls it the same
+			// as it always has, so this is not something the client should suppress
 			continue
 		}
 		disp, err := display.DisplayUnfurl(ctx, u.G().AttachmentURLSrv, convID, unfurl)
 		if err != nil {
 			u.Debug(ctx, "PreviewURLs: failed to display: %s", err)
+			res = append(res, chat1.UnfurlPreviewInfo{Url: hit.URL})
 			continue
 		}
-		res = append(res, chat1.UnfurlPreviewInfo{Url: hit.URL, Unfurl: disp})
+		res = append(res, chat1.UnfurlPreviewInfo{Url: hit.URL, Unfurl: &disp})
 	}
 	return res
 }

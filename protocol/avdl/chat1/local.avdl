@@ -1248,7 +1248,9 @@ protocol local {
 
   record UnfurlPreviewInfo {
     string url;
-    UnfurlDisplay unfurl;
+    // null when the url could not be scraped or packaged. the client suppresses those
+    // urls on send, so the preview it showed is exactly what the message unfurls
+    union { null, UnfurlDisplay } unfurl;
   }
 
   @timeout_msec(15000)
