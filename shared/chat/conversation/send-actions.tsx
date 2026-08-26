@@ -4,7 +4,13 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './attachment-actions'
-import {getSuppressedURLs, removeSuppressedURLs, restoreSuppressedURLs} from './unfurl-preview-state'
+import {
+  removeSuppressedURLs,
+  restoreSuppressedURLs,
+  suppressedURLsOf,
+  takeSuppressSnapshot,
+  type SuppressSnapshot,
+} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
   useConversationThreadActions,
@@ -138,7 +144,7 @@ export const useConversationSendActions = () => {
       editingOrdinal?: T.Chat.Ordinal
       onRestoreText?: (text: string) => void
       replyToOrdinal?: T.Chat.Ordinal
-      unfurlSuppress?: ReadonlyArray<string>
+      unfurlSuppress?: SuppressSnapshot
     }
   ) => {
     const editOrdinal = context?.editingOrdinal
@@ -153,7 +159,8 @@ export const useConversationSendActions = () => {
     const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
     // the caller passes a snapshot taken before it cleared the composer: clearing runs
     // synchronously and the preview hook drops every dismissal once the text is empty
-    const unfurlSuppress = context?.unfurlSuppress ?? getSuppressedURLs(conversationIDKey)
+    const snapshot = context?.unfurlSuppress ?? takeSuppressSnapshot(conversationIDKey)
+    const unfurlSuppress = suppressedURLsOf(snapshot)
     const onRestoreText = context?.onRestoreText
     sendTextMessageStoreless({
       clientPrev: getClientPrev(),
@@ -161,7 +168,7 @@ export const useConversationSendActions = () => {
       ephemeralLifetime: threadStore.getState().explodingMode,
       onRestoreText: onRestoreText
         ? (restored: string) => {
-            restoreSuppressedURLs(conversationIDKey, unfurlSuppress)
+            restoreSuppressedURLs(conversationIDKey, snapshot)
             onRestoreText(restored)
           }
         : undefined,

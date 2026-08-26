@@ -475,3 +475,29 @@ func TestUnfurlerPreviewURLsCallerCancel(t *testing.T) {
 	}
 	require.Equal(t, int64(1), atomic.LoadInt64(&scrapes), "the two callers did not share one scrape")
 }
+
+// a giphy or a maps url gets no card either way, so a scrape failure on one must not be
+// reported: suppressing it would lose an unfurl the send's own retries would have landed
+func TestUnfurlerPreviewURLsAutoWhitelistFailureNotSuppressed(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	storage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, storage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	// the maps domain is auto-whitelisted and scraped locally, so an unparseable coord
+	// fails the scrape without touching the network
+	url := fmt.Sprintf("https://%s/?lat=nope&lon=1&acc=1&done=true", types.MapsDomain)
+
+	require.Empty(t, unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url))
+}
