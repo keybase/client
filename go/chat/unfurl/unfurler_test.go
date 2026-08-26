@@ -261,6 +261,44 @@ func TestUnfurlerPreviewURLsScrapeFailure(t *testing.T) {
 	require.Nil(t, res[0].Unfurl)
 }
 
+// the composer previews on every debounced edit, so a url that cannot be scraped would be
+// re-fetched for as long as it sits in the text. the failure is remembered briefly instead
+func TestUnfurlerPreviewURLsFailureNotRescraped(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	storage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, storage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	var hits int32
+	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&hits, 1)
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	addr := srv.Start()
+	defer srv.Stop()
+
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
+
+	for i := 0; i < 3; i++ {
+		res := unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Unfurl, "a cached failure still reports the url for suppression")
+	}
+	require.Equal(t, int32(1), atomic.LoadInt32(&hits))
+}
+
 func makeTextMsgWithMsgID(msgBody string, outboxID chat1.OutboxID, msgID chat1.MessageID) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader: chat1.MessageClientHeaderVerified{
@@ -474,6 +512,31 @@ func TestUnfurlerPreviewURLsCallerCancel(t *testing.T) {
 		require.Fail(t, "surviving caller never returned")
 	}
 	require.Equal(t, int64(1), atomic.LoadInt64(&scrapes), "the two callers did not share one scrape")
+}
+
+// only generic unfurls get a card, and a map is a generic unfurl the message view itself
+// refuses to render. the frontend filters on the same rule
+func TestUnfurlerPreviewable(t *testing.T) {
+	generic := chat1.UnfurlGeneric{Title: "t", Url: "u", SiteName: "s"}
+	require.True(t, previewable(chat1.NewUnfurlWithGeneric(generic)))
+
+	withMap := generic
+	withMap.MapInfo = &chat1.UnfurlGenericMapInfo{}
+	require.False(t, previewable(chat1.NewUnfurlWithGeneric(withMap)))
+
+	require.False(t, previewable(chat1.NewUnfurlWithGiphy(chat1.UnfurlGiphy{})))
+	require.False(t, previewable(chat1.NewUnfurlWithYoutube(chat1.UnfurlYoutube{})))
+}
+
+// the rule for what gets no card is the one previewable uses on a scraped unfurl, read
+// from the domain: a giphy short link classifies as giphy without being on the
+// auto-whitelist, and suppressing it would lose an unfurl the send would have landed
+func TestUnfurlerCarded(t *testing.T) {
+	require.True(t, carded("https://example.com/a"))
+	require.True(t, carded("not a url at all"))
+	require.False(t, carded("https://giphy.com/gifs/abc"))
+	require.False(t, carded("https://gph.is/2X9abc"))
+	require.False(t, carded(fmt.Sprintf("https://%s/?lat=1&lon=2&acc=3&done=true", types.MapsDomain)))
 }
 
 // a giphy or a maps url gets no card either way, so a scrape failure on one must not be

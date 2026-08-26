@@ -6,15 +6,12 @@ import {useUnfurlPreviews} from '@/chat/conversation/unfurl-preview-state'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 
 type Props = {
-  // false while editing a message: the edit rpc cannot carry suppression, so offering a
-  // dismiss there would be a control that does nothing
-  canDismiss: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   text: string
 }
 
 const UnfurlPreview = (p: Props) => {
-  const {canDismiss, conversationIDKey, text} = p
+  const {conversationIDKey, text} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const {dismiss, previews} = useUnfurlPreviews(conversationIDKey, text)
@@ -69,15 +66,11 @@ const UnfurlPreview = (p: Props) => {
       description={generic.description ?? undefined}
       favicon={generic.favicon ?? undefined}
       media={generic.media ?? undefined}
-      onClose={
-        canDismiss
-          ? () => {
-              dismiss(preview.url)
-              // the X takes focus on the way out, and the composer is where the user was
-              focusInput()
-            }
-          : undefined
-      }
+      onClose={() => {
+        dismiss(preview.url)
+        // the X takes focus on the way out, and the composer is where the user was
+        focusInput()
+      }}
       publishTime={generic.publishTime ?? undefined}
       siteName={generic.siteName}
       title={generic.title}
