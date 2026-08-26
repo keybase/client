@@ -320,10 +320,6 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	headMerkleSeqno := int64(team.MainChain().Chain.HeadMerkle.Seqno)
 	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
 
-	firstWithHiddenS, err := m[A].G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m[A])
-	require.NoError(t, err)
-	firstWithHidden := int64(firstWithHiddenS)
-	t.Logf("firstWithHidden: %v", firstWithHidden)
 	root := m[A].G().GetMerkleClient().LastRoot(m[A])
 	require.NotNil(t, root)
 	high := int64(*root.Seqno())
@@ -500,10 +496,6 @@ func TestFailedProbesAreRetried(t *testing.T) {
 	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
 	headMerkleSeqno := team.MainChain().Chain.HeadMerkle.Seqno
 	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
-	firstWithHiddenS, err := m[A].G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m[A])
-	require.NoError(t, err)
-	firstWithHidden := firstWithHiddenS
-	t.Logf("firstWithHidden: %v", firstWithHidden)
 	firstExaminable := m[B].G().GetMerkleClient().FirstExaminableHistoricalRoot(m[B])
 	require.NotNil(t, firstExaminable)
 	firstPreProbe := *firstExaminable
