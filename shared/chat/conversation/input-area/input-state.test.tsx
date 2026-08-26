@@ -10,11 +10,15 @@ import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import Input from './normal'
 import type {PlatformInputProps} from './normal/input.shared'
-import {ConversationInputProvider, useConversationInput} from './input-state'
+import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
-import {getSuppressedURLs, useUnfurlPreviewState} from '../unfurl-preview-state'
+import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
+
+const getSuppressedURLs = (c: T.Chat.ConversationIDKey) => suppressedURLsOf(takeSuppressSnapshot(c))
 
 let mockRouteParams: Record<string, unknown> = {}
+// jest.mock factories may only close over mock-prefixed names
+let mockOnClear: (() => void) | undefined
 let mockPlatformInputProps: PlatformInputProps | undefined
 // stand in for the real composer input: it only has to hand back a ref whose clear()
 // fires onChangeText('') the way the desktop input does, which is what races the send
@@ -24,7 +28,13 @@ jest.mock('./normal/input', () => ({
     mockPlatformInputProps = p
     p.setInputRef({
       blur: () => {},
-      clear: () => mockPlatformInputProps?.onChangeText(''),
+      clear: () => {
+        // the real hook drops suppressions from an effect after the text goes empty; a test
+        // can ask for that to happen synchronously inside clear() instead, which is the
+        // ordering onSubmit's snapshot has to survive
+        mockOnClear?.()
+        mockPlatformInputProps?.onChangeText('')
+      },
       focus: () => {},
       getSelection: () => undefined,
       isFocused: () => false,
@@ -112,6 +122,26 @@ function renderComposer(id = convID) {
   return render(<Input />, {wrapper: wrapperFor(id)})
 }
 
+type InputHandles = {
+  input: ReturnType<typeof useConversationInput<ConversationInputState>>
+  thread: ReturnType<typeof useConversationThreadActions>
+}
+
+const InputProbe = (p: {onRender: (h: InputHandles) => void}) => {
+  p.onRender({input: useConversationInput(s => s), thread: useConversationThreadActions()})
+  return null
+}
+
+function renderComposerWithProbe(onRender: (h: InputHandles) => void, id = convID) {
+  return render(
+    <>
+      <Input />
+      <InputProbe onRender={onRender} />
+    </>,
+    {wrapper: wrapperFor(id)}
+  )
+}
+
 const renderInputWithThreadActions = (id = convID) =>
   renderHook(
     () => ({
@@ -139,6 +169,7 @@ beforeEach(() => {
 
 afterEach(() => {
   mockPlatformInputProps = undefined
+  mockOnClear = undefined
   cleanup()
   jest.restoreAllMocks()
   resetAllStores()
@@ -429,12 +460,29 @@ test('sendComposerText sends dismissed unfurl urls as unfurlSuppress', async () 
   const {result} = renderInput()
 
   act(() => {
-    result.current.dispatch.sendComposerText('hi http://a.com')
+    result.current.dispatch.sendComposerText('hi http://a.com', {dismissed: ['http://a.com'], failed: []})
   })
   await flushPromises()
 
   expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
   expect(getSuppressedURLs(convID)).toEqual([])
+})
+
+// a send that carries no snapshot is not the composer sending its own text -- a coinflip
+// resend goes through the same action -- so it must not pick up the composer's dismissals,
+// nor clear them when it lands
+test('a send with no snapshot leaves the composer dismissals alone', async () => {
+  const getLastPost = mockPostText()
+  useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('/flip 2')
+  })
+  await flushPromises()
+
+  expect(getLastPost()?.params.unfurlSuppress).toEqual([])
+  expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
 })
 
 test('onSubmit sends dismissed unfurl urls even though clearing the composer drops them', async () => {
@@ -481,6 +529,81 @@ test('onSubmit sends dismissed unfurl urls even though clearing the composer dro
 
     expect(getLastPost()?.params.body).toBe(text)
     expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test('onSubmit snapshots the dismissals before the composer clears them', async () => {
+  jest.useFakeTimers()
+  try {
+    mockOnClear = () => useUnfurlPreviewState.getState().dispatch.keepOnly(convID, [])
+    const getLastPost = mockPostText()
+    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+    renderComposer()
+    useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+
+    act(() => {
+      mockPlatformInputProps?.onSubmit('look at http://a.com')
+    })
+    // the clear has already emptied the store by now: only a snapshot taken ahead of it
+    // still has the dismissal to send
+    expect(getSuppressedURLs(convID)).toEqual([])
+
+    await act(async () => {
+      jest.advanceTimersByTime(1)
+      await flushPromises()
+    })
+
+    expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+// the snapshot owns only what it took: a dismissal made while the send was in flight
+// belongs to the next message, and clearing it would unfurl a card the user just declined
+test('a landed send leaves a dismissal made while it was in flight alone', async () => {
+  mockPostText()
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://wsj.com', {dismissed: [], failed: ['http://wsj.com']})
+  })
+  useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://wsj.com'])
+  await flushPromises()
+
+  expect(getSuppressedURLs(convID)).toEqual(['http://wsj.com'])
+})
+
+// an edit posts as MessageType_EDIT, which the unfurler does not extract urls from, so
+// there is nothing to preview and no scrape to pay for
+test('no preview is fetched while editing', async () => {
+  const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+  jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+  jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+  jest.useFakeTimers()
+  try {
+    // the composer and the handles that drive it have to share one provider, or the editing
+    // state never reaches the composer under test
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+    act(() => {
+      handles?.thread.addMessages([makeTextMessage({text: 'look at http://a.com'})], {markAsRead: false})
+    })
+    act(() => {
+      mockPlatformInputProps?.onChangeText('look at http://a.com')
+    })
+    act(() => {
+      handles?.input.dispatch.setEditing('last')
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(1000)
+      await flushPromises()
+    })
+    expect(spy).not.toHaveBeenCalled()
   } finally {
     jest.useRealTimers()
   }

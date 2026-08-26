@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/golang/groupcache/singleflight"
 	"github.com/keybase/client/go/chat/attachments"
@@ -48,6 +49,11 @@ type UnfurlMessageSender interface {
 		msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID chat1.OutboxID) (chat1.OutboxID, error)
 }
 
+const (
+	maxConcurrentPreviewScrapes = 4
+	previewFailureLifetime      = 30 * time.Second
+)
+
 type Unfurler struct {
 	sync.Mutex
 	prefetchLock sync.Mutex
@@ -60,11 +66,18 @@ type Unfurler struct {
 	// called again while an earlier call is still in flight, which the composer does
 	// whenever the user edits a link before its fetch comes back
 	previewGroup singleflight.Group
-	extractor    *Extractor
-	scraper      *Scraper
-	packager     *Packager
-	settings     *Settings
-	sender       UnfurlMessageSender
+	// the composer scrapes on every debounced edit, and each edit of a url is a different
+	// key, so the singleflight above collapses nothing across them. these bound what an
+	// editing session can leave running: a slot limit on the detached scrapes, and a short
+	// memory of the urls that just failed so a dead link is not re-fetched per keystroke.
+	// short, because a url that starts working has to become a card again
+	previewSem      chan struct{}
+	previewFailures *unfurlCache
+	extractor       *Extractor
+	scraper         *Scraper
+	packager        *Packager
+	settings        *Settings
+	sender          UnfurlMessageSender
 
 	// testing
 	unfurlCh chan *chat1.Unfurl
@@ -81,14 +94,16 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 	packager := NewPackager(g, store, s3signer, ri)
 	settings := NewSettings(g, storage)
 	return &Unfurler{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Unfurler", false),
-		unfurlMap:    make(map[string]bool),
-		extractor:    extractor,
-		scraper:      scraper,
-		packager:     packager,
-		settings:     settings,
-		sender:       sender,
+		previewSem:      make(chan struct{}, maxConcurrentPreviewScrapes),
+		previewFailures: newUnfurlCacheWithLifetime(previewFailureLifetime),
+		Contextified:    globals.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g.ExternalG(), "Unfurler", false),
+		unfurlMap:       make(map[string]bool),
+		extractor:       extractor,
+		scraper:         scraper,
+		packager:        packager,
+		settings:        settings,
+		sender:          sender,
 	}
 }
 
@@ -388,7 +403,13 @@ func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.C
 		}
 		prevUnfurled[hit.URL] = true // only one action per unique URL
 		if hit.Typ == ExtractorHitUnfurl {
-			if _, err := u.scrapeAndPackage(ctx, uid, convID, hit.URL); err != nil {
+			// through the same singleflight as the preview: UpdateUnsentText prefetches the
+			// text the composer is previewing, so the two would otherwise scrape it twice
+			key := previewScrapeKey(uid, convID, hit.URL)
+			_, err := u.previewGroup.Do(key, func() (any, error) {
+				return u.scrapeAndPackage(ctx, uid, convID, hit.URL)
+			})
+			if err != nil {
 				u.Debug(ctx, "Prefetch: unable to scrapeAndPackge: %s", err)
 			} else {
 				numPrefetched++
@@ -398,10 +419,6 @@ func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return numPrefetched
 }
 
-// PreviewURLs scrapes and packages the whitelisted URLs in text and returns
-// display-ready unfurls, so a client can show a preview before sending. Only generic
-// unfurls carry a display; a url that cannot be previewed at all comes back with a nil
-// unfurl so the client can suppress it on send.
 // previewable reports whether an unfurl can be shown in the pre-send preview. only generic
 // unfurls render there, and a map unfurl is a generic unfurl with MapInfo set, which the
 // message view itself refuses to render. the frontend filters on the same rule, so keep the
@@ -412,6 +429,11 @@ func previewable(unfurl chat1.Unfurl) bool {
 		return false
 	}
 	return unfurl.Generic().MapInfo == nil
+}
+
+// %x, not %s: uid and convID are raw bytes and can contain the separator
+func previewScrapeKey(uid gregor1.UID, convID chat1.ConversationID, url string) string {
+	return fmt.Sprintf("%x:%x:%s", uid, convID, url)
 }
 
 // previewScrape scrapes and packages one url, collapsing concurrent calls for the same
@@ -425,8 +447,12 @@ func previewable(unfurl chat1.Unfurl) bool {
 func (u *Unfurler) previewScrape(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	url string,
 ) (chat1.Unfurl, error) {
-	// %x, not %s: uid and convID are raw bytes and can contain the separator
-	key := fmt.Sprintf("%x:%x:%s", uid, convID, url)
+	key := previewScrapeKey(uid, convID, url)
+	if item, ok := u.previewFailures.get(key); ok {
+		if err, ok := item.data.(string); ok {
+			return chat1.Unfurl{}, errors.New(err)
+		}
+	}
 	// keeps the caller's log tags and identify behaviour and drops only the cancellation.
 	// the scraper bounds the work with its own request timeout
 	scrapeCtx := context.WithoutCancel(ctx)
@@ -436,10 +462,13 @@ func (u *Unfurler) previewScrape(ctx context.Context, uid gregor1.UID, convID ch
 	}
 	ch := make(chan scrapeRes, 1)
 	go func() {
+		u.previewSem <- struct{}{}
+		defer func() { <-u.previewSem }()
 		scraped, err := u.previewGroup.Do(key, func() (any, error) {
 			return u.scrapeAndPackage(scrapeCtx, uid, convID, url)
 		})
 		if err != nil {
+			u.previewFailures.put(key, err.Error())
 			ch <- scrapeRes{err: err}
 			return
 		}
@@ -458,6 +487,27 @@ func (u *Unfurler) previewScrape(ctx context.Context, uid gregor1.UID, convID ch
 	}
 }
 
+// carded reports whether a url could get a preview card at all, from the domain alone.
+// previewable answers the same question from a scraped unfurl, but a failed scrape has no
+// unfurl to ask about, and reporting one of these as un-previewable would suppress an
+// unfurl the send's own retries would have landed. keep the two rules in step: this is the
+// part of previewable that is knowable before the scrape.
+func carded(url string) bool {
+	domain, err := GetDomain(url)
+	if err != nil {
+		return true
+	}
+	return ClassifyDomain(domain) == chat1.UnfurlType_GENERIC
+}
+
+// PreviewURLs scrapes and packages the whitelisted URLs in text and returns display-ready
+// unfurls, so a client can show a preview before sending. Only generic unfurls carry a
+// display; a url that cannot be previewed at all comes back with a nil unfurl so the client
+// can suppress it on send.
+//
+// URLs whose domain is not whitelisted are left out entirely: the send prompts for those,
+// and the prompt is itself the chance to decline, so there is nothing for the composer to
+// offer and nothing to suppress.
 func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text string,
 ) (res []chat1.UnfurlPreviewInfo) {
@@ -479,10 +529,7 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 			if ctx.Err() != nil {
 				return nil
 			}
-			if u.extractor.isAutoWhitelistFromHit(ctx, hit.URL) {
-				// a giphy or a map, same as the previewable check below: it was never going
-				// to get a card, so one transient scrape failure here must not suppress an
-				// unfurl the send's own retries would have landed
+			if !carded(hit.URL) {
 				continue
 			}
 			// reported rather than dropped: UnfurlAndSend would still queue this url and
@@ -500,7 +547,6 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 		disp, err := display.DisplayUnfurl(ctx, u.G().AttachmentURLSrv, convID, unfurl)
 		if err != nil {
 			u.Debug(ctx, "PreviewURLs: failed to display: %s", err)
-			res = append(res, chat1.UnfurlPreviewInfo{Url: hit.URL})
 			continue
 		}
 		res = append(res, chat1.UnfurlPreviewInfo{Url: hit.URL, Unfurl: &disp})

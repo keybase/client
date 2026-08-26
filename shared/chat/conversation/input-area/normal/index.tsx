@@ -209,15 +209,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     // A timeout rather than requestAnimationFrame: this callback owns the only copy of the text, and
     // frames stop in a hidden or backgrounded window, which would drop the message with the composer
     // already emptied.
-    // Snapshot the dismissed unfurls before clearing: the clear runs onChangeText('')
-    // synchronously, and the preview hook drops every dismissal for empty text, which
-    // would beat the deferred send to the store and unfurl a card the user dismissed.
-    //
-    // Sending before the previews land (paste and hit enter: 200ms draft throttle + 500ms
-    // debounce + the scrape itself) suppresses nothing, so the message unfurls the url the
-    // way it always has. That is deliberate. The composer only promises to show what will
-    // unfurl once its previews have settled; suppressing urls it has not heard about yet
-    // would mean a link sent quickly never unfurls at all, which is how most links go out.
+    // Before the clear, which runs onChangeText('') synchronously and drops every dismissal.
+    // Urls whose preview has not landed yet are not in here and so are not suppressed.
     const unfurlSuppress = takeSuppressSnapshot(conversationIDKey)
     injectText('', true)
     setTimeout(() => {
@@ -344,10 +337,10 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     />
   )
 
-  // no dismiss while editing: postEditNonblock carries no unfurlSuppress, so the X would
-  // hide the card and change nothing about what the edit posts
-  const preview = (
-    <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} canDismiss={!isEditing} />
+  // nothing while editing: an edit posts as MessageType_EDIT, which the unfurler does not
+  // extract urls from at all, so a card would promise an unfurl the edit cannot produce
+  const preview = isEditing ? null : (
+    <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />
   )
 
   if (isMobile) {

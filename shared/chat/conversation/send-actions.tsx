@@ -4,13 +4,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './attachment-actions'
-import {
-  removeSuppressedURLs,
-  restoreSuppressedURLs,
-  suppressedURLsOf,
-  takeSuppressSnapshot,
-  type SuppressSnapshot,
-} from './unfurl-preview-state'
+import {removeDismissals, restoreDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
   useConversationThreadActions,
@@ -157,9 +151,10 @@ export const useConversationSendActions = () => {
     }
     const replyToOrdinal = context?.replyToOrdinal
     const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
-    // the caller passes a snapshot taken before it cleared the composer: clearing runs
-    // synchronously and the preview hook drops every dismissal once the text is empty
-    const snapshot = context?.unfurlSuppress ?? takeSuppressSnapshot(conversationIDKey)
+    // only what the caller snapshotted. a send that carries no snapshot is not the composer
+    // sending its own text (a coinflip resend, say), and the composer's dismissals have
+    // nothing to do with it
+    const snapshot = context?.unfurlSuppress ?? {dismissed: [], failed: []}
     const unfurlSuppress = suppressedURLsOf(snapshot)
     const onRestoreText = context?.onRestoreText
     sendTextMessageStoreless({
@@ -168,12 +163,14 @@ export const useConversationSendActions = () => {
       ephemeralLifetime: threadStore.getState().explodingMode,
       onRestoreText: onRestoreText
         ? (restored: string) => {
-            restoreSuppressedURLs(conversationIDKey, snapshot)
+            restoreDismissals(conversationIDKey, snapshot.dismissed)
             onRestoreText(restored)
           }
         : undefined,
       onSent: () => {
-        removeSuppressedURLs(conversationIDKey, unfurlSuppress)
+        // the dismissals only: a failure is never in `dismissed`, and the url may have been
+        // dismissed afresh while this send was in flight
+        removeDismissals(conversationIDKey, snapshot.dismissed)
       },
       replyTo,
       text,
