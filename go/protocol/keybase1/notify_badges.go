@@ -78,20 +78,6 @@ func (o ResetState) DeepCopy() ResetState {
 	}
 }
 
-type WotUpdate struct {
-	Voucher string        `codec:"voucher" json:"voucher"`
-	Vouchee string        `codec:"vouchee" json:"vouchee"`
-	Status  WotStatusType `codec:"status" json:"status"`
-}
-
-func (o WotUpdate) DeepCopy() WotUpdate {
-	return WotUpdate{
-		Voucher: o.Voucher,
-		Vouchee: o.Vouchee,
-		Status:  o.Status.DeepCopy(),
-	}
-}
-
 type BadgeState struct {
 	NewTlfs                   int                     `codec:"newTlfs" json:"newTlfs"`
 	RekeysNeeded              int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
@@ -111,7 +97,6 @@ type BadgeState struct {
 	DeletedTeams              []DeletedTeamInfo       `codec:"deletedTeams" json:"deletedTeams"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
-	WotUpdates                map[string]WotUpdate    `codec:"wotUpdates" json:"wotUpdates"`
 	ResetState                ResetState              `codec:"resetState" json:"resetState"`
 }
 
@@ -215,18 +200,6 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.UnreadWalletAccounts),
-		WotUpdates: (func(x map[string]WotUpdate) map[string]WotUpdate {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[string]WotUpdate, len(x))
-			for k, v := range x {
-				kCopy := k
-				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.WotUpdates),
 		ResetState: o.ResetState.DeepCopy(),
 	}
 }

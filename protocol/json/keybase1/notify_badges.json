@@ -93,24 +93,6 @@
     },
     {
       "type": "record",
-      "name": "WotUpdate",
-      "fields": [
-        {
-          "type": "string",
-          "name": "voucher"
-        },
-        {
-          "type": "string",
-          "name": "vouchee"
-        },
-        {
-          "type": "WotStatusType",
-          "name": "status"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "BadgeState",
       "fields": [
         {
@@ -209,14 +191,6 @@
             "items": "WalletAccountInfo"
           },
           "name": "unreadWalletAccounts"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "WotUpdate",
-            "keys": "string"
-          },
-          "name": "wotUpdates"
         },
         {
           "type": "ResetState",

@@ -2495,19 +2495,6 @@ export enum UserOrTeamResult {
   user = 1,
   team = 2,
 }
-
-export enum WotReactionType {
-  reject = 0,
-  accept = 1,
-}
-
-export enum WotStatusType {
-  none = 0,
-  proposed = 1,
-  accepted = 2,
-  rejected = 3,
-  revoked = 4,
-}
 export type APIRes = {readonly status: string,readonly body: string,readonly httpStatus: number,readonly appStatus: string,}
 export type APIUserKeybaseResult = {readonly username: string,readonly uid: UID,readonly pictureUrl?: string | null,readonly fullName?: string | null,readonly rawScore: number,readonly stellar?: string | null,readonly isFollowee: boolean,}
 export type APIUserSearchResult = {readonly score: number,readonly keybase?: APIUserKeybaseResult | null,readonly service?: APIUserServiceResult | null,readonly contact?: ProcessedContact | null,readonly imptofu?: ImpTofuSearchResult | null,readonly servicesSummary?: {[key: string]: APIUserServiceSummary} | null,readonly rawScore: number,}
@@ -2530,7 +2517,7 @@ export type AvatarClearCacheMsg = {readonly name: string,readonly formats?: Read
 export type AvatarFormat = string
 export type AvatarUrl = string
 export type BadgeConversationInfo = {readonly convID: ChatConversationID,readonly badgeCount: number,readonly unreadMessages: number,}
-export type BadgeState = {readonly newTlfs: number,readonly rekeysNeeded: number,readonly newFollowers: number,readonly inboxVers: number,readonly homeTodoItems: number,readonly unverifiedEmails: number,readonly unverifiedPhones: number,readonly smallTeamBadgeCount: number,readonly bigTeamBadgeCount: number,readonly newTeamAccessRequestCount: number,readonly newDevices?: ReadonlyArray<DeviceID> | null,readonly revokedDevices?: ReadonlyArray<DeviceID> | null,readonly conversations?: ReadonlyArray<BadgeConversationInfo> | null,readonly newGitRepoGlobalUniqueIDs?: ReadonlyArray<string> | null,readonly newTeams?: ReadonlyArray<TeamID> | null,readonly deletedTeams?: ReadonlyArray<DeletedTeamInfo> | null,readonly teamsWithResetUsers?: ReadonlyArray<TeamMemberOutReset> | null,readonly unreadWalletAccounts?: ReadonlyArray<WalletAccountInfo> | null,readonly wotUpdates?: {[key: string]: WotUpdate} | null,readonly resetState: ResetState,}
+export type BadgeState = {readonly newTlfs: number,readonly rekeysNeeded: number,readonly newFollowers: number,readonly inboxVers: number,readonly homeTodoItems: number,readonly unverifiedEmails: number,readonly unverifiedPhones: number,readonly smallTeamBadgeCount: number,readonly bigTeamBadgeCount: number,readonly newTeamAccessRequestCount: number,readonly newDevices?: ReadonlyArray<DeviceID> | null,readonly revokedDevices?: ReadonlyArray<DeviceID> | null,readonly conversations?: ReadonlyArray<BadgeConversationInfo> | null,readonly newGitRepoGlobalUniqueIDs?: ReadonlyArray<string> | null,readonly newTeams?: ReadonlyArray<TeamID> | null,readonly deletedTeams?: ReadonlyArray<DeletedTeamInfo> | null,readonly teamsWithResetUsers?: ReadonlyArray<TeamMemberOutReset> | null,readonly unreadWalletAccounts?: ReadonlyArray<WalletAccountInfo> | null,readonly resetState: ResetState,}
 export type BinaryKID = Uint8Array
 export type BinaryLinkID = Uint8Array
 export type BlockIdCombo = {readonly blockHash: string,readonly chargedTo: UserOrTeamID,readonly blockType: BlockType,}
@@ -2561,7 +2548,6 @@ export type ClientDetails = {readonly pid: number,readonly clientType: ClientTyp
 export type ClientStatus = {readonly details: ClientDetails,readonly connectionID: number,readonly notificationChannels: NotificationChannels,}
 export type CompatibilityTeamID ={ typ: TeamType.legacy, legacy: TLFID } | { typ: TeamType.modern, modern: TeamID } | { typ: TeamType.none}
 export type ComponentResult = {readonly name: string,readonly status: Status,readonly exitCode: number,}
-export type Confidence = {readonly usernameVerifiedVia: UsernameVerificationType,readonly proofs?: ReadonlyArray<WotProof> | null,readonly other: string,}
 export type Config = {readonly serverURI: string,readonly socketFile: string,readonly label: string,readonly runMode: string,readonly gpgExists: boolean,readonly gpgPath: string,readonly version: string,readonly path: string,readonly binaryRealpath: string,readonly configPath: string,readonly versionShort: string,readonly versionFull: string,readonly isAutoForked: boolean,readonly forkType: ForkType,}
 export type ConfigValue = {readonly isNull: boolean,readonly b?: boolean | null,readonly i?: number | null,readonly f?: number | null,readonly s?: string | null,readonly o?: string | null,}
 export type ConfiguredAccount = {readonly username: string,readonly fullname: FullName,readonly hasStoredSecret: boolean,readonly isCurrent: boolean,readonly uid: UID,}
@@ -2706,7 +2692,7 @@ export type Identify2Res = {readonly upk: UserPlusKeys,readonly identifiedAt: Ti
 export type Identify2ResUPK2 = {readonly upk: UserPlusKeysV2AllIncarnations,readonly identifiedAt: Time,readonly trackBreaks?: IdentifyTrackBreaks | null,}
 export type Identify3Assertion = string
 export type Identify3GUIID = string
-export type Identify3Row = {readonly guiID: Identify3GUIID,readonly key: string,readonly value: string,readonly priority: number,readonly siteURL: string,readonly siteIcon?: ReadonlyArray<SizedImage> | null,readonly siteIconDarkmode?: ReadonlyArray<SizedImage> | null,readonly siteIconFull?: ReadonlyArray<SizedImage> | null,readonly siteIconFullDarkmode?: ReadonlyArray<SizedImage> | null,readonly proofURL: string,readonly sigID: SigID,readonly ctime: Time,readonly state: Identify3RowState,readonly metas?: ReadonlyArray<Identify3RowMeta> | null,readonly color: Identify3RowColor,readonly kid?: KID | null,readonly wotProof?: WotProof | null,}
+export type Identify3Row = {readonly guiID: Identify3GUIID,readonly key: string,readonly value: string,readonly priority: number,readonly siteURL: string,readonly siteIcon?: ReadonlyArray<SizedImage> | null,readonly siteIconDarkmode?: ReadonlyArray<SizedImage> | null,readonly siteIconFull?: ReadonlyArray<SizedImage> | null,readonly siteIconFullDarkmode?: ReadonlyArray<SizedImage> | null,readonly proofURL: string,readonly sigID: SigID,readonly ctime: Time,readonly state: Identify3RowState,readonly metas?: ReadonlyArray<Identify3RowMeta> | null,readonly color: Identify3RowColor,readonly kid?: KID | null,}
 export type Identify3RowMeta = {readonly color: Identify3RowColor,readonly label: string,}
 export type Identify3Summary = {readonly guiID: Identify3GUIID,readonly numProofsToCheck: number,}
 export type IdentifyKey = {readonly pgpFingerprint: Uint8Array,readonly KID: KID,readonly trackDiff?: TrackDiff | null,readonly breaksTracking: boolean,readonly sigID: SigID,}
@@ -3132,16 +3118,11 @@ export type UserTeamVersionUpdate = {readonly version: UserTeamVersion,}
 export type UserVersion = {readonly uid: UID,readonly eldestSeqno: Seqno,}
 export type UserVersionPercentForm = string
 export type UserVersionVector = {readonly id: number,readonly sigHints: number,readonly sigChain: number,readonly cachedAt: Time,}
-export type UsernameVerificationType = string
 export type VID = string
 export type VerifyAllEmailTodoExt = {readonly lastVerifyEmailDate: UnixTime,}
 export type VerifySessionRes = {readonly uid: UID,readonly sid: string,readonly generated: number,readonly lifetime: number,}
 export type WalletAccountInfo = {readonly accountID: string,readonly numUnread: number,}
 export type WebProof = {readonly hostname: string,readonly protocols?: ReadonlyArray<string> | null,}
-export type WotProof = {readonly proofType: ProofType,readonly name: string,readonly username: string,readonly protocol: string,readonly hostname: string,readonly domain: string,}
-export type WotProofUI = {readonly type: string,readonly value: string,readonly siteIcon?: ReadonlyArray<SizedImage> | null,readonly siteIconDarkmode?: ReadonlyArray<SizedImage> | null,}
-export type WotUpdate = {readonly voucher: string,readonly vouchee: string,readonly status: WotStatusType,}
-export type WotVouch = {readonly status: WotStatusType,readonly vouchProof: SigID,readonly vouchee: UserVersion,readonly voucheeUsername: string,readonly voucher: UserVersion,readonly voucherUsername: string,readonly vouchText: string,readonly vouchedAt: Time,readonly confidence: Confidence,readonly proofs?: ReadonlyArray<WotProofUI> | null,}
 export type WriteArgs = {readonly opID: OpID,readonly path: Path,readonly offset: number,}
 
 type IncomingMethod = 'keybase.1.NotifyAudit.boxAuditError' | 'keybase.1.NotifyAudit.rootAuditError' | 'keybase.1.NotifyBadges.badgeState' | 'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' | 'keybase.1.NotifyFS.FSActivity' | 'keybase.1.NotifySession.loggedOut' | 'keybase.1.NotifyTracking.trackingChanged' | 'keybase.1.NotifyUsers.userChanged' | 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.pgpUi.finished' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.reachability.reachabilityChanged' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent'
@@ -3603,7 +3584,6 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.NotifyTeam.newlyAddedToTeam'
 // 'keybase.1.NotifyTeambot.newTeambotKey'
 // 'keybase.1.NotifyTeambot.teambotKeyNeeded'
-// 'keybase.1.NotifyUsers.webOfTrustChanged'
 // 'keybase.1.paperprovision.paperProvision'
 // 'keybase.1.pgp.pgpSign'
 // 'keybase.1.pgp.pgpPull'
@@ -3758,8 +3738,3 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
-// 'keybase.1.wot.wotVouch'
-// 'keybase.1.wot.wotVouchCLI'
-// 'keybase.1.wot.wotReact'
-// 'keybase.1.wot.dismissWotNotifications'
-// 'keybase.1.wot.wotFetchVouches'
