@@ -479,6 +479,12 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 			if ctx.Err() != nil {
 				return nil
 			}
+			if u.extractor.isAutoWhitelistFromHit(ctx, hit.URL) {
+				// a giphy or a map, same as the previewable check below: it was never going
+				// to get a card, so one transient scrape failure here must not suppress an
+				// unfurl the send's own retries would have landed
+				continue
+			}
 			// reported rather than dropped: UnfurlAndSend would still queue this url and
 			// retry it in the background for minutes after the send, so a card the user
 			// never saw could land in the sent message with no way to have declined it.
