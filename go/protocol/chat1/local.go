@@ -5857,14 +5857,20 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 }
 
 type UnfurlPreviewInfo struct {
-	Url    string        `codec:"url" json:"url"`
-	Unfurl UnfurlDisplay `codec:"unfurl" json:"unfurl"`
+	Url    string         `codec:"url" json:"url"`
+	Unfurl *UnfurlDisplay `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
 }
 
 func (o UnfurlPreviewInfo) DeepCopy() UnfurlPreviewInfo {
 	return UnfurlPreviewInfo{
-		Url:    o.Url,
-		Unfurl: o.Unfurl.DeepCopy(),
+		Url: o.Url,
+		Unfurl: (func(x *UnfurlDisplay) *UnfurlDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.Unfurl),
 	}
 }
 

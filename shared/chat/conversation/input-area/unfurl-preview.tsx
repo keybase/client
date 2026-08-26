@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import UnfurlGenericView from '@/chat/conversation/messages/text/unfurl/unfurl-list/generic-view'
 import {useUnfurlPreviews} from '@/chat/conversation/unfurl-preview-state'
+import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 
 type Props = {
   // false while editing a message: the edit rpc cannot carry suppression, so offering a
@@ -17,6 +18,7 @@ const UnfurlPreview = (p: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const {dismiss, previews} = useUnfurlPreviews(conversationIDKey, text)
+  const {focusInput} = React.useContext(ThreadRefsContext)
   const [index, setIndex] = React.useState(0)
   const genericPreviews = previews.flatMap(preview => {
     const {unfurl} = preview
@@ -67,7 +69,15 @@ const UnfurlPreview = (p: Props) => {
       description={generic.description ?? undefined}
       favicon={generic.favicon ?? undefined}
       media={generic.media ?? undefined}
-      onClose={canDismiss ? () => dismiss(preview.url) : undefined}
+      onClose={
+        canDismiss
+          ? () => {
+              dismiss(preview.url)
+              // the X takes focus on the way out, and the composer is where the user was
+              focusInput()
+            }
+          : undefined
+      }
       publishTime={generic.publishTime ?? undefined}
       siteName={generic.siteName}
       title={generic.title}
