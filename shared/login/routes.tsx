@@ -107,8 +107,13 @@ const recoverPasswordGetOptions = {
 export const newRoutes = defineRouteMap({
   feedback: settingsRoutes[settingsFeedbackTab],
   login: {
+    // Keep an empty bar visible instead of hiding the header. Unhiding a hidden bar during a
+    // push makes iOS slide the whole UINavigationBar in from the right as its own animated
+    // plane, desynced from the screen slide (RNS issue #3773) — pushing "Create account" from
+    // here juddered and flashed the target screen. A visible bar on both sides turns it into a
+    // coordinated bar-content transition.
     getOptions: isMobile
-      ? {headerShown: false}
+      ? {headerShown: true, title: ''}
       : {
           headerLeft: () => null,
           headerRightActions: () => <LoginHeaderRight />,

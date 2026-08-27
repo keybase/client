@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 
 const useRequestAutoInvite = () => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const {navigateAppend, navigateUp} = C.Router2
+  const {navigateAppend} = C.Router2
 
   return (username: string) => {
     if (waiting) {
@@ -19,7 +19,6 @@ const useRequestAutoInvite = () => {
       try {
         inviteCode = await T.RPCGen.signupGetInvitationCodeRpcPromise(undefined, C.waitingKeySignup)
       } catch {}
-      navigateUp()
       navigateAppend({name: 'signupEnterUsername', params: {inviteCode, username}})
     }
     ignorePromise(f())
