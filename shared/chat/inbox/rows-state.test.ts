@@ -9,7 +9,7 @@ import {metasReceived, participantInfoReceived} from './metadata'
 import {syncInboxBadgeState} from './badge-state'
 import {updateInboxTyping} from './typing-state'
 import {useInboxLayoutState} from './layout-state'
-import {useInboxRowBig, useInboxRowSmall} from './rows-state'
+import {useInboxRowBig, useInboxRowIsMuted, useInboxRowSmall} from './rows-state'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
@@ -174,4 +174,81 @@ test('layout fills gaps until a trusted meta wins; participant store overrides n
     participantInfoReceived(convID, {all: ['alice', 'dave'], contactName: new Map(), name: ['alice', 'dave']})
   })
   expect(small.current.participants).toEqual(['dave'])
+})
+
+test('useInboxRowIsMuted follows the same layout/meta precedence as the full row', () => {
+  const {result} = renderHook(() => useInboxRowIsMuted(convID))
+  // nothing loaded yet
+  expect(result.current).toBe(false)
+
+  // untrusted: the layout row decides
+  act(() => {
+    setLayout({
+      smallTeams: [
+        {
+          convID: T.Chat.conversationIDKeyToString(convID),
+          draft: '',
+          isMuted: true,
+          isTeam: false,
+          lastSendTime: 0,
+          name: 'alice,bob',
+          snippet: '',
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
+          time: 0,
+        },
+      ],
+      totalSmallTeams: 1,
+    })
+  })
+  expect(result.current).toBe(true)
+
+  // a trusted meta wins over the layout row
+  act(() => {
+    metasReceived([
+      {
+        ...Meta.makeConversationMeta(),
+        conversationIDKey: convID,
+        isMuted: false,
+        trustedState: 'trusted',
+      },
+    ])
+  })
+  expect(result.current).toBe(false)
+})
+
+test('big rows drop non-pending snippet decorations and flag the error state', () => {
+  const {result} = renderHook(() => useInboxRowBig(convID))
+
+  act(() => {
+    metasReceived([
+      {
+        ...Meta.makeConversationMeta(),
+        conversationIDKey: convID,
+        snippetDecorated: 'snip',
+        snippetDecoration: T.RPCChat.SnippetDecoration.explodingMessage,
+        trustedState: 'trusted',
+      },
+    ])
+  })
+  expect(result.current.snippetDecoration).toBe(0)
+  expect(result.current.isError).toBe(false)
+
+  act(() => {
+    metasReceived(
+      [
+        {
+          ...Meta.makeConversationMeta(),
+          channelname: 'general',
+          conversationIDKey: convID,
+          snippetDecoration: T.RPCChat.SnippetDecoration.failedPendingMessage,
+          trustedState: 'error',
+        },
+      ],
+      undefined,
+      {force: true}
+    )
+  })
+  expect(result.current.snippetDecoration).toBe(T.RPCChat.SnippetDecoration.failedPendingMessage)
+  expect(result.current.isError).toBe(true)
+  expect(result.current.channelname).toBe('general')
 })
