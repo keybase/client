@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
+import * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {useInterval, useTimeout} from './use-timers'
 
@@ -96,6 +97,43 @@ describe('useTimeout', () => {
       jest.advanceTimersByTime(1000)
     })
     expect(cb).not.toHaveBeenCalled()
+  })
+  test('the returned starter keeps one identity across renders', () => {
+    const seen: Array<() => void> = []
+    const {rerender} = renderHook(
+      ({cb}) => {
+        seen.push(useTimeout(cb, 100))
+      },
+      {initialProps: {cb: () => {}}}
+    )
+    rerender({cb: () => {}})
+    rerender({cb: () => {}})
+    expect(seen).toHaveLength(3)
+    expect(seen[1]).toBe(seen[0])
+    expect(seen[2]).toBe(seen[0])
+  })
+
+  test('a caller that starts the timer from an effect is not restarted by a render', () => {
+    // this is how profile-card, verify-body and alphabet-index use it: an
+    // unstable starter identity re-runs the effect and resets the timer
+    const cb = jest.fn()
+    const {rerender} = renderHook(
+      ({fn}) => {
+        const start = useTimeout(fn, 100)
+        React.useEffect(() => {
+          start()
+        }, [start])
+      },
+      {initialProps: {fn: cb}}
+    )
+    act(() => {
+      jest.advanceTimersByTime(60)
+    })
+    rerender({fn: cb})
+    act(() => {
+      jest.advanceTimersByTime(60)
+    })
+    expect(cb).toHaveBeenCalledTimes(1)
   })
 })
 

@@ -106,7 +106,7 @@ const makeDetail = (
   }) as T.RPCGen.DeviceDetail
 
 const renderedDevices = () =>
-  [...document.querySelectorAll('[data-can-revoke]')].map(node => node.textContent ?? '')
+  [...document.querySelectorAll('[data-can-revoke]')].map(node => node.textContent)
 
 afterEach(() => {
   cleanup()

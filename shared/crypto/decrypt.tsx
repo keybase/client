@@ -81,7 +81,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
           C.waitingKeyCrypto
         )
         if (!isCurrentRun(gen)) return stateRef.current
-      const next = onSuccess(
+        const next = onSuccess(
           stateRef.current,
           stateRef.current.input === snapshot.input,
           res.plaintext,
@@ -149,7 +149,8 @@ export const DecryptInput = (_props: unknown) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.decrypt()
-      if (isMobile) {
+      // a superseded run returns the newer run's pending state; don't push an empty screen
+      if (isMobile && !next.inProgress) {
         navigateAppend({name: Crypto.decryptOutput, params: next})
       }
     }

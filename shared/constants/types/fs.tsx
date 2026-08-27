@@ -562,8 +562,6 @@ export const getVisibilityFromElems = (elems: ReadonlyArray<string>) => {
       return undefined
   }
 }
-export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
-  getPathElements(path1).slice(0, 3).join('/') === getPathElements(path2).slice(0, 3).join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === undefined) return RPCTypes.FolderType.unknown
   return RPCTypes.FolderType[v]

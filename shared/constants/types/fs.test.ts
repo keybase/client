@@ -51,14 +51,6 @@ test('getTlfTypePathFromTlfType and getTlfTypeFromPath round-trip', () => {
   expect(T.FS.getTlfTypeFromPath(T.FS.stringToPath('/keybase'))).toBeUndefined()
 })
 
-test('pathsAreInSameTlf only compares the first three elements', () => {
-  const a = T.FS.stringToPath('/keybase/private/testuser/a/b')
-  const b = T.FS.stringToPath('/keybase/private/testuser/c')
-  const c = T.FS.stringToPath('/keybase/public/testuser/a/b')
-  expect(T.FS.pathsAreInSameTlf(a, b)).toBe(true)
-  expect(T.FS.pathsAreInSameTlf(a, c)).toBe(false)
-})
-
 test('pathIsNonTeamTLFList is true only for the private and public list roots', () => {
   expect(T.FS.pathIsNonTeamTLFList(T.FS.stringToPath('/keybase/private'))).toBe(true)
   expect(T.FS.pathIsNonTeamTLFList(T.FS.stringToPath('/keybase/public'))).toBe(true)

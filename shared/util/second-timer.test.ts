@@ -19,6 +19,21 @@ describe('second timer', () => {
     return id
   }
 
+  test('a listener removing itself mid-tick does not skip the next listener', () => {
+    const second = jest.fn()
+    let ownId = 0
+    const first = jest.fn(() => {
+      removeTicker(ownId)
+    })
+    ownId = add(first)
+    add(second)
+
+    jest.advanceTimersByTime(1000)
+
+    // the self-removal must not shift the next listener out from under the loop
+    expect(second).toHaveBeenCalledTimes(1)
+  })
+
   test('calls the listener once per second', () => {
     const fn = jest.fn()
     add(fn)

@@ -79,9 +79,13 @@ describe('BannerParagraph', () => {
     expect(document.body.textContent).toBe('ab')
   })
 
-  test('a lone space segment becomes a non-breaking space', () => {
+  test('a lone space segment becomes a non-breaking space, with a key', () => {
+    // a missing key here is only a console warning, so assert on it directly
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
     render(<BannerParagraph bannerColor="red" content={['a', ' ', 'b']} />)
     expect(document.body.textContent).toBe(`a${nbsp}b`)
+    expect(spy.mock.calls.map(c => String(c[0])).join('\n')).not.toMatch(/unique "key"/)
+    spy.mockRestore()
   })
 
   test('leading and trailing spaces are converted to non-breaking spaces around trimmed text', () => {

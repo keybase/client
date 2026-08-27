@@ -127,7 +127,7 @@ const makeOK = (
 const reposInSection = (title: string) => {
   const header = document.querySelector(`[data-section="${title}"]`)
   const section = header?.parentElement
-  return [...(section?.querySelectorAll('[data-repo]') ?? [])].map(n => n.textContent ?? '')
+  return [...(section?.querySelectorAll('[data-repo]') ?? [])].map(n => n.textContent)
 }
 
 afterEach(() => {

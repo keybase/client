@@ -356,7 +356,7 @@ export const collapseStylesDesktop = (styles: ReadonlyArray<unknown>): object | 
       return s as object
     }
   }
-  const s = Object.assign({}, ...styles.flat()) as object
+  const s = Object.assign({}, ...styles.flat(Infinity)) as object
   return Object.keys(s).length ? s : undefined
 }
 

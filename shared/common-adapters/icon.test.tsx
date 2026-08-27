@@ -2,6 +2,7 @@
 /// <reference types="jest" />
 
 import {cleanup, render} from '@testing-library/react'
+import {ClickableBox} from './box'
 import {iconMeta} from './icon.constants-gen'
 import {isValidIconType} from './icon.shared'
 import Icon from './icon'
@@ -90,9 +91,9 @@ describe('Icon (desktop)', () => {
     const onClick = jest.fn()
     const onOuter = jest.fn()
     const {container} = render(
-      <div onClick={onOuter}>
+      <ClickableBox direction="vertical" onClick={onOuter}>
         <Icon type="iconfont-add" onClick={onClick} />
-      </div>
+      </ClickableBox>
     )
     const el = container.querySelector('span') as HTMLElement
     expect(el.style.cursor).toBe('pointer')

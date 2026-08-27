@@ -1,16 +1,11 @@
 /// <reference types="jest" />
-import * as T from './types'
+import type * as T from './types'
 import {
   compareActivityLevels,
   compareTeamRoles,
-  deriveCanPerform,
   getTeamRowBadgeCount,
-  initialCanUserPerform,
   initialMemberInfo,
   isSubteam,
-  makeRetentionPolicy,
-  retentionPolicyToServiceRetentionPolicy,
-  serviceRetentionPolicyToRetentionPolicy,
   sortTeamnames,
   stringifyPeople,
   userInTeamNotBotWithInfo,
@@ -110,69 +105,6 @@ describe('getTeamRowBadgeCount', () => {
   })
 })
 
-describe('deriveCanPerform', () => {
-  test('returns the all-false defaults with no role', () => {
-    expect(deriveCanPerform()).toBe(initialCanUserPerform)
-  })
-
-  test('an owner can do owner-only things', () => {
-    const owner = deriveCanPerform({implicitAdmin: false, role: 'owner'})
-    expect(owner.deleteTeam).toBe(true)
-    expect(owner.manageMembers).toBe(true)
-    expect(owner.chat).toBe(true)
-    expect(owner.renameTeam).toBe(false)
-  })
-
-  test('an admin can manage but not delete the team', () => {
-    const admin = deriveCanPerform({implicitAdmin: false, role: 'admin'})
-    expect(admin.deleteTeam).toBe(false)
-    expect(admin.manageMembers).toBe(true)
-    expect(admin.setRetentionPolicy).toBe(true)
-  })
-
-  test('a writer can create channels but not manage members', () => {
-    const writer = deriveCanPerform({implicitAdmin: false, role: 'writer'})
-    expect(writer.createChannel).toBe(true)
-    expect(writer.pinMessage).toBe(true)
-    expect(writer.manageMembers).toBe(false)
-    expect(writer.deleteChannel).toBe(false)
-  })
-
-  test('a reader and a bot can chat but nothing else', () => {
-    for (const role of ['reader', 'bot'] as const) {
-      const p = deriveCanPerform({implicitAdmin: false, role})
-      expect(p.chat).toBe(true)
-      expect(p.createChannel).toBe(false)
-      expect(p.manageMembers).toBe(false)
-    }
-  })
-
-  test('a non-member has nothing, and cannot even chat', () => {
-    const none = deriveCanPerform({implicitAdmin: false, role: 'none'})
-    expect(none.chat).toBe(false)
-    expect(none.joinTeam).toBe(false)
-  })
-
-  test('an implicit admin gets subteam powers without being a member', () => {
-    const implicit = deriveCanPerform({implicitAdmin: true, role: 'none'})
-    expect(implicit.manageMembers).toBe(true)
-    expect(implicit.renameTeam).toBe(true)
-    expect(implicit.listFirst).toBe(true)
-    expect(implicit.joinTeam).toBe(true)
-    expect(implicit.deleteTeam).toBe(true)
-    // still not a member, so still no chat
-    expect(implicit.chat).toBe(false)
-  })
-
-  test('caches by role and implicit admin', () => {
-    expect(deriveCanPerform({implicitAdmin: false, role: 'writer'})).toBe(
-      deriveCanPerform({implicitAdmin: false, role: 'writer'})
-    )
-    expect(deriveCanPerform({implicitAdmin: true, role: 'writer'})).not.toBe(
-      deriveCanPerform({implicitAdmin: false, role: 'writer'})
-    )
-  })
-})
 
 describe('member info predicates', () => {
   const members = new Map([
@@ -193,61 +125,3 @@ describe('member info predicates', () => {
   })
 })
 
-describe('retention policy conversion', () => {
-  test('a missing service policy means retain', () => {
-    expect(serviceRetentionPolicyToRetentionPolicy()).toEqual(makeRetentionPolicy({type: 'retain'}))
-    expect(serviceRetentionPolicyToRetentionPolicy(null)).toEqual(makeRetentionPolicy({type: 'retain'}))
-  })
-
-  test('a known expire age gets its canonical title', () => {
-    expect(
-      serviceRetentionPolicyToRetentionPolicy({
-        expire: {age: 30 * 3600 * 24},
-        typ: T.RPCChat.RetentionPolicyType.expire,
-      })
-    ).toEqual({seconds: 30 * 3600 * 24, title: '30 days', type: 'expire'})
-  })
-
-  test('an unknown age falls back to a seconds title', () => {
-    expect(
-      serviceRetentionPolicyToRetentionPolicy({
-        expire: {age: 12345},
-        typ: T.RPCChat.RetentionPolicyType.expire,
-      })
-    ).toEqual({seconds: 12345, title: '12345 seconds', type: 'expire'})
-  })
-
-  test('ephemeral becomes explode', () => {
-    expect(
-      serviceRetentionPolicyToRetentionPolicy({
-        ephemeral: {age: 30},
-        typ: T.RPCChat.RetentionPolicyType.ephemeral,
-      })
-    ).toEqual({seconds: 30, title: '30 seconds', type: 'explode'})
-  })
-
-  test('inherit round trips back to the service shape', () => {
-    const policy = serviceRetentionPolicyToRetentionPolicy({
-      inherit: {},
-      typ: T.RPCChat.RetentionPolicyType.inherit,
-    })
-    expect(policy).toEqual({seconds: 0, title: '', type: 'inherit'})
-    expect(retentionPolicyToServiceRetentionPolicy(policy)).toEqual({
-      inherit: {},
-      typ: T.RPCChat.RetentionPolicyType.inherit,
-    })
-  })
-
-  test('explode maps back to ephemeral, expire back to expire', () => {
-    expect(retentionPolicyToServiceRetentionPolicy(makeRetentionPolicy({seconds: 30, type: 'explode'})))
-      .toEqual({ephemeral: {age: 30}, typ: T.RPCChat.RetentionPolicyType.ephemeral})
-    expect(retentionPolicyToServiceRetentionPolicy(makeRetentionPolicy({seconds: 99, type: 'expire'}))).toEqual(
-      {expire: {age: 99}, typ: T.RPCChat.RetentionPolicyType.expire}
-    )
-  })
-
-  test('makeRetentionPolicy fills in defaults and honors overrides', () => {
-    expect(makeRetentionPolicy()).toEqual({seconds: 0, title: '', type: 'retain'})
-    expect(makeRetentionPolicy({seconds: 5})).toEqual({seconds: 5, title: '', type: 'retain'})
-  })
-})

@@ -464,7 +464,8 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.runEncrypt()
-      if (isMobile) {
+      // a superseded run returns the newer run's pending state; don't push an empty screen
+      if (isMobile && !next.inProgress) {
         navigateAppend({name: Crypto.encryptOutput, params: encryptToOutputParams(next)})
       }
     }

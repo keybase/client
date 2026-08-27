@@ -117,8 +117,7 @@ export const formatDuration = (duration: number): string => {
     return ''
   }
 
-  // plain arithmetic, not a Date: reading getUTCHours() off one wrapped
-  // anything past 24h back to zero, and the reset countdown runs for days
+  // durations here run past a day, so this must not wrap at 24h
   const seconds = Math.floor(duration / 1000)
   const days = Math.floor(seconds / 86400)
   if (days) {

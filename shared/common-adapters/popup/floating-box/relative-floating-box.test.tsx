@@ -3,6 +3,7 @@
 
 import type * as React from 'react'
 import {cleanup, render} from '@testing-library/react'
+import {Box2} from '../../box'
 import type * as Styles from '@/styles'
 import type {MeasureRef} from '../../measure-ref'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
@@ -52,7 +53,7 @@ const positionOf = (
       position={position}
       {...rest}
     >
-      <div>content</div>
+      <Box2 direction="vertical">content</Box2>
     </RelativeFloatingBox>
   )
   void container
@@ -156,7 +157,7 @@ describe('RelativeFloatingBox positioning', () => {
         onClosePopup={() => {}}
         position="bottom left"
       >
-        <div>content</div>
+        <Box2 direction="vertical">content</Box2>
       </RelativeFloatingBox>
     )
     expect(container.innerHTML).toBe('')

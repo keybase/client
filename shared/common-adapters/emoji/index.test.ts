@@ -60,6 +60,17 @@ describe('emojiDataToRenderableEmoji', () => {
     expect(r.unicodeStock).toBe('\u{1F44B}\u{1F3FD}')
   })
 
+  test('a skin tone with no matching variation falls back to the base emoji', () => {
+    // the fallback used to be '', which reached String.fromCodePoint(NaN) and threw
+    const data = makeEmojiData({
+      short_name: 'wave',
+      skin_variations: {'1F3FD': {unified: '1F44B-1F3FD'}},
+      unified: '1F44B',
+    } as Partial<EmojiData>)
+    const r = emojiDataToRenderableEmoji(data, '::skin-tone-6', '1F3FF')
+    expect(r.unicodeStock).toBe('\u{1F44B}')
+  })
+
   test('user emoji render overrides win over the derived stock name', () => {
     const r = emojiDataToRenderableEmoji(
       makeEmojiData({unified: '', userEmojiRenderUrl: 'https://example.com/e.png'} as Partial<EmojiData>)
