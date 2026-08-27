@@ -9,6 +9,4 @@ const defaultTeamPrefix = '/team/'
 
 export const privateFolderWithUsers = (users: ReadonlyArray<string>) =>
   `${defaultKBFSPath}${defaultPrivatePrefix}${[...new Set(users)].join(',')}`
-export const publicFolderWithUsers = (users: ReadonlyArray<string>) =>
-  `${defaultKBFSPath}${defaultPublicPrefix}${[...new Set(users)].join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`

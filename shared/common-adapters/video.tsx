@@ -134,8 +134,9 @@ const DesktopVideo = (props: Props) => {
 const NativeVideo = (props: Props) => {
   const styles = useStyles()
   const {url: _url, allowFile, muted, onUrlError, autoPlay} = props
-  const url = Styles.urlEscapeFilePath(_url)
-  const uri = allowFile ? Styles.normalizePath(url) : url
+  // normalize first: urlEscapeFilePath only escapes a path that already has the
+  // file:// prefix, and normalizePath is what adds it
+  const uri = Styles.urlEscapeFilePath(allowFile ? Styles.normalizePath(_url) : _url)
 
   const player = useVideoPlayer(uri, p => {
     p.muted = muted ?? false
@@ -166,7 +167,7 @@ const NativeVideo = (props: Props) => {
     </DelayMount>
   )
 
-  return useCheckURL(content, url, allowFile)
+  return useCheckURL(content, uri, allowFile)
 }
 
 const Video = (props: Props) => {

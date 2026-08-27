@@ -1,48 +1,5 @@
 import logger from '@/logger'
 
-// helper to debug method calls into an object
-export function createLoggingProxy<T extends {[key: string]: unknown}>(
-  obj: T,
-  logMethods: boolean = true,
-  logProps: boolean = false
-): T {
-  console.log('[PROXY] installed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-  const cache = new Map<string, unknown>()
-  const proxy = new Proxy(
-    {},
-    {
-      get(_target, propKey: string) {
-        if (cache.get(propKey)) {
-          return cache.get(propKey)
-        }
-        const originalMethod: unknown = obj[propKey]
-        if (typeof originalMethod === 'function') {
-          if (logMethods) {
-            const ret = function (...args: Array<unknown>) {
-              console.log(`[PROXY] Calling method: ${String(propKey)}`)
-              console.log('[PROXY] Arguments:', args)
-              const result = originalMethod.apply(obj, args) as unknown
-              console.log('[PROXY] Result:', result)
-              return result
-            }
-            cache.set(propKey, ret)
-            return ret
-          } else {
-            return originalMethod
-          }
-        } else {
-          if (logProps) {
-            console.log(`[PROXY] props access: ${String(propKey)}`)
-          }
-          return originalMethod
-        }
-      },
-    }
-  )
-
-  return proxy as T
-}
-
 export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: string = ''): T {
   return ((...p: Parameters<T>): ReturnType<T> => {
     try {

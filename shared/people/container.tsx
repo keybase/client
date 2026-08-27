@@ -120,13 +120,19 @@ const todoTypeToConfirmLabel: {[K in T.People.TodoType]: string} = {
 const descriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
   const t = T.RPCGen.HomeScreenTodoType
   switch (todo.t) {
-    case t.legacyEmailVisibility:
-      return `Allow friends to find you using *${todo.legacyEmailVisibility}*?`
-    case t.verifyAllEmail:
-      return `Your email address *${todo.verifyAllEmail}* is unverified.`
+    // the * * is bold markup, so an absent value would render as an empty bold run
+    case t.legacyEmailVisibility: {
+      const e = todo.legacyEmailVisibility
+      return e
+        ? `Allow friends to find you using *${e}*?`
+        : 'Allow friends to find you using your email address?'
+    }
+    case t.verifyAllEmail: {
+      const e = todo.verifyAllEmail
+      return e ? `Your email address *${e}* is unverified.` : 'Your email address is unverified.'
+    }
     case t.verifyAllPhoneNumber: {
       const p = todo.verifyAllPhoneNumber
-      // the * * is bold markup, so an absent number would render as an empty bold run
       return p ? `Your number *${e164ToDisplay(p)}* is unverified.` : 'Your number is unverified.'
     }
     default: {

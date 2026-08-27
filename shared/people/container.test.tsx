@@ -202,6 +202,18 @@ describe('reduceRPCItemToPeopleItem', () => {
     expect(item.type === 'todo' && item.instructions).toBe('Your number is unverified.')
   })
 
+  test('an unverified email todo with no address drops the bold markup instead of emptying it', () => {
+    const item = reduceOne(todoItem(T.RPCGen.HomeScreenTodoType.verifyAllEmail, true))[0]!
+    expect(item.type === 'todo' && item.instructions).toBe('Your email address is unverified.')
+  })
+
+  test('a legacyEmailVisibility todo with no address drops the bold markup instead of emptying it', () => {
+    const item = reduceOne(todoItem(T.RPCGen.HomeScreenTodoType.legacyEmailVisibility, true))[0]!
+    expect(item.type === 'todo' && item.instructions).toBe(
+      'Allow friends to find you using your email address?'
+    )
+  })
+
   test('a single follow notification becomes a follow row with an empty contact description', () => {
     const item = reduceOne(followedItem('testuser', 1000, true))[0]!
     expect(item.type).toBe('follow')

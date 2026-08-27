@@ -102,7 +102,6 @@ type AllowedColorNames =
 
 export type AllowedColors = Colors[AllowedColorNames] | 'inherit'
 
-export type _StylesTextCrossPlatform = CSS._CustomStyles<'color', {color?: AllowedColors}>
 export type StylesTextCrossPlatform = CSS.CustomStyles<'color', {color?: AllowedColors}>
 
 export type LineClampType = 1 | 2 | 3 | 4 | 5

@@ -5,8 +5,6 @@ import {ignorePromise} from '@/constants/utils'
 import {muteConversationPromise} from '../../status-actions'
 import {useConversationMeta} from '../../data-hooks'
 
-export type SaveStateType = 'same' | 'saving' | 'justSaved'
-
 type UnmutedProps = {
   channelWide: boolean
   desktop: T.Chat.NotificationsType

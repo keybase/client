@@ -29,15 +29,11 @@ export type User = {
   contact?: boolean // not a keybase user, a phone / email from our contacts
 }
 
-// Treating this as a tuple
-export type SearchKey = Array<SearchString /*| ServiceIdWithContact*/>
-
 // This is what should be kept in the reducer
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
 export type Query = string
 
 export type SearchResults = Map<Query, Map<ServiceIdWithContact, ReadonlyArray<User>>>
-export type ServiceResultCount = Map<SearchString, Map<ServiceIdWithContact, number>>
 
 export type SelectedUser = {
   userId: string

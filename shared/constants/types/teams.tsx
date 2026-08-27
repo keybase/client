@@ -2,7 +2,6 @@ import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {ConversationIDKey} from './chat'
 
 export type TeamID = string
-export const stringToTeamID = (s: string): TeamID => s
 export const teamIDToString = (t: TeamID): string => t
 export const noTeamID = 'NOTEAMID'
 export const newTeamWizardTeamID = 'NewTeamWizardTeam'
@@ -39,8 +38,6 @@ export type _PublicitySettings = {
 
 export type TeamSettings = {} & RPCTypes.TeamSettings
 
-export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
-
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type TreeloaderSparseMemberInfo = {
   joinTime?: number
@@ -56,9 +53,6 @@ export type MemberInfo = SparseMemberInfo & {
   status: MemberStatus
   needsPUK: boolean
 }
-export type MemberInfoWithLastActivity = MemberInfo & {
-  lastActivity?: number
-}
 
 export type InviteInfo = {
   email: string
@@ -72,13 +66,6 @@ export type InviteInfo = {
 export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'emoji' | 'settings' | 'channels'
 
 export type TypeMap = {[K in TeamRoleType]: string}
-
-export type BoolTypeMap = {[K in TeamRoleType]: boolean}
-
-export type EmailInviteError = {
-  malformed: Set<string>
-  message: string
-}
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
@@ -134,31 +121,11 @@ export type TeamRoleAndDetails = {
   role: MaybeTeamRoleType
 }
 
-export type TeamRoleMap = {
-  latestKnownVersion: number
-  loadedVersion: number
-  roles: Map<TeamID, TeamRoleAndDetails>
-}
-
-export type TeamVersion = {
-  latestSeqno: number
-  latestHiddenSeqno: number
-  latestOffchainSeqno: number
-}
-
 export type AvatarCrop = {
   crop: RPCTypes.ImageCropRect
   offsetLeft?: number
   offsetTop?: number
   scaledWidth?: number
-}
-
-export type TeamTreeMemberships = {
-  guid: number
-  targetTeamID: TeamID
-  targetUsername: string
-  expectedCount?: number
-  memberships: Array<RPCTypes.TeamTreeMembership>
 }
 
 export type TeamChannelInfo = {
@@ -222,8 +189,3 @@ export type ActivityLevels = {
 
 export type TeamListSort = 'role' | 'activity' | 'alphabetical'
 
-export type TeamInviteState = {
-  inviteID: string
-  inviteKey: string
-  inviteDetails?: RPCTypes.InviteLinkDetails
-}

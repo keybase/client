@@ -122,3 +122,34 @@ test('normalize/unnormalizePath are identity off mobile', () => {
   expect(normalizePath('/tmp/a.png')).toBe('/tmp/a.png')
   expect(unnormalizePath('file:///tmp/a.png')).toBe('file:///tmp/a.png')
 })
+
+describe('escaping a local file path for a media uri, on mobile', () => {
+  type StylesModule = typeof StylesIndex
+  let mobile: StylesModule
+  const originalIsMobile = global.isMobile
+
+  beforeAll(() => {
+    global.isMobile = true
+    jest.resetModules()
+    mobile = require('./index') as StylesModule
+  })
+
+  afterAll(() => {
+    global.isMobile = originalIsMobile
+    jest.resetModules()
+  })
+
+  // urlEscapeFilePath only escapes a path that already carries the file:// prefix,
+  // and normalizePath is what adds it, so callers must normalize first
+  test('normalizing before escaping escapes the whole path', () => {
+    expect(mobile.urlEscapeFilePath(mobile.normalizePath('/tmp/my dir/my clip.mp4'))).toBe(
+      'file:///tmp/my%20dir/my%20clip.mp4'
+    )
+  })
+
+  test('escaping before normalizing leaves the path unescaped', () => {
+    expect(mobile.normalizePath(mobile.urlEscapeFilePath('/tmp/my dir/my clip.mp4'))).toBe(
+      'file:///tmp/my dir/my clip.mp4'
+    )
+  })
+})

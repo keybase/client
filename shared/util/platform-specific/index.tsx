@@ -133,4 +133,3 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-export const watchPositionForMap = async () => Promise.resolve(() => {})

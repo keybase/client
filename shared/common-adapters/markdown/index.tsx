@@ -23,33 +23,6 @@ type State = SM.State & {
   isMobile?: boolean
 }
 
-type MarkdownComponentType =
-  | 'inline-code'
-  | 'code-block'
-  | 'link'
-  | 'text'
-  | 'bold'
-  | 'italic'
-  | 'strike'
-  | 'emoji'
-  | 'native-emoji'
-  | 'quote-block'
-
-export type MarkdownCreateComponent = (
-  type: MarkdownComponentType,
-  key: string,
-  children: Array<React.ReactNode>,
-  options: {
-    href?: string
-    convID?: string
-    bigEmoji?: boolean
-  }
-) => React.ReactNode
-
-export type MarkdownMeta = {
-  message: T.Chat.MessageText | T.Chat.MessageAttachment
-}
-
 export type StyleOverride = {
   paragraph?: StylesTextCrossPlatform
   fence?: StylesTextCrossPlatform

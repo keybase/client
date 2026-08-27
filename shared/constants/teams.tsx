@@ -226,14 +226,6 @@ export const userInTeamNotBotWithInfo = (
   return !isBot(memb.type)
 }
 
-export const initialPublicitySettings = Object.freeze<T.Teams._PublicitySettings>({
-  anyMemberShowcase: false,
-  description: '',
-  ignoreAccessRequests: false,
-  member: false,
-  team: false,
-})
-
 export function sortTeamnames(a: string, b: string) {
   const aName = a.toUpperCase()
   const bName = b.toUpperCase()
@@ -256,8 +248,6 @@ export const isSubteam = (maybeTeamname: string) => {
   }
   return true
 }
-
-export const publicAdminsLimit = 6
 
 export const emptyTeamMeta = Object.freeze<T.Teams.TeamMeta>({
   allowPromote: false,
@@ -356,8 +346,6 @@ export const emptyTeamDetails: T.Teams.TeamDetails = {
   settings: {open: false, openJoinAs: 'reader', tarsDisabled: false, teamShowcased: false},
   subteams: new Set(),
 }
-
-export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
 
 export const annotatedTeamToDetails = (t: T.RPCGen.AnnotatedTeam): T.Teams.TeamDetails => {
   const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs]

@@ -59,7 +59,6 @@ export const DEVICE_PAGE  = 'device-page'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'
-export const SETTINGS_NAV_ITEM          = 'settings-nav-item'
 export const SETTINGS_ADVANCED          = 'settings-advanced'
 export const SETTINGS_ABOUT             = 'settings-about'
 export const SETTINGS_ARCHIVE           = 'settings-archive'

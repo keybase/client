@@ -280,19 +280,6 @@ export const getTlfFromPath = (tlfs: T.Immutable<T.FS.Tlfs>, path: T.FS.Path): T
     : tlfs.additionalTlfs.get(getTlfPath(path)) || unknownTlf
 }
 
-export const getTlfFromTlfs = (tlfs: T.FS.Tlfs, tlfType: T.FS.TlfType, name: string): T.FS.Tlf => {
-  switch (tlfType) {
-    case T.FS.TlfType.Private:
-      return tlfs.private.get(name) || unknownTlf
-    case T.FS.TlfType.Public:
-      return tlfs.public.get(name) || unknownTlf
-    case T.FS.TlfType.Team:
-      return tlfs.team.get(name) || unknownTlf
-    default:
-      return unknownTlf
-  }
-}
-
 export const tlfTypeAndNameToPath = (tlfType: T.FS.TlfType, name: string): T.FS.Path =>
   T.FS.stringToPath(`/keybase/${tlfType}/${name}`)
 
@@ -368,15 +355,7 @@ export const getUsernamesFromTlfName = (tlfName: string): Array<string> => {
 export const computeBadgeNumberForTlfList = (tlfList: T.Immutable<T.FS.TlfList>): number =>
   [...tlfList.values()].reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
-export const computeBadgeNumberForAll = (tlfs: T.Immutable<T.FS.Tlfs>): number =>
-  [T.FS.TlfType.Private, T.FS.TlfType.Public, T.FS.TlfType.Team]
-    .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
-    .reduce((sum, count) => sum + count, 0)
-
 export const tlfIsBadged = (tlf: T.FS.Tlf) => !tlf.isIgnored && tlf.isNew
-
-export const tlfIsStuckInConflict = (tlf: T.FS.Tlf) =>
-  tlf.conflictState.type === T.FS.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
 
 // Path Parsing
 export const parsePath = (path: T.FS.Path): T.FS.ParsedPath => {
@@ -743,10 +722,3 @@ export const hideOrDisableInDestinationPicker = (
 
 // Other Utilities
 
-export const showIgnoreFolder = (path: T.FS.Path, username?: string): boolean => {
-  const elems = T.FS.getPathElements(path)
-  if (elems.length !== 3) {
-    return false
-  }
-  return ['public', 'private'].includes(elems[1]!) && elems[2]! !== username
-}

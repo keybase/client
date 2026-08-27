@@ -14,7 +14,6 @@ export type StaticConfig = {
 }
 
 export type MetaMap = Map<Common.ConversationIDKey, Meta.ConversationMeta>
-export type ConversationCountMap = Map<Common.ConversationIDKey, number>
 
 export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
 

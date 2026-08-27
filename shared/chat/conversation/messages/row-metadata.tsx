@@ -35,15 +35,6 @@ export const getPreviousOrdinal = (
   ordinal: T.Chat.Ordinal
 ) => getPreviousOrdinalInfo(messageOrdinals, ordinal).previous
 
-export const getPreviousMessage = (
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>,
-  messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>,
-  ordinal: T.Chat.Ordinal
-) => {
-  const previousOrdinal = getPreviousOrdinal(messageOrdinals, ordinal)
-  return previousOrdinal ? messageMap.get(previousOrdinal) : undefined
-}
-
 // Username-header behavior. Whether a row shows the author header depends on its PREVIOUS message
 // (author grouping), so the oldest row of the loaded window has no previous and must assume it
 // leads a group. A scroll-back load then hands it a same-author previous and the header has to go —

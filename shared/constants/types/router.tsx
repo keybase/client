@@ -12,23 +12,6 @@ export type GetOptionsParams<
   navigation: NativeStackNavigationProp<ParamList, RouteName>
   route: RouteProp<ParamList, RouteName>
 }
-
-// Type for screen components that receive navigation props
-export type ScreenProps<
-  ParamList extends ParamListBase = ParamListBase,
-  RouteName extends RouteNameFor<ParamList> = RouteNameFor<ParamList>,
-> = {
-  navigation: NativeStackNavigationProp<ParamList, RouteName>
-  route: RouteProp<ParamList, RouteName>
-}
-
-export type ScreenComponentProps<
-  ParamList extends ParamListBase = ParamListBase,
-  RouteName extends RouteNameFor<ParamList> = RouteNameFor<ParamList>,
-> = {
-  route: RouteProp<ParamList, RouteName>
-  navigation: NativeStackNavigationProp<ParamList, RouteName>
-}
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {
   safeAreaStyle?: Styles.StylesCrossPlatform
@@ -83,13 +66,6 @@ export type RouteDef<Screen extends AnyScreen = AnyScreen, Params = ScreenRouteP
   initialParams?: Params
   screen: Screen
 }
-export type RouteMap = {[K in string]?: RouteDef}
 
 export const defineRouteMap = <const Routes,>(routes: Routes) => routes
 
-// tsgo does not support partial type argument application: providing Params explicitly
-// while letting Screen be inferred causes "Expected 2 type arguments, but got 1".
-// Adding Screen = AnyScreen as a default fixes this.
-export const withRouteParams = <Params, Screen extends AnyScreen = AnyScreen>(
-  route: RouteDef<Screen>
-): RouteDef<Screen, Params> => route as RouteDef<Screen, Params>

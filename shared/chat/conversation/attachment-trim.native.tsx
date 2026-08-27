@@ -32,7 +32,9 @@ const seekSlopMs = 400
 const AttachmentTrim = (props: Props) => {
   const styles = useStyles()
   const {edit, onEdit, path} = props
-  const uri = Styles.normalizePath(Styles.urlEscapeFilePath(path))
+  // normalize first: urlEscapeFilePath only escapes a path that already has the
+  // file:// prefix, and normalizePath is what adds it
+  const uri = Styles.urlEscapeFilePath(Styles.normalizePath(path))
   const player = useVideoPlayer(uri, p => {
     p.muted = true
     p.pause()
