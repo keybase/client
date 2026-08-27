@@ -34,6 +34,7 @@ module.exports = {
     '^react-native$': '<rootDir>/test/mocks/react-native.js',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/test/fail-on-console.js'],
   testEnvironment: 'node',
   testMatch: ['<rootDir>/**/*.test.ts', '<rootDir>/**/*.test.tsx'],
   testPathIgnorePatterns: [
