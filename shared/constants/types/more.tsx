@@ -1,15 +1,3 @@
-export type ProvablePlatformsType =
-  | 'dns'
-  | 'facebook'
-  | 'github'
-  | 'hackernews'
-  | 'http'
-  | 'https'
-  | 'reddit'
-  | 'rooter'
-  | 'twitter'
-  | 'web'
-
 export type PlatformsExpandedType =
   | 'btc'
   | 'dns'

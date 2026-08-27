@@ -41,6 +41,14 @@ describe('collapseStylesDesktop', () => {
     expect(collapseStylesDesktop([[{color: 'red'}], {width: 1}])).toEqual({color: 'red', width: 1})
   })
 
+  test('a lone nested array is merged, not handed back as an array', () => {
+    expect(collapseStylesDesktop([[{color: 'red'}, {width: 1}]])).toEqual({color: 'red', width: 1})
+  })
+
+  test('flattens arrays nested more than one level deep', () => {
+    expect(collapseStylesDesktop([[[{color: 'red'}]], {width: 1}])).toEqual({color: 'red', width: 1})
+  })
+
   test('skips falsey entries while merging', () => {
     expect(collapseStylesDesktop([{color: 'red'}, false, {width: 1}, undefined])).toEqual({
       color: 'red',

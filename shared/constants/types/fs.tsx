@@ -1,5 +1,4 @@
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
-import type * as Devices from './devices'
 import {isWindows} from '../platform'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '@/actions/fs-gen'
@@ -16,24 +15,6 @@ export enum ProgressType {
   Pending = 'pending',
   Loaded = 'loaded',
 }
-
-export type Device = Readonly<{
-  type: Devices.DeviceType
-  name: string
-  deviceID: string
-}>
-
-export type ParticipantUnlock = Readonly<{
-  name: string
-  devices: string
-}>
-
-export type ResetMember = Readonly<{
-  username: string
-  uid: string
-}>
-
-// TODO: make structs above immutable
 
 export enum TlfType {
   Public = 'public',
@@ -113,21 +94,6 @@ export type Tlf = Readonly<{
   syncConfig: TlfSyncConfig
   teamId: RPCTypes.TeamID
   tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
-  /*
-   * Disabled because SimpleFS API doesn't have problem_set yet. We might never
-   * need these.
-   *
-   * needsRekey: boolean
-   *
-   * // Following two fields are calculated but not in-use today yet.
-   * //
-   * // waitingForParticipantUnlock is the list of participants that can unlock
-   * // this folder, when this folder needs a rekey.
-   * waitingForParticipantUnlock?: I.List<ParticipantUnlock>
-   * // youCanUnlock has a list of devices that can unlock this folder, when this
-   * // folder needs a rekey.
-   * youCanUnlock?: I.List<Device>
-   */
 }>
 
 // name -> Tlf
@@ -399,10 +365,6 @@ export type MoveOrCopySource = Readonly<{
 export type IncomingShareSource = Readonly<{
   type: DestinationPickerSource.IncomingShare
   source: ReadonlyArray<RPCTypes.IncomingShareItem>
-}>
-
-export type NoSource = Readonly<{
-  type: DestinationPickerSource.None
 }>
 
 export enum PathItemActionMenuView {

@@ -221,3 +221,68 @@ test('clearInput wipes the input and marks the empty output valid', async () => 
   expect(result.current.state.output).toBe('')
   expect(result.current.state.outputValid).toBe(true)
 })
+
+test('a superseded encrypt cannot commit over the run that replaced it', async () => {
+  // the first call hangs until we release it, so the second (newer) run finishes first
+  let releaseFirst = (_: unknown) => {}
+  const firstPending = new Promise(resolve => {
+    releaseFirst = resolve
+  })
+  jest
+    .spyOn(T.RPCGen, 'saltpackSaltpackEncryptStringRpcPromise')
+    .mockImplementationOnce(async () => {
+      await firstPending
+      return {ciphertext: 'STALE CIPHER', unresolvedSBSAssertion: '', usedUnresolvedSBS: false} as never
+    })
+    .mockImplementationOnce(async () => {
+      await Promise.resolve()
+      return {ciphertext: 'FRESH CIPHER', unresolvedSBSAssertion: '', usedUnresolvedSBS: false} as never
+    })
+
+  const {result} = renderHook(() => useEncryptScreenState())
+  act(() => {
+    result.current.setInput('text', 'first plaintext')
+  })
+  act(() => {
+    result.current.setInput('text', 'second plaintext')
+  })
+
+  await waitFor(() => expect(result.current.state.output).toBe('FRESH CIPHER'))
+
+  await act(async () => {
+    releaseFirst(undefined)
+    await firstPending
+  })
+
+  expect(result.current.state.output).toBe('FRESH CIPHER')
+  expect(result.current.state.outputValid).toBe(true)
+})
+
+test('an encrypt in flight cannot repopulate output after the input is cleared', async () => {
+  let release = (_: unknown) => {}
+  const pending = new Promise(resolve => {
+    release = resolve
+  })
+  jest.spyOn(T.RPCGen, 'saltpackSaltpackEncryptStringRpcPromise').mockImplementation(async () => {
+    await pending
+    return {ciphertext: 'LATE CIPHER', unresolvedSBSAssertion: '', usedUnresolvedSBS: false} as never
+  })
+
+  const {result} = renderHook(() => useEncryptScreenState())
+  act(() => {
+    result.current.setInput('text', 'some plaintext')
+  })
+  act(() => {
+    result.current.clearInput()
+  })
+  expect(result.current.state.input).toBe('')
+
+  await act(async () => {
+    release(undefined)
+    await pending
+  })
+
+  expect(result.current.state.output).toBe('')
+  expect(result.current.state.outputStatus).toBeUndefined()
+  expect(result.current.state.input).toBe('')
+})

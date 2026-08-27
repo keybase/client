@@ -4,7 +4,6 @@ export const invalidPasswordErrorString = 'Bad password: Invalid password. Serve
 
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
-export const defaultPublicPrefix = '/public/'
 const defaultTeamPrefix = '/team/'
 
 export const privateFolderWithUsers = (users: ReadonlyArray<string>) =>

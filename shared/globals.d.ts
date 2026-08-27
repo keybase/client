@@ -40,8 +40,6 @@ declare global {
   // Returns false if the native write to Go failed
   var rpcOnGo: undefined | ((msg: unknown) => boolean)
   var rpcOnJs: undefined | ((objs: unknown, count: number) => void)
-  // RN
-  var __turboModuleProxy: unknown
   // Platform globals — injected by webpack DefinePlugin / Metro Babel plugin.
   // No import needed; use these identifiers directly.
   var isMobile: boolean

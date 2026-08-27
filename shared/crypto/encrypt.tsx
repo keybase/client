@@ -226,7 +226,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       if (usedUnresolvedSBS) {
         warningMessage = getWarningMessageForSBS(unresolvedSBSAssertion)
       }
-      if (!isCurrentRun(gen)) return stateRef.current
+      if (!isCurrentRun(gen)) return undefined
       const next = onSuccess(
         stateRef.current,
         stateRef.current.input === snapshot.input,
@@ -240,15 +240,17 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
-      if (!isCurrentRun(gen)) return stateRef.current
+      if (!isCurrentRun(gen)) return undefined
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'encrypt', snapshot.inputType))
       return commitState(next)
     }
   }, [commitState, isCurrentRun, startRun, stateRef])
 
   const clearInput = React.useCallback(() => {
+    // a run still in flight must not commit onto the cleared state
+    startRun()
     commitState(clearInputState(stateRef.current))
-  }, [commitState, stateRef])
+  }, [commitState, startRun, stateRef])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -256,10 +258,12 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
         clearInput()
         return
       }
+      // replacing the input supersedes any run still in flight for the old input
+      startRun()
       const committed = commitState(nextInputState(stateRef.current, type, value))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [clearInput, commitState, runEncrypt, stateRef]
+    [clearInput, commitState, runEncrypt, startRun, stateRef]
   )
 
   const openFile = React.useCallback((path: string) => {
@@ -464,8 +468,8 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.runEncrypt()
-      // a superseded run returns the newer run's pending state; don't push an empty screen
-      if (isMobile && !next.inProgress) {
+      // a superseded run returns undefined; only the newest run navigates
+      if (isMobile && next) {
         navigateAppend({name: Crypto.encryptOutput, params: encryptToOutputParams(next)})
       }
     }

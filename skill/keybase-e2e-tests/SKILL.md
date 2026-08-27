@@ -47,7 +47,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 | Run one device | `KB_SMOKE_USER=<user> yarn test:e2e:ios:iphone` / `yarn test:e2e:ios:ipad` (serial runner, shuts down other sims) |
 | Report | `yarn test:e2e:ios:report` (reads ONLY `tests/results/ios-appium-debug-{iphone,ipad}`; each run overwrites its device's dir; per-image timestamps show when each device last ran) |
 
-Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testID>` (testID → iOS accessibilityIdentifier). Helpers: `el/els/waitForTestID/countTestID/byText/tab` (elements), `escapeToTabs/goBack/navigateTo*/scrollDownToText` (navigate). `escapeToTabs` runs before every test (resets to the tab root).
+Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testID>` (testID → iOS accessibilityIdentifier). Helpers: `el/els/waitForTestID/byText/tab` (elements), `escapeToTabs/goBack/navigateTo*/scrollDownToText` (navigate). `escapeToTabs` runs before every test (resets to the tab root).
 
 **Gotchas (hard-won — read before adding flows):**
 - **Native tab bar:** tap tabs by **label** (`tab('People')` → `~People`), NOT `nav-tab-*` testIDs — those don't reach the native `UITabBar`.

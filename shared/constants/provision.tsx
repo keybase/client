@@ -33,4 +33,8 @@ export const badDeviceChars = /[^a-zA-Z0-9-_' ]/g
 
 // a run of separators (badDeviceRE rejects any two in a row, with or without a
 // space between); the capture keeps the first one
-export const repeatedDeviceSeparatorsRE = /([ _'-])[ _'-]+/g
+// badDeviceRE rejects a double space, and two of ['_-] with at most one space
+// between them. It does NOT reject a space next to a single separator, so these
+// must not collapse "a - b" or "a 'b" -- the user is still typing those.
+export const repeatedSpacesRE = / {2,}/g
+export const repeatedDeviceSeparatorsRE = /(['_-])[ ]?['_-]+/g

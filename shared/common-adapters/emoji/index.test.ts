@@ -61,7 +61,7 @@ describe('emojiDataToRenderableEmoji', () => {
   })
 
   test('a skin tone with no matching variation falls back to the base emoji', () => {
-    // the fallback used to be '', which reached String.fromCodePoint(NaN) and threw
+    // an empty unified would reach String.fromCodePoint(NaN) and throw
     const data = makeEmojiData({
       short_name: 'wave',
       skin_variations: {'1F3FD': {unified: '1F44B-1F3FD'}},

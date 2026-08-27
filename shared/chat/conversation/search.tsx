@@ -230,26 +230,38 @@ export const useCommon = (ownProps: CommonProps) => {
     runThreadSearch(text)
   }
 
-  const [selectResult] = React.useState(() => (index: number) => {
+  // returns whether the index was taken; the index feeds the `n of m` counter and
+  // the up/down walk, so never record one we can't center on
+  const [selectHit] = React.useState(() => (index: number) => {
     const message = hitsRef.current[index]
-    // the index feeds the `n of m` counter and the up/down walk, so never record
-    // one we can't center on
     if (!message?.id) {
-      return
+      return false
     }
     centerOnMessage(message.id, 'always')
     setSelectedIndex(index)
+    return true
   })
 
-  const onUp = () => {
+  // walk in `delta`'s direction until we land on a hit we can center on, so a hit
+  // we can't center on can never wedge the walk in place
+  const step = (delta: 1 | -1) => {
     if (!numHits) {
       return
     }
-    if (selectedIndex >= numHits - 1) {
-      selectResult(0)
-      return
+    for (let moved = 1; moved <= numHits; ++moved) {
+      const index = (((selectedIndex + delta * moved) % numHits) + numHits) % numHits
+      if (selectHit(index)) {
+        return
+      }
     }
-    selectResult(selectedIndex + 1)
+  }
+
+  const selectResult = (index: number) => {
+    selectHit(index)
+  }
+
+  const onUp = () => {
+    step(1)
   }
 
   const onEnter = () => {
@@ -261,14 +273,7 @@ export const useCommon = (ownProps: CommonProps) => {
   }
 
   const onDown = () => {
-    if (!numHits) {
-      return
-    }
-    if (selectedIndex <= 0) {
-      selectResult(numHits - 1)
-      return
-    }
-    selectResult(selectedIndex - 1)
+    step(-1)
   }
 
   const onChangedText = (newText: string) => {
@@ -301,11 +306,11 @@ export const useCommon = (ownProps: CommonProps) => {
   React.useEffect(() => {
     if (hasHits && !hadHitsRef.current) {
       hadHitsRef.current = true
-      selectResult(0)
+      selectHit(0)
     } else if (!hasHits) {
       hadHitsRef.current = false
     }
-  }, [hasHits, selectResult])
+  }, [hasHits, selectHit])
 
   return {
     conversationIDKey,

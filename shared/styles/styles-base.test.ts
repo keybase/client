@@ -17,10 +17,17 @@ test('leaves an already clean name alone', () => {
   expect(urlEscapeFilePath('file:///tmp/clip.mp4')).toBe('file:///tmp/clip.mp4')
 })
 
-test('is idempotent so an already encoded name is not corrupted', () => {
-  expect(urlEscapeFilePath('file:///tmp/my%20clip.mp4')).toBe('file:///tmp/my%20clip.mp4')
-  const once = urlEscapeFilePath('file:///my dir/a#b 100%.png')
-  expect(urlEscapeFilePath(once)).toBe(once)
+test('escapes the characters encodeURIComponent leaves behind', () => {
+  // the media url allowlist rejects these, so a file named with them must escape
+  expect(urlEscapeFilePath('file:///tmp/clip (1).mp4')).toBe('file:///tmp/clip%20%281%29.mp4')
+  expect(urlEscapeFilePath("file:///tmp/dad's clip.mp4")).toBe('file:///tmp/dad%27s%20clip.mp4')
+  expect(urlEscapeFilePath('file:///tmp/a!b~c*d.png')).toBe('file:///tmp/a%21b%7Ec%2Ad.png')
+})
+
+test('a literal percent in a name is escaped rather than treated as an escape', () => {
+  // callers escape exactly once, so this must not try to preserve an existing
+  // percent escape: "50%20off.mp4" is a real filename, not an encoded space
+  expect(urlEscapeFilePath('file:///tmp/50%20off sale.mp4')).toBe('file:///tmp/50%2520off%20sale.mp4')
 })
 
 test('passes through anything that is not a file url', () => {

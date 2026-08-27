@@ -58,7 +58,6 @@ export type GetOptions<Screen extends AnyScreen = AnyScreen> =
   | ((p: React.ComponentProps<Screen>) => GetOptionsRet)
 
 export type RouteDef<Screen extends AnyScreen = AnyScreen, Params = ScreenRouteParams<Screen>> = {
-  __routeParams?: Params
   // Use `any` for the function param to avoid RouteDef being contravariant in Screen.
   // GetOptions<Screen> would cause RouteDef<SpecificScreen> to not be assignable to RouteDef<AnyScreen>
   // because of function parameter contravariance. Typed getOptions are used in makeScreen / makeChatScreen.

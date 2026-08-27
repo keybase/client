@@ -54,10 +54,10 @@ jest.mock('@/common-adapters', () => {
 })
 jest.mock('./row', () => ({
   __esModule: true,
-  default: ({git}: {git: {id: string; name: string; teamname?: string}}) =>
+  default: ({expanded, git}: {expanded: boolean; git: {id: string; name: string; teamname?: string}}) =>
     require('react').createElement(
       'div',
-      {'data-repo': git.id},
+      {'data-expanded': expanded ? 'true' : 'false', 'data-repo': git.id},
       git.teamname ? `${git.teamname}/${git.name}` : git.name
     ),
 }))
@@ -123,6 +123,9 @@ const makeOK = (
     },
     state: T.RPCGen.GitRepoResultState.ok,
   }) as T.RPCGen.GitRepoResult
+
+const expandedRepos = () =>
+  [...document.querySelectorAll('[data-expanded="true"]')].map(n => n.getAttribute('data-repo'))
 
 const reposInSection = (title: string) => {
   const header = document.querySelector(`[data-section="${title}"]`)
@@ -205,4 +208,23 @@ test('an empty result renders both sections with nothing in them', () => {
   expect(screen.queryByText('Personal')).not.toBeNull()
   expect(screen.queryByText('Team')).not.toBeNull()
   expect(document.querySelectorAll('[data-repo]')).toHaveLength(0)
+})
+
+test('a personal repo from the route params expands without a teamname', () => {
+  mockRPCResults = [makeOK('alpha'), makeOK('beta')]
+
+  render(<Git expandedRepoID="repo-alpha" />)
+
+  expect(expandedRepos()).toEqual(['id-personal-alpha'])
+})
+
+test('a team repo only expands for its own team', () => {
+  mockRPCResults = [
+    makeOK('alpha'),
+    makeOK('alpha', {folderType: T.RPCGen.FolderType.team, id: 'id-team-alpha', teamname: 'keybase'}),
+  ]
+
+  render(<Git expandedRepoID="repo-alpha" expandedTeamname="keybase" />)
+
+  expect(expandedRepos()).toEqual(['id-team-alpha'])
 })

@@ -48,7 +48,9 @@ const Container = (ownProps: OwnProps) => {
         <Kb.Text type="BodyBig" style={styles.filename}>
           {pathItem.name}
         </Kb.Text>
-        <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
+        {pathItem.type === T.FS.PathType.File && (
+          <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
+        )}
         {isMobile && <LastModifiedLine path={path} mode="default" />}
         {pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>

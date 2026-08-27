@@ -40,6 +40,13 @@ describe('folderNameWithoutUsers', () => {
       'testuser-mac'
     )
   })
+
+  test('a folder with no readers never grows a phantom empty reader', () => {
+    // an empty reader half must stay empty rather than parsing as one nameless reader
+    expect(folderNameWithoutUsers('testuser,testuser-mac#', {})).toBe('testuser,testuser-mac')
+    expect(folderNameWithoutUsers('testuser,testuser-mac', {})).toBe('testuser,testuser-mac')
+    expect(folderNameWithoutUsers('testuser,testuser-mac#', {testuser: true})).toBe('testuser-mac')
+  })
 })
 
 describe('tlfToPreferredOrder', () => {

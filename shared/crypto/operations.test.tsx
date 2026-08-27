@@ -291,3 +291,36 @@ test('a superseded decrypt cannot commit over the run that replaced it', async (
   expect(result.current.state.outputSenderUsername).toBe('testuser-mac')
   expect(result.current.state.outputValid).toBe(true)
 })
+
+test('a run in flight cannot repopulate output after the input is cleared', async () => {
+  let release = (_: unknown) => {}
+  const pending = new Promise(resolve => {
+    release = resolve
+  })
+  jest.spyOn(T.RPCGen, 'saltpackSaltpackDecryptStringRpcPromise').mockImplementation(async () => {
+    await pending
+    return {
+      info: {sender: {fullname: 'Test User Mac', username: 'testuser-mac'}},
+      plaintext: 'LATE PLAINTEXT',
+      signed: true,
+    } as never
+  })
+
+  const {result} = renderHook(() => useDecryptState())
+  act(() => {
+    result.current.setInput('text', 'some ciphertext')
+  })
+  act(() => {
+    result.current.clearInput()
+  })
+  expect(result.current.state.input).toBe('')
+
+  await act(async () => {
+    release(undefined)
+    await pending
+  })
+
+  expect(result.current.state.output).toBe('')
+  expect(result.current.state.outputStatus).toBeUndefined()
+  expect(result.current.state.input).toBe('')
+})

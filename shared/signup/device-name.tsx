@@ -116,6 +116,7 @@ export const makeCleanDeviceName = (d: string) => {
   // stripping a disallowed character can leave two separators touching, which
   // badDeviceRE rejects; collapse runs so cleaning always produces a name the
   // validator accepts
+  good = good.replace(Provision.repeatedSpacesRE, ' ')
   good = good.replace(Provision.repeatedDeviceSeparatorsRE, '$1')
   return good
 }

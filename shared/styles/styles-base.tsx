@@ -1,10 +1,14 @@
 import type {CSSProperties} from 'react'
 import type {TextStyle, ViewStyle} from 'react-native'
 
-// encodeURIComponent, but an existing percent escape is kept as-is instead of being
-// escaped again, so escaping an already escaped path is a no-op
+// encodeURIComponent leaves !'()*~ unescaped, but the media url allowlist rejects
+// them, so escape those too. Callers escape exactly once: this is deliberately not
+// idempotent, since a file really can be named "50%20off.mp4".
 const encodePathSegment = (segment: string) =>
-  encodeURIComponent(segment).replaceAll(/%25([0-9A-Fa-f]{2})/g, '%$1')
+  encodeURIComponent(segment).replaceAll(
+    /[!'()*~]/g,
+    c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+  )
 
 const filePrefix = 'file://'
 export const urlEscapeFilePath = (path: string) => {

@@ -35,9 +35,20 @@ describe('indefiniteArticle', () => {
     expect(indefiniteArticle('')).toBe('')
   })
 
-  test('is purely orthographic, so it gets hour/user wrong', () => {
+  // every call site passes a team role, and the rule is correct for all of them
+  test('is right for every team role, which is all it is ever given', () => {
+    expect(indefiniteArticle('owner')).toBe('an')
+    expect(indefiniteArticle('admin')).toBe('an')
+    expect(indefiniteArticle('writer')).toBe('a')
+    expect(indefiniteArticle('reader')).toBe('a')
+    expect(indefiniteArticle('bot')).toBe('a')
+    expect(indefiniteArticle('restrictedbot')).toBe('a')
+  })
+
+  // the rule is orthographic, so it would be wrong for a word like "hour" whose
+  // article follows pronunciation; no caller passes one
+  test('goes by spelling, not pronunciation', () => {
     expect(indefiniteArticle('hour')).toBe('a')
-    expect(indefiniteArticle('user')).toBe('an')
   })
 })
 

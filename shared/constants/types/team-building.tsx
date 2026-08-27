@@ -13,7 +13,6 @@ export type ServiceIdWithContact = _ServiceId | ContactServiceId
 
 export const isContactServiceId = (id: string): id is ContactServiceId => id === 'email' || id === 'phone'
 
-export type SearchString = string
 type UsernameOnService = string
 export type UserID = string // for keybase would be `marcopolo` for other services would be `notonkb@reddit`
 export type ServiceMap = {[K in ServiceIdWithContact]?: UsernameOnService}

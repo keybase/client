@@ -1,11 +1,22 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import * as Chat from '@/constants/chat'
 import * as Router from '@/constants/router'
 import * as T from '@/constants/types'
 import {cleanup, renderHook} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useModeration} from './hooks'
+
+// the team state behind the popup comes from cached RPC loads; the item logic only
+// cares about your operations and who is still in the team
+let mockTeamMembers = new Map<string, T.Teams.MemberInfo>()
+let mockOperations: Partial<T.Teams.TeamOperations> = {}
+jest.mock('../../team-hooks', () => ({
+  useChatTeam: () => ({role: 'admin', teamname: 'keybase', yourOperations: mockOperations}),
+  useChatTeamMembers: () => ({loading: false, members: mockTeamMembers, reload: async () => {}}),
+}))
+
+import {useModeration, useStorelessItems} from './hooks'
 
 const conversationIDKey = T.Chat.stringToConversationIDKey('conv1')
 const you = 'testuser'
@@ -33,6 +44,8 @@ afterEach(() => {
   jest.restoreAllMocks()
   resetAllStores()
   global.isIOS = false
+  mockTeamMembers = new Map()
+  mockOperations = {}
 })
 
 test('you cannot moderate yourself', () => {
@@ -110,5 +123,51 @@ describe('opening the blocking modal', () => {
         params: expect.objectContaining({flagUserByDefault: true, reportsUserByDefault: true}),
       })
     )
+  })
+})
+
+describe('delete and kick for a team admin', () => {
+  const teamID: T.Teams.TeamID = 'team-id'
+
+  const items = (isDeleteable: boolean) => {
+    mockOperations = {deleteOtherMessages: true}
+    mockTeamMembers = new Map([[them, {} as T.Teams.MemberInfo]])
+    const message = Chat.makeMessageText({
+      author: them,
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(1),
+      isDeleteable,
+      ordinal: T.Chat.numberToOrdinal(1),
+    })
+    const meta: T.Chat.ConversationMeta = {
+      ...Chat.makeConversationMeta(),
+      channelname: 'general',
+      conversationIDKey,
+      teamID,
+      teamType: 'big',
+      teamname: 'keybase',
+    }
+    return renderHook(() =>
+      useStorelessItems({
+        conversationIDKey,
+        message,
+        meta,
+        onHidden: () => {},
+        participantInfo: {all: [you, them], contactName: new Map(), name: []},
+      })
+    ).result.current
+  }
+
+  test('a deletable message offers both delete and kick', () => {
+    const {itemDelete, itemKick} = items(true)
+    expect(titles(itemDelete)).toEqual(['Delete'])
+    expect(titles(itemKick)).toEqual(['Kick user'])
+  })
+
+  test('a message the server says is not deletable still offers kick', () => {
+    // kicking is about the author, deleting is about the message
+    const {itemDelete, itemKick} = items(false)
+    expect(itemDelete).toEqual([])
+    expect(titles(itemKick)).toEqual(['Kick user'])
   })
 })

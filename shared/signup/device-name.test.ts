@@ -137,6 +137,29 @@ describe('makeCleanDeviceName', () => {
   })
 })
 
+describe('separator collapsing only touches what badDeviceRE rejects', () => {
+  // badDeviceRE allows a space beside a single separator, so a name being typed
+  // must keep it; only doubled spaces and adjacent separators are collapsed
+  test.each([['Work - Laptop'], ["Dad 'n mac"], ['Chris -mac'], ['my-mac'], ["testuser's mac"]])(
+    'leaves the legal name %s alone',
+    name => {
+      expect(isDeviceNameDisabled(name)).toBe(false)
+      expect(makeCleanDeviceName(name)).toBe(name)
+    }
+  )
+
+  test.each([
+    ['Work  Laptop', 'Work Laptop'],
+    ['aa__bb', 'aa_bb'],
+    ["aa'-bb", "aa'bb"],
+    ['aa_ -bb', 'aa_bb'],
+  ])('collapses the rejected name %s to %s', (input, expected) => {
+    expect(isDeviceNameDisabled(input)).toBe(true)
+    expect(makeCleanDeviceName(input)).toBe(expected)
+    expect(isDeviceNameDisabled(makeCleanDeviceName(input))).toBe(false)
+  })
+})
+
 describe('smart apostrophes and separator normalization', () => {
   test('a smart apostrophe is converted to ASCII, not deleted', () => {
     expect(makeCleanDeviceName('testuser’s mac')).toBe("testuser's mac")

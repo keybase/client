@@ -1,6 +1,8 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as RPCGen from '@/constants/rpc/rpc-gen'
 import RPCError from '@/util/rpcerror'
+import {cleanup, renderHook} from '@testing-library/react'
 import {
   beginRun,
   clearInputState,
@@ -10,8 +12,13 @@ import {
   nextOpenedFileState,
   resetOutput,
   resetWarnings,
+  useRunGeneration,
   type CommonState,
 } from './helpers'
+
+afterEach(() => {
+  cleanup()
+})
 
 const makeState = (overrides?: Partial<CommonState>): CommonState => ({
   ...createCommonState(),
@@ -190,4 +197,31 @@ test('getStatusCodeMessage falls back to generic when the cause fields are missi
   expect(
     getStatusCodeMessage(makeError(RPCGen.StatusCode.scdecryptionerror, 'x', unnamed), 'decrypt', 'text')
   ).toBe('Failed to decrypt text.')
+})
+
+test('useRunGeneration only ever considers the newest run current', () => {
+  const {rerender, result} = renderHook(() => useRunGeneration())
+
+  const first = result.current.startRun()
+  expect(result.current.isCurrentRun(first)).toBe(true)
+
+  const second = result.current.startRun()
+  expect(result.current.isCurrentRun(first)).toBe(false)
+  expect(result.current.isCurrentRun(second)).toBe(true)
+
+  // the generation survives re-renders, so a run started before one is still
+  // recognised after it
+  rerender()
+  expect(result.current.isCurrentRun(first)).toBe(false)
+  expect(result.current.isCurrentRun(second)).toBe(true)
+})
+
+test('useRunGeneration keeps stable callback identities across renders', () => {
+  const {rerender, result} = renderHook(() => useRunGeneration())
+  const {isCurrentRun, startRun} = result.current
+
+  rerender()
+
+  expect(result.current.startRun).toBe(startRun)
+  expect(result.current.isCurrentRun).toBe(isCurrentRun)
 })

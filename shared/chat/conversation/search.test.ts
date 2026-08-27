@@ -370,6 +370,42 @@ describe('navigation', () => {
     expect(result.current.selectedIndex).toBe(1)
     expect(mockCenterOnMessage).not.toHaveBeenCalled()
   })
+
+  test('onUp steps over a hit it cannot center on instead of wedging', () => {
+    const {result} = mountSearch('needle')
+    // the middle hit has no usable id, so it can never be selected
+    deliverHits(hitMessage(10), hitMessage(0), hitMessage(12))
+    deliverDone()
+    expect(result.current.numHits).toBe(3)
+    expect(result.current.selectedIndex).toBe(0)
+
+    act(() => result.current.onUp())
+    expect(result.current.selectedIndex).toBe(2)
+    expect(mockCenterOnMessage).toHaveBeenLastCalledWith(messageID(12), 'always')
+    act(() => result.current.onUp())
+    expect(result.current.selectedIndex).toBe(0)
+  })
+
+  test('onDown steps over a hit it cannot center on instead of wedging', () => {
+    const {result} = mountSearch('needle')
+    deliverHits(hitMessage(10), hitMessage(0), hitMessage(12))
+    deliverDone()
+    act(() => result.current.onDown())
+    expect(result.current.selectedIndex).toBe(2)
+    act(() => result.current.onDown())
+    expect(result.current.selectedIndex).toBe(0)
+  })
+
+  test('a walk with nothing selectable leaves the selection alone', () => {
+    const {result} = mountSearch('needle')
+    deliverHits(hitMessage(0), hitMessage(0, {bodySummary: 'other'}))
+    deliverDone()
+    mockCenterOnMessage.mockClear()
+    act(() => result.current.onUp())
+    act(() => result.current.onDown())
+    expect(result.current.selectedIndex).toBe(0)
+    expect(mockCenterOnMessage).not.toHaveBeenCalled()
+  })
 })
 
 describe('enter key', () => {

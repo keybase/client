@@ -93,11 +93,6 @@ export const unknownTlf = (() => {
       syncConfig: syncConfig || tlfSyncDisabled,
       teamId: teamId || '',
       tlfMtime: tlfMtime || 0,
-      /* See comment in constants/types/fs.js
-        needsRekey: false,
-        waitingForParticipantUnlock: I.List(),
-        youCanUnlock: I.List(),
-        */
     }
   }
   return makeTlf({})
@@ -719,6 +714,3 @@ export const hideOrDisableInDestinationPicker = (
   username: string,
   inDestinationPicker?: boolean
 ) => !!inDestinationPicker && tlfType === T.FS.TlfType.Public && name !== username
-
-// Other Utilities
-
