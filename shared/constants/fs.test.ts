@@ -150,6 +150,12 @@ describe('username helpers', () => {
     expect(splitTlfIntoUsernames('testuser,carol (conflicted copy)')).toEqual(['testuser', 'carol'])
   })
 
+  // '' splits into [''], so a nameless tlf used to yield one blank username
+  test('splitTlfIntoUsernames has no users for an empty tlf', () => {
+    expect(splitTlfIntoUsernames('')).toEqual([])
+    expect(splitTlfIntoUsernames(' (conflicted copy)')).toEqual([])
+  })
+
   test('getUsernamesFromPath needs a tlf', () => {
     expect(getUsernamesFromPath(p('/keybase/private'))).toEqual([])
     expect(getUsernamesFromPath(p('/keybase/private/testuser,carol/a'))).toEqual(['testuser', 'carol'])

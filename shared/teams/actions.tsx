@@ -29,7 +29,8 @@ export const handleContactSettingsBlock = (error: RPCError) => {
   const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
     ?.filter(elem => elem?.key === 'usernames')
     .map(elem => elem?.value)
-  const usernames = users?.[0]?.split(',') ?? []
+  // '' splits into [''], which would put a blank row on the contactRestricted screen
+  const usernames = users?.[0]?.split(',').filter(Boolean) ?? []
   navigateAppend({
     name: 'contactRestricted',
     params: {source: 'teamAddAllFailed', usernames},

@@ -37,4 +37,6 @@ export const badDeviceChars = /[^a-zA-Z0-9-_' ]/g
 // between them. It does NOT reject a space next to a single separator, so these
 // must not collapse "a - b" or "a 'b" -- the user is still typing those.
 export const repeatedSpacesRE = / {2,}/g
-export const repeatedDeviceSeparatorsRE = /(['_-])[ ]?['_-]+/g
+// one pass must reach a fixed point: the field shows the cleaned value while
+// validation and submit run it again, and the two must agree
+export const repeatedDeviceSeparatorsRE = /(['_-])(?: ?['_-])+/g

@@ -23,16 +23,20 @@ jest.mock('@/constants/platform', () => ({
 
 let assertionsInTeam: Array<string> = []
 let findCalls = 0
-jest.spyOn(T.RPCGen, 'teamsFindAssertionsInTeamNoResolveRpcPromise').mockImplementation(async () => {
-  findCalls++
-  await Promise.resolve()
-  return assertionsInTeam as never
-})
+const findAssertions = jest
+  .spyOn(T.RPCGen, 'teamsFindAssertionsInTeamNoResolveRpcPromise')
+  .mockImplementation(async () => {
+    findCalls++
+    await Promise.resolve()
+    return assertionsInTeam as never
+  })
 
 beforeEach(() => {
   assertionsInTeam = []
   findCalls = 0
   mockIsPhone = false
+  // the spy lives at module scope, so its recorded calls outlive each test
+  findAssertions.mockClear()
 })
 
 const convKey = (s: string) => s as T.Chat.ConversationIDKey
@@ -68,8 +72,7 @@ describe('addMembersToWizard', () => {
       {assertion: 'testuser-mac', resolvedFrom: '+15551212', role: 'writer'},
     ])
     expect(findCalls).toBe(1)
-    const arg = (T.RPCGen.teamsFindAssertionsInTeamNoResolveRpcPromise as never as jest.Mock).mock
-      .calls[0]![0] as {assertions: Array<string>; teamID: string}
+    const arg = findAssertions.mock.calls[0]![0] as {assertions: Array<string>; teamID: string}
     // a plain keybase username needs no lookup
     expect(arg.assertions).toEqual(['a@b.com', 'testuser-mac'])
     expect(arg.teamID).toBe(teamID)

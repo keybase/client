@@ -148,6 +148,16 @@ describe('separator collapsing only touches what badDeviceRE rejects', () => {
     }
   )
 
+  test('one cleaning pass is enough, so the field and the submitted name agree', () => {
+    // the screen shows makeCleanDeviceName(input) and validates makeCleanDeviceName
+    // of that, so a value that needed two passes displayed one name and sent another
+    for (const name of ['Work - _ - Laptop', 'aa-- -bb', 'aa_ _ _bb']) {
+      const once = makeCleanDeviceName(name)
+      expect(makeCleanDeviceName(once)).toBe(once)
+      expect(isDeviceNameDisabled(once)).toBe(false)
+    }
+  })
+
   test.each([
     ['Work  Laptop', 'Work Laptop'],
     ['aa__bb', 'aa_bb'],

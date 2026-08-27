@@ -7,6 +7,8 @@ import {useSuggestors} from '.'
 
 const mockCommandsList = jest.fn((_p: {filter: string}) => null)
 const mockUsersList = jest.fn((_p: {filter: string}) => null)
+const mockEmojiList = jest.fn((_p: {filter: string}) => null)
+const mockChannelsList = jest.fn((_p: {filter: string}) => null)
 
 jest.mock('./commands', () => ({
   List: (p: {filter: string}) => mockCommandsList(p),
@@ -17,8 +19,8 @@ jest.mock('./commands', () => ({
     status: 0,
   }),
 }))
-jest.mock('./channels', () => ({List: () => null, transformer: jest.fn()}))
-jest.mock('./emoji', () => ({List: () => null, transformer: jest.fn()}))
+jest.mock('./channels', () => ({List: (p: {filter: string}) => mockChannelsList(p), transformer: jest.fn()}))
+jest.mock('./emoji', () => ({List: (p: {filter: string}) => mockEmojiList(p), transformer: jest.fn()}))
 jest.mock('./users', () => ({UsersList: (p: {filter: string}) => mockUsersList(p), transformer: jest.fn()}))
 jest.mock('../../thread-context', () => ({useConversationThreadID: () => 'conv'}))
 jest.mock('../input-state', () => ({useConversationInput: () => false}))
@@ -70,6 +72,8 @@ beforeEach(() => {
   jest.useFakeTimers()
   mockCommandsList.mockClear()
   mockUsersList.mockClear()
+  mockEmojiList.mockClear()
+  mockChannelsList.mockClear()
 })
 
 afterEach(() => {
@@ -103,6 +107,50 @@ test('typing a multi-word bot command a character at a time ends on the same fil
   renderPopup(result)
 
   expect(mockCommandsList.mock.calls.at(-1)?.[0].filter).toBe('keybot cancel')
+})
+
+// the command word split must not swallow a later word: with it on, the word at
+// the cursor was '@bob hey', the unanchored users marker matched it, and the
+// overlay stayed mounted forever swallowing ArrowUp/ArrowDown
+test('an @mention inside a command message stops suggesting once the word no longer matches', () => {
+  let text = ''
+  const result = renderSuggestors(() => ({end: text.length, start: text.length}))
+
+  for (const t of ['/me @bob', '/me @bob ', '/me @bob hey']) {
+    text = t
+    typeText(result, text)
+  }
+  renderPopup(result)
+
+  expect(mockUsersList).not.toHaveBeenCalled()
+  expect(result.current.suggestionsShowing).toBe(false)
+})
+
+test('a pasted command message with a trailing word suggests nothing', () => {
+  const text = '/me @bob hey'
+  const result = renderSuggestors(() => ({end: text.length, start: text.length}))
+
+  typeText(result, text)
+
+  expect(result.current.suggestionsShowing).toBe(false)
+})
+
+// the markers are anchored regexes, so their '^' lands mid-pattern in the split
+// lookahead where it can never match, and their capture groups make String.split
+// interleave captures with words
+test.each([
+  [':smi', () => mockEmojiList, 'smi'],
+  ['@bob', () => mockUsersList, 'bob'],
+  ['#gen', () => mockChannelsList, 'gen'],
+])('a command message splits before a later %s marker', (tail, list, filter) => {
+  const text = `/me ${tail}`
+  const result = renderSuggestors(() => ({end: text.length, start: text.length}))
+
+  typeText(result, text)
+  renderPopup(result)
+
+  expect(list().mock.calls.at(-1)?.[0].filter).toBe(filter)
+  expect(mockCommandsList).not.toHaveBeenCalled()
 })
 
 test('non-command text still splits on plain spaces', () => {

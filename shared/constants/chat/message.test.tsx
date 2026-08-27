@@ -538,6 +538,29 @@ describe('uiMessageToMessage', () => {
     expect(message.leavers).toEqual(['b'])
   })
 
+  test('bulkaddtoconv needs at least one username', () => {
+    const bulkAdd = (usernames?: Array<string>) =>
+      convert(
+        validMessage({
+          messageBody: {
+            messageType: T.RPCChat.MessageType.system,
+            system: {
+              bulkaddtoconv: {usernames},
+              systemType: T.RPCChat.MessageSystemType.bulkaddtoconv,
+            },
+          } as T.RPCChat.MessageBody,
+        })
+      )
+    // an empty list would render as "added  to #channel"
+    expect(bulkAdd([])).toBeUndefined()
+    expect(bulkAdd(undefined)).toBeUndefined()
+    const message = bulkAdd(['testuser'])
+    if (message?.type !== 'systemUsersAddedToConversation') {
+      throw new Error('expected systemUsersAddedToConversation')
+    }
+    expect(message.usernames).toEqual(['testuser'])
+  })
+
   test('unsupported bodies convert to nothing', () => {
     expect(
       convert(validMessage({messageBody: {messageType: T.RPCChat.MessageType.none} as T.RPCChat.MessageBody}))

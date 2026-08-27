@@ -9,13 +9,12 @@ type UserList = Array<{
 // Parses the folder name and returns an array of usernames
 export function parseFolderNameToUsers(yourUsername: string | undefined, folderName: string): UserList {
   const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
-  const [writers, readers = ''] = userList?.split('#') ?? []
+  const [writers = '', readers = ''] = userList.split('#')
 
-  const writersParsed =
-    writers?.split(',').map(u => ({
-      username: u,
-      you: yourUsername === u,
-    })) ?? []
+  const writersParsed = writers.split(',').map(u => ({
+    username: u,
+    you: yourUsername === u,
+  }))
 
   const readersParsed = readers.split(',').map(u => ({
     readOnly: true,
@@ -28,7 +27,7 @@ export function parseFolderNameToUsers(yourUsername: string | undefined, folderN
 
 export function folderNameWithoutUsers(folderName: string, users: {[K in string]: boolean}) {
   const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
-  const [writers, readers] = splitByFirstOccurrenceOf(userList ?? '', '#')
+  const [writers, readers] = splitByFirstOccurrenceOf(userList, '#')
 
   const writerNames = writers ? writers.split(',') : []
   const readerNames = readers ? readers.split(',') : []
@@ -40,7 +39,9 @@ export function folderNameWithoutUsers(folderName: string, users: {[K in string]
   return `${filteredWriterNames.join(',')}${readerSuffix}`
 }
 
-const splitByFirstOccurrenceOf = (str: string, delimiter: string): Array<string> => {
+// always two parts: the text before the first delimiter and everything after it
+// (both possibly empty), so callers never have to defend against a missing half
+const splitByFirstOccurrenceOf = (str: string, delimiter: string): [string, string] => {
   const firstIndexOf = str.indexOf(delimiter)
   if (firstIndexOf === -1) {
     return [str, '']
@@ -49,11 +50,12 @@ const splitByFirstOccurrenceOf = (str: string, delimiter: string): Array<string>
 }
 
 export const tlfToPreferredOrder = (tlf: string, me: string): string => {
-  const [userList, extension = ''] = splitByFirstOccurrenceOf(tlf, ' ')
-  const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList ?? '', '#')
+  const [userList, extension] = splitByFirstOccurrenceOf(tlf, ' ')
+  const [writers, readers] = splitByFirstOccurrenceOf(userList, '#')
 
-  let writerNames = writers?.split(',') ?? []
-  let readerNames = (readers?.length ? readers.split(',') : undefined) || []
+  // '' splits into [''], so an absent half has to be checked before splitting
+  let writerNames = writers ? writers.split(',') : []
+  let readerNames = readers ? readers.split(',') : []
   let whereAmI = writerNames.indexOf(me)
   if (whereAmI === -1) {
     whereAmI = readerNames.indexOf(me)

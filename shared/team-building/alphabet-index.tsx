@@ -56,6 +56,11 @@ const AlphabetIndexImpl = (props: Props) => {
   return (
     <View
       style={Kb.Styles.collapseStyles([styles.container, props.style])}
+      // the measure feeds touch-y -> letter, so it has to be redone whenever the
+      // scrubber moves or resizes. measureKey only covers one caller-known change;
+      // the label list growing/shrinking (or anything shifting us on screen) is not
+      // a render of ours at all, so re-measure off layout too.
+      onLayout={storeMeasure}
       onStartShouldSetResponder={stubTrue}
       onMoveShouldSetResponder={stubTrue}
       onResponderGrant={handleTouch}

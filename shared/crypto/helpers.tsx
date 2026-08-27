@@ -140,6 +140,9 @@ export function beginRun<State extends CommonState>(state: State): State {
 export function clearInputState<State extends CommonState>(state: State): State {
   return {
     ...resetOutput(state),
+    // callers bump the run generation alongside this, so whatever was in flight
+    // will never commit and nothing is running any more
+    inProgress: false,
     input: '',
     inputType: 'text',
     outputValid: true,
@@ -153,6 +156,8 @@ export function nextInputState<State extends CommonState>(
 ): State {
   const next = {
     ...resetWarnings(state),
+    // as in clearInputState: the superseded run cannot commit, so it is not running
+    inProgress: false,
     input: value,
     inputType: type,
     outputValid: state.input === value,

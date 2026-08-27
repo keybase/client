@@ -1,9 +1,13 @@
+import {urlEscapeFilePath} from '@/styles/styles-base'
+
 // Hot dev serves the renderer from the Vite dev server, and an http origin can't
 // load file:// subresources. The main process registers this scheme and serves
 // local files through it; see node.desktop.tsx. The dev CSP in vite.config.mts
 // has to allow it too.
 export const localFileScheme = 'kbfile'
 export const localFileHost = 'local'
+
+const filePrefix = 'file://'
 
 // Desktop: normalize absolute file paths (posix or windows) to encoded file:// URLs
 export const normalizeFilePathURL = (url: string) => {
@@ -15,14 +19,8 @@ export const normalizeFilePathURL = (url: string) => {
     }
     return encodeFilePathURL(path)
   }
-  if (url.startsWith('file://')) {
-    const path = url.slice('file://'.length)
-    if (__HOT__) {
-      return encodeFilePathURL(decodeFilePath(path))
-    }
-    if (url.includes(' ') || url.includes('#')) {
-      return encodeURI(url).replace(/#/g, '%23')
-    }
+  if (url.startsWith(filePrefix)) {
+    return encodeFilePathURL(decodeFilePath(url.slice(filePrefix.length)))
   }
   return url
 }
@@ -44,10 +42,15 @@ const decodeFilePath = (path: string) =>
     })
     .join('/')
 
-// path is an absolute posix-style path, leading slash included
+// A windows drive letter keeps its literal colon: chromium only recognizes
+// `file:///C:/...` as a drive path, an escaped `%3A` reads as a filename.
+const restoreDriveColon = (path: string) => path.replace(/^\/([a-zA-Z])%3A(?=\/|$)/, '/$1:')
+
+// path is an absolute posix-style path, leading slash included.
+// Shares one escaper with the native side (styles-base's urlEscapeFilePath) so
+// both encoders agree with the media url allowlist in common-adapters/video.tsx,
+// which rejects the !'()*~,;@+[]? that encodeURI/encodeURIComponent leave alone.
 const encodeFilePathURL = (path: string) => {
-  if (__HOT__) {
-    return `${localFileScheme}://${localFileHost}${path.split('/').map(encodeURIComponent).join('/')}`
-  }
-  return encodeURI(`file://${path}`).replace(/#/g, '%23')
+  const encoded = restoreDriveColon(urlEscapeFilePath(`${filePrefix}${path}`).slice(filePrefix.length))
+  return __HOT__ ? `${localFileScheme}://${localFileHost}${encoded}` : `${filePrefix}${encoded}`
 }

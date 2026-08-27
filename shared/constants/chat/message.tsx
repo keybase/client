@@ -744,7 +744,8 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.bulkaddtoconv: {
-      if (!body.bulkaddtoconv.usernames) {
+      // an empty list renders as "added  to #channel", so drop the message entirely
+      if (!body.bulkaddtoconv.usernames?.length) {
         return undefined
       }
       return makeMessageSystemUsersAddedToConversation({

@@ -41,13 +41,31 @@ type TransformerType = {
   [key in keyof typeof transformers]: Parameters<(typeof transformers)[key]>[0]
 }
 
-const suggestorToMarker = {
+// Unanchored and capture-free on purpose: these sources are anchored into the
+// per-suggestor markers below AND dropped raw into the word-split lookahead, where
+// a '^' sits mid-pattern and can never match, and a capture group would make
+// String.split interleave the captures with the words.
+const markerSources = {
   channels: '#',
-  commands: /^(!|\/)/,
-  emoji: /^(\+?):/,
+  commands: '(?:!|/)',
+  emoji: '\\+?:',
   // 'users' is for @user, @team, and @team#channel
-  users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
+  users: '(?:\\+\\d+(?:\\.\\d+)?[a-zA-Z]{3,12}@|@)', // normal mentions and ones in a stellar send
 } as const
+
+const suggestorToMarker = {
+  channels: markerSources.channels,
+  commands: new RegExp(`^${markerSources.commands}`),
+  emoji: new RegExp(`^${markerSources.emoji}`),
+  // deliberately unanchored: a stellar send puts the marker mid-word
+  users: new RegExp(markerSources.users),
+} as const
+
+// Datasources whose entries contain spaces (bot commands are `!keybot cancel`)
+// can't split on a plain space, so a command word instead splits on the space that
+// precedes the next suggestor marker.
+const commandWordSplit = new RegExp(` (?=${Object.values(markerSources).join('|')})`, 'g')
+const plainWordSplit = / |\n/
 
 type UseSuggestorsProps = Pick<
   Props,
@@ -96,7 +114,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
     text: lastTextRef.current,
   })
 
-  const getWordAtCursor = (inputSnapshot: Commands.CommandInputSnapshot, useSpaces: boolean) => {
+  const getWordAtCursor = (inputSnapshot: Commands.CommandInputSnapshot) => {
     if (inputRef.current) {
       const {selection, text} = inputSnapshot
       // eslint-disable-next-line
@@ -110,19 +128,16 @@ const useSyncInput = (p: UseSyncInputProps) => {
       const toReplaceEnd = nextSpaceIndex !== -1 ? nextSpaceIndex : text.length
 
       const upToCursor = text.substring(0, toReplaceEnd)
-      let wordRegex: string | RegExp
 
-      // If the datasource has data which contains spaces, we can't just split by a space character.
-      // So if we need to, we instead split on the next space which precedes another special marker
-      if (useSpaces) {
-        const markers = Object.values(suggestorToMarker).map(p => (p instanceof RegExp ? p.source : p))
-        wordRegex = new RegExp(` (?=${markers.join('|')})`, 'g')
-      } else {
-        wordRegex = / |\n/
+      // Which split applies can only be told from the word itself: `active` is a
+      // keystroke behind and pasted text never gets a follow-up keystroke to
+      // correct it. So take the command split and keep it only when the word it
+      // yields really is a command, otherwise fall back to plain spaces.
+      let lastWordPrefix = upToCursor.split(commandWordSplit).at(-1) ?? ''
+      if (!suggestorToMarker.commands.test(lastWordPrefix)) {
+        lastWordPrefix = upToCursor.split(plainWordSplit).at(-1) ?? ''
       }
-      const words = upToCursor.split(wordRegex)
-      const lastWordPrefix = words.at(-1)
-      const toReplaceStart = toReplaceEnd - (lastWordPrefix?.length ?? 0)
+      const toReplaceStart = toReplaceEnd - lastWordPrefix.length
       const position = {end: toReplaceEnd, start: toReplaceStart}
 
       const word = text.substring(toReplaceStart, toReplaceEnd)
@@ -141,13 +156,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
       // desktop would get the previous selection on arrowleft / arrowright
       const inputSnapshot = getInputSnapshot()
       setCommandInputSnapshot(inputSnapshot)
-      // bot command names contain spaces (`!keybot cancel`), so the command-mode
-      // word split has to be on before `active` catches up: pasted text arrives in
-      // one change event and never gets a follow-up keystroke to correct the word
-      const cursorInfo = getWordAtCursor(
-        inputSnapshot,
-        active === 'commands' || /^\s*[!/]/.test(inputSnapshot.text)
-      )
+      const cursorInfo = getWordAtCursor(inputSnapshot)
       if (!cursorInfo) {
         setInactive()
         return
@@ -197,7 +206,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
     const input = inputRef.current
     const inputSnapshot = getInputSnapshot()
     setCommandInputSnapshot(inputSnapshot)
-    const cursorInfo = getWordAtCursor(inputSnapshot, active === 'commands')
+    const cursorInfo = getWordAtCursor(inputSnapshot)
     const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
 
     let transformedText: {

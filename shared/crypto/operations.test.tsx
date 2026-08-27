@@ -323,4 +323,7 @@ test('a run in flight cannot repopulate output after the input is cleared', asyn
   expect(result.current.state.output).toBe('')
   expect(result.current.state.outputStatus).toBeUndefined()
   expect(result.current.state.input).toBe('')
+  // the superseded run never commits, so nothing else will clear this flag: a
+  // stuck `true` disables the file picker, the options and the drop target
+  expect(result.current.state.inProgress).toBe(false)
 })

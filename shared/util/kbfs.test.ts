@@ -70,6 +70,15 @@ describe('tlfToPreferredOrder', () => {
   test('leaves the tlf alone when you are not in it', () => {
     expect(tlfToPreferredOrder('other,zed', 'testuser')).toBe('other,zed')
   })
+
+  // '' splits into [''], so a missing writers or readers half must not become one
+  // blank name; the reader half already guarded this, the writer half did not
+  test('handles an empty half without inventing a blank name', () => {
+    expect(tlfToPreferredOrder('#other,testuser', 'testuser')).toBe('#testuser,other')
+    expect(tlfToPreferredOrder('other,testuser#', 'testuser')).toBe('testuser,other')
+    expect(tlfToPreferredOrder('', 'testuser')).toBe('')
+    expect(tlfToPreferredOrder('#', 'testuser')).toBe('#')
+  })
 })
 
 describe('tlfToParticipantsOrTeamname', () => {

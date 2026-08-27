@@ -2,8 +2,10 @@
 import * as dateFns from 'date-fns'
 import {
   clearChatTimeCache,
+  formatAudioRecordDuration,
   formatDuration,
   formatDurationForAutoreset,
+  formatDurationForLocation,
   formatDurationFromNowTo,
   formatDurationShort,
   formatTimeForChat,
@@ -115,9 +117,51 @@ describe('formatDurationFromNowTo', () => {
   })
 })
 
+describe('formatAudioRecordDuration', () => {
+  test('formats a span of minutes and seconds', () => {
+    expect(formatAudioRecordDuration(30 * second)).toBe('00:30')
+    expect(formatAudioRecordDuration(65 * second)).toBe('01:05')
+  })
+
+  // a duration is not a wall-clock time; formatting it as a date made it depend on the
+  // machine timezone, so 30s read as "30:30" in every half-hour-offset zone (India,
+  // Nepal, Adelaide, Newfoundland). jest can't move TZ once the process is up, so the
+  // guard is that no date formatting happens at all rather than a second timezone.
+  test('never routes a duration through the date formatter', () => {
+    formatCalls.mockClear()
+    formatAudioRecordDuration(30 * second)
+    expect(formatCalls).not.toHaveBeenCalled()
+  })
+
+  test('counts past an hour instead of wrapping', () => {
+    expect(formatAudioRecordDuration(0)).toBe('00:00')
+    expect(formatAudioRecordDuration(90 * minute)).toBe('90:00')
+  })
+
+  test('truncates partial seconds and clamps negatives', () => {
+    expect(formatAudioRecordDuration(1999)).toBe('00:01')
+    expect(formatAudioRecordDuration(-5000)).toBe('00:00')
+  })
+})
+
+describe('formatDurationForLocation', () => {
+  // callers embed this in "updated ${x} ago", so a blank is never a valid answer
+  test('says 0s for zero and negative spans', () => {
+    expect(formatDurationForLocation(0)).toBe('0s')
+    expect(formatDurationForLocation(-second)).toBe('0s')
+  })
+
+  test('abbreviates real spans', () => {
+    expect(formatDurationForLocation(5 * minute)).toBe('5m')
+    expect(formatDurationForLocation(2 * hour)).toBe('2h')
+  })
+})
+
 describe('formatDurationForAutoreset', () => {
-  test('is blank for zero and explicit for negatives', () => {
-    expect(formatDurationForAutoreset(0)).toBe('')
+  // "will reset in ${x}." has no sensible empty rendering, so zero reads like a
+  // negative rather than blanking the sentence out
+  test('is explicit for zero and negatives', () => {
+    expect(formatDurationForAutoreset(0)).toBe('no time')
     expect(formatDurationForAutoreset(-1)).toBe('no time')
   })
 

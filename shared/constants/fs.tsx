@@ -315,8 +315,12 @@ export const hasSpecialFileElement = (path: T.FS.Path): boolean =>
   T.FS.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
 
 // Username/User Utilities
-export const splitTlfIntoUsernames = (tlf: string): ReadonlyArray<string> =>
-  tlf.split(' ')[0]?.replace(/#/g, ',').split(',') ?? []
+export const splitTlfIntoUsernames = (tlf: string): ReadonlyArray<string> => {
+  // '' splits into [''], so a nameless tlf has to be checked before splitting or it
+  // yields one blank username
+  const userList = tlf.split(' ')[0]
+  return userList ? userList.replace(/#/g, ',').split(',') : []
+}
 
 export const getUsernamesFromPath = (path: T.FS.Path): ReadonlyArray<string> => {
   const elems = T.FS.getPathElements(path)

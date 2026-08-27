@@ -275,13 +275,17 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
 
   const setRecipients = React.useCallback(
     (recipients: ReadonlyArray<string>, hasSBS: boolean) => {
+      // the ciphertext is built for a recipient set, so changing it supersedes the run
+      startRun()
       const committed = commitState(nextRecipientState(stateRef.current, recipients, hasSBS))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [commitState, runEncrypt, stateRef]
+    [commitState, runEncrypt, startRun, stateRef]
   )
 
   const clearRecipients = React.useCallback(() => {
+    // as in setRecipients: output for the old recipients must not land
+    startRun()
     const next = resetOutput(stateRef.current)
     commitState({
       ...next,
@@ -296,14 +300,16 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       },
       recipients: [],
     })
-  }, [commitState, stateRef])
+  }, [commitState, startRun, stateRef])
 
   const setEncryptOptions = React.useCallback(
     (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => {
+      // sign/include-self change what gets encrypted, so supersede the run
+      startRun()
       const committed = commitState(nextOptionState(stateRef.current, options, hideIncludeSelf))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [commitState, runEncrypt, stateRef]
+    [commitState, runEncrypt, startRun, stateRef]
   )
 
   const saveOutputAsText = React.useCallback(async () => {
