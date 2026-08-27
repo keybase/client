@@ -96,9 +96,8 @@ const useSyncInput = (p: UseSyncInputProps) => {
     text: lastTextRef.current,
   })
 
-  const getWordAtCursor = (inputSnapshot: Commands.CommandInputSnapshot) => {
+  const getWordAtCursor = (inputSnapshot: Commands.CommandInputSnapshot, useSpaces: boolean) => {
     if (inputRef.current) {
-      const useSpaces = active === 'commands'
       const {selection, text} = inputSnapshot
       // eslint-disable-next-line
       if (!selection || selection.start === null) {
@@ -142,7 +141,13 @@ const useSyncInput = (p: UseSyncInputProps) => {
       // desktop would get the previous selection on arrowleft / arrowright
       const inputSnapshot = getInputSnapshot()
       setCommandInputSnapshot(inputSnapshot)
-      const cursorInfo = getWordAtCursor(inputSnapshot)
+      // bot command names contain spaces (`!keybot cancel`), so the command-mode
+      // word split has to be on before `active` catches up: pasted text arrives in
+      // one change event and never gets a follow-up keystroke to correct the word
+      const cursorInfo = getWordAtCursor(
+        inputSnapshot,
+        active === 'commands' || /^\s*[!/]/.test(inputSnapshot.text)
+      )
       if (!cursorInfo) {
         setInactive()
         return
@@ -192,7 +197,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
     const input = inputRef.current
     const inputSnapshot = getInputSnapshot()
     setCommandInputSnapshot(inputSnapshot)
-    const cursorInfo = getWordAtCursor(inputSnapshot)
+    const cursorInfo = getWordAtCursor(inputSnapshot, active === 'commands')
     const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
 
     let transformedText: {
