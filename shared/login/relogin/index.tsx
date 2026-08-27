@@ -9,13 +9,11 @@ import {errorBanner, SignupScreen} from '@/signup/common'
 import {isAndroidNewerThanM} from '@/constants/platform'
 import {useConfigState} from '@/stores/config'
 import {startRecoverPassword} from '@/login/recover-password/flow'
-import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {startProvision} from '@/provision/flow'
 import UserList from './user-list'
 type Props = {
   users: Array<T.Config.ConfiguredAccount>
   onForgotPassword: () => void
-  onSignup: () => void
   onSomeoneElse: () => void
   error: string
   needPassword: boolean
@@ -156,7 +154,6 @@ const NativeLoginRender = (props: Props) => {
     needPassword,
     onFeedback,
     onForgotPassword,
-    onSignup,
     onSomeoneElse,
     password,
     selectedUser,
@@ -184,14 +181,6 @@ const NativeLoginRender = (props: Props) => {
       flex={1}
       style={nativeStyles.container}
     >
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        justifyContent="flex-end"
-        style={nativeStyles.createAccountRow}
-      >
-        <Kb.Button small={true} label="Create account" mode="Secondary" onClick={onSignup} />
-      </Kb.Box2>
       {isAndroid && !C.isDeviceSecureAndroid && !isAndroidNewerThanM && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.deviceNotSecureContainer}>
           <Kb.Text center={true} type="Body" negative={true} style={nativeStyles.deviceNotSecureText}>
@@ -258,11 +247,6 @@ const useNativeStyles = Kb.Styles.createStyleHook(
       container: {
         backgroundColor: theme.blueGrey,
       },
-      createAccountRow: Kb.Styles.padding(
-        Kb.Styles.globalMargins.tiny,
-        Kb.Styles.globalMargins.small,
-        0
-      ),
       deviceNotSecureContainer: {
         backgroundColor: theme.yellow,
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
@@ -292,8 +276,6 @@ const ReloginContainer = () => {
     C.Router2.navigateAppend({name: 'signupSendFeedbackLoggedOut', params: {}})
   }
   const onLogin = useConfigState(s => s.dispatch.login)
-  const requestAutoInvite = useRequestAutoInvite()
-  const onSignup = () => requestAutoInvite('')
   const onSomeoneElse = () => startProvision()
   const error = perror?.desc || ''
   const loggedInMap = new Map<string, boolean>(
@@ -364,7 +346,6 @@ const ReloginContainer = () => {
       needPassword={!loggedInMap.get(selectedUser) || gotNeedPasswordError}
       onFeedback={onFeedback}
       onForgotPassword={() => startRecoverPassword({username: selectedUser})}
-      onSignup={onSignup}
       onSomeoneElse={onSomeoneElse}
       onSubmit={onSubmit}
       password={password}

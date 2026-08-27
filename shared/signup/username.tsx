@@ -9,6 +9,9 @@ import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {isValidUsername} from '@/util/simple-validators'
 import type {StaticScreenProps} from '@react-navigation/core'
+import {useNavigation} from '@react-navigation/native'
+import type {ParamListBase} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import {clearSignupDeviceNameDraft} from './device-name-draft'
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
@@ -94,6 +97,20 @@ const EnterUsername = (props: EnterUsernameProps) => {
     waiting,
   } = props
   const [username, onChangeUsername] = React.useState(initialUsername || '')
+  const inputRef = React.useRef<Kb.Input3Ref>(null)
+
+  // On mobile, autoFocus fires during the push transition, so the keyboard animates up while
+  // the screen is still sliding in and the content thrashes. Wait for the native-stack
+  // transition to finish, then focus. Desktop has no keyboard, so it keeps instant autoFocus.
+  const navigation = useNavigation() as unknown as NativeStackNavigationProp<ParamListBase>
+  React.useEffect(() => {
+    if (!isMobile) return
+    return navigation.addListener('transitionEnd', e => {
+      if (!e.data.closing) {
+        inputRef.current?.focus()
+      }
+    })
+  }, [navigation])
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
   const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
   const usernameTrimmed = username.trim()
@@ -168,7 +185,8 @@ const EnterUsername = (props: EnterUsernameProps) => {
           <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
             <Kb.Input3
               textType="BodySemibold"
-              autoFocus={true}
+              autoFocus={!isMobile}
+              ref={inputRef}
               containerStyle={styles.input}
               placeholder="Pick a username"
               maxLength={C.maxUsernameLength}

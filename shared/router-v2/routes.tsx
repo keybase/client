@@ -125,6 +125,22 @@ function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   return opts as NativeStackNavigationOptions
 }
 
+// iOS unhides a hidden UINavigationBar mid-push (setNavigationBarHidden:NO animated:YES), which
+// makes UIKit slide the whole bar in from the right as its own animated plane, desynced from the
+// screen slide — the push judders and flashes the target screen (react-native-screens#3773).
+// Only headerless->headered pushes hit it; header->header is fine, and modals present rather than
+// push so they may hide their bar freely. A pushed screen that wants no header must therefore keep
+// an EMPTY bar instead: see the RNS_EMPTY_BAR options on the tabs screen in router.tsx and the
+// `{headerShown: true, title: ''}` login route in login/routes.tsx.
+const assertHeaderShown = (name: string, opts: NativeStackNavigationOptions, isModal: boolean) => {
+  if (!isMobile || isModal || opts.headerShown !== false) return
+  throw new Error(
+    `Route '${name}' sets headerShown:false on a pushed screen. Pushing from it to a headered ` +
+      `screen judders on iOS (react-native-screens#3773). Render an empty bar instead: ` +
+      `{headerShown: true, title: ''}.`
+  )
+}
+
 export function routeMapToStaticScreens<const RS extends Record<string, RouteDef>>(
   rs: RS,
   makeLayoutFn: MakeLayoutFn,
@@ -150,7 +166,11 @@ export function routeMapToStaticScreens<const RS extends Record<string, RouteDef
       options: ({route, navigation}: {route: any; navigation: any}) => {
         const go = rd.getOptions
         const opts = typeof go === 'function' ? go({navigation, route}) : go
-        return toNavOptions(opts)
+        const navOpts = toNavOptions(opts)
+        if (__DEV__) {
+          assertHeaderShown(name, navOpts, isModal)
+        }
+        return navOpts
       },
       screen: rd.screen,
     }
