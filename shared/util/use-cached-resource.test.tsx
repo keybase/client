@@ -202,10 +202,10 @@ test('a forced reload supersedes a request that predates it', async () => {
     releases[0]?.({v: 1})
   })
   await flush()
-  act(() => {
+  await act(async () => {
     releases[1]?.({v: 2})
+    await forced
   })
-  await forced
   await flush()
   expect(view.getAllByText('v2')).toHaveLength(1)
   expect(cache.getData()).toEqual({v: 2})
