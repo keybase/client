@@ -77,11 +77,13 @@ describe('attachment preview handoff', () => {
   })
 
   test('is keyed by conversation and message', () => {
-    showAttachmentPreview(conversationIDKey, attachment(42))
+    const message = attachment(42)
+    showAttachmentPreview(conversationIDKey, message)
     const other = T.Chat.stringToConversationIDKey('conv2')
     expect(takeAttachmentPreviewMessage(other, messageID)).toBeUndefined()
     expect(takeAttachmentPreviewMessage(conversationIDKey, T.Chat.numberToMessageID(43))).toBeUndefined()
-    expect(takeAttachmentPreviewMessage(conversationIDKey, messageID)).toBeDefined()
+    // the misses above must not have drained the mailbox
+    expect(takeAttachmentPreviewMessage(conversationIDKey, messageID)).toBe(message)
   })
 
   test('refuses to navigate for a message with no id', () => {
@@ -106,9 +108,10 @@ describe('pdf handoff', () => {
   })
 
   test('does not share the preview mailbox', () => {
-    showPDFViewer(conversationIDKey, attachment(42))
+    const message = attachment(42)
+    showPDFViewer(conversationIDKey, message)
     expect(takeAttachmentPreviewMessage(conversationIDKey, messageID)).toBeUndefined()
-    expect(takePDFMessage(conversationIDKey, messageID)).toBeDefined()
+    expect(takePDFMessage(conversationIDKey, messageID)).toBe(message)
   })
 
   test('refuses to navigate for a message with no id', () => {

@@ -7,6 +7,7 @@ jest.mock('@/util/electron', () => ({
   default: {
     constants: {
       env: {},
+      pathSep: '/',
       platform: 'darwin',
     },
     functions: {

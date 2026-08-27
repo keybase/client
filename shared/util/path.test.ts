@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import type * as PathModuleTypes from './path'
 import {
   basename,
   dirname,
@@ -85,8 +86,9 @@ describe('dirname', () => {
     expect(dirname('photo.png')).toBe('')
   })
 
-  test('a root-level file has an empty dirname', () => {
-    expect(dirname('/photo.png')).toBe('')
+  test('a root-level file has the root as its dirname', () => {
+    expect(dirname('/photo.png')).toBe('/')
+    expect(dirname('/')).toBe('/')
   })
 })
 
@@ -106,5 +108,41 @@ describe('saltpack predicates', () => {
 
   test('the suffix has to be at the end', () => {
     expect(isPathSaltpack('/tmp/a.encrypted.saltpack.txt')).toBe(false)
+  })
+})
+
+// pathSep is read at module load, so the windows branch only runs against a
+// freshly required copy of the module with a mocked platform
+describe('on windows', () => {
+  type PathModule = typeof PathModuleTypes
+  let winPath: PathModule
+
+  beforeAll(() => {
+    jest.resetModules()
+    jest.doMock('@/constants/platform', () => ({pathSep: '\\'}))
+    winPath = require('./path') as PathModule
+  })
+
+  afterAll(() => {
+    jest.dontMock('@/constants/platform')
+    jest.resetModules()
+  })
+
+  test('joins and collapses backslashes', () => {
+    expect(winPath.join('C:', 'tmp', 'file.txt')).toBe('C:\\tmp\\file.txt')
+    expect(winPath.join('C:\\tmp\\', '\\file.txt')).toBe('C:\\tmp\\file.txt')
+    expect(winPath.join('a', '', 'b')).toBe('a\\b')
+  })
+
+  test('leaves regex metacharacters in the segments alone', () => {
+    expect(winPath.join('a+', '+b')).toBe('a+\\+b')
+    expect(winPath.join('a++b', 'c')).toBe('a++b\\c')
+  })
+
+  test('splits the other path helpers on backslashes', () => {
+    expect(winPath.dirname('C:\\tmp\\photo.png')).toBe('C:\\tmp')
+    expect(winPath.dirname('\\photo.png')).toBe('\\')
+    expect(winPath.extname('C:\\v1.2\\README')).toBe('')
+    expect(winPath.basename('C:\\tmp\\photo.png', '.png')).toBe('photo')
   })
 })

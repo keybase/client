@@ -37,7 +37,15 @@ test('feedback without logs skips the log dump and only reports the version', as
   expect(result.current.error).toBe('')
 })
 
-test('sending logs dumps them first and mixes in the extra chat logs', async () => {
+test('the extra chat log hook contributes nothing today', () => {
+  // getExtraChatLogsForLogSend is a hook for future per-conversation debug data.
+  // It is called directly (not through the module exports) by sendFeedbackToDaemon,
+  // so a jest spy cannot intercept it -- pin its contract here instead and assert
+  // the literal payload below.
+  expect(getExtraChatLogsForLogSend()).toEqual({})
+})
+
+test('sending logs dumps them before the log send and reports the status payload', async () => {
   const order = new Array<string>()
   jest.spyOn(logger, 'dump').mockImplementation(async () => {
     order.push('dump')
@@ -64,7 +72,7 @@ test('sending logs dumps them first and mixes in the extra chat logs', async () 
   ]
   expect(args.sendLogs).toBe(true)
   expect(args.sendMaxBytes).toBe(true)
-  expect(JSON.parse(args.statusJSON)).toEqual({...getExtraChatLogsForLogSend(), version})
+  expect(JSON.parse(args.statusJSON)).toEqual({version})
 })
 
 test('rpc failures surface the service description', async () => {

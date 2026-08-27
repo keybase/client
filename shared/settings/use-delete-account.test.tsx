@@ -2,8 +2,13 @@
 /// <reference types="jest" />
 // useRPC is exported as a re-export getter (non-configurable), so we mock the
 // module to make it a plain configurable property that jest.spyOn can wrap.
+const mockAndroidIsTestDevice = {value: false}
 jest.mock('@/constants', () => ({
   ...(jest.requireActual('@/constants') as object),
+  // a live getter so a test can flip the platform flag the hook reads
+  get androidIsTestDevice() {
+    return mockAndroidIsTestDevice.value
+  },
   useRPC: jest.fn(),
 }))
 jest.mock('@/constants/router', () => ({
@@ -49,6 +54,7 @@ const mockDeleteRPC = () => {
 
 afterEach(() => {
   cleanup()
+  mockAndroidIsTestDevice.value = false
   jest.clearAllMocks()
   jest.restoreAllMocks()
   resetAllStores()
@@ -104,6 +110,24 @@ test('passes an undefined passphrase through for accounts without one', () => {
     expect.any(Function),
     expect.any(Function)
   )
+})
+
+test('pre-launch test devices never reach the delete rpc', () => {
+  // android pre-launch reports drive the whole app; deleting the account they
+  // run under would be catastrophic
+  useCurrentUserState.setState({username: 'testuser'})
+  mockAndroidIsTestDevice.value = true
+  const rpc = mockDeleteRPC()
+
+  const {result} = renderHook(() => useDeleteAccount())
+
+  act(() => {
+    result.current('hunter2')
+  })
+
+  expect(rpc.submit).not.toHaveBeenCalled()
+  expect(clearModals).not.toHaveBeenCalled()
+  expect(navigateAppend).not.toHaveBeenCalled()
 })
 
 test('logs and stays put when the delete rpc fails', () => {

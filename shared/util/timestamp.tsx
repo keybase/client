@@ -8,11 +8,13 @@ const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
 // getting this time is very slow on android so we cache it, it never grows large
 const chatTimeCache = new Map<number, string>()
 export const clearChatTimeCache = () => chatTimeCache.clear()
-const cacheData = dateFns.startOfDay(new Date())
+let cacheDay = dateFns.startOfDay(new Date())
 export function formatTimeForChat(time: number): string {
   // if the date changes, clear our cache as the 'yesterday' stuff is actually sensitive to this
-  if (!dateFns.isToday(cacheData)) {
+  if (!dateFns.isToday(cacheDay)) {
     chatTimeCache.clear()
+    // and move the cache to the new day, else every later call clears it again
+    cacheDay = dateFns.startOfDay(new Date())
   }
   let t = chatTimeCache.get(time)
   if (t !== undefined) return t
@@ -81,15 +83,20 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
   }
 }
 
+// every token date-fns can hand us needs an entry in both maps, a missing one
+// formats with undefined and throws
 const noUpperCaseFirst = {
   lastWeek: "EEE 'at' p",
+  nextWeek: "EEE 'at' p",
   today: "'today at' p",
   tomorrow: "'tomorrow at' p",
   yesterday: "'yesterday at' p",
 }
 const upperCaseFirst = {
   lastWeek: "EEE 'at' p",
+  nextWeek: "EEE 'at' p",
   today: "'Today at' p",
+  tomorrow: "'Tomorrow at' p",
   yesterday: "'Yesterday at' p",
 }
 

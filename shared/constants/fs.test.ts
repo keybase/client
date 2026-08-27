@@ -5,6 +5,7 @@ import {
   escapePath,
   getChatTarget,
   getSharePathArrayDescription,
+  getUploadedPath,
   getUsernamesFromPath,
   getUsernamesFromTlfName,
   hasPublicTag,
@@ -116,7 +117,8 @@ describe('path predicates', () => {
   test('isTeamPath is only true inside team tlfs', () => {
     expect(isTeamPath(p('/keybase/team/keybase.core'))).toBe(true)
     expect(isTeamPath(p('/keybase/team/keybase.core/a'))).toBe(true)
-    expect(isTeamPath(p('/keybase/team'))).toBe(true)
+    // the team list root is not itself a team folder
+    expect(isTeamPath(p('/keybase/team'))).toBe(false)
     expect(isTeamPath(p('/keybase/private/testuser'))).toBe(false)
     expect(isTeamPath(p('/keybase'))).toBe(false)
   })
@@ -179,8 +181,9 @@ describe('getChatTarget', () => {
     expect(getChatTarget(p('/keybase/private/testuser,carol,dave'), 'testuser')).toBe('group conversation')
   })
 
-  test('a solo folder that is not mine is a group conversation, not yourself', () => {
-    expect(getChatTarget(p('/keybase/private/carol'), 'testuser')).toBe('group conversation')
+  test('a solo folder that is not mine names the other person', () => {
+    expect(getChatTarget(p('/keybase/private/carol'), 'testuser')).toBe('carol')
+    expect(getChatTarget(p('/keybase/private/carol/sub/a.txt'), 'testuser')).toBe('carol')
   })
 
   test('team paths are a team conversation and the root is a plain conversation', () => {
@@ -209,8 +212,9 @@ test('rebasePathToDifferentTlf keeps everything below the tlf', () => {
 })
 
 describe('humanReadableFileSize', () => {
-  test('is blank for zero', () => {
-    expect(humanReadableFileSize(0)).toBe('')
+  test('an empty file is 0 B, and only a missing size is blank', () => {
+    expect(humanReadableFileSize(0)).toBe('0 B')
+    expect(humanReadableFileSize(undefined)).toBe('')
   })
 
   test('picks the largest binary unit that fits', () => {
@@ -241,9 +245,21 @@ describe('humanizeBytes', () => {
 })
 
 describe('humanizeBytesOfTotal', () => {
+  // Both numbers deliberately share the total's unit so the unit doesn't
+  // change under the reader while a transfer progresses.
   test('picks the unit from the total, not the numerator', () => {
     expect(humanizeBytesOfTotal(512, 1024 * 1024)).toBe('0.00 of 1.00 MB')
     expect(humanizeBytesOfTotal(10, 100)).toBe('10 of 100 bytes')
+  })
+})
+
+describe('getUploadedPath', () => {
+  test('appends the local file name to the destination folder', () => {
+    const dest = p('/keybase/private/testuser/dir')
+    expect(getUploadedPath(dest, '/tmp/a.png')).toBe('/keybase/private/testuser/dir/a.png')
+    expect(getUploadedPath(dest, '/tmp/sub/')).toBe('/keybase/private/testuser/dir/sub')
+    // a bare file name has no separator at all
+    expect(getUploadedPath(dest, 'a.png')).toBe('/keybase/private/testuser/dir/a.png')
   })
 })
 

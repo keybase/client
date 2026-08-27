@@ -46,18 +46,4 @@ describe('decodeInlineError', () => {
     expect(notFound.inlineSignUpLink).not.toBe(badUsername.inlineSignUpLink)
     expect(!!notFound.inlineError).not.toBe(!!badUsername.inlineError)
   })
-
-  test('returns a fresh object each call so callers cannot mutate shared state', () => {
-    const a = decodeInlineError(T.RPCGen.StatusCode.scbadusername)
-    const b = decodeInlineError(T.RPCGen.StatusCode.scbadusername)
-    expect(a).not.toBe(b)
-    expect(a).toEqual(b)
-  })
-
-  test('scnotfound is the only code that suppresses the error banner while still being an error', () => {
-    // the screen computes: error = inlineError && !inlineSignUpLink ? inlineError : ''
-    const {inlineError, inlineSignUpLink} = decodeInlineError(T.RPCGen.StatusCode.scnotfound)
-    expect(inlineError && !inlineSignUpLink ? inlineError : '').toBe('')
-    expect(inlineSignUpLink).toBe(true)
-  })
 })

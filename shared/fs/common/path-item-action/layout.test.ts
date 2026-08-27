@@ -79,10 +79,18 @@ test('your own private tlf cannot be ignored, but a shared one can', () => {
     getRootLayout('row', p('/keybase/team/keybase'), folder(), FS.emptyFileContext, me).ignoreTlf
   ).toBe(true)
 
-  // logged out: isMyOwn is false, so ignore is offered
+  // without a username we can't tell whose tlf it is, so don't offer ignore
   expect(
     getRootLayout('row', p('/keybase/private/testuser'), folder(), FS.emptyFileContext, '').ignoreTlf
-  ).toBe(true)
+  ).toBe(false)
+  expect(
+    getRootLayout('row', p('/keybase/private/testuser,testuser-mac'), folder(), FS.emptyFileContext, '')
+      .ignoreTlf
+  ).toBe(false)
+  // team tlfs are still ignorable without a username
+  expect(getRootLayout('row', p('/keybase/team/keybase'), folder(), FS.emptyFileContext, '').ignoreTlf).toBe(
+    true
+  )
 })
 
 test('tlf-level chat and new folder only show up in screen mode', () => {

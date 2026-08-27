@@ -67,7 +67,15 @@ test('an unrecognized applink value is ignored', () => {
   )
 })
 
-test('subteam urls are not team-page links', () => {
-  // the team pattern does not allow the '.' separator twice in a row
+test('a dotted subteam name is a team-page link', () => {
+  expect(normalizeUrl('https://keybase.io/team/keybase.sub')).toBe('keybase://team-page/keybase.sub')
+  expect(normalizeUrl('https://keybase.io/team/keybase.sub.subsub')).toBe(
+    'keybase://team-page/keybase.sub.subsub'
+  )
+})
+
+test('a slash-separated subteam path is not a team-page link', () => {
+  // '/' is not in the team name character class, so the pattern stops at the
+  // second segment and nothing matches
   expect(normalizeUrl('https://keybase.io/team/keybase/sub')).toBeUndefined()
 })

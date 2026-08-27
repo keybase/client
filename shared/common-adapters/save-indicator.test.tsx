@@ -42,9 +42,14 @@ describe('SaveIndicator', () => {
     expect(check()).toBeNull()
   })
 
-  test('mounting while already saving still starts in the init state', () => {
-    render(<SaveIndicator saving={true} />)
+  test('mounting mid-save shows the spinner right away, and the check when it finishes', () => {
+    const {rerender} = render(<SaveIndicator saving={true} />)
+    expect(spinner()).not.toBeNull()
+    expect(check()).toBeNull()
+
+    rerender(<SaveIndicator saving={false} />)
     expect(spinner()).toBeNull()
+    expect(check()).not.toBeNull()
   })
 
   test('flipping to saving shows the spinner', () => {

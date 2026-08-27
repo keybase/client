@@ -361,11 +361,13 @@ describe('navigation', () => {
     expect(mockCenterOnMessage).toHaveBeenLastCalledWith(messageID(12), 'always')
   })
 
-  test('selectResult out of range still records the index but centers nothing', () => {
+  test('selectResult out of range leaves the selection where it was', () => {
     const {result} = mountWithHits(2)
+    act(() => result.current.selectResult(1))
     mockCenterOnMessage.mockClear()
     act(() => result.current.selectResult(7))
-    expect(result.current.selectedIndex).toBe(7)
+    // a bogus index would surface as `8 of 2` and send the up/down walk adrift
+    expect(result.current.selectedIndex).toBe(1)
     expect(mockCenterOnMessage).not.toHaveBeenCalled()
   })
 })
@@ -399,15 +401,15 @@ describe('teardown', () => {
     expect(mockToggleThreadSearch).toHaveBeenCalled()
   })
 
-  test('unmounting cancels the in-flight RPC and ignores later callbacks', () => {
-    const {result, unmount} = mountSearch('needle')
-    const callMap = activeCallMap()
+  test('unmounting cancels the in-flight RPC and drops the pending flush', () => {
+    const {unmount} = mountSearch('needle')
+    act(() => {
+      activeCallMap()['chat.1.chatUi.chatSearchHit']!({searchHit: {hitMessage: hitMessage(5)}})
+    })
+    // the hit is parked on the 16ms coalescing timer
+    expect(jest.getTimerCount()).toBe(1)
     unmount()
     expect(mockCancelSearch).toHaveBeenCalled()
-    act(() => {
-      callMap['chat.1.chatUi.chatSearchHit']!({searchHit: {hitMessage: hitMessage(5)}})
-      jest.advanceTimersByTime(20)
-    })
-    expect(result.current.numHits).toBe(0)
+    expect(jest.getTimerCount()).toBe(0)
   })
 })

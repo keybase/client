@@ -5,8 +5,8 @@ import {formatMessage} from './revoke'
 const p = (platform: string) => platform as T.More.PlatformsExpandedType
 
 describe('formatMessage', () => {
-  test('pgp is a drop, not a revoke, and has no trailing question mark', () => {
-    expect(formatMessage(p('pgp'))).toBe('Are you sure you want to drop your PGP key')
+  test('pgp is a drop, not a revoke', () => {
+    expect(formatMessage(p('pgp'))).toBe('Are you sure you want to drop your PGP key?')
   })
 
   test('btc is described as a bitcoin address', () => {

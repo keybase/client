@@ -52,6 +52,8 @@ test('updateTrackerDetailsResult applies the default broken-track reason', () =>
   expect(next.resetBrokeTrack).toBe(false)
 })
 
+// the reset warning has to survive the 'valid' result that follows it: the reset
+// is reported during the identify whose proofs then come back fine
 test('updateTrackerDetailsReset marks the reset and a later valid result clears only the flag', () => {
   const reset = updateTrackerDetailsReset(makeDetails('alice'))
   const next = updateTrackerDetailsResult(reset, 'valid')

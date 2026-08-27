@@ -7,6 +7,8 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import * as Provision from '@/constants/provision'
 import * as T from '@/constants/types'
 import {submitProvisionDeviceName} from './flow'
+// shared with the signup flow so the two device-name screens cannot drift
+import {isDeviceNameDisabled, makeCleanDeviceName} from '../signup/device-name'
 
 type Props = {
   route: {
@@ -29,21 +31,15 @@ const SetPublicName = ({route}: Props) => {
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
-  const cleanDeviceName = Provision.cleanDeviceName(deviceName)
-  const normalized = cleanDeviceName.replace(Provision.normalizeDeviceRE, '')
-  const disabled =
-    normalized.length < 3 ||
-    normalized.length > 64 ||
-    !Provision.goodDeviceRE.test(cleanDeviceName) ||
-    Provision.badDeviceRE.test(cleanDeviceName)
+  const cleanDeviceName = makeCleanDeviceName(deviceName)
+  const disabled = isDeviceNameDisabled(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const onSubmit = () => {
-    if (!waiting) submitProvisionDeviceName(Provision.cleanDeviceName(cleanDeviceName))
+    if (!waiting) submitProvisionDeviceName(cleanDeviceName)
   }
   const onChangeDeviceName = (name: string) => {
     setReadyToShowError(false)
-    // map smart apostrophes to ASCII first, else badDeviceChars strips them outright
-    setDeviceName(Provision.cleanDeviceName(name).replace(Provision.badDeviceChars, ''))
+    setDeviceName(makeCleanDeviceName(name))
     debouncedSetReadyToShowError(true)
   }
 

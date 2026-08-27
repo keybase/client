@@ -187,8 +187,8 @@ describe('section derivation', () => {
     })
     const {section, lastCounts} = renderSearch(search)
     expect(inboxSearchPreviewSectionSize).toBe(3)
-    expect(section('Open teams').data.length).toBe(inboxSearchPreviewSectionSize)
-    expect(section('Featured bots').data.length).toBe(inboxSearchPreviewSectionSize)
+    expect(section('Open teams').data.length).toBe(3)
+    expect(section('Featured bots').data.length).toBe(3)
     // trimmed lengths, not the raw result lengths, drive the offsets
     expect(section('Featured bots').indexOffset).toBe(3)
     expect(section('Messages').indexOffset).toBe(6)

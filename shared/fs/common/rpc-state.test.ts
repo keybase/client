@@ -350,14 +350,13 @@ describe('makePathItemsFromDirents', () => {
     expect(items.size).toBe(0)
   })
 
-  test('a known file root is not turned into a folder', () => {
+  test('a known file root yields nothing, not impossible children', () => {
     const items = makePathItemsFromDirents({
       entries: [dirent({name: 'other.txt'})],
       isRecursive: false,
       rootPath: p('/keybase/private/testuser/a.txt'),
       rootPathItem: FS.emptyFile,
     })
-    expect(items.has(p('/keybase/private/testuser/a.txt'))).toBe(false)
-    expect(items.has(p('/keybase/private/testuser/a.txt/other.txt'))).toBe(true)
+    expect(items.size).toBe(0)
   })
 })

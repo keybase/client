@@ -17,9 +17,15 @@ test('getDeviceIconType marks the current device with the success variant', () =
   expect(getDeviceIconType('desktop', 3, 32, true)).toBe('icon-computer-success-background-3-32')
 })
 
-test('getDeviceIconType falls back to the plain icon when the background variant is missing', () => {
-  // there is no icon-phone-success-background-2-64, so we drop to the plain phone icon
-  expect(getDeviceIconType('mobile', 2, 64, true)).toBe('icon-phone-64')
+test('getDeviceIconType keeps the per-device background when the success art is missing', () => {
+  // success art stops at 48px, so the current device keeps its colored tile at 64/96
+  expect(getDeviceIconType('mobile', 2, 64, true)).toBe('icon-phone-background-2-64')
+  expect(getDeviceIconType('desktop', 3, 96, true)).toBe('icon-computer-background-3-96')
+})
+
+test('getDeviceIconType falls back to the plain icon when no background art exists at all', () => {
+  expect(getDeviceIconType('mobile', 11 as never, 64, true)).toBe('icon-phone-64')
+  expect(getDeviceIconType('mobile', 11 as never, 64)).toBe('icon-phone-64')
 })
 
 test('getDeviceIconType ignores the icon number for paper keys', () => {

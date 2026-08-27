@@ -95,7 +95,9 @@ test('rpc folder type and visibility convert both ways', () => {
 test('local path helpers skip empty trailing elements', () => {
   expect(T.FS.getLocalPathName('/tmp/dir/file.txt')).toBe('file.txt')
   expect(T.FS.getLocalPathName('/tmp/dir/')).toBe('dir')
+  expect(T.FS.getLocalPathName('file.txt')).toBe('file.txt')
   expect(T.FS.getLocalPathName('')).toBe('')
+  expect(T.FS.getLocalPathName('/')).toBe('')
   expect(T.FS.getLocalPathDir('/tmp/dir/file.txt')).toBe('/tmp/dir')
   expect(T.FS.localPathConcat('/tmp/dir', 'file.txt')).toBe('/tmp/dir/file.txt')
   // non-windows: already normalized

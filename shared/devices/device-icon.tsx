@@ -16,8 +16,18 @@ const getIconType = (
   const revoke = variant === 'revoke-' ? variant : ''
   if (type === 'backup') return `icon-paper-key-${revoke}${size}` as Kb.IconType
   const base = type === 'desktop' ? 'computer' : 'phone'
-  const maybeIcon = `icon-${base}-${variant}background-${iconNumber}-${size}`
-  return Kb.isValidIconType(maybeIcon) ? maybeIcon : (`icon-${base}-${revoke}${size}` as Kb.IconType)
+  const plain = `icon-${base}-${revoke}${size}` as Kb.IconType
+  const variantBackground = `icon-${base}-${variant}background-${iconNumber}-${size}`
+  if (Kb.isValidIconType(variantBackground)) {
+    return variantBackground
+  }
+  // success art only exists up to 48px, so above that keep the per-device
+  // background rather than dropping all the way to the bare icon
+  const background = `icon-${base}-background-${iconNumber}-${size}`
+  if (variant === 'success-' && Kb.isValidIconType(background)) {
+    return background
+  }
+  return plain
 }
 
 export const getDeviceIconType = (

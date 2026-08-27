@@ -17,8 +17,9 @@ export const standardTransformer = (
   preview: boolean
 ) => {
   const rest = text.substring(end || 0)
-  // don't stack a second space when the text we're inserting in front of already leads with one
-  const separator = preview || rest.startsWith(' ') ? '' : ' '
+  // don't wedge a space in front of text that already reads on from the insertion:
+  // existing whitespace, or punctuation that must stay tight against it
+  const separator = preview || /^[\s\p{P}]/u.test(rest) ? '' : ' '
   const newText = `${text.substring(0, start || 0)}${toInsert}${separator}${rest}`
   const newSelection = (start || 0) + toInsert.length + separator.length
   return {selection: {end: newSelection, start: newSelection}, text: newText}

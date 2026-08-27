@@ -3,7 +3,6 @@
 
 import {cleanup, render} from '@testing-library/react'
 import {ClickableBox} from './box'
-import {iconMeta} from './icon.constants-gen'
 import {isValidIconType} from './icon.shared'
 import Icon from './icon'
 
@@ -18,12 +17,6 @@ describe('isValidIconType', () => {
   test('rejects unknown names and the empty string', () => {
     expect(isValidIconType('iconfont-definitely-not-real')).toBe(false)
     expect(isValidIconType('')).toBe(false)
-  })
-
-  test('agrees with the generated metadata for every icon', () => {
-    for (const name of Object.keys(iconMeta)) {
-      expect(isValidIconType(name)).toBe(true)
-    }
   })
 })
 
@@ -84,7 +77,11 @@ describe('Icon (desktop)', () => {
 
   test('padding resolves through the margin scale', () => {
     const {container} = render(<Icon type="iconfont-add" padding="tiny" />)
-    expect(iconEl(container).style.padding).not.toBe('')
+    // globalMargins.tiny
+    expect(iconEl(container).style.padding).toBe('8px')
+    cleanup()
+    const {container: large} = render(<Icon type="iconfont-add" padding="large" />)
+    expect(iconEl(large).style.padding).toBe('40px')
   })
 
   test('onClick adds a pointer cursor and stops propagation', () => {

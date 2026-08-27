@@ -126,7 +126,8 @@ const descriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case t.verifyAllPhoneNumber: {
       const p = todo.verifyAllPhoneNumber
-      return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
+      // the * * is bold markup, so an absent number would render as an empty bold run
+      return p ? `Your number *${e164ToDisplay(p)}* is unverified.` : 'Your number is unverified.'
     }
     default: {
       const type = todoTypeEnumToType[todo.t]

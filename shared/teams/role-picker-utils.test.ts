@@ -45,8 +45,6 @@ describe('getRolePickerDisabledReasons with manage-members permission', () => {
       teamname: 'parent.sub',
     })
     expect(reasons).toEqual({owner: 'Subteams cannot have owners.'})
-    expect(reasons.admin).toBeUndefined()
-    expect(reasons.writer).toBeUndefined()
   })
 
   test('a non-owner admin can change roles but cannot mint owners', () => {
@@ -176,7 +174,7 @@ describe('getRolePickerDisabledReasons without manage-members permission', () =>
     expect(reasons.admin).toBe('You must be at least an admin to make role changes.')
   })
 
-  test('an admin can only be blocked from making owners', () => {
+  test('an admin without the permission still cannot change any role', () => {
     expect(
       getRolePickerDisabledReasons({
         canManageMembers: false,
@@ -185,10 +183,15 @@ describe('getRolePickerDisabledReasons without manage-members permission', () =>
         membersToModify: 'testuser-mac',
         teamname: 'keybase',
       })
-    ).toEqual({owner: 'Only owners can turn members into owners'})
+    ).toEqual({
+      admin: 'You must be at least an admin to make role changes.',
+      owner: 'You must be at least an admin to make role changes.',
+      reader: 'You must be at least an admin to make role changes.',
+      writer: 'You must be at least an admin to make role changes.',
+    })
   })
 
-  test('an owner has no restrictions', () => {
+  test('an owner without the permission still cannot change any role', () => {
     expect(
       getRolePickerDisabledReasons({
         canManageMembers: false,
@@ -197,10 +200,15 @@ describe('getRolePickerDisabledReasons without manage-members permission', () =>
         membersToModify: 'testuser-mac',
         teamname: 'keybase',
       })
-    ).toEqual({})
+    ).toEqual({
+      admin: 'You must be at least an admin to make role changes.',
+      owner: 'You must be at least an admin to make role changes.',
+      reader: 'You must be at least an admin to make role changes.',
+      writer: 'You must be at least an admin to make role changes.',
+    })
   })
 
-  test('with no members to modify nothing is treated as an owner change', () => {
+  test('with no members to modify every role is still disabled', () => {
     expect(
       getRolePickerDisabledReasons({
         canManageMembers: false,
@@ -208,6 +216,11 @@ describe('getRolePickerDisabledReasons without manage-members permission', () =>
         members: members(['testuser', 'owner']),
         teamname: 'keybase',
       })
-    ).toEqual({})
+    ).toEqual({
+      admin: 'You must be at least an admin to make role changes.',
+      owner: 'You must be at least an admin to make role changes.',
+      reader: 'You must be at least an admin to make role changes.',
+      writer: 'You must be at least an admin to make role changes.',
+    })
   })
 })

@@ -51,10 +51,12 @@ describe('isValidEmail', () => {
     expect(isValidEmail('test user@keybase.io')).toBe('Invalid email address.')
   })
 
-  test('distinguishes empty from invalid', () => {
+  test('only reports empty when nothing was typed at all', () => {
     expect(isValidEmail()).toBe('Empty email address.')
     expect(isValidEmail('')).toBe('Empty email address.')
+    // anything the user actually typed, blank included, is reported as invalid
     expect(isValidEmail('   ')).toBe('Invalid email address.')
+    expect(isValidEmail('\t')).toBe('Invalid email address.')
   })
 })
 

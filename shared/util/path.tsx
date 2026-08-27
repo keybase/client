@@ -1,8 +1,11 @@
 import {pathSep} from '@/constants/platform'
 // simple versions we use in the renderer, definitely doesn't handle edge cases but likely ok as-is
 
+// pathSep is a backslash on windows, which is a regex escape, so it can't go in a pattern raw
+const sepRun = new RegExp(`${pathSep.replaceAll(/[\\^$*+?.()|[\]{}]/g, '\\$&')}+`, 'g')
+
 export const join = (...args: Array<string>) => {
-  return [...args].join(pathSep).replace(new RegExp(`${pathSep}+`, 'g'), pathSep)
+  return [...args].join(pathSep).replace(sepRun, pathSep)
 }
 
 export const extname = (path: string) => {
@@ -29,7 +32,9 @@ export const basename = (path: string, extname: string) => {
 export const dirname = (path: string) => {
   const parts = path.split(pathSep)
   parts.pop()
-  return parts.join(pathSep)
+  const dir = parts.join(pathSep)
+  // the parent of a root level file is the root, not a relative path
+  return !dir && parts.length ? pathSep : dir
 }
 
 export const isPathSaltpackEncrypted = (path: string) => path.endsWith('.encrypted.saltpack')

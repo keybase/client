@@ -88,11 +88,33 @@ test('a new upload during the sticky window restarts the countdown and refreshes
   expect(result.current.showing).toBe(false)
 })
 
-test('an upload that never showed up does not leave the banner sticky', () => {
-  const {result, rerender} = render()
-  // props churn without ever uploading
-  rerender({...baseProps, totalSyncingBytes: 0})
-  tick(5)
+test('going offline mid-upload ends the countdown and hides after the glue', () => {
+  const {result, rerender} = render({...baseProps, files: 2})
+  expect(result.current.showing).toBe(true)
+
+  rerender({...baseProps, files: 2, isOnline: false})
+  expect(result.current.showing).toBe(true)
+  tick()
+  expect(result.current.showing).toBe(true)
+  tick()
+  expect(result.current.showing).toBe(false)
+})
+
+test('the sticky window does not drain while an end estimate is still in the future', () => {
+  const {result, rerender} = render({...baseProps, endEstimate: 1_000_000, files: 2})
+  expect(result.current.showing).toBe(true)
+
+  // upload done, but the estimate is still pending: stay put rather than
+  // burning the glue ticks
+  rerender({...baseProps, endEstimate: 1_000_000, files: 0})
+  tick(10)
+  expect(result.current.showing).toBe(true)
+
+  // once the estimate is gone the usual two ticks of glue apply
+  rerender({...baseProps, files: 0})
+  tick()
+  expect(result.current.showing).toBe(true)
+  tick()
   expect(result.current.showing).toBe(false)
 })
 
@@ -110,7 +132,7 @@ test('no end estimate means no time left string', () => {
   expect(result.current.timeLeft).toBe('')
 })
 
-test('passthrough props are handed back untouched', () => {
+test('passthrough props are handed back untouched, and are not what drives showing', () => {
   const debugToggleShow = jest.fn()
   const {result} = render({
     ...baseProps,
@@ -127,4 +149,15 @@ test('passthrough props are handed back untouched', () => {
     smallMode: true,
     totalSyncingBytes: 42,
   })
+  expect(result.current.showing).toBe(true)
+
+  // the same props with nothing to upload pass through identically but hide
+  const {result: idle} = render({
+    ...baseProps,
+    debugToggleShow,
+    fileName: 'a.txt',
+    smallMode: true,
+  })
+  expect(idle.current).toMatchObject({debugToggleShow, fileName: 'a.txt', files: 0, smallMode: true})
+  expect(idle.current.showing).toBe(false)
 })

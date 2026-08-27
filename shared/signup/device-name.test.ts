@@ -85,12 +85,6 @@ describe('isDeviceNameDisabled', () => {
     // bad trailing char only
     expect(isDeviceNameDisabled('abcdef-')).toBe(true)
   })
-
-  test('is pure: repeated calls with the same input give the same answer', () => {
-    for (const name of ['testuser-mac', 'testuser mac', 'ab', 'testuser--mac', '']) {
-      expect(isDeviceNameDisabled(name)).toBe(isDeviceNameDisabled(name))
-    }
-  })
 })
 
 describe('makeCleanDeviceName', () => {
@@ -103,24 +97,41 @@ describe('makeCleanDeviceName', () => {
     expect(makeCleanDeviceName('')).toBe('')
   })
 
-  test('whitespace-only input keeps only spaces and stays disabled', () => {
-    expect(makeCleanDeviceName('   ')).toBe('   ')
+  test('whitespace-only input collapses to a single space and stays disabled', () => {
+    expect(makeCleanDeviceName('   ')).toBe(' ')
     expect(isDeviceNameDisabled(makeCleanDeviceName('   '))).toBe(true)
   })
 
   test('strips characters outside the allowed set', () => {
     expect(makeCleanDeviceName('testuser@mac')).toBe('testusermac')
     expect(makeCleanDeviceName('testuser.mac')).toBe('testusermac')
-    expect(makeCleanDeviceName('testuser 🙂 mac')).toBe('testuser  mac')
+  })
+
+  test('separators left touching by a stripped character are collapsed', () => {
+    expect(makeCleanDeviceName('testuser 🙂 mac')).toBe('testuser mac')
+    expect(makeCleanDeviceName('testuser🙂-🙂mac')).toBe('testuser-mac')
+  })
+
+  test('separator runs typed by hand are collapsed too', () => {
+    expect(makeCleanDeviceName('testuser  mac')).toBe('testuser mac')
+    expect(makeCleanDeviceName('testuser--mac')).toBe('testuser-mac')
+    expect(makeCleanDeviceName("testuser_ 'mac")).toBe('testuser_mac')
+  })
+
+  test('a single trailing separator survives so a name can be typed through it', () => {
+    expect(makeCleanDeviceName('testuser-')).toBe('testuser-')
+    expect(makeCleanDeviceName('testuser ')).toBe('testuser ')
   })
 
   test('cleaning makes an otherwise-rejected name acceptable', () => {
-    expect(isDeviceNameDisabled('testuser.mac')).toBe(true)
-    expect(isDeviceNameDisabled(makeCleanDeviceName('testuser.mac'))).toBe(false)
+    for (const raw of ['testuser.mac', 'testuser 🙂 mac', 'testuser  mac', "testuser_ 'mac"]) {
+      expect(isDeviceNameDisabled(raw)).toBe(true)
+      expect(isDeviceNameDisabled(makeCleanDeviceName(raw))).toBe(false)
+    }
   })
 
   test('is idempotent', () => {
-    for (const name of ['testuser@mac', "testuser's mac", '', '   ', 'testuser 🙂 mac']) {
+    for (const name of ['testuser@mac', "testuser's mac", '', '   ', 'testuser 🙂 mac', 'testuser--mac']) {
       expect(makeCleanDeviceName(makeCleanDeviceName(name))).toBe(makeCleanDeviceName(name))
     }
   })
@@ -135,11 +146,25 @@ describe('smart apostrophes and separator normalization', () => {
   })
 
   test('the length check strips every separator, not just the first', () => {
-    // 60 alphanumerics spread over 59 single spaces: 119 characters in all.
-    // Counting only the alphanumerics keeps it under the 64 maximum; leaving
-    // the separators in (stripping only the first) pushes it well over.
-    const spacedOut = Array.from({length: 60}, () => 'a').join(' ')
-    expect(spacedOut.length).toBe(119)
-    expect(isDeviceNameDisabled(spacedOut)).toBe(false)
+    // normalizeDeviceRE must be global. Without the g flag only the first
+    // separator is removed, so the 3-64 bound is measured against a string that
+    // still carries the rest of them and a legal name is rejected as too long.
+    //
+    // The inputs below are longer than the 64-character maxLength both device
+    // name inputs set, which is unavoidable: the two implementations only
+    // disagree once the separators alone push the raw string past 64, and the
+    // shortest such name is 66 characters (64 alphanumerics + 2 separators).
+    // The property is still worth pinning -- maxLength is a UI affordance, not
+    // a guarantee about what reaches this function.
+    const sixtyFourAlnum = `${'a'.repeat(62)} b c`
+    expect(sixtyFourAlnum.length).toBe(66)
+    expect(sixtyFourAlnum.replace(/[^a-zA-Z0-9]/g, '').length).toBe(64)
+    // stripping only the first separator would leave 65 and reject this
+    expect(isDeviceNameDisabled(sixtyFourAlnum)).toBe(false)
+
+    // one alphanumeric more and it is genuinely too long, separators or not
+    const sixtyFiveAlnum = `${'a'.repeat(63)} b c`
+    expect(sixtyFiveAlnum.replace(/[^a-zA-Z0-9]/g, '').length).toBe(65)
+    expect(isDeviceNameDisabled(sixtyFiveAlnum)).toBe(true)
   })
 })

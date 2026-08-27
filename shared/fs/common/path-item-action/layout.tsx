@@ -38,7 +38,7 @@ const empty = {
 }
 
 const isMyOwn = (parsedPath: T.FS.ParsedPathGroupTlf, me: string) =>
-  !me ? false : !parsedPath.readers?.length && parsedPath.writers.length === 1 && parsedPath.writers[0] === me
+  !parsedPath.readers?.length && parsedPath.writers.length === 1 && parsedPath.writers[0] === me
 
 const getRawLayout = (
   mode: 'row' | 'screen',
@@ -69,7 +69,9 @@ const getRawLayout = (
             }
           : {}),
         archive: true,
-        ignoreTlf: parsedPath.kind === T.FS.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
+        // An empty `me` means the username isn't known yet, so we can't tell
+        // whether this is the user's own tlf. Don't offer to ignore it.
+        ignoreTlf: parsedPath.kind === T.FS.PathKind.TeamTlf || (!!me && !isMyOwn(parsedPath, me)),
         showInSystemFileManager: !isMobile,
       }
     case T.FS.PathKind.InGroupTlf:

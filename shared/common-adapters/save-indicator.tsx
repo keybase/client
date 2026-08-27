@@ -33,7 +33,9 @@ const SaveIndicator = (props: Props) => {
   const {saving, style} = props
   const [indicatorState, setIndicatorState] = React.useState<IndicatorState>(() => ({
     saving,
-    state: 'init',
+    // mounting mid-save must show the spinner, else the later 'saved' check appears
+    // for a spinner the user never saw
+    state: saving ? 'saving' : 'init',
   }))
 
   let currentIndicatorState = indicatorState

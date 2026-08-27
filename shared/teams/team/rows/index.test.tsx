@@ -2,19 +2,33 @@
 /// <reference types="jest" />
 import {expect, jest, test, describe, beforeEach} from '@jest/globals'
 import type * as React from 'react'
-import {renderHook} from '@testing-library/react'
+import {act, renderHook} from '@testing-library/react'
 import type * as T from '@/constants/types'
 import {emptyTeamDetails, initialCanUserPerform, makeTeamMeta} from '@/constants/teams'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as TeamsList from '@/teams/use-teams-list'
+import * as GeneralConv from '@/teams/common/general-conv'
 import {
+  useBotSections,
   useChannelsSections,
+  useEmojiSections,
   useInvitesSections,
   useMembersSections,
   useSubteamsSections,
   type Item,
   type Section,
 } from './index'
+
+// useEmojiSections loads its emoji over an rpc; hand it a canned result instead
+let mockEmojiResult: {emojis: {emojis?: Array<{emojis?: Array<{alias: string}>}>}} = {emojis: {}}
+jest.mock('@/util/use-rpc', () => ({
+  __esModule: true,
+  default:
+    () =>
+    (_args: unknown, setResult: (r: unknown) => void) => {
+      setResult(mockEmojiResult)
+    },
+}))
 
 const teamID = 'tid1' as T.Teams.TeamID
 
@@ -252,7 +266,121 @@ describe('useChannelsSections', () => {
 
   test('channels that arrived already win over a stale loading flag', () => {
     const {result} = renderHook(() => useChannelsSections(teamID, ops(), many, true))
-    expect(flatTypes(result.current)).not.toContain('channel-loading')
+    expect(flatTypes(result.current)).toEqual([
+      'channel-channels',
+      'channel-channels',
+      'channel-channels',
+      'channel-info',
+    ])
+  })
+})
+
+describe('useBotSections', () => {
+  const bots = new Map([
+    ['zbot', member('zbot', 'restrictedbot')],
+    ['human', member('human', 'writer')],
+    ['abot', member('abot', 'bot')],
+  ])
+
+  test('shows a loading row while the member list is still empty', () => {
+    const {result} = renderHook(() =>
+      useBotSections(teamID, false, makeTeamMeta({memberCount: 3}), details(), ops())
+    )
+    expect(flatTypes(result.current)).toEqual(['members-loading'])
+  })
+
+  test('an explicit loading flag wins even when members are present', () => {
+    const {result} = renderHook(() =>
+      useBotSections(
+        teamID,
+        true,
+        makeTeamMeta({memberCount: 1}),
+        details({members: new Map([['abot', member('abot', 'bot')]])}),
+        ops()
+      )
+    )
+    expect(flatTypes(result.current)).toEqual(['members-loading'])
+  })
+
+  test('only bots are listed, sorted by username', () => {
+    const {result} = renderHook(() =>
+      useBotSections(teamID, false, makeTeamMeta({memberCount: 3}), details({members: bots}), ops())
+    )
+    const data = result.current[0]?.data as ReadonlyArray<Item>
+    expect(data.map(d => (d.type === 'member-members' ? d.mi.username : d.type))).toEqual(['abot', 'zbot'])
+  })
+
+  test('the add-bot row only appears when you can manage bots', () => {
+    const withPerm = renderHook(() =>
+      useBotSections(
+        teamID,
+        false,
+        makeTeamMeta({memberCount: 3}),
+        details({members: bots}),
+        ops({manageBots: true})
+      )
+    )
+    expect(flatTypes(withPerm.result.current)).toEqual(['member-members', 'member-members', 'add-bots'])
+
+    const withoutPerm = renderHook(() =>
+      useBotSections(teamID, false, makeTeamMeta({memberCount: 3}), details({members: bots}), ops())
+    )
+    expect(flatTypes(withoutPerm.result.current)).toEqual(['member-members', 'member-members'])
+  })
+})
+
+describe('useEmojiSections', () => {
+  const convID = 'abcd' as T.Chat.ConversationIDKey
+  const emojiResult = (...aliases: Array<string>) => ({
+    emojis: {emojis: [{emojis: aliases.map(alias => ({alias}))}]},
+  })
+
+  beforeEach(() => {
+    mockEmojiResult = {emojis: {}}
+    jest.spyOn(GeneralConv, 'useGeneralConvIDKey').mockImplementation(() => convID)
+  })
+
+  test('with no custom emoji only the add row shows', () => {
+    const {result} = renderHook(() => useEmojiSections(teamID, true))
+    expect(flatTypes(result.current)).toEqual(['emoji-add'])
+  })
+
+  test('custom emoji get a desktop-only header and one row each', () => {
+    mockEmojiResult = emojiResult('one', 'two')
+    const {result} = renderHook(() => useEmojiSections(teamID, true))
+    expect(flatTypes(result.current)).toEqual(['emoji-add', 'emoji-header', 'emoji-item', 'emoji-item'])
+  })
+
+  test('mobile drops the header row', () => {
+    mockEmojiResult = emojiResult('one')
+    global.isMobile = true
+    try {
+      const {result} = renderHook(() => useEmojiSections(teamID, true))
+      expect(flatTypes(result.current)).toEqual(['emoji-add', 'emoji-item'])
+    } finally {
+      global.isMobile = false
+    }
+  })
+
+  test('the filter narrows the rows but keeps the header and add rows', () => {
+    mockEmojiResult = emojiResult('party', 'partyparrot', 'sad')
+    const {result} = renderHook(() => useEmojiSections(teamID, true))
+    const addRow = result.current[0]!
+    const renderAddRow = addRow.renderItem as (
+      i: unknown
+    ) => React.ReactElement<{setFilter: (f: string) => void}>
+    const {setFilter} = renderAddRow({index: 0, item: {type: 'emoji-add'}}).props
+    act(() => setFilter('PARTY'))
+
+    const data = result.current.at(-1)?.data as ReadonlyArray<Item>
+    expect(data.map(d => (d.type === 'emoji-item' ? d.e.alias : d.type))).toEqual(['party', 'partyparrot'])
+    expect(types(result.current).length).toBe(3)
+  })
+
+  test('nothing loads until the tab actually asks for it', () => {
+    mockEmojiResult = emojiResult('one')
+    const {result} = renderHook(() => useEmojiSections(teamID, false))
+    expect(flatTypes(result.current)).toEqual(['emoji-add'])
   })
 })
 

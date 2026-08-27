@@ -13,7 +13,9 @@ export const decodeForgotUsernameError = (error: RPCError) => {
     case T.RPCGen.StatusCode.scinputerror:
       return "That doesn't look like a valid email address. Try again?"
     default:
-      return error.desc
+      // an empty desc would leave the screen showing neither a success nor an
+      // error banner, so the user would see nothing happen at all
+      return error.desc || 'Something went wrong. Try again?'
   }
 }
 

@@ -128,9 +128,7 @@ const getTlfItems = (
   path: T.FS.Path,
   inDestinationPicker?: boolean
 ): Array<RowTypes.NamedRowItem> => {
-  if (tlfs.private.size === 0) {
-    // /keybase/private/<me> is always favorited. If it's not there it must be
-    // unintialized.
+  if (!tlfs.loaded) {
     return folderPlaceholderRows
   }
 

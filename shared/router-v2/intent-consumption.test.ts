@@ -2,6 +2,7 @@
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {resetAllStores} from '@/util/zustand'
 import {emitDeepLink} from './deep-link-emitter'
 import {subscribeNavigationIntents} from './linking'
 
@@ -14,6 +15,9 @@ const setCurrentUser = (uid: string) => {
   })
 }
 
+// resetAllStores runs the intents store's own resetState, which deliberately keeps
+// an account-targeted intent alive across an account switch. Acknowledge whatever
+// is queued first so nothing leaks into the next test.
 const clearIntent = () => {
   const {intent, dispatch} = useNavigationIntentsState.getState()
   if (intent) {
@@ -32,6 +36,7 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   clearIntent()
+  resetAllStores()
 })
 
 test('profile links route imperatively so their back stack is built', () => {

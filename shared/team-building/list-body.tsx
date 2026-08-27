@@ -193,11 +193,13 @@ export const sortAndSplitRecommendations = (
   const recommendationIndex = sections.length - 1
   const numericSectionIndex = recommendationIndex + 27
 
+  let placedCount = 0
   results.forEach(rec => {
     const sectionIndex = getRecommendationsSectionIndex(rec, recommendationIndex, numericSectionIndex)
     if (sectionIndex === undefined) {
       return
     }
+    placedCount++
 
     if (!sections[sectionIndex]) {
       const isNumericSection = sectionIndex === numericSectionIndex
@@ -209,7 +211,9 @@ export const sortAndSplitRecommendations = (
     sections[sectionIndex].data.push(rec)
   })
 
-  if (results.length < 5) {
+  // count the rows we actually placed: nameless entries are dropped above, and
+  // hiding the hint because of them leaves a list with nothing in it at all
+  if (placedCount < 5) {
     sections.push(createSection('', false, [{isSearchHint: true}]))
   }
 

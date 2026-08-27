@@ -470,7 +470,12 @@ export const canChat = (path: T.FS.Path) => {
 
 export const isTeamPath = (path: T.FS.Path): boolean => {
   const parsedPath = parsePath(path)
-  return parsedPath.kind !== T.FS.PathKind.Root && parsedPath.tlfType === T.FS.TlfType.Team
+  // The team list root itself isn't a team folder.
+  return (
+    parsedPath.kind !== T.FS.PathKind.Root &&
+    parsedPath.kind !== T.FS.PathKind.TlfList &&
+    parsedPath.tlfType === T.FS.TlfType.Team
+  )
 }
 
 export const getChatTarget = (path: T.FS.Path, me: string): string => {
@@ -479,14 +484,13 @@ export const getChatTarget = (path: T.FS.Path, me: string): string => {
     return 'team conversation'
   }
   if (parsedPath.kind === T.FS.PathKind.GroupTlf || parsedPath.kind === T.FS.PathKind.InGroupTlf) {
-    if (parsedPath.writers.length === 1 && !parsedPath.readers && parsedPath.writers[0] === me) {
+    const participants = parsedPath.writers.concat(parsedPath.readers ?? [])
+    if (participants.length === 1 && participants[0] === me) {
       return 'yourself'
     }
-    if (parsedPath.writers.length + (parsedPath.readers ? parsedPath.readers.length : 0) === 2) {
-      const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
-      if (notMe.length === 1) {
-        return notMe[0]!
-      }
+    const notMe = participants.filter(u => u !== me)
+    if (notMe.length === 1) {
+      return notMe[0]!
     }
     return 'group conversation'
   }
@@ -509,13 +513,13 @@ export const getDestinationPickerPathName = (
       )
 
 // File/Download Utilities
-export const humanReadableFileSize = (size: number) => {
+export const humanReadableFileSize = (size?: number) => {
   const kib = 1024
   const mib = kib * kib
   const gib = mib * kib
   const tib = gib * kib
 
-  if (!size) return ''
+  if (size === undefined) return ''
   if (size >= tib) return `${Math.round(size / tib)} TB`
   if (size >= gib) return `${Math.round(size / gib)} GB`
   if (size >= mib) return `${Math.round(size / mib)} MB`

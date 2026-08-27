@@ -51,8 +51,10 @@ test('any of the recognized keys makes the params usable', () => {
   }
   expect(params()?.inputAction).toEqual({key: 'k', text: 'draft', type: 'injectText'})
 
-  mockRoute = {name: 'chatConversation', params: {createConversationError: undefined}}
-  expect(params()).toBeDefined()
+  // hasOwnProperty, not truthiness: an explicitly undefined key still claims the params
+  const withError = {createConversationError: undefined}
+  mockRoute = {name: 'chatConversation', params: withError}
+  expect(params()).toBe(withError)
 })
 
 test('the thread search shortcut only reads the search slice', () => {

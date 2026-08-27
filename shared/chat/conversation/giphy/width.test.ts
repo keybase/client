@@ -1,9 +1,9 @@
 /// <reference types="jest" />
 import {getMargins, scaledWidth} from './width'
 
-// getMargins works on scaled widths: minWidth 100, maxWidth 200.
-const widthsFor = (margins: ReadonlyArray<number>, widths: ReadonlyArray<number>) =>
-  margins.map((margin, idx) => scaledWidth(widths[idx]!) - margin)
+// getMargins works on scaled widths and hands back the margin to subtract from
+// each one: minWidth 100, maxWidth 200. Expected margins below are the literal
+// pixel results, so a change in the packing algorithm shows up here.
 
 test('scaledWidth halves the reported gif width', () => {
   expect(scaledWidth(300)).toBe(150)
@@ -16,7 +16,7 @@ test('no gifs means no margins', () => {
 
 test('every gif gets exactly one margin', () => {
   const widths = [300, 300, 300, 300, 210, 210, 210]
-  expect(getMargins(320, widths)).toHaveLength(widths.length)
+  expect(getMargins(320, widths)).toEqual([44, 44, 42, 30, 5, 5, 0])
 })
 
 test('a row that already fits is left fully expanded', () => {
@@ -24,26 +24,24 @@ test('a row that already fits is left fully expanded', () => {
 })
 
 test('a row wider than the display compresses to exactly the display width', () => {
-  const widths = [300, 300, 300, 300]
-  const margins = getMargins(320, widths)
-  const rowWidths = widthsFor(margins.slice(0, 3), widths)
-  expect(rowWidths.reduce((a, b) => a + b, 0)).toBe(320)
-  // the leftover gif starts the next row and stays uncompressed
-  expect(margins[3]).toBe(0)
+  // 150 - 44, 150 - 44, 150 - 42 = 320; the leftover gif starts the next row uncompressed
+  expect(getMargins(320, [300, 300, 300, 300])).toEqual([44, 44, 42, 0])
 })
 
 test('gifs are never compressed below the minimum width', () => {
-  const widths = [210, 210, 210, 210, 210, 210, 210, 210]
-  const margins = getMargins(320, widths)
-  widthsFor(margins, widths).forEach(w => {
-    expect(w).toBeGreaterThanOrEqual(100)
-  })
+  // eight 105px gifs can never be squeezed into 320, so none of them is compressed at all
+  expect(getMargins(320, [210, 210, 210, 210, 210, 210, 210, 210])).toEqual([0, 0, 0, 0, 0, 0, 0, 0])
+})
+
+test('an uncompressable row hands the last gif back to the next row', () => {
+  // 4x105 cannot reach 320 without going under the 100 minimum, so the row is cut
+  // at three and the fourth gif restarts the scan alongside the two 150s
+  expect(getMargins(320, [210, 210, 210, 210, 300, 300])).toEqual([0, 0, 0, 5, 40, 40])
 })
 
 test('very wide gifs are clamped down so a pair still fits the row', () => {
-  const widths = [1000, 1000]
-  const margins = getMargins(320, widths)
-  expect(widthsFor(margins, widths)).toEqual([160, 160])
+  // 500 clamps to 200, then compresses to 160 each
+  expect(getMargins(320, [1000, 1000])).toEqual([340, 340])
 })
 
 test('the trailing row is allowed to expand back past the max width clamp', () => {

@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as dateFns from 'date-fns'
 import {
   clearChatTimeCache,
   formatDuration,
@@ -7,9 +8,19 @@ import {
   formatDurationShort,
   formatTimeForChat,
   formatTimeForConversationList,
+  formatTimeForFS,
   formatTimeForMessages,
+  formatTimeForPeopleItem,
   msToDHMS,
 } from './timestamp'
+
+// date-fns is an es module namespace so its exports can't be spied on in place;
+// wrap format up front instead, still delegating to the real implementation
+jest.mock('date-fns', () => {
+  const actual = jest.requireActual<typeof dateFns>('date-fns')
+  return {...actual, format: jest.fn(actual.format)}
+})
+const formatCalls = dateFns.format as jest.Mock
 
 const second = 1000
 const minute = 60 * second
@@ -175,29 +186,119 @@ describe('formatTimeForMessages', () => {
 })
 
 describe('formatTimeForChat', () => {
+  // the cache is keyed off "is the cached day still today", so the clock has to be pinned
   beforeEach(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date(2020, 5, 15, 16, 34, 0))
     clearChatTimeCache()
   })
   afterEach(() => {
     clearChatTimeCache()
+    jest.useRealTimers()
   })
 
   test('never emits a breakable space', () => {
     const out = formatTimeForChat(Date.now() - 3 * day)
     expect(out).not.toContain(' ')
-    expect(out).toContain(' ')
+    expect(out).toContain('\u00A0')
+  })
+
+  test('labels today, yesterday, the last week, the last month and older', () => {
+    expect(formatTimeForChat(new Date(2020, 5, 15, 9, 5).getTime())).toMatch(/^\d{1,2}:\d{2}(\u00A0[AP]M)?$/)
+    expect(formatTimeForChat(new Date(2020, 5, 14, 9, 5).getTime())).toContain('-\u00A0Yesterday')
+    expect(formatTimeForChat(new Date(2020, 5, 11, 9, 5).getTime())).toContain('-\u00A0Thu')
+    expect(formatTimeForChat(new Date(2020, 4, 30, 9, 5).getTime())).toContain('-\u00A030\u00A0May')
+    expect(formatTimeForChat(new Date(2019, 4, 30, 9, 5).getTime())).toContain('-\u00A030\u00A0May\u00A019')
+  })
+
+  test('formats a repeated timestamp only once', () => {
+    const t = new Date(2020, 5, 12, 9, 5).getTime()
+    const first = formatTimeForChat(t)
+    formatCalls.mockClear()
+
+    expect(formatTimeForChat(t)).toBe(first)
+    expect(formatCalls).not.toHaveBeenCalled()
+  })
+
+  test('still caches after the day rolls over', () => {
+    const t = new Date(2020, 5, 12, 9, 5).getTime()
+    formatTimeForChat(t)
+
+    // past midnight the cached day is stale, so the next call has to re-arm it
+    jest.setSystemTime(new Date(2020, 5, 16, 0, 30, 0))
+    const rolled = formatTimeForChat(t)
+    formatCalls.mockClear()
+
+    expect(formatTimeForChat(t)).toBe(rolled)
+    expect(formatCalls).not.toHaveBeenCalled()
+  })
+
+  test('drops stale entries when the day rolls over', () => {
+    const yesterdayOnThe15th = new Date(2020, 5, 14, 9, 5).getTime()
+    expect(formatTimeForChat(yesterdayOnThe15th)).toContain('-\u00A0Yesterday')
+
+    jest.setSystemTime(new Date(2020, 5, 16, 0, 30, 0))
+    expect(formatTimeForChat(yesterdayOnThe15th)).not.toContain('Yesterday')
+  })
+})
+
+describe('formatTimeForFS', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date(2020, 5, 15, 16, 34, 0))
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('uppercases the first word unless asked not to', () => {
+    const t = new Date(2020, 5, 15, 9, 5).getTime()
+    expect(formatTimeForFS(t, false).startsWith('Today at ')).toBe(true)
+    expect(formatTimeForFS(t, true).startsWith('today at ')).toBe(true)
   })
 
   test('labels yesterday', () => {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    yesterday.setHours(9, 5, 0, 0)
-    expect(formatTimeForChat(yesterday.getTime())).toContain('- Yesterday')
+    const t = new Date(2020, 5, 14, 9, 5).getTime()
+    expect(formatTimeForFS(t, false).startsWith('Yesterday at ')).toBe(true)
+    expect(formatTimeForFS(t, true).startsWith('yesterday at ')).toBe(true)
   })
 
-  test('returns the cached string for a repeated timestamp', () => {
-    const t = Date.now() - 3 * day
-    const first = formatTimeForChat(t)
-    expect(formatTimeForChat(t)).toBe(first)
+  test('handles a timestamp in the future rather than throwing', () => {
+    const tomorrow = new Date(2020, 5, 16, 9, 5).getTime()
+    expect(formatTimeForFS(tomorrow, false).startsWith('Tomorrow at ')).toBe(true)
+    expect(formatTimeForFS(tomorrow, true).startsWith('tomorrow at ')).toBe(true)
+
+    const nextWeek = new Date(2020, 5, 19, 9, 5).getTime()
+    expect(formatTimeForFS(nextWeek, false).startsWith('Fri at ')).toBe(true)
+    expect(formatTimeForFS(nextWeek, true).startsWith('Fri at ')).toBe(true)
+  })
+
+  test('falls back to a full date, with the year only outside this year', () => {
+    expect(formatTimeForFS(new Date(2020, 0, 5, 9, 5).getTime(), false).startsWith('Sun Jan 5 at ')).toBe(true)
+    expect(formatTimeForFS(new Date(2016, 0, 5, 9, 5).getTime(), false).startsWith('Tue Jan 5 2016 at ')).toBe(
+      true
+    )
+  })
+})
+
+describe('formatTimeForPeopleItem', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date(2020, 5, 15, 16, 34, 0))
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('a single second ago reads as now', () => {
+    expect(formatTimeForPeopleItem(Date.now() - second)).toBe('now')
+  })
+
+  test('anything else uses the abbreviated distance', () => {
+    expect(formatTimeForPeopleItem(Date.now() - 2 * second)).toBe('2s')
+    expect(formatTimeForPeopleItem(Date.now() - 5 * minute)).toBe('5m')
+    expect(formatTimeForPeopleItem(Date.now() - 3 * hour)).toBe('3h')
+    expect(formatTimeForPeopleItem(Date.now() - 2 * day)).toBe('2d')
+    expect(formatTimeForPeopleItem(Date.now() - 400 * day)).toBe('1y')
   })
 })

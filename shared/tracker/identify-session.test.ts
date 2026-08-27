@@ -169,7 +169,9 @@ test('an idle session is dropped once its last subscriber leaves and its identif
   loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: true})
   await flush()
 
-  expect(getProfileDetails('testuser')).toBeDefined()
+  const details = getProfileDetails('testuser')
+  expect(details?.username).toBe('testuser')
+  expect(details?.guiID).toBeTruthy()
   unsub()
   expect(getProfileDetails('testuser')).toBeUndefined()
 })

@@ -59,15 +59,18 @@ test('enabling and disabling sync notifications write the expected thresholds', 
   act(() => {
     result.current.onEnableSyncNotifications()
   })
-  await waitFor(() =>
-    expect(setThreshold).toHaveBeenCalledWith({threshold: defaultNotificationThreshold})
-  )
-  expect(defaultNotificationThreshold).toBe(allowedNotificationThresholds[0])
+  await waitFor(() => expect(setThreshold).toHaveBeenCalledWith({threshold: 100 * 1024 ** 2}))
 
   act(() => {
     result.current.onDisableSyncNotifications()
   })
   await waitFor(() => expect(setThreshold).toHaveBeenLastCalledWith({threshold: 0}))
+})
+
+test('the default threshold is one the dropdown offers', () => {
+  // both settings screens derive the dropdown's selected row from the threshold,
+  // so a default missing from the list leaves the picker with nothing selected
+  expect(allowedNotificationThresholds).toContain(defaultNotificationThreshold)
 })
 
 test('picking a threshold refreshes the settings from the service', async () => {

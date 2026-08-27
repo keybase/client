@@ -1,7 +1,13 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import {act, cleanup, renderHook} from '@testing-library/react'
-import {clearSignupEmail, getSignupEmail, setSignupEmail, useSignupEmail} from './signup-email'
+import {
+  clearSignupEmail,
+  getSignupEmail,
+  setSignupEmail,
+  subscribeToSignupEmail,
+  useSignupEmail,
+} from './signup-email'
 
 afterEach(() => {
   cleanup()
@@ -33,35 +39,31 @@ test('clearSignupEmail empties the banner state for every subscriber', () => {
   expect(result.current).toBe('')
 })
 
+// useSyncExternalStore bails out on an unchanged snapshot, so counting renders
+// would pass with or without the equality guards; listen to the store directly
 test('setting the same email again does not notify subscribers', () => {
-  let renders = 0
-  renderHook(() => {
-    renders++
-    return useSignupEmail()
-  })
-  act(() => {
-    setSignupEmail('testuser@example.com')
-  })
-  const afterFirstSet = renders
+  const listener = jest.fn()
+  const unsub = subscribeToSignupEmail(listener)
 
-  act(() => {
-    setSignupEmail('testuser@example.com')
-  })
-  expect(renders).toBe(afterFirstSet)
+  setSignupEmail('testuser@example.com')
+  expect(listener).toHaveBeenCalledTimes(1)
+
+  setSignupEmail('testuser@example.com')
+  expect(listener).toHaveBeenCalledTimes(1)
+  unsub()
 })
 
 test('clearing an already empty email does not notify subscribers', () => {
-  let renders = 0
-  renderHook(() => {
-    renders++
-    return useSignupEmail()
-  })
-  const before = renders
+  const listener = jest.fn()
+  const unsub = subscribeToSignupEmail(listener)
 
-  act(() => {
-    clearSignupEmail()
-  })
-  expect(renders).toBe(before)
+  clearSignupEmail()
+  expect(listener).not.toHaveBeenCalled()
+
+  setSignupEmail('testuser@example.com')
+  clearSignupEmail()
+  expect(listener).toHaveBeenCalledTimes(2)
+  unsub()
 })
 
 test('unmounted hooks stop receiving updates', () => {

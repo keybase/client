@@ -5,9 +5,16 @@ import type * as React from 'react'
 import {cleanup, render, screen} from '@testing-library/react'
 
 const mockFollowers = {followers: new Set<string>(), following: new Set<string>()}
+// every value the component pulled out of the follower store, so a test can tell
+// "the store said no" apart from "the component never asked"
+const mockFollowerReads: Array<unknown> = []
 
 jest.mock('@/stores/followers', () => ({
-  useFollowerState: (sel: (s: typeof mockFollowers) => unknown) => sel(mockFollowers),
+  useFollowerState: (sel: (s: typeof mockFollowers) => unknown) => {
+    const v = sel(mockFollowers)
+    mockFollowerReads.push(v)
+    return v
+  },
 }))
 jest.mock('@/teams/use-teams-list', () => ({useTeamsListNameToIDMap: () => new Map<string, string>()}))
 jest.mock('@/constants/router', () => ({navToProfile: jest.fn()}))
@@ -72,6 +79,9 @@ const avatar = () => screen.queryByTestId('avatar')
 const followIcon = () => screen.queryByTestId('follow-icon')
 
 describe('NameWithIcon', () => {
+  beforeEach(() => {
+    mockFollowerReads.length = 0
+  })
   afterEach(() => {
     cleanup()
     mockFollowers.followers = new Set()
@@ -158,13 +168,19 @@ describe('NameWithIcon', () => {
       expect(followIcon()).toBeNull()
     })
 
-    test('sizes with no follow badge placement drop the overlay', () => {
+    test('avatars below 48 do not support the overlay, so following is never consulted', () => {
       mockFollowers.following = new Set(['testuser'])
+      mockFollowers.followers = new Set(['testuser'])
       render(<NameWithIcon username="testuser" avatarSize={32} />)
       expect(followIcon()).toBeNull()
+      expect(mockFollowerReads.length).toBeGreaterThan(0)
+      expect(mockFollowerReads.some(Boolean)).toBe(false)
+
       cleanup()
+      mockFollowerReads.length = 0
       render(<NameWithIcon username="testuser" avatarSize={48} />)
-      expect(followIcon()).not.toBeNull()
+      expect(followIcon()?.textContent).toBe('icon-mutual-follow-21')
+      expect(mockFollowerReads.every(Boolean)).toBe(true)
     })
 
     test('teams never get a follow overlay', () => {

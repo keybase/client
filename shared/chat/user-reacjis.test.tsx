@@ -88,7 +88,8 @@ describe('skin tone', () => {
   test('setting a tone sends it to the service and stores what comes back', async () => {
     const rpc = jest
       .spyOn(T.RPCChat, 'localPutReacjiSkinToneRpcPromise')
-      .mockResolvedValue({skinTone: T.RPCGen.ReacjiSkinTone.skintone3, topReacjis: [{name: ':fire:'}]})
+      // the service is the authority: it answers with a different tone than we sent
+      .mockResolvedValue({skinTone: T.RPCGen.ReacjiSkinTone.skintone5, topReacjis: [{name: ':fire:'}]})
     setUserReacjis({skinTone: T.RPCGen.ReacjiSkinTone.none})
 
     const {result} = renderHook(() => useSetSkinTone())
@@ -98,9 +99,9 @@ describe('skin tone', () => {
     })
 
     expect(rpc).toHaveBeenCalledWith({skinTone: T.RPCGen.ReacjiSkinTone.skintone3})
-    expect(useDaemonState.getState().bootstrapStatus?.userReacjis.skinTone).toBe(
-      T.RPCGen.ReacjiSkinTone.skintone3
-    )
+    const stored = useDaemonState.getState().bootstrapStatus?.userReacjis
+    expect(stored?.skinTone).toBe(T.RPCGen.ReacjiSkinTone.skintone5)
+    expect(stored?.topReacjis).toEqual([{name: ':fire:'}])
   })
 
   test('clearing the tone sends none', async () => {

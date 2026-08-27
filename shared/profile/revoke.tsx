@@ -137,7 +137,7 @@ const useStyles = Kb.Styles.createStyleHook(
 
 export function formatMessage(platform: T.More.PlatformsExpandedType) {
   if (platform === 'pgp') {
-    return 'Are you sure you want to drop your PGP key'
+    return 'Are you sure you want to drop your PGP key?'
   }
   let body: string
   switch (platform) {

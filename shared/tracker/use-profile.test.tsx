@@ -151,15 +151,28 @@ test('loadNonUserProfile fills in the SBS details', async () => {
 })
 
 test('a non-user response for a real keybase user is ignored', async () => {
-  jest
-    .spyOn(T.RPCGen, 'userSearchGetNonUserDetailsRpcPromise')
-    .mockImplementation(async () => Promise.resolve({isNonUser: false} as never))
+  const nonUser = jest.spyOn(T.RPCGen, 'userSearchGetNonUserDetailsRpcPromise').mockImplementation(
+    async () =>
+      Promise.resolve({
+        assertionKey: 'twitter',
+        assertionValue: 'testuser',
+        description: 'Twitter user',
+        isNonUser: false,
+        service: {},
+      } as never)
+  )
 
   const {result} = renderHook(() => useTrackerProfile('testuser', {loadOnMount: false}))
+  const before = result.current.nonUserDetails
+
   await act(async () => {
     result.current.loadNonUserProfile()
     await Promise.resolve()
   })
 
+  // the call has to actually happen, otherwise this passes with the branch deleted
+  expect(nonUser).toHaveBeenCalledWith({assertion: 'testuser'})
+  expect(result.current.nonUserDetails).toBe(before)
   expect(result.current.nonUserDetails.assertionKey).toBe('')
+  expect(result.current.nonUserDetails.assertionValue).toBe('')
 })

@@ -1,5 +1,7 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import {expect, jest, test, describe, beforeEach, afterEach} from '@jest/globals'
+import {waitFor} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useUsersState} from '@/stores/users'
@@ -35,12 +37,12 @@ const spyOnUsersStore = () => {
   })
 }
 
-// search() is fire-and-forget; drain the microtask/timer queue so its awaits land
-const flush = async () => {
-  for (let i = 0; i < 50; i++) {
-    await new Promise(resolve => setImmediate(resolve))
-  }
-}
+// search() is fire-and-forget. Wait on the effect it is supposed to produce rather
+// than a fixed number of microtasks: an extra await added to the source would
+// otherwise silently turn every assertion below into a false negative.
+const settled = async (until: () => boolean) => waitFor(() => expect(until()).toBe(true))
+const searchStored = async (store: ReturnType<typeof createTBStore>, query: string, service: string) =>
+  settled(() => !!store.getState().searchResults.get(query)?.get(service as T.TB.ServiceIdWithContact))
 
 const keybaseResult = (username: string, fullName = ''): T.RPCGen.APIUserSearchResult =>
   ({
@@ -66,7 +68,7 @@ describe('team building search', () => {
     respond = () => [keybaseResult('testuser', 'Test User'), keybaseResult('testuser-mac')]
 
     store.getState().dispatch.search('  testuser  ', 'keybase', false)
-    await flush()
+    await searchStored(store, 'testuser', 'keybase')
 
     expect(searchCalls[0]?.query).toBe('testuser')
     const results = store.getState().searchResults.get('testuser')?.get('keybase')
@@ -83,7 +85,7 @@ describe('team building search', () => {
     respond = () => [keybaseResult('testuser', 'Test User')]
 
     store.getState().dispatch.search('testuser', 'keybase', false)
-    await flush()
+    await settled(() => userUpdates.length > 0 && blockRequests.length > 0)
 
     expect(userUpdates.at(-1)).toEqual([{info: {fullname: 'Test User'}, name: 'testuser'}])
     expect(blockRequests.at(-1)).toEqual(['testuser'])
@@ -102,7 +104,7 @@ describe('team building search', () => {
     ]
 
     store.getState().dispatch.search('twuser', 'twitter', false)
-    await flush()
+    await searchStored(store, 'twuser', 'twitter')
 
     const results = store.getState().searchResults.get('twuser')?.get('twitter')
     expect(results?.map(u => u.id)).toEqual(['twuser@twitter+testuser', 'lonely@twitter'])
@@ -121,7 +123,7 @@ describe('team building search', () => {
     ]
 
     store.getState().dispatch.search('x', 'twitter', false)
-    await flush()
+    await searchStored(store, 'x', 'twitter')
 
     expect(store.getState().searchResults.get('x')?.get('twitter')?.map(u => u.id)).toEqual(['tw@twitter'])
   })
@@ -145,7 +147,7 @@ describe('team building search', () => {
         : [keybaseResult('testuser')]
 
     store.getState().dispatch.search('a@b.com', 'keybase', false)
-    await flush()
+    await searchStored(store, 'a@b.com', 'keybase')
 
     expect(searchCalls.map(c => c.service)).toEqual(['keybase', 'email'])
     // the extra lookup asks for exactly one result and never contacts
@@ -175,7 +177,7 @@ describe('team building search', () => {
     respond = () => [imptofu]
 
     store.getState().dispatch.search('a@b.com', 'keybase', false)
-    await flush()
+    await searchStored(store, 'a@b.com', 'keybase')
 
     const results = store.getState().searchResults.get('a@b.com')?.get('keybase')
     expect(results?.map(u => u.id)).toEqual(['a@b.com@email'])
@@ -188,7 +190,7 @@ describe('team building search', () => {
     respond = () => [keybaseResult('testuser')]
 
     store.getState().dispatch.search('testuser', 'keybase', false)
-    await flush()
+    await searchStored(store, 'testuser', 'keybase')
 
     expect(searchCalls.map(c => c.service)).toEqual(['keybase'])
   })
@@ -196,18 +198,19 @@ describe('team building search', () => {
   test('contacts are only requested on the keybase tab and only when asked for', async () => {
     const store = createTBStore('crypto')
     store.getState().dispatch.search('testuser', 'keybase', true)
-    await flush()
+    await searchStored(store, 'testuser', 'keybase')
     expect(searchCalls.at(-1)?.includeContacts).toBe(true)
 
     store.getState().dispatch.search('testuser', 'twitter', true)
-    await flush()
+    await searchStored(store, 'testuser', 'twitter')
     expect(searchCalls.at(-1)?.includeContacts).toBe(false)
   })
 
   test('a limit over 100 is refused before any rpc goes out', async () => {
     const store = createTBStore('crypto')
+    // the limit guard returns before any await, so nothing can arrive later either
     store.getState().dispatch.search('testuser', 'keybase', false, 101)
-    await flush()
+    await Promise.resolve()
     expect(searchCalls).toEqual([])
     expect(store.getState().searchResults.size).toBe(0)
   })
@@ -215,7 +218,7 @@ describe('team building search', () => {
   test('the default limit is used when none is given', async () => {
     const store = createTBStore('crypto')
     store.getState().dispatch.search('testuser', 'keybase', false)
-    await flush()
+    await searchStored(store, 'testuser', 'keybase')
     expect(searchCalls[0]?.maxResults).toBe(11)
   })
 
@@ -227,9 +230,9 @@ describe('team building search', () => {
         : [{service: {serviceName: 'twitter', username: 'testuser'}} as unknown as T.RPCGen.APIUserSearchResult]
 
     store.getState().dispatch.search('testuser', 'keybase', false)
-    await flush()
+    await searchStored(store, 'testuser', 'keybase')
     store.getState().dispatch.search('testuser', 'twitter', false)
-    await flush()
+    await searchStored(store, 'testuser', 'twitter')
 
     const forQuery = store.getState().searchResults.get('testuser')
     expect([...(forQuery?.keys() ?? [])]).toEqual(['keybase', 'twitter'])

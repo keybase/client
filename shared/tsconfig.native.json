@@ -27,6 +27,7 @@
     "./common-adapters/save-indicator.test.tsx",
     "./common-adapters/text.test.tsx",
     "./devices/index.test.tsx",
+    "./devices/row.test.tsx",
     "./git/delete-repo.test.tsx",
     "./git/index.test.tsx",
     "./settings/password.test.tsx",

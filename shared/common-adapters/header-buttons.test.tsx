@@ -57,7 +57,12 @@ describe('native header items', () => {
     expect(item.type).toBe('button')
     expect(item.label).toBe('Save')
     expect(item.onPress).toBe(onPress)
-    expect(item.labelStyle).toEqual(buttons.nativeHeaderItemLabelStyle(Styles.getTheme()))
+    expect(item.labelStyle).toEqual({
+      color: Styles.getTheme().blueDark,
+      fontFamily: 'Keybase',
+      fontSize: 17,
+      fontWeight: '600',
+    })
   })
 
   test('nativeTextHeaderItem opts override the defaults', () => {

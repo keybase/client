@@ -66,12 +66,15 @@ describe('usePhoneNumberList', () => {
     expect(result.current.phoneNumbers.map(p => p.key)).toEqual([0, 1])
   })
 
-  test('removing the only row leaves an empty list', () => {
+  // add-phone.tsx only offers the clear button when there is more than one row, so
+  // the hook itself is free to empty the list; it just has to stay usable if it does
+  test('emptying the list is survivable - the next add still yields one fresh blank row', () => {
     const {result} = renderHook(() => usePhoneNumberList())
     act(() => result.current.removePhoneNumber(0))
     expect(result.current.phoneNumbers).toEqual([])
-    // adding after that starts the key sequence over from 1
+
     act(() => result.current.addPhoneNumber())
-    expect(result.current.phoneNumbers.map(p => p.key)).toEqual([1])
+    expect(result.current.phoneNumbers).toHaveLength(1)
+    expect(result.current.phoneNumbers[0]).toMatchObject({phoneNumber: '', valid: false})
   })
 })

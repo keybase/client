@@ -30,3 +30,7 @@ export const deviceNameInstructions =
   'Your device name must have 3-64 characters and not end with punctuation.'
 
 export const badDeviceChars = /[^a-zA-Z0-9-_' ]/g
+
+// a run of separators (badDeviceRE rejects any two in a row, with or without a
+// space between); the capture keeps the first one
+export const repeatedDeviceSeparatorsRE = /([ _'-])[ _'-]+/g

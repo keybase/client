@@ -113,6 +113,10 @@ export const makeCleanDeviceName = (d: string) => {
   // map smart apostrophes to ASCII first, else badDeviceChars strips them outright
   let good = Provision.cleanDeviceName(d)
   good = good.replace(Provision.badDeviceChars, '')
+  // stripping a disallowed character can leave two separators touching, which
+  // badDeviceRE rejects; collapse runs so cleaning always produces a name the
+  // validator accepts
+  good = good.replace(Provision.repeatedDeviceSeparatorsRE, '$1')
   return good
 }
 

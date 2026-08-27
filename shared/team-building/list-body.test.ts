@@ -327,9 +327,19 @@ describe('sortAndSplitRecommendations', () => {
     expect(labelsOf(sortAndSplitRecommendations(five, false))).toEqual(['Recommendations'])
   })
 
-  test('dropped nameless contacts still count toward the search-hint threshold', () => {
+  test('dropped nameless contacts do not suppress the search hint', () => {
     const results = [...Array(5)].map(() => makeRec({contact: true}))
-    expect(sortAndSplitRecommendations(results, false)).toEqual([])
+    expect(sortAndSplitRecommendations(results, false)).toEqual([
+      {data: [{isSearchHint: true}], label: '', shortcut: false},
+    ])
+  })
+
+  test('the hint threshold counts placed rows, not dropped ones', () => {
+    const named = ['a', 'b', 'c', 'd', 'e'].map(suggestion)
+    expect(labelsOf(sortAndSplitRecommendations(named, false))).toEqual(['Recommendations'])
+    expect(
+      labelsOf(sortAndSplitRecommendations([...named.slice(0, 4), makeRec({contact: true})], false))
+    ).toEqual(['Recommendations', ''])
   })
 
   test('a single suggestion produces one section plus the hint', () => {

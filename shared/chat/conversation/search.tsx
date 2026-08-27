@@ -232,9 +232,12 @@ export const useCommon = (ownProps: CommonProps) => {
 
   const [selectResult] = React.useState(() => (index: number) => {
     const message = hitsRef.current[index]
-    if (message?.id) {
-      centerOnMessage(message.id, 'always')
+    // the index feeds the `n of m` counter and the up/down walk, so never record
+    // one we can't center on
+    if (!message?.id) {
+      return
     }
+    centerOnMessage(message.id, 'always')
     setSelectedIndex(index)
   })
 

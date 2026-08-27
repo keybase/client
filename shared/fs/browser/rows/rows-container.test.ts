@@ -72,8 +72,8 @@ describe('getNormalRowItems path levels', () => {
 })
 
 describe('getNormalRowItems tlf level', () => {
-  test('an uninitialized private list yields three folder placeholders', () => {
-    const rows = getNormalRowItems(args({path: p('/keybase/private'), tlfs: makeTlfs()}))
+  test('an unloaded tlf list yields three folder placeholders', () => {
+    const rows = getNormalRowItems(args({path: p('/keybase/private'), tlfs: makeTlfs({loaded: false})}))
     expect(rows).toHaveLength(3)
     expect(kinds(rows)).toEqual([
       RowTypes.RowType.Placeholder,
@@ -84,11 +84,25 @@ describe('getNormalRowItems tlf level', () => {
     expect(rows.every(r => r.type === T.FS.PathType.Folder)).toBe(true)
   })
 
-  test('the placeholder check keys off private even when browsing another tlf type', () => {
+  test('a loaded team list renders its teams even when there are no private favorites', () => {
     const rows = getNormalRowItems(
       args({
         path: p('/keybase/team'),
         tlfs: makeTlfs({team: new Map([['keybasefriends', tlf('keybasefriends')]])}),
+      })
+    )
+    expect(names(rows)).toEqual(['keybasefriends'])
+    expect(kinds(rows)).toEqual([RowTypes.RowType.Tlf])
+  })
+
+  test('an unloaded list is placeholders regardless of tlf type', () => {
+    const rows = getNormalRowItems(
+      args({
+        path: p('/keybase/team'),
+        tlfs: makeTlfs({
+          loaded: false,
+          team: new Map([['keybasefriends', tlf('keybasefriends')]]),
+        }),
       })
     )
     expect(kinds(rows)).toEqual([

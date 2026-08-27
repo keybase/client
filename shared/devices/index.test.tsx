@@ -56,12 +56,15 @@ jest.mock('./row', () => ({
       `${device.name}${device.revokedAt ? ' (revoked)' : ''}`
     ),
 }))
+// the badged set drives the revoked-section auto expand, so it has to be able
+// to change between renders rather than being a frozen empty set
+let mockBadged = new Set<string>()
 jest.mock('@/util/use-local-badging', () => {
   const React = require('react')
   return {
     NewItemsContext: React.createContext(new Set<string>()),
     useIsNew: () => false,
-    useLocalBadging: () => ({badged: new Set<string>()}),
+    useLocalBadging: () => ({badged: mockBadged}),
   }
 })
 jest.mock('@/engine/action-listener', () => ({useEngineActionListener: () => {}}))
@@ -112,6 +115,7 @@ afterEach(() => {
   cleanup()
   resetAllStores()
   mockRPCResults = []
+  mockBadged = new Set<string>()
 })
 
 test('active devices list the current device first, then alphabetically', () => {
@@ -172,4 +176,32 @@ test('the paper key nudge shows only when the user has devices but no paper key'
   ]
   render(<Devices />)
   expect(screen.queryAllByText('Create a paper key')).toHaveLength(0)
+})
+
+test('a newly badged revoked device expands the revoked section on its own', () => {
+  mockRPCResults = [
+    makeDetail('testuser-mac', {currentDevice: true}),
+    makeDetail('testuser-old', {revokedAt: 1000}),
+  ]
+
+  const {rerender} = render(<Devices />)
+  expect(renderedDevices()).toEqual(['testuser-mac'])
+
+  mockBadged = new Set(['id-testuser-old'])
+  rerender(<Devices />)
+
+  expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old (revoked)'])
+})
+
+test('badging an active device leaves the revoked section collapsed', () => {
+  mockRPCResults = [
+    makeDetail('testuser-mac', {currentDevice: true}),
+    makeDetail('testuser-old', {revokedAt: 1000}),
+  ]
+
+  const {rerender} = render(<Devices />)
+  mockBadged = new Set(['id-testuser-mac'])
+  rerender(<Devices />)
+
+  expect(renderedDevices()).toEqual(['testuser-mac'])
 })

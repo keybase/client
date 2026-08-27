@@ -16,12 +16,19 @@ import {
 describe('service metadata', () => {
   test('every service in the tab bar has complete metadata', () => {
     for (const service of allServices) {
-      expect(serviceIdToIconFont(service)).toBeTruthy()
-      expect(serviceIdToLabel(service)).toBeTruthy()
-      expect(serviceIdToSearchPlaceholder(service)).toBeTruthy()
-      expect(serviceIdToLongLabel(service)).toHaveLength(2)
-      expect(serviceIdToAccentColor(service, false)).toMatch(/^#/)
+      expect(serviceIdToIconFont(service)).toMatch(/^iconfont-/)
+      expect(serviceIdToLabel(service).length).toBeGreaterThan(0)
+      expect(serviceIdToSearchPlaceholder(service).length).toBeGreaterThan(0)
+      expect(serviceIdToLongLabel(service).filter(part => part.length > 0)).toHaveLength(2)
+      expect(serviceIdToAccentColor(service, false)).toMatch(/^#[0-9a-fA-F]{3,6}$/)
     }
+  })
+
+  test('the tab bar labels are all distinct so the tabs are tellable apart', () => {
+    const labels = allServices.map(serviceIdToLabel)
+    expect(new Set(labels).size).toBe(allServices.length)
+    const icons = allServices.map(serviceIdToIconFont)
+    expect(new Set(icons).size).toBe(allServices.length)
   })
 
   test('only the assertion-creating services are badged', () => {

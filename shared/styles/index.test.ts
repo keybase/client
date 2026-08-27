@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import type * as StylesIndex from './index'
 import {collapseStyles, collapseStylesDesktop, normalizePath, padding, unnormalizePath} from './index'
 
 describe('collapseStylesDesktop', () => {
@@ -32,7 +33,8 @@ describe('collapseStylesDesktop', () => {
   })
 
   test('an undefined value from a later style overrides an earlier one', () => {
-    expect(collapseStylesDesktop([{color: 'red'}, {color: undefined}])).toEqual({color: undefined})
+    // toEqual ignores undefined properties, so the override has to be asserted strictly
+    expect(collapseStylesDesktop([{color: 'red'}, {color: undefined}])).toStrictEqual({color: undefined})
   })
 
   test('flattens one level of nesting when merging', () => {
@@ -44,6 +46,54 @@ describe('collapseStylesDesktop', () => {
       color: 'red',
       width: 1,
     })
+  })
+})
+
+// collapseStyles picks its implementation off isMobile at module load, so the mobile
+// branch (the one that actually ships on RN) needs a freshly required copy
+describe('collapseStyles on mobile', () => {
+  type StylesModule = typeof StylesIndex
+  let mobile: StylesModule
+  const originalIsMobile = global.isMobile
+
+  beforeAll(() => {
+    global.isMobile = true
+    jest.resetModules()
+    mobile = require('./index') as StylesModule
+  })
+
+  afterAll(() => {
+    global.isMobile = originalIsMobile
+    jest.resetModules()
+  })
+
+  test('is undefined when nothing contributes', () => {
+    expect(mobile.collapseStyles([])).toBeUndefined()
+    expect(mobile.collapseStyles([undefined, null, false, 0, ''])).toBeUndefined()
+    expect(mobile.collapseStyles([{}, {}])).toBeUndefined()
+  })
+
+  test('returns the same object for a single style so it does not render thrash', () => {
+    const only = {color: 'red'}
+    expect(mobile.collapseStyles([only])).toBe(only)
+    expect(mobile.collapseStyles([only, false, undefined])).toBe(only)
+  })
+
+  test('hands the array itself to RN rather than merging', () => {
+    const styles = [{color: 'red'}, {width: 1}]
+    expect(mobile.collapseStyles(styles)).toBe(styles)
+  })
+
+  test('keeps falsey entries in the array it hands back', () => {
+    const styles = [{color: 'red'}, false, {width: 1}]
+    expect(mobile.collapseStyles(styles)).toBe(styles)
+  })
+
+  test('normalize/unnormalizePath add and strip the file scheme', () => {
+    expect(mobile.normalizePath('/tmp/a.png')).toBe('file:///tmp/a.png')
+    expect(mobile.normalizePath('file:///tmp/a.png')).toBe('file:///tmp/a.png')
+    expect(mobile.unnormalizePath('file:///tmp/a.png')).toBe('/tmp/a.png')
+    expect(mobile.unnormalizePath('/tmp/a.png')).toBe('/tmp/a.png')
   })
 })
 

@@ -111,13 +111,28 @@ describe('RelativeFloatingBox positioning', () => {
     expect(style.right).toBe(`${VIEWPORT - 250}px`)
   })
 
-  test('offset pushes the popup away from the anchored edges', () => {
-    const plain = positionOf('bottom left', makeRect(200, 300, 50, 20))
-    const offset = positionOf('bottom left', makeRect(200, 300, 50, 20), {offset: 8})
-    expect(plain.left).toBe('200px')
-    expect(offset.left).toBe('208px')
-    // vertically the offset pulls the popup back toward the target
-    expect(offset.top).toBe('312px')
+  test('offset insets the popup toward the target on both axes', () => {
+    const target = makeRect(200, 300, 50, 20)
+
+    // 'bottom left': the popup hangs below the target with their left edges aligned
+    const plainBL = positionOf('bottom left', target)
+    const offsetBL = positionOf('bottom left', target, {offset: 8})
+    expect(plainBL.left).toBe('200px')
+    expect(plainBL.top).toBe('320px')
+    // left grows -> popup moves right, off the target's left edge
+    expect(offsetBL.left).toBe('208px')
+    // top shrinks -> popup moves up, closing the gap under the target
+    expect(offsetBL.top).toBe('312px')
+
+    // 'top right' is the mirror image. right/bottom are distances measured from the
+    // viewport's far edges, so growing right moves the popup left and shrinking
+    // bottom moves it down: both again toward the target.
+    const plainTR = positionOf('top right', target)
+    const offsetTR = positionOf('top right', target, {offset: 8})
+    expect(plainTR.right).toBe(`${VIEWPORT - 250}px`)
+    expect(plainTR.bottom).toBe(`${VIEWPORT - 300}px`)
+    expect(offsetTR.right).toBe(`${VIEWPORT - 250 + 8}px`)
+    expect(offsetTR.bottom).toBe(`${VIEWPORT - 300 - 8}px`)
   })
 
   test('a position that would run off the bottom falls back to another position', () => {

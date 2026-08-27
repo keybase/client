@@ -11,6 +11,16 @@ import {
 
 const teamID = 'tid1' as T.Teams.TeamID
 
+// addMembersToWizard branches on isPhone, which is fixed per platform build, so
+// drive it explicitly rather than inheriting whatever the test env happens to be
+let mockIsPhone = false
+jest.mock('@/constants/platform', () => ({
+  ...jest.requireActual<object>('@/constants/platform'),
+  get isPhone() {
+    return mockIsPhone
+  },
+}))
+
 let assertionsInTeam: Array<string> = []
 let findCalls = 0
 jest.spyOn(T.RPCGen, 'teamsFindAssertionsInTeamNoResolveRpcPromise').mockImplementation(async () => {
@@ -22,6 +32,7 @@ jest.spyOn(T.RPCGen, 'teamsFindAssertionsInTeamNoResolveRpcPromise').mockImpleme
 beforeEach(() => {
   assertionsInTeam = []
   findCalls = 0
+  mockIsPhone = false
 })
 
 const convKey = (s: string) => s as T.Chat.ConversationIDKey
@@ -117,13 +128,53 @@ describe('addMembersToWizard', () => {
     expect(byAssertion.get('testuser')).toBe('admin')
   })
 
-  test('an admin-wide wizard flips to per-member roles once an email is added', async () => {
-    const wizard = makeAddMembersWizard(teamID, {role: 'admin'})
+  test('on desktop an admin-wide wizard flips to per-member roles once an email is added', async () => {
+    const wizard = makeAddMembersWizard(teamID, {
+      addingMembers: [{assertion: 'testuser-mac', role: 'admin'}],
+      role: 'admin',
+    })
     const next = await addMembersToWizard(wizard, [
       {assertion: 'testuser', role: 'admin'},
       {assertion: 'a@b.com', role: 'admin'},
     ])
     expect(next.role).toBe('setIndividually')
+    // per-member roles are kept as-is, only the email itself is coerced
+    expect(new Map(next.addingMembers.map(m => [m.assertion, m.role]))).toEqual(
+      new Map([
+        ['a@b.com', 'writer'],
+        ['testuser', 'admin'],
+        ['testuser-mac', 'admin'],
+      ])
+    )
+  })
+
+  test('on phone there is no per-member role screen, so everyone is downgraded to writer', async () => {
+    mockIsPhone = true
+    const wizard = makeAddMembersWizard(teamID, {
+      addingMembers: [{assertion: 'testuser-mac', role: 'admin'}],
+      role: 'admin',
+    })
+    const next = await addMembersToWizard(wizard, [
+      {assertion: 'testuser', role: 'admin'},
+      {assertion: 'a@b.com', role: 'admin'},
+    ])
+    expect(next.role).toBe('writer')
+    expect(next.addingMembers.every(m => m.role === 'writer')).toBe(true)
+  })
+
+  test('a wizard already on writer leaves the staged roles alone', async () => {
+    mockIsPhone = true
+    const wizard = makeAddMembersWizard(teamID, {
+      addingMembers: [{assertion: 'testuser-mac', role: 'admin'}],
+    })
+    const next = await addMembersToWizard(wizard, [{assertion: 'a@b.com', role: 'writer'}])
+    expect(next.role).toBe('writer')
+    expect(new Map(next.addingMembers.map(m => [m.assertion, m.role]))).toEqual(
+      new Map([
+        ['a@b.com', 'writer'],
+        ['testuser-mac', 'admin'],
+      ])
+    )
   })
 
   test('the wizard role is untouched when every addition is a keybase user', async () => {

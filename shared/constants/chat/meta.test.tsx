@@ -138,6 +138,29 @@ describe('meta converters', () => {
     expect(getEffectiveRetentionPolicy(meta!).type).toBe('retain')
   })
 
+  it('an inherited conversation policy falls through to the team policy', () => {
+    const meta = inboxUIItemToConversationMeta(
+      makeTrustedFixture({
+        convRetention: {inherit: {}, typ: T.RPCChat.RetentionPolicyType.inherit},
+        teamRetention: {expire: {age: 3600 as T.RPCGen.Gregor1.DurationSec}, typ: T.RPCChat.RetentionPolicyType.expire},
+      })
+    )
+    expect(meta?.retentionPolicy.type).toBe('inherit')
+    expect(meta?.teamRetentionPolicy).toEqual({seconds: 3600, title: '60 minutes', type: 'expire'})
+    expect(getEffectiveRetentionPolicy(meta!)).toBe(meta!.teamRetentionPolicy)
+  })
+
+  it('a conversation policy of its own wins over the team policy', () => {
+    const meta = inboxUIItemToConversationMeta(
+      makeTrustedFixture({
+        convRetention: {expire: {age: 60 as T.RPCGen.Gregor1.DurationSec}, typ: T.RPCChat.RetentionPolicyType.expire},
+        teamRetention: {retain: {}, typ: T.RPCChat.RetentionPolicyType.retain},
+      })
+    )
+    expect(getEffectiveRetentionPolicy(meta!)).toBe(meta!.retentionPolicy)
+    expect(getEffectiveRetentionPolicy(meta!).seconds).toBe(60)
+  })
+
   it('returns undefined for non-private trusted items', () => {
     const meta = inboxUIItemToConversationMeta(
       makeTrustedFixture({visibility: T.RPCGen.TLFVisibility.public})

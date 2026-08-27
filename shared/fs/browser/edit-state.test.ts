@@ -1,7 +1,8 @@
 /// <reference types="jest" />
 import * as FS from '@/constants/fs'
 import * as T from '@/constants/types'
-import {getStaleRenameEditIDs} from './edit-state'
+import {RPCError} from '@/util/errors'
+import {getRenameConflictError, getStaleRenameEditIDs, pickNewFolderName} from './edit-state'
 
 const p = (s: string) => T.FS.stringToPath(s)
 const parentPath = p('/keybase/private/testuser')
@@ -107,4 +108,80 @@ test('an empty folder makes every rename under it stale', () => {
   ])
   const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith()]]))
   expect(stale).toEqual(new Set(['e1', 'e2']))
+})
+
+describe('pickNewFolderName', () => {
+  const none = new Set<string>()
+
+  test('the first new folder is just "New Folder"', () => {
+    expect(pickNewFolderName(none, none)).toBe('New Folder')
+    expect(pickNewFolderName(new Set(['a.txt', 'dir']), none)).toBe('New Folder')
+  })
+
+  test('an existing child pushes the name to the next number', () => {
+    expect(pickNewFolderName(new Set(['New Folder']), none)).toBe('New Folder 2')
+    expect(pickNewFolderName(new Set(['New Folder', 'New Folder 2']), none)).toBe('New Folder 3')
+  })
+
+  test('a pending edit with the same name counts as taken', () => {
+    expect(pickNewFolderName(none, new Set(['New Folder']))).toBe('New Folder 2')
+    expect(pickNewFolderName(none, new Set(['New Folder', 'New Folder 2']))).toBe('New Folder 3')
+  })
+
+  test('children and pending edits are both consulted, so two clicks never collide', () => {
+    expect(pickNewFolderName(new Set(['New Folder']), new Set(['New Folder 2']))).toBe('New Folder 3')
+  })
+
+  test('the run of taken names does not have to be contiguous', () => {
+    expect(pickNewFolderName(new Set(['New Folder', 'New Folder 3']), none)).toBe('New Folder 2')
+  })
+
+  test('matching is exact', () => {
+    expect(pickNewFolderName(new Set(['new folder', 'New Folder (2)']), none)).toBe('New Folder')
+  })
+})
+
+describe('getRenameConflictError', () => {
+  const renameEdit = rename('a.txt')
+  const rpcError = (code: T.RPCGen.StatusCode, desc = '') => new RPCError(desc, code)
+
+  test('a name-exists failure is recoverable and carries the description', () => {
+    expect(
+      getRenameConflictError(renameEdit, rpcError(T.RPCGen.StatusCode.scsimplefsnameexists, 'name exists!'))
+    ).toBe('name exists!')
+  })
+
+  test('a dir-not-empty failure is recoverable too', () => {
+    expect(
+      getRenameConflictError(renameEdit, rpcError(T.RPCGen.StatusCode.scsimplefsdirnotempty, 'not empty'))
+    ).toBe('not empty')
+  })
+
+  test('an empty description falls back to a generic message', () => {
+    expect(getRenameConflictError(renameEdit, rpcError(T.RPCGen.StatusCode.scsimplefsnameexists))).toBe(
+      'name exists'
+    )
+  })
+
+  test('any other rpc error is not recoverable here', () => {
+    expect(
+      getRenameConflictError(renameEdit, rpcError(T.RPCGen.StatusCode.scsimplefsnoaccess, 'nope'))
+    ).toBeUndefined()
+  })
+
+  test('a plain error is not recoverable', () => {
+    expect(getRenameConflictError(renameEdit, new Error('boom'))).toBeUndefined()
+    expect(
+      getRenameConflictError(renameEdit, {code: T.RPCGen.StatusCode.scsimplefsnameexists, desc: 'x'})
+    ).toBeUndefined()
+  })
+
+  test('a new-folder edit does not get the rename recovery', () => {
+    expect(
+      getRenameConflictError(
+        newFolder('New Folder'),
+        rpcError(T.RPCGen.StatusCode.scsimplefsnameexists, 'name exists!')
+      )
+    ).toBeUndefined()
+  })
 })

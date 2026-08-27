@@ -42,10 +42,11 @@ describe('decodeForgotUsernameError', () => {
     }
   })
 
-  test('unknown code with an empty desc yields an empty string, not undefined', () => {
+  test('unknown code with an empty desc falls back to a generic message', () => {
+    // the screen renders an error banner for anything that is not exactly
+    // 'success', so an empty string would show the user nothing at all
     const result = decodeForgotUsernameError(makeError(T.RPCGen.StatusCode.scgeneric, ''))
-    expect(result).toBe('')
-    expect(typeof result).toBe('string')
+    expect(result).toBe('Something went wrong. Try again?')
   })
 
   test('unknown code with a whitespace-only desc is passed through verbatim', () => {
@@ -53,9 +54,17 @@ describe('decodeForgotUsernameError', () => {
     expect(decodeForgotUsernameError(makeError(T.RPCGen.StatusCode.scgeneric, '\n\t'))).toBe('\n\t')
   })
 
-  test('an empty result never equals the sentinel the screen uses for success', () => {
-    // the screen treats a result of exactly 'success' as "sent", everything else as an error banner
-    expect(decodeForgotUsernameError(makeError(T.RPCGen.StatusCode.scgeneric, ''))).not.toBe('success')
-    expect(decodeForgotUsernameError(makeError(T.RPCGen.StatusCode.scnotfound, ''))).not.toBe('success')
+  test('every decoded error is non-empty so the screen always has a banner to show', () => {
+    const codes = [
+      T.RPCGen.StatusCode.scnotfound,
+      T.RPCGen.StatusCode.scinputerror,
+      T.RPCGen.StatusCode.scgeneric,
+      T.RPCGen.StatusCode.scdeleted,
+      0,
+      999999,
+    ]
+    for (const code of codes) {
+      expect(decodeForgotUsernameError(makeError(code, ''))).not.toBe('')
+    }
   })
 })

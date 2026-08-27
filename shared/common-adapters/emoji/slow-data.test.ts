@@ -21,12 +21,15 @@ describe('emojiNameMap', () => {
     expect(emojiNameMap['definitely-not-an-emoji']).toBeUndefined()
   })
 
-  test('an alias never overwrites an emoji that owns that short name', () => {
-    for (const [name, emoji] of Object.entries(emojiNameMap)) {
-      const owner = emojiNameMap[emoji.short_name]
-      // if some other emoji claims `name` as its canonical short_name, that one wins
-      if (owner?.short_name === name) {
-        expect(emoji.short_name).toBe(name)
+  test('every canonical short name is owned by its own emoji, and its aliases point back at it', () => {
+    const canonicalNames = new Set(Object.values(emojiNameMap).map(e => e.short_name))
+    expect(canonicalNames.size).toBeGreaterThan(1000)
+    for (const name of canonicalNames) {
+      const emoji = emojiNameMap[name]
+      // an alias pass must never have taken this entry over
+      expect(emoji?.short_name).toBe(name)
+      for (const alias of emoji!.short_names) {
+        expect(emojiNameMap[alias]).toBe(emoji)
       }
     }
   })
@@ -105,15 +108,34 @@ describe('emojiSearch', () => {
     expect(emojiSearch('zzzzqqqqxxxx', 10)).toEqual([])
   })
 
-  test('results are unique', () => {
-    const res = emojiSearch('face', 25)
-    expect(new Set(res).size).toBe(res.length)
+  test('maxResults truncates after ranking, so the best matches survive', () => {
+    const all = emojiSearch('face', 100).map(e => e.short_name)
+    expect(all.length).toBeGreaterThan(5)
+    expect(emojiSearch('face', 5).map(e => e.short_name)).toEqual(all.slice(0, 5))
   })
 })
 
-test('skinTones covers the five fitzpatrick modifiers plus the default', () => {
+test('skinTones is the five real fitzpatrick modifiers plus a default-yellow sentinel', () => {
   expect(skinTones).toHaveLength(6)
   expect(new Set(skinTones).size).toBe(6)
+
+  const variationKeys = new Set<string>()
+  for (const {emojis} of categories) {
+    for (const emoji of emojis) {
+      for (const key of Object.keys(emoji.skin_variations ?? {})) {
+        variationKeys.add(key)
+      }
+    }
+  }
+  // 1F3FB-1F3FF are the modifiers the data actually keys its variations on
+  const [defaultTone, ...modifiers] = skinTones
+  expect(modifiers).toEqual(['1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'])
+  for (const modifier of modifiers) {
+    expect(variationKeys.has(modifier)).toBe(true)
+  }
+  // the first entry is a sentinel for "no modifier"; no emoji has a variation for it
+  expect(defaultTone).toBe('1F3FA')
+  expect(variationKeys.has(defaultTone!)).toBe(false)
 })
 
 test('defaultHoverEmoji resolves', () => {

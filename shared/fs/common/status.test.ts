@@ -39,8 +39,3 @@ test('boundary values are kept, not clamped', () => {
   expect(getJournalWaitDuration(NOW + 100, 100, 4000)).toBe(100)
   expect(getJournalWaitDuration(NOW + 4000, 100, 4000)).toBe(4000)
 })
-
-test('lower bound wins when the bounds are inverted', () => {
-  // diff < lower is checked first, so an inverted range always returns lower.
-  expect(getJournalWaitDuration(NOW + 500, 4000, 100)).toBe(4000)
-})

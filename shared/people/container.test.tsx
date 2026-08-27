@@ -197,9 +197,9 @@ describe('reduceRPCItemToPeopleItem', () => {
     expect(item.type === 'todo' && item.instructions).toBe('Your number *+1 (201) 555-0123* is unverified.')
   })
 
-  test('an unverified phone todo with no number renders an empty number rather than throwing', () => {
+  test('an unverified phone todo with no number drops the bold markup instead of emptying it', () => {
     const item = reduceOne(todoItem(T.RPCGen.HomeScreenTodoType.verifyAllPhoneNumber, true))[0]!
-    expect(item.type === 'todo' && item.instructions).toBe('Your number ** is unverified.')
+    expect(item.type === 'todo' && item.instructions).toBe('Your number is unverified.')
   })
 
   test('a single follow notification becomes a follow row with an empty contact description', () => {

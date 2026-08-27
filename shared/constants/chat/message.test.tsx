@@ -72,6 +72,19 @@ const validMessage = (overrides: Partial<T.RPCChat.UIMessageValid> = {}): T.RPCC
   valid: makeValid(overrides),
 })
 
+// isImageViewable reads the ambient platform global at call time; the test env
+// defaults to desktop, so pin it explicitly rather than asserting one branch
+const platform = globalThis as unknown as {isIOS: boolean}
+const withIOS = (value: boolean, fn: () => void) => {
+  const prev = platform.isIOS
+  platform.isIOS = value
+  try {
+    fn()
+  } finally {
+    platform.isIOS = prev
+  }
+}
+
 describe('image/render type helpers', () => {
   test('isPathHEIC is case insensitive', () => {
     expect(isPathHEIC('/tmp/a.HEIC')).toBe(true)
@@ -79,11 +92,21 @@ describe('image/render type helpers', () => {
     expect(isPathHEIC('/tmp/a.png')).toBe(false)
   })
 
-  test('isImageViewable only for image attachments (heic is ios only)', () => {
+  test('isImageViewable only for image attachments', () => {
     expect(isImageViewable(makeMessageAttachment({attachmentType: 'image'}))).toBe(true)
-    // desktop test env: isIOS is false so heic files are not viewable
-    expect(isImageViewable(makeMessageAttachment({attachmentType: 'file', fileName: 'a.heic'}))).toBe(false)
     expect(isImageViewable(makeMessageText())).toBe(false)
+  })
+
+  test('a heic file attachment is only viewable on ios', () => {
+    const heic = makeMessageAttachment({attachmentType: 'file', fileName: 'a.heic'})
+    withIOS(false, () => {
+      expect(isImageViewable(heic)).toBe(false)
+      expect(getMessageRenderType(heic)).toBe('attachment:file')
+    })
+    withIOS(true, () => {
+      expect(isImageViewable(heic)).toBe(true)
+      expect(getMessageRenderType(heic)).toBe('attachment:image')
+    })
   })
 
   test('getMessageRenderType maps attachments by kind', () => {

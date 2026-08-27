@@ -4,54 +4,12 @@ import {expect, test, describe} from '@jest/globals'
 import * as Styles from '@/styles'
 import type * as TextStyles from './text.styles'
 import {getTextStyle} from './text.styles'
-import {linkTypes, backgroundModeIsNegative, type TextType} from './text.shared'
+import {allTextTypes, linkTypes, backgroundModeIsNegative, type TextType} from './text.shared'
 
 const theme = Styles.getTheme()
 
-const allTypes: ReadonlyArray<TextType> = [
-  'Body',
-  'BodyItalic',
-  'BodyBig',
-  'BodyBigExtrabold',
-  'BodyBigLink',
-  'BodyBold',
-  'BodyExtrabold',
-  'BodyPrimaryLink',
-  'BodySecondaryLink',
-  'BodySemibold',
-  'BodySemiboldLink',
-  'BodySemiboldItalic',
-  'BodySmall',
-  'BodySmallBold',
-  'BodySmallExtrabold',
-  'BodySmallExtraboldSecondaryLink',
-  'BodySmallError',
-  'BodySmallItalic',
-  'BodySmallPrimaryLink',
-  'BodySmallSecondaryLink',
-  'BodySmallSemibold',
-  'BodySmallSemiboldItalic',
-  'BodySmallSemiboldSecondaryLink',
-  'BodySmallSemiboldPrimaryLink',
-  'BodySmallSuccess',
-  'BodySmallWallet',
-  'BodyTiny',
-  'BodyTinyLink',
-  'BodyTinySemibold',
-  'BodyTinySemiboldItalic',
-  'BodyTinyBold',
-  'BodyTinyExtrabold',
-  'Header',
-  'HeaderItalic',
-  'HeaderExtrabold',
-  'HeaderBig',
-  'HeaderBigExtrabold',
-  'HeaderLink',
-  'Terminal',
-  'TerminalComment',
-  'TerminalEmpty',
-  'TerminalInline',
-]
+// derived from the module so a newly added text type is covered without touching this file
+const allTypes = Object.keys(allTextTypes) as ReadonlyArray<TextType>
 
 describe('getTextStyle', () => {
   test('every text type resolves a font size, line height and color', () => {
@@ -76,6 +34,7 @@ describe('getTextStyle', () => {
   })
 
   test('every declared link type is a real text type', () => {
+    expect(allTypes.length).toBeGreaterThan(40)
     for (const type of linkTypes) {
       expect(allTypes).toContain(type)
     }
@@ -117,12 +76,24 @@ describe('getTextStyle', () => {
     }
   })
 
-  test('bold-ish variants differ from their regular counterpart only in weight-related keys', () => {
-    const body = getTextStyle('Body', theme) as Record<string, unknown>
-    const bold = getTextStyle('BodyBold', theme) as Record<string, unknown>
-    expect(bold['fontSize']).toBe(body['fontSize'])
-    expect(bold['lineHeight']).toBe(body['lineHeight'])
-    expect(bold['fontFamily'] ?? bold['fontWeight']).not.toEqual(undefined)
+  test('bold-ish variants differ from their regular counterpart only in font weight', () => {
+    const pairs = [
+      ['Body', 'BodySemibold'],
+      ['Body', 'BodyBold'],
+      ['Body', 'BodyExtrabold'],
+      ['BodySmall', 'BodySmallBold'],
+      ['BodySmall', 'BodySmallExtrabold'],
+      ['BodyTiny', 'BodyTinyBold'],
+      ['BodyBig', 'BodyBigExtrabold'],
+      ['Header', 'HeaderExtrabold'],
+    ] as const
+    for (const [regular, bolder] of pairs) {
+      const r = getTextStyle(regular, theme) as Record<string, unknown>
+      const b = getTextStyle(bolder, theme) as Record<string, unknown>
+      expect(Object.keys(b).sort()).toEqual(Object.keys(r).sort())
+      expect(Object.keys(b).filter(k => b[k] !== r[k])).toEqual(['fontWeight'])
+      expect(Number(b['fontWeight'])).toBeGreaterThan(Number(r['fontWeight']))
+    }
   })
 })
 

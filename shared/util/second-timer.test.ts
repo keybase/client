@@ -1,6 +1,9 @@
 /// <reference types="jest" />
 import {addTicker, removeTicker} from './second-timer'
 
+// every listener has to go through add() so afterEach can remove it even when an
+// assertion throws, else a live listener leaks into every later test
+
 describe('second timer', () => {
   const added: Array<number> = []
 
@@ -88,7 +91,7 @@ describe('second timer', () => {
 
   test('clears the interval once the last listener leaves and restarts on the next one', () => {
     const fn = jest.fn()
-    const id = addTicker(fn)
+    const id = add(fn)
     expect(jest.getTimerCount()).toBe(1)
 
     removeTicker(id)

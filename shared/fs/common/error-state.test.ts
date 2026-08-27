@@ -33,6 +33,44 @@ test('identify failures are ignored on purpose', () => {
   expect(noneCalled(handlers)).toBe(true)
 })
 
+test('a kbfs client timeout re-checks the daemon and nothing else', () => {
+  const handlers = makeHandlers()
+  errorToActionOrThrowWithHandlers(
+    handlers,
+    {code: T.RPCGen.StatusCode.sckbfsclienttimeout},
+    filePath
+  )
+  expect(handlers.checkKbfsDaemonRpcStatus).toHaveBeenCalledTimes(1)
+  expect(handlers.redbar).not.toHaveBeenCalled()
+  expect(handlers.setPathSoftError).not.toHaveBeenCalled()
+  expect(handlers.setTlfSoftError).not.toHaveBeenCalled()
+})
+
+test('a not-exist error with a path becomes a nonexistent soft error on that path', () => {
+  const handlers = makeHandlers()
+  errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.scsimplefsnotexist}, filePath)
+  expect(handlers.setPathSoftError).toHaveBeenCalledWith(filePath, T.FS.SoftError.Nonexistent)
+  // it is the path itself, not the tlf root
+  expect(handlers.setTlfSoftError).not.toHaveBeenCalled()
+  expect(handlers.checkKbfsDaemonRpcStatus).not.toHaveBeenCalled()
+})
+
+test('a deleted-user error shows a redbar rather than throwing', () => {
+  const handlers = makeHandlers()
+  errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.scdeleted}, filePath)
+  expect(handlers.redbar).toHaveBeenCalledWith('A user in this shared folder has deleted their account.')
+  expect(handlers.setPathSoftError).not.toHaveBeenCalled()
+  expect(handlers.setTlfSoftError).not.toHaveBeenCalled()
+})
+
+test('a deleted-user error is handled even without a path', () => {
+  const handlers = makeHandlers()
+  expect(() =>
+    errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.scdeleted})
+  ).not.toThrow()
+  expect(handlers.redbar).toHaveBeenCalledTimes(1)
+})
+
 test('every no-access code maps to a tlf soft error on the tlf root', () => {
   for (const code of [
     T.RPCGen.StatusCode.scsimplefsnoaccess,

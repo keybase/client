@@ -168,6 +168,81 @@ test('useSubmitNewPassword force-changes the password and navigates back', () =>
   expect(result.current.error).toBe('')
 })
 
+// dispatches per rpc so the password change and the canLogout probe inside
+// useRequestLogout can be told apart
+const mockRPCsByFn = () => {
+  const pending = new Map<unknown, Array<{resolve: (r?: unknown) => void}>>()
+  const submits = new Map<unknown, jest.Mock>()
+  jest.spyOn(C, 'useRPC').mockImplementation(((rpc: unknown) => {
+    let submit = submits.get(rpc)
+    if (!submit) {
+      submit = jest.fn((_args: unknown, resolve: (r?: unknown) => void) => {
+        const q = pending.get(rpc) ?? []
+        q.push({resolve})
+        pending.set(rpc, q)
+      })
+      submits.set(rpc, submit)
+    }
+    return submit
+  }) as never)
+  return {
+    resolveNext: (rpc: unknown, result?: unknown) => pending.get(rpc)?.shift()?.resolve(result),
+    submitFor: (rpc: unknown) => submits.get(rpc),
+  }
+}
+
+test('useSubmitNewPassword logs the user out after a successful change when asked to', () => {
+  const rpcs = mockRPCsByFn()
+  const {result} = renderHook(() => useSubmitNewPassword(true))
+
+  act(() => {
+    result.current.onSave('longenough')
+  })
+  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
+
+  act(() => {
+    rpcs.resolveNext(T.RPCGen.accountPassphraseChangeRpcPromise)
+  })
+
+  // requestLogout() starts by asking the service whether logging out is safe
+  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).toHaveBeenCalled()
+  expect(navigateUp).toHaveBeenCalled()
+})
+
+test('useSubmitNewPassword leaves the session alone when it is not asked to log out', () => {
+  const rpcs = mockRPCsByFn()
+  const {result} = renderHook(() => useSubmitNewPassword(false))
+
+  act(() => {
+    result.current.onSave('longenough')
+  })
+  act(() => {
+    rpcs.resolveNext(T.RPCGen.accountPassphraseChangeRpcPromise)
+  })
+
+  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
+  expect(navigateUp).toHaveBeenCalled()
+})
+
+test('useSubmitNewPassword does not log out when the change fails', () => {
+  const rpcs = mockRPCsByFn()
+  const {result} = renderHook(() => useSubmitNewPassword(true))
+
+  act(() => {
+    result.current.onSave('longenough')
+  })
+  act(() => {
+    // the reject callback is the third argument; drive it through the raw mock
+    const submit = rpcs.submitFor(T.RPCGen.accountPassphraseChangeRpcPromise)!
+    const reject = submit.mock.calls[0]![2] as (e: RPCError) => void
+    reject(new RPCError('too weak', T.RPCGen.StatusCode.scgeneric))
+  })
+
+  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
+  expect(navigateUp).not.toHaveBeenCalled()
+  expect(result.current.error).toBe('too weak')
+})
+
 test('useSubmitNewPassword shows the service description on failure and clears it on retry', () => {
   const rpc = mockChangeRPC()
   const {result} = renderHook(() => useSubmitNewPassword(false))

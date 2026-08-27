@@ -15,25 +15,32 @@ test('an unknown path produces no navigation state', () => {
   expect(getStateFromPath('/')).toBeUndefined()
 })
 
-test('a conversation path parks the conversation in the chat tab', () => {
-  expect(getStateFromPath('convid/conv-1')).toEqual(makeChatConversationState('conv-1'))
-  expect(makeChatConversationState('conv-1')).toEqual({
-    index: 0,
-    routes: [
-      {
-        name: 'loggedIn',
-        state: {
-          index: 0,
-          routes: [
-            {
-              name: Tabs.chatTab,
-              state: {index: 0, routes: [{name: 'chatRoot', params: {conversationIDKey: 'conv-1'}}]},
-            },
-          ],
-        },
+// spelled out here rather than reusing makeChatConversationState, so a bug shared
+// by the builder and the path parser cannot pass unnoticed
+const chatConversationState = (conversationIDKey: string) => ({
+  index: 0,
+  routes: [
+    {
+      name: 'loggedIn',
+      state: {
+        index: 0,
+        routes: [
+          {
+            name: Tabs.chatTab,
+            state: {index: 0, routes: [{name: 'chatRoot', params: {conversationIDKey}}]},
+          },
+        ],
       },
-    ],
-  })
+    },
+  ],
+})
+
+test('a conversation path parks the conversation in the chat tab', () => {
+  expect(getStateFromPath('convid/conv-1')).toEqual(chatConversationState('conv-1'))
+})
+
+test('makeChatConversationState builds the same shape the path parser produces', () => {
+  expect(makeChatConversationState('conv-1')).toEqual(chatConversationState('conv-1'))
 })
 
 test('a conversation path without an id is not handled', () => {
@@ -42,7 +49,7 @@ test('a conversation path without an id is not handled', () => {
 })
 
 test('leading slashes and query strings are ignored', () => {
-  expect(getStateFromPath('///convid/conv-1?foo=bar')).toEqual(makeChatConversationState('conv-1'))
+  expect(getStateFromPath('///convid/conv-1?foo=bar')).toEqual(chatConversationState('conv-1'))
 })
 
 test('a profile path pushes the profile above the people root', () => {
