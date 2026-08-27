@@ -28,10 +28,10 @@ export function parseFolderNameToUsers(yourUsername: string | undefined, folderN
 
 export function folderNameWithoutUsers(folderName: string, users: {[K in string]: boolean}) {
   const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
-  const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList ?? '', '#')
+  const [writers, readers] = splitByFirstOccurrenceOf(userList ?? '', '#')
 
-  const writerNames = writers?.split(',') ?? []
-  const readerNames = readers?.split(',') ?? []
+  const writerNames = writers ? writers.split(',') : []
+  const readerNames = readers ? readers.split(',') : []
 
   const filteredWriterNames = writerNames.filter(name => !users[name])
   const filteredReaderNames = readerNames.filter(name => !users[name])

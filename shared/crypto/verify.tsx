@@ -18,6 +18,7 @@ import {
   resetOutput,
   resetWarnings,
   useCommittedState,
+  useRunGeneration,
   useSeededCryptoInput,
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
@@ -63,6 +64,7 @@ const onSuccess = (
 
 export const useVerifyState = (params?: CryptoInputRouteParams) => {
   const {commitState, state, stateRef} = useCommittedState(() => createCommonState(params))
+  const {isCurrentRun, startRun} = useRunGeneration()
 
   const clearInput = React.useCallback(() => {
     commitState(clearInputState(stateRef.current))
@@ -70,6 +72,7 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
 
   const verify = React.useCallback(async (destinationDir = '', maybeSnapshot?: CommonState) => {
     const snapshot = maybeSnapshot ?? stateRef.current
+    const gen = startRun()
     commitState(beginRun(snapshot))
     try {
       if (snapshot.inputType === 'text') {
@@ -77,7 +80,8 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
           {signedMsg: snapshot.input},
           C.waitingKeyCrypto
         )
-        const next = onSuccess(
+        if (!isCurrentRun(gen)) return stateRef.current
+      const next = onSuccess(
           stateRef.current,
           stateRef.current.input === snapshot.input,
           res.plaintext,
@@ -93,6 +97,7 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
         {destinationDir, signedFilename: snapshot.input},
         C.waitingKeyCrypto
       )
+      if (!isCurrentRun(gen)) return stateRef.current
       const next = onSuccess(
         stateRef.current,
         stateRef.current.input === snapshot.input,
@@ -106,10 +111,11 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
+      if (!isCurrentRun(gen)) return stateRef.current
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'verify', snapshot.inputType))
       return commitState(next)
     }
-  }, [commitState, stateRef])
+  }, [commitState, isCurrentRun, startRun, stateRef])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {

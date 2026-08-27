@@ -9,7 +9,7 @@ import {useTeamsList} from './use-teams-list'
 import {useHeaderActions} from './get-options'
 import {useNavigation} from '@react-navigation/native'
 
-const orderTeams = (
+export const orderTeams = (
   teams: ReadonlyArray<T.Teams.TeamMeta>,
   newRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,
   teamIDToResetUsers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,

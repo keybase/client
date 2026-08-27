@@ -70,7 +70,7 @@ const subscribeNonPath = (
   C.ignorePromise(f())
 }
 
-const getJournalWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
+export const getJournalWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
   if (!endEstimate) {
     return upper
   }

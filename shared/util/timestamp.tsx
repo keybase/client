@@ -113,16 +113,26 @@ export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
   })
 
 export const formatDuration = (duration: number): string => {
-  if (!duration) {
+  if (duration <= 0) {
     return ''
   }
 
-  const d = new Date(duration)
-  return d.getUTCHours()
-    ? `${d.getUTCHours()} hr`
-    : d.getUTCMinutes()
-      ? `${d.getUTCMinutes()} min`
-      : `${d.getUTCSeconds()} s`
+  // plain arithmetic, not a Date: reading getUTCHours() off one wrapped
+  // anything past 24h back to zero, and the reset countdown runs for days
+  const seconds = Math.floor(duration / 1000)
+  const days = Math.floor(seconds / 86400)
+  if (days) {
+    return `${days} day${days === 1 ? '' : 's'}`
+  }
+  const hours = Math.floor(seconds / 3600)
+  if (hours) {
+    return `${hours} hr`
+  }
+  const minutes = Math.floor(seconds / 60)
+  if (minutes) {
+    return `${minutes} min`
+  }
+  return `${seconds} s`
 }
 
 export const formatAudioRecordDuration = (duration: number): string => {

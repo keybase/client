@@ -16,10 +16,11 @@ export const standardTransformer = (
   {text, position: {start, end}}: TransformerData,
   preview: boolean
 ) => {
-  const newText = `${text.substring(0, start || 0)}${toInsert}${preview ? '' : ' '}${text.substring(
-    end || 0
-  )}`
-  const newSelection = (start || 0) + toInsert.length + (preview ? 0 : 1)
+  const rest = text.substring(end || 0)
+  // don't stack a second space when the text we're inserting in front of already leads with one
+  const separator = preview || rest.startsWith(' ') ? '' : ' '
+  const newText = `${text.substring(0, start || 0)}${toInsert}${separator}${rest}`
+  const newSelection = (start || 0) + toInsert.length + separator.length
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 

@@ -23,7 +23,8 @@ function DeviceRow(ownProps: OwnProps) {
 
   const isNew = useIsNew(deviceID)
   const {currentDevice, name, revokedAt, lastUsed} = device
-  const isRevoked = !!device.revokedByName
+  // match how the list partitions revoked devices (index.tsx); revokedByName can be unset
+  const isRevoked = !!revokedAt
 
   return (
     <Kb.ListItem

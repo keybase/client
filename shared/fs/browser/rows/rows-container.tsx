@@ -143,7 +143,7 @@ const getTlfItems = (
   )
 }
 
-const getNormalRowItems = ({
+export const getNormalRowItems = ({
   childItems,
   childPaths,
   editSessions,
@@ -177,7 +177,7 @@ const getNormalRowItems = ({
 }
 
 const filterable = new Set([RowTypes.RowType.TlfType, RowTypes.RowType.Tlf, RowTypes.RowType.Still])
-const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
+export const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
   filter
     ? rows.filter(
         row => !filterable.has(row.rowType) || row.name.toLowerCase().includes(filter.toLowerCase())

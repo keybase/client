@@ -21,6 +21,7 @@ import {
   resetOutput,
   resetWarnings,
   useCommittedState,
+  useRunGeneration,
   useSeededCryptoInput,
 } from './helpers'
 import {RPCError} from '@/util/errors'
@@ -184,6 +185,7 @@ const nextOptionState = (
 
 export const useEncryptScreenState = (params?: EncryptRouteParams) => {
   const {commitState, state, stateRef} = useCommittedState(() => createEncryptState(params))
+  const {isCurrentRun, startRun} = useRunGeneration()
   const handledTeamBuilderNonceRef = React.useRef<string | undefined>(undefined)
 
   const runEncrypt = React.useCallback(async (destinationDir = '', _snapshot?: EncryptState) => {
@@ -196,6 +198,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       signed,
     }
 
+    const gen = startRun()
     commitState(beginRun(snapshot))
     try {
       let output = ''
@@ -223,6 +226,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       if (usedUnresolvedSBS) {
         warningMessage = getWarningMessageForSBS(unresolvedSBSAssertion)
       }
+      if (!isCurrentRun(gen)) return stateRef.current
       const next = onSuccess(
         stateRef.current,
         stateRef.current.input === snapshot.input,
@@ -236,10 +240,11 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
+      if (!isCurrentRun(gen)) return stateRef.current
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'encrypt', snapshot.inputType))
       return commitState(next)
     }
-  }, [commitState, stateRef])
+  }, [commitState, isCurrentRun, startRun, stateRef])
 
   const clearInput = React.useCallback(() => {
     commitState(clearInputState(stateRef.current))

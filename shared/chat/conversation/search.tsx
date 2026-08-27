@@ -17,7 +17,7 @@ import {useThreadSearchRoute} from './thread-search-route'
 import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
 
 type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
-type CommonProps = OwnProps & {
+export type CommonProps = OwnProps & {
   conversationIDKey: T.Chat.ConversationIDKey
   initialQuery: string
 }
@@ -97,7 +97,7 @@ const runSearchInbox = async (p: {
   }
 }
 
-const useCommon = (ownProps: CommonProps) => {
+export const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
   const toggleThreadSearch = useConversationThreadToggleSearch()
   const {centerOnMessage, clearCenter} = useConversationCenterActions()
@@ -338,7 +338,7 @@ const useThreadSearchCommonProps = (p: OwnProps): CommonProps => {
   return {...p, conversationIDKey, initialQuery}
 }
 
-const threadSearchKey = (p: CommonProps) => `${p.conversationIDKey}:${p.initialQuery}`
+export const threadSearchKey = (p: CommonProps) => `${p.conversationIDKey}:${p.initialQuery}`
 
 const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
   const commonProps = useThreadSearchCommonProps(p)

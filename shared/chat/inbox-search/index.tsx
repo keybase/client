@@ -23,14 +23,14 @@ type OwnProps = {
   search: Pick<InboxSearchController, 'searchInfo' | 'selectResult' | 'setVisibleResultCounts'>
 }
 
-type NameResult = {
+export type NameResult = {
   conversationIDKey: T.Chat.ConversationIDKey
   name: string
   sizeType: 'big' | 'small'
   type: 'name'
 }
 
-type TextResult = {
+export type TextResult = {
   conversationIDKey: T.Chat.ConversationIDKey
   sizeType: 'big' | 'small'
   type: 'text'
@@ -39,12 +39,12 @@ type TextResult = {
   query: string
 }
 
-type BotResult = {
+export type BotResult = {
   type: 'bot'
   bot: T.RPCGen.FeaturedBot
 }
 
-type OpenTeamResult = {
+export type OpenTeamResult = {
   type: 'openTeam'
   hit: T.Chat.InboxSearchOpenTeamHit
 }
@@ -64,7 +64,7 @@ registerExternalResetter('chat-inbox-search-item-caches', () => {
   textResultCache.clear()
 })
 
-const canonNameResult = (next: NameResult) => {
+export const canonNameResult = (next: NameResult) => {
   if (nameResultCache.size > 4096) {
     nameResultCache.clear()
   }
@@ -78,7 +78,7 @@ const canonNameResult = (next: NameResult) => {
   return next
 }
 
-const canonTextResult = (next: TextResult) => {
+export const canonTextResult = (next: TextResult) => {
   if (textResultCache.size > 4096) {
     textResultCache.clear()
   }
@@ -92,7 +92,7 @@ const canonTextResult = (next: TextResult) => {
   return next
 }
 
-const canonOpenTeamItem = (hit: T.Chat.InboxSearchOpenTeamHit): OpenTeamResult => {
+export const canonOpenTeamItem = (hit: T.Chat.InboxSearchOpenTeamHit): OpenTeamResult => {
   let item = openTeamItemCache.get(hit)
   if (!item) {
     item = {hit, type: 'openTeam'}
@@ -101,7 +101,7 @@ const canonOpenTeamItem = (hit: T.Chat.InboxSearchOpenTeamHit): OpenTeamResult =
   return item
 }
 
-const canonBotItem = (bot: T.RPCGen.FeaturedBot): BotResult => {
+export const canonBotItem = (bot: T.RPCGen.FeaturedBot): BotResult => {
   let item = botItemCache.get(bot)
   if (!item) {
     item = {bot, type: 'bot'}
@@ -474,7 +474,7 @@ type SectionExtra = {
 
 type Section = Kb.SectionType<Item> & SectionExtra
 
-const emptyUnreadPlaceholder = {
+export const emptyUnreadPlaceholder = {
   conversationIDKey: '',
   name: '---EMPTYRESULT---',
   sizeType: 'small',

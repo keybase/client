@@ -67,11 +67,11 @@ const findExpandedRepoID = (
   repoID?: string,
   teamname?: string
 ) => {
-  if (!repoID || !teamname) {
+  if (!repoID) {
     return undefined
   }
   for (const [id, info] of repos) {
-    if (info.repoID === repoID && info.teamname === teamname) {
+    if (info.repoID === repoID && (info.teamname ?? undefined) === (teamname || undefined)) {
       return id
     }
   }
@@ -138,10 +138,9 @@ const GitRoot = (ownProps: OwnProps) => {
     appliedRouteKey: '',
     expandedSet: new Set(),
   }))
-  const expandedRouteKey =
-    ownProps.expandedRepoID && ownProps.expandedTeamname
-      ? `${ownProps.expandedTeamname}:${ownProps.expandedRepoID}`
-      : ''
+  const expandedRouteKey = ownProps.expandedRepoID
+    ? `${ownProps.expandedTeamname ?? ''}:${ownProps.expandedRepoID}`
+    : ''
   let expandedSet = expandedState.expandedSet
   if (expandedRouteKey && expandedState.appliedRouteKey !== expandedRouteKey) {
     const expanded = findExpandedRepoID(idToInfo, ownProps.expandedRepoID, ownProps.expandedTeamname)

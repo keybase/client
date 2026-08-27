@@ -2,6 +2,12 @@
 import * as T from '@/constants/types'
 import {
   getMapUnfurl,
+  isSpecialMention,
+  makeChatPaymentInfo,
+  makeMessageSystemText,
+  messageAttachmentTransferStateToProgressLabel,
+  shouldShowPopup,
+  upgradeMessage,
   getMessageID,
   getMessageRenderType,
   getPaymentMessageInfo,
@@ -612,4 +618,163 @@ describe('parseUIMessagesJSON', () => {
     // onMessage runs per converted message, in order, before the next conversion
     expect(seen.map(m => m.id)).toEqual([1, 3])
   })
+})
+
+describe('upgradeMessage', () => {
+  const pendingText = () =>
+    makeMessageText({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(0),
+      ordinal: T.Chat.numberToOrdinal(10.001),
+      submitState: 'pending',
+    })
+
+  const sentText = () =>
+    makeMessageText({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(300),
+      ordinal: T.Chat.numberToOrdinal(300),
+    })
+
+  test('the sent message keeps the ordinal the pending row already had', () => {
+    const upgraded = upgradeMessage(pendingText(), sentText())
+    expect(upgraded.ordinal).toBe(10.001)
+    expect(upgraded.id).toBe(300)
+  })
+
+  test('a late pending copy never replaces the sent message', () => {
+    const sent = sentText()
+    expect(upgradeMessage(sent, pendingText())).toBe(sent)
+  })
+
+  test('an uploaded attachment keeps the pending preview so the row does not flash gray', () => {
+    const pending = makeMessageAttachment({
+      conversationIDKey,
+      ordinal: T.Chat.numberToOrdinal(10.001),
+      previewURL: 'file://local-preview',
+      submitState: 'pending',
+    })
+    const sent = makeMessageAttachment({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(300),
+      ordinal: T.Chat.numberToOrdinal(300),
+      previewURL: '',
+    })
+    const upgraded = upgradeMessage(pending, sent) as T.Chat.MessageAttachment
+    expect(upgraded.ordinal).toBe(10.001)
+    expect(upgraded.previewURL).toBe('file://local-preview')
+  })
+
+  test('an attachment-uploaded update keeps the old id and transfer state', () => {
+    const old = makeMessageAttachment({
+      conversationIDKey,
+      downloadPath: '/tmp/a.png',
+      id: T.Chat.numberToMessageID(300),
+      ordinal: T.Chat.numberToOrdinal(300),
+      previewURL: 'file://local-preview',
+      transferProgress: 0.5,
+      transferState: 'downloading',
+    })
+    const uploaded = makeMessageAttachment({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(301),
+      ordinal: T.Chat.numberToOrdinal(301),
+    })
+    const upgraded = upgradeMessage(old, uploaded) as T.Chat.MessageAttachment
+    // the service deletes by the original id
+    expect(upgraded.id).toBe(300)
+    expect(upgraded.ordinal).toBe(300)
+    expect(upgraded.downloadPath).toBe('/tmp/a.png')
+    expect(upgraded.previewURL).toBe('file://local-preview')
+    expect(upgraded.transferProgress).toBe(0.5)
+    expect(upgraded.transferState).toBe('downloading')
+  })
+
+  test('a remote upload in flight is not reported as a local transfer after the upgrade', () => {
+    const old = makeMessageAttachment({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(300),
+      ordinal: T.Chat.numberToOrdinal(300),
+      transferState: 'remoteUploading',
+    })
+    const uploaded = makeMessageAttachment({conversationIDKey, id: T.Chat.numberToMessageID(301)})
+    expect((upgradeMessage(old, uploaded) as T.Chat.MessageAttachment).transferState).toBeUndefined()
+  })
+
+  test('a real message is never downgraded to a placeholder', () => {
+    const real = sentText()
+    const placeholder = makeMessagePlaceholder({conversationIDKey, id: T.Chat.numberToMessageID(300)})
+    expect(upgradeMessage(real, placeholder)).toBe(real)
+    // but a placeholder can be replaced by anything
+    expect(upgradeMessage(placeholder, real)).toBe(real)
+  })
+
+  test('mismatched types take the new message as-is', () => {
+    const text = sentText()
+    const attachment = makeMessageAttachment({conversationIDKey, ordinal: T.Chat.numberToOrdinal(400)})
+    expect(upgradeMessage(text, attachment)).toBe(attachment)
+  })
+})
+
+describe('shouldShowPopup', () => {
+  test('there is no menu without a message', () => {
+    expect(shouldShowPopup(undefined, undefined)).toBe(false)
+  })
+
+  test('normal messages get a menu', () => {
+    expect(shouldShowPopup(undefined, makeMessageText({conversationIDKey}))).toBe(true)
+    expect(shouldShowPopup(undefined, makeMessageAttachment({conversationIDKey}))).toBe(true)
+    expect(shouldShowPopup(undefined, makeMessageSystemText({conversationIDKey}))).toBe(true)
+  })
+
+  test('bookkeeping messages do not', () => {
+    expect(shouldShowPopup(undefined, makeMessageDeleted({conversationIDKey}))).toBe(false)
+    expect(shouldShowPopup(undefined, makeMessagePlaceholder({conversationIDKey}))).toBe(false)
+  })
+
+  test('renaming to general is suppressed, other renames are not', () => {
+    const rename = (newChannelname: string) =>
+      ({newChannelname, type: 'setChannelname'}) as T.Chat.MessageSetChannelname
+    expect(shouldShowPopup(undefined, rename('random'))).toBe(true)
+    expect(shouldShowPopup(undefined, rename('general'))).toBe(false)
+  })
+
+  describe('payments', () => {
+    const payment = (status: T.Chat.ChatPaymentInfo['status']) =>
+      makeChatPaymentInfo({status})
+    const message = makeMessageSendPayment({conversationIDKey, id: T.Chat.numberToMessageID(3)})
+    const mapWith = (status: T.Chat.ChatPaymentInfo['status']) =>
+      new Map([[T.Chat.numberToMessageID(3), payment(status)]])
+
+    test('completed payments get a menu', () => {
+      expect(shouldShowPopup(mapWith('completed'), message)).toBe(true)
+    })
+
+    test('unsettled payments do not', () => {
+      expect(shouldShowPopup(mapWith('claimable'), message)).toBe(false)
+      expect(shouldShowPopup(mapWith('pending'), message)).toBe(false)
+      expect(shouldShowPopup(mapWith('canceled'), message)).toBe(false)
+    })
+
+    test('a payment we know nothing about does not', () => {
+      expect(shouldShowPopup(undefined, message)).toBe(false)
+      expect(shouldShowPopup(new Map(), message)).toBe(false)
+    })
+  })
+})
+
+test('isSpecialMention knows the broadcast mentions', () => {
+  expect(isSpecialMention('here')).toBe(true)
+  expect(isSpecialMention('channel')).toBe(true)
+  expect(isSpecialMention('everyone')).toBe(true)
+  expect(isSpecialMention('testuser')).toBe(false)
+  expect(isSpecialMention('')).toBe(false)
+})
+
+test('messageAttachmentTransferStateToProgressLabel labels only in-flight transfers', () => {
+  expect(messageAttachmentTransferStateToProgressLabel('downloading')).toBe('Downloading')
+  expect(messageAttachmentTransferStateToProgressLabel('uploading')).toBe('Uploading')
+  expect(messageAttachmentTransferStateToProgressLabel('mobileSaving')).toBe('Saving...')
+  expect(messageAttachmentTransferStateToProgressLabel('remoteUploading')).toBe('waiting...')
+  expect(messageAttachmentTransferStateToProgressLabel(undefined)).toBe('')
 })

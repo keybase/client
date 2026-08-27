@@ -42,7 +42,8 @@ const SetPublicName = ({route}: Props) => {
   }
   const onChangeDeviceName = (name: string) => {
     setReadyToShowError(false)
-    setDeviceName(name.replace(Provision.badDeviceChars, ''))
+    // map smart apostrophes to ASCII first, else badDeviceChars strips them outright
+    setDeviceName(Provision.cleanDeviceName(name).replace(Provision.badDeviceChars, ''))
     debouncedSetReadyToShowError(true)
   }
 

@@ -153,7 +153,7 @@ const extractMetaFromTodoItem = (todo: T.RPCGen.HomeScreenTodo, todoExt?: T.RPCG
   }
 }
 
-const reduceRPCItemToPeopleItem = (
+export const reduceRPCItemToPeopleItem = (
   list: Array<T.People.PeopleScreenItem>,
   item: T.RPCGen.HomeScreenItem
 ): Array<T.People.PeopleScreenItem> => {
@@ -197,7 +197,8 @@ const reduceRPCItemToPeopleItem = (
         case T.RPCGen.HomeScreenPeopleNotificationType.followedMulti: {
           const multiFollow = notification.followedMulti
           const followers = multiFollow.followers
-          if (!followers) {
+          // empty is as useless as missing: maxDate([]) is Date{NaN}
+          if (!followers?.length) {
             return list
           }
           list.push(
@@ -234,7 +235,8 @@ const reduceRPCItemToPeopleItem = (
         case T.RPCGen.HomeScreenPeopleNotificationType.contactMulti: {
           const multiContact = notification.contactMulti
           const contacts = multiContact.contacts
-          if (!contacts) {
+          // empty is as useless as missing: maxDate([]) is Date{NaN}
+          if (!contacts?.length) {
             return list
           }
           list.push(
@@ -272,7 +274,7 @@ const reduceRPCItemToPeopleItem = (
   }
 }
 
-const reducePeopleScreenData = (
+export const reducePeopleScreenData = (
   data: Pick<T.RPCGen.HomeScreen, 'followSuggestions' | 'items'>,
   followers: ReadonlySet<string>,
   following: ReadonlySet<string>

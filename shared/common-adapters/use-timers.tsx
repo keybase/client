@@ -31,6 +31,9 @@ export const useTimeout = (func: () => void, timing: number): (() => void) => {
   }, [])
 
   return () => {
+    // restart rather than stack: calling this again before the previous timer
+    // fires extends it, matching the contract above
+    clearTimeout(timeoutIDRef.current)
     timeoutIDRef.current = setTimeout(timerCB, timing)
   }
 }

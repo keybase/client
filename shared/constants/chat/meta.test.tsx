@@ -2,6 +2,11 @@
 import * as T from '@/constants/types'
 import {
   getEffectiveRetentionPolicy,
+  getRowParticipants,
+  getTeams,
+  makeConversationMeta,
+  parseNotificationSettings,
+  updateMeta,
   inboxUIItemToConversationMeta,
   unverifiedInboxUIItemToConversationMeta,
 } from './meta'
@@ -204,5 +209,168 @@ describe('meta converters', () => {
       makeUnverifiedFixture({visibility: T.RPCGen.TLFVisibility.public})
     )
     expect(meta).toBeUndefined()
+  })
+})
+
+describe('updateMeta', () => {
+  const meta = (override: Partial<T.Chat.ConversationMeta>): T.Chat.ConversationMeta => ({
+    ...makeConversationMeta(),
+    ...override,
+  })
+
+  test('an older inbox version is dropped', () => {
+    const old = meta({inboxVersion: 5, snippet: 'current'})
+    const stale = meta({inboxVersion: 4, snippet: 'stale'})
+    expect(updateMeta(old, stale)).toBe(old)
+  })
+
+  test('a newer inbox version wins', () => {
+    const old = meta({inboxVersion: 5, snippet: 'current'})
+    const next = meta({inboxVersion: 6, snippet: 'newer'})
+    expect(updateMeta(old, next).snippet).toBe('newer')
+  })
+
+  test('at the same version, untrusted data never overwrites trusted data', () => {
+    const trusted = meta({inboxVersion: 5, snippet: 'trusted', trustedState: 'trusted'})
+    const untrusted = meta({inboxVersion: 5, snippet: 'untrusted', trustedState: 'untrusted'})
+    expect(updateMeta(trusted, untrusted)).toBe(trusted)
+  })
+
+  test('at the same version, becoming trusted is taken', () => {
+    const untrusted = meta({inboxVersion: 5, snippet: 'untrusted', trustedState: 'untrusted'})
+    const trusted = meta({inboxVersion: 5, snippet: 'trusted', trustedState: 'trusted'})
+    expect(updateMeta(untrusted, trusted).snippet).toBe('trusted')
+  })
+
+  test('at the same version, a bumped local version is taken', () => {
+    const old = meta({inboxLocalVersion: 1, inboxVersion: 5, snippet: 'old'})
+    const next = meta({inboxLocalVersion: 2, inboxVersion: 5, snippet: 'new'})
+    expect(updateMeta(old, next).snippet).toBe('new')
+    expect(updateMeta(old, meta({inboxLocalVersion: 1, inboxVersion: 5, snippet: 'new'}))).toBe(old)
+  })
+
+  test('deep equal fields keep their old identity so selectors can bail out', () => {
+    const old = meta({inboxVersion: 5, resetParticipants: new Set(['testuser'])})
+    const next = meta({
+      inboxVersion: 6,
+      resetParticipants: new Set(['testuser']),
+      snippet: 'changed',
+    })
+    const merged = updateMeta(old, next)
+    expect(merged.resetParticipants).toBe(old.resetParticipants)
+    expect(merged.snippet).toBe('changed')
+  })
+
+  test('fields that actually changed are not carried over', () => {
+    const old = meta({inboxVersion: 5, resetParticipants: new Set(['testuser'])})
+    const next = meta({inboxVersion: 6, resetParticipants: new Set(['testuser-mac'])})
+    expect(updateMeta(old, next).resetParticipants).toBe(next.resetParticipants)
+  })
+})
+
+describe('parseNotificationSettings', () => {
+  const settings = (
+    device: T.RPCGen.DeviceType,
+    kinds: ReadonlyArray<T.RPCChat.NotificationKind>,
+    channelWide = false
+  ): T.RPCChat.ConversationNotificationInfo => ({
+    channelWide,
+    settings: {
+      [String(device)]: Object.fromEntries(kinds.map(k => [String(k), true])),
+    },
+  })
+
+  test('defaults to never when the daemon says nothing', () => {
+    expect(parseNotificationSettings(undefined)).toEqual({
+      notificationsDesktop: 'never',
+      notificationsGlobalIgnoreMentions: false,
+      notificationsMobile: 'never',
+    })
+  })
+
+  test('generic notifications mean any activity', () => {
+    const parsed = parseNotificationSettings(
+      settings(T.RPCGen.DeviceType.desktop, [T.RPCChat.NotificationKind.generic])
+    )
+    expect(parsed.notificationsDesktop).toBe('onAnyActivity')
+    expect(parsed.notificationsMobile).toBe('never')
+  })
+
+  test('atmention only means mentions', () => {
+    const parsed = parseNotificationSettings(
+      settings(T.RPCGen.DeviceType.mobile, [T.RPCChat.NotificationKind.atmention])
+    )
+    expect(parsed.notificationsMobile).toBe('onWhenAtMentioned')
+    expect(parsed.notificationsDesktop).toBe('never')
+  })
+
+  test('generic wins over atmention', () => {
+    const parsed = parseNotificationSettings(
+      settings(T.RPCGen.DeviceType.desktop, [
+        T.RPCChat.NotificationKind.atmention,
+        T.RPCChat.NotificationKind.generic,
+      ])
+    )
+    expect(parsed.notificationsDesktop).toBe('onAnyActivity')
+  })
+
+  test('channelWide is read straight through as the ignore-mentions flag', () => {
+    expect(
+      parseNotificationSettings(settings(T.RPCGen.DeviceType.desktop, [], true))
+        .notificationsGlobalIgnoreMentions
+    ).toBe(true)
+  })
+})
+
+describe('getRowParticipants', () => {
+  const info = (name: Array<string>): T.Chat.ParticipantInfo => ({
+    all: name,
+    contactName: new Map(),
+    name,
+  })
+
+  test('filters you out of a group conversation', () => {
+    expect(getRowParticipants(info(['testuser', 'testuser-mac', 'other']), 'testuser')).toEqual([
+      'testuser-mac',
+      'other',
+    ])
+  })
+
+  test('keeps you in your own self conversation', () => {
+    expect(getRowParticipants(info(['testuser']), 'testuser')).toEqual(['testuser'])
+  })
+
+  test('leaves everyone alone when you are not in the list', () => {
+    expect(getRowParticipants(info(['testuser-mac', 'other']), 'testuser')).toEqual([
+      'testuser-mac',
+      'other',
+    ])
+  })
+})
+
+describe('getTeams', () => {
+  const metaFor = (
+    conversationIDKey: string,
+    teamname: string,
+    channelname: string
+  ): T.Chat.ConversationMeta => ({
+    ...makeConversationMeta(),
+    channelname,
+    conversationIDKey: T.Chat.stringToConversationIDKey(conversationIDKey),
+    teamname,
+  })
+
+  test('lists the team of every #general channel and nothing else', () => {
+    const metaMap: T.Chat.MetaMap = new Map([
+      [T.Chat.stringToConversationIDKey('a'), metaFor('a', 'teamone', 'general')],
+      [T.Chat.stringToConversationIDKey('b'), metaFor('b', 'teamone', 'random')],
+      [T.Chat.stringToConversationIDKey('c'), metaFor('c', 'teamtwo', 'general')],
+      [T.Chat.stringToConversationIDKey('d'), metaFor('d', '', 'general')],
+    ])
+    expect(getTeams(metaMap)).toEqual(['teamone', 'teamtwo'])
+  })
+
+  test('is empty without any conversations', () => {
+    expect(getTeams(new Map())).toEqual([])
   })
 })

@@ -181,6 +181,16 @@ export function useCommittedState<State>(createInitialState: () => State) {
   return {commitState, state, stateRef}
 }
 
+// Runs can overlap (auto-run fires on every keystroke). Each start takes a
+// generation; only the newest run may commit, so a slow older RPC can't
+// overwrite the output of the run that superseded it.
+export function useRunGeneration() {
+  const genRef = React.useRef(0)
+  const startRun = React.useCallback(() => ++genRef.current, [])
+  const isCurrentRun = React.useCallback((gen: number) => genRef.current === gen, [])
+  return {isCurrentRun, startRun}
+}
+
 export function maybeAutoRunTextOperation<State extends CommonState>(
   snapshot: State,
   run: (destinationDir?: string, snapshot?: State) => Promise<unknown>

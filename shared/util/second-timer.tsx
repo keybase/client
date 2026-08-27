@@ -48,7 +48,8 @@ class Ticker {
   }
 
   loop = () => {
-    this.refs.forEach(r => r.fn())
+    // copy: a listener can remove itself (or others) during its own tick
+    ;[...this.refs].forEach(r => r.fn())
     if (printOutstandingTimerListeners) {
       logCounter++
       if (logCounter % 10 === 0 && this.refs.length > 0) {

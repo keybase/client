@@ -179,7 +179,7 @@ const commitEditRPC = async (
   }
 }
 
-const getStaleRenameEditIDs = (
+export const getStaleRenameEditIDs = (
   edits: ReadonlyMap<T.FS.EditID, T.FS.Edit>,
   pathItems: T.FS.PathItems
 ): ReadonlySet<T.FS.EditID> => {

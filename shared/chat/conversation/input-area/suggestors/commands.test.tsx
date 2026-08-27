@@ -4,7 +4,7 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useBotCommandsUpdateState} from './commands'
+import {transformer, useBotCommandsUpdateState} from './commands'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -66,4 +66,35 @@ test('useBotCommandsUpdateState preserves settings during non-uptodate updates a
 
   expect(result.current.status).toBe(T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
   expect(result.current.settings.size).toBe(0)
+})
+
+describe('transformer', () => {
+  const tData = (text: string, start: number, end: number) => ({
+    position: {end, start},
+    text,
+  })
+
+  const command = (name: string, username?: string): T.RPCChat.ConversationCommand => ({
+    description: '',
+    hasHelpText: false,
+    name,
+    usage: '',
+    username,
+  })
+
+  test('service commands are inserted with a slash', () => {
+    expect(transformer(command('giphy'), undefined, tData('/gi', 0, 3), false).text).toBe('/giphy ')
+  })
+
+  test('bot commands are inserted with a bang', () => {
+    expect(transformer(command('roll', 'testuser-mac'), undefined, tData('!ro', 0, 3), false).text).toBe(
+      '!roll '
+    )
+  })
+
+  test('a previewed command is inserted without the trailing space', () => {
+    const {selection, text} = transformer(command('giphy'), undefined, tData('/gi', 0, 3), true)
+    expect(text).toBe('/giphy')
+    expect(selection).toEqual({end: 6, start: 6})
+  })
 })

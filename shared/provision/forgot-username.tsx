@@ -6,7 +6,7 @@ import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 
-const decodeForgotUsernameError = (error: RPCError) => {
+export const decodeForgotUsernameError = (error: RPCError) => {
   switch (error.code) {
     case T.RPCGen.StatusCode.scnotfound:
       return "We couldn't find an account with that email address. Try again?"

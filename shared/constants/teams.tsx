@@ -433,7 +433,6 @@ export const deriveCanPerform = (roleAndDetails?: T.Teams.TeamRoleAndDetails): T
     pinMessage: isWriterOrAbove,
     renameChannel: isWriterOrAbove,
     renameTeam: implicitAdmin,
-    setMemberShowcase: false,
     setMinWriterRole: isAdminOrAbove,
     setPublicityAny: isAdminOrAbove || implicitAdmin,
     setRetentionPolicy: isAdminOrAbove,
