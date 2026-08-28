@@ -1,5 +1,4 @@
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
-import type * as Devices from './devices'
 import {isWindows} from '../platform'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '@/actions/fs-gen'
@@ -16,24 +15,6 @@ export enum ProgressType {
   Pending = 'pending',
   Loaded = 'loaded',
 }
-
-export type Device = Readonly<{
-  type: Devices.DeviceType
-  name: string
-  deviceID: string
-}>
-
-export type ParticipantUnlock = Readonly<{
-  name: string
-  devices: string
-}>
-
-export type ResetMember = Readonly<{
-  username: string
-  uid: string
-}>
-
-// TODO: make structs above immutable
 
 export enum TlfType {
   Public = 'public',
@@ -113,21 +94,6 @@ export type Tlf = Readonly<{
   syncConfig: TlfSyncConfig
   teamId: RPCTypes.TeamID
   tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
-  /*
-   * Disabled because SimpleFS API doesn't have problem_set yet. We might never
-   * need these.
-   *
-   * needsRekey: boolean
-   *
-   * // Following two fields are calculated but not in-use today yet.
-   * //
-   * // waitingForParticipantUnlock is the list of participants that can unlock
-   * // this folder, when this folder needs a rekey.
-   * waitingForParticipantUnlock?: I.List<ParticipantUnlock>
-   * // youCanUnlock has a list of devices that can unlock this folder, when this
-   * // folder needs a rekey.
-   * youCanUnlock?: I.List<Device>
-   */
 }>
 
 // name -> Tlf
@@ -385,8 +351,6 @@ export type UserTlfUpdates = ReadonlyArray<TlfUpdate>
 
 export type PathItems = ReadonlyMap<Path, PathItem>
 
-export type Edits = ReadonlyMap<EditID, Edit>
-
 export enum DestinationPickerSource {
   None = 'none',
   MoveOrCopy = 'move-or-copy',
@@ -401,20 +365,6 @@ export type MoveOrCopySource = Readonly<{
 export type IncomingShareSource = Readonly<{
   type: DestinationPickerSource.IncomingShare
   source: ReadonlyArray<RPCTypes.IncomingShareItem>
-}>
-
-export type NoSource = Readonly<{
-  type: DestinationPickerSource.None
-}>
-
-export type DestinationPicker = Readonly<{
-  // id -> Path mapping. This is useful for mobile when we have multiple layers
-  // stacked on top of each other, and we need to keep track of them for the
-  // back button. We don't put this in routeProps directly as that'd
-  // complicate stuff for desktop because we don't have something like a
-  // routeToSibling.
-  destinationParentPath: ReadonlyArray<Path>
-  source: MoveOrCopySource | IncomingShareSource | NoSource
 }>
 
 export enum PathItemActionMenuView {
@@ -535,8 +485,6 @@ export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path =>
   s.startsWith('/') ? s.replace(/\/+/g, '/').replace(/\/$/, '') : undefined
 export const pathToString = (p: Path): string => (!p ? '' : p)
-export const stringToLocalPath = (s: string): LocalPath => s
-export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop() || '')
 export const getPathNameFromElems = (elems: ReadonlyArray<string>): string => {
   if (elems.length === 0) return ''
@@ -562,8 +510,6 @@ export const getVisibilityFromElems = (elems: ReadonlyArray<string>) => {
       return undefined
   }
 }
-export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
-  getPathElements(path1).slice(0, 3).join('/') === getPathElements(path2).slice(0, 3).join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === undefined) return RPCTypes.FolderType.unknown
   return RPCTypes.FolderType[v]
@@ -627,7 +573,8 @@ const localSep = isWindows ? '\\' : '/'
 export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
 export const getLocalPathName = (localPath: LocalPath): string => {
   const elems = localPath.split(localSep)
-  for (let elem = elems.pop(); elems.length; elem = elems.pop()) {
+  for (let i = elems.length - 1; i >= 0; --i) {
+    const elem = elems[i]
     if (elem) {
       return elem
     }
@@ -642,56 +589,9 @@ export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexO
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
 
-export type PathBreadcrumbItem = {
-  isTeamTlf: boolean
-  isLastItem: boolean
-  name: string
-  path: Path
-  onClick: (evt?: React.SyntheticEvent) => void
-}
-
-export type FolderRPCWithMeta = {
-  name: string
-  folderType: RPCTypes.FolderType
-  isIgnored: boolean
-  isNew: boolean
-  needsRekey: boolean
-  waitingForParticipantUnlock?: ReadonlyArray<ParticipantUnlock>
-  youCanUnlock?: ReadonlyArray<Device>
-  team_id?: string
-  reset_members?: ReadonlyArray<ResetMember>
-}
-
-export type FavoriteFolder = Readonly<{
-  name: string
-  private: boolean
-  folderType: RPCTypes.FolderType
-  problem_set?: {
-    solution_kids: {[K in string]: ReadonlyArray<string>}
-    can_self_help: boolean
-  }
-  team_id?: string
-  reset_members?: ReadonlyArray<ResetMember>
-}>
-
-export enum FileViewType {
-  Text = 'text',
-  Image = 'image',
-  Av = 'av',
-  Pdf = 'pdf',
-  Default = 'default',
-}
-
-export type ResetMetadata = Readonly<{
-  name: string
-  visibility: Visibility
-  resetParticipants: ReadonlyArray<string>
-}>
-
 export enum NonUploadPathItemBadgeType {
   Download = 'download',
 }
-export type PathItemBadge = UploadIcon | NonUploadPathItemBadgeType | number
 
 export enum ResetBannerNoOthersType {
   None = 'none',

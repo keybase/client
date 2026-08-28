@@ -3,6 +3,7 @@ import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToSettings} from '@/tests/e2e/electron/helpers/navigate'
 import {snap} from '@/tests/e2e/electron/helpers/snap'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 // Email add → delete full cycle with a fixed test address, plus view-only
 // trips into the phone and sign-out screens. The sign-out button is NEVER
@@ -93,6 +94,6 @@ test('sign out screen renders (without signing out)', async ({page}, testInfo) =
   }
   await snap(page, testInfo)
   // close the modal — never click the sign out button
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(page.getByText('Do you know your password?')).not.toBeVisible({timeout: 5_000})
 })

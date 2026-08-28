@@ -109,10 +109,26 @@ type EnterDevicenameProps = {
   waiting: boolean
 }
 
-const makeCleanDeviceName = (d: string) => {
-  let good = d.replace(Provision.badDeviceChars, '')
-  good = Provision.cleanDeviceName(good)
+export const makeCleanDeviceName = (d: string) => {
+  // map smart apostrophes to ASCII first, else badDeviceChars strips them outright
+  let good = Provision.cleanDeviceName(d)
+  good = good.replace(Provision.badDeviceChars, '')
+  // stripping a disallowed character can leave two separators touching, which
+  // badDeviceRE rejects; collapse runs so cleaning always produces a name the
+  // validator accepts
+  good = good.replace(Provision.repeatedSpacesRE, ' ')
+  good = good.replace(Provision.repeatedDeviceSeparatorsRE, '$1')
   return good
+}
+
+export const isDeviceNameDisabled = (cleanDeviceName: string) => {
+  const normalized = cleanDeviceName.replace(Provision.normalizeDeviceRE, '')
+  return (
+    normalized.length < 3 ||
+    normalized.length > 64 ||
+    !Provision.goodDeviceRE.test(cleanDeviceName) ||
+    Provision.badDeviceRE.test(cleanDeviceName)
+  )
 }
 
 const EnterDevicename = (props: EnterDevicenameProps) => {
@@ -125,12 +141,7 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
     setReadyToShowError(ready)
   }, 200)
   const cleanDeviceName = makeCleanDeviceName(deviceName)
-  const normalized = cleanDeviceName.replace(Provision.normalizeDeviceRE, '')
-  const disabled =
-    normalized.length < 3 ||
-    normalized.length > 64 ||
-    !Provision.goodDeviceRE.test(cleanDeviceName) ||
-    Provision.badDeviceRE.test(cleanDeviceName)
+  const disabled = isDeviceNameDisabled(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const _setDeviceName = (deviceName: string) => {
     setDeviceName(makeCleanDeviceName(deviceName))

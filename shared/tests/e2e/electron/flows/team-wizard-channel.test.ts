@@ -3,6 +3,7 @@ import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToTeams, openFirstTeam} from '@/tests/e2e/electron/helpers/navigate'
 import {snap} from '@/tests/e2e/electron/helpers/snap'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {closeLeftoverModals, closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 // New-team wizard screens (view + cancel — team names are permanent, NEVER
 // create) and a full channel create → delete cycle in the first owned team.
@@ -12,12 +13,7 @@ const becomesVisible = async (l: Locator, timeout = 5_000) =>
   l.waitFor({state: 'visible', timeout}).then(() => true).catch(() => false)
 
 test.beforeEach(async ({page}) => {
-  for (let i = 0; i < 3; i++) {
-    const close = page.locator('.icon-gen-iconfont-close:visible')
-    if ((await close.count()) === 0) break
-    await close.first().click()
-    await page.waitForTimeout(300)
-  }
+  await closeLeftoverModals(page)
 })
 
 test('team wizard purpose screen opens', async ({page}, testInfo) => {
@@ -26,7 +22,7 @@ test('team wizard purpose screen opens', async ({page}, testInfo) => {
   const prompt = page.getByText('What do you need a team for?')
   await expect(prompt).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(prompt).not.toBeVisible({timeout: 5_000})
 })
 
@@ -38,7 +34,7 @@ test('team wizard name screen opens', async ({page}, testInfo) => {
   await expect(nameInput).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
   // cancel the wizard — never actually create a team
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(nameInput).not.toBeVisible({timeout: 5_000})
 })
 
@@ -82,7 +78,7 @@ test('create channel modal opens', async ({page}, testInfo) => {
   const nameInput = page.getByPlaceholder('Channel name')
   await expect(nameInput).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(nameInput).not.toBeVisible({timeout: 5_000})
 })
 

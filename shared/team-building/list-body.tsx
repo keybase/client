@@ -87,7 +87,8 @@ const getFollowingState = (
   following: ReadonlySet<string>,
   userId = ''
 ): T.TB.FollowingState => {
-  if (!isKeybaseUserId(userId)) {
+  // no keybase proof at all reaches here as '', which is not a user to follow
+  if (!userId || !isKeybaseUserId(userId)) {
     return 'NoState'
   }
 
@@ -98,7 +99,7 @@ const getFollowingState = (
   return following.has(userId) ? 'Following' : 'NotFollowing'
 }
 
-const deriveSearchResults = (
+export const deriveSearchResults = (
   users: ReadonlyArray<T.TB.User> | undefined,
   teamSoFar: ReadonlySet<T.TB.User>,
   myUsername: string,
@@ -138,10 +139,10 @@ const flattenRecommendations = (recommendations: ReadonlyArray<Types.SearchRecSe
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'
 const aCharCode = alphabet.charCodeAt(0)
 const alphaSet = new Set(alphabet)
-const isAlpha = (letter: string) => alphaSet.has(letter)
-const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
+export const isAlpha = (letter: string) => alphaSet.has(letter)
+export const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 
-const createSection = (
+export const createSection = (
   label: string,
   shortcut: boolean,
   data: Array<Types.ResultData> = []
@@ -151,7 +152,7 @@ const createSection = (
   shortcut,
 })
 
-const getRecommendationsSectionIndex = (
+export const getRecommendationsSectionIndex = (
   rec: Types.SearchResult,
   recommendationIndex: number,
   numericSectionIndex: number
@@ -175,7 +176,7 @@ const getRecommendationsSectionIndex = (
 // 0 - "Recommendations" section
 // 1-26 - a-z sections
 // 27 - 0-9 section
-const sortAndSplitRecommendations = (
+export const sortAndSplitRecommendations = (
   results: DerivedResults,
   showingContactsButton: boolean
 ): Array<Types.SearchRecSection> | undefined => {
@@ -192,11 +193,13 @@ const sortAndSplitRecommendations = (
   const recommendationIndex = sections.length - 1
   const numericSectionIndex = recommendationIndex + 27
 
+  let placedCount = 0
   results.forEach(rec => {
     const sectionIndex = getRecommendationsSectionIndex(rec, recommendationIndex, numericSectionIndex)
     if (sectionIndex === undefined) {
       return
     }
+    placedCount++
 
     if (!sections[sectionIndex]) {
       const isNumericSection = sectionIndex === numericSectionIndex
@@ -208,7 +211,9 @@ const sortAndSplitRecommendations = (
     sections[sectionIndex].data.push(rec)
   })
 
-  if (results.length < 5) {
+  // count the rows we actually placed: nameless entries are dropped above, and
+  // hiding the hint because of them leaves a list with nothing in it at all
+  if (placedCount < 5) {
     sections.push(createSection('', false, [{isSearchHint: true}]))
   }
 

@@ -17,6 +17,3 @@ type RouteParams = {
 
 export type TeamBuilderRouteParams = RouteParams
 
-export type TeamBuilderProps = RouteParams & {
-  onFinishTeamBuilding?: () => void
-}

@@ -93,9 +93,14 @@ const useOrangeLine = (
 
   const loaded = useConversationThreadSelector(s => s.loaded)
 
-  // Wait for loaded so the Go service has messages in its local cache
+  // Wait for loaded so the Go service has messages in its local cache. Only once: `loaded` flips
+  // back to false on every thread reload (search jump, jump to recent), and refetching then would
+  // ask the service for the unreadline against our mount-time read position, which now sits behind
+  // messages we sent ourselves.
+  const initialOrangeLineLoadedRef = React.useRef(false)
   React.useEffect(() => {
-    if (loaded) {
+    if (loaded && !initialOrangeLineLoadedRef.current) {
+      initialOrangeLineLoadedRef.current = true
       loadOrangeLine(id, initialReadMsgID)
     }
   }, [id, loaded, initialReadMsgID])

@@ -275,6 +275,12 @@ export const makePathItemsFromDirents = ({
   rootPath: T.FS.Path
   rootPathItem: T.FS.PathItem
 }) => {
+  // A file has no children, so a listing rooted at a known file can only
+  // produce paths that cannot exist.
+  if (rootPathItem.type === T.FS.PathType.File) {
+    return new Map<T.FS.Path, T.FS.PathItem>()
+  }
+
   const childMap = entries.reduce((m, d) => {
     const [parent, child] = d.name.split('/')
     if (child) {
@@ -324,11 +330,7 @@ export const makePathItemsFromDirents = ({
   const rootPathName = T.FS.getPathName(rootPath)
   const looksLikeFileListing = entries.length === 1 && entries[0]?.name === rootPathName
   return new Map<T.FS.Path, T.FS.PathItem>([
-    ...(T.FS.getPathLevel(rootPath) > 2 &&
-    rootPathItem.type !== T.FS.PathType.File &&
-    !looksLikeFileListing
-      ? [[rootPath, rootFolder] as const]
-      : []),
+    ...(T.FS.getPathLevel(rootPath) > 2 && !looksLikeFileListing ? [[rootPath, rootFolder] as const] : []),
     ...(looksLikeFileListing ? [] : entries.map(direntToPathAndPathItem)),
   ])
 }

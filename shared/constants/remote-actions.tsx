@@ -4,7 +4,6 @@ import type HiddenString from '@/util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of remote but is handled by every reducer. NEVER dispatch this
-export const typePrefix = 'remote:'
 export const closeUnlockFolders = 'remote:closeUnlockFolders'
 export const dumpLogs = 'remote:dumpLogs'
 export const engineConnection = 'remote:engineConnection'

@@ -12,6 +12,10 @@ function UsersAddedToConversationContainer(p: OwnProps) {
   const {usernames} = p.message
   const channelname = useThreadMeta(m => m.channelname)
   const you = useCurrentUserState(s => s.username)
+  // with nobody to name this renders as "added  to #channel"
+  if (!usernames.length) {
+    return null
+  }
   let otherUsers: Array<string> | undefined
   if (usernames.includes(you)) {
     otherUsers = usernames.slice()
@@ -42,7 +46,7 @@ function UsersAddedToConversationContainer(p: OwnProps) {
 
 const maxUsernamesToShow = 1
 export const getAddedUsernames = (usernames?: ReadonlyArray<string>) => {
-  if (!usernames) return []
+  if (!usernames?.length) return []
   const diff = Math.max(0, usernames.length - maxUsernamesToShow)
   const othersStr = diff ? ` and ${diff} other${diff > 1 ? 's' : ''}` : ''
   const users = usernames.slice(0, maxUsernamesToShow)

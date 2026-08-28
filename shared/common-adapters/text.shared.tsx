@@ -4,7 +4,7 @@ import type colors from '@/styles/colors'
 import type {MeasureRef} from './measure-ref'
 
 /* eslint-disable sort-keys */
-const _allTextTypes = {
+export const allTextTypes = {
   Body: 'Body',
   BodyItalic: 'BodyItalic',
   BodyBig: 'BodyBig',
@@ -48,7 +48,7 @@ const _allTextTypes = {
   TerminalEmpty: 'TerminalEmpty',
   TerminalInline: 'TerminalInline',
 } as const
-type AllTextTypes = typeof _allTextTypes
+type AllTextTypes = typeof allTextTypes
 export type TextType = keyof AllTextTypes
 
 export const linkTypes = new Set<TextType>([
@@ -102,7 +102,6 @@ type AllowedColorNames =
 
 export type AllowedColors = Colors[AllowedColorNames] | 'inherit'
 
-export type _StylesTextCrossPlatform = CSS._CustomStyles<'color', {color?: AllowedColors}>
 export type StylesTextCrossPlatform = CSS.CustomStyles<'color', {color?: AllowedColors}>
 
 export type LineClampType = 1 | 2 | 3 | 4 | 5

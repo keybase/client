@@ -130,6 +130,33 @@ const deleteSubmitting = (prevSubmitting: ReadonlySet<T.FS.EditID>, editID: T.FS
 
 export const useFsBrowserEdits = () => React.useContext(BrowserEditContext)
 
+// A rename that collides with an existing name is recoverable: keep the edit
+// open and show the message so the user can pick another name.
+const renameConflictCodes: Array<T.RPCGen.StatusCode> = [
+  T.RPCGen.StatusCode.scsimplefsdirnotempty,
+  T.RPCGen.StatusCode.scsimplefsnameexists,
+]
+
+export const getRenameConflictError = (edit: T.FS.Edit, error: unknown): string | undefined =>
+  edit.type === T.FS.EditType.Rename &&
+  error instanceof RPCError &&
+  renameConflictCodes.includes(error.code)
+    ? error.desc || 'name exists'
+    : undefined
+
+export const pickNewFolderName = (
+  siblingNames: ReadonlySet<string>,
+  pendingEditNames: ReadonlySet<string>
+): string => {
+  let name = 'New Folder'
+  let i = 2
+  while (siblingNames.has(name) || pendingEditNames.has(name)) {
+    name = `New Folder ${i}`
+    ++i
+  }
+  return name
+}
+
 const commitEditRPC = async (
   edit: T.FS.Edit,
   editID: T.FS.EditID,
@@ -161,16 +188,9 @@ const commitEditRPC = async (
     }
     setBrowserEdits(prevEdits => deleteEdit(prevEdits, editID))
   } catch (error) {
-    if (
-      edit.type === T.FS.EditType.Rename &&
-      error instanceof RPCError &&
-      [T.RPCGen.StatusCode.scsimplefsdirnotempty, T.RPCGen.StatusCode.scsimplefsnameexists].includes(
-        error.code
-      )
-    ) {
-      setBrowserEdits(prevEdits =>
-        addOrReplaceEdit(prevEdits, editID, {...edit, error: error.desc || 'name exists'})
-      )
+    const conflict = getRenameConflictError(edit, error)
+    if (conflict !== undefined) {
+      setBrowserEdits(prevEdits => addOrReplaceEdit(prevEdits, editID, {...edit, error: conflict}))
       return
     }
     errorToActionOrThrow(error, edit.parentPath)
@@ -179,7 +199,7 @@ const commitEditRPC = async (
   }
 }
 
-const getStaleRenameEditIDs = (
+export const getStaleRenameEditIDs = (
   edits: ReadonlyMap<T.FS.EditID, T.FS.Edit>,
   pathItems: T.FS.PathItems
 ): ReadonlySet<T.FS.EditID> => {
@@ -273,14 +293,10 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
       return
     }
 
-    const existingNewFolderNames = new Set([...edits.values()].map(({name}) => name))
-
-    let newFolderName = 'New Folder'
-    let i = 2
-    while (parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName)) {
-      newFolderName = `New Folder ${i}`
-      ++i
-    }
+    const newFolderName = pickNewFolderName(
+      parentPathItem.children,
+      new Set([...edits.values()].map(({name}) => name))
+    )
 
     setBrowserEdits(prevEdits =>
       addOrReplaceEdit(prevEdits, makeEditID(), {

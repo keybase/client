@@ -93,11 +93,6 @@ export const unknownTlf = (() => {
       syncConfig: syncConfig || tlfSyncDisabled,
       teamId: teamId || '',
       tlfMtime: tlfMtime || 0,
-      /* See comment in constants/types/fs.js
-        needsRekey: false,
-        waitingForParticipantUnlock: I.List(),
-        youCanUnlock: I.List(),
-        */
     }
   }
   return makeTlf({})
@@ -280,19 +275,6 @@ export const getTlfFromPath = (tlfs: T.Immutable<T.FS.Tlfs>, path: T.FS.Path): T
     : tlfs.additionalTlfs.get(getTlfPath(path)) || unknownTlf
 }
 
-export const getTlfFromTlfs = (tlfs: T.FS.Tlfs, tlfType: T.FS.TlfType, name: string): T.FS.Tlf => {
-  switch (tlfType) {
-    case T.FS.TlfType.Private:
-      return tlfs.private.get(name) || unknownTlf
-    case T.FS.TlfType.Public:
-      return tlfs.public.get(name) || unknownTlf
-    case T.FS.TlfType.Team:
-      return tlfs.team.get(name) || unknownTlf
-    default:
-      return unknownTlf
-  }
-}
-
 export const tlfTypeAndNameToPath = (tlfType: T.FS.TlfType, name: string): T.FS.Path =>
   T.FS.stringToPath(`/keybase/${tlfType}/${name}`)
 
@@ -333,8 +315,12 @@ export const hasSpecialFileElement = (path: T.FS.Path): boolean =>
   T.FS.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
 
 // Username/User Utilities
-export const splitTlfIntoUsernames = (tlf: string): ReadonlyArray<string> =>
-  tlf.split(' ')[0]?.replace(/#/g, ',').split(',') ?? []
+export const splitTlfIntoUsernames = (tlf: string): ReadonlyArray<string> => {
+  // '' splits into [''], so a nameless tlf has to be checked before splitting or it
+  // yields one blank username
+  const userList = tlf.split(' ')[0]
+  return userList ? userList.replace(/#/g, ',').split(',') : []
+}
 
 export const getUsernamesFromPath = (path: T.FS.Path): ReadonlyArray<string> => {
   const elems = T.FS.getPathElements(path)
@@ -368,15 +354,7 @@ export const getUsernamesFromTlfName = (tlfName: string): Array<string> => {
 export const computeBadgeNumberForTlfList = (tlfList: T.Immutable<T.FS.TlfList>): number =>
   [...tlfList.values()].reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
-export const computeBadgeNumberForAll = (tlfs: T.Immutable<T.FS.Tlfs>): number =>
-  [T.FS.TlfType.Private, T.FS.TlfType.Public, T.FS.TlfType.Team]
-    .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
-    .reduce((sum, count) => sum + count, 0)
-
 export const tlfIsBadged = (tlf: T.FS.Tlf) => !tlf.isIgnored && tlf.isNew
-
-export const tlfIsStuckInConflict = (tlf: T.FS.Tlf) =>
-  tlf.conflictState.type === T.FS.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
 
 // Path Parsing
 export const parsePath = (path: T.FS.Path): T.FS.ParsedPath => {
@@ -470,7 +448,12 @@ export const canChat = (path: T.FS.Path) => {
 
 export const isTeamPath = (path: T.FS.Path): boolean => {
   const parsedPath = parsePath(path)
-  return parsedPath.kind !== T.FS.PathKind.Root && parsedPath.tlfType === T.FS.TlfType.Team
+  // The team list root itself isn't a team folder.
+  return (
+    parsedPath.kind !== T.FS.PathKind.Root &&
+    parsedPath.kind !== T.FS.PathKind.TlfList &&
+    parsedPath.tlfType === T.FS.TlfType.Team
+  )
 }
 
 export const getChatTarget = (path: T.FS.Path, me: string): string => {
@@ -479,14 +462,13 @@ export const getChatTarget = (path: T.FS.Path, me: string): string => {
     return 'team conversation'
   }
   if (parsedPath.kind === T.FS.PathKind.GroupTlf || parsedPath.kind === T.FS.PathKind.InGroupTlf) {
-    if (parsedPath.writers.length === 1 && !parsedPath.readers && parsedPath.writers[0] === me) {
+    const participants = parsedPath.writers.concat(parsedPath.readers ?? [])
+    if (participants.length === 1 && participants[0] === me) {
       return 'yourself'
     }
-    if (parsedPath.writers.length + (parsedPath.readers ? parsedPath.readers.length : 0) === 2) {
-      const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
-      if (notMe.length === 1) {
-        return notMe[0]!
-      }
+    const notMe = participants.filter(u => u !== me)
+    if (notMe.length === 1) {
+      return notMe[0]!
     }
     return 'group conversation'
   }
@@ -509,13 +491,13 @@ export const getDestinationPickerPathName = (
       )
 
 // File/Download Utilities
-export const humanReadableFileSize = (size: number) => {
+export const humanReadableFileSize = (size?: number) => {
   const kib = 1024
   const mib = kib * kib
   const gib = mib * kib
   const tib = gib * kib
 
-  if (!size) return ''
+  if (size === undefined) return ''
   if (size >= tib) return `${Math.round(size / tib)} TB`
   if (size >= gib) return `${Math.round(size / gib)} GB`
   if (size >= mib) return `${Math.round(size / mib)} MB`
@@ -736,13 +718,3 @@ export const hideOrDisableInDestinationPicker = (
   username: string,
   inDestinationPicker?: boolean
 ) => !!inDestinationPicker && tlfType === T.FS.TlfType.Public && name !== username
-
-// Other Utilities
-
-export const showIgnoreFolder = (path: T.FS.Path, username?: string): boolean => {
-  const elems = T.FS.getPathElements(path)
-  if (elems.length !== 3) {
-    return false
-  }
-  return ['public', 'private'].includes(elems[1]!) && elems[2]! !== username
-}

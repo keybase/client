@@ -5,23 +5,12 @@ import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {useDaemonState} from '@/stores/daemon'
 import {nextReloadEpoch} from './reload-epoch'
 import {createCachedResourceCache, useCachedResource} from './use-cached-resource'
+import {flush} from '@/test/flush'
 
 afterEach(() => {
   cleanup()
   useDaemonState.setState({handshakeGeneration: 0, handshakeState: 'loading'})
 })
-
-// A setState that lands outside act() - every load settling on its own - is
-// scheduled on React's MessageChannel, i.e. a macrotask. A flush built only from
-// awaited microtasks never lets the event loop reach it, so the commit lands (or
-// not) depending on how the runtime happens to interleave: use a real timer.
-const flush = async (turns = 40) => {
-  for (let i = 0; i < turns; i++) {
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
-  }
-}
 
 type Data = {v: number}
 
@@ -202,10 +191,10 @@ test('a forced reload supersedes a request that predates it', async () => {
     releases[0]?.({v: 1})
   })
   await flush()
-  act(() => {
+  await act(async () => {
     releases[1]?.({v: 2})
+    await forced
   })
-  await forced
   await flush()
   expect(view.getAllByText('v2')).toHaveLength(1)
   expect(cache.getData()).toEqual({v: 2})

@@ -3,6 +3,7 @@ import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {
+  addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
   clearOptimisticReactionsForUpdatesInThreadState,
   deleteMessagesFromThreadState,
@@ -273,4 +274,135 @@ test('clearOptimisticReactionsForUpdatesInThreadState drops overlay once server 
   expect(state.messageMap.get(ordinal)?.reactions?.get(':+1:')?.users).toEqual([
     {timestamp: 30, username: 'bob'},
   ])
+})
+
+describe('addMessagesToThreadState', () => {
+  const textAt = (
+    ord: number,
+    override?: Omit<Partial<T.Chat.MessageText>, 'text'> & {text?: string}
+  ) =>
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(ord),
+      ordinal: T.Chat.numberToOrdinal(ord),
+      outboxID: undefined,
+      ...override,
+    })
+
+  test('keeps the ordinal list sorted no matter what order messages arrive in', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(30), textAt(10), textAt(20)], {})
+    expect(state.messageOrdinals).toEqual([10, 20, 30])
+    addMessagesToThreadState(state, [textAt(15)], {})
+    expect(state.messageOrdinals).toEqual([10, 15, 20, 30])
+  })
+
+  test('re-adding the same message does not duplicate its ordinal', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10)], {})
+    const before = state.messageOrdinals
+    addMessagesToThreadState(state, [textAt(10, {text: 'edited'})], {})
+    expect(state.messageOrdinals).toEqual([10])
+    // nothing changed in the list, so the identity is kept for subscribers
+    expect(state.messageOrdinals).toBe(before)
+    expect(state.messageMap.get(T.Chat.numberToOrdinal(10))?.type).toBe('text')
+  })
+
+  test('the sent message lands on its pending ordinal so the row does not jump', () => {
+    const pendingOrdinal = T.Chat.numberToOrdinal(10.001)
+    const pending = makeTextMessage({
+      id: T.Chat.numberToMessageID(0),
+      ordinal: pendingOrdinal,
+      outboxID,
+      submitState: 'pending',
+    })
+    const state = makeThreadState([pending])
+
+    const sent = makeTextMessage({
+      id: T.Chat.numberToMessageID(300),
+      ordinal: T.Chat.numberToOrdinal(300),
+      outboxID,
+      submitState: undefined,
+    })
+    addMessagesToThreadState(state, [sent], {})
+
+    expect(state.messageOrdinals).toEqual([pendingOrdinal])
+    expect(state.messageMap.get(pendingOrdinal)?.id).toBe(300)
+    expect(state.messageMap.get(T.Chat.numberToOrdinal(300))).toBeUndefined()
+    expect(state.messageIDToOrdinal.get(T.Chat.numberToMessageID(300))).toBe(pendingOrdinal)
+  })
+
+  test('an edit arriving by message id updates the existing row in place', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10)], {})
+    addMessagesToThreadState(state, [textAt(10, {text: 'edited'})], {})
+    expect(state.messageMap.get(T.Chat.numberToOrdinal(10))?.type).toBe('text')
+    expect(
+      (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).text.stringValue()
+    ).toBe('edited')
+  })
+
+  test('deleted messages drop out of the thread entirely', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(20)], {})
+    const deleted = Message.makeMessageDeleted({
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(10),
+      ordinal: T.Chat.numberToOrdinal(10),
+    })
+    addMessagesToThreadState(state, [deleted], {})
+    expect(state.messageOrdinals).toEqual([20])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(10))).toBe(false)
+    expect(state.messageIDToOrdinal.has(T.Chat.numberToMessageID(10))).toBe(false)
+  })
+
+  test('a placeholder never clobbers a real message', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10)], {})
+    const placeholder = Message.makeMessagePlaceholder({
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(10),
+      ordinal: T.Chat.numberToOrdinal(10),
+    })
+    addMessagesToThreadState(state, [placeholder], {})
+    expect(state.messageMap.get(T.Chat.numberToOrdinal(10))?.type).toBe('text')
+  })
+
+  test('non conversation messages are stored but stay out of the thread list', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(20, {conversationMessage: false})], {})
+    expect(state.messageOrdinals).toEqual([10])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(20))).toBe(true)
+  })
+
+  test('a validated range prunes local ordinals the service did not send back', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(20), textAt(30)], {})
+    addMessagesToThreadState(state, [textAt(10), textAt(30)], {
+      validatedRange: {from: T.Chat.numberToOrdinal(10), to: T.Chat.numberToOrdinal(30)},
+    })
+    expect(state.messageOrdinals).toEqual([10, 30])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(20))).toBe(false)
+    expect(state.validatedOrdinalRange).toEqual({from: 10, to: 30})
+  })
+
+  test('a validated range leaves ordinals outside of it alone and widens the known range', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(50)], {})
+    addMessagesToThreadState(state, [textAt(50)], {
+      validatedRange: {from: T.Chat.numberToOrdinal(40), to: T.Chat.numberToOrdinal(60)},
+    })
+    expect(state.messageOrdinals).toEqual([10, 50])
+    addMessagesToThreadState(state, [textAt(10)], {
+      validatedRange: {from: T.Chat.numberToOrdinal(5), to: T.Chat.numberToOrdinal(15)},
+    })
+    expect(state.validatedOrdinalRange).toEqual({from: 5, to: 60})
+  })
+
+  test('the render type index only tracks non text messages', () => {
+    const state = makeThreadState([])
+    const attachment = makeAttachmentMessage({ordinal: T.Chat.numberToOrdinal(20), outboxID: undefined})
+    addMessagesToThreadState(state, [textAt(10), attachment], {})
+    expect(state.messageTypeMap.has(T.Chat.numberToOrdinal(10))).toBe(false)
+    expect(state.messageTypeMap.get(T.Chat.numberToOrdinal(20))).toBe('attachment:file')
+  })
 })

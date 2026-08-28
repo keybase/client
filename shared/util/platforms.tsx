@@ -31,10 +31,6 @@ export function serviceIdToIcon(service: ServiceId): IconType {
   )[service]
 }
 
-// a user id in the form of 'foo' if a keybase user
-// or 'foobar@github' if another service
-export type UserId = string
-
 export function serviceIdFromString(val: string): ServiceId {
   switch (val) {
     case 'facebook':

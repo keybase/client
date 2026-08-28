@@ -351,11 +351,12 @@ export const collapseStylesDesktop = (styles: ReadonlyArray<unknown>): object | 
   }
   if (valid.length === 1) {
     const s = valid[0]
-    if (typeof s === 'object') {
+    // an array here still has to be flattened/merged below, else callers get an array back
+    if (typeof s === 'object' && !Array.isArray(s)) {
       return s as object
     }
   }
-  const s = Object.assign({}, ...styles.flat()) as object
+  const s = Object.assign({}, ...styles.flat(Infinity)) as object
   return Object.keys(s).length ? s : undefined
 }
 

@@ -6,7 +6,7 @@ import {clientID as fsClientID, makeUUID} from './client'
 import {useKbfsDaemonStatus} from './daemon'
 import {useFsErrorActionOrThrow} from './error-state'
 
-const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIcon | undefined => {
+export const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIcon | undefined => {
   switch (badge) {
     case T.RPCGen.FilesTabBadge.awaitingUpload:
       return T.FS.UploadIcon.AwaitingToUpload

@@ -120,13 +120,20 @@ const todoTypeToConfirmLabel: {[K in T.People.TodoType]: string} = {
 const descriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
   const t = T.RPCGen.HomeScreenTodoType
   switch (todo.t) {
-    case t.legacyEmailVisibility:
-      return `Allow friends to find you using *${todo.legacyEmailVisibility}*?`
-    case t.verifyAllEmail:
-      return `Your email address *${todo.verifyAllEmail}* is unverified.`
+    // the * * is bold markup, so an absent value would render as an empty bold run
+    case t.legacyEmailVisibility: {
+      const e = todo.legacyEmailVisibility
+      return e
+        ? `Allow friends to find you using *${e}*?`
+        : 'Allow friends to find you using your email address?'
+    }
+    case t.verifyAllEmail: {
+      const e = todo.verifyAllEmail
+      return e ? `Your email address *${e}* is unverified.` : 'Your email address is unverified.'
+    }
     case t.verifyAllPhoneNumber: {
       const p = todo.verifyAllPhoneNumber
-      return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
+      return p ? `Your number *${e164ToDisplay(p)}* is unverified.` : 'Your number is unverified.'
     }
     default: {
       const type = todoTypeEnumToType[todo.t]
@@ -153,7 +160,7 @@ const extractMetaFromTodoItem = (todo: T.RPCGen.HomeScreenTodo, todoExt?: T.RPCG
   }
 }
 
-const reduceRPCItemToPeopleItem = (
+export const reduceRPCItemToPeopleItem = (
   list: Array<T.People.PeopleScreenItem>,
   item: T.RPCGen.HomeScreenItem
 ): Array<T.People.PeopleScreenItem> => {
@@ -197,7 +204,8 @@ const reduceRPCItemToPeopleItem = (
         case T.RPCGen.HomeScreenPeopleNotificationType.followedMulti: {
           const multiFollow = notification.followedMulti
           const followers = multiFollow.followers
-          if (!followers) {
+          // empty is as useless as missing: maxDate([]) is Date{NaN}
+          if (!followers?.length) {
             return list
           }
           list.push(
@@ -234,7 +242,8 @@ const reduceRPCItemToPeopleItem = (
         case T.RPCGen.HomeScreenPeopleNotificationType.contactMulti: {
           const multiContact = notification.contactMulti
           const contacts = multiContact.contacts
-          if (!contacts) {
+          // empty is as useless as missing: maxDate([]) is Date{NaN}
+          if (!contacts?.length) {
             return list
           }
           list.push(
@@ -272,7 +281,7 @@ const reduceRPCItemToPeopleItem = (
   }
 }
 
-const reducePeopleScreenData = (
+export const reducePeopleScreenData = (
   data: Pick<T.RPCGen.HomeScreen, 'followSuggestions' | 'items'>,
   followers: ReadonlySet<string>,
   following: ReadonlySet<string>

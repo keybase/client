@@ -59,7 +59,6 @@ export const DEVICE_PAGE  = 'device-page'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'
-export const SETTINGS_NAV_ITEM          = 'settings-nav-item'
 export const SETTINGS_ADVANCED          = 'settings-advanced'
 export const SETTINGS_ABOUT             = 'settings-about'
 export const SETTINGS_ARCHIVE           = 'settings-archive'
@@ -107,3 +106,7 @@ export const CRYPTO_RECIPIENTS    = 'crypto-recipients'
 
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
+// The X on a desktop modal route. Needed because a page-wide search for the
+// close iconfont also matches the unfurl dismiss icons in the conversation
+// behind the modal, which sit earlier in the DOM and are covered by the overlay.
+export const MODAL_CLOSE = 'modal-close'

@@ -18,10 +18,14 @@ type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
-const followSizeToStyle128 = {bottom: 0, left: 88, position: 'absolute'} as const
-const followSizeToStyle96 = {bottom: 0, left: 65, position: 'absolute'} as const
-const followSizeToStyle64 = {bottom: 0, left: 44, position: 'absolute'} as const
-const followSizeToStyle48 = {bottom: 0, left: 30, position: 'absolute'} as const
+// The follow badge is a fixed 21px image, so it only has a sensible placement on the
+// larger avatars. Sizes missing from this map do not support the overlay at all.
+const followSizeToStyle: Partial<Record<AvatarSize, Styles.StylesCrossPlatform>> = {
+  48: {bottom: 0, left: 30, position: 'absolute'},
+  64: {bottom: 0, left: 44, position: 'absolute'},
+  96: {bottom: 0, left: 65, position: 'absolute'},
+  128: {bottom: 0, left: 88, position: 'absolute'},
+}
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {
@@ -79,24 +83,16 @@ export const NameWithIcon = (props: NameWithIconProps) => {
   const commonHeight = size === 'big' ? 64 : isMobile ? 48 : 32
   const adapterProps = getAdapterProps(size || 'default')
 
-  const showFollowing = !props.horizontal && !props.hideFollowingOverlay && !!username
+  const avatarSize: AvatarSize = props.avatarSize || (props.horizontal ? commonHeight : adapterProps.iconSize)
+  const followIconStyle = followSizeToStyle[avatarSize]
+  const showFollowing = !props.horizontal && !props.hideFollowingOverlay && !!username && !!followIconStyle
   const following = useFollowerState(s => (showFollowing && username ? s.following.has(username) : false))
   const followsYou = useFollowerState(s => (showFollowing && username ? s.followers.has(username) : false))
-  const avatarSize: AvatarSize = props.avatarSize || (props.horizontal ? commonHeight : adapterProps.iconSize)
   const followIconType = showFollowing
     ? followsYou === following
       ? (followsYou ? ('icon-mutual-follow-21' as const) : undefined)
       : followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
     : undefined
-  const followIconStyle = avatarSize === 128
-    ? followSizeToStyle128
-    : avatarSize === 96
-      ? followSizeToStyle96
-      : avatarSize === 64
-        ? followSizeToStyle64
-        : avatarSize === 48
-          ? followSizeToStyle48
-          : undefined
 
   let avatarOrIcon: React.ReactNode
   if (isAvatar) {
@@ -113,7 +109,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
           props.avatarStyle,
         ])}
       >
-        {!!followIconType && !!followIconStyle && <ImageIcon type={followIconType} style={followIconStyle} />}
+        {!!followIconType && <ImageIcon type={followIconType} style={followIconStyle} />}
         {!!props.editableIcon && (
           <Icon
             type="iconfont-edit"

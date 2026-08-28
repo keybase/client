@@ -38,7 +38,7 @@ export const BannerParagraph = (props: BannerParagraphProps) => {
         .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
         .map((segment: _Segment, index) =>
           segment.text === ' ' ? (
-            <>&nbsp;</>
+            <React.Fragment key={index.toString()}>&nbsp;</React.Fragment>
           ) : (
             <React.Fragment key={index.toString()}>
               {segment.text.startsWith(' ') && <>&nbsp;</>}

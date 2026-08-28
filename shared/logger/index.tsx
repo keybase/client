@@ -10,15 +10,6 @@ export type LogLevel = 'Error' | 'Warn' | 'Info' | 'Action' | 'Debug'
 export type LogLine = [Timestamp, string]
 export type LogLineWithLevel = [LogLevel, Timestamp, string]
 export type LogLineWithLevelISOTimestamp = [LogLevel, ISOTimestamp, string]
-export type LogFn = (...s: Array<unknown>) => void
-
-export type Loggers = {
-  error: Logger
-  warn: Logger
-  info: Logger
-  action: Logger
-  debug: Logger
-}
 
 const localLog = isMobile ? (__DEV__ ? console.log.bind(console) : noop) : console.log.bind(console)
 const localWarn = console.warn.bind(console)

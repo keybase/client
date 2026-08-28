@@ -18,6 +18,7 @@ import {
   resetOutput,
   resetWarnings,
   useCommittedState,
+  useRunGeneration,
   useSeededCryptoInput,
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
@@ -63,13 +64,17 @@ const onSuccess = (
 
 export const useDecryptState = (params?: CryptoInputRouteParams) => {
   const {commitState, state, stateRef} = useCommittedState(() => createCommonState(params))
+  const {isCurrentRun, startRun} = useRunGeneration()
 
   const clearInput = React.useCallback(() => {
+    // a run still in flight must not commit onto the cleared state
+    startRun()
     commitState(clearInputState(stateRef.current))
-  }, [commitState, stateRef])
+  }, [commitState, startRun, stateRef])
 
   const decrypt = React.useCallback(async (destinationDir = '', _snapshot?: CommonState) => {
     const snapshot = _snapshot ?? stateRef.current
+    const gen = startRun()
     commitState(beginRun(snapshot))
     try {
       if (snapshot.inputType === 'text') {
@@ -77,6 +82,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
           {ciphertext: snapshot.input},
           C.waitingKeyCrypto
         )
+        if (!isCurrentRun(gen)) return undefined
         const next = onSuccess(
           stateRef.current,
           stateRef.current.input === snapshot.input,
@@ -93,6 +99,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
         {destinationDir, encryptedFilename: snapshot.input},
         C.waitingKeyCrypto
       )
+      if (!isCurrentRun(gen)) return undefined
       const next = onSuccess(
         stateRef.current,
         stateRef.current.input === snapshot.input,
@@ -106,10 +113,11 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
+      if (!isCurrentRun(gen)) return undefined
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'decrypt', snapshot.inputType))
       return commitState(next)
     }
-  }, [commitState, stateRef])
+  }, [commitState, isCurrentRun, startRun, stateRef])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -117,10 +125,12 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
         clearInput()
         return
       }
+      // replacing the input supersedes any run still in flight for the old input
+      startRun()
       const committed = commitState(nextInputState(stateRef.current, type, value))
       maybeAutoRunTextOperation(committed, decrypt)
     },
-    [clearInput, commitState, decrypt, stateRef]
+    [clearInput, commitState, decrypt, startRun, stateRef]
   )
 
   const openFile = React.useCallback((path: string) => {
@@ -143,7 +153,8 @@ export const DecryptInput = (_props: unknown) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.decrypt()
-      if (isMobile) {
+      // a superseded run returns undefined; only the newest run navigates
+      if (isMobile && next) {
         navigateAppend({name: Crypto.decryptOutput, params: next})
       }
     }

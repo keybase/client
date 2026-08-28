@@ -140,6 +140,9 @@ export function beginRun<State extends CommonState>(state: State): State {
 export function clearInputState<State extends CommonState>(state: State): State {
   return {
     ...resetOutput(state),
+    // callers bump the run generation alongside this, so whatever was in flight
+    // will never commit and nothing is running any more
+    inProgress: false,
     input: '',
     inputType: 'text',
     outputValid: true,
@@ -153,6 +156,8 @@ export function nextInputState<State extends CommonState>(
 ): State {
   const next = {
     ...resetWarnings(state),
+    // as in clearInputState: the superseded run cannot commit, so it is not running
+    inProgress: false,
     input: value,
     inputType: type,
     outputValid: state.input === value,
@@ -179,6 +184,16 @@ export function useCommittedState<State>(createInitialState: () => State) {
   }, [])
 
   return {commitState, state, stateRef}
+}
+
+// Runs can overlap (auto-run fires on every keystroke). Each start takes a
+// generation; only the newest run may commit, so a slow older RPC can't
+// overwrite the output of the run that superseded it.
+export function useRunGeneration() {
+  const genRef = React.useRef(0)
+  const startRun = React.useCallback(() => ++genRef.current, [])
+  const isCurrentRun = React.useCallback((gen: number) => genRef.current === gen, [])
+  return {isCurrentRun, startRun}
 }
 
 export function maybeAutoRunTextOperation<State extends CommonState>(

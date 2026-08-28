@@ -20,8 +20,6 @@ export const waitForTestID = async (id: string, timeout = 5000) =>
   // element appears, instead of idling up to half a second per wait.
   el(id).waitForExist({timeout, interval: 150, timeoutMsg: `testID "${id}" never appeared`})
 
-export const countTestID = async (id: string): Promise<number> => els(id).length
-
 // True for the iOS-16.4 "Old" sims (device name ends in "Old"), set per device
 // by the runner via KB_IOS_DEVICE.
 const isOldDevice = (): boolean => /old$/i.test(process.env['KB_IOS_DEVICE'] ?? '')

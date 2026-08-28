@@ -1,11 +1,6 @@
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 
-export type ItemTypeEnum = RPCTypes.HomeScreenItemType
-export type ItemType = keyof typeof RPCTypes.HomeScreenItemType
-
-export type ItemID = string
-
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType
 

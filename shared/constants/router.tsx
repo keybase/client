@@ -224,14 +224,6 @@ export const logState = () => {
   return {loggedIn: _isLoggedIn(rs), modals, visible}
 }
 
-export const getRouteTab = (route: Array<Route>) => {
-  return route[1]?.name
-}
-
-export const getRouteLoggedIn = (route: Array<Route>) => {
-  return route[0]?.name === 'loggedIn'
-}
-
 // if a toast is inside of a portal then its not in nav so useFocusEffect would throw,
 // and maybe other places also. Read the navigation context directly and no-op when absent.
 // Like useFocusEffect, a non-memoized fn re-runs the effect every render while focused.
@@ -1009,21 +1001,6 @@ export const appendPeopleBuilder = () => {
 
 export const appendNewChatBuilder = () => {
   navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
-}
-
-// Unless you're within the add members wizard you probably should navigate to
-// `teamAddToTeamFromWhere` first instead of opening the team builder directly.
-export const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
-  navigateAppend({
-    name: 'teamsTeamBuilder',
-    params: {
-      filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
-      goButtonLabel: 'Add',
-      namespace: 'teams',
-      teamID,
-      title: '',
-    },
-  })
 }
 
 export const appendEncryptRecipientsBuilder = () => {

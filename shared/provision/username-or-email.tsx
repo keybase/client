@@ -15,7 +15,7 @@ type OwnProps = {
   username?: string
 }
 
-const decodeInlineError = (inlineErrorCode?: number) => {
+export const decodeInlineError = (inlineErrorCode?: number) => {
   let inlineError = ''
   let inlineSignUpLink = false
   switch (inlineErrorCode) {

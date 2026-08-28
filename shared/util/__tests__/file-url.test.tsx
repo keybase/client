@@ -20,6 +20,32 @@ describe('normalizeFilePathURL', () => {
       expect(normalizeFilePathURL('file:///tmp/clip.mp4')).toBe('file:///tmp/clip.mp4')
     })
 
+    // common-adapters/video.tsx runs this exact allowlist over normalizeFilePathURL's
+    // output and renders "Invalid URL:" instead of the video when it fails, so any
+    // character encodeURI leaves alone breaks local video previews
+    const hasAllowedChars = (url: string) => /^[a-zA-Z0-9=.%:?/&_-]*$/.test(url)
+
+    it.each([
+      ["/Users/testuser/Movies/Bob's clip.mp4", "file:///Users/testuser/Movies/Bob%27s%20clip.mp4"],
+      ['/Users/testuser/Movies/clip (1).mp4', 'file:///Users/testuser/Movies/clip%20%281%29.mp4'],
+      ['/Users/testuser/Movies/wow!.mp4', 'file:///Users/testuser/Movies/wow%21.mp4'],
+      ['/Users/testuser/Movies/~tilde,semi;.mp4', 'file:///Users/testuser/Movies/%7Etilde%2Csemi%3B.mp4'],
+      ['/Users/testuser/Movies/a@b+c[d].mp4', 'file:///Users/testuser/Movies/a%40b%2Bc%5Bd%5D.mp4'],
+    ])('escapes everything the media allowlist rejects: %s', (path, expected) => {
+      const url = normalizeFilePathURL(path)
+      expect(url).toBe(expected)
+      expect(hasAllowedChars(url)).toBe(true)
+    })
+
+    it('escapes a question mark instead of leaving a query string behind', () => {
+      // '?' passes the allowlist, so leaving it raw silently truncates the url
+      expect(normalizeFilePathURL('/tmp/what?.mp4')).toBe('file:///tmp/what%3F.mp4')
+    })
+
+    it('escapes a file:// url that has no space or hash', () => {
+      expect(normalizeFilePathURL("file:///tmp/Bob's.mp4")).toBe('file:///tmp/Bob%27s.mp4')
+    })
+
     it('passes through anything that is not a local path', () => {
       expect(normalizeFilePathURL('https://keybase.io/a.png')).toBe('https://keybase.io/a.png')
       expect(normalizeFilePathURL('relative/a.png')).toBe('relative/a.png')

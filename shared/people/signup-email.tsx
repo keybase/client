@@ -7,14 +7,14 @@ const notify = () => {
   listeners.forEach(listener => listener())
 }
 
-const subscribe = (listener: () => void) => {
+export const subscribeToSignupEmail = (listener: () => void) => {
   listeners.add(listener)
   return () => {
     listeners.delete(listener)
   }
 }
 
-export const useSignupEmail = () => React.useSyncExternalStore(subscribe, () => signupEmail)
+export const useSignupEmail = () => React.useSyncExternalStore(subscribeToSignupEmail, () => signupEmail)
 
 export const getSignupEmail = () => signupEmail
 

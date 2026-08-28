@@ -131,13 +131,6 @@ export const persistRoute = (clear: boolean, immediate: boolean, isStartupLoaded
   }
 }
 
-export const setOpenAtLoginInPlatform = async (openAtLogin: boolean) => {
-  if (isMobile) {
-    return
-  }
-  await KB2.functions.setOpenAtLogin?.(openAtLogin)
-}
-
 export const showMain = () => {
   if (isMobile) {
     return

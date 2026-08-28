@@ -30,8 +30,6 @@ const anotherRoleChangeNotSub = {
   reader: msgOnlyOwnersCanChangeOwnerRole,
   writer: msgOnlyOwnersCanChangeOwnerRole,
 }
-const notOwnerSub = {owner: msgSubteamsCannotHaveOwners}
-const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
 const noRemoveLastOwner = {
   admin: `You can't demote a team's last owner`,
   reader: `You can't demote a team's last owner`,
@@ -115,17 +113,7 @@ export const getRolePickerDisabledReasons = ({
     return emptyDisabledReasons
   }
 
-  if (yourRole !== 'owner' && yourRole !== 'admin') {
-    return isSubteam(teamname) ? roleChangeSub : roleChangeNotSub
-  }
-
-  if (theyAreOwner && yourRole !== 'owner') {
-    return isSubteam(teamname) ? anotherRoleChangeSub : anotherRoleChangeNotSub
-  }
-
-  if (yourRole !== 'owner') {
-    return isSubteam(teamname) ? notOwnerSub : notOwnerNotSub
-  }
-
-  return emptyDisabledReasons
+  // without the manage-members permission the server refuses every role change, so
+  // no role is selectable regardless of the role you happen to hold in the team
+  return isSubteam(teamname) ? roleChangeSub : roleChangeNotSub
 }

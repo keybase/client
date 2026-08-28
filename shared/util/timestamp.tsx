@@ -8,11 +8,13 @@ const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
 // getting this time is very slow on android so we cache it, it never grows large
 const chatTimeCache = new Map<number, string>()
 export const clearChatTimeCache = () => chatTimeCache.clear()
-const cacheData = dateFns.startOfDay(new Date())
+let cacheDay = dateFns.startOfDay(new Date())
 export function formatTimeForChat(time: number): string {
   // if the date changes, clear our cache as the 'yesterday' stuff is actually sensitive to this
-  if (!dateFns.isToday(cacheData)) {
+  if (!dateFns.isToday(cacheDay)) {
     chatTimeCache.clear()
+    // and move the cache to the new day, else every later call clears it again
+    cacheDay = dateFns.startOfDay(new Date())
   }
   let t = chatTimeCache.get(time)
   if (t !== undefined) return t
@@ -81,15 +83,20 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
   }
 }
 
+// every token date-fns can hand us needs an entry in both maps, a missing one
+// formats with undefined and throws
 const noUpperCaseFirst = {
   lastWeek: "EEE 'at' p",
+  nextWeek: "EEE 'at' p",
   today: "'today at' p",
   tomorrow: "'tomorrow at' p",
   yesterday: "'yesterday at' p",
 }
 const upperCaseFirst = {
   lastWeek: "EEE 'at' p",
+  nextWeek: "EEE 'at' p",
   today: "'Today at' p",
+  tomorrow: "'Tomorrow at' p",
   yesterday: "'Yesterday at' p",
 }
 
@@ -113,28 +120,41 @@ export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
   })
 
 export const formatDuration = (duration: number): string => {
-  if (!duration) {
+  if (duration <= 0) {
     return ''
   }
 
-  const d = new Date(duration)
-  return d.getUTCHours()
-    ? `${d.getUTCHours()} hr`
-    : d.getUTCMinutes()
-      ? `${d.getUTCMinutes()} min`
-      : `${d.getUTCSeconds()} s`
+  // durations here run past a day, so this must not wrap at 24h
+  const seconds = Math.floor(duration / 1000)
+  const days = Math.floor(seconds / 86400)
+  if (days) {
+    return `${days} day${days === 1 ? '' : 's'}`
+  }
+  const hours = Math.floor(seconds / 3600)
+  if (hours) {
+    return `${hours} hr`
+  }
+  const minutes = Math.floor(seconds / 60)
+  if (minutes) {
+    return `${minutes} min`
+  }
+  return `${seconds} s`
 }
 
+// duration is an elapsed span, not a wall-clock time: dateFns.format would resolve
+// it against the local timezone, so a half-hour-offset zone (India, Nepal, Adelaide,
+// Newfoundland) read 30s as "30:30". Compute from the span itself.
 export const formatAudioRecordDuration = (duration: number): string => {
-  return dateFns.format(duration, 'mm:ss')
+  const total = Math.max(0, Math.floor(duration / 1000))
+  const minutes = Math.floor(total / 60)
+  const seconds = total % 60
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
 export const formatDurationForAutoreset = (duration: number): string => {
-  if (!duration) {
-    return ''
-  }
-  if (duration < 0) {
-    // This shouldn't happen but can help us find bugs more easily.
+  // callers embed this in "will reset in ${x}.", so there is no duration for which
+  // an empty string is a valid answer; zero and negative both mean nothing is left
+  if (duration <= 0) {
     return 'no time'
   }
   // This +1 / -1 is so that the timer says "7 days" when there are between 6 and 7 days left, "1 second" between 0 and 1 seconds, and so on.
@@ -143,10 +163,9 @@ export const formatDurationForAutoreset = (duration: number): string => {
 }
 
 export const formatDurationForLocation = (duration: number): string => {
-  if (!duration) {
-    return ''
-  }
-  return dateFns.formatDistanceStrict(0, duration, {
+  // callers embed this in "updated ${x} ago", so an empty string is never a valid
+  // answer; clamp instead so zero and negative spans both read as "0s"
+  return dateFns.formatDistanceStrict(0, Math.max(0, duration), {
     locale: {
       ...enUS,
       formatDistance: (token: Token, count: number, _) => formatDistanceAbbr(token, count),

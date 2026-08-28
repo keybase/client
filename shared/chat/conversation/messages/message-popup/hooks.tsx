@@ -197,7 +197,9 @@ const useItemsForMessage = (p: {
   }
   const onExplodeNow = canExplodeNow ? _onExplodeNow : undefined
   const canAdminDelete = yourOperations.deleteOtherMessages
-  const isDeleteable = yourMessage || canAdminDelete
+  const canModerate = yourMessage || canAdminDelete
+  // mirror the explode-now path: the server decides what is deletable at all
+  const isDeleteable = canModerate && message.isDeleteable
   const onDelete = isDeleteable && !onExplodeNow ? _onDelete : undefined
   const itemDelete =
     onDelete && !onExplodeNow && !message.exploded
@@ -227,7 +229,8 @@ const useItemsForMessage = (p: {
     C.Router2.navigateAppend({name: 'teamReallyRemoveMember', params: {members: [author], teamID}})
   }
   const authorInTeam = teamMembers.size ? teamMembers.has(author) : true
-  const onKick = isDeleteable && !!teamID && !yourMessage && authorInTeam ? _onKick : undefined
+  // kicking is about the author, not the message, so it does not depend on isDeleteable
+  const onKick = canModerate && !!teamID && !yourMessage && authorInTeam ? _onKick : undefined
   const itemKick = onKick
     ? ([
         {

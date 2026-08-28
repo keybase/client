@@ -17,7 +17,7 @@ import {useThreadSearchRoute} from './thread-search-route'
 import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
 
 type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
-type CommonProps = OwnProps & {
+export type CommonProps = OwnProps & {
   conversationIDKey: T.Chat.ConversationIDKey
   initialQuery: string
 }
@@ -97,7 +97,7 @@ const runSearchInbox = async (p: {
   }
 }
 
-const useCommon = (ownProps: CommonProps) => {
+export const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
   const toggleThreadSearch = useConversationThreadToggleSearch()
   const {centerOnMessage, clearCenter} = useConversationCenterActions()
@@ -118,6 +118,11 @@ const useCommon = (ownProps: CommonProps) => {
     timestamp: h.timestamp,
   }))
   const [selectedIndex, setSelectedIndex] = React.useState(0)
+  // an inbox hit replaces the whole list, so a shorter replacement can leave the
+  // index past the end and the counter reading "8 of 2" until the user moves
+  if (selectedIndex >= numHits && selectedIndex !== 0) {
+    setSelectedIndex(numHits === 0 ? 0 : numHits - 1)
+  }
   const [text, setText] = React.useState(initialQuery)
   const [lastSearch, setLastSearch] = React.useState(initialQuery)
 
@@ -230,23 +235,38 @@ const useCommon = (ownProps: CommonProps) => {
     runThreadSearch(text)
   }
 
-  const [selectResult] = React.useState(() => (index: number) => {
+  // returns whether the index was taken; the index feeds the `n of m` counter and
+  // the up/down walk, so never record one we can't center on
+  const [selectHit] = React.useState(() => (index: number) => {
     const message = hitsRef.current[index]
-    if (message?.id) {
-      centerOnMessage(message.id, 'always')
+    if (!message?.id) {
+      return false
     }
+    centerOnMessage(message.id, 'always')
     setSelectedIndex(index)
+    return true
   })
 
-  const onUp = () => {
+  // walk in `delta`'s direction until we land on a hit we can center on, so a hit
+  // we can't center on can never wedge the walk in place
+  const step = (delta: 1 | -1) => {
     if (!numHits) {
       return
     }
-    if (selectedIndex >= numHits - 1) {
-      selectResult(0)
-      return
+    for (let moved = 1; moved <= numHits; ++moved) {
+      const index = (((selectedIndex + delta * moved) % numHits) + numHits) % numHits
+      if (selectHit(index)) {
+        return
+      }
     }
-    selectResult(selectedIndex + 1)
+  }
+
+  const selectResult = (index: number) => {
+    selectHit(index)
+  }
+
+  const onUp = () => {
+    step(1)
   }
 
   const onEnter = () => {
@@ -258,14 +278,7 @@ const useCommon = (ownProps: CommonProps) => {
   }
 
   const onDown = () => {
-    if (!numHits) {
-      return
-    }
-    if (selectedIndex <= 0) {
-      selectResult(numHits - 1)
-      return
-    }
-    selectResult(selectedIndex - 1)
+    step(-1)
   }
 
   const onChangedText = (newText: string) => {
@@ -298,11 +311,11 @@ const useCommon = (ownProps: CommonProps) => {
   React.useEffect(() => {
     if (hasHits && !hadHitsRef.current) {
       hadHitsRef.current = true
-      selectResult(0)
+      selectHit(0)
     } else if (!hasHits) {
       hadHitsRef.current = false
     }
-  }, [hasHits, selectResult])
+  }, [hasHits, selectHit])
 
   return {
     conversationIDKey,
@@ -338,7 +351,7 @@ const useThreadSearchCommonProps = (p: OwnProps): CommonProps => {
   return {...p, conversationIDKey, initialQuery}
 }
 
-const threadSearchKey = (p: CommonProps) => `${p.conversationIDKey}:${p.initialQuery}`
+export const threadSearchKey = (p: CommonProps) => `${p.conversationIDKey}:${p.initialQuery}`
 
 const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
   const commonProps = useThreadSearchCommonProps(p)

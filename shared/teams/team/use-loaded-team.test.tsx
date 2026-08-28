@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {expect, jest, test} from '@jest/globals'
-import {act, render} from '@testing-library/react'
+import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
+import {act, cleanup, render} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
@@ -9,6 +9,7 @@ import {resetAllStores} from '@/util/zustand'
 import {LoadedTeamsListProvider} from '../use-teams-list'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {LoadedTeamProvider, useLoadedTeam} from './use-loaded-team'
+import {flush} from '@/test/flush'
 
 const teamID = 'tid1' as T.Teams.TeamID
 
@@ -56,6 +57,20 @@ jest.spyOn(T.RPCGen, 'teamsGetTeamRoleMapRpcPromise').mockImplementation(async (
 })
 
 let bodyRenders = 0
+
+// these counters and the module-scope resource caches both outlive a single
+// test, so without a reset each test sees whatever the previous one left behind
+beforeEach(() => {
+  annotatedCalls = 0
+  listCalls = 0
+  bodyRenders = 0
+  resetAllStores()
+})
+
+afterEach(() => {
+  cleanup()
+})
+
 const Body = () => {
   // counts real renders: compiling this away is exactly what the test measures
   'use no memo'
@@ -91,11 +106,7 @@ test('team screen loads getAnnotatedTeam once', async () => {
       </LoadedTeamProvider>
     </LoadedTeamsListProvider>
   )
-  for (let i = 0; i < 60; i++) {
-    await act(async () => {
-      await Promise.resolve()
-    })
-  }
+  await flush()
   expect(listCalls).toBe(1)
   expect(bodyRenders).toBeLessThan(10)
   expect(annotatedCalls).toBe(1)
@@ -115,11 +126,7 @@ test('signing out drops the shared team caches', async () => {
       </LoadedTeamProvider>
     </LoadedTeamsListProvider>
   )
-  for (let i = 0; i < 60; i++) {
-    await act(async () => {
-      await Promise.resolve()
-    })
-  }
+  await flush()
   const callsWhileSignedIn = annotatedCalls
   expect(callsWhileSignedIn).toBeGreaterThan(0)
 
@@ -139,10 +146,6 @@ test('signing out drops the shared team caches', async () => {
       </LoadedTeamProvider>
     </LoadedTeamsListProvider>
   )
-  for (let i = 0; i < 60; i++) {
-    await act(async () => {
-      await Promise.resolve()
-    })
-  }
+  await flush()
   expect(annotatedCalls).toBe(callsWhileSignedIn + 1)
 })

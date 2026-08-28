@@ -1,29 +1,3 @@
-export type ProvablePlatformsType =
-  | 'dns'
-  | 'facebook'
-  | 'github'
-  | 'hackernews'
-  | 'http'
-  | 'https'
-  | 'reddit'
-  | 'rooter'
-  | 'twitter'
-  | 'web'
-
-export const ProvablePlatforms: ReadonlyArray<ProvablePlatformsType> = [
-  'dns',
-  'facebook',
-  'github',
-  'hackernews',
-  'http',
-  'https',
-  'reddit',
-  'rooter',
-  'twitter',
-  'web',
-  ...(__DEV__ ? ['rooter' as const] : []),
-]
-
 export type PlatformsExpandedType =
   | 'btc'
   | 'dns'

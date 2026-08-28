@@ -203,6 +203,11 @@ export const updateTrackerDetailsResult = (
       `Some of ${details.username}'s proofs have changed since you last followed them.`)
   return {
     ...details,
+    // A reset is reported mid-identify, so the result that follows it is usually
+    // 'valid' - the proofs are fine, the account behind them is new. The reason
+    // deliberately outlives that result so the reset is still shown; clearing
+    // resetBrokeTrack is what lets the *next* identify wipe it (identify-session
+    // clears the reason on start unless resetBrokeTrack is set).
     reason:
       !details.resetBrokeTrack || details.reason.length === 0
         ? newReason || details.reason

@@ -21,6 +21,7 @@ import {
   resetOutput,
   resetWarnings,
   useCommittedState,
+  useRunGeneration,
   useSeededCryptoInput,
 } from './helpers'
 import {RPCError} from '@/util/errors'
@@ -184,6 +185,7 @@ const nextOptionState = (
 
 export const useEncryptScreenState = (params?: EncryptRouteParams) => {
   const {commitState, state, stateRef} = useCommittedState(() => createEncryptState(params))
+  const {isCurrentRun, startRun} = useRunGeneration()
   const handledTeamBuilderNonceRef = React.useRef<string | undefined>(undefined)
 
   const runEncrypt = React.useCallback(async (destinationDir = '', _snapshot?: EncryptState) => {
@@ -196,6 +198,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       signed,
     }
 
+    const gen = startRun()
     commitState(beginRun(snapshot))
     try {
       let output = ''
@@ -223,6 +226,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       if (usedUnresolvedSBS) {
         warningMessage = getWarningMessageForSBS(unresolvedSBSAssertion)
       }
+      if (!isCurrentRun(gen)) return undefined
       const next = onSuccess(
         stateRef.current,
         stateRef.current.input === snapshot.input,
@@ -236,14 +240,17 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
+      if (!isCurrentRun(gen)) return undefined
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'encrypt', snapshot.inputType))
       return commitState(next)
     }
-  }, [commitState, stateRef])
+  }, [commitState, isCurrentRun, startRun, stateRef])
 
   const clearInput = React.useCallback(() => {
+    // a run still in flight must not commit onto the cleared state
+    startRun()
     commitState(clearInputState(stateRef.current))
-  }, [commitState, stateRef])
+  }, [commitState, startRun, stateRef])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -251,10 +258,12 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
         clearInput()
         return
       }
+      // replacing the input supersedes any run still in flight for the old input
+      startRun()
       const committed = commitState(nextInputState(stateRef.current, type, value))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [clearInput, commitState, runEncrypt, stateRef]
+    [clearInput, commitState, runEncrypt, startRun, stateRef]
   )
 
   const openFile = React.useCallback((path: string) => {
@@ -266,13 +275,17 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
 
   const setRecipients = React.useCallback(
     (recipients: ReadonlyArray<string>, hasSBS: boolean) => {
+      // the ciphertext is built for a recipient set, so changing it supersedes the run
+      startRun()
       const committed = commitState(nextRecipientState(stateRef.current, recipients, hasSBS))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [commitState, runEncrypt, stateRef]
+    [commitState, runEncrypt, startRun, stateRef]
   )
 
   const clearRecipients = React.useCallback(() => {
+    // as in setRecipients: output for the old recipients must not land
+    startRun()
     const next = resetOutput(stateRef.current)
     commitState({
       ...next,
@@ -287,14 +300,16 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       },
       recipients: [],
     })
-  }, [commitState, stateRef])
+  }, [commitState, startRun, stateRef])
 
   const setEncryptOptions = React.useCallback(
     (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => {
+      // sign/include-self change what gets encrypted, so supersede the run
+      startRun()
       const committed = commitState(nextOptionState(stateRef.current, options, hideIncludeSelf))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [commitState, runEncrypt, stateRef]
+    [commitState, runEncrypt, startRun, stateRef]
   )
 
   const saveOutputAsText = React.useCallback(async () => {
@@ -459,7 +474,8 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.runEncrypt()
-      if (isMobile) {
+      // a superseded run returns undefined; only the newest run navigates
+      if (isMobile && next) {
         navigateAppend({name: Crypto.encryptOutput, params: encryptToOutputParams(next)})
       }
     }

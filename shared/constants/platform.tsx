@@ -3,7 +3,6 @@ import KB2 from '@/util/electron'
 // Native-only modules — nulled to empty on desktop (native-only-modules.js), so the
 // isMobile-guarded uses below are dead code there.
 import * as RNKBmod from 'react-native-kb'
-import ExpoConstants from 'expo-constants'
 import {Platform as RNPlatform, Dimensions as RNDimensions} from 'react-native'
 
 // ─── Mobile runtime imports ────────────────────────────────────────────────
@@ -27,11 +26,6 @@ export const isWindows: boolean = isMobile ? false : KB2.constants.platform === 
 export const isLinux: boolean = isMobile ? false : KB2.constants.platform === 'linux'
 export const isMac: boolean = isDarwin && !isIOS
 
-export const getModKey = (e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
-  if (isMobile) return false
-  return isMac ? e.metaKey : e.ctrlKey
-}
-
 export const defaultUseNativeFrame: boolean = isMobile ? true : isDarwin || isLinux
 // For storyshots, we only want to test macOS
 export const fileUIName: string = isMobile
@@ -42,12 +36,6 @@ export const fileUIName: string = isMobile
       ? 'Explorer'
       : 'File Explorer'
 export const shortcutSymbol: string = isMobile ? '' : isDarwin ? '⌘' : 'Ctrl-'
-export const realDeviceName: string = isMobile
-  ? (() => {
-      const Constants = ExpoConstants as unknown as {deviceName?: string | null}
-      return Constants.deviceName ?? ''
-    })()
-  : ''
 
 // ─── Mobile-only exports ──────────────────────────────────────────────────
 
@@ -80,7 +68,6 @@ export const isAndroidNewerThanN: boolean = isAndroid && _mobileOsVersionNumber 
 // Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid: boolean = isMobile ? _getRNKB().androidIsDeviceSecure : false
 export const androidIsTestDevice: boolean = isMobile ? _getRNKB().androidIsTestDevice : false
-export const isNewArch: boolean = isMobile ? !!global.__turboModuleProxy : false
 
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
@@ -99,8 +86,9 @@ export const dokanPath: string = isMobile ? '' : KB2.constants.dokanPath
 export const windowsBinPath: string = isMobile ? '' : KB2.constants.windowsBinPath
 export const pathSep: string = isMobile ? '/' : KB2.constants.pathSep
 
-const _join = (...args: Array<string>): string =>
-  [...args].join(pathSep).replace(new RegExp(`${pathSep}+`, 'g'), pathSep)
+// pathSep is a backslash on windows, which is a regex escape, so it can't go in a pattern raw
+const _sepRun = new RegExp(`${pathSep.replaceAll(/[\\^$*+?.()|[\]{}]/g, '\\$&')}+`, 'g')
+const _join = (...args: Array<string>): string => [...args].join(pathSep).replace(_sepRun, pathSep)
 const _joinAddSep = (...args: Array<string>): string => _join(...args) + pathSep
 
 const socketName = 'keybased.sock'
@@ -197,8 +185,6 @@ export const serverConfigFileName: string = isMobile
   ? `${_getRNKB().fsCacheDir}/Keybase/keybase.app.serverConfig`
   : _desktopPaths!.serverConfigFileName
 
-// Native-specific dir exports
-export const logFileDir: string = isMobile ? `${_getRNKB().fsCacheDir}/Keybase` : ''
 // Empty string means let the service figure out the right directory.
 export const pprofDir: string = isMobile ? `${_getRNKB().fsCacheDir}/Keybase` : ''
 export const fsCacheDir: string = isMobile ? _getRNKB().fsCacheDir : ''

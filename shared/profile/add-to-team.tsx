@@ -9,7 +9,7 @@ import logger from '@/logger'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 
-const getOwnerDisabledReason = (
+export const getOwnerDisabledReason = (
   selected: Set<string>,
   teamNameToRole: Map<string, T.Teams.MaybeTeamRoleType>
 ) => {
@@ -25,7 +25,7 @@ const getOwnerDisabledReason = (
     .find(v => !!v)
 }
 
-const makeAddUserToTeamsResult = (
+export const makeAddUserToTeamsResult = (
   user: string,
   teamsAddedTo: ReadonlyArray<string>,
   errorAddingTo: ReadonlyArray<string>

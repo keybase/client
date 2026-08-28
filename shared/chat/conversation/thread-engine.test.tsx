@@ -106,6 +106,11 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   resetAllStores()
+  // config's resetState deliberately preserves the fields the daemon pushes once
+  // per process (chatDeletableByDeleteHistory among them), so resetAllStores
+  // cannot undo a test that set one - clear it explicitly or the next test
+  // inherits it.
+  useConfigState.setState({chatDeletableByDeleteHistory: undefined})
 })
 
 describe('applyMessagesUpdatedToThread', () => {

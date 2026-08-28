@@ -1,9 +1,17 @@
-/* global module, require */
+/* global module, process, require */
+// Pin the clock's zone so a timezone-dependent regression fails everywhere
+// rather than only on a machine that happens to sit in the wrong offset. Chatham
+// is deliberately hostile: a :45 offset, DST, and the far side of the date line,
+// so anything that assumes whole hours, a stable offset, or that local and UTC
+// share a calendar day breaks here. Set before any test module can touch Date -
+// workers inherit it from this process.
+process.env.TZ = 'Pacific/Chatham'
 
 // Native-only packages stubbed in desktop/test environments.
 // The same list is used by webpack (ignored-modules.js → null-module.js).
 // Add new native packages to native-only-modules.js, not here.
 const nativeOnlyModules = require('./native-only-modules')
+
 const nativeModuleStub = '<rootDir>/test/mocks/native-module.js'
 const nativeModuleMapper = Object.fromEntries(
   nativeOnlyModules.map(name => [`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, nativeModuleStub])
@@ -34,6 +42,7 @@ module.exports = {
     '^react-native$': '<rootDir>/test/mocks/react-native.js',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/test/fail-on-console.js'],
   testEnvironment: 'node',
   testMatch: ['<rootDir>/**/*.test.ts', '<rootDir>/**/*.test.tsx'],
   testPathIgnorePatterns: [

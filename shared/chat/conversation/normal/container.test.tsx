@@ -289,6 +289,38 @@ test('initial load uses the read message ID from mount even if meta changes befo
   expectOrangeLine(T.Chat.numberToOrdinal(15))
 })
 
+test('a thread reload does not refetch the orange line against the stale mount read position', async () => {
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(0),
+  })
+  mockMeta = makeMeta(convID, 2606, 2606)
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expectUnreadlineRpcReadMsgID(unreadlineRpc, 2606)
+  expectOrangeLine(noOrangeLine)
+
+  // you send a message; searching clears the thread and jumping to recent reloads it
+  mockMeta = makeMeta(convID, 2607, 2607)
+  unreadlineRpc.mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(2607)})
+  act(() => {
+    mockLoaded = false
+    useShellState.setState({mobileAppState: 'background'})
+  })
+  await flushOrangeLine()
+  act(() => {
+    mockLoaded = true
+    useShellState.setState({mobileAppState: 'active'})
+  })
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expectOrangeLine(noOrangeLine)
+})
+
 test('negative read message IDs are clamped before fetching the orange line', async () => {
   const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
     offline: false,

@@ -1,11 +1,17 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {
+  cloneDetails,
+  identifyResultToDetailsState,
   makeDetails,
+  noAssertion,
+  rpcAssertionToAssertion,
   updateTrackerDetailsBlocked,
   updateTrackerDetailsReset,
   updateTrackerDetailsResult,
   updateTrackerDetailsRow,
+  updateTrackerDetailsSummary,
+  updateTrackerDetailsUserCard,
 } from './model'
 
 const makeIdentifyRow = (
@@ -46,6 +52,8 @@ test('updateTrackerDetailsResult applies the default broken-track reason', () =>
   expect(next.resetBrokeTrack).toBe(false)
 })
 
+// the reset warning has to survive the 'valid' result that follows it: the reset
+// is reported during the identify whose proofs then come back fine
 test('updateTrackerDetailsReset marks the reset and a later valid result clears only the flag', () => {
   const reset = updateTrackerDetailsReset(makeDetails('alice'))
   const next = updateTrackerDetailsResult(reset, 'valid')
@@ -116,4 +124,134 @@ test('updateTrackerDetailsBlocked removes blocked followers and updates the coun
   expect(prev.followers).toEqual(new Set(['bob', 'carol']))
   expect(next.followers).toEqual(new Set(['carol']))
   expect(next.followersCount).toBe(1)
+})
+
+test('identifyResultToDetailsState maps every rpc result, treating canceled as an error', () => {
+  expect(identifyResultToDetailsState(T.RPCGen.Identify3ResultType.ok)).toBe('valid')
+  expect(identifyResultToDetailsState(T.RPCGen.Identify3ResultType.broken)).toBe('broken')
+  expect(identifyResultToDetailsState(T.RPCGen.Identify3ResultType.needsUpgrade)).toBe('needsUpgrade')
+  expect(identifyResultToDetailsState(T.RPCGen.Identify3ResultType.canceled)).toBe('error')
+})
+
+test('rpcAssertionToAssertion keys on type:value and normalizes the nullable icon lists', () => {
+  const assertion = rpcAssertionToAssertion(
+    makeIdentifyRow({
+      kid: undefined,
+      metas: [{color: T.RPCGen.Identify3RowColor.orange, label: 'PENDING'}],
+      siteIcon: undefined,
+      siteIconDarkmode: undefined,
+      siteIconFull: undefined,
+      siteIconFullDarkmode: undefined,
+      state: T.RPCGen.Identify3RowState.revoked,
+    })
+  )
+
+  expect(assertion).toEqual(
+    expect.objectContaining({
+      assertionKey: 'twitter:alice',
+      color: 'green',
+      kid: '',
+      metas: [{color: 'orange', label: 'PENDING'}],
+      siteIcon: [],
+      siteIconDarkmode: [],
+      siteIconFull: [],
+      siteIconFullDarkmode: [],
+      state: 'revoked',
+      timestamp: 123,
+      type: 'twitter',
+      value: 'alice',
+    })
+  )
+})
+
+test('updateTrackerDetailsRow replaces an assertion when the same proof updates', () => {
+  const first = updateTrackerDetailsRow(
+    makeDetails('alice'),
+    makeIdentifyRow({state: T.RPCGen.Identify3RowState.checking})
+  )
+  const second = updateTrackerDetailsRow(
+    first,
+    makeIdentifyRow({state: T.RPCGen.Identify3RowState.valid})
+  )
+
+  expect(first.assertions?.get('twitter:alice')?.state).toBe('checking')
+  expect(second.assertions?.size).toBe(1)
+  expect(second.assertions?.get('twitter:alice')?.state).toBe('valid')
+})
+
+test('updateTrackerDetailsUserCard copies the card fields and flattens team showcase', () => {
+  const next = updateTrackerDetailsUserCard(makeDetails('alice'), {
+    bio: 'hi there',
+    blocked: true,
+    fullName: 'Alice A',
+    hidFromFollowers: true,
+    location: 'Anywhere',
+    stellarHidden: true,
+    teamShowcase: [
+      {description: 'a team', fqName: 'keybase.friends', numMembers: 3, open: true, publicAdmins: ['bob']},
+      {description: '', fqName: 'other', numMembers: 1, open: false, publicAdmins: undefined},
+    ],
+    unverifiedNumFollowers: 7,
+    unverifiedNumFollowing: 9,
+  } as never)
+
+  expect(next).toEqual(
+    expect.objectContaining({
+      bio: 'hi there',
+      blocked: true,
+      followersCount: 7,
+      followingCount: 9,
+      fullname: 'Alice A',
+      hidFromFollowers: true,
+      location: 'Anywhere',
+      stellarHidden: true,
+    })
+  )
+  expect(next.teamShowcase).toEqual([
+    {description: 'a team', isOpen: true, membersCount: 3, name: 'keybase.friends', publicAdmins: ['bob']},
+    {description: '', isOpen: false, membersCount: 1, name: 'other', publicAdmins: []},
+  ])
+})
+
+test('updateTrackerDetailsSummary records how many proofs to expect', () => {
+  const prev = makeDetails('alice')
+  const next = updateTrackerDetailsSummary(prev, {guiID: 'gui-id', numProofsToCheck: 4})
+
+  expect(next.numAssertionsExpected).toBe(4)
+  expect(prev.numAssertionsExpected).toBeUndefined()
+})
+
+test('updateTrackerDetailsBlocked ignores a summary about somebody else', () => {
+  const prev = makeDetails('alice')
+  const next = updateTrackerDetailsBlocked(prev, {
+    blocker: 'bob',
+    blocks: {carol: [makeBlockState(T.RPCGen.UserBlockType.chat, true)]},
+  })
+
+  expect(next).toBe(prev)
+})
+
+test('cloneDetails copies the collections so later mutation cannot leak backwards', () => {
+  const followers = new Set(['bob'])
+  const following = new Set(['carol'])
+  const assertions = new Map([['twitter:alice', {...noAssertion, assertionKey: 'twitter:alice'}]])
+  const teamShowcase = [{description: '', isOpen: false, membersCount: 1, name: 'team', publicAdmins: []}]
+  const prev: T.Tracker.Details = {
+    ...makeDetails('alice'),
+    assertions,
+    followers,
+    following,
+    teamShowcase,
+  }
+
+  const next = cloneDetails(prev)
+  ;(next.followers as Set<string>).add('dave')
+  ;(next.following as Set<string>).delete('carol')
+  ;(next.assertions as Map<string, unknown>).clear()
+  ;(next.teamShowcase as Array<unknown>).pop()
+
+  expect(prev.followers).toEqual(new Set(['bob']))
+  expect(prev.following).toEqual(new Set(['carol']))
+  expect(prev.assertions?.size).toBe(1)
+  expect(prev.teamShowcase).toHaveLength(1)
 })

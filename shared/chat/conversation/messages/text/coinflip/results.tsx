@@ -221,7 +221,8 @@ type HandType = {
 
 const CoinFlipResultHands = (props: HandType) => {
   const styles = useStyles()
-  if (!props.hands) return null
+  // an empty list still renders the nested boxes, so bail on it too
+  if (!props.hands?.length) return null
   const [handsWithCards, handsWithoutCards] = partition(props.hands, hand => hand.hand)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
