@@ -4,6 +4,7 @@ import * as C from '@/constants'
 import type {GetOptionsRet} from '@/constants/types/router'
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type ModalHeaderProps = {
   title?: React.ReactNode
@@ -161,6 +162,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
           {!overlayTransparent && !overlayNoClose && (
             <Kb.Icon
               type="iconfont-close"
+              testID={TestIDs.MODAL_CLOSE}
               onClick={() => navigation.pop()}
               color={theme.whiteOrWhite_75}
               hoverColor={theme.white_40OrWhite_40}

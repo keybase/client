@@ -3,6 +3,7 @@ import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToGit} from '@/tests/e2e/electron/helpers/navigate'
 import {snap} from '@/tests/e2e/electron/helpers/snap'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 // Full create → delete cycle on a personal repo with a fixed name. The tests in
 // this file run in order and depend on each other; deleteRepoIfExists at the
@@ -37,7 +38,7 @@ test('new repo modal opens', async ({page}, testInfo) => {
   const nameInput = page.getByPlaceholder('Name your repository')
   await expect(nameInput).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(nameInput).not.toBeVisible({timeout: 5_000})
 })
 

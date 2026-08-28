@@ -2,6 +2,7 @@ import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {openFirstConversation, openConversationMatching} from '@/tests/e2e/electron/helpers/navigate'
 import {snap} from '@/tests/e2e/electron/helpers/snap'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 // Kb.Icon has no testID prop on desktop; it renders a span with an
 // icon-gen-<type> class, so icons are selected by class here.
@@ -65,7 +66,7 @@ test('attachment fullscreen opens', async ({page}, testInfo) => {
   await images.last().click()
   await expect(page.getByTestId(T.CHAT_ATTACHMENT_FULLSCREEN)).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(page.getByTestId(T.CHAT_ATTACHMENT_FULLSCREEN)).not.toBeVisible({timeout: 5_000})
 })
 
@@ -87,7 +88,7 @@ test('bot install preview opens', async ({page}, testInfo) => {
   const installModal = page.getByTestId(T.CHAT_BOT_INSTALL).first()
   await expect(installModal).toBeVisible({timeout: 10_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(installModal).not.toBeVisible({timeout: 5_000})
   // close the info panel again
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
@@ -106,7 +107,7 @@ test('bot search modal opens', async ({page}, testInfo) => {
   const search = page.getByPlaceholder('Search featured bots or users...')
   await expect(search).toBeVisible({timeout: 10_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(search).not.toBeVisible({timeout: 5_000})
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).not.toBeVisible({timeout: 5_000})

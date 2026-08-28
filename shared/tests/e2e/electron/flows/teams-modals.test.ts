@@ -3,6 +3,7 @@ import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {openFirstTeam} from '@/tests/e2e/electron/helpers/navigate'
 import {snap} from '@/tests/e2e/electron/helpers/snap'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {closeLeftoverModals, closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 // Team modals and wizards, all open → screenshot → cancel. Nothing submits.
 
@@ -27,12 +28,7 @@ const settles = async (l: Locator, timeout = 5_000) => {
 
 // a test that died mid-modal poisons every test after it — close leftovers first
 test.beforeEach(async ({page}) => {
-  for (let i = 0; i < 3; i++) {
-    const close = page.locator('.icon-gen-iconfont-close:visible')
-    if ((await close.count()) === 0) break
-    await close.first().click()
-    await page.waitForTimeout(300)
-  }
+  await closeLeftoverModals(page)
 })
 
 test('add members wizard opens', async ({page}, testInfo) => {
@@ -49,7 +45,7 @@ test('add members wizard opens', async ({page}, testInfo) => {
   const emailOption = page.getByText('A list of email addresses', {exact: true})
   await expect(emailOption).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(emailOption).not.toBeVisible({timeout: 5_000})
 })
 
@@ -68,7 +64,7 @@ test('add by email screen opens', async ({page}, testInfo) => {
   const emailInput = page.getByPlaceholder('Email addresses')
   await expect(emailInput).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(emailInput).not.toBeVisible({timeout: 5_000})
 })
 
@@ -86,7 +82,7 @@ test('edit team info modal opens', async ({page}, testInfo) => {
   const description = page.getByPlaceholder('Description')
   await expect(description).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(description).not.toBeVisible({timeout: 5_000})
 })
 
@@ -121,7 +117,7 @@ test('edit channel modal opens', async ({page}, testInfo) => {
   const channelName = page.getByPlaceholder('channelname')
   await expect(channelName).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(channelName).not.toBeVisible({timeout: 5_000})
 })
 
@@ -191,6 +187,6 @@ test('add emoji modal opens', async ({page}, testInfo) => {
   const dragDrop = page.getByText('Drag and drop images or')
   await expect(dragDrop).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(dragDrop).not.toBeVisible({timeout: 5_000})
 })

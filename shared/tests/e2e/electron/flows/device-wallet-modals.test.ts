@@ -2,6 +2,7 @@ import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToDevices, navigateToCrypto} from '@/tests/e2e/electron/helpers/navigate'
 import {snap} from '@/tests/e2e/electron/helpers/snap'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 test('add device chooser opens', async ({page}, testInfo) => {
   await navigateToDevices(page)
@@ -9,7 +10,7 @@ test('add device chooser opens', async ({page}, testInfo) => {
   const blurb = page.getByText('Protect your account by having more devices and paper keys.')
   await expect(blurb).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(blurb).not.toBeVisible({timeout: 5_000})
 })
 
@@ -25,6 +26,6 @@ test('crypto recipients team builder opens', async ({page}, testInfo) => {
   const search = page.getByPlaceholder('Search Keybase').locator('visible=true')
   await expect(search.first()).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(search).toHaveCount(0, {timeout: 5_000})
 })

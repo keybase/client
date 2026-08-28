@@ -7,6 +7,7 @@ import {
 } from '@/tests/e2e/electron/helpers/navigate'
 import {snap} from '@/tests/e2e/electron/helpers/snap'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 // View-only trips into mutation flows: open the modal, screenshot, cancel.
 // Nothing here ever submits.
@@ -28,7 +29,7 @@ test('new chat team builder opens', async ({page}, testInfo) => {
   const search = page.getByPlaceholder('Search Keybase').locator('visible=true')
   await expect(search.first()).toBeVisible({timeout: 5_000})
   await snap(page, testInfo)
-  await page.locator('.icon-gen-iconfont-close:visible').first().click()
+  await closeModal(page)
   await expect(search).toHaveCount(0, {timeout: 5_000})
 })
 
