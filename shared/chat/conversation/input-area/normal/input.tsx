@@ -103,11 +103,20 @@ function DesktopInput(p: InputLowLevelProps) {
   React.useEffect(() => {
     onChangeTextRef.current = _onChangeText
   }, [_onChangeText])
-  const [onChange] = React.useState(() => (e: {target: {value: string}}) => {
-    const s = e.target.value
-    setValue(s)
-    onChangeTextRef.current?.(s)
-  })
+  const [onChange] = React.useState(
+    () => (e: {target: {value: string; selectionStart?: number | null; selectionEnd?: number | null}}) => {
+      const s = e.target.value
+      // the browser dispatches selectionchange (our onSelect) asynchronously, so on
+      // paste selectionRef still holds the pre-paste caret when the suggestors read
+      // it. the change event's target already has the settled caret, so take it here
+      const {selectionStart, selectionEnd} = e.target
+      if (typeof selectionStart === 'number') {
+        selectionRef.current = {end: selectionEnd ?? selectionStart, start: selectionStart}
+      }
+      setValue(s)
+      onChangeTextRef.current?.(s)
+    }
+  )
   const onSelect = (e: {currentTarget: {selectionEnd: number | null; selectionStart: number | null}}) => {
     selectionRef.current = {
       end: e.currentTarget.selectionEnd || 0,
