@@ -120,7 +120,7 @@ export const useCommon = (ownProps: CommonProps) => {
   const [selectedIndex, setSelectedIndex] = React.useState(0)
   // an inbox hit replaces the whole list, so a shorter replacement can leave the
   // index past the end and the counter reading "8 of 2" until the user moves
-  if (selectedIndex >= numHits && numHits >= 0 && selectedIndex !== 0) {
+  if (selectedIndex >= numHits && selectedIndex !== 0) {
     setSelectedIndex(numHits === 0 ? 0 : numHits - 1)
   }
   const [text, setText] = React.useState(initialQuery)
