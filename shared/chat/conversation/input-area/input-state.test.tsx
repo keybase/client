@@ -543,7 +543,9 @@ test('onSubmit snapshots the dismissals before the composer clears them', async 
     jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
     jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
     renderComposer()
-    useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+    act(() => {
+      useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+    })
 
     act(() => {
       mockPlatformInputProps?.onSubmit('look at http://a.com')
