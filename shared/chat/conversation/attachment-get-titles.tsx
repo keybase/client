@@ -38,7 +38,7 @@ type Info = {
 // which is deliberately a different set (heic previews as a file but is
 // processed, gif previews as an image but is passed through untouched).
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
-const pathToAttachmentType = (path: string) => {
+export const pathToAttachmentType = (path: string) => {
   if (imageFileNameRegex.test(path)) {
     return 'image'
   }
@@ -48,7 +48,7 @@ const pathToAttachmentType = (path: string) => {
   return 'file'
 }
 
-const isKbfsPath = (path: string) => path.startsWith('/keybase/')
+export const isKbfsPath = (path: string) => path.startsWith('/keybase/')
 
 const ContainerInner = (ownProps: OwnProps) => {
   const styles = useStyles()

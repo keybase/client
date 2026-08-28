@@ -107,7 +107,7 @@ const filterUsersAndTeams = (
   return [...sortedUsers, ...sortedTeams]
 }
 
-const filterAndJoin = (
+export const filterAndJoin = (
   users: Array<UserListItem>,
   teams: Array<TeamListItem>,
   allChannels: Array<TeamListItem>,
@@ -183,12 +183,12 @@ const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: stri
   return filterAndJoin(users, teams, allChannels, fl)
 }
 
-type UserListItem = {
+export type UserListItem = {
   username: string
   fullName: string
 }
 
-type TeamListItem = {
+export type TeamListItem = {
   teamname: string
   channelname: string
 }

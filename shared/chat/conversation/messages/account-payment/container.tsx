@@ -27,7 +27,7 @@ const failedProps = {
 }
 
 // Get action phrase for sendPayment msg
-const makeSendPaymentVerb = (status: T.Wallets.StatusSimplified, youAreSender: boolean) => {
+export const makeSendPaymentVerb = (status: T.Wallets.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
     case 'pending':
       return 'sending'
@@ -47,7 +47,7 @@ type OwnProps = {
 
 type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
 
-const getRequestMessageInfo = (
+export const getRequestMessageInfo = (
   accountsInfoMap: AccountsInfoMap,
   message: T.Chat.MessageRequestPayment
 ) => {

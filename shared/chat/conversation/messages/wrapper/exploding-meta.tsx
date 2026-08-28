@@ -26,7 +26,7 @@ function ExplodingMetaContainer(p: OwnProps) {
 
 type ExplodingMetaInnerProps = OwnProps & {pending: boolean}
 type Mode = 'none' | 'countdown' | 'boom' | 'hidden'
-type TimerState = {
+export type TimerState = {
   exploded: boolean
   inter: number
   mode: Mode
@@ -38,7 +38,7 @@ const isPendingSubmitState = (submitState?: T.Chat.Message['submitState']) =>
 
 const cappedLoopInterval = (difference: number) => Math.min(getLoopInterval(difference), 60000)
 
-const makeInitialTimerState = (p: {exploded: boolean; explodesAt: number; pending: boolean}): TimerState => {
+export const makeInitialTimerState = (p: {exploded: boolean; explodesAt: number; pending: boolean}): TimerState => {
   const now = Date.now()
   if (p.pending) {
     return {exploded: p.exploded, inter: 0, mode: 'none', now}
@@ -224,7 +224,7 @@ const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
-const getLoopInterval = (diff: number) => {
+export const getLoopInterval = (diff: number) => {
   let nearestUnit: number = 0
 
   // If diff is less than half a unit away,
