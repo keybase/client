@@ -8,8 +8,29 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT="ios/.xcode.env.local"
 
-NODE_BINARY="$(command -v node || true)"
-GO_BINARY="$(command -v go || true)"
+# yarn 1 prepends a per-invocation temp dir of shims (.../T/yarn--<ts>-<rand>/node)
+# to PATH, and this script is only ever reached through a yarn script. Resolving
+# node off that PATH bakes in a directory macOS purges from /var/folders after a
+# few days -- the build then dies in any node-using script phase (hermes, bundle)
+# with "No such file or directory". Drop those shim dirs, and any other temp dir,
+# before resolving. Keep whatever stable path PATH yields (e.g. the homebrew
+# symlink /opt/homebrew/bin/node) rather than resolving to a version-pinned
+# Cellar path that the next `brew upgrade` would invalidate.
+STRIPPED_PATH=""
+IFS=':' read -ra _entries <<< "$PATH"
+for _e in "${_entries[@]}"; do
+  case "$_e" in
+    */yarn--*|/var/folders/*|/tmp/*|"$TMPDIR"*) continue ;;
+  esac
+  STRIPPED_PATH="${STRIPPED_PATH:+$STRIPPED_PATH:}$_e"
+done
+
+resolve() {
+  PATH="$STRIPPED_PATH" command -v "$1" || true
+}
+
+NODE_BINARY="$(resolve node)"
+GO_BINARY="$(resolve go)"
 
 if [ -z "$NODE_BINARY" ]; then
   echo "warning: node not found on PATH; NODE_BINARY left unset in $OUT" >&2
