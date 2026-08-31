@@ -4,6 +4,20 @@ import * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
 import {useConversationThreadID, useThreadMeta} from '../thread-context'
 import {useConversationParticipants} from '../data-hooks'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
+
+// Letting a reset user back in puts them back in the conversation, and nothing
+// recomputes its participants on its own - see refreshConversationParticipants.
+export const addTeamMemberAfterReset = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  username: string
+) => {
+  await T.RPCChat.localAddTeamMemberAfterResetRpcPromise({
+    convID: T.Chat.keyToConversationID(conversationIDKey),
+    username,
+  })
+  await refreshConversationParticipants([conversationIDKey])
+}
 
 const ResetUser = () => {
   const styles = useStyles()
@@ -23,13 +37,7 @@ const ResetUser = () => {
     })
   }
   const letThemIn = () => {
-    const f = async () => {
-      await T.RPCChat.localAddTeamMemberAfterResetRpcPromise({
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        username,
-      })
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(addTeamMemberAfterReset(conversationIDKey, username))
   }
   const viewProfile = () => _viewProfile(username)
 

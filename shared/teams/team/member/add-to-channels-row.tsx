@@ -4,6 +4,23 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
+
+// Joining or leaving changes who is in the channel, and nothing recomputes its
+// participants on its own - see refreshConversationParticipants.
+export const joinChannel = async (conversationIDKey: T.Chat.ConversationIDKey) => {
+  await T.RPCChat.localJoinConversationByIDLocalRpcPromise({
+    convID: T.Chat.keyToConversationID(conversationIDKey),
+  })
+  await refreshConversationParticipants([conversationIDKey])
+}
+
+export const leaveChannel = async (conversationIDKey: T.Chat.ConversationIDKey) => {
+  await T.RPCChat.localLeaveConversationLocalRpcPromise({
+    convID: T.Chat.keyToConversationID(conversationIDKey),
+  })
+  await refreshConversationParticipants([conversationIDKey])
+}
 
 // horizontal padding shared with the header row in add-to-channels.tsx
 export const itemStyle = Kb.Styles.platformStyles({
@@ -56,14 +73,13 @@ const SelfChannelActions = function SelfChannelActions(p: {
     })
   }
 
-  const joinRPC = C.useRPC(T.RPCChat.localJoinConversationByIDLocalRpcPromise)
-  const leaveRPC = C.useRPC(T.RPCChat.localLeaveConversationLocalRpcPromise)
+  const joinRPC = C.useRPC(joinChannel)
+  const leaveRPC = C.useRPC(leaveChannel)
 
-  const convID = T.Chat.keyToConversationID(meta.conversationIDKey)
   const onLeave = () => {
     setWaiting(true)
     leaveRPC(
-      [{convID}],
+      [meta.conversationIDKey],
       () => {
         reloadChannels()
           .then(stopWaiting, stopWaiting)
@@ -75,7 +91,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
   const onJoin = () => {
     setWaiting(true)
     joinRPC(
-      [{convID}],
+      [meta.conversationIDKey],
       () => {
         reloadChannels()
           .then(stopWaiting, stopWaiting)

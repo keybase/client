@@ -9,6 +9,7 @@ import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
+import {useRefreshParticipantsOnTeamMembershipChange} from '@/chat/inbox/refresh-participants'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -32,9 +33,11 @@ type Item =
 
 type Section = Kb.SectionType<Item>
 
-const MembersTab = (props: Props) => {
-  const styles = useStyles()
-  const {conversationIDKey} = props
+type MemberItem = Extract<Item, {type: 'member'}>
+
+// The list the info panel renders, and everything that keeps it current. Extracted so the
+// refresh wiring can be exercised without standing up the whole section list.
+export const useChannelMembers = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const infoMap = useUsersState(s => s.infoMap)
   const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {channelname, teamID, teamname} = meta
@@ -59,8 +62,12 @@ const MembersTab = (props: Props) => {
     }
   }, [conversationIDKey, refreshParticipants, teamname])
 
+  // a kick, an add-to-team or a reset user let back in changes this channel's members
+  // too, including when another client does it
+  useRefreshParticipantsOnTeamMembershipChange(teamID, conversationIDKey)
+
   const showSpinner = !participants.length
-  const participantsItems = participants
+  const participantsItems: ReadonlyArray<MemberItem> = participants
     .map(
       p =>
         ({
@@ -86,6 +93,14 @@ const MembersTab = (props: Props) => {
       }
       return l.username.localeCompare(r.username)
     })
+
+  return {participantsItems, showAuditingBanner, showSpinner}
+}
+
+const MembersTab = (props: Props) => {
+  const styles = useStyles()
+  const {conversationIDKey} = props
+  const {participantsItems, showAuditingBanner, showSpinner} = useChannelMembers(conversationIDKey)
 
   const participantSection: Section = {
     data: showSpinner

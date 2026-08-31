@@ -11,10 +11,24 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {LoadedTeamProvider, useLoadedTeam} from '../use-loaded-team'
 import ChannelRow, {itemStyle} from './add-to-channels-row'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 
 type Props = {
   teamID: T.Teams.TeamID
   usernames?: Array<string> // undefined means the user themself
+}
+
+// bulkAddToManyConvs changes who is in each of these channels, and nothing recomputes
+// their participants on its own - see refreshConversationParticipants.
+export const addMembersToChannels = async (
+  conversationIDKeys: ReadonlyArray<T.Chat.ConversationIDKey>,
+  usernames: ReadonlyArray<string>
+) => {
+  await T.RPCChat.localBulkAddToManyConvsRpcPromise({
+    conversations: conversationIDKeys.map(T.Chat.keyToConversationID),
+    usernames: [...usernames],
+  })
+  await refreshConversationParticipants(conversationIDKeys)
 }
 
 type ChannelItem = {
@@ -129,7 +143,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const onSelectNone = convIDKeysAvailable.length === 0 ? undefined : () => setSelected(new Set())
   const onCancel = () => nav.safeNavigateUp()
 
-  const submit = C.useRPC(T.RPCChat.localBulkAddToManyConvsRpcPromise)
+  const submit = C.useRPC(addMembersToChannels)
   const [waiting, setWaiting] = React.useState(false)
   const onFinish = () => {
     if (!selected.size) {
@@ -138,7 +152,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
     }
     setWaiting(true)
     submit(
-      [{conversations: [...selected].map(T.Chat.keyToConversationID), usernames}],
+      [[...selected], usernames],
       () => {
         setWaiting(false)
         onCancel()
