@@ -41,7 +41,6 @@ const EditAvatarHeaderRight = ({
     )
     navigateAppend(getNextRouteAfterAvatar(wizardState, parentTeamMemberCount))
   }
-  if (!wizard) return null
   if (isMobile) {
     return <Kb.Text type="BodyBigLink" onClick={onSkip}>Skip</Kb.Text>
   }
@@ -131,7 +130,11 @@ export const newModalRoutes = defineRouteMap({
               <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
             ),
           }),
-      headerRight: () => <EditAvatarWizardHeaderRight route={route} />,
+      // Only register a right item when the Skip button actually renders: on iOS 26 a
+      // custom header view that renders nothing still draws an empty glass pill.
+      ...(route.params.wizard
+        ? {headerRight: () => <EditAvatarWizardHeaderRight route={route} />}
+        : {}),
       headerTitle: () => (
         <EditAvatarHeaderTitle
           hasImage={!!route.params.image}

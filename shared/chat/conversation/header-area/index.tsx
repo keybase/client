@@ -26,9 +26,6 @@ type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
 const HeaderAreaRight = (props: HeaderConversationProps) => {
   const styles = useStyles()
   const {conversationIDKey} = props
-  const pendingWaiting =
-    conversationIDKey === Chat.pendingWaitingConversationIDKey ||
-    conversationIDKey === Chat.pendingErrorConversationIDKey
 
   const onShowInfoPanel = () => {
     Keyboard.dismiss()
@@ -48,7 +45,7 @@ const HeaderAreaRight = (props: HeaderConversationProps) => {
       direction="horizontal"
       gap="small"
       noShrink={true}
-      style={Kb.Styles.collapseStyles([styles.headerRight, {opacity: pendingWaiting ? 0 : 1}])}
+      style={styles.headerRight}
     >
       <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
       <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} testID={TestIDs.CHAT_HEADER_INFO_BUTTON} />
@@ -174,6 +171,13 @@ const iosBackOptions = (badgeNumber: number) =>
 export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.Chat.ConversationIDKey}}) => {
   if (!isMobile) return {}
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
+  // pending convs have no thread to search and no info panel to show, and an item that
+  // renders nothing (or at opacity 0) still draws an empty glass pill on iOS 26, so the
+  // right slot is left unset until the real conv replaces the pending one (setParams
+  // re-evaluates these options).
+  const pendingWaiting =
+    conversationIDKey === Chat.pendingWaitingConversationIDKey ||
+    conversationIDKey === Chat.pendingErrorConversationIDKey
   return {
     // iOS 26: the back button (badged or not) is decided synchronously here so the header is
     // complete in the screen's initial options — swapping bar items via setOptions while the
@@ -190,7 +194,9 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
         }
       : iosBackOptions(getBackBadge(conversationIDKey))),
     // iOS 26: single overflow menu (one glass pill) housing search + info actions.
-    ...(isIOS
+    ...(pendingWaiting
+      ? {}
+      : isIOS
       ? {
           unstable_headerRightItems: () => [
             {
