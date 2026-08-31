@@ -6,8 +6,22 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {pluralize} from '@/util/string'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID}
+
+// bulkAddToConv only posts a system message - nothing recomputes the channel's
+// participants, so the refresh is what makes every open members list show the new members.
+export const addMembersToChannel = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  usernames: ReadonlyArray<string>
+) => {
+  await T.RPCChat.localBulkAddToConvRpcPromise({
+    convID: T.Chat.keyToConversationID(conversationIDKey),
+    usernames: [...usernames],
+  })
+  await refreshConversationParticipants([conversationIDKey])
+}
 
 const AddToChannel = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
@@ -37,7 +51,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const addToChannel = C.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
+  const addToChannel = C.useRPC(addMembersToChannel)
 
   const onClose = React.useCallback(() => {
     nav.safeNavigateUp()
@@ -45,7 +59,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
   const onAdd = React.useCallback(() => {
     setWaiting(true)
     addToChannel(
-      [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
+      [conversationIDKey, [...toAdd]],
       () => {
         setWaiting(false)
         onClose()

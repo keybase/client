@@ -7,11 +7,25 @@ import {useNavigation} from '@react-navigation/native'
 import setRouteParamsIfPresent from './set-route-params-if-present'
 import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 
 type Props = {
   members: string[]
   conversationIDKey: T.Chat.ConversationIDKey
   teamID: T.Teams.TeamID
+}
+
+// Removing from a channel changes its participants, and nothing recomputes them on its
+// own - see refreshConversationParticipants.
+export const removeMembersFromChannel = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  usernames: ReadonlyArray<string>
+) => {
+  await T.RPCChat.localRemoveFromConversationLocalRpcPromise({
+    convID: T.Chat.keyToConversationID(conversationIDKey),
+    usernames: [...usernames],
+  })
+  await refreshConversationParticipants([conversationIDKey])
 }
 
 const ConfirmRemoveFromChannel = (props: Props) => {
@@ -27,14 +41,14 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const nav = useSafeNavigation()
   const navigation = useNavigation()
-  const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
+  const removeFromChannel = C.useRPC(removeMembersFromChannel)
 
   const onRemove = () => {
     setWaiting(true)
     setTimeout(() => setWaiting(false), 1000)
     removeFromChannel(
-      [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: members}],
-      _ => {
+      [conversationIDKey, members],
+      () => {
         setWaiting(false)
         setRouteParamsIfPresent(navigation, 'teamChannel', {selectedMembers: undefined})
         nav.safeNavigateUp()

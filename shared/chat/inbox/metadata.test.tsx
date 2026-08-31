@@ -9,6 +9,9 @@ import {
   getInboxConversationMeta,
   metasReceived,
   participantInfoReceived,
+  syncInboxParticipantsFromParticipantMap,
+  unboxRows,
+  useInboxMetadataState,
 } from './metadata'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -59,6 +62,74 @@ const makeMeta = (over: Partial<T.Chat.ConversationMeta>): T.Chat.ConversationMe
   ...Meta.makeConversationMeta(),
   conversationIDKey: convID,
   ...over,
+})
+
+// Why every membership change has to ask for a participant refresh: the conversation
+// you are looking at is already trusted, so the ordinary reload is dropped here and
+// no fresh participants ever come back. See chat/inbox/refresh-participants.
+test('an ordinary reload of a trusted conversation never reaches the service', async () => {
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  metasReceived([makeMeta({inboxVersion: 1, trustedState: 'trusted'})])
+
+  unboxRows([convID])
+  await flushPromises()
+
+  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).not.toHaveBeenCalled()
+
+  forceUnboxRowsForService([convID])
+  await flushPromises()
+
+  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(1)
+})
+
+test('an ordinary reload of an untrusted conversation does reach the service', async () => {
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  metasReceived([makeMeta({inboxVersion: 1, trustedState: 'untrusted'})])
+
+  unboxRows([convID])
+  await flushPromises()
+
+  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(1)
+})
+
+const uiParticipant = (assertion: string): T.RPCChat.UIParticipant => ({
+  assertion,
+  inConvName: false,
+  type: T.RPCChat.UIParticipantType.user,
+})
+
+test('a participants notification replaces the stored participants for that conversation', () => {
+  participantInfoReceived(convID, {all: ['testuser'], contactName: new Map(), name: []})
+
+  syncInboxParticipantsFromParticipantMap({
+    [T.Chat.conversationIDKeyToString(convID)]: [uiParticipant('testuser'), uiParticipant('testuser-mac')],
+  })
+
+  expect(useInboxMetadataState.getState().participants.get(convID)?.all).toEqual([
+    'testuser',
+    'testuser-mac',
+  ])
+})
+
+test('a participants notification for another conversation leaves this one alone', () => {
+  const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 9, 9, 9]))
+  participantInfoReceived(convID, {all: ['testuser'], contactName: new Map(), name: []})
+
+  syncInboxParticipantsFromParticipantMap({
+    [T.Chat.conversationIDKeyToString(otherConvID)]: [uiParticipant('someone-else')],
+  })
+
+  expect(useInboxMetadataState.getState().participants.get(convID)?.all).toEqual(['testuser'])
+})
+
+// an empty list is what the service sends before it has computed anything, so it must
+// not wipe a list that is already on screen
+test('an empty participants notification does not clear what is already known', () => {
+  participantInfoReceived(convID, {all: ['testuser'], contactName: new Map(), name: []})
+
+  syncInboxParticipantsFromParticipantMap({[T.Chat.conversationIDKeyToString(convID)]: []})
+
+  expect(useInboxMetadataState.getState().participants.get(convID)?.all).toEqual(['testuser'])
 })
 
 test('metasReceived version-gates: newer inbox version wins, older is ignored', () => {

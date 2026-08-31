@@ -4,6 +4,7 @@ import {isPhone} from '@/constants/platform'
 import {navigateToInbox, setChatRootParams} from '@/constants/router'
 import logger from '@/logger'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 import {setConversationOrangeLine} from './orange-line-context'
 import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
 
@@ -43,6 +44,8 @@ export const joinConversation = (conversationIDKey: T.Chat.ConversationIDKey) =>
     await T.RPCChat.localJoinConversationByIDLocalRpcPromise({
       convID: T.Chat.keyToConversationID(conversationIDKey),
     })
+    // joining adds you to the participants, which nothing else recomputes
+    await refreshConversationParticipants([conversationIDKey])
   }
   C.ignorePromise(f())
 }

@@ -23,6 +23,7 @@ import {LoadedTeamChannelsProvider} from '../common/use-loaded-team-channels'
 import {useUsersState} from '@/stores/users'
 import {LoadedTeamProvider, useLoadedTeam} from '../team/use-loaded-team'
 import {unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {useRefreshParticipantsOnTeamMembershipChange} from '@/chat/inbox/refresh-participants'
 import {registerExternalResetter} from '@/util/zustand'
 
 export type OwnProps = {
@@ -170,6 +171,9 @@ const ChannelBody = (props: OwnProps) => {
   const participants: ReadonlyArray<string> =
     meta.channelname === 'general' && teamMembers.size > 0 ? _participants : channelParticipants
   useLoadDataForChannelPage(conversationIDKey, selectedTab, meta, participants)
+  // a kick, an add-to-team or a reset user let back in changes this channel's members
+  // too, including when another client does it
+  useRefreshParticipantsOnTeamMembershipChange(teamID, conversationIDKey, selectedTab === 'members')
 
   React.useEffect(() => {
     if (!props.selectedMembers?.length) {
