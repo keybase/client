@@ -153,6 +153,20 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
     return
   }
 
+  // A pending placeholder means a conversation creation is in flight: that screen belongs to the
+  // create flow, which replaces it with the real conv (or the error screen) when the RPC returns.
+  // The service rebuilds the layout the moment the conv exists, and while it has never been told a
+  // selected conv it tags every layout with reselectInfo, so acting on one here yanks the screen
+  // away - navigateToInbox defers a tick, so it lands either just after the real conv arrives
+  // (bounced back to the inbox) or just before it (pending pushed, popped, then pushed again).
+  if (
+    selectedConversation === T.Chat.pendingWaitingConversationIDKey ||
+    selectedConversation === T.Chat.pendingErrorConversationIDKey
+  ) {
+    logger.info('maybeChangeSelectedConversation: creation in flight, ignoring reselect')
+    return
+  }
+
   const existingValid = T.Chat.isValidConversationIDKey(selectedConversation)
   if (!newConvID) {
     if (!existingValid && isMobile) {

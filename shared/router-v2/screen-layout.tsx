@@ -99,15 +99,51 @@ const desktopMakeLayout = (
   }
 }
 
-const nativeMakeLayout = (
+// Modal screens: their own SafeAreaProvider plus keyboard avoidance. Kept as a component
+// (not inlined into Layout below) because Layout runs inside the navigator's render and may
+// not call hooks.
+const ModalScreenWrapper = ({
+  children,
+  navigationOptions,
+}: {
+  children: React.ReactNode
+  navigationOptions: GetOptionsRet
+}) => {
+  const styles = useStyles()
+  return (
+    <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+      {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
+          onto a view whose static style is flexGrow:1 and whose child SafeAreaView forces
+          flex:1, so the shrink never reaches layout and the keyboard covers the content.
+          'padding' composes with those and is what iOS already uses. */}
+      <Kb.KeyboardAvoidingView2
+        behavior="padding"
+        extraOffset={isIOS ? 40 : 0}
+        compensateNotBeingOnBottom={isTablet}
+      >
+        <Kb.SafeAreaView
+          edges={navigationOptions?.safeAreaEdges}
+          style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+        >
+          {children}
+        </Kb.SafeAreaView>
+      </Kb.KeyboardAvoidingView2>
+    </SafeAreaProvider>
+  )
+}
+
+// react-navigation calls `layout` as a plain function from inside the navigator's render
+// (useDescriptors builds every descriptor eagerly), so anything here runs in
+// NativeStackNavigator's hook slot. Calling a hook makes the navigator's hook count depend
+// on which routes are on the stack, and pushing a screen then trips React's hook-order
+// check. Render components; never call hooks.
+export const nativeMakeLayout = (
   isModal: boolean,
   isLoggedOut: boolean,
   _isTabScreen: boolean,
   getOptions?: GetOptions
 ) => {
-  const modalOffset = isIOS ? 40 : 0
   return function Layout({children, route, navigation}: LayoutProps) {
-    const styles = useStyles()
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
 
     const wrappedContent = <React.Suspense>{children}</React.Suspense>
@@ -119,26 +155,7 @@ const nativeMakeLayout = (
       return <LoggedOutScreenWrapper>{wrappedContent}</LoggedOutScreenWrapper>
     }
 
-    return (
-      <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-        {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
-            onto a view whose static style is flexGrow:1 and whose child SafeAreaView forces
-            flex:1, so the shrink never reaches layout and the keyboard covers the content.
-            'padding' composes with those and is what iOS already uses. */}
-        <Kb.KeyboardAvoidingView2
-          behavior="padding"
-          extraOffset={modalOffset}
-          compensateNotBeingOnBottom={isModal && isTablet}
-        >
-          <Kb.SafeAreaView
-            edges={navigationOptions?.safeAreaEdges}
-            style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
-          >
-            {wrappedContent}
-          </Kb.SafeAreaView>
-        </Kb.KeyboardAvoidingView2>
-      </SafeAreaProvider>
-    )
+    return <ModalScreenWrapper navigationOptions={navigationOptions}>{wrappedContent}</ModalScreenWrapper>
   }
 }
 

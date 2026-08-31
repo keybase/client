@@ -593,6 +593,24 @@ export const createConversation = (
   ignorePromise(f())
 }
 
+// Park the thread screen on the pending placeholder while localNewConversation runs, seeding it
+// with the participants we already know. The seed is what lets the switch to the created
+// conversation be a setParams instead of a new screen: iOS measures the header title subview once
+// and never re-measures one that started empty, so a title-less pending thread would leave the bar
+// blank for the real conv too (measured on device in bc6e852a97). It also just reads better - you
+// see who you're talking to while the conversation is being made.
+export const navigateToPendingThread = (participants: ReadonlyArray<string>) => {
+  const {username} = useCurrentUserState.getState()
+  // matches participants.name for a real conv: the tlf name, which includes you
+  const name = [...new Set([username, ...participants])]
+  participantInfoReceived(T.Chat.pendingWaitingConversationIDKey, {
+    all: name,
+    contactName: new Map(),
+    name,
+  })
+  navigateToThread(T.Chat.pendingWaitingConversationIDKey, 'justCreated')
+}
+
 export const previewConversation = (p: PreviewConversationParams) => {
   const previewConversationPersonMakesAConversation = () => {
     const {participants, teamname, highlightMessageID} = p
@@ -610,7 +628,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
       }
     }
 
-    navigateToThread(T.Chat.pendingWaitingConversationIDKey, 'justCreated')
+    navigateToPendingThread(participants)
     createConversation(participants, highlightMessageID)
   }
 
@@ -975,13 +993,16 @@ export const navigateToThread = (
       threadSearch,
     }
     if (replace) {
-      // pendingWaiting -> real conversation. Must be a real replace, not
-      // navigateAppend's replace (which degrades to setParams for the same route
-      // name): setParams keeps the native screen alive, and its header title was
-      // measured while pendingWaiting rendered it empty — iOS never re-measures
-      // an initially-empty title subview, leaving the header blank. A fresh
-      // screen measures the title with its content already present.
-      _getNavigator()?.dispatch(StackActions.replace(threadRouteName, params))
+      // pendingWaiting -> real conversation: the same chat arriving, so retarget the live screen.
+      // It cannot be a StackActions.replace: react-native-screens always animates a replace on
+      // iOS (RNSScreenStack.mm passes `animated:previousTop.view.window != nil`, ignoring
+      // stackAnimation, and the animationTypeForReplace:'pop' branch is an animated pop), so the
+      // blank pending thread slides in and the real one slides in over it - one new chat reading
+      // as two pushes. setParams has no transition at all. It relies on the pending thread's
+      // header title already having content (seeded by navigateToPendingThread): iOS never
+      // re-measures a title subview it first measured empty, so a blank pending title would
+      // leave the bar blank for the real conv too.
+      _getNavigator()?.dispatch({...CommonActions.setParams(params), source: visible?.key})
     } else {
       navigateAppend({name: threadRouteName, params})
     }
