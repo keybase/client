@@ -1,7 +1,7 @@
 PODS:
-  - EXConstants (57.0.15):
+  - EXConstants (57.0.16):
     - ExpoModulesCore
-  - Expo (57.0.17):
+  - Expo (57.0.18):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -47,7 +47,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (57.0.6):
     - ExpoModulesCore
-  - ExpoFont (57.0.1):
+  - ExpoFont (57.0.2):
     - ExpoModulesCore
   - ExpoHaptics (57.0.2):
     - ExpoModulesCore
@@ -2891,8 +2891,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXConstants: e05664c2e0470c274210b8d0857ac2c4cc5e963c
-  Expo: fe4f0cfbe7d5fb656161c31d249f932c2f4ecb61
+  EXConstants: 736b7f1ed7235956785cb81e0ce37ab6a4f33fb4
+  Expo: 012bfee56b1c2cc2ee15e0b9357b6558aaae478f
   ExpoAsset: ff225ee16cea2409800b20fe4945a7c720a24cee
   ExpoAudio: bd075db379c5a70b7f9a7b5b541d5c67f59b5dca
   ExpoCamera: 00a098da25adbc6013f051b5db47279cb10a716c
@@ -2902,7 +2902,7 @@ SPEC CHECKSUMS:
   ExpoDocumentPicker: 6fb67a6f39ba9beb53a4b4a3f2949e0b5e9bc3bf
   ExpoDomWebView: beaec034e51bd028428b98bb1f2633ab79c6d095
   ExpoFileSystem: cc500f33804065aacc7b3366007267b84deca8c8
-  ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
+  ExpoFont: 02ab7433c23831e76b98aa1e2de67b404eeebc4a
   ExpoHaptics: bc5461002fc97e53c213a1af6c88c8f95965b734
   ExpoImage: b37accc4b12647e5cf939b2335eea2bdb874ad7f
   ExpoImagePicker: 850f80e4ebdf8d542aed910bae3f50142110ba43

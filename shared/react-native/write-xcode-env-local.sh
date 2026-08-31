@@ -8,7 +8,14 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT="ios/.xcode.env.local"
 
-NODE_BINARY="$(command -v node || true)"
+# Ask node where it is rather than using `command -v node`. This script only ever
+# runs via a yarn script, and yarn 1 puts a temp shim dir on PATH
+# ($TMPDIR/yarn--<ts>-<rand>/node, a stub that execs the real node), so `command -v`
+# returns a directory macOS purges from /var/folders within days -- after which
+# every node-using Xcode script phase dies with "No such file or directory".
+# process.execPath is the real binary either way.
+NODE_BINARY="$(node -p 'process.execPath' 2>/dev/null || true)"
+# go is not shimmed by yarn, so plain lookup is correct here.
 GO_BINARY="$(command -v go || true)"
 
 if [ -z "$NODE_BINARY" ]; then
