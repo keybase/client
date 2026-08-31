@@ -91,20 +91,6 @@ cd shared && yarn ios:pod:clean && yarn ios:pod:install
 
 **If only JS/tooling deps changed**, a plain `yarn ios:pod:install` (or skipping pods entirely) is fine.
 
-**Not every post-update build failure is a stale cache.** If Xcode dies in a script phase with
-`.../T/yarn--<timestamp>-<rand>/node: No such file or directory` (hermes-engine's "Replace Hermes
-for the right configuration", or the bundle phase), that is NOT a pod-cache problem and a pod clean
-only appears to fix it. `ios/.xcode.env.local` bakes in an absolute `NODE_BINARY`, and it is written
-by a yarn script — yarn 1 prepends a per-invocation temp shim dir to `PATH`, so a naive
-`command -v node` records that ephemeral directory. macOS purges `/var/folders/.../T` after a few
-days, the path goes dead, the build breaks; re-running pod clean bakes a *fresh* temp path and it
-works again until the next purge. Fixed (2026-08-31) by having `write-xcode-env-local.sh` resolve node
-with `node -p process.execPath` — yarn's shim is a stub that `exec`s the real binary, so node
-reports its true path regardless of PATH — and by wiring the generator into
-`yarn ios:pod:install` so every pod install refreshes the file. If the symptom ever recurs, check
-`shared/ios/.xcode.env.local` first — `NODE_BINARY` must be a stable path like
-`/opt/homebrew/bin/node`, never anything under `/var/folders`.
-
 ### 4a. Check for duplicate package installs
 
 After `yarn`, run:
