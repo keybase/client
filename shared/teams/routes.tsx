@@ -202,10 +202,6 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
   )
 }
 
-const AddFromWhereHeaderRight = ({wizard}: {wizard: AddMembersWizard}) => {
-  return wizard.teamID === T.Teams.newTeamWizardTeamID ? <AddFromWhereSkip wizard={wizard} /> : null
-}
-
 const AddFromWhereHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
   <ModalTitle
     title={isMobile ? 'Add/Invite people' : 'Add or invite people'}
@@ -336,7 +332,11 @@ export const newModalRoutes = defineRouteMap({
                 : [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
           }
         : {headerLeft: () => <AddFromWhereHeaderLeft wizard={route.params.wizard} />}),
-      headerRight: () => <AddFromWhereHeaderRight wizard={route.params.wizard} />,
+      // Only register a right item when Skip actually renders: on iOS 26 a custom header
+      // view that renders nothing still draws an empty glass pill.
+      ...(route.params.wizard.teamID === T.Teams.newTeamWizardTeamID
+        ? {headerRight: () => <AddFromWhereSkip wizard={route.params.wizard} />}
+        : {}),
       headerTitle: () => <AddFromWhereHeaderTitle wizard={route.params.wizard} />,
       modalSize: 'wide',
     }),
