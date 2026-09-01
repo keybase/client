@@ -119,13 +119,18 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{})
 
 	ticker := libkb.NewBgTicker(keygenInterval)
 	state := keybase1.MobileAppState_FOREGROUND
+	// Subscribe once per state transition; NextUpdate leaks channels into
+	// MobileAppState.updateChs when called each iteration and the state never
+	// changes (e.g. on headless servers).
+	appStateCh := mctx.G().MobileAppState.NextUpdate(&state)
 	// Run every hour but also check if enough wall clock time has elapsed when
 	// we are in a BACKGROUNDACTIVE state.
 	for {
 		select {
 		case <-ticker.C:
 			runIfNeeded(false /* force */)
-		case state = <-mctx.G().MobileAppState.NextUpdate(&state):
+		case state = <-appStateCh:
+			appStateCh = mctx.G().MobileAppState.NextUpdate(&state)
 			if state == keybase1.MobileAppState_BACKGROUNDACTIVE {
 				// Before running we pause briefly so we don't stampede for
 				// resources with other background tasks. libkb.BgTicker
