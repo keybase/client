@@ -353,6 +353,57 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     [verifyEndAnchor]
   )
 
+  // Workaround for a leak in @legendapp/list's ScrollAdjust (3.3.10). To scroll past content that
+  // has not been laid out yet it inflates the content container's inline padding-bottom, then
+  // restores it on the next frame — but only when the inline value it wrote is still the one there.
+  // When that restore is skipped the padding is stranded, and since it sits below the last row it
+  // is pure phantom scroll range: the list's own model is right and reports isAtEnd, while the
+  // scroller still has thousands of pixels left. Nothing corrects that, the end anchor above
+  // included, because every controller believes it is already at the end.
+  //
+  // Watch the container's own style writes rather than polling, and restore the padding once it has
+  // outlived the frame it was meant to last. The test is the padding's own lifetime, not where the
+  // list is parked: an adjust can strand it while the reader is somewhere in the middle, and by the
+  // time they scroll back down there is no slack left to notice — they just end up in the blank
+  // space past the last message. Two frames is after the library's own restore would have run, so
+  // anything still there is stale, and restoring to the value the container had before any of this
+  // is what its restore would have done anyway.
+  React.useEffect(() => {
+    type ContentEl = {
+      parentElement?: {clientHeight: number; scrollHeight: number; scrollTop: number}
+      style: {paddingBottom: string}
+    }
+    type ObserverLike = {disconnect: () => void; observe: (el: unknown, opts: unknown) => void}
+    const wrapper = wrapperRef.current as unknown as {
+      querySelector: (s: string) => ContentEl | null
+    } | null
+    const content = wrapper?.querySelector('.legend-list-content-container')
+    const MutationObserverCtor = (
+      globalThis as unknown as {MutationObserver?: new (cb: () => void) => ObserverLike}
+    ).MutationObserver
+    if (!content || !MutationObserverCtor) return
+
+    // Whatever the container had before the library started borrowing it.
+    const baseline = content.style.paddingBottom
+    let pending = false
+    const dropStalePadding = () => {
+      pending = false
+      if (content.style.paddingBottom === baseline) return
+      if (Number.parseFloat(content.style.paddingBottom || '0') <= 1) return
+      content.style.paddingBottom = baseline
+    }
+    const observer = new MutationObserverCtor(() => {
+      if (pending) return
+      pending = true
+      // Two frames: one for the library's own restore to have its turn, then ours.
+      requestAnimationFrame(() => requestAnimationFrame(dropStalePadding))
+    })
+    observer.observe(content, {attributeFilter: ['style'], attributes: true})
+    return () => {
+      observer.disconnect()
+    }
+  }, [datasetKey])
+
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
     setScrollRef({scrollDown, scrollToBottom, scrollUp})
