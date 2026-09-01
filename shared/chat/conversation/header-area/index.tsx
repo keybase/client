@@ -47,7 +47,7 @@ const HeaderAreaRight = (props: HeaderConversationProps) => {
       noShrink={true}
       style={styles.headerRight}
     >
-      <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
+      <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} testID={TestIDs.CHAT_HEADER_SEARCH_BUTTON} />
       <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} testID={TestIDs.CHAT_HEADER_INFO_BUTTON} />
     </Kb.Box2>
   )
