@@ -996,6 +996,13 @@
             "ConversationMemberStatus"
           ],
           "name": "joinMentionsAs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "unfurlSuppress"
         }
       ]
     },
@@ -3673,6 +3680,23 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UnfurlPreviewInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlDisplay"
+          ],
+          "name": "unfurl"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "GalleryItemTyp",
       "symbols": [
@@ -4642,6 +4666,13 @@
         {
           "name": "skipInChatPayments",
           "type": "boolean"
+        },
+        {
+          "name": "unfurlSuppress",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": "PostLocalNonblockRes",
@@ -4756,6 +4787,13 @@
             null,
             "gregor1.DurationSec"
           ]
+        },
+        {
+          "name": "unfurlSuppress",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": "PostLocalNonblockRes",
@@ -5917,6 +5955,23 @@
         }
       ],
       "response": null
+    },
+    "unfurlPreviewLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "text",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UnfurlPreviewInfo"
+      },
+      "timeout_msec": 15000
     },
     "toggleMessageCollapse": {
       "request": [

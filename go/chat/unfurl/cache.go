@@ -21,18 +21,24 @@ type cacheItem struct {
 
 type unfurlCache struct {
 	sync.Mutex
-	cache *lru.Cache
-	clock clockwork.Clock
+	cache    *lru.Cache
+	clock    clockwork.Clock
+	lifetime time.Duration
 }
 
 func newUnfurlCache() *unfurlCache {
+	return newUnfurlCacheWithLifetime(defaultCacheLifetime)
+}
+
+func newUnfurlCacheWithLifetime(lifetime time.Duration) *unfurlCache {
 	cache, err := lru.New(defaultCacheSize)
 	if err != nil {
 		panic(err)
 	}
 	return &unfurlCache{
-		cache: cache,
-		clock: clockwork.NewRealClock(),
+		cache:    cache,
+		clock:    clockwork.NewRealClock(),
+		lifetime: lifetime,
 	}
 }
 
@@ -40,9 +46,8 @@ func (c *unfurlCache) setClock(clock clockwork.Clock) {
 	c.clock = clock
 }
 
-// get determines if the item is in the cache and newer than 10
-// minutes. We don't want to cache this value indefinitely in case the page
-// content changes.
+// get determines if the item is in the cache and newer than the cache's lifetime. We
+// don't want to cache this value indefinitely in case the page content changes.
 func (c *unfurlCache) get(key string) (res cacheItem, ok bool) {
 	c.Lock()
 	defer c.Unlock()
@@ -55,7 +60,7 @@ func (c *unfurlCache) get(key string) (res cacheItem, ok bool) {
 	if !ok {
 		return res, false
 	}
-	valid := c.clock.Now().Sub(cacheItem.ctime.Time()) <= defaultCacheLifetime
+	valid := c.clock.Now().Sub(cacheItem.ctime.Time()) <= c.lifetime
 	if !valid {
 		c.cache.Remove(key)
 	}

@@ -7,6 +7,7 @@ import Giphy from '../../giphy'
 import * as InputState from '../input-state'
 import PlatformInput from './input'
 import ReplyPreview from '../../reply-preview'
+import UnfurlPreview from '../unfurl-preview'
 import * as T from '@/constants/types'
 import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
@@ -26,6 +27,7 @@ import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {takeSuppressSnapshot} from '@/chat/conversation/unfurl-preview-state'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -207,9 +209,12 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     // A timeout rather than requestAnimationFrame: this callback owns the only copy of the text, and
     // frames stop in a hidden or backgrounded window, which would drop the message with the composer
     // already emptied.
+    // Before the clear, which runs onChangeText('') synchronously and drops every dismissal.
+    // Urls whose preview has not landed yet are not in here and so are not suppressed.
+    const unfurlSuppress = takeSuppressSnapshot(conversationIDKey)
     injectText('', true)
     setTimeout(() => {
-      sendComposerText(text)
+      sendComposerText(text, unfurlSuppress)
       if (hasCenter) {
         toggleThreadSearch(true)
         jumpToRecent()
@@ -228,6 +233,10 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   }
   const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
 
+  // Low-frequency copy of the composer text for the unfurl preview, set from the already
+  // throttled draft-save path rather than from onChangeText, so the composer does not
+  // re-render on every keystroke. The preview debounces another 500ms downstream anyway.
+  const [previewText, setPreviewText] = React.useState('')
   const updateDraftRaw = (text: string) => {
     // Immediately update local meta.draft so switching back to this thread
     // before the async unbox completes won't re-inject the old stale draft.
@@ -236,6 +245,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     if (currentMeta) {
       metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
     }
+    setPreviewText(text)
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
         conversationID: convoID,
@@ -309,7 +319,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     setInputRef(inputRef.current)
   }, [setInputRef])
 
-  return (
+  const input = (
     <PlatformInput
       hintText={hintText}
       suggestionOverlayStyle={suggestionOverlayStyle}
@@ -325,6 +335,30 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       showReplyPreview={showReplyPreview}
       setExplodingMode={setExplodingMode}
     />
+  )
+
+  // nothing while editing: an edit posts as MessageType_EDIT, which the unfurler does not
+  // extract urls from at all, so a card would promise an unfurl the edit cannot produce
+  const preview = isEditing ? null : (
+    <UnfurlPreview conversationIDKey={conversationIDKey} text={previewText} />
+  )
+
+  if (isMobile) {
+    // in flow above the composer; it rides KeyboardStickyView with the input
+    return (
+      <>
+        {preview}
+        {input}
+      </>
+    )
+  }
+
+  // the preview floats out of this box, so it needs a positioned ancestor
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
+      {preview}
+      {input}
+    </Kb.Box2>
   )
 }
 

@@ -1006,6 +1006,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	}
 
 	var parg chat1.PostLocalNonblockArg
+	parg.UnfurlSuppress = arg.UnfurlSuppress
 	parg.SessionID = arg.SessionID
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -1198,14 +1199,18 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 
 	// Create non block sender
 	var prepareOpts chat1.SenderPrepareOptions
+	var sendOpts chat1.SenderSendOptions
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 	prepareOpts.ReplyTo = arg.ReplyTo
+	// rides the outbox record, so a message that waits offline still knows which urls the
+	// sender dismissed by the time it actually goes out
+	sendOpts.UnfurlSuppress = arg.UnfurlSuppress
 	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_NONE {
 		arg.Msg.ClientHeader.Conv.TopicType = chat1.TopicType_CHAT
 	}
 	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
-		nil, &prepareOpts)
+		&sendOpts, &prepareOpts)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
@@ -1609,6 +1614,16 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 		arg.ConversationID, arg.TlfName, arg.Text)
 
 	return nil
+}
+
+func (h *Server) UnfurlPreviewLocal(ctx context.Context, arg chat1.UnfurlPreviewLocalArg) (res []chat1.UnfurlPreviewInfo, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, &err, "UnfurlPreviewLocal")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	return h.G().Unfurler.PreviewURLs(ctx, uid, arg.ConvID, arg.Text), nil
 }
 
 func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (err error) {
@@ -2666,7 +2681,10 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if len(msgs) != 1 {
 			return errors.New("message not found")
 		}
-		h.G().Unfurler.UnfurlAndSend(ctx, uid, arg.ConvID, msgs[0])
+		// no suppress list on this pass: the message is already sent, so its outbox record
+		// is gone. urls dismissed at send time were marked then, and UnfurlAndSend reads
+		// those markers, so a dismissal still holds here
+		h.G().Unfurler.UnfurlAndSend(ctx, uid, arg.ConvID, msgs[0], nil)
 		return nil
 	}
 	atyp, err := arg.Result.ActionType()

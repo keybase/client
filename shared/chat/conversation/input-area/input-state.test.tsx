@@ -4,14 +4,46 @@ import * as Message from '@/constants/chat/message'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
-import {act, cleanup, renderHook} from '@testing-library/react'
+import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {ConversationInputProvider, useConversationInput} from './input-state'
+import Input from './normal'
+import type {PlatformInputProps} from './normal/input.shared'
+import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
+import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
+
+const getSuppressedURLs = (c: T.Chat.ConversationIDKey) => suppressedURLsOf(takeSuppressSnapshot(c))
 
 let mockRouteParams: Record<string, unknown> = {}
+// jest.mock factories may only close over mock-prefixed names
+let mockOnClear: (() => void) | undefined
+let mockPlatformInputProps: PlatformInputProps | undefined
+// stand in for the real composer input: it only has to hand back a ref whose clear()
+// fires onChangeText('') the way the desktop input does, which is what races the send
+jest.mock('./normal/input', () => ({
+  __esModule: true,
+  default: function MockPlatformInput(p: PlatformInputProps) {
+    mockPlatformInputProps = p
+    p.setInputRef({
+      blur: () => {},
+      clear: () => {
+        // the real hook drops suppressions from an effect after the text goes empty; a test
+        // can ask for that to happen synchronously inside clear() instead, which is the
+        // ordering onSubmit's snapshot has to survive
+        mockOnClear?.()
+        mockPlatformInputProps?.onChangeText('')
+      },
+      focus: () => {},
+      getSelection: () => undefined,
+      isFocused: () => false,
+      transformText: () => {},
+      value: '',
+    })
+    return null
+  },
+}))
 // useChatThreadRouteParams only honors params on the chat thread routes, so the mock needs a matching name
 jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({name: 'chatConversation', params: mockRouteParams}),
@@ -86,6 +118,30 @@ const renderInput = (id = convID) =>
     wrapper: wrapperFor(id),
   })
 
+function renderComposer(id = convID) {
+  return render(<Input />, {wrapper: wrapperFor(id)})
+}
+
+type InputHandles = {
+  input: ReturnType<typeof useConversationInput<ConversationInputState>>
+  thread: ReturnType<typeof useConversationThreadActions>
+}
+
+const InputProbe = (p: {onRender: (h: InputHandles) => void}) => {
+  p.onRender({input: useConversationInput(s => s), thread: useConversationThreadActions()})
+  return null
+}
+
+function renderComposerWithProbe(onRender: (h: InputHandles) => void, id = convID) {
+  return render(
+    <>
+      <Input />
+      <InputProbe onRender={onRender} />
+    </>,
+    {wrapper: wrapperFor(id)}
+  )
+}
+
 const renderInputWithThreadActions = (id = convID) =>
   renderHook(
     () => ({
@@ -112,6 +168,8 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  mockPlatformInputProps = undefined
+  mockOnClear = undefined
   cleanup()
   jest.restoreAllMocks()
   resetAllStores()
@@ -394,6 +452,215 @@ test('giphy engine events and send path update the input owner', async () => {
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
   expect(result.current.input.unsentText).toBe('')
+})
+
+test('sendComposerText sends dismissed unfurl urls as unfurlSuppress', async () => {
+  const getLastPost = mockPostText()
+  useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://a.com', {dismissed: ['http://a.com'], failed: []})
+  })
+  await flushPromises()
+
+  expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+  expect(getSuppressedURLs(convID)).toEqual([])
+})
+
+// a send that carries no snapshot is not the composer sending its own text -- a coinflip
+// resend goes through the same action -- so it must not pick up the composer's dismissals,
+// nor clear them when it lands
+test('a send with no snapshot leaves the composer dismissals alone', async () => {
+  const getLastPost = mockPostText()
+  useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('/flip 2')
+  })
+  await flushPromises()
+
+  expect(getLastPost()?.params.unfurlSuppress).toEqual([])
+  expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+})
+
+test('onSubmit sends dismissed unfurl urls even though clearing the composer drops them', async () => {
+  jest.useFakeTimers()
+  try {
+    const getLastPost = mockPostText()
+    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([
+      {
+        unfurl: {generic: {siteName: 'a', title: 'a', url: 'http://a.com'}, unfurlType: T.RPCChat.UnfurlType.generic},
+        url: 'http://a.com',
+      } as T.RPCChat.UnfurlPreviewInfo,
+    ])
+    renderComposer()
+
+    const text = 'look at http://a.com'
+    act(() => {
+      mockPlatformInputProps?.onChangeText(text)
+    })
+    // let the preview debounce fire so the hook holds a preview for this url
+    await act(async () => {
+      jest.advanceTimersByTime(600)
+      await flushPromises()
+    })
+
+    // the card's X
+    act(() => {
+      useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+    })
+    expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+
+    // more than the 200ms draft throttle since the last keystroke, so clearing the composer
+    // runs updateDraft's leading edge synchronously and the hook drops the dismissal
+    act(() => {
+      mockPlatformInputProps?.onSubmit(text)
+    })
+    expect(getSuppressedURLs(convID)).toEqual([])
+
+    await act(async () => {
+      jest.advanceTimersByTime(1)
+      await flushPromises()
+    })
+
+    expect(getLastPost()?.params.body).toBe(text)
+    expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test('onSubmit snapshots the dismissals before the composer clears them', async () => {
+  jest.useFakeTimers()
+  try {
+    mockOnClear = () => useUnfurlPreviewState.getState().dispatch.keepOnly(convID, [])
+    const getLastPost = mockPostText()
+    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+    renderComposer()
+    act(() => {
+      useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
+    })
+
+    act(() => {
+      mockPlatformInputProps?.onSubmit('look at http://a.com')
+    })
+    // the clear has already emptied the store by now: only a snapshot taken ahead of it
+    // still has the dismissal to send
+    expect(getSuppressedURLs(convID)).toEqual([])
+
+    await act(async () => {
+      jest.advanceTimersByTime(1)
+      await flushPromises()
+    })
+
+    expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+// the snapshot owns only what it took: a dismissal made while the send was in flight
+// belongs to the next message, and clearing it would unfurl a card the user just declined
+test('a landed send leaves a dismissal made while it was in flight alone', async () => {
+  mockPostText()
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://wsj.com', {dismissed: [], failed: ['http://wsj.com']})
+  })
+  useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://wsj.com'])
+  await flushPromises()
+
+  expect(getSuppressedURLs(convID)).toEqual(['http://wsj.com'])
+})
+
+// an edit posts as MessageType_EDIT, which the unfurler does not extract urls from, so
+// there is nothing to preview and no scrape to pay for
+test('no preview is fetched while editing', async () => {
+  const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+  jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+  jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+  jest.useFakeTimers()
+  try {
+    // the composer and the handles that drive it have to share one provider, or the editing
+    // state never reaches the composer under test
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+    act(() => {
+      handles?.thread.addMessages([makeTextMessage({text: 'look at http://a.com'})], {markAsRead: false})
+    })
+    act(() => {
+      mockPlatformInputProps?.onChangeText('look at http://a.com')
+    })
+    act(() => {
+      handles?.input.dispatch.setEditing('last')
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(1000)
+      await flushPromises()
+    })
+    expect(spy).not.toHaveBeenCalled()
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test('a canceled stellar send restores the dismissed unfurl urls for the resend', async () => {
+  // the composer clears its dismissals before the send resolves, so a cancel has to put
+  // the snapshot back or the restored text re-unfurls what the user dismissed
+  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+    await Promise.resolve()
+    return {outboxID: makeRpcOutboxID('posted-outbox')}
+  })
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://a.com', {dismissed: ['http://a.com'], failed: []})
+  })
+  await flushPromises()
+
+  expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+})
+
+test('a canceled stellar send leaves a failed preview unrecorded as a dismissal', async () => {
+  // a failure is re-derived by the next fetch, a dismissal never is, so restoring one as
+  // the other would keep the url suppressed even after it starts scraping again
+  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+    await Promise.resolve()
+    return {outboxID: makeRpcOutboxID('posted-outbox')}
+  })
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://wsj.com', {dismissed: [], failed: ['http://wsj.com']})
+  })
+  await flushPromises()
+
+  expect(useUnfurlPreviewState.getState().dismissed.get(convID)).toBeUndefined()
+  expect(getSuppressedURLs(convID)).toEqual([])
+})
+
+test('a send suppresses what failed to preview as well as what was dismissed', async () => {
+  const getLastPost = mockPostText()
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.sendComposerText('hi http://a.com http://wsj.com', {
+      dismissed: ['http://a.com'],
+      failed: ['http://wsj.com'],
+    })
+  })
+  await flushPromises()
+
+  expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com', 'http://wsj.com'])
 })
 
 test('toggleGiphyPrefill toggles the slash command text', () => {

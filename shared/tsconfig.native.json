@@ -18,6 +18,7 @@
     "./common-adapters/icon.constants-gen.native.tsx",
     "./common-adapters/icon.constants-gen.shared.tsx",
     "./chat/conversation/normal/container.test.tsx",
+    "./chat/conversation/input-area/unfurl-preview.test.tsx",
     "./chat/conversation/messages/system-users-added-to-conv/container.test.tsx",
     "./chat/conversation/messages/text/coinflip/results.test.tsx",
     "./common-adapters/markdown/index.test.tsx",
