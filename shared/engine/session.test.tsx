@@ -54,7 +54,6 @@ test('cancel does not double-release waiting while a prompt is pending on the GU
 })
 
 test('a late server response after cancel does not fire the callback twice', () => {
-  const session = makeSession()
   const callback = jest.fn()
   const invoke = jest.fn()
   const session2 = new Session({endHandler: jest.fn(), invoke, sessionID: 7})
@@ -66,5 +65,4 @@ test('a late server response after cancel does not fire the callback twice', () 
   const invokeCallback = invoke.mock.calls[0]![2] as (err: unknown, data: unknown) => void
   invokeCallback(undefined, {})
   expect(callback).toHaveBeenCalledTimes(1)
-  void session
 })

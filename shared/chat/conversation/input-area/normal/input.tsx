@@ -424,9 +424,6 @@ function NativeInput(p: InputLowLevelProps) {
     }
   }, [onPasteImage])
 
-  void removeOnHWKeyPressed
-  void onHWKeyPressed
-
   return (
     <TextInput
       autoCapitalize={autoCapitalize}
