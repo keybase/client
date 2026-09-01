@@ -14,6 +14,7 @@ export const NAV_TAB_SETTINGS = 'nav-tab-settings'
 // Chat
 export const CHAT_INBOX_LIST   = 'chat-inbox-list'
 export const CHAT_INBOX_ROW    = 'chat-inbox-row'
+export const CHAT_INBOX_CHANNEL_ROW = 'chat-inbox-channel-row'
 export const CHAT_MESSAGE_LIST = 'chat-message-list'
 export const CHAT_INPUT        = 'chat-input'
 export const CHAT_SEND_BUTTON  = 'chat-send-button'
@@ -31,6 +32,18 @@ export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
+export const CHAT_HEADER_SEARCH_BUTTON   = 'chat-header-search-button'
+// The row a thread search is currently sitting on. Really "the centre-highlighted row": pinned
+// messages, reply jumps and permalinks highlight one too, so this only means "search hit" inside a
+// search flow. Present only while the row is highlighted.
+export const CHAT_SEARCH_HIT             = 'chat-search-hit'
+// The per-message "..." actions button (desktop only, revealed on hover). Icon-only, so there is
+// no text to match on, and it is the only way into "Copy a link to this message".
+export const CHAT_MESSAGE_MENU_BUTTON    = 'chat-message-menu-button'
+// The header above the oldest loaded message. Mounted in every state - loading, more to load, start
+// of the conversation - so its position is readable throughout, which is how a test sees a page of
+// older messages arrive.
+export const CHAT_THREAD_TOP             = 'chat-thread-top'
 
 // Files
 export const FILES_BROWSER = 'files-browser'

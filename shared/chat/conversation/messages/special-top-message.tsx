@@ -15,6 +15,7 @@ import {
 import {useConversationParticipantsSelector} from '../data-hooks'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const ErrorMessage = () => {
   const styles = useStyles()
@@ -153,7 +154,13 @@ function SpecialTopMessage() {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      collapsable={false}
+      style={styles.container}
+      testID={TestIDs.CHAT_THREAD_TOP}
+    >
       {hasLoadedEver && loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
       <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}

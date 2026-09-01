@@ -96,9 +96,11 @@ ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
 
 export type ConversationThreadState = {
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
-  // Bumped on every messagesClear. The desktop list remounts on it: LegendList cannot recover
-  // from a non-empty -> empty -> non-empty data transition (it resets its layout state and waits
-  // for a container layout event that never comes), so the thread renders blank forever.
+  // Bumped on every messagesClear, and fed to the list as its dataKey (not as a React key - the
+  // list is not remounted). LegendList cannot recover from a non-empty -> empty -> non-empty data
+  // transition on its own (it resets its layout state and waits for a container layout event that
+  // never comes), so the thread renders blank forever; the dataKey change is what tells it this is
+  // a new dataset and makes it reset rather than wait.
   clearVersion: number
   explodingMode: number
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
