@@ -189,25 +189,13 @@ function SpecialTopMessage() {
   )
 }
 
-// The tallest desktop variant measured (the end-to-end-encrypted card at 152); the bare spacer
-// floor was 100. A variant taller than this still grows the box rather than clipping, so raise it
-// if one turns up.
-const topMessageReservedHeight = 152
-
 const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
       buttonBar: {padding: Kb.Styles.globalMargins.small},
       container: Kb.Styles.platformStyles({
         isElectron: {
-          // Reserve the tallest variant and bottom-align inside it, so the header keeps one height
-          // for the whole life of a conversation. It renders empty first and fills in as the thread
-          // and its metadata land, and the list resolves its initialScrollAtEnd target from the
-          // header size it has measured by then: a header that grows afterwards leaves the thread
-          // short by exactly that growth. Shorter variants now spend the difference as space above
-          // themselves rather than changing the box.
-          justifyContent: 'flex-end',
-          minHeight: topMessageReservedHeight,
+          minHeight: 100,
         },
       }),
       errorText: {padding: Kb.Styles.globalMargins.small},
