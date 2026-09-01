@@ -254,11 +254,20 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     return false
   }, [])
 
+  // Whether the end still belongs to the list rather than to the user. initialScrollAtEnd starts it
+  // ours; a wheel, a keyboard scroll or a centered load hands it over. Only consulted by the header
+  // re-pin below, which must not yank a reader who has scrolled away.
+  const pinnedToEndRef = React.useRef(true)
+  React.useLayoutEffect(() => {
+    pinnedToEndRef.current = true
+  }, [datasetKey])
+
   // Imperative scroll for ThreadRefsContext: for coming back from somewhere else in the thread, which
   // is the only case that needs it. While the list is at the end maintainScrollAtEnd owns the position,
   // and scrolling here only displaces it — the target resolves before the new row has measured, so it
   // lands short, and while it counts as in flight the list declines its own end anchor and abandons it.
   const scrollToBottom = React.useCallback(() => {
+    pinnedToEndRef.current = true
     if (isScrolledToEnd()) return
     void listRef.current?.scrollToEnd({animated: false})
   }, [isScrolledToEnd])
@@ -266,6 +275,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const scrollUp = React.useCallback(() => {
     const state = listRef.current?.getState()
     if (!state) return
+    pinnedToEndRef.current = false
     void listRef.current?.scrollToOffset({
       animated: false,
       offset: Math.max(0, state.scroll - state.scrollLength),
@@ -280,6 +290,68 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       offset: state.scroll + state.scrollLength,
     })
   }, [])
+
+  // The list resolves its initialScrollAtEnd target from the header size it has measured so far, and
+  // SpecialTopMessage renders at its bare minHeight before the thread's intro content (retention
+  // notice, new-chat card, the "digging" spinner) lands. maintainScrollAtEnd re-pins on a data, item,
+  // footer or viewport layout change but has no header trigger, so a header that grows after the
+  // target resolved leaves the list short by exactly that growth and nothing corrects it.
+  //
+  // Closed loop rather than a correction fired straight from the size change, for the same reason
+  // scrollToBottom keeps out of the way: the header often settles while the thread is still empty,
+  // and a scrollToEnd issued against that near-empty content becomes the target the list then
+  // abandons its own bootstrap for, landing anywhere. Wait for the scroll offset to hold still, so
+  // the list has finished its own initial scroll, and only then correct what it left on the table.
+  const endAnchorLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
+  const stopEndAnchor = React.useCallback(() => {
+    if (endAnchorLoopRef.current) endAnchorLoopRef.current.cancelled = true
+  }, [])
+  React.useEffect(() => stopEndAnchor, [stopEndAnchor])
+  const verifyEndAnchor = React.useCallback(() => {
+    stopEndAnchor()
+    const loop = {cancelled: false}
+    endAnchorLoopRef.current = loop
+    const run = async () => {
+      let previousScroll: number | undefined
+      let corrections = 0
+      for (let elapsed = 0; elapsed < 2000 && !loop.cancelled && pinnedToEndRef.current; ) {
+        await new Promise<void>(resolve => setTimeout(resolve, 50))
+        elapsed += 50
+        const state = listRef.current?.getState()
+        if (!state) continue
+        if (state.isAtEnd) return
+        // Only a scroll offset that held still across two checks means the list is done moving.
+        if (state.scroll === previousScroll) {
+          // Two corrections is the whole budget: one for the header, one for whatever re-measured
+          // alongside it. Past that we would be fighting something that owns the offset.
+          if (++corrections > 2) return
+          void listRef.current?.scrollToEnd({animated: false})
+          previousScroll = undefined
+        } else {
+          previousScroll = state.scroll
+        }
+      }
+    }
+    void run()
+  }, [stopEndAnchor])
+
+  // The header's own size change is the signal, but only once there are messages: the header
+  // frequently settles while the thread is still empty, and there is no end to hold yet.
+  const lastHeaderSizeRef = React.useRef<number | undefined>(undefined)
+  React.useLayoutEffect(() => {
+    lastHeaderSizeRef.current = undefined
+  }, [datasetKey])
+  const onMetricsChange = React.useCallback(
+    (metrics: {headerSize: number}) => {
+      const previous = lastHeaderSizeRef.current
+      lastHeaderSizeRef.current = metrics.headerSize
+      // The first emit is the measurement the target was built from, not a change.
+      if (previous === undefined || previous === metrics.headerSize) return
+      if (!pinnedToEndRef.current || messageOrdinalsRef.current.length === 0) return
+      verifyEndAnchor()
+    },
+    [verifyEndAnchor]
+  )
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
@@ -415,10 +487,12 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       )
       if (idx < 0) return
       lastScrolledCenteredRef.current = centeredOrdinal
+      pinnedToEndRef.current = false
       scrollToCentered(centeredOrdinal)
     } else if (lastScrolledCenteredRef.current !== undefined) {
       lastScrolledCenteredRef.current = undefined
       abortCentering()
+      pinnedToEndRef.current = true
       if (containsLatestMessage) {
         void listRef.current?.scrollToEnd({animated: false})
       }
@@ -528,8 +602,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
 
   // A wheel means the user took over: stop centering so we don't scroll them away from where
-  // they landed.
+  // they landed, and give up the end anchor.
   const onWheel = React.useCallback(() => {
+    pinnedToEndRef.current = false
     abortCentering()
   }, [abortCentering])
 
@@ -576,6 +651,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
           maintainVisibleContentPosition={{data: true}}
+          onMetricsChange={onMetricsChange}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
           onStartReached={onStartReached}
