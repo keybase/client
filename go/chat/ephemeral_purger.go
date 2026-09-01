@@ -282,7 +282,8 @@ func (b *BackgroundEphemeralPurger) loop(shutdownCh chan struct{}) error {
 		case <-b.purgeTimer.C:
 			b.Debug(bgctx, "loop: timer fired %s", b.uid)
 			b.queuePurges(bgctx)
-		case suspended = <-b.G().DesktopAppState.NextSuspendUpdate(&suspended):
+		case <-b.G().DesktopAppState.NextSuspendUpdate(suspended):
+			suspended = b.G().DesktopAppState.Suspended()
 			if !suspended {
 				b.Debug(bgctx, "loop: queuing purges on resume %s", b.uid)
 				b.queuePurges(bgctx)
