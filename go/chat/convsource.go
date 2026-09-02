@@ -238,7 +238,7 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 	// nothing older can exist. Worth checking before the expunge record because that record is not
 	// always populated: a conversation whose history was deleted reads back Upto:0 until its inbox
 	// entry is localized, and until then every page of it looks like there is more to come.
-	if oldest <= 1 {
+	if oldest == 1 {
 		s.Debug(ctx, "patchPaginationLast: true - reached the first message")
 		page.Last = true
 		return

@@ -97,6 +97,14 @@ func TestPatchPaginationLast(t *testing.T) {
 			want: true,
 		},
 		{
+			// The boundary from the other side. An over-eager check here silently truncates a
+			// thread's history, which is the more damaging direction and the harder one to notice.
+			name: "a page starting at message ID 2 is not last",
+			msgs: msgsWithIDs(2, 3, 4),
+			page: &chat1.Pagination{Num: 50},
+			want: false,
+		},
+		{
 			name: "a page above the beginning with no expunge is not last",
 			msgs: msgsWithIDs(40, 41, 42),
 			page: &chat1.Pagination{Num: 50},

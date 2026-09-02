@@ -137,10 +137,18 @@ type topicNameCacheItem struct {
 // Channel-name resolution is charged per message: every message body holding a `#token` sends
 // ParseChannelNameMentions here, and the uncached path reads the inbox and then fetches the METADATA
 // message of every channel in the team. Unboxing one page of a busy channel in a team with a few
-// dozen channels therefore cost thousands of single-message fetches. The window is deliberately
-// short: a page's worth of resolutions all land within milliseconds of each other, so a few seconds
-// collapses them into one while keeping a renamed channel from lingering long enough to be noticed.
-// That is why this needs no explicit invalidation on rename or channel create/delete.
+// dozen channels therefore cost thousands of single-message fetches.
+//
+// There is no invalidation hook, so the TTL is the only thing bounding staleness, and it is kept
+// short for that reason - a page's worth of resolutions all land within milliseconds of each other,
+// so seconds are enough to collapse them into one.
+//
+// Be aware of what the TTL does NOT heal. The result of a resolution is stored, not just displayed:
+// it becomes MessageUnboxedValid.ChannelNameMentions (see boxer.go) and is written to local storage
+// with the message. So a message unboxed during the window that a newly created or renamed channel
+// is missing from the cache keeps the stale resolution after the entry expires, until that message
+// happens to be unboxed again. Expiry heals later resolutions, not ones already committed. Widening
+// this duration widens that hole; if it ever needs to grow, wire up real invalidation first.
 const topicNameCacheDuration = 10 * time.Second
 
 type topicNameMemCache struct {
@@ -327,8 +335,10 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 	tlfID chat1.TLFID, topicType chat1.TopicType,
 ) (res []chat1.ChannelNameMention, err error) {
 	// Before the trace: this runs once per message body holding a `#token`, which reaches hundreds
-	// per second while paging a busy channel. Tracing a cache hit costs two log lines apiece and
-	// swamps the log with work that did nothing.
+	// per second while paging a busy channel, and tracing a hit costs two log lines apiece. Safe
+	// because DebugLabeler.trace is pure logging - no context checks, no error handling. Note the
+	// misses below still fan out concurrently on a cold cache; this collapses the steady state, not
+	// the initial burst.
 	if cached, ok := c.topicNameCache.Get(tlfID, topicType, uid); ok {
 		return cached, nil
 	}
@@ -336,37 +346,43 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 	defer c.Trace(ctx, &err,
 		"GetChannelsTopicName: tlfID: %v, topicType: %v", tlfID, topicType)()
 
-	addValidMetadataMsg := func(convID chat1.ConversationID, msg chat1.MessageUnboxed) {
+	addValidMetadataMsg := func(convID chat1.ConversationID, msg chat1.MessageUnboxed) bool {
 		if !msg.IsValid() {
 			c.Debug(ctx, "GetChannelsTopicName: metadata message invalid: convID, %s", convID)
-			return
+			return false
 		}
 		body := msg.Valid().MessageBody
 		typ, err := body.MessageType()
 		if err != nil {
 			c.Debug(ctx, "GetChannelsTopicName: error getting message type: convID, %s",
 				convID, err)
-			return
+			return false
 		}
 		if typ != chat1.MessageType_METADATA {
 			c.Debug(ctx, "GetChannelsTopicName: message not a real metadata message: convID, %s msgID: %d",
 				convID, msg.GetMessageID())
-			return
+			return false
 		}
 		res = append(res, chat1.ChannelNameMention{
 			ConvID:    convID,
 			TopicName: body.Metadata().ConversationTitle,
 		})
+		return true
 	}
 
 	convs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
 	if err != nil {
 		return nil, err
 	}
+	// Any channel we fail to resolve makes the result incomplete, and an incomplete result must not
+	// be cached: it would pin a degraded answer for the whole window. This matters most right after
+	// a db nuke, when local storage holds no METADATA messages yet and most of these fail.
+	complete := true
 	for _, rc := range convs {
 		conv := rc.Conv
 		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 		if err != nil {
+			complete = false
 			continue
 		}
 		unboxeds, err := c.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid,
@@ -374,15 +390,24 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 		if err != nil {
 			c.Debug(ctx, "GetChannelsTopicName: failed to unbox metadata message for: convID: %s err: %s",
 				conv.GetConvID(), err)
+			complete = false
 			continue
 		}
 		if len(unboxeds) != 1 {
 			c.Debug(ctx, "GetChannelsTopicName: empty result: convID: %s", conv.GetConvID())
+			complete = false
 			continue
 		}
-		addValidMetadataMsg(conv.GetConvID(), unboxeds[0])
+		if !addValidMetadataMsg(conv.GetConvID(), unboxeds[0]) {
+			complete = false
+		}
 	}
-	c.topicNameCache.Put(tlfID, topicType, uid, res)
+	if complete {
+		c.topicNameCache.Put(tlfID, topicType, uid, res)
+	} else {
+		c.Debug(ctx, "GetChannelsTopicName: incomplete result (%d of %d channels), not caching",
+			len(res), len(convs))
+	}
 	return res, nil
 }
 
