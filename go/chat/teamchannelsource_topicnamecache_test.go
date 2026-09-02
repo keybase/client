@@ -27,7 +27,7 @@ func TestTopicNameMemCacheRoundTrip(t *testing.T) {
 	_, ok := c.Get(tlfID, topicType, uid)
 	require.False(t, ok, "an empty cache must miss")
 
-	c.Put(tlfID, topicType, uid, names)
+	c.Put(tlfID, topicType, uid, names, true)
 	got, ok := c.Get(tlfID, topicType, uid)
 	require.True(t, ok)
 	require.Equal(t, names, got)
@@ -36,7 +36,7 @@ func TestTopicNameMemCacheRoundTrip(t *testing.T) {
 func TestTopicNameMemCacheKeysAreDistinct(t *testing.T) {
 	tlfID, topicType, uid, names := topicNameCacheFixture()
 	c := newTopicNameMemCache()
-	c.Put(tlfID, topicType, uid, names)
+	c.Put(tlfID, topicType, uid, names, true)
 
 	otherTLF := chat1.TLFID([]byte{0x09, 0x09})
 	otherUID := gregor1.UID([]byte{0xbb})
@@ -58,7 +58,7 @@ func TestTopicNameMemCacheKeysAreDistinct(t *testing.T) {
 func TestTopicNameMemCacheCopiesBothWays(t *testing.T) {
 	tlfID, topicType, uid, names := topicNameCacheFixture()
 	c := newTopicNameMemCache()
-	c.Put(tlfID, topicType, uid, names)
+	c.Put(tlfID, topicType, uid, names, true)
 
 	// Mutating what the caller passed in must not reach the cache.
 	names[0].TopicName = "mutated-input"
@@ -76,7 +76,7 @@ func TestTopicNameMemCacheCopiesBothWays(t *testing.T) {
 func TestTopicNameMemCacheExpires(t *testing.T) {
 	tlfID, topicType, uid, names := topicNameCacheFixture()
 	c := newTopicNameMemCache()
-	c.Put(tlfID, topicType, uid, names)
+	c.Put(tlfID, topicType, uid, names, true)
 
 	key := c.key(tlfID, topicType, uid)
 
@@ -108,10 +108,45 @@ func TestTopicNameMemCacheEmptyIsStillAValue(t *testing.T) {
 
 	// The cache itself stores whatever it is given, including nothing - which is exactly why the
 	// caller must not hand it a degraded read.
-	c.Put(tlfID, topicType, uid, nil)
+	c.Put(tlfID, topicType, uid, nil, true)
 	got, ok := c.Get(tlfID, topicType, uid)
 	require.True(t, ok, "an empty slice is a cached value, not a miss")
 	require.Empty(t, got)
+}
+
+// A team almost always holds channels the user cannot resolve - ones they left or never joined - so
+// an incomplete result is the steady state. It is cached anyway, or the fan-out this cache exists to
+// collapse would never be collapsed, but only for the shorter window.
+func TestTopicNameMemCacheIncompleteExpiresSooner(t *testing.T) {
+	tlfID, topicType, uid, names := topicNameCacheFixture()
+	c := newTopicNameMemCache()
+	c.Put(tlfID, topicType, uid, names, false)
+
+	key := c.key(tlfID, topicType, uid)
+	got, ok := c.Get(tlfID, topicType, uid)
+	require.True(t, ok, "an incomplete result is still cached")
+	require.Equal(t, names, got)
+
+	// Old enough that the complete TTL would still serve it, and the incomplete one does not.
+	c.Lock()
+	item := c.cache[key]
+	item.mtime = gregor1.ToTime(time.Now().Add(-topicNameCacheIncompleteDuration - time.Second))
+	c.cache[key] = item
+	c.Unlock()
+	require.Less(t, topicNameCacheIncompleteDuration+time.Second, topicNameCacheDuration,
+		"the fixture only proves anything while the two windows differ by more than this")
+	_, ok = c.Get(tlfID, topicType, uid)
+	require.False(t, ok, "an incomplete entry must expire on the shorter window")
+
+	// The same age under a complete entry still hits, so it is the flag doing the work.
+	c.Put(tlfID, topicType, uid, names, true)
+	c.Lock()
+	item = c.cache[key]
+	item.mtime = gregor1.ToTime(time.Now().Add(-topicNameCacheIncompleteDuration - time.Second))
+	c.cache[key] = item
+	c.Unlock()
+	_, ok = c.Get(tlfID, topicType, uid)
+	require.True(t, ok, "a complete entry of the same age must still hit")
 }
 
 // The TTL is the only bound on staleness - there is no invalidation hook - and the comment on the
@@ -120,24 +155,27 @@ func TestTopicNameCacheDurationStaysShort(t *testing.T) {
 	require.LessOrEqual(t, topicNameCacheDuration, 30*time.Second,
 		"a longer window widens the hole where a resolution is stored stale into a message")
 	require.Positive(t, topicNameCacheDuration)
+	require.Positive(t, topicNameCacheIncompleteDuration)
+	require.Less(t, topicNameCacheIncompleteDuration, topicNameCacheDuration,
+		"a result known to be missing channels must not be held as long as a whole one")
 }
 
 func TestTopicNameMemCacheClear(t *testing.T) {
 	tlfID, topicType, uid, names := topicNameCacheFixture()
 	c := newTopicNameMemCache()
-	c.Put(tlfID, topicType, uid, names)
+	c.Put(tlfID, topicType, uid, names, true)
 
 	c.clearCache()
 	_, ok := c.Get(tlfID, topicType, uid)
 	require.False(t, ok, "clearCache must drop everything")
 
 	// Logout and db nuke both go through the same clear, and both must leave the cache usable.
-	c.Put(tlfID, topicType, uid, names)
+	c.Put(tlfID, topicType, uid, names, true)
 	require.NoError(t, c.OnLogout(libkb.MetaContext{}))
 	_, ok = c.Get(tlfID, topicType, uid)
 	require.False(t, ok, "OnLogout must drop everything")
 
-	c.Put(tlfID, topicType, uid, names)
+	c.Put(tlfID, topicType, uid, names, true)
 	require.NoError(t, c.OnDbNuke(libkb.MetaContext{}))
 	_, ok = c.Get(tlfID, topicType, uid)
 	require.False(t, ok, "OnDbNuke must drop everything")
