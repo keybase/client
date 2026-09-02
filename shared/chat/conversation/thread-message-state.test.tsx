@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {
   addMessagesToThreadState,
+  describeOrdinalGaps,
   applyOptimisticReactionsToMessage,
   clearOptimisticReactionsForUpdatesInThreadState,
   deleteMessagesFromThreadState,
@@ -398,11 +399,124 @@ describe('addMessagesToThreadState', () => {
     expect(state.validatedOrdinalRange).toEqual({from: 5, to: 60})
   })
 
+
+
+
+
+  test('a notification may not strand a new ordinal below the loaded window', () => {
+    // The post-load ResolveSkippedUnboxeds push can carry the channel-name message at ID 1 long
+    // after the window has moved on. Adding it puts an orphan row at index 0 and breaks scrollback.
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(7152), textAt(7153)], {})
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([7152, 7153])
+  })
+
+  test('a notification still updates a message already inside the window', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(20)], {})
+    addMessagesToThreadState(state, [textAt(10, {text: 'edited'})], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([10, 20])
+    const m = state.messageMap.get(T.Chat.numberToOrdinal(10))
+    expect(m?.type === 'text' ? m.text.stringValue() : undefined).toBe('edited')
+  })
+
+  test('a notification may still append a new ordinal above the window', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(20)], {})
+    addMessagesToThreadState(state, [textAt(21)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([10, 20, 21])
+  })
+
+  test('a thread load may still extend the window downward', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(7152), textAt(7153)], {})
+    addMessagesToThreadState(state, [textAt(7038)], {})
+    expect(state.messageOrdinals).toEqual([7038, 7152, 7153])
+  })
+
+  test('a superseded placeholder does not strand its own ordinal in the list', () => {
+    // A sent message keeps the fractional ordinal it had in the outbox, so a later placeholder for
+    // the same message ID maps onto that fractional ordinal, not its own integer one.
+    const state = makeThreadState([])
+    addMessagesToThreadState(
+      state,
+      [
+        makeTextMessage({
+          id: T.Chat.numberToMessageID(100),
+          ordinal: T.Chat.numberToOrdinal(100.001),
+          outboxID: undefined,
+        }),
+      ],
+      {}
+    )
+    expect(state.messageOrdinals).toEqual([100.001])
+    addMessagesToThreadState(
+      state,
+      [
+        Message.makeMessagePlaceholder({
+          conversationIDKey: convID,
+          id: T.Chat.numberToMessageID(100),
+          ordinal: T.Chat.numberToOrdinal(100),
+        }),
+      ],
+      {}
+    )
+    expect(state.messageOrdinals).toEqual([100.001])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(100))).toBe(false)
+  })
+
+
   test('the render type index only tracks non text messages', () => {
     const state = makeThreadState([])
     const attachment = makeAttachmentMessage({ordinal: T.Chat.numberToOrdinal(20), outboxID: undefined})
     addMessagesToThreadState(state, [textAt(10), attachment], {})
     expect(state.messageTypeMap.has(T.Chat.numberToOrdinal(10))).toBe(false)
     expect(state.messageTypeMap.get(T.Chat.numberToOrdinal(20))).toBe('attachment:file')
+  })
+})
+
+describe('describeOrdinalGaps', () => {
+  const ords = (...n: ReadonlyArray<number>) => n.map(T.Chat.numberToOrdinal)
+  const accounted = (...n: ReadonlyArray<number>) => new Set(n.map(T.Chat.numberToOrdinal))
+
+  test('a contiguous window is OK', () => {
+    expect(describeOrdinalGaps(undefined)).toBe('ordinals=0 >>> OK')
+    expect(describeOrdinalGaps(ords(10, 11, 12))).toBe(
+      'ordinals=3 range=[10..12] maxgap=0 gaps=0 explained=0 >>> OK'
+    )
+  })
+
+  test('a gap the service accounted for is explained, not flagged', () => {
+    // Retention expunges arrive as hidden placeholders that become `deleted` and drop out of the
+    // ordinal list, so the missing IDs are still accounted for.
+    expect(describeOrdinalGaps(ords(10, 1000), accounted(10, 12, 500, 900, 1000))).toBe(
+      'ordinals=2 range=[10..1000] maxgap=990 gaps=1 explained=1 >>> OK'
+    )
+  })
+
+  test('small unexplained gaps are the normal churn of hidden message types', () => {
+    // Reactions, edits and unfurls burn IDs the service never sends, so these can never be
+    // accounted for and must not be flagged.
+    expect(describeOrdinalGaps(ords(89, 94, 97, 100), accounted(89, 94, 97, 100))).toBe(
+      'ordinals=4 range=[89..100] maxgap=5 gaps=3 explained=0 >>> OK'
+    )
+  })
+
+  test('a gap with nothing behind it is flagged as BAD', () => {
+    expect(describeOrdinalGaps(ords(1, 4114, 4115), accounted(1, 4114, 4115))).toBe(
+      'ordinals=3 range=[1..4115] maxgap=4113 gaps=1 explained=0 >>> BAD unexplained gap 1->4114(4113)'
+    )
+  })
+
+  test('the verdict reports the biggest unexplained gap and counts the rest', () => {
+    const out = describeOrdinalGaps(ords(1, 500, 5000, 5001), accounted(1, 500, 5000, 5001))
+    expect(out).toContain('>>> BAD unexplained gap 500->5000(4500) +1 more')
+  })
+
+  test('a pending fractional ordinal is not a gap', () => {
+    expect(describeOrdinalGaps(ords(10, 11, 11.001))).toBe(
+      'ordinals=3 range=[10..11.001] maxgap=0 gaps=0 explained=0 >>> OK'
+    )
   })
 })

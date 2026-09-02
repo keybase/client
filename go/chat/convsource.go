@@ -231,14 +231,24 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 		page.Last = true
 		return
 	}
+	end1 := msgs[0].GetMessageID()
+	end2 := msgs[len(msgs)-1].GetMessageID()
+	oldest := end1.Min(end2)
+	// Message IDs start at 1, so a page holding it has reached the beginning of the conversation and
+	// nothing older can exist. Worth checking before the expunge record because that record is not
+	// always populated: a conversation whose history was deleted reads back Upto:0 until its inbox
+	// entry is localized, and until then every page of it looks like there is more to come.
+	if oldest <= 1 {
+		s.Debug(ctx, "patchPaginationLast: true - reached the first message")
+		page.Last = true
+		return
+	}
 	expunge := conv.GetExpunge()
 	if expunge == nil {
 		s.Debug(ctx, "patchPaginationLast: no expunge info")
 		return
 	}
-	end1 := msgs[0].GetMessageID()
-	end2 := msgs[len(msgs)-1].GetMessageID()
-	if end1.Min(end2) <= expunge.Upto {
+	if oldest <= expunge.Upto {
 		s.Debug(ctx, "patchPaginationLast: true - hit upto")
 		// If any message is prior to the nukepoint, say this is the last page.
 		page.Last = true
@@ -908,6 +918,26 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		if err != nil {
 			s.Debug(ctx, "PullLocalOnly: failed to fetch local messages with local max: %s", err)
 			return chat1.ThreadView{}, err
+		}
+		// This retry anchors on the local max instead of the inbox max, which is what we want when
+		// local storage is merely behind. But after the cache is wiped the only thing left can be a
+		// lone ancient message the inbox localizer cached for a channel name, headline or pin. Handed
+		// up as the newest page, it strands itself thousands of IDs above the real thread in the UI.
+		// Only accept a window that could plausibly overlap the page being asked for.
+		if iboxMaxMsgID > 0 && num > 0 && pagination.FirstPage() && len(tv.Messages) > 0 {
+			var newest chat1.MessageID
+			for _, m := range tv.Messages {
+				if id := m.GetMessageID(); id > newest {
+					newest = id
+				}
+			}
+			//nolint:gosec // G115: num is positive, checked above
+			if newest < iboxMaxMsgID && iboxMaxMsgID-newest > chat1.MessageID(num) {
+				s.Debug(ctx,
+					"PullLocalOnly: local max fallback newest %d is %d below ibox max %d, past the %d requested: reporting miss",
+					newest, iboxMaxMsgID-newest, iboxMaxMsgID, num)
+				return chat1.ThreadView{}, storage.MissError{Msg: "local copy does not reach the newest page"}
+			}
 		}
 	}
 	return tv, nil

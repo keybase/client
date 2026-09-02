@@ -322,7 +322,11 @@ test('a thread reload does not refetch the orange line against the stale mount r
   expectOrangeLine(noOrangeLine)
 })
 
-test('negative read message IDs are clamped before fetching the orange line', async () => {
+test('an unknown read position draws no orange line rather than one above everything', async () => {
+  // There is no valid message ID 0, so a non-positive read position means the conversation's meta
+  // has not landed yet (emptyConversationMeta reads -1), which a DB nuke makes the norm. Asking the
+  // service with 0 answers "everything is unread" and pins the line above the oldest message, and
+  // the state is set once, so that answer used to stick for the life of the mount.
   const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
     offline: false,
     unreadlineID: T.Chat.numberToMessageID(8),
@@ -332,9 +336,22 @@ test('negative read message IDs are clamped before fetching the orange line', as
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
-  expectUnreadlineRpcReadMsgID(unreadlineRpc, 0)
-  expectOrangeLine(T.Chat.numberToOrdinal(8))
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expectOrangeLine(noOrangeLine)
+})
+
+test('a zero read position is treated as unknown too', async () => {
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(8),
+  })
+  mockMeta = makeMeta(convID, 0)
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expectOrangeLine(noOrangeLine)
 })
 
 test('zero unreadline responses render as no orange line', async () => {
