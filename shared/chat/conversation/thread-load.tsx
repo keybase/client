@@ -199,7 +199,7 @@ export const loadConversationThreadMessages = (
     // applyThreadLoad drops the window gate when a load refills the window, but a load can end
     // without ever applying: offline, scchatnotinteam, a response carrying no thread, or a bail
     // before the RPC is even made. Left alone the gate would keep dropping notifications for the
-    // life of the provider - with dropAll, that is a thread that silently stops receiving messages.
+    // life of the provider, which is a thread that silently stops receiving messages.
     //
     // Keyed on clearVersion, not on isThreadLoadCurrent: the load generation only moves when the
     // conversation changes or the thread unmounts, so two loads of the same conversation both call
@@ -228,10 +228,13 @@ export const loadConversationThreadMessages = (
     )
 
     const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-    // Set once a cached response arrives with content. Once the service has sent a cached thread it
-    // switches the full response to INCREMENTAL, filtering it down to only the messages that changed
-    // (chat/uithreadloader.go mergeLocalRemoteThread). From that point neither response is a
-    // complete window. An empty cached pass means no thread was sent, so the full pass still is one.
+    // Set once a cached response arrives carrying messages. Once the service has sent a cached
+    // thread it switches the full response to INCREMENTAL, filtering it down to only the messages
+    // that changed (chat/uithreadloader.go mergeLocalRemoteThread). From that point neither response
+    // is a complete window. Judged on the messages, not on the response: a cold cache still sends a
+    // pass, because PullLocalOnly's collector suppresses the miss, and that pass carries no
+    // messages - INCREMENTAL against an empty local thread filters nothing out, so the full pass
+    // that follows is a whole window after all.
     let sawCachedPass = false
     // The reload below is judged against the whole load, not one pass of it. A warm-cache load
     // delivers the page on the cached pass and then an INCREMENTAL full pass carrying only what
@@ -243,9 +246,6 @@ export const loadConversationThreadMessages = (
     const onGotThread = (thread: string, why: string) => {
       if (!thread) {
         return
-      }
-      if (why === 'cached') {
-        sawCachedPass = true
       }
       if (!isCurrentThreadLoad()) {
         logger.info(`loadMoreMessages: stale response ignored: ${why}`)
@@ -269,6 +269,9 @@ export const loadConversationThreadMessages = (
         devicename,
         () => getLastOrdinalFromSnapshot(actions.getSnapshot())
       )
+      if (why === 'cached' && messages.length) {
+        sawCachedPass = true
+      }
       const moreToLoad = pagination ? !pagination.last : true
       const canMarkReadForThreadWindow =
         allowMarkAsRead &&

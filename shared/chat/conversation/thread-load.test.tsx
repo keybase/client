@@ -481,3 +481,94 @@ describe('a load releases the window gate it was issued under', () => {
     expect(actions.clearWindowGate).not.toHaveBeenCalled()
   })
 })
+describe('a cached pass that carries nothing leaves the full pass a whole window', () => {
+  const flushPromises = async () => {
+    for (let i = 0; i < 200; i++) {
+      await Promise.resolve()
+    }
+  }
+
+  const page = (from: number, to: number) =>
+    Array.from({length: from - to + 1}, (_, i) => ({
+      placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(from - i)},
+      state: T.RPCChat.MessageUnboxedState.placeholder,
+    }))
+
+  const recordingActions = () =>
+    ({
+      applyThreadLoad: jest.fn(),
+      clearWindowGate: jest.fn(),
+      getSnapshot: () =>
+        ({
+          clearVersion: 0,
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: undefined,
+          pendingOutboxToOrdinal: new Map(),
+        }) as unknown as ConversationThreadState,
+      loadMoreMessages: jest.fn(),
+      markThreadAsRead: jest.fn(),
+    }) as unknown as ConversationThreadActions
+
+  const mockPasses = (cached: string, full: string) =>
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      p.onCachedThread?.(cached)
+      p.onFullThread?.(full)
+      return undefined as never
+    })
+
+  const validatedRangeOfLastLoad = (actions: ConversationThreadActions) => {
+    const calls = (actions.applyThreadLoad as unknown as jest.Mock).mock.calls
+    return (calls.at(-1)?.[0] as {validatedRange?: {from: number; to: number}} | undefined)?.validatedRange
+  }
+
+  beforeEach(() => {
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id',
+      deviceName: 'testuser-mac',
+      uid: 'uid',
+      username: 'testuser',
+    })
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  test('prunes against a full pass that followed an empty cached one', async () => {
+    // First open after a db nuke: PullLocalOnly finds nothing, but its collector suppresses the miss
+    // and a cached pass is sent anyway, carrying no messages. INCREMENTAL against an empty local
+    // thread filters nothing out, so the full pass really is the whole window - and only a whole
+    // window may prune the stale ordinals a cache repair left behind.
+    const actions = recordingActions()
+    mockPasses(
+      JSON.stringify({messages: null, pagination: {last: false, num: 100}}),
+      JSON.stringify({messages: page(7153, 7152), pagination: {last: false, num: 100}})
+    )
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(validatedRangeOfLastLoad(actions)).toEqual({
+      from: T.Chat.numberToOrdinal(7152),
+      to: T.Chat.numberToOrdinal(7153),
+    })
+  })
+
+  test('does not prune against a full pass that followed a cached page', async () => {
+    // The warm-cache sequence: the cached pass carried the page, so the full pass is INCREMENTAL -
+    // only what changed. Pruning against that deletes messages that are still in the thread.
+    const actions = recordingActions()
+    mockPasses(
+      JSON.stringify({messages: page(7153, 7052), pagination: {last: false, num: 100}}),
+      JSON.stringify({messages: page(7153, 7153), pagination: {last: false, num: 100}})
+    )
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(validatedRangeOfLastLoad(actions)).toBeUndefined()
+  })
+})

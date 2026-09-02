@@ -1630,12 +1630,16 @@ test('jumpToRecent drops the old window instead of merging a disjoint one into i
   expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(9001)])
 })
 
-test('a notification during a jump-to-recent gap cannot become the new window floor', () => {
+test('a notification during a jump-to-recent gap cannot become the new window', () => {
   // jumpToRecent and a centered jump both clear before reloading, so for one RPC round trip the
   // window is empty. The notification most likely to land in that gap is the post-send
   // ResolveSkippedUnboxeds push from the load already in flight - the very one carrying the ancient
-  // setChannelname at ID 1. Without a floor that survives the clear it installs itself at index 0
-  // and the thread is stranded again, which is the bug this branch exists to fix.
+  // setChannelname at ID 1. Without the gap being marked it installs itself at index 0 and the
+  // thread is stranded again, which is the bug this branch exists to fix.
+  //
+  // A push between the old window and the page that is coming strands the same way: jump-to-recent
+  // reloads the newest page, which for a reader parked far back starts thousands of ordinals above
+  // where they were, so "newer than what we dropped" says nothing about whether it belongs.
   const {result} = renderHook(
     () => ({actions: useConversationThreadActions()}),
     {wrapper}
@@ -1655,7 +1659,7 @@ test('a notification during a jump-to-recent gap cannot become the new window fl
     result.current.actions.messagesClear()
   })
   act(() => {
-    result.current.actions.addMessages([textAt(1)], {liveUpdate: true})
+    result.current.actions.addMessages([textAt(1), textAt(7155)], {liveUpdate: true})
   })
   act(() => {
     result.current.actions.applyThreadLoad({
