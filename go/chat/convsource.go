@@ -231,24 +231,14 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 		page.Last = true
 		return
 	}
-	end1 := msgs[0].GetMessageID()
-	end2 := msgs[len(msgs)-1].GetMessageID()
-	oldest := end1.Min(end2)
-	// Message IDs start at 1, so a page holding it has reached the beginning of the conversation and
-	// nothing older can exist. Worth checking before the expunge record because that record is not
-	// always populated: a conversation whose history was deleted reads back Upto:0 until its inbox
-	// entry is localized, and until then every page of it looks like there is more to come.
-	if oldest == 1 {
-		s.Debug(ctx, "patchPaginationLast: true - reached the first message")
-		page.Last = true
-		return
-	}
 	expunge := conv.GetExpunge()
 	if expunge == nil {
 		s.Debug(ctx, "patchPaginationLast: no expunge info")
 		return
 	}
-	if oldest <= expunge.Upto {
+	end1 := msgs[0].GetMessageID()
+	end2 := msgs[len(msgs)-1].GetMessageID()
+	if end1.Min(end2) <= expunge.Upto {
 		s.Debug(ctx, "patchPaginationLast: true - hit upto")
 		// If any message is prior to the nukepoint, say this is the last page.
 		page.Last = true
