@@ -544,47 +544,58 @@ describe('addMessagesToThreadState', () => {
     ])
   })
 
-  test('a cleared window still refuses a notification below the floor it had', () => {
-    // messagesClear wipes messageOrdinals but remembers the window, because jumpToRecent and a
-    // centered jump both clear then reload. A push landing in that gap would otherwise face an
-    // empty window, install itself as the whole of it, and strand once the load response arrives.
+  test('a cleared window refuses a notification in either direction', () => {
+    // messagesClear wipes messageOrdinals and marks the gap, because jumpToRecent and a centered
+    // jump both clear then reload. A push landing in that gap would otherwise face an empty window,
+    // install itself as the whole of it, and strand once the load response arrives. Neither reload
+    // can be predicted from the old window - a centered jump lands on an arbitrary region, and
+    // jump-to-recent on the newest page, which is nowhere near a reader parked far back - so above
+    // strands as surely as below.
     const state = makeThreadState([])
-    state.clearedWindow = {floor: T.Chat.numberToOrdinal(7152)}
-    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+    state.windowCleared = true
+    addMessagesToThreadState(state, [textAt(1), textAt(7155), textAt(9001)], {dropNewBelowWindow: true})
     expect(state.messageOrdinals ?? []).toEqual([])
 
     // ...and the load that follows populates it normally.
-    addMessagesToThreadState(state, [textAt(9001)], {})
-    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(9001)])
+    addMessagesToThreadState(state, [textAt(8900), textAt(8901)], {})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(8900), T.Chat.numberToOrdinal(8901)])
   })
 
-  test('a window cleared for jump-to-recent keeps a notification above the floor it had', () => {
-    // The reload lands newer than the old floor, so a message arriving first belongs in what is
-    // coming - the response may have been composed before it existed. Dropping it would lose it.
-    const state = makeThreadState([])
-    state.clearedWindow = {floor: T.Chat.numberToOrdinal(7152)}
-    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
-    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(9001)])
-  })
-
-  test('a window cleared for a centered jump refuses a notification in either direction', () => {
-    // The reload lands on an arbitrary region, so nothing arriving first can be placed against it -
-    // above the coming window strands as surely as below it.
-    const state = makeThreadState([])
-    state.clearedWindow = {dropAll: true, floor: T.Chat.numberToOrdinal(7152)}
-    addMessagesToThreadState(state, [textAt(1), textAt(9001)], {dropNewBelowWindow: true})
-    expect(state.messageOrdinals ?? []).toEqual([])
-
-    // The centered load itself is not a push, so it fills the window as usual.
-    addMessagesToThreadState(state, [textAt(120), textAt(121)], {})
-    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(120), T.Chat.numberToOrdinal(121)])
-  })
-
-  test('with no window and no remembered floor a notification still applies', () => {
+  test('with no window and nothing cleared a notification still applies', () => {
     // A conversation that has never held a window - a first load, or one that is genuinely empty.
     // There is no floor to be below, so nothing is dropped and a new message appears at once.
     const state = makeThreadState([])
     addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
     expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(1)])
+  })
+
+  test('a message remapped out of the window is dropped, not stranded', () => {
+    // The window is judged on the ordinal the message will occupy, which an outbox or messageID
+    // match can move. Here messageIDToOrdinal still points at an ancient ordinal the thread no
+    // longer renders, so a push whose own ordinal sits inside the window remaps outside it.
+    const state = makeThreadState([textAt(7152), textAt(7153)], {moreToLoadForward: true})
+    const strandedOrdinal = T.Chat.numberToOrdinal(1)
+    const messageID = T.Chat.numberToMessageID(7153)
+    // An entry the thread no longer renders: gone from the ordinal list, still in the map and index.
+    state.messageMap.set(strandedOrdinal, T.castDraft(textAt(1, {id: messageID})))
+    state.messageIDToOrdinal.set(messageID, strandedOrdinal)
+
+    addMessagesToThreadState(state, [textAt(7153)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)])
+  })
+
+  test('a message remapped onto a row already in the window still merges', () => {
+    // The mirror of the case above: the raw ordinal is outside the window but the row it maps onto
+    // is one the thread is already showing, so this is an update to that row, not a new one.
+    const sent = textAt(7153, {outboxID: T.Chat.stringToOutboxID('sent-1')})
+    const state = makeThreadState([textAt(7152), sent], {moreToLoadForward: true})
+    const resent = textAt(1, {outboxID: T.Chat.stringToOutboxID('sent-1'), text: 'edited'})
+
+    addMessagesToThreadState(state, [resent], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)])
+    const merged = state.messageMap.get(T.Chat.numberToOrdinal(7153))
+    expect(merged?.type === 'text' && merged.text.stringValue()).toBe('edited')
   })
 })

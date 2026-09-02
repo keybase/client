@@ -39,7 +39,6 @@ import {
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
-import type {ClearedWindow} from './thread-message-state'
 import {
   getInboxConversationMeta,
   getInboxConversationParticipants,
@@ -108,10 +107,10 @@ export type ConversationThreadState = {
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
-  // The window as it was before the last messagesClear, so a notification arriving between a clear
-  // and its reload cannot install itself as the new window. Cleared once that load settles, however
-  // it settles - see clearWindowGate.
-  clearedWindow?: ClearedWindow
+  // Set between a messagesClear and the reload that refills the window, so a notification arriving
+  // in that gap cannot install itself as the new window. Cleared once that load settles, however it
+  // settles - see clearWindowGate.
+  windowCleared?: boolean
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   moreToLoadBack: boolean
   moreToLoadForward: boolean
@@ -215,7 +214,7 @@ type LoadNewerMessagesDueToScroll = (
   options?: ThreadLoadStatusOptions
 ) => void
 type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
-type MessagesClear = (opt?: {centeredReload?: boolean}) => void
+type MessagesClear = () => void
 type SelectedConversation = (options?: SelectedConversationOptions) => void
 export type ConversationThreadActions = {
   addMessages: (
@@ -540,7 +539,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }) => {
       updateThreadState(s => {
         s.loaded = true
-        s.clearedWindow = undefined
+        s.windowCleared = false
         if (p.messages.length) {
           addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
@@ -913,29 +912,26 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   // applying: offline, scchatnotinteam, or a response that carries no thread. Left alone the gate
   // would keep dropping notifications for the life of the provider, with no window to correct it.
   const clearWindowGate = React.useEffectEvent(() => {
-    if (!threadStore.getState().clearedWindow) {
+    if (!threadStore.getState().windowCleared) {
       return
     }
     updateThreadState(s => {
-      s.clearedWindow = undefined
+      s.windowCleared = false
     })
   })
-  const messagesClear = React.useEffectEvent((opt?: {centeredReload?: boolean}) => {
+  const messagesClear = React.useEffectEvent(() => {
     activeMarkReadEnabledRef.current = false
     shownUsernameCache.clear()
     updateThreadState(s => {
       s.clearVersion += 1
       s.pendingOutboxToOrdinal.clear()
       s.loaded = false
-      // Remember the window we are dropping. A notification landing between here and the reload
-      // would otherwise face an empty window, install itself as the whole of it, and strand once
-      // the load response arrives. A centered jump reloads an arbitrary region, so nothing that
-      // arrives first can be placed against it; jumpToRecent reloads newer than this floor, so a
-      // push above the floor does belong in what is coming and is kept.
-      s.clearedWindow = {
-        dropAll: opt?.centeredReload,
-        floor: s.messageOrdinals?.[0] ?? s.clearedWindow?.floor,
-      }
+      // Mark the gap. A notification landing between here and the reload would otherwise face an
+      // empty window, install itself as the whole of it, and strand once the load response arrives.
+      // Both callers reload a region disjoint from the one being dropped - a centered jump an
+      // arbitrary one, jumpToRecent the newest page - so nothing arriving first can be placed
+      // against what is coming.
+      s.windowCleared = true
       s.messageIDToOrdinal.clear()
       s.messageMap.clear()
       s.messageOrdinals = undefined
@@ -1221,7 +1217,7 @@ export const useConversationThreadLoadMessagesCentered = () => {
   const messagesClear = useConversationThreadMessagesClear()
 
   const loadMessagesCentered: LoadMessagesCentered = (messageID, highlightMode, options) => {
-    messagesClear({centeredReload: true})
+    messagesClear()
     loadMoreMessages({
       centeredMessageID: {
         conversationIDKey,
