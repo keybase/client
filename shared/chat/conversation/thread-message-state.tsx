@@ -3,67 +3,6 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import type {WritableDraft} from '@/util/zustand'
 
-// Temporary diagnostic for the thread-ordinal no-gap work. Bump the marker on every edit so a log
-// can be tied back to the build that produced it. Remove once the gap producer is confirmed gone.
-export const GAPPROBE = 'gapprobe/2026-09-01g'
-
-// A compact summary of where a loaded window is discontiguous, ending in a single verdict.
-//
-// Numbering gaps are normal on their own: edits, reactions, unfurls and deletes each burn a message
-// ID the thread never shows, and retention expunges whole ranges. What separates those from a real
-// hole is whether the service ever accounted for the missing IDs — an expunged range arrives as
-// hidden placeholders (which become `deleted` and drop out of the list), while a stranded ordinal
-// has nothing behind it at all. `accountedFor` is every ordinal the service has sent for this
-// conversation, deleted ones included, accumulated across loads.
-//
-// Accounting alone is not enough: EDIT, DELETE, REACTION, ATTACHMENTUPLOADED, UNFURL and TLFNAME are
-// filtered out server-side and never reach the client at all, so the IDs they burn can never be
-// accounted for. Those produce small unexplained gaps on every healthy thread. So a gap is only
-// called out when it is BOTH unexplained AND far larger than that churn could account for — a
-// stranded ordinal sits thousands of IDs from the window, not tens.
-const unexplainedGapAlarm = 200
-export const describeOrdinalGaps = (
-  ordinals?: ReadonlyArray<T.Chat.Ordinal>,
-  accountedFor?: ReadonlySet<T.Chat.Ordinal>
-) => {
-  const len = ordinals?.length ?? 0
-  if (!ordinals || len === 0) {
-    return 'ordinals=0 >>> OK'
-  }
-  const gaps = new Array<{explained: boolean; from: T.Chat.Ordinal; size: number; to: T.Chat.Ordinal}>()
-  for (let i = 1; i < len; i++) {
-    const prev = ordinals[i - 1]
-    const cur = ordinals[i]
-    if (prev === undefined || cur === undefined) {
-      continue
-    }
-    const size = cur - prev
-    if (size <= 1) {
-      continue
-    }
-    let explained = false
-    if (accountedFor) {
-      for (let id = prev + 1; id < cur; id++) {
-        if (accountedFor.has(id as T.Chat.Ordinal)) {
-          explained = true
-          break
-        }
-      }
-    }
-    gaps.push({explained, from: prev, size, to: cur})
-  }
-  const suspect = gaps.filter(g => !g.explained && g.size > unexplainedGapAlarm).sort((a, b) => b.size - a.size)
-  const maxGap = gaps.reduce((m, g) => Math.max(m, g.size), 0)
-  const first = ordinals[0]
-  const last = ordinals[len - 1]
-  const counts = `gaps=${gaps.length} explained=${gaps.filter(g => g.explained).length}`
-  const worst = suspect[0]
-  const verdict = worst
-    ? `>>> BAD unexplained gap ${worst.from}->${worst.to}(${worst.size})${suspect.length > 1 ? ` +${suspect.length - 1} more` : ''}`
-    : '>>> OK'
-  return `ordinals=${len} range=[${first}..${last}] maxgap=${maxGap} ${counts} ${verdict}`
-}
-
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
 
 type WritableConversationThreadMessageState = {

@@ -4,7 +4,6 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {
   addMessagesToThreadState,
-  describeOrdinalGaps,
   applyOptimisticReactionsToMessage,
   clearOptimisticReactionsForUpdatesInThreadState,
   deleteMessagesFromThreadState,
@@ -473,50 +472,5 @@ describe('addMessagesToThreadState', () => {
     addMessagesToThreadState(state, [textAt(10), attachment], {})
     expect(state.messageTypeMap.has(T.Chat.numberToOrdinal(10))).toBe(false)
     expect(state.messageTypeMap.get(T.Chat.numberToOrdinal(20))).toBe('attachment:file')
-  })
-})
-
-describe('describeOrdinalGaps', () => {
-  const ords = (...n: ReadonlyArray<number>) => n.map(T.Chat.numberToOrdinal)
-  const accounted = (...n: ReadonlyArray<number>) => new Set(n.map(T.Chat.numberToOrdinal))
-
-  test('a contiguous window is OK', () => {
-    expect(describeOrdinalGaps(undefined)).toBe('ordinals=0 >>> OK')
-    expect(describeOrdinalGaps(ords(10, 11, 12))).toBe(
-      'ordinals=3 range=[10..12] maxgap=0 gaps=0 explained=0 >>> OK'
-    )
-  })
-
-  test('a gap the service accounted for is explained, not flagged', () => {
-    // Retention expunges arrive as hidden placeholders that become `deleted` and drop out of the
-    // ordinal list, so the missing IDs are still accounted for.
-    expect(describeOrdinalGaps(ords(10, 1000), accounted(10, 12, 500, 900, 1000))).toBe(
-      'ordinals=2 range=[10..1000] maxgap=990 gaps=1 explained=1 >>> OK'
-    )
-  })
-
-  test('small unexplained gaps are the normal churn of hidden message types', () => {
-    // Reactions, edits and unfurls burn IDs the service never sends, so these can never be
-    // accounted for and must not be flagged.
-    expect(describeOrdinalGaps(ords(89, 94, 97, 100), accounted(89, 94, 97, 100))).toBe(
-      'ordinals=4 range=[89..100] maxgap=5 gaps=3 explained=0 >>> OK'
-    )
-  })
-
-  test('a gap with nothing behind it is flagged as BAD', () => {
-    expect(describeOrdinalGaps(ords(1, 4114, 4115), accounted(1, 4114, 4115))).toBe(
-      'ordinals=3 range=[1..4115] maxgap=4113 gaps=1 explained=0 >>> BAD unexplained gap 1->4114(4113)'
-    )
-  })
-
-  test('the verdict reports the biggest unexplained gap and counts the rest', () => {
-    const out = describeOrdinalGaps(ords(1, 500, 5000, 5001), accounted(1, 500, 5000, 5001))
-    expect(out).toContain('>>> BAD unexplained gap 500->5000(4500) +1 more')
-  })
-
-  test('a pending fractional ordinal is not a gap', () => {
-    expect(describeOrdinalGaps(ords(10, 11, 11.001))).toBe(
-      'ordinals=3 range=[10..11.001] maxgap=0 gaps=0 explained=0 >>> OK'
-    )
   })
 })
