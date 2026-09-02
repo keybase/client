@@ -295,6 +295,30 @@ describe('a back page that adds no ordinals reloads itself', () => {
     expect(rpc).toHaveBeenCalledTimes(1)
   })
 
+  test('reloads when a warm cache delivers the tombstones', async () => {
+    // The reported bug's own shape: the conversation is already in local storage, so PullLocalOnly
+    // wins and the cached pass carries the page - which is entirely tombstones. Judging only the
+    // full pass, or refusing to judge at all once a cached pass arrived, leaves this inert.
+    let next = 7151
+    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      const from = next
+      const to = Math.max(6952, from - numMessagesOnScrollback + 1)
+      next = to - 1
+      await Promise.resolve()
+      const body = JSON.stringify({
+        messages: tombstones(from, to),
+        pagination: {last: to <= 6952, num: 100},
+      })
+      p.onCachedThread?.(body)
+      // The full pass is INCREMENTAL once a cached thread has been sent.
+      p.onFullThread?.(JSON.stringify({messages: tombstones(to, to), pagination: {last: to <= 6952, num: 100}}))
+      return undefined as never
+    })
+    loadBack(trackingActions())
+    await flushPromises()
+    expect(rpc).toHaveBeenCalledTimes(2)
+  })
+
   test('does not reload after a cached pass already delivered the page', async () => {
     // The normal warm-cache sequence: PullLocalOnly wins, the cached pass carries the whole page,
     // and the full pass that follows is INCREMENTAL - only the messages that changed, every one of
@@ -311,6 +335,44 @@ describe('a back page that adds no ordinals reloads itself', () => {
       return undefined as never
     })
     loadBack(trackingActions())
+    await flushPromises()
+    expect(rpc).toHaveBeenCalledTimes(1)
+  })
+
+  test('stops when the window is cleared under it', async () => {
+    // jump to recent and a centered jump both clear then reload. A chain still walking backwards
+    // would prepend pages into a window the reader has just left, producing the disjoint ordinals
+    // this whole branch exists to prevent.
+    let calls = 0
+    const ordinals = new Set<T.Chat.Ordinal>([T.Chat.numberToOrdinal(7152)])
+    let clearVersion = 0
+    const actions = {
+      applyThreadLoad: jest.fn(),
+      getSnapshot: () =>
+        ({
+          clearVersion,
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: [...ordinals].sort((a, b) => a - b),
+          pendingOutboxToOrdinal: new Map(),
+        }) as unknown as ConversationThreadState,
+      markThreadAsRead: jest.fn(),
+    } as unknown as ConversationThreadActions
+    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      calls++
+      await Promise.resolve()
+      // Someone hits jump-to-recent while the first page is in flight.
+      if (calls === 1) {
+        clearVersion = 1
+      }
+      p.onFullThread?.(
+        JSON.stringify({messages: tombstones(7151, 7052), pagination: {last: false, num: 100}})
+      )
+      return undefined as never
+    })
+    loadBack(actions)
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(1)
   })

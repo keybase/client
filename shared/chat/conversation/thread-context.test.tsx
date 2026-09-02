@@ -1554,3 +1554,45 @@ test('jumpToRecent drops the old window instead of merging a disjoint one into i
   // [101, 102, 9001] with a 8899-wide hole.
   expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(9001)])
 })
+
+test('a notification during a jump-to-recent gap cannot become the new window floor', () => {
+  // jumpToRecent and a centered jump both clear before reloading, so for one RPC round trip the
+  // window is empty. The notification most likely to land in that gap is the post-send
+  // ResolveSkippedUnboxeds push from the load already in flight - the very one carrying the ancient
+  // setChannelname at ID 1. Without a floor that survives the clear it installs itself at index 0
+  // and the thread is stranded again, which is the bug this branch exists to fix.
+  const {result} = renderHook(
+    () => ({actions: useConversationThreadActions()}),
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(7152), textAt(7153)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  act(() => {
+    result.current.actions.messagesClear()
+  })
+  act(() => {
+    result.current.actions.addMessages([textAt(1)], {liveUpdate: true})
+  })
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(9001)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  expect(result.current.actions.getSnapshot().messageOrdinals).toEqual([
+    T.Chat.numberToOrdinal(9001),
+  ])
+})

@@ -213,6 +213,14 @@ export const loadConversationThreadMessages = (
     // (chat/uithreadloader.go mergeLocalRemoteThread). From that point neither response is a
     // complete window. An empty cached pass means no thread was sent, so the full pass still is one.
     let sawCachedPass = false
+    // The reload below is judged against the whole load, not one pass of it. A warm-cache load
+    // delivers the page on the cached pass and then an INCREMENTAL full pass carrying only what
+    // changed, so measuring the full pass alone says "added nothing" for a perfectly good page.
+    // Measuring from before either pass tells the two apart: a page of real messages moves this,
+    // a page of tombstones does not, wherever it arrived.
+    const floorAtLoadStart = loadStartedSnapshot.messageOrdinals?.[0]
+    const clearVersionAtLoadStart = loadStartedSnapshot.clearVersion
+    let oldestSeenThisLoad = Number.MAX_SAFE_INTEGER as T.Chat.MessageID
     const onGotThread = (thread: string, why: string) => {
       if (!thread) {
         return
@@ -265,7 +273,11 @@ export const loadConversationThreadMessages = (
           }
         }
       }
-      const ordinalsBefore = actions.getSnapshot().messageOrdinals?.length ?? 0
+      for (const m of messages) {
+        if (m.id > 0 && m.id < oldestSeenThisLoad) {
+          oldestSeenThisLoad = m.id
+        }
+      }
       actions.applyThreadLoad({
         centered: !!centeredMessageID,
         disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
@@ -276,7 +288,7 @@ export const loadConversationThreadMessages = (
         scrollDirection,
         validatedRange,
       })
-      const ordinalsAfter = actions.getSnapshot().messageOrdinals?.length ?? 0
+      const after = actions.getSnapshot()
       // A back page can be composed entirely of messages the thread will never render: a message
       // superseded by a DELETE arrives as a hidden placeholder, becomes `deleted`, and addMessages
       // drops it. The ordinal list is then identical to what it was, so the list never fires
@@ -286,28 +298,28 @@ export const loadConversationThreadMessages = (
       // The tombstones still carry message IDs, and each page reaches further back than the last,
       // so requiring strict progress terminates: message IDs are finite and only ever decrease
       // here. That is the bound - there is no retry budget to outrun.
-      const oldestIncoming = messages.reduce(
-        (oldest, m) => (m.id > 0 && m.id < oldest ? m.id : oldest),
-        Number.MAX_SAFE_INTEGER as T.Chat.MessageID
-      )
+      const floorAfter = after.messageOrdinals?.[0]
+      const windowGrewDownward =
+        floorAfter !== undefined && (floorAtLoadStart === undefined || floorAfter < floorAtLoadStart)
       if (
         scrollDirection === 'back' &&
-        // Only a whole page can be judged this way, and `sawCachedPass` is the test for one. A
-        // cached pass sets it before reaching here, and the full pass that follows a cached one is
-        // INCREMENTAL - just the changed messages, all already in the window - so judging either on
-        // ordinal count would reload every page of the thread. A full pass with no cached pass
-        // before it is a whole window, which is the case this exists for.
-        !sawCachedPass &&
+        // The full pass is the last one of a load, so by here the whole load has been applied.
+        why === 'full' &&
         moreToLoad &&
-        ordinalsAfter <= ordinalsBefore &&
-        oldestIncoming < (retryBelowMessageID ?? Number.MAX_SAFE_INTEGER)
+        // The floor, not the count: a page can add real messages while its `deleted` entries
+        // remove more from the window, which nets negative on a count but is real progress.
+        !windowGrewDownward &&
+        oldestSeenThisLoad < (retryBelowMessageID ?? Number.MAX_SAFE_INTEGER) &&
+        // A clear under us - jump to recent, a centered jump - means this chain is walking back
+        // from a window that no longer exists, and would prepend pages the reader never asked for.
+        after.clearVersion === clearVersionAtLoadStart
       ) {
         logger.info(
-          `loadMoreMessages: back page of ${messages.length} added no ordinals, reloading below ${oldestIncoming}: convID: ${conversationIDKey}`
+          `loadMoreMessages: back page added no ordinals, reloading below ${oldestSeenThisLoad}: convID: ${conversationIDKey}`
         )
         loadConversationThreadMessages(
           conversationIDKey,
-          {...p, retryBelowMessageID: oldestIncoming},
+          {...p, retryBelowMessageID: oldestSeenThisLoad},
           actions
         )
       }

@@ -469,6 +469,25 @@ describe('addMessagesToThreadState', () => {
     expect(state.messageTypeMap.get(T.Chat.numberToOrdinal(20))).toBe('attachment:file')
   })
 
+  test('a placeholder for a message we already hold does not get it pruned', () => {
+    // Regression: the placeholder bailed out of incomingOrdinals bookkeeping, so the validatedRange
+    // prune saw its ordinal as absent from the response and deleted the real message underneath.
+    // A quick-mode Pull returns a placeholder for anything it could not unbox, so this is the
+    // ordinary shape of a focused refresh, not an edge case.
+    const state = makeThreadState([textAt(49), textAt(50), textAt(51)])
+    addMessagesToThreadState(
+      state,
+      [textAt(49), Message.makeMessagePlaceholder({ordinal: T.Chat.numberToOrdinal(50)}), textAt(51)],
+      {validatedRange: {from: T.Chat.numberToOrdinal(49), to: T.Chat.numberToOrdinal(51)}}
+    )
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(49),
+      T.Chat.numberToOrdinal(50),
+      T.Chat.numberToOrdinal(51),
+    ])
+    expect(state.messageMap.get(T.Chat.numberToOrdinal(50))?.type).toEqual('text')
+  })
+
   test('a message dropped below the window leaves nothing behind in the maps', () => {
     const state = makeThreadState([textAt(7152), textAt(7153)])
     addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
@@ -500,9 +519,23 @@ describe('addMessagesToThreadState', () => {
     )
   })
 
-  test('an empty window drops nothing, because there is no floor to be below', () => {
-    // messagesClear leaves messageOrdinals undefined, and jumpToRecent goes through it. With no
-    // window there is no "below the window", so the batch applies normally.
+  test('a cleared window still refuses a notification below the floor it had', () => {
+    // messagesClear wipes messageOrdinals but keeps clearedWindowFloor, because jumpToRecent and a
+    // centered jump both clear then reload. A push landing in that gap would otherwise face an
+    // empty window, install itself as the floor, and strand once the load response arrives.
+    const state = makeThreadState([])
+    state.clearedWindowFloor = T.Chat.numberToOrdinal(7152)
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals ?? []).toEqual([])
+
+    // ...and the load that follows populates it normally.
+    addMessagesToThreadState(state, [textAt(9001)], {})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(9001)])
+  })
+
+  test('with no window and no remembered floor a notification still applies', () => {
+    // A conversation that has never held a window - a first load, or one that is genuinely empty.
+    // There is no floor to be below, so nothing is dropped and a new message appears at once.
     const state = makeThreadState([])
     addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
     expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(1)])
