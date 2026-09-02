@@ -154,33 +154,6 @@ export const scrollDirectionToPagination = (
   return pagination
 }
 
-// A back page can arrive composed entirely of messages the thread will never render. The service
-// filters EDIT/DELETE/REACTION/ATTACHMENTUPLOADED/UNFURL/TLFNAME out before they reach us, but
-// messages superseded by a DELETE still arrive as `deleted`, and `addMessages` drops those from the
-// ordinal list. The list is then identical to what it was, so LegendList never fires onStartReached
-// again and scrollback stops for good even though the pager still says there is more to come.
-//
-// The real fix belongs in the service, which knows it is handing up a page of tombstones. This is
-// the liveness belt: the thread must not be one unlucky response away from a permanent stall.
-export const maxEmptyBackPageRetries = 3
-export const shouldRetryEmptyBackPage = (p: {
-  authoritative: boolean
-  incoming: number
-  moreToLoad: boolean
-  ordinalsAfter: number
-  ordinalsBefore: number
-  retries: number
-  scrollDirection: ScrollDirection
-}) =>
-  p.scrollDirection === 'back' &&
-  // Only the full pass is a whole page. Once a cached thread has been sent the service switches the
-  // full response to INCREMENTAL, so a cached pass yielding nothing new is expected, not a stall.
-  p.authoritative &&
-  p.moreToLoad &&
-  p.incoming > 0 &&
-  p.ordinalsAfter <= p.ordinalsBefore &&
-  p.retries < maxEmptyBackPageRetries
-
 export const loadConversationThreadMessages = (
   conversationIDKey: T.Chat.ConversationIDKey,
   p: LoadMoreMessagesParams,
@@ -192,7 +165,7 @@ export const loadConversationThreadMessages = (
   const {
     scrollDirection = 'none',
     numberOfMessagesToLoad = numMessagesOnInitialLoad,
-    emptyBackPageRetries = 0,
+    retryBelowMessageID,
   } = p
   const {
     allowMarkAsRead = true,
@@ -305,23 +278,34 @@ export const loadConversationThreadMessages = (
         validatedRange,
       })
       const ordinalsAfter = actions.getSnapshot().messageOrdinals?.length ?? 0
+      // A back page can be composed entirely of messages the thread will never render: a message
+      // superseded by a DELETE arrives as a hidden placeholder, becomes `deleted`, and addMessages
+      // drops it. The ordinal list is then identical to what it was, so the list never fires
+      // onStartReached again and scrollback stops even though the pager says there is more. Ask for
+      // the next page ourselves.
+      //
+      // The tombstones still carry message IDs, and each page reaches further back than the last,
+      // so requiring strict progress terminates: message IDs are finite and only ever decrease
+      // here. That is the bound - there is no retry budget to outrun.
+      const oldestIncoming = messages.reduce(
+        (oldest, m) => (m.id > 0 && m.id < oldest ? m.id : oldest),
+        Number.MAX_SAFE_INTEGER as T.Chat.MessageID
+      )
       if (
-        shouldRetryEmptyBackPage({
-          authoritative: why === 'full',
-          incoming: messages.length,
-          moreToLoad,
-          ordinalsAfter,
-          ordinalsBefore,
-          retries: emptyBackPageRetries,
-          scrollDirection,
-        })
+        scrollDirection === 'back' &&
+        // Only the full pass is a whole page: once a cached thread has been sent the service
+        // switches the full response to INCREMENTAL, so a cached pass adding nothing is expected.
+        why === 'full' &&
+        moreToLoad &&
+        ordinalsAfter <= ordinalsBefore &&
+        oldestIncoming < (retryBelowMessageID ?? Number.MAX_SAFE_INTEGER)
       ) {
         logger.info(
-          `loadMoreMessages: back page of ${messages.length} yielded no new ordinals (${ordinalsBefore}), retrying ${emptyBackPageRetries + 1}/${maxEmptyBackPageRetries}: convID: ${conversationIDKey}`
+          `loadMoreMessages: back page of ${messages.length} added no ordinals, reloading below ${oldestIncoming}: convID: ${conversationIDKey}`
         )
         loadConversationThreadMessages(
           conversationIDKey,
-          {...p, emptyBackPageRetries: emptyBackPageRetries + 1},
+          {...p, retryBelowMessageID: oldestIncoming},
           actions
         )
       }

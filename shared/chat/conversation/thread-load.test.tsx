@@ -7,9 +7,8 @@ import {
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
   loadConversationThreadMessages,
-  maxEmptyBackPageRetries,
+  numMessagesOnScrollback,
   scrollDirectionToPagination,
-  shouldRetryEmptyBackPage,
 } from './thread-load'
 import * as ThreadRpc from './thread-rpc'
 import {resetAllStores} from '@/util/zustand'
@@ -162,72 +161,16 @@ describe('snapshot helpers', () => {
   })
 })
 
-describe('shouldRetryEmptyBackPage', () => {
-  // A back page that arrived, said there is more to come, and left the ordinal list exactly as it
-  // was. This is the stall: nothing changed, so onStartReached never fires again.
-  const stalled = {
-    authoritative: true,
-    incoming: 882,
-    moreToLoad: true,
-    ordinalsAfter: 180,
-    ordinalsBefore: 180,
-    retries: 0,
-    scrollDirection: 'back' as const,
-  }
-
-  test('retries a back page that yielded no new ordinals', () => {
-    expect(shouldRetryEmptyBackPage(stalled)).toBe(true)
-  })
-
-  test('does not retry when the page actually added ordinals', () => {
-    expect(shouldRetryEmptyBackPage({...stalled, ordinalsAfter: 274})).toBe(false)
-  })
-
-  test('does not retry when the pager says this was the last page', () => {
-    expect(shouldRetryEmptyBackPage({...stalled, moreToLoad: false})).toBe(false)
-  })
-
-  test('does not retry an empty response', () => {
-    // Nothing came back at all, which is a different situation: the load already settled.
-    expect(shouldRetryEmptyBackPage({...stalled, incoming: 0})).toBe(false)
-  })
-
-  test('only retries backwards scrollback', () => {
-    expect(shouldRetryEmptyBackPage({...stalled, scrollDirection: 'none'})).toBe(false)
-    expect(shouldRetryEmptyBackPage({...stalled, scrollDirection: 'forward'})).toBe(false)
-  })
-
-  test('ignores the cached pass', () => {
-    // Once a cached thread has been sent the service switches the full response to INCREMENTAL, so
-    // a cached pass adding nothing new is normal and must not trigger a retry.
-    expect(shouldRetryEmptyBackPage({...stalled, authoritative: false})).toBe(false)
-  })
-
-  test('is bounded', () => {
-    for (let retries = 0; retries < maxEmptyBackPageRetries; retries++) {
-      expect(shouldRetryEmptyBackPage({...stalled, retries})).toBe(true)
-    }
-    expect(shouldRetryEmptyBackPage({...stalled, retries: maxEmptyBackPageRetries})).toBe(false)
-    expect(shouldRetryEmptyBackPage({...stalled, retries: maxEmptyBackPageRetries + 1})).toBe(false)
-  })
-
-  test('retries when a page somehow shrank the list', () => {
-    // A back page whose only effect was to delete messages already in the window leaves even less
-    // than before, and still needs something to re-trigger the load.
-    expect(shouldRetryEmptyBackPage({...stalled, ordinalsAfter: 174})).toBe(true)
-  })
-})
-
-describe('an empty back page re-triggers the load', () => {
+describe('a back page that adds no ordinals reloads itself', () => {
   const flushPromises = async () => {
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 200; i++) {
       await Promise.resolve()
     }
   }
 
-  // The thread never grows: whatever the page contained, addMessages dropped all of it. That is the
-  // condition LegendList cannot see, because `messageOrdinals` is byte-identical afterwards.
-  const makeFrozenActions = () => {
+  // The thread never grows: whatever a page contained, addMessages dropped all of it. That is the
+  // condition the list cannot see, because `messageOrdinals` is identical afterwards.
+  const frozenActions = () => {
     const snapshot = {
       liveUpdateVersion: 0,
       loaded: true,
@@ -236,29 +179,42 @@ describe('an empty back page re-triggers the load', () => {
       messageOrdinals: [T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)],
       pendingOutboxToOrdinal: new Map(),
     } as unknown as ConversationThreadState
-    const applyThreadLoad = jest.fn()
     return {
-      actions: {
-        applyThreadLoad,
-        getSnapshot: () => snapshot,
-        markThreadAsRead: jest.fn(),
-      } as unknown as ConversationThreadActions,
-      applyThreadLoad,
-    }
+      applyThreadLoad: jest.fn(),
+      getSnapshot: () => snapshot,
+      markThreadAsRead: jest.fn(),
+    } as unknown as ConversationThreadActions
   }
 
-  // A page that parses to real messages, so `incoming > 0`, with the pager still saying there is
-  // more to come.
-  const mockPage = (last: boolean) =>
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
-      const messages = [7150, 7151].map(id => ({
-        placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(id)},
-        state: T.RPCChat.MessageUnboxedState.placeholder,
-      }))
+  // Hidden placeholders are what a DELETE-superseded message arrives as, and what becomes `deleted`
+  // on this side. They carry real message IDs, which is what bounds the reload.
+  const tombstones = (from: number, to: number) =>
+    Array.from({length: from - to + 1}, (_, i) => ({
+      placeholder: {hidden: true, messageID: T.Chat.numberToMessageID(from - i)},
+      state: T.RPCChat.MessageUnboxedState.placeholder,
+    }))
+
+  // Each call walks one page further back, exactly as the service does, until it runs out.
+  const mockWalkingBack = (oldestOverall: number) => {
+    let next = 7151
+    return jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      const from = next
+      const to = Math.max(oldestOverall, from - numMessagesOnScrollback + 1)
+      next = to - 1
       await Promise.resolve()
-      p.onFullThread?.(JSON.stringify({messages, pagination: {last, num: 100}}))
+      p.onFullThread?.(
+        JSON.stringify({messages: tombstones(from, to), pagination: {last: to <= oldestOverall, num: 100}})
+      )
       return undefined as never
     })
+  }
+
+  const loadBack = (actions: ConversationThreadActions) =>
+    loadConversationThreadMessages(
+      conversationIDKey,
+      {numberOfMessagesToLoad: numMessagesOnScrollback, reason: 'scroll back', scrollDirection: 'back'},
+      actions
+    )
 
   beforeEach(() => {
     useCurrentUserState.getState().dispatch.setBootstrap({
@@ -274,35 +230,80 @@ describe('an empty back page re-triggers the load', () => {
     resetAllStores()
   })
 
-  test('re-issues the page, and stops at the bound', async () => {
-    const rpc = mockPage(false)
-    const {actions} = makeFrozenActions()
-    loadConversationThreadMessages(
-      conversationIDKey,
-      {reason: 'scroll back', scrollDirection: 'back'},
-      actions
-    )
+  test('keeps paging through a run of tombstones until the pager says it is done', async () => {
+    // 7151 down to 6952 is two pages of 100, so one reload after the first call.
+    const rpc = mockWalkingBack(6952)
+    loadBack(frozenActions())
     await flushPromises()
-    // The original call plus one per retry, and then it gives up rather than spinning.
-    expect(rpc).toHaveBeenCalledTimes(1 + maxEmptyBackPageRetries)
+    expect(rpc).toHaveBeenCalledTimes(2)
   })
 
-  test('does not re-issue once the pager says it is the last page', async () => {
-    const rpc = mockPage(true)
-    const {actions} = makeFrozenActions()
-    loadConversationThreadMessages(
-      conversationIDKey,
-      {reason: 'scroll back', scrollDirection: 'back'},
-      actions
-    )
+  test('walks a long run without a retry budget to outrun', async () => {
+    // 1000 tombstones is far past any fixed retry count.
+    const rpc = mockWalkingBack(6152)
+    loadBack(frozenActions())
+    await flushPromises()
+    expect(rpc).toHaveBeenCalledTimes(10)
+  })
+
+  test('stops if a page fails to reach further back', async () => {
+    // A service that keeps handing back the same window must not spin us forever. Progress in
+    // message ID is the only thing permitting another attempt.
+    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      p.onFullThread?.(
+        JSON.stringify({messages: tombstones(7151, 7052), pagination: {last: false, num: 100}})
+      )
+      return undefined as never
+    })
+    loadBack(frozenActions())
+    await flushPromises()
+    expect(rpc).toHaveBeenCalledTimes(2)
+  })
+
+  test('does not reload when the page actually added ordinals', async () => {
+    const rpc = mockWalkingBack(6152)
+    // A thread that grows when a page is applied, which is the normal case: the list changed, so
+    // the list itself will ask for the next page when the reader keeps scrolling.
+    let ordinals = 2
+    const actions = {
+      applyThreadLoad: jest.fn(() => {
+        ordinals += numMessagesOnScrollback
+      }),
+      getSnapshot: () =>
+        ({
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: new Array<T.Chat.Ordinal>(ordinals),
+          pendingOutboxToOrdinal: new Map(),
+        }) as unknown as ConversationThreadState,
+      markThreadAsRead: jest.fn(),
+    } as unknown as ConversationThreadActions
+    loadBack(actions)
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(1)
   })
 
-  test('does not re-issue an initial load', async () => {
-    const rpc = mockPage(false)
-    const {actions} = makeFrozenActions()
-    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+  test('ignores the cached pass', async () => {
+    // Once a cached thread has been sent the service filters the full response down to only what
+    // changed, so a cached pass adding no ordinals is normal and must not start a reload.
+    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      p.onCachedThread?.(
+        JSON.stringify({messages: tombstones(7151, 7052), pagination: {last: false, num: 100}})
+      )
+      return undefined as never
+    })
+    loadBack(frozenActions())
+    await flushPromises()
+    expect(rpc).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not reload an initial load', async () => {
+    const rpc = mockWalkingBack(6152)
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, frozenActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(1)
   })
