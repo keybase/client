@@ -168,20 +168,32 @@ describe('a back page that adds no ordinals reloads itself', () => {
     }
   }
 
-  // The thread never grows: whatever a page contained, addMessages dropped all of it. That is the
-  // condition the list cannot see, because `messageOrdinals` is identical afterwards.
-  const frozenActions = () => {
-    const snapshot = {
-      liveUpdateVersion: 0,
-      loaded: true,
-      messageIDToOrdinal: new Map(),
-      messageMap: new Map(),
-      messageOrdinals: [T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)],
-      pendingOutboxToOrdinal: new Map(),
-    } as unknown as ConversationThreadState
+  // A stand-in for the real store that keeps the one behaviour under test: applying a load adds an
+  // ordinal per message EXCEPT the ones addMessagesToThreadState drops, which is `deleted`. A fake
+  // that grows unconditionally would make every page look productive and hide the bug; one that
+  // never grows would make every page look empty and hide the opposite bug.
+  const trackingActions = () => {
+    const ordinals = new Set<T.Chat.Ordinal>([
+      T.Chat.numberToOrdinal(7152),
+      T.Chat.numberToOrdinal(7153),
+    ])
     return {
-      applyThreadLoad: jest.fn(),
-      getSnapshot: () => snapshot,
+      applyThreadLoad: jest.fn((p: {messages: ReadonlyArray<T.Chat.Message>}) => {
+        for (const m of p.messages) {
+          if (m.type !== 'deleted') {
+            ordinals.add(m.ordinal)
+          }
+        }
+      }),
+      getSnapshot: () =>
+        ({
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: [...ordinals].sort((a, b) => a - b),
+          pendingOutboxToOrdinal: new Map(),
+        }) as unknown as ConversationThreadState,
       markThreadAsRead: jest.fn(),
     } as unknown as ConversationThreadActions
   }
@@ -191,6 +203,13 @@ describe('a back page that adds no ordinals reloads itself', () => {
   const tombstones = (from: number, to: number) =>
     Array.from({length: from - to + 1}, (_, i) => ({
       placeholder: {hidden: true, messageID: T.Chat.numberToMessageID(from - i)},
+      state: T.RPCChat.MessageUnboxedState.placeholder,
+    }))
+
+  // hidden: false parses to a `placeholder`, which the thread does render and keep an ordinal for.
+  const visible = (from: number, to: number) =>
+    Array.from({length: from - to + 1}, (_, i) => ({
+      placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(from - i)},
       state: T.RPCChat.MessageUnboxedState.placeholder,
     }))
 
@@ -233,17 +252,18 @@ describe('a back page that adds no ordinals reloads itself', () => {
   test('keeps paging through a run of tombstones until the pager says it is done', async () => {
     // 7151 down to 6952 is two pages of 100, so one reload after the first call.
     const rpc = mockWalkingBack(6952)
-    loadBack(frozenActions())
+    loadBack(trackingActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(2)
   })
 
   test('walks a long run without a retry budget to outrun', async () => {
     // 1000 tombstones is far past any fixed retry count.
-    const rpc = mockWalkingBack(6152)
-    loadBack(frozenActions())
+    const oldest = 6152
+    const rpc = mockWalkingBack(oldest)
+    loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(10)
+    expect(rpc).toHaveBeenCalledTimes(Math.ceil((7151 - oldest + 1) / numMessagesOnScrollback))
   })
 
   test('stops if a page fails to reach further back', async () => {
@@ -256,54 +276,48 @@ describe('a back page that adds no ordinals reloads itself', () => {
       )
       return undefined as never
     })
-    loadBack(frozenActions())
+    loadBack(trackingActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(2)
   })
 
   test('does not reload when the page actually added ordinals', async () => {
-    const rpc = mockWalkingBack(6152)
-    // A thread that grows when a page is applied, which is the normal case: the list changed, so
-    // the list itself will ask for the next page when the reader keeps scrolling.
-    let ordinals = 2
-    const actions = {
-      applyThreadLoad: jest.fn(() => {
-        ordinals += numMessagesOnScrollback
-      }),
-      getSnapshot: () =>
-        ({
-          liveUpdateVersion: 0,
-          loaded: true,
-          messageIDToOrdinal: new Map(),
-          messageMap: new Map(),
-          messageOrdinals: new Array<T.Chat.Ordinal>(ordinals),
-          pendingOutboxToOrdinal: new Map(),
-        }) as unknown as ConversationThreadState,
-      markThreadAsRead: jest.fn(),
-    } as unknown as ConversationThreadActions
-    loadBack(actions)
+    // Renderable messages, so the store grows and the list will ask for the next page itself.
+    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      p.onFullThread?.(
+        JSON.stringify({messages: visible(7151, 7052), pagination: {last: false, num: 100}})
+      )
+      return undefined as never
+    })
+    loadBack(trackingActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(1)
   })
 
-  test('ignores the cached pass', async () => {
-    // Once a cached thread has been sent the service filters the full response down to only what
-    // changed, so a cached pass adding no ordinals is normal and must not start a reload.
+  test('does not reload after a cached pass already delivered the page', async () => {
+    // The normal warm-cache sequence: PullLocalOnly wins, the cached pass carries the whole page,
+    // and the full pass that follows is INCREMENTAL - only the messages that changed, every one of
+    // them already in the window. On ordinal count alone that is indistinguishable from a page of
+    // tombstones, and reloading on it walks the client back through the entire conversation.
     const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
       await Promise.resolve()
       p.onCachedThread?.(
-        JSON.stringify({messages: tombstones(7151, 7052), pagination: {last: false, num: 100}})
+        JSON.stringify({messages: visible(7151, 7052), pagination: {last: false, num: 100}})
+      )
+      p.onFullThread?.(
+        JSON.stringify({messages: visible(7052, 7052), pagination: {last: false, num: 100}})
       )
       return undefined as never
     })
-    loadBack(frozenActions())
+    loadBack(trackingActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(1)
   })
 
   test('does not reload an initial load', async () => {
     const rpc = mockWalkingBack(6152)
-    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, frozenActions())
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, trackingActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(1)
   })

@@ -177,10 +177,6 @@ type SelectedConversationOptions = ThreadLoadStatusOptions & {
 export type ScrollDirection = 'none' | 'back' | 'forward'
 export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   allowMarkAsRead?: boolean
-  // Internal: set only by the empty-back-page reload in thread-load.tsx, carrying the oldest
-  // message ID the previous attempt saw. Each reload must reach strictly further back than that,
-  // which is what stops it looping. Callers leave it unset.
-  retryBelowMessageID?: T.Chat.MessageID
   centeredMessageID?: {
     conversationIDKey: T.Chat.ConversationIDKey
     highlightMode: T.Chat.CenterOrdinalHighlightMode
@@ -191,6 +187,10 @@ export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   messageIDControl?: T.RPCChat.MessageIDControl | null
   numberOfMessagesToLoad?: number
   reason: string
+  // Internal: set only by the empty-back-page reload in thread-load.tsx, carrying the oldest
+  // message ID the previous attempt saw. Each reload must reach strictly further back than that,
+  // which is what stops it looping. Callers leave it unset.
+  retryBelowMessageID?: T.Chat.MessageID
   scrollDirection?: ScrollDirection
 }
 type LoadMoreMessages = ((p: LoadMoreMessagesParams) => void) & {cancel: () => void}
@@ -220,7 +220,6 @@ export type ConversationThreadActions = {
     }
   ) => void
   applyThreadLoad: (p: {
-    authoritative: boolean
     centered: boolean
     disableActiveMarkRead?: boolean
     enableActiveMarkRead: boolean
@@ -495,7 +494,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
   const applyThreadLoad = React.useEffectEvent(
     (p: {
-      authoritative: boolean
       centered: boolean
       disableActiveMarkRead?: boolean
       enableActiveMarkRead: boolean

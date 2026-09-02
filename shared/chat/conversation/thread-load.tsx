@@ -208,17 +208,17 @@ export const loadConversationThreadMessages = (
     )
 
     const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-    // Set as soon as a cached response arrives, before any early return. Once the service has sent
-    // a cached thread it switches the full response to INCREMENTAL, filtering it down to only the
-    // messages that changed (chat/uithreadloader.go mergeLocalRemoteThread). From that point neither
-    // response is a complete window, so neither can be treated as authoritative.
+    // Set once a cached response arrives with content. Once the service has sent a cached thread it
+    // switches the full response to INCREMENTAL, filtering it down to only the messages that changed
+    // (chat/uithreadloader.go mergeLocalRemoteThread). From that point neither response is a
+    // complete window. An empty cached pass means no thread was sent, so the full pass still is one.
     let sawCachedPass = false
     const onGotThread = (thread: string, why: string) => {
-      if (why === 'cached') {
-        sawCachedPass = true
-      }
       if (!thread) {
         return
+      }
+      if (why === 'cached') {
+        sawCachedPass = true
       }
       if (!isCurrentThreadLoad()) {
         logger.info(`loadMoreMessages: stale response ignored: ${why}`)
@@ -267,7 +267,6 @@ export const loadConversationThreadMessages = (
       }
       const ordinalsBefore = actions.getSnapshot().messageOrdinals?.length ?? 0
       actions.applyThreadLoad({
-        authoritative: why === 'full',
         centered: !!centeredMessageID,
         disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
         enableActiveMarkRead: canMarkReadForThreadWindow,
@@ -293,9 +292,12 @@ export const loadConversationThreadMessages = (
       )
       if (
         scrollDirection === 'back' &&
-        // Only the full pass is a whole page: once a cached thread has been sent the service
-        // switches the full response to INCREMENTAL, so a cached pass adding nothing is expected.
-        why === 'full' &&
+        // Only a whole page can be judged this way, and `sawCachedPass` is the test for one. A
+        // cached pass sets it before reaching here, and the full pass that follows a cached one is
+        // INCREMENTAL - just the changed messages, all already in the window - so judging either on
+        // ordinal count would reload every page of the thread. A full pass with no cached pass
+        // before it is a whole window, which is the case this exists for.
+        !sawCachedPass &&
         moreToLoad &&
         ordinalsAfter <= ordinalsBefore &&
         oldestIncoming < (retryBelowMessageID ?? Number.MAX_SAFE_INTEGER)

@@ -398,10 +398,6 @@ describe('addMessagesToThreadState', () => {
     expect(state.validatedOrdinalRange).toEqual({from: 5, to: 60})
   })
 
-
-
-
-
   test('a notification may not strand a new ordinal below the loaded window', () => {
     // The post-load ResolveSkippedUnboxeds push can carry the channel-name message at ID 1 long
     // after the window has moved on. Adding it puts an orphan row at index 0 and breaks scrollback.
@@ -464,7 +460,6 @@ describe('addMessagesToThreadState', () => {
     expect(state.messageOrdinals).toEqual([100.001])
     expect(state.messageMap.has(T.Chat.numberToOrdinal(100))).toBe(false)
   })
-
 
   test('the render type index only tracks non text messages', () => {
     const state = makeThreadState([])

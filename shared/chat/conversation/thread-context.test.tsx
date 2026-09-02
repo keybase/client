@@ -38,6 +38,16 @@ const flushPromises = async () => {
   }
 }
 
+const textAt = (n: number) =>
+  Message.makeMessageText({
+    author: 'alice',
+    conversationIDKey: convID,
+    id: T.Chat.numberToMessageID(n),
+    ordinal: T.Chat.numberToOrdinal(n),
+    text: new HiddenString(`message ${n}`),
+    timestamp: 100,
+  })
+
 const makeTextMessage = () =>
   Message.makeMessageText({
     author: 'alice',
@@ -455,7 +465,6 @@ test('scrollback loads older messages without marking the thread read', async ()
 
   act(() => {
     result.current.actions.applyThreadLoad({
-      authoritative: true,
       centered: false,
       enableActiveMarkRead: false,
       messages: [makeTextMessage()],
@@ -683,7 +692,6 @@ test('mounted thread listener applies incoming messages while inactive without m
 
   act(() => {
     result.current.actions.applyThreadLoad({
-      authoritative: true,
       centered: false,
       enableActiveMarkRead: false,
       messages: [],
@@ -1001,7 +1009,6 @@ test('loaded focus refresh does not overwrite newer streamed reaction updates', 
 
   act(() => {
     result.current.actions.applyThreadLoad({
-      authoritative: true,
       centered: false,
       enableActiveMarkRead: true,
       messages: [makeTextMessage()],
@@ -1093,7 +1100,6 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
 
   act(() => {
     result.current.actions.applyThreadLoad({
-      authoritative: true,
       centered: false,
       enableActiveMarkRead: false,
       messages: [makeTextMessage()],
@@ -1395,12 +1401,15 @@ test('a cached pass never prunes messages the incremental full pass no longer re
       pagination: {last: true, next: '', num: 100, previous: ''},
     })
 
-  // A partial cached pass missing 302/303, then an incremental full pass carrying only the one
-  // message that changed. Nothing may be dropped.
+  // A partial cached pass missing 302/303, then an incremental full pass that SPANS the same gap -
+  // it carries the oldest and newest but not the two in between. The span is what makes this
+  // dangerous: a validatedRange of [301..304] computed from a partial response covers 302 and 303,
+  // which are absent from that response and would be pruned. A full pass carrying only 304 gives a
+  // degenerate [304..304] range with nothing to prune, and would pass even without the fix.
   jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
     p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({thread: threadJSON([ids[0]!, ids[3]!])})
     await Promise.resolve()
-    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: threadJSON([ids[3]!])})
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: threadJSON([ids[0]!, ids[3]!])})
     await Promise.resolve()
     return {offline: false}
   })
@@ -1416,7 +1425,6 @@ test('a cached pass never prunes messages the incremental full pass no longer re
   // Seed a settled four-message window the way a whole-window full pass would.
   act(() => {
     result.current.actions.applyThreadLoad({
-      authoritative: true,
       centered: false,
       enableActiveMarkRead: false,
       messages: ids.map(id =>
@@ -1444,4 +1452,105 @@ test('a cached pass never prunes messages the incremental full pass no longer re
   })
 
   expect(result.current.ordinals).toEqual([301, 302, 303, 304])
+})
+
+// The window invariant, at the callsite that enforces it. The four unit tests in
+// thread-message-state.test.tsx pass `dropNewBelowWindow` themselves; only this proves addMessages
+// actually sets it, and that thread loads are still allowed to extend the window downward.
+test('a notification may not strand a new ordinal below the loaded window', () => {
+  const {result} = renderHook(() => ({actions: useConversationThreadActions()}), {wrapper})
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(7152), textAt(7153)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  // A MessagesUpdated push re-unboxing the ancient METADATA message. It must not become the new
+  // floor: messageOrdinals is the list's data array, so an item at index 0 far below the window
+  // makes back-paging stop being a prepend and kills scrollback.
+  act(() => {
+    result.current.actions.addMessages([textAt(1)], {liveUpdate: true})
+  })
+  expect(result.current.actions.getSnapshot().messageOrdinals).toEqual([
+    T.Chat.numberToOrdinal(7152),
+    T.Chat.numberToOrdinal(7153),
+  ])
+
+  // A notification updating something inside the window still applies.
+  act(() => {
+    result.current.actions.addMessages([textAt(7152)], {liveUpdate: true})
+  })
+  expect(result.current.actions.getSnapshot().messageOrdinals).toEqual([
+    T.Chat.numberToOrdinal(7152),
+    T.Chat.numberToOrdinal(7153),
+  ])
+
+  // And a thread load - the only thing allowed to - still extends the window downward.
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(7052)],
+      moreToLoad: true,
+      scrollDirection: 'back',
+    })
+  })
+  expect(result.current.actions.getSnapshot().messageOrdinals?.[0]).toEqual(
+    T.Chat.numberToOrdinal(7052)
+  )
+})
+
+test('jumpToRecent drops the old window instead of merging a disjoint one into it', async () => {
+  // The newest window has nothing to do with wherever the reader had scrolled back to, so merging
+  // the two leaves a hole in messageOrdinals between them - which is the same stranded-index-0
+  // shape that kills scrollback. A centered jump already clears first; this must too.
+  useConfigState.setState({loggedIn: true})
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
+  const recent = T.Chat.numberToMessageID(9001)
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(recent, 'newest')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      jumpToRecent: useConversationThreadJumpToRecent(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
+    }),
+    {wrapper}
+  )
+
+  // The reader is deep in old history.
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(101), textAt(102)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  act(() => {
+    result.current.jumpToRecent()
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  // Only the newest window survives. If the old one were merged in, ordinals would read
+  // [101, 102, 9001] with a 8899-wide hole.
+  expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(9001)])
 })

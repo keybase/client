@@ -100,6 +100,14 @@ func TestTopicNameMemCacheExpires(t *testing.T) {
 	require.False(t, ok, "an entry past the TTL must miss")
 }
 
+// The TTL is the only bound on staleness - there is no invalidation hook - and the comment on the
+// constant argues from it being short. Pin the value so widening it is a deliberate act.
+func TestTopicNameCacheDurationStaysShort(t *testing.T) {
+	require.LessOrEqual(t, topicNameCacheDuration, 30*time.Second,
+		"a longer window widens the hole where a resolution is stored stale into a message")
+	require.Positive(t, topicNameCacheDuration)
+}
+
 func TestTopicNameMemCacheClear(t *testing.T) {
 	tlfID, topicType, uid, names := topicNameCacheFixture()
 	c := newTopicNameMemCache()
