@@ -9,6 +9,9 @@ type WritableConversationThreadMessageState = {
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, WritableDraft<T.Chat.Message>>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
+  // The window floor as it was before the last messagesClear, kept so a notification arriving
+  // between a clear and its reload cannot install itself as the new floor.
+  clearedWindowFloor?: T.Chat.Ordinal
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
@@ -196,10 +199,15 @@ export const addMessagesToThreadState = (
   // the ordinal later would leave messageMap and messageIDToOrdinal holding a message the thread
   // does not render, and getOrdinalForMessageID would then hand out an ordinal with no row.
   // Nothing is lost either way: paging back to it loads it in the ordinary way.
+  //
+  // The floor survives messagesClear (see clearedWindowFloor): jumpToRecent and a centered jump
+  // both clear before reloading, and a push landing in that gap would otherwise face an empty
+  // window, become the floor itself, and strand exactly as above once the load response lands.
+  const floor = windowFloor ?? state.clearedWindowFloor
   const droppedBelowWindow = new Set<T.Chat.Ordinal>()
-  if (dropNewBelowWindow && windowFloor !== undefined) {
+  if (dropNewBelowWindow && floor !== undefined) {
     for (const o of incomingOrdinals) {
-      if (o < windowFloor && !existing.has(o)) {
+      if (o < floor && !existing.has(o)) {
         droppedBelowWindow.add(o)
       }
     }
@@ -230,7 +238,13 @@ export const addMessagesToThreadState = (
           // The real message already sits under mapOrdinal, which is not always _m.ordinal: a sent
           // message keeps the fractional ordinal it had in the outbox. Bailing out before the remap
           // below would strand _m.ordinal in the list with nothing stored under it.
+          //
+          // Do the remap anyway rather than just forgetting _m.ordinal. `incomingOrdinals` is what
+          // the validatedRange prune treats as "still present", so an ordinal missing from it
+          // inside the range gets the real message deleted - including when mapOrdinal and
+          // _m.ordinal are the same, where the delete below would otherwise be a plain loss.
           incomingOrdinals.delete(_m.ordinal)
+          incomingOrdinals.add(mapOrdinal)
           continue
         }
       }

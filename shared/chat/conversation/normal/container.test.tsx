@@ -340,7 +340,44 @@ test('an unknown read position draws no orange line rather than one above everyt
   expectOrangeLine(noOrangeLine)
 })
 
-test('a zero read position is treated as unknown too', async () => {
+test('an unknown read position is not asked about', async () => {
+  // -1 is emptyConversationMeta's "not localized yet", the norm right after a DB nuke. The old code
+  // clamped it to 0, so the service answered "everything is unread" and pinned the line above the
+  // oldest message - and since the state is set once, that answer stuck.
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(8),
+  })
+  mockMeta = makeMeta(convID, -1)
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expectOrangeLine(noOrangeLine)
+})
+
+test('an inactive conversation with an unknown read position is not asked about either', async () => {
+  // The inactive refresh passes the live readMsgID rather than the mount-time one, so it reaches
+  // loadOrangeLine with -1 directly and needs its own guard.
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(8),
+  })
+  mockMeta = makeMeta(convID, -1)
+  useShellState.setState({active: false})
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+})
+
+test('a zero read position is a real answer and is still asked about', async () => {
+  // ReaderInfo reports 0 for a conversation you have genuinely never read - every first open of a
+  // new channel or DM. "Everything is unread" is the correct answer there, so suppressing the
+  // request would silently drop the orange line for exactly those conversations. Only a negative
+  // read position means "not known yet".
   const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
     offline: false,
     unreadlineID: T.Chat.numberToMessageID(8),
@@ -350,8 +387,7 @@ test('a zero read position is treated as unknown too', async () => {
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).not.toHaveBeenCalled()
-  expectOrangeLine(noOrangeLine)
+  expect(unreadlineRpc).toHaveBeenCalledWith(expect.objectContaining({readMsgID: 0}))
 })
 
 test('zero unreadline responses render as no orange line', async () => {

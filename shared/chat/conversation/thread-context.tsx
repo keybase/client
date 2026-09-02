@@ -107,6 +107,9 @@ export type ConversationThreadState = {
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
+  // The window floor as it was before the last messagesClear, so a notification arriving between a
+  // clear and its reload cannot install itself as the new floor.
+  clearedWindowFloor?: T.Chat.Ordinal
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   moreToLoadBack: boolean
   moreToLoadForward: boolean
@@ -505,6 +508,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }) => {
       updateThreadState(s => {
         s.loaded = true
+        s.clearedWindowFloor = undefined
         if (p.messages.length) {
           addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
@@ -880,6 +884,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       s.clearVersion += 1
       s.pendingOutboxToOrdinal.clear()
       s.loaded = false
+      // Keep the floor. jumpToRecent and a centered jump both clear then reload, and a
+      // notification landing in that gap would otherwise face an empty window, install itself as
+      // the floor, and strand once the load response arrives.
+      s.clearedWindowFloor = s.messageOrdinals?.[0] ?? s.clearedWindowFloor
       s.messageIDToOrdinal.clear()
       s.messageMap.clear()
       s.messageOrdinals = undefined
