@@ -9,12 +9,25 @@ type WritableConversationThreadMessageState = {
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, WritableDraft<T.Chat.Message>>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
-  // The window floor as it was before the last messagesClear, kept so a notification arriving
-  // between a clear and its reload cannot install itself as the new floor.
-  clearedWindowFloor?: T.Chat.Ordinal
+  // Set by messagesClear, cleared once the reload that refills the window settles. While it is set
+  // the window has no bounds of its own, so a notification arriving in the gap is judged against
+  // this instead. See the drop rules in addMessagesToThreadState.
+  clearedWindow?: ClearedWindow
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
+  // False once the window reaches the newest message, which is what makes a push newer than the
+  // ceiling an append rather than a stranded row.
+  moreToLoadForward: boolean
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+}
+
+export type ClearedWindow = {
+  // A centered jump reloads an arbitrary region of the thread, so nothing arriving before the
+  // response can be placed relative to it and every new message is dropped. jumpToRecent reloads
+  // newer than the old window, so a push above `floor` does belong in what is coming.
+  dropAll?: boolean
+  // The window floor as it was before the clear.
+  floor?: T.Chat.Ordinal
 }
 
 type ThreadMessagesDeleteParams = {
@@ -161,8 +174,9 @@ export const addMessagesToThreadState = (
   }
 ) => {
   const {dropNewBelowWindow, validatedRange} = opt
-  // The floor of the loaded window before this batch is merged in.
-  const windowFloor = state.messageOrdinals?.[0]
+  // The bounds of the loaded window before this batch is merged in.
+  const ords = state.messageOrdinals
+  const windowFloor = ords?.[0]
   const incomingOrdinals = new Set<T.Chat.Ordinal>()
   for (const m of messages) {
     if (m.conversationMessage !== false && m.type !== 'deleted') {
@@ -191,27 +205,38 @@ export const addMessagesToThreadState = (
 
   // A notification (the post-load ResolveSkippedUnboxeds push, say) can carry a message from far
   // outside the loaded window - the channel-name message at ID 1 is the usual one. Adding it
-  // strands a row at index 0 with a hole beneath it, which makes onStartReached fire against that
-  // row instead of the real top of the thread, so scrollback stops working. Only a thread load may
-  // extend the window downward.
+  // strands a row against a hole, and the list then pages against that row instead of the real
+  // edge of the thread, so scrolling that way stops working. Only a thread load may extend the
+  // window; a push may land inside it, or extend an edge that is already the end of the thread.
+  //
+  // Both edges matter. A centered jump - a search result - leaves a contiguous window with more to
+  // load above and below it, and the reader can page either way from there, so a push newer than
+  // the ceiling strands exactly as one older than the floor does. The ceiling is only a bound while
+  // moreToLoadForward: once the window reaches the newest message there is no hole to open above
+  // it, and a live message must append.
   //
   // Decided here, before anything is written, so these messages are skipped whole. Dropping only
   // the ordinal later would leave messageMap and messageIDToOrdinal holding a message the thread
   // does not render, and getOrdinalForMessageID would then hand out an ordinal with no row.
-  // Nothing is lost either way: paging back to it loads it in the ordinary way.
-  //
-  // The floor survives messagesClear (see clearedWindowFloor): jumpToRecent and a centered jump
-  // both clear before reloading, and a push landing in that gap would otherwise face an empty
-  // window, become the floor itself, and strand exactly as above once the load response lands.
-  const floor = windowFloor ?? state.clearedWindowFloor
-  const droppedBelowWindow = new Set<T.Chat.Ordinal>()
-  if (dropNewBelowWindow && floor !== undefined) {
+  // Nothing is lost either way: paging to it loads it in the ordinary way.
+  const clearedWindow = state.clearedWindow
+  const windowCeiling = ords?.[ords.length - 1]
+  // While cleared there is no window to bound, so judge against the reload that is on its way.
+  const floor = windowFloor ?? clearedWindow?.floor
+  const ceiling = clearedWindow ? undefined : windowCeiling
+  const droppedOutsideWindow = new Set<T.Chat.Ordinal>()
+  if (dropNewBelowWindow) {
     for (const o of incomingOrdinals) {
-      if (o < floor && !existing.has(o)) {
-        droppedBelowWindow.add(o)
+      if (existing.has(o)) {
+        continue
+      }
+      const below = floor !== undefined && o < floor
+      const above = ceiling !== undefined && o > ceiling && state.moreToLoadForward
+      if (clearedWindow?.dropAll || below || above) {
+        droppedOutsideWindow.add(o)
       }
     }
-    for (const o of droppedBelowWindow) {
+    for (const o of droppedOutsideWindow) {
       incomingOrdinals.delete(o)
     }
   }
@@ -220,7 +245,7 @@ export const addMessagesToThreadState = (
   for (const _m of messages) {
     const regularMessage = _m.conversationMessage !== false
     const mapOrdinal = getMapOrdinal(_m, regularMessage)
-    if (droppedBelowWindow.has(mapOrdinal)) {
+    if (droppedOutsideWindow.has(mapOrdinal)) {
       continue
     }
     const getIncomingMessage = (): WritableDraft<T.Chat.Message> =>

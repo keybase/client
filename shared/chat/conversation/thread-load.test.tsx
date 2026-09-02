@@ -7,13 +7,18 @@ import {
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
   loadConversationThreadMessages,
+  maxBackPageReloads,
   numMessagesOnScrollback,
   scrollDirectionToPagination,
 } from './thread-load'
 import * as ThreadRpc from './thread-rpc'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {ConversationThreadActions, ConversationThreadState} from './thread-context'
+import type {
+  ConversationThreadActions,
+  ConversationThreadState,
+  LoadMoreMessagesParams,
+} from './thread-context'
 
 const conversationIDKey = T.Chat.stringToConversationIDKey('conv1')
 const otherConversationIDKey = T.Chat.stringToConversationIDKey('conv2')
@@ -177,7 +182,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
       T.Chat.numberToOrdinal(7152),
       T.Chat.numberToOrdinal(7153),
     ])
-    return {
+    const actions = {
       applyThreadLoad: jest.fn((p: {messages: ReadonlyArray<T.Chat.Message>}) => {
         for (const m of p.messages) {
           if (m.type !== 'deleted') {
@@ -185,6 +190,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
           }
         }
       }),
+      clearWindowGate: jest.fn(),
       getSnapshot: () =>
         ({
           liveUpdateVersion: 0,
@@ -194,8 +200,15 @@ describe('a back page that adds no ordinals reloads itself', () => {
           messageOrdinals: [...ordinals].sort((a, b) => a - b),
           pendingOutboxToOrdinal: new Map(),
         }) as unknown as ConversationThreadState,
+      // The reload goes through the action, which in the store is the throttled loadMoreMessages.
+      // Standing in the unthrottled call here keeps these tests about the reload chain rather than
+      // about lodash timers; the throttle itself is store wiring.
+      loadMoreMessages: jest.fn((p: LoadMoreMessagesParams) => {
+        loadConversationThreadMessages(conversationIDKey, p, actions)
+      }),
       markThreadAsRead: jest.fn(),
     } as unknown as ConversationThreadActions
+    return actions
   }
 
   // Hidden placeholders are what a DELETE-superseded message arrives as, and what becomes `deleted`
@@ -257,13 +270,22 @@ describe('a back page that adds no ordinals reloads itself', () => {
     expect(rpc).toHaveBeenCalledTimes(2)
   })
 
-  test('walks a long run without a retry budget to outrun', async () => {
-    // 1000 tombstones is far past any fixed retry count.
-    const oldest = 6152
+  test('walks a run of tombstones that ends before the cap', async () => {
+    const oldest = 6752
     const rpc = mockWalkingBack(oldest)
     loadBack(trackingActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(Math.ceil((7151 - oldest + 1) / numMessagesOnScrollback))
+  })
+
+  test('stops at the reload cap rather than walking an expunged history', async () => {
+    // A channel whose history was largely expunged has far more tombstones than the chain should
+    // walk off one gesture. It stops at the cap and hands the thread back; scrolling away and back
+    // fires onStartReached again and starts a fresh chain from where this one stopped.
+    const rpc = mockWalkingBack(1)
+    loadBack(trackingActions())
+    await flushPromises()
+    expect(rpc).toHaveBeenCalledTimes(maxBackPageReloads + 1)
   })
 
   test('stops if a page fails to reach further back', async () => {
@@ -382,5 +404,80 @@ describe('a back page that adds no ordinals reloads itself', () => {
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, trackingActions())
     await flushPromises()
     expect(rpc).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('a load releases the window gate it was issued under', () => {
+  const flushPromises = async () => {
+    for (let i = 0; i < 200; i++) {
+      await Promise.resolve()
+    }
+  }
+
+  // clearVersion is the only thing that separates two loads of the same conversation:
+  // isThreadLoadCurrent is keyed on a generation that moves only when the conversation changes or
+  // the thread unmounts, so both loads call themselves current.
+  const gateActions = (clearVersion: () => number) =>
+    ({
+      applyThreadLoad: jest.fn(),
+      clearWindowGate: jest.fn(),
+      getSnapshot: () =>
+        ({
+          clearVersion: clearVersion(),
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: undefined,
+          pendingOutboxToOrdinal: new Map(),
+        }) as unknown as ConversationThreadState,
+      loadMoreMessages: jest.fn(),
+      markThreadAsRead: jest.fn(),
+    }) as unknown as ConversationThreadActions
+
+  beforeEach(() => {
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id',
+      deviceName: 'testuser-mac',
+      uid: 'uid',
+      username: 'testuser',
+    })
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  test('releases it when the load ends without ever applying', async () => {
+    // A response that carries no thread: applyThreadLoad never runs, so nothing else would take the
+    // gate down. Left up it drops every notification for the life of the provider.
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async () => {
+      await Promise.resolve()
+      return undefined as never
+    })
+    const actions = gateActions(() => 3)
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(actions.clearWindowGate).toHaveBeenCalledTimes(1)
+  })
+
+  test('leaves a newer clear’s gate alone', async () => {
+    // The load is in flight when the user taps a search result: messagesClear bumps clearVersion and
+    // starts its own load. This one must not pull down the gate that one is relying on - the load
+    // generation does not move between two loads of the same conversation, so it cannot tell them
+    // apart on its own.
+    let clearVersion = 3
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async () => {
+      await Promise.resolve()
+      clearVersion = 4
+      return undefined as never
+    })
+    const actions = gateActions(() => clearVersion)
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(actions.clearWindowGate).not.toHaveBeenCalled()
   })
 })

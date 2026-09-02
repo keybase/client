@@ -80,6 +80,7 @@ const makeThreadState = (
     messageMap,
     messageOrdinals,
     messageTypeMap,
+    moreToLoadForward: false,
     pendingOutboxToOrdinal,
     ...extra,
   }
@@ -519,18 +520,64 @@ describe('addMessagesToThreadState', () => {
     )
   })
 
+  test('a message newer than the window is dropped while there is more to load forward', () => {
+    // A centered jump - a search result - leaves a contiguous window with more on both sides of it.
+    // A push newer than the ceiling has a hole under it just as a below-floor one has a hole over
+    // it, and paging forward is what fills that hole.
+    const state = makeThreadState([textAt(7152), textAt(7153)], {moreToLoadForward: true})
+    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(9001))).toBe(false)
+  })
+
+  test('a message newer than the window appends once the window reaches the newest message', () => {
+    // The ordinary live path: the window contains the latest message, so there is no hole to open
+    // above it and an incoming message must land.
+    const state = makeThreadState([textAt(7152), textAt(7153)], {moreToLoadForward: false})
+    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(7152),
+      T.Chat.numberToOrdinal(7153),
+      T.Chat.numberToOrdinal(9001),
+    ])
+  })
+
   test('a cleared window still refuses a notification below the floor it had', () => {
-    // messagesClear wipes messageOrdinals but keeps clearedWindowFloor, because jumpToRecent and a
+    // messagesClear wipes messageOrdinals but remembers the window, because jumpToRecent and a
     // centered jump both clear then reload. A push landing in that gap would otherwise face an
-    // empty window, install itself as the floor, and strand once the load response arrives.
+    // empty window, install itself as the whole of it, and strand once the load response arrives.
     const state = makeThreadState([])
-    state.clearedWindowFloor = T.Chat.numberToOrdinal(7152)
+    state.clearedWindow = {floor: T.Chat.numberToOrdinal(7152)}
     addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
     expect(state.messageOrdinals ?? []).toEqual([])
 
     // ...and the load that follows populates it normally.
     addMessagesToThreadState(state, [textAt(9001)], {})
     expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(9001)])
+  })
+
+  test('a window cleared for jump-to-recent keeps a notification above the floor it had', () => {
+    // The reload lands newer than the old floor, so a message arriving first belongs in what is
+    // coming - the response may have been composed before it existed. Dropping it would lose it.
+    const state = makeThreadState([])
+    state.clearedWindow = {floor: T.Chat.numberToOrdinal(7152)}
+    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(9001)])
+  })
+
+  test('a window cleared for a centered jump refuses a notification in either direction', () => {
+    // The reload lands on an arbitrary region, so nothing arriving first can be placed against it -
+    // above the coming window strands as surely as below it.
+    const state = makeThreadState([])
+    state.clearedWindow = {dropAll: true, floor: T.Chat.numberToOrdinal(7152)}
+    addMessagesToThreadState(state, [textAt(1), textAt(9001)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals ?? []).toEqual([])
+
+    // The centered load itself is not a push, so it fills the window as usual.
+    addMessagesToThreadState(state, [textAt(120), textAt(121)], {})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(120), T.Chat.numberToOrdinal(121)])
   })
 
   test('with no window and no remembered floor a notification still applies', () => {

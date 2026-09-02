@@ -2,11 +2,12 @@
 /// <reference types="jest" />
 import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
-import {participantInfoReceived} from '@/chat/inbox/metadata'
+import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -247,6 +248,20 @@ beforeEach(() => {
     uid: 'uid',
     username: 'alice',
   })
+  // A conversation the reader has open is localized. readMsgID -1 - the makeConversationMeta
+  // default - means "not known yet", which suppresses mark-read so the true read position survives
+  // long enough for the orange line to be resolved against it.
+  metasReceived(
+    [
+      {
+        ...Meta.makeConversationMeta(),
+        conversationIDKey: convID,
+        readMsgID: T.Chat.numberToMessageID(0),
+      },
+    ],
+    undefined,
+    {force: true}
+  )
 })
 
 afterEach(() => {
@@ -720,6 +735,66 @@ test('mounted thread listener applies incoming messages while inactive without m
     await flushPromises()
   })
   expect(markAsRead).not.toHaveBeenCalled()
+})
+
+test('an unlocalized conversation defers mark read until localization lands', async () => {
+  // The post-nuke case. Mark-read reads the newest message out of the window and needs no meta, so
+  // without this it wins the race against localization and destroys the read position before
+  // useOrangeLine can ask for the unreadline against it - the thread then shows no unread divider.
+  useConfigState.setState({loggedIn: true})
+  useShellState.getState().dispatch.setActive(true)
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockImplementation(() => true)
+  metasReceived(
+    [{...Meta.makeConversationMeta(), conversationIDKey: convID}],
+    undefined,
+    {force: true}
+  )
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  const msgID = T.Chat.numberToMessageID(605)
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(msgID, 'loaded unlocalized')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(() => useConversationThreadLoadMoreMessages(), {wrapper})
+
+  act(() => {
+    result.current({reason: 'tab selected'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).not.toHaveBeenCalled()
+
+  // Localization lands carrying the read position that was there all along.
+  act(() => {
+    metasReceived(
+      [
+        {
+          ...Meta.makeConversationMeta(),
+          conversationIDKey: convID,
+          readMsgID: T.Chat.numberToMessageID(600),
+        },
+      ],
+      undefined,
+      {force: true}
+    )
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).toHaveBeenCalledWith({
+    conversationID: T.Chat.keyToConversationID(convID),
+    forceUnread: false,
+    msgID,
+  })
 })
 
 test('active change marks read after an eligible mounted thread load', async () => {
