@@ -919,26 +919,6 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			s.Debug(ctx, "PullLocalOnly: failed to fetch local messages with local max: %s", err)
 			return chat1.ThreadView{}, err
 		}
-		// This retry anchors on the local max instead of the inbox max, which is what we want when
-		// local storage is merely behind. But after the cache is wiped the only thing left can be a
-		// lone ancient message the inbox localizer cached for a channel name, headline or pin. Handed
-		// up as the newest page, it strands itself thousands of IDs above the real thread in the UI.
-		// Only accept a window that could plausibly overlap the page being asked for.
-		if iboxMaxMsgID > 0 && num > 0 && pagination.FirstPage() && len(tv.Messages) > 0 {
-			var newest chat1.MessageID
-			for _, m := range tv.Messages {
-				if id := m.GetMessageID(); id > newest {
-					newest = id
-				}
-			}
-			//nolint:gosec // G115: num is positive, checked above
-			if newest < iboxMaxMsgID && iboxMaxMsgID-newest > chat1.MessageID(num) {
-				s.Debug(ctx,
-					"PullLocalOnly: local max fallback newest %d is %d below ibox max %d, past the %d requested: reporting miss",
-					newest, iboxMaxMsgID-newest, iboxMaxMsgID, num)
-				return chat1.ThreadView{}, storage.MissError{Msg: "local copy does not reach the newest page"}
-			}
-		}
 	}
 	return tv, nil
 }
