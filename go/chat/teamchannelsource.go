@@ -129,12 +129,111 @@ func (i *lastActiveAtMemCache) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
 
+type topicNameCacheItem struct {
+	names []chat1.ChannelNameMention
+	// False when some channel in the team could not be resolved, which shortens the TTL below.
+	complete bool
+	mtime    gregor1.Time
+}
+
+// Channel-name resolution is charged per message: every message body holding a `#token` sends
+// ParseChannelNameMentions here, and the uncached path reads the inbox and then fetches the METADATA
+// message of every channel in the team. Unboxing one page of a busy channel in a team with a few
+// dozen channels therefore cost thousands of single-message fetches.
+//
+// There is no invalidation hook, so the TTL is the only thing bounding staleness, and it is kept
+// short for that reason - a page's worth of resolutions all land within milliseconds of each other,
+// so seconds are enough to collapse them into one.
+//
+// Note also that an incomplete result is still returned to the caller - so a resolution committed
+// during a degraded read (right after a nuke, say) is missing channels no matter what this cache
+// does. That is pre-existing, and the same persistence applies:
+//
+// Be aware of what the TTL does NOT heal. The result of a resolution is stored, not just displayed:
+// it becomes MessageUnboxedValid.ChannelNameMentions (see boxer.go) and is written to local storage
+// with the message. So a message unboxed during the window that a newly created or renamed channel
+// is missing from the cache keeps the stale resolution after the entry expires, until that message
+// happens to be unboxed again. Expiry heals later resolutions, not ones already committed. Widening
+// this duration widens that hole; if it ever needs to grow, wire up real invalidation first.
+const topicNameCacheDuration = 10 * time.Second
+
+// A result missing some channels is cached too, but only for long enough to collapse the burst one
+// page of messages fires. Refusing to cache it at all sounds safer and is not: the inbox read asks
+// for every member status, so a team almost always carries channels the user has left or never
+// joined, and those fail to resolve on every pass. "Incomplete" is therefore the steady state, and
+// under that rule the cache would never hold anything - leaving the fan-out it exists to collapse.
+// A channel that becomes resolvable is picked up after this window rather than the one above.
+const topicNameCacheIncompleteDuration = time.Second
+
+type topicNameMemCache struct {
+	sync.RWMutex
+	// key: tlfID||topicType||uid
+	cache map[string]topicNameCacheItem
+}
+
+func newTopicNameMemCache() *topicNameMemCache {
+	return &topicNameMemCache{
+		cache: make(map[string]topicNameCacheItem),
+	}
+}
+
+func (i *topicNameMemCache) key(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID) string {
+	return fmt.Sprintf("%s:%v:%s", tlfID, topicType, uid)
+}
+
+func (i *topicNameMemCache) Get(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID) ([]chat1.ChannelNameMention, bool) {
+	i.RLock()
+	defer i.RUnlock()
+	item, ok := i.cache[i.key(tlfID, topicType, uid)]
+	if !ok {
+		return nil, false
+	}
+	ttl := topicNameCacheDuration
+	if !item.complete {
+		ttl = topicNameCacheIncompleteDuration
+	}
+	if time.Since(item.mtime.Time()) > ttl {
+		return nil, false
+	}
+	// Hand back a copy: callers own what they get, and this slice is shared.
+	return append([]chat1.ChannelNameMention(nil), item.names...), true
+}
+
+func (i *topicNameMemCache) Put(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID,
+	names []chat1.ChannelNameMention, complete bool,
+) {
+	i.Lock()
+	defer i.Unlock()
+	i.cache[i.key(tlfID, topicType, uid)] = topicNameCacheItem{
+		names:    append([]chat1.ChannelNameMention(nil), names...),
+		complete: complete,
+		mtime:    gregor1.ToTime(time.Now()),
+	}
+}
+
+func (i *topicNameMemCache) clearCache() {
+	i.Lock()
+	defer i.Unlock()
+	i.cache = make(map[string]topicNameCacheItem)
+}
+
+func (i *topicNameMemCache) OnLogout(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
+func (i *topicNameMemCache) OnDbNuke(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
 type TeamChannelSource struct {
 	sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 	recentJoinsCache  *recentJoinsMemCache
 	lastActiveAtCache *lastActiveAtMemCache
+	topicNameCache    *topicNameMemCache
 }
 
 var _ types.TeamChannelSource = (*TeamChannelSource)(nil)
@@ -145,6 +244,7 @@ func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
 		DebugLabeler:      utils.NewDebugLabeler(g.ExternalG(), "TeamChannelSource", false),
 		recentJoinsCache:  newRecentJoinsMemCache(),
 		lastActiveAtCache: newLastActiveAtMemCache(),
+		topicNameCache:    newTopicNameMemCache(),
 	}
 }
 
@@ -152,6 +252,7 @@ func (c *TeamChannelSource) OnLogout(mctx libkb.MetaContext) error {
 	epick := libkb.FirstErrorPicker{}
 	epick.Push(c.recentJoinsCache.OnLogout(mctx))
 	epick.Push(c.lastActiveAtCache.OnLogout(mctx))
+	epick.Push(c.topicNameCache.OnLogout(mctx))
 	return epick.Error()
 }
 
@@ -159,6 +260,7 @@ func (c *TeamChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
 	epick := libkb.FirstErrorPicker{}
 	epick.Push(c.recentJoinsCache.OnDbNuke(mctx))
 	epick.Push(c.lastActiveAtCache.OnDbNuke(mctx))
+	epick.Push(c.topicNameCache.OnDbNuke(mctx))
 	return epick.Error()
 }
 
@@ -256,41 +358,56 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 	tlfID chat1.TLFID, topicType chat1.TopicType,
 ) (res []chat1.ChannelNameMention, err error) {
+	// Before the trace: this runs once per message body holding a `#token`, which reaches hundreds
+	// per second while paging a busy channel, and tracing a hit costs two log lines apiece. Safe
+	// because DebugLabeler.trace is pure logging - no context checks, no error handling. Note the
+	// misses below still fan out concurrently on a cold cache; this collapses the steady state, not
+	// the initial burst.
+	if cached, ok := c.topicNameCache.Get(tlfID, topicType, uid); ok {
+		return cached, nil
+	}
 	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
 		"GetChannelsTopicName: tlfID: %v, topicType: %v", tlfID, topicType)()
 
-	addValidMetadataMsg := func(convID chat1.ConversationID, msg chat1.MessageUnboxed) {
+	addValidMetadataMsg := func(convID chat1.ConversationID, msg chat1.MessageUnboxed) bool {
 		if !msg.IsValid() {
 			c.Debug(ctx, "GetChannelsTopicName: metadata message invalid: convID, %s", convID)
-			return
+			return false
 		}
 		body := msg.Valid().MessageBody
 		typ, err := body.MessageType()
 		if err != nil {
 			c.Debug(ctx, "GetChannelsTopicName: error getting message type: convID, %s",
 				convID, err)
-			return
+			return false
 		}
 		if typ != chat1.MessageType_METADATA {
 			c.Debug(ctx, "GetChannelsTopicName: message not a real metadata message: convID, %s msgID: %d",
 				convID, msg.GetMessageID())
-			return
+			return false
 		}
 		res = append(res, chat1.ChannelNameMention{
 			ConvID:    convID,
 			TopicName: body.Metadata().ConversationTitle,
 		})
+		return true
 	}
 
 	convs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
 	if err != nil {
 		return nil, err
 	}
+	// A channel we fail to resolve is left out of the result, and the result is then cached under a
+	// much shorter TTL (topicNameCacheIncompleteDuration) so the missing ones are retried soon. This
+	// matters most right after a db nuke, when local storage holds no METADATA messages yet and most
+	// of these fail.
+	complete := true
 	for _, rc := range convs {
 		conv := rc.Conv
 		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 		if err != nil {
+			complete = false
 			continue
 		}
 		unboxeds, err := c.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid,
@@ -298,13 +415,27 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 		if err != nil {
 			c.Debug(ctx, "GetChannelsTopicName: failed to unbox metadata message for: convID: %s err: %s",
 				conv.GetConvID(), err)
+			complete = false
 			continue
 		}
 		if len(unboxeds) != 1 {
 			c.Debug(ctx, "GetChannelsTopicName: empty result: convID: %s", conv.GetConvID())
+			complete = false
 			continue
 		}
-		addValidMetadataMsg(conv.GetConvID(), unboxeds[0])
+		if !addValidMetadataMsg(conv.GetConvID(), unboxeds[0]) {
+			complete = false
+		}
+	}
+	// len(convs) == 0 is never a legitimate answer - a chat TLF always has at least #general - so it
+	// means the inbox read came back degraded, and caching it would pin "this team has no channels"
+	// for the whole window.
+	if len(convs) > 0 {
+		if !complete {
+			c.Debug(ctx, "GetChannelsTopicName: incomplete result (%d of %d channels), caching briefly",
+				len(res), len(convs))
+		}
+		c.topicNameCache.Put(tlfID, topicType, uid, res, complete)
 	}
 	return res, nil
 }
