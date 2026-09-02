@@ -283,12 +283,28 @@ PLAYWRIGHT_MCP_CDP_ENDPOINT=http://localhost:9222 playwright-cli open --persiste
 
 ### Tab layout
 
-After connecting, you'll see tabs like:
-- Tab 0: Menubar (`menubar.dev.html`)
-- Tab 1: Main app (`main.dev.html`) — this is the one you want
-- Tab 2+: Other windows
+Tab order is NOT stable. It changes when the app restarts, and a DevTools window can take slot 0:
+- Seen: `0: menubar, 1: main app`
+- Also seen (after an app restart with DevTools open): `0: DevTools, 1: main app, 2: menubar`
 
-### Identifying the main app tab
+### Identifying the main app tab — do this EVERY time
+
+Never reuse a remembered index. Re-run `tab-list` and pick the row whose URL contains `main.html`
+after every restart, reload, or reconnect, then confirm with one cheap eval before trusting anything:
+
+```bash
+playwright-cli tab-list                 # find the row whose URL has main.html
+playwright-cli tab-select <that index>
+playwright-cli eval "document.title + ' ' + location.href"   # assert before proceeding
+```
+
+**A wrong tab fails silently.** DevTools is a real page: it answers every `eval` plausibly and its
+console is nearly empty, so readings look like findings rather than mistakes. Treat a suspiciously
+empty console or a tiny `document.body.innerText` as "wrong tab" first, not as evidence.
+
+Also note `console` only captures output from the moment playwright attached to that page. Anything
+logged before the attach lives in the user's own DevTools and cannot be retrieved through
+playwright — ask them to paste it, or have them re-trigger while you are attached.
 
 Use the page URL, not the title — the title stays `"Keybase DEV"` until the router navigates and can't be relied on:
 
