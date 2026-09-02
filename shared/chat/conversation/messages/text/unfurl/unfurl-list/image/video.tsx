@@ -77,7 +77,13 @@ const DesktopVideo = (p: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" relative={true} alignSelf="flex-start">
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([sharedStyles.absoluteContainer, {height, width}])}>
+      {/* Positioned siblings paint above the in-flow video, so this overlay would
+          otherwise swallow every click meant for it (e.g. picking a giphy result). */}
+      <Kb.Box2
+        direction="vertical"
+        pointerEvents="none"
+        style={Kb.Styles.collapseStyles([sharedStyles.absoluteContainer, {height, width}])}
+      >
         {!playing && <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} />}
       </Kb.Box2>
       <video

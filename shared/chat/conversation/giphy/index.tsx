@@ -167,6 +167,8 @@ const useStyles = Kb.Styles.createStyleHook(
       },
       poweredBy: {
         bottom: 0,
+        // sits over the bottom-right of the results grid; must not eat tile clicks
+        pointerEvents: 'none',
         position: 'absolute',
         right: 0,
       },
