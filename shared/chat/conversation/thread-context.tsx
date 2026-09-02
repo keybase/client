@@ -22,6 +22,8 @@ import {useIsFocused} from '@react-navigation/core'
 import {
   addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
+  describeOrdinalGaps,
+  GAPPROBE,
   completeAttachmentDownloadInThreadState,
   clearOptimisticReactionsForUpdatesInThreadState,
   clearOptimisticReactionsForMessagesInThreadState,
@@ -216,6 +218,7 @@ export type ConversationThreadActions = {
     }
   ) => void
   applyThreadLoad: (p: {
+    authoritative: boolean
     centered: boolean
     disableActiveMarkRead?: boolean
     enableActiveMarkRead: boolean
@@ -225,7 +228,6 @@ export type ConversationThreadActions = {
     scrollDirection: ScrollDirection
     validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
   }) => void
-  clearValidatedOrdinalRange: () => void
   clearUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   deleteMessages: (p: {
     messageIDs?: ReadonlyArray<T.Chat.MessageID>
@@ -471,8 +473,26 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         if (opt.liveUpdate) {
           s.liveUpdateVersion += 1
         }
-        addMessagesToThreadState(s, messages, {validatedRange: opt.validatedRange})
+        const beforeMin = s.messageOrdinals?.[0]
+        addMessagesToThreadState(s, messages, {
+          // Only thread loads may extend the window downward; a notification must not.
+          dropNewBelowWindow: true,
+          validatedRange: opt.validatedRange,
+        })
         clearOptimisticReactionsForMessagesInThreadState(s, messages)
+        const afterMin = s.messageOrdinals?.[0]
+        if (beforeMin !== undefined && afterMin !== undefined && afterMin < beforeMin) {
+          const m = s.messageMap.get(afterMin)
+          logger.info(
+            `${GAPPROBE}: conv=${id.slice(0, 12)} addMessages LOWERED the window floor ${beforeMin} -> ${afterMin}` +
+              ` ord=${afterMin} type=${m?.type ?? 'MISSING'} id=${m?.id ?? '?'}` +
+              ` liveUpdate=${!!opt.liveUpdate} batch=${messages.length}` +
+              ` batchOrds=${messages
+                .slice(0, 8)
+                .map(x => `${x.ordinal}/${x.type}`)
+                .join(',')}`
+          )
+        }
       })
       if (opt.markAsRead) {
         markThreadAsRead()
@@ -485,8 +505,12 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       activeMarkReadEnabledRef.current = false
     }
   })
+  // Debug-only: every ordinal the service has sent for this conversation, deleted ones included, so
+  // the gap probe can tell an expunged range from a stranded ordinal. Dies with the conversation.
+  const gapProbeAccounted = React.useRef(new Set<T.Chat.Ordinal>())
   const applyThreadLoad = React.useEffectEvent(
     (p: {
+      authoritative: boolean
       centered: boolean
       disableActiveMarkRead?: boolean
       enableActiveMarkRead: boolean
@@ -501,6 +525,32 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         if (p.messages.length) {
           addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
+          const incoming = p.messages.map(m => m.ordinal)
+          for (const o of incoming) {
+            gapProbeAccounted.current.add(o)
+          }
+          const incomingMin = Math.min(...incoming)
+          const desc = describeOrdinalGaps(s.messageOrdinals, gapProbeAccounted.current)
+          logger.info(
+            `${GAPPROBE}: conv=${id.slice(0, 12)} load pass=${p.authoritative ? 'full' : 'cached'} dir=${p.scrollDirection}` +
+              ` centered=${p.centered} incoming=${incoming.length}` +
+              ` [${incomingMin}..${Math.max(...incoming)}] -> ` +
+              desc
+          )
+          if (desc.includes('>>> BAD')) {
+            const stranded = (s.messageOrdinals ?? []).filter(o => o < incomingMin)
+            logger.info(
+              `${GAPPROBE}: conv=${id.slice(0, 12)} stranded below incoming min ${incomingMin}: ` +
+                stranded
+                  .slice(0, 6)
+                  .map(o => {
+                    const m = s.messageMap.get(o)
+                    return `ord=${o} type=${m?.type ?? 'MISSING'} id=${m?.id ?? '?'} outbox=${m?.outboxID ?? '-'}`
+                  })
+                  .join(' ; ') +
+                ` | inBatch=${incoming.includes(stranded[0] as T.Chat.Ordinal)}`
+            )
+          }
         }
         switch (p.scrollDirection) {
           case 'forward':
@@ -866,13 +916,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       markThreadAsRead()
     }
   )
-  const clearValidatedOrdinalRange = React.useEffectEvent(() => {
-    updateThreadState(s => {
-      s.validatedOrdinalRange = undefined
-    })
-  })
   const messagesClear = React.useEffectEvent(() => {
     activeMarkReadEnabledRef.current = false
+    gapProbeAccounted.current.clear()
     shownUsernameCache.clear()
     updateThreadState(s => {
       s.clearVersion += 1
@@ -1001,7 +1047,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       addOptimisticReaction,
       applyThreadLoad,
       clearUnfurlPrompt,
-      clearValidatedOrdinalRange,
       completeAttachmentDownload,
       deleteMessages,
       explodeMessages,
@@ -1184,12 +1229,15 @@ export const useConversationThreadLoadMessagesCentered = () => {
 }
 
 export const useConversationThreadJumpToRecent = () => {
-  const {clearValidatedOrdinalRange, setMarkReadBlocked} = useConversationThreadActions()
+  const {setMarkReadBlocked} = useConversationThreadActions()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
+  const messagesClear = useConversationThreadMessagesClear()
 
   const jumpToRecent: JumpToRecent = options => {
     setMarkReadBlocked(false)
-    clearValidatedOrdinalRange()
+    // The newest window is disjoint from wherever the reader was, so merging the two would leave a
+    // gap in the ordinals. Drop the old window first, the way a centered jump does.
+    messagesClear()
     loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
   }
   return jumpToRecent

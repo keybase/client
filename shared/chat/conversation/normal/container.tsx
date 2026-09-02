@@ -64,12 +64,20 @@ const useOrangeLine = (
 
   const loadOrangeLine = React.useEffectEvent(
     (conversationIDKey: T.Chat.ConversationIDKey, readMsgID: T.Chat.MessageID) => {
+      // There is no valid message ID 0, so a non-positive read position means we do not know it yet
+      // rather than "nothing has been read": an unlocalized conversation reads -1 from
+      // emptyConversationMeta, which a DB nuke makes the norm. Asking the service with 0 answers
+      // "everything is unread" and puts the line above the oldest message, and since the state is
+      // set once and only refreshed while the conversation is inactive, that answer sticks.
+      if (readMsgID <= 0) {
+        return
+      }
       const f = async () => {
         const convID = T.Chat.keyToConversationID(conversationIDKey)
         const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
           convID,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          readMsgID: readMsgID < 0 ? 0 : readMsgID,
+          readMsgID,
         })
         const nextOrangeLine = T.Chat.numberToOrdinal(
           unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0

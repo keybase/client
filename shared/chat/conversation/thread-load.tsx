@@ -204,8 +204,15 @@ export const loadConversationThreadMessages = (
     )
 
     const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-    let reconciled = false
+    // Set as soon as a cached response arrives, before any early return. Once the service has sent
+    // a cached thread it switches the full response to INCREMENTAL, filtering it down to only the
+    // messages that changed (chat/uithreadloader.go mergeLocalRemoteThread). From that point neither
+    // response is a complete window, so neither can be treated as authoritative.
+    let sawCachedPass = false
     const onGotThread = (thread: string, why: string) => {
+      if (why === 'cached') {
+        sawCachedPass = true
+      }
       if (!thread) {
         return
       }
@@ -239,22 +246,23 @@ export const loadConversationThreadMessages = (
         scrollDirection !== 'back' &&
         reason !== 'findNewestConversation' &&
         reason !== 'findNewestConversationFromLayout'
+      // Pruning is only safe against a response that is a whole window: a full pass with no cached
+      // pass before it. Anything else is partial, and pruning against it deletes messages that are
+      // still in the thread.
       let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
-      if (messages.length) {
-        if (scrollDirection === 'none' && !reconciled) {
-          const ords = messages
-            .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
-            .map(m => m.ordinal)
-          if (ords.length > 0) {
-            validatedRange = {
-              from: Math.min(...ords) as T.Chat.Ordinal,
-              to: Math.max(...ords) as T.Chat.Ordinal,
-            }
+      if (messages.length && scrollDirection === 'none' && why === 'full' && !sawCachedPass) {
+        const ords = messages
+          .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
+          .map(m => m.ordinal)
+        if (ords.length > 0) {
+          validatedRange = {
+            from: Math.min(...ords) as T.Chat.Ordinal,
+            to: Math.max(...ords) as T.Chat.Ordinal,
           }
-          reconciled = true
         }
       }
       actions.applyThreadLoad({
+        authoritative: why === 'full',
         centered: !!centeredMessageID,
         disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
         enableActiveMarkRead: canMarkReadForThreadWindow,

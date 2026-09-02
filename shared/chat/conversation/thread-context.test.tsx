@@ -455,6 +455,7 @@ test('scrollback loads older messages without marking the thread read', async ()
 
   act(() => {
     result.current.actions.applyThreadLoad({
+      authoritative: true,
       centered: false,
       enableActiveMarkRead: false,
       messages: [makeTextMessage()],
@@ -682,6 +683,7 @@ test('mounted thread listener applies incoming messages while inactive without m
 
   act(() => {
     result.current.actions.applyThreadLoad({
+      authoritative: true,
       centered: false,
       enableActiveMarkRead: false,
       messages: [],
@@ -999,6 +1001,7 @@ test('loaded focus refresh does not overwrite newer streamed reaction updates', 
 
   act(() => {
     result.current.actions.applyThreadLoad({
+      authoritative: true,
       centered: false,
       enableActiveMarkRead: true,
       messages: [makeTextMessage()],
@@ -1090,6 +1093,7 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
 
   act(() => {
     result.current.actions.applyThreadLoad({
+      authoritative: true,
       centered: false,
       enableActiveMarkRead: false,
       messages: [makeTextMessage()],
@@ -1375,4 +1379,69 @@ test('mounted thread listener applies attachment download and upload progress', 
       ? result.current.downloadMessage.transferState
       : undefined
   ).toBeUndefined()
+})
+
+test('a cached pass never prunes messages the incremental full pass no longer resends', async () => {
+  // Regression: once the service has sent a cached thread it switches the full response to
+  // INCREMENTAL, so the full pass only carries the messages that changed. Treating either partial
+  // response as authoritative deleted real messages that were still in the thread.
+  useConfigState.setState({loggedIn: true})
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
+  const ids = [301, 302, 303, 304].map(T.Chat.numberToMessageID)
+  const threadJSON = (msgIDs: ReadonlyArray<T.Chat.MessageID>) =>
+    JSON.stringify({
+      messages: msgIDs.map(id => makeValidTextUIMessage(id, `m${id}`)),
+      pagination: {last: true, next: '', num: 100, previous: ''},
+    })
+
+  // A partial cached pass missing 302/303, then an incremental full pass carrying only the one
+  // message that changed. Nothing may be dropped.
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({thread: threadJSON([ids[0]!, ids[3]!])})
+    await Promise.resolve()
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: threadJSON([ids[3]!])})
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      loadMoreMessages: useConversationThreadLoadMoreMessages(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
+    }),
+    {wrapper}
+  )
+
+  // Seed a settled four-message window the way a whole-window full pass would.
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      authoritative: true,
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: ids.map(id =>
+        Message.makeMessageText({
+          author: 'alice',
+          conversationIDKey: convID,
+          id,
+          ordinal: T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(id)),
+          outboxID: undefined,
+          text: new HiddenString(`m${id}`),
+          timestamp: 100,
+        })
+      ),
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
+  expect(result.current.ordinals).toEqual([301, 302, 303, 304])
+
+  act(() => {
+    result.current.loadMoreMessages({reason: 'test'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(result.current.ordinals).toEqual([301, 302, 303, 304])
 })
