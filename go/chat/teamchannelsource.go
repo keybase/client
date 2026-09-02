@@ -131,7 +131,9 @@ func (i *lastActiveAtMemCache) OnDbNuke(mctx libkb.MetaContext) error {
 
 type topicNameCacheItem struct {
 	names []chat1.ChannelNameMention
-	mtime gregor1.Time
+	// False when some channel in the team could not be resolved, which shortens the TTL below.
+	complete bool
+	mtime    gregor1.Time
 }
 
 // Channel-name resolution is charged per message: every message body holding a `#token` sends
@@ -143,9 +145,9 @@ type topicNameCacheItem struct {
 // short for that reason - a page's worth of resolutions all land within milliseconds of each other,
 // so seconds are enough to collapse them into one.
 //
-// Note also that an incomplete result is still returned to the caller, just not cached - so a
-// resolution committed during a degraded read (right after a nuke, say) is missing channels no
-// matter what this cache does. That is pre-existing, and the same persistence applies:
+// Note also that an incomplete result is still returned to the caller - so a resolution committed
+// during a degraded read (right after a nuke, say) is missing channels no matter what this cache
+// does. That is pre-existing, and the same persistence applies:
 //
 // Be aware of what the TTL does NOT heal. The result of a resolution is stored, not just displayed:
 // it becomes MessageUnboxedValid.ChannelNameMentions (see boxer.go) and is written to local storage
@@ -154,6 +156,14 @@ type topicNameCacheItem struct {
 // happens to be unboxed again. Expiry heals later resolutions, not ones already committed. Widening
 // this duration widens that hole; if it ever needs to grow, wire up real invalidation first.
 const topicNameCacheDuration = 10 * time.Second
+
+// A result missing some channels is cached too, but only for long enough to collapse the burst one
+// page of messages fires. Refusing to cache it at all sounds safer and is not: the inbox read asks
+// for every member status, so a team almost always carries channels the user has left or never
+// joined, and those fail to resolve on every pass. "Incomplete" is therefore the steady state, and
+// under that rule the cache would never hold anything - leaving the fan-out it exists to collapse.
+// A channel that becomes resolvable is picked up after this window rather than the one above.
+const topicNameCacheIncompleteDuration = time.Second
 
 type topicNameMemCache struct {
 	sync.RWMutex
@@ -175,19 +185,29 @@ func (i *topicNameMemCache) Get(tlfID chat1.TLFID, topicType chat1.TopicType, ui
 	i.RLock()
 	defer i.RUnlock()
 	item, ok := i.cache[i.key(tlfID, topicType, uid)]
-	if !ok || time.Since(item.mtime.Time()) > topicNameCacheDuration {
+	if !ok {
+		return nil, false
+	}
+	ttl := topicNameCacheDuration
+	if !item.complete {
+		ttl = topicNameCacheIncompleteDuration
+	}
+	if time.Since(item.mtime.Time()) > ttl {
 		return nil, false
 	}
 	// Hand back a copy: callers own what they get, and this slice is shared.
 	return append([]chat1.ChannelNameMention(nil), item.names...), true
 }
 
-func (i *topicNameMemCache) Put(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID, names []chat1.ChannelNameMention) {
+func (i *topicNameMemCache) Put(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID,
+	names []chat1.ChannelNameMention, complete bool,
+) {
 	i.Lock()
 	defer i.Unlock()
 	i.cache[i.key(tlfID, topicType, uid)] = topicNameCacheItem{
-		names: append([]chat1.ChannelNameMention(nil), names...),
-		mtime: gregor1.ToTime(time.Now()),
+		names:    append([]chat1.ChannelNameMention(nil), names...),
+		complete: complete,
+		mtime:    gregor1.ToTime(time.Now()),
 	}
 }
 
@@ -378,9 +398,10 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 	if err != nil {
 		return nil, err
 	}
-	// Any channel we fail to resolve makes the result incomplete, and an incomplete result must not
-	// be cached: it would pin a degraded answer for the whole window. This matters most right after
-	// a db nuke, when local storage holds no METADATA messages yet and most of these fail.
+	// A channel we fail to resolve is left out of the result, and the result is then cached under a
+	// much shorter TTL (topicNameCacheIncompleteDuration) so the missing ones are retried soon. This
+	// matters most right after a db nuke, when local storage holds no METADATA messages yet and most
+	// of these fail.
 	complete := true
 	for _, rc := range convs {
 		conv := rc.Conv
@@ -409,11 +430,12 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 	// len(convs) == 0 is never a legitimate answer - a chat TLF always has at least #general - so it
 	// means the inbox read came back degraded, and caching it would pin "this team has no channels"
 	// for the whole window.
-	if complete && len(convs) > 0 {
-		c.topicNameCache.Put(tlfID, topicType, uid, res)
-	} else {
-		c.Debug(ctx, "GetChannelsTopicName: incomplete result (%d of %d channels), not caching",
-			len(res), len(convs))
+	if len(convs) > 0 {
+		if !complete {
+			c.Debug(ctx, "GetChannelsTopicName: incomplete result (%d of %d channels), caching briefly",
+				len(res), len(convs))
+		}
+		c.topicNameCache.Put(tlfID, topicType, uid, res, complete)
 	}
 	return res, nil
 }
