@@ -177,6 +177,9 @@ type SelectedConversationOptions = ThreadLoadStatusOptions & {
 export type ScrollDirection = 'none' | 'back' | 'forward'
 export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   allowMarkAsRead?: boolean
+  // Internal: how many times this back page has already been re-issued after yielding no new
+  // ordinals. Callers leave it unset; only the retry in thread-load.tsx sets it.
+  emptyBackPageRetries?: number
   centeredMessageID?: {
     conversationIDKey: T.Chat.ConversationIDKey
     highlightMode: T.Chat.CenterOrdinalHighlightMode
