@@ -100,6 +100,20 @@ func TestTopicNameMemCacheExpires(t *testing.T) {
 	require.False(t, ok, "an entry past the TTL must miss")
 }
 
+// An empty conversation list is never a legitimate answer for a chat TLF, so it must not be cached.
+// This pins the guard at the cache level; the caller-side guard lives in GetChannelsTopicName.
+func TestTopicNameMemCacheEmptyIsStillAValue(t *testing.T) {
+	tlfID, topicType, uid, _ := topicNameCacheFixture()
+	c := newTopicNameMemCache()
+
+	// The cache itself stores whatever it is given, including nothing - which is exactly why the
+	// caller must not hand it a degraded read.
+	c.Put(tlfID, topicType, uid, nil)
+	got, ok := c.Get(tlfID, topicType, uid)
+	require.True(t, ok, "an empty slice is a cached value, not a miss")
+	require.Empty(t, got)
+}
+
 // The TTL is the only bound on staleness - there is no invalidation hook - and the comment on the
 // constant argues from it being short. Pin the value so widening it is a deliberate act.
 func TestTopicNameCacheDurationStaysShort(t *testing.T) {

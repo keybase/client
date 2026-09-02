@@ -143,6 +143,10 @@ type topicNameCacheItem struct {
 // short for that reason - a page's worth of resolutions all land within milliseconds of each other,
 // so seconds are enough to collapse them into one.
 //
+// Note also that an incomplete result is still returned to the caller, just not cached - so a
+// resolution committed during a degraded read (right after a nuke, say) is missing channels no
+// matter what this cache does. That is pre-existing, and the same persistence applies:
+//
 // Be aware of what the TTL does NOT heal. The result of a resolution is stored, not just displayed:
 // it becomes MessageUnboxedValid.ChannelNameMentions (see boxer.go) and is written to local storage
 // with the message. So a message unboxed during the window that a newly created or renamed channel
@@ -402,7 +406,10 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 			complete = false
 		}
 	}
-	if complete {
+	// len(convs) == 0 is never a legitimate answer - a chat TLF always has at least #general - so it
+	// means the inbox read came back degraded, and caching it would pin "this team has no channels"
+	// for the whole window.
+	if complete && len(convs) > 0 {
 		c.topicNameCache.Put(tlfID, topicType, uid, res)
 	} else {
 		c.Debug(ctx, "GetChannelsTopicName: incomplete result (%d of %d channels), not caching",
