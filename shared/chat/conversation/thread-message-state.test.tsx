@@ -468,4 +468,43 @@ describe('addMessagesToThreadState', () => {
     expect(state.messageTypeMap.has(T.Chat.numberToOrdinal(10))).toBe(false)
     expect(state.messageTypeMap.get(T.Chat.numberToOrdinal(20))).toBe('attachment:file')
   })
+
+  test('a message dropped below the window leaves nothing behind in the maps', () => {
+    const state = makeThreadState([textAt(7152), textAt(7153)])
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(7152),
+      T.Chat.numberToOrdinal(7153),
+    ])
+    // The ordinal is not in the list, so nothing may still point at it. An entry left in these maps
+    // makes getOrdinalForMessageID hand out an ordinal with no row, and callers act on a message the
+    // thread is not showing.
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(1))).toBe(false)
+    expect(state.messageIDToOrdinal.has(T.Chat.numberToMessageID(1))).toBe(false)
+    expect(state.messageTypeMap.has(T.Chat.numberToOrdinal(1))).toBe(false)
+  })
+
+  test('a message dropped below the window does not disturb one already in the window', () => {
+    const state = makeThreadState([textAt(7152), textAt(7153)])
+    addMessagesToThreadState(state, [textAt(1), textAt(7152)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(7152),
+      T.Chat.numberToOrdinal(7153),
+    ])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(1))).toBe(false)
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(7152))).toBe(true)
+    expect(state.messageIDToOrdinal.get(T.Chat.numberToMessageID(7152))).toEqual(
+      T.Chat.numberToOrdinal(7152)
+    )
+  })
+
+  test('an empty window drops nothing, because there is no floor to be below', () => {
+    // messagesClear leaves messageOrdinals undefined, and jumpToRecent goes through it. With no
+    // window there is no "below the window", so the batch applies normally.
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(1)])
+  })
 })

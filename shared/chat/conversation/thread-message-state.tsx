@@ -184,10 +184,37 @@ export const addMessagesToThreadState = (
     return mapOrdinal
   }
 
+  const existing = new Set(state.messageOrdinals ?? [])
+
+  // A notification (the post-load ResolveSkippedUnboxeds push, say) can carry a message from far
+  // outside the loaded window - the channel-name message at ID 1 is the usual one. Adding it
+  // strands a row at index 0 with a hole beneath it, which makes onStartReached fire against that
+  // row instead of the real top of the thread, so scrollback stops working. Only a thread load may
+  // extend the window downward.
+  //
+  // Decided here, before anything is written, so these messages are skipped whole. Dropping only
+  // the ordinal later would leave messageMap and messageIDToOrdinal holding a message the thread
+  // does not render, and getOrdinalForMessageID would then hand out an ordinal with no row.
+  // Nothing is lost either way: paging back to it loads it in the ordinary way.
+  const droppedBelowWindow = new Set<T.Chat.Ordinal>()
+  if (dropNewBelowWindow && windowFloor !== undefined) {
+    for (const o of incomingOrdinals) {
+      if (o < windowFloor && !existing.has(o)) {
+        droppedBelowWindow.add(o)
+      }
+    }
+    for (const o of droppedBelowWindow) {
+      incomingOrdinals.delete(o)
+    }
+  }
+
   const deletedOrdinals = new Set<T.Chat.Ordinal>()
   for (const _m of messages) {
     const regularMessage = _m.conversationMessage !== false
     const mapOrdinal = getMapOrdinal(_m, regularMessage)
+    if (droppedBelowWindow.has(mapOrdinal)) {
+      continue
+    }
     const getIncomingMessage = (): WritableDraft<T.Chat.Message> =>
       messageForThreadState(_m, mapOrdinal)
 
@@ -249,18 +276,9 @@ export const addMessagesToThreadState = (
     }
   }
 
-  const existing = new Set(state.messageOrdinals ?? [])
   let changed = false
   for (const o of incomingOrdinals) {
     if (!existing.has(o)) {
-      if (dropNewBelowWindow && windowFloor !== undefined && o < windowFloor) {
-        // A notification (the post-load ResolveSkippedUnboxeds push, say) can carry a message from
-        // far outside the loaded window — the channel-name message at ID 1 is the usual one. Adding
-        // it here strands a row at index 0 with a hole beneath it, which makes onStartReached fire
-        // against that row instead of the real top of the thread, so scrollback stops working.
-        // Skipping it loses nothing: paging back to it loads it in the ordinary way.
-        continue
-      }
       existing.add(o)
       changed = true
     }
