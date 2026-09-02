@@ -129,12 +129,79 @@ func (i *lastActiveAtMemCache) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
 
+type topicNameCacheItem struct {
+	names []chat1.ChannelNameMention
+	mtime gregor1.Time
+}
+
+// Channel-name resolution is charged per message: every message body holding a `#token` sends
+// ParseChannelNameMentions here, and the uncached path reads the inbox and then fetches the METADATA
+// message of every channel in the team. Unboxing one page of a busy channel in a team with a few
+// dozen channels therefore cost thousands of single-message fetches. The window is deliberately
+// short: a page's worth of resolutions all land within milliseconds of each other, so a few seconds
+// collapses them into one while keeping a renamed channel from lingering long enough to be noticed.
+// That is why this needs no explicit invalidation on rename or channel create/delete.
+const topicNameCacheDuration = 10 * time.Second
+
+type topicNameMemCache struct {
+	sync.RWMutex
+	// key: tlfID||topicType||uid
+	cache map[string]topicNameCacheItem
+}
+
+func newTopicNameMemCache() *topicNameMemCache {
+	return &topicNameMemCache{
+		cache: make(map[string]topicNameCacheItem),
+	}
+}
+
+func (i *topicNameMemCache) key(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID) string {
+	return fmt.Sprintf("%s:%v:%s", tlfID, topicType, uid)
+}
+
+func (i *topicNameMemCache) Get(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID) ([]chat1.ChannelNameMention, bool) {
+	i.RLock()
+	defer i.RUnlock()
+	item, ok := i.cache[i.key(tlfID, topicType, uid)]
+	if !ok || time.Since(item.mtime.Time()) > topicNameCacheDuration {
+		return nil, false
+	}
+	// Hand back a copy: callers own what they get, and this slice is shared.
+	return append([]chat1.ChannelNameMention(nil), item.names...), true
+}
+
+func (i *topicNameMemCache) Put(tlfID chat1.TLFID, topicType chat1.TopicType, uid gregor1.UID, names []chat1.ChannelNameMention) {
+	i.Lock()
+	defer i.Unlock()
+	i.cache[i.key(tlfID, topicType, uid)] = topicNameCacheItem{
+		names: append([]chat1.ChannelNameMention(nil), names...),
+		mtime: gregor1.ToTime(time.Now()),
+	}
+}
+
+func (i *topicNameMemCache) clearCache() {
+	i.Lock()
+	defer i.Unlock()
+	i.cache = make(map[string]topicNameCacheItem)
+}
+
+func (i *topicNameMemCache) OnLogout(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
+func (i *topicNameMemCache) OnDbNuke(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
 type TeamChannelSource struct {
 	sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 	recentJoinsCache  *recentJoinsMemCache
 	lastActiveAtCache *lastActiveAtMemCache
+	topicNameCache    *topicNameMemCache
 }
 
 var _ types.TeamChannelSource = (*TeamChannelSource)(nil)
@@ -145,6 +212,7 @@ func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
 		DebugLabeler:      utils.NewDebugLabeler(g.ExternalG(), "TeamChannelSource", false),
 		recentJoinsCache:  newRecentJoinsMemCache(),
 		lastActiveAtCache: newLastActiveAtMemCache(),
+		topicNameCache:    newTopicNameMemCache(),
 	}
 }
 
@@ -152,6 +220,7 @@ func (c *TeamChannelSource) OnLogout(mctx libkb.MetaContext) error {
 	epick := libkb.FirstErrorPicker{}
 	epick.Push(c.recentJoinsCache.OnLogout(mctx))
 	epick.Push(c.lastActiveAtCache.OnLogout(mctx))
+	epick.Push(c.topicNameCache.OnLogout(mctx))
 	return epick.Error()
 }
 
@@ -159,6 +228,7 @@ func (c *TeamChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
 	epick := libkb.FirstErrorPicker{}
 	epick.Push(c.recentJoinsCache.OnDbNuke(mctx))
 	epick.Push(c.lastActiveAtCache.OnDbNuke(mctx))
+	epick.Push(c.topicNameCache.OnDbNuke(mctx))
 	return epick.Error()
 }
 
@@ -256,6 +326,12 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 	tlfID chat1.TLFID, topicType chat1.TopicType,
 ) (res []chat1.ChannelNameMention, err error) {
+	// Before the trace: this runs once per message body holding a `#token`, which reaches hundreds
+	// per second while paging a busy channel. Tracing a cache hit costs two log lines apiece and
+	// swamps the log with work that did nothing.
+	if cached, ok := c.topicNameCache.Get(tlfID, topicType, uid); ok {
+		return cached, nil
+	}
 	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
 		"GetChannelsTopicName: tlfID: %v, topicType: %v", tlfID, topicType)()
@@ -306,6 +382,7 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 		}
 		addValidMetadataMsg(conv.GetConvID(), unboxeds[0])
 	}
+	c.topicNameCache.Put(tlfID, topicType, uid, res)
 	return res, nil
 }
 
