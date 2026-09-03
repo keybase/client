@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {getInboxConversationMeta, metasReceived} from '@/chat/inbox/metadata'
 import {navigateToThread} from '@/constants/router'
+import {setInputIntent} from './input-intent-store'
 import {useCurrentUserState} from '@/stores/current-user'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
@@ -128,7 +129,8 @@ export const replyPrivatelyToConversationMessage = (message: T.Chat.Message) => 
 
     const text = formatTextForQuoting(message.text.stringValue())
     metasReceived([meta])
-    navigateToThread(newThreadCID, 'createdMessagePrivately', undefined, undefined, undefined, text)
+    setInputIntent(newThreadCID, {text, type: 'injectText'})
+    navigateToThread(newThreadCID, 'createdMessagePrivately')
   }
   ignorePromise(f())
 }

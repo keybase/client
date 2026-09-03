@@ -817,17 +817,6 @@ export const clearThreadHighlightMessageID = () => {
   })
 }
 
-type ThreadInputActionRequest =
-  | {type: 'commandStatus'; info?: T.Chat.CommandStatusInfo}
-  | {type: 'injectText'; text?: string}
-  | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
-  | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
-
-const makeThreadInputAction = (action: ThreadInputActionRequest): ThreadInputAction => ({
-  ...action,
-  key: makeUUID(),
-})
-
 export const clearThreadInputAction = (key?: string) => {
   const n = _getNavigator()
   if (!n) return
@@ -868,7 +857,6 @@ export const setThreadInputReplyTo = (
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
   highlightMessageID?: T.Chat.MessageID
-  inputAction?: ThreadInputAction
   threadSearch?: {query?: string}
 }
 
@@ -913,7 +901,6 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
     highlightMessageID: navParams?.highlightMessageID,
-    inputAction: navParams?.inputAction,
     threadSearch: navParams?.threadSearch,
   }
 
@@ -949,8 +936,7 @@ export const navigateToThread = (
   reason: NavigateToThreadReason,
   highlightMessageID?: T.Chat.MessageID,
   threadSearchQuery?: string,
-  createConversationError?: T.Chat.CreateConversationError,
-  inputPrefillText?: string
+  createConversationError?: T.Chat.CreateConversationError
 ) => {
   if (reason === 'navChanged') {
     return
@@ -966,16 +952,13 @@ export const navigateToThread = (
   }
 
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
-  const inputAction =
-    inputPrefillText !== undefined ? makeThreadInputAction({text: inputPrefillText, type: 'injectText'}) : undefined
   const navParams = {
     createConversationError,
     highlightMessageID,
-    inputAction,
     threadSearch,
   }
   const sameVisibleThread = visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
-  if (sameVisibleThread && (highlightMessageID || inputAction)) {
+  if (sameVisibleThread && highlightMessageID) {
     const sameThreadParams = {conversationIDKey, ...navParams}
     if (isSplit) {
       setChatRootParams(sameThreadParams)
@@ -1000,7 +983,6 @@ export const navigateToThread = (
       conversationIDKey,
       createConversationError,
       highlightMessageID,
-      inputAction,
       threadSearch,
     }
     if (replace) {

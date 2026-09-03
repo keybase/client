@@ -77,6 +77,31 @@ test('no thread on screen still pushes the conversation', () => {
   expect(action.payload.name).toBe('chatConversation')
 })
 
+// Removing `inputAction` from the sameVisibleThread condition means a prefill-only call
+// (no highlightMessageID) issued while already on that thread falls through to the bottom
+// `else` instead of taking the early-return branch. It must not read as a second push:
+// navigateAppend's dupe guard compares route params shallowly against the currently-visible
+// route, and every place in router.tsx that sets chatConversation params writes the same four
+// keys (conversationIDKey, createConversationError, highlightMessageID, threadSearch), even
+// when some are undefined - so the shapes line up and the guard short-circuits.
+test('reissuing navigateToThread on the same visible thread with no highlight does not push a duplicate', () => {
+  const visibleThreadRoute = {
+    key: 'conv-visible',
+    name: 'chatConversation',
+    params: {
+      conversationIDKey: realConvID,
+      createConversationError: undefined,
+      highlightMessageID: undefined,
+      threadSearch: undefined,
+    },
+  }
+  setRootRoutes([loggedIn, visibleThreadRoute])
+
+  navigateToThread(realConvID, 'createdMessagePrivately')
+
+  expect(dispatch).not.toHaveBeenCalled()
+})
+
 // setParams keeps the native screen alive, and iOS never re-measures a header title subview it
 // first measured empty - so the pending thread has to have a title before it is shown.
 test('the pending thread is seeded with the participants so its header title is never empty', () => {
