@@ -10,7 +10,6 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
-import {setInputIntent} from './input-intent-store'
 import AttachmentTrim from './attachment-trim'
 import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
 
@@ -135,10 +134,10 @@ const ContainerInner = (ownProps: OwnProps) => {
       clearModals()
 
       if (selectConversationWithReason) {
-        if (ownProps.inputPrefillText !== undefined) {
-          setInputIntent(conversationIDKey, {text: ownProps.inputPrefillText, type: 'injectText'})
-        }
-        C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason)
+        const prefill = ownProps.inputPrefillText
+        C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason, {
+          intent: prefill === undefined ? undefined : {text: prefill, type: 'injectText'},
+        })
       }
     }
 

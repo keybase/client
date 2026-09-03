@@ -7,6 +7,9 @@ export type ThreadSearchRoute = {
 }
 
 export type ThreadSearchRouteProps = {
+  // Stays a route param while the composer instructions moved to the input-intent store: this is
+  // durable screen state - the error screen the thread route renders until you navigate off it -
+  // not a one-shot command that a mailbox delivers once and deletes.
   createConversationError?: T.Chat.CreateConversationError
   threadSearch?: ThreadSearchRoute
 }

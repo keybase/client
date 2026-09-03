@@ -58,7 +58,8 @@ const useItemsForMessage = (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   // Set only when this popup is rendered inside the thread's input provider, i.e. it is this
   // conversation's composer we are driving. Absent for the phone modal route, the info panel and
-  // the attachment viewer, which reach the composer through the router instead.
+  // the attachment viewer, which name the conversation explicitly and reach its composer through
+  // the input-intent store instead.
   inputDispatch?: ConversationInputState['dispatch']
   message: T.Chat.Message
   meta: T.Chat.ConversationMeta
@@ -133,6 +134,11 @@ const useItemsForMessage = (p: {
     : []
 
   const setOrangeLine = React.useContext(SetOrangeLineContext)
+  // Both arms of this fork and the one in _onEdit below land in the same reducer in the same
+  // tick - a mounted provider consumes a store write synchronously - so neither is a shortcut.
+  // The fork is about scope: with a provider above us the dispatch is by construction the one for
+  // the thread we are rendered inside, which is a second line of defence against a storeless popup
+  // driving the wrong conversation's composer.
   const onReply = () => {
     if (inputDispatch) {
       inputDispatch.setReplyTo(ordinal)

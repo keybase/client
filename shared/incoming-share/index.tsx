@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {MobileSendToChat} from '../chat/send-to-chat'
-import {setInputIntent} from '@/chat/conversation/input-intent-store'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
 import {useRPCLoad} from '@/util/use-rpc-load'
@@ -103,10 +102,9 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
         },
       })
     } else {
-      if (text !== undefined) {
-        setInputIntent(selectedConversationIDKey, {text, type: 'injectText'})
-      }
-      C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
+      C.Router2.navigateToThread(selectedConversationIDKey, 'extension', {
+        intent: text === undefined ? undefined : {text, type: 'injectText'},
+      })
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 

@@ -6,7 +6,6 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
-import {setInputIntent} from '../conversation/input-intent-store'
 import {useCurrentUserState} from '@/stores/current-user'
 import {uploadAttachments} from '../conversation/attachment-actions'
 
@@ -37,10 +36,9 @@ export const MobileSendToChat = (props: Props) => {
       })
     } else {
       clearModals()
-      if (text !== undefined) {
-        setInputIntent(conversationIDKey, {text, type: 'injectText'})
-      }
-      C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files')
+      C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files', {
+        intent: text === undefined ? undefined : {text, type: 'injectText'},
+      })
     }
   }
   return <ConversationList {...props} onSelect={onSelect} />

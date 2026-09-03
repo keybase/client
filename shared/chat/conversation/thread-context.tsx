@@ -5,7 +5,6 @@ import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
 import {getVisibleScreen, navigateAppend, navigateToThread, navigateUp, setChatRootParams} from '@/constants/router'
 import {isPhone} from '@/constants/platform'
-import {setInputIntent} from './input-intent-store'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import {clearChatTimeCache} from '@/util/timestamp'
@@ -721,8 +720,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
 
       const text = formatTextForQuoting(message.text.stringValue())
       metasReceived([meta])
-      setInputIntent(newThreadCID, {text, type: 'injectText'})
-      navigateToThread(newThreadCID, 'createdMessagePrivately')
+      navigateToThread(newThreadCID, 'createdMessagePrivately', {intent: {text, type: 'injectText'}})
     }
     ignorePromise(f())
   })

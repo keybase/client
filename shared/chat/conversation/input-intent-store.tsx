@@ -9,8 +9,9 @@
 // An engine event that already exists should be handled by a useEngineActionListener in the
 // provider, filtered on id, the way chatCommandStatus and chatCommandMarkdown are - not here.
 //
-// commandStatus is delivered only if a provider is mounted, matching what its sibling
-// engine listener does; everything else waits in the map until a provider consumes it.
+// commandStatus is delivered only to a consumer that is registered for the conversation when it
+// is written, matching what its sibling engine listener does; everything else waits in the map
+// until a consumer takes it.
 //
 // Do not add composer state to this store. The composer's state lives in the reducer in
 // input-area/input-state.tsx; this only carries a one-shot instruction to it.
@@ -20,7 +21,7 @@ import logger from '@/logger'
 
 export type InputIntent =
   | {type: 'commandStatus'; info?: T.Chat.CommandStatusInfo}
-  | {type: 'injectText'; text?: string}
+  | {type: 'injectText'; text: string}
   | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
   | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
   | {type: 'highlight'; messageID: T.Chat.MessageID}
@@ -37,21 +38,63 @@ export const useInputIntentState = Z.createZustand<State>('inputIntent', () => (
   intents: new Map(),
 }))
 
+// Which consumers are mounted, as a fact the store is told rather than one it infers. The
+// alternative - "nobody consumed synchronously inside setState, so nothing is mounted" - cannot
+// tell an absent provider from a mounted one whose delivery is not synchronous, and a screen
+// frozen by enableFreeze (react-native-screens wraps every off-top screen in react-freeze) is
+// exactly that shape. A frozen provider is still mounted, so it stays registered and its intent
+// is still waiting for it on thaw, which is what the route-param channel used to give us.
+//
+// Deliberately not zustand state: nothing renders from it, and a subscriber must never see it
+// change. Entries are per mount, so the two providers a conversation can have are independent.
+type Consumer = {types: ReadonlyArray<InputIntent['type']>}
+const consumers = new Map<T.Chat.ConversationIDKey, Array<Consumer>>()
+
+// Only ConversationInputProvider registers today: it is the sole consumer of the one type whose
+// delivery is gated on a mount. ConversationCenterProvider claims 'highlight', which is durable,
+// so registering it would add an entry nothing ever asks about.
+export const registerInputIntentConsumer = <K extends InputIntent['type']>(
+  conversationIDKey: T.Chat.ConversationIDKey,
+  types: ReadonlyArray<K>
+) => {
+  // A fresh object per call, never `types` itself: two providers for one conversation pass the
+  // same module-level array, and identity is how an unregister finds its own entry.
+  const consumer: Consumer = {types}
+  const existing = consumers.get(conversationIDKey)
+  if (existing) {
+    existing.push(consumer)
+  } else {
+    consumers.set(conversationIDKey, [consumer])
+  }
+  return () => {
+    const current = consumers.get(conversationIDKey)
+    const index = current?.indexOf(consumer) ?? -1
+    if (!current || index === -1) {
+      return
+    }
+    current.splice(index, 1)
+    if (!current.length) {
+      consumers.delete(conversationIDKey)
+    }
+  }
+}
+
+const hasConsumerFor = (conversationIDKey: T.Chat.ConversationIDKey, type: InputIntent['type']) =>
+  !!consumers.get(conversationIDKey)?.some(c => c.types.includes(type))
+
 export const setInputIntent = (conversationIDKey: T.Chat.ConversationIDKey, intent: InputIntent) => {
+  // commandStatus mirrors its sibling engine event (the chatCommandStatus useEngineActionListener
+  // in input-state.tsx): with no consumer mounted there is nothing to give it context, and an
+  // error banner surfacing on some later, unrelated mount of this conversation is worse than no
+  // banner. The drop is a no-op and not a write-then-delete: the mailbox holds one intent per
+  // conversation, so writing first would make an unrelated durable intent collateral damage.
+  if (intent.type === 'commandStatus' && !hasConsumerFor(conversationIDKey, 'commandStatus')) {
+    logger.info(`[chat] dropped commandStatus input intent: no consumer mounted for ${conversationIDKey}`)
+    return
+  }
   useInputIntentState.setState(s => {
     s.intents.set(conversationIDKey, T.castDraft(intent))
   })
-  // commandStatus mirrors its sibling engine event (chatCommandStatus, handled in
-  // input-state.tsx:243-253): if nothing consumed it synchronously above, no provider is
-  // mounted for this conversation, so drop it rather than let it surface later with no
-  // context. subscribe listeners run synchronously inside zustand's setState, so a mounted
-  // provider has already consumed and deleted the entry by the time we get here.
-  if (intent.type === 'commandStatus' && useInputIntentState.getState().intents.has(conversationIDKey)) {
-    useInputIntentState.setState(s => {
-      s.intents.delete(conversationIDKey)
-    })
-    logger.error(`[chat] dropped commandStatus input intent: no provider mounted for ${conversationIDKey}`)
-  }
 }
 
 // Two providers can be mounted for the same conversation (the input provider, and

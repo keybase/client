@@ -5,6 +5,7 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
+import {Freeze} from 'react-freeze'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {setInputIntent, useInputIntentState} from '../input-intent-store'
@@ -649,4 +650,43 @@ test('setThreadInputCommandStatus is dropped when no provider is mounted', () =>
   const {result} = renderInput(convID)
 
   expect(result.current.commandStatus).toBeUndefined()
+})
+
+// The counterfactual to the test above: mounted-but-frozen is not unmounted. react-native-screens
+// freezes every screen that is not on top (DelayedFreeze -> react-freeze: a Suspense boundary
+// throwing a thenable that never settles), and the location popup is an opaque modal route, so the
+// thread underneath is frozen while it is up. Denying location permission writes a commandStatus
+// from that modal, and the composer's error banner has to be there when the modal closes.
+test('a commandStatus written while the provider is frozen is applied on thaw', () => {
+  const commandStatusInfo = {
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+    displayText: 'permission denied, thread frozen',
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+  }
+  let inputState: ConversationInputState | undefined
+  const tree = (freeze: boolean) => (
+    <ConversationThreadProvider id={convID}>
+      <Freeze freeze={freeze}>
+        <ConversationInputProvider id={convID}>
+          <InputStateProbe onState={state => (inputState = state)} />
+        </ConversationInputProvider>
+      </Freeze>
+    </ConversationThreadProvider>
+  )
+
+  const {rerender} = render(tree(false))
+  act(() => {
+    rerender(tree(true))
+  })
+  // frozen: the provider renders nothing and its layout effects are torn down
+  expect(inputState?.commandStatus).toBeUndefined()
+
+  act(() => {
+    setThreadInputCommandStatus(convID, commandStatusInfo)
+  })
+  act(() => {
+    rerender(tree(false))
+  })
+
+  expect(inputState?.commandStatus).toEqual(commandStatusInfo)
 })

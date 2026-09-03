@@ -50,10 +50,17 @@ const realConvID = 'ff00ff00' as T.Chat.ConversationIDKey
 // its 'state' listener and clear it; this stub's listener never fires), so a later test in this
 // file reusing `realConvID` with an equal-shaped params object would be silently caught by that
 // leftover cache instead of by the code under test. A conv id used nowhere else sidesteps that.
+//
+// Not laziness: there is no reset to put in beforeEach. `_pendingAppend` is module-private and
+// unexported, and jest.resetModules() would hand each test a fresh copy of constants/router with
+// its own `navigationRef`, so the stub installed by setRootRoutes would no longer be the one the
+// code under test reads. Distinct ids are the only lever from outside the module.
 const deepLinkConvID = 'aa11aa11' as T.Chat.ConversationIDKey
 const deepLinkConvID2 = 'bb22bb22' as T.Chat.ConversationIDKey
 const optionsConvID = 'cc33cc33' as T.Chat.ConversationIDKey
 const optionsConvID2 = 'dd44dd44' as T.Chat.ConversationIDKey
+const optionsConvID3 = 'ee55ee55' as T.Chat.ConversationIDKey
+const optionsConvID4 = 'ff66ff66' as T.Chat.ConversationIDKey
 
 beforeEach(() => {
   dispatch.mockReset()
@@ -196,6 +203,30 @@ test('an aborted navigation writes no intent', () => {
 
   expect(dispatch).not.toHaveBeenCalled()
   expect(useInputIntentState.getState().intents.size).toBe(0)
+})
+
+// The prefill callers - send-to-chat, incoming-share, attachment-get-titles and the two
+// reply-privately paths - hand their text to this option instead of writing the bus themselves,
+// so that the write-before-navigate ordering is owned here rather than honoured by convention in
+// five places. A caller whose text is optional passes undefined rather than skipping the nav.
+test('an injectText intent is written before navigating, and an undefined one writes nothing', () => {
+  setRootRoutes([loggedIn])
+  const order: Array<string> = []
+  dispatch.mockImplementation(() => {
+    order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID3))}`)
+  })
+
+  navigateToThread(optionsConvID3, 'justCreated', {intent: {text: 'prefill me', type: 'injectText'}})
+
+  expect(order).toEqual(['intent:true'])
+  expect(useInputIntentState.getState().intents.get(optionsConvID3)).toEqual({
+    text: 'prefill me',
+    type: 'injectText',
+  })
+
+  navigateToThread(optionsConvID4, 'justCreated', {intent: undefined})
+
+  expect(useInputIntentState.getState().intents.has(optionsConvID4)).toBe(false)
 })
 
 test('no options writes no intent', () => {

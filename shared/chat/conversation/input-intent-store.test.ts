@@ -2,14 +2,31 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import logger from '@/logger'
-import {consumeInputIntent, setInputIntent, useInputIntentState} from './input-intent-store'
+import {
+  consumeInputIntent,
+  registerInputIntentConsumer,
+  setInputIntent,
+  useInputIntentState,
+} from './input-intent-store'
 
 const convX = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convY = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
 const inputProviderTypes = ['injectText', 'setEditing', 'setReplyTo', 'commandStatus'] as const
 
+// The consumer registry is module state a provider owns for the life of its mount, so
+// resetAllStores does not touch it. Nothing here mounts a provider, so unwind by hand.
+const registrations = new Array<() => void>()
+const register = (
+  ...args: Parameters<typeof registerInputIntentConsumer<(typeof inputProviderTypes)[number]>>
+) => {
+  const unregister = registerInputIntentConsumer(...args)
+  registrations.push(unregister)
+  return unregister
+}
+
 afterEach(() => {
+  registrations.splice(0).forEach(unregister => unregister())
   resetAllStores()
   jest.restoreAllMocks()
 })
@@ -51,25 +68,65 @@ test('last write wins', () => {
   expect(consumeInputIntent(convX, inputProviderTypes)).toEqual({type: 'setEditing', ordinal: ordinal2})
 })
 
-test('commandStatus drops with no subscriber', () => {
+test('commandStatus drops with no consumer registered', () => {
+  jest.spyOn(logger, 'info').mockImplementation(() => {})
   jest.spyOn(logger, 'error').mockImplementation(() => {})
   setInputIntent(convX, {type: 'commandStatus', info: undefined})
   expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
-  expect(logger.error).toHaveBeenCalled()
+  expect(logger.info).toHaveBeenCalled()
+  // an ordinary outcome of writing to a conversation nobody has open, not a fault
+  expect(logger.error).not.toHaveBeenCalled()
 })
 
-test('commandStatus delivers with a subscriber', () => {
+// The freeze case, at the store's own level: a registered consumer that does NOT consume during
+// the write still keeps its commandStatus. Delivery is not what proves a consumer is mounted -
+// registration is - so a provider whose delivery is deferred does not lose the intent.
+test('commandStatus is kept for a registered consumer that consumes nothing synchronously', () => {
   jest.spyOn(logger, 'error').mockImplementation(() => {})
-  let delivered: unknown
-  const unsubscribe = useInputIntentState.subscribe(state => {
-    if (state.intents.has(convX)) {
-      delivered = consumeInputIntent(convX, inputProviderTypes)
-    }
-  })
+  register(convX, inputProviderTypes)
   setInputIntent(convX, {type: 'commandStatus', info: undefined})
-  unsubscribe()
-  expect(delivered).toEqual({type: 'commandStatus', info: undefined})
+  expect(consumeInputIntent(convX, inputProviderTypes)).toEqual({type: 'commandStatus', info: undefined})
   expect(logger.error).not.toHaveBeenCalled()
+})
+
+test('unregistering a consumer restores the drop', () => {
+  jest.spyOn(logger, 'info').mockImplementation(() => {})
+  register(convX, inputProviderTypes)()
+  setInputIntent(convX, {type: 'commandStatus', info: undefined})
+  expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
+})
+
+test('one of two consumers unmounting leaves the conversation registered', () => {
+  const first = register(convX, inputProviderTypes)
+  register(convX, inputProviderTypes)
+  first()
+  setInputIntent(convX, {type: 'commandStatus', info: undefined})
+  expect(useInputIntentState.getState().intents.has(convX)).toBe(true)
+})
+
+test('a consumer registered for another conversation does not make this one deliverable', () => {
+  jest.spyOn(logger, 'info').mockImplementation(() => {})
+  register(convY, inputProviderTypes)
+  setInputIntent(convX, {type: 'commandStatus', info: undefined})
+  expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
+})
+
+// A consumer only makes deliverable the types it claims, the same split consumeInputIntent
+// enforces: ConversationCenterProvider being mounted must not vouch for the composer.
+test('a consumer that does not claim commandStatus does not make it deliverable', () => {
+  jest.spyOn(logger, 'info').mockImplementation(() => {})
+  registrations.push(registerInputIntentConsumer(convX, ['highlight']))
+  setInputIntent(convX, {type: 'commandStatus', info: undefined})
+  expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
+})
+
+// The mailbox holds one intent per conversation, so a drop that wrote first and deleted after
+// took an unrelated durable intent down with it. A drop has to be a no-op.
+test('a dropped commandStatus leaves a pending intent alone', () => {
+  jest.spyOn(logger, 'info').mockImplementation(() => {})
+  setInputIntent(convX, {type: 'injectText', text: 'still here'})
+  setInputIntent(convX, {type: 'commandStatus', info: undefined})
+  expect(consumeInputIntent(convX, inputProviderTypes)).toEqual({type: 'injectText', text: 'still here'})
 })
 
 test('durable intents survive no subscriber', () => {

@@ -6,7 +6,12 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
-import {useInputIntentState, consumeInputIntent, type InputIntent} from '../input-intent-store'
+import {
+  consumeInputIntent,
+  registerInputIntentConsumer,
+  useInputIntentState,
+  type InputIntent,
+} from '../input-intent-store'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
@@ -169,10 +174,17 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       ordinal = e
     }
 
-    // Both bails leave the composer exactly as it was, so from the message menu they read as
-    // "Edit did nothing". Say which one happened; there is no other signal that it did.
+    // A bail leaves the composer exactly as it was, so from the message menu it reads as "Edit
+    // did nothing" and there is no other signal that it happened - worth an error. 'last' is the
+    // desktop composer's up-arrow handler, though: pressing up in a conversation you have never
+    // posted in finds nothing to edit, which is an ordinary outcome and not a fault to report at
+    // error level, into remote logs, on every keystroke.
     if (!ordinal) {
-      logger.error(`[chat] setEditing found no editable message (${e === 'last' ? 'last' : 'ordinal'})`)
+      if (e === 'last') {
+        logger.info('[chat] setEditing found no editable message of yours (last)')
+      } else {
+        logger.error('[chat] setEditing found no editable message (ordinal)')
+      }
       return
     }
     const message = messageMap.get(ordinal)
@@ -241,6 +253,10 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       }
     }
   )
+  // Registration is what makes this provider's mount a fact the store can check, and it rides a
+  // passive effect on purpose: a react-freeze freeze (react-native-screens' DelayedFreeze) tears
+  // down layout effects and leaves passive ones alone, so a frozen thread stays registered and a
+  // commandStatus written while a modal covers it is still waiting when the screen thaws.
   React.useEffect(() => {
     const consume = () => {
       const intent = consumeInputIntent(id, storeInputIntentTypes)
@@ -248,8 +264,13 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
         applyInputAction(intent)
       }
     }
+    const unregister = registerInputIntentConsumer(id, storeInputIntentTypes)
     consume()
-    return useInputIntentState.subscribe(consume)
+    const unsubscribe = useInputIntentState.subscribe(consume)
+    return () => {
+      unsubscribe()
+      unregister()
+    }
   }, [id])
 
   useEngineActionListener('chat.1.chatUi.chatCommandStatus', action => {
@@ -297,9 +318,14 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
 
 // For callers that may or may not sit inside the provider — the message popup is rendered inline
 // in the thread on desktop but as its own modal route on phones, and from the info panel and the
-// attachment viewer it is outside the thread entirely. Inside, talk to the store directly; outside,
-// setThreadInputEditing/setThreadInputReplyTo (constants/router.tsx) reach across the screen
-// boundary through the input-intent store instead.
+// attachment viewer it is outside the thread entirely.
+//
+// Both paths end in the same reducer in the same tick: a mounted provider consumes an intent
+// synchronously inside the store's setState, so this is not a fast path against a slow one. What
+// the context gives you is scope - the dispatch belongs to the thread you are actually rendered
+// inside, so a popup cannot drive some other conversation's composer. Callers with no provider
+// above them name the conversation explicitly instead, through setThreadInputEditing /
+// setThreadInputReplyTo (constants/router.tsx) and the input-intent store.
 export function useConversationInputDispatchOptional(): ConversationInputDispatch | undefined {
   return React.useContext(DispatchContext)
 }
