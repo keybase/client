@@ -61,7 +61,7 @@ export const setInputIntent = (conversationIDKey: T.Chat.ConversationIDKey, inte
 export const consumeInputIntent = (
   conversationIDKey: T.Chat.ConversationIDKey,
   types: ReadonlyArray<InputIntent['type']>
-): InputIntent | undefined => {
+): T.Immutable<InputIntent> | undefined => {
   const intent = useInputIntentState.getState().intents.get(conversationIDKey)
   if (!intent || !types.includes(intent.type)) {
     return undefined
@@ -69,5 +69,5 @@ export const consumeInputIntent = (
   useInputIntentState.setState(s => {
     s.intents.delete(conversationIDKey)
   })
-  return T.castDraft(intent)
+  return intent
 }
